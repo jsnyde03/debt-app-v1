@@ -4,7 +4,7 @@ import { FormSheet } from '@/components/ui/FormSheet';
 import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import type { LivingExpense } from '@/data/models';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { confirmDelete } from '@/utils/confirm';
 
@@ -14,6 +14,10 @@ import { confirmDelete } from '@/utils/confirm';
  * each paycheck without deleting the item.
  */
 export function LivingExpenseSheet({ editing, onClose }: { editing: LivingExpense | null; onClose: () => void }) {
+  // [R4] The store this subtree resolves to. Not in R4's original site table — the demo reaches
+  // Everyday spending through Money, so this sheet writes real data from inside a demo exactly as
+  // `ExpenseSheet` did.
+  const store_ = useActiveStore();
   const isEdit = !!editing;
   const [name, setName] = useState(editing?.name ?? '');
   const [amount, setAmount] = useState(editing ? String(editing.amount) : '');
@@ -28,8 +32,8 @@ export function LivingExpenseSheet({ editing, onClose }: { editing: LivingExpens
     if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
     if (!amount || Number(amount) <= 0) return setError(FORM_ERRORS.amountPositive);
     const fields = { name: name.trim(), amount: Number(amount), enabled };
-    if (isEdit && editing) appStore.getState().updateLivingExpense(editing.id, fields);
-    else appStore.getState().addLivingExpense({ id: `living-${Date.now()}`, ...fields });
+    if (isEdit && editing) store_.getState().updateLivingExpense(editing.id, fields);
+    else store_.getState().addLivingExpense({ id: `living-${Date.now()}`, ...fields });
     onClose();
   }
   // 3.5.6b — confirms, like every other delete path. See `DebtSheet.remove` for why the direct action
@@ -37,7 +41,7 @@ export function LivingExpenseSheet({ editing, onClose }: { editing: LivingExpens
   async function remove() {
     if (!editing) return;
     if (!(await confirmDelete(`Delete ${editing.name}?`))) return;
-    appStore.getState().removeLivingExpense(editing.id);
+    store_.getState().removeLivingExpense(editing.id);
     onClose();
   }
 

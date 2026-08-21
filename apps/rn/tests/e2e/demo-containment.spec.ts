@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { day, scenario, seedStore } from './helpers/seed';
 
 /**
  * 3.5.4.1 — the demo seam, and [D18]'s containment, asserted where it is real.
@@ -445,4 +445,111 @@ test('a user with no plan still sees "Start my real plan"', async ({ page }) => 
   const exit = page.getByTestId('demo-explore-exit').first();
   await expect(exit).toBeVisible({ timeout: 15_000 });
   await expect(exit).toHaveText('Start my real plan');
+});
+
+/**
+ * ⛔ **[R4] THE WRITE HALF — the 14 tests above assert NAVIGATION containment and none of them asserted
+ * this, which is how the demo shipped writing to the user's real plan.**
+ *
+ * Found by Sentry from TestFlight on a real device: a user edited an expense inside the demo and the
+ * write landed on their own plan. Every containment spec passed the whole time, because "the real store
+ * is untouched" was only ever checked on a run where nothing had TRIED to touch it — the fixtures drove
+ * the demo and looked at the plan, but never drove an EDIT.
+ *
+ * ⚡ The seed is deliberately an ONBOARDED user with real money in it. That is the severity: the paywall's
+ * "See it in action" is reached mostly by people who already have a plan to corrupt, and the pre-purchase
+ * audience the earlier specs use has nothing to lose by construction — the one shape that cannot fail.
+ */
+const ONBOARDED_WITH_MONEY = scenario({
+  prefs: { onboardingComplete: true },
+  requiredExpenses: [{ id: 'real-bill', name: 'Rent', amount: 350, dueDate: day(7), recurrence: 'monthly', category: 'housing' }],
+  // ⛔ A STALE read-freshness stamp, and it is the load-bearing half of the fixture. Sandbox entity ids
+  // are `sbx-`-prefixed and real ones are not, so a leaked `updateExpense` matches nothing and every
+  // VALUE survives — the damage is `stampInputsFresh`, which re-stamps this to today and makes a
+  // 45-day-old estimate read as freshly confirmed. Measured: with the defect planted back, a version of
+  // this test that checked only ids and amounts passed. Without a stale stamp there is nothing to move.
+  inputsAsOf: day(-45),
+});
+
+/**
+ * The user's real plan, as persisted — the only copy that outlives the demo.
+ *
+ * ⛔ **Waits out the save debounce FIRST, and that is not politeness.** Persistence writes 500 ms after a
+ * change (`SAVE_DEBOUNCE_MS`), so reading immediately after a tap reads the blob as it was BEFORE the
+ * leak landed. Measured, not reasoned: with the defect planted back in `ExpenseSheet`, both of these
+ * tests passed — a leak was written to the real store and the assertion looked at a stale copy. A test
+ * that cannot see the bug it was written for is worse than no test, and this one had already claimed the
+ * scalp.
+ *
+ * ⚠️ 1500 ms is 3× the debounce rather than a duplicate of it. It is a floor to out-wait, not a value to
+ * agree with, so drift in the real constant makes this more generous rather than silently wrong.
+ */
+async function realPlan(page: import('@playwright/test').Page): Promise<Record<string, any>> {
+  await page.waitForTimeout(1500);
+  const raw = await page.evaluate(() => window.localStorage.getItem('debtPlanner.rnStore'));
+  return JSON.parse(raw ?? '{}');
+}
+
+test('[R4] EDITING A BILL inside the demo does not touch the real plan', async ({ page }) => {
+  await seedStore(page, ONBOARDED_WITH_MONEY);
+  await page.goto('/paywall');
+
+  // The door R4 names: an onboarded user, entering from the paywall.
+  // ⚠️ `visibleMarkers`, not `.first()` — entering from the paywall leaves TWO marker nodes in the
+  // document and one visible (the route beneath is still mounted), and `.first()` resolves to the hidden
+  // one. The helper above already measured and documented this; it is the reason it exists.
+  await page.getByText('See it in action').click();
+  await expect(page).toHaveURL(/money/, { timeout: 15_000 });
+  await expect.poll(() => visibleMarkers(page), { timeout: 15_000 }).toBe(1);
+
+  // ⚠️ Money opens on DEBTS. The section toggle is not decoration here — without it the bill list is not
+  // mounted at all, and `getByText('Utilities')` waits out the whole timeout on a screen that was never
+  // going to show it.
+  await page.getByText('Expenses', { exact: true }).first().click();
+
+  // A persona bill, not the user's own — `Utilities` exists only in the sandbox (`BILL_MIX`), so tapping
+  // it proves the screen is reading scripted money before the edit is even attempted.
+  await page.getByText('Utilities', { exact: true }).first().click();
+  const amount = page.getByLabel('Amount', { exact: true }).first();
+  await expect(amount).toBeVisible({ timeout: 10_000 });
+  await amount.fill('999');
+  await page.getByText('Save', { exact: true }).first().click();
+
+  // ⛔ THE ASSERTION THE OLD SUITE WAS MISSING. The write had somewhere to land — the user has a real
+  // `requiredExpenses` array — and it must not have landed there.
+  const plan = await realPlan(page);
+  expect(plan.requiredExpenses).toHaveLength(1);
+  expect(plan.requiredExpenses[0].id).toBe('real-bill');
+  expect(plan.requiredExpenses[0].amount).toBe(350);
+  // ⛔ THE ASSERTION THAT ACTUALLY CATCHES THIS ONE. "No id matched, so no harm done" is false: every
+  // expense mutator runs `stampInputsFresh`, so a leak silently declares the user's 45-day-old figures
+  // confirmed-as-of-today — a staleness hedge the app would have shown them, gone.
+  expect(plan.inputsAsOf).toBe(day(-45));
+  // ⚠️ And nothing was APPENDED. `addExpense` is unconditional — an id that matches nothing still lands,
+  // so a leak here shows up as growth rather than as a changed value.
+  expect(plan.requiredExpenses.map((e: { id: string }) => e.id)).not.toContain('sbx-bill-0');
+});
+
+test('[R4] ADDING a bill inside the demo does not append to the real plan', async ({ page }) => {
+  await seedStore(page, ONBOARDED_WITH_MONEY);
+  await page.goto('/demo');
+  await expect(page.getByTestId('example-canvas-marker').first()).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId('tab-money').click();
+  await expect(page).toHaveURL(/money/, { timeout: 10_000 });
+
+  const before = (await realPlan(page)).requiredExpenses.length;
+  expect(before).toBe(1);
+
+  // `addExpense` was the worst half of the defect: `updateExpense`/`removeExpense` key on an id the real
+  // plan does not have (sandbox ids are `sbx-`-prefixed), but an ADD appends whatever it is handed — so a
+  // demo could permanently plant scripted money in a real plan, and no id check would have caught it.
+  await page.getByTestId('money-add').first().click();
+  await page.getByTestId('add-choice-expense').click();
+  await page.getByLabel('Name', { exact: true }).first().fill('Demo leak');
+  await page.getByLabel('Amount', { exact: true }).first().fill('12');
+  await page.getByText('Add expense', { exact: true }).first().click();
+
+  const plan = await realPlan(page);
+  expect(plan.requiredExpenses).toHaveLength(before);
+  expect(JSON.stringify(plan)).not.toContain('Demo leak');
 });

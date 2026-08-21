@@ -10,7 +10,7 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { RequiredExpense, RequiredExpenseCategory } from '@/data/models';
 import { billCategoryOptions, FORM_ERRORS, recurrenceOptions } from '@/store/obligationForm';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { confirmDelete } from '@/utils/confirm';
 // [T8 · L2-5] the definition of an expense has ONE owner — the chooser that teaches it.
 import { OBLIGATION_CLAUSE } from '@/components/entities/AddObligationSheet';
@@ -22,6 +22,11 @@ const CATEGORY = billCategoryOptions();
 
 /** Unified add/edit sheet for a required bill (one form, both modes). */
 export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | null; onClose: () => void }) {
+  // [R4] Write to the store this subtree resolves to — the sandbox under a demo/walkthrough, the real
+  // singleton otherwise. This sheet wrote through `appStore` while reading through the context, which is
+  // the exact mix `useAppStore`'s docstring forbids: it edited an expense inside the demo and the write
+  // landed on the user's real plan (found by Sentry from TestFlight).
+  const store_ = useActiveStore();
   const isEdit = !!editing;
   const [name, setName] = useState(editing?.name ?? '');
   const [amount, setAmount] = useState(editing ? String(editing.amount) : '');
@@ -64,8 +69,8 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       fullAmount: trial ? Number(fullAmount) : undefined,
       fullChargeDate: trial ? fullChargeDate : undefined,
     };
-    if (isEdit && editing) appStore.getState().updateExpense(editing.id, fields);
-    else appStore.getState().addExpense({ id: `expense-${Date.now()}`, isPaidThisCycle: false, ...fields });
+    if (isEdit && editing) store_.getState().updateExpense(editing.id, fields);
+    else store_.getState().addExpense({ id: `expense-${Date.now()}`, isPaidThisCycle: false, ...fields });
     onClose();
   }
   // 3.5.6b — confirms, like every other delete path. See `DebtSheet.remove` for why the direct action
@@ -73,7 +78,7 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
   async function remove() {
     if (!editing) return;
     if (!(await confirmDelete(`Delete ${editing.name}?`))) return;
-    appStore.getState().removeExpense(editing.id);
+    store_.getState().removeExpense(editing.id);
     onClose();
   }
 

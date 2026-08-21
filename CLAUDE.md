@@ -57,23 +57,30 @@ surfaces ship on unit assertions with **no rendered proof**) · 44 baselined han
 `formatDisplayAmount` · `projectForecast` · `buildSmartInsights` all have live ROOT-tree consumers, so they
 must be deleted **with** that tree or P6.11 leaves four unreachable modules behind.
 
-▶ **PICK UP HERE (2026-08-21).** 🔴 **START WITH R4 — A SHIP-BLOCKER, decomposed R4.1–.6 at the top of the
-plan.** ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 closed.
+▶ **PICK UP HERE (2026-08-21).** ▶ **P6.7 (CI / Pages ops) is ACTIVE**, decomposed P6.7.1–.5 at the top of
+the plan; it carries **[D49]**, the stale-gate guard. ⚠️ It was authored 2026-08-20 and displaced the same
+day — **verify its premises against the tree before acting.** ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 · **R4**
+closed.
 
-🔴 **R4 — THE DEMO WRITES TO THE REAL STORE.** Found by **Sentry, from TestFlight, on 🎯's device**:
-*"Real store mutated while a sandbox subtree was mounted"* — he edited an expense inside the demo and the
-write went to his real plan. ⚡ **`_layout.tsx:256` wraps the WHOLE app in the sandbox provider during a
-demo and `useAppStore` reads through it**, so a component reads scripted money and — writing via
-`appStore.getState()` — mutates the real plan. **`useAppStore`'s own docstring warns of exactly this**, at
-the top of every file that does it. ⛔ **The guard REPORTS, it does not BLOCK** (`StoreContext.tsx:143`
-fires from a `subscribe`, after the write lands). ⛔ **`DebtSheet` was converted to `useActiveStore`;
-`ExpenseSheet` and `GoalSheet` were not** — a class closed at some of its members. ⛔ **`demo-containment.
-spec.ts` has 14 passing tests that assert NAVIGATION containment and none that assert WRITE containment.**
-✅ 🎯's store was test data, so nothing is owed to him — **that is luck about whose device Sentry reached,
-not a property of the defect.** The paywall sends onboarded users through that door.
+✅ **R4 CLOSED 2026-08-21 — the demo wrote to the real store, and now it cannot.** Found by **Sentry, from
+TestFlight, on 🎯's device**: he edited an expense inside the demo and the write went to his real plan.
+⚡ **The fix is a VETO, not a better warning:** `createDebtStore` takes `opts.refuse` on the same `set`
+seam as `opts.bound`, so a forbidden write is **dropped before it lands** and an action added later is
+covered without anyone remembering. 15 sites converted · 4 background writers **declared**
+(`allowRealStoreWrite` — under refusal an undeclared write is *dropped*, not merely reported) ·
+**`lint:sandbox`** gates the 23 files allowed to import the singleton.
 
-⏸ **P6.7 (CI / Pages ops) was the active build and is DISPLACED, not dropped** — decomposition parked in
-the log. It carries **[D49]**, the stale-gate guard.
+⛔ **What R4 measured, and it generalises past this item:**
+- **The finding's own site table was 4 of 6** — `LivingExpenseSheet` and `LogPaymentSheet` missed. **Sixth
+  consecutive item where an enumeration came up short**, on the item written to warn about exactly that.
+- **A test can pass against the bug it was written for.** Two false greens, both caught by planting: the
+  first read `localStorage` **inside the 500 ms save debounce**; the second asserted ids and amounts,
+  which **survive a leak intact** because sandbox ids are `sbx-`-prefixed and collide with nothing. The
+  damage was `stampInputsFresh` re-stamping read-freshness. The fixture now seeds a **stale** stamp.
+- **A plant can lie.** The first one left a dangling `store_`, crashed the component, and turned both
+  tests red for the wrong reason — proof-shaped and worthless.
+- ⚡ **The guard reported for months and was reviewed by a 117-finding audit.** *Ask of every guard in this
+  repo whether it PREVENTS or merely DESCRIBES* — filed to the backlog, aimed at P6.9.
 
 ✅ **NOTHING IS BLOCKED ON A DEVICE (🎯 2026-08-21).** Cloud backup is **verified on hardware** — iCloud rows
 2–6 including the clobber guard — so **P6.3 is closed** and the app is not frozen on it. Work proceeds on

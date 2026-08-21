@@ -195,23 +195,40 @@ const recKey = (a: CompletedRecommendedAction) => `${a.category}:${a.targetId}:$
  * bounds so no sequence of scripted actions can reach a matured Guardian a day-one user couldn't have.
  * Enforcing it here rather than at the call sites is what makes the bound hold "by construction" — an
  * action added later is covered without anyone remembering to clamp it. See `sandboxStore.ts`.
+ *
+ * `opts.refuse` [R4] is a VETO on `store` mutations, consulted on every action before the write lands.
+ * Only the real singleton passes one (`realWriteGuard.refuseRealStoreWrite`), and it drops any write to
+ * the user's plan made while a sandbox subtree is on screen. It sits HERE, in the same wrapper as
+ * `bound`, for the same reason: an action added later is covered without anyone remembering — which is
+ * precisely what the reporting backstop it replaces could not do, because it ran after the fact.
  */
-export function createDebtStore(opts?: { now?: () => string; bound?: (store: DebtStore) => DebtStore }) {
+export function createDebtStore(opts?: {
+  now?: () => string;
+  bound?: (store: DebtStore) => DebtStore;
+  refuse?: (prev: DebtStore, next: DebtStore) => boolean;
+}) {
   // Named `clock`, not `now` — several actions already bind a local `now` to the store's own
   // `paycheck.currentDate`, which is a different notion of "today" (see the drift.ts note).
   const clock = opts?.now ?? todayLocalISO;
   const bound = opts?.bound;
+  const refuse = opts?.refuse;
   return createStore<DebtAppState>((rawSet, get) => {
     // Wrap the actions' `set` so the bound runs inside the SAME update (one render, no correction
     // flash). `api.setState` is deliberately left unwrapped — external seeding goes through
     // `seedSandbox`, which applies the same bound itself.
-    const set: typeof rawSet = !bound
+    //
+    // [R4] `refuse` runs in the same wrapper, AFTER `bound` — the veto must judge the value that would
+    // actually land, not the pre-clamp one. Returning the state unchanged is how a `set` is dropped:
+    // zustand compares by reference, so no subscriber is notified and nothing re-renders.
+    const set: typeof rawSet = !bound && !refuse
       ? rawSet
       : ((partial: unknown, replace?: boolean) =>
           (rawSet as (p: unknown, r?: boolean) => void)((state: DebtAppState) => {
             const next = typeof partial === 'function' ? (partial as (s: DebtAppState) => unknown)(state) : partial;
-            const patch = next as Partial<DebtAppState> | null;
-            return patch && patch.store ? { ...patch, store: bound(patch.store) } : patch;
+            let patch = next as Partial<DebtAppState> | null;
+            if (bound && patch && patch.store) patch = { ...patch, store: bound(patch.store) };
+            if (refuse && patch && patch.store && refuse(state.store, patch.store)) return state;
+            return patch;
           }, replace)) as typeof rawSet;
 
     return {

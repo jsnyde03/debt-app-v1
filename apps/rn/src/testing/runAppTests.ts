@@ -114,6 +114,11 @@ async function main() {
   // store. The failure mode is a tutorial silently editing real money, so it gets an explicit assert.
   await import('../store/storeContext.test');
 
+  // [R4] …and the half that rewire never had: the real store must REFUSE a write while a sandbox is
+  // mounted, not report one after it lands. The reporting version shipped, and a user's real plan was
+  // edited from inside the demo before Sentry described it.
+  await import('../store/realWriteGuard.test');
+
   // 3.5.5.3 — a coach-mark is offered ONCE, and every failure here is silent: nobody reports a hint
   // they never saw, or one that came back. The two session fences (walkthrough, demo) are pinned too —
   // the demo one also keeps a sandbox from writing to the real store.

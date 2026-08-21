@@ -4,6 +4,7 @@ import { cancelAllNotifications, cancelRiskNotification, scheduleRiskNotificatio
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaydayGuardian, selectRiskNotification } from '@/store/guardianSelectors';
 import { appStore } from '@/store/appStore';
+import { allowRealStoreWrite } from '@/store/realWriteGuard';
 import { useAppStore } from '@/store/useAppStore';
 
 /** Paycheck-eve, 8pm the night before payday — when the Guardian risk heads-up should land. */
@@ -60,7 +61,11 @@ export function useNotificationSync(): void {
     const decision = selectRiskNotification(engineStore, now);
     if (decision.fire) {
       void scheduleRiskNotification(paycheckEve(nextPaycheckDate)).then((scheduled) => {
-        if (scheduled) appStore.getState().applyRiskNotified(nextPaycheckDate, decision.level, now);
+        // [R4] Declared. The heads-up is scheduled off a promise and the bookkeeping that records it
+        // must land, whatever is on screen when it resolves — an undeclared write is now DROPPED, and a
+        // dropped `applyRiskNotified` re-fires the same notification on the next evaluation.
+        if (scheduled)
+          allowRealStoreWrite(() => appStore.getState().applyRiskNotified(nextPaycheckDate, decision.level, now));
       });
     } else if (band === 'clear') {
       // Reconciled to clear before it fired — pull the pending heads-up (never cry wolf).

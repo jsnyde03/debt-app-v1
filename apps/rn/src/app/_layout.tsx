@@ -14,7 +14,8 @@ import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
 import { getCloudBackupProvider } from '@/storage/cloudBackup';
 import { backupToCloud, isOnboarded, restoreFromCloud, shouldAutoBackup } from '@/storage/cloudBackup/service';
-import { allowRealStoreWrite, StoreProvider } from '@/store/StoreContext';
+import { allowRealStoreWrite } from '@/store/realWriteGuard';
+import { StoreProvider } from '@/store/StoreContext';
 import { appStore } from '@/store/appStore';
 import { demoSession } from '@/store/demoSession';
 import { startWidgetSync } from '@/widget/widgetSync';
@@ -119,7 +120,10 @@ function RootLayout() {
       // web/Android and when the OS/user has Live Activities off.
       startLiveActivitySync();
       // 3.5.3.5 — apply anything a "Payday landed" AppIntent queued while the app was closed. No-op on web.
-      drainPendingActions();
+      // [R4] Declared, like its return-to-foreground twin below. This one resolves off a promise, so its
+      // timing is not ours to reason about — and an undeclared real write is now DROPPED rather than
+      // merely reported, which would silently discard a queued payday roll.
+      allowRealStoreWrite(() => drainPendingActions());
       // VIS-6 — register the interactive-notification action categories (no-op web/Android-less).
       void registerNotificationCategories();
     });
@@ -195,7 +199,10 @@ function RootLayout() {
         'There is a backup of your plan in your iCloud account. Restore it to this device?',
         {
           label: 'Restore',
-          onPress: () => appStore.getState().importStore(result.store),
+          // [R4] Declared. This offer is made only to a NOT-YET-ONBOARDED store, which is exactly the
+          // audience [D18] admits into the demo — so the Alert can land while a sandbox is mounted, and
+          // an undeclared restore would now be refused outright.
+          onPress: () => allowRealStoreWrite(() => appStore.getState().importStore(result.store)),
           // ⛔ See `declinedRestore` above — declining has to be REMEMBERED, or backgrounding the app
           // overwrites the very backup they chose to keep.
           onDismiss: () => {

@@ -8,7 +8,7 @@ import { AnimatedSheet } from '@/components/ui/AnimatedSheet';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import type { Debt } from '@/data/models';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { spacing } from '@/theme/spacing';
 
 /**
@@ -17,6 +17,9 @@ import { spacing } from '@/theme/spacing';
  * its verified date, and the Undo card lands on Today. Overpaying clears the debt to $0 (clamped).
  */
 export function LogPaymentSheet({ debt, onClose }: { debt: Debt; onClose: () => void }) {
+  // [R4] The store this subtree resolves to. Not in R4's original site table — the demo's Money tab
+  // offers "Log payment" on every persona debt, so this wrote a real payment against a scripted balance.
+  const store_ = useActiveStore();
   const [amount, setAmount] = useState('');
   const parsed = Number.parseFloat(amount);
   const valid = Number.isFinite(parsed) && parsed > 0;
@@ -24,7 +27,7 @@ export function LogPaymentSheet({ debt, onClose }: { debt: Debt; onClose: () => 
 
   const submit = () => {
     if (!valid) return;
-    appStore.getState().logManualPayment(debt.id, parsed);
+    store_.getState().logManualPayment(debt.id, parsed);
     onClose();
   };
 

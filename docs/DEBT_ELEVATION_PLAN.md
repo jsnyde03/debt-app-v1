@@ -14,7 +14,7 @@
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅ · the **whole-app audit gate** ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED** — the migration is verified on a live device and the cutover is **conditionally approved**. **Phase 6 is everything that remains**, and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — **210 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · **`lint:apostrophes`** · `lint:closure` · **`lint:secrets`** *(the repo is PUBLIC — credentials live in the Codemagic env group, never the tree)*; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. **Last RUN 2026-08-20 at P6.4.7 — locally on this tree, exit 0, read directly: 210 e2e · 10 embed · zero `error-context.md`.** ⚠️ It took THREE red cycles to get there and every red was mine — an orphaned binding, a [D17] comment violation, and two specs pinning a retired string. **`apps/rn` lint now runs `--max-warnings=0`** (🎯: lint clean before launch), mutation-verified. |
+| **Gate** | `validate:release:rn` — **210 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · **`lint:apostrophes`** · `lint:closure` · **`lint:secrets`** *(the repo is PUBLIC — credentials live in the Codemagic env group, never the tree)*; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. **Last RUN 2026-08-21 at R4.6 — locally on this tree, exit 0, read directly: 212 e2e · 10 embed.** ⚠️ It took THREE red cycles to get there and every red was mine — an orphaned binding, a [D17] comment violation, and two specs pinning a retired string. **`apps/rn` lint now runs `--max-warnings=0`** (🎯: lint clean before launch), mutation-verified. |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** ⚠️ **Both MOVED 2026-08-20 ([D52]).**
@@ -40,6 +40,7 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 | ✅ | **P6.4 CLOSED 2026-08-20** — all 62 judged, [D42] satisfied. ⛔ **29 of 62 were not work.** `validate:release:rn` green: 210 e2e · 10 embed. Detail → log |
 | **P6.5** | **Sentry** | ✅ **`beforeBreadcrumb` scrub BUILT 2026-08-20** — Sentry's touch integration records a11y labels and Debt builds those from the user's balances, so this is the difference between [D41] being true and a crash shipping real money off-device (21 asserts, both plants red). 🔴 **Needs the DSN from 🎯** → [`DEBT_SENTRY_SETUP.md`](DEBT_SENTRY_SETUP.md). ⛔ **Source-map upload stays OFF for the batched build** — a missing `SENTRY_AUTH_TOKEN` hard-fails the ARCHIVE, and that would kill the build before any of its three device checks ran |
 | **P6.6** | **Splash screen** | ✅ **DONE 2026-08-20** — plugin configured (`icon.png` · `imageWidth: 220` · `#0a051c` · contain), verified reaching the plugin via `expo config --type introspect`. ⚡ **[D43] was right and my instinct was wrong, decided by LOOKING** at three rendered candidates: on the icon's own surround the badge *dissolves*; on the app's navy it reads as a pasted-on square → [`evidence/2026-08-20-p6.6-splash/`](evidence/2026-08-20-p6.6-splash/). ⛔ **Dark in both themes** — `icon.png` is a SQUARE with no alpha, so on a light field the square shows and reads as a bug. ⚠️ Residual for 🎯: a light-mode user gets dark splash → light UI. **The rendered result is a device row** — `expo prebuild` cannot run on Windows |
+| ✅ | **R4 CLOSED 2026-08-21** *(ship-blocker, inserted ahead of P6.7)* — the demo's writes are refused **by construction**, not reported after the fact. 15 sites converted · 4 background writers declared · `lint:sandbox` added. Detail → log |
 | **P6.7** | ▶ **BUILDING NOW — CI / Pages ops** *(decomposed above)* | ⚠️ Retire the `legacy-capture-*` tag trigger **now, independently of P6.11** — its deferral said *"with the legacy tree"* and that tree just moved a whole phase; any push of such a tag spends ~45 min of macOS runner. · Flip the deploy allow-list to `release/v1`, or a dev branch can publish to a public marketing URL indefinitely. · ✅ **[D44]:** the deploy job **asserts its SHA has a green `web-e2e` run** and fails otherwise — *"deployed"* and *"passed the gate"* stop being held together by discipline · 🔴 **[D49] — a green gate must be RECORDED BY THE GATE, never typed.** `validate:release:rn` writes `gate-status.json` (SHA + UTC date) on success only; `lint:gate-freshness` reds when **source** has changed since that SHA. ⛔ [D44] stops a red SHA *deploying* but tells nobody the gate is red — which is the hole the 2026-08-19→20 red slipped through for three sessions while CI failed every push |
 | **P6.8** | ⭐ **[AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — on the FROZEN app** | Absorbs **T12** (~40 polish items: L5-10/12/17–21 · L1-20…35 · L2's polish tier · L4-12…16). Every screen · sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. ⭐ **Charter includes STRUCTURAL GAPS** — *"is anything missing"*, not only *"is anything wrong"*; this is where 5.10's original fan-out intent now lives. ⛔ **Anything structural is a SCOPE CALL for 🎯**, never an automatic fix, or the sweep expands the freeze it exists to protect. Best single item: **L5-12**, the paywall never mentions the user's own money |
 | **P6.9** | ⭐ **[AUDIT GATE] Privacy / data-flow audit** | Trace EVERY egress and prove *"financial data never leaves your device"* is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ✅ **Unblocked — it consumes [D40] + [D41]**, both settled 2026-08-20, so its job is to prove the new claim *literally true* rather than to discover one. ⛔ **The claim it verifies:** *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* Also owns retiring the marketing *"100% private"* line and the ASC privacy label declaring RevenueCat. 🔴 **P6.3 hands it a live counterexample: `PRIVACY_CLAIM.body` still says *"your financial data stays on this device"*, which the iCloud toggle makes false. P6.3 must not SHIP without [D41]'s rewrite landing here** |
@@ -70,49 +71,37 @@ longer frozen on it.** Detail → log.
 shape: closing the thing updates the decision and nobody deletes the row that was waiting on it. Corrected
 2026-08-21 when 🎯 said so out loud.
 
-### 🔴 R4 — THE DEMO WRITES TO THE REAL STORE *(the ACTIVE decomposition — SHIP-BLOCKER, 2026-08-21)*
+### ✅ R4 — THE DEMO WROTE TO THE REAL STORE *(SHIP-BLOCKER — CLOSED 2026-08-21)*
 
-⛔ **Found by Sentry, from TestFlight, on 🎯's own device.** *"Real store mutated while a sandbox subtree
-was mounted"* — `submit` → `updateExpense` → the real singleton, while the demo was on screen.
+✅ **A demo cannot write the user's plan BY CONSTRUCTION.** `createDebtStore` now takes a **veto**
+(`opts.refuse`, on the same `set` seam as `opts.bound`) that DROPS a forbidden write before it lands — the
+old guard fired from a `subscribe`, i.e. after. **15 sites converted across 6 files**; 4 legitimate
+background writers newly **declared** (`allowRealStoreWrite`), because refusal turns an undeclared one
+from a false alarm into a dropped write. Two mutating e2e + 20 asserts + **`lint:sandbox`**, a 23-file
+allow-list for importing the singleton. `validate:release:rn` green — **212 e2e · 10 embed**.
 
-⚡ **The mechanism, and the codebase warned about it in advance.** `_layout.tsx:256` wraps the **whole app**
-in `<StoreProvider store={demoSandbox}>` during a demo, and `useAppStore` **reads** through that context.
-So a component reads the sandbox and — if it writes via `appStore.getState()` — mutates the user's real
-plan. `useAppStore`'s own docstring says exactly this: ⚠️ *"If you read with this hook, WRITE with
-`useActiveStore()` — never `appStore.getState()`. Mixing the two makes a component read scripted money and
-mutate the user's real plan."*
+⛔ **Three results worth carrying, all measured:** the site table was **4 of 6** *(`LivingExpenseSheet` ·
+`LogPaymentSheet` missed — sixth consecutive item short)* · sandbox ids **do not** collide, so the damage
+was `stampInputsFresh` rather than values — and a version of the e2e checking ids and amounts **passed
+with the defect planted back** · the first plant **lied** (a dangling `store_` crashed the component, so
+both tests went red for the wrong reason). ⭐ With the veto in and `ExpenseSheet` still leaking, both
+tests PASS — the defence in depth is demonstrated, not claimed. Detail → log.
 
-⛔ **THE GUARD REPORTS, IT DOES NOT BLOCK.** `StoreContext.tsx:143` fires `reportError` from a
-`subscribe` callback — i.e. **after** the write has landed. Nothing was prevented.
+### ▶ P6.7 — CI / Pages ops *(the ACTIVE decomposition — resumed 2026-08-21, R4 vacated the slot)*
 
-⛔ **A class closed at only some of its members** — the exact phrase in `ExampleCanvasMarker`'s docstring.
-**`DebtSheet` was converted to `useActiveStore`; `ExpenseSheet` and `GoalSheet` were not.**
-
-| | |
-|---|---|
-| ✅ correct | `DebtSheet` · `PaycheckSheet` · `SaveForItSheet` · `WindfallSheet` · `AffordabilityCard` · `LeanSuggestionCard` · Today |
-| ⛔ **writes real data** | **`ExpenseSheet`** (add/update/remove) · **`GoalSheet`** (add/update/remove) · `money.tsx` (removeDebt · removeExpense · removeGoal · setPayoffStrategy · verifyDebtBalance · `notDebtExpenseIds`) · `living-expenses.tsx` (removeLivingExpense) |
-
-⚠️ **Exactly ONE real-store write in the app is declared legitimate** (`drainPendingActions`, wrapped in
-`allowRealStoreWrite`). Everything above is undeclared.
-
-⭐ **Reachability is the severity:** the paywall's *"See it in action"* is reached mostly by **onboarded
-users** — the ones with real data to corrupt. It also makes [D23]'s *"the demo is bounded"* false.
+⚠️ **Authored 2026-08-20 and displaced the same day — a pre-authored plan is a HYPOTHESIS.** Verify each
+premise against the current tree at switch-in before acting. Its point is **[D49]**.
 
 | # | Sub-step |
 |---|---|
-| **R4.1** | **Establish what a REAL user would suffer.** ✅ **No recovery needed — 🎯's store was test data** (2026-08-21), so nothing is owed to him; the severity is unchanged for anyone else. **The question is still open and gates the fix's shape: do sandbox entity ids collide with real ones?** ⚠️ `updateExpense` uses `.map()`, so a non-matching id still yields a new object — the guard can fire on a reference change with values intact. ⛔ **But `stampInputsFresh` runs regardless**, re-stamping read-freshness so a stale estimate reads as confirmed *(store.ts:117 already calls that meaningful)*, and **`addExpense` is unconditional** — it appends to the real plan whatever the id |
-| **R4.2** | **Convert every unsanctioned site to `useActiveStore()`.** ⛔ **Enumerate the CLASS, do not trust the table above** — it was built from one grep, and this session measured four enumerations wrong in both directions |
-| **R4.3** | **Make the guard REFUSE, not report.** A backstop that reports after the fact cannot stop data loss. It should block an undeclared real-store write while a sandbox is mounted; `allowRealStoreWrite` already models the sanctioned path |
-| **R4.4** | **A containment test that MUTATES.** ⛔ `demo-containment.spec.ts` has **14 tests and all of them passed** while this shipped — they assert *navigation* containment; **none asserts WRITE containment.** Drive an edit from inside a demo and assert the real store is untouched |
-| **R4.5** | **Sweep the mirror image:** any sandboxed surface READING from a non-context source. Reads look correct today (`useAppStore` goes through the context) — verify rather than assume |
-| **R4.6** | **`validate:release:rn` green** |
+| **P6.7.1** | **Retire the `legacy-capture-*` tag trigger** — `legacy-container-capture.yml`. ⛔ **Independently of P6.11:** its deferral said *"with the legacy tree"* and that tree moved a whole phase. Any push of such a tag spends ~45 min of macOS runner on a surface that ships nowhere |
+| **P6.7.2** | **Flip the Pages deploy allow-list to `release/v1`** — today a dev branch can publish to the **public marketing URL** indefinitely |
+| **P6.7.3** | **[D49] `gate-status.json`** — `validate:release:rn` writes SHA + UTC **on success only**. ⚠️ Written BY the gate, never typed |
+| **P6.7.4** | **[D49] `lint:gate-freshness`** — reds when **source** has changed since that SHA; wire into `lint:rn`. ⛔ **Mutation-verify:** touch a source file → red; re-run the gate → green. [D44] stops a red SHA *deploying* but tells nobody the gate is red, which is the hole the 2026-08-19→20 red slipped through |
+| **P6.7.5** | **`validate:release:rn` green**, and the workflows still parse |
 
-**Exit:** a demo cannot write to the real store *by construction*, not by convention — and a test proves it
-by trying.
-
-⏸ **P6.7 (CI / Pages ops) was the active build and is DISPLACED, not dropped** — its decomposition is in
-the log; retrieve it at switch-in. It carries **[D49]**, the stale-gate guard.
+**Exit:** no tag can burn a macOS runner on a dead tree, only `release/v1` can publish to the public URL,
+and a stale gate is **impossible to inherit** — the record is written by the run or it does not exist.
 
 ### ✅ P6.4 — the 62 filed findings *(CLOSED 2026-08-20)*
 
@@ -376,6 +365,26 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY R4's after-scan (2026-08-21)**
+
+- **⛔ ASK THE SAME QUESTION OF EVERY OTHER GUARD IN THE REPO: does it PREVENT, or only DESCRIBE?**
+  `useNoRealWritesGuard` was written at 3.5.3.0.5, survived a 117-finding audit across 7 lenses, and its
+  entire contribution to the ship-blocker was an accurate description of the corruption while it happened.
+  ⚠️ **Not a code change — a lens.** The `3.5.0.6` sync-seam guards are named in its own docstring as "the
+  same move", so they are the first place to look. → **P6.9** *(it already traces every egress; "and can
+  it be stopped" is one column wider)*.
+
+- **A device row for R4.** ⛔ Write-containment is proven **on web only**, and R4 was found **on a device,
+  by Sentry, on a surface 210 web tests had walked past.** One row: enter the demo as an onboarded user,
+  edit a bill, exit, confirm the real plan is unchanged. → **P6.14** *(the next device build already owes
+  the splash, the Sentry QA button and R3's exit)*.
+
+- **`api.setState` is the one seam the veto does not cover**, by design — the actions route through the
+  wrapped `set` and `setState` does not. Today it is used only for `isHydrated` / `storageError`, neither
+  of which is in the `store` blob, so there is nothing to leak; the `StoreProvider` reporter now watches
+  exactly this. ⚠️ **File, do not fix:** wrapping it would put the veto in front of `hydrate`, and refusing
+  a hydrate shows the user an empty plan. Revisit only if a plan-bearing `setState` ever appears. → **2.1**.
 
 **→ P6.8, from the P6.4.4 triage — ✅ 🎯 agreed 2026-08-20**
 - ⏭ **THE FREE TRIAL — the 2.1 lever ([D53]).** 30 days minimum, **annual only**; the reasoning is on the

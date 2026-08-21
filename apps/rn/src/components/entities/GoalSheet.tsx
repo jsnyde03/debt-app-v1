@@ -7,12 +7,16 @@ import { TextField } from '@/components/ui/TextField';
 import type { Goal } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { FORM_ERRORS } from '@/store/obligationForm';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { textStyles } from '@/theme/typography';
 import { confirmDelete } from '@/utils/confirm';
 
 /** Unified add/edit sheet for a savings goal (type is now editable in both modes — redesign fix). */
 export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose: () => void }) {
+  // [R4] The store this subtree resolves to — sandbox under a demo/walkthrough, real singleton otherwise.
+  // Both the write AND the dedupe READ below went through `appStore`, so inside a demo this sheet added a
+  // goal to the user's real plan and checked the new name against the user's real goals.
+  const store_ = useActiveStore();
   const c = useAppColors();
   const isEdit = !!editing;
   const [name, setName] = useState(editing?.name ?? '');
@@ -34,13 +38,13 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
     // priority-capped funding while reading as one goal to the user. Case-insensitive, trimmed; an EDIT
     // ignores itself so renaming a goal to its own name is not a collision.
     const effName = name.trim();
-    const clash = appStore
+    const clash = store_
       .getState()
       .store.goals.some((g) => g.id !== editing?.id && g.name.trim().toLowerCase() === effName.toLowerCase());
     if (clash) return setError(`You already have a goal called "${effName}".`);
     const fields = { name: effName, targetAmount: Number(target), currentAmount: Number(current) || 0, type };
-    if (isEdit && editing) appStore.getState().updateGoal(editing.id, fields);
-    else appStore.getState().addGoal({ id: `goal-${Date.now()}`, ...fields });
+    if (isEdit && editing) store_.getState().updateGoal(editing.id, fields);
+    else store_.getState().addGoal({ id: `goal-${Date.now()}`, ...fields });
     onClose();
   }
   // 3.5.6b — confirms, like every other delete path. See `DebtSheet.remove` for why the direct action
@@ -48,7 +52,7 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
   async function remove() {
     if (!editing) return;
     if (!(await confirmDelete(`Delete ${editing.name}?`))) return;
-    appStore.getState().removeGoal(editing.id);
+    store_.getState().removeGoal(editing.id);
     onClose();
   }
 

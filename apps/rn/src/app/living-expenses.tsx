@@ -15,7 +15,7 @@ import { Pill } from '@/components/ui/Pill';
 import type { LivingExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { formatWhole } from '@/utils/format';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { selectLivingReserveRequest } from '@/store/expenseReserveSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
@@ -28,6 +28,8 @@ import { textStyles } from '@/theme/typography';
  */
 export default function LivingExpensesScreen() {
   const c = useAppColors();
+  // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
+  const store_ = useActiveStore();
   const items = useAppStore((s) => s.store.livingExpenses);
   const [sheet, setSheet] = useState<{ editing: LivingExpense | null } | null>(null);
 
@@ -68,7 +70,7 @@ export default function LivingExpensesScreen() {
               amount={formatCurrency(item.amount)}
               badges={item.enabled ? undefined : <Pill label="Off" tone="neutral" />}
               onPress={() => setSheet({ editing: item })}
-              onDelete={() => appStore.getState().removeLivingExpense(item.id)}
+              onDelete={() => store_.getState().removeLivingExpense(item.id)}
             />
           ))}
 

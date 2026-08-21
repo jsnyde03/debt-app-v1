@@ -52,31 +52,25 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
-## ⏸ P6.7 — CI / Pages ops: the decomposition, PARKED by R4 (2026-08-21)
+## ⏸ P6.7 — CI / Pages ops: PARKED by R4, and back on the plan (2026-08-21)
 
-Authored and promoted at P6.4's close, then displaced the same day by R4 (a ship-blocker). Held here per
-the one-decomposed-section rule; **retrieve at switch-in and verify against the current tree first** — a
-pre-authored plan is a hypothesis.
+Authored and promoted at P6.4's close, displaced the same day by R4 (a ship-blocker), **restored to the
+plan the same day when R4 closed.** The decomposition lives at the top of `DEBT_ELEVATION_PLAN.md` and
+**only there** — one decomposed section, and it moves rather than accumulating.
 
 ⭐ **Why it was chosen:** P6.3 is closed, nothing is blocked on a device, and P6.8–P6.10 are audit gates
 that want a settled app. Its point is **[D49]**.
 
-| # | Sub-step |
-|---|---|
-| **P6.7.1** | **Retire the `legacy-capture-*` tag trigger** — `legacy-container-capture.yml`. ⛔ **Independently of P6.11:** its deferral said *"with the legacy tree"* and that tree moved a whole phase. Any push of such a tag spends ~45 min of macOS runner on a surface that ships nowhere |
-| **P6.7.2** | **Flip the Pages deploy allow-list to `release/v1`** — today a dev branch can publish to the **public marketing URL** indefinitely |
-| **P6.7.3** | **[D49] `gate-status.json`** — `validate:release:rn` writes SHA + UTC **on success only**. ⚠️ Written BY the gate, never typed |
-| **P6.7.4** | **[D49] `lint:gate-freshness`** — reds when **source** has changed since that SHA; wire into `lint:rn`. ⛔ **Mutation-verify:** touch a source file → red; re-run the gate → green. [D44] stops a red SHA *deploying* but tells nobody the gate is red, which is the hole the 2026-08-19→20 red slipped through |
-| **P6.7.5** | **`validate:release:rn` green**, and the workflows still parse |
-
-**Exit:** no tag can burn a macOS runner on a dead tree, only `release/v1` can publish to the public URL,
-and a stale gate is **impossible to inherit** — the record is written by the run or it does not exist.
+⚠️ **It is a HYPOTHESIS twice over now** — pre-authored, then left sitting through a change that touched
+`validate:release:rn`'s own contents (R4 added a lint gate and two e2e). **P6.7.3/.4 write and check a
+gate-freshness record; verify what the gate actually runs before encoding it.**
 
 ---
 
-## 🔴 R4 — the demo writes to the REAL store, found by Sentry from TestFlight (2026-08-21)
+## ✅ R4 — the demo writes to the REAL store, found by Sentry from TestFlight — CLOSED 2026-08-21
 
-**Filed, not fixed — 🎯 wants it built in a fresh session.** Everything needed to start is here.
+**Filing is below; the CLOSURE is at the end of this section.** The filing is kept verbatim because two of
+its own premises turned out to be short, and that is the result worth carrying.
 
 ### What happened
 
@@ -153,6 +147,79 @@ and a crash shipping real balances to a third party. **The event's breadcrumb tr
 literal `$[redacted]` marker.** ⚠️ Absence of amounts proves nothing: the scrub is only exercised if the
 trail touched a money-bearing element, so *"no money visible"* and *"the scrub ran"* are indistinguishable
 without the marker. Still owed.
+
+### ✅ THE CLOSURE (2026-08-21) — what was built, and what the filing got wrong
+
+**Exit met: a demo cannot write the user's plan BY CONSTRUCTION, and two tests prove it by trying.**
+`validate:release:rn` green — **212 e2e** (210 + R4's two) · 10 embed · `test:app` +20 asserts.
+
+**R4.1 — ANSWERED: sandbox ids do NOT collide.** Persona entities are `sbx-`-prefixed
+(`sbx-card` · `sbx-bill-0` · `sbx-groceries`); real ones are `crypto.randomUUID()` or `living-N`. So a
+leaked `update`/`remove` matched nothing and every VALUE survived. ⛔ **That is not "no harm done", and
+assuming it was is how the first version of the e2e passed against the planted defect:** every expense
+mutator runs `stampInputsFresh`, so the leak re-stamped `inputsAsOf` and declared a 45-day-old figure
+confirmed-as-of-today. **`addExpense` is the uncapped half** — it appends whatever it is handed, so a
+demo could permanently plant scripted money in a real plan, and no id check would ever have caught it.
+
+**R4.2 — the site table was SHORT, on the item that was written to warn about short site tables.**
+It listed four offenders; the class is six. ⛔ **`LivingExpenseSheet` (add/update/remove) and
+`LogPaymentSheet` (`logManualPayment`) were both missing** — the demo's Money tab offers "Log payment" on
+every persona debt and reaches Everyday spending. **Sixth consecutive item measured short.** 15 call sites
+converted across 6 files.
+
+**R4.3 — the veto.** `createDebtStore` gained `opts.refuse`, consulted inside the actions' own `set`
+wrapper — **the same seam `opts.bound` already used**, so an action added later is covered without anyone
+remembering. Only the real singleton carries it. A forbidden write returns the state unchanged, so zustand
+notifies nobody and nothing renders. The diff (`forbiddenRealStoreChanges`) is now SHARED with the
+subscribe-based reporter, so the two cannot disagree about what "the plan moved" means. New module
+`store/realWriteGuard.ts` — deliberately free of `appStore`/`StoreContext`/session imports, because
+`appStore.ts` imports IT.
+
+⚠️ **Scope is the PROVIDER (`enterSandboxScope`), not the session** — same predicate the old reporter used,
+so [D18]'s "exits end the session BEFORE navigating" still buys `/paywall` its `setSubscriptionPlan`. A
+**counter, not a flag**: the walkthrough's provider mounts inside Today while the demo's sits above the
+navigator, and a boolean would let the inner unmount re-open the real store under the outer one.
+
+**R4.3b — four legitimate background writers had to be DECLARED, and this is the fix's real risk.**
+Under the old reporter an undeclared write was a false alarm; under refusal it is **dropped**. Wrapped in
+`allowRealStoreWrite`: the **iCloud restore offer** (`_layout`) — offered only to a not-yet-onboarded
+store, which is [D18]'s exact demo audience · **`premiumSync`'s entitlement listener** — a renewal
+mid-demo would otherwise leave a paying user on `free` until relaunch · **`applyRiskNotified`** — dropped,
+it re-fires the same push · **the launch `drainPendingActions`**. ⚠️ `hydrate` is structurally safe and
+NOT wrapped: the root renders `null` until `isHydrated`, so no provider — and no scope — exists yet.
+
+**R4.4 — the containment tests that MUTATE, and both were false-green before they were right.**
+⛔ **Measured twice, not reasoned:** (1) the first version read `localStorage` immediately and the save is
+**debounced 500 ms**, so it read the blob as it was *before* the leak landed; (2) the second asserted only
+ids and amounts, which survive a leak intact (see R4.1). **Both passed with the defect planted back.**
+The fixture now seeds a **stale `inputsAsOf`** — without something stale there is nothing to move — and
+`realPlan()` waits out 3× the debounce. Plus `store/realWriteGuard.test.ts`, 20 asserts, **three plants
+red** (veto disabled · `allowRealStoreWrite` neutered · counter→flag).
+
+⛔ **And the FIRST plant lied.** Swapping `store_` → `appStore` left a dangling `const store_`, the
+component crashed, and both tests went red *for the wrong reason* — a plant that looks like proof and is
+not. The valid plant keeps the file compiling and moves only the writes.
+
+⭐ **Defence in depth, demonstrated rather than claimed:** with the veto restored and `ExpenseSheet` still
+leaking, both e2e tests PASS. An unconverted call site cannot corrupt real money. That is R4's exit line.
+
+**R4.5 — one mirror-image read found:** `GoalSheet`'s duplicate-name check read `appStore.getState()
+.store.goals`, so inside a demo a new goal was deduped against the **user's real goals**. Every other
+direct read is deliberate and correct (seeding a sandbox from the real plan · the Example marker asking
+whether a REAL plan exists · coach-mark/analytics/theme prefs, which are genuinely real-user records).
+
+⭐ **`lint:sandbox` — [D31], the class closed by a gate.** `scripts/check-sandbox-writes.ts` is an
+ALLOW-LIST of the 23 files permitted to import the singleton, each with its reason, in four sanctioned
+shapes (infrastructure · seeds-a-sandbox · unreachable-during-a-run · declared-background-write). Wired
+into `lint:rn`. **Mutation-verified: reverting `ExpenseSheet` reds it, naming the file and line.** It also
+reds on a **stale** entry, which caught two errors in my own first allow-list — a file that *declares*
+rather than imports, and a path I invented. The enumeration was wrong on its first run, exactly as the
+site table was.
+
+⚡ **The carried lesson, now measured on the guard itself:** *a backstop that reports is a smoke alarm; the
+question to ask of every guard in this repo is whether it PREVENTS or merely DESCRIBES.* The one here was
+written in 3.5.3.0.5, reviewed through a 117-finding audit, and correctly described the corruption of a
+user's real plan while it happened.
 
 ---
 

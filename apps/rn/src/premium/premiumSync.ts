@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { appStore } from '@/store/appStore';
+import { allowRealStoreWrite } from '@/store/realWriteGuard';
 import { useAppStore } from '@/store/useAppStore';
 
 import { getPurchasesClient, isLifetimeActive, isPremiumActive, type CustomerInfoLike } from './purchases';
@@ -27,10 +28,16 @@ export function useInitPremium(): void {
     if (!client) return; // web / dev / no SDK → the current store plan stands
 
     let cancelled = false;
+    // [R4] Declared. RevenueCat's entitlement listener fires whenever the subscription changes — a
+    // renewal, an expiry, a restore — and it does not care that a demo happens to be on screen. That is a
+    // correct real-store write, and an undeclared one is now DROPPED, which would leave a paying user on
+    // `free` until the next launch.
     const apply = (info: CustomerInfoLike | null) => {
-      const s = appStore.getState();
-      s.setSubscriptionPlan(isPremiumActive(info) ? 'premium' : 'free');
-      s.setPremiumIsLifetime(isLifetimeActive(info));
+      allowRealStoreWrite(() => {
+        const s = appStore.getState();
+        s.setSubscriptionPlan(isPremiumActive(info) ? 'premium' : 'free');
+        s.setPremiumIsLifetime(isLifetimeActive(info));
+      });
     };
 
     void client

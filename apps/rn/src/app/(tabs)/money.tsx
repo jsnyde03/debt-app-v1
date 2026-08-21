@@ -39,7 +39,7 @@ import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import type { Debt, Goal, RequiredExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
-import { appStore } from '@/store/appStore';
+import { useActiveStore } from '@/store/StoreContext';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
@@ -158,6 +158,8 @@ type SectionProps = { autoOpen: boolean; onAutoOpened: () => void; onAdd: () => 
  */
 function MisfiledHint({ expense, onConvert }: { expense: RequiredExpense; onConvert: () => void }) {
   const c = useAppColors();
+  // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
+  const store_ = useActiveStore();
   return (
     <View style={[styles.misfiledHint, { borderColor: c.border.subtle }]}>
       <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
@@ -169,8 +171,8 @@ function MisfiledHint({ expense, onConvert }: { expense: RequiredExpense; onConv
         </Pressable>
         <Pressable
           onPress={() => {
-            const seen = appStore.getState().store.prefs.notDebtExpenseIds ?? [];
-            appStore.getState().updatePrefs({ notDebtExpenseIds: [...seen, expense.id] });
+            const seen = store_.getState().store.prefs.notDebtExpenseIds ?? [];
+            store_.getState().updatePrefs({ notDebtExpenseIds: [...seen, expense.id] });
           }}
           accessibilityRole="button"
           testID={`misfiled-dismiss-${expense.id}`}
@@ -204,6 +206,8 @@ function DebtsSection({
   onConvertHandled,
 }: SectionProps & { convertFrom?: RequiredExpense | null; onConvertHandled?: () => void }) {
   const store = useAppStore((s) => s.store);
+  // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
+  const store_ = useActiveStore();
   const strategy = store.payoffStrategy;
   // Memoized on the store so re-renders that don't change the plan (e.g. the parent's Debts/Bills/Goals
   // section toggle) don't rebuild all three payoff trajectories.
@@ -351,7 +355,7 @@ function DebtsSection({
         <View style={styles.strategyBlock}>
           <SegmentedToggle
             value={strategy}
-            onChange={(s) => appStore.getState().setPayoffStrategy(s)}
+            onChange={(s) => store_.getState().setPayoffStrategy(s)}
             options={[
               { value: 'snowball', label: 'Snowball' },
               { value: 'avalanche', label: 'Avalanche' },
@@ -454,6 +458,8 @@ function DebtRow({
   onViewSchedule: (debtId: string) => void;
 }) {
   const c = useAppColors();
+  // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
+  const store_ = useActiveStore();
   const view = selectDebtBalanceView(debt, currentDate, isPremium);
   const est = buildEstimateCaption(view, isPremium, shortDate);
   // A stale premium estimate becomes a one-tap in-place verify: tap → accept the estimate as the
@@ -484,14 +490,14 @@ function DebtRow({
       meta={meta}
       caption={captionText}
       captionColor={captionColor}
-      onCaptionPress={canVerify ? () => appStore.getState().verifyDebtBalance(debt.id, view.currentBalance, currentDate) : undefined}
+      onCaptionPress={canVerify ? () => store_.getState().verifyDebtBalance(debt.id, view.currentBalance, currentDate) : undefined}
       amount={formatCurrency(debt.minimumPayment)}
       amountSuffix={isBnpl ? (CADENCE_SUFFIX[debt.recurrence] || '/mo') : '/mo'}
       badges={chips.length ? <>{chips}</> : undefined}
       progress={progress}
       progressColor={focus ? c.accent.primary : undefined}
       onPress={() => onEdit(debt)}
-      onDelete={() => appStore.getState().removeDebt(debt.id)}
+      onDelete={() => store_.getState().removeDebt(debt.id)}
       onLogPayment={() => onLogPayment(debt)}
       onViewSchedule={() => onViewSchedule(debt.id)}
       selected={selected}
@@ -519,6 +525,8 @@ type BillGroup = {
 
 function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps & { onConvert: (e: RequiredExpense) => void }) {
   const expenses = useAppStore((s) => s.store.requiredExpenses);
+  // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
+  const store_ = useActiveStore();
   const dismissedHints = useAppStore((s) => s.store.prefs.notDebtExpenseIds ?? []);
   // ⚠️ [P6.4.3 · L4-15] The raw `livingExpenses` subscription is GONE — `selectLivingReserveRequest`
   // owns that derivation now, and this component no longer needs the list itself. Caught by eslint at
@@ -754,7 +762,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
               amount={formatCurrency(item.amount)}
               badges={item.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
               onPress={() => setSheet({ editing: item })}
-              onDelete={() => appStore.getState().removeExpense(item.id)}
+              onDelete={() => store_.getState().removeExpense(item.id)}
             />
             {looksLikeDebt(item) && !dismissedHints.includes(item.id) ? (
               <MisfiledHint expense={item} onConvert={() => onConvert(item)} />
@@ -908,6 +916,8 @@ function LivingReserve({ total }: { total: number }) {
 // ── Goals ─────────────────────────────────────────────────────────────────────
 function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   const goals = useAppStore((s) => s.store.goals);
+  // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
+  const store_ = useActiveStore();
   const [sheet, setSheet] = useState<{ editing: Goal | null } | null>(null);
   useAutoOpen(autoOpen, onAutoOpened, () => setSheet({ editing: null }));
 
@@ -953,7 +963,7 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
               badges={funded ? <Pill label="Funded" tone="paid" /> : undefined}
               progress={pct}
               onPress={() => setSheet({ editing: g })}
-              onDelete={() => appStore.getState().removeGoal(g.id)}
+              onDelete={() => store_.getState().removeGoal(g.id)}
             />
           );
         })}

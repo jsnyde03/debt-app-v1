@@ -3,7 +3,11 @@ import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { reportError } from '@/utils/reportError';
 
 import { appStore } from './appStore';
+import { enterSandboxScope, forbiddenRealStoreChanges, isRealWriteAllowed } from './realWriteGuard';
 import type { DebtStoreInstance } from './store';
+
+// [R4] `allowRealStoreWrite` moved to `realWriteGuard` and is imported from THERE by every declaring
+// call site — `appStore` itself now needs it, and this module imports `appStore`. One home, one grep.
 
 /**
  * 3.5.3.0 — which store a subtree reads and writes.
@@ -25,38 +29,6 @@ import type { DebtStoreInstance } from './store';
 const StoreContext = createContext<DebtStoreInstance>(appStore);
 
 /**
- * The ONLY real-store prefs a walkthrough may write: its resume position, and the record that the run
- * was seen. Both must outlive the sandbox, which is why they're written to the real store at all.
- * Anything else changing while a sandbox is mounted is a bug — see `useNoRealWritesGuard`.
- */
-const TUTORIAL_WRITABLE_PREFS = ['tutorialStep', 'tutorialSeen'];
-
-/**
- * Some real-store writes during a session are legitimate and have nothing to do with the sandbox: the
- * app's own background work landing on return-to-foreground. `drainPendingActions()` is the concrete
- * one — a user who taps the Live Activity's "Payday landed" while backgrounded mid-walkthrough has
- * their real plan rolled the instant they come back, and that write is correct.
- *
- * Without a way to say so, the backstop reports it. Today that's dev noise; at Phase 6 with Sentry it
- * would poison the ONE signal built to prove "the real plan provably untouched" — and a genuine sandbox
- * leak becomes indistinguishable inside a stream of false alarms. That is exactly how [B3] went wrong,
- * arriving from the other direction, so it gets an explicit answer rather than a wider exclusion.
- *
- * Synchronous by design: zustand notifies subscribers during `set`, so the flag covers the write and is
- * down again before anything else can hide behind it.
- */
-let realWriteAllowed = false;
-export function allowRealStoreWrite<T>(fn: () => T): T {
-  const prev = realWriteAllowed;
-  realWriteAllowed = true;
-  try {
-    return fn();
-  } finally {
-    realWriteAllowed = prev;
-  }
-}
-
-/**
  * Point a subtree at a different store. React context flows through `Modal`, so sheets rendered by the
  * subtree inherit it too — which is required, since the tutorial's sheets must not write real data.
  */
@@ -68,11 +40,13 @@ export function StoreProvider({ store, children }: { store: DebtStoreInstance; c
 /**
  * 3.5.3.0.5 — the backstop. While a SANDBOX subtree is mounted, the user's real plan must not change.
  *
- * The dangerous miss is a component inside the subtree that still writes through the `appStore`
- * singleton: it would mutate real money from scripted input, with no error and nothing on screen to
- * show it. Rather than trusting that every call site was converted, this watches the real store for the
- * duration and reports any mutation — so a missed site becomes a loud failure instead of silent
- * corruption. Same move as the 3.5.0.6 sync-seam guards.
+ * ⛔ **[R4] THE ENFORCEMENT MOVED; THIS IS NOW THE SECOND LINE.** Declaring the scope (`enterSandboxScope`)
+ * is what arms the real veto — `appStore` consults `refuseRealStoreWrite` inside its own actions and
+ * DROPS a forbidden write, so nothing lands to be reported. This subscription used to be the only
+ * mechanism, and that was the defect: `subscribe` fires *after* the write, so it described the corruption
+ * of a user's real plan rather than preventing it. It is kept because it covers the one seam the veto
+ * cannot — `api.setState`, which the actions deliberately bypass — and because a report on a channel the
+ * veto misses is exactly how the next miss gets found.
  *
  * Deliberately watches the `store` blob only: `isSaving`/`isHydrated` churn is lifecycle, not user data.
  *
@@ -93,60 +67,39 @@ export function StoreProvider({ store, children }: { store: DebtStoreInstance; c
 function useNoRealWritesGuard(store: DebtStoreInstance) {
   useEffect(() => {
     if (store === appStore) return; // the real app: nothing to guard against
+    // [R4] ARM THE VETO FIRST. This is the line that actually protects the user's plan; everything below
+    // it is reporting. Released on unmount / on a store change, so the real store is writable again the
+    // moment the sandbox subtree goes away.
+    const leaveScope = enterSandboxScope();
     let before = appStore.getState().store;
     const unsubscribe = appStore.subscribe((state) => {
       if (state.store === before) return;
-      // A declared-legitimate write (see `allowRealStoreWrite`). Advance the baseline so the NEXT
-      // comparison doesn't re-report this change as though the sandbox had made it.
-      if (realWriteAllowed) {
-        before = state.store;
-        return;
-      }
-      // [B3] Compare FIELD BY FIELD, ignoring the walkthrough's own resume bookkeeping.
+      // [B3] Compare FIELD BY FIELD, ignoring the bounded run's own resume bookkeeping — the walkthrough
+      // legitimately persists `prefs.tutorialStep`/`tutorialSeen` to the REAL store on every step, and a
+      // backstop that fires on every Next tap guards nothing. `forbiddenRealStoreChanges` owns that diff,
+      // shared with the veto so the two can never disagree about what "the user's plan moved" means.
       //
-      // The guard used to fire on any change to the store blob, against a `before` captured once at
-      // mount. But the walkthrough legitimately persists its position to the REAL store on every step
-      // (`prefs.tutorialStep`, and `tutorialSeen` on finish) — that is resume state, and it has to
-      // outlive the sandbox. So the guard reported on the first Next tap and, because `before` never
-      // advanced, on every emission afterwards. It was 100% noise: dev-only console spam today, and
-      // production error spam the moment Sentry is wired at Phase 6 — with a real sandbox-write bug
-      // indistinguishable inside it. A backstop that always fires guards nothing, and it hollowed out
-      // the plan's own "the real plan provably untouched".
-      //
-      // What is actually forbidden is the user's PLAN moving: money, debts, bills, the cushion line.
-      // Prefs are the one channel the tutorial is entitled to write, so they're excluded and the
-      // baseline advances — leaving a single, meaningful signal.
-      const { prefs: prevPrefs, ...prevPlan } = before;
-      const { prefs: nextPrefs, ...nextPlan } = state.store;
+      // ⚠️ The baseline advances unconditionally, including on a declared-legitimate write
+      // (`allowRealStoreWrite`), so one accepted change is not re-reported on every emission afterwards.
+      const declared = isRealWriteAllowed();
+      const changed = forbiddenRealStoreChanges(before, state.store);
       before = state.store;
-      // Union here too. The prefs diff below was fixed to cover removed keys and this one — the same
-      // pattern, ten lines up — was left single-sided, so a dropped optional field (`windfall`, which
-      // the screen reads as `store.windfall ?? 0`) would vanish from the real store unreported.
-      const planKeys = new Set([...Object.keys(prevPlan), ...Object.keys(nextPlan)]);
-      const changed = ([...planKeys] as (keyof typeof nextPlan)[]).filter((k) => nextPlan[k] !== prevPlan[k]);
-      // Prefs are diffed FIELD BY FIELD against a two-key allowlist rather than excluded wholesale.
-      // Dropping the entire `prefs` object was too generous by a wide margin: the walkthrough is
-      // entitled to `tutorialStep` and `tutorialSeen` and nothing else, but the blanket exclusion also
-      // blinded the backstop to a sandboxed component writing `isDemoMode` (which silently kills real
-      // payday capture) or `onboardingComplete: false` (which re-onboards the user) through the
-      // singleton. Those are exactly the silent corruptions this guard exists to catch, and the fix for
-      // its false-positive noise had quietly opened a hole underneath it.
-      // The UNION of both key sets — iterating `nextPrefs` alone was blind to a REMOVED key, and a
-      // dropped pref is a real-store change like any other (writing prefs without `onboardingComplete`
-      // would re-onboard the user, silently, past a backstop looking the other way).
-      const prefKeys = new Set([...Object.keys(prevPrefs), ...Object.keys(nextPrefs)]);
-      const prefsChanged = ([...prefKeys] as (keyof typeof nextPrefs)[]).filter(
-        (k) => nextPrefs[k] !== prevPrefs[k] && !TUTORIAL_WRITABLE_PREFS.includes(k as string),
-      );
-      changed.push(...(prefsChanged.map((k) => `prefs.${String(k)}`) as (keyof typeof nextPlan)[]));
-      if (changed.length === 0) return;
+      // A declared-legitimate write (`allowRealStoreWrite`) is the app's own background work landing —
+      // the veto passed it deliberately, so reporting it here would re-create the [B3] noise the field
+      // diff exists to kill, and bury a real leak inside it.
+      if (declared || changed.length === 0) return;
+      // Reaching HERE now means something bypassed the veto — in practice `api.setState`, the one seam
+      // the actions do not route through. That is a narrower and more informative signal than before.
       reportError(new Error('Real store mutated while a sandbox subtree was mounted'), {
         seam: 'StoreProvider',
-        hint: 'a component inside the subtree is still writing via appStore instead of useActiveStore()',
+        hint: 'a write bypassed the appStore action veto (api.setState?) while a sandbox was mounted',
         fields: changed.join(','),
       });
     });
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      leaveScope();
+    };
   }, [store]);
 }
 
