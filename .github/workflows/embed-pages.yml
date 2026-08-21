@@ -20,15 +20,26 @@
 name: Deploy the marketing embed (GitHub Pages)
 
 on:
-  # ⛔ MANUAL + `main-line pushes that touch the embed`. Not every push: a deploy is outward-facing, and
-  # the privacy claim it publishes is gated by `validate:release:rn`, which runs separately. Publishing on
-  # every commit would mean publishing states no gate had passed yet.
+  # ⛔ MANUAL ONLY. A deploy is outward-facing, and the privacy claim it publishes is gated by
+  # `validate:release:rn`, which runs separately. Publishing on every commit would mean publishing states
+  # no gate had passed yet.
+  #
+  # ⚠️ **MANUAL IS NOT THE SAME AS SAFE, and P6.7.2 was filed believing it was.** The plan called for
+  # "flipping the deploy allow-list to `release/v1`" — there is no allow-list here and never was, so
+  # there was nothing to flip and the exposure was somewhere else: **`workflow_dispatch` lets whoever
+  # runs it choose ANY ref.** The button is registered from the default branch (`release/v1`), but the
+  # ref it runs against is a dropdown. So a dev branch could publish to the public marketing URL with no
+  # gate, no push, and no allow-list involved. The guard is therefore IN THE JOB (see `guard` below),
+  # where it can see the ref that was actually selected.
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  # [D44] reads this repo's own workflow runs to prove the SHA passed `web-e2e`. `contents: read` does not
+  # cover the Actions API.
+  actions: read
 
 # One deploy at a time; never cancel one in flight, because a half-finished Pages publish is a live site.
 concurrency:
@@ -36,7 +47,79 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ⛔ P6.7.2 + [D44] — THE TWO THINGS THAT MUST BE TRUE BEFORE ANYTHING IS BUILT, LET ALONE PUBLISHED.
+  #
+  # A separate job that `build` depends on, rather than steps inside `build`, and the reason is not tidiness:
+  # a guard that lives inside the job it guards has already spent the export by the time it speaks, and —
+  # worse — is one `if:` away from being skipped. As its own `needs:` edge it is structural. GitHub will
+  # not start `build` if this fails.
+  #
+  # ⚠️ Neither check can be replaced by a branch filter on the trigger. There is no push trigger here at
+  # all: the only way in is a dispatch, and a dispatch carries a ref chosen at run time.
+  guard:
+    name: Only release/v1, and only a SHA that passed the gate
+    runs-on: ubuntu-latest
+    steps:
+      # P6.7.2 — the REF. `github.ref` is the ref the dispatcher selected, which is the thing at issue.
+      - name: Refuse any ref that is not release/v1
+        run: |
+          set -euo pipefail
+          echo "ref=${{ github.ref }}  sha=${{ github.sha }}"
+          if [ "${{ github.ref }}" != "refs/heads/release/v1" ]; then
+            echo "⛔ This workflow publishes to the PUBLIC marketing URL. Only release/v1 may do that."
+            echo "   Selected ref: ${{ github.ref }}"
+            echo "   Merge to release/v1 and dispatch from there — do not relax this to ship a preview."
+            exit 1
+          fi
+          echo "✅ ref is release/v1"
+
+      # [D44] — the GATE. "Deployed" and "passed the gate" were held together by discipline alone; this is
+      # the edge that makes one imply the other.
+      #
+      # ⚠️ Asserts on THIS SHA, not on the branch and not on the latest run. A branch-level query is
+      # satisfied by a green run from three commits ago, which is exactly the state that would let an
+      # ungated change publish while every dashboard reads green.
+      #
+      # ⛔ `conclusion == 'success'` explicitly, never `!= 'failure'` — a cancelled, skipped, timed-out or
+      # action-required run is not a pass, and the negative form admits all four.
+      #
+      # ⚠️ `web-e2e` runs on `push: ["**"]`, so a SHA that reached release/v1 by any normal route has one.
+      # A SHA with NO run at all fails here, deliberately: "never tested" and "tested and failed" are
+      # different facts and neither is a licence to publish.
+      #
+      # ⚠️ ONE EDGE, DECIDED RATHER THAN INHERITED: a SHA whose run went GREEN and was then re-run RED
+      # still passes, because [D44] asks whether the SHA *has* a green run and one exists. That is the
+      # right default for the common cause (infra flake on a re-run), and the wrong one if a genuinely
+      # flaky test is being papered over — but the counter-rule ("any red ever revokes") would let a
+      # single infra blip permanently block a good SHA with no way forward except a new commit. Revisit
+      # if a red-after-green is ever observed here; do not change it on taste.
+      # ⚠️ `gh api --jq` ONLY — no pipe to a standalone `jq`. Both are on `ubuntu-latest` today, but the
+      # first is part of the tool already being invoked and the second is an ambient assumption. Measured
+      # while writing this: simulating the piped version on a machine WITHOUT `jq` made every case — no
+      # runs, one failure, cancelled, in-progress — come out as ALLOW, because the count landed empty and
+      # the numeric test errored past the refusal. `set -euo pipefail` does catch that in CI, so the
+      # shipped version was fail-closed either way; a guard that is safe only because of a shell option
+      # set three lines above it is not a guard worth writing.
+      - name: Refuse a SHA with no green web-e2e run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          GREEN=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/web-e2e.yml/runs?head_sha=${{ github.sha }}&per_page=100" \
+            --jq '[.workflow_runs[] | select(.status == "completed" and .conclusion == "success")] | length')
+          echo "green web-e2e runs for ${{ github.sha }}: '${GREEN}'"
+          # ⛔ FAIL CLOSED, EXPLICITLY. An empty result means the query did not answer — a rate limit, a
+          # permissions gap, a renamed workflow file — and "we could not tell" must never read as "yes".
+          if [ -z "${GREEN}" ] || ! [ "${GREEN}" -gt 0 ] 2>/dev/null; then
+            echo "⛔ No COMPLETED, SUCCESSFUL web-e2e run for ${{ github.sha }} (or the query failed)."
+            echo "   A deploy must not outrun its own gate. Push the SHA, let web-e2e go green, then dispatch."
+            exit 1
+          fi
+          echo "✅ ${GREEN} green web-e2e run(s) for this SHA"
+
   build:
+    needs: guard
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -62,6 +62,12 @@ on:
   # something every commit to the dev branch spends ~40 minutes on.
   #
   #   git tag app-preview-$(date +%Y%m%d-%H%M) && git push origin --tags
+  #
+  # ⛔ **DO NOT RETIRE THIS ONE.** P6.7.1 removed the visually identical `legacy-capture-*` trigger from
+  # `legacy-container-capture.yml`, and the two are NOT the same case: that one was a spent ONE-SHOT
+  # fixture generator, this is the **live entry point for P6.20**, which shoots the App Preview off the
+  # FINAL build and cannot happen before it. It stops being needed when the asset is captured and
+  # accepted — not before, and not because its neighbour went.
   push:
     tags: ['app-preview-*']
 

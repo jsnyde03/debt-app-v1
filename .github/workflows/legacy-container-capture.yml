@@ -33,19 +33,23 @@ on:
         description: 'The branch holding the shipped Capacitor app'
         type: string
         default: 'v1.6-dev'
-  # ⛔ THE TAG TRIGGER IS NOT A CONVENIENCE — IT IS THE ONLY WAY TO RUN THIS AT ALL RIGHT NOW.
-  # GitHub registers `workflow_dispatch` only for workflows present on the DEFAULT branch, and this
-  # repo's default is `release/v1` — which is gated on a live, approved version and must never be pushed
-  # to without 🎯. A `push:` event, by contrast, uses the workflow file at the ref that was pushed, which
-  # is why the native lane's `tags: ['v*']` works the same way.
+  # ⛔ THE `legacy-capture-*` TAG TRIGGER WAS RETIRED AT P6.7.1 (2026-08-21), ON ITS OWN TERMS.
+  # It carried its removal condition in writing — *"REMOVE THIS TRIGGER once the artifact exists"* — and
+  # the artifact exists: the capture ran, returned 22 keys, and `realContainer.test.ts` has been asserting
+  # against the result ever since. A one-shot fixture generator that has fired is a standing hazard and
+  # nothing else: **any push of such a tag spends a ~45-minute macOS runner** on a surface that ships
+  # nowhere, and the prefix that made the trigger safe never made it cheap.
   #
-  # ⚠️ Deliberately NOT `v*`: that pattern belongs to `native-e2e` and would fire a 20-minute lane run
-  # alongside this one. `legacy-capture-*` is distinct, so pushing this tag starts this job and nothing
-  # else. ⚠️ Any push of such a tag spends a ~45-minute macOS runner — the prefix is the safety.
+  # ⚠️ It was deferred as *"retire it with the legacy tree at 5.5.1"*. **That tree then moved a whole phase
+  # to P6.11, and the deferral silently moved with it** — which is why this is done independently. A
+  # deferral attached to another item's date inherits that item's slippage without anyone deciding to.
   #
-  # ▶ REMOVE THIS TRIGGER once the artifact exists (see the header: this is a one-shot fixture generator).
-  push:
-    tags: ['legacy-capture-*']
+  # ⚠️ WHAT THIS COSTS, STATED PLAINLY: the workflow is now unrunnable until it is present on the DEFAULT
+  # branch (`release/v1`), because `workflow_dispatch` registers only from there. That is correct for a
+  # spent one-shot — and if it is ever needed again, the honest move is to land it on the default branch,
+  # not to re-open a tag that fires a macOS runner on any push. **P6.11 deletes this file with the tree.**
+  # The body is kept until then as archaeology: its verify step prints the REAL on-disk paths of the
+  # localStorage databases on a real iOS simulator, which was 5.1's core unknown.
 
 env:
   APP_ID: 'com.jasonsnyder.debtplanner'

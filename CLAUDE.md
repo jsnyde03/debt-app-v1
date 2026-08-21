@@ -57,10 +57,16 @@ surfaces ship on unit assertions with **no rendered proof**) · 44 baselined han
 `formatDisplayAmount` · `projectForecast` · `buildSmartInsights` all have live ROOT-tree consumers, so they
 must be deleted **with** that tree or P6.11 leaves four unreachable modules behind.
 
-▶ **PICK UP HERE (2026-08-21).** ▶ **P6.7 (CI / Pages ops) is ACTIVE**, decomposed P6.7.1–.5 at the top of
-the plan; it carries **[D49]**, the stale-gate guard. ⚠️ It was authored 2026-08-20 and displaced the same
-day — **verify its premises against the tree before acting.** ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 · **R4**
-closed.
+▶ **PICK UP HERE (2026-08-21).** ▶ **P6.8 — the pre-release best-in-class FINISH sweep — is ACTIVE**,
+decomposed P6.8.1–.6 at the top of the plan. ⚠️ **Its charter is two questions and the second is the one
+that gets dropped:** *is anything wrong*, and ***is anything missing***. Structural findings are **scope
+calls for 🎯**, never automatic fixes. ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 · **P6.7** · **R4** closed.
+
+⭐ **THE GATE NOW RECORDS ITSELF — stop typing gate results ([D49], P6.7).** `validate:release:rn`'s final
+link writes `gate-status.json` (SHA · UTC · a content fingerprint of 580 source files) **on success only**,
+and `npm run lint:gate-freshness` answers *"does that pass still describe this tree?"* in under a second.
+⛔ **A remembered gate result is an unrun one** — that is what went wrong for three sessions while CI
+failed every push. Quote the record, never your memory. ⚠️ `gate:record` refuses to run standalone.
 
 ✅ **R4 CLOSED 2026-08-21 — the demo wrote to the real store, and now it cannot.** Found by **Sentry, from
 TestFlight, on 🎯's device**: he edited an expense inside the demo and the write went to his real plan.

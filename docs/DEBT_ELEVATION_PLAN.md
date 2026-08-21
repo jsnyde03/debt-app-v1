@@ -14,7 +14,10 @@
 |---|---|
 | **Where v1.7 is** | Phases 0–3 · **3.5** · **3.7** · **4** · **3.8** ✅ · the **whole-app audit gate** ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED** — the migration is verified on a live device and the cutover is **conditionally approved**. **Phase 6 is everything that remains**, and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — **210 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · **`lint:apostrophes`** · `lint:closure` · **`lint:secrets`** *(the repo is PUBLIC — credentials live in the Codemagic env group, never the tree)*; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. **Last RUN 2026-08-21 at R4.6 — locally on this tree, exit 0, read directly: 212 e2e · 10 embed.** ⚠️ It took THREE red cycles to get there and every red was mine — an orphaned binding, a [D17] comment violation, and two specs pinning a retired string. **`apps/rn` lint now runs `--max-warnings=0`** (🎯: lint clean before launch), mutation-verified. |
+| **Gate** | `validate:release:rn` — **210 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · **`lint:apostrophes`** · `lint:closure` · **`lint:secrets`** *(the repo is PUBLIC — credentials live in the Codemagic env group, never the tree)*; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. ⭐ **THE GATE NOW RECORDS ITSELF ([D49], P6.7).** Its final link writes `gate-status.json` — SHA · UTC ·
+a content fingerprint of 580 source files — **on success only**, and `npm run lint:gate-freshness` says in
+under a second whether that pass still describes the tree. ⛔ **Do not type a gate result into this file
+again; quote the record.** Last run 2026-08-21 at P6.7.6, exit 0, read directly: **212 e2e · 10 embed**. ⚠️ It took THREE red cycles to get there and every red was mine — an orphaned binding, a [D17] comment violation, and two specs pinning a retired string. **`apps/rn` lint now runs `--max-warnings=0`** (🎯: lint clean before launch), mutation-verified. |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** ⚠️ **Both MOVED 2026-08-20 ([D52]).**
@@ -41,8 +44,8 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 | **P6.5** | **Sentry** | ✅ **`beforeBreadcrumb` scrub BUILT 2026-08-20** — Sentry's touch integration records a11y labels and Debt builds those from the user's balances, so this is the difference between [D41] being true and a crash shipping real money off-device (21 asserts, both plants red). 🔴 **Needs the DSN from 🎯** → [`DEBT_SENTRY_SETUP.md`](DEBT_SENTRY_SETUP.md). ⛔ **Source-map upload stays OFF for the batched build** — a missing `SENTRY_AUTH_TOKEN` hard-fails the ARCHIVE, and that would kill the build before any of its three device checks ran |
 | **P6.6** | **Splash screen** | ✅ **DONE 2026-08-20** — plugin configured (`icon.png` · `imageWidth: 220` · `#0a051c` · contain), verified reaching the plugin via `expo config --type introspect`. ⚡ **[D43] was right and my instinct was wrong, decided by LOOKING** at three rendered candidates: on the icon's own surround the badge *dissolves*; on the app's navy it reads as a pasted-on square → [`evidence/2026-08-20-p6.6-splash/`](evidence/2026-08-20-p6.6-splash/). ⛔ **Dark in both themes** — `icon.png` is a SQUARE with no alpha, so on a light field the square shows and reads as a bug. ⚠️ Residual for 🎯: a light-mode user gets dark splash → light UI. **The rendered result is a device row** — `expo prebuild` cannot run on Windows |
 | ✅ | **R4 CLOSED 2026-08-21** *(ship-blocker, inserted ahead of P6.7)* — the demo's writes are refused **by construction**, not reported after the fact. 15 sites converted · 4 background writers declared · `lint:sandbox` added. Detail → log |
-| **P6.7** | ▶ **BUILDING NOW — CI / Pages ops** *(decomposed above)* | ⚠️ Retire the `legacy-capture-*` tag trigger **now, independently of P6.11** — its deferral said *"with the legacy tree"* and that tree just moved a whole phase; any push of such a tag spends ~45 min of macOS runner. · Flip the deploy allow-list to `release/v1`, or a dev branch can publish to a public marketing URL indefinitely. · ✅ **[D44]:** the deploy job **asserts its SHA has a green `web-e2e` run** and fails otherwise — *"deployed"* and *"passed the gate"* stop being held together by discipline · 🔴 **[D49] — a green gate must be RECORDED BY THE GATE, never typed.** `validate:release:rn` writes `gate-status.json` (SHA + UTC date) on success only; `lint:gate-freshness` reds when **source** has changed since that SHA. ⛔ [D44] stops a red SHA *deploying* but tells nobody the gate is red — which is the hole the 2026-08-19→20 red slipped through for three sessions while CI failed every push |
-| **P6.8** | ⭐ **[AUDIT GATE] Pre-Release Best-in-Class FINISH sweep — on the FROZEN app** | Absorbs **T12** (~40 polish items: L5-10/12/17–21 · L1-20…35 · L2's polish tier · L4-12…16). Every screen · sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. ⭐ **Charter includes STRUCTURAL GAPS** — *"is anything missing"*, not only *"is anything wrong"*; this is where 5.10's original fan-out intent now lives. ⛔ **Anything structural is a SCOPE CALL for 🎯**, never an automatic fix, or the sweep expands the freeze it exists to protect. Best single item: **L5-12**, the paywall never mentions the user's own money |
+| ✅ | **P6.7 CLOSED 2026-08-21** — tag trigger retired · the Pages deploy gained a `guard` job (`release/v1` only, **and** [D44]'s green-`web-e2e`-for-this-SHA assertion, which was recorded ✅ and had never been built) · **[D49]** `gate-status.json` + `lint:gate-freshness`, mutation-verified. Detail → log |
+| **P6.8** | ▶ **BUILDING NOW — [AUDIT GATE] Pre-Release Best-in-Class FINISH sweep** *(decomposed above)* | Absorbs **T12** (~40 polish items: L5-10/12/17–21 · L1-20…35 · L2's polish tier · L4-12…16). Every screen · sheet · card · state · both themes · iPhone/iPad/Split-View · Dynamic Type. ⭐ **Charter includes STRUCTURAL GAPS** — *"is anything missing"*, not only *"is anything wrong"*; this is where 5.10's original fan-out intent now lives. ⛔ **Anything structural is a SCOPE CALL for 🎯**, never an automatic fix, or the sweep expands the freeze it exists to protect. Best single item: **L5-12**, the paywall never mentions the user's own money |
 | **P6.9** | ⭐ **[AUDIT GATE] Privacy / data-flow audit** | Trace EVERY egress and prove *"financial data never leaves your device"* is literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. ✅ **Unblocked — it consumes [D40] + [D41]**, both settled 2026-08-20, so its job is to prove the new claim *literally true* rather than to discover one. ⛔ **The claim it verifies:** *"Your data never goes to our servers. Optional iCloud backup keeps it in your own Apple account."* Also owns retiring the marketing *"100% private"* line and the ASC privacy label declaring RevenueCat. 🔴 **P6.3 hands it a live counterexample: `PRIVACY_CLAIM.body` still says *"your financial data stays on this device"*, which the iCloud toggle makes false. P6.3 must not SHIP without [D41]'s rewrite landing here** |
 | **P6.10** | ⭐ **[AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** · 🔒 **FEATURE LOCK CLOSES HERE ([D52])** | ⛔ **Last gate that can FIND a structural gap** — P6.8's *"is anything missing"* and P6.9's egress trace both land before it, so their scope calls still have somewhere to go. Past this line a gap defaults to **2.1**. Boundary inputs across the engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping · cross-cadence BNPL · huge/partial portfolios. ⛔ **Owns two carried defects:** `bulkMarkRequired.ts` writes pre-[D2] paid semantics — inert today, but a false assertion in **data Phase 5 migrates** · `appliedTopUp` is a manual-opt-in invariant every cushion reader must remember (three readers exist; two had it) |
 | **P6.11** | **Repo consolidation** *(= "6.5", was 5.5)* — **delete the legacy tree** | ⛔ **Last possible moment, by design** (🎯: *"I do not want to take any chances at all of us deleting something from legacy that is still needed but missed"*). ⚠️ **Must be FINISHED before the final build.** Decomposed below |
@@ -87,21 +90,43 @@ with the defect planted back** · the first plant **lied** (a dangling `store_` 
 both tests went red for the wrong reason). ⭐ With the veto in and `ExpenseSheet` still leaking, both
 tests PASS — the defence in depth is demonstrated, not claimed. Detail → log.
 
-### ▶ P6.7 — CI / Pages ops *(the ACTIVE decomposition — resumed 2026-08-21, R4 vacated the slot)*
+### ✅ P6.7 — CI / Pages ops *(CLOSED 2026-08-21)*
 
-⚠️ **Authored 2026-08-20 and displaced the same day — a pre-authored plan is a HYPOTHESIS.** Verify each
-premise against the current tree at switch-in before acting. Its point is **[D49]**.
+✅ **All six built; `validate:release:rn` exit 0 — 212 e2e · 10 embed — and the gate wrote its own record
+as its final link.** Tag trigger retired · `embed-pages.yml` gained a `guard` job that `build` needs
+(ref must be `release/v1`; the SHA must have a green `web-e2e`) · `gate-status.json` + `lint:gate-freshness`,
+mutation-verified four ways (source edit → red · **doc edit → stays green**, which is [D49]'s own wording ·
+file added → red · file deleted → red).
+
+⛔ **The headline is the switch-in audit, not the build: 2 of 5 premises were wrong and a third item the
+queue rendered ✅ had never been written.** [D44] was *decided*, not built. There was no deploy allow-list
+to flip. And three things only the building surfaced — `lint:gate-freshness` **cannot** live in `lint:rn`
+(it would deadlock the gate that refreshes it), I **forged a green** while testing the writer (now gated
+on a `--from-gate` flag only the gate passes), and the first [D44] check fell **open** without `jq`.
+Detail → log.
+
+### ▶ P6.8 — [AUDIT GATE] Pre-release best-in-class FINISH sweep *(the ACTIVE decomposition — 2026-08-21)*
+
+⭐ **Recommended pick, and it is simply next in 🎯's settled order** — P6.3/P6.4/P6.6/P6.7 and R4 are
+closed, nothing is blocked on a device, and P6.8 is the widest net still upstream of **feature lock
+(P6.10)**, so anything structural it finds still has somewhere to go.
+
+⚠️ **Its charter is TWO questions, and the second is the one that gets dropped:** *is anything wrong*, and
+*is anything missing*. ⛔ **Anything structural is a SCOPE CALL for 🎯**, never an automatic fix, or the
+sweep expands the freeze it exists to protect.
 
 | # | Sub-step |
 |---|---|
-| **P6.7.1** | **Retire the `legacy-capture-*` tag trigger** — `legacy-container-capture.yml`. ⛔ **Independently of P6.11:** its deferral said *"with the legacy tree"* and that tree moved a whole phase. Any push of such a tag spends ~45 min of macOS runner on a surface that ships nowhere |
-| **P6.7.2** | **Flip the Pages deploy allow-list to `release/v1`** — today a dev branch can publish to the **public marketing URL** indefinitely |
-| **P6.7.3** | **[D49] `gate-status.json`** — `validate:release:rn` writes SHA + UTC **on success only**. ⚠️ Written BY the gate, never typed |
-| **P6.7.4** | **[D49] `lint:gate-freshness`** — reds when **source** has changed since that SHA; wire into `lint:rn`. ⛔ **Mutation-verify:** touch a source file → red; re-run the gate → green. [D44] stops a red SHA *deploying* but tells nobody the gate is red, which is the hole the 2026-08-19→20 red slipped through |
-| **P6.7.5** | **`validate:release:rn` green**, and the workflows still parse |
+| **P6.8.1** | **Build the surface inventory** — every screen · sheet · card · empty/loading/error state. `npm run audit:surfaces` exists; verify it against the tree rather than trusting its count *(six consecutive items have had short site lists)* |
+| **P6.8.2** | **Sweep the ~40 carried polish findings** — L5-10/12/17–21 · L1-20…35 · L2's polish tier · L4-12…16, plus P6.4's carried L1-20 · L1-22 · L4-13b. ⛔ **Read the LEDGER before the code** — P6.4 measured that pass wrong 9 times by grepping the tree first |
+| **P6.8.3** | **The matrix pass** — both themes · iPhone/iPad/Split-View · Dynamic Type. What web can prove, proves here; what it cannot goes to the **P6.14** device ledger with a row, not a hope |
+| **P6.8.4** | ⭐ **[DECISION] The structural-gap list → 🎯** — *"is anything missing"*, presented as scope calls with a recommendation each. Best single candidate on the record: **L5-12, the paywall never mentions the user's own money** |
+| **P6.8.5** | **Build what 🎯 admits**, defer the rest to 2.1 with the reason recorded against the finding id |
+| **P6.8.6** | **`validate:release:rn` green** *(it now records itself — do not type the result)* |
 
-**Exit:** no tag can burn a macOS runner on a dead tree, only `release/v1` can publish to the public URL,
-and a stale gate is **impossible to inherit** — the record is written by the run or it does not exist.
+**Exit:** every surface has been looked at in both themes and both size classes, all ~40 polish findings
+carry a verdict traceable to an id, and the structural-gap list has been **answered by 🎯** rather than
+silently absorbed or silently dropped.
 
 ### ✅ P6.4 — the 62 filed findings *(CLOSED 2026-08-20)*
 
@@ -366,6 +391,22 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 
 ## Deferred backlog
 
+**→ SURFACED BY P6.7's after-scan (2026-08-21)**
+
+- **⛔ AUDIT THE PLAN FOR OTHER ✅ THAT MEAN "DECIDED" RATHER THAN "BUILT".** [D44] sat in the P6.7 queue
+  row as *"✅ the deploy job asserts …"* for a day and a half and the step did not exist. The decisions
+  ledger marks ✅ when a call is **settled**; a queue row marks ✅ when work is **shipped** — same glyph,
+  one line apart, and the queue row is the one a reader trusts. ⚠️ **Not a code change — a sweep**, and
+  it is cheap: every `[Dnn] ✅` referenced from an OPEN item, checked against the tree. → **P6.10**
+  *(the last gate that can find a structural gap; a decision believed-built is exactly that)*.
+
+- **`npm ci` does not work in `apps/rn`** — that lockfile is out of sync with its `package.json` (~12
+  missing transitive entries), so `web-e2e`, the native lane and the Pages deploy all use
+  `npm install --prefer-offline` there. ⚠️ **Already noted in two workflow comments as "filed separately"
+  and it was never actually filed** — this is that filing. An unusable lockfile means installs are not
+  reproducible, which is worth correcting deliberately rather than as a side effect. → **2.1**
+  *(not a ship-blocker: the installs work, they are just not pinned)*.
+
 **→ SURFACED BY R4's after-scan (2026-08-21)**
 
 - **⛔ ASK THE SAME QUESTION OF EVERY OTHER GUARD IN THE REPO: does it PREVENT, or only DESCRIBE?**
@@ -594,7 +635,10 @@ a later version/tier**._
   and every finding on a shipping surface. ⚡ A count would spend the pre-lock window on the 24 generic-chrome
   duplicates that repeat by design and the 5 rows the `QA_TOOLS` flip deletes.
 - **[D43] ✅** — **the splash is the app icon on the icon's own dark background, no wordmark.** → **P6.6**.
-- **[D44] ✅** — **a Pages deploy must assert its SHA has a green `web-e2e` run** and fail otherwise. → **P6.7**.
+- **[D44] ✅ decided · ✅ BUILT 2026-08-21 (P6.7.3)** — a Pages deploy asserts its SHA has a green
+  `web-e2e` run and fails otherwise. ⚠️ **The two ticks are not the same tick, and conflating them cost
+  this decision a day and a half of looking done:** a decisions ledger marks ✅ when a call is *settled*,
+  a queue row marks ✅ when work is *shipped*. Both states are now stated explicitly here.
 - **[D51] ✅ (🎯 2026-08-20)** — **the splash ships a LIGHT and a DARK variant, both showing the MARK rather
   than the app-icon badge.** 🎯: *"a light variant and dark variant would be more professional."* ⚡ **What
   made it possible: the icon has real SVG source**, so the mark renders *without* its background — the
@@ -615,7 +659,12 @@ a later version/tier**._
   **this session**"* over a tree where source HAD moved. ⛔ **A doc rule cannot fix this — a doc rule is what
   failed**; the record has to be unforgeable, which means written by the thing it describes. Same [D31] move
   as `lint:closure`: turn the class into a gate. ⚠️ Deliberately scoped to **source**, so a docs-only commit
-  does not red. → **P6.7**.
+  does not red. ✅ **BUILT 2026-08-21 (P6.7.4/.5).** ⚠️ **Two corrections the building forced:** freshness
+  turns on a **content fingerprint**, not a git diff — the original failure ran on a tree with committed
+  *and* uncommitted movement, and hashing bytes covers both. And `lint:gate-freshness` is **NOT** in
+  `lint:rn` as this decision assumed: `lint:rn` runs inside the gate, so a stale record would abort the
+  run that refreshes it — **a freshness check inside the thing that establishes freshness is a deadlock.**
+  It is a top-level script, and its consumer is whoever is about to *claim* green.
 - **[D45] ✅** — **the monorepo stays**; `apps/rn` is not promoted to root. → **P6.11.2 closed.**
 - **[D46] ✅** — **the QA door is resolved by ORDERING:** `P6.13` (build, `QA_TOOLS` on) → `P6.14` (device
   pass) → `P6.17` (flip, own green gate). ⛔ The probe rows get **no** non-QA path — that ships a debug

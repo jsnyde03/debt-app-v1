@@ -52,7 +52,80 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
-## ⏸ P6.7 — CI / Pages ops: PARKED by R4, and back on the plan (2026-08-21)
+## ✅ P6.7 — CI / Pages ops: two premises were wrong, and one ✅ had never been built (2026-08-21)
+
+⭐ **THE HEADLINE IS THE SWITCH-IN AUDIT, not the build.** Five sub-steps were authored the day before.
+**Two were wrong, and a third item the queue row rendered as SHIPPED had never been written.** The build
+itself was small; finding out what the build actually was took longer and was the valuable part.
+
+| # | premise as written | measured |
+|---|---|---|
+| P6.7.1 | the `legacy-capture-*` tag trigger exists and should go | ✅ **held** — `legacy-container-capture.yml:48`, and its own header carried the removal condition (*"once the artifact exists"*), which was met: the capture ran, returned 22 keys, and `realContainer.test.ts` has been asserting against the result ever since |
+| P6.7.2 | *"flip the deploy **allow-list** to `release/v1`"* | ⛔ **MISDESCRIBED.** There is no allow-list and no push trigger — `embed-pages.yml` is `workflow_dispatch`-only. The exposure was real but elsewhere: **a dispatch chooses its ref**, so any branch could publish to the public marketing URL. Fixed as a ref guard *in the job*, which is the only place that can see the selected ref |
+| — | *"✅ **[D44]:** the deploy job asserts its SHA has a green `web-e2e` run"* | ⛔ **NEVER BUILT.** [D44] is a settled *decision* routed → P6.7; the queue row's ✅ meant "decided" and read as "done". The deploy job had no such step. **Recovered as P6.7.3** |
+| P6.7.4/.5 | no `gate-status.json`, no `lint:gate-freshness` | ✅ **held** |
+
+⚡ **The ✅-that-meant-two-things is the transferable one.** A decisions ledger marks a decision ✅ when it
+is *settled*; a queue row marks work ✅ when it is *shipped*. The same glyph carried both, one line apart,
+and the queue row is the one a reader trusts. **[D44] had been "done" for a day and a half.**
+
+### What was built
+
+**P6.7.1 — the tag trigger, retired independently.** Its deferral said *"with the legacy tree at 5.5.1"*;
+that tree moved a whole phase to P6.11 and **the deferral moved with it silently.** ⚡ *A deferral pinned
+to another item's date inherits that item's slippage without anyone deciding to.* Any push of such a tag
+spends ~45 min of macOS runner on a surface that ships nowhere.
+
+⚠️ **And its twin was NOT retired.** `app-preview.yml` carries a visually identical `app-preview-*` tag
+trigger, and it is the **live entry point for P6.20** (the App Preview is shot off the FINAL build, so it
+cannot happen earlier). A note now says so in the file — the retirement of one tag trigger is exactly the
+context in which someone sweeps up the other.
+
+**P6.7.2 + P6.7.3 — a `guard` job that `build` depends on.** A separate job rather than steps inside
+`build`: a guard living in the job it guards has already spent the export by the time it speaks, and is
+one `if:` away from being skipped. As a `needs:` edge it is structural.
+
+**P6.7.4/.5 — [D49].** `validate:release:rn`'s final link writes `gate-status.json`; `lint:gate-freshness`
+reds when source has moved since. ⚠️ **Freshness turns on a CONTENT FINGERPRINT of 580 source files, not
+on a git diff** — the original failure ran on a tree with *both* committed and uncommitted movement, and
+hashing bytes covers both with one mechanism instead of reasoning about which. `gateSources.ts` owns the
+definition for writer and checker alike, for the same reason R4's veto and reporter share their diff.
+
+### ⛔ Three things only the building surfaced
+
+1. **`lint:gate-freshness` CANNOT be wired into `lint:rn`, and the plan said to wire it there.** `lint:rn`
+   is the second of eight links inside `validate:release:rn`. Edit a source file, and the record is stale
+   by definition — so the check reds, `lint:rn` aborts, and **the gate can never reach the step that
+   refreshes the record.** A freshness check inside the thing that establishes freshness is a deadlock,
+   and it locks hardest in the exact state you most need the gate. It is a top-level script instead, and
+   its consumer is whoever is about to *claim* the gate is green — which is precisely who failed.
+   ⚡ **Textbook `preauthored-items-fail-two-ways`: the premise survived the before-scan intact**, because
+   a before-scan confirms a thing exists, not that it works.
+2. **I forged a green while testing the writer.** Verifying `gate:record` meant running it by hand, which
+   wrote a passing record for a gate run that had not happened — [D49]'s *"never typed"* defeated in the
+   act of building it. It now refuses without the `--from-gate` flag that only `validate:release:rn`
+   passes. ⚠️ Recorded as a **speed bump, not a lock**: anyone can pass the flag or edit the JSON, and the
+   point is that recording a false green takes a deliberate act rather than a plausible one-liner.
+3. **`jq` is not installed locally, and the first [D44] step fell OPEN without it.** Simulating the piped
+   `gh api … | jq` version made *every* case — no runs, one failure, cancelled, in-progress — come out as
+   ALLOW, because the count landed empty and `[ "$x" -eq 0 ]` errored past the refusal. `set -euo pipefail`
+   made the shipped version fail-closed anyway, but **a guard that is safe only because of a shell option
+   three lines above it is not a guard.** Rewritten to `gh api --jq` alone, with an explicit empty check.
+
+⚠️ **No CI was dispatched to verify any of this** (`batch-ci-builds` — the budget is session time, not the
+bill). Every workflow parses, the `guard → build → deploy` edges are asserted structurally, and the ref
+and run-conclusion logic was exercised against synthetic payloads: `release/v1` allows; `v1.7-dev`,
+`master`, a tag and `release/v1-hotfix` refuse; one success allows; failure, cancelled, skipped,
+timed_out, action_required, in_progress, queued and an empty/garbage query all refuse.
+
+⚠️ **One edge DECIDED rather than inherited:** a SHA that went green and was then re-run red still passes,
+because [D44] asks whether the SHA *has* a green run. The counter-rule would let one infra blip
+permanently block a good SHA with no way forward but a new commit. Written into the workflow so the next
+reader finds a decision, not an accident.
+
+---
+
+## ⏸ P6.7 — the decomposition as it was PARKED by R4 (2026-08-21)
 
 Authored and promoted at P6.4's close, displaced the same day by R4 (a ship-blocker), **restored to the
 plan the same day when R4 closed.** The decomposition lives at the top of `DEBT_ELEVATION_PLAN.md` and
