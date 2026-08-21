@@ -1,0 +1,13 @@
+import { chromium } from 'playwright-core';
+import { pathToFileURL } from 'node:url';
+import fs from 'node:fs';
+import path from 'node:path';
+const b = await chromium.launch();
+const p = await b.newPage();
+await p.goto(pathToFileURL(path.resolve(process.argv[2])).href);
+await p.addScriptTag({ content: fs.readFileSync('node_modules/axe-core/axe.min.js', 'utf8') });
+const res = await p.evaluate(() => window.axe.run(document, { runOnly: ['aria-allowed-attr', 'aria-valid-attr-value'] }));
+for (const v of res.violations) console.log('VIOLATION ' + v.id + ' -> ' + v.nodes.map(n => n.html.slice(0,90)).join(' | '));
+for (const v of res.incomplete) console.log('INCOMPLETE ' + v.id);
+if (!res.violations.length) console.log('(no violations)');
+await b.close();

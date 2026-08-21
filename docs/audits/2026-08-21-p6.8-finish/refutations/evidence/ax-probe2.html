@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>ax probe 2 — aria-selected on the wrong roles</title>
+<body>
+<!-- paywall.tsx:314 / PaydayCaptureSheet.tsx:254,397 shape -->
+<div role="button" tabindex="0" aria-selected="true" aria-label="Annual, Best value">A</div>
+<!-- RadioGroup.tsx:28 / SaveForItSheet.tsx:118,141 shape: role=radio + aria-selected, no radiogroup parent -->
+<div role="radio" tabindex="0" aria-selected="true" aria-label="Every two weeks">B</div>
+<!-- SegmentedToggle.tsx:60,75-76 shape: radiogroup + radio + aria-checked -->
+<div role="radiogroup"><div role="radio" tabindex="0" aria-checked="true" aria-label="Debts">C</div></div>
+<!-- for contrast: radio with aria-checked but no radiogroup -->
+<div role="radio" tabindex="0" aria-checked="true" aria-label="lone radio, checked">D</div>
+</body>

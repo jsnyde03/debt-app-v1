@@ -1,0 +1,1 @@
+VIOLATION aria-allowed-attr -> <div role="button" tabindex="0" aria-selected="true" aria-label="Annual, Best value">A</di | <div role="radio" tabindex="0" aria-selected="true" aria-label="Every two weeks">B</div>

@@ -1,0 +1,20 @@
+===== Playwright ariaSnapshot (body) =====
+- button "Annual, Best value": A
+- radio "Every two weeks": B
+- radiogroup:
+  - radio "Debts" [checked]: C
+- radio "lone radio, checked" [checked]: D
+===== Chromium CDP full AX tree (non-ignored) =====
+button             name="Annual, Best value"  props=focusable=true
+radio              name="Every two weeks"  props=focusable=true,checked="false"
+radiogroup         name=""  props=required=false
+radio              name="lone radio, checked"  props=focusable=true,checked="true"
+StaticText         name="A"
+StaticText         name="B"
+radio              name="Debts"  props=focusable=true,checked="true"
+StaticText         name="D"
+InlineTextBox      name="A"
+InlineTextBox      name="B"
+StaticText         name="C"
+InlineTextBox      name="D"
+InlineTextBox      name="C"
