@@ -52,6 +52,110 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
+## ⏸ P6.7 — CI / Pages ops: the decomposition, PARKED by R4 (2026-08-21)
+
+Authored and promoted at P6.4's close, then displaced the same day by R4 (a ship-blocker). Held here per
+the one-decomposed-section rule; **retrieve at switch-in and verify against the current tree first** — a
+pre-authored plan is a hypothesis.
+
+⭐ **Why it was chosen:** P6.3 is closed, nothing is blocked on a device, and P6.8–P6.10 are audit gates
+that want a settled app. Its point is **[D49]**.
+
+| # | Sub-step |
+|---|---|
+| **P6.7.1** | **Retire the `legacy-capture-*` tag trigger** — `legacy-container-capture.yml`. ⛔ **Independently of P6.11:** its deferral said *"with the legacy tree"* and that tree moved a whole phase. Any push of such a tag spends ~45 min of macOS runner on a surface that ships nowhere |
+| **P6.7.2** | **Flip the Pages deploy allow-list to `release/v1`** — today a dev branch can publish to the **public marketing URL** indefinitely |
+| **P6.7.3** | **[D49] `gate-status.json`** — `validate:release:rn` writes SHA + UTC **on success only**. ⚠️ Written BY the gate, never typed |
+| **P6.7.4** | **[D49] `lint:gate-freshness`** — reds when **source** has changed since that SHA; wire into `lint:rn`. ⛔ **Mutation-verify:** touch a source file → red; re-run the gate → green. [D44] stops a red SHA *deploying* but tells nobody the gate is red, which is the hole the 2026-08-19→20 red slipped through |
+| **P6.7.5** | **`validate:release:rn` green**, and the workflows still parse |
+
+**Exit:** no tag can burn a macOS runner on a dead tree, only `release/v1` can publish to the public URL,
+and a stale gate is **impossible to inherit** — the record is written by the run or it does not exist.
+
+---
+
+## 🔴 R4 — the demo writes to the REAL store, found by Sentry from TestFlight (2026-08-21)
+
+**Filed, not fixed — 🎯 wants it built in a fresh session.** Everything needed to start is here.
+
+### What happened
+
+🎯 mentioned Sentry was working because he'd received an error notification from the TestFlight build. The
+error was not a test:
+
+```
+Error: Real store mutated while a sandbox subtree was mounted
+  … at setState … at updateExpense … at submit … at onResponderRelease
+```
+
+He had opened the demo, edited an expense, and hit submit — and the write went to his **real plan**.
+
+### The mechanism, which the codebase had already written down
+
+`_layout.tsx:256` wraps the **entire app** in `<StoreProvider store={demoSandbox ?? appStore}>` for the
+duration of a demo, and `useAppStore` **reads** through that context. So a component inside a demo reads
+sandbox data and, if it writes via `appStore.getState()`, mutates the user's real plan.
+
+⚡ **`useAppStore`'s own docstring states the failure exactly, in advance:** *"If you read with this hook,
+WRITE with `useActiveStore()` — never `appStore.getState()`. Mixing the two makes a component read scripted
+money and mutate the user's real plan."* It is accurate, it is at the top of the file every offending
+component imports, and it was violated at a dozen sites.
+
+⛔ **The guard reports; it does not block.** `StoreContext.tsx:143` calls `reportError` from a `subscribe`
+callback — **after** the state has changed. It is a smoke alarm, not a sprinkler, and it was built as one
+deliberately enough that nobody noticed the gap.
+
+⛔ **A class closed at only some of its members** — verbatim the failure `ExampleCanvasMarker`'s docstring
+warns about. **`DebtSheet` was converted to `useActiveStore`. `ExpenseSheet` and `GoalSheet` were not.**
+
+### Why the suite could not see it
+
+`demo-containment.spec.ts` carries **14 tests and every one passes.** They assert the demo cannot *navigate*
+out — routes, exits, doors. **Not one asserts it cannot WRITE out.** ⚡ **Third time this session that an
+exhaustive suite was exhaustive about the question it chose and silent about the one that mattered** —
+after R3's exit *(present and reachable, but unusable)* and P6.4.4's exit *(present and reachable, but
+invisible)*. **The demo's containment has now failed on all three axes: what it says, what it looks like,
+and what it can touch.**
+
+### Damage, and the honest uncertainty
+
+`updateExpense` maps over the array, so a **non-matching id still yields a new object** — the guard can fire
+on a reference change with values intact. ⛔ **But `stampInputsFresh` runs regardless**, re-stamping
+read-freshness so a stale estimate looks confirmed; `store.ts:117` already records that as meaningful.
+⚠️ **Unresolved and R4.1's first question: do sandbox entity ids collide with real ones?** If they do, real
+values changed. ⛔ **`addExpense` is unconditional** — it appends to the real plan whatever the id.
+
+✅ **Nothing is owed to 🎯 — his store was test data** (2026-08-21). ⛔ **That does not downgrade the
+finding by one notch:** it is luck about whose device Sentry happened to reach, not a property of the
+defect. The next person through that door is an onboarded user with a real plan, which is exactly who the
+paywall sends there.
+
+### Severity
+
+The paywall's *"See it in action"* is reached **mostly by onboarded users** — precisely the people with
+data to corrupt. It also makes **[D23]**'s *"the demo is bounded"* false, and it is silent: nothing on
+screen tells the user their real plan just changed.
+
+### ⭐ Sentry verified itself, on a row that was still open
+
+P6.5's capture sat in the plan as **unprovable**: *"capture was untestable — there is no user-triggerable
+`reportError` path in the app, so a missing event would have read as 'Sentry is broken'."* A QA test-event
+button was queued for the next device build purely to prove the pipe worked.
+
+⚡ **It proved itself instead, by catching a ship-blocker on its first real error** — one that **117 audit
+findings across 7 lenses**, the **native lane**, **210 e2e** including 14 aimed at demo containment, and a
+**62-finding sweep through this very phase** had all walked past. **The QA button is now optional rather
+than owed.**
+
+⛔ **What this does NOT close: the `beforeBreadcrumb` money scrub.** Capture working and the scrub working
+are different claims, and the scrub is the load-bearing one — it is the difference between [D41] being true
+and a crash shipping real balances to a third party. **The event's breadcrumb trail must be read for the
+literal `$[redacted]` marker.** ⚠️ Absence of amounts proves nothing: the scrub is only exercised if the
+trail touched a money-bearing element, so *"no money visible"* and *"the scrub ran"* are indistinguishable
+without the marker. Still owed.
+
+---
+
 ## ✅ [D53] — 2.0 ships with NO free trial, and the argument that died was mine (🎯, 2026-08-21)
 
 🎯: *"I already have a demo and try-before-you-buy in the app."*

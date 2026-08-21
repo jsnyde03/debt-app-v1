@@ -57,10 +57,23 @@ surfaces ship on unit assertions with **no rendered proof**) · 44 baselined han
 `formatDisplayAmount` · `projectForecast` · `buildSmartInsights` all have live ROOT-tree consumers, so they
 must be deleted **with** that tree or P6.11 leaves four unreachable modules behind.
 
-▶ **PICK UP HERE (2026-08-21).** ✅ **P6.1 · P6.2 · P6.4 · P6.6 closed. P6.3 is VERIFIED ON HARDWARE.**
-**The active build is P6.7 — CI / Pages ops**, decomposed P6.7.1–.5 at the top of the plan. Its point is
-**[D49]**: `validate:release:rn` writes `gate-status.json` and `lint:gate-freshness` reds when source moves
-past it — a stale green becomes *impossible to inherit* rather than merely discouraged.
+▶ **PICK UP HERE (2026-08-21).** 🔴 **START WITH R4 — A SHIP-BLOCKER, decomposed R4.1–.6 at the top of the
+plan.** ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 closed.
+
+🔴 **R4 — THE DEMO WRITES TO THE REAL STORE.** Found by **Sentry, from TestFlight, on 🎯's device**:
+*"Real store mutated while a sandbox subtree was mounted"* — he edited an expense inside the demo and the
+write went to his real plan. ⚡ **`_layout.tsx:256` wraps the WHOLE app in the sandbox provider during a
+demo and `useAppStore` reads through it**, so a component reads scripted money and — writing via
+`appStore.getState()` — mutates the real plan. **`useAppStore`'s own docstring warns of exactly this**, at
+the top of every file that does it. ⛔ **The guard REPORTS, it does not BLOCK** (`StoreContext.tsx:143`
+fires from a `subscribe`, after the write lands). ⛔ **`DebtSheet` was converted to `useActiveStore`;
+`ExpenseSheet` and `GoalSheet` were not** — a class closed at some of its members. ⛔ **`demo-containment.
+spec.ts` has 14 passing tests that assert NAVIGATION containment and none that assert WRITE containment.**
+✅ 🎯's store was test data, so nothing is owed to him — **that is luck about whose device Sentry reached,
+not a property of the defect.** The paywall sends onboarded users through that door.
+
+⏸ **P6.7 (CI / Pages ops) was the active build and is DISPLACED, not dropped** — decomposition parked in
+the log. It carries **[D49]**, the stale-gate guard.
 
 ✅ **NOTHING IS BLOCKED ON A DEVICE (🎯 2026-08-21).** Cloud backup is **verified on hardware** — iCloud rows
 2–6 including the clobber guard — so **P6.3 is closed** and the app is not frozen on it. Work proceeds on

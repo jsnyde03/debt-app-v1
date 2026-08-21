@@ -70,22 +70,49 @@ longer frozen on it.** Detail → log.
 shape: closing the thing updates the decision and nobody deletes the row that was waiting on it. Corrected
 2026-08-21 when 🎯 said so out loud.
 
-### ▶ P6.7 — CI / Pages ops *(the ACTIVE decomposition)*
+### 🔴 R4 — THE DEMO WRITES TO THE REAL STORE *(the ACTIVE decomposition — SHIP-BLOCKER, 2026-08-21)*
 
-⭐ **Why this is next:** P6.3 is closed and nothing is blocked on a device (🎯 2026-08-21); P6.5's capture is owed to the next build but does not gate desk work;
-P6.8–P6.10 are audit gates that want a settled app. P6.7 is unblocked, and it carries **[D49]** — the guard
-against the exact failure that cost three sessions a red gate nobody could see.
+⛔ **Found by Sentry, from TestFlight, on 🎯's own device.** *"Real store mutated while a sandbox subtree
+was mounted"* — `submit` → `updateExpense` → the real singleton, while the demo was on screen.
+
+⚡ **The mechanism, and the codebase warned about it in advance.** `_layout.tsx:256` wraps the **whole app**
+in `<StoreProvider store={demoSandbox}>` during a demo, and `useAppStore` **reads** through that context.
+So a component reads the sandbox and — if it writes via `appStore.getState()` — mutates the user's real
+plan. `useAppStore`'s own docstring says exactly this: ⚠️ *"If you read with this hook, WRITE with
+`useActiveStore()` — never `appStore.getState()`. Mixing the two makes a component read scripted money and
+mutate the user's real plan."*
+
+⛔ **THE GUARD REPORTS, IT DOES NOT BLOCK.** `StoreContext.tsx:143` fires `reportError` from a
+`subscribe` callback — i.e. **after** the write has landed. Nothing was prevented.
+
+⛔ **A class closed at only some of its members** — the exact phrase in `ExampleCanvasMarker`'s docstring.
+**`DebtSheet` was converted to `useActiveStore`; `ExpenseSheet` and `GoalSheet` were not.**
+
+| | |
+|---|---|
+| ✅ correct | `DebtSheet` · `PaycheckSheet` · `SaveForItSheet` · `WindfallSheet` · `AffordabilityCard` · `LeanSuggestionCard` · Today |
+| ⛔ **writes real data** | **`ExpenseSheet`** (add/update/remove) · **`GoalSheet`** (add/update/remove) · `money.tsx` (removeDebt · removeExpense · removeGoal · setPayoffStrategy · verifyDebtBalance · `notDebtExpenseIds`) · `living-expenses.tsx` (removeLivingExpense) |
+
+⚠️ **Exactly ONE real-store write in the app is declared legitimate** (`drainPendingActions`, wrapped in
+`allowRealStoreWrite`). Everything above is undeclared.
+
+⭐ **Reachability is the severity:** the paywall's *"See it in action"* is reached mostly by **onboarded
+users** — the ones with real data to corrupt. It also makes [D23]'s *"the demo is bounded"* false.
 
 | # | Sub-step |
 |---|---|
-| **P6.7.1** | **Retire the `legacy-capture-*` tag trigger** — `legacy-container-capture.yml`. ⛔ **Independently of P6.11:** its deferral said *"with the legacy tree"*, and that tree moved a whole phase. Any push of such a tag spends ~45 min of macOS runner on a surface that ships nowhere |
-| **P6.7.2** | **Flip the Pages deploy allow-list to `release/v1`** — today a dev branch can publish to the **public marketing URL** indefinitely |
-| **P6.7.3** | **[D49] `gate-status.json`** — `validate:release:rn` writes SHA + UTC **on success only**. ⚠️ Written BY the gate, never typed |
-| **P6.7.4** | **[D49] `lint:gate-freshness`** — reds when **source** has changed since that SHA; wire into `lint:rn`. ⛔ **Mutation-verify:** touch a source file → red; re-run the gate → green. [D44] stops a red SHA *deploying* but tells nobody the gate is red, which is the hole the 2026-08-19→20 red slipped through |
-| **P6.7.5** | **`validate:release:rn` green**, and the workflows still parse |
+| **R4.1** | **Establish what a REAL user would suffer.** ✅ **No recovery needed — 🎯's store was test data** (2026-08-21), so nothing is owed to him; the severity is unchanged for anyone else. **The question is still open and gates the fix's shape: do sandbox entity ids collide with real ones?** ⚠️ `updateExpense` uses `.map()`, so a non-matching id still yields a new object — the guard can fire on a reference change with values intact. ⛔ **But `stampInputsFresh` runs regardless**, re-stamping read-freshness so a stale estimate reads as confirmed *(store.ts:117 already calls that meaningful)*, and **`addExpense` is unconditional** — it appends to the real plan whatever the id |
+| **R4.2** | **Convert every unsanctioned site to `useActiveStore()`.** ⛔ **Enumerate the CLASS, do not trust the table above** — it was built from one grep, and this session measured four enumerations wrong in both directions |
+| **R4.3** | **Make the guard REFUSE, not report.** A backstop that reports after the fact cannot stop data loss. It should block an undeclared real-store write while a sandbox is mounted; `allowRealStoreWrite` already models the sanctioned path |
+| **R4.4** | **A containment test that MUTATES.** ⛔ `demo-containment.spec.ts` has **14 tests and all of them passed** while this shipped — they assert *navigation* containment; **none asserts WRITE containment.** Drive an edit from inside a demo and assert the real store is untouched |
+| **R4.5** | **Sweep the mirror image:** any sandboxed surface READING from a non-context source. Reads look correct today (`useAppStore` goes through the context) — verify rather than assume |
+| **R4.6** | **`validate:release:rn` green** |
 
-**Exit:** no tag can burn a macOS runner on a dead tree, only `release/v1` can publish to the public URL,
-and a stale gate is **impossible to inherit** — the record is written by the run or it does not exist.
+**Exit:** a demo cannot write to the real store *by construction*, not by convention — and a test proves it
+by trying.
+
+⏸ **P6.7 (CI / Pages ops) was the active build and is DISPLACED, not dropped** — its decomposition is in
+the log; retrieve it at switch-in. It carries **[D49]**, the stale-gate guard.
 
 ### ✅ P6.4 — the 62 filed findings *(CLOSED 2026-08-20)*
 
@@ -186,8 +213,13 @@ availability · the App Review note naming the paywall path · the launch-FLIP v
 
 ## 🎯 Reported from the app — found by USING it, not by the lane
 
+⚡ **R3 and R4 were both found in the DEMO, and R4 was found by SENTRY rather than by looking.** The
+instrument that caught it is the one 🎯 thought was merely "working" — a crash report from TestFlight,
+which is the first time telemetry has out-performed both the suite and the lane on this project.
+
 | | Report | State |
 |---|---|---|
+| **R4** | 🔴 **2026-08-21 — the demo MUTATES THE REAL STORE.** Edit an expense inside the demo and the write lands on the user's actual plan | 🔴 **ACTIVE BUILD, decomposed R4.1–.6 above.** ⛔ **Reported by Sentry from TestFlight**, not by a test: *"Real store mutated while a sandbox subtree was mounted"*. The guard **reports after the write lands**; `DebtSheet` was converted to `useActiveStore` and `ExpenseSheet`/`GoalSheet` were not; `demo-containment.spec.ts`'s 14 tests assert navigation containment and none assert write containment. ✅ 🎯's store was test data — luck, not a property of the defect |
 | **R1** | Money's edit sheets had no date **picker** | ✅ **DONE.** `DateField` at all 4 sites. ⛔ Folded in: `todayLocalISO()` returned **yesterday** east of UTC. The fields had **zero** coverage before, which is why it shipped |
 | **R3** | 🔴 **2026-08-20 — the demo strands an EXISTING user.** More → *Unlock Premium* → *"See it in action"* takes over with no clear way back to their own plan | ✅ **CLOSED, in TWO passes — and the first one only half-fixed it.** ⚡ **🎯 2026-08-20, on review: the report was that an exit *"was not obvious"*, and R3 changed only what it SAID.** The exit was still `textStyles.caption` — the app's smallest text style — while the scripted run carries a full-width Button. **P6.4.4 made it a `Pill`** *(same position, reach, labels, testID)*. ⛔ **A relabel answers "what does this mean now I've found it", never "can I find it"** — and the site's own reasoning was entirely about REACH, never visibility. Detail → log. Original diagnosis below | ⚡ **Mechanism, read not guessed — and my first reading was WRONG.** The paywall pushes `/demo?from=paywall`, which is the **explore** run, and explore has **no dock**; its only exit is `ExampleCanvasMarker`'s row. So an exit *does* exist on every screen. ⛔ **The defect is what it SAYS:** a caption-sized link reading **"Start my real plan"** → `exitDemo('/onboarding')`. To an onboarded user — **the paywall CTA's main audience** — that reads as *discard what I have and start over*, so the one way out looks destructive and nobody sane taps it. *(It is in fact safe: the route guard bounces an onboarded user straight to the tabs. The user cannot know that.)* ⚠️ Same shape as **R2**: the door exists and is built for the wrong audience. ✅ **FIXED 2026-08-20 (🎯: *"'Back to my plan' is more clear"*)** — the exit is labelled for who is reading it, and ⛔ **`tsc` then showed the defect ran deeper than the label**: `exitDemo` hard-routed **every** exit through `/onboarding` on the stated premise that *"a demo viewer has no plan yet"*. True of the Welcome door, false of the paywall door. `DemoExit` gained `'/'`, the returning user goes straight to their tabs, and `back_to_plan` is now its own funnel reason — a return is not a conversion. +2 e2e, plant-verified |
 | **R2** | The expense set-aside is uncoachable · living expenses undiscoverable | ✅ **DONE = 3.8.** Both were the same fix. ⛔ The second half was **worse than reported**: the Money door existed but was gated on `livingTotal > 0`, so it showed only to users who had already found the feature |
