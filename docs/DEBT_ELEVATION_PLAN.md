@@ -36,7 +36,7 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 |---|---|---|
 | ✅ | **P6.1 DONE 2026-08-20** — the shipped version is `2.0.0` ([D38]). All three premises held; folded in the two stale `1.7.0` quotes in `codemagic.yaml` and two tracked zero-byte junk files. Detail → log |
 | ✅ | **P6.2 DONE 2026-08-20** — the feature-lock boundary is the **62** in [`REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md) ([D39]). Parser verified lossless (117 headings = 117 severities = 55 + 62); T9–T11 retired as drivers, carrying no id the generated list lacks. Detail → log |
-| **P6.3** | **Cloud backup** *(= "6.C", was 5.7)* — ships in v1.7 🎯, **not** premium-gated | 🔒 The cutover's approval condition, so **the app is not frozen until this lands**. ✅ **Built 2026-08-20 (.1–.7)**, portal + profile done. ⏳ **Only P6.3.3.8 remains — the device verify, on the [D48] build 🎯 is cutting now.** Below |
+| ✅ | **P6.3 CLOSED 2026-08-21** — cloud backup ships, **not** premium-gated. **Verified on hardware by 🎯**: iCloud rows 2–6 including the clobber guard, which was the cutover's approval condition. **The app is no longer frozen on it.** ⛔ **P6.9 still owes [D41]'s rewrite** — `PRIVACY_CLAIM.body` says *"stays on this device"*, which the iCloud toggle makes false. Detail → log |
 | ✅ | **P6.4 CLOSED 2026-08-20** — all 62 judged, [D42] satisfied. ⛔ **29 of 62 were not work.** `validate:release:rn` green: 210 e2e · 10 embed. Detail → log |
 | **P6.5** | **Sentry** | ✅ **`beforeBreadcrumb` scrub BUILT 2026-08-20** — Sentry's touch integration records a11y labels and Debt builds those from the user's balances, so this is the difference between [D41] being true and a crash shipping real money off-device (21 asserts, both plants red). 🔴 **Needs the DSN from 🎯** → [`DEBT_SENTRY_SETUP.md`](DEBT_SENTRY_SETUP.md). ⛔ **Source-map upload stays OFF for the batched build** — a missing `SENTRY_AUTH_TOKEN` hard-fails the ARCHIVE, and that would kill the build before any of its three device checks ran |
 | **P6.6** | **Splash screen** | ✅ **DONE 2026-08-20** — plugin configured (`icon.png` · `imageWidth: 220` · `#0a051c` · contain), verified reaching the plugin via `expo config --type introspect`. ⚡ **[D43] was right and my instinct was wrong, decided by LOOKING** at three rendered candidates: on the icon's own surround the badge *dissolves*; on the app's navy it reads as a pasted-on square → [`evidence/2026-08-20-p6.6-splash/`](evidence/2026-08-20-p6.6-splash/). ⛔ **Dark in both themes** — `icon.png` is a SQUARE with no alpha, so on a light field the square shows and reads as a bug. ⚠️ Residual for 🎯: a light-mode user gets dark splash → light UI. **The rendered result is a device row** — `expo prebuild` cannot run on Windows |
@@ -59,20 +59,20 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 **Exit:** `2.0.0` submitted to App Review off a build that passed P6.18, with `validate:release:rn` green on
 the shipping configuration and `QA_TOOLS` off.
 
-### ▶ P6.3 — cloud backup *(= "6.C")*
+### ✅ P6.3 — cloud backup *(= "6.C") — CLOSED 2026-08-21*
 
-✅ **P6.3.1–.2 settled ([D40] private container, no passphrase · [D41] the claim) · P6.3.3.1–.7 BUILT
-2026-08-20** — codec, provider seam, service + clobber guard, the sheet (**closes L1-29**), the auto-trigger
-and its coverage. Off Freedom's device LESSONS, not its code. ✅ 🎯 did the Apple portal + refreshed the main
-profile (a capability change invalidates it). Detail → log.
+✅ **[D40] · [D41] settled · P6.3.3.1–.7 built 2026-08-20 · P6.3.3.8 VERIFIED ON HARDWARE by 🎯** — iCloud
+rows 2–6, including **the clobber guard** (decline the restore, onboard fresh, background, remote still
+holds the OLD backup), which was the cutover's approval condition. **Cloud backup ships, and the app is no
+longer frozen on it.** Detail → log.
 
-| # | Remaining |
-|---|---|
-| **P6.3.3.8** | **Device verify** — on the [D48] batched build (P6.3 + P6.5 + P6.6). ⛔ **Web proves only the *unavailable* branch**; the entitlement, the container, the fresh-install download-poll, the restore offer and the toggle path have **no off-device proof at all**. ⭐ **The row that matters is the clobber guard** — [`DEBT_ICLOUD_SETUP.md`](DEBT_ICLOUD_SETUP.md) Step D.5: decline the restore, onboard fresh, background, and confirm the remote is still the OLD backup |
+⚠️ **This row sat in "Remaining" after the pass had already run** — the `waiting-lists-decay-one-way`
+shape: closing the thing updates the decision and nobody deletes the row that was waiting on it. Corrected
+2026-08-21 when 🎯 said so out loud.
 
 ### ▶ P6.7 — CI / Pages ops *(the ACTIVE decomposition)*
 
-⭐ **Why this is next:** P6.3's remaining half and P6.5's capture are both blocked on 🎯's device build;
+⭐ **Why this is next:** P6.3 is closed and nothing is blocked on a device (🎯 2026-08-21); P6.5's capture is owed to the next build but does not gate desk work;
 P6.8–P6.10 are audit gates that want a settled app. P6.7 is unblocked, and it carries **[D49]** — the guard
 against the exact failure that cost three sessions a red gate nobody could see.
 
@@ -164,13 +164,19 @@ GROUP**, so a trial burned on monthly is gone for the plan you want them on.
 ✅ **Sentry is wired too (🎯, 2026-08-20)** — DSN in the Codemagic `AppleConnect` group, project
 `debt-planner` / `4511944380907520`, org `jason-snyder`, auth token already held from another app.
 
-⏳ **IN FLIGHT: the [D48] batched build — signing PASSED.** 🎯 runs the device pass off
-[`DEBT_DEVICE_PASS_2026-08-20.md`](DEBT_DEVICE_PASS_2026-08-20.md) (~20 min, 8 rows). ⭐ **Row 4 is the one
-that matters** — decline the restore, onboard fresh, background, and confirm the remote is still the OLD
-backup. Fixes → **P6.15**.
+✅ **THE [D48] BUILD RAN AND ITS PASS IS DONE (🎯).** iCloud rows 2–6 green including the clobber guard →
+**P6.3 CLOSED**; splash row 1 passed on the badge version. ⛔ **NOTHING IS BLOCKED ON A DEVICE** — 🎯,
+2026-08-21. P6.7 and everything after it proceed on the desk.
 
-🔴 **Nothing is blocked. The next action is 🎯 triggering the [D48] batched Codemagic build** — it carries
-P6.3 (iCloud) + P6.5 (Sentry capture) + P6.6 (the splash), and **all three are provable only on a device.**
+⏭ **What the NEXT device build still owes — later, not blocking:** **[D51]**'s light/dark splash *(it
+supersedes the badge version row 1 passed, so splash re-runs)* · **Sentry capture** *(untestable last time —
+there is **no user-triggerable `reportError` path**, so a missing event would have read as "Sentry is
+broken"; the QA test-event button rides this build)* · **R3's demo exit**, now twice-fixed *(P6.4 found the
+label fix had left it `caption`-sized)* · and rows **1 and 7** of
+[`DEBT_DEVICE_PASS_2026-08-20.md`](DEBT_DEVICE_PASS_2026-08-20.md). Fixes → **P6.15**.
+
+⚠️ **Nothing about the splash, Sentry capture or R3 is proven off-device** — the web suite exercises the
+*unavailable* branch by construction. **Cloud backup is the one that is now genuinely proven.**
 ⛔ **Source-map upload stays OFF for this one** ([`DEBT_SENTRY_SETUP.md`](DEBT_SENTRY_SETUP.md)): the upload
 phase hard-fails the ARCHIVE, and worst-case-off is minified frames while worst-case-on is losing all three
 verifications and another ~45-min cycle. ⏸ Owed only when it is switched on: the **org slug**.

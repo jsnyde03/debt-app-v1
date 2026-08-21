@@ -62,11 +62,16 @@ must be deleted **with** that tree or P6.11 leaves four unreachable modules behi
 **[D49]**: `validate:release:rn` writes `gate-status.json` and `lint:gate-freshness` reds when source moves
 past it — a stale green becomes *impossible to inherit* rather than merely discouraged.
 
-🔴 **Cut the NEXT device build.** It carries **[D51]** the light/dark splash · the **Sentry QA test-event
-button** *(capture was untestable — there is **no user-triggerable `reportError` path in the app**, so a
-missing event would have read as "Sentry is broken")* · and **R3**'s demo-exit fix — now **twice** fixed,
-because R3 corrected what the exit *said* and P6.4 found it was still `caption`-sized. Then rows 1 and 7 of
-`docs/DEBT_DEVICE_PASS_2026-08-20.md`. ⏭ Owed after a green Sentry row: flip source-map upload in one commit.
+✅ **NOTHING IS BLOCKED ON A DEVICE (🎯 2026-08-21).** Cloud backup is **verified on hardware** — iCloud rows
+2–6 including the clobber guard — so **P6.3 is closed** and the app is not frozen on it. Work proceeds on
+the desk.
+
+⏭ **The next device build is OWED, not blocking.** It carries **[D51]** the light/dark splash *(supersedes
+the badge version)* · the **Sentry QA test-event button** *(capture was untestable — there is **no
+user-triggerable `reportError` path in the app**, so a missing event would have read as "Sentry is
+broken")* · and **R3**'s demo exit, now **twice** fixed *(R3 corrected what it said; P6.4 found it was still
+`caption`-sized)*. Then rows 1 and 7 of `docs/DEBT_DEVICE_PASS_2026-08-20.md`. ⏭ After a green Sentry row:
+flip source-map upload in one commit. ⚠️ **None of those three is proven off-device.**
 
 ⭐ **P6.4 CLOSED 2026-08-20 — and 29 of the 62 were NOT WORK (47%).** 25 at triage, 4 more dissolved on
 contact. ⛔ **The result that outranks the count: the audit gate had already fixed or refuted 18 of them,
