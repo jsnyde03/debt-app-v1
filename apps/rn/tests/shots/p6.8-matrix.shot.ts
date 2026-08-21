@@ -230,10 +230,9 @@ const shot = (page: Page, viewport: string, theme: string, name: string) =>
  * 500 ms autosave debounce puts its own store back over the blob. No amount of careful writing survives
  * a live app writing behind you — the app has to be *gone*, which is what per-test isolation gives.
  *
- * ⚡ Two lessons, and the second one cost more than the bug: **an instrument that fails loudly is safer
- * than one that fails accurately most of the time** (the timeouts announced themselves and cost two
- * frames; this said nothing and cost ten). And **a fix that sounds causal is still a hypothesis** — this
- * project has that written down about *agent* mechanisms, and it applies identically to mine.
+ * ⚡ **An instrument that fails LOUDLY is safer than one that fails accurately most of the time.** The
+ * sheet timeouts announced themselves and cost two frames; this failed silently and cost ten. That is
+ * why every surface now carries a `ready` assertion.
  */
 async function reseed(page: Page, blob: Record<string, unknown>, goto: string) {
   // An origin has to exist before `localStorage` is reachable.

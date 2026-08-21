@@ -16,7 +16,28 @@ import { day, scenario, seedStore } from './helpers/seed';
  * rule a hand-written fence gets wrong, since `aria-hidden` and tab order are separate questions on web.
  */
 
-const RULES = ['aria-hidden-focus', 'aria-hidden-body', 'aria-valid-attr-value', 'aria-required-children'];
+/**
+ * ⭐ `aria-allowed-attr` added at P6.8.7a — the cheapest fix in the whole P6.8 audit, and the gate that
+ * covers the most sites per character.
+ *
+ * ⛔ **A11y gate coverage across all seven of P6.8's confirmed accessibility findings was ZERO.** This one
+ * line closes six of them: every `a11ySelected` site puts `aria-selected` on a role that does not allow
+ * it. **Three are `role="radio"`, where Chromium then supplies `checked="false"` — so the option the user
+ * has CHOSEN is announced as unchosen.** Worse than silence, and the paywall is not even the worst case.
+ *
+ * ⚠️ **`aria-valid-attr-value` — already in this list — does NOT catch it, and that near-miss is the
+ * reason the class survived.** Refuter R5 measured both rules against a purpose-built probe
+ * (`docs/audits/2026-08-21-p6.8-finish/refutations/evidence/axe-rule-probe.mjs`, regenerable): the value
+ * `"true"` is perfectly *valid*, it is simply not *allowed* on that role. A list that looks like it
+ * covers ARIA attributes did not.
+ */
+const RULES = [
+  'aria-hidden-focus',
+  'aria-hidden-body',
+  'aria-valid-attr-value',
+  'aria-required-children',
+  'aria-allowed-attr',
+];
 
 const newUser = (over: Record<string, unknown> = {}) =>
   scenario({ prefs: { onboardingComplete: true, ...(over.prefs as object) }, ...over });

@@ -97,21 +97,26 @@ export function a11yChecked(checked: boolean): AccessibilityProps {
   return { 'aria-checked': checked };
 }
 
-/**
- * The chosen-ness of a control in a set — a segmented toggle's active segment, a radio, a picker row.
+/*
+ * ⭐ **P6.8.7a — `a11ySelected` is RETIRED, and all six of its callers now use {@link a11yChecked} with a
+ * corrected ROLE.**
  *
- * Same mechanism and same measurement as {@link a11yChecked}; `selected` is simply the state key that
- * this codebase reaches for most (7 of the 13 longhand sites at the time of writing).
+ * ⛔ Its own docstring predicted the defect exactly — *"`aria-selected` is only valid on a handful of
+ * roles… on a plain `role="button"` it is ignored… this helper does not choose for the caller"* — and
+ * **a warning that accurate, sitting on the export itself, did not prevent a single miswiring.** The
+ * combination it warned about was the only combination anyone ever wrote. The helper is gone rather than
+ * re-documented: the wrong pairing is now **unrepresentable**, and `aria-allowed-attr` (added to
+ * `a11y-axe.spec.ts` in the same step) reds if it returns.
  *
- * ⚠️ `aria-selected` is only valid on a handful of roles (`tab`, `option`, `row`, `gridcell`, `treeitem`).
- * On a plain `role="button"` it is ignored by assistive tech, so a segmented control that is really a set
- * of buttons wants `aria-pressed`. This helper does not choose for the caller: it reports the state the
- * caller already claimed, and picking the right ROLE remains the caller's job. Stated because the
- * alternative — silently rewriting a role from a state helper — is how a fix becomes a new defect.
+ * ⚠️ **The three `radio` sites were the worse half, and silence was not the failure mode.** Chromium
+ * supplies `checked="false"` for a `role="radio"` carrying `aria-selected` — so **the option the user had
+ * chosen was announced as unchosen.** Measured by refuter R5 against the installed Chromium.
+ *
+ * ⚡ **And the docstring's own suggested remedy was unavailable: React Native has no `aria-pressed`.**
+ * `tsc` refused it (`'aria-pressed' does not exist in type 'AccessibilityProps'`), which is why the three
+ * `button` sites were re-roled rather than re-stated — `checkbox` for the two toggles, `radio` for the
+ * paywall's choose-one-of-N. **The advice in the comment had never been compiled.**
  */
-export function a11ySelected(selected: boolean): AccessibilityProps {
-  return { 'aria-selected': selected };
-}
 
 /**
  * Whether a disclosure — a collapsible section header, a "what if" drawer, a ledger row — is open.

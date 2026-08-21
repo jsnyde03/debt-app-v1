@@ -20,7 +20,7 @@ import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { a11ySelected } from '@/utils/a11y';
+import { a11yChecked } from '@/utils/a11y';
 import { PRIVACY_CLAIM, PRIVACY_POLICY_LABEL, SEE_IT_IN_ACTION_CTA, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
 
 /** What Premium unlocks — effort-not-info framing: each line is a job the app DOES for you, not a fact
@@ -307,11 +307,14 @@ export default function PaywallScreen() {
             {plans.map((plan) => {
               const isSel = plan.key === selectedKey;
               return (
+                // P6.8.7a — `radio`, not `button`: choose ONE of N plans. It carried the retired
+                // `aria-selected`, which Chromium ignores on a button — so the plan the buyer had chosen
+                // was announced no differently from the ones they had not, on the purchase decision.
                 <Pressable
                   key={plan.key}
                   onPress={() => setSelectedKey(plan.key)}
-                  accessibilityRole="button"
-                  {...a11ySelected(isSel)}
+                  accessibilityRole="radio"
+                  {...a11yChecked(isSel)}
                   accessibilityLabel={`${plan.title}${plan.badge ? `, ${plan.badge}` : ''}, ${plan.priceString} ${plan.periodLabel}. ${plan.subnote}`}
                   style={[
                     styles.planRow,

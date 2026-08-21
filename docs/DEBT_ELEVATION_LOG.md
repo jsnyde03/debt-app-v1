@@ -52,6 +52,118 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
+## ⭐ P6.8 — the FINISH sweep's AUDIT half, and what it measured about auditing (2026-08-21)
+
+**13 lenses · 6 adversarial refuters · 226 frames · 9 a11y trees.** Everything is in
+[`docs/audits/2026-08-21-p6.8-finish/`](audits/2026-08-21-p6.8-finish/); `SYNTHESIS.md` is the decision
+document and carries the ranked verdict, my recommendation on all ten scope calls, and a do-not-build
+list. ⛔ **Only ONE item was built** *(P6.8.7a's a11y gate, below)* — 🎯 stopped implementation for the
+next session after approving *"everything except the refutations."*
+
+### ⭐ The result that outranks every finding
+
+**Observations survive. Explanations do not — measured six independent ways in one audit.**
+
+| source | observations | mechanisms |
+|---|---|---|
+| **W2** carried findings | 3 of 3 held | **0 of 3** — *"third consecutive audit"* |
+| **R1** data loss | 5 of 6 | **3 of 6 wrong** |
+| **R2** public claims | 6 of 6 | **3 of 6 wrong** |
+| **R3** journey | 6 of 6 | 1 clause |
+| **R5** accessibility | 7 of 7 | **1 of 7 — and it killed the audit's most alarming sentence** |
+| **R4** visual | 5 confirmed · 1 downgraded · **2 refuted** | 1 of 8 — **and R4's own premise was wrong too** |
+
+⛔ **Twice, the fix a lens proposed would not have closed the defect it found.** The iCloud clobber is the
+archetype: two lenses independently said *"it bypasses `shouldAutoBackup`"* and recommended routing it
+through that guard — R1 evaluated the guard against the state that exists at that moment and **it returns
+`true` and permits the clobber anyway.** Without the refutation wave, two fixes ship, both green, neither
+working.
+
+⚡ **W2's corollary, which nobody had stated: a carried NUMBER decays exactly like a carried premise.**
+Five of six figures quoted in the ledger were wrong — 16→**23** · "2 of 8"→**6 of 15** · 26→**32** ·
+73→**72** · "four primitives"→**4 done, 7 left**. Nothing re-checks a number once it is written down.
+
+⚡ **And the pattern landed on a refuter, which is the strongest evidence for it.** R4 asserted the
+`state-*` and `textscale-*` frames were never re-shot; **file mtimes say routes 12:00, states 12:07–12:08,
+text-scale 12:09** — it read them mid-re-shoot. Its observations, which rest on reading pixels rather than
+that premise, all stand.
+
+⭐ **Nobody in this audit — lens, refuter, or me — got a mechanism right by reasoning about it. Every
+correct one came from running something.**
+
+### ⛔ The instrument was wrong twice, and it cost more than any finding
+
+Full account in `audits/2026-08-21-p6.8-finish/matrix/README.md`. **Every `onboarding` frame was a
+photograph of Today** — ten of them — and the shot *succeeded*, so the `⛔ UNREACHED` guard built to make
+the matrix report its own holes was structurally blind to it. Three lenses caught it by reading pictures.
+
+**Three mechanisms were needed.** *"`addInitScript` accumulates"* — false. *"The previous app's 500 ms
+autosave races the seed"* — **mine, implemented, and RE-SHOT ON** before O1 measured it false in a fresh
+context. The cause was `runMigrations` → **`inferOnboarding`**, which promotes `onboardingComplete: true`
+whenever a blob carries income **and** an obligation — which the shared `scenario()` always seeds.
+
+⚡ **O1 named the hazard before it happened:** *"a re-shot matrix will produce Today again, this time
+carrying a fix's authority."* **A re-shoot on a wrong fix is worse than the original bug.** Fixed by
+emptying the plan in the seed *and* by giving every surface a `ready` assertion — a field that existed on
+the interface and was used by nothing.
+
+**Second defect:** `today.png` was shot mid entrance-animation in both themes at *different points in the
+same fade* (0.0 % card-token pixels vs 40–44 % settled; count-ups caught mid-run at $577 vs $1,032 on the
+same seed). A theme-parity lens reading those was comparing two moments, not two themes. Settle
+700 ms → 1800 ms.
+
+⚡ **And the second-order lesson, from R4:** *"V4-9, V4-11 and 3 of V4-8's 4 citations were killed by the
+lens, not the instrument."* **A known instrument defect becomes the explanation of first resort.**
+Meanwhile V4-8 *does* reproduce in split-view, both themes — which nobody read.
+
+### ⚠️ Two instrument properties recorded so the next audit does not re-derive them
+
+1. **`ariaSnapshot()` is permanently blind to grouped labels.** R5 dumped the tree from **both** Playwright
+   and the installed Chromium: Playwright's `elementProhibitsNaming` hard-sets the name to `""` before
+   reading `aria-label`; **Chromium exposes it.** So a run-on `- text:` node in those dumps is **not**
+   evidence of a missing label, and re-capturing them proves nothing. Use the browser's tree
+   (`refutations/evidence/ax-probe.mjs`).
+2. **No OS text scaling, no VoiceOver, and a wide viewport is not an iPad** — all device-owed to P6.14.
+
+### ✅ P6.8.7a(i) — the one thing built: the cheapest fix in the audit
+
+**A11y gate coverage across all seven confirmed accessibility findings was ZERO.** One line —
+`aria-allowed-attr` added to `a11y-axe.spec.ts` — closes six of them.
+
+⛔ **`aria-valid-attr-value` was already in that list and does NOT catch it**, which is why the class
+survived: `"true"` is a perfectly *valid* value, it is simply not *allowed* on that role. R5 measured both
+rules against a purpose-built probe rather than assuming.
+
+**All six `a11ySelected` sites were miswired, and the helper's own docstring had predicted it exactly** —
+*"on a plain `role="button"` it is ignored… this helper does not choose for the caller."* ⛔ **A warning
+that accurate, on the export itself, did not prevent a single miswiring**, and the combination it warned
+about was the only one anyone ever wrote. So the helper is **retired**, not re-documented: three `radio`
+sites and three re-roled (`checkbox` ×2, `radio` ×1) now use `a11yChecked`, and the wrong pairing is
+**unrepresentable**.
+
+⚡ **The docstring's own suggested remedy was unavailable: React Native has no `aria-pressed`.** `tsc`
+refused it outright — *the advice in the comment had never been compiled.* That is why the button sites
+were **re-roled** rather than re-stated.
+
+⚠️ The `radio` half was the worse one and silence was not the failure mode: **Chromium supplies
+`checked="false"` for a `role="radio"` carrying `aria-selected`, so the option the user had CHOSEN was
+announced as unchosen** — including the paywall's plan picker, on the purchase decision.
+
+### ⛔ And the gate red-carded ME, on [D17], for the exact shape this audit is about
+
+`lint:comments` failed the first close-out run: a comment I had written in `p6.8-matrix.shot.ts`
+narrating *my own* wrong mechanism and drawing a lesson from it. **[D17]: correcting a false comment means
+DELETING it, not annotating it.** ⚡ The rule is right and I had inverted it — the durable content is *how
+the seeding works*; the story of how I got it wrong belongs **here, in the log**, which is where it
+already was. The comment now states the rule (*an instrument that fails loudly is safer than one that
+fails accurately most of the time*) and nothing about who learned it.
+
+⚠️ **Worth noting for its own sake: the gate caught this, not review.** Three sessions of this phase have
+now been corrected by a gate rather than by a reader — `lint:money`, `lint:closure`, and now
+`lint:comments` — which is [D31]'s whole thesis arriving on the person who wrote the gates.
+
+---
+
 ## ✅ P6.7 — CI / Pages ops: two premises were wrong, and one ✅ had never been built (2026-08-21)
 
 ⭐ **THE HEADLINE IS THE SWITCH-IN AUDIT, not the build.** Five sub-steps were authored the day before.

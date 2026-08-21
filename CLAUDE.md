@@ -57,10 +57,33 @@ surfaces ship on unit assertions with **no rendered proof**) · 44 baselined han
 `formatDisplayAmount` · `projectForecast` · `buildSmartInsights` all have live ROOT-tree consumers, so they
 must be deleted **with** that tree or P6.11 leaves four unreachable modules behind.
 
-▶ **PICK UP HERE (2026-08-21).** ▶ **P6.8 — the pre-release best-in-class FINISH sweep — is ACTIVE**,
-decomposed P6.8.1–.6 at the top of the plan. ⚠️ **Its charter is two questions and the second is the one
-that gets dropped:** *is anything wrong*, and ***is anything missing***. Structural findings are **scope
-calls for 🎯**, never automatic fixes. ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 · **P6.7** · **R4** closed.
+▶ **PICK UP HERE (2026-08-21) — P6.8.7, the BUILD.** ⭐ **P6.8's audit half is CLOSED**: 13 lenses, 6
+adversarial refuters, 226 frames, 9 a11y trees, all in
+[`docs/audits/2026-08-21-p6.8-finish/`](docs/audits/2026-08-21-p6.8-finish/). ⚠️ **Read `SYNTHESIS.md`
+FIRST** — it is the decision document and carries the ranked verdict, a recommendation on all ten scope
+calls, and a **do-not-build list**. ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 · P6.7 · R4 closed.
+
+🎯 **2026-08-21: "put in everything except the refutations"** — A + B + C, decomposed **P6.8.7a–g** on the
+plan. ⛔ **Only P6.8.7a(i) is built** (the a11y gate); implementation stopped there for a fresh session.
+⚠️ 🎯 **overruled my 2.1 recommendation on C7 and C8**, so P6.8 is a BUILD phase now and must still clear
+**P6.10** feature lock. ⛔ **The earliest deadline in the audit is C8's parser rescue —
+`core/imports/debtCsv.ts`'s only caller dies at P6.11.** ⏭ **Then P6.8.9: a VERIFICATION audit** (🎯) —
+re-audit the results, confirm each fix landed *and* that no major+ issue remains.
+
+⛔ **THE RESULT THAT OUTRANKS EVERY FINDING, and it changes how you read any audit here.**
+**Observations survive; explanations do not.** Measured six ways in one audit: W2 **0 of 3** mechanisms
+held *(third consecutive audit)* · R1 **3 of 6** wrong · R2 **3 of 6** · R5 **1 of 7** · R4 **1 of 8** —
+**and R4's own premise about the instrument was wrong too.** ⚡ **Twice the fix a lens proposed would not
+have closed the defect it found.** ⭐ **Nobody — lens, refuter, or me — got a mechanism right by reasoning
+about it; every correct one came from running something.** W2's corollary: **a carried NUMBER decays
+exactly like a carried premise** (5 of 6 quoted figures were wrong).
+
+⛔ **AND THE INSTRUMENT WAS WRONG TWICE.** Every `onboarding` frame was a photograph of Today — the shot
+*succeeded*, so the "report your own holes" guard was blind to it. **Three mechanisms were needed; the
+second was mine and I RE-SHOT ON IT** before O1 measured it false. ⚡ *"A re-shot matrix will produce Today
+again, this time carrying a fix's authority"* — **a re-shoot on a wrong fix is worse than the original
+bug.** And R4's second-order finding: **a known instrument defect becomes the explanation of first
+resort** — three findings were killed by the lens reaching for it on frames it never touched.
 
 ⭐ **THE GATE NOW RECORDS ITSELF — stop typing gate results ([D49], P6.7).** `validate:release:rn`'s final
 link writes `gate-status.json` (SHA · UTC · a content fingerprint of 580 source files) **on success only**,
