@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>ax probe</title>
+<body>
+<!-- 1. the A1-6 shape: RNW output for <View accessible accessibilityLabel="..."> -->
+<div id="a" aria-label="0% paid, no milestones reached yet, next milestone 25%">
+  <div aria-hidden="true"><span>0%</span><span>paid</span></div>
+</div>
+
+<!-- 1b. same but with visible (non-fenced) children, like PlanHero -->
+<div id="a2" aria-label="This paycheck $2,000, Required $450, Flexible $1,550">
+  <span>This paycheck</span><span>$2,000</span>
+</div>
+
+<!-- 2. label on a role-carrying div (the ListRow/Pressable shape) -->
+<div id="b" role="button" tabindex="0" aria-label="Card, $5,000 · 20% APR, verified, $100/mo">
+  <span>Card</span><span>Focus</span><span>$5,000</span>
+</div>
+
+<!-- 3. label on a div with only tabindex, no role -->
+<div id="c" tabindex="0" aria-label="tabindex only, no role">
+  <span>inner c</span>
+</div>
+
+<!-- 4. aria-selected on role=button (A1-11 shape) -->
+<div id="d" role="button" tabindex="0" aria-selected="true" aria-label="Annual, Best value, $29.99 per year">
+  <span>Annual</span>
+</div>
+<div id="d2" role="button" tabindex="0" aria-selected="false" aria-label="Monthly, $4.99 per month"><span>Monthly</span></div>
+
+<!-- 5. aria-live on a role-less div (SaveFailedBanner shape, web) -->
+<div id="e" role="alert" aria-live="polite"><span>Your last change didn't save</span></div>
+</body>

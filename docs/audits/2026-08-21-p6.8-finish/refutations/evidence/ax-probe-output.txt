@@ -1,0 +1,33 @@
+===== Playwright ariaSnapshot (body) =====
+- text: This paycheck$2,000
+- button "Card, $5,000 · 20% APR, verified, $100/mo": CardFocus$5,000
+- text: inner c
+- button "Annual, Best value, $29.99 per year": Annual
+- button "Monthly, $4.99 per month": Monthly
+- alert: Your last change didn't save
+===== Chromium CDP full AX tree (non-ignored) =====
+generic            name="0% paid, no milestones reached yet, next milestone 25%"
+generic            name="This paycheck $2,000, Required $450, Flexible $1,550"
+button             name="Card, $5,000 · 20% APR, verified, $100/mo"  props=focusable=true
+generic            name="tabindex only, no role"  props=focusable=true
+button             name="Annual, Best value, $29.99 per year"  props=focusable=true
+button             name="Monthly, $4.99 per month"  props=focusable=true
+alert              name=""  props=live="polite",atomic=true,relevant="additions text"
+StaticText         name="This paycheck"
+StaticText         name="$2,000"
+StaticText         name="Card"
+StaticText         name="Focus"
+StaticText         name="$5,000"
+StaticText         name="inner c"
+StaticText         name="Annual"
+StaticText         name="Monthly"
+StaticText         name="Your last change didn't save"
+InlineTextBox      name="This paycheck"
+InlineTextBox      name="$2,000"
+InlineTextBox      name="Card"
+InlineTextBox      name="Focus"
+InlineTextBox      name="$5,000"
+InlineTextBox      name="inner c"
+InlineTextBox      name="Annual"
+InlineTextBox      name="Monthly"
+InlineTextBox      name="Your last change didn't save"

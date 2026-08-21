@@ -1,6 +1,10 @@
 # The P6.8 matrix — what the visual lenses are reading
 
-> **186 frames + 9 accessibility trees**, shot at `dd80f70`.
+> ⚠️ **RE-SHOT 2026-08-21 after TWO instrument defects were found by the lenses reading it. 226 frames +
+> 9 accessibility trees.** The counts below are the corrected run; the section *"The instrument was wrong
+> twice"* at the bottom is the part worth reading, because four visual lenses filed against the first one.
+>
+> **226 frames + 9 accessibility trees**, shot at `dd80f70`.
 > ⛔ **The frames are NOT committed** — `apps/rn/capture-ref/` is gitignored by design (regenerated on
 > demand, compared against, never diffed). This file is the record of what exists and, more importantly,
 > **what does not**.
@@ -82,3 +86,50 @@ sheet · card · state"*. The 14 sheets were enumerated by hand from the tree.
 180 s test timeout; one bad locator (`"Log payment"` — the real string is `"Log a payment"`) did not just
 waste three minutes, it **killed the whole test and took `living-expense-sheet` and `backup-sheets` down
 with it**, with nothing in the log naming them. A slow failure is a silent one.
+
+---
+
+## ⛔ THE INSTRUMENT WAS WRONG TWICE, AND FOUR LENSES FILED AGAINST IT
+
+This is the most transferable thing in the audit, so it is written out rather than summarised.
+
+### Defect 1 — every `onboarding` frame was a photograph of Today
+
+Ten route frames, four text-scale frames, and the a11y tree. The shot **succeeded**, so the `⛔ UNREACHED`
+guard — built precisely so the matrix would report its own holes — was structurally blind to it. Caught by
+**three independent lenses reading the pictures** (V3, V2, M2), and later by A1 and O1 as well.
+
+**Two wrong mechanisms were proposed before the right one, and the second was re-shot on:**
+
+| # | mechanism | verdict |
+|---|---|---|
+| 1 | *"`seedStore`/`addInitScript` accumulates across loop iterations"* | **false** — it does accumulate, and the last-registered script still wins |
+| 2 | *"the previous surface's app is still alive and its 500 ms autosave races the seed"* — **mine**, implemented, re-shot | **false** — O1 measured it in a brand-new context with nothing navigated before it, and the frame was still Today |
+| 3 | `runMigrations` → **`inferOnboarding`** (`migrations.ts:112`) returns `hasIncome && hasObligation`, so a blob carrying a paycheck AND a debt is promoted to `onboardingComplete: true` **whatever the blob says** — and `scenario()` always seeds both | ✅ **the cause** |
+
+⚡ **O1 stated the danger before it happened:** *"a re-shot matrix will produce Today again, this time
+carrying a fix's authority."* That is the sharpest lesson here — **a re-shoot on a wrong fix is worse than
+the original bug**, because the output looks corrected. The rule it produces: *measure the mechanism,
+THEN re-shoot.*
+
+**Fixed** by emptying the plan in the seed (not merely setting the flag false) **and** by giving every
+surface a `ready` assertion — a field that already existed on the interface and was used by nothing. A
+frame that cannot find its subject now fails instead of lying.
+
+### Defect 2 — `today.png` was shot mid entrance-animation, in both themes, at different points
+
+V1 measured it rather than noticing it: **0.0 % card-token pixels** against 40–44 % on the settled
+`state-today-*` frames; the light hero sampling halfway to the ground colour; dark's Progress bars
+*physically shorter* on identical data. P1 found the same class in the count-ups — light `today.png`
+mid-count at **$577** against dark's settled **$1,032**, same seed.
+
+**A theme-parity lens reading those frames was comparing two moments, not two themes.** Settle raised
+**700 ms → 1800 ms** and re-shot.
+
+### What it cost, and the rule
+
+Four visual lenses, O1 and P1 all read a wrong instrument; several findings had to be re-checked against
+the corrected frames by refuter R4, and V1 pre-emptively marked its own `V1-0` as *"against the matrix,
+not the app"*. ⚡ **An instrument that fails LOUDLY is safer than one that fails accurately most of the
+time.** The two sheet timeouts announced themselves and cost two frames; these two said nothing and cost
+fourteen, plus whatever six lenses concluded from them.
