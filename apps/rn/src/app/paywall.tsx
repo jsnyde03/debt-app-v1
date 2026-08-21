@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { Screen } from '@/components/screen';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { MANAGE_SUBSCRIPTION_URL, PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '@/premium/legal';
+import { introPrefix } from '@/premium/introOffer';
 import { getPurchasesClient, isPremiumActive, type PackageLike } from '@/premium/purchases';
 import { canManageSubscription, premiumKind } from '@/premium/premiumKind';
 import { appStore } from '@/store/appStore';
@@ -77,28 +78,13 @@ const STATIC_PLANS: PlanView[] = [
 
 const PLAN_ORDER: Record<PlanKey, number> = { annual: 0, lifetime: 1, monthly: 2 };
 
-/**
- * [P6.4.5 · audit L5-19] The intro-offer prefix, when the store reports one.
- *
- * ⛔ **`planFromPackage` never read `introPrice`, so a trial configured in App Store Connect would be
- * applied at purchase and mentioned NOWHERE on the paywall** — the user reads "$29.99 per year", is
- * charged nothing, and the app never explains why. That is a defect independent of whether 2.0 offers
- * a trial, which is 🎯's open call.
- *
- * ⚠️ Free and discounted are different sentences: "7 days free" is an offer, "$4.99 for 3 months" is a
- * price. Never say "free" for a non-zero intro.
- */
-function introPrefix(pkg: PackageLike): string {
-  const intro = pkg.product.introPrice;
-  if (!intro || intro.periodNumberOfUnits <= 0) return '';
-  const unit = intro.periodUnit.toLowerCase().replace(/s$/, '');
-  const n = intro.periodNumberOfUnits;
-  const period = `${n} ${unit}${n === 1 ? '' : 's'}`;
-  return intro.price === 0 ? `${period} free, then ` : `${intro.priceString} for ${period}, then `;
-}
 
 function planFromPackage(pkg: PackageLike): PlanView | null {
-  const intro = introPrefix(pkg);
+  // ⛔ [🎯 2026-08-21] 2.0 ships with NO trial, so this is `'unknown'` and `introPrefix` returns "".
+  // ⚠️ When a trial IS configured in ASC, thread `Purchases.checkTrialOrIntroductoryPriceEligibility`
+  // to here FIRST — the offer belongs to the product, the eligibility belongs to the person, and Apple
+  // grants it once per Apple Account per subscription group. See `introOffer.ts`.
+  const intro = introPrefix(pkg, 'unknown');
   switch (pkg.packageType) {
     case 'ANNUAL': {
       // Keep the per-month anchor on real devices too (A11) — it justifies the "Best value" badge. Derive

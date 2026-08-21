@@ -144,12 +144,18 @@ last-and-smallest flip carrying its own green gate.
 
 ## ⏸ Waiting on Jason
 
-🔴 **ONE new call, from the P6.4.1 triage (L5-19): does 2.0 ship a free trial?** ⚠️ **Non-blocking — the
-code half lands regardless:** `planFromPackage` never reads `product.introPrice`, so **a trial configured
-in ASC would not be mentioned on the paywall at all.** That is a defect and gets fixed at P6.4.5. The
-business half is yours: every benchmarked competitor leads with a trial (YNAB 34-day · Copilot 7-day ·
-Monarch 7-day) against a paywall that asks $29.99 before showing a single premium moment. ⏳ **Wanted
-before P6.10 closes** — feature lock shuts behind it ([D52], moved from P6.4).
+✅ **[D53] 2026-08-21 — 2.0 ships with NO free trial.** 🎯: *"I already have a demo and try-before-you-buy
+in the app."* ⭐ **And that retired MY argument, not his:** I had recommended a trial on an error-asymmetry
+claim — *"ship without and the people who bounced are gone"* — which is **false**. Eligibility is consumed
+only by TAKING the offer, so every decliner stays eligible indefinitely and **2.1 can add a trial and reach
+exactly the cohort that bounced.** Nothing is forfeited. ⚡ What is gained: a **clean conversion signal**
+against a simple paywall from day one *(a 30-day trial reveals no revenue for a month and cannot separate
+"the paywall works" from "the trial works")*, and four items + a device row leave the pre-lock window.
+⏭ **The trial is the LEVER for 2.1** if conversion disappoints — by then you know whether it is the paywall
+or the price. ⚠️ **If it is ever taken, 30 days is the floor, annual only:** premium's value fires on
+PAYDAY, and `PayCycle` includes `monthly` — a 7-day trial shows a monthly-paid user **zero** paydays of the
+thing they are buying. Annual-only because Apple grants the offer **once per Apple Account per subscription
+GROUP**, so a trial burned on monthly is gone for the plan you want them on.
 
 ✅ **Otherwise nothing is blocked on a DECISION** — the Phase 6 queue cleared 2026-08-20, **[D40]–[D48]** plus [D3].
 
@@ -334,6 +340,15 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ## Deferred backlog
 
 **→ P6.8, from the P6.4.4 triage — ✅ 🎯 agreed 2026-08-20**
+- ⏭ **THE FREE TRIAL — the 2.1 lever ([D53]).** 30 days minimum, **annual only**; the reasoning is on the
+  decision, not repeated here. ⛔ **The code is wired and DELIBERATELY INERT:** `introPrefix(pkg,
+  eligibility)` renders only on `'eligible'`, and every caller passes `'unknown'` today. **Turning the
+  trial on is a config change PLUS a code change, enforced by the compiler** — the eligibility argument
+  cannot be forgotten, only answered. ⚠️ **Thread `checkTrialOrIntroductoryPriceEligibility` before
+  flipping anything in ASC**, or the paywall promises "30 days free" to a returning subscriber Apple will
+  charge in full. 8 asserts pin both directions; the real determination is StoreKit's and needs a **device
+  row with a sandbox account that has already consumed its trial**.
+
 - **L1-22 — straight and curly apostrophes are mixed.** ⛔ **The real figure is 73 user-facing copy
   strings** — ⚠️ **I first quoted 152 and 🎯 agreed on that number; a line-grep had counted the comments,
   which is T4's measured failure ("comments about a word outnumber uses of it").** `lint:apostrophes`

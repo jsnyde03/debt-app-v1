@@ -51,20 +51,49 @@ unable to detect +1. **What caught them every time: `tsc` and mutation-planting.
 hand-rolled mechanical edits.** Prefer the Edit tool — it fails loudly where a script guesses.
 
 ⚠️ **Still owed before launch:** the **device pass** (52 rows + [T3.2]'s storage-fault row — two T3
-surfaces ship on unit assertions with **no rendered proof**) · the **62** in `REMAINING.md` — ✅ **P6.2
-re-measured it 2026-08-20**, T9–T11 are retired as drivers and the parser is proven lossless (117 = 55 + 62)
-· 44 baselined hand-written local parses · dead `formatDisplayAmount`.
+surfaces ship on unit assertions with **no rendered proof**) · 44 baselined hand-written local parses ·
+**73 baselined straight apostrophes** (`lint:apostrophes` holds the line; the sweep is P6.8).
+✅ **The 62 are CLOSED** — P6.4, 2026-08-20. ⛔ **Four dead-code ids are now a P6.11 obligation** —
+`formatDisplayAmount` · `projectForecast` · `buildSmartInsights` all have live ROOT-tree consumers, so they
+must be deleted **with** that tree or P6.11 leaves four unreachable modules behind.
 
-▶ **PICK UP HERE (2026-08-20).** ✅ **P6.1 · P6.2 · P6.6 closed. P6.3 is VERIFIED ON HARDWARE** — iCloud rows
-2–6 passed, including the clobber guard, which was the cutover's approval condition.
+▶ **PICK UP HERE (2026-08-21).** ✅ **P6.1 · P6.2 · P6.4 · P6.6 closed. P6.3 is VERIFIED ON HARDWARE.**
+**The active build is P6.7 — CI / Pages ops**, decomposed P6.7.1–.5 at the top of the plan. Its point is
+**[D49]**: `validate:release:rn` writes `gate-status.json` and `lint:gate-freshness` reds when source moves
+past it — a stale green becomes *impossible to inherit* rather than merely discouraged.
 
 🔴 **Cut the NEXT device build.** It carries **[D51]** the light/dark splash · the **Sentry QA test-event
 button** *(capture was untestable — there is **no user-triggerable `reportError` path in the app**, so a
-missing event would have read as "Sentry is broken")* · and **R3**'s demo-exit fix. Then rows 1 and 7 of
-`docs/DEBT_DEVICE_PASS_2026-08-20.md`.
+missing event would have read as "Sentry is broken")* · and **R3**'s demo-exit fix — now **twice** fixed,
+because R3 corrected what the exit *said* and P6.4 found it was still `caption`-sized. Then rows 1 and 7 of
+`docs/DEBT_DEVICE_PASS_2026-08-20.md`. ⏭ Owed after a green Sentry row: flip source-map upload in one commit.
 
-**The active build is P6.4**, decomposed P6.4.1–.7; ⭐ **all 62 findings now trace to a ledger** (was 20
-untraced). ⏭ Owed after a green Sentry row: flip source-map upload in one commit.
+⭐ **P6.4 CLOSED 2026-08-20 — and 29 of the 62 were NOT WORK (47%).** 25 at triage, 4 more dissolved on
+contact. ⛔ **The result that outranks the count: the audit gate had already fixed or refuted 18 of them,
+and none of it was traceable to the low-tier id**, because `lint:closure` gates blocker+major only — so two
+of five planned fix clusters were **empty**. **[D37]'s hazard lives one severity band down.**
+
+⛔ **THE TRIAGE MUST READ THE LEDGER, NOT THE CODE — this cost a full re-run.** The first pass checked all 62
+against the tree and was **wrong 9 times**, including **L4-8 and L1-26, both on the six-refutations list**.
+⚡ **A fix that adds a BRANCH leaves the finding's quoted string in place**, so grep finds the healthy half
+of a fix and reports it unfixed. `lint:closure` exists because the log *is* the ledger; read it first.
+
+⛔ **Every enumeration made in P6.4 was wrong, in both directions** — money sites 3→5 · apostrophes 152→**73**
+(a line-grep counted comments) · L2-13's list conflated two fields · L1-20's premise inverted (it claims most
+eyebrows already have `textTransform`; **2 of 8** do). ⚡ **A grep answers a question about TEXT; these were
+questions about CODE.** The two things that held were AST passes.
+
+⚠️ **`lint` is now clean AND enforced** — `apps/rn` runs `--max-warnings=0` (🎯 2026-08-21), mutation-verified.
+Gate is **210 e2e · 10 embed**, last RUN 2026-08-20 at P6.4.7, exit 0, read directly.
+
+✅ **[D52]** feature lock → after **P6.10** *(P6.8 is chartered to find structural gaps and every answer was
+auto-defaulting to 2.1)*; code freeze → after **P6.18**, the last step that can produce a change.
+✅ **[D53] NO free trial in 2.0** (🎯) — the demo already is try-before-you-buy, and decliners stay eligible
+forever, so 2.1 can add one and reach the exact cohort that bounced. ⛔ **`introPrefix(pkg, eligibility)` is
+wired and DELIBERATELY INERT** — only `'eligible'` renders, every caller passes `'unknown'`. Turning a trial
+on is a config change **plus** a compiler-enforced code change; thread
+`checkTrialOrIntroductoryPriceEligibility` first or the paywall promises "30 days free" to someone Apple
+will charge in full.
 
 ⛔ **Nothing about iCloud, Sentry capture or the splash is proven off-device** — the web suite exercises the
 *unavailable* branch by construction and `expo prebuild` will not run on Windows.

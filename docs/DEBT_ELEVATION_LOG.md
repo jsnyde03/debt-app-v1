@@ -52,6 +52,56 @@ it was re-deferred on measured **cost** (below), not on the lock date, so the la
 
 ---
 
+## ✅ [D53] — 2.0 ships with NO free trial, and the argument that died was mine (🎯, 2026-08-21)
+
+🎯: *"I already have a demo and try-before-you-buy in the app."*
+
+⭐ **I had recommended a trial, and the load-bearing half of my case was false.** I argued an error
+asymmetry — *ship without one and the people who bounced at the paywall are gone, so correcting later is
+expensive*. **Wrong: an introductory offer is consumed only by TAKING it.** Every user who declines stays
+eligible indefinitely, keeps using the app, and keeps seeing the paywall — so 2.1 can add a trial and reach
+**exactly the cohort that bounced**, offer intact. There is no forfeit, and the asymmetry I built the
+recommendation on does not exist.
+
+**What shipping without buys, beyond not doing the work:** a **clean conversion signal from day one**. A
+30-day trial reveals no revenue for a month and then cannot separate *"the paywall converts"* from *"the
+trial converts"*. Sequencing them makes both legible. The trial becomes the **lever for 2.1** — and by
+then the question is answerable rather than a guess.
+
+⚠️ **If it is ever taken: 30 days is the floor, annual only.** Premium's value fires on **payday**, and
+`PayCycle` is `weekly | biweekly | semimonthly | monthly` — a 7-day trial shows a monthly-paid user **zero**
+paydays of the thing they are being asked to buy. Annual-only because Apple grants the offer **once per
+Apple Account per subscription GROUP**: a trial burned on the $4.99 monthly is gone for the annual plan.
+
+### ⛔ The question that found a defect I had just written
+
+🎯 asked whether a trial could be locked to once per person. **Apple already enforces that** — per Apple
+Account, per subscription group, at purchase, unreinstallable-around. Nothing to build. ⚡ **But asking it
+surfaced the opposite defect, in code I shipped the day before:** `introPrefix` read
+`pkg.product.introPrice`, which describes the **product**, and used it to assert what **this person** would
+get. A returning subscriber who had already used their trial would read *"30 days free, then …"* and be
+charged $29.99 on tap.
+
+⛔ **That is the L3 proxy-gate class exactly** — a gate establishing *the offer exists* used to claim *you
+will get it*, the same shape as L3-7's *"Autopay · ran"*. **I wrote a new one while closing eleven of them,
+on the purchase screen, about money.**
+
+**Now structural rather than remembered.** `introPrefix(pkg, eligibility)` lives in `premium/introOffer.ts`
+and renders **only** on `'eligible'`; `'unknown'` and `'not-eligible'` both show plain pricing, which is the
+SDK's own written instruction — *"the best course of action on unknown status is to display the non-intro
+pricing, to not create a misleading situation."* ⚠️ `'unknown'` is not an edge case: Android always returns
+it, and iOS does whenever subscription-group info is missing. Under-promising is the only safe direction.
+
+⭐ **The eligibility argument is REQUIRED, so the compiler enforces the sequence.** Turning a trial on is now
+a config change **plus** a code change: `checkTrialOrIntroductoryPriceEligibility` must be threaded to the
+call site, because the parameter cannot be forgotten — only answered. 8 asserts pin **both** directions
+*(asserting only that an eligible user sees the offer would pass an implementation that shows it to
+everyone — which is the bug)*, mutation-verified by deleting the guard. ⛔ The real determination is
+StoreKit's and is **not provable off-device**: it needs a sandbox account that has already consumed its
+trial → a P6.14 row, recorded on the backlog rather than assumed.
+
+---
+
 ## ⭐ P6.4 — the WHOLE-ITEM after-scan: 29 of 62 were not work, and verification was the whole job (2026-08-20)
 
 ### The arithmetic, and it is the item's main result
