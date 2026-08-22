@@ -203,7 +203,12 @@ export interface PendingMilestone {
  * a word renders as PAID OFF, which is the one outcome worse than a visible error.
  */
 export interface DataRepair {
-  entity: 'debt' | 'requiredExpense' | 'livingExpense';
+  /**
+   * ⛔ `migration` is not an entity — it is the v1.6 bridge reporting what it could not carry (M3-20).
+   * It shares this channel because the user's question is identical in both cases (*"what could the app
+   * not read?"*), and two cards competing for one ack slot would answer it twice.
+   */
+  entity: 'debt' | 'requiredExpense' | 'livingExpense' | 'migration';
   id: string;
   name: string;
   field: string;
@@ -227,6 +232,17 @@ export interface DebtStore {
    * CURRENT blob, so a field the user has since fixed stops being reported.
    */
   dataRepairs: DataRepair[];
+  /**
+   * P6.8.7c.2 (audit B4/M3-2) — repairs the user has not been TOLD about yet, held until they acknowledge.
+   *
+   * ⛔ **`dataRepairs` above cannot do this job, and that is by design rather than by oversight.** It
+   * describes the blob THIS read saw, so `repairsAreNotRepeated` guarantees a second pass reports nothing
+   * — which means the list is gone the moment a save rewrites the store. The design assumed something
+   * would consume it during that one pass; nothing ever did, so a debt repaired to `0` was filed under
+   * `PAID OFF` with no word to anyone. This field is the durable half: it merges forward and only the
+   * user's acknowledgement empties it.
+   */
+  pendingDataRepairs: DataRepair[];
   /** 3.3.2 — the highest portfolio %-paid milestone ever reached (25/50/75), so each celebrates once. */
   portfolioMaxProgress: number;
   /** 3.3.2 — a just-crossed portfolio milestone awaiting its ack; null when none / already acknowledged. */

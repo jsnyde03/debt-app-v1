@@ -8,6 +8,7 @@ import { AnimatedSheet } from '@/components/ui/AnimatedSheet';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import type { Debt } from '@/data/models';
+import { parseAmountField } from '@/store/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { spacing } from '@/theme/spacing';
 
@@ -21,12 +22,15 @@ export function LogPaymentSheet({ debt, onClose }: { debt: Debt; onClose: () => 
   // offers "Log payment" on every persona debt, so this wrote a real payment against a scripted balance.
   const store_ = useActiveStore();
   const [amount, setAmount] = useState('');
-  const parsed = Number.parseFloat(amount);
-  const valid = Number.isFinite(parsed) && parsed > 0;
-  const over = valid && parsed > debt.balance;
+  // ⛔ **Not `parseFloat`.** This was the one money field parsed that way, and `parseFloat` stops at the
+  // first character it cannot read — so a pasted `"1,200"` logged a **$1** payment against the debt,
+  // silently and plausibly, where every other field would have refused it outright.
+  const parsed = parseAmountField(amount);
+  const valid = parsed != null;
+  const over = parsed != null && parsed > debt.balance;
 
   const submit = () => {
-    if (!valid) return;
+    if (parsed == null) return;
     store_.getState().logManualPayment(debt.id, parsed);
     onClose();
   };

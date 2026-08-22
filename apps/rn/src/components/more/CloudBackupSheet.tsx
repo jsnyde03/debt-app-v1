@@ -1,4 +1,4 @@
-import { REPLACE_DATA_ACTION } from '@core/copy/vocabulary';
+import { REPLACE_DATA_ACTION, RESTORE_FROM_CLOUD_ACTION } from '@core/copy/vocabulary';
 import { useState } from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
 
@@ -129,7 +129,7 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
             </View>
           ) : (
             <Button
-              label="Restore from iCloud"
+              label={RESTORE_FROM_CLOUD_ACTION}
               variant="secondary"
               testID="cloud-restore"
               disabled={busy !== null || status !== 'ready'}

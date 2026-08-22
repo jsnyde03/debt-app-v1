@@ -9,6 +9,7 @@ import { DateField } from '@/components/ui/DateField';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { RequiredExpense, RequiredExpenseCategory } from '@/data/models';
+import { parseAmountField, parseOptionalAmount } from '@/store/amountField';
 import { billCategoryOptions, FORM_ERRORS, recurrenceOptions } from '@/store/obligationForm';
 import { useActiveStore } from '@/store/StoreContext';
 import { confirmDelete } from '@/utils/confirm';
@@ -47,18 +48,21 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
 
   function submit() {
     if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
+    // A free trial charges $0 now, so a blank intro amount is legitimately zero there; outside a trial
+    // the bill has to carry a real amount.
+    const amountN = trial ? parseOptionalAmount(amount) : parseAmountField(amount);
+    const fullAmountN = parseAmountField(fullAmount);
     if (trial) {
-      // A free trial charges $0 now, so allow a blank/0 intro amount here; the full price is what matters.
-      if (amount !== '' && !(Number(amount) >= 0)) return setError('Enter the amount you pay now (0 for a free trial).');
-      if (!fullAmount || Number(fullAmount) <= 0) return setError('Enter the full price after the trial.');
+      if (amountN == null) return setError('Enter the amount you pay now (0 for a free trial).');
+      if (fullAmountN == null) return setError('Enter the full price after the trial.');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(fullChargeDate) || Number.isNaN(Date.parse(`${fullChargeDate}T00:00:00`)))
         return setError('Enter when the full price starts (YYYY-MM-DD).');
-    } else if (!amount || Number(amount) <= 0) {
+    } else if (amountN == null) {
       return setError(FORM_ERRORS.amountPositive);
     }
     const fields = {
       name: name.trim(),
-      amount: trial && amount === '' ? 0 : Number(amount),
+      amount: amountN,
       dueDate,
       recurrence,
       category,
@@ -66,7 +70,7 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
       expenseType: (variable ? 'variable' : 'fixed') as 'fixed' | 'variable',
       // Clear the trial fields when the toggle is off, so turning a trial off can't leave stale full-price data.
       isTrial: trial,
-      fullAmount: trial ? Number(fullAmount) : undefined,
+      fullAmount: trial ? fullAmountN ?? undefined : undefined,
       fullChargeDate: trial ? fullChargeDate : undefined,
     };
     if (isEdit && editing) store_.getState().updateExpense(editing.id, fields);

@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { SaveForItSheet, type SavedInfo } from '@/components/plan/SaveForItSheet';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { TextField } from '@/components/ui/TextField';
+import { parseAmountField } from '@/store/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectAffordability, type Affordability } from '@/store/guardianSelectors';
@@ -61,8 +62,8 @@ export function AffordabilityCard() {
   // Memoized off the store so typing the purchase amount doesn't re-project balances each keystroke
   // (only `selectAffordability`, which genuinely depends on the amount, recomputes below).
   const engineStore = useMemo(() => withProjectedBalances(store, isPremium), [store, isPremium]);
-  const n = Number(amount);
-  const result: Affordability | null = amount.trim() && Number.isFinite(n) && n > 0 ? selectAffordability(engineStore, n) : null;
+  const n = parseAmountField(amount);
+  const result: Affordability | null = n != null ? selectAffordability(engineStore, n) : null;
 
   function apply(r: Affordability) {
     const id = localId('purchase', store.paycheck.currentDate);
@@ -224,7 +225,7 @@ export function AffordabilityCard() {
         </View>
       )}
     </Card>
-    {isPremium && result ? (
+    {isPremium && result && n != null ? (
       <SaveForItSheet visible={saveSheet} amount={n} name={name} onClose={() => setSaveSheet(false)} onSaved={setSaved} />
     ) : null}
     </>

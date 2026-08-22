@@ -6,6 +6,7 @@ import { Select } from '@/components/ui/Select';
 import { TextField } from '@/components/ui/TextField';
 import type { Goal } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { parseAmountField, parseOptionalAmount } from '@/store/amountField';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { useActiveStore } from '@/store/StoreContext';
 import { textStyles } from '@/theme/typography';
@@ -31,7 +32,10 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
 
   function submit() {
     if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
-    if (!target || Number(target) <= 0) return setError('Enter a target amount.');
+    const targetN = parseAmountField(target);
+    const currentN = parseOptionalAmount(current);
+    if (targetN == null) return setError('Enter a target amount.');
+    if (currentN == null) return setError('Enter what you have saved so far, or leave it blank.');
     // 3.7.A3.8 — dedupe goal names, matching the save-for-it flow (`AffordabilityCard.tsx:56`). Two
     // creation paths write the SAME namespace, and only one of them guarded it — so "New couch" could be
     // created here beside an identical sinking fund, and the two would then compete for the same
@@ -42,7 +46,7 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
       .getState()
       .store.goals.some((g) => g.id !== editing?.id && g.name.trim().toLowerCase() === effName.toLowerCase());
     if (clash) return setError(`You already have a goal called "${effName}".`);
-    const fields = { name: effName, targetAmount: Number(target), currentAmount: Number(current) || 0, type };
+    const fields = { name: effName, targetAmount: targetN, currentAmount: currentN, type };
     if (isEdit && editing) store_.getState().updateGoal(editing.id, fields);
     else store_.getState().addGoal({ id: `goal-${Date.now()}`, ...fields });
     onClose();

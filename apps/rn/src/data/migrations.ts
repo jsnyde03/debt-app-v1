@@ -175,5 +175,28 @@ export function runMigrations(raw: unknown): DebtStore {
     // repair; carrying a previous run's list forward would keep re-reporting a field the user has since
     // fixed, and a notice that will not go away is one people learn to dismiss.
     dataRepairs: repairs,
+    // ⛔ MERGED, which is the exact opposite rule to the line above, on purpose. `dataRepairs` answers
+    // "what did this read fix"; this answers "what has the user not been told yet", and the second
+    // question outlives the read that raised it — the list above is empty again as soon as anything
+    // saves. Only an acknowledgement empties this one.
+    //
+    // ⚠️ Deduped by entity+id+field so a blob re-migrated before the user acknowledges cannot stack the
+    // same repair twice. That is also what keeps a second pass identical to the first, which the
+    // `idempotent` invariant compares on every field except `dataRepairs`.
+    pendingDataRepairs: mergeRepairs(Array.isArray(r.pendingDataRepairs) ? r.pendingDataRepairs : [], repairs),
   };
+}
+
+/** Union of already-pending repairs and this read's, keyed by the field a repair actually identifies. */
+function mergeRepairs(pending: DataRepair[], fresh: DataRepair[]): DataRepair[] {
+  const out: DataRepair[] = [];
+  const seen = new Set<string>();
+  for (const rep of [...pending, ...fresh]) {
+    if (!rep || typeof rep !== 'object') continue;
+    const key = `${rep.entity}|${rep.id}|${rep.field}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(rep);
+  }
+  return out;
 }

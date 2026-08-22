@@ -6,6 +6,7 @@ import { useStore } from 'zustand';
 
 import { AppLockGate } from '@/components/AppLockGate';
 import { SaveFailedBanner } from '@/components/SaveFailedBanner';
+import { DataResetScreen } from '@/components/DataResetScreen';
 import { StorageErrorScreen } from '@/components/StorageErrorScreen';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotificationSync } from '@/hooks/use-notification-sync';
@@ -189,6 +190,10 @@ function RootLayout() {
   useEffect(() => {
     if (!isHydrated || offeredRestore.current) return;
     if (appStore.getState().storageError === 'read-failed') return;
+    // ⛔ `data-reset` renders `DataResetScreen`, which offers the same restore as one choice among the
+    // ways out. Letting this fire too would stack an Alert on top of it — and it would present a restore
+    // as the thing that just happened to them, rather than as an answer to it.
+    if (appStore.getState().storageError === 'data-reset') return;
     if (isOnboarded(appStore.getState().store)) return;
     offeredRestore.current = true;
     void (async () => {
@@ -224,6 +229,17 @@ function RootLayout() {
           appStore.setState({ storageError: null, isHydrated: false });
           void startPersistence();
         }}
+      />
+    );
+  }
+
+  // The saved plan could not be read and the app is running on defaults. Say so BEFORE onboarding opens,
+  // and offer the ways back — otherwise the user's first evidence of the event is a setup form.
+  if (storageError === 'data-reset') {
+    return (
+      <DataResetScreen
+        scheme={scheme}
+        onStartFresh={() => appStore.setState({ storageError: null })}
       />
     );
   }

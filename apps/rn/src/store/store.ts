@@ -63,11 +63,25 @@ export interface DebtAppState {
    *
    *  `'save-failed'` — the store is loaded and correct on screen, but a write did not land. Non-blocking:
    *  the user keeps working and is told once, because the alternative is editing all evening and losing
-   *  it at next launch. Cleared by the next write that succeeds. */
-  storageError: 'read-failed' | 'save-failed' | null;
+   *  it at next launch. Cleared by the next write that succeeds.
+   *
+   *  `'data-reset'` — the blob was there and could not be migrated, so it was quarantined and the app
+   *  started from defaults. ⛔ **This is the one that used to say nothing at all.** `createDefaultStore()`
+   *  has `onboardingComplete: false`, so the user was routed into first-run onboarding with every debt,
+   *  bill and goal gone from the screen and the app cheerfully asking them to set up — indistinguishable,
+   *  from where they stood, from a fresh install. Blocking, because a message the size of this event does
+   *  not belong beside a setup form. */
+  storageError: 'read-failed' | 'save-failed' | 'data-reset' | null;
 
   // Lifecycle
-  hydrate(adapter: StorageAdapter): Promise<void>;
+  /**
+   * Load the persisted blob into the store.
+   *
+   * ⛔ `opts.seed === false` means **do not write defaults on an empty read** (W1-6). The v1.6 bridge is
+   * gated on storage being empty, so seeding is what makes a skipped migration permanent — and the caller
+   * is the only one that knows whether the bridge reached a conclusion.
+   */
+  hydrate(adapter: StorageAdapter, opts?: { seed?: boolean }): Promise<void>;
   save(adapter: StorageAdapter): Promise<void>;
   reset(): void;
 
@@ -160,6 +174,7 @@ export interface DebtAppState {
   acknowledgeRiskCleared(): void;
   /** 3.3.2 — clear a just-crossed portfolio milestone after its celebratory ack. */
   acknowledgeMilestone(): void;
+  acknowledgeDataRepairs(): void;
   /** §2.0.c (2.4.11.4b) — dismiss the settling-in-reserve release acknowledgment. */
   acknowledgeReserveRelease(): void;
   /** §2.0.c (2.4.11.4c) — the user attests their regular bills are all entered (true) / retracts it
@@ -240,7 +255,7 @@ export function createDebtStore(opts?: {
     intentRollback: null,
     storageError: null,
 
-    async hydrate(adapter) {
+    async hydrate(adapter, hydrateOpts) {
       let raw: unknown | null;
       try {
         raw = await adapter.read();
@@ -256,7 +271,23 @@ export function createDebtStore(opts?: {
         return;
       }
       if (raw === null) {
+        // ⛔ W1-6 — the v1.6 bridge ran and could not tell whether there is anything to migrate, so this
+        // launch must NOT write. The bridge is gated on `read() === null`; one seed makes that false
+        // forever and strands a real v1.6 portfolio that is still sitting on disk. Running the session on
+        // unpersisted defaults is safe — the first real change installs autosave and writes then, which
+        // is the user choosing to start fresh rather than us choosing it for them.
+        if (hydrateOpts?.seed === false) {
+          set({ isHydrated: true });
+          return;
+        }
         // First launch — keep defaults, seed the blob.
+        //
+        // ⛔ **Deliberately NOT `data-reset`, and the reason is a limit rather than a choice.** An MMKV
+        // file that was lost or truncated to nothing also lands here, producing an outcome identical to
+        // the quarantine branch below but with no preserved bytes — so this branch cannot tell a genuine
+        // first launch from a total loss. Any marker durable enough to survive that (the Keychain) also
+        // survives a deliberate delete-and-reinstall, and would then tell someone who erased the app
+        // themselves that their data was lost. Saying nothing here is the lesser wrong of the two.
         set({ isHydrated: true });
         await adapter.write(get().store);
         return;
@@ -269,7 +300,10 @@ export function createDebtStore(opts?: {
       } catch {
         // Corrupt / unmigratable: quarantine the bytes, start fresh, overwrite (never write bad data back).
         await adapter.quarantine?.(JSON.stringify(raw), 'migration-failed');
-        set({ isHydrated: true });
+        // ⛔ `storageError` is set BEFORE the write, and it is the whole point of this branch. Without it
+        // the user lands in onboarding having lost everything, with nothing on screen saying so — the
+        // quiet version of the loudest event this app can have.
+        set({ isHydrated: true, storageError: 'data-reset' });
         await adapter.write(get().store);
       }
     },
@@ -647,6 +681,12 @@ export function createDebtStore(opts?: {
     acknowledgeMilestone() {
       // 3.3.2: the user saw the portfolio milestone-cross beat — clear it (one-time moment).
       set((s) => ({ store: { ...s.store, pendingMilestone: null } }));
+    },
+    acknowledgeDataRepairs() {
+      // P6.8.7c.2 (B4/M3-2): the user has now SEEN which amounts could not be read. ⛔ The only thing that
+      // empties this list — a save must not, because a save is what erases `dataRepairs` and that erasure
+      // is why the repairs were invisible in the first place.
+      set((s) => ({ store: { ...s.store, pendingDataRepairs: [] } }));
     },
     applyTightTopUp(goalId, amount) {
       // §2.10 (2.4.11.2): the user moved `amount` from savings to hold this cycle's line — draw it down

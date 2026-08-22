@@ -4,6 +4,312 @@
 
 ---
 
+## ✅ P6.8.7c.4 — M3-20, the discarded `LegacyMigrationOutcome` *(2026-08-22)*
+
+### ⛔ The finding was never refuted, and the switch-in had to supply it
+
+`M3-recovery.md` states *"Wave-2 refutation owed on M3-1, M3-2, M3-3, **M3-20**"*. R1 delivered five and
+**M3-20 is absent from its verdict table.** P6.8.4's rule is *"no finding becomes work un-refuted"*, so
+this step refuted it before building. ⚠️ **The process gap is the more useful finding:** nothing in the
+audit folder flags an owed refutation that never arrived, so it was invisible until someone opened the
+step. Filed for the P6.8.9 sweep.
+
+### ⚡ And the refutation changed the scope — half its evidence was wrong
+
+M3-20 cites `LegacyMapReport.dropped` and `.unknown` together as *"exactly what did not come across"*.
+Measured: **`dropped` is entirely deliberate.** Every entry in the `DROPPED` table carries a documented
+reason and none of them is user data — a v1.6 QA hook, a superseded review counter, a `schemaVersion`
+that was *consumed* rather than stored. Surfacing it would tell every upgrader the app "dropped" things
+they never had and cannot act on, on the one launch where their trust is thinnest.
+
+**What is genuinely lost, and what is now reported:** `unknown` (v1.6 persisted something this build does
+not recognise) · `unparseable` (a value that would not read) · `quarantineFailed` (bytes that could not be
+preserved). ⛔ A test pins the exclusion directly, so a later "improvement" that adds `dropped` back goes
+red by name.
+
+### ✅ Reported through c.2's card, not a second surface
+
+[D57]: a `migration` member on `DataRepair.entity`, pushed into the `pendingDataRepairs` the card already
+renders, persists and acknowledges. The user's question is identical in both cases — *what could the app
+not read?* — and two cards competing for one ack slot would answer it twice.
+
+⚠️ **Worded as a count, not as keys.** `debtPlanner.rolloverCount` means nothing to the person holding the
+phone, and the action it should prompt — check your figures against the old app — is the same whichever
+key it was.
+
+### ⛔ What was NOT built, stated rather than dropped
+
+The **total-failure** half. c.3 made a failing bridge retry instead of strand, but it did not make it
+speak, so a user whose database never becomes readable now opens a setup wizard every launch with no
+word. Saying that needs a new surface **and** a persisted attempt count — and c.3's whole result was that
+the retry works precisely because it has **no** persisted flag to lose. c.4's card cannot cover it either:
+it renders on Today, and this user never reaches Today. **Filed as a [DECISION] for P6.10**, with Sentry
+(added in c.3) producing the evidence at P6.14 rather than the call being guessed now.
+
+### ✅ Verified
+
+`typecheck` · `lint:rn` exit 0 · `test:regression` · `test:app` (persistence-lifecycle **56 asserts**) ·
+`test:scenarios` · `test:e2e:embed` 10 passed. Plant-verified: restoring the discarded outcome reds the
+report assertion by name.
+---
+
+## ✅ P6.8.7c.3 — W1-6, the v1.6 bridge that strands the upgrader *(2026-08-22)*
+
+⛔ **R1 ranks this the #1 real-user harm in the whole audit**, and it turned on a single field nobody read.
+
+### The defect, in one sequence
+
+The bridge runs only while RN storage is empty. `migrateFromLegacy` decided *"is there anything to
+migrate"* from **`report.truncated` alone** — and a genuine v1.6 container whose databases are found and
+then **refuse to open** leaves `truncated` **false**, because the *walk* succeeded. So it was reported as
+**"a fresh install"**, the most terminal-sounding reason in the set. `hydrate` then seeded defaults, which
+made `read()` non-null, which means the bridge **never runs again**. The user lands in a setup wizard with
+their whole portfolio intact on disk and permanently unreachable — no iCloud (a v1.7 feature), no route
+back, and nothing telling them anything happened.
+
+⚡ **`readLegacyStores` already recorded the refusal in `opened[].error`** — a field `report.ts` documents
+as existing *specifically* to say "a database was found and refused". Nothing ever looked at it.
+
+⚠️ **Not hypothetical.** The pre-`-wal` reader hit that exact chain on **every real container**, and every
+synthetic test passed. The `-wal` copy closed one cause; a locked database, a failed sidecar copy or a
+full cache directory reach the identical outcome.
+
+### ✅ The fix, and what it deliberately is not
+
+**`isConfirmedFreshInstall(report)`** — terminal only when the walk RAN, **every candidate was attempted**
+(`opened.length === candidates.length`) and **every attempt succeeded** (`opened.every(o => !o.error)`).
+Everything else is UNKNOWN.
+
+⛔ **The lens's own proposed fix would not have worked** — it recommended *"persist a `legacyBridgeAttempt`
+outcome and re-run on a non-terminal reason"*, but under the old tagging the likely failure was tagged
+**terminal**, so the retry would never fire. R1 named the real deliverable as the terminality derivation,
+and that is what was built.
+
+⭐ **The retry needed no new persisted field.** An inconclusive bridge simply **does not seed** —
+`hydrate(adapter, { seed })` — so storage stays `null` and the existing `read() === null` gate re-admits
+the bridge next launch. That is the same move the throwing-`read()` path already makes, for the same
+reason. A `legacyBridgeAttempt` flag would have been a second thing that can be lost, corrupted or
+restored out of sync with the data it describes — which the bridge's own docblock argues against.
+
+⚡ **W1-7 came free:** every inconclusive skip now reports to Sentry with `truncated` · `visited` ·
+`candidates` · `refused`. Without it there is no instrument that could ever tell us this is happening in
+the field.
+
+### ⛔ My first predicate was wrong, and an EXISTING test caught it
+
+The first cut required `candidates.length === 0`. That turns an ordinary conclusive case — a database
+found, opened cleanly, holding no `debtPlanner.*` key — into a permanent retry, so **every launch would
+re-run the bridge forever**. `migrateFromLegacy.test.ts`'s fresh-install case went red immediately. The
+correct test is *"every candidate was attempted and none refused"*, not *"nothing was found"*.
+
+⚠️ **This is the switch-in lesson in miniature:** the finding described the failure correctly and the fix
+that follows most naturally from its wording was over-broad in the opposite direction.
+
+### ⭐ The test that did not exist
+
+R1's coverage critique was exact and both halves verified: `interruption.test.ts` drives the bridge
+directly and **never runs `bootstrapPersistence`**; every `bootstrapPersistence` case in
+`persistenceLifecycle.test.ts` supplies an adapter with **no legacy source**. So the harm — which lives
+entirely in the SEAM between the bridge's verdict and hydrate's seed — was invisible to both.
+
+`bootstrapPersistence` now takes the same injected reader `migrateFromLegacy` already exposes, and the new
+case asserts the thing that matters: **an inconclusive bridge writes nothing, and storage is still empty**
+— the retry mechanism itself, not a proxy for it. Paired with the inverse, because a fix that makes every
+launch retry is its own bug: **a confirmed fresh install still seeds.**
+
+⛔ **Plant-verified on the clause the finding turns on** — dropping `opened.every(o => !o.error)` reds the
+bootstrap-interaction test by name (`expected 0, got 1` writes).
+
+### ✅ Verified
+
+`typecheck` (core + RN + scripts) · `lint:rn` **exit 0** · `test:regression` · `test:app` ·
+`test:scenarios` · **`test:e2e:rn` 220 passed** · **`test:e2e:embed` 10 passed**.
+
+⚠️ **Web is unaffected and that is checked, not assumed:** `readLegacyStores.web.ts` returns
+`supported: false`, which this classifies **terminal**, so web still seeds normally — which is also why
+the 220 e2e still pass.
+
+⛔ **The device row stands.** Everything above is source-level; which skip cause a real container actually
+produces is device-owed, and the Sentry breadcrumb is what will answer it.
+---
+
+## ✅ P6.8.7c.2 — B4, the corrupt-store notice and `dataRepairs` *(2026-08-22)*
+
+### ⛔ The switch-in scan changed the item before a line was written
+
+R1 CONFIRMED both findings and **corrected the mechanism twice**, and both corrections shaped the build:
+
+1. **There are TWO paths, not one.** The quarantine branch (corrupt-but-present bytes) and the
+   `read() === null` branch (an MMKV file lost or truncated to nothing) produce a **byte-identical**
+   user-visible outcome — onboarding, no words, no `storageError` — but the second has **no preserved
+   bytes**. A fix built on the quarantine key covers one of them.
+2. **"No way out" was FALSE for a real subset.** `_layout.tsx`'s one-shot restore offer is gated on
+   `!isOnboarded`, and the wipe sets `onboardingComplete: false` — so an iCloud user *is* offered a
+   restore on that very launch. The slice contradicted itself on this (M3-8 had it right).
+
+⛔ **And a third thing neither the slice nor the refuter said, which is the reason `dataRepairs` alone
+could not fix this.** `dataRepairs` is REPLACED on every read, and `repairsAreNotRepeated` — a shipped
+invariant — **guarantees** a clean second pass reports nothing. So the list is gone as soon as anything
+saves. The design assumed a consumer would read it during that one pass; none was ever built. **A card
+reading `dataRepairs` live would inherit the defect's own failure mode.**
+
+### ✅ What shipped
+
+**M3-1 — the wipe declares itself.** `storageError` gains `'data-reset'`, set in the quarantine catch
+**before** the defaults are written. `_layout` renders **`DataResetScreen`** in its place: what happened,
+that nothing was deleted, and the ways back — iCloud restore (rendered only once a backup is confirmed to
+exist), Import a backup file, Start fresh. It **suppresses** the one-shot iCloud Alert, which would
+otherwise stack on top and present a restore as the thing that just happened rather than as an answer to
+it. 🎯 chose blocking over a banner: *a message about losing everything does not belong beside a field
+asking for a paycheck, and a banner is one tap from gone.*
+
+⛔ **The `read() === null` sibling is deliberately left silent, and the reason is a limit rather than a
+choice.** No marker fixes it: anything durable enough to survive a lost MMKV file (the Keychain) also
+survives a deliberate delete-and-reinstall, and would tell someone who erased the app themselves that
+their data was lost. **The wrong in the other direction is worse.** Stated in the branch itself so the
+next reader does not "fix" it. → backlog, P6.14 device row.
+
+**M3-2 — a repair outlives the read that raised it.** New **`pendingDataRepairs`**, merged forward and
+deduped by `entity|id|field`, emptied only by `acknowledgeDataRepairs`. **`DataRepairsCard`** on Today
+names the affected items — a card saying *"some amounts could not be read"* without saying **which** is
+useless, because the user cannot tell a repaired balance from a real one by looking. It outranks every
+other ack: nothing else Today says is trustworthy while part of the plan is a zero standing in for a
+number nobody has seen.
+
+⚡ **Folded in, and it is the harm the finding actually names:** Money's `allCleared` hero read
+**"Every balance cleared"** over debts that are still owed, because a repaired debt is filed under
+`PAID OFF`. Two lines.
+
+### ⛔ Three gates fired on this change and every one was right
+
+`lint:copy` caught **"Restore from iCloud"** becoming a second copy on the edit that created it →
+extracted to `RESTORE_FROM_CLOUD_ACTION` rather than baselined. `lint:destructive` refused a new
+`importStore` caller until it was declared with a reason. `lint:sandbox` refused the `appStore` singleton
+import until the same. ⭐ **[D31] keeps paying: none of the three was something I would have thought to
+check, and all three were caught within seconds of writing the line.**
+
+### ⚡ The plant caught a vacuous test AGAIN — same class as c.1, different spec
+
+Planted the guard out of Money and **the test still passed.** `expect(x).toHaveCount(0)` is satisfied by a
+page that has not rendered yet, so it asserted the absence of a hero the app had not drawn. Verified
+against the real page text: with the guard planted out, Money genuinely renders *"Every balance cleared"*
+— so the code was right and the test was blind. Fixed by waiting for a marker that renders in **both**
+branches.
+
+⛔ **Second consecutive item where an absence assertion passed vacuously, and both were found by planting
+rather than by reading.** Filed as a repo-wide class → P6.10.
+
+⚠️ **A fixture lied too.** `seedStore` uses `addInitScript`, which re-runs on **every** navigation — so
+the durability test's `reload()` re-injected the corrupt fixture and the notice "reappeared" for the wrong
+reason. It failed against correct code. A local `seedOnce` (write only if absent) is what makes a
+persistence test read the app's own output.
+
+### ✅ Verified
+
+`typecheck` (core + RN + scripts) · `lint:rn` **exit 0** · `test:stamp` · `test:regression` · `test:app`
+(persistence-lifecycle now 47 asserts) · `test:scenarios` · **`test:e2e:rn` 220 passed** (215 + 5) ·
+**`test:e2e:embed` 10 passed**. Three separate plants, each reverted and re-run green.
+---
+
+## ✅ P6.8.7c.1 — B1, the `NaN <= 0` amount guards *(2026-08-22)*
+
+### ⛔ The enumeration was the item, and it produced a fourth number
+
+Three counts were on file — **4 sites / 2 files** (the original filing), **12 / 7** (the P6.8 audit),
+**14 / 8** (a crude grep at 7b's after-scan). The step's own instruction was *enumerate before editing*.
+Measured: **14 sites / 7 files**.
+
+⚡ **The 7b grep also said 14, and it is not the same 14.** It counted a **code comment** in
+`data/migrations.ts:34` as a site (that is its 8th "file") and missed a real one. A matching total is not
+a matching membership.
+
+⛔ **What no grep of the expression can find.** `DebtSheet` hoists the coercion:
+
+```ts
+const bnplSched = Number(scheduledPaymentAmount);   // line 134
+if (bnplSched <= 0) return setError('Enter the payment amount.');   // line 163
+```
+
+Same defect, no `Number(x) <= 0` on any single line. **The enumeration that worked was of the INPUTS** —
+`grep keyboardType=` for every numeric field, then trace each to its guard. Enumerating the *guard
+expression* is what produced 4, 12, and 14-with-a-comment. Full table:
+[`docs/evidence/2026-08-22-p6.8.7c.1-b1-enumeration/`](evidence/2026-08-22-p6.8.7c.1-b1-enumeration/).
+
+### ⚡ Two sites that look defective and are not — and one the finding never mentioned
+
+- **`DebtSheet.tsx:164`** — `bnplRem <= 0 || !Number.isInteger(bnplRem)`. `Number.isInteger(NaN)` is
+  `false`, so the **integer check** was doing finite-checking work nobody wrote it to do. Accidentally
+  safe, and not a pattern to copy.
+- **`ExpenseSheet.tsx:52`** — `!(Number(amount) >= 0)`. `NaN >= 0` is false, negated → errors. Correct.
+- ⚡ **`"Infinity"` is a site B1 never listed.** `Infinity <= 0` is `false`, so it passed the guard, and
+  `JSON.stringify({b: Infinity})` is `{"b": null}` — **identical corruption, different keystroke.**
+
+### ⛔ Four correct expressions already existed and they disagreed with each other
+
+`WindfallSheet` and `AffordabilityCard` used `Number` + `isFinite`; `PaydayCaptureSheet` used the same
+shape at `>= 0`; **`LogPaymentSheet` used `parseFloat`**. ⚡ **Those last two disagree on exactly the input
+that motivated the fix**: `Number("1,200")` is `NaN` (refused) while `parseFloat("1,200")` is **`1`** — so
+one form refused a grouped number and the other **logged a $1 payment against the debt**, silently. That
+is why the fix is one shared parser at **23 call sites across 11 files**, not fourteen copies of a good line.
+
+### ✅ What shipped
+
+**`apps/rn/src/store/amountField.ts`** — three channels, deliberately distinguishable:
+`parseAmountField` (positive required) · `parseOptionalAmount` (blank means `0`, unreadable does not) ·
+`parseNonNegativeAmount` (a typed `0` is an answer, blank is not). Collapsing any two of them re-creates a
+shipped bug, so the unit test pins them **apart**.
+
+⚡ **Two defects fixed that were not on B1's list**, both surfaced only by converting the site:
+
+- **`PaydayCaptureSheet`** — `Number('')` is `0`, so **clearing** a pre-filled balance confirmed the debt
+  at **$0**, filing it under `PAID OFF`. Blank now falls back to the estimate.
+- **`LogPaymentSheet`** — the `parseFloat` $1 payment above.
+
+**[D55]** settled the shape (🎯, on my recommendation): separators are **read**, not refused. Rationale on
+the plan; the storefront constraint that makes it safe is written into the module header so it cannot be
+widened without someone reading it.
+
+### ⛔ The React Compiler was MASKING two pre-existing lint errors, and this is the carryable result
+
+`DebtSheet` linted **clean** at baseline. The moment a parser call entered render scope it produced **2
+`react-hooks/purity` errors** — on `Date.now()` calls **I never touched**.
+
+Bisected rather than guessed: reverting only the parser call cleared them; a **locally defined identical
+function** re-triggered them, so it is not the import boundary. `Number` is a known-pure global the
+compiler can reason through; an unanalysable call makes it bail, and in the bailed-out state the latent
+violations surface.
+
+⛔ **So `lint:rn --max-warnings=0` green does not mean the tree is purity-clean** — it means the compiler
+still had enough information to stay quiet. **`FirstDebtOrBillStep` carries the same `Date.now()` id shape
+right now, unreported.** Filed to the backlog → P6.10.
+
+⚠️ **The fix did NOT copy the repo's existing workaround.** `AffordabilityCard`'s `localId` and
+`SaveForItSheet`'s `nextGoalId` are module counters that reset to `0` on launch while the cycle date does
+not move — so two items created either side of a relaunch **collide**, and `AffordabilityCard`'s own
+comment claims the opposite. `newDebtId` instead derives uniqueness from the ids that exist. The two
+existing sites are filed, not fixed.
+
+### ⭐ The plant caught a defect in my own instrument
+
+Unit: 36 asserts, planted the old guard → red. ⚠️ **The first failure message read *"expected null, got
+null"*** — the house `JSON.stringify` formatter renders `NaN` as `null`, i.e. it described a corrupt value
+using the exact word that value serialises to. The test now formats numbers with `String`.
+
+e2e: 3 specs asserting **what landed in the store**, not that an error appeared. ⛔ **Under the plant, two
+went red and the third PASSED** — it read `localStorage` immediately after the click, before the write
+flushed, and walked the seed debt alone. **Vacuously true.** It now settles on `written`/`refused` before
+asserting. ⚡ **Review would not have caught this; the plant did.** 12 `readStore` calls exist across the
+suite and one visibly polls first → filed to the backlog.
+
+### ✅ Verified
+
+`typecheck` (core + RN + scripts) clean · `lint:rn` **exit 0** · `test:regression` · `test:app` ·
+`test:scenarios` all green · **`test:e2e:rn` 215 passed** (212 baseline + 3). Every fix plant-verified
+**both ways** — red with the defect planted, green with it reverted.
+
+⚠️ **`validate:release:rn` has NOT been run for this step** — that is **P6.8.8**, after c.2–c.4.
+`gate-status.json` remains stale, correctly.
+
 ## 🔚 SESSION CLOSE 2026-08-21 — P6.8.7a + 7b closed, and four instruments were wrong
 
 ### ✅ Shipped

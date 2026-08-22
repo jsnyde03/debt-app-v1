@@ -125,7 +125,7 @@ sweep expands the freeze it exists to protect.
 | **P6.8.5** | ⭐ **THE SYNTHESIS IS A FILE (🎯 2026-08-21)** — `SYNTHESIS.md` in the audit folder, not a chat message, and it is the decision document. ⛔ **Every agent writes its own slice file too**; nothing about this audit exists only in a transcript. Same rule the 2026-08-17 gate followed, made explicit because it is the thing that makes the audit re-readable after the session ends |
 | **P6.8.6** | ⭐ **[DECISION] The structural-gap list → 🎯** — *"is anything missing"*, as scope calls with a recommendation each. Best candidate on the record: **L5-12, the paywall never mentions the user's own money** |
 | ✅ | **P6.8.1–.6 DONE 2026-08-21** — 13 lenses · 6 refuters · 226 frames · 9 a11y trees. `SYNTHESIS.md` is the decision document. ⛔ **33 of 34 observations survived; 11 of 34 mechanisms were wrong**, and twice the lens's own fix would not have closed its defect |
-| **P6.8.7** | 🔴 **BUILD EVERYTHING EXCEPT THE REFUTED (🎯 2026-08-21)** — A + B + C, decomposed **P6.8.7a–g** below. ▶ **NEXT SESSION STARTS AT `P6.8.7c.1`** *(7a and 7b are CLOSED; 7c is decomposed below and c.1 opens by ENUMERATING B1's sites, because three different counts exist)*. ⚠️ **🎯 overruled my 2.1 recommendation on C7 and C8**; both are new surfaces, so P6.8 is now a BUILD phase and must still clear **P6.10** feature lock. ⛔ **The earliest deadline in the whole audit is C8's parser rescue — `core/imports/debtCsv.ts`'s only caller dies at P6.11** |
+| **P6.8.7** | 🔴 **BUILD EVERYTHING EXCEPT THE REFUTED (🎯 2026-08-21)** — A + B + C, decomposed **P6.8.7a–g** below. ▶ **NEXT SESSION STARTS AT `P6.8.7d.1`** *(7a, 7b and **the whole of 7c** are CLOSED; d is decomposed below and d.1 is B3, the iCloud clobber)*. ⚠️ **🎯 overruled my 2.1 recommendation on C7 and C8**; both are new surfaces, so P6.8 is now a BUILD phase and must still clear **P6.10** feature lock. ⛔ **The earliest deadline in the whole audit is C8's parser rescue — `core/imports/debtCsv.ts`'s only caller dies at P6.11** |
 | **P6.8.8** | **`validate:release:rn` green** *(it records itself — do not type the result)* |
 | **P6.8.9** | 🔴 **[AUDIT GATE] THE VERIFICATION PASS (🎯 2026-08-21)** — re-audit the RESULTS: *(a)* every fix actually fixed its finding, and *(b)* **no other major+ issue remains**. ⛔ **Fixes are changes, and changes are unaudited** — this is P6.16's logic applied one gate earlier, and it exists because *this* audit measured that a fix aimed at a wrong mechanism looks identical to one that worked |
 
@@ -140,28 +140,35 @@ rest of the work happens — the [D31] move, applied to a 30-item build rather t
 | **[P6.8.7a-1]** | ✅ **DONE 2026-08-21 — the guards now have a compiler** *(🎯 approved)* | `scripts/tsconfig.json` + `typecheck:scripts`, chained into `typecheck` so it rides the gate's existing first link and `web-e2e.yml`'s step with it. 3 errors fixed, **both shapes type-only, neither in gate logic** — a hoisted `function` was the one rung of the lane parser a null-check could not reach. Planted type error reds the chain by name. ⛔ **Third time this hole has been found** — `apps/rn`, then `packages/core` *("the LEAST type-checked code in the repo")*, now `scripts/` |
 | ✅ | **Junk file removed 2026-08-21** — `apps/rn/m.default())`: 0 bytes, tracked, unreferenced, born in `ab7daf3`. ⚠️ **P6.1's sweep of this class was short by one.** It is now the only one, verified by walking **every tracked file for zero length** rather than by grepping names |
 | **P6.8.7b** | ✅ **COPY — DONE 2026-08-21** | **A4/M1-9** the first screen no longer promises a premium feature · **C6** `PRIVACY_CLAIM.atEntry` on both money-asking steps · **M1-8** the inert analytics row gone, **coupled both ways** so it cannot stay gone if a sink appears · **L1-22** baseline **94 → 0**, the gate is now absolute · **P1-10** the windfall invite's false implication · **A1/A2/A3** drafted. ⛔ **Four premises were wrong**, incl. C6's pre-written wording being **unsafe** *(it denies the iCloud backup P6.3 shipped)* and one error of mine. Detail → log |
-| **P6.8.7c** | 🔴 **DATA INTEGRITY** | **B1** `NaN <= 0` — **12 sites / 7 files** *(not the 4/2 filed)*; correct expression exists at `WindfallSheet.tsx:50` · **B4** corrupt-store notice **+ `dataRepairs` rendered at all** *(it is what makes B1 silent)* · **M3-20** the discarded `LegacyMigrationOutcome` · **W1-6** the v1.6 bridge retry, ⚠️ **including the 4th skip reason the lens missed** |
-| **P6.8.7d** | 🔴 **CLOUD / DESTRUCTIVE** | **B3** the iCloud clobber — ⛔ **NOT via `shouldAutoBackup`; R1 measured that the guard returns `true` and permits it anyway.** The real gap is that nothing reasons about the REMOTE · **C9** `CloudBackupProvider.delete()` so "Delete all data" is true · **M3-5** the restore message thrown away one layer short of the screen |
+| **P6.8.7c** | ✅ **DATA INTEGRITY — CLOSED 2026-08-22** | **B1** *(14 sites/7 files, one shared money parser)* · **B4** *(the reset screen + `pendingDataRepairs`)* · **W1-6** *(a refused database is no longer "a fresh install", and an inconclusive bridge no longer seeds)* · **M3-20** *(losses reported through B4's card)*. **220 e2e · 10 embed · lint exit 0.** ⛔ **Three results outlive the cluster:** an absence assertion passes before the app renders *(two specs stayed green with the defect planted)* · `lint:rn` green ≠ purity-clean · **M3-20 was scheduled as work and never refuted.** Detail → log |
+| **P6.8.7d** ▶ | 🔴 **CLOUD / DESTRUCTIVE — BUILDING NOW** *(decomposed below)* | **B3** the iCloud clobber — ⛔ **NOT via `shouldAutoBackup`; R1 measured that the guard returns `true` and permits it anyway.** The real gap is that nothing reasons about the REMOTE · **C9** `CloudBackupProvider.delete()` so "Delete all data" is true · **M3-5** the restore message thrown away one layer short of the screen |
 | **P6.8.7e** | **THE CORE LOOP** | **B2** celebration + finale reachable for free · **C1** absorb entry point *(entry only — the engine is correct)* · **C2** re-open payday capture **(+C3** folds here**)** · **C4** the Live Activity gate — ⚠️ **source-only; ships with a device row, not a claim** · **C5** the "no-bills" branch |
 | **P6.8.7f** | **VISUAL + A11Y** | **B6/V1-2** light contrast *(15 of 24 distinct pairs)* · **V1-5** borders *(⚠️ all four boundaries fail 1.4.11 — dark too)* · **V2-6** the coach mark covering its subject · **V2-1** the truncating debt-free date · **V3-1** six missing font clamps · **V3-5/6** the chart's hardcoded per-character width · **V4-8** split-view chart · **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⚠️ **A1-7's obvious fix is documented-as-broken; A1-11 is 6 sites not 1** |
 | **P6.8.7g** | **NEW SURFACES** *(🎯's call, against my rec)* | **C8** ⚠️ **RESCUE `core/imports/debtCsv.ts` FIRST — its only caller dies at P6.11, the earliest deadline in this audit** — then wire the import · **C7** snowball-vs-avalanche side by side *(both simulations already run; `TrajectoryChart.tsx:133` discards one)* |
 
-#### ▶ P6.8.7c — DATA INTEGRITY, decomposed *(the ACTIVE decomposition — 2026-08-21)*
+#### ▶ P6.8.7d — CLOUD / DESTRUCTIVE, decomposed *(the ACTIVE decomposition — 2026-08-22)*
 
-⛔ **First cluster with engine risk.** 7a's gates are in and 7b was copy; from here a mistake changes what
-the app computes, not what it says. **Every step takes a plant, not just a test.**
+⛔ **The only cluster in this build that can DESTROY data the user still has.** c's mistakes changed what
+the app computed; d's change what still exists. ⚠️ **Every step here is source-only** — iCloud has no
+off-device proof — so each one ships with a **P6.14 device row**, never with a claim.
 
 | # | step | notes |
 |---|---|---|
-| **c.1** | 🔴 **B1 — `NaN <= 0` guards** | ⚠️ **Count is contested and must be measured first.** Filed as 4 sites/2 files, corrected to **12/7** by the audit; a crude grep at 7b's after-scan says **14/8**. ⛔ **Three different numbers means none of them is known** — enumerate before editing. The correct expression already exists at `WindfallSheet.tsx:50` |
-| **c.2** | 🔴 **B4 — the corrupt-store notice, and `dataRepairs` rendered AT ALL** | ⛔ **This is what makes B1 silent**, so it lands with c.1 or the fix has no visible half |
-| **c.3** | **M3-20 — the discarded `LegacyMigrationOutcome`** | The migration's own verdict is computed and dropped |
-| **c.4** | **W1-6 — the v1.6 bridge retry** | ⚠️ **Including the 4th skip reason the lens missed** — the filing enumerates three |
-| **c.5** | **`validate:release:rn`-adjacent suites green** | ⛔ Engine cluster: `test:regression` + `test:app` + `test:scenarios` after **each** step, not once at the end |
+| **d.1** | 🔴 **B3 / M3-3 — flipping "Back up to iCloud" ON destroys the declined backup** | ⛔ **NOT via `shouldAutoBackup`, and this is the audit's most important mechanism correction.** R1 *simulated* the fix both lenses proposed: at the moment of the flip `cloudBackupEnabled` was just set `true` and the user is necessarily onboarded, so the guard returns **`true` and permits the clobber anyway**. **The real gap is that nothing reasons about the REMOTE.** ⚠️ Aggravated by the sheet rendering *"Last backed up …"* — it displays the artifact the next tap destroys |
+| **d.2** | 🔴 **C9 — `CloudBackupProvider.delete()`, so "Delete all data" is TRUE** | The next launch offers the previous owner's plan to whoever holds the phone. ⭐ **Fold in `clearQuarantine`** *(backlog, c.2's before-scan)*: four definitions, one test and **zero call sites**, while `storage/adapter.ts:16` documents it as *"called from reset all data"* — false. **One honest answer to "is my data gone", not two half ones** |
+| **d.3** | **M3-5 — the restore message thrown away one layer short of the screen** | |
+| **d.4** | **Suites green + the device rows filed** | `test:regression` · `test:app` · `test:scenarios` after **each** step. ⛔ Nothing here is verifiable off-device; the exit is a filed row, not a green tick |
 
-**Exit (c):** every c-id carries a fix or a recorded reason, each fix **plant-verified**, and the money
-suites green — with the plant confirmed to have applied, because a plant that never landed looks exactly
-like a passing gate.
+**Exit (d):** every d-id carries a fix or a recorded reason, each **plant-verified**, the money suites
+green, and **every cloud claim carried to P6.14 as a device row** rather than asserted from source.
+
+#### ✅ P6.8.7c — DATA INTEGRITY *(CLOSED 2026-08-22)*
+
+✅ **All five steps done, every fix plant-verified red AND green.** B1 · B4 · W1-6 · M3-20, plus two
+defects that only surfaced while converting sites *(a `parseFloat` money field that logged **$1** for
+`"1,200"`; a cleared payday balance confirming a debt at **$0**)*. **220 e2e · 10 embed · `lint:rn` exit
+0.** ⛔ **The exit condition was met on every id, and the three results worth carrying are on the plan row
+above and in the backlog.** Detail → log.
 
 ⛔ **Filed by 7b's after-scan, NOT absorbed:**
 
@@ -450,6 +457,93 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 
 ## Deferred backlog
 
+**→ SURFACED BY P6.8.7c.3 + c.4's AFTER-scan (2026-08-22)**
+
+- 🔴 **[DECISION] A v1.6 bridge that keeps failing is now a SILENT LOOP rather than a silent strand, and
+  neither says anything.** c.3 fixed the permanent part — an inconclusive bridge no longer seeds, so it
+  retries every launch instead of concluding "fresh install" once and forever. ⛔ **It did not make it
+  speak.** A user whose database never becomes readable opens a setup wizard every time, with their v1.6
+  portfolio on disk and no word about any of it. **Deliberately not built**, because saying it needs both
+  a new surface *and* a persisted attempt count — and c.3's whole result was that the retry works
+  precisely because it has **no** persisted flag to lose. ⚠️ c.4's card cannot cover this: it renders on
+  Today, and this user never reaches Today. **Recommendation: 2.0 if the device pass shows any real skip;
+  otherwise 2.1** — Sentry now reports every inconclusive skip (added in c.3), so **P6.14 will produce the
+  evidence this decision needs** rather than it being guessed now. → **P6.10** *(feature lock; it is a new
+  surface)*.
+
+**→ SURFACED BY P6.8.7c.3's BEFORE-scan (2026-08-22)**
+
+- **⛔ M3-20 IS SCHEDULED AS WORK AND WAS NEVER REFUTED.** `M3-recovery.md` states *"Wave-2 refutation
+  owed on M3-1, M3-2, M3-3, M3-20"*; R1 delivered five findings and **M3-20 is absent from its verdict
+  table.** P6.8.4's rule is *"no finding becomes work un-refuted"*, so c.3 supplied the missing pass at
+  switch-in. ⚠️ **The gap is the process finding, not the finding:** nothing in the audit folder flags an
+  owed refutation that never arrived, so this was invisible until someone opened the step. **Check the
+  other clusters' owed-lists against their refuters before building them.** → **P6.8.9** *(the
+  verification audit is the right place to sweep it)*.
+
+- **⚡ M3-20's implied fix is WRONG about half its own evidence.** It cites `LegacyMapReport.dropped` and
+  `.unknown` together as *"exactly what did not come across"*. Measured: **`dropped` is entirely
+  deliberate** — every entry carries a documented reason and none is user data (`isDemoMode`,
+  `mockSubscription`, `schemaVersion`, a v1.6 QA hook, superseded counters). Surfacing it would tell every
+  upgrader the app "dropped" things they cannot act on and never wanted. **The real losses are `unknown`,
+  `unparseable` and `quarantineFailed`.** Folded into c.3's scope rather than deferred.
+
+**→ SURFACED BY P6.8.7c.2's AFTER-scan (2026-08-22)**
+
+- **⛔ AN ABSENCE ASSERTION PASSES BEFORE THE APP RENDERS, and it has now bitten on two consecutive
+  items.** `expect(x).toHaveCount(0)` is satisfied by a blank page, so a spec that navigates and
+  immediately asserts something is *not* there proves nothing. Measured both times by a plant, never by
+  review: c.1's null-balance spec and c.2's *"Money does not celebrate"* spec **both stayed green with
+  the defect planted back**. The fix is one line — wait for a marker that renders in *both* branches
+  first — but the class is repo-wide and unmeasured. ⚠️ **`lint:selectors` cannot see this**; it is about
+  selector shape, not ordering. → **P6.10** *(a sweep of every `toHaveCount(0)` / `not.toBeVisible` in
+  the suite, each checked for a preceding render barrier)*.
+
+**→ SURFACED BY P6.8.7c.2's BEFORE-scan (2026-08-22)**
+
+- **`clearQuarantine` has FOUR definitions, one test and ZERO call sites** — and `storage/adapter.ts:16`
+  documents it as *"called from 'reset all data'"*, which is false. So a user who resets keeps every
+  quarantined copy of their old plan in MMKV indefinitely. ⚠️ **Same shape as C9** (*"Delete all data"
+  leaves the iCloud copy*) one layer down, and it should be fixed **with** C9 in **P6.8.7d** rather than
+  separately — one honest answer to *"is my data gone"*, not two half ones. → **P6.8.7d**.
+
+- **⛔ The `read() === null` path cannot be told apart from a genuine first launch — for a LOST MMKV FILE.**
+  R1's mechanism correction: a file lost or truncated to nothing lands in the first-launch branch,
+  producing a byte-identical outcome to the quarantine path — onboarding, no words, no `storageError` —
+  but with **no preserved bytes**. ⚠️ **Any marker durable enough to survive that (Keychain) also survives
+  a genuine delete-and-reinstall**, so it would tell a returning user their data was lost when they erased
+  it themselves. Stated in the code rather than papered over. → **P6.14** *(which branch an induced MMKV
+  fault produces is device-owed)*.
+  ⚡ **CORRECTED 2026-08-22 by c.3's before-scan — this was filed too broadly.** A *second, different*
+  cause lands in the same silent branch and **is** detectable: a v1.6 database that was **found and
+  refused**. `readLegacyStores` records it in `report.opened[].error`, and `migrateFromLegacy` never reads
+  that field — so it reports **"a fresh install"**. That half is **c.4's (W1-6) fix**, not an unfixable
+  limit, and closing it is what would let this branch speak for the upgrade case.
+
+**→ SURFACED BY P6.8.7c.1's after-scan (2026-08-22)**
+
+- **⛔ A GREEN `lint:rn` DOES NOT MEAN THE TREE IS PURITY-CLEAN.** `react-hooks/purity` reports a
+  component's `Date.now()`-in-render violations only while the React Compiler can still analyse that
+  component; introduce one call it cannot analyse and the **pre-existing** violations surface at once.
+  Measured in c.1: `DebtSheet` linted clean at baseline and produced **2 errors** the moment a parser call
+  entered render scope, with the `Date.now()` calls **untouched**. ⚠️ So the lint is a *sampling* of this
+  class, not a gate on it — and `FirstDebtOrBillStep` carries the same `Date.now()` id shape today,
+  currently unreported. → **P6.10** *(a masked lint class is a structural gap, and this is the last gate
+  that can find one)*.
+
+- **`localId` / `nextGoalId` can hand out a DUPLICATE id across a relaunch.** Both are module counters
+  reset to `0` on launch, namespaced by a cycle date that does not move within a cycle — so two purchases
+  (`AffordabilityCard.tsx:24`) or two save-for-it goals (`SaveForItSheet.tsx:32`) created either side of a
+  restart on the same cycle date collide. ⚠️ **`AffordabilityCard`'s own comment asserts the opposite**
+  (*"Namespaced by the cycle date so it can't collide across restarts"*). c.1 deliberately did **not**
+  copy this pattern into `DebtSheet` — `newDebtId` derives uniqueness from the ids that exist. → **P6.10**
+  *(correctness; scope call, since the fix is the same three-line shape in two more files)*.
+
+- **An unpolled `readStore` in an e2e passes vacuously** — it reads before the write flushes and then
+  asserts over the seed alone. ⛔ **Found by a plant, not by review:** c.1's third spec **PASSED with the
+  defect planted back** while the other two went red. **12 `readStore` calls exist across the suite and
+  one visibly polls first**; the rest need checking individually, not a blanket edit. → **P6.10**.
+
 **→ SURFACED BY P6.7's after-scan (2026-08-21)**
 
 - **⛔ AUDIT THE PLAN FOR OTHER ✅ THAT MEAN "DECIDED" RATHER THAN "BUILT".** [D44] sat in the P6.7 queue
@@ -663,6 +757,30 @@ a later version/tier**._
 
 ## Decisions
 
+- **[D57] ✅ 2026-08-22 — ONE SURFACE FOR "COULD NOT READ IT", AND W1-6 GOES FIRST** (🎯, on my
+  recommendation). Migration losses report through **c.2's existing `pendingDataRepairs` card** — a
+  `migration` member on `DataRepair.entity` — rather than a second field and a second ack competing for
+  the same slot; the user's question is identical in both cases. And **c.3/c.4 are SWAPPED**: W1-6 is a
+  correctness bug that *produces* the outcome M3-20 reports, so building the report first would ship a
+  surface whose most important input R1 measured as wrong. Detail → log.
+- **[D56] ✅ 2026-08-22 — THE TWO SILENT DATA EVENTS EACH GET A SURFACE, AND ONE OF THEM BLOCKS** (🎯, on
+  my recommendation). A corrupt-store reset renders a **blocking screen before onboarding** that owns the
+  ways back, rather than a dismissible banner over the setup form. And a repaired amount is held in a new
+  persisted **`pendingDataRepairs`** until the user acknowledges it, rather than rendered live from
+  `dataRepairs`. ⛔ **The second half is not a preference:** `repairsAreNotRepeated` is a shipped
+  invariant guaranteeing the per-read list is empty on the next pass, so a live-only card would be visible
+  for one session and only to a user who happened to open Today — the same silence the finding is about.
+  ⚠️ **Accepted cost:** one new persisted field, defaulted and merged in `runMigrations`. Detail → log.
+- **[D55] ✅ 2026-08-22 — A MONEY FIELD READS SEPARATORS, IT DOES NOT REFUSE THEM** (🎯, on my
+  recommendation). `"1,200"` and `"$1,200"` parse as **1200**; anything that does not resolve to a finite
+  positive number is refused. ⛔ **The alternative — strict rejection, matching `WindfallSheet` — was the
+  smaller diff and the wrong call:** it leaves a dead end (the field reads `1,200`, the error reads
+  *"Enter the current balance."*) and it would have put the input boundary **at odds with the repair
+  path**, since `data/migrations.ts` already repairs stored values by stripping commas. ⚠️ **Safe because
+  of where 2.0 ships** — US · CA · AU · NZ are all period-decimal; a comma-decimal storefront makes
+  `"1,50"` mean one-fifty and **cannot be added without revisiting `store/amountField.ts`**, which says so
+  in its own header. Also settled: an OPTIONAL field (APR, a goal's starting balance) treats **blank and
+  unreadable as different answers** — blank is `0`, unreadable stops the form. Detail → log.
 - **[D54] ✅ 2026-08-21 — R5 (the expense reserve in the plan) IS A 2.0 FEATURE** (🎯). Reverses 3.8's
   *"the offer … is NEVER required"* premise. ⛔ **It is a new capability, so it MUST clear P6.10 feature
   lock** — which is exactly why [D52] moved that line to P6.10. Scheduled as its own Phase-6 row after

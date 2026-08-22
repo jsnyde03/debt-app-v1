@@ -27,8 +27,20 @@ decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submis
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-21).** P6.8's audit is closed and its BUILD is under way:
-**P6.8.7a (gates) and P6.8.7b (copy) are DONE**; **next is `P6.8.7c.1`**, decomposed on the plan.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-22).** P6.8's audit is closed and its BUILD is under way:
+**P6.8.7a (gates), 7b (copy) and the WHOLE of 7c (data integrity) are DONE** — B1 · B4 · W1-6 · M3-20,
+every fix plant-verified red and green, **220 e2e · 10 embed · `lint:rn` exit 0**. **Next is
+`P6.8.7d.1`** — B3, the iCloud clobber, decomposed on the plan. ⚠️ **d is the only cluster that can
+DESTROY data the user still has**, and none of it is verifiable off-device: every step ships with a
+P6.14 device row, not a claim.
+
+⛔ **Two results from c.1/c.2 that change how you test and how you read a green gate:**
+- **An ABSENCE assertion passes before the app renders.** `expect(x).toHaveCount(0)` is satisfied by a
+  blank page. **Two consecutive items shipped a spec that stayed GREEN with the defect planted back**, and
+  both were caught by planting, never by reading. Wait for a marker that renders in *both* branches first.
+- **`lint:rn` green does NOT mean the tree is purity-clean.** `react-hooks/purity` reports a component's
+  violations only while the React Compiler can still analyse it — `DebtSheet` linted clean, then produced
+  2 errors on `Date.now()` calls **nobody touched**, the moment an unanalysable call entered render scope.
 ✅ **CI IS GREEN ON `dde2015`** — run `32588435337`, which is **every link of `validate:release:rn` except
 `gate:record`**: typecheck (core + RN + **scripts**) · `lint:rn` · **`test:stamp`** · regression · app ·
 scenarios · **`test:e2e:rn`** · **`test:e2e:embed`**. The apostrophe sweep's 12 Playwright pin edits are
@@ -38,9 +50,11 @@ therefore **verified**, and the three links added to `web-e2e.yml` this session 
 - **`gate-status.json` is STALE and that is correct.** CI deliberately does not run `gate:record`, and
   running it by hand forges a green — the writer is gated on `--from-gate` for exactly that reason. The
   record is refreshed by a real local `validate:release:rn` at **P6.8.8**.
-- **`lint:closure` now reports the P6.8 audit too, and it says 43 of 80 high+ findings are traceable to no
-  ledger.** That is **report-only by design** until **P6.8.9**, which flips it to `exit 1`. It is not a
-  regression and must not be "fixed" by silencing it.
+- **`lint:closure` now reports the P6.8 audit too, and at the last run it said 40 of 80 high+ findings are
+  traceable to no ledger** *(43 before c.1)*. That is **report-only by design** until **P6.8.9**, which
+  flips it to `exit 1`. It is not a regression and must not be "fixed" by silencing it. ⛔ **Quote the
+  gate, never this line.** It moved 43 → 41 → 40 inside one session, and it was already stale twice in
+  that time — a carried number decays exactly like a carried premise.
 
 ⭐ **What 🎯 owes, in one place: [`docs/DEBT_2.0_YOUR_STEPS.md`](docs/DEBT_2.0_YOUR_STEPS.md).** Every step
 needing a human, an Apple login, a device or a decision — with an *"already done, do not ask twice"*

@@ -112,5 +112,62 @@ export default async function run() {
     );
   }
 
+  // ── W1-6 (P6.8.7c.3): "found and refused" is NOT "a fresh install" ──────────────────────────────
+  // ⛔ The audit's highest-harm finding, and it turned on a single field nobody read. A v1.6 database
+  // that is found and then will not open leaves `truncated` FALSE — the walk succeeded — so the old test
+  // reported it as a fresh install, which is terminal, which lets the caller seed an empty store, which
+  // consumes the one condition the retry depends on. The user lands in a setup wizard with their whole
+  // portfolio intact on disk and permanently unreachable.
+  {
+    const refused = (): LegacyReadReport => ({
+      supported: true,
+      webkitRoot: '/x/Library/WebKit',
+      visited: 7,
+      truncated: false, // ⚠️ the walk itself was fine — this is why `truncated` alone could never catch it
+      candidates: ['/x/db.sqlite3'],
+      opened: [{ path: '/x/db.sqlite3', rows: 0, legacyKeys: 0, error: 'database is locked' }],
+      store: null,
+      droppedRows: 0,
+    });
+    const out = await migrateFromLegacy(new MemoryStorageAdapter(), async () => refused());
+    assert(!out.outcome.migrated, 'a refused database still means nothing migrated');
+    assert(
+      out.outcome.terminal === false,
+      '⛔ …but it is NOT terminal — the caller must not seed over it',
+    );
+    assert(
+      /would not open/.test(out.outcome.reason),
+      `…and the reason names the refusal rather than claiming a fresh install (got: ${out.outcome.reason})`,
+    );
+
+    // The genuine fresh install still reads as one — the fix must not make every launch retry forever.
+    const clean = (): LegacyReadReport => ({
+      supported: true,
+      webkitRoot: '/x/Library/WebKit',
+      visited: 7,
+      truncated: false,
+      candidates: [],
+      opened: [],
+      store: null,
+      droppedRows: 0,
+    });
+    const fresh = await migrateFromLegacy(new MemoryStorageAdapter(), async () => clean());
+    assert(fresh.outcome.terminal === true, '⭐ a CONFIRMED fresh install is still terminal');
+
+    // A walk that never ran cannot conclude anything, even with no candidates.
+    const unwalked = (): LegacyReadReport => ({ ...clean(), visited: 0 });
+    const none = await migrateFromLegacy(new MemoryStorageAdapter(), async () => unwalked());
+    assert(none.outcome.terminal === false, 'a walk that never ran is UNKNOWN, not "nothing here"');
+
+    // A cap that stopped the search was already handled — it must stay handled.
+    const cut = (): LegacyReadReport => ({ ...clean(), truncated: true });
+    const short = await migrateFromLegacy(new MemoryStorageAdapter(), async () => cut());
+    assert(short.outcome.terminal === false, 'a truncated search is UNKNOWN (unchanged)');
+
+    // A successful migration is terminal — otherwise the caller would decline to seed after a WIN.
+    const ok2 = await migrateFromLegacy(new MemoryStorageAdapter(), async () => report());
+    assert(ok2.outcome.terminal === true, 'a successful migration is terminal');
+  }
+
   console.log(`✅ 5.10.4 interruption + quarantine tests passed (${passed} asserts).`);
 }

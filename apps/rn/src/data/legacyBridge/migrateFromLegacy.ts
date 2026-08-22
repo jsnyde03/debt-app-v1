@@ -44,16 +44,56 @@ export interface LegacyMigrationOutcome {
    * is still not fatal; being unable to SAY it was lost is what needed fixing.
    */
   quarantineFailed: number;
+  /**
+   * ⛔ W1-6 — is this skip a CONCLUSION or a failure to look? The caller must not seed an empty store over
+   * a `false` here, because seeding is what consumes the retry: the bridge runs only while RN storage is
+   * empty, so one write turns "I could not tell" into "the user had nothing", permanently.
+   *
+   * ⚠️ `true` only for a **confirmed** clean fresh install or a platform with no container at all. Every
+   * other shape — a cap hit, a database found and refused, a walk that never ran — is a floor, not an
+   * answer.
+   */
+  terminal: boolean;
 }
 
-const skipped = (reason: string, read: LegacyReadReport | null = null): LegacyMigrationOutcome => ({
+const skipped = (reason: string, read: LegacyReadReport | null = null, terminal = false): LegacyMigrationOutcome => ({
   migrated: false,
   reason,
   read,
   map: null,
   quarantined: 0,
   quarantineFailed: 0,
+  terminal,
 });
+
+/**
+ * Did the reader actually establish that there is nothing to migrate?
+ *
+ * ⛔ **`truncated` alone was the bug, and it is the audit's highest-harm finding.** A genuine v1.6
+ * container whose databases are all found and then **refuse to open** leaves `truncated` false (the walk
+ * itself succeeded), `candidates` non-empty, and `store` null — which the old test read as
+ * *"a fresh install"*, the most terminal-sounding reason in the set. `readLegacyStores` records the
+ * refusal in `opened[].error`, and nothing ever looked at it.
+ *
+ * ⚠️ This is not hypothetical: the pre-`-wal` reader hit exactly that chain on every real container, and
+ * every synthetic test passed. The `-wal` copy closed one cause; a locked database, a failed sidecar
+ * copy or a full cache directory reach the identical outcome.
+ */
+export function isConfirmedFreshInstall(report: LegacyReadReport): boolean {
+  return (
+    !report.truncated &&
+    // The walk has to have RUN. `visited === 0` means the tree was not there to look at, which is a
+    // different fact from "the tree was there and held nothing".
+    report.visited > 0 &&
+    // ⚠️ **Every candidate was ATTEMPTED**, not "no candidate was found". Finding a database, opening it
+    // and seeing it hold no `debtPlanner.*` key is a real answer — the first cut of this demanded
+    // `candidates.length === 0` and turned that ordinary case into a permanent retry, which the existing
+    // fresh-install test caught immediately.
+    report.opened.length === report.candidates.length &&
+    // …and every attempt actually succeeded. This is the clause the whole finding turns on.
+    report.opened.every((o) => !o.error)
+  );
+}
 
 /**
  * Migrate, if there is anything to migrate. Returns the migrated store for the caller to persist and
@@ -81,17 +121,25 @@ export async function migrateFromLegacy(
     return { outcome: skipped(`read threw: ${String(error)}`), store: null };
   }
 
-  if (!report.supported) return { outcome: skipped('no container to read (web)', report), store: null };
+  // Web has no container at all — a conclusion, not a failure to look.
+  if (!report.supported) return { outcome: skipped('no container to read (web)', report, true), store: null };
 
   if (report.store === null) {
-    // ⛔ The distinction that decides whether this is a fresh install or a failed migration. `truncated`
-    // means a cap or an unrecognised container shape stopped the search — the result is a FLOOR, not an
-    // answer, and the next launch should try again rather than conclude the user had nothing.
+    // ⛔ The distinction that decides whether this is a fresh install or a failed migration — and it is
+    // NOT `truncated` alone. See `isConfirmedFreshInstall`: a database found and refused leaves
+    // `truncated` false and used to be reported as "a fresh install", which is terminal, which consumes
+    // the retry forever.
+    if (isConfirmedFreshInstall(report)) {
+      return { outcome: skipped('no v1.6 store in this container (a fresh install)', report, true), store: null };
+    }
+    const refused = report.opened.filter((o) => o.error).length;
     return {
       outcome: skipped(
         report.truncated
           ? 'the search was cut short — treating as UNKNOWN, not as "no legacy data"'
-          : 'no v1.6 store in this container (a fresh install)',
+          : refused > 0
+            ? `${refused} of ${report.candidates.length} database(s) were found and would not open — UNKNOWN, not "no legacy data"`
+            : 'the search did not establish that there is nothing here — treating as UNKNOWN',
         report,
       ),
       store: null,
@@ -136,7 +184,7 @@ export async function migrateFromLegacy(
     };
   }
   return {
-    outcome: { migrated: true, reason: 'migrated', read: report, map, quarantined, quarantineFailed },
+    outcome: { migrated: true, reason: 'migrated', read: report, map, quarantined, quarantineFailed, terminal: true },
     store,
   };
 }

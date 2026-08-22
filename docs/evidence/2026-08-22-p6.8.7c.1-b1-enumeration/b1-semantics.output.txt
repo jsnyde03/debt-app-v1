@@ -1,0 +1,19 @@
+raw        Number()     old-guard-passes   new-guard-passes
+"1,200"    NaN          true               false
+"abc"      NaN          true               false
+""         0            false              false
+" "        0            false              false
+"Infinity" Infinity     true               false
+"-5"       -5           false              false
+"0"        0            false              false
+"1e5"      100000       true               true
+"$1200"    NaN          true               false
+"1 200"    NaN          true               false
+"1.200"    1.2          true               true
+"12.5"     12.5         true               true
+
+JSON.stringify({b:NaN}) = {"b":null}
+JSON.stringify({b:Infinity}) = {"b":null}
+Number.isInteger(NaN) = false
+NaN > NaN = false
+normalize("$1,200") = 1200

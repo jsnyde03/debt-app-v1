@@ -48,6 +48,8 @@ const ALLOWED: Record<string, string> = {
   'apps/rn/src/liveActivity/liveActivitySync.ts': 'subscribes only; a sandbox is never handed to a sync seam',
   'apps/rn/src/widget/widgetSync.ts': 'subscribes only; a sandbox is never handed to a sync seam',
   'apps/rn/src/analytics/funnel.ts': "reads the REAL user's analytics opt-out — a demo does not have its own consent",
+  'apps/rn/src/components/DataResetScreen.tsx':
+    'renders ABOVE the StoreProvider, in place of the navigator, when the launch could not read the saved plan (P6.8.7c.2) — no demo can be mounted at that point, and the recovery it offers is meaningless against anything but the real store',
 
   // ── 2. seeds a sandbox from the real plan ────────────────────────────────────────────────────────
   'apps/rn/src/store/sandboxStore.ts': "carries the real theme + display name into the sandbox, so a demo looks like the user's app",

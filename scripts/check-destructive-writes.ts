@@ -32,6 +32,8 @@ const ALLOWED: Record<string, string> = {
     'the backup restore — gated behind readBackup (refuses unrecognised input) AND a second deliberate tap (5.8.4)',
   'apps/rn/src/app/_layout.tsx':
     "the fresh-install iCloud restore OFFER (P6.3.3.6) — same verified input (decodeCloudBackup → readBackup), and consent is the whole point of the dialog: it only ever runs for a store that has NOT onboarded, and only the explicit 'Restore' button calls this. Declining sets `declinedRestore`, which then suppresses auto-backup",
+  'apps/rn/src/components/DataResetScreen.tsx':
+    'the corrupt-store recovery (P6.8.7c.2) — same verified input as the other two cloud callers (decodeCloudBackup → readBackup), and an explicit tap on the offered action. ⚡ It is also the weakest case this check can ever see: the store it overwrites is `createDefaultStore()`, because the wipe it exists to recover from has already happened, so there is nothing left to destroy',
   'apps/rn/src/hooks/use-cloud-backup.ts':
     'the iCloud restore (P6.3.3.5) — the blob goes through decodeCloudBackup → readBackup, so it is VERIFIED and not merely parsed, and the caller is behind an in-sheet two-tap confirm naming what is lost. It also refuses a SANDBOX store outright',
 };

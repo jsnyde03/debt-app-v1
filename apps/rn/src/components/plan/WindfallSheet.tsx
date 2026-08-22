@@ -8,6 +8,7 @@ import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { TextField } from '@/components/ui/TextField';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
+import { parseAmountField } from '@/store/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectWindfallSplit, type WindfallBucketKey } from '@/store/guardianSelectors';
@@ -46,8 +47,8 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
   const [amount, setAmount] = useState(current > 0 ? String(current) : '');
   const [error, setError] = useState('');
 
-  const n = Number(amount);
-  const validAmount = !!amount.trim() && Number.isFinite(n) && n > 0;
+  const n = parseAmountField(amount) ?? 0;
+  const validAmount = n > 0;
 
   // Memoize the projected store off the raw store so typing doesn't re-project balances each keystroke —
   // only the split (which genuinely depends on the amount) recomputes. Mirrors AffordabilityCard.

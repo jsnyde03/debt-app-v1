@@ -10,6 +10,7 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { parseAmountField } from '@/store/amountField';
 import { appStore } from '@/store/appStore';
 import { formatPaycheckDate, nextPaycheckFrom, paydayFieldError, PAY_CYCLE_OPTIONS, PAYCHECK_ERRORS, PAYCHECK_FIELDS, PAYCHECK_LEAN_HELP, PAYCHECK_SECTIONS } from '@/store/paycheckForm';
 import { layout, spacing } from '@/theme/spacing';
@@ -37,7 +38,8 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
   const nextDate = nextPaycheckFrom(payCycle, firstDay, secondDay, payDay);
 
   function handleNext() {
-    if (!amount || Number(amount) <= 0) {
+    const amountN = parseAmountField(amount);
+    if (amountN == null) {
       setError('Enter your paycheck amount to continue.');
       return;
     }
@@ -52,18 +54,22 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
     setPaydayError('');
     // Required once the switch is on — see `PaycheckSheet`. A floor of 0 leaves every variable-income
     // feature silent, which reads as "I turned it on and nothing happened."
+    const leanN = parseAmountField(lean);
     if (varies) {
-      if (!lean || Number(lean) <= 0) { setLeanError(PAYCHECK_ERRORS.leanRequired); return; }
-      if (Number(lean) > Number(amount)) { setLeanError(PAYCHECK_ERRORS.leanAboveTypical); return; }
+      if (leanN == null) { setLeanError(PAYCHECK_ERRORS.leanRequired); return; }
+      if (leanN > amountN) { setLeanError(PAYCHECK_ERRORS.leanAboveTypical); return; }
     }
     setLeanError('');
     appStore.getState().updatePaycheck({
-      amount,
+      // ⚠️ `PaycheckConfig.amount` is a STRING by design, so the store is the one place a typed
+      // separator could still survive validation. The parsed number is written back as the string, which
+      // is why `"1,200"` can never reach `Number(store.paycheck.amount)` in a selector.
+      amount: String(amountN),
       payCycle,
       currentDate: todayLocalISO(),
       nextPaycheckDate: nextDate,
       incomeVaries: varies,
-      leanAmount: varies ? Number(lean) : 0,
+      leanAmount: varies ? leanN ?? 0 : 0,
       ...(payCycle === 'semimonthly' ? { semiMonthlyFirstDay: firstDay, semiMonthlySecondDay: secondDay } : {}),
       ...(payCycle === 'monthly' ? { monthlyPayDay: payDay } : {}),
     });

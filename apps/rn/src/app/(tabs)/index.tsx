@@ -11,6 +11,7 @@ import { maybeRequestReview } from '@/lib/review';
 import { DebtSheet } from '@/components/entities/DebtSheet';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
+import { DataRepairsCard } from '@/components/plan/DataRepairsCard';
 import { MilestoneAckCard } from '@/components/plan/MilestoneAckCard';
 import { TutorialInviteCard } from '@/components/plan/TutorialInviteCard';
 import { markTutorialSeen, selectTutorialInvite, tutorialRunFor } from '@/store/tutorialSelectors';
@@ -219,8 +220,14 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // shell (3.5.3.1) had Today advertising "See how your Guardian works · Show me" on top of the very
   // walkthrough it was inviting them to. Caught by 3.5.3.2's marker screenshot.
   const tutorialInvite = isExample ? null : selectTutorialInvite(store);
-  const activeAck: 'milestone' | 'intent' | 'reserve-release' | 'reserve-walkback' | 'risk-cleared' | 'trial' | 'tutorial' | null =
-    celebration
+  // P6.8.7c.2 (B4/M3-2) — money the app could not READ outranks every other ack, including a celebration.
+  // Everything below this line is a statement about the user's plan, and none of those statements is
+  // trustworthy while part of the plan is a repaired zero standing in for a number nobody has seen.
+  const dataRepairs = isExample ? [] : store.pendingDataRepairs;
+  const activeAck: 'data-repairs' | 'milestone' | 'intent' | 'reserve-release' | 'reserve-walkback' | 'risk-cleared' | 'trial' | 'tutorial' | null =
+    dataRepairs.length > 0
+      ? 'data-repairs'
+      : celebration
       ? null
       : store.pendingMilestone
         ? 'milestone'
@@ -499,6 +506,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
       ) : null}
       {celebration?.kind === 'finale' ? (
         <PaidOffFinale visible stats={selectCelebrationStats(store)} onDismiss={() => setCelebration(null)} />
+      ) : null}
+
+      {activeAck === 'data-repairs' ? (
+        <DataRepairsCard repairs={dataRepairs} onAck={() => store_.getState().acknowledgeDataRepairs()} />
       ) : null}
 
       {store.pendingMilestone && activeAck === 'milestone' ? (

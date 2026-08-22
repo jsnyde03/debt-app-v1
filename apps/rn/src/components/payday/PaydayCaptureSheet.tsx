@@ -24,6 +24,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSheetPresentation } from '@/hooks/use-sheet-presentation';
 import { CountUp, haptics, useReduceMotion } from '@/motion';
 import { elevation } from '@/theme/elevation';
+import { parseNonNegativeAmount } from '@/store/amountField';
 import type { DebtBalanceView } from '@/store/balanceSelectors';
 import type { ActiveRecommendedAction, RequiredRow } from '@/store/planSelectors';
 import { spring } from '@/theme/motion';
@@ -115,8 +116,11 @@ export function PaydayCaptureSheet({
   }
   function confirmEditedBalances() {
     const entries = staleBalances.map((v) => {
-      const typed = Number(balanceEdits[v.debt.id]);
-      return { id: v.debt.id, balance: Number.isFinite(typed) && typed >= 0 ? typed : v.currentBalance };
+      // ⛔ Blank must fall back to the estimate, not to zero. `Number('')` is `0`, so clearing a
+      // pre-filled balance used to CONFIRM the debt at $0 — which files it under `PAID OFF` and drops it
+      // from the plan, the payoff schedule and the widget. A typed `0` still means zero.
+      const typed = parseNonNegativeAmount(balanceEdits[v.debt.id] ?? '');
+      return { id: v.debt.id, balance: typed ?? v.currentBalance };
     });
     onVerifyBalances(entries, currentDate);
     haptics.light();
@@ -411,7 +415,7 @@ export function PaydayCaptureSheet({
                             autoFocus
                             keyboardType="decimal-pad"
                             value={String(amount)}
-                            onChangeText={(t) => setOverride(key, { actualAmount: Math.max(0, Number(t) || 0) })}
+                            onChangeText={(t) => setOverride(key, { actualAmount: parseNonNegativeAmount(t) ?? 0 })}
                             onBlur={() => setEditingExtraKey(null)}
                             style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.default }]}
                           />

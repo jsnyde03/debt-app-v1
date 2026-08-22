@@ -78,4 +78,8 @@ export const FORM_ERRORS = {
   amountPositive: 'Enter an amount greater than 0.',
   balanceRequired: 'Enter the current balance.',
   minimumRequired: 'Enter the minimum payment.',
+  // B1 — an OPTIONAL field still has to refuse a typed value it cannot read. `Number(apr) || 0` treated
+  // "left blank" and "unreadable" as the same answer and planned an interest-free payoff on a card that
+  // charges, so the two are separated and only the second one stops the form.
+  aprInvalid: 'Enter the APR as a number, or leave it blank.',
 } as const;

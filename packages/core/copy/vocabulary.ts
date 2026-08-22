@@ -208,6 +208,14 @@ export const SEE_IT_IN_ACTION_CTA = "See it in action";
 export const PAY_CYCLE_HISTORY_TITLE = "Pay cycle history";
 export const EXPORT_BACKUP_TITLE = "Export backup";
 export const IMPORT_BACKUP_TITLE = "Import backup";
+/**
+ * [P6.8.7c.2] The restore action, offered from More AND from the data-reset screen.
+ *
+ * ⚠️ The two are far apart on purpose — one is a setting, the other is the way out of a launch that lost
+ * the local plan — and that distance is exactly what lets them drift into two spellings of the same
+ * action. `lint:copy` caught the second one on the edit that created it.
+ */
+export const RESTORE_FROM_CLOUD_ACTION = "Restore from iCloud";
 
 /**
  * [L2-13] The debt-entry fields, asked identically by onboarding and the debt sheet.

@@ -100,6 +100,11 @@ async function run() {
     eq(s.getState().store.prefs.onboardingComplete, false, '…store reset to fresh defaults');
     eq(a.writes, 1, '…fresh defaults overwrite the corrupt bytes');
     eq(s.getState().isHydrated, true, '…and we stay hydrated (never brick the app)');
+    // ⛔ P6.8.7c.2 (B4/M3-1) — the branch used to leave `storageError` null, so `_layout` rendered the
+    // route guard's verdict instead: first-run onboarding, with every debt gone and not one word about
+    // why. `onboardingComplete: false` above is exactly what makes the silence indistinguishable from a
+    // fresh install, which is why THIS assertion sits next to it.
+    eq(s.getState().storageError, 'data-reset', '…⛔ and the reset is DECLARED, so the app can say so');
   }
 
   // ── Malformed nested shape (debts not an array) — CONTRACT CHANGED AT 5.10, deliberately ──
@@ -124,6 +129,40 @@ async function run() {
     eq(s.getState().store.dataRepairs.length, 1, '…⛔ and the loss is REPORTED, never silent');
     eq(s.getState().store.dataRepairs[0]?.entity, 'debt', '…naming what could not be read');
     eq(s.getState().isHydrated, true, '…and we stay hydrated');
+    eq(s.getState().store.pendingDataRepairs.length, 1, '…⛔ and it is held for the USER, not just recorded');
+  }
+
+  // ── P6.8.7c.2 (B4/M3-2): a repair OUTLIVES the read that raised it ──
+  // ⛔ This is the whole reason `pendingDataRepairs` exists. `dataRepairs` describes the blob this read
+  // saw, and `repairsAreNotRepeated` guarantees a clean second pass reports nothing — so re-hydrating the
+  // repaired store empties it. Before this field, that meant the notice had exactly one session to be
+  // seen, and if the user did not open the right screen the $0 debt stayed a $0 debt forever.
+  {
+    const raw = {
+      storeVersion: CURRENT_STORE_VERSION,
+      paycheck: { amount: '2100' },
+      debts: [{ id: 'd1', name: 'Chase card', balance: null, minimumPayment: 50 }],
+    };
+    const a = new MockAdapter(raw);
+    const s = createDebtStore();
+    await s.getState().hydrate(a);
+    eq(s.getState().store.dataRepairs.length, 1, 'the unreadable balance is repaired and reported');
+    eq(s.getState().store.pendingDataRepairs.length, 1, '…and queued for the user');
+    eq(s.getState().store.pendingDataRepairs[0]?.name, 'Chase card', '…naming the debt they have to fix');
+
+    // Re-hydrate from the REPAIRED store, which is what a save then a relaunch produces.
+    const second = createDebtStore();
+    await second.getState().hydrate(new MockAdapter(JSON.parse(JSON.stringify(s.getState().store))));
+    eq(second.getState().store.dataRepairs.length, 0, '⛔ the per-read list is empty on the clean pass');
+    eq(second.getState().store.pendingDataRepairs.length, 1, '…⭐ but the user has still not been told, so it STANDS');
+    eq(second.getState().store.pendingDataRepairs[0]?.name, 'Chase card', '…with the name intact');
+
+    // Acknowledging is the only thing that clears it — and it must survive a re-hydrate too.
+    second.getState().acknowledgeDataRepairs();
+    eq(second.getState().store.pendingDataRepairs.length, 0, 'acknowledging clears it');
+    const third = createDebtStore();
+    await third.getState().hydrate(new MockAdapter(JSON.parse(JSON.stringify(second.getState().store))));
+    eq(third.getState().store.pendingDataRepairs.length, 0, '…and it does not come back to nag');
   }
 
   // ── Array blob is not a valid store → quarantined ──
@@ -173,6 +212,102 @@ async function run() {
     s.getState().updatePrefs({ themeMode: 'dark' });
     await new Promise((r) => setTimeout(r, SAVE_DEBOUNCE_MS + 60));
     eq(a.writes, 0, '…and an edit afterwards still writes nothing (no autosave subscription installed)');
+  }
+
+  // ── W1-6 (P6.8.7c.3): an INCONCLUSIVE bridge must not be sealed by seeding an empty store ──────
+  //
+  // ⛔ The audit's highest-harm finding, and it lives in the seam between two correct halves. The bridge
+  // runs only while RN storage is empty; hydrate's first-launch branch writes defaults. So a bridge that
+  // could not tell whether v1.6 data exists was immediately followed by the one write that guarantees it
+  // will never be asked again — and a real portfolio, still sitting on disk, became unreachable forever.
+  //
+  // ⚠️ R1's critique of the existing coverage was exact: `interruption.test.ts` drives the bridge directly
+  // and never runs `bootstrapPersistence`, and every other bootstrap case here has no legacy source. This
+  // is the first test that holds both halves at once.
+  {
+    const refusedRead = async () => ({
+      supported: true,
+      webkitRoot: '/x/Library/WebKit',
+      visited: 7,
+      truncated: false,
+      candidates: ['/x/db.sqlite3'],
+      opened: [{ path: '/x/db.sqlite3', rows: 0, legacyKeys: 0, error: 'database is locked' }],
+      store: null,
+      droppedRows: 0,
+    });
+    const a = new MockAdapter(null);
+    const s = createDebtStore();
+    await bootstrapPersistence(a, s, refusedRead);
+    eq(a.writes, 0, '⛔ an inconclusive bridge writes NOTHING — the retry survives to the next launch');
+    eq(s.getState().isHydrated, true, '…and the app still opens (hydration resolves on defaults)');
+    eq(s.getState().storageError, null, '…without claiming a storage fault, because there was not one');
+    // The proof that the retry is intact: storage is still empty, so the gate that admits the bridge
+    // still holds.
+    eq(await a.read(), null, '⭐ …and storage is STILL empty, which is the whole retry mechanism');
+  }
+
+  // ── M3-20 (P6.8.7c.4): a migration that LOSES something says so, through the same card ──────────
+  //
+  // ⛔ The bridge computed `LegacyMigrationOutcome` in full — `reason`, `read`, `map`, `quarantineFailed`
+  // — and `runLegacyBridge` threw all of it away one line after receiving it. `reportError` sent some to
+  // Sentry, and Sentry is not a user.
+  {
+    const lossyRead = async () => ({
+      supported: true,
+      webkitRoot: '/x/Library/WebKit',
+      visited: 7,
+      truncated: false,
+      candidates: ['/x/db.sqlite3'],
+      opened: [{ path: '/x/db.sqlite3', rows: 3, legacyKeys: 3 }],
+      store: {
+        path: '/x/db.sqlite3',
+        items: {
+          'debtPlanner.amount': JSON.stringify('2400'),
+          'debtPlanner.debts': JSON.stringify([{ id: 'd1', name: 'Visa', balance: 1200, minimumPayment: 35 }]),
+          // ⚠️ A key this build does not recognise — v1.6 persisted something unaccounted for.
+          'debtPlanner.somethingNewNobodyMapped': JSON.stringify({ a: 1 }),
+          // …and one whose value will not parse at all.
+          'debtPlanner.goals': '{not json',
+        },
+      },
+      droppedRows: 0,
+    });
+    const a = new MockAdapter(null);
+    const s = createDebtStore();
+    await bootstrapPersistence(a, s, lossyRead);
+    const losses = s.getState().store.pendingDataRepairs.filter((r) => r.entity === 'migration');
+    assert(losses.length > 0, '⛔ a lossy migration REPORTS to the user, not only to Sentry');
+    assert(
+      losses.some((r) => /not recognised/.test(r.field)),
+      `…naming the unrecognised item (got: ${JSON.stringify(losses.map((r) => r.field))})`,
+    );
+    // ⛔ And the half the finding got wrong: `dropped` entries are DELIBERATE non-carries, so none of
+    // them may reach the user. Every v1.6 store has some; reporting them would nag every upgrader about
+    // a QA hook and a superseded counter.
+    assert(
+      !losses.some((r) => /rolloverCount|isDemoMode|mockSubscription|schemaVersion/.test(r.field)),
+      'and a DELIBERATE drop is never reported as a loss',
+    );
+    // The migration itself still succeeded — reporting a loss must not look like a failure.
+    eq(s.getState().store.paycheck.amount, '2400', '…while the migration itself still landed');
+  }
+
+  // ── …while a CONFIRMED fresh install still seeds, or every launch would re-run the bridge forever ──
+  {
+    const cleanRead = async () => ({
+      supported: true,
+      webkitRoot: '/x/Library/WebKit',
+      visited: 7,
+      truncated: false,
+      candidates: [],
+      opened: [],
+      store: null,
+      droppedRows: 0,
+    });
+    const a = new MockAdapter(null);
+    const s = createDebtStore();
+    await bootstrapPersistence(a, s, cleanRead);
+    assert(a.writes > 0, '⭐ a confirmed fresh install DOES seed (the fix must not strand every new user)');
   }
 
   // ── 5.5 — ⛔ A PREF IS WRITTEN IMMEDIATELY. Debounced, a force-quit inside 500 ms LOST it. ──

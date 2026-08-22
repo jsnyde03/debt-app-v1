@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import { TextField } from '@/components/ui/TextField';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { parseAmountField, parseOptionalAmount } from '@/store/amountField';
 import { appStore } from '@/store/appStore';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { spacing } from '@/theme/spacing';
@@ -40,28 +41,33 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
       setError(FORM_ERRORS.nameRequired);
       return;
     }
+    // ⚠️ Validate and WRITE inside one branch per type. Split across two `type === 'debt'` blocks the
+    // compiler cannot carry the refusal forward, and the write reads as though a refused field were
+    // still a number — which is the shape of the defect this step exists to close.
+    const dueDate = nextMonthFirst();
     if (type === 'debt') {
-      if (!balance || Number(balance) <= 0) {
+      const balanceN = parseAmountField(balance);
+      const minimumN = parseAmountField(minimumPayment);
+      const aprN = parseOptionalAmount(apr);
+      if (balanceN == null) {
         setError(FORM_ERRORS.balanceRequired);
         return;
       }
-      if (!minimumPayment || Number(minimumPayment) <= 0) {
+      if (minimumN == null) {
         setError(FORM_ERRORS.minimumRequired);
         return;
       }
-    } else if (!amount || Number(amount) <= 0) {
-      setError('Enter the amount.');
-      return;
-    }
-    setError('');
-    const dueDate = nextMonthFirst();
-    if (type === 'debt') {
+      if (aprN == null) {
+        setError(FORM_ERRORS.aprInvalid);
+        return;
+      }
+      setError('');
       appStore.getState().addDebt({
         id: `debt-${Date.now()}`,
         name: name.trim(),
-        balance: Number(balance),
-        minimumPayment: Number(minimumPayment),
-        apr: Number(apr) || 0,
+        balance: balanceN,
+        minimumPayment: minimumN,
+        apr: aprN,
         dueDate,
         type: 'debt',
         recurrence: 'monthly',
@@ -70,10 +76,16 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
         isAutopay: false,
       });
     } else {
+      const amountN = parseAmountField(amount);
+      if (amountN == null) {
+        setError('Enter the amount.');
+        return;
+      }
+      setError('');
       appStore.getState().addExpense({
         id: `expense-${Date.now()}`,
         name: name.trim(),
-        amount: Number(amount),
+        amount: amountN,
         dueDate,
         recurrence: 'monthly',
         isPaidThisCycle: false,

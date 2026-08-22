@@ -15,6 +15,7 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { parseAmountField, parseOptionalAmount } from '@/store/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { useCoachMark } from '@/hooks/use-coach-mark';
 import { FORM_ERRORS, RECURRENCE_LABEL, recurrenceOptions } from '@/store/obligationForm';
@@ -29,6 +30,21 @@ import { BNPL_PROVIDERS } from '@core/debt/bnplProviders';
 
 function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/**
+ * A new debt's id, without `Date.now()` — the React Compiler treats it as an impure render-time call and
+ * `submit` is declared in the component body.
+ *
+ * ⚠️ **Uniqueness comes from the ids that EXIST, not from a module counter.** A counter namespaced by the
+ * cycle date looks equivalent and is not: it restarts at zero on every launch while the cycle date stays
+ * put, so a debt added before a relaunch and one added after can be handed the same id.
+ */
+function newDebtId(cycleDate: string, existing: { id: string }[]): string {
+  const used = new Set(existing.map((d) => d.id));
+  let n = existing.length + 1;
+  while (used.has(`debt-${cycleDate}-${n}`)) n += 1;
+  return `debt-${cycleDate}-${n}`;
 }
 
 // ⚠️ No 'one-time' here, and that is deliberate rather than an omission: a debt is terminating by
@@ -131,9 +147,9 @@ export function DebtSheet({
   useCoachMark('payoff-schedule', isEdit);
 
   // A BNPL's balance is DERIVED from its plan (installment × payments left), not typed (2.7.3).
-  const bnplSched = Number(scheduledPaymentAmount);
-  const bnplRem = Number(remainingPayments);
-  const bnplTotal = scheduledPaymentAmount && remainingPayments && bnplSched > 0 && bnplRem > 0 ? bnplSched * bnplRem : null;
+  const bnplSched = parseAmountField(scheduledPaymentAmount);
+  const bnplRem = parseAmountField(remainingPayments);
+  const bnplTotal = bnplSched != null && bnplRem != null ? bnplSched * bnplRem : null;
 
   // BNPL is typically biweekly ("pay in 4 every 2 weeks") — default the cadence when the user
   // switches type and hasn't deliberately chosen one (still on the debt default). Fires on the user's
@@ -162,8 +178,8 @@ export function DebtSheet({
     if (type === 'bnpl') {
       // Installment-native (2.7.2/2.7.3): the plan is "N payments of $X" — capture those two and
       // DERIVE the balance (scheduled × remaining), minimum (= the installment), interest-free.
-      if (bnplSched <= 0) return setError('Enter the payment amount.');
-      if (bnplRem <= 0 || !Number.isInteger(bnplRem)) return setError('Enter how many payments are left.');
+      if (bnplSched == null) return setError('Enter the payment amount.');
+      if (bnplRem == null || !Number.isInteger(bnplRem)) return setError('Enter how many payments are left.');
       const derived = Math.round(bnplSched * bnplRem * 100) / 100;
       const fields = {
         name: name.trim(),
@@ -179,19 +195,23 @@ export function DebtSheet({
         bnplProvider: bnplProvider || undefined,
       };
       if (isEdit && editing) store_.getState().updateDebt(editing.id, fields);
-      else store_.getState().addDebt({ id: `debt-${Date.now()}`, originalBalance: derived, isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
+      else store_.getState().addDebt({ id: newDebtId(currentDate, store_.getState().store.debts), originalBalance: derived, isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
       onClose();
       return;
     }
 
-    if (!balance || Number(balance) <= 0) return setError(FORM_ERRORS.balanceRequired);
-    if (!minimumPayment || Number(minimumPayment) <= 0) return setError(FORM_ERRORS.minimumRequired);
-    if (Number(minimumPayment) > Number(balance)) return setError('Minimum payment can’t exceed the balance.');
+    const balanceN = parseAmountField(balance);
+    const minimumN = parseAmountField(minimumPayment);
+    const aprN = parseOptionalAmount(apr);
+    if (balanceN == null) return setError(FORM_ERRORS.balanceRequired);
+    if (minimumN == null) return setError(FORM_ERRORS.minimumRequired);
+    if (aprN == null) return setError(FORM_ERRORS.aprInvalid);
+    if (minimumN > balanceN) return setError('Minimum payment can’t exceed the balance.');
     const fields = {
       name: name.trim(),
-      balance: Number(balance),
-      minimumPayment: Number(minimumPayment),
-      apr: Number(apr) || 0,
+      balance: balanceN,
+      minimumPayment: minimumN,
+      apr: aprN,
       dueDate,
       type,
       recurrence,
@@ -200,7 +220,7 @@ export function DebtSheet({
       scheduledPaymentAmount: undefined,
       bnplProvider: undefined,
     };
-    const fresh = { id: `debt-${Date.now()}`, originalBalance: Number(balance), isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields };
+    const fresh = { id: newDebtId(currentDate, store_.getState().store.debts), originalBalance: balanceN, isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields };
     if (isEdit && editing) store_.getState().updateDebt(editing.id, fields);
     // 3.7.A10.2 — a conversion is ONE write, not an add followed by a delete: two writes leave a window
     // where the same money is reserved as an expense and projected as a debt at the same time.
@@ -311,7 +331,7 @@ export function DebtSheet({
           <TextField label="Payments remaining" value={remainingPayments} onChangeText={(t) => { setRemainingPayments(t); setError(''); }} placeholder="e.g. 4" keyboardType="number-pad" />
           <Select label="How often" value={recurrence} options={BNPL_CADENCE} onChange={setRecurrence} />
           <DateField testID="field-bnpl-next-payment" label="Next payment" value={dueDate} onChange={setDueDate} />
-          {bnplTotal != null ? (
+          {bnplTotal != null && bnplSched != null && bnplRem != null ? (
             <Text style={[textStyles.caption, { color: c.text.tertiary, marginTop: -4 }]}>
               {bnplRem} {bnplRem === 1 ? 'payment' : 'payments'} of {formatWhole(bnplSched)} · {formatWhole(bnplTotal)} left · interest-free
             </Text>

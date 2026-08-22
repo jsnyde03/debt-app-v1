@@ -340,7 +340,13 @@ function DebtsSection({
   // hero + the trophy shelf); Money contradicted it one tab away, on the same store.
   // ⚠️ NOT folded into the empty state — `paidOff` must still render its section. This swaps only the
   // hero and the strategy block, which are the two things that have nothing left to say.
-  const allCleared = active.length === 0 && paidOff.length > 0;
+  // ⛔ P6.8.7c.2 (B4/M3-2) — never congratulate over money the app could not READ. A debt whose balance
+  // was unreadable is repaired to `0`, which puts it in `paidOff` and out of `active` — so a portfolio
+  // where every balance failed to parse produced the single worst screen in the product: "Every balance
+  // cleared", with the debts still owed. The repairs card on Today names them; this makes sure the
+  // celebration waits until the user has answered it.
+  const unreadDebts = store.pendingDataRepairs.some((r) => r.entity === 'debt');
+  const allCleared = active.length === 0 && paidOff.length > 0 && !unreadDebts;
 
   const list = (
     <View style={styles.flex}>

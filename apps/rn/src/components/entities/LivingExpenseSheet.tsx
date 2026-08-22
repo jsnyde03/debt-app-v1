@@ -5,6 +5,7 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import type { LivingExpense } from '@/data/models';
 import { useActiveStore } from '@/store/StoreContext';
+import { parseAmountField } from '@/store/amountField';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { confirmDelete } from '@/utils/confirm';
 
@@ -30,8 +31,9 @@ export function LivingExpenseSheet({ editing, onClose }: { editing: LivingExpens
 
   function submit() {
     if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
-    if (!amount || Number(amount) <= 0) return setError(FORM_ERRORS.amountPositive);
-    const fields = { name: name.trim(), amount: Number(amount), enabled };
+    const amountN = parseAmountField(amount);
+    if (amountN == null) return setError(FORM_ERRORS.amountPositive);
+    const fields = { name: name.trim(), amount: amountN, enabled };
     if (isEdit && editing) store_.getState().updateLivingExpense(editing.id, fields);
     else store_.getState().addLivingExpense({ id: `living-${Date.now()}`, ...fields });
     onClose();

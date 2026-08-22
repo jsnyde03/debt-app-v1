@@ -9,6 +9,7 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { parseAmountField } from '@/store/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { formatPaycheckDate, nextPaycheckFrom, paydayFieldError, PAY_CYCLE_OPTIONS, PAYCHECK_ERRORS, PAYCHECK_FIELDS, PAYCHECK_LEAN_HELP, PAYCHECK_SECTIONS } from '@/store/paycheckForm';
 import { selectPaycheckMissed } from '@/store/selectors';
@@ -47,7 +48,8 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
   const nextDate = nextPaycheckFrom(payCycle, firstDay, secondDay, payDay);
 
   function submit() {
-    if (!amount || Number(amount) <= 0) return setError('Enter your paycheck amount.');
+    const amountN = parseAmountField(amount);
+    if (amountN == null) return setError('Enter your paycheck amount.');
     // Same refusal as onboarding, from the same shared rule — see `paydayFieldError`. Saving a cycle
     // whose day fields do not describe a payday used to store a biweekly-derived date instead.
     const dayError = paydayFieldError(payCycle, firstDay, secondDay, payDay);
@@ -57,19 +59,22 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
     // than form politeness. `selectDebtFreeBand` needs `incomeVaries && leanAmount > 0`; turn the switch on
     // without a floor and every downstream feature stays silent, so the user changes a setting, sees
     // nothing happen and concludes it is broken. That is the same defect A9 fixes, one layer in.
+    const leanN = parseAmountField(lean);
     if (varies) {
-      if (!lean || Number(lean) <= 0) return setLeanError(PAYCHECK_ERRORS.leanRequired);
-      if (Number(lean) > Number(amount)) return setLeanError(PAYCHECK_ERRORS.leanAboveTypical);
+      if (leanN == null) return setLeanError(PAYCHECK_ERRORS.leanRequired);
+      if (leanN > amountN) return setLeanError(PAYCHECK_ERRORS.leanAboveTypical);
     }
     store_.getState().updatePaycheck({
-      amount,
+      // ⚠️ Written back as the PARSED number's string — see `PaycheckStep` for why the string field is
+      // the one place a separator could otherwise outlive the guard.
+      amount: String(amountN),
       payCycle,
       currentDate: todayLocalISO(),
       nextPaycheckDate: nextDate,
       incomeVaries: varies,
       // Cleared rather than left behind when the switch goes off: a stale floor would keep feeding the
       // engine a number the user has stopped standing behind.
-      leanAmount: varies ? Number(lean) : 0,
+      leanAmount: varies ? leanN ?? 0 : 0,
       ...(payCycle === 'semimonthly' ? { semiMonthlyFirstDay: firstDay, semiMonthlySecondDay: secondDay } : {}),
       ...(payCycle === 'monthly' ? { monthlyPayDay: payDay } : {}),
     });

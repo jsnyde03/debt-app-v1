@@ -1,7 +1,8 @@
 import type { StorageAdapter } from '@/storage/adapter';
 import { reportError } from '@/utils/reportError';
 
-import { migrateFromLegacy } from '@/data/legacyBridge/migrateFromLegacy';
+import { migrateFromLegacy, type LegacyMigrationOutcome } from '@/data/legacyBridge/migrateFromLegacy';
+import type { DataRepair } from '@/data/models';
 
 import { appStore } from './appStore';
 import { isSandboxStore } from './sandboxStore';
@@ -22,6 +23,14 @@ const flushers = new WeakMap<object, () => void>();
 export async function bootstrapPersistence(
   adapter: StorageAdapter,
   store: DebtStoreInstance = appStore,
+  /**
+   * The v1.6 reader, injected — the same seam `migrateFromLegacy` already exposes and for the same
+   * reason. ⛔ W1-6's harm lives in the INTERACTION between the bridge's verdict and hydrate's seed, and
+   * neither existing suite could reach it: `interruption.test.ts` drives the bridge directly and never
+   * runs this function, while every `bootstrapPersistence` case here supplies an adapter with no legacy
+   * source at all. A defect that only appears where two correct halves meet needs a test that holds both.
+   */
+  readLegacy?: () => Promise<import('@/data/legacyBridge/report').LegacyReadReport>,
 ): Promise<void> {
   // 3.5.0.6 — a sandbox must never reach durable storage. Its `save`/`hydrate` are already neutered, so
   // this can't corrupt anything; the guard exists to make a mis-wire OBSERVABLE (and to skip installing
@@ -43,13 +52,16 @@ export async function bootstrapPersistence(
   // ⚠️ The double read is deliberate. `hydrate` does its own, and sharing one would mean either hoisting
   // hydrate's error handling up here or teaching the store a first-launch flag — a flag that could then
   // disagree with the data it describes. Two MMKV reads at launch cost nothing worth that.
+  // W1-6 — `true` unless the bridge ran and could not reach a conclusion. Seeding an empty store is what
+  // makes a skip permanent, so the one case that must not seed is the one where we do not know.
+  let seed = true;
   try {
-    if ((await adapter.read()) === null) await runLegacyBridge(adapter, store);
+    if ((await adapter.read()) === null) ({ seed } = await runLegacyBridge(adapter, store, readLegacy));
   } catch {
     /* hydrate owns this failure — see above */
   }
 
-  await store.getState().hydrate(adapter);
+  await store.getState().hydrate(adapter, { seed });
 
   // ⛔ The read failed, so what is in `store` is DEFAULTS, not the user's data. Installing the autosave
   // subscription now would let the first edit — or any startup write — overwrite a blob we merely could
@@ -103,6 +115,31 @@ export async function bootstrapPersistence(
 }
 
 /**
+ * M3-20 — what the v1.6 migration could not bring across, in the user's words.
+ *
+ * ⛔ **`LegacyMapReport.dropped` is excluded on purpose, and the finding conflated it with the rest.**
+ * Measured at switch-in: every `DROPPED` entry carries a documented reason and none of them is user data.
+ * `unknown` (v1.6 persisted something this build does not recognise), `unparseable` (a value that would
+ * not read) and `quarantineFailed` (bytes that could not be preserved) are the real losses.
+ *
+ * ⚠️ Named as a count rather than as raw keys: `debtPlanner.rolloverCount` means nothing to the person
+ * holding the phone, and the action it should prompt — check your figures against the old app — is the
+ * same whichever key it was.
+ */
+function describeMigrationLosses(outcome: LegacyMigrationOutcome): DataRepair[] {
+  const out: DataRepair[] = [];
+  const push = (field: string) => out.push({ entity: 'migration', id: '', name: '', field });
+  const unknown = outcome.map?.unknown.length ?? 0;
+  const unparseable = outcome.map?.unparseable.length ?? 0;
+  if (unknown > 0) push(`${unknown} item(s) from your old version were not recognised`);
+  if (unparseable > 0) push(`${unparseable} value(s) from your old version could not be read`);
+  if (outcome.quarantineFailed > 0) {
+    push(`${outcome.quarantineFailed} set(s) of set-aside data could not be carried over`);
+  }
+  return out;
+}
+
+/**
  * 5.3 — run the v1.6 bridge and persist what it found.
  *
  * ⚠️ **The blob is written BEFORE the store is imported.** If the write fails the migration is abandoned
@@ -113,14 +150,46 @@ export async function bootstrapPersistence(
  * ⚠️ Never throws. A launch that fails because a migration failed is worse than a launch with an empty
  * store and the source still sitting there.
  */
-async function runLegacyBridge(adapter: StorageAdapter, store: DebtStoreInstance): Promise<void> {
+async function runLegacyBridge(
+  adapter: StorageAdapter,
+  store: DebtStoreInstance,
+  readLegacy?: () => Promise<import('@/data/legacyBridge/report').LegacyReadReport>,
+): Promise<{ seed: boolean }> {
   try {
-    const { outcome, store: migrated } = await migrateFromLegacy(adapter);
-    if (!outcome.migrated || migrated === null) return;
-    await adapter.write(migrated);
-    store.getState().importStore(migrated);
+    const { outcome, store: migrated } = await migrateFromLegacy(adapter, readLegacy);
+    if (!outcome.migrated || migrated === null) {
+      // ⛔ W1-6 — a NON-terminal skip must not be sealed by seeding an empty store. The bridge runs only
+      // while RN storage is empty, so the seed is what consumes the retry: after it, `read()` is no
+      // longer `null`, the bridge never runs again, and a v1.6 portfolio sitting untouched on disk is
+      // unreachable forever. Leaving storage `null` makes the retry structural — the same move the
+      // throwing-`read()` path already makes, for the same reason.
+      //
+      // ⚠️ Reported on every non-terminal skip, because without it there is no instrument that could ever
+      // tell us this is happening in the field (W1-7).
+      if (!outcome.terminal) {
+        reportError(new Error(`legacy bridge inconclusive: ${outcome.reason}`), {
+          seam: 'legacy-bridge',
+          truncated: String(outcome.read?.truncated ?? 'n/a'),
+          visited: String(outcome.read?.visited ?? 'n/a'),
+          candidates: String(outcome.read?.candidates.length ?? 'n/a'),
+          refused: String(outcome.read?.opened.filter((o) => o.error).length ?? 'n/a'),
+        });
+      }
+      return { seed: outcome.terminal };
+    }
+    // M3-20 — the migration's own verdict reaches the USER, not just Sentry. ⛔ Deliberately NOT
+    // `map.dropped`: every entry there is a documented, intentional non-carry (a v1.6 QA hook, a
+    // superseded counter, a consumed schema version), so surfacing it would tell an upgrader the app
+    // "dropped" things they never had and cannot act on. What is reported is what was genuinely LOST.
+    const carried = { ...migrated, pendingDataRepairs: [...migrated.pendingDataRepairs, ...describeMigrationLosses(outcome)] };
+    await adapter.write(carried);
+    store.getState().importStore(carried);
+    return { seed: true };
   } catch (error) {
     reportError(error, { seam: 'legacy-bridge' });
+    // A throw here is exactly the case that must not be sealed either — the bridge never reported a
+    // conclusion, so nothing may act as though it had.
+    return { seed: false };
   }
 }
 
