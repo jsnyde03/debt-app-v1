@@ -164,7 +164,7 @@ export function PaydayGuardianCard({
     ? null
     : attestation.attested
       ? 'Expenses confirmed — holding a smaller safety net. Undo'
-      : "All your regular expenses entered? I'll hold a smaller safety net.";
+      : "All your regular expenses entered? I’ll hold a smaller safety net.";
 
   // MF.3 — the free invite is state-aware: in a shortfall it sells the RECOVERY value (a catch-up plan),
   // not "cushion at your line" (there's no cushion to hold when you're short — that pitch reads off-context).
@@ -356,7 +356,7 @@ export function PaydayGuardianCard({
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
             {topUp.holdsLine
               ? `You have ${formatWhole(topUp.available)} in ${topUp.goalName} — moving ${formatWhole(topUp.topUp)} over holds your line this paycheck.`
-              : `${topUp.goalName} has ${formatWhole(topUp.available)} — moving all of it over gets you to ${formatWhole(topUp.cushionAfter)} of your ${formatWhole(topUp.floor)} line. It won't close the gap, but it narrows it.`}
+              : `${topUp.goalName} has ${formatWhole(topUp.available)} — moving all of it over gets you to ${formatWhole(topUp.cushionAfter)} of your ${formatWhole(topUp.floor)} line. It won’t close the gap, but it narrows it.`}
           </Text>
           {/* 3.7.A3.3 [D24] — the label said "from savings" unconditionally, including when the source
               was the EMERGENCY fund. A control that calls the safety net "savings" while spending it is
@@ -381,7 +381,7 @@ export function PaydayGuardianCard({
                 of the gap, which is the same untrue promise the OFFER made. */}
             {appliedTopUp.holdsLine
               ? `${formatWhole(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} to hold your line this paycheck.`
-              : `${formatWhole(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} — it narrows the gap, but you're still under your line this paycheck.`}
+              : `${formatWhole(appliedTopUp.amount)} moved from ${appliedTopUp.goalName} — it narrows the gap, but you’re still under your line this paycheck.`}
           </Text>
           <Button label="Undo the move" variant="text" onPress={() => onUndoTopUp?.()} style={styles.topUpBtn} />
         </View>

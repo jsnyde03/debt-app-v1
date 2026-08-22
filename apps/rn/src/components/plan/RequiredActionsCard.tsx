@@ -103,7 +103,7 @@ export function RequiredActionsCard({
 
       {outstanding === 0 ? (
         <View style={styles.pad}>
-          <Text style={[textStyles.subhead, { color: c.accent.success }]}>You&apos;re caught up for this paycheck.</Text>
+          <Text style={[textStyles.subhead, { color: c.accent.success }]}>You’re caught up for this paycheck.</Text>
         </View>
       ) : null}
 

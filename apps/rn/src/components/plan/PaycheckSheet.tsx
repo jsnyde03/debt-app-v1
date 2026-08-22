@@ -151,7 +151,7 @@ export function PaycheckSheet({ onClose }: { onClose: () => void }) {
           instead of planning on income that didn't land. Auto-resumes when the cycle rolls over. */}
       <View style={styles.group}>
         <SwitchRow
-          label="This paycheck didn't arrive"
+          label="This paycheck didn’t arrive"
           value={missed}
           onValueChange={(v) => (v ? store_.getState().declareMissedPaycheck() : store_.getState().undoMissedPaycheck())}
         />

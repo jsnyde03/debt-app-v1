@@ -118,7 +118,7 @@ export function AffordabilityCard() {
               {applied.cover
                 ? applied.cover.holdsLine
                   ? `Added ${applied.name} + moved ${formatWhole(applied.cover.amount)} from ${applied.cover.goalName} to hold your line — your plan updated below.`
-                  : `Added ${applied.name} + moved all ${formatWhole(applied.cover.amount)} of ${applied.cover.goalName} — it narrows the dip but doesn't hold your line. Your plan updated below.`
+                  : `Added ${applied.name} + moved all ${formatWhole(applied.cover.amount)} of ${applied.cover.goalName} — it narrows the dip but doesn’t hold your line. Your plan updated below.`
                 : `Added ${applied.name} to this paycheck — your plan updated below.`}
             </Text>
           </View>
@@ -140,7 +140,7 @@ export function AffordabilityCard() {
             <Text style={[textStyles.subhead, styles.readText, { color: c.text.primary }]}>
               {saved.prioritize && saved.perPaycheck != null
                 ? `Now saving ${formatWhole(saved.perPaycheck)}/paycheck toward ${saved.name} — funds before debt. Track it in Goals.`
-                : `Saving toward ${saved.name} from whatever's spare after debt. Track it in Goals.`}
+                : `Saving toward ${saved.name} from whatever’s spare after debt. Track it in Goals.`}
             </Text>
           </View>
           <Button label="Undo" variant="secondary" onPress={undoSave} style={styles.action} />
@@ -175,7 +175,7 @@ export function AffordabilityCard() {
           <View style={styles.readHead}>
             <AppIcon name={tone.short.icon} size={18} color={tone.short.color} />
             <Text style={[textStyles.subhead, styles.readText, { color: tone.short.color }]}>
-              Not this paycheck — you&apos;d come up about {formatWhole(result.shortBy)} short.
+              Not this paycheck — you’d come up about {formatWhole(result.shortBy)} short.
             </Text>
           </View>
           <AffordabilityImpactBar before={result.discretionaryNow} after={result.cushionAfter} floor={result.floor} verdict={result.verdict} />
@@ -188,8 +188,8 @@ export function AffordabilityCard() {
             <AppIcon name={tone[result.verdict].icon} size={18} color={tone[result.verdict].color} />
             <Text style={[textStyles.subhead, styles.readText, { color: tone[result.verdict].color }]}>
               {result.verdict === 'comfortable'
-                ? `Yes — you'd still hold about ${formatWhole(result.cushionAfter)}.`
-                : `Yes, but tight — you'd dip to about ${formatWhole(result.cushionAfter)}, below your ${formatWhole(result.floor)} line.`}
+                ? `Yes — you’d still hold about ${formatWhole(result.cushionAfter)}.`
+                : `Yes, but tight — you’d dip to about ${formatWhole(result.cushionAfter)}, below your ${formatWhole(result.floor)} line.`}
             </Text>
           </View>
           {/* §3.3.4 — the animated impact: the cushion carves down to what's left, vs your floor line. */}

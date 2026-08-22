@@ -157,8 +157,8 @@ function pickHedge(isPremium: boolean, c?: GuardianConfidence): string | null {
   if (!c) return null;
   if (c.freshness === "aging") return "These figures are from a little while ago — a quick refresh keeps this exact.";
   if (!isPremium) return null;
-  if (c.coldStartHoldbackActive) return "I'm planning from the low side while I learn what your paychecks reliably clear.";
-  if (c.discoveryHoldbackActive) return "I'm holding a small safety net while I get to know your expenses.";
+  if (c.coldStartHoldbackActive) return "I’m planning from the low side while I learn what your paychecks reliably clear.";
+  if (c.discoveryHoldbackActive) return "I’m holding a small safety net while I get to know your expenses.";
   return null;
 }
 
@@ -210,10 +210,10 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   if (input.pausedDeploy) {
     return {
       state,
-      title: "A paycheck didn't land",
-      detail: `It looks like this paycheck didn't come through. I've paused moving money to ${
+      title: "A paycheck didn’t land",
+      detail: `It looks like this paycheck didn’t come through. I’ve paused moving money to ${
         debtFree ? "savings" : "debt"
-      } and I'm protecting your cushion until your income resumes.`,
+      } and I’m protecting your cushion until your income resumes.`,
       safeMove: isPremium
         ? `Cover essentials from your cushion if you need to — extra ${deployNoun} stays paused until your next paycheck lands.`
         : undefined,
@@ -230,10 +230,10 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   if (input.confidence?.freshness === "stale") {
     return {
       state,
-      title: "Let's refresh your numbers",
+      title: "Let’s refresh your numbers",
       detail:
-        "Your paycheck, expenses, or balances are more than a few weeks old, so I can't tell you if you'll make it this paycheck with confidence.",
-      safeMove: isPremium ? "Update your numbers and I'll plan from where you actually are." : undefined,
+        "Your paycheck, expenses, or balances are more than a few weeks old, so I can’t tell you if you’ll make it this paycheck with confidence.",
+      safeMove: isPremium ? "Update your numbers and I’ll plan from where you actually are." : undefined,
       staleAdvisory: true,
       ...viz,
     };
@@ -262,8 +262,8 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   if (shortfall > 0) {
     return {
       state,
-      title: "This paycheck won't cover everything",
-      detail: `You're about ${amt(shortfall)} short of the ${
+      title: "This paycheck won’t cover everything",
+      detail: `You’re about ${amt(shortfall)} short of the ${
         debtFree ? "expenses" : "expenses and minimums"
       } due before your next paycheck${isPremium ? " — this one needs a plan." : "."}`,
       safeMove: isPremium
@@ -282,7 +282,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
       {
         state,
         title: state === "clear" ? "Looks clear this paycheck" : state === "tight" ? "A little tight this paycheck" : "Tight this paycheck",
-        detail: `You've got ${amt(discretionary)} after everything required this paycheck${state === "clear" ? "." : " — a bit tight this one, so keep an eye on the essentials."}`,
+        detail: `You’ve got ${amt(discretionary)} after everything required this paycheck${state === "clear" ? "." : " — a bit tight this one, so keep an eye on the essentials."}`,
         lookahead: undefined, // watching ahead is part of the premium value
         ...viz,
       },
@@ -300,9 +300,9 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
         // Calm + honest (2.4.11.2): lead with "you're covered" (obligations ARE met — this is a cushion
         // dip, not a miss), and reassure that the line rebuilds — a tight cycle is a low-cushion cycle,
         // not a failure. The tap-savings action (when a lever exists) is layered by the card selector.
-        detail: `You're covered this paycheck — ${amt(discretionary)} after everything required, ${
+        detail: `You’re covered this paycheck — ${amt(discretionary)} after everything required, ${
           state === "at-risk" ? "under" : "a little under"
-        } your ${amt(floor)} line, so I'm holding all of it as your cushion.`,
+        } your ${amt(floor)} line, so I’m holding all of it as your cushion.`,
         safeMove: `Nothing extra goes out this paycheck — your cushion rebuilds next paycheck.`,
         lookahead: look,
         ...viz,
@@ -315,7 +315,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   if (input.toppedUp) {
     return {
       state,
-      title: "Your line's held",
+      title: "Your line’s held",
       detail: `You moved some savings over to hold your cushion right at your ${amt(floor)} line this paycheck — a tight one, but covered.`,
       // ⛔ T5.2 (audit L3-1 + L3-2) — this sentence made TWO claims it could not keep. It named the
       // emergency fund whatever the real source was, and it promised a refill "as your cushion rebuilds"
@@ -350,7 +350,7 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
           // pre-debt rung is next in the waterfall, so freed cash goes THERE until it is full.
           // [P6.4.4 · L2-23] The destination pair, one owner. ⚠️ The noun phrase only — the hero renders
           // it as a bare label and this embeds it mid-sentence, so each caller keeps its own wording.
-          safeMove: `Nudge your line down anytime to put more into ${target} — once that's funded, the spare starts going ${debtFree ? GOALS_DESTINATION : "to debt"}.`,
+          safeMove: `Nudge your line down anytime to put more into ${target} — once that’s funded, the spare starts going ${debtFree ? GOALS_DESTINATION : "to debt"}.`,
           lookahead: look,
           ...viz,
         },
@@ -376,13 +376,13 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
     input.deployTradeoff && !debtFree
       ? `Apply the spare ${amt(deployedToDebt)} toward ${focusDebtName ?? "your debts"} to save on interest, or build ${
           input.tradeoffTargetName ?? EMERGENCY_FUND_NOUN
-        } first if you'd rather strengthen your cushion — your call.`
-      : `Apply the spare ${amt(deployedToDebt)} ${dest} when you're ready — your ${amt(floor)} cushion stays protected either way.`;
+        } first if you’d rather strengthen your cushion — your call.`
+      : `Apply the spare ${amt(deployedToDebt)} ${dest} when you’re ready — your ${amt(floor)} cushion stays protected either way.`;
   return withHedge(
     {
       state,
       title: "Looks clear this paycheck",
-      detail: `About ${amt(discretionary)} after everything required. I've set this paycheck to keep ${amt(kept)} as your cushion and apply the spare ${amt(deployedToDebt)} ${dest}.`,
+      detail: `About ${amt(discretionary)} after everything required. I’ve set this paycheck to keep ${amt(kept)} as your cushion and apply the spare ${amt(deployedToDebt)} ${dest}.`,
       safeMove,
       lookahead: look,
       ...viz,

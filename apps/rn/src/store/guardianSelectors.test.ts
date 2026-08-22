@@ -71,7 +71,7 @@ function run() {
 
   const short = selectPaydayGuardian(store({ premium: true, amount: '2000', bills: [2600], floor: 200 }));
   assert(short !== null && short.state === 'at-risk', 'bills exceed the paycheck → at-risk');
-  assert(!!short && /won't cover everything/.test(short.title), '…and the shortfall title');
+  assert(!!short && /won’t cover everything/.test(short.title), '…and the shortfall title');
   eq(short?.deployedToDebt, 0, '…deploy paused in a shortfall');
 
   // ── Regime: debt-free persists, savings-framed (2.4.8) ──

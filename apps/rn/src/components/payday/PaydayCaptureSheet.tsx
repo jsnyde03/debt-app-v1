@@ -281,7 +281,7 @@ export function PaydayCaptureSheet({
                         </Text>
                       </View>
                       <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{formatCurrency(row.item.amount)}</Text>
-                      <Pill label={paid ? 'Paid' : "Didn't pay"} tone={paid ? 'paid' : 'overdue'} />
+                      <Pill label={paid ? 'Paid' : "Didn’t pay"} tone={paid ? 'paid' : 'overdue'} />
                     </Pressable>
                   );
                 })}
@@ -333,9 +333,9 @@ export function PaydayCaptureSheet({
             <>
               <View style={styles.header}>
                 <View style={styles.headerText}>
-                  <Text style={[textStyles.title2, { color: c.text.primary }]}>It&apos;s payday</Text>
+                  <Text style={[textStyles.title2, { color: c.text.primary }]}>It’s payday</Text>
                   <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-                    Here&apos;s the plan you set for this paycheck. Confirm what you actually paid.
+                    Here’s the plan you set for this paycheck. Confirm what you actually paid.
                   </Text>
                 </View>
                 <Pressable onPress={onClose} accessibilityRole="button">
@@ -366,8 +366,8 @@ export function PaydayCaptureSheet({
                         <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>Estimated balances</Text>
                         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
                           {staleBalances.length === 1
-                            ? "1 balance hasn't been checked in a while"
-                            : `${staleBalances.length} balances haven't been checked in a while`}
+                            ? "1 balance hasn’t been checked in a while"
+                            : `${staleBalances.length} balances haven’t been checked in a while`}
                         </Text>
                       </View>
                       <Pill label="Update" tone="neutral" onPress={openBalanceCheck} />
@@ -486,7 +486,7 @@ function CaptureSuccess({ amount }: { amount: number }) {
         format={(n) => formatCurrency(Math.round(n))}
         style={[styles.capturedAmount, { color: c.accent.success }]}
       />
-      <Text style={[textStyles.subhead, { color: c.text.secondary }]}>confirmed · your plan&apos;s up to date</Text>
+      <Text style={[textStyles.subhead, { color: c.text.secondary }]}>confirmed · your plan’s up to date</Text>
     </View>
   );
 }

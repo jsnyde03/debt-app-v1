@@ -1,4 +1,4 @@
-import { SEE_IT_IN_ACTION_CTA } from '@core/copy/vocabulary';
+import { PRIVACY_CLAIM, SEE_IT_IN_ACTION_CTA } from '@core/copy/vocabulary';
 import { Text, View } from 'react-native';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
@@ -14,9 +14,22 @@ const FEATURES: { icon: IconGlyph; title: string; body: string }[] = [
   // ⛔ [L1-18] "your cushion, protected" stated the outcome as done, in the first screen a user reads —
   // which is where every later hedge has to walk back from. "Comes first" is the same reassurance and is
   // literally true: the cushion floor is reserved ahead of any extra payoff, by the allocation order.
-  { icon: 'savings', title: 'A guardian for every payday', body: "Know what's safe to spend and what to pay down — your cushion comes first." },
+  { icon: 'savings', title: 'A guardian for every payday', body: "Know what’s safe to spend and what to pay down — your cushion comes first." },
   { icon: 'trending-down', title: 'A real debt-free date', body: 'Snowball or avalanche — see exactly when your last debt disappears.' },
-  { icon: 'shopping-cart', title: 'Spend without the guilt', body: 'Check any purchase against your plan before you buy.' },
+  // ⛔ [A4 · M1-9] This slot used to promise "Check any purchase against your plan before you buy" — the
+  // affordability check, which is PREMIUM, on the first screen a free user reads. The free branch then
+  // quotes the user's own spare figure back at them and withholds the verdict, so the promise was not
+  // merely early: it was answered with a refusal at the one moment it was invoked.
+  //
+  // ⭐ [C6 · T3] What replaces it is the trust stance, which `DEBT_BENCH_TRUST_FIRSTRUN` §R1 calls the
+  // single highest-leverage trust change and which appeared nowhere in the app. Naming the ABSENCE is the
+  // move — the thing this app refuses to do — and it is the one claim a debt app's competitors cannot copy.
+  //
+  // ⚠️ Both halves are the CONSTANT, never a literal: `PRIVACY_CLAIM` is the single owner of this promise
+  // and `noSelling` is deliberately passive (T7/L1-11 retired the corporate "we"). Writing the words here
+  // would create a second place stating one rule — and `lint:copy` reads literals, so the duplicate would
+  // be invisible to the gate built to catch exactly that.
+  { icon: 'lock', title: PRIVACY_CLAIM.headline, body: `No account needed — and ${PRIVACY_CLAIM.noSelling}.` },
 ];
 
 export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo?: () => void }) {
@@ -52,7 +65,7 @@ export function WelcomeStep({ onNext, onDemo }: { onNext: () => void; onDemo?: (
           {/* ⛔ [L1-18] "you always know" — the watching is real and every-paycheck; the ALWAYS-knowing
               depends on the user's data being current, which the app's own balance surfaces spend their
               time asking for. Dropping one word costs the sentence nothing. */}
-          Debt Planner watches your cushion every paycheck — so you know what&apos;s safe to spend and what to pay down.
+          Debt Planner watches your cushion every paycheck — so you know what’s safe to spend and what to pay down.
         </Text>
       </View>
       <View style={s.list}>

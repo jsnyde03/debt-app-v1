@@ -269,24 +269,20 @@ export default function MoreScreen() {
             subtitle="Require Face ID / passcode to open."
             right={<Switch accessibilityLabel="App Lock" value={prefs.appLockEnabled} onValueChange={(v) => appStore.getState().updatePrefs({ appLockEnabled: v })} trackColor={{ true: c.accent.primary, false: c.border.strong }} />}
           />
-          {/* 3.5.4.9 [D-A] — the control that makes "opt-out" mean something. A preference with no switch
-              is not an opt-out, it is a field. Worded as what it covers and what it cannot: the events
-              carry no financial data BY CONSTRUCTION (a closed union of literals in `analytics/funnel`),
-              so this is a choice about product telemetry, not the thing standing between the user's money
-              and the network. Inverted here because the stored field is the opt-OUT. */}
-          <SettingRow
-            icon="insights"
-            label="Share anonymous usage"
-            subtitle="Which screens get used — never your balances, debts, or amounts."
-            right={
-              <Switch
-                accessibilityLabel="Share anonymous usage"
-                value={!prefs.analyticsOptOut}
-                onValueChange={(v) => appStore.getState().updatePrefs({ analyticsOptOut: !v })}
-                trackColor={{ true: c.accent.primary, false: c.border.strong }}
-              />
-            }
-          />
+          {/* ⛔ [M1-8] THERE IS NO "Share anonymous usage" ROW, and there must not be one until something
+              is actually collected. `track()` forwards to a sink, `setFunnelSink` has no production
+              caller, and so the switch governed nothing: it offered the user a choice about data that
+              does not leave the device, on a screen whose whole job is to be believed.
+
+              ⚠️ R2 measured the direction. The instinct is to wire a sink so the control becomes true —
+              but the live privacy page states "no behavioral analytics" in the affirmative, it is linked
+              from the paywall under Guideline 3.1.2, and shipping a sink would make that claim false.
+              The honest move is the smaller one: collect nothing, claim nothing, show nothing.
+
+              ⛔ **The pref and the plumbing STAY** — `analyticsOptOut`, `funnel.ts`, and the closed event
+              union are untouched, because P6.9 owns whether a sink is ever attached. If one ever is, this
+              row comes back in the same commit: `funnel.test.ts` fails the moment `setFunnelSink` gains a
+              production caller, precisely so that decision cannot be made without re-reading this. */}
           <SettingRow
             icon="savings"
             label="Savings elsewhere"
@@ -362,7 +358,7 @@ export default function MoreScreen() {
             <SettingRow
               icon="bug-report"
               label="Send a test error to Sentry"
-              subtitle="QA only — check the issue's breadcrumbs carry no amounts."
+              subtitle="QA only — check the issue’s breadcrumbs carry no amounts."
               onPress={() => {
                 reportError(new Error('QA test event — Debt Planner device pass'), {
                   seam: 'qa-test-event',

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { PRIVACY_CLAIM } from '@core/copy/vocabulary';
 import { type PayCycle } from '@core/payCycle/getNextPaycheckDate';
 
 import { Button } from '@/components/ui/Button';
@@ -98,6 +99,16 @@ export function PaycheckStep({ onNext, onSkip }: { onNext: () => void; onSkip: (
         keyboardType="decimal-pad"
         error={error}
       />
+
+      {/* [C6 · T1] The trust line sits HERE — under the first field that asks for money — and not on the
+          debt step §R1 names. The doc says "about to type debt balances"; in this app's flow the paycheck
+          comes first, so following the words rather than the principle would reassure the user one step
+          AFTER they had already handed over their income. Apple's rule is the promise at the moment of
+          data use, and this is that moment.
+
+          ⚠️ The constant, never a literal — `PRIVACY_CLAIM` owns this promise, and its docstring records
+          why the wording is not §R1's own. */}
+      <Text style={[textStyles.footnote, { color: c.text.tertiary }]}>{PRIVACY_CLAIM.atEntry}</Text>
 
       {/* 3.7.A9 — one switch, and the floor field only when it is on, so the step does not grow a third
           question for the fixed-income majority. */}

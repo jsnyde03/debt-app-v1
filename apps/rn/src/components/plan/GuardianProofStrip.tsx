@@ -26,7 +26,7 @@ export function GuardianProofStrip({ pow }: { pow: GuardianProofOfWork }) {
   // VIS-3 — the proof of work reads as distinct visual TOKENS (calm pills), not a single tertiary prose
   // line, so the "what am I paying for" record has real presence. Reference surface: tonal, no motion.
   return (
-    <View style={styles.wrap} accessible accessibilityLabel={`Your Guardian's record so far: ${chips.join(', ')}`}>
+    <View style={styles.wrap} accessible accessibilityLabel={`Your Guardian’s record so far: ${chips.join(', ')}`}>
       <AppIcon name="verified-user" size={15} color={c.accent.primary} />
       <View style={styles.chips}>
         {chips.map((chip) => (

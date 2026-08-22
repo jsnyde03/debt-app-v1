@@ -146,7 +146,7 @@ export const TUTORIAL_STEPS: TutorialStepDef[] = [
   // Says what the GUARDIAN does rather than naming the rendered plan. Post-[D9] every audience sees the
   // built plan here (the sandbox is premium for everyone), so this is no longer straddling two screens —
   // it is keeping the promise at the level the finale can honestly settle up on.
-  { id: 'recovery', title: "When it won't stretch", body: 'Some paychecks come up short. Your Guardian works out what has to be covered now, and what can safely wait.', target: 'guardian-card', state: 'at-risk' },
+  { id: 'recovery', title: "When it won’t stretch", body: 'Some paychecks come up short. Your Guardian works out what has to be covered now, and what can safely wait.', target: 'guardian-card', state: 'at-risk' },
   // …and back out of trouble deliberately: nobody should be handed back to their own money while the
   // last thing they saw was a red card.
   // "…is yours to overrule" invited a tap this beat can't honour: it's scripted, so the cutout lights the

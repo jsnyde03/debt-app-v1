@@ -45,8 +45,8 @@ export function GuardianScorecard({ score }: { score: CalibrationScore }) {
           <Text style={[textStyles.title3, styles.headTitle, { color: c.text.primary }]}>Reserved since day one</Text>
         </View>
         <Text style={[textStyles.subhead, styles.body, { color: c.text.secondary }]}>
-          I&apos;ve set your line aside on every paycheck since the first one. I&apos;m still learning your
-          patterns — I&apos;ll show my track record once I&apos;ve seen a few more paychecks.
+          I’ve set your line aside on every paycheck since the first one. I’m still learning your
+          patterns — I’ll show my track record once I’ve seen a few more paychecks.
         </Text>
       </Card>
     );
@@ -56,9 +56,9 @@ export function GuardianScorecard({ score }: { score: CalibrationScore }) {
   const weak = score.matchRate < WARN_MATCH_RATE && score.dominantError !== null;
   const recalibration =
     weak && score.dominantError === 'false_clear'
-      ? "I've under-warned a few times — I've tightened my read." // the direction we never soften
+      ? "I’ve under-warned a few times — I’ve tightened my read." // the direction we never soften
       : weak
-        ? "I've been over-cautious a few times — I'm recalibrating."
+        ? "I’ve been over-cautious a few times — I’m recalibrating."
         : null;
 
   return (
@@ -68,15 +68,15 @@ export function GuardianScorecard({ score }: { score: CalibrationScore }) {
         {score.matches} of {score.n} reads matched
       </Text>
       <Text style={[textStyles.footnote, styles.body, { color: c.text.tertiary }]}>
-        How often my read of whether you&apos;d hold your cushion matched what you actually confirmed.
+        How often my read of whether you’d hold your cushion matched what you actually confirmed.
       </Text>
 
       <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
 
       {/* The two error types, always reported SEPARATELY (never blended into one % that hides a false-clear). */}
       <View style={styles.errors}>
-        <ErrorReadout label="Under-warned" sub="said you'd hold, you dipped below" value={score.falseClears} />
-        <ErrorReadout label="Over-cautious" sub="flagged a risk that didn't land" value={score.falseTights} />
+        <ErrorReadout label="Under-warned" sub="said you’d hold, you dipped below" value={score.falseClears} />
+        <ErrorReadout label="Over-cautious" sub="flagged a risk that didn’t land" value={score.falseTights} />
       </View>
 
       {recalibration ? (

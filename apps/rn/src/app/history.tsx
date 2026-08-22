@@ -47,7 +47,7 @@ export default function HistoryScreen() {
         </View>
       ) : (
         <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-          See how far you&apos;ve come, one cycle at a time.
+          See how far you’ve come, one cycle at a time.
         </Text>
       )}
 

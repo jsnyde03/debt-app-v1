@@ -29,14 +29,107 @@ Payday? One tap logs your plan — no bookkeeping. See exactly what to pay this 
 _(161 chars. v1.6 hook — leads with the one-tap capture (Payday Autopilot) + the interest-saved proof, keeps the trust signal. Not indexed → rotate anytime, zero keyword risk. Prior v1.5 hook: "Payday? See exactly which bill and which debt to hit — then watch your streaks and milestones stack up to debt-free…")_
 
 ## URLs (App Store Connect metadata fields)
-Served as real webpages via GitHub Pages from the `jsnyde03/debt-planner-site` repo (source of truth: `debt-app-v1/site/`). _Superseded the old `github.com/.../blob/main/privacy.html` blob link, which rendered raw HTML source instead of a page (2026-07-03)._
+Served as real webpages via GitHub Pages from the **`jsnyde03/debt-planner-site` repo, which is the ONLY source of truth.**
+
+⛔ **`debt-app-v1/site/` IS A STALE MIRROR, NOT A SOURCE — measured 2026-08-21 (R2).** This line used to
+name it as the source and that belief cost an audit its aim: three findings were filed against quoted
+strings that are not on the shipping page. The live pages are stamped **v1.7 · 2026-07-27**; `site/` here
+is stamped **v1.5 · 2026-07-03** and its last commit was `34c7c89` on 2026-07-05. The live privacy page
+contains a whole paragraph this repo has never held (`grep -c "billing provider" site/privacy.html` → 0).
+**No workflow here deploys `site/`** — `embed-pages.yml` publishes the Expo marketing embed, nothing else.
+
+⚠️ **So editing `site/` fixes nothing a reviewer will ever load.** The deploy is manual, into the other
+repo. Drafts for the live pages live in [`DEBT_SITE_COPY_2.0.md`](../DEBT_SITE_COPY_2.0.md).
+
+_Superseded the old `github.com/.../blob/main/privacy.html` blob link, which rendered raw HTML source instead of a page (2026-07-03)._
 - **Privacy Policy URL:** `https://jsnyde03.github.io/debt-planner-site/privacy.html`
 - **Support URL:** `https://jsnyde03.github.io/debt-planner-site/support.html`
 - **Marketing URL (optional):** `https://jsnyde03.github.io/debt-planner-site/`
 
 ---
 
+## ⛔ 2.0.0 DESCRIPTION — REWRITE DRAFT [A1] *(2026-08-21, awaiting 🎯)*
+
+**The live listing is v1.6 and it sells ten things the app does not do.** Verified against the served
+description via `itunes.apple.com/lookup?id=6773201250`, not against this file — the two had drifted.
+⚠️ **The v1.6 copy below this section is kept as the RECORD of what shipped; it is not the draft.**
+
+| # | live claim | reality | source |
+|---|---|---|---|
+| 1 | **Smart Insights** *(Premium)* | **does not exist** | `analysisSelectors.ts:139-141` — *"intentionally NOT surfaced"* |
+| 2 | **3-Month Forecast** *(Premium)* | **does not exist** | `analysisSelectors.ts:146-148` — same |
+| 3 | **What-If Simulation** *(Premium)* | **FREE** | `progress.tsx:80-81` ungated; `WhatIfControls.tsx:34` says so itself |
+| 4 | **Amortization Schedule** *(Premium)* | **FREE** | zero `premium` hits in `app/schedule/[id].tsx`; both entry points ungated |
+| 5 | **Pay Cycle History** *(Premium)* — **listed twice** | **FREE** | `history.tsx:28` — *"Ships unlocked"* |
+| 6 | **Strategy Comparison — side-by-side** | a toggle, no comparison | `money.tsx:356-370` · ⏳ **C7 (7g) makes this TRUE** |
+| 7 | *"Also free: … CSV import"* | absent | `detectBackupFormat.ts:27` · ⏳ **C8 (7g) makes this TRUE** |
+| 8 | *Tap **"Try with Sample Data"*** | **the button was retired 2026-08-10** | now `SEE_IT_IN_ACTION_CTA` = *"See it in action"* |
+| 9 | *"no cloud, no trackers"* | **iCloud backup ships** (P6.3) and **Sentry ships** (DSN delivered 2026-08-20) | [D41] · `DEBT_SENTRY_SETUP.md:28` |
+| 10 | *"$4.99/month"* only | Lifetime is also sold; **[D53] — no free trial in 2.0** | verify both against ASC at P6.21 |
+
+⛔ **6, 7 and 9 are the ones that must not be written from today's tree.** C7 and C8 land in P6.8.7g, so
+the draft below assumes them and **must be re-checked at P6.21** — if either slips, its line comes out.
+9 is the reverse: iCloud backup is a **2.0 selling point the listing does not mention at all**, and it
+ships free.
+
+⚠️ **The premium block is written FROM `paywall.tsx:28-42`, deliberately.** That array is the in-app
+source of truth a buyer sees one tap before purchasing; a listing derived from anything else is how these
+two drifted apart in the first place.
+
+---
+
+**The moment you get paid, know exactly which bill and which debt to hit.**
+
+Payday shouldn't start with a spreadsheet. Enter your paycheck and your due dates, and Paycheck Debt Planner tells you exactly what to do this cycle: which bills are due, which debt gets the next attack, and how much cushion you'll have left. Then it turns the long grind to debt-free into something you can actually feel — streaks, milestones, and a history of every cycle you stayed on plan.
+
+Curious before you commit? Tap "See it in action" for a guided walkthrough of a fully populated plan — no account, no bank connection, no sign-up.
+
+---
+
+**WHAT YOU GET, FREE**
+
+- **Payday Autopilot** — On payday, confirm your whole plan — required bills, minimums, and extras — in one tap, or adjust any item. Bills on autopay handle themselves. Zero bookkeeping.
+- **Interest Saved** — See how much interest your extra payments save, and how much sooner you're debt-free, vs. paying minimums only.
+- **Paycheck Plan** — Required payments and recommended actions the moment your paycheck lands — what you must pay vs. what you should.
+- **Debt Payoff Engine** — Snowball or avalanche, your choice. Tracks your focus debt, projects your payoff date, and puts the extra to work.
+- **What-If Simulation** — Model an extra payment before committing. See the new debt-free date and the exact interest saved.
+- **Amortization Schedule** — A month-by-month payoff schedule for any debt: interest, principal, and balance to $0.
+- **Pay Cycle History** — Look back at every finished cycle and how far you've come.
+- **Timeline View** — Your full pay cycle with a running safe-cash balance, so you always see where the money goes.
+- **Goals** — Emergency fund and savings funded before snowball, so your safety net builds while debt shrinks.
+- **Milestones & Streaks** — Cross 25%, 50%, 75%, or clear a debt outright, and the app marks the moment. Stay on plan and your streak grows.
+- **iCloud Backup** — Optional, off by default. Your plan is kept in your own iCloud account, so a new phone picks up where the old one left off.
+- **Swipe-to-Pay · App Lock · Local Reminders** — Mark anything paid with one swipe. Face ID, Touch ID or passcode, off by default. A paycheck-eve nudge and a heads-up before your earliest unpaid bill.
+
+Also free: autopay flags, Auto/Light/Dark themes, undo-on-delete, and full backup — including CSV import.
+
+---
+
+**PREMIUM — THE APP DOES THE WORK**
+
+Free gives you a complete, accurate plan. Premium does the work of keeping it right:
+
+- **Payday Guardian** — Works out how much to keep back each payday to protect your cushion, and reshapes the plan around it.
+- **Can I Afford It?** — Apply any purchase to your plan in one tap, or build a plan to save for it.
+- **Recovery Plan** — A guided catch-up when a cycle comes up short.
+- **Balances that keep themselves roughly right** — Projected forward between statements, or re-scanned in seconds. No monthly retyping.
+- **Strategy Comparison** — Snowball vs. avalanche side by side, on your real balances and APRs — not a generic rule of thumb.
+
+---
+
+**BUILT FOR PRIVACY**
+
+Your financial data never goes to our servers — there are none. No account, no bank connections, no behavioral tracking. Optional iCloud backup keeps your plan in your own Apple account, and it is off until you turn it on. App Lock uses Apple's on-device Face ID/Touch ID; your biometric data never reaches us. If the app crashes, it sends anonymous technical diagnostics — never your figures.
+
+---
+
+*Paycheck Debt Planner provides budgeting and organizational tools only and does not provide financial advice.*
+
+---
+
 ## Description (App Store — up to 4000 chars; NOT search-indexed on iOS — pure conversion copy)
+
+⚠️ **v1.6 — THE RECORD OF WHAT SHIPPED. Superseded by the 2.0 draft above; do not paste this into ASC.**
 
 **The moment you get paid, know exactly which bill and which debt to hit.**
 

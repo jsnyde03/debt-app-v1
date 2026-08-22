@@ -115,6 +115,24 @@ export const PRIVACY_CLAIM = {
     noSelling: "you’ll never be sold more debt",
     /** The embed's deliberately smaller claim — see the [D32] note above. */
     short: "Your money stays on your device.",
+    /**
+     * [C6 · T1] The line at the FIRST data-entry moment — `PaycheckStep`, where the app asks for money
+     * for the first time. `DEBT_BENCH_TRUST_FIRSTRUN` §R1 pairs it with T3 as the highest-leverage trust
+     * change, on Apple's principle of stating the promise at the moment of data USE rather than in a
+     * settings screen nobody opens.
+     *
+     * ⛔ **NOT §R1's own wording, and the difference is [D41].** The doc was written 2026-07-20 and says
+     * *"nothing uploaded — it works with your phone in airplane mode."* Cloud backup shipped 2026-08-21,
+     * so both halves of that sentence are now false. Shipping it verbatim would have put a brand-new
+     * false privacy claim at the moment a user is deciding whether to trust the app with their income.
+     *
+     * ⚠️ **Scoped to "our servers", deliberately, which is [D41]'s own frame.** Optional iCloud backup
+     * keeps data in the user's OWN Apple account, not ours — and it is opt-in and default OFF ([D47]),
+     * so at this moment in first-run it is definitionally off. "No account" is separately true: there
+     * has never been one. What this must never become is [D32]'s absolute ("100% private") or a claim
+     * about *everything* rather than the user's numbers.
+     */
+    atEntry: "No account needed — your numbers never go to our servers.",
 } as const;
 
 /**

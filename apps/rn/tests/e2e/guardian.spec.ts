@@ -42,7 +42,7 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
   test('premium · shortfall trouble-flow: "won\'t cover everything"', async ({ page }) => {
     await seedStore(page, scenario({ requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 2600, dueDate: '2026-07-01', recurrence: 'monthly' }] }));
     await page.goto('/');
-    await expect(page.getByText("This paycheck won't cover everything")).toBeVisible();
+    await expect(page.getByText("This paycheck won’t cover everything")).toBeVisible();
   });
 
   test('free · value-led gating: the real read + the invitation, no safe-move', async ({ page }) => {
@@ -95,13 +95,13 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
   test('premium · missed paycheck (paused deploy): "A paycheck didn\'t land"', async ({ page }) => {
     await seedStore(page, scenario({ paycheck: { amount: '2000', payCycle: 'biweekly', nextPaycheckDate: day(5) }, missedArrivals: [day(5)] }));
     await page.goto('/');
-    await expect(page.getByText("A paycheck didn't land")).toBeVisible();
+    await expect(page.getByText("A paycheck didn’t land")).toBeVisible();
   });
 
   test('premium · stale inputs: "Let\'s refresh your numbers"', async ({ page }) => {
     await seedStore(page, scenario({ inputsAsOf: '2026-05-01' })); // > 45 days before "today" → stale cutoff
     await page.goto('/');
-    await expect(page.getByText("Let's refresh your numbers")).toBeVisible();
+    await expect(page.getByText("Let’s refresh your numbers")).toBeVisible();
   });
 
   test('premium · debt-free: the Guardian persists, framed to savings', async ({ page }) => {

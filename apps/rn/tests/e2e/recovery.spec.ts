@@ -25,7 +25,7 @@ test.describe('§2.6 Recovery Plan — the shortfall card builds + applies the c
   test('premium shortfall → cover-now + safe-to-defer render, and the suggestion covers the gap', async ({ page }) => {
     await seedStore(page, shortfall());
     await page.goto('/');
-    await expect(page.getByText("This paycheck won't cover everything")).toBeVisible();
+    await expect(page.getByText("This paycheck won’t cover everything")).toBeVisible();
     await expect(page.getByText('COVER NOW')).toBeVisible();
     await expect(page.getByText('CAN WAIT IN YOUR PLAN')).toBeVisible();
     await expect(page.getByText('Keep essential').first()).toBeVisible(); // the per-bill override affordance
@@ -38,15 +38,15 @@ test.describe('§2.6 Recovery Plan — the shortfall card builds + applies the c
     await seedStore(page, shortfall());
     await page.goto('/');
     await page.getByRole('button', { name: /Defer these 2/ }).click();
-    // Both bills deferred → shortfall gone → the card leaves the "won't cover everything" read.
-    await expect(page.getByText("This paycheck won't cover everything")).toHaveCount(0);
+    // Both bills deferred → shortfall gone → the card leaves the "won’t cover everything" read.
+    await expect(page.getByText("This paycheck won’t cover everything")).toHaveCount(0);
   });
 
   test('free shortfall → the honest read + recovery invite, NOT the checklist (premium acting)', async ({ page }) => {
     await seedStore(page, { ...shortfall(), subscriptionPlan: 'free' });
     await page.goto('/');
     // MF.3: free now gets the HONEST shortfall read (no longer softened + paywalled)...
-    await expect(page.getByText("This paycheck won't cover everything")).toBeVisible();
+    await expect(page.getByText("This paycheck won’t cover everything")).toBeVisible();
     // ...and the state-aware invite pitches the recovery value, not "cushion at your line".
     await expect(page.getByText(/Premium builds you a catch-up plan/)).toBeVisible();
     await expect(page.getByText('CAN WAIT IN YOUR PLAN')).toHaveCount(0); // the built plan is premium

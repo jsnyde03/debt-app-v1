@@ -73,7 +73,7 @@ export function SpokenForSheet({
       />
       <Row
         label="Upcoming expenses"
-        hint="Money you've set by for expenses that land in a later cycle."
+        hint="Money you’ve set by for expenses that land in a later cycle."
         amount={billsReserve}
       />
 
@@ -89,8 +89,8 @@ export function SpokenForSheet({
           </Text>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
             {offer.coversRecommendation
-              ? `That's the full ${formatCurrency(offer.recommended)} your expenses average out to.`
-              : `Less than the ${formatCurrency(offer.recommended)} they average out to — but it's what's genuinely free after your expenses and your cushion.`}
+              ? `That’s the full ${formatCurrency(offer.recommended)} your expenses average out to.`
+              : `Less than the ${formatCurrency(offer.recommended)} they average out to — but it’s what’s genuinely free after your expenses and your cushion.`}
           </Text>
           <Pressable
             onPress={() => onReserve(offer.alreadyReserved + offer.offer)}
@@ -108,7 +108,7 @@ export function SpokenForSheet({
         <Pressable
           onPress={() => onReserve(0)}
           accessibilityRole="button"
-          accessibilityLabel="Undo this paycheck's expense reserve"
+          accessibilityLabel="Undo this paycheck’s expense reserve"
           style={styles.undo}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Undo this paycheck’s reserve</Text>
         </Pressable>

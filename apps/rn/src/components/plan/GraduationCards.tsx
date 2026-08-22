@@ -25,7 +25,7 @@ export function GraduationBanner() {
           <AppIcon name="celebration" size={26} color={c.accent.success} />
         </View>
         <View style={styles.bannerText}>
-          <Text style={[textStyles.title3, { color: c.text.primary }]}>You&apos;re debt-free</Text>
+          <Text style={[textStyles.title3, { color: c.text.primary }]}>You’re debt-free</Text>
           <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
             Every balance is cleared. Your paycheck now builds your future instead of paying down the past.
           </Text>

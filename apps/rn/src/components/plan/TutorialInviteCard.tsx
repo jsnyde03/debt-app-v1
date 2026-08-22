@@ -36,7 +36,7 @@ export function TutorialInviteCard({ onStart, onDismiss }: { onStart: () => void
           {/* Says up front that it runs on example numbers — the honesty framing the scenarios need,
               since a "tight"/"at-risk" beat is a TAUGHT state, not a read on their real money. */}
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-            A short walkthrough on example numbers — your plan isn&apos;t touched.
+            A short walkthrough on example numbers — your plan isn’t touched.
           </Text>
         </View>
         <View style={styles.actions}>

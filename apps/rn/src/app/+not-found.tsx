@@ -11,7 +11,7 @@ export default function NotFoundScreen() {
     <>
       <Stack.Screen options={{ title: 'Not found' }} />
       <View style={[styles.root, { backgroundColor: c.background.primary }]}>
-        <Text style={[textStyles.title2, { color: c.text.primary }]}>This screen doesn&apos;t exist.</Text>
+        <Text style={[textStyles.title2, { color: c.text.primary }]}>This screen doesn’t exist.</Text>
         {/* ⛔ [P6.4.4 · audit L1-28 + L5-18, one site filed by two lenses] Said "Go to Plan". The tabs are
             Today · Progress · Money — "Plan" is the OLD tab name, so the one screen a lost user reaches
             pointed at a destination they cannot find afterwards. `href="/"` is Today, so the link was

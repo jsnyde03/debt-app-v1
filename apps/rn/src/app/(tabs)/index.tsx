@@ -525,8 +525,8 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
               {reserveRelease.tapped
-                ? `Your safety net was there when a surprise came up — it helped cover about ${formatWhole(reserveRelease.covered)} while I got to know your expenses. It's now going to work on ${reserveRelease.targetName}.`
-                : `Your safety net is free — you didn't need it, and it's now going to work on ${reserveRelease.targetName}.`}
+                ? `Your safety net was there when a surprise came up — it helped cover about ${formatWhole(reserveRelease.covered)} while I got to know your expenses. It’s now going to work on ${reserveRelease.targetName}.`
+                : `Your safety net is free — you didn’t need it, and it’s now going to work on ${reserveRelease.targetName}.`}
             </Text>
           </View>
           <Button label="Got it" variant="text" onPress={() => store_.getState().acknowledgeReserveRelease()} />
@@ -543,7 +543,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           <View style={styles.ackRow}>
             <AppIcon name="gpp-good" size={20} color={c.accent.primary} />
             <Text style={[textStyles.subhead, styles.ackText, { color: c.text.primary }]}>
-              A surprise bill came up — I&apos;ve restored your safety net for now.
+              A surprise bill came up — I’ve restored your safety net for now.
             </Text>
           </View>
           <Button label="Got it" variant="text" onPress={() => store_.getState().acknowledgeReserveWalkback()} />
@@ -578,7 +578,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
                   price now reads "$30" rather than "$30.00", which is `formatCurrency`'s own documented
                   rule — cents render only when there are cents, the App Preview cents sweep (3.5.8.7).
                   A price is not an exception to it; a second convention on one screen is the defect. */}
-              Your {trialConversion.name} trial has ended — it&apos;s now {formatCurrency(trialConversion.fullAmount)}
+              Your {trialConversion.name} trial has ended — it’s now {formatCurrency(trialConversion.fullAmount)}
               {trialConversion.cadence}. Keeping it?
             </Text>
           </View>
@@ -614,7 +614,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
       {payday.isAwaitingRollover ? (
         <Card tone="accent" style={styles.nudge}>
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>
-            Payday logged. Start your next pay cycle to apply this cycle&apos;s payments and get your next plan.
+            Payday logged. Start your next pay cycle to apply this cycle’s payments and get your next plan.
           </Text>
           <Button label="Start next pay cycle" onPress={() => store_.getState().rolloverPayCycle()} style={styles.nudgeBtn} />
         </Card>
@@ -851,7 +851,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
     const release = selectReserveRelease(s.store);
     if (release) {
       return release.tapped
-        ? `Your safety net covered about ${formatWhole(release.covered)} while I got to know your expenses. It's now going to work on ${release.targetName}.`
+        ? `Your safety net covered about ${formatWhole(release.covered)} while I got to know your expenses. It’s now going to work on ${release.targetName}.`
         // ⛔ [P6.4.4 · audit L1-35] "it is now going" → "it's now". This is the ANNOUNCED string, the one
         // actually read aloud, and its VISIBLE twin 320 lines up (`:525-526`) was already contracted —
         // so the uncontracted register survived precisely where the missing contraction is most audible.
@@ -859,7 +859,7 @@ function TutorialRun({ sandbox, index }: { sandbox: DebtStoreInstance; index: nu
         // ⚠️ STRAIGHT apostrophe, matching its three neighbours (`:528`, `:529`, `:854`) — not the curly
         // one the app is drifting toward. L1-22 (mixed apostrophes) is a 152-site normalisation and is a
         // SCOPE CALL, not a side effect of this fix; all four of these move together when it is decided.
-        : `Your safety net is free — it's now going to work on ${release.targetName}.`;
+        : `Your safety net is free — it’s now going to work on ${release.targetName}.`;
     }
     return selectReserveWalkback(s.store) ? 'A surprise bill came up — I’ve restored your safety net for now.' : null;
   });

@@ -19,6 +19,27 @@ import { join } from 'node:path';
 const REPO_ROOT = join(import.meta.dirname, '..');
 const FINDINGS = join(REPO_ROOT, 'docs/audits/2026-08-17-v1.7-audit-gate/findings');
 
+/**
+ * [P6.8.9-1] — THE SECOND AUDIT, and why this file had to learn about it.
+ *
+ * ⛔ This gate was hardcoded to the 2026-08-17 folder, so the P6.8 finish sweep — 13 lenses, 6 refuters —
+ * had **no traceability gate at all**, while P6.8.7's exit line makes [D37]'s identical promise: *every
+ * non-refuted finding carries a fix or a recorded reason.* The older audit's promise was enforced on every
+ * push; the newer one rested on someone reading a 60-row table correctly.
+ *
+ * ⚠️ **It is not the same shape, and pretending it was is how this would have silently passed.** The 2026
+ * -08-17 findings are `### L1-4` under `- **Severity:** major`; P6.8's slices are `### W1-1` under
+ * `**Severity:** major`, with no list prefix and a two-letter lens. Both spellings are matched below.
+ *
+ * ⛔ **ALIASING IS THE HARD PART, and it is the reason this cannot be a grep.** SYNTHESIS carries a lens
+ * id *and* a consolidated action id for the same finding — `C5` **is** M2-9, `C6` **is** M4-8, `A4` **is**
+ * M1-9 — and the plan is written in the consolidated ones. A hand pass over this ledger reported 26
+ * "unassigned" findings that were almost all aliases. Recording the alias next to the action id is what
+ * makes the closure traceable, which is [D37]'s whole thesis restated: an untraceable closure is
+ * indistinguishable from an open finding.
+ */
+const P68_SLICES = join(REPO_ROOT, 'docs/audits/2026-08-21-p6.8-finish/slices');
+
 /** Where a closure may be recorded: the queue, the detail log, or the refutation record. */
 const SOURCES = [
   join(REPO_ROOT, 'docs/DEBT_ELEVATION_PLAN.md'),
@@ -72,6 +93,69 @@ if (missing.length > 0) {
   process.exit(1);
 }
 console.log(`✅ [D37]: all ${highPlus.length} high+ findings trace to a closure or a recorded refutation.`);
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// [P6.8.9-1] THE P6.8 FINISH SWEEP — same promise, same strictness, different id shape.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const p68: Finding[] = [];
+for (const file of readdirSync(P68_SLICES)) {
+  if (!file.endsWith('.md')) continue;
+  let current: string | null = null;
+  let title = '';
+  for (const line of readFileSync(join(P68_SLICES, file), 'utf8').split('\n')) {
+    // `### W1-1`, `### V3-5`, `### A1-11`, `### M4-8` — one to two letters, an optional lens digit.
+    const heading = line.match(/^#{2,4} ([A-Z]{1,2}\d?-\d+[a-z]?)\s*[—–·-]?\s*(.*)$/);
+    if (heading) {
+      current = heading[1];
+      title = heading[2].trim();
+    }
+    // ⚠️ Both spellings: the 2026-08-17 findings use a list item, these slices do not.
+    const severity = line.match(/^-?\s*\*\*Severity:\*\*\s*([a-z]+)/);
+    if (current && severity) {
+      p68.push({ id: current, lens: file.replace(/\.md$/, ''), severity: severity[1], title });
+      current = null;
+    }
+  }
+}
+
+/** Any lens id written down anywhere a closure may be recorded, slash-lists expanded (`A1-7/8/9`). */
+const p68Recorded = new Set<string>();
+for (const src of [...SOURCES, join(REPO_ROOT, 'docs/audits/2026-08-21-p6.8-finish/SYNTHESIS.md')]) {
+  for (const m of readFileSync(src, 'utf8').matchAll(/\b([A-Z]{1,2}\d?)-(\d+(?:\/\d+)*[a-z]?)\b/g)) {
+    for (const n of m[2].split('/')) p68Recorded.add(`${m[1]}-${n}`);
+  }
+}
+
+const p68HighPlus = p68.filter((f) => f.severity === 'blocker' || f.severity === 'major');
+const p68Missing = p68HighPlus.filter((f) => !p68Recorded.has(f.id));
+
+// ⛔ **REPORT-ONLY UNTIL P6.8.9, AND THAT IS A DESIGN CHOICE WITH A DATE ON IT.**
+//
+// The sweep is mid-build: P6.8.7c–g are unwritten, so an untraced high+ finding is the EXPECTED state
+// today, not a regression. This file already argues the case for the low tier and the argument is the
+// same one — *"a gate that reds on the expected state trains everyone to skip reading its output, which
+// is precisely how the high+ gate above would lose its meaning."*
+//
+// ⭐ **What it buys instead is a mechanical exit criterion for P6.8.9.** That step is chartered to confirm
+// *"no other major+ issue remains"*, which until now meant reading a 60-row table by eye — and a hand pass
+// over this same ledger already reported 26 findings unassigned that were mostly ALIASES. The number below
+// is that check, run in a second, every push.
+//
+// ⛔ **P6.8.9 FLIPS THIS TO `process.exit(1)`** once the count reaches zero. Leaving it report-only past
+// that point would be the same failure as never having built it.
+if (p68Missing.length > 0) {
+  console.log(
+    `📋 P6.8 sweep: ${p68Missing.length} of ${p68HighPlus.length} high+ findings are named in NO ledger ` +
+      `(plan · log · refutations · SYNTHESIS). Report-only until P6.8.9 — see the note in this file.`,
+  );
+  if (process.argv.includes('--p68')) {
+    for (const f of p68Missing) console.log(`   ${f.id.padEnd(8)} ${f.lens.padEnd(22)} ${f.title.slice(0, 70)}`);
+  }
+} else {
+  console.log(
+    `✅ P6.8 sweep: all ${p68HighPlus.length} high+ findings across ${new Set(p68.map((f) => f.lens)).size} lenses are traceable — P6.8.9 may now flip this to gating.`,
+  );
+}
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 // THE LOW TIER — minor + polish. REPORT ONLY, and it must stay that way.

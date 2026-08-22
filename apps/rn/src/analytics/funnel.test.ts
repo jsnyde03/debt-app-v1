@@ -1,3 +1,6 @@
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
+
 import { setFunnelSink, track, type FunnelEvent } from '@/analytics/funnel';
 import { appStore } from '@/store/appStore';
 
@@ -45,6 +48,42 @@ function run() {
 
   setFunnelSink(null);
   appStore.getState().updatePrefs({ analyticsOptOut: optOutBefore });
+
+  // ⛔ [M1-8] THE CONSENT ROW AND THE SINK ARE NOW COUPLED, AND THIS IS THE COUPLING.
+  //
+  // More's "Share anonymous usage" switch was removed because it governed nothing — no sink is ever
+  // installed, so the control offered a choice about data that never moves. What that removal creates is
+  // a latent hazard pointing the other way: `analyticsOptOut` is absent by default, which reads as
+  // opted-IN, so the day a sink is attached telemetry would begin flowing with no control on any screen.
+  //
+  // So the sink may not gain a production caller silently. This fails the moment one appears, and its
+  // message says what to do about it — which is the only way the decision gets re-read by whoever makes
+  // it, rather than by whoever finds it afterwards.
+  // ⚠️ Comments are blanked and the DEFINING file is skipped. Without both, this guard reports itself:
+  // `funnel.ts` declares the function, and `more.tsx` names it in the note explaining why the row is
+  // gone — so a bare text scan called the fix its own violation. Same reason `check-native-a11y-props`
+  // strips comments: a guard whose documentation trips it gets deleted rather than obeyed.
+  const stripComments = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  const srcDir = join(import.meta.dirname, '..');
+  const DEFINES = join(srcDir, 'analytics', 'funnel.ts');
+  const callers: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir)) {
+      const p = join(dir, entry);
+      if (statSync(p).isDirectory()) { if (entry !== 'node_modules') walk(p); continue; }
+      if (!/\.tsx?$/.test(p) || /\.test\.tsx?$/.test(p) || p === DEFINES) continue;
+      if (/(^|[\\/])(testing|__fixtures__)[\\/]/.test(p)) continue;
+      if (stripComments(readFileSync(p, 'utf8')).includes('setFunnelSink')) callers.push(relative(srcDir, p));
+    }
+  };
+  walk(srcDir);
+  assert(
+    callers.length === 0,
+    `setFunnelSink now has a production caller (${callers.join(', ')}) — a sink is being installed, so ` +
+      'the "Share anonymous usage" control must return to More in this same commit, and the live privacy ' +
+      'page\'s "no behavioral analytics" claim must be retired with it. See the [M1-8] note in more.tsx.',
+  );
 
   console.log(`✅ funnel seam: ${passed} assertions passed.\n`);
 }

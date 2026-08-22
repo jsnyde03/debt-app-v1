@@ -134,7 +134,7 @@ export async function syncNotifications({ nextPaycheckDate, requiredExpenses }: 
   const paydayMorning = new Date(paycheckDate);
   paydayMorning.setHours(9, 0, 0, 0);
   if (paydayMorning > now) {
-    await schedule(ID_PAYDAY_CAPTURE, "It's payday", 'Open Debt Planner to confirm your plan for this paycheck.', paydayMorning, NOTIF_CATEGORY_PAYDAY);
+    await schedule(ID_PAYDAY_CAPTURE, "It’s payday", 'Open Debt Planner to confirm your plan for this paycheck.', paydayMorning, NOTIF_CATEGORY_PAYDAY);
   }
 
   // Bills alert: 8pm two days before the earliest upcoming unpaid bill, unless that's the eve day.

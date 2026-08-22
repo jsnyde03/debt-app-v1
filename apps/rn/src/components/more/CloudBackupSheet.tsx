@@ -49,7 +49,7 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
           ? 'There is no backup in iCloud yet.'
           : result === 'unavailable'
             ? 'Sign in to iCloud on this device to use backup.'
-            : "That didn't work. Your data on this device is unchanged.",
+            : "That didn’t work. Your data on this device is unchanged.",
     );
   }
 
@@ -108,7 +108,7 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
               {/* ⚠️ The warning names what is LOST, not what is gained. A restore is destructive in one
                   direction only, and the user is the only one who knows which copy is the good one. */}
               <Text testID="cloud-restore-warning" style={[textStyles.body, { color: c.text.primary }]}>
-                Restoring replaces everything on this device with the copy in iCloud. This can&apos;t be undone.
+                Restoring replaces everything on this device with the copy in iCloud. This can’t be undone.
               </Text>
               <Button
                 label={REPLACE_DATA_ACTION}
@@ -121,7 +121,7 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
                 }}
               />
               <Button
-                label="Keep what's on this device"
+                label="Keep what’s on this device"
                 variant="secondary"
                 testID="cloud-restore-cancel"
                 onPress={() => setConfirmingRestore(false)}

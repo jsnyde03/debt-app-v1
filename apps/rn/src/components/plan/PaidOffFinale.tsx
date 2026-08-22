@@ -76,7 +76,7 @@ export function PaidOffFinale({ visible, stats, onDismiss }: { visible: boolean;
   const shareRef = useRef<View>(null);
   async function onShare() {
     try {
-      await shareDebtCard(shareRef, `I'm debt-free — I paid off ${formatWhole(stats.totalPaid)} with Debt Planner.`);
+      await shareDebtCard(shareRef, `I’m debt-free — I paid off ${formatWhole(stats.totalPaid)} with Debt Planner.`);
     } catch (e) {
       reportError(e, { subsystem: 'share', operation: 'finale-card' });
     }

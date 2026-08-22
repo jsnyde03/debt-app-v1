@@ -31,7 +31,7 @@ test('premium: add-extra-income opens the sheet with the routing preview', async
   await expect(page.getByText('Extra income', { exact: true })).toBeVisible(); // sheet title
   await page.getByPlaceholder('e.g. 500').fill('1000');
   // The premium routing eyebrow + a Confirm button appear once the split resolves.
-  await expect(page.getByText(/HERE'S HOW THE APP WILL ROUTE/)).toBeVisible();
+  await expect(page.getByText(/HERE’S HOW THE APP WILL ROUTE/)).toBeVisible();
   // T2 — actually CONFIRM and prove it took effect: the sheet closes and the Plan hero now shows the
   // windfall ("$1,000 extra this paycheck"), so a no-op Confirm can't pass.
   await page.getByRole('button', { name: 'Confirm' }).click();
@@ -45,7 +45,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.goto('/');
     await page.getByText('Add extra income').click();
     await page.getByPlaceholder('e.g. 500').fill('1000');
-    await expect(page.getByText(/HERE'S HOW THE APP WILL ROUTE/)).toBeVisible();
+    await expect(page.getByText(/HERE’S HOW THE APP WILL ROUTE/)).toBeVisible();
     await page.waitForTimeout(400); // let the sheet settle
     await page.screenshot({ path: `test-results/windfall-${theme}.png` });
   });

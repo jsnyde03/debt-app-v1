@@ -1,4 +1,4 @@
-import { DEBT_FIELD } from '@core/copy/vocabulary';
+import { DEBT_FIELD, PRIVACY_CLAIM } from '@core/copy/vocabulary';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -91,7 +91,7 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
       ctas={
         <>
           <Button label="Add & Continue" onPress={handleAdd} />
-          <Button label="Skip, I'll add later" variant="text" onPress={onSkip} />
+          <Button label="Skip, I’ll add later" variant="text" onPress={onSkip} />
         </>
       }>
       <View style={s.copy}>
@@ -99,6 +99,10 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
         <Text style={[textStyles.body, { color: c.text.secondary }]}>
           See your plan come to life right away. You can add more any time.
         </Text>
+        {/* [C6 · T1] Repeated from `PaycheckStep` on purpose, and the reason is the SKIP path: that step
+            offers "Skip for now", so a user can arrive here having never seen the promise and then type a
+            balance — the exact moment §R1 names. Both screens ask for money, so both state it. */}
+        <Text style={[textStyles.footnote, { color: c.text.tertiary }]}>{PRIVACY_CLAIM.atEntry}</Text>
       </View>
 
       {/* 3.7.A10.3 — the SAME fork the Money chooser asks, at the moment the user has the least context.

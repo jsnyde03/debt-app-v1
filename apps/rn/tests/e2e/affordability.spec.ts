@@ -21,7 +21,7 @@ test('comfortable purchase → verdict + apply-to-plan', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByText('CAN I AFFORD IT?')).toBeVisible();
   await page.getByPlaceholder('e.g. 400').fill('500');
-  await expect(page.getByText(/you'd still hold/)).toBeVisible(); // comfortable read
+  await expect(page.getByText(/you’d still hold/)).toBeVisible(); // comfortable read
   await expect(page.getByRole('button', { name: 'Apply to this paycheck' })).toBeVisible();
 });
 
@@ -46,8 +46,8 @@ for (const theme of ['light', 'dark'] as const) {
     }));
     await page.goto('/');
     await page.getByPlaceholder('e.g. 400').fill('500');
-    await expect(page.getByText(/you'd still hold/)).toBeVisible();
-    await page.getByText(/you'd still hold/).scrollIntoViewIfNeeded();
+    await expect(page.getByText(/you’d still hold/)).toBeVisible();
+    await page.getByText(/you’d still hold/).scrollIntoViewIfNeeded();
     await page.waitForTimeout(400); // let the carve settle
     await page.screenshot({ path: `test-results/affordability-impact-${theme}.png` });
   });

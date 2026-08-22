@@ -450,11 +450,16 @@ function evalGhExpr(src: string, inputs: Record<string, string>): boolean | unde
     while (toks[i] === '&&') { i++; const right = cmp(); left = truthy(left) ? right : left; }
     return left;
   };
-  function orExpr(): unknown {
+  // A `const` arrow like its two siblings, deliberately. As a hoisted `function` declaration this was the
+  // one rung of the parser where `toks`'s `if (!toks) return` narrowing did not reach: a declaration can
+  // be called before the guard runs, so TypeScript resets the narrowing inside it. Same code, same
+  // laziness — `orExpr` is only ever called from inside another closure — and now the null check covers
+  // the whole parser instead of three quarters of it.
+  const orExpr = (): unknown => {
     let left = andExpr();
     while (toks[i] === '||') { i++; const right = andExpr(); left = truthy(left) ? left : right; }
     return left;
-  }
+  };
   const value = orExpr();
   if (bad || i !== toks.length) return undefined;
   return truthy(value);

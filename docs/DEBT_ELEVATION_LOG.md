@@ -4,6 +4,524 @@
 
 ---
 
+## 🔚 SESSION CLOSE 2026-08-21 — P6.8.7a + 7b closed, and four instruments were wrong
+
+### ✅ Shipped
+
+**P6.8.7a (gates, 6 items + `[P6.8.7a-1]`)** · **P6.8.7b (copy, 6 items)** · **`[P6.8.9-1]`** ·
+**A1/A2/A3 drafted, and A2 is LIVE.** Details in the two sections below this one.
+
+⭐ **The site pages are corrected and published** — commit `8f89394` in `jsnyde03/debt-planner-site`,
+verified by fetching the served pages. That closes **A2** and **A2-5**.
+
+### ⛔ State a new session must not misread
+
+- **The 12 Playwright pin edits are BROWSER-UNVERIFIED.** typecheck · app · regression · scenarios ·
+  stamp and all copy guards are green; the e2e suite was not run (🎯 declined the cycle at close).
+  **P6.8.8 is where they are verified, and the first suspect if e2e reds.**
+- **`lint:closure` reports `43 of 80 high+ findings named in NO ledger` for the P6.8 audit.**
+  **Report-only BY DESIGN until P6.8.9.** Not a regression. Do not silence it; drive it to zero, then
+  flip it to `exit 1`.
+- **`gate-status.json` is stale** — the tree moved a long way. `validate:release:rn` has not been run
+  this session.
+- **Nothing is committed to `main`** on debt-app-v1; the work is one commit on `v1.7-dev`.
+
+### ⚡ The result worth carrying: four instruments were wrong, and each failed differently
+
+This session's own tooling was wrong more often than the code was.
+
+| instrument | how it lied |
+|---|---|
+| ledger probe v1 | reported **30 of 30 findings unassigned**. `\\b` through a heredoc collapsed to `\b` — **backspace** in a JS template literal — so every regex matched nothing |
+| ledger probe v2 | reported **6, all refuted**. Its boundary class excluded `-`, and it read only **bold** ids — so **P1-10, written in italics, never entered the set** |
+| my pin list | **17 across 6 files**; `test:regression` found an 18th. My `isTestish` did not know the repo's `testCamelCase.ts` convention — **which the apostrophe gate's own `isTest` already covers** |
+| the sink guard | flagged **its own definition and its own comment** as violations, on first run |
+
+⭐ **Two rules fall out of that, and both are already recorded in code:**
+1. **When an instrument and an oracle disagree about scope, run the oracle.** A widened probe returned
+   70KB of comment noise; running the suites converged in two rounds.
+2. **Borrow the definition, never re-write it.** Three of the four failures were a second definition of
+   something the repo already owned — which is the "two places, one rule" defect this codebase names
+   everywhere, committed while auditing for it.
+
+⚠️ **And the site-list count reached ten consecutive items** — but the direction stopped being reliable:
+W1-4 **over**counted (7 plugin files, really 6). *A filed count is where to start measuring, not a
+measurement.*
+
+### ⛔ Three stale "waiting on 🎯" rows found and corrected — in one session
+
+R4's row said **ACTIVE BUILD** after it closed · P6.3's row sat in Remaining after its pass ran · **P6.5
+said "needs the DSN from 🎯" a day after he had given it.** The class is now the reason
+[`DEBT_2.0_YOUR_STEPS.md`](DEBT_2.0_YOUR_STEPS.md) carries an *"already done"* section.
+
+### ▶ Next session starts at `P6.8.7c.1`
+
+⛔ **It opens by ENUMERATING, not editing.** B1's site count exists in three versions — filed **4/2**,
+audited **12/7**, a crude grep at 7b's after-scan **14/8**. **Three numbers means none is known.**
+
+---
+
+## ▶ P6.8.7b — the COPY cluster (2026-08-21)
+
+### ✅ b.1 — `WelcomeStep`: A4 · M1-9 · C6-T3, one pass
+
+The first screen's third bullet promised *"Check any purchase against your plan before you buy."* That is
+the affordability check, it is **premium**, and the free branch answers it by quoting the user's own spare
+figure back and withholding the verdict. Replaced by the trust stance — `DEBT_BENCH_TRUST_FIRSTRUN` §R1
+calls naming the absence *"the single highest-leverage trust change"*, and the readiness audit found it
+appeared nowhere in the app.
+
+⭐ **Both halves reference `PRIVACY_CLAIM`, never literals.** The constant is the single owner of this
+promise, and `lint:copy` reads **literals** — so hand-writing the words would have created a second place
+stating one rule that is *invisible to the gate built to catch exactly that*. `noSelling` is also
+deliberately passive (T7/L1-11 retired the corporate "we"), which hand-writing would have lost.
+
+**Verified:** tsc clean (`lock` is a valid `IconGlyph`), all four copy guards green, and **zero pins on
+either removed string** — the two pinned Welcome strings (`"A guardian for every payday"`,
+`"Get started"`) were not touched.
+
+### ✅ b.2 — `PRIVACY_CLAIM.atEntry`, on BOTH money-asking steps
+
+Added as a new member rather than by rewriting `body` (🎯's call): one owner for the claim, nothing false
+rendered at the sensitive moment, and P6.9's restructure left untouched.
+
+⚠️ **Placed against the doc's PRINCIPLE, not its words.** §R1 T1 says *"about to type debt balances"*, but
+this app asks for the **paycheck** first — following the sentence literally would have reassured the user
+one step *after* they had already handed over their income. Apple's rule is the promise at the moment of
+data use, and that moment is `PaycheckStep`.
+
+⭐ **Its after-scan found the skip path.** `PaycheckStep` offers *"Skip for now"*, so a user can arrive at
+`FirstDebtOrBillStep` — §R1's literal site — having never seen the line, and type a balance. Both screens
+ask for money, so both now state it. One line of JSX; the hole would have been invisible to any test.
+
+### ✅ b.3 — M1-8, and the fix created the opposite hazard
+
+The row is gone. It governed nothing: `track()` forwards to a sink and `setFunnelSink` has **no production
+caller**, so the switch offered a choice about data that never left the device, on the screen whose job is
+to be believed. ⚠️ **R2 measured the direction and it is counter-intuitive** — wiring a sink to make the
+control true would falsify the live privacy page's affirmative *"no behavioral analytics"*, which is linked
+from the paywall under Guideline 3.1.2. Collect nothing, claim nothing, show nothing.
+
+⛔ **What removing it created:** `analyticsOptOut` is absent by default, which reads as opted-**IN**. With
+no row anywhere, the day a sink is attached telemetry begins flowing with no control on any screen. So the
+two are now coupled from both sides — `funnel.test.ts` fails the moment `setFunnelSink` gains a production
+caller and its message names the remedy; the e2e was **inverted** to fail if the row returns without one.
+
+⚡ **The guard reported itself first, which is the useful part.** A bare text scan flagged `funnel.ts` (the
+*definition*) and `more.tsx` (my *comment* explaining the removal) as production callers. Comments are now
+blanked and the defining file skipped — the same reason `check-native-a11y-props` strips comments: a guard
+that trips on its own documentation gets deleted rather than obeyed. Then mutation-verified with a real
+caller, which reds with the actionable message.
+
+⚠️ **The rewritten e2e asserts a sibling row FIRST** (`App Lock`, directly above the removed one). An
+absence assertion alone is satisfied by a page that never rendered — the most common way a passing negative
+test means nothing.
+
+### ✅ b.4 — the L1-22 sweep: baseline 94 → 0, and the gate is now absolute
+
+⭐ **The fixer is a `--fix` mode on `check-apostrophes.ts` itself, not a separate script.** A standalone
+find-and-replace would carry its own opinion about which strings are copy, and the day the two disagreed
+the gate would red on something the fixer refused to touch — or the fixer would rewrite an identifier. The
+same AST `visit` now decides both, so they cannot diverge. It splices raw source **back to front** so
+earlier offsets stay valid, and re-printing (which would reformat untouched files) never happens.
+
+**95 nodes across 35 files**, then **21 pins across 7 test files**, then re-baseline to `[]`. The baseline
+being empty is the point: the gate stops being "don't grow past 94" and becomes "no straight apostrophe in
+copy, ever".
+
+### ⛔ Proven a pure substitution, because a script here once deleted 489 lines while reporting success
+
+A tar snapshot was taken before the sweep and the trees compared file-by-file afterwards:
+**481 files compared · 35 changed · 0 line drift · 0 non-apostrophe differences.** Assertion, not vibes —
+and the check normalises *only* the characters the sweep was allowed to touch, so anything else would have
+surfaced as a diff.
+
+⚠️ **`git diff --numstat` and `diff` disagreed on one file and git was right.** `guardianSelectors.test.ts`
+read as *253 of 253 lines changed* against the snapshot while git said **1 insertion, 1 deletion**. Cause:
+`sed -i` rewrote that file's **CRLF endings to LF** — the snapshot was 251 bytes larger and diverged at the
+line-1 terminator. Git normalises, the repo already stores LF, and `gateSources.ts` documents this exact
+Windows/CI split. **A whole-file diff against a byte snapshot is not evidence of a whole-file change on
+Windows** — check git before concluding.
+
+### ⛔ My own pin list was short, which makes ten consecutive items
+
+The measured *"17 pin lines across 6 files"* missed `packages/core/guardian/testBuildGuardianBrief.ts`, and
+`test:regression` found it — expected `"…won't cover everything"`, got `"…won’t cover everything"`.
+
+⚡ **The reason is exact and worth keeping: my probe's `isTestish` pattern did not know this repo's
+`testCamelCase.ts` convention, which `check-apostrophes.ts`'s own `isTest` covers.** I wrote a second
+definition of "is this a test file" instead of borrowing the one the gate already owns — the same
+two-places-one-rule failure this codebase names everywhere, committed while auditing for it.
+
+⭐ **And the recovery is the transferable part: the SUITES enumerate the real pins.** A widened probe
+returned 70KB dominated by comment prose; running the suites and fixing what actually failed converged in
+two rounds. When an instrument and an oracle disagree about scope, run the oracle.
+
+⚠️ **Unverified until P6.8.8:** the 12 Playwright pin edits need a browser. Everything reachable without
+one — typecheck, app, regression, scenarios, stamp, and all seven copy guards — is green.
+
+### ✅ `[P6.8.9-1]` — the closure gate learned about the second audit, and immediately found 43
+
+`check-audit-closure.ts` was hardcoded to the 2026-08-17 folder, so the P6.8 sweep — 13 lenses, 6 refuters
+— had **no traceability gate at all**, while P6.8.7's exit line makes [D37]'s identical promise.
+
+⚠️ **The two audits are not the same shape**, and assuming they were is how this would have passed while
+seeing nothing: 2026-08-17 files are `### L1-4` under `- **Severity:**`; P6.8's slices are `### W1-1` under
+an unprefixed `**Severity:**` with a two-letter lens. Both are matched now.
+
+⭐ **The result the moment it could see: 43 of 80 high+ findings are named in NO ledger** — plan, log,
+refutations and SYNTHESIS all searched. The decision document does not name the ids of over half the
+blocker/major findings its own lenses filed.
+
+⛔ **Deliberately REPORT-ONLY until P6.8.9.** The sweep is mid-build, so an untraced high+ finding is the
+expected state today — and this file already argues the case for the low tier in its own words: *"a gate
+that reds on the expected state trains everyone to skip reading its output."* What it buys instead is a
+**mechanical exit criterion**: P6.8.9 is chartered to confirm *"no other major+ issue remains"*, which
+until now meant reading a 60-row table by eye. Drive the number to zero, then flip it to `exit 1`.
+
+⚡ **Aliasing is the substance of the 43, and it is why this could never have been a grep.** `M4-1` is C7,
+`M4-2` is C8 — both sit in the plan under their consolidated action ids while their lens ids appear
+nowhere. Writing the lens id beside the action id is the closure. That is [D37]'s thesis restated: *an
+untraceable closure is indistinguishable from an open finding.*
+
+⚠️ **[D37]'s own half re-verified by mutation, and the first two attempts proved nothing.** Removing
+`L1-22` from the log left it green (it is also in the plan); removing it from both still left it green
+(**L1-22 is low-tier, which [D37] does not gate**). Only deleting a genuine blocker/major id from all
+three sources reds it — which it does, by name.
+
+### ✅ b.5 — P1-10's copy half, and my framing of it was wrong
+
+⛔ **I recommended "fix the false claim" and the claim was TRUE.** *"Premium shows exactly where your $500
+lands"* is literally correct — premium renders the itemised split. What misled was the **implication**: to
+a free user standing in front of it, it reads as though the windfall is not routed until they pay. It is;
+`selectors.ts:54` folds it into the paycheck with no tier gate and the identical waterfall allocates it.
+
+The invite now leads with what already happened — *"Your $500 is already in the plan"* — and sells only
+what is actually bought. ⛔ **The tier inversion is NOT fixed and is not mine to fix:** free does the WORK
+and premium reports it, which is the premium spec's own price test upside down. Filed, unbuilt, 🎯's call,
+and it must clear P6.10 if it happens.
+
+### ✅ b.6 — the three external drafts, and reading the whole listing found three more defects
+
+A1 → a **2.0 description rewrite** in [`release-notes/app-store-listing.md`](release-notes/app-store-listing.md).
+A2 + A3 → [`DEBT_SITE_COPY_2.0.md`](DEBT_SITE_COPY_2.0.md), which opens by saying what must not be edited.
+
+⛔ **R2's list of seven was scoped to the premium block; the full listing carries TEN.** The three nobody
+had counted:
+
+- *Tap **"Try with Sample Data"*** — **that button was retired 2026-08-10.** The listing instructs a buyer
+  to tap a control that does not exist, on the first screen they would look for it.
+- *"no cloud, no trackers"* — **iCloud backup ships and Sentry ships.** The [D41] problem is not confined
+  to the privacy page; it is in the store description, which is read by more people than the policy.
+- **Pay Cycle History is sold as Premium TWICE** and ships free.
+
+⚡ **And two of R2's seven are scheduled to become TRUE:** C7 makes "Strategy Comparison — side by side"
+real, C8 makes "CSV import" real, both in 7g. **So the draft is written against what 2.0 will ship, not
+against today's tree**, and both lines are marked to re-check at P6.21 — if either slips, the line comes
+out. Writing this list from the current build would have produced a listing that was wrong again by the
+time it was pasted.
+
+⭐ **The premium block is derived from `paywall.tsx:28-42` deliberately** — the array a buyer sees one tap
+before purchasing. A listing written from anything else is precisely how these two drifted.
+
+### ⛔ The doc's own header asserted the belief that caused the whole mess
+
+`app-store-listing.md` said the live pages' *"source of truth: `debt-app-v1/site/`"*. **False, and it is
+the root cause of three misfiled findings**: `site/` is v1.5 from 2026-07-03, the live pages are v1.7 from
+2026-07-27, and no workflow here deploys `site/` at all. Corrected in place, with the measurement.
+
+### ⚠️ Also surfaced: a claim surface no lens has ever read
+
+The **Marketing URL** (`jsnyde03.github.io/debt-planner-site/`) is ASC-registered, linked, and was audited
+by nobody — not M1, not R2. It almost certainly repeats the same premium block. Filed to **P6.21**, not
+absorbed here.
+
+### ⛔ Three before-scan corrections, one of them mine
+
+1. **C6's "the wording is already written" was STALE IN THE UNSAFE DIRECTION.** §R1 T1 reads *"No account,
+   nothing uploaded — it works with your phone in airplane mode."* The bench doc is 2026-07-20; **cloud
+   backup shipped 2026-08-21**. Writing it verbatim would have shipped a *brand-new* false privacy claim at
+   the point of maximum trust sensitivity, inside the one area [D41] governs and P6.9 exists to prove
+   literally true. 🎯 chose `PRIVACY_CLAIM.atEntry` — one owner, [D41]-true, `body` left to P6.9.
+2. ⛔ **"M1-9 is A4's second site" was MY error, filed into the plan before I checked.** A4 is the *action*,
+   M1-9 the *finding*, both at `WelcomeStep.tsx:19`; `AffordabilityCard` is the evidence M1-9 cites, not a
+   site to fix. Caught by reading the slice instead of the summary — the b.2 I had decomposed would have
+   been **invented scope**, which the guardrails forbid by name.
+3. **L1-22 is 94 sites and 17 pin lines across 6 files**, not "72 strings, 7 assertions". The pin set
+   includes a **unit** test and three files a first, narrower probe missed entirely.
+
+### ⚡ Both ledger probes were wrong before they were right, and the second one is the lesson
+
+The first returned *"30 of 30 findings unassigned"* — false. `\\b` written through a heredoc collapsed to
+`\b`, which a JS template literal reads as **backspace**, so every regex was `<BS>A4<BS>` and matched
+nothing. ⛔ **That exact failure is already in this log** — *"heredoc-written scripts eat `\s`"* — and its
+recorded remedy, *write the block to a FILE*, is what fixed it.
+
+The second returned *"6 unassigned, all refuted"* — also false, in the safe-looking direction. Its boundary
+class excluded `-`, so `C6` read as absent while the plan said `C6-T1`; and it only matched **bold** ids,
+so **P1-10 — written italic — never entered the set at all.** ⭐ **The one genuine gap in the ledger was
+found by hand, and the instrument built to find it would have missed it.** Widened, it reported 26 absent
+ids — most of which are **aliases**, because SYNTHESIS carries lens ids *and* consolidated action ids for
+the same finding (`C5` is M2-9, `C6` is M4-8). Untangling that is P6.8.9's charter, not 7b's.
+
+⛔ **Which is what makes `[P6.8.9-1]` worth filing rather than eyeballing:** `check-audit-closure.ts:20` is
+hardcoded to the 2026-08-17 folder, so [D37]'s traceability gate does not cover this audit at all, while
+P6.8.7's exit line makes the identical promise. A ledger this aliased should not be checked by reading.
+
+---
+
+## ✅ P6.8.7a — GATES FIRST, all six closed (2026-08-21)
+
+Every later fix in P6.8.7b–g is now protected from regressing while it is written. **All six mutation-
+verified**; the counts below are read from runs, not typed from intent.
+
+| id | what changed | proof |
+|---|---|---|
+| **(i)** | `aria-allowed-attr` wired in, `a11ySelected` retired, 6 sites re-roled to `a11yChecked` | 10/10 axe green |
+| **W1-10** | native-prop guard **4 → 7** props; exemptions per-**prop**, not per-file | 3 new props planted at a non-exempt site, each named individually |
+| **W1-1** | `lint:apostrophes` decodes JSX entities before matching; baseline **72 → 94** | planted JSX text **and** a JSX attribute, both caught |
+| **W1-4 + W1-12** | fingerprint became an **exclusion** list: **582 → 628** files | freshness correctly reds and names the delta |
+| **W1-3** | `web-e2e.yml` gained `test:stamp`, `test:e2e:embed`, core typecheck | YAML parsed; both new links run green locally |
+
+### ⭐ What the building surfaced that the filing could not
+
+- ⛔ **`apps/rn/core` is a SYMLINK to `packages/core`.** Widening the fingerprint root to `apps/rn` — the
+  audit's own recommendation — would have followed it and hashed every core file **twice, under two
+  paths**, so one core edit would move two entries. Skipped for **being a link**, via `lstat`, rather than
+  by name: a name check would silently start excluding a real directory the day someone adds one.
+- ⛔ **Adding the roots without the extensions would have fingerprinted NOTHING.** `.github/**` and
+  `.maestro` hold ~27 `.yml`/`.yaml` files and `SOURCE_EXT` had neither extension. The change would have
+  looked done, passed review, and covered zero of the files it was written for.
+- ⛔ **A glob inside a block comment closed the comment.** `` `.github/actions/*/action.yml` `` contains
+  `*/`; esbuild failed with *"Expected ; but found lint"* pointing at the line *after* the real cause. The
+  path is now written `<name>` and says why.
+- ⚠️ **`test:e2e:embed` costs a second cold Metro export**, so `timeout-minutes` went 40 → 60. Deliberate:
+  the config's `--clear` is measured, not defensive.
+- ⚡ **The site list OVERcounted this time — a new variant.** W1-4 said `apps/rn/plugins/**` was 7 files;
+  it is **6** `.js` config plugins plus two Swift payload dirs, and no link of `validate:release:rn` reads
+  `.swift` (`preflight:xcuitest` exists but is not in the chain). Seven consecutive items have now had an
+  inaccurate site list — six short, **one long**. The lesson survives with its direction removed: *a filed
+  count is where to start measuring, not a measurement.*
+
+### 🔴 `[P6.8.7a-1]` — the guards are unguarded, and it is a 3-error fix
+
+`scripts/` holds all 17 house gates and is typechecked by **nothing in `validate:release:rn`**:
+`typecheck` is `typecheck:core && typecheck:rn`, and `lint:rn`'s eslint runs `--prefix apps/rn`. The only
+config that includes `scripts/**` is the **root** tsconfig — which belongs to the legacy Next surface
+**P6.11 deletes**, so this hole is about to become invisible rather than merely open.
+
+**Measured, not estimated: 3 errors across 26 scripts** — `preflight-native-lane.ts:455` (`toks` possibly
+null) and two readonly-array assignability errors on one line of `test-stamp-coverage.ts:115`.
+
+### ✅ CLOSED — 🎯 approved, 2026-08-21
+
+`scripts/tsconfig.json` + a `typecheck:scripts` script, chained into `typecheck` rather than added
+alongside it — so it rides the gate's existing first link, and `web-e2e.yml`'s typecheck step picks it up
+with no second edit. ⚠️ That also satisfies the rule written into that workflow's header one commit
+earlier: *a link added to `validate:release:rn` must be added here in the same commit.*
+
+⭐ **Mutation-verified.** A planted `const __plant: number = "not a number"` in `gateSources.ts` reds
+`npm run typecheck` naming the file and line; reverting returns 0. The plant was confirmed on disk before
+the run, because a plant that never applied looks exactly like a blind gate.
+
+⚡ **One of the two fixes was a real latent hazard, not a formality.** `toks` is `src.match(…)`, guarded
+by `if (!toks) return undefined` — and that narrowing reached `cmp` and `andExpr`, which are `const`
+arrows, but **not** `orExpr`, which was a hoisted `function` declaration. TypeScript resets narrowing
+inside declarations because they can be called before the guard runs. Converting it to a `const` arrow
+like its two siblings closed the hole without changing a line of parsing logic. **The null check now
+covers the whole parser instead of three quarters of it** — and nothing would ever have reported that,
+because the file had no compiler.
+
+The other was pure widening: the scenario table is an `as const` tuple, so its `fail` lists arrive
+readonly; `results()` only calls `.includes` on them, so the parameter widened rather than the table
+losing its literal types.
+
+⛔ **`lint:lane` still reports 87 structural checks and every `test:stamp` plant still lands** — the point
+of running both after a type fix inside a gate.
+
+### ✅ Also removed: a tracked junk file, and then I made another
+
+`apps/rn/m.default())` — **0 bytes, tracked, unreferenced**, born in `ab7daf3` *("my plant harness was
+lying to me")*. Deleted on 🎯's word rather than silently, because removing tracked files unasked is how a
+cleanup becomes an incident. ⚠️ **P6.1 reported clearing this class and was short by one.** It is now
+genuinely the only one — verified by walking **every tracked file for zero length**, not by grepping for
+suspicious names, which is the check that missed it the first time.
+
+⚡ **And a probe command of mine created `{})` in the repo root during this very item** — same shape, same
+zero bytes, from the same cause. Caught by `git status` and removed. **The class is not historical: it is
+one mis-quoted shell command away, always**, which is the argument for the zero-length walk being the
+check rather than anyone's care.
+
+---
+
+## 🔴 R5 — the expense reserve is advice the plan ignores (🎯, on device, 2026-08-21)
+
+**The report.** $175 recommended to reserve for expenses, $3,000 available → the plan routes **all
+$3,000** to the snowball/avalanche focus. 🎯's argument, and it is a **correctness** argument rather than
+a preference: *"expenses have to be paid over debt. The fact that the recommended amount is not in the
+plan goes against correctness."*
+
+### ⭐ Measured, and it makes the correctness argument the right one
+
+The allocator's obligation window is **strictly this cycle** — `isDueBeforeNextPaycheck` at
+`allocatePaycheck.ts:198-205` draws it as `[payday, nextPaycheckDate)`, and a bill due ON the next payday
+is deliberately excluded as belonging to that paycheck. So there are **two different things called
+"expenses"** and only one of them is opt-in:
+
+| | funded by | when |
+|---|---|---|
+| bills due **THIS** cycle | the waterfall, before any debt | always — *"expenses over debt" is already true here* |
+| bills due **NEXT** cycle | **nothing but the opt-in reserve** | only if the user tapped the offer |
+
+⛔ **So the gap is real and it is the dangerous half.** Rent due three days after the next payday is
+funded by no mechanism at all, and the plan will route this paycheck's whole surplus to a debt. The app
+whose stated job is to stop the user going short is recommending the thing that makes them go short.
+
+### ⛔ The mechanism, read rather than guessed
+
+`allocatePaycheck.ts:535` holds `min(expenseReserveContribution, remaining)`. The contribution is an
+explicit **cycle-keyed opt-in** (`ExpenseReserve.contribution.forCycle`); untapped it is `0`, `remaining`
+is untouched, and everything flows to the focus. This is not a defect against 3.8 — it is 3.8 working as
+specified. `expenseReserveSelectors.ts:100` states the premise being reversed: *"the offer, and it is
+NEVER required. The plan is correct at every contribution level including zero."*
+
+### ⚠️ The counter-argument I expected to make, and why it is weaker than it looks
+
+*"Auto-holding over-holds a user whose every cycle covers its own bills."* Largely false: the pot **draws
+down** when the bill lands (`expenseReserveDrawn`), and `testExpenseReserve.ts:142` already asserts
+conservation across a rollover — *"nothing invented, nothing lost."* Over a month it nets.
+
+⛔ **What survives is a ONE-TIME TRANSITION COST**, and it is the whole design question: the first cycle
+after this ships holds this cycle's bills **and** a contribution toward the next, so every existing user's
+debt recommendation drops the day they upgrade. That is the thing to design around — not a reason to
+leave the gap open.
+
+### ⭐ CORRECTED on 🎯's clarification — the chain EXISTS; only its placement is wrong
+
+⛔ **My first filing said the reserve had no action and no projection effect. Both were wrong**, and 🎯's
+own model of the feature turned out to describe the shipped design better than mine did. Traced:
+
+| the intended chain | reality |
+|---|---|
+| the amount appears as an action | ✅ `SpokenForSheet`'s `onReserve` → `setExpenseReserveContribution` |
+| apply it → it is reserved | ✅ `allocatePaycheck.ts:535`; the rollover folds it into the pot |
+| → the projection reflects it | ✅ `selectExtraToDebt` = the `snowball` category, computed from `remaining` **after** the reserve is taken. The Skia trajectory genuinely moves |
+
+⚠️ **What is actually wrong is placement and default, not capability** — and 🎯 sharpened it on a live
+seed: *"$349 recommended to be held out. It does not show up anywhere in Today. It should be in the
+recommended section."* Traced hop by hop, that description is exactly correct:
+
+- **Today's recommended section is `selectRecommendedActions`** (`index.tsx:136`), a thin wrapper over
+  `selectActiveRecommendedActions`, which builds **only** extra-payoff / emergency / goal actions from
+  `computeFlexibleCash`. ⛔ The reserve is not *missing* from that list — `expense_reserve` is a
+  `PROTECTED_CUSHION_CATEGORIES` member and **never reaches the builder at all**, so it could not appear
+  no matter what the user does.
+- **The $349 is on Today, but only inside a sheet**, and the sheet's only door is a **13-px chevron beside
+  a caption in the hero's stacked-bar legend** — `PlanHero.tsx:184-200`, `tappable = seg.key ===
+  'spokenFor'`. A legend entry under a bar chart is close to the least discoverable affordance in the app.
+- **Untapped, the contribution is `0`**, so the plan sizes the focus off the whole paycheck.
+
+⚡ **This is the THIRD hidden door 🎯 has found by using the app** — R2 *("living expenses
+undiscoverable")*, R3 *("the door exists and is built for the wrong audience")*, now R5. All three were
+invisible to the suite, which asks whether a control is present and reachable, never whether anyone would
+find it. **That is a pattern about the instrument, not three coincidences.**
+
+### My recommendation, for 🎯 to settle
+
+**Two small fixes, neither of them new engine capability.**
+
+1. **The DEFAULT.** `expenseReserveContribution` defaults to the offer instead of `0`, keeping the
+   existing `spare` clamp and shortfall guard untouched. The focused debt's figure then drops to
+   available − reserve **by itself** — `computeFlexibleCash` is already downstream of
+   `allocatePaycheck.ts:544`. This changes *what feeds the contribution*, not the waterfall, so the
+   rollover, draw and conservation tests all keep applying.
+2. **The PLACEMENT.** Surface the action on the **Plan tab** next to the recommendation it changes,
+   rather than only inside the Today hero's *"Spoken for"* sheet. ⚠️ **This half is a new surface** —
+   `expense_reserve` is a `PROTECTED_CUSHION_CATEGORIES` member and **no `.tsx` renders that category
+   at all**; `selectActiveRecommendedActions` builds only extra-payoff / emergency actions. So it must
+   clear **P6.10** feature lock, same as C7 and C8.
+
+⛔ **1 without 2 is worse than neither** — the user's debt recommendation silently drops by the reserve
+amount with nothing on the Plan tab explaining where it went.
+
+⚠️ **One residual to say out loud in the UI rather than absorb:** the first cycle after this ships holds
+this cycle's bills **and** a contribution toward the next, so every existing user's debt number moves on
+upgrade. Bounded and one-time — but it must be explained, not just applied.
+
+⛔ **Considered and NOT recommended:** replacing the flat `monthly ÷ cycles` smoothing
+(`selectRecurringSmoothed`) with a forward-solvency model that holds what the next cycle genuinely cannot
+cover. It is the more correct answer, it is real new engine capability, and it lands inside a phase whose
+job is to converge on a freeze. **2.1.**
+
+### ✅ THE SHAPE, settled by 🎯 2026-08-21
+
+> *"R5 is a recommended action row that allows for decline. When declined, the next recommended item
+> should update with the balance. When accepted, the bar updates with the amount as reserved."*
+
+⭐ **Two of those four behaviours already work, and measuring that shrank the build.**
+
+| behaviour | state |
+|---|---|
+| a recommended-action row | 🔴 **build** — new surface; `expense_reserve` is a `PROTECTED_CUSHION_CATEGORIES` member and never reaches `selectActiveRecommendedActions` |
+| it can be declined | 🔴 **build** — the control; the *state* it produces is today's default |
+| declined → the next recommendation grows | ✅ **free.** Contribution `0` → `remaining` larger → the `snowball` allocation larger → `selectExtraToDebt` larger. This is the existing path |
+| accepted → the bar shows it reserved | ✅ **free.** `PlanHero.tsx:81-82` — `spokenFor = everyday + billsReserve`, and `billsReserve` is `sumCategory(allocation, 'expense_reserve')` (`planSelectors.ts:369`) |
+| accepted → **the Money Expenses hero updates** *(🎯 2026-08-21)* | ✅ **free, and already TESTED.** `selectExpenseReserveNow` = `expenseReservePotAfterDraw + expenseReserveHeld` (`expenseReserveSelectors.ts:76`); `money.tsx:544` subscribes to it and the bar fills off the same figure. `expenseReserve.test.ts:62` pins it: *"the hero moves IMMEDIATELY on reserving, not at rollover"* — 3.8.4 hit this exact defect by reading `balance`, which sits at $0 until rollover |
+
+⚡ **So the engine already supports both end states; what R5 changes is the DEFAULT and the presentation.**
+Decline is not a new code path — it is the path every user is on today, reached by a button instead of by
+never finding the feature. **Every display consequence 🎯 named is downstream of one number**
+(`expenseReserveHeld`) and already wired: the plan bar, the next recommendation, and the Money hero all
+move because they read the same allocation.
+
+### ⛔ THE ONE REAL RISK IN R5, and it is the reason "does the hero update?" was worth asking
+
+Three surfaces update **only because they share one derivation**. The new action row must therefore write
+through the **existing setter** — `setExpenseReserveContribution`, the one `SpokenForSheet.onReserve`
+already calls — and must **not** introduce a second way to record a contribution.
+
+⚠️ **A second writer is how all three of those free behaviours stop being free**, and the failure would be
+invisible in the obvious test: a new setter that updates the store would still move the hero, while
+diverging on the clamp (`Math.min(recommended, spare)`), the cycle key (`forCycle`), or the rollover fold.
+This codebase names that shape everywhere — *"two places, one rule"* — and 3.8's own header records three
+defects in Wave A from exactly it. **One writer, two doors.**
+
+### ⚠️ Two questions the spec does not answer, with my recommendations
+
+1. **Does a decline persist for one cycle, or forever?** The contribution is cycle-keyed
+   (`ExpenseReserve.contribution.forCycle`), so the natural behaviour is **per-cycle** — the recommendation
+   returns next payday. ⭐ **Recommend per-cycle:** it is a recommendation about *this* paycheck and
+   circumstances change, which is the same reason the offer is re-computed each cycle. ⚠️ The cost is a
+   user who never wants it declining it every payday, so if that reads as nagging the answer is a
+   remembered preference, not a different default.
+2. **The transition cycle.** The first paycheck after this ships holds this cycle's bills **and** a
+   contribution toward next, so every existing user's debt number drops the day they upgrade.
+   ⭐ **Recommend saying it out loud once**, on that first cycle only. A silent drop in the headline number
+   is the shape that generates "the app broke my plan" — and this app's whole claim is that it explains
+   where the money went.
+
+### ✅ [D54] — 🎯 2026-08-21: *"Fixing this is a 2.0 feature."*
+
+**Settled, and it goes in 2.0.** Scheduled as its own Phase-6 row **after P6.8, ahead of P6.9** rather
+than folded into P6.8.7 — that build is a 30-item sequence deliberately ordered *guards first*, and
+injecting a new capability into it re-opens a sequence designed around a different question. R5 is a
+capability, not an audit fix.
+
+⚡ **The placement earns something beyond tidiness: P6.10 then audits it.** P6.10 is the financial-
+correctness money lens and R5 is a money-allocation change, so the gate that exists to catch exactly this
+class runs *after* it lands. Had R5 gone in later it would have shipped past the last gate that could
+check it.
+
+⛔ **It must clear P6.10 feature lock, and that is not a formality** — this is precisely the case [D52]
+moved the lock line for. A capability found by P6.8's *"is anything missing"* charter needed somewhere to
+go; this is the first one to use that room.
+
+⚠️ **NOT decomposed here.** The active decomposition is P6.8.7 and there is exactly one per document; R5's
+sub-steps are authored at switch-in. The two halves are known — default the contribution, and make
+`expense_reserve` a candidate in `selectActiveRecommendedActions` — and the second is the real work.
+
+---
+
 ## ✅ [D52] — both lines move, and the reason lock moved was a contradiction (🎯, 2026-08-20)
 
 **FEATURE LOCK → after P6.10. CODE FREEZE → after P6.18.** [D39]'s two-line structure is unchanged; only

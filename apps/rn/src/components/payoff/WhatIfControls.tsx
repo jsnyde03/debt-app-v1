@@ -95,11 +95,11 @@ export function WhatIfControls({
       <View style={styles.results}>
         {!simulating ? (
           <Text style={[textStyles.subhead, styles.center, { color: c.text.tertiary }]}>
-            Drag or type an amount to see how much faster you&apos;d be debt-free.
+            Drag or type an amount to see how much faster you’d be debt-free.
           </Text>
         ) : !result.canEstimate ? (
           <Text style={[textStyles.subhead, styles.center, { color: c.text.tertiary }]}>
-            Can&apos;t estimate a payoff date with the current plan.
+            Can’t estimate a payoff date with the current plan.
           </Text>
         ) : where ? (
           <Text style={[textStyles.subhead, styles.center, { color: c.text.secondary }]}>{where}</Text>

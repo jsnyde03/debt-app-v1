@@ -17,8 +17,8 @@ import { groupLabel } from '@/utils/a11y';
  * reserved for debt-free); a single success haptic marks the moment on appear.
  */
 const MESSAGE: Record<PendingMilestone['threshold'], { title: string; body: string }> = {
-  25: { title: 'A quarter paid off', body: "You've paid off 25% of your debt. Keep the momentum going." },
-  50: { title: 'Halfway to debt-free', body: "50% paid off — you're over the hump." },
+  25: { title: 'A quarter paid off', body: "You’ve paid off 25% of your debt. Keep the momentum going." },
+  50: { title: 'Halfway to debt-free', body: "50% paid off — you’re over the hump." },
   75: { title: 'Three-quarters done', body: '75% paid off. The finish line is in sight.' },
 };
 

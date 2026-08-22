@@ -61,7 +61,7 @@ function runGuardianTests() {
 
   // MF.3 (audit #4): FREE gets the honest shortfall read too — the crisis statement is not premium-gated.
   const freeShort = buildGuardianBrief(input({ isPremium: false, shortfall: 180, discretionary: 0 }));
-  assertEqual(freeShort.title, "This paycheck won't cover everything", "free shortfall → the honest title (not softened to 'a bit tight')");
+  assertEqual(freeShort.title, "This paycheck won’t cover everything", "free shortfall → the honest title (not softened to 'a bit tight')");
   assertTrue(/\$180 short/i.test(freeShort.detail), "free shortfall → tells the amount short");
   assertEqual(freeShort.safeMove, undefined, "free shortfall → no safeMove (the built plan is premium)");
   assertEqual(freeShort.shortfall, 180, "free shortfall carries the amount for the state-aware invite");
@@ -102,7 +102,7 @@ function runGuardianTests() {
   // Even with a would-be-CLEAR read (high discretionary), pausedDeploy supersedes everything.
   const paused = buildGuardianBrief(input({ pausedDeploy: true, discretionary: 500, kept: 400, deployedToDebt: 80, focusDebtName: "Store Card" }));
   assertTrue(paused.pausedDeploy === true, "missed paycheck → pausedDeploy flag set");
-  assertTrue(/didn't land/i.test(paused.title), "paused: honest 'a paycheck didn't land', not a verdict");
+  assertTrue(/didn’t land/i.test(paused.title), "paused: honest 'a paycheck didn't land', not a verdict");
   assertEqual(paused.deployedToDebt, 0, "paused: deploy to debt is 0 (never planned on phantom income)");
   assertTrue(!/covered|clear|spare|sending|put the spare/i.test(paused.title + paused.detail), "paused: no phantom-income clear/deploy copy");
   assertTrue(/paused/i.test(paused.detail), "paused: says it paused moving money to debt");
@@ -174,7 +174,7 @@ function runGuardianTests() {
 
   // ── §2.10 tight-case top-up (2.4.11.2): moving savings over holds the line → the 'held' acknowledgment ──
   const held = buildGuardianBrief(input({ toppedUp: true, discretionary: 200, kept: 200, deployedToDebt: 0, floor: 200 }));
-  assertTrue(/line's held/i.test(held.title), "topped-up → 'Your line's held', not a plain 'looks clear'");
+  assertTrue(/line’s held/i.test(held.title), "topped-up → 'Your line's held', not a plain 'looks clear'");
 
   // ⛔ T5.2 (audit L3-1 + L3-2) — the top-up confirmation made two claims it could not keep.
   // L3-1: it named the EMERGENCY FUND whatever the real source was, while selectTightTopUp PREFERS a

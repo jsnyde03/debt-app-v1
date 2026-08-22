@@ -41,9 +41,9 @@ export interface ReadBackupFailureResult {
 
 export type ReadBackupResult = ReadBackupSuccess | ReadBackupFailureResult;
 
-const NOT_JSON = "That file isn't readable as a backup.";
-const UNRECOGNISED = "That isn't a Debt Planner backup.";
-const UNREADABLE = "That backup couldn't be read.";
+const NOT_JSON = "That file isn’t readable as a backup.";
+const UNRECOGNISED = "That isn’t a Debt Planner backup.";
+const UNREADABLE = "That backup couldn’t be read.";
 
 /**
  * v1.6 file metadata — describes the FILE, not the user. Skipped before mapping so they do not surface as
@@ -128,7 +128,7 @@ export function describeBackup(result: ReadBackupSuccess): string {
   ];
   const contents = `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
   const dropped = result.legacy?.dropped.length ?? 0;
-  const skipped = dropped > 0 ? ` ${plural(dropped, 'item', 'items')} the current version no longer uses won't come across.` : '';
+  const skipped = dropped > 0 ? ` ${plural(dropped, 'item', 'items')} the current version no longer uses won’t come across.` : '';
   return `${SOURCE[result.kind]} has ${contents}.${skipped}`;
 }
 

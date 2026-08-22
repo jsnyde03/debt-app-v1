@@ -163,7 +163,7 @@ function MisfiledHint({ expense, onConvert }: { expense: RequiredExpense; onConv
   return (
     <View style={[styles.misfiledHint, { borderColor: c.border.subtle }]}>
       <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-        Is this a debt you&apos;re paying down? Debts count toward your debt-free date — expenses don&apos;t.
+        Is this a debt you’re paying down? Debts count toward your debt-free date — expenses don’t.
       </Text>
       <View style={styles.misfiledActions}>
         <Pressable onPress={onConvert} accessibilityRole="button" testID={`misfiled-convert-${expense.id}`} hitSlop={8}>

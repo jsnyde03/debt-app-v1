@@ -27,6 +27,19 @@ decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submis
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-21).** P6.8's audit is closed and its BUILD is under way:
+**P6.8.7a (gates) and P6.8.7b (copy) are DONE**; **next is `P6.8.7c.1`**, decomposed on the plan.
+⛔ **Two things a new session must know before touching anything:**
+- **The 12 Playwright pin edits from the apostrophe sweep have never been run in a browser.** Everything
+  off-browser is green. They are verified at **P6.8.8**, and that is the first place to look if e2e reds.
+- **`lint:closure` now reports the P6.8 audit too, and it says 43 of 80 high+ findings are traceable to no
+  ledger.** That is **report-only by design** until **P6.8.9**, which flips it to `exit 1`. It is not a
+  regression and must not be "fixed" by silencing it.
+
+⭐ **What 🎯 owes, in one place: [`docs/DEBT_2.0_YOUR_STEPS.md`](docs/DEBT_2.0_YOUR_STEPS.md).** Every step
+needing a human, an Apple login, a device or a decision — with an *"already done, do not ask twice"*
+section, because three rows in this plan were still claiming to wait on him after he had answered.
+
 ⛔ **The result worth carrying out of eight items: an audit finding's site list is where to START looking,
 never the class.** Measured on five consecutive items, always undercounting — T4 needed material
 correction on 5 of 11 · T5's L1-12 was **2 of 9** sites · T6's formatter count went **6 → 7 → 9 → 12**,

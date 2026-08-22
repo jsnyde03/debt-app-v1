@@ -1,8 +1,20 @@
 name: web-e2e
 
-# The every-push gate. Runs `validate:release:rn` — the RN app's own lint + engine suites + the
-# Playwright e2e against the static web export (`expo export --platform web` → `dist/`, served as an
-# SPA; `apps/rn/playwright.config.ts` builds it itself whenever CI is set).
+# The every-push gate. Runs every link of `validate:release:rn` except `gate:record` — the RN app's own
+# typecheck + lint + engine suites, the Playwright e2e against the static web export
+# (`expo export --platform web` → `dist/`, served as an SPA; `apps/rn/playwright.config.ts` builds it
+# itself whenever CI is set), and the embed suite against its own separate export.
+#
+# ⛔ THE EQUIVALENCE ABOVE IS LOAD-BEARING AND WAS FALSE — [W1-3]. `embed-pages.yml`'s [D44] guard refuses
+# to deploy any SHA without a green `web-e2e`, and that edge is built entirely on this header's claim.
+# But the step list had drifted from the `validate:release:rn` chain and was missing `test:stamp`,
+# `test:e2e:embed` and the `packages/core` half of the typecheck — so the guard was gating the marketing
+# embed on a run that never exercised the embed. Three links were absent while the header said "runs the
+# gate". ⚠️ If a link is added to `validate:release:rn`, it must be added here in the same commit, or the
+# claim silently rots again — nothing compares the two lists.
+#
+# `gate:record` is the one deliberate omission: it writes `gate-status.json`, a local record of a pass on
+# a specific tree, and a CI runner writing it into a throwaway checkout records nothing anyone reads.
 #
 # ⚠️ It used to gate the LEGACY Capacitor/Next app (`npm run lint`, `npm run build && serve out`), which
 # was retired on 2026-07-24 when `validate:release` was repointed at the RN gate. The workflow was never
@@ -29,9 +41,9 @@ concurrency:
 
 jobs:
   e2e:
-    name: RN gate (typecheck · lint · engine · e2e)
+    name: RN gate (typecheck · lint · stamp · engine · e2e · embed)
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     env:
       CI: "true"
     steps:
@@ -68,11 +80,21 @@ jobs:
       # Fail fast, cheapest first: types, then lint, then the engine suites, and only then the browser.
       # `validate:release:rn` runs exactly these in one command locally; they are split here so a red run
       # names the stage it died in without opening the log.
-      - name: Typecheck
-        run: npm --prefix apps/rn run typecheck
+      # ⛔ `npm run typecheck`, NOT `npm --prefix apps/rn run typecheck` — [W1-3]. The gate's first link is
+      # `typecheck:core && typecheck:rn && typecheck:scripts`; the prefixed form is only the RN third, so
+      # `packages/core` — where every money primitive lives — was never typechecked on any push.
+      # ⚠️ `typecheck:scripts` is [P6.8.7a-1]: the 17 house guards had no compiler behind them, and the
+      # only config that included them belongs to the tree P6.11 deletes.
+      - name: Typecheck (core + RN + scripts)
+        run: npm run typecheck
 
-      - name: Lint (RN + the four house guards)
+      - name: Lint (RN + the house guards)
         run: npm run lint:rn
+
+      # Cheap and self-contained: every scenario runs against a COPY of the checklist in a temp dir, so
+      # this touches nothing in the checkout. Early because it costs seconds and fails loudly.
+      - name: Stamp-coverage writer proofs
+        run: npm run test:stamp
 
       - name: Regression tests (money-math backstop)
         run: npm run test:regression
@@ -109,6 +131,18 @@ jobs:
       # served, the local-only hazard called out in the plan's Phase-4 notes.
       - name: Run the RN e2e suite
         run: npm run test:e2e:rn
+
+      # ⛔ THE SUITE THE [D44] PAGES GUARD IS ACTUALLY ABOUT — [W1-3]. `embed-pages.yml` refuses to deploy
+      # a SHA without a green run of THIS workflow, and until now the only suite exercising the published
+      # artifact was the one this workflow did not run. The `build` job's grep-for-base-path was the first
+      # and only check the embed got in CI.
+      #
+      # ⚠️ Its own config builds a SEPARATE export (`dist-embed`, `--clear`, port 4320) — a second cold
+      # Metro export, which is why `timeout-minutes` went up with this step. That cost is deliberate: the
+      # `--clear` is measured, not defensive, because Metro's transform cache does not invalidate on an
+      # `EXPO_PUBLIC_*` change and a warm build silently tests the wrong artifact.
+      - name: Run the embed e2e suite
+        run: npm run test:e2e:embed
 
       # Surface the traces (`trace: 'on-first-retry'`) so a red gate is debuggable. Paths resolve relative
       # to the CONFIG's directory, so they land under apps/rn, not the repo root.

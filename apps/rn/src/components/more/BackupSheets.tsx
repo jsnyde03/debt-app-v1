@@ -44,7 +44,7 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
     // ⚠️ Only a real failure is announced. A share sheet the user dismissed is a decision, not an error,
     // and `Sharing.shareAsync` resolves the same either way — so there is nothing here to distinguish
     // "cancelled" from "saved", and guessing wrong in the noisy direction trains people to ignore us.
-    if (!result.ok) notify("Couldn't save", 'Saving the file failed. You can still copy the text below.');
+    if (!result.ok) notify("Couldn’t save", 'Saving the file failed. You can still copy the text below.');
   }
 
   return (
@@ -105,7 +105,7 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
     if (!picked.ok) {
       // ⛔ A cancel is silent. The user closing the picker is not a failure, and reporting it as one is
       // how a safe flow starts feeling broken.
-      if (picked.reason === 'error') setError("That file couldn't be opened.");
+      if (picked.reason === 'error') setError("That file couldn’t be opened.");
       return;
     }
     setText(picked.text);
@@ -123,7 +123,7 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
       <FormSheet
         visible
         title="Replace your data?"
-        subtitle="This overwrites everything currently in the app. It can't be undone."
+        subtitle="This overwrites everything currently in the app. It can’t be undone."
         submitLabel={REPLACE_DATA_ACTION}
         onSubmit={replace}
         onClose={onClose}>
@@ -139,7 +139,7 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
     <FormSheet
       visible
       title={IMPORT_BACKUP_TITLE}
-      subtitle="Paste a backup you saved before. You'll see what's in it before anything changes."
+      subtitle="Paste a backup you saved before. You’ll see what’s in it before anything changes."
       submitLabel="Check backup"
       onSubmit={() => check(text)}
       onClose={onClose}>

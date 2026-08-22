@@ -191,7 +191,7 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
         <View style={[styles.holdRow, { backgroundColor: c.background.tertiary }]}>
           <AppIcon name="savings" size={18} color={c.accent.primary} />
           <Text style={[textStyles.subhead, styles.holdText, { color: c.text.secondary }]}>
-            I&apos;m setting aside <Text style={{ color: c.text.primary, fontWeight: '700' }}>{formatWhole(holdNow)}</Text> from this paycheck for a tight cycle ahead.
+            I’m setting aside <Text style={{ color: c.text.primary, fontWeight: '700' }}>{formatWhole(holdNow)}</Text> from this paycheck for a tight cycle ahead.
           </Text>
         </View>
       ) : null}

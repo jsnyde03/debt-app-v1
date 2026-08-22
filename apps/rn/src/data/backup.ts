@@ -105,10 +105,10 @@ export function isBackupEnvelope(parsed: unknown): boolean {
   return (parsed as Partial<BackupEnvelope>).format === BACKUP_FORMAT;
 }
 
-const NOT_JSON = "That file isn't readable as a backup.";
-const NOT_A_BACKUP = "That isn't a Debt Planner backup.";
+const NOT_JSON = "That file isn’t readable as a backup.";
+const NOT_A_BACKUP = "That isn’t a Debt Planner backup.";
 const TOO_NEW = 'That backup was made by a newer version of Debt Planner. Update the app, then try again.';
-const MALFORMED = "That backup is incomplete and can't be restored.";
+const MALFORMED = "That backup is incomplete and can’t be restored.";
 
 /**
  * Parse the envelope. Does NOT migrate — `runMigrations` runs at the import boundary, so this stays a

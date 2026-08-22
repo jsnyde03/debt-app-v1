@@ -98,7 +98,7 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
       {isPremium && hasSplit ? (
         <View style={styles.split}>
           <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>
-            HERE&apos;S HOW THE APP WILL ROUTE {formatWhole(split.amount)}
+            HERE’S HOW THE APP WILL ROUTE {formatWhole(split.amount)}
           </Text>
           {split.items.map((item) => (
             // A4 — one utterance ("To your emergency fund, $700"), not icon + label + amount separately.
@@ -113,9 +113,21 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
           </Text>
         </View>
       ) : !isPremium && validAmount ? (
-        // Free adds the windfall as always; the invite sells the routing view, never a locked preview.
+        // ⛔ [P1-10] THE OLD INVITE WAS TRUE AND STILL MISLED. It read "Premium shows exactly where your
+        // $500 lands", which is literally correct — premium renders the itemised split — but to a free
+        // user standing in front of it, it reads as though the money is not routed until they pay. It is:
+        // `selectors.ts:54` folds the windfall into the paycheck with NO tier gate, and the identical
+        // waterfall allocates it either way.
+        //
+        // ⚠️ So the sentence now leads with what already happened, and sells only what is actually bought:
+        // the itemisation. Saying it in this order costs the paywall nothing it was entitled to.
+        //
+        // ⛔ **This is the COPY half of P1-10 and not its fix.** The finding is that the tier is inverted —
+        // free does the WORK and premium reports it, which is the premium spec's own price test upside
+        // down ("removing it must remove WORK, not just info"). Correcting that is a monetisation change
+        // and 🎯's call; it is filed on the plan, unbuilt, and must clear P6.10 if it happens.
         <View style={styles.split}>
-          <PremiumInvite message={`Premium shows exactly where your ${formatWhole(n)} lands — expenses, debt, and savings — before you confirm.`} />
+          <PremiumInvite message={`Your ${formatWhole(n)} is already in the plan. Premium itemizes where it lands — expenses, debt, and savings — before you confirm.`} />
         </View>
       ) : null}
     </FormSheet>

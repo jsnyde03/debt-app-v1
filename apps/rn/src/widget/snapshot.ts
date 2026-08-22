@@ -43,7 +43,7 @@ function buildGuardianSpoken(store: DebtStore): string {
     const brief = selectPaydayGuardian(withProjectedBalances(store, true));
     if (!brief) return '';
     if (brief.shortfall && brief.shortfall > 0) {
-      return `This paycheck is very tight — you're about ${formatWhole(brief.shortfall)} short of your obligations.`;
+      return `This paycheck is very tight — you’re about ${formatWhole(brief.shortfall)} short of your obligations.`;
     }
     if (brief.state === 'tight' && brief.safeMove) {
       return `This paycheck is a little tight. ${brief.safeMove}`;

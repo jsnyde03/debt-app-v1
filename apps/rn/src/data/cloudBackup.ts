@@ -77,7 +77,7 @@ export function encodeCloudBackup(
 }
 
 /** Shown when the container holds a file we did not write, or wrote in a way this build cannot read. */
-const NOT_A_CLOUD_BACKUP = "That iCloud file isn't a Debt Planner backup.";
+const NOT_A_CLOUD_BACKUP = "That iCloud file isn’t a Debt Planner backup.";
 const NO_CODEC = 'That backup was made by a newer version of Debt Planner.';
 
 /**

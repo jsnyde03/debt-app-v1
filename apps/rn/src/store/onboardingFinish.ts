@@ -20,13 +20,13 @@ export function finishLine(debtFreeDate: string | null, nextPaycheckDate: string
   if (debtFreeDate) {
     return {
       title: `You could be debt-free by ${debtFreeDate}`,
-      body: "That's your target — stay the course. Tap below to see exactly what to do with your next paycheck.",
+      body: "That’s your target — stay the course. Tap below to see exactly what to do with your next paycheck.",
     };
   }
   if (nextPaycheckDate) {
     return {
       title: `Your next paycheck lands ${formatPaycheckDate(nextPaycheckDate)}`,
-      body: "Here's what it has to cover, and what's left after. Add a debt any time and you'll get a debt-free date too.",
+      body: "Here’s what it has to cover, and what’s left after. Add a debt any time and you’ll get a debt-free date too.",
     };
   }
   return {

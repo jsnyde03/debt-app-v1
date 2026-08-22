@@ -1,0 +1,36 @@
+{
+  // [P6.8.7a-1] — the 17 house gates had NO typecheck in any live gate, and that is the THIRD time this
+  // exact hole has been found in this repo. `apps/rn/tsconfig.json` records closing it for the RN app;
+  // `packages/core/tsconfig.json` records closing it for the money engine ("the LEAST type-checked code
+  // in the repo") and, in the same breath, notes that "the root tsconfig is broken and referenced by no
+  // script" — which is precisely why `scripts/**` fell through: it is included ONLY by that dead config.
+  //
+  // ⛔ The hole was about to become invisible rather than merely open: the root tsconfig belongs to the
+  // legacy Next surface that P6.11 DELETES, so after that commit nothing would have included these files
+  // at all and nothing would have reported the change.
+  //
+  // ⚠️ What made it worth closing now rather than filing: these scripts ARE the gates. `lint:money`,
+  // `lint:closure`, `lint:sandbox`, the fingerprint that decides whether a recorded pass still describes
+  // the tree — all of it ran with no compiler behind it, while every line of the code they guard had one.
+  //
+  // Measured before wiring it up: 3 errors across 26 scripts, all trivial, none in gate logic.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    // `import.meta.dirname` is how every script here locates the repo root; it needs ES modules and the
+    // node types, not the DOM.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    // These run under `tsx`, which resolves both spellings — `./gateSources` and `./coverage-model.ts`
+    // are both live in the tree. `bundler` covers the extensionless form; this covers the explicit one.
+    // Requires `noEmit`, which is what a typecheck-only config wants anyway.
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}

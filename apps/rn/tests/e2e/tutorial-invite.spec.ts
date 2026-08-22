@@ -222,7 +222,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByTestId('tutorial-overlay')).toBeVisible();
 
     const clear = page.getByText('Looks clear this paycheck');
-    const short = page.getByText(/won't cover everything/);
+    const short = page.getByText(/won’t cover everything/);
     await expect(clear).toBeVisible();
 
     // Step to the Recovery glimpse — the one beat that deliberately puts the card in trouble.
@@ -257,7 +257,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await seedStore(page, newUser({ prefs: { onboardingComplete: true, tutorialSeen: 'premium', tutorialStep: 4 } }));
     await page.goto('/tutorial');
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 5 of');
-    await expect(page.getByText(/won't cover everything/)).toBeVisible();
+    await expect(page.getByText(/won’t cover everything/)).toBeVisible();
   });
 
   test('a harness-pinned state governs the whole run, not just the opening', async ({ page }) => {
@@ -269,10 +269,10 @@ test.describe('tutorial invitation + in-situ shell', () => {
 
     // Beat 1 declares `clear`. If the beat state won the argument, the pin would survive exactly one
     // render — and every screenshot script that asks for a state would quietly shoot the wrong one.
-    await expect(page.getByText(/won't cover everything/)).toBeVisible();
+    await expect(page.getByText(/won’t cover everything/)).toBeVisible();
     await page.getByText('Next', { exact: true }).click();
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 2 of');
-    await expect(page.getByText(/won't cover everything/)).toBeVisible();
+    await expect(page.getByText(/won’t cover everything/)).toBeVisible();
   });
 
   // NOTE (3.5.3.3.4.1): the per-beat screen-reader announcement is deliberately NOT asserted here.
@@ -506,7 +506,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await expect(page.getByText(/safety net was there when a surprise came up/)).toBeVisible({ timeout: 12_000 });
 
     await page.getByText('Next', { exact: true }).click(); // → 5 short paycheck
-    await expect(page.getByText(/won't cover everything/)).toBeVisible();
+    await expect(page.getByText(/won’t cover everything/)).toBeVisible();
     await page.getByText('Next', { exact: true }).click(); // → 6 your call
     await page.getByText('Next', { exact: true }).click(); // → 7 hand-back
     await expect(page.getByTestId('tutorial-progress')).toContainText('Step 7 of');

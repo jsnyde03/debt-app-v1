@@ -34,9 +34,9 @@ export type AddKind = 'debts' | 'bills' | 'goals';
  * The chooser owns the taxonomy; the sheets import it.
  */
 export const OBLIGATION_CLAUSE: Record<AddKind, string> = {
-  debts: "Something with a balance you're paying down. It ends.",
-  bills: "An ongoing cost that doesn't end.",
-  goals: "Money you're setting aside for something.",
+  debts: "Something with a balance you’re paying down. It ends.",
+  bills: "An ongoing cost that doesn’t end.",
+  goals: "Money you’re setting aside for something.",
 };
 
 const CHOICES: { kind: AddKind; title: string; clause: string; examples: string; testID: string }[] = [
@@ -78,7 +78,7 @@ export function AddObligationSheet({ onPick, onClose }: { onPick: (kind: AddKind
       // ⚠️ ONE LINE. `AnimatedSheet` clamps the subtitle at `numberOfLines={1}` (FormSheet allows two),
       // and a longer sentence truncates mid-word — which it did. The three cards carry the explaining;
       // this only has to say the thing that makes the taxonomy the app's problem instead of the user's.
-      subtitle="It'll go in the right place."
+      subtitle="It’ll go in the right place."
       onClose={onClose}>
       <View style={styles.list}>
         {CHOICES.map((choice) => (

@@ -36,7 +36,10 @@ const check = (label: string, ok: boolean, detail = '') => {
 };
 
 /** a results file in the exact shape `maestro-results.mjs` emits */
-function results(tier: string, flows: string[], opts: { fail?: string[]; skipped?: string[]; junitFound?: boolean; runId?: string } = {}) {
+// `readonly` on the two arrays: the scenario table below is an `as const` tuple, so its `fail` lists
+// arrive readonly. Widening the parameter is the honest direction — nothing here mutates them, it only
+// calls `.includes` — where stripping the `as const` would cost the table its literal types.
+function results(tier: string, flows: readonly string[], opts: { fail?: readonly string[]; skipped?: readonly string[]; junitFound?: boolean; runId?: string } = {}) {
   const verdictOf = (f: string) => (opts.fail?.includes(f) ? 'fail' : opts.skipped?.includes(f) ? 'skipped' : 'pass');
   const rows = flows.map((f) => ({ flow: `${f}.yaml`, name: f, verdict: verdictOf(f), time: 1 }));
   const totals = { pass: 0, fail: 0, skipped: 0 } as Record<string, number>;
