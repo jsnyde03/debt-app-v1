@@ -34,17 +34,24 @@ every fix plant-verified red and green, **220 e2e · 10 embed · `lint:rn` exit 
 DESTROY data the user still has**, and none of it is verifiable off-device: every step ships with a
 P6.14 device row, not a claim.
 
-⛔ **Two results from c.1/c.2 that change how you test and how you read a green gate:**
+⛔ **Three results from 7c that change how you test, how you read a green gate, and how you read the
+audit — the third one fires at d's switch-in:**
+- **⚠️ AN OWED REFUTATION THAT NEVER ARRIVED IS INVISIBLE.** `M3-recovery.md` names a Wave-2 refutation as
+  owed on **M3-20**; R1's verdict table omits it, and nothing anywhere flags the gap. It was scheduled as
+  work and would have been built **un-refuted**, against P6.8.4's own rule, if the switch-in had not
+  opened the step. Supplying it then **narrowed the scope** — half its evidence was deliberate non-carries.
+  **Before building any cluster, check its slice's owed-list against the refuter that answered it.**
 - **An ABSENCE assertion passes before the app renders.** `expect(x).toHaveCount(0)` is satisfied by a
   blank page. **Two consecutive items shipped a spec that stayed GREEN with the defect planted back**, and
   both were caught by planting, never by reading. Wait for a marker that renders in *both* branches first.
 - **`lint:rn` green does NOT mean the tree is purity-clean.** `react-hooks/purity` reports a component's
   violations only while the React Compiler can still analyse it — `DebtSheet` linted clean, then produced
   2 errors on `Date.now()` calls **nobody touched**, the moment an unanalysable call entered render scope.
-✅ **CI IS GREEN ON `dde2015`** — run `32588435337`, which is **every link of `validate:release:rn` except
-`gate:record`**: typecheck (core + RN + **scripts**) · `lint:rn` · **`test:stamp`** · regression · app ·
-scenarios · **`test:e2e:rn`** · **`test:e2e:embed`**. The apostrophe sweep's 12 Playwright pin edits are
-therefore **verified**, and the three links added to `web-e2e.yml` this session all pass in CI.
+✅ **CI IS GREEN ON `bc05054`** — run `32604746153`, verified by reading the run rather than by inferring
+it from a local pass. It is **every link of `validate:release:rn` except `gate:record`**: typecheck
+(core + RN + **scripts**) · `lint:rn` · **`test:stamp`** · regression · app · scenarios ·
+**`test:e2e:rn`** · **`test:e2e:embed`**. So the whole of 7c is verified on a clean machine, not only on
+the desk.
 
 ⛔ **Two things a new session must know before touching anything:**
 - **`gate-status.json` is STALE and that is correct.** CI deliberately does not run `gate:record`, and
