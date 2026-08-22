@@ -29,9 +29,15 @@ backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commi
 
 ▶ **WHERE THIS SESSION LEFT OFF (2026-08-21).** P6.8's audit is closed and its BUILD is under way:
 **P6.8.7a (gates) and P6.8.7b (copy) are DONE**; **next is `P6.8.7c.1`**, decomposed on the plan.
+✅ **CI IS GREEN ON `dde2015`** — run `32588435337`, which is **every link of `validate:release:rn` except
+`gate:record`**: typecheck (core + RN + **scripts**) · `lint:rn` · **`test:stamp`** · regression · app ·
+scenarios · **`test:e2e:rn`** · **`test:e2e:embed`**. The apostrophe sweep's 12 Playwright pin edits are
+therefore **verified**, and the three links added to `web-e2e.yml` this session all pass in CI.
+
 ⛔ **Two things a new session must know before touching anything:**
-- **The 12 Playwright pin edits from the apostrophe sweep have never been run in a browser.** Everything
-  off-browser is green. They are verified at **P6.8.8**, and that is the first place to look if e2e reds.
+- **`gate-status.json` is STALE and that is correct.** CI deliberately does not run `gate:record`, and
+  running it by hand forges a green — the writer is gated on `--from-gate` for exactly that reason. The
+  record is refreshed by a real local `validate:release:rn` at **P6.8.8**.
 - **`lint:closure` now reports the P6.8 audit too, and it says 43 of 80 high+ findings are traceable to no
   ledger.** That is **report-only by design** until **P6.8.9**, which flips it to `exit 1`. It is not a
   regression and must not be "fixed" by silencing it.

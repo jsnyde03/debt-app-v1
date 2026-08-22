@@ -14,17 +14,26 @@
 ⭐ **The site pages are corrected and published** — commit `8f89394` in `jsnyde03/debt-planner-site`,
 verified by fetching the served pages. That closes **A2** and **A2-5**.
 
+### ✅ CI settled the one thing the desk could not
+
+**Run `32588435337` on `dde2015` is GREEN**, and it is **every link of `validate:release:rn` except
+`gate:record`** — typecheck (core + RN + **scripts**) · `lint:rn` · **`test:stamp`** · regression · app ·
+scenarios · **`test:e2e:rn`** · **`test:e2e:embed`**.
+
+⭐ **So the sweep's 12 Playwright pin edits are verified**, and the earlier "browser-unverified" caveat in
+this entry is retired. ⭐ **And the three links W1-3 added to `web-e2e.yml` all ran and passed on their
+first outing**, which is the half of that fix nothing local could prove: the workflow now genuinely runs
+what its header claims, so the [D44] Pages guard rests on a true statement.
+
 ### ⛔ State a new session must not misread
 
-- **The 12 Playwright pin edits are BROWSER-UNVERIFIED.** typecheck · app · regression · scenarios ·
-  stamp and all copy guards are green; the e2e suite was not run (🎯 declined the cycle at close).
-  **P6.8.8 is where they are verified, and the first suspect if e2e reds.**
+- **`gate-status.json` is STALE, and leaving it stale is CORRECT.** CI does not run `gate:record` by
+  design, and running it by hand **forges a green** — the writer is gated on `--from-gate` precisely
+  because that was done once already. A real local `validate:release:rn` at **P6.8.8** refreshes it.
 - **`lint:closure` reports `43 of 80 high+ findings named in NO ledger` for the P6.8 audit.**
   **Report-only BY DESIGN until P6.8.9.** Not a regression. Do not silence it; drive it to zero, then
   flip it to `exit 1`.
-- **`gate-status.json` is stale** — the tree moved a long way. `validate:release:rn` has not been run
-  this session.
-- **Nothing is committed to `main`** on debt-app-v1; the work is one commit on `v1.7-dev`.
+- **`main` is untouched** — the work is on `v1.7-dev`, pushed.
 
 ### ⚡ The result worth carrying: four instruments were wrong, and each failed differently
 
