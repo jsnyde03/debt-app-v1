@@ -4,6 +4,60 @@
 
 ---
 
+## 🔚 SESSION CLOSE 2026-08-22 — P6.8.7c closed end to end
+
+### ✅ Shipped
+
+**The whole of 7c**: **B1** · **B4** · **W1-6** · **M3-20**, in `22c49f0` — 40 files, every fix
+plant-verified **red and green**. Per-item detail in the four sections below this one.
+
+**Verified with real exit codes, not pipes:** `typecheck` · `lint:rn` · `test:regression` · `test:app` ·
+`test:scenarios` · `test:stamp` all **0** · **`test:e2e:rn` 220 passed** · **`test:e2e:embed` 10 passed**.
+
+⛔ **`validate:release:rn` was NOT run — that is P6.8.8** — so `gate-status.json` is still stale, which
+remains correct. **Not pushed**, so CI has not seen this commit.
+
+### ⛔ Three results that outlive the cluster
+
+1. **An ABSENCE assertion passes before the app renders.** `expect(x).toHaveCount(0)` is satisfied by a
+   blank page. **Two consecutive items shipped a spec that stayed GREEN with the defect planted back** —
+   c.1's null-balance spec and c.2's *"Money does not celebrate"* spec. Both were found by **planting**,
+   neither by reading. Filed as a repo-wide class → P6.10.
+2. **`lint:rn` green does not mean the tree is purity-clean.** `react-hooks/purity` reports a component's
+   violations only while the React Compiler can still analyse it. `DebtSheet` linted clean, then produced
+   **2 errors on `Date.now()` calls nobody touched**, the moment an unanalysable call entered render
+   scope. Bisected — a *locally defined* identical function reproduces it, so it is not the import
+   boundary.
+3. **An owed refutation that never arrives is invisible.** `M3-recovery.md` states a Wave-2 refutation was
+   owed on **M3-20**; R1's verdict table omits it, and nothing anywhere flags the gap. It was scheduled as
+   work and would have been built un-refuted — against P6.8.4's own rule — if the switch-in had not
+   opened the step. **Check every cluster's owed-list against its refuter.**
+
+### ⚡ And the pattern repeated: mechanisms were wrong, observations were not
+
+Of the four findings built, **three carried a wrong or incomplete mechanism** and the correction changed
+the work each time:
+
+- **B1** — filed as 4 sites, audited as 12, grepped as 14. The answer was **14 / 7**, and the grep's 14
+  was **a different 14** (it counted a comment and missed a hoisted site).
+- **M3-20** — cited `dropped` and `unknown` together as losses. `dropped` is **entirely deliberate**;
+  surfacing it would have nagged every upgrader about a QA hook.
+- **W1-6** — the lens's own proposed retry **would not have fired**, because the likely failure was tagged
+  terminal. R1 named the real deliverable (derive terminality from `opened`), and even then **my first
+  predicate was over-broad in the opposite direction** and an existing test caught it.
+
+⭐ **The instruments earned their keep both ways.** Three gates fired correctly on changes I would not
+have thought to check (`lint:copy` on a duplicated string the moment it was created, `lint:destructive`
+and `lint:sandbox` on a new screen). And two of my own tests were wrong in ways only a plant exposed.
+
+### ▶ Where the next session starts
+
+**P6.8.7d.1 — B3, the iCloud clobber**, decomposed on the plan. ⚠️ **d is the only cluster that can
+DESTROY data the user still has**, and none of it is verifiable off-device: every step ships with a
+**P6.14 device row**, never a claim. ⛔ **Do not route B3 through `shouldAutoBackup`** — R1 simulated that
+fix and measured the guard returning `true` and permitting the clobber anyway.
+---
+
 ## ✅ P6.8.7c.4 — M3-20, the discarded `LegacyMigrationOutcome` *(2026-08-22)*
 
 ### ⛔ The finding was never refuted, and the switch-in had to supply it
