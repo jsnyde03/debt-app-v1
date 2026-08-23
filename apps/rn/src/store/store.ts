@@ -25,7 +25,26 @@ import { reportError } from '@/utils/reportError';
 import { recordDriftBaseline } from './drift';
 import { stampCyclePrediction } from './guardianPrediction';
 import { applyCapture, applyRollover, type PaydayActuals } from './payday';
+import { detectPayoff } from './payoffCelebration';
 import { recordMissedArrival, stampInputsFresh, stampOnboardedAt } from './substrateProducers';
+
+/**
+ * P6.8.7e.1 [B2 / M2-5] — stamp a pending celebration onto any transform that moved a balance.
+ *
+ * ⛔ **Wrapped around the four actions that can move a balance to zero, not bolted onto the one the
+ * premium invitation happened to call.** That single wiring is what made the product's emotional terminus
+ * a premium feature by accident: the beat fired from `confirmPayoff`, reachable only via
+ * `selectProvisionalPayoffs`, which returns `[]` for free. The event to watch is the CROSSING.
+ *
+ * ⚠️ An existing pending payoff is never overwritten. If the user clears a debt and then edits another
+ * before Today has rendered the beat, the first moment is the one they earned — and the second crossing
+ * will still be there in `debts` for the finale check.
+ */
+function withPayoffCelebration(before: DebtStore, next: DebtStore): DebtStore {
+  if (next.pendingPayoff) return next;
+  const payoff = detectPayoff(before.debts, next.debts, next.payoffStrategy);
+  return payoff ? { ...next, pendingPayoff: payoff } : next;
+}
 
 /**
  * The app-wide state: the persisted `store` blob + hydration lifecycle + the mutating actions.
@@ -174,6 +193,8 @@ export interface DebtAppState {
   acknowledgeRiskCleared(): void;
   /** 3.3.2 — clear a just-crossed portfolio milestone after its celebratory ack. */
   acknowledgeMilestone(): void;
+  /** P6.8.7e.1 [B2] — the paid-off beat / debt-free finale has been seen. */
+  acknowledgePayoff(): void;
   acknowledgeDataRepairs(): void;
   /** §2.0.c (2.4.11.4b) — dismiss the settling-in-reserve release acknowledgment. */
   acknowledgeReserveRelease(): void;
@@ -383,7 +404,9 @@ export function createDebtStore(opts?: {
         const next = { ...s.store, debts: s.store.debts.map((d) => (d.id === id && stamped ? stamped : d)) };
         // Field-discriminated read-freshness stamp: a balance edit is a genuine input edit (2.4.D.3a);
         // other debt edits (name, APR, due date) are not.
-        return { store: isBalanceEdit ? stampInputsFresh(next) : next };
+        // P6.8.7e.1 [B2] — a balance typed straight to $0 is a payoff too. This is the path a FREE user
+        // actually takes, and it is the one `selectProvisionalPayoffs` never covered.
+        return { store: withPayoffCelebration(s.store, isBalanceEdit ? stampInputsFresh(next) : next) };
       });
     },
     removeDebt(id) {
@@ -392,25 +415,31 @@ export function createDebtStore(opts?: {
     verifyDebtBalance(id, verifiedBalance, verifiedDate) {
       const balance = Math.max(0, Math.round(verifiedBalance * 100) / 100);
       set((s) => ({
-        store: stampInputsFresh({
-          ...s.store,
-          debts: s.store.debts.map((d) =>
-            d.id === id ? { ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate } : d
-          ),
-        }),
+        store: withPayoffCelebration(
+          s.store,
+          stampInputsFresh({
+            ...s.store,
+            debts: s.store.debts.map((d) =>
+              d.id === id ? { ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate } : d
+            ),
+          }),
+        ),
       }));
     },
     verifyDebtBalances(entries, verifiedDate) {
       const next = new Map(entries.map((e) => [e.id, Math.max(0, Math.round(e.balance * 100) / 100)]));
       set((s) => ({
-        store: stampInputsFresh({
-          ...s.store,
-          debts: s.store.debts.map((d) =>
-            next.has(d.id)
-              ? { ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate }
-              : d
-          ),
-        }),
+        store: withPayoffCelebration(
+          s.store,
+          stampInputsFresh({
+            ...s.store,
+            debts: s.store.debts.map((d) =>
+              next.has(d.id)
+                ? { ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate }
+                : d
+            ),
+          }),
+        ),
       }));
     },
 
@@ -565,12 +594,18 @@ export function createDebtStore(opts?: {
         const balance = Math.max(0, Math.round((debt.balance - amount) * 100) / 100);
         return {
           intentRollback: { store: s.store, kind: 'log-payment' },
-          store: stampInputsFresh({
-            ...s.store,
-            debts: s.store.debts.map((d) =>
-              d.id === debtId ? { ...d, balance, lastVerifiedDate: date, balanceAsOfDate: date } : d,
-            ),
-          }),
+          // P6.8.7e.1 [B2] — the final payment clearing a debt is the most literal payoff there is.
+          // ⚠️ `intentRollback` snapshots the store BEFORE this, so an Undo takes the celebration back
+          // with it — correct, since undoing the payment un-does the payoff it was celebrating.
+          store: withPayoffCelebration(
+            s.store,
+            stampInputsFresh({
+              ...s.store,
+              debts: s.store.debts.map((d) =>
+                d.id === debtId ? { ...d, balance, lastVerifiedDate: date, balanceAsOfDate: date } : d,
+              ),
+            }),
+          ),
         };
       });
     },
@@ -681,6 +716,12 @@ export function createDebtStore(opts?: {
     acknowledgeMilestone() {
       // 3.3.2: the user saw the portfolio milestone-cross beat — clear it (one-time moment).
       set((s) => ({ store: { ...s.store, pendingMilestone: null } }));
+    },
+    acknowledgePayoff() {
+      // P6.8.7e.1 [B2]: the user saw the paid-off beat or the debt-free finale — clear it. ⚠️ It is
+      // PERSISTED rather than component state, so a payoff confirmed seconds before the app is
+      // backgrounded still gets its moment on the next launch instead of being lost with the screen.
+      set((s) => ({ store: { ...s.store, pendingPayoff: null } }));
     },
     acknowledgeDataRepairs() {
       // P6.8.7c.2 (B4/M3-2): the user has now SEEN which amounts could not be read. ⛔ The only thing that

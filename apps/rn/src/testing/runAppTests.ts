@@ -79,6 +79,12 @@ async function main() {
   // §3.3.2 — the portfolio milestone-cross capture at rollover (crossing · 100%-excluded · dedup).
   await import('../store/milestoneCross.test');
 
+  // P6.8.7e.1 [B2/M2-5] — the payoff crossing. ⛔ The beat and the finale were wired to the premium
+  // estimator NOTICING a payoff rather than to the payoff, so a free user could clear every debt they
+  // owned and see neither. The over-firing guard matters as much as the fix: a finale on every batch
+  // re-verify would turn a once-ever moment into noise.
+  await (await import('../store/payoffCelebration.test')).default();
+
   // §3.3.3 — the premium Guardian proof-of-work read (held streak · cumulative-to-debt · gating).
   await import('../store/proofOfWork.test');
 

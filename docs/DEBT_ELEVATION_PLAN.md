@@ -158,7 +158,7 @@ un-refuted, and only opening the step caught them. **Assume the next one is un-r
 
 | # | step | notes |
 |---|---|---|
-| **e.1** | 🔴 **B2 — the celebration + finale are unreachable for a free user** | The payoff moment the whole product builds toward. ⚠️ Verify the gate's actual site before touching it — a paywall check and a tier check are not the same defect |
+| **e.1** | ✅ **B2 — DONE 2026-08-22** | ⚡ **Not a gate to remove — the celebration was wired to the wrong EVENT.** It fired from `confirmPayoff` ← the premium invitation; it now fires from the balance crossing to zero (`pendingPayoff`, stamped by all **4** balance-moving actions). **The premium line is untouched** — premium still buys the app *noticing* an unconfirmed payoff, which removes work; the moment does not. **3 e2e added (225 total), plant reds premium AND free.** ⚠️ Persisted, so the moment now survives a background. Detail → log |
 | **e.2** | **C1 — the absorb path has no user entry point** | ⛔ **ENTRY ONLY — the engine is correct and must not be touched.** `surpriseOutflow` + `actualIncome` are constructed only in the tutorial sandbox and tests, so two safety-net acks and `LeanSuggestionCard` are unreachable in production. ⚠️ R3's correction: `missed` **is** reachable via `declareMissedPaycheck()` |
 | **e.3** | **C2 + C3 — re-open payday capture** | `usePaydayCapture.open()` has **no caller**, so "Skip this payday" is a one-way door out of the app's central recurring moment. ⚠️ **A two-generation omission** — v1.6 ships the same dead `open()`. C3 folds in here |
 | **e.4** | **C5 — the "no-bills" branch** | `RequiredActionsCard` has no honest empty state; R3 confirmed and worsened it |
@@ -489,6 +489,26 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7e.1's AFTER-scan (2026-08-22)**
+
+- **⚠️ `DebtSheet` REFUSES a balance edited to $0** — `minimumN > balanceN` → *"Minimum payment can't exceed
+  the balance"*, which is true of **every** debt at the moment it is paid off. The rule is right for a live
+  debt and wrong at the one crossing that matters. ⛔ **Not a ship-blocker: "Log a payment" is the intended
+  affordance and it works** *(it even says "More than the balance — this will clear it to $0")*. But a user
+  who paid a debt off elsewhere and goes to correct the balance hits a wall with no hint about the other
+  door. **Recommendation: 2.1** — exempting `balanceN === 0` is one clause, but validation on the money path
+  inside a converging phase is not where to spend the risk. → 2.1.
+- **⛔ `seedStore` RE-SEEDS ON EVERY NAVIGATION, and it silently undoes what a test just did.** It uses
+  `addInitScript`, which re-runs on each page load — so any spec that mutates and then `goto`s is asserting
+  against the original fixture. It cost this item a full debugging cycle: the payment logged, the store was
+  correct, and Today showed the debt un-paid. ⚠️ **`coach-marks.spec.ts` already carries a comment about
+  this exact mechanism**, so it is the second time it has been paid for. ⭐ **A `seedOnce` (seed only when
+  the key is absent) belongs in `helpers/seed.ts`**, not local to one spec — and the specs that mutate then
+  navigate should be swept for it. → **P6.8.9**.
+- **Two of three surviving e2e gaps in this phase were found by CHANGING the code, not by reading it** —
+  "Delete all data" at d.2, the free-user celebration here. Both were invisible to 13 lenses. **The
+  question worth gating is "what irreversible or once-ever moment has no test?"** → **P6.8.9**.
 
 **→ SURFACED BY P6.8.7d.3's AFTER-scan (2026-08-22)**
 

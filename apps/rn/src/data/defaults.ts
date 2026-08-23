@@ -44,6 +44,9 @@ export function createDefaultStore(): DebtStore {
     pendingDataRepairs: [],
     portfolioMaxProgress: 0,
     pendingMilestone: null,
+    // P6.8.7e.1 [B2] — the paid-off beat / debt-free finale, awaiting its moment. `null` on a fresh store
+    // and backfilled for every existing one; an upgrader has nothing pending by definition.
+    pendingPayoff: null,
     subscriptionPlan: 'free',
     cushionFloor: 200,
     driftBaseline: null,

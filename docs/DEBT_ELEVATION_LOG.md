@@ -73,6 +73,60 @@ entire `ready` branch is unreachable to the e2e suite. **Four P6.14 rows filed**
 matters most: back up, background twice, and confirm the **second** auto-backup goes through — that is what
 proves the re-stamp works and the guard is not a one-shot.
 
+## ✅ P6.8.7e.1 — B2, the celebration a free user could never see *(2026-08-22)*
+
+### ⚡ The mechanism correction: it was not a gate, it was the wrong EVENT
+
+The obvious reading of B2 is *"the celebration is behind a premium check — remove it."* That would have
+been wrong in both directions: it would have given away the premium estimator, and it still would not have
+fixed the free user's path.
+
+What was actually true: `PaidOffBeat` / `PaidOffFinale` rendered from a **`useState` inside Today**, set only
+by `confirmPayoff`, called only by `PayoffInvitationCard`, offered only by `selectProvisionalPayoffs` —
+which returns `[]` for free. So the moment was attached to **the premium estimator noticing a payoff**
+rather than to the payoff. ⛔ And `payday.ts:128` deliberately excludes the 100 % crossing
+(*"finale owns debt-free"*), so the milestone engine had consciously vacated the only other watcher.
+
+**The fix moves the trigger, not the tier.** `prefs`-adjacent `pendingPayoff` is stamped by
+`withPayoffCelebration` around **all four** actions that can move a balance to zero — `updateDebt`,
+`verifyDebtBalance`, `verifyDebtBalances`, `logManualPayment`. ⚠️ **The premium line is untouched:**
+`selectProvisionalPayoffs` still returns `[]` for free, because *"we noticed you paid this off"* removes
+WORK, which is the premium spec's own price test. A celebration removes no work. The free-user spec asserts
+the invitation is still absent, so the test cannot pass by having quietly made a paid feature free.
+
+⭐ **It is persisted rather than component state**, so a payoff confirmed seconds before the app is
+backgrounded now survives — the `useState` version died with the screen.
+
+### ⛔ Two things the audit could not have told me, both found by building
+
+**1. `DebtSheet` refuses a balance edited to $0.** `minimumN > balanceN` → *"Minimum payment can't exceed
+the balance"* — true of **every** debt at the moment it is paid off. The first draft of the e2e used that
+path and failed on validation, not on the feature. **"Log a payment" is the intended affordance** and it
+carries the copy *"More than the balance — this will clear it to $0."* Filed to 2.1; the rule is right for a
+live debt and wrong at the one crossing that matters.
+
+**2. `seedStore` re-seeds on EVERY navigation.** It uses `addInitScript`, which re-runs on each page load —
+so a spec that mutates and then `goto`s asserts against the original fixture. The payment logged, the store
+was verifiably correct (`pendingPayoff` present in `localStorage`), and Today showed the debt un-paid.
+⚠️ **`coach-marks.spec.ts` already carries a comment about this exact mechanism** — the second time it has
+been paid for. A local `seedOnce` fixed it; hoisting it into `helpers/seed.ts` is filed.
+
+### Verification
+
+`payoffCelebration.test.ts` — **15 asserts**, and half of them guard the OVER-firing direction, which is the
+dangerous one: re-verifying already-cleared debts at $0 must fire **nothing** (the Payday Autopilot does this
+in batch, and a finale per confirm would turn a once-ever moment into noise); a deleted debt is not a payoff;
+clearing the last two at once is **one** finale, not a beat pointing at nothing.
+
+Three e2e added to `celebration.spec.ts` — the free beat, the free finale, and survives-a-reload-then-
+acknowledged-once. **The plant (the crossing no longer stamps) reds the premium tests AND the free tests**,
+which is the proof that the premium path was genuinely re-routed rather than left alongside a new one.
+
+`typecheck` · `lint:rn` **exit 0** · `test:app` · `test:regression` · `test:scenarios` · **`test:e2e:rn` 225
+passed, zero `error-context.md`**.
+
+---
+
 ## ✅ P6.8.7d.3 — M3-5, the diagnosis that never reached the screen *(2026-08-22)*
 
 ### ⛔ First: it was scheduled as work and had NEVER been refuted — the second instance

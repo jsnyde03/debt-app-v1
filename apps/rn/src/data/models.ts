@@ -215,6 +215,28 @@ export interface PendingMilestone {
 }
 
 /**
+ * P6.8.7e.1 [B2/M2-5] — a debt that has just reached $0 and is owed its moment.
+ *
+ * ⛔ **The payload is captured at the CROSSING, not read back afterwards**, because by the time anything
+ * renders, the numbers it wants are gone: the balance is zero, so `originalBalance` is the only record of
+ * what was cleared, and *"what's next"* has to be computed against the debts that were still live at that
+ * instant. The old in-component version got this right by capturing before it called the store; keeping
+ * that property is why this is a stored payload and not a selector over the current state.
+ */
+export type PendingPayoff =
+  | {
+      kind: 'beat';
+      debtName: string;
+      /** What the debt started at, when it was ever recorded. `null` renders the beat without a total. */
+      amount: number | null;
+      /** The minimum payment this payoff just freed up, every month, forever. */
+      freed: number;
+      /** The debt the plan attacks next, or `null` — see `kind: 'finale'` for when there is none left. */
+      nextDebtName: string | null;
+    }
+  | { kind: 'finale' };
+
+/**
  * 5.10 — a money field this build could not read, repaired to 0 and named so the app can ask the user
  * for one number instead of inventing it. ⛔ Never dropped silently: a $12,000 debt coerced to 0 without
  * a word renders as PAID OFF, which is the one outcome worse than a visible error.
@@ -264,6 +286,25 @@ export interface DebtStore {
   portfolioMaxProgress: number;
   /** 3.3.2 — a just-crossed portfolio milestone awaiting its ack; null when none / already acknowledged. */
   pendingMilestone: PendingMilestone | null;
+  /**
+   * P6.8.7e.1 [B2/M2-5] — a debt that just reached $0, awaiting its celebration.
+   *
+   * ⛔ **This field exists because the product's emotional terminus was unreachable for the majority
+   * tier.** The beat and the finale rendered only from a `useState` inside Today, set only by
+   * `confirmPayoff`, reached only from `PayoffInvitationCard`, offered only from
+   * `selectProvisionalPayoffs` — which **returns `[]` for a free user**. A free user could pay off every
+   * debt they owned and never see either. ⚠️ And `payday.ts` deliberately excludes the 100 % crossing
+   * (*"finale owns debt-free"*), so the milestone engine had consciously vacated the only other watcher.
+   *
+   * ⛔ **The premium line is untouched, and this is the distinction the fix turns on.** Premium buys the
+   * app *noticing* a payoff the user has not confirmed — that is `selectProvisionalPayoffs`, and it stays
+   * premium because it removes WORK. The celebration is not work; it is the moment. It now fires from the
+   * balance actually reaching zero, whoever is watching.
+   *
+   * ⚠️ Persisted, like `pendingMilestone` and unlike the `useState` it replaces — so a payoff confirmed
+   * seconds before the app is backgrounded still gets its moment.
+   */
+  pendingPayoff: PendingPayoff | null;
   subscriptionPlan: SubscriptionPlan;
   /**
    * Premium auto-protect: the cushion the plan holds each cycle before deploying anything to extra

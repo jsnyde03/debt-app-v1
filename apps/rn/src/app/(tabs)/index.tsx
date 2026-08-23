@@ -62,8 +62,7 @@ import {
   selectRequiredRows,
   type RequiredRow,
 } from '@/store/planSelectors';
-import { isLastLiveDebt, selectCelebrationStats } from '@/store/celebrationSelectors';
-import { rankDebts } from '@/store/payoffSelectors';
+import { selectCelebrationStats } from '@/store/celebrationSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { TutorialFence } from '@/components/plan/TutorialFence';
 import { stageBounds } from '@/components/plan/tutorialStage';
@@ -76,7 +75,7 @@ import { formatWhole } from '@/utils/format';
 // ⛔ [P6.4.2] And a FIFTH, which `lint:money` was green over: `${trialConversion.fullAmount.toLocaleString(…)}`
 // in JSX text, where a literal `$` before an expression is byte-identical to a template interpolation.
 import { formatCurrency } from '@core/utils/formatCurrency';
-import type { Debt } from '@/data/models';
+import type { Debt, PendingPayoff } from '@/data/models';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -89,11 +88,18 @@ function handleMark(store: DebtStoreInstance, row: RequiredRow, paid: boolean) {
   else store.getState().markDebtMinimumPaid(id, paid);
 }
 
-/** Which celebration overlay is showing after a payoff confirm (3.3.1) — a contained per-debt beat, or the
- *  once-ever full-screen finale when the LAST debt clears. */
-type Celebration =
-  | { kind: 'beat'; debtName: string; amount: number | null; freed: number; nextDebtName: string | null }
-  | { kind: 'finale' };
+/**
+ * Which celebration overlay is showing after a debt reaches $0 (3.3.1) — a contained per-debt beat, or the
+ * once-ever full-screen finale when the LAST debt clears.
+ *
+ * ⛔ **P6.8.7e.1 [B2/M2-5] — this used to be `useState` HERE, and that was the defect.** Component state
+ * can only be set by something this component calls, and the only caller was `confirmPayoff` ←
+ * `PayoffInvitationCard` ← `selectProvisionalPayoffs`, which returns `[]` for a free user. So the product's
+ * emotional terminus was, by accident of wiring, a premium feature — a free user could clear every debt
+ * they owned and see neither the beat nor the finale. It now lives in the store, stamped by the balance
+ * actually crossing to zero (`store/payoffCelebration.ts`), and this screen only renders it.
+ */
+type Celebration = PendingPayoff;
 
 /** Today tab (home) — the payday moment + Payday Autopilot. Elevated to the navy hero + count-ups in 1.3. */
 function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollView>; onScroll?: ScrollViewProps['onScroll'] } = {}) {
@@ -175,18 +181,17 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // 2.3.6 — debts the premium estimate projected to $0 → the provisional "confirm to celebrate" invitation.
   const provisionalPayoffs = selectProvisionalPayoffs(store, isPremium);
 
-  // 3.3.1 celebration — confirming a payoff to $0 fires the per-debt "paid off" beat, or the full-screen
-  // finale when it's the LAST live debt. Capture the beat's data BEFORE the store clears the debt.
-  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  // 3.3.1 celebration — a debt reaching $0 fires the per-debt "paid off" beat, or the full-screen finale
+  // when it was the LAST live one.
+  //
+  // ⛔ P6.8.7e.1 [B2] — READ, never set. The payload is stamped by the store action that moved the
+  // balance, so it fires on every path a debt can be cleared (a confirmed provisional payoff, a balance
+  // typed to zero, a batch re-verify, a final logged payment) rather than only on the premium invitation.
+  const celebration: Celebration | null = store.pendingPayoff;
   function confirmPayoff(d: Debt) {
-    const isLast = isLastLiveDebt(store.debts, d.id);
-    const next = rankDebts(store.debts.filter((x) => x.balance > 0 && x.id !== d.id), store.payoffStrategy)[0];
+    // ⚠️ Nothing to capture here any more. `verifyDebtBalance` sees the before-state itself, which is what
+    // lets the beat's figures — what was cleared, what is next — stay correct for every other caller too.
     store_.getState().verifyDebtBalance(d.id, 0, store.paycheck.currentDate);
-    setCelebration(
-      isLast
-        ? { kind: 'finale' }
-        : { kind: 'beat', debtName: d.name, amount: d.originalBalance ?? null, freed: d.minimumPayment, nextDebtName: next?.name ?? null },
-    );
   }
   // 3.5.8.6b — in a CAPTURE build the closing beat confirms itself, so the App Preview actually contains
   // the celebration instead of an un-pressed button. Inert in every other build; see the hook.
@@ -501,11 +506,11 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           amountPaidOff={celebration.amount}
           freedPerMonth={celebration.freed}
           nextDebtName={celebration.nextDebtName}
-          onDismiss={() => setCelebration(null)}
+          onDismiss={() => store_.getState().acknowledgePayoff()}
         />
       ) : null}
       {celebration?.kind === 'finale' ? (
-        <PaidOffFinale visible stats={selectCelebrationStats(store)} onDismiss={() => setCelebration(null)} />
+        <PaidOffFinale visible stats={selectCelebrationStats(store)} onDismiss={() => store_.getState().acknowledgePayoff()} />
       ) : null}
 
       {activeAck === 'data-repairs' ? (
