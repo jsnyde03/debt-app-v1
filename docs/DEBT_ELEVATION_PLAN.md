@@ -159,7 +159,7 @@ un-refuted, and only opening the step caught them. **Assume the next one is un-r
 | # | step | notes |
 |---|---|---|
 | **e.1** | ✅ **B2 — DONE 2026-08-22** | ⚡ **Not a gate to remove — the celebration was wired to the wrong EVENT.** It fired from `confirmPayoff` ← the premium invitation; it now fires from the balance crossing to zero (`pendingPayoff`, stamped by all **4** balance-moving actions). **The premium line is untouched** — premium still buys the app *noticing* an unconfirmed payoff, which removes work; the moment does not. **3 e2e added (225 total), plant reds premium AND free.** ⚠️ Persisted, so the moment now survives a background. Detail → log |
-| **e.2** | ✅ **C1 — DONE 2026-08-23** | 🎯 **chose surprise-outflow only.** One optional field at the end of `PaydayCaptureSheet`, threaded to `capturePayday`'s third argument — the call at `index.tsx` passed **no actuals at all**, which is why `surpriseOutflowLog` could only grow in the sandbox. Engine untouched. **2 e2e, asserted on the STORE**; the plant (drop the actuals) reds the reach test and leaves the no-trace test green. ⏭ **`actualIncome` deferred to P6.10** — filed |
+| **e.2** | ✅ **C1 — DONE 2026-08-23** | 🎯 **chose surprise-outflow only.** One optional field at the end of `PaydayCaptureSheet`, threaded to `capturePayday`'s third argument — the call at `index.tsx` passed **no actuals at all**, which is why `surpriseOutflowLog` could only grow in the sandbox. Engine untouched. **2 e2e, asserted on the STORE** (**227 total, exit 0, 0 error-contexts**); the plant (drop the actuals) reds the reach test and leaves the no-trace test green. ⏭ **`actualIncome` deferred to P6.10** — filed |
 | **e.3** | **C2 + C3 — re-open payday capture** | `usePaydayCapture.open()` has **no caller**, so "Skip this payday" is a one-way door out of the app's central recurring moment. ⚠️ **A two-generation omission** — v1.6 ships the same dead `open()`. C3 folds in here |
 | **e.4** | **C5 — the "no-bills" branch** | `RequiredActionsCard` has no honest empty state; R3 confirmed and worsened it |
 | **e.5** | **C4 — the Live Activity gate** | ⚠️ **SOURCE-ONLY. Ships with a P6.14 device row, never a claim** — the same rule the whole of d ran under |
@@ -491,6 +491,15 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ## Deferred backlog
 
 **→ SURFACED BY P6.8.7e.2's AFTER-scan (2026-08-23)**
+
+- ⛔ **A KILLED `test:e2e:rn` POISONS THE NEXT RUN, AND THE WRAPPER STILL REPORTS EXIT 0.** The suite takes
+  **>10 min**, so running it on a 10-minute foreground timeout SIGTERMs it and leaves a half-alive
+  webServer. The next run attached to it, hung on test 24 for 1.1 min, and **failed 203 of 227** — a dying
+  server, not a regression. ⚠️ **And `cmd > log; echo EXIT=$?` reports the ECHO's status**, so the harness
+  said exit 0 over a 203-failure run: the [[remembered-gate-result-is-unrun]] hazard with a fresh face.
+  ⭐ **Run it with `run_in_background` and capture the REAL exit code**, then confirm the pass count *and*
+  zero `error-context.md`. Re-run after killing strays was **227 passed, exit 0, 0 contexts**.
+  → **P6.8.9** *(worth a line in the gate docs — this is the third distinct way this suite has lied)*.
 
 - 🔴 **[DECISION → P6.10] `actualIncome` capture for variable-income users — DEFERRED BY 🎯 (2026-08-23),
   not dropped.** C1's fix took the surprise-outflow half only. The other half stands measured:

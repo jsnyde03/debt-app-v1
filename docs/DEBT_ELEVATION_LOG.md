@@ -116,6 +116,22 @@ satisfied by the capture not having happened.
 **The plant discriminates:** dropping the actuals at the call site reds the reach test and leaves the
 no-trace test green, so the two are not the same assertion twice.
 
+`typecheck` · `lint:rn` · `test:app` · `test:regression` · `test:scenarios` all **0** ·
+**`test:e2e:rn` 227 passed, real exit 0, zero `error-context.md`**.
+
+### ⛔ And the gate lied on the way — a third distinct way
+
+The first attempt was run on a **10-minute foreground timeout**; the suite takes **>10 min**, so it was
+SIGTERMed and left a half-alive webServer. The next run attached to it, hung on test 24 for 1.1 minutes,
+and **failed 203 of 227** — a dying server, not a regression, and every failure looked like one.
+
+⚠️ **Worse, the harness reported success over it.** `cmd > log 2>&1; echo "EXIT=$?"` reports the *echo's*
+status, so a 203-failure run came back exit 0. That is [[remembered-gate-result-is-unrun]] wearing a new
+face: **the number that mattered was in the log, and the exit code was describing something else entirely.**
+
+**Run this suite backgrounded, capture the real exit code, and confirm the pass COUNT plus zero
+`error-context.md`.** After killing the strays: 227 passed, exit 0, 0 contexts.
+
 ---
 
 ## ✅ P6.8.7e.1 — B2, the celebration a free user could never see *(2026-08-22)*
