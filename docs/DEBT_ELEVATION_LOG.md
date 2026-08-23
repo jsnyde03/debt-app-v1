@@ -73,6 +73,51 @@ entire `ready` branch is unreachable to the e2e suite. **Four P6.14 rows filed**
 matters most: back up, background twice, and confirm the **second** auto-backup goes through — that is what
 proves the re-stamp works and the guard is not a one-shot.
 
+## ✅ P6.8.7e.2 — C1, the absorb path's first way in *(2026-08-23)*
+
+### The gap, verified exactly
+
+`index.tsx:656` called `capturePayday(items, decisions)` — **no third argument.** The only two callers in
+the repo that supplied `PaydayActuals` were `sandboxBeats.ts` (the tutorial) and one test scenario. So
+`surpriseOutflowLog` could not grow in production, and the two safety-net acknowledgements Today is written
+to render, plus `LeanSuggestionCard`, were **built, correct, and unreachable** — the 3.7.A9 class, a
+feature with no way in.
+
+### ⚡ The finding understated it: one missing question, TWO starved consumers
+
+`substrateProducers.ts:60` — `if (store.paycheck.incomeVaries && opts?.actualIncome === undefined) return
+store;` — so for a variable-income user `incomeActualsLog` never grows either. That is *why*
+`LeanSuggestionCard` is unreachable, and it also thins `guardianPredictionCore`'s confidence count.
+
+🎯 **took the surprise-outflow half only (2026-08-23)** — it closes C1 as chartered without adding a
+conditional income question to the payday moment inside a converging freeze. **`actualIncome` is filed to
+P6.10 with its measurement**, and the expensive half of that work is already done: actuals now thread from
+the sheet through `onCapture` to `capturePayday`.
+
+### What was built
+
+One optional field at the end of `PaydayCaptureSheet` — *"Anything unexpected come out?"* — above the
+confirm actions. ⚠️ **A field, not a step.** Most cycles have no surprise, and a required question about a
+thing that did not happen turns the payday moment into an interrogation; the sheet's job is to confirm a
+plan the user followed.
+
+⛔ **Blank sends `undefined`, never `0`.** A recorded zero-amount surprise is a cycle event that did not
+happen — `computeReserveRelease` sums the log and the Guardian reconciles against it, so empty entries are
+not harmless noise, they are wrong input. The engine itself was not touched.
+
+### Verification
+
+Two e2e, both asserting on the **store** rather than the screen: a spec that only proved "the field accepts
+a number" would pass against the version where the value went nowhere, which is the exact shape of the
+defect. Each asserts its control first — the log is empty before, and the second waits for
+`lastHandledPaydayDate` to be stamped before checking an absence, because an absence checked too early is
+satisfied by the capture not having happened.
+
+**The plant discriminates:** dropping the actuals at the call site reds the reach test and leaves the
+no-trace test green, so the two are not the same assertion twice.
+
+---
+
 ## ✅ P6.8.7e.1 — B2, the celebration a free user could never see *(2026-08-22)*
 
 ### ⚡ The mechanism correction: it was not a gate, it was the wrong EVENT

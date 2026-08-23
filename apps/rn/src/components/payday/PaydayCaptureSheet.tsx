@@ -71,7 +71,20 @@ export function PaydayCaptureSheet({
   staleBalances: DebtBalanceView[];
   currentDate: string;
   onVerifyBalances: (entries: { id: string; balance: number }[], verifiedDate: string) => void;
-  onCapture: (items: ReturnType<typeof buildPaydayCaptureItems>, requiredDecisions: RequiredReconciliation) => void;
+  /**
+   * P6.8.7e.2 [C1] — `surpriseOutflow` is the third argument, and it is why this callback changed shape.
+   *
+   * ⛔ The absorb engine is CORRECT and untouched. What it never had was a caller: `index.tsx` invoked
+   * `capturePayday(items, decisions)` with **no actuals at all**, and the only two callers in the repo that
+   * supplied one were the tutorial sandbox and a test scenario. So `surpriseOutflowLog` could never grow in
+   * production, and the two safety-net acknowledgements Today is built to render — plus `LeanSuggestionCard`
+   * — were unreachable code that shipped. **A built feature with no way in** (the 3.7.A9 class).
+   */
+  onCapture: (
+    items: ReturnType<typeof buildPaydayCaptureItems>,
+    requiredDecisions: RequiredReconciliation,
+    surpriseOutflow?: number,
+  ) => void;
   onDismiss: () => void;
   onClose: () => void;
 }) {
@@ -83,6 +96,8 @@ export function PaydayCaptureSheet({
   const [editingExtraKey, setEditingExtraKey] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, PaydayCaptureOverride>>({});
   const [captured, setCaptured] = useState(false);
+  // P6.8.7e.2 [C1] — the absorb path's only user entry point. Blank on every ordinary payday.
+  const [surpriseAmount, setSurpriseAmount] = useState('');
   const [adjustingRequired, setAdjustingRequired] = useState(false);
   const [hasAdjustedRequired, setHasAdjustedRequired] = useState(false);
   const [requiredPaid, setRequiredPaid] = useState<Record<string, boolean>>(() => {
@@ -198,9 +213,13 @@ export function PaydayCaptureSheet({
       overrides,
     );
     const decisions = decisionsFrom(!hasAdjustedRequired);
+    // P6.8.7e.2 [C1] — blank means "nothing unexpected", which is most cycles. ⚠️ `undefined` rather than
+    // `0`: a recorded zero-amount surprise is a cycle event that happened, and the Guardian reconciles
+    // against the log. "Nothing came out" must leave no trace, or every ordinary payday logs a surprise.
+    const surprise = parseNonNegativeAmount(surpriseAmount);
     haptics.success(); // the payday-completion beat — quiet count-up + a success tick (motion spec §5)
     setCaptured(true);
-    setTimeout(() => onCapture(items, decisions), 1300);
+    setTimeout(() => onCapture(items, decisions, surprise != null && surprise > 0 ? surprise : undefined), 1300);
   }
 
   const requiredSub = hasAdjustedRequired
@@ -442,6 +461,27 @@ export function PaydayCaptureSheet({
                 ) : null}
               </ScrollView>
 
+              {/* P6.8.7e.2 [C1] — THE ABSORB PATH'S ENTRY POINT, and the whole finding is that it did not
+                  exist. The engine, the two Today acknowledgements and `LeanSuggestionCard` were all built
+                  and correct; nothing in production ever handed them a `surpriseOutflow`, so a real user
+                  could not reach any of it.
+                  ⚠️ Deliberately ONE optional field at the end, not a step of its own. Most cycles have no
+                  surprise, and a required question about a thing that did not happen turns the payday
+                  moment into an interrogation — the sheet's job is to confirm a plan the user followed. */}
+              <View style={styles.surprise}>
+                <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Anything unexpected come out?</Text>
+                <TextInput
+                  testID="payday-surprise-amount"
+                  keyboardType="decimal-pad"
+                  value={surpriseAmount}
+                  onChangeText={setSurpriseAmount}
+                  placeholder="$0"
+                  placeholderTextColor={c.text.tertiary}
+                  accessibilityLabel="Amount of an unexpected expense this cycle"
+                  style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.default }]}
+                />
+              </View>
+
               <View style={styles.actions}>
                 <Button label={hasAdjustedRequired || extrasAdjusted ? 'Confirm what you paid' : 'You followed the plan'} onPress={handleCapture} />
                 <Button label="Skip this payday" variant="text" onPress={onDismiss} />
@@ -520,6 +560,8 @@ const styles = StyleSheet.create({
   reconcileText: { flex: 1, gap: 2 },
   carry: { textAlign: 'center', paddingTop: spacing.sm },
   balancesDone: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.xs },
+  // P6.8.7e.2 [C1] — the optional surprise-outflow row, sat above the confirm actions.
+  surprise: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md, paddingBottom: spacing.sm },
   actions: { gap: spacing.sm },
   successPad: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl },
   checkWrap: { alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },

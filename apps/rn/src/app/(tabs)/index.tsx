@@ -652,8 +652,20 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           staleBalances={staleBalances}
           currentDate={store.paycheck.currentDate}
           onVerifyBalances={(entries, date) => store_.getState().verifyDebtBalances(entries, date)}
-          onCapture={(items, decisions) => {
-            store_.getState().capturePayday(items, decisions);
+          onCapture={(items, decisions, surpriseOutflow) => {
+            // ⛔ P6.8.7e.2 [C1] — THIS CALL is where the absorb path died. It read
+            // `capturePayday(items, decisions)`, with no third argument, so `surpriseOutflowLog` could
+            // never grow outside the tutorial sandbox and a test scenario — and the two Today
+            // acknowledgements plus `LeanSuggestionCard`, all built and all correct, were unreachable.
+            // ⚠️ `cycleEndDate` is the cycle being CLOSED (`nextPaycheckDate`, the boundary this capture
+            // is crossing), matching what `sandboxBeats.ts` and the guardian scenario both record against.
+            store_.getState().capturePayday(
+              items,
+              decisions,
+              surpriseOutflow != null
+                ? { surpriseOutflow: { cycleEndDate: store.paycheck.nextPaycheckDate, amount: surpriseOutflow } }
+                : undefined,
+            );
             payday.completeCapture();
             // Ask for a review ONCE, at a genuine success moment on an established user (not the first
             // cycle) — the persisted guard prevents re-prompting; iOS also throttles the real prompt.

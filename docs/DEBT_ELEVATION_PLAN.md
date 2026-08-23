@@ -159,7 +159,7 @@ un-refuted, and only opening the step caught them. **Assume the next one is un-r
 | # | step | notes |
 |---|---|---|
 | **e.1** | ✅ **B2 — DONE 2026-08-22** | ⚡ **Not a gate to remove — the celebration was wired to the wrong EVENT.** It fired from `confirmPayoff` ← the premium invitation; it now fires from the balance crossing to zero (`pendingPayoff`, stamped by all **4** balance-moving actions). **The premium line is untouched** — premium still buys the app *noticing* an unconfirmed payoff, which removes work; the moment does not. **3 e2e added (225 total), plant reds premium AND free.** ⚠️ Persisted, so the moment now survives a background. Detail → log |
-| **e.2** | **C1 — the absorb path has no user entry point** | ⛔ **ENTRY ONLY — the engine is correct and must not be touched.** `surpriseOutflow` + `actualIncome` are constructed only in the tutorial sandbox and tests, so two safety-net acks and `LeanSuggestionCard` are unreachable in production. ⚠️ R3's correction: `missed` **is** reachable via `declareMissedPaycheck()` |
+| **e.2** | ✅ **C1 — DONE 2026-08-23** | 🎯 **chose surprise-outflow only.** One optional field at the end of `PaydayCaptureSheet`, threaded to `capturePayday`'s third argument — the call at `index.tsx` passed **no actuals at all**, which is why `surpriseOutflowLog` could only grow in the sandbox. Engine untouched. **2 e2e, asserted on the STORE**; the plant (drop the actuals) reds the reach test and leaves the no-trace test green. ⏭ **`actualIncome` deferred to P6.10** — filed |
 | **e.3** | **C2 + C3 — re-open payday capture** | `usePaydayCapture.open()` has **no caller**, so "Skip this payday" is a one-way door out of the app's central recurring moment. ⚠️ **A two-generation omission** — v1.6 ships the same dead `open()`. C3 folds in here |
 | **e.4** | **C5 — the "no-bills" branch** | `RequiredActionsCard` has no honest empty state; R3 confirmed and worsened it |
 | **e.5** | **C4 — the Live Activity gate** | ⚠️ **SOURCE-ONLY. Ships with a P6.14 device row, never a claim** — the same rule the whole of d ran under |
@@ -489,6 +489,30 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7e.2's AFTER-scan (2026-08-23)**
+
+- 🔴 **[DECISION → P6.10] `actualIncome` capture for variable-income users — DEFERRED BY 🎯 (2026-08-23),
+  not dropped.** C1's fix took the surprise-outflow half only. The other half stands measured:
+  `substrateProducers.ts:60` returns the store unchanged when `incomeVaries` and no `actualIncome` is
+  supplied, so **`incomeActualsLog` never grows for exactly the users it exists for.** ⚠️ Consequences that
+  ship without it: **`LeanSuggestionCard` stays unreachable** *(`selectLeanSuggestion` reads that log)*, and
+  `guardianPredictionCore`'s confidence count stays thin for variable-income users. ⭐ **The field is one
+  conditional input in a sheet that now has the shape for it** — the expensive part (threading actuals
+  through `onCapture` → `capturePayday`) is already built and shipped by e.2. → **P6.10**.
+
+**→ SURFACED BY P6.8.7e.2's BEFORE-scan (2026-08-22)**
+
+- **✅ C1's premise verified exactly.** `index.tsx:656` calls `capturePayday(items, decisions)` — **with no
+  `actuals` argument at all.** The only two callers that supply one are `sandboxBeats.ts:79` and a test
+  scenario. `PaydayCaptureSheet` has no surprise-outflow field and no actual-income field; its steps are
+  adjust-required → verify-balances → extras → confirm.
+- **⚡ AND THE FINDING UNDERSTATES IT: variable income is starved by the same gap.**
+  `substrateProducers.ts:60` — `if (store.paycheck.incomeVaries && opts?.actualIncome === undefined) return
+  store;` — so for a variable-income user **`incomeActualsLog` never grows**. That is *why* `LeanSuggestionCard`
+  is unreachable (`selectLeanSuggestion` reads that log), and it also thins `guardianPredictionCore`'s
+  confidence count. **C1 is one missing question with two starved consumers, not one.**
+- 🔴 **[DECISION] the SHAPE of the entry point is 🎯's** — see the queue note on e.2.
 
 **→ SURFACED BY P6.8.7e.1's AFTER-scan (2026-08-22)**
 
