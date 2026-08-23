@@ -120,6 +120,23 @@ export interface Preferences {
    */
   cloudBackupEnabled?: boolean;
   /**
+   * P6.8.7d.1 [B3] — the mtime of the iCloud backup **this install has accounted for**: one it wrote
+   * itself, or one it restored from. Absent means "this install has never looked at the remote".
+   *
+   * ⛔ This is the ONLY thing in the app that reasons about the remote, and that gap is what B3 was.
+   * Every guard before it — `shouldAutoBackup` included — reasoned purely about LOCAL state, so a
+   * perfectly healthy local plan was always permission to overwrite whatever happened to be in iCloud.
+   * R1 measured the fix both audit lenses proposed (route the toggle through `shouldAutoBackup`) and it
+   * returns `true` at the moment of the flip, permitting the clobber anyway.
+   *
+   * ⚠️ **A backup blob can never contain its own mtime** — the value is only knowable after the write
+   * that produced it. So the copy of this field that travels inside a backup is always one generation
+   * stale, and every restore path MUST re-stamp it from the file it actually read. Not doing so leaves
+   * the restored install unable to recognise the remote it just restored from, and its first background
+   * would refuse to back up forever.
+   */
+  cloudBackupRemoteAt?: string;
+  /**
    * 3.5.1 — which run of the Guardian tutorial this user has completed (or dismissed). `null` = never
    * offered/seen, so they get the first-run invitation.
    *

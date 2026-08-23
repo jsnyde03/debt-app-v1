@@ -154,6 +154,48 @@ function storeWithADebt(): DebtStore {
   );
   assert(!unknownCodec.ok, 'an unknown codec is refused rather than crashed on');
   if (!unknownCodec.ok) eq(unknownCodec.reason, 'too-new', 'and it too reads as "from a newer build"');
+
+  // ── P6.8.7d.3 [M3-5] — the message must name the FIX, not only the cause. ───────────────────────
+  //
+  // ⛔ This is the mechanism correction the refutation produced. The slice said the actual fix — update
+  // the app — "was computed, carried two layers, and discarded one layer short of the screen." Measured:
+  // on the CLOUD path it was never computed. `NO_CODEC` stopped one clause short of `backup.ts`'s
+  // `TOO_NEW`, so simply carrying the message would have satisfied the finding's wording and still left
+  // the user with an explanation and nothing to do.
+  if (!newerWrapper.ok) {
+    assert(/update the app/i.test(newerWrapper.message), '⛔ a too-new envelope tells the user to UPDATE');
+  }
+  if (!unknownCodec.ok) {
+    assert(/update the app/i.test(unknownCodec.message), '⛔ so does an unknown codec — same cause, same fix');
+  }
+
+  // ⚠️ And a payload we CAN identify but cannot decode is damaged, not new. It shared the "newer version"
+  // message, which told a user with a corrupted iCloud file to update an app that was already current.
+  const exploding: CloudBackupCodec = {
+    id: 'plaintext',
+    encodePayload: (s) => s,
+    decodePayload() {
+      throw new Error('payload is not decodable');
+    },
+  };
+  const damaged = decodeCloudBackup(
+    JSON.stringify({
+      cloudFormat: CLOUD_BACKUP_FORMAT,
+      cloudFormatVersion: CLOUD_BACKUP_FORMAT_VERSION,
+      codec: 'plaintext',
+      payload,
+    }),
+    [exploding],
+  );
+  assert(!damaged.ok, 'a payload that will not decode is refused');
+  if (!damaged.ok) {
+    eq(damaged.reason, 'unreadable', 'as "unreadable" — the codec was found, the bytes were not readable');
+    assert(/damaged/i.test(damaged.message), 'and the message says DAMAGED');
+    assert(
+      !/update the app/i.test(damaged.message),
+      '⛔ and does NOT tell them to update — they are already current, and the advice would waste the one action they have',
+    );
+  }
 }
 
 // ── The codec seam actually dispatches — proved with a codec that is NOT the identity. ──────────

@@ -51,6 +51,10 @@ export function DataResetScreen({
   // because offering a restore that then reports "nothing found" is a second bad surprise on top of the
   // first one.
   const [cloud, setCloud] = useState<DebtStore | null>(null);
+  // P6.8.7d.1 — the mtime of the file `cloud` was read from, carried alongside it. Restoring without
+  // recording this leaves the install unable to recognise the remote it just restored from, and the
+  // B3 guard then refuses every subsequent backup as a foreign-copy clobber.
+  const [cloudAt, setCloudAt] = useState<string | null>(null);
   const probed = useRef(false);
 
   useEffect(() => {
@@ -58,7 +62,10 @@ export function DataResetScreen({
     probed.current = true;
     void (async () => {
       const result = await restoreFromCloud(getCloudBackupProvider());
-      if (result.ok) setCloud(result.store);
+      if (result.ok) {
+        setCloud(result.store);
+        setCloudAt(result.at);
+      }
     })();
   }, []);
 
@@ -81,7 +88,11 @@ export function DataResetScreen({
                 // [R4] Declared, for the same reason the launch-time offer is: this fires while the store
                 // is a not-yet-onboarded default, which is precisely the audience a demo sandbox is
                 // admitted for, so an undeclared write here would be refused.
-                allowRealStoreWrite(() => appStore.getState().importStore(cloud));
+                allowRealStoreWrite(() => {
+                  appStore.getState().importStore(cloud);
+                  // ⛔ AFTER the import — it replaces prefs with the blob's own stale copy of this field.
+                  if (cloudAt !== null) appStore.getState().updatePrefs({ cloudBackupRemoteAt: cloudAt });
+                });
                 onStartFresh();
               }}
             />

@@ -22,6 +22,9 @@ import { MAX_DISPLAY_NAME, normalizeDisplayName } from '@/store/greeting';
 import type { ThemeMode } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { appStore } from '@/store/appStore';
+import { CLOUD_BACKUP_SUPPORTED, getCloudBackupProvider } from '@/storage/cloudBackup';
+import { deleteCloudBackup } from '@/storage/cloudBackup/service';
+import { clearQuarantinedData } from '@/store/persistence';
 import { resetCoachMarks } from '@/store/coachMarks';
 import { useAppStore } from '@/store/useAppStore';
 import { useLayout } from '@/hooks/use-layout';
@@ -64,6 +67,9 @@ export default function MoreScreen() {
   const { isExpanded } = useLayout(); // 3.6.5 — a wider settings column on iPad
   const [sheet, setSheet] = useState<'export' | 'import' | 'cloud' | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // P6.8.7d.2 — why the remote could not be erased, or null. Set only on a REFUSED delete, and it is what
+  // keeps the local wipe from proceeding behind a promise the app cannot keep.
+  const [deleteBlocked, setDeleteBlocked] = useState<'unavailable' | 'error' | null>(null);
   // 3.5.5.3 — the reset is instantaneous and invisible (the next mark appears on some other screen,
   // later), so the row confirms in place. Without it the tap reads as a no-op and gets repeated.
   const [tipsReset, setTipsReset] = useState(false);
@@ -104,16 +110,55 @@ export default function MoreScreen() {
   // tabs→onboarding. Doing that while More is pushed would orphan this screen with a dead back
   // stack (Freedom RN lesson #6), so DISMISS to the still-mounted tabs FIRST, then reset once the
   // pop settles.
-  function handleDeleteAll() {
+  /**
+   * P6.8.7d.2 [C9] — the local wipe, plus the two copies it used to leave behind.
+   *
+   * ⛔ **The remote goes FIRST, and a failure to reach it STOPS the local wipe.** Once the local store is
+   * reset this screen unmounts (the app routes to onboarding), so there is no surface left on which to
+   * admit that the iCloud copy survived. Wiping first and apologising afterwards is not available; the
+   * only honest order is to fail before anything is destroyed.
+   * ⚠️ A user who needs the device clear right now — the phone-being-handed-on case — is not held
+   * hostage by an unreachable iCloud: `deviceOnly` is that escape, and it is offered by name.
+   */
+  async function handleDeleteAll(opts?: { deviceOnly?: boolean }) {
+    // ⚠️ `CLOUD_BACKUP_SUPPORTED`, not `isAvailable()`. On web and Android there is no container and never
+    // was, so there is nothing to fail to erase; blocking there would be refusing to delete on behalf of a
+    // copy that does not exist. On iOS the check below runs and a signed-out device DOES block.
+    if (!opts?.deviceOnly && CLOUD_BACKUP_SUPPORTED) {
+      const cloud = await deleteCloudBackup(getCloudBackupProvider());
+      if (!cloud.ok) {
+        // ⚠️ `unavailable` is not a bug — it is web, Android, or a signed-out device. It still cannot be
+        // reported as success, because on a signed-out iPhone the backup is very much still there.
+        setDeleteBlocked(cloud.reason);
+        return;
+      }
+    }
     setConfirmingDelete(false);
-    router.back();
-    InteractionManager.runAfterInteractions(() => appStore.getState().reset());
+    setDeleteBlocked(null);
+    // ⛔ `canGoBack()` before `back()` — the THIRD instance of this shape in the repo, after `paywall.tsx`
+    // (tagged [C9]) and `schedule/[id].tsx` (3.7.A0), and the only one on a DESTRUCTIVE control. A bare
+    // `back()` no-ops when this screen is the only entry on the stack, and here that does not merely
+    // strand the user: the reset is sequenced *after* the pop, so "Delete everything" silently does
+    // nothing at all. Found by the e2e added at d.2, whose first draft landed on `/more` directly.
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+    InteractionManager.runAfterInteractions(() => {
+      appStore.getState().reset();
+      // ⛔ The quarantined blob is a FULL copy of the portfolio, set aside by the corrupt-store path and
+      // read by nothing. `adapter.ts` claimed this call already existed; it did not. Fire-and-forget, but
+      // reported — a silent failure here is the same lie in a third place.
+      void clearQuarantinedData().catch((error: unknown) => reportError(error, { seam: 'persistence', op: 'reset' }));
+    });
   }
 
   return (
     // 3.6.5 — a wider settings column on iPad (a clean, appropriate treatment for a settings list; a
     // fuller two-column/section-split is a noted future enhancement).
-    <Screen title="More" onBack={() => router.back()} maxWidth={isExpanded ? 680 : undefined}>
+    <Screen
+      title="More"
+      // Same [C9] shape as the paywall and the schedule route — a back control that no-ops on cold entry.
+      onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+      maxWidth={isExpanded ? 680 : undefined}>
       {/* Trust moment (the moat) — the first thing you see: honest, on-device, never sells you debt. */}
       <TrustCard />
 
@@ -220,7 +265,15 @@ export default function MoreScreen() {
             onPress={() => setSheet('cloud')}
           />
           {confirmingDelete ? (
-            <DeleteConfirm onCancel={() => setConfirmingDelete(false)} onConfirm={handleDeleteAll} />
+            <DeleteConfirm
+              blocked={deleteBlocked}
+              onCancel={() => {
+                setConfirmingDelete(false);
+                setDeleteBlocked(null);
+              }}
+              onConfirm={() => void handleDeleteAll()}
+              onConfirmDeviceOnly={() => void handleDeleteAll({ deviceOnly: true })}
+            />
           ) : (
             <SettingRow icon="delete-outline" label="Delete all data" danger onPress={() => setConfirmingDelete(true)} last />
           )}
@@ -408,19 +461,63 @@ function TrustCard() {
   );
 }
 
-function DeleteConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
+/**
+ * P6.8.7d.2 [C9] — the copy used to promise *"permanently erased… cannot be undone"* while the iCloud
+ * copy and the quarantined blob both survived. The sentence is now the one the code keeps.
+ *
+ * ⚠️ It names iCloud unconditionally rather than probing for a backup first. Saying "and in your iCloud
+ * backup" when there is none costs a reader nothing; probing would put a native round-trip on a settings
+ * screen, and a probe that failed would put the screen right back to promising something it cannot check.
+ */
+function DeleteConfirm({
+  blocked,
+  onCancel,
+  onConfirm,
+  onConfirmDeviceOnly,
+}: {
+  blocked: 'unavailable' | 'error' | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+  onConfirmDeviceOnly: () => void;
+}) {
   const c = useAppColors();
+  if (blocked) {
+    return (
+      <View style={styles.confirm} testID="delete-all-blocked">
+        <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
+          {blocked === 'unavailable'
+            ? 'Nothing was deleted. Sign in to iCloud on this device so the backup there can be erased too — or delete on this device only.'
+            : 'Nothing was deleted. iCloud couldn’t be reached, so the backup there would have survived — try again, or delete on this device only.'}
+        </Text>
+        <View style={styles.confirmActions}>
+          <View style={styles.confirmBtn}>
+            <Button label="Cancel" variant="secondary" onPress={onCancel} />
+          </View>
+          <View style={styles.confirmBtn}>
+            <Button label="Try again" variant="secondary" testID="delete-all-retry" onPress={onConfirm} />
+          </View>
+        </View>
+        <Button
+          label="Delete on this device only"
+          variant="danger"
+          testID="delete-all-device-only"
+          onPress={onConfirmDeviceOnly}
+        />
+      </View>
+    );
+  }
   return (
     <View style={styles.confirm}>
       <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-        All debts, expenses, goals, and settings will be permanently erased. This cannot be undone.
+        All debts, expenses, goals, and settings will be permanently erased — on this device and in your
+        iCloud backup. This cannot be undone.
       </Text>
       <View style={styles.confirmActions}>
         <View style={styles.confirmBtn}>
           <Button label="Cancel" variant="secondary" onPress={onCancel} />
         </View>
         <View style={styles.confirmBtn}>
-          <Button label="Delete everything" variant="danger" onPress={onConfirm} />
+          <Button label="Delete everything" variant="danger" testID="delete-all-confirm" onPress={onConfirm} />
         </View>
       </View>
     </View>

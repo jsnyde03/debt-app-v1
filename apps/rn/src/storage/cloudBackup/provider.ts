@@ -25,6 +25,15 @@ export interface CloudBackupProvider {
   read(): Promise<string | null>;
   /** Metadata for the existing backup file, or `null` if there is none. */
   stat(): Promise<CloudBackupMetadata | null>;
+  /**
+   * P6.8.7d.2 [C9] — remove the backup file. **Resolves when there is nothing to remove**; "already gone"
+   * is the success this method exists to reach, not an error.
+   *
+   * ⛔ Without it *"permanently erased… cannot be undone"* was **false**, and the failure mode was not
+   * abstract: the copy outlives the wipe, so the next launch's restore offer hands **the previous owner's
+   * whole plan to whoever is holding the phone.** Privacy, not polish.
+   */
+  delete(): Promise<void>;
 }
 
 /**
@@ -47,5 +56,10 @@ export const unavailableCloudBackupProvider: CloudBackupProvider = {
   },
   async stat() {
     return null;
+  },
+  async delete() {
+    // no-op — there is no container here, so there is nothing to erase. ⚠️ Callers must still branch on
+    // `isAvailable()` before treating a resolved delete as "the remote copy is gone": on web and Android
+    // this resolving means only that nothing was ever there to begin with.
   },
 };

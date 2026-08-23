@@ -1,4 +1,4 @@
-import { createCloudBackupProvider } from './createCloudBackupProvider';
+import { CLOUD_BACKUP_SUPPORTED, createCloudBackupProvider } from './createCloudBackupProvider';
 import type { CloudBackupProvider } from './provider';
 
 /**
@@ -12,5 +12,6 @@ export function getCloudBackupProvider(): CloudBackupProvider {
   return provider;
 }
 
+export { CLOUD_BACKUP_SUPPORTED };
 export * from './provider';
 export * from './service';

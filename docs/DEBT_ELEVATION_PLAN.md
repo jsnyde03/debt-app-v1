@@ -141,26 +141,40 @@ rest of the work happens — the [D31] move, applied to a 30-item build rather t
 | ✅ | **Junk file removed 2026-08-21** — `apps/rn/m.default())`: 0 bytes, tracked, unreferenced, born in `ab7daf3`. ⚠️ **P6.1's sweep of this class was short by one.** It is now the only one, verified by walking **every tracked file for zero length** rather than by grepping names |
 | **P6.8.7b** | ✅ **COPY — DONE 2026-08-21** | **A4/M1-9** the first screen no longer promises a premium feature · **C6** `PRIVACY_CLAIM.atEntry` on both money-asking steps · **M1-8** the inert analytics row gone, **coupled both ways** so it cannot stay gone if a sink appears · **L1-22** baseline **94 → 0**, the gate is now absolute · **P1-10** the windfall invite's false implication · **A1/A2/A3** drafted. ⛔ **Four premises were wrong**, incl. C6's pre-written wording being **unsafe** *(it denies the iCloud backup P6.3 shipped)* and one error of mine. Detail → log |
 | **P6.8.7c** | ✅ **DATA INTEGRITY — CLOSED 2026-08-22** | **B1** *(14 sites/7 files, one shared money parser)* · **B4** *(the reset screen + `pendingDataRepairs`)* · **W1-6** *(a refused database is no longer "a fresh install", and an inconclusive bridge no longer seeds)* · **M3-20** *(losses reported through B4's card)*. **220 e2e · 10 embed · lint exit 0.** ⛔ **Three results outlive the cluster:** an absence assertion passes before the app renders *(two specs stayed green with the defect planted)* · `lint:rn` green ≠ purity-clean · **M3-20 was scheduled as work and never refuted.** Detail → log |
-| **P6.8.7d** ▶ | 🔴 **CLOUD / DESTRUCTIVE — BUILDING NOW** *(decomposed below)* | **B3** the iCloud clobber — ⛔ **NOT via `shouldAutoBackup`; R1 measured that the guard returns `true` and permits it anyway.** The real gap is that nothing reasons about the REMOTE · **C9** `CloudBackupProvider.delete()` so "Delete all data" is true · **M3-5** the restore message thrown away one layer short of the screen |
-| **P6.8.7e** | **THE CORE LOOP** | **B2** celebration + finale reachable for free · **C1** absorb entry point *(entry only — the engine is correct)* · **C2** re-open payday capture **(+C3** folds here**)** · **C4** the Live Activity gate — ⚠️ **source-only; ships with a device row, not a claim** · **C5** the "no-bills" branch |
+| **P6.8.7d** | ✅ **CLOUD / DESTRUCTIVE — CLOSED 2026-08-22** | **B3** *(the app now reasons about the REMOTE — `cloudBackupRemoteAt` + a guarded backup)* · **C9** *(`provider.delete()`, `clearQuarantine` finally called, and a failed remote delete blocks the local wipe)* · **M3-5** *(the diagnosis reaches the screen)*. **222 e2e · 10 embed · lint exit 0 · 9 plants red by name.** ⛔ **Three results outlive it:** M3-5 was scheduled as work and **appears in no refutation at all** *(the second instance — check the ids the BUILD schedules, not the slice's owed-list)* · the repo had already tagged the bare-`router.back()` defect `[C9]` **twice** while the destructive screen still had it · **"Delete all data" had zero e2e and no lens reported it.** Detail → log |
+| **P6.8.7e** ▶ | 🔴 **THE CORE LOOP — BUILDING NOW** *(decomposed below)* | **B2** celebration + finale reachable for free · **C1** absorb entry point *(entry only — the engine is correct)* · **C2** re-open payday capture **(+C3** folds here**)** · **C4** the Live Activity gate — ⚠️ **source-only; ships with a device row, not a claim** · **C5** the "no-bills" branch |
 | **P6.8.7f** | **VISUAL + A11Y** | **B6/V1-2** light contrast *(15 of 24 distinct pairs)* · **V1-5** borders *(⚠️ all four boundaries fail 1.4.11 — dark too)* · **V2-6** the coach mark covering its subject · **V2-1** the truncating debt-free date · **V3-1** six missing font clamps · **V3-5/6** the chart's hardcoded per-character width · **V4-8** split-view chart · **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⚠️ **A1-7's obvious fix is documented-as-broken; A1-11 is 6 sites not 1** |
 | **P6.8.7g** | **NEW SURFACES** *(🎯's call, against my rec)* | **C8** ⚠️ **RESCUE `core/imports/debtCsv.ts` FIRST — its only caller dies at P6.11, the earliest deadline in this audit** — then wire the import · **C7** snowball-vs-avalanche side by side *(both simulations already run; `TrajectoryChart.tsx:133` discards one)* |
 
-#### ▶ P6.8.7d — CLOUD / DESTRUCTIVE, decomposed *(the ACTIVE decomposition — 2026-08-22)*
+#### ▶ P6.8.7e — THE CORE LOOP *(the ACTIVE decomposition — 2026-08-22)*
 
-⛔ **The only cluster in this build that can DESTROY data the user still has.** c's mistakes changed what
-the app computed; d's change what still exists. ⚠️ **Every step here is source-only** — iCloud has no
-off-device proof — so each one ships with a **P6.14 device row**, never with a claim.
+⛔ **d changed what still EXISTS; e changes what the app can still DO.** Every id here is a path the
+product's own loop is supposed to have and does not — three of them are dead code with no caller, which is
+why the audit's charter was *"is anything missing"* and not only *"is anything wrong"*.
+
+⚠️ **Switch-in obligation, and it is the result d produced twice:** before building each id, check it
+against the **refutations**, not against its slice's owed-list. M3-20 and M3-5 were both scheduled as work
+un-refuted, and only opening the step caught them. **Assume the next one is un-refuted until seen.**
 
 | # | step | notes |
 |---|---|---|
-| **d.1** | 🔴 **B3 / M3-3 — flipping "Back up to iCloud" ON destroys the declined backup** | ⛔ **NOT via `shouldAutoBackup`, and this is the audit's most important mechanism correction.** R1 *simulated* the fix both lenses proposed: at the moment of the flip `cloudBackupEnabled` was just set `true` and the user is necessarily onboarded, so the guard returns **`true` and permits the clobber anyway**. **The real gap is that nothing reasons about the REMOTE.** ⚠️ Aggravated by the sheet rendering *"Last backed up …"* — it displays the artifact the next tap destroys |
-| **d.2** | 🔴 **C9 — `CloudBackupProvider.delete()`, so "Delete all data" is TRUE** | The next launch offers the previous owner's plan to whoever holds the phone. ⭐ **Fold in `clearQuarantine`** *(backlog, c.2's before-scan)*: four definitions, one test and **zero call sites**, while `storage/adapter.ts:16` documents it as *"called from reset all data"* — false. **One honest answer to "is my data gone", not two half ones** |
-| **d.3** | **M3-5 — the restore message thrown away one layer short of the screen** | |
-| **d.4** | **Suites green + the device rows filed** | `test:regression` · `test:app` · `test:scenarios` after **each** step. ⛔ Nothing here is verifiable off-device; the exit is a filed row, not a green tick |
+| **e.1** | 🔴 **B2 — the celebration + finale are unreachable for a free user** | The payoff moment the whole product builds toward. ⚠️ Verify the gate's actual site before touching it — a paywall check and a tier check are not the same defect |
+| **e.2** | **C1 — the absorb path has no user entry point** | ⛔ **ENTRY ONLY — the engine is correct and must not be touched.** `surpriseOutflow` + `actualIncome` are constructed only in the tutorial sandbox and tests, so two safety-net acks and `LeanSuggestionCard` are unreachable in production. ⚠️ R3's correction: `missed` **is** reachable via `declareMissedPaycheck()` |
+| **e.3** | **C2 + C3 — re-open payday capture** | `usePaydayCapture.open()` has **no caller**, so "Skip this payday" is a one-way door out of the app's central recurring moment. ⚠️ **A two-generation omission** — v1.6 ships the same dead `open()`. C3 folds in here |
+| **e.4** | **C5 — the "no-bills" branch** | `RequiredActionsCard` has no honest empty state; R3 confirmed and worsened it |
+| **e.5** | **C4 — the Live Activity gate** | ⚠️ **SOURCE-ONLY. Ships with a P6.14 device row, never a claim** — the same rule the whole of d ran under |
+| **e.6** | **Suites green + device rows filed** | The full gate after the last id, and each id plant-verified red AND green as it lands |
 
-**Exit (d):** every d-id carries a fix or a recorded reason, each **plant-verified**, the money suites
-green, and **every cloud claim carried to P6.14 as a device row** rather than asserted from source.
+**Exit (e):** every e-id carries a plant-verified fix or a recorded reason, the suites are green, and
+anything unprovable off-device is a filed P6.14 row rather than an assertion from source.
+
+#### ✅ P6.8.7d — CLOUD / DESTRUCTIVE *(CLOSED 2026-08-22)*
+
+✅ **All four steps done, every fix plant-verified red AND green.** B3 · C9 · M3-5, plus three defects that
+only surfaced while building *(a bare `router.back()` that made "Delete everything" **silently do nothing**
+on cold entry; a platform check without which delete would have been blocked outright on web/Android; a
+"newer version, update the app" message shown for a **damaged** file)*. **222 e2e · 10 embed · `lint:rn`
+exit 0 · 9 plants.** ⛔ **Three results are on the cluster row above and in the backlog.** Detail → log.
 
 #### ✅ P6.8.7c — DATA INTEGRITY *(CLOSED 2026-08-22)*
 
@@ -421,6 +435,25 @@ which is the right trade given this pass exists)*:
   exercise `copyToCacheDirectory`.
 - The **`v16-damaged` repair report** naming *Visa · balance* and *Electric · amount*.
 
+**Owed from P6.8.7d.1 [B3] — the clobber guard, none of it provable off-device:**
+- Flip **Back up to iCloud ON** on a device whose container already holds a backup this install never
+  restored. **The declined copy must still be there**, and the sheet must offer the fork rather than say
+  *"Last backed up …"*.
+- Take **"Replace it with this device"**, then **background the app twice**: the second auto-backup must go
+  through *(it proves the write re-stamped `cloudBackupRemoteAt`; if it did not, the guard blocks forever)*.
+- **Restore** from iCloud, then background: the same must hold *(the blob's own copy of the stamp is always
+  one generation stale)*.
+- ⚠️ **Kill the app immediately after backgrounding** — the stamp rides `flushPendingSave()` and a
+  suspension inside that window costs it. Expected worst case is a **false conflict**, never a loss.
+
+**Owed from P6.8.7d.2 [C9] — the delete, whose refusal branch web cannot reach:**
+- **Delete all data with a backup in iCloud.** The file must be **gone** from the container, and the next
+  launch must NOT offer a restore.
+- **Delete all data signed OUT of iCloud.** Nothing may be deleted; the blocked message must render and
+  **"Delete on this device only"** must wipe locally and leave the remote alone.
+- **Delete all data with iCloud reachable but the unlink failing** *(airplane mode mid-tap)* — the `error`
+  wording, and **Try again** succeeding once connectivity returns.
+
 **Carried from the audit gate:** **[T3.2]'s storage-fault row** — force a storage fault, confirm the retry
 screen renders **and** the retry recovers. Two T3 surfaces ship on unit assertions with no rendered proof.
 
@@ -456,6 +489,51 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7d.3's AFTER-scan (2026-08-22)**
+
+- **⚡ `_layout`'s launch restore offer and `DataResetScreen` drop the SAME diagnosis, and more of it.** Both
+  do `if (!result.ok) return` — the whole failure, silently. d.3 fixed the sheet, which is its scope; these
+  two are **M3-7**, already on the record, and the measurement is that M3-5's site list was **1 of 3**.
+  ⚠️ On the launch offer the silence is arguably right *(an Alert about a corrupt backup, before onboarding,
+  to someone who may not know they had one)*; on `DataResetScreen` it is not — that user is **already** in a
+  recovery flow and is being offered iCloud as the way out. → **M3-7, at P6.8.9's sweep**.
+- **The whole `ready` branch of `CloudBackupSheet` is untestable by construction** — the web provider is the
+  unavailable stub, so Playwright can only ever reach the dead end. d.3 answered it by moving the branching
+  into a pure module; **the toggle, the conflict fork and both buttons remain source-only.** ⭐ **A fake
+  provider behind an `EXPO_PUBLIC_` flag would make the entire feature e2e-testable** — the same shape
+  `demoSession` already uses. **Recommendation: 2.1**, unless P6.14 finds a defect here. → 2.1.
+
+**→ SURFACED BY P6.8.7d.2's AFTER-scan (2026-08-22)**
+
+- **⛔ THE CODEBASE HAD ALREADY WRITTEN THE DEFECT DOWN — TWICE — AND THE DESTRUCTIVE SCREEN STILL HAD IT.**
+  `paywall.tsx` tags the bare-`router.back()` no-op `[C9]`; `schedule/[id].tsx` fixed the same shape at
+  3.7.A0. `more.tsx` — the one screen carrying an irreversible control — still called it bare, and because
+  the wipe is sequenced *after* the pop, **"Delete everything" silently did nothing on cold entry.** Fixed
+  and plant-verified in d.2. ⚡ **The lesson is the search, not the fix:** a repo-wide grep for
+  `router.back()` against `canGoBack()` is a five-minute gate-shaped question nobody has asked. → **P6.8.9**.
+- **⚠️ The `deleteBlocked` branch is unreachable off-device** — `CLOUD_BACKUP_SUPPORTED` is false on web, so
+  the refusal path, both its messages and the device-only escape, ships on **source only**. → **P6.14 rows,
+  filed below.**
+- **A destructive flow with no e2e was NOT on any lens's list.** 13 lenses and 6 refuters read this app and
+  none reported that "Delete all data" had zero coverage — it took *changing* the flow to notice. **Ask of
+  every irreversible control whether anything exercises it.** → **P6.8.9**.
+
+**→ SURFACED BY P6.8.7d.1's AFTER-scan (2026-08-22)**
+
+- **⛔ M3-5 IS SCHEDULED AS WORK (d.3) AND WAS NEVER REFUTED — the second instance, and the rule now has
+  a measured base rate.** It is a **major** in `M3-recovery.md`, but the slice's owed-list names only its
+  four blockers, so no refuter was ever assigned and **`M3-5` appears in no refutation and in
+  `SYNTHESIS.md` not at all.** ⚠️ c.3 found the same shape on M3-20 and the fix was "check the owed-list";
+  **that check would have passed here** — the finding is not missing from a list, it was never on one.
+  **The real rule is: check every id the BUILD schedules, against the refutations, not against the
+  slice.** Refutation supplied at d.3's switch-in. → **P6.8.9**.
+- **Two `stat()` round-trips per sheet refresh** — `getCloudBackupStatus` and `inspectRemote` each call it.
+  Correct but wasteful on a native path; one call could serve both. **Polish, not a ship-blocker.** → 2.1.
+- **⚠️ The `flushPendingSave()` after an auto-backup is best-effort by construction.** If the process is
+  suspended inside that window the claim is lost and the next launch reports a **false conflict** on the
+  user's own backup. Safe direction, and one tap to resolve, but it is a real rough edge — **filed to
+  P6.14 as a device row** rather than engineered around now. → 2.1 if the device pass sees it.
 
 **→ SURFACED BY P6.8.7c.3 + c.4's AFTER-scan (2026-08-22)**
 

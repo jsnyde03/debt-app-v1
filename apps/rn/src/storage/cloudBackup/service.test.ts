@@ -3,7 +3,10 @@ import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
 import {
   backupToCloud,
+  backupToCloudGuarded,
+  deleteCloudBackup,
   getCloudBackupStatus,
+  inspectRemote,
   isOnboarded,
   restoreFromCloud,
   shouldAutoBackup,
@@ -47,6 +50,7 @@ function fakeProvider(init?: { contents?: string | null; available?: boolean; mo
   const state = {
     available: init?.available ?? true,
     writes: 0,
+    deletes: 0,
     get contents() {
       return contents;
     },
@@ -64,6 +68,61 @@ function fakeProvider(init?: { contents?: string | null; available?: boolean; mo
     },
     async stat(): Promise<CloudBackupMetadata | null> {
       return contents === null ? null : { modifiedAt: init?.modifiedAt ?? AT.toISOString() };
+    },
+    async delete() {
+      state.deletes += 1;
+      contents = null;
+    },
+  };
+  return { provider, state };
+}
+
+/**
+ * P6.8.7d.1 — a provider whose mtime MOVES when it is written, the way a filesystem's does.
+ *
+ * ⚠️ `fakeProvider` above returns a fixed `modifiedAt`, which is fine for the round-trip tests and useless
+ * for the clobber guard: the whole guard turns on "did this file change since I last saw it", and a
+ * provider that cannot answer differently before and after a write can only ever confirm the guard.
+ */
+function clockedProvider(init?: { contents?: string | null; modifiedAt?: string | null }) {
+  let contents = init?.contents ?? null;
+  let modifiedAt = init?.modifiedAt ?? (contents === null ? null : '2026-01-01T00:00:00.000Z');
+  let tick = 0;
+  const state = {
+    writes: 0,
+    /** Set on a REMOTE write — someone else's device putting a file in the container while we run. */
+    foreignWrite(at: string) {
+      contents = '{}';
+      modifiedAt = at;
+    },
+    get modifiedAt() {
+      return modifiedAt;
+    },
+    get writeCount() {
+      return state.writes;
+    },
+  };
+  const provider: CloudBackupProvider = {
+    async isAvailable() {
+      return true;
+    },
+    async write(next: string) {
+      state.writes += 1;
+      contents = next;
+      tick += 1;
+      // A distinct, monotonic instant per write — never the caller's `now`, which is exactly the value
+      // `backupToCloud` must NOT be allowed to get away with reporting.
+      modifiedAt = new Date(Date.UTC(2026, 5, 1, 0, 0, tick)).toISOString();
+    },
+    async read() {
+      return contents;
+    },
+    async stat(): Promise<CloudBackupMetadata | null> {
+      return modifiedAt === null ? null : { modifiedAt };
+    },
+    async delete() {
+      contents = null;
+      modifiedAt = null;
     },
   };
   return { provider, state };
@@ -128,6 +187,9 @@ export default async function run() {
       async stat() {
         throw new Error('iCloud stat failed');
       },
+      async delete() {
+        throw new Error('iCloud unlink failed');
+      },
     };
     const backup = await backupToCloud(onboardedStore(), exploding, plaintextCloudCodec, { now: AT });
     assert(!backup.ok, 'a throwing write is caught');
@@ -149,6 +211,12 @@ export default async function run() {
     if (!restore.ok) {
       eq(restore.reason, 'error', 'as an error (it is OUR container — something is wrong)');
       assert((restore.message ?? '').length > 0, 'with a message a human can read');
+      // ⛔ P6.8.7d.3 [M3-5] — SPECIFIC, not generic. This exact string was computed here and then thrown
+      // away one layer short of the screen, which rendered "That didn't work." for every failure alike.
+      assert(
+        /isn’t a Debt Planner backup/.test(restore.message ?? ''),
+        '⛔ and it is the SPECIFIC diagnosis, which is what the screen now shows',
+      );
     }
   }
 
@@ -188,6 +256,182 @@ export default async function run() {
       ),
       '⛔ a non-boolean truthy value is OFF — the check is `=== true`, not truthiness',
     );
+  }
+
+  // ── THE REMOTE HALF OF THE GUARD (P6.8.7d.1, finding B3 / M3-3). ───────────────────────────────
+  //
+  // ⛔ The defect this closes: flipping "Back up to iCloud" ON immediately overwrote whatever was in the
+  // container, including the backup the user had DECLINED at first launch — while the sheet displayed it
+  // as "Last backed up …". ⚠️ R1 measured the fix both lenses proposed (route it through
+  // `shouldAutoBackup`) and it returns TRUE at that moment, permitting the clobber anyway. Nothing in the
+  // app reasoned about the remote at all, so every assertion below is about a question that had no asker.
+  {
+    // 1. The four states, each on its own. `unknown` and `none` are the pair that must never merge:
+    //    "iCloud is unreachable" would license a write if it read as "there is nothing there".
+    const empty = clockedProvider();
+    eq((await inspectRemote(empty.provider, undefined)).state, 'none', 'an empty container is `none`');
+
+    const held = clockedProvider({ contents: '{}', modifiedAt: '2026-03-01T00:00:00.000Z' });
+    eq(
+      (await inspectRemote(held.provider, undefined)).state,
+      'unclaimed',
+      '⛔ a remote this install has NEVER accounted for is `unclaimed` — this is the B3 state',
+    );
+    eq(
+      (await inspectRemote(held.provider, '2026-03-01T00:00:00.000Z')).state,
+      'ours',
+      'the exact file we recorded is `ours`',
+    );
+    eq(
+      (await inspectRemote(held.provider, '2026-02-01T00:00:00.000Z')).state,
+      'unclaimed',
+      '⛔ a DIFFERENT mtime is unclaimed even though ours is older — "newer wins" is how sync loses data',
+    );
+    eq(
+      (await inspectRemote(held.provider, '2026-04-01T00:00:00.000Z')).state,
+      'unclaimed',
+      '⛔ and even though ours is NEWER — the question is identity, not recency',
+    );
+
+    const unavailable: CloudBackupProvider = { ...held.provider, async isAvailable() { return false; } };
+    eq(
+      (await inspectRemote(unavailable, undefined)).state,
+      'unknown',
+      '⛔ an unreachable iCloud is `unknown`, NOT `none` — conflating them licenses the overwrite',
+    );
+    const throwing: CloudBackupProvider = {
+      ...held.provider,
+      async stat() {
+        throw new Error('iCloud stat failed');
+      },
+    };
+    eq((await inspectRemote(throwing, undefined)).state, 'unknown', 'a throwing stat is contained as `unknown`');
+  }
+
+  {
+    // 2. The guard REFUSES, and — the assertion that matters — it refuses BEFORE writing. A guard that
+    //    reports a clobber it has already performed is the shape `check-destructive-writes` exists for.
+    const { provider, state } = clockedProvider({ contents: '{}', modifiedAt: '2026-03-01T00:00:00.000Z' });
+    const declined = await backupToCloudGuarded(onboardedStore({ cloudBackupEnabled: true }), provider);
+    assert(!declined.ok, 'a guarded backup over an unclaimed remote does not succeed');
+    if (!declined.ok) {
+      eq(declined.reason, 'remote-unclaimed', 'and the reason names the remote, not a failure');
+      if (declined.reason === 'remote-unclaimed') {
+        eq(declined.remoteAt, '2026-03-01T00:00:00.000Z', 'carrying the other copy’s date, so the UI can show it');
+      }
+    }
+    eq(state.writeCount, 0, '⛔ ZERO writes — the declined backup is still in the container');
+
+    // 3. The informed override still works. `backupToCloud` is the "the user read the date and chose to
+    //    lose it" path; taking the guard away entirely would have been a fix that broke the feature.
+    const replaced = await backupToCloud(onboardedStore({ cloudBackupEnabled: true }), provider);
+    assert(replaced.ok, 'the UNGUARDED path still overwrites — that is the user’s informed choice');
+    eq(state.writeCount, 1, 'and it wrote exactly once');
+  }
+
+  {
+    // 4. ⛔ THE REGRESSION THAT WOULD MAKE THE GUARD BLOCK EVERYTHING. `backupToCloud` must report the
+    //    file's OBSERVED mtime, not the clock it was handed — otherwise the claim it records never
+    //    matches the next `stat()`, every later backup is refused as a foreign clobber, and the feature
+    //    silently stops working for the users who turned it on.
+    const { provider, state } = clockedProvider();
+    const first = await backupToCloudGuarded(onboardedStore({ cloudBackupEnabled: true }), provider, undefined, {
+      now: AT,
+    });
+    assert(first.ok, 'the first backup into an empty container is permitted');
+    if (!first.ok) return passed;
+    assert(first.at !== AT.toISOString(), '⛔ `at` is NOT the clock it was given');
+    eq(first.at, state.modifiedAt, 'it is the mtime the file actually has');
+
+    // Claiming it is what a caller does with `at`; the next guarded backup must then go through.
+    const claimed = onboardedStore({ cloudBackupEnabled: true, cloudBackupRemoteAt: first.at });
+    eq((await inspectRemote(provider, claimed.prefs.cloudBackupRemoteAt)).state, 'ours', 'our own file reads as ours');
+    const second = await backupToCloudGuarded(claimed, provider);
+    assert(second.ok, '⛔ a second backup by the SAME install succeeds — the guard is not a one-shot');
+    eq(state.writeCount, 2, 'two writes, both ours');
+
+    // 5. And the moment another device writes, the same install is refused again.
+    state.foreignWrite('2026-09-09T09:09:09.000Z');
+    const afterForeign = await backupToCloudGuarded(claimed, provider);
+    assert(!afterForeign.ok, '⛔ a foreign write mid-session makes the very next backup refuse');
+    eq(state.writeCount, 2, 'and nothing was written over it');
+  }
+
+  {
+    // 6. `restoreFromCloud` carries the mtime it read AT, and reads it BEFORE the contents. If the file
+    //    moves underneath us the caller must end up claiming the OLDER instant — which makes the next
+    //    check say `unclaimed` and ask, rather than say `ours` and overwrite a copy nobody ever read.
+    const { provider } = clockedProvider();
+    await backupToCloud(onboardedStore(), provider, plaintextCloudCodec, { now: AT });
+    const beforeAt = (await provider.stat())?.modifiedAt ?? null;
+    const shifting: CloudBackupProvider = {
+      ...provider,
+      async read() {
+        const raw = await provider.read();
+        // Someone else's device lands a write in the window between our stat and our read.
+        await provider.write(raw ?? '');
+        return raw;
+      },
+    };
+    const restored = await restoreFromCloud(shifting);
+    assert(restored.ok, 'the restore still succeeds');
+    if (restored.ok) {
+      eq(restored.at, beforeAt, '⛔ and reports the mtime from BEFORE the read, not the one it ended with');
+      assert(restored.at !== (await provider.stat())?.modifiedAt, 'which is deliberately the stale one');
+    }
+  }
+
+  // ── "DELETE ALL DATA" REACHES THE REMOTE (P6.8.7d.2, finding C9). ──────────────────────────────
+  //
+  // ⛔ The container used to survive the wipe, so the next launch's restore offer handed the previous
+  // owner's whole plan to whoever was holding the phone — while the confirm said "permanently erased…
+  // cannot be undone". The assertions below are about the two ways this can go on lying: reporting a
+  // success nobody performed, and reporting a failure for the state it was trying to reach.
+  {
+    const { provider, state } = fakeProvider({ contents: '{"v":1}' });
+    const result = await deleteCloudBackup(provider);
+    assert(result.ok, 'deleting an existing backup succeeds');
+    eq(state.deletes, 1, 'and it actually went to the provider');
+    eq(state.contents, null, 'the container is empty afterwards');
+
+    // "Already gone" is the state this call exists to REACH. Reporting it as failure would tell a user
+    // whose backup is genuinely erased that it survived.
+    const again = await deleteCloudBackup(provider);
+    assert(again.ok, '⛔ deleting again is a SUCCESS, not an error — the goal state is already true');
+  }
+
+  {
+    // ⛔ THE LIE THIS GUARDS. The unavailable provider's `delete()` resolves happily — it is a no-op —
+    // so a caller that only watched for a throw would report "your iCloud backup is gone" to a user on a
+    // signed-out iPhone whose backup is untouched. The availability check is the whole difference.
+    const { provider, state } = fakeProvider({ available: false, contents: '{"v":1}' });
+    const result = await deleteCloudBackup(provider);
+    assert(!result.ok, 'a delete with iCloud unavailable does NOT report success');
+    if (!result.ok) eq(result.reason, 'unavailable', 'and says which');
+    eq(state.deletes, 0, 'and never reached the provider at all');
+    assert(state.contents !== null, '⛔ the backup is still there — which is exactly why it must not say ok');
+  }
+
+  {
+    // A throwing unlink means the file is STILL THERE. Contained, but never as a success.
+    const exploding: CloudBackupProvider = {
+      async isAvailable() {
+        return true;
+      },
+      async write() {},
+      async read() {
+        return null;
+      },
+      async stat() {
+        return null;
+      },
+      async delete() {
+        throw new Error('iCloud unlink failed');
+      },
+    };
+    const result = await deleteCloudBackup(exploding);
+    assert(!result.ok, 'a throwing delete is caught');
+    if (!result.ok) eq(result.reason, 'error', 'and reported as an error, so the caller can say so');
   }
 
   // ── `isOnboarded` reads the FLAG, not the portfolio. ────────────────────────────────────────────

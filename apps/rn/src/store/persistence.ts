@@ -41,6 +41,9 @@ export async function bootstrapPersistence(
   }
   if (bootstrapped.has(store)) return;
   bootstrapped.add(store);
+  // P6.8.7d.2 — captured so "Delete all data" can reach `clearQuarantine`. ⚠️ Set AFTER the sandbox
+  // refusal above: a sandbox adapter must never become the one the reset erases through.
+  activeAdapter = adapter;
 
   // 5.3 — the v1.6 bridge, BEFORE hydrate and only when RN storage is genuinely empty.
   //
@@ -196,4 +199,23 @@ async function runLegacyBridge(
 /** Immediately persist any pending debounced change (wire to AppState background at B.9). */
 export function flushPendingSave(store: DebtStoreInstance = appStore): void {
   flushers.get(store)?.();
+}
+
+/**
+ * P6.8.7d.2 [C9] — remove any quarantined blob, for "Delete all data".
+ *
+ * ⛔ **`clearQuarantine` had FOUR definitions, one test fake, and ZERO call sites**, while `adapter.ts`
+ * documented it as *"called from reset all data"* — a comment that had never been true. So a user who hit
+ * a corrupt store, got quarantined bytes set aside, and then deleted everything kept a full copy of their
+ * portfolio on the device. **Two half-answers to "is my data gone" is worse than one**, which is why this
+ * lands with the iCloud delete rather than on its own.
+ *
+ * ⚠️ The adapter is captured at bootstrap rather than rebuilt here. Constructing a second MMKV handle
+ * would work, but "the storage the app is actually running on" and "a storage that looks like it" are the
+ * kind of pair that stays identical right up until one of them does not.
+ */
+let activeAdapter: StorageAdapter | null = null;
+
+export async function clearQuarantinedData(): Promise<void> {
+  await activeAdapter?.clearQuarantine?.();
 }

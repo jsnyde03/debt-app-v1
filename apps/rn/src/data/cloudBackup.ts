@@ -76,9 +76,24 @@ export function encodeCloudBackup(
   return JSON.stringify(envelope);
 }
 
-/** Shown when the container holds a file we did not write, or wrote in a way this build cannot read. */
+/**
+ * Shown when the container holds a file we did not write, or wrote in a way this build cannot read.
+ *
+ * ⛔ **P6.8.7d.3 [M3-5] — these are USER-FACING and now actually reach the user.** They were computed
+ * exactly, carried carefully through `restoreFromCloud`, and then dropped one layer short of the screen,
+ * which rendered a single generic *"That didn't work."* for every one of them.
+ *
+ * ⚠️ `NO_CODEC` used to stop one clause short of `backup.ts`'s `TOO_NEW` — it named the CAUSE and not the
+ * FIX. Carrying the message without this clause would have satisfied the finding's wording while still
+ * leaving the user nothing to do, which is the failure mode this audit measured twice over.
+ */
 const NOT_A_CLOUD_BACKUP = "That iCloud file isn’t a Debt Planner backup.";
-const NO_CODEC = 'That backup was made by a newer version of Debt Planner.';
+const NO_CODEC = 'That backup was made by a newer version of Debt Planner. Update the app, then try again.';
+/**
+ * ⚠️ A payload whose codec we DO have and still cannot decode is damaged — not new. It shared `NO_CODEC`
+ * before, which told a user with a corrupted iCloud file to go and update an app that was already current.
+ */
+const DAMAGED = "That iCloud backup is damaged and can’t be read.";
 
 /**
  * Parse the cloud envelope, decode the payload, and hand it to `readBackup`.
@@ -129,7 +144,7 @@ export function decodeCloudBackup(
   try {
     payload = codec.decodePayload(envelope.payload);
   } catch {
-    return { ok: false, kind: 'unrecognised', reason: 'unreadable', message: NO_CODEC };
+    return { ok: false, kind: 'unrecognised', reason: 'unreadable', message: DAMAGED };
   }
 
   return readBackup(payload);

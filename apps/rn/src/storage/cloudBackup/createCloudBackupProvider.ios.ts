@@ -53,6 +53,9 @@ async function readWithDownload(): Promise<string | null> {
   }
 }
 
+/** P6.8.7d.2 — see the base variant. iOS is the one platform where a remote copy can exist. */
+export const CLOUD_BACKUP_SUPPORTED = true;
+
 export function createCloudBackupProvider(): CloudBackupProvider {
   // iCloud + AppData are the iOS defaults; set explicitly so behaviour does not silently follow a library
   // default that changes. ⛔ Guarded: if the native provider setup throws (an iCloud-availability observer
@@ -85,6 +88,19 @@ export function createCloudBackupProvider(): CloudBackupProvider {
       if (!(await CloudStorage.exists(BACKUP_PATH, SCOPE))) return null;
       const s = await CloudStorage.stat(BACKUP_PATH, SCOPE);
       return { modifiedAt: new Date(s.mtimeMs).toISOString() };
+    },
+    /**
+     * P6.8.7d.2 [C9] — erase the container's one file.
+     *
+     * ⛔ **`exists` first, and `unlink` throws on a missing file.** "Nothing there" is the state this call
+     * is trying to REACH, so surfacing it as a failure would make "Delete all data" report an error on the
+     * second tap, or on a device whose iCloud copy was already removed elsewhere — and the caller's only
+     * honest response to a failure is to tell the user their backup survived, which would be a lie.
+     * ⚠️ A throw from `unlink` itself is NOT swallowed: that one means the file is still there.
+     */
+    async delete() {
+      if (!(await CloudStorage.exists(BACKUP_PATH, SCOPE))) return;
+      await CloudStorage.unlink(BACKUP_PATH, SCOPE);
     },
   };
 }

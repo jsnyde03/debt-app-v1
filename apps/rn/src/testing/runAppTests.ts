@@ -177,6 +177,12 @@ async function main() {
   // with nothing, and the user finds out on the day they needed it.
   await (await import('../storage/cloudBackup/service.test')).default();
 
+  // P6.8.7d.3 [M3-5] — what the iCloud sheet SAYS about each outcome. ⛔ The sheet's `ready` branch is
+  // unreachable to Playwright (the web provider is the unavailable stub), so this pure mapping is the only
+  // testable part of the screen — and "the computed diagnosis is dropped at the last layer" is exactly the
+  // class that hid there through thirteen lenses.
+  await (await import('../data/cloudBackupMessages.test')).default();
+
   // 5.8.3 — the import router + the v1.6 file adapter. ⭐ The headline is that a REAL v1.6 backup's income
   // and dates now LAND; the pre-5.8 path blanked them while looking like it had worked.
   await import('../data/readBackup.test');

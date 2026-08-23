@@ -14,7 +14,7 @@ import { useInitPremium } from '@/premium/premiumSync';
 import { createStorageAdapter } from '@/storage/createAdapter';
 import { bootstrapPersistence, flushPendingSave } from '@/store/persistence';
 import { getCloudBackupProvider } from '@/storage/cloudBackup';
-import { backupToCloud, isOnboarded, restoreFromCloud, shouldAutoBackup } from '@/storage/cloudBackup/service';
+import { backupToCloudGuarded, isOnboarded, restoreFromCloud, shouldAutoBackup } from '@/storage/cloudBackup/service';
 import { allowRealStoreWrite } from '@/store/realWriteGuard';
 import { StoreProvider } from '@/store/StoreContext';
 import { appStore } from '@/store/appStore';
@@ -157,9 +157,25 @@ function RootLayout() {
           // data" state, exactly when iCloud is the user's last copy), a session where the restore offer
           // was declined, and [D47]'s default-off. The manual "Back up now" does not pass through it —
           // the user is standing in front of that one.
+          //
+          // ⛔ P6.8.7d.1 [B3] — and `shouldAutoBackup` alone is NOT enough here either. It reasons only
+          // about local state, so it happily permits overwriting a remote this install has never seen —
+          // including on the launch AFTER a declined restore, because `declinedRestore` is a session ref
+          // that resets. `backupToCloudGuarded` asks the question about iCloud that nothing used to ask;
+          // an unclaimed remote makes this a silent no-op, and the sheet is where the user resolves it.
           const current = appStore.getState().store;
           if (shouldAutoBackup(current, { declinedRestore: declinedRestore.current })) {
-            void backupToCloud(current, getCloudBackupProvider());
+            void backupToCloudGuarded(current, getCloudBackupProvider()).then((result) => {
+              if (!result.ok) return;
+              // ⛔ Claim what we just wrote, or the next launch calls our own backup a foreign copy and
+              // refuses every automatic backup from then on. [R4] Declared: this lands asynchronously and
+              // can arrive while a walkthrough sandbox is mounted, where an undeclared write is DROPPED —
+              // and a dropped stamp is exactly the permanent-refusal state above.
+              allowRealStoreWrite(() => appStore.getState().updatePrefs({ cloudBackupRemoteAt: result.at }));
+              // The debounce cannot be relied on while the app is on its way out; this write is the whole
+              // point of the call. Worst case if the process dies first: a false conflict, never a loss.
+              flushPendingSave();
+            });
           }
         } catch {
           /* best-effort flush */
@@ -207,7 +223,15 @@ function RootLayout() {
           // [R4] Declared. This offer is made only to a NOT-YET-ONBOARDED store, which is exactly the
           // audience [D18] admits into the demo — so the Alert can land while a sandbox is mounted, and
           // an undeclared restore would now be refused outright.
-          onPress: () => allowRealStoreWrite(() => appStore.getState().importStore(result.store)),
+          onPress: () =>
+            allowRealStoreWrite(() => {
+              appStore.getState().importStore(result.store);
+              // ⛔ P6.8.7d.1 — claim the file we just restored from, AFTER the import (which replaces
+              // prefs with the blob's own one-generation-stale copy of this field). Without it, the very
+              // first background after a successful restore would see the remote it just read as foreign
+              // and refuse to back up — a guard that blocks everything is not a guard.
+              if (result.at !== null) appStore.getState().updatePrefs({ cloudBackupRemoteAt: result.at });
+            }),
           // ⛔ See `declinedRestore` above — declining has to be REMEMBERED, or backgrounding the app
           // overwrites the very backup they chose to keep.
           onDismiss: () => {

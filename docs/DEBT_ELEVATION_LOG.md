@@ -4,6 +4,183 @@
 
 ---
 
+## ✅ P6.8.7d.1 — B3 / M3-3, the iCloud clobber *(2026-08-22)*
+
+### The defect, and why the obvious fix was not the fix
+
+Flipping **Back up to iCloud ON** called `backupNow()` immediately, which called `backupToCloud`, which
+overwrote the container unconditionally. If the user had **declined** the first-launch restore offer, the
+copy they declined was the thing that tap destroyed — while the sheet, three lines above the switch, was
+rendering it as *"Last backed up &lt;date&gt;"*.
+
+Both audit lenses (M3-3, W1-2) diagnosed *"it bypasses `shouldAutoBackup`"* and recommended routing it
+through the guard. **R1 simulated that fix and it does not work**: at the moment of the flip
+`cloudBackupEnabled` has just been set `true` and the user is necessarily onboarded, so all three of the
+guard's clauses pass and it returns `true`. ⛔ **Every clause it has reasons about LOCAL state.** Nothing in
+the app had ever asked a question about the remote, so a healthy local plan was always permission to
+overwrite whatever happened to be in iCloud.
+
+### What was built
+
+**`prefs.cloudBackupRemoteAt`** — the mtime of the backup *this install has accounted for*: one it wrote,
+or one it restored from. Absent means "this install has never looked at the remote."
+
+**`inspectRemote(provider, claimedAt)`** answers the question that had no asker, in four states.
+⚠️ `unknown` (iCloud unreachable) is deliberately **not** `none` — conflating them is what would license the
+overwrite, and it is asserted separately.
+
+**`backupToCloudGuarded`** refuses `unclaimed` **before writing**, returning `remote-unclaimed` with the
+other copy's date so the UI can show it. Every implicit path goes through it; `backupToCloud` stays as the
+informed *"replace it"* path and now needs an explicit argument to reach.
+
+**The sheet** renders the fork: the status line stops claiming *"Last backed up"* over a file that is not
+this device's, and offers **Use the iCloud copy** / **Replace it with this device**. `remote-unclaimed` is
+reported as a choice, never as *"that didn't work"* — which would push the user to tap until it did.
+
+### ⚠️ The finding named ONE site. There were FOUR.
+
+**Seventh consecutive item where an enumeration came up short**, and this one is load-bearing rather than
+cosmetic:
+
+1. **The background auto-backup was equally blind.** `shouldAutoBackup` gates it, and its `declinedRestore`
+   clause is a **`useRef` that resets every launch** — so the launch *after* a declined restore clobbered
+   the remote anyway. The finding never reached this path.
+2. **All three restore sites must re-stamp the claim** (`use-cloud-backup`, `_layout`'s first-launch offer,
+   `DataResetScreen`), because ⚡ **a backup blob can never contain its own mtime** — the value is only
+   knowable after the write that produced it, so the copy travelling inside a backup is always one
+   generation stale. Stamping before `importStore` would be silently undone; every site does it after.
+3. **`backupToCloud` had to start reporting the file's OBSERVED mtime** rather than the clock it was
+   handed. Returning `now` looks correct and would have made the claim never match the next `stat()` —
+   **every later backup refused as a foreign clobber, the feature silently dead for everyone who turned it
+   on.** That is the regression with its own plant.
+
+### Verification
+
+Four plants, each **red by name**, each restored and re-run green:
+
+| plant | assertion that fired |
+|---|---|
+| guard's refusal removed | *a guarded backup over an unclaimed remote does not succeed* |
+| `at` = the clock, not the mtime | *⛔ `at` is NOT the clock it was given* |
+| unreachable iCloud read as `none` | *⛔ an unreachable iCloud is `unknown`, NOT `none`* |
+| `stat` moved to after the read | *⛔ reports the mtime from BEFORE the read* |
+
+`typecheck` (core + rn + scripts) · `lint:rn` **exit 0** · `test:app` **cloud backup service 63 asserts** ·
+`test:regression` · `test:scenarios` all green.
+
+⛔ **None of it is proven off-device** — the web provider is the unavailable stub by construction, so the
+entire `ready` branch is unreachable to the e2e suite. **Four P6.14 rows filed**, including the one that
+matters most: back up, background twice, and confirm the **second** auto-backup goes through — that is what
+proves the re-stamp works and the guard is not a one-shot.
+
+## ✅ P6.8.7d.3 — M3-5, the diagnosis that never reached the screen *(2026-08-22)*
+
+### ⛔ First: it was scheduled as work and had NEVER been refuted — the second instance
+
+`M3-recovery.md`'s owed-list names only its four blockers (M3-1, M3-2, M3-3, M3-20). **M3-5 is a major**,
+so no refuter was ever assigned it, and it appears in **no refutation and in `SYNTHESIS.md` not at all** —
+yet the build scheduled it as d.3.
+
+⚠️ **c.3 found the same shape on M3-20 and the fix was "check the slice's owed-list against its refuter".
+That check PASSES here** — M3-5 is not missing from a list, it was never on one. **The rule has to be:
+check every id the BUILD schedules against the refutations, not against the slice.**
+
+### The refutation, supplied at switch-in — CONFIRMED, mechanism corrected twice
+
+**Observation holds.** `decodeCloudBackup` computes an exact message, `restoreFromCloud` carries it, and
+`use-cloud-backup` returned `result.reason` alone — so every distinct failure rendered as
+*"That didn't work. Your data on this device is unchanged."*
+
+⛔ **Correction 1 — "the actual fix was computed and discarded" is FALSE on the cloud path.** The slice says
+*"the actual fix — update the app — was computed, carried two layers, and discarded one layer short."*
+Measured: `NO_CODEC` read *"That backup was made by a newer version of Debt Planner."* and stopped there,
+one clause short of `backup.ts`'s `TOO_NEW`, which does say *"Update the app, then try again."* **Carrying
+the message alone would have satisfied the finding's wording and still left the user with an explanation
+and nothing to do** — the audit's own recurring result, that a lens's proposed fix does not close its
+defect, landing for a third time.
+
+⛔ **Correction 2 — the site list is 1 of 3.** `_layout`'s launch offer and `DataResetScreen` drop the same
+diagnosis and more of it (`if (!result.ok) return` — the whole failure). Those are **M3-7**, out of d's
+scope, and filed. **Eighth consecutive item whose enumeration came up short.**
+
+⭐ **Strengthened, not weakened:** `BackupSheets.tsx:98` has always done `setError(result.message)` for the
+FILE importer, over the same envelope family. This was never a missing capability — it was one screen not
+doing what its sibling did, one tap away.
+
+### What was built
+
+`cloudBackupMessages.ts` — a pure module holding **the order**: success → the B3 guard's choice → the
+computed diagnosis → the per-reason fallbacks. `toCloudAction()` constructs the carry so that **passing the
+message is not a line anyone has to remember**; M3-5 was exactly one hand-written literal dropping one
+field. `NO_CODEC` now names the fix, and a payload with a KNOWN codec that will not decode says
+*"damaged"* rather than telling an already-current user to go and update.
+
+⚠️ **It is a separate module because the sheet's `ready` branch is unreachable to every automated test
+here** — on web the provider is the unavailable stub by construction. That is *why* a defect this simple
+survived thirteen lenses and six refuters, and a pure module is the only part of that screen a test can
+hold. The toggle, the conflict fork and both buttons remain source-only; filed.
+
+### Verification
+
+Four plants, each red by name: the "Update the app" clause removed · `toCloudAction` dropping the message ·
+the diagnosis ignored in the mapping · the `damaged` message reverted. `test:app` **13 asserts** on the new
+mapping, **74** on the service, **44** on the envelope.
+
+---
+
+## ✅ P6.8.7d.2 — C9, "Delete all data" reaches the remote *(2026-08-22)*
+
+### What was false
+
+*"All debts, expenses, goals, and settings will be permanently erased. This cannot be undone."* Two copies
+survived it. **The iCloud file**, so the next launch's restore offer hands the previous owner's whole plan
+to whoever is holding the phone — the failure mode is a phone changing hands, not a lost byte. And **the
+quarantined blob**, a full portfolio set aside by the corrupt-store path, read by nothing, where
+`adapter.ts:16` documented `clearQuarantine` as *"called from reset all data"* — a comment that had never
+been true. **Four definitions, one test fake, zero call sites.**
+
+### What was built
+
+`CloudBackupProvider.delete()` (iOS: `exists` then `unlink`; "already gone" is the goal state, not an
+error) · `deleteCloudBackup()` gating on availability · `clearQuarantinedData()` over the adapter captured
+at bootstrap · the confirm copy that now names iCloud · and the refusal branch.
+
+⛔ **The remote goes first, and a failure to reach it STOPS the local wipe.** Once the store resets, this
+screen unmounts — the app routes to onboarding — so there is no surface left on which to admit the iCloud
+copy survived. Wiping first and apologising after is not available. ⚠️ The phone-being-handed-on user is
+not held hostage by an unreachable iCloud: **"Delete on this device only"** is offered by name.
+
+### ⚠️ `CLOUD_BACKUP_SUPPORTED` — a bug caught before it shipped
+
+The stub provider's `isAvailable()` is permanently `false`, so "refuse when the remote cannot be erased"
+would have **blocked "Delete all data" outright on web and Android.** It needed a build-time platform
+constant, not a provider method, because ⛔ **`unavailableCloudBackupProvider` is ALSO what iOS degrades to
+when native setup throws** — and *that* case must keep blocking. Same split `backupFile.web.ts` uses.
+
+### ⭐ The flow had NO e2e, and writing one found a live defect
+
+13 lenses and 6 refuters read this app; none reported that an irreversible, user-facing control had zero
+coverage. It took *changing* the flow to notice.
+
+⛔ **And the first draft of the spec failed for a real reason.** It landed on `/more` directly; the wipe is
+sequenced *after* `router.back()` dismisses to the tabs, so with nothing beneath, the pop no-ops and
+**"Delete everything" silently did nothing.** ⚡ **The repo had already written this down twice** —
+`paywall.tsx` tags it `[C9]`, `schedule/[id].tsx` fixed it at 3.7.A0 — and the one screen carrying an
+irreversible control still had the bare call. Both `handleDeleteAll` and the header back are now guarded.
+
+Two specs, and the plant proves they are not the same test twice: restoring the bare `router.back()` leaves
+the pushed-entry spec **green** and turns the cold-entry spec **red**.
+
+### Verification
+
+`typecheck` · `lint:rn` **exit 0** · `test:app` (**cloud backup service 73 asserts**) · `test:regression` ·
+`test:scenarios` · `test:stamp` all 0 · **`test:e2e:rn` 222 passed, zero `error-context.md`** ·
+`test:e2e:embed` 10 passed. Plants: the availability check removed → *"a delete with iCloud unavailable does
+NOT report success"*; `clearQuarantinedData()` removed → the quarantine assertion; the bare `back()` → the
+cold-entry spec. ⛔ **The refusal branch is unreachable on web — three P6.14 rows filed.**
+
+---
+
 ## 🔚 SESSION CLOSE 2026-08-22 — P6.8.7c closed end to end
 
 ### ✅ Shipped

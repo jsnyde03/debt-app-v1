@@ -5,7 +5,8 @@ import { StyleSheet, Switch, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { useCloudBackup, type CloudBackupActionResult } from '@/hooks/use-cloud-backup';
+import { cloudBackupMessage } from '@/data/cloudBackupMessages';
+import { useCloudBackup, type CloudBackupAction } from '@/hooks/use-cloud-backup';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -37,20 +38,22 @@ function formatBackupTime(iso: string): string {
  */
 export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();
-  const { status, enabled, lastBackupAt, busy, setEnabled, backupNow, restoreNow } = useCloudBackup();
+  const { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, setEnabled, backupNow, restoreNow } =
+    useCloudBackup();
   const [message, setMessage] = useState('');
   const [confirmingRestore, setConfirmingRestore] = useState(false);
 
-  function report(result: CloudBackupActionResult, success: string) {
-    setMessage(
-      result === 'ok'
-        ? success
-        : result === 'no-backup'
-          ? 'There is no backup in iCloud yet.'
-          : result === 'unavailable'
-            ? 'Sign in to iCloud on this device to use backup.'
-            : "That didn’t work. Your data on this device is unchanged.",
-    );
+  /**
+   * ⛔ P6.8.7d.3 [M3-5] — the mapping itself lives in `@/data/cloudBackupMessages`, not here.
+   *
+   * This screen's `ready` branch is unreachable to every automated test in the repo (on web the provider
+   * is the unavailable stub by construction), and a defect as simple as "the computed diagnosis is dropped
+   * at the last layer" survived thirteen lenses because of it. Moving the branching to a pure module is
+   * what makes the ORDER — success, then the guard's choice, then the diagnosis, then the fallbacks —
+   * something a test can hold rather than something a reviewer has to notice.
+   */
+  function report(action: CloudBackupAction, success: string) {
+    setMessage(cloudBackupMessage(action, success));
   }
 
   return (
@@ -87,16 +90,55 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
           <Text testID="cloud-backup-status" style={[textStyles.caption, { color: c.text.secondary }]}>
             {status === 'loading'
               ? 'Checking iCloud…'
-              : lastBackupAt
-                ? `Last backed up ${formatBackupTime(lastBackupAt)}`
-                : 'Not backed up yet'}
+              : // ⛔ P6.8.7d.1 [B3] — when the remote is unclaimed this line must NOT say "Last backed
+                // up". That is the sentence the finding turns on: it presents someone else's copy, or the
+                // one the user declined at first launch, as this device's own work — and the next tap
+                // deleted it. The date still shows, because which copy is older is the user's decision.
+                unclaimedRemoteAt
+                ? `A backup from ${formatBackupTime(unclaimedRemoteAt)} is in iCloud — not from this device`
+                : lastBackupAt
+                  ? `Last backed up ${formatBackupTime(lastBackupAt)}`
+                  : 'Not backed up yet'}
           </Text>
+
+          {unclaimedRemoteAt ? (
+            // ⛔ The B3 fork. Both outcomes are destructive in one direction, so neither is the default and
+            // neither happens without a tap — the same reasoning as the restore confirm below.
+            <View testID="cloud-backup-conflict" style={styles.confirm}>
+              <Text testID="cloud-backup-conflict-warning" style={[textStyles.body, { color: c.text.primary }]}>
+                This device hasn’t restored that backup, so it may be from another device or from before you
+                reinstalled. Backing up replaces it, and that can’t be undone.
+              </Text>
+              <Button
+                label="Use the iCloud copy"
+                variant="secondary"
+                testID="cloud-backup-conflict-restore"
+                disabled={busy !== null}
+                onPress={() => {
+                  setMessage('');
+                  setConfirmingRestore(true);
+                }}
+              />
+              <Button
+                label="Replace it with this device"
+                variant="danger"
+                testID="cloud-backup-conflict-replace"
+                disabled={busy !== null}
+                onPress={() => {
+                  setMessage('');
+                  // ⛔ The ONLY place `replaceUnclaimed` is passed, and the user has just read the other
+                  // copy's date on the line above. Informed is the entire difference from the defect.
+                  void backupNow({ replaceUnclaimed: true }).then((r) => report(r, 'Backed up.'));
+                }}
+              />
+            </View>
+          ) : null}
 
           <Button
             label="Back up now"
             variant="secondary"
             testID="cloud-backup-now"
-            disabled={busy !== null || status !== 'ready'}
+            disabled={busy !== null || status !== 'ready' || unclaimedRemoteAt !== null}
             onPress={() => {
               setMessage('');
               void backupNow().then((r) => report(r, 'Backed up.'));
