@@ -18716,3 +18716,69 @@ not** — B3 · B2 · M3-5 · C5, and now C7. The observation *"the app computes
 right. *"So show both"* is the part that measurement refuted.
 
 Evidence, with both probes and how to re-run them: `docs/evidence/2026-08-24-c7-strategy-divergence/`.
+
+---
+
+## ✅ P6.8.7g.4 — P1-3: the trajectory's x-axis belongs to the user's plan *(2026-08-24)*
+
+### The before-scan measured the finding rather than inheriting it
+
+⚠️ **P1-3's own lens flagged the one thing it could not settle from stills:** *"whether the default seed's
+curve is absent or merely degenerate."* That was answerable by running the engine, so it was answered.
+
+⛔ **Mechanism CONFIRMED and now quantified.** `maxMonth` was the extent of `[...active, ...ghost,
+...cone]`, and the minimums ghost is by definition the longest curve. On the app's own shot seeds:
+
+| seed | plan clears | minimums clear | x-domain | share of the axis the user's own curve gets |
+|---|---|---|---|---|
+| base, extra $300 | month 15 | month 109 | 109 | **13.8%** |
+| base, extra $600 | month 8 | month 109 | 109 | **7.3%** |
+| base, extra $900 | month 6 | month 109 | 109 | **5.5%** |
+| "single", extra $600 | month 2 | month 42 | 42 | **4.8%** |
+
+⚡ **Monotonic in the wrong direction: the better the plan, the smaller the user's share of their own
+chart.** 109 months ≈ nine years, which is precisely the "nine empty years" the lens saw.
+
+⚠️ **And one clause of the finding is an overstatement of the same defect.** *"Neither curve draws at
+all"* is false — both curves have points and both reach zero. The curve is **degenerate and clipped**, not
+absent: ~5% of the width, hugging the left edge. The lens itself called that the likelier reading; the
+measurement settles it. **The observation was right about what you see and wrong about why.**
+
+### The fix, and the two properties it had to preserve
+
+`trajectoryDomain()` — pure, in its own module, because it is arithmetic with three edge cases a rendered
+chart makes expensive to check. The domain is the user's own payoff plus a margin, floored, and never
+wider than what is actually drawn.
+
+⛔ **Half the test cases exist for behaviour the OLD expression got RIGHT**, which is f's lesson applied
+before the fact rather than after it:
+- **the LEAN cone** (variable income) clears *later* than the typical plan, and the old comment says
+  outright that it is in the extent so the cone is not clipped. **A clamp to the active curve alone breaks
+  it** — planted, and the test caught it at 23 months where 34 were needed.
+- **a plan that never clears** has no end to clamp to and must still draw across the full extent.
+
+⚠️ **The fix's own possible regression, closed in the same step:** a clamped domain can span **no January
+at all**, and year-only ticks would then render an axis with no labels. Below two year marks the axis
+labels months instead. ⭐ **Fixing an unreadable axis must not hand back a blank one.**
+
+⚠️ The minimums ghost now runs past the right edge. Its points are **truncated one past the domain** rather
+than left to whatever the canvas happens to clip — same result on every renderer, and it reads the way we
+want: the user's line reaches zero while the grey one walks off the edge still high.
+
+### Verification
+
+**12 unit asserts + 2 e2e.** `typecheck` · `lint:rn` · `test:app` · `test:regression` · `test:scenarios`
+all exit 0.
+
+⛔ **Four plants, four reds by name:**
+
+| plant | red |
+|---|---|
+| the old domain (extent of everything) — unit | `expected 10, got 109` |
+| clamp to the active curve, ignoring the lean cone | `the domain reaches the LEAN date (got 23)` |
+| truncate *at* the domain instead of one past it | `the kept tail crosses the edge (last month 10)` |
+| **the old domain — e2e** | **`years.length` Expected: <= 1, Received: 4** |
+
+⭐ **The e2e plant is the one worth keeping: it reproduces the defect as the user meets it** — four year
+labels on the axis of a plan that clears in a couple of months. And the "axis is labelled" spec correctly
+*passed* under that plant, because it guards a different property; two specs, two jobs.

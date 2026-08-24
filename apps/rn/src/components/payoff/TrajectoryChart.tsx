@@ -17,9 +17,11 @@ import { useSkiaReady } from '@/utils/skia-ready';
 import { formatWhole } from '@/utils/format';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
+import { trajectoryDomain, truncateToDomain } from './trajectoryDomain';
 import { WhatIfControls } from './WhatIfControls';
 
 const H = 200;
+
 // Left gutter holds the balance labels; bottom gutter holds the time ticks.
 const PAD = { l: 38, r: 14, t: 16, b: 26 };
 
@@ -153,10 +155,15 @@ export function TrajectoryChart({
   // extent so the X-scale reaches the lean date and the cone isn't clipped.
   const cone = band.hasBand ? lean : [];
   const all = [...active, ...ghost, ...cone];
-  const maxMonth = Math.max(1, ...all.map((p) => p.month));
+
+  // ⛔ [P1-3 / D58] The x-domain belongs to the USER'S OWN PLAN, not to the comparison curve. The rule,
+  // its three edge cases and the measurements behind it live in `trajectoryDomain.ts`, which is tested.
+  const maxMonth = trajectoryDomain({ active, cone, all });
   const rawMax = Math.max(1, ...all.map((p) => p.balance));
   const step = niceStep(rawMax);
   const niceMax = Math.ceil(rawMax / step) * step; // Y-axis top, rounded to a gridline.
+
+  const toDomain = (traj: TrajectoryPoint[]) => truncateToDomain(traj, maxMonth);
 
   const mapX = (month: number) => PAD.l + (month / maxMonth) * (w - PAD.l - PAD.r);
   const mapY = (bal: number) => PAD.t + (1 - bal / niceMax) * (H - PAD.t - PAD.b);
@@ -165,7 +172,7 @@ export function TrajectoryChart({
 
   const activePts = w > 0 ? toPts(active) : [];
   const activePath = smoothPath(activePts);
-  const ghostPath = w > 0 ? smoothPath(toPts(ghost)) : '';
+  const ghostPath = w > 0 ? smoothPath(toPts(toDomain(ghost))) : '';
   const areaPath =
     activePts.length >= 2
       ? `${activePath} L${activePts[activePts.length - 1].x.toFixed(1)},${baselineY.toFixed(1)} L${activePts[0].x.toFixed(1)},${baselineY.toFixed(1)} Z`
@@ -214,8 +221,8 @@ export function TrajectoryChart({
 
   // What-If overlay geometry (same scale — the simulated curve ends earlier, so it fits as-is).
   const showSimulated = simulated.length > 1 && w > 0;
-  const simulatedPath = showSimulated ? smoothPath(toPts(simulated)) : undefined;
-  const simEnd = showSimulated ? simulated.find((p) => p.balance <= 0) : undefined;
+  const simulatedPath = showSimulated ? smoothPath(toPts(toDomain(simulated))) : undefined;
+  const simEnd = showSimulated ? simulated.find((p) => p.balance <= 0 && p.month <= maxMonth) : undefined;
   const simulatedEndpoint = simEnd ? { x: mapX(simEnd.month), y: baselineY } : null;
 
   // Y-scale: balance gridlines 0 → niceMax. X-scale: year marks (each January) between Now and the end.
@@ -226,11 +233,23 @@ export function TrajectoryChart({
     d.setMonth(d.getMonth() + m);
     return d;
   };
+  // Year marks (each January). ⚠️ [P1-3] Clamping the domain made these able to run out: a plan clearing
+  // in four months may span no January at all, and the fix for an unreadable axis must not hand back an
+  // UNLABELLED one. Below two year marks the axis labels months instead — same ticks, a scale the span
+  // can actually carry.
   const xTicks: { m: number; label: string }[] = [];
   if (w > 0) {
     for (let m = 1; m < maxMonth; m++) {
       const d = monthDate(m);
       if (d.getMonth() === 0) xTicks.push({ m, label: String(d.getFullYear()) });
+    }
+    if (xTicks.length < 2) {
+      xTicks.length = 0;
+      // Aim for ~3 marks across whatever span this is, never closer together than a month.
+      const stride = Math.max(1, Math.round(maxMonth / 3));
+      for (let m = stride; m < maxMonth; m += stride) {
+        xTicks.push({ m, label: monthDate(m).toLocaleString('en-US', { month: 'short' }) });
+      }
     }
   }
 
@@ -365,6 +384,7 @@ export function TrajectoryChart({
             {xTicks.map((t) => (
               <Text
                 key={`x${t.m}`}
+                testID="trajectory-x-tick"
                 maxFontSizeMultiplier={LABEL_SCALE_MAX}
                 numberOfLines={1}
                 style={[textStyles.caption, styles.xLabel, { left: mapX(t.m) - 20, top: baselineY + 6, color: c.text.tertiary }]}>
