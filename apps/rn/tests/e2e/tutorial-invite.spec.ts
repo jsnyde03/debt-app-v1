@@ -461,7 +461,19 @@ test.describe('tutorial invitation + in-situ shell', () => {
     await page.goto('/tutorial');
     await page.getByText('Next', { exact: true }).click();
     await page.getByText('Next', { exact: true }).click();
-    await page.getByText('Adjust your line').click();
+    // ⛔ `dispatchEvent`, not `.click()`, and the rule is about WHAT THIS TEST IS ABOUT rather than about
+    // the API. This click is PLUMBING — it exists to reach the beat where the slider lives, and the
+    // subject below is store isolation. A real `.click()` waits for the element to be hittable, and
+    // `tutorial-scrim-blocker` sits over the overlay while the beat stages: measured 2026-08-24 in a full
+    // release gate, it retried for the whole 60s timeout and red the run, while the same test passed
+    // alone in 1.8 min. So the click was asserting on the scrim's layout, which is the same defect the
+    // `tab-money` line above was fixed for on 2026-08-18.
+    //
+    // ⚠️ **This is deliberately NOT a sweep of the other `.click()` calls in this file.** Where a click's
+    // REACHABILITY is the subject, `.click()` is the correct tool and `dispatchEvent` would weaken it —
+    // it skips actionability, so a genuinely obscured control would pass. Converting them wholesale
+    // would trade a flake for silent blindness. The class is filed; the rule is the one to apply.
+    await page.getByText('Adjust your line').dispatchEvent('click');
     // Move it for real — the point of this test is that a genuine edit doesn't reach the real plan, and
     // saving an unchanged value would have proved that vacuously.
     const slider = page.getByLabel('Cushion line amount');

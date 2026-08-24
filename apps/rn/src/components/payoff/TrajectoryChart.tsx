@@ -17,6 +17,7 @@ import { useSkiaReady } from '@/utils/skia-ready';
 import { formatWhole } from '@/utils/format';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
+import { StrategyCompare } from './StrategyCompare';
 import { trajectoryDomain, truncateToDomain } from './trajectoryDomain';
 import { WhatIfControls } from './WhatIfControls';
 
@@ -137,6 +138,8 @@ export function TrajectoryChart({
   const skiaReady = useSkiaReady();
   // What-If is a secondary, opt-in tool — collapsed by default so the resting card stays calm.
   const [whatIfOpen, setWhatIfOpen] = useState(false);
+  // C7 — the strategy comparison, collapsed by default for the same reason What-If is.
+  const [compareOpen, setCompareOpen] = useState(false);
   // Touch-scrub: the point under the finger (px position + its month/balance) — null when not scrubbing.
   const [scrub, setScrub] = useState<{ x: number; y: number; month: number; balance: number } | null>(null);
   const lastScrubMonth = useRef<number | null>(null);
@@ -537,6 +540,32 @@ export function TrajectoryChart({
         <AppIcon name={whatIfOpen ? 'expand-less' : 'expand-more'} size={22} color={c.text.tertiary} />
       </Pressable>
       {whatIfOpen ? <WhatIfControls result={whatIf} extra={extra} onExtraChange={onExtraChange} /> : null}
+
+      {/* C7 / [D59] — collapsed by default, the same disclosure the What-If tool uses: this answers
+          "should I switch?", which is a question the user asks occasionally, not every time they open
+          the tab. Opening it must not disturb the resting card. */}
+      <Pressable
+        onPress={() => setCompareOpen((o) => !o)}
+        style={[styles.whatIfToggle, { borderTopColor: c.border.subtle }]}
+        accessibilityRole="button"
+        accessibilityLabel="Compare snowball and avalanche"
+        testID="strategy-compare-toggle"
+        {...a11yExpanded(compareOpen)}>
+        <Text style={[textStyles.subhead, styles.whatIfLabel, { color: c.text.secondary }]}>
+          Snowball or avalanche?
+        </Text>
+        <AppIcon name={compareOpen ? 'expand-less' : 'expand-more'} size={22} color={c.text.tertiary} />
+      </Pressable>
+      {compareOpen ? (
+        <StrategyCompare
+          snowball={snowball}
+          avalanche={avalanche}
+          snowballClears={snowballClears}
+          avalancheClears={avalancheClears}
+          strategy={strategy}
+          monthLabel={(m) => monthDate(m).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
+        />
+      ) : null}
     </Card>
   );
 }

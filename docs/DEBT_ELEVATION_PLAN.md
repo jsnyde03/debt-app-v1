@@ -31,13 +31,20 @@ test to inherit. ⚠️ **C7's cited `TrajectoryChart.tsx:133` has DRIFTED** —
 | ✅ **g.1** | **RESCUE `debtCsv.ts` — DONE 2026-08-24. The deadline is met.** | Parser is now pure (`parseDebtCsvText`: text in, ids injected — no DOM, no `crypto`) and money runs through the shared `amountField`, which **moved to `@core/utils`** with its test. New `testDebtCsv.ts` in `test:regression`: **61 asserts**, and **3 plants red by name** — including deleting the module, which is how P6.11 would take it. Detail → log |
 | ✅ **g.2** | **CSV IMPORT IS WIRED — DONE 2026-08-24. The FAQ's claim is now true.** | `ImportDebtsSheet` in the Debts section, **free**, in the empty state **and** the list footer. Paste path is primary and cross-platform; the picker (`csvImportFile`, native-only) sits on the **same** parse. Preview-before-apply, per-row skip report. **7 e2e · 11 id asserts · 3 plants red by name.** ⚠️ **New surface → must clear P6.10.** Detail → log |
 | ✅ **g.3** | **[DECISION] ANSWERED 2026-08-24 — [D59]: C7 COMPARES THE ORDER, NOT THE CURVE** (🎯, on my recommendation) | Measured first: the two total-balance curves separate by **≤2.8% of chart height, usually <0.1%**, and the debt-free date is identical in **5 of 6** portfolios. What differs is **which debt clears when** — first win at **month 1 vs month 20** on one portfolio. [`evidence/2026-08-24-c7-strategy-divergence/`](evidence/2026-08-24-c7-strategy-divergence/) |
-| **g.4** ▶ | 🔴 **P1-3 — the trajectory's x-domain** *(**[D58]**, 2.0)* | The domain is set by the grey minimums curve, not the user's plan, so **success shrinks their own line to a sliver** and the default seed draws neither curve. ⛔ **Before C7, not beside it.** ⚠️ A defect fix on an existing card, so no P6.10 exposure, unlike g.2. ⚠️ **Verify its premises against the chart before acting** — its sibling's cited line had already drifted |
-| **g.5** | **C7 build — the strategy comparison** *(per [D59])* | Under the existing chart: per strategy, the **sequence of debts and the month each clears**, plus its debt-free date. ⛔ **No second curve.** ⚠️ Still a new surface → must clear **P6.10** |
-| **g.6** | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
+| ✅ **g.4** | **P1-3 DONE 2026-08-24 — the x-axis belongs to the user's plan** *(**[D58]**)* | Mechanism confirmed **and quantified**: the user's own curve got **13.8% → 7.3% → 4.8%** of the axis as the plan got better. `trajectoryDomain.ts`, pure + tested. ⛔ Half its cases pin what the OLD code got RIGHT (the lean cone's reach; the never-clears fallback). **12 asserts · 2 e2e · 4 plants red.** Detail → log |
+| ✅ **g.5** | **C7 DONE 2026-08-24 — the strategy comparison, per [D59]** | `StrategyCompare`, collapsed by default behind *"Snowball or avalanche?"*, mirroring the What-If disclosure. Both clear-orders with their months + debt-free dates, a takeaway that is allowed to say *"these are the same plan"*, and **no dollar claim** — pinned by a test, since [D59] recorded the interest figure as unmeasured. **20 asserts · 4 e2e · 3 plants red.** ⚠️ New surface → must clear **P6.10**. Detail → log |
+| **g.6** ▶ | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
+| ✅ **g.7** | **`lint:icon-glyphs` BUILT 2026-08-24** *(🎯 agreed)* | **43 in use · 26 mapped · 17 exempt with a written reason**, in `lint:rn`. Ships with every unmapped glyph exempt **by design** — it prevents NEW ones, which is the half decidable without a device; the 17 are a P6.14 read. Also reds a **stale** exemption. ⛔ **Two instrument bugs first (CRLF · the wrong terminator), and a plant that stayed GREEN found a real hole** — default parameter values (`icon = 'add'`) were invisible, so the in-use count was 42 not 43. **4 plants red by name.** Detail → log |
+| **g.8** | **Push + CI** *(🎯 2026-08-24)* | ⛔ Push to **`v1.7-dev`**, never `release/v1`. GitHub Actions `web-e2e` runs on push; the **native/CodeMagic build is 🎯's to trigger** and is the one that carries the owed device rows |
 
 **Exit (g):** the parser survives P6.11 with a caller and a test, the CSV claim on the listing is true,
-**P1-3's domain is driven by the user's own plan**, C7 carries 🎯's answer, and `validate:release:rn` is
-green **quoted from its record**.
+**P1-3's domain is driven by the user's own plan**, C7 carries 🎯's answer, the icon-glyph class is gated
+rather than listed, and `validate:release:rn` is green **quoted from its record** — then pushed.
+
+⛔ **DO NOT EDIT SOURCE WHILE `validate:release:rn` IS RUNNING.** The record is written at the END and
+fingerprints the tree *then*, so a mid-run edit records a green over code the suites never saw — [D49]'s
+own failure mode wearing a new face. The fingerprint covers `apps/rn` · `packages/core` · `scripts` ·
+the workflows · `.maestro` and four root files; **`docs/` is excluded**, so prose is safe to edit mid-run.
 
 ---
 
@@ -409,9 +416,19 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
 - 🔴 **`RequiredActionsCard` carries a contradiction and one half of it is a defect.** Its comment says
   gating a swipe pane on React state was **measured** to reset `ReanimatedSwipeable`'s pan; the shipped code
   in that same file does exactly that. `ListRow` fences its pane permanently and inherits neither. *(f.4)*
-- ⚠️ **The light-theme frames in `capture-ref/p6.8/` no longer describe the app** — every light token moved.
-  **Re-shoot the light half of the matrix before this pass reads it**, or it audits a photograph of the
-  defect. *(f.1)*
+- ⚠️ **The frames in `capture-ref/p6.8/` no longer describe the app, in TWO ways now** — f.1 moved every
+  light token, and **g.4 changed the Payoff Trajectory's axis on every seed**. **Re-shoot before this pass
+  reads them**, or it audits a photograph of two defects that are already fixed. *(f.1, g.4)*
+- ⛔ **A SIXTH finding whose observation held while part of its description did not.** P1-3 says *"neither
+  curve draws at all"*; measured, **both curves draw and both reach zero** — the plan's is ~5% of the width,
+  hugging the left edge. The lens had flagged this exact uncertainty as unresolvable from stills and named
+  the right answer as likelier. ⭐ **The pattern is now: the observation survives, the explanation is a
+  hypothesis, and the lens usually knows which of its own claims is soft — it says so.** Running tally
+  **B3 · B2 · M3-5 · C5 · C7 · P1-3.** *(g.4)*
+- ⚠️ **`DOMAIN_MARGIN = 1.15` and `MIN_DOMAIN_MONTHS = 6` are judgment values chosen without a device.**
+  They decide how much empty axis sits right of the payoff bead and how wide a two-month plan's chart is.
+  Both are one-line changes; neither is checkable off-device. → **P6.14** *(look at the Progress tab on a
+  near-payoff plan and say whether the margin reads as breathing room or as a gap)*. *(g.4)*
 - ⛔ **A FIFTH stated mechanism wrong.** R6's `numberOfLines` census reports `TrajectoryChart.tsx:360` as
   unbounded; it carries `numberOfLines={1}` and did before f.2 touched it — the unbounded set is **three, not
   four**, inside a refutation whose whole point was a miscount the other way. *(f.2)*
@@ -452,16 +469,27 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   `check-comment-convention.ts`'s roots are `apps/rn/src` and `apps/rn/tests` **only**. ⭐ The decidable
   version is a gate on the gates: assert every copy/convention scanner covers the same root set, so a move
   cannot quietly reduce coverage. **The "gate the class" shape, one level up.** *(g.1)*
-- ⭐ **17 OF 42 ICON GLYPHS IN `apps/rn/src` ARE ABSENT FROM `appIconSF`, so they render through the
-  MaterialIcons fallback on iOS** — measured, and confirmed to reach `AppIcon` (`EmptyState` and `AddRow`
-  both type their prop as `IconGlyph`). ⛔ **This is the e.4 finding with a base rate instead of an
-  anecdote**, and the gate e.4 proposed is what names them. ⚠️ **Recommendation: build the GATE, do not
-  bulk-map** — mapping 17 glyphs changes shipped visuals across many screens inside a converging freeze
-  with no device to look at, and `lint:type-scale`'s precedent is that writing the definition is where you
-  learn which sites should not be fixed at all. *(g.2 mapped only its own new `upload-file`, which has no
-  "before" to preserve.)* *(g.2)*
-- **Gate docs owe two lines** — the suite's three ways of lying *(broad red that is noise)*, and
-  `cmd; echo EXIT=$?` reporting the echo.
+- ✅ **GATED at g.7 — `lint:icon-glyphs`.** The 17 unmapped glyphs are now named and exempt with a written
+  reason rather than merely unnoticed. ⚠️ **Every reason is the same honest one — nobody has looked at them
+  on an iOS device** — so the remaining work is a **P6.14 read**, one glyph at a time, and mapping any of
+  them is a decision made while looking at the screen. ⛔ **Do not bulk-map.** *(g.2 → g.7)*
+- ⚠️ **A `.click()` sweep of `tutorial-invite.spec.ts` is filed and deliberately NOT done.** g.6's red was
+  the scrim intercepting a plumbing click; the fix was `dispatchEvent` at that ONE site of 54. ⛔ Where a
+  click's **reachability** is the subject, `.click()` is correct and `dispatchEvent` would weaken it —
+  converting wholesale trades a flake for silent blindness. **The rule, not the sweep:** `dispatchEvent`
+  where the click is plumbing to reach the state under test. *(g.6)*
+- ⚠️ **A PASCALCASE COMPONENT AND ITS CAMELCASE HELPER IN ONE FOLDER IS A BUILD ERROR ON WINDOWS.**
+  `StrategyCompare.tsx` + `strategyCompare.ts` differ only in casing, which TypeScript rejects outright on
+  a case-insensitive filesystem. ⛔ **The repo's own layout convention makes this reachable again** — that
+  pairing is the standard shape here, so any pure helper named after its component collides. Cheap to gate,
+  and nothing checks it. *(g.5)*
+- ⚠️ **The Progress tab now stacks TWO collapsibles** (What-If, then the strategy comparison). Each is calm
+  alone; nobody has seen the card with both open, and the matrix has not been re-shot since g.4 moved the
+  axis. → include that state in the re-shoot. *(g.5)*
+- **Gate docs owe three lines** — the suite's three ways of lying *(broad red that is noise)*,
+  `cmd; echo EXIT=$?` reporting the echo, and ⚠️ **`grep -c` exiting `1` on zero matches**, which
+  short-circuits an `&&` chain so the following `echo $?` reports the GREP rather than the command you
+  meant to check. A green typecheck read as a failure for a cycle on exactly that. *(g.5)*
 - ⚠️ **TWO FILE DOORS A FEW TAPS APART HAVE OPPOSITE SEMANTICS.** The backup import **replaces
   everything**; the CSV import **adds**. Both are reached from a plan screen, both say "import", and a
   user who has just learned the destructive meaning may hesitate at the additive one — or, worse, not.

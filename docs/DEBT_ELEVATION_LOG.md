@@ -18782,3 +18782,155 @@ all exit 0.
 ⭐ **The e2e plant is the one worth keeping: it reproduces the defect as the user meets it** — four year
 labels on the axis of a plan that clears in a couple of months. And the "axis is labelled" spec correctly
 *passed* under that plant, because it guards a different property; two specs, two jobs.
+
+---
+
+## ✅ P6.8.7g.5 — C7: the strategy comparison, built out of what actually differs *(2026-08-24)*
+
+**[D59] settled the shape at g.3 and the measurement did the arguing.** The build is the easy half once the
+question *"what would the second curve show?"* has an answer.
+
+### What shipped
+
+**`StrategyCompare`, collapsed by default behind *"Snowball or avalanche?"*** — the same disclosure the
+What-If tool uses, and for the same reason: this answers *"should I switch?"*, which a user asks
+occasionally rather than every time they open the tab. The resting card is unchanged.
+
+Each strategy gets its clear order — every debt with the month it falls away, soonest first, the first row
+marked **1st** — plus its debt-free date. The user's current choice is labelled **"· yours"**, ⚠️ **named
+rather than colour-only**, because colour alone fails greyscale and a colour-blind reader, and that label
+is the anchor for reading the other column at all.
+
+⭐ **The takeaway is allowed to say the two are identical**, and that is the line worth defending: most
+portfolios genuinely produce the same date and the same order, and a comparison that manufactures a
+distinction there is **the app arguing for a choice the user does not have**.
+
+⛔ **No dollar figure anywhere, and there is now a test that keeps it that way.** Avalanche's entire case is
+that it costs less, and [D59] recorded that difference as **never measured** — at month granularity both
+strategies finish the same month spending the same budget. An e2e asserts the takeaway matches no
+`/\$|interest|cheaper|save/i`, so a later "helpful" edit that invents a saving about someone's money reds
+the suite by name.
+
+**Zero new engine work.** `snowball`, `avalanche`, `snowballClears` and `avalancheClears` were already
+props on the chart; `TrajectoryChart:147` was throwing one pair away. The comparison is a read.
+
+### Verification
+
+**20 unit asserts + 4 e2e.** ⚠️ **The unit cases are the MEASURED portfolios** from the evidence folder —
+identical-order, the nineteen-month first-win gap, the reshuffled order, and the 53-vs-51 finish — so if
+the engine stops producing those shapes, these fail rather than quietly agreeing.
+
+⛔ **Three plants, three reds by name:**
+
+| plant | red |
+|---|---|
+| the avalanche column renders the **snowball** summary | `Expected: < 35, Received: 55` *(order-of-appearance)* |
+| the takeaway invents *"Avalanche saves you $400 in interest"* | `Expected pattern: not /\$\|interest\|cheaper\|save/i` |
+| the section renders expanded at rest | `toHaveCount(0)` → `Received: 1` |
+
+⭐ **The first plant is the one a weaker spec would have missed.** "Both sections are visible" passes
+happily while a column renders the wrong strategy; asserting that the two rendered lists **differ**, and
+that each leads with the debt its own rule picks, is what reaches it.
+
+⚠️ **My first e2e run went red on my own assertion**, not on the code: it indexed line `[1]` of the column
+expecting the first debt row and got the header's debt-free date. Re-pointed at **order of appearance**,
+which is the actual claim and does not move when the header gains a row. ⚡ **Second time this cluster that
+a test asserted against a proxy for its subject** — g.1's message check was the first.
+
+### The after-scan
+
+⚠️ **A filename case collision cost a cycle, and it is a Windows-specific class.** `StrategyCompare.tsx`
+(component) and `strategyCompare.ts` (pure module) differ only in casing, which TypeScript rejects outright
+on a case-insensitive filesystem: *"File name differs from already included file name only in casing."* The
+pure module became `compareStrategies.ts`. ⛔ **The repo's own convention makes this reachable again** —
+PascalCase components beside camelCase modules, in the same folder, is the standard layout here, and any
+pure helper named after its component collides. Cheap gate, and nothing checks it today. → **P6.8.9**.
+
+⚠️ **`grep -c` returning `0` exits `1`, and it short-circuited an `&&` chain so the following `echo $?`
+reported grep's status instead of the typecheck's** — a green typecheck read as a failure for one cycle.
+Third distinct face of the standing `cmd; echo EXIT=$?` constraint, and the first where the *lying* command
+was a grep rather than the thing under test. → the gate docs.
+
+⚠️ **The Progress tab now has two collapsibles stacked** (What-If, then the comparison). Each is calm alone;
+nobody has looked at the card with both open, and the visual matrix has not been re-shot since g.4 changed
+the axis. → **P6.8.9** *(it re-shoots anyway; this is a state to include)*.
+
+---
+
+## ⛔ g.6 — the gate went RED, and the harness said "exit code 0" *(2026-08-24)*
+
+**The wrapper reported success and `GATE_REAL_EXIT=1`.** ⭐ **`gate-status.json` did not move** — still the
+g.2 record from 13:34, because it writes on success only. **[D49] refused to lie**, which is the whole
+reason it exists. Third instance of the wrapper's false green; first one where the record caught it.
+
+**1 failed · 249 passed** — `tutorial-invite.spec.ts:459`, *"moving the line in the tutorial never touches
+the real plan"*, timing out for the full 60s on `getByText('Adjust your line').click()` with
+`tutorial-scrim-blocker` intercepting.
+
+### It was NOT dismissed as the known intermittent, and that mattered
+
+⚠️ **The standing rule says re-run in isolation before believing a broad red, never INSTEAD of reading it —
+and "it's the known flake" is the explanation of first resort this project has already been burned by.**
+Two things had to be ruled out before that label was allowed:
+
+1. **Isolation:** passed alone in 1.8 min.
+2. ⭐ **Mechanism, which is the half a re-run cannot give:** g.4 and g.5 both changed the **Progress** card,
+   and the tutorial does stage against app surfaces — so "unrelated" was a hypothesis, not a fact. Checked:
+   **every target in `TUTORIAL_STEPS` is `guardian-*`** (`guardian-card` · `guardian-bar` ·
+   `guardian-adjust` · `guardian-reserve`). The tutorial runs entirely on Today. There is no path from a
+   Progress-tab change to this test. *(`tutorial-target-trajectory-scrub`, which V2-6 used, belongs to the
+   coach-mark system, not the tutorial path — a name that invites exactly the wrong inference.)*
+
+### The fix, and the sweep that was deliberately NOT done
+
+`dispatchEvent('click')` at that one site — the same fix the `tab-money` line got on 2026-08-18, for the
+same defect. **The rule is about what the test is about, not about the API:** this click is *plumbing* to
+reach the beat, and the subject below it is store isolation, so waiting for hittability was asserting on
+the scrim's layout.
+
+⛔ **54 `.click()` calls in that file and only one was changed.** Where a click's REACHABILITY is the
+subject, `.click()` is the correct tool and `dispatchEvent` would **weaken** it — it skips actionability, so
+a genuinely obscured control would pass. ⚡ **Converting them wholesale would trade a flake for silent
+blindness**, which is the same trap `lint:type-scale` documented from the other direction. The rule is
+written at the call site; the class is filed. **33/33 green** on the spec after.
+
+---
+
+## ✅ P6.8.7g.7 — `lint:icon-glyphs`: gate the class, and the gate found its own hole *(2026-08-24)*
+
+🎯 agreed the recommendation from g.2's after-scan: **build the gate, do not bulk-map.**
+
+**43 glyphs in use · 26 mapped to SF Symbols · 17 exempt with a written reason.** In `lint:rn`, after
+`lint:type-scale`.
+
+⛔ **It ships with every unmapped glyph EXEMPT, and that is the design rather than a compromise.** Mapping
+seventeen glyphs changes shipped visuals across many screens inside a converging release **with no device
+to look at**. `lint:type-scale` is the precedent: it found five sites and established that **none should be
+changed**. Writing each exemption's reason is where that judgement gets made, one glyph at a time. So what
+this actually prevents is a **NEW** unmapped glyph arriving unnoticed — the growth, which is the half that
+is decidable without a device. ⚠️ Every reason today is the same honest one: *nobody has looked at these on
+an iOS device* → P6.14.
+
+⭐ **It also refuses a STALE exemption** — a glyph that has since been mapped, or is no longer used, reds
+the gate. An exemption list nobody prunes hides how long the real list is.
+
+### The instrument was wrong twice, and then a plant caught a third thing
+
+⛔ **Two instrument bugs before it checked anything**, both the shape this repo has paid for before —
+*a diagnostic must work in the world it is written to inspect:*
+- **CRLF.** The repo checks out `\r\n`, so a `\n};` terminator matched nothing and it threw.
+- **The terminator was wrong anyway.** `appIconSF` closes with `} satisfies Partial<…>;`, not `};`.
+  Measured, after assuming it twice.
+
+⚡ **And then the plant that did not go red was the most valuable result.** Planting an unmapped glyph as a
+**default parameter value** (`icon = 'add'` in `AddRow`) left the gate GREEN — the patterns matched props
+only. ⛔ **`AddRow`'s default is what every caller that passes no icon actually renders, and no explicit
+`icon="add"` exists anywhere in the tree**, so that glyph was invisible to the check entirely. It happens
+to be mapped, so the hole never produced a wrong answer — **which is precisely why only a deliberately
+planted glyph could reveal it.** Pattern added; the in-use count went 42 → 43.
+
+**Mutation-verified four ways, all red by name:** a new unmapped glyph as a **default value** · as an
+explicit **prop** · a **stale** exemption (glyph since mapped) · a **deleted** exemption while unmapped.
+
+⚡ **The count is now independently confirmed twice** — an ad-hoc grep during g.2's after-scan said 17 of
+42; the gate, written from scratch, says the same 17.

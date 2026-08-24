@@ -53,6 +53,10 @@ async function main() {
   // 3.7.B.2 (F10.1) — Today's time-aware greeting: every band boundary + the name normalisation.
   await import('../store/greeting.test');
 
+  // P6.8.7g.5 (audit C7 / [D59]) — the strategy comparison. The cases are the MEASURED portfolios from
+  // the evidence folder, including the one where both strategies produce exactly the same plan.
+  await import('../components/payoff/compareStrategies.test');
+
   // P6.8.7g.4 (audit P1-3) — the payoff chart's x-domain. Half the cases pin properties the pre-clamp
   // expression got RIGHT: the lean cone's reach, and the never-pays-off fallback.
   await import('../components/payoff/trajectoryDomain.test');
