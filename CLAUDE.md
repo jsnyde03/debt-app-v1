@@ -27,31 +27,44 @@ decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submis
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-22).** P6.8's audit is closed and its BUILD is under way:
-**P6.8.7a (gates), 7b (copy) and the WHOLE of 7c (data integrity) are DONE** — B1 · B4 · W1-6 · M3-20,
-every fix plant-verified red and green, **220 e2e · 10 embed · `lint:rn` exit 0**. **Next is
-`P6.8.7d.1`** — B3, the iCloud clobber, decomposed on the plan. ⚠️ **d is the only cluster that can
-DESTROY data the user still has**, and none of it is verifiable off-device: every step ships with a
-P6.14 device row, not a claim.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-23).** P6.8's audit is closed and its BUILD is well under way:
+**7a (gates) · 7b (copy) · 7c (data integrity) · 7d (cloud/destructive) · 7e (the core loop) are ALL
+DONE**, every fix plant-verified red and green. **`test:e2e:rn` 234 passed, real exit 0, zero
+`error-context.md` · embed 10 · `lint:rn` exit 0.** ▶ **Next is `P6.8.7f.1`** — contrast, decomposed on
+the plan. Then **g** *(⛔ C8's parser rescue is the earliest deadline in the audit — its only caller dies
+at P6.11)*, **P6.8.8**, and **P6.8.9**'s verification pass.
 
-⛔ **Three results from 7c that change how you test, how you read a green gate, and how you read the
-audit — the third one fires at d's switch-in:**
-- **⚠️ AN OWED REFUTATION THAT NEVER ARRIVED IS INVISIBLE.** `M3-recovery.md` names a Wave-2 refutation as
-  owed on **M3-20**; R1's verdict table omits it, and nothing anywhere flags the gap. It was scheduled as
-  work and would have been built **un-refuted**, against P6.8.4's own rule, if the switch-in had not
-  opened the step. Supplying it then **narrowed the scope** — half its evidence was deliberate non-carries.
-  **Before building any cluster, check its slice's owed-list against the refuter that answered it.**
-- **An ABSENCE assertion passes before the app renders.** `expect(x).toHaveCount(0)` is satisfied by a
-  blank page. **Two consecutive items shipped a spec that stayed GREEN with the defect planted back**, and
-  both were caught by planting, never by reading. Wait for a marker that renders in *both* branches first.
+⛔ **FOUR FINDINGS IN TWO CLUSTERS HAD A SOUND OBSERVATION AND A WRONG EXPLANATION — this is now the
+single most reliable thing known about this audit.** B3 *(both lenses' fix was measured not to work)* ·
+B2 *(reads as a premium gate; it was the wrong EVENT)* · M3-5 *("the fix was computed" — it never was on
+that path)* · C5 *(the named victim never sees the sentence)*. ⚡ **In three of the four, building the
+proposed fix would not have closed the defect.** **Re-read each finding's stated mechanism against the
+code before building it, and treat its site count as a floor.**
+
+⛔ **Results that change how you test, and they keep being paid for twice:**
+- **⚠️ WORK SCHEDULED UN-REFUTED IS INVISIBLE — TWICE.** M3-20 (7c) and M3-5 (7d) were both built into the
+  plan with no refutation. 7c's fix was *"check the slice's owed-list"*, and **that check PASSES on
+  M3-5** — it was never on a list. **Check every id the BUILD schedules against the refutations.**
+- **An ABSENCE assertion passes before the app renders**, and its sibling: **a render marker must survive
+  the change the test is not about.** A plant red a copy spec that used the very button the other plant
+  removed — it would have reported a regression that never happened.
+- **`seedStore` RE-SEEDS ON EVERY NAVIGATION** (`addInitScript`). Any spec that mutates then `goto`s
+  asserts against the original fixture. Cost a full debugging cycle; `seedOnce` is the pattern.
+- ⛔ **THE FULL E2E SUITE DIES MID-RUN AND THE CORPSES LOOK LIKE REGRESSIONS.** Twice: 203 and 64 false
+  failures, contiguous from the death point, **all green on isolated re-runs.** ⚠️ The first had a cause
+  (a SIGTERMed run left a live webServer); **the second had no stray process**, so the mechanism is
+  unknown — do not reach for "stale server" as the explanation. **Re-run failures in isolation before
+  believing any broad red**, and run the suite backgrounded with the real exit code captured
+  (`cmd > log 2>&1; echo "REAL_EXIT=$?" >> log` — a bare `echo EXIT=$?` reports the ECHO).
 - **`lint:rn` green does NOT mean the tree is purity-clean.** `react-hooks/purity` reports a component's
   violations only while the React Compiler can still analyse it — `DebtSheet` linted clean, then produced
   2 errors on `Date.now()` calls **nobody touched**, the moment an unanalysable call entered render scope.
-✅ **CI IS GREEN ON `bc05054`** — run `32604746153`, verified by reading the run rather than by inferring
-it from a local pass. It is **every link of `validate:release:rn` except `gate:record`**: typecheck
-(core + RN + **scripts**) · `lint:rn` · **`test:stamp`** · regression · app · scenarios ·
-**`test:e2e:rn`** · **`test:e2e:embed`**. So the whole of 7c is verified on a clean machine, not only on
-the desk.
+⏳ **CI HAS NOT YET SEEN `d78fdb5`** *(d + e)*. The last CI-green commit is **`bc05054`** (run
+`32604746153`, 7c) — everything after it is verified **on the desk only**. `web-e2e.yml` runs every link of
+`validate:release:rn` except `gate:record`: typecheck (core + RN + **scripts**) · `lint:rn` ·
+**`test:stamp`** · regression · app · scenarios · **`test:e2e:rn`** · **`test:e2e:embed`**. ⛔ **Read the
+run, do not infer it from a local pass** — and given the mid-run-death result above, **a red CI run on this
+push is not automatically a regression**; check whether the failures are contiguous to the end.
 
 ⛔ **Two things a new session must know before touching anything:**
 - **`gate-status.json` is STALE and that is correct.** CI deliberately does not run `gate:record`, and
@@ -97,14 +110,14 @@ surfaces ship on unit assertions with **no rendered proof**) · 44 baselined han
 `formatDisplayAmount` · `projectForecast` · `buildSmartInsights` all have live ROOT-tree consumers, so they
 must be deleted **with** that tree or P6.11 leaves four unreachable modules behind.
 
-▶ **PICK UP HERE (2026-08-21) — P6.8.7, the BUILD.** ⭐ **P6.8's audit half is CLOSED**: 13 lenses, 6
+⭐ **P6.8.7's BUILD — a–e are CLOSED (2026-08-23); f is active, g follows.** ⭐ **P6.8's audit half is CLOSED**: 13 lenses, 6
 adversarial refuters, 226 frames, 9 a11y trees, all in
 [`docs/audits/2026-08-21-p6.8-finish/`](docs/audits/2026-08-21-p6.8-finish/). ⚠️ **Read `SYNTHESIS.md`
 FIRST** — it is the decision document and carries the ranked verdict, a recommendation on all ten scope
 calls, and a **do-not-build list**. ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 · P6.7 · R4 closed.
 
 🎯 **2026-08-21: "put in everything except the refutations"** — A + B + C, decomposed **P6.8.7a–g** on the
-plan. ⛔ **Only P6.8.7a(i) is built** (the a11y gate); implementation stopped there for a fresh session.
+plan. **a–e are built (2026-08-23); f is active, g follows.**
 ⚠️ 🎯 **overruled my 2.1 recommendation on C7 and C8**, so P6.8 is a BUILD phase now and must still clear
 **P6.10** feature lock. ⛔ **The earliest deadline in the audit is C8's parser rescue —
 `core/imports/debtCsv.ts`'s only caller dies at P6.11.** ⏭ **Then P6.8.9: a VERIFICATION audit** (🎯) —
