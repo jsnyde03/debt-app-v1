@@ -282,7 +282,8 @@
         </div>
 
         <h3>Can I import debts from a CSV file?</h3>
-        <p>Yes. In the Debts section, tap the import button to load a CSV file. The CSV should have columns for name, balance, minimum payment, APR, and due date. Any rows with missing required fields will be skipped with a count shown after import.</p>
+        <p>Yes. In the Debts section, tap the import button to load a CSV file. The first row must be a header row naming the columns: <strong>name</strong>, <strong>balance</strong>, <strong>minimum payment</strong>, <strong>APR</strong> and <strong>due date</strong>. Capitals, spaces, underscores and hyphens in the header are all fine — <code>Minimum Payment</code>, <code>minimumPayment</code> and <code>minimum_payment</code> are read the same way.</p>
+        <p>Dates must be written as <code>YYYY-MM-DD</code> (for example <code>2026-09-01</code>). An APR may include a percent sign. Rows that are missing a required field, or whose due date is not a real date, are skipped and reported after the import, so nothing is imported with a value the app could not read.</p>
     </section>
 
     <section id="premium">

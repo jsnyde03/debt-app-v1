@@ -30,7 +30,17 @@ export function AddRow({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.row, { borderColor: c.border.strong, opacity: pressed ? pressedOpacity : 1 }]}>
+      /**
+       * ⛔ **[V1-5 · P6.8.9.7.5] `border.control`, NOT `border.strong` — this row has NO FILL, so the
+       * border is not the best edge available, it is the only thing that exists.**
+       *
+       * `border.strong` measures **1.41:1** and is excluded from `lint:contrast` as decoration, on the
+       * stated grounds that it is *"a divider, a card edge, an underline"*. ⚠️ **That reason is false of
+       * all ten of its consumers** — eight are Switch off-state tracks, one is an onboarding step dot, and
+       * this one is a button's entire boundary. `border.control` is the token gated at SC 1.4.11's 3:1
+       * precisely for "a field, a select, a radio, the segmented thumb and the secondary button outline".
+       */
+      style={({ pressed }) => [styles.row, { borderColor: c.border.control, opacity: pressed ? pressedOpacity : 1 }]}>
       <AppIcon name={icon} size={18} color={c.accent.primary} />
       <Text style={[textStyles.bodyMedium, { color: c.accent.primary }]}>{label}</Text>
     </Pressable>

@@ -139,6 +139,20 @@ function describeMigrationLosses(outcome: LegacyMigrationOutcome): DataRepair[] 
   if (outcome.quarantineFailed > 0) {
     push(`${outcome.quarantineFailed} set(s) of set-aside data could not be carried over`);
   }
+  /**
+   * ⛔ **[M3-20 · P6.8.9.7.6] `droppedRows` REACHED NOBODY IN A SHIPPING BUILD.**
+   *
+   * Its own type says *"Non-zero means the migration is INCOMPLETE"*, and the only consumer was
+   * `LegacyBridgeProbeReadout` — which is behind `qaEnabled()`, and **`QA_TOOLS` is flipped false before
+   * submission (P6.17)**. So the one number that says "your old data did not all come across" was visible
+   * to a developer and to nobody else, on the branch where it matters most.
+   *
+   * ⚠️ It is a READ-level loss, which is why the three above missed it: they describe what the MAPPER
+   * could not translate, and this counts rows that never decoded far enough to be mapped. Different
+   * stage, same consequence for the person holding the phone.
+   */
+  const dropped = outcome.read?.droppedRows ?? 0;
+  if (dropped > 0) push(`${dropped} row(s) of your old data could not be read and were not carried over`);
   return out;
 }
 

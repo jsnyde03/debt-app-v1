@@ -587,6 +587,20 @@ Premium** → **"See it in action"**.
       `analytics-optout.spec.ts:26` carries `COVERS: §12.7.1` and asserts a sibling **App Lock** row before
       the absence — the defence against an absence assertion that a blank page would satisfy.)_ `✅gate`
 
+### §12.9 — the coach mark that makes its own room — ⚠️ NEW at P6.8.9.7, and it is a FEEL question
+- [ ] `[M]` **§12.9.1** [V2-6] On a **first** visit to Progress with the trajectory hint unseen, the page
+      scrolls instantly to make room for it. Confirm that reads as *deliberate* rather than as a glitch —
+      and that the hint does not appear to jump.
+- [ ] `[M]` **§12.9.2** [V2-6] Immediately on landing on Progress, reach for **"Snowball or avalanche?"**
+      while the hint is appearing. Confirm the tap lands on the control you aimed at.
+      _(⛔ The web gate reproduced the miss: `error-context.md` showed the toggle on screen, the hint up, and
+      the panel never opened, because the reveal moved the target between the actionability check and the
+      tap. A proposed fix — render the callout only after the reveal settles — is on the backlog; this row
+      is what decides whether it is needed.)_
+- [ ] `[M]` **§12.9.3** [V2-6] With the hint up, tap the control it points at. It must still work — the hint
+      is not a modal (`pointerEvents="box-none"` was added at .7.3 and **changes every coach mark in the
+      app**, not just this one; nothing off-device proves it on iOS).
+
 ### §12.8 — iCloud delete: the DEVICE-ONLY escape — ⚠️ NEW, and nothing off-device can reach it
 - [ ] `[M]` **§12.8.1** [C9] With iCloud **signed out**, ••• More → **Delete all data** → confirm.
       **Nothing is deleted**, and the sheet says so: *"Nothing was deleted. Sign in to iCloud on this device

@@ -1,6 +1,6 @@
 import type { TrajectoryPoint } from '@/store/payoffSelectors';
 
-import { MIN_DOMAIN_MONTHS, trajectoryDomain, truncateToDomain } from './trajectoryDomain';
+import { endPillWidth, MIN_DOMAIN_MONTHS, trajectoryDomain, truncateToDomain } from './trajectoryDomain';
 
 /**
  * P6.8.7g.4 (audit P1-3 / [D58]) — the payoff chart's x-domain.
@@ -99,6 +99,34 @@ function run() {
   {
     const short = curve(5000, 8);
     eq(truncateToDomain(short, 10).length, short.length, 'a curve inside the domain is untouched');
+  }
+
+  // ── [V3-5 · P6.8.9.7.7] The end pill's width estimate, at scales no e2e can produce ──────────────
+  //
+  // ⛔ V3-5 came back `CLOSED-UNPINNED` because **nothing in the repo could reach it**: `fontScale` is
+  // always 1 in react-native-web, and `lint:type-scale`'s floor is 30 pt while this pill's text is 11.
+  // Extracting the expression is what made it testable at all — the instrument had to change, not the test.
+  {
+    const S = 1.2; // LABEL_SCALE_MAX
+    const at1 = endPillWidth('Oct 2026', 1, S);
+    eq(at1, 20 + 8 * 6.5, 'at 1× the estimate is the unscaled width');
+
+    // ⛔ THE PROPERTY THAT MATTERS: an UPPER bound. Under-estimating clamps the pill into a box smaller
+    // than it draws, which is the overflow V3-5 is about — so this must never shrink as scale rises.
+    assert(endPillWidth('Oct 2026', 1.2, S) > at1, 'it grows with font scale');
+    eq(endPillWidth('Oct 2026', 2.0, S), endPillWidth('Oct 2026', 1.2, S), 'and stops at the label ceiling');
+    assert(
+      endPillWidth('Oct 2026', 0.85, S) < at1,
+      'a system scale BELOW 1 shrinks it — the bound tracks the text rather than assuming a floor of 1',
+    );
+
+    // ⚠️ The null case is the pre-date state, and it must still reserve room: `null` is "no debt-free date
+    // yet", not "no pill". Estimating 0 would let the clamp put it off the edge.
+    assert(endPillWidth(null, 1, S) > 0, 'a missing date still reserves a sensible width');
+    assert(
+      endPillWidth('September 2026', 1, S) > endPillWidth('Oct 2026', 1, S),
+      'a longer label estimates wider — the month NAME is what moves this, not the year',
+    );
   }
 
   console.log(`\n✅ payoff trajectory domain: ${passed} assertions passed\n`);

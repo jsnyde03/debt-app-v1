@@ -122,6 +122,43 @@ function run() {
     });
     eq(cmp.finishSooner, null, 'one side never clearing yields no finish delta');
     eq(cmp.firstWinSooner, null, 'and no first-win delta');
+
+    /**
+     * ⛔ **[P6.8.9.7.4] THE BLOCK ABOVE PROVED THE ARITHMETIC AND NEVER READ THE SENTENCE.** With both
+     * deltas null, `parts` stayed empty and `parts.join(', ')` returned the literal **`"."`** — on
+     * **16 of 960 realistic two-card portfolios**, which is precisely where the two strategies most
+     * disagree. `strategy-compare.spec.ts` asserted `text.length > 0` and passed straight over it, because
+     * `"."` has length 1: a proxy for *"the takeaway says something"* is not that claim.
+     *
+     * ⚠️ Asserting the CONTENT, never the length — the assertion that let this ship is the one to avoid
+     * repeating.
+     */
+    const takeaway = comparisonTakeaway(cmp);
+    assert(!/^\.?$/.test(takeaway.trim()), '⛔ the takeaway is a sentence, not the bare "." this used to return');
+    assert(
+      takeaway.startsWith('Only snowball clears your debt'),
+      'and it names the difference that matters: only one of the two reaches zero at all',
+    );
+    assert(takeaway.endsWith('.'), 'and it is a whole sentence');
+  }
+
+  {
+    // ⛔ NEITHER side clears, and the ORDER still differs — the second path to the old `"."`. `differs` is
+    // true (the clear sequences are not equal) while both deltas are null, so every branch is skipped and
+    // only the backstop can speak.
+    const cmp = buildStrategyComparison({
+      snowball: [{ month: 0, balance: 400 }],
+      avalanche: [{ month: 0, balance: 400 }],
+      snowballClears: clears(['card', 3]),
+      avalancheClears: clears(['loan', 3]),
+    });
+    assert(cmp.differs, 'the two orders differ even though neither plan reaches zero');
+    eq(cmp.finishSooner, null, 'and there is no finish delta to state');
+    eq(
+      comparisonTakeaway(cmp),
+      'These two clear your debts in a different order.',
+      '⛔ the backstop speaks rather than returning "."',
+    );
   }
   {
     // A clear recorded at month 0 is the seed row, not a win the plan produced.

@@ -89,7 +89,21 @@ export function comparisonTakeaway(cmp: StrategyComparison): string {
   if (!cmp.differs) return 'On your debts, these two produce exactly the same plan.';
 
   const parts: string[] = [];
-  if (cmp.finishSooner != null && cmp.finishSooner > 0) {
+
+  /**
+   * ⛔ **ONLY ONE OF THEM REACHES ZERO — the largest difference there is, and the delta arithmetic below
+   * cannot express it.** `finishSooner` needs TWO dates to subtract, so it is `null` here, and before
+   * P6.8.9.7.4 this whole function then returned the literal string `"."` — measured on **16 of 960
+   * realistic two-card portfolios**, i.e. exactly where the strategies most disagree.
+   *
+   * ⚡ `strategy-compare.spec.ts` asserted `text.length > 0` and passed straight over it: `"."` has length
+   * 1. A proxy for "the takeaway says something" is not the same claim as "the takeaway says something".
+   */
+  const sClears = cmp.snowball.debtFreeMonth != null;
+  const aClears = cmp.avalanche.debtFreeMonth != null;
+  if (sClears !== aClears) {
+    parts.push(`Only ${sClears ? 'snowball' : 'avalanche'} clears your debt in this projection`);
+  } else if (cmp.finishSooner != null && cmp.finishSooner > 0) {
     parts.push(`Avalanche finishes ${plural(cmp.finishSooner, 'month')} sooner`);
   } else if (cmp.finishSooner != null && cmp.finishSooner < 0) {
     parts.push(`Snowball finishes ${plural(-cmp.finishSooner, 'month')} sooner`);
@@ -104,6 +118,16 @@ export function comparisonTakeaway(cmp: StrategyComparison): string {
   } else if (parts.length > 0) {
     parts.push('and the order they clear in changes');
   }
+
+  /**
+   * ⛔ **THE BACKSTOP, AND IT IS NOT DEAD CODE.** `differs` can be true on facts none of the branches
+   * above can phrase — neither strategy reaching zero within the horizon, or an identical first-win month
+   * with a different clear ORDER. Both left `parts` empty, and `parts.join(', ')` then produced `"."`.
+   *
+   * ⚠️ Whatever is true here, the ORDER differs — that is what `differs` means when the dates cannot be
+   * compared — so saying exactly that is honest in every case that reaches this line.
+   */
+  if (parts.length === 0) return 'These two clear your debts in a different order.';
 
   return `${parts.join(', ')}.`;
 }

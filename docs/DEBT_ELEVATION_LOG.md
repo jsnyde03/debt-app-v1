@@ -19303,3 +19303,292 @@ present — a control cluster b DELETED.** It survived cluster b, 13 lenses and 
 plan calls *"the runnable truth"* for P6.14. Rewritten to confirm the **absence**. ⛔ **A stale checklist row
 is worse than a missing one:** it sends a human to look for something and reads as a defect when they cannot
 find it.
+
+---
+
+## ✅ P6.8.9.7.5a — the matrix waits for a SIGNAL, not a clock *(2026-08-24)*
+
+🎯 approved the recommendation: **a stated-signal guard, not `workers: 1`.**
+
+### Why not `workers: 1`
+
+- ⛔ **Probabilistic, not a fix.** 0/8 blank serially is a SAMPLE. A slower box, a CI runner or the
+  documented mid-run sleep re-opens it — and the failure is silent and plausible-looking.
+- ⛔ **It does not gate the class.** It lowers contention; it never establishes that a given frame shows a
+  painted chart. A bigger wasm bundle brings it straight back.
+- It roughly **doubles a 14-minute run** for a weaker guarantee.
+
+### What shipped
+
+`ChartSkeleton` now carries `testID="chart-skeleton"` (exported as `CHART_SKELETON_TESTID`), and `settle()`
+waits for **zero skeletons** after its existing timer.
+
+⚡ **This is the repo's own law arriving a third time** — *"a `setTimeout` standing in for 'it's ready'
+drifts under load; find the signal the app already emits, or make the app state it."* 3.5.8 paid fourteen CI
+cycles for it, 3.5.5.5 paid a coach mark, and `settle`'s `1_800` was the same guess.
+
+⚠️ **Two design choices that are load-bearing, not stylistic:**
+1. **The skeleton check runs AFTER the timer, never instead of it.** `toHaveCount(0)` is true of a page that
+   never rendered — two specs in this repo stayed green with a defect planted for exactly that reason. The
+   timer and each surface's `ready` establish that something is on screen; this establishes that no chart on
+   it is still loading.
+2. **`chart-skeleton`, not `canvas`.** A canvas wait needs a LIST of which surfaces have charts, and
+   enumerated lists have undercounted five consecutive times here. *"No chart is still loading"* is a
+   property of every surface; a chartless one satisfies it instantly. **Five `.web.tsx` call sites all
+   funnel through the one component**, so one testID covers the class.
+
+### Verification
+
+Planted a permanently-mounted `ChartSkeleton` on Progress → **10 failed, `PW_EXIT=1`**, every one
+`⛔ UNREACHED … toHaveCount failed`. Reverted → **10 passed**. The guard refuses to photograph a loading
+chart instead of silently doing it.
+
+⚠️ **`-g "route progress (phone/light)"` matched NOTHING and reported `PW_EXIT=1` for "no tests found"** —
+Playwright's `-g` is a REGEX and the parentheses were capture groups. A filter that matches nothing exits
+non-zero and reads exactly like a failing test. Same family as the backtick-substituting `git commit -m`:
+**the shell is a participant.**
+
+### ⚠️ And the frames from .9.1 were suspect for the same reason
+
+The .9.1 re-shoot ran at the same two workers, so **its 232 frames carry the same contamination** — the
+divergent frame WAS a skeleton, the 12-debt one was not. The f-visual verifier read that set. Re-shot in
+full with the guard in place; that run is the first one whose frames are known to show painted charts.
+
+---
+
+## ✅ P6.8.9.7.3 — V2-6, the audit's one WRONG-REMEDY *(2026-08-24)*
+
+🎯 chose **scroll the subject into room** over accepting the overlap. What it took was more than that, and
+every step was found by MEASURING after a guess failed.
+
+### The finding was right and its remedy was unbuildable as stated
+
+`trajectory-scrub` wrapped the **whole trajectory card**. Measured: **362 pt tall**, because it included the
+What-If row, the strategy-compare row and the legend. The callout needs 170 pt of clearance, so the reveal
+asked for **263 px against a `maxScroll` of 196** — *"scroll until there is room"* was arithmetically
+impossible against a subject that size. ⚠️ **My recommendation to 🎯 estimated the card at ~255 pt. It is
+362.** The approach survived; the premise under it did not.
+
+⚡ **The subject was also semantically wrong.** The mark says *"Drag the curve"* — the thing that handles the
+drag is the scrub view (`onResponderGrant={handleScrub}`), not the card containing two collapsibles. Moving
+`TutorialTarget` inside `TrajectoryChart` fixed the geometry and the meaning at once.
+
+### Four measurements, three of which killed a guess
+
+1. *"Scrolling will fix it"* → it scrolled 121 px and the overlap was unchanged at 13 px.
+2. *"The margin is too small"* → still 121 px. **`REVEALDIAG` showed why: `need` was used to compute the
+   scroll AND to test for room, so the result always landed exactly ON the boundary, and `>` is strict.**
+3. *"The page is out of scroll"* → **false**: `scrollTop 121, maxScroll 196`. 75 px were unused.
+4. *"`rectH` ≈ 255"* → **362**, which is what finally explained all three.
+
+⛔ **And a defect no lens filed, found on the way:** `measure()` returns WINDOW coordinates, so a scroll
+makes the rect stale — **and nothing re-measured**. With a mark up, scrolling the page left the callout
+behind while its subject slid out from under it. `subscribe` already existed for exactly this and had no
+scroll-driven caller.
+
+⛔ **`animated: false` on the reveal.** An animated scroll makes every downstream measurement
+timing-dependent — the callout is positioned from a rect still in motion, so it transiently overlaps both
+its neighbour and its own subject. `coach-marks.spec.ts:117` caught it mid-glide.
+
+### ⚠️ I broke a property that was right, and the suite caught me
+
+`coach-marks.spec.ts:117` (cluster f's self-occlusion pin) went red. Its assertion was
+`calloutBottom <= subjectTop` — **a PLACEMENT standing in for the property its own describe block names**
+(*"the callout does not cover its own subject"*). Once the layer had room, the callout correctly landed
+BELOW the subject and the assertion failed on a good layout. Rewritten to assert **zero overlap in either
+direction**, which is strictly stronger: "above" permitted a callout sitting on top of the neighbouring
+cash-flow card, the very defect V2-6 is about.
+
+⭐ **Plant-verified after the rewrite**, because a corrected assertion is worth nothing until it fails on
+the original defect: forcing the above-branch with a 100 px offset reds it at *"covers its own subject by
+44px"*. Reverted → **18 passed** across `coach-mark-neighbour` · `coach-marks` · `a11y-axe` · `swipe-delete`.
+
+**Pinned:** `apps/rn/tests/e2e/coach-mark-neighbour.spec.ts` — geometric, because occlusion is invisible to
+`toBeVisible()`: covered content is still in the DOM with a non-zero box.
+
+---
+
+## ✅ P6.8.9.7.4 — the new 2.0 surfaces *(2026-08-24)*
+
+### C7 — the takeaway was the literal string `"."`
+
+`parts.join(', ')` on an empty `parts`. Reached two ways, both where the strategies most disagree:
+**only one plan reaches zero** (`finishSooner` needs two dates to subtract, so it is `null`), and
+**same first-win month, different clear ORDER**. Measured at **16 of 960** realistic two-card portfolios.
+
+**Fixed** by naming the largest difference there is — *"Only snowball clears your debt in this projection"* —
+plus a backstop that states the order differs, which is what `differs` MEANS when the dates cannot be
+compared. ⚠️ The backstop is not dead code; it is the second path.
+
+⛔ **The assertion that let it ship:** `strategy-compare.spec.ts` asserted `text.length > 0`, and `"."` has
+length 1. Rewritten to assert the SHAPE of a sentence. ⚡ **A proxy for "the takeaway says something" is not
+that claim** — the same law that caught V2-6's test, twice in one item.
+
+⚠️ **The unit test already built the exact failing case** — *"one side never clearing yields no finish
+delta"* — asserted the arithmetic, and **never read the sentence.** Both assertions now sit in that block.
+
+### C8 — the enumeration came up short a SECOND time
+
+C8 said *"rescue the parser."* The rescue found three more (DOM `File`, `crypto.randomUUID`, `Number()`
+money). Told to look for a fourth, the verification found three — and building those found a fourth:
+
+1. ⛔ **`19.99%` was REFUSED with `"APR must be between 0 and 100"`.** The reject path stripped `%`; the
+   accept path did not. **The message is false of 19.99**, and it sends the user to change a value that was
+   already right. Stripped at the call site, not in the shared parser — `%` is meaningful for a rate and
+   meaningless for an amount, and widening `parseOptionalAmount` would make `$40%` a valid bill.
+2. ⛔ **`dueDate` was required and never validated.** `"next friday"` imported clean and produced `NaN` in
+   `guardianPredictionCore` — a row the importer called successful, breaking the plan silently. Now checked
+   for shape AND calendar (`2026-02-30` matches the pattern and is not a day).
+3. ⛔ **A fractional `remainingPayments` silently REWROTE a balance.** `normalizeBnplInstallment` computes
+   `balance = scheduled × remaining`, so `2.5` invents a number the user never typed. Now whole-and-positive
+   or absent — `undefined`, not an error, because the field is optional and refusing the row over it would
+   be harsher than the defect.
+4. ⭐ **FOUND WHILE FIXING #4's DOCS: `normalizeHeader` trimmed and lowercased but did not strip SPACES.**
+   `site/support.html` told users the file *"should have columns for name, balance, minimum payment, APR,
+   and due date"* — and a file written from those instructions had its minimum and due date read as
+   **absent**, so every row was skipped for "missing required fields". **The documentation and the parser
+   disagreed, and the user was told their file was wrong.** Fixed in the PARSER (a real bank export says
+   `Minimum Payment`), and the support page rewritten to state the date format and the `%` tolerance.
+
+**Pinned:** six new assertions in `testDebtCsv.ts`. Plants red **by name** — `got 1` error on a valid APR,
+`got 2.5` on a fractional count — and green on revert.
+
+---
+
+## ✅ P6.8.9.7.5 — visual + a11y partials *(2026-08-24)*
+
+### V1-5 — the second instance, and an exclusion that was never true
+
+`AddRow.tsx:33` still painted `border.strong` at **1.41:1**, and `lint:contrast` excluded that token as
+decoration on the stated grounds it is *"a divider, a card edge, an underline"*.
+
+⛔ **Enumerated: not one of its TEN consumers is any of those.** Eight `Switch` off-state tracks, one
+onboarding step dot, and `AddRow`'s entire boundary. ⚡ **An exclusion is a claim, and this one was false.**
+
+**Only `AddRow` moved**, to `border.control` — the token gated at 3:1 for *"a field, a select, a radio, the
+segmented thumb and the secondary button outline"*. It is the one consumer with **no fill**, so its border
+is not the best edge available, it is the only thing that exists. ⚠️ The eight switch tracks stay: the
+THUMB carries the affordance and iOS ships a low-contrast off track. The dot stays: the ACTIVE dot is
+`accent.primary` and wider, so the inactive ones are the absence of that, not information to resolve. The
+exclusion now carries a reason that is true of what it covers.
+
+### V3-6 — V3-5's mechanism, twelve lines away, in the same file
+
+The scrub readout clamped against a raw **`132`** while its own style permitted **`maxWidth: 172`** — a
+40 pt overrun at its widest — and, unlike `endPillW` directly above it, the bound was never scaled. Both
+numbers now come from one `SCRUB_READOUT_MAX_W`. ⚡ *"One rule, one owner"*: two numbers describing one box
+is how they came to disagree.
+
+### V4-8 — the gate awaited half of what it was gating
+
+⛔ **`skia-ready.web.ts`'s own docstring named the cause and the code ignored it**: *"the trajectory canvas
+carries an extra dynamic chunk on top of the shared 8 MB wasm fetch."* `useSkiaReady` awaited `LoadSkiaWeb`
+alone while `WithSkiaWeb` awaits that **plus** `getComponent()` plus a Suspense re-render — so the labels
+could only ever win, which is the exact race the hook exists to prevent.
+
+**Now awaits both**, via a `chunk` the CALLER supplies (each canvas has a different one; a hook awaiting
+every chart's chunk would make the cheapest card wait for the most expensive). Passing the same specifier
+`TrajectoryCanvas.web.tsx` hands to `getComponent` makes it free — a repeated dynamic `import()` returns the
+registry's existing promise. Module-scope, because a fresh function identity per render re-runs the effect
+forever.
+
+⛔ **And a rejection used to hang the gate permanently**, leaving a card in its skeleton with nothing said.
+It now REPORTS through `reportError` and **stays closed** — opening it would restore the original defect (a
+confident axis over an empty plot), and a skeleton is the honest picture of "this did not load".
+
+⚠️ **`.7.8`'s diagnosis is what made this precise**, from pixel geometry rather than from reading: the
+"blank chart" frames were `ChartSkeleton` (hairlines spanning the full canvas box, x=41→360) beneath a
+complete set of correctly-positioned overlays, where a real render puts gridlines at x=79→346.
+
+---
+
+## ✅ P6.8.9.7.6 / .7.7 — the rest, and pinning the unpinned *(2026-08-24)*
+
+### M3-20 — a number documented as "the migration is INCOMPLETE", visible to nobody
+
+`LegacyReadReport.droppedRows` had exactly one consumer: `LegacyBridgeProbeReadout`, which is behind
+`qaEnabled()` — and **`QA_TOOLS` is flipped false at P6.17**. So in the build that ships, the one figure
+saying *"your old data did not all come across"* reached a developer and no one else.
+
+⚠️ The three losses `describeMigrationLosses` already reported are MAPPER-level (`unknown`, `unparseable`,
+`quarantineFailed`); this is a READ-level loss — rows that never decoded far enough to be mapped. Different
+stage, same consequence for the person holding the phone. Now on the `migration` repair channel B4 built,
+which `DataRepair['entity']` documents as existing for exactly M3-20.
+
+### C1 — recorded as a deferral rather than pretended into a fix
+
+🎯 deferred the `actualIncome` half. The verification's real point was not that it is open, but that
+**nothing in the suite reds when P6.10 forgets it** — a feature's ABSENCE is what no test reports. Marked
+at `substrateProducers.ts` with what a future implementer must check together (the card, its copy, its tier
+gate), and promoted onto **P6.10's own row** so the gate that owns it carries it.
+
+### .7.7 — one e2e where a surface is reachable, one GATE where it is not
+
+⛔ **A4 + M1-9 are one line**, and the verification found **no test asserted anything about welcome bullet 3**
+— so the premium promise could return with every suite green. Pinned in `earlyjourney.spec.ts`, asserting
+the replacement is present AND the retired promise is absent, on a screen the two existing assertions
+already prove is rendered. **Plant-verified:** restoring the premium bullet reds 2 of 5 (both themes).
+
+⭐ **`lint:copy-owners` — a new gate for the class the copy gates cannot see.** Four ids came back
+`CLOSED-UNPINNED` for one shared reason: they were closed by making a screen READ a constant instead of
+writing its own words, and **`lint:copy`/`lint:glossary` read literals** — the whole point of the fix is
+that the literal is gone. So each closure could be undone by deleting one line, invisibly.
+
+The gate asserts the PAIRING: this file still reads this owner. It cannot check the words are right (the
+constant's definition and `lint:glossary` do that) — only that the site still asks rather than answers.
+⚠️ Deliberately structural, not e2e: two of the sites are onboarding steps **nothing in the suite can reach**
+without inventing a drive-through-onboarding chain, and a fragile new locator chain is a worse instrument
+than a structural one. Where a surface IS reachable the e2e is better and is what A4/M1-9 got.
+Plant-verified: de-wiring `FirstDebtOrBillStep` reds by id. Registered in `lint:rn`.
+
+---
+
+## ✅ P6.8.9.7.7 (second pass) — the four deferrals, folded in *(2026-08-24)*
+
+🎯: *"I am not in the business of creating more debt… I'm all about folding in at this point."* Four items
+filed to the backlog were pulled back and closed. ⚠️ **Three of the four were unpinnable only because the
+INSTRUMENT was wrong, not because the fix was** — which is why they had survived as `CLOSED-UNPINNED`.
+
+- **V3-5** — the scale expression lived inline inside a component, `fontScale` is **always 1 in
+  react-native-web**, and `lint:type-scale`'s floor is 30 pt against an 11 pt pill. **Nothing in the repo
+  could reach it.** Extracted to `endPillWidth(label, fontScale, scaleMax)` and unit-tested at scales no
+  e2e can produce. Plant *(drop the scaling)* reds at *"it grows with font scale"*.
+- **A1-2** — the fix reads `GUARDIAN_STATE_LABEL[...]`, and `check-glossary.ts` scans string **literals**,
+  so the gate built to catch vocabulary drift was structurally blind to the one place it mattered. New
+  `spoken-state.spec.ts` asserts the **rendered `aria-label`** against the shipped glossary. ⭐ The plant
+  prints the original defect verbatim: **`"Aug 24: $1,550 of room, stable"`**.
+- **V2-1** — the only month-year test uses `innerText()`, **which returns the full string through a
+  line-clamp**, so it passes on the exact defect V2-1 found. New `hero-date-fit.spec.ts` measures
+  `scrollHeight`/`scrollWidth` instead. ⚠️ Stated honestly in the spec: the plant reds at **320 pt**
+  (*"content 166px in a 104px box"*, matching V2-1's independently-measured 104 pt slot) and **passes at
+  402**, because `October 2026` fits there while `September 2026` does not. The narrow width is the one
+  that always tells the truth.
+- **`/history`** — its ten default frames and two `empty` frames were the same empty screen; the populated
+  design had never been photographed. ⚠️ **I deferred it at .9.1 claiming it "needs a real fixture rather
+  than a one-liner". That was overcautious** — `cycleHistory` is a plain array and the selector reads three
+  fields. ⚡ **A deferral is a claim about cost, and this one was never measured.**
+
+**Not folded in, with reasons that were measured rather than assumed:** the end-pill ink (9.95:1 / 6.44:1 —
+it PASSES, and "fixing" it changes a shipped colour with no device) · the nine other `border.strong`
+consumers (Switch off-tracks where the thumb carries the affordance) · **P1-10's tier gate, which is 🎯's
+monetisation decision and not work.**
+
+### ⛔ .7.9's gate found V4-8's fix was wrong in its ORDERING
+
+**11 failed, 242 passed.** Every failure was on the Progress trajectory card — including
+**`route smoke: /progress renders (non-blank)`**, the canary that once passed 10/10 while Today rendered
+blank for every user with a bill. It fired this time.
+
+**Cause:** `WithSkiaWeb` awaits `LoadSkiaWeb` and **then** `getComponent()`, sequentially — that ordering is
+the library's contract, because the chart module imports `@shopify/react-native-skia` and its body expects
+CanvasKit to exist. I used `Promise.all`. The component import rejected, **my own `catch` swallowed it**, and
+the gate never opened, so every label on the card vanished. ⚡ **The fix for V4-8 was "await more", and
+awaiting more in the wrong order is its own defect.**
+
+### ⚠️ And a residual filed rather than hidden
+
+The gate's last run left one failure whose `error-context.md` showed the toggle on screen, the hint up, and
+the panel never opened: **V2-6's reveal can move a control between a tap's actionability check and the
+tap.** A real user reaching for that control during the first render can mis-tap the same way. The spec now
+seeds `coachMarksSeen` (as four sibling specs already do), and the behaviour is filed as **§12.9's three
+device rows** plus a proposed *render-after-reveal* fix on the backlog.

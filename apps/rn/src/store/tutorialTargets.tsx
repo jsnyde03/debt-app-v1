@@ -70,6 +70,25 @@ interface TargetRegistry {
    *  by `TutorialTarget` so a control that ISN'T this beat's subject can fence itself — see `control`. */
   activeId: string | null;
   setActiveId(id: string | null): void;
+  /**
+   * ⛔ **[V2-6 · P6.8.9.7.3] A SCROLLING SCREEN OFFERS TO MAKE ROOM.** Measured at 402×874: the
+   * `trajectory-scrub` subject starts at y≈570 and runs off the bottom, and the cash-flow card ends at
+   * y≈560 — so a 144 pt callout has **no position on that screen that covers nothing.** Below is
+   * off-screen, above is the cash-flow card, the top is the hero.
+   *
+   * ⚡ Repositioning cannot solve it, which is why cluster f's fix made it worse: measuring the height
+   * correctly (132 → 144) moved the callout 22 px FURTHER into the neighbour. The only move that keeps
+   * BOTH guarantees — never cover the subject, never cover a neighbour — is to change the layout the
+   * question is being asked about.
+   *
+   * Returns `false` when no host is registered (a sheet, a non-scrolling screen), so the caller keeps its
+   * existing placement rather than waiting for a scroll that will never happen.
+   *
+   * ⚠️ A ref write and a call, like `register` — **nothing here may touch React state**, for the reason
+   * given above `subscribe`: this sits on the layout path.
+   */
+  registerScrollHost(fn: ((dy: number) => void) | null): void;
+  requestReveal(dy: number): boolean;
 }
 
 const TutorialTargetsContext = createContext<TargetRegistry | null>(null);
@@ -149,9 +168,23 @@ export function TutorialTargetsProvider({ children }: { children: ReactNode }) {
   // It stays null outside a session, so a non-tutorial user never sees a state change here.
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  /**
+   * [V2-6] The scrolling screen's offer to make room. A REF, not state — see the note above `subscribe`:
+   * this is on the layout path, and a `setState` here would re-render on every screen mount.
+   */
+  const scrollHost = useRef<((dy: number) => void) | null>(null);
+  const registerScrollHost = useCallback((fn: ((dy: number) => void) | null) => {
+    scrollHost.current = fn;
+  }, []);
+  const requestReveal = useCallback((dy: number) => {
+    if (!scrollHost.current) return false;
+    scrollHost.current(dy);
+    return true;
+  }, []);
+
   const value = useMemo(
-    () => ({ register, measure, invalidate, subscribe, activeId, setActiveId }),
-    [register, measure, invalidate, subscribe, activeId],
+    () => ({ register, measure, invalidate, subscribe, activeId, setActiveId, registerScrollHost, requestReveal }),
+    [register, measure, invalidate, subscribe, activeId, registerScrollHost, requestReveal],
   );
   return <TutorialTargetsContext.Provider value={value}>{children}</TutorialTargetsContext.Provider>;
 }

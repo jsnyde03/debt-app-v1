@@ -57,6 +57,17 @@ export function recordCycleIncome(
 ): DebtStore {
   if (opts?.missed) return recordMissedArrival(store, cycleEndDate);
 
+  /**
+   * 🔴 **[C1, SECOND HALF — OPEN, AND OWED BY P6.10]** `opts.actualIncome` has **no production caller**.
+   * Every app path reaches `capturePayday` without it, so for a variable-income user this returns early and
+   * `incomeActualsLog` never grows — which makes `LeanSuggestionCard` **unreachable by construction**, the
+   * same shape as C1's `surpriseOutflow` half that WAS closed at cluster e.
+   *
+   * ⚠️ Deferred by 🎯, not overlooked. Recorded here because the verification pass at P6.8.9.2 found that
+   * **nothing in the suite would go red when P6.10 forgets it** — the feature is absent, and absence is
+   * what no test reports. If you are wiring this: the card, its copy and its tier gate all need checking
+   * at the same time, because a reachable card with unreviewed copy is a worse state than an unreachable one.
+   */
   if (store.paycheck.incomeVaries && opts?.actualIncome === undefined) return store;
 
   const planned = store.currentCyclePrediction?.plannedIncome ?? (Number(store.paycheck.amount) || 0);

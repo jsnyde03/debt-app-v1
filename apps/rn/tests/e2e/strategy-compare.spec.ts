@@ -24,6 +24,22 @@ const diverging = () =>
     ],
     requiredExpenses: [],
     goals: [],
+    /**
+     * ⚠️ **[P6.8.9.7.9] `coachMarksSeen`, and it is not a workaround — it is what four other specs in this
+     * suite already do** (`absorb-entry`, `celebration`, `payday-reopen`, `coach-marks`). This spec's
+     * subject is the strategy comparison; an unrelated first-run overlay that scrolls the page is a
+     * different feature with its own specs (`coach-mark-neighbour.spec.ts`, `coach-marks.spec.ts`).
+     *
+     * ⛔ **The reason it started mattering is a REAL residual, filed rather than hidden.** V2-6's fix scrolls
+     * the page to make room for the hint, so on a first visit the toggle can move between a tap's
+     * actionability check and the tap itself. `error-context.md` showed exactly that: the toggle on screen,
+     * the alert up, and the panel never opened. **A user reaching for that control during the first render
+     * can mis-tap the same way.** → P6.14 row, and a proposed render-after-reveal fix on the backlog.
+     */
+    prefs: {
+      onboardingComplete: true,
+      coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'],
+    },
   });
 
 async function openCompare(page: Page) {
@@ -74,7 +90,15 @@ test('the takeaway names the real difference and claims no dollar saving', async
   await expect(takeaway).toBeVisible();
   const text = (await takeaway.innerText()).trim();
 
-  expect(text.length).toBeGreaterThan(0);
+  /**
+   * ⛔ **`text.length > 0` IS WHAT LET C7's DEFECT SHIP — corrected at P6.8.9.7.4.** On 16 of 960
+   * realistic two-card portfolios the takeaway was the literal string **`"."`**, which has length 1 and
+   * sailed through this assertion. A proxy for *"the takeaway says something"* is not that claim.
+   *
+   * ⚠️ Asserts SHAPE, not exact copy: this spec's subject is that a sentence reaches the user, and pinning
+   * the wording here would duplicate `compareStrategies.test.ts`, which owns the phrasing.
+   */
+  expect(text, 'the takeaway is a sentence, not punctuation').toMatch(/[A-Za-z]{3,}.*\.$/);
   // ⛔ [D59] — the interest advantage was never measured, so the app must not assert one. This is the
   // assertion that stops a later "helpful" edit from inventing a number about the user's money.
   expect(text).not.toMatch(/\$|interest|cheaper|save/i);

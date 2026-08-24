@@ -62,7 +62,10 @@ export function CashFlowSection({ cycles, floor }: { cycles: TimelineCycle[]; fl
   if (cycles.length === 0) return null;
 
   return (
-    <Card>
+    // ⚠️ [V2-6] The testID exists so a spec can assert this card's RECT. Occlusion is invisible to
+    // `toBeVisible()` — covered content is still in the DOM with a non-zero box — so the only honest
+    // assertion that the coach mark stopped landing on this card is a geometric one.
+    <Card testID="cash-flow-section">
       <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>
         CASH FLOW · NEXT {cycles.length} PAY CYCLES
       </Text>

@@ -388,6 +388,22 @@ for (const file of files) {
  * ⚠️ `subtle`, `default` and `strong` are deliberately NOT checked here. They are decoration; holding a
  * divider to 3:1 would draw a line the design does not want, and pretending they are control boundaries is
  * how a real criterion turns into a rubber stamp.
+ *
+ * ⛔ **BUT THE STATED REASON FOR EXCLUDING `strong` WAS FALSE, and V1-5 was the proof.** It read *"a
+ * divider, a card edge, an underline"* — and **not one of its ten consumers is any of those**. Enumerated
+ * 2026-08-24 at P6.8.9.7.5: eight `Switch` off-state tracks, one onboarding step dot, and `AddRow`'s entire
+ * boundary. ⚡ An exclusion is a claim; this one was never true.
+ *
+ * What each consumer actually is, and why only one moved:
+ *   - **`AddRow`** — a button with NO FILL, so the border is the only thing that delineates it. Moved to
+ *     `border.control`, which is checked at 3:1 above. This was V1-5's second named instance and cluster f
+ *     never reached it.
+ *   - **Eight `Switch` off-tracks** — the THUMB carries the affordance and the track is its ground; iOS's
+ *     own switches ship a low-contrast off track. Holding these to 3:1 would redraw a system control to
+ *     satisfy a criterion aimed at boundaries.
+ *   - **One step dot** — the ACTIVE dot is `accent.primary` and wider; the inactive dots are the absence of
+ *     that, not information a user must resolve.
+ * ⚠️ So the exclusion stays, with a reason that is now true of the tokens it covers.
  */
 for (const scheme of ['light', 'dark'] as ColorScheme[]) {
   const fill = solid(colors.background.secondary[scheme]);

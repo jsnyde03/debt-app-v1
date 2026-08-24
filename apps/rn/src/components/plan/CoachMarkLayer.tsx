@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -47,6 +47,8 @@ export function CoachMarkLayer({
   const hosts = useCoachMarkHosts();
   const [rect, setRect] = useState<TargetRect | null>(null);
   const [calloutH, setCalloutH] = useState(0);
+  /** [V2-6] Which mark has already been given room. A ref: this must not cause a render. */
+  const revealAskedFor = useRef<string | null>(null);
 
   // 3.5.5.5 — a nested host announces itself so the root layer can stand down. Both rendering the same
   // callout is not merely a duplicate drawing: the root copy hides behind the sheet on device but stays
@@ -79,6 +81,34 @@ export function CoachMarkLayer({
     };
   }, [active, targets, remeasureOn]);
 
+  /**
+   * ⛔ **[V2-6] THE RECT IS IN WINDOW COORDINATES, SO A SCROLL INVALIDATES IT — and nothing re-measured.**
+   *
+   * Found while building V2-6's fix, and it is why the first two attempts failed with *identical* numbers:
+   * the page scrolled (the neighbour moved y≈235 → 112) and the callout stayed at y415, because `top` is
+   * derived from a `rect` measured once per `active`. ⚡ **The scroll worked; the reading of it did not.**
+   *
+   * ⚠️ This is a defect in its own right that no lens filed: with a mark up, **scrolling the page left the
+   * callout behind while its subject moved out from under it.** V2-6 only made it reproducible on demand.
+   *
+   * `subscribe` already exists for exactly this ("a registered subject just laid out — its measured rect is
+   * stale"); it simply had no scroll-driven caller. The in-flight latch keeps a 16 ms scroll throttle from
+   * queueing a measurement per frame.
+   */
+  useEffect(() => {
+    if (!active || !targets) return;
+    let inFlight = false;
+    let cancelled = false;
+    return targets.subscribe((id) => {
+      if (id !== active || inFlight || cancelled) return;
+      inFlight = true;
+      void targets.measure(active).then((r) => {
+        inFlight = false;
+        if (!cancelled && r) setRect(r);
+      });
+    });
+  }, [active, targets]);
+
   // 4.1.4c — the layer's final verdict, recorded from an EFFECT rather than from the render body: this
   // component renders on every host/rect change, and a side effect in a render path is exactly the kind
   // of instrument that reports something other than what shipped. Mirrors the returns below.
@@ -91,6 +121,59 @@ export function CoachMarkLayer({
     // the probe prints, so the trace and the record can never disagree about what happened.
     if (verdict === 'DREW') coachMarks.getState().markDrawn(active);
   }, [active, rect, hosts, nested]);
+
+  /**
+   * ⛔ **[V2-6 · P6.8.9.7.3] WHEN NEITHER PLACEMENT IS CLEAN, MOVE THE PAGE — NOT THE CALLOUT.**
+   *
+   * Measured at 402×874 on Progress: the subject (`trajectory-scrub`, the whole trajectory card) starts at
+   * y≈570 and runs off the bottom, and the cash-flow card ends at y≈560. A 144 pt callout therefore has
+   * **no position on that screen that covers nothing** — below is off-screen, above is the cash-flow card's
+   * date axis, legend and verdict, and the top is the hero. V2-6 rated that major and was right.
+   *
+   * ⚡ **This is why cluster f's fix made it WORSE.** Correcting the height estimate (132 → 144) is a true
+   * fix for the self-occlusion the refuter added — and it moved the callout **22 px further into the
+   * neighbour** (y437 → y415), because the above-branch subtracts the height. The finding named the real
+   * cure in its own last line: *"the vertical axis still has no neighbour-awareness."* No repositioning can
+   * deliver that here; only changing the layout can.
+   *
+   * ⚠️ **IN AN EFFECT, NOT THE RENDER BODY**, and this file already paid for that lesson: the probe six
+   * lines up was moved out of render because *"a side effect in a render path is exactly the kind of
+   * instrument that reports something other than what shipped."* It is also what keeps
+   * `react-hooks/purity` honest — `lint:rn` green does not mean the tree is purity-clean, since the
+   * compiler stops analysing a component once an unanalysable call enters render scope.
+   *
+   * ⚠️ **Fires at most once per mark.** The scroll re-lays the subject out, `invalidate` re-measures, and
+   * this runs again — so without the latch a screen already at its end would ask forever. Keyed on the
+   * active mark, so a later mark still gets its turn.
+   *
+   * ⚠️ `requestReveal` returns false where no scrolling host is registered (a sheet, a short screen), and
+   * there the existing placement stands — which is exactly the behaviour every mark had before.
+   */
+  useEffect(() => {
+    if (!active || !rect || !targets) return;
+    if (revealAskedFor.current === active) return;
+    const belowY = rect.y + rect.height + 12;
+    /**
+     * ⛔ **THE MEASURED HEIGHT, NOT THE 140 — and the first cut of this scrolled 13 px short because of it.**
+     * `roomBelow`'s threshold is a hardcoded 140 while the callout measures **144**, so "there is room"
+     * could be true of a gap the callout does not fit in. Asking for exactly that gap landed the reveal on
+     * the boundary and the overlap survived. ⚡ It is the same defect as the `132` this whole item is
+     * about, one constant along: **a guess at the callout's height, in a second place.**
+     * `+ 16` is margin, so the result CLEARS rather than ties.
+     */
+    const need = (calloutH || ESTIMATED_CALLOUT_H) + ABOVE_GAP + 16;
+    if (winH - belowY - insets.bottom > need) return; // there is already room; nothing to do
+    revealAskedFor.current = active;
+    /**
+     * ⛔ **THE `+ REVEAL_MARGIN` IS THE WHOLE FIX, AND WITHOUT IT THIS TIES EVERY TIME.** Using `need` both
+     * to compute the scroll AND to test for room lands the result exactly ON the boundary — `> need` is
+     * strict, so it reads false and the callout stays in the above-branch. Measured: it scrolled 121 px of
+     * an available 196 and left a 13 px overlap, then 134 px once the rect started tracking.
+     * ⚡ Third bug in this one item from a height guess: `132`, `140`, and now a margin that cancelled.
+     */
+    const needed = belowY - (winH - insets.bottom - need) + REVEAL_MARGIN;
+    if (needed > 0) targets.requestReveal(needed);
+  }, [active, rect, targets, winH, insets.bottom, calloutH]);
 
   // The innermost host draws. Outside any sheet `hosts` is 0 and the root layer behaves exactly as before.
   if (!nested && hosts > 0) return null;
@@ -111,8 +194,33 @@ export function CoachMarkLayer({
   // nobody has written yet. The first frame still uses the estimate, because a layout pass has to happen
   // before there is anything to measure; it corrects on the next one, and only in the branch that needs it.
   const below = rect.y + rect.height + 12;
-  const roomBelow = winH - below - insets.bottom > 140;
+  // ⚠️ [V2-6] The MEASURED height, not a hardcoded 140 — which was less than the callout's real 144, so
+  // "there is room" could be true of a gap the callout does not fit in. Same class as the `132` above.
+  const roomBelow = winH - below - insets.bottom > (calloutH || ESTIMATED_CALLOUT_H) + ABOVE_GAP;
   const top = roomBelow ? below : Math.max(insets.top + 8, rect.y - (calloutH || ESTIMATED_CALLOUT_H) - ABOVE_GAP);
+
+  /**
+   * ⛔ **[V2-6] WHEN NEITHER PLACEMENT IS CLEAN, MOVE THE PAGE — NOT THE CALLOUT.**
+   *
+   * Measured at 402×874 on Progress: the subject (`trajectory-scrub`, the whole trajectory card) starts at
+   * y≈570 and runs off the bottom, and the cash-flow card ends at y≈560. A 144 pt callout therefore has
+   * **no position on that screen that covers nothing** — below is off-screen, above is the cash-flow card's
+   * date axis, legend and verdict, and the top is the hero. V2-6 rated that major, and it was right.
+   *
+   * ⚡ **This is why cluster f's fix made it WORSE.** It corrected the height estimate (132 → 144), which is
+   * a true fix for the self-occlusion the refuter added — and moved the callout **22 px further into the
+   * neighbour** (y437 → y415), because the above-branch subtracts the height. The finding named the real
+   * cure in its own last line: *"the vertical axis still has no neighbour-awareness."* Repositioning cannot
+   * deliver it; only changing the layout can.
+   *
+   * ⚠️ **Fires at most once per mark.** `requestReveal` scrolls, the subject re-lays out, `invalidate`
+   * re-measures, and this block runs again — so without the latch a screen already scrolled to its end
+   * would ask forever. The latch is keyed on the ACTIVE MARK, so a different mark later still gets its
+   * chance.
+   *
+   * ⚠️ Returns false where no scrolling host is registered (a sheet, a short screen). There the existing
+   * placement stands, which is the behaviour every other mark already had.
+   */
 
   // 4.1.5.5 — anchor the HORIZONTAL axis to the subject too.
   //
@@ -141,6 +249,23 @@ export function CoachMarkLayer({
         // is a claim about there being exactly ONE of these, and a text lookup cannot express that
         // without also matching whatever the copy happens to say.
         testID="coach-mark"
+        /**
+         * ⛔ **[V2-6 · P6.8.9.7.3] `box-none` HERE TOO — the card was eating taps meant for the app.**
+         *
+         * This file's opening paragraph promises *"nothing is fenced, and the control stays live
+         * underneath — if the user ignores this entirely and taps the thing, that is a success."* The outer
+         * wrapper honoured that; **this card did not.** It only went unnoticed because the callout used to
+         * land on a chart, where there is nothing to tap.
+         *
+         * ⚡ Giving the layer room to scroll moved it onto the trajectory card's own What-If and
+         * Snowball-or-avalanche rows, and `strategy-compare.spec.ts` immediately timed out clicking a
+         * toggle underneath it. **The hint was behaving as a modal after all**, exactly as
+         * `coach-marks.spec.ts:89` says it must not.
+         *
+         * `box-none` keeps the card visible and non-interactive while its "Got it" `Pressable` — a child,
+         * so unaffected — stays tappable.
+         */
+        pointerEvents="box-none"
         // The measurement that replaced the hardcoded offset above. Guarded on a real change so a layout
         // pass triggered by the new `top` cannot feed itself.
         onLayout={(e) => {
@@ -199,6 +324,8 @@ const ESTIMATED_CALLOUT_H = 144;
 
 /** The breathing room between the callout's bottom edge and the subject it points at. */
 const ABOVE_GAP = 10;
+/** [V2-6] Scroll PAST the boundary, not onto it — see the note at the reveal request. */
+const REVEAL_MARGIN = 24;
 
 const MIN_CALLOUT_W = 260;
 

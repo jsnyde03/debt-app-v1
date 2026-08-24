@@ -28,6 +28,23 @@ for (const theme of ['light', 'dark'] as const) {
     await page.screenshot({ path: `test-results/welcome-${theme}.png` });
     await expect(page.getByText('Will you make it to payday?')).toBeVisible();
     await expect(page.getByText('A guardian for every payday')).toBeVisible();
+
+    /**
+     * ⛔ **[A4 + M1-9 · P6.8.9.7.7] THE THIRD WELCOME BULLET, WHICH NOTHING ASSERTED.**
+     *
+     * Both findings are the same line: it promised a PREMIUM feature to a user who has not chosen a tier,
+     * on the first screen of the app. Cluster b replaced it with the privacy bullet — and the verification
+     * pass found **no test asserts anything about bullet 3 at all**, so the old promise could return
+     * without a single suite noticing. It is also built from CONSTANTS, which makes every copy gate
+     * structurally blind to it: `lint:copy` and `lint:glossary` read literals.
+     *
+     * ⚠️ Asserts the REPLACEMENT is present AND the retired promise is absent. Presence alone would pass if
+     * both shipped side by side; absence alone is true of a page that never rendered — the trap this repo
+     * has been bitten by twice — which the two assertions above already guard by proving the screen is up.
+     */
+    await expect(page.getByText('Private by design')).toBeVisible();
+    await expect(page.getByText(/never be sold more debt/)).toBeVisible();
+    await expect(page.getByText(/Smart Insights|Forecast|What-If|Strategy Comparison/i)).toHaveCount(0);
   });
 
   test(`early Progress hero leads forward (${theme})`, async ({ page }) => {

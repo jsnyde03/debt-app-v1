@@ -228,6 +228,58 @@ function runDebtCsvTests() {
 		eq(r.errors.length, 0, "a trailing blank line is not an error");
 	}
 
+	// ── [C8 · P6.8.9.7.4] The three the finding undercounted, after already undercounting by three ──
+	//
+	// ⛔ C8 said "rescue the parser". The rescue found DOM `File`, `crypto.randomUUID` and `Number()` money.
+	// The verification pass, told to look for a fourth, found three more. **An enumeration that came up
+	// short once came up short again**, which is this repo's most-measured result.
+	{
+		// ⛔ THE APR THE USER ACTUALLY TYPES. The reject path stripped `%`; the accept path did not — so a
+		// correct rate was refused with "APR must be between 0 and 100", a message that is FALSE of 19.99
+		// and sends the user to change a value that was already right.
+		const r = parse(`${HEADER}\nVisa,2400,75,19.99%,2026-09-01`);
+		eq(r.errors.length, 0, "an APR written with a percent sign imports cleanly");
+		eq(r.debts[0]?.apr, 19.99, "…and keeps its value");
+	}
+	{
+		// ⛔ A REQUIRED FIELD THAT WAS NEVER VALIDATED. This imported clean and produced NaN downstream in
+		// `guardianPredictionCore` — a row the importer called successful, breaking the plan silently.
+		const r = parse(`${HEADER}\nVisa,2400,75,19.99,next friday`);
+		eq(r.debts.length, 0, "a dueDate that is not a date is refused");
+		assert(
+			r.errors.some((e) => e.includes("not a date")),
+			"…and the error names the format rather than blaming the value",
+		);
+	}
+	{
+		// ⚠️ Shape-valid, calendar-invalid. `2026-02-30` passes a regex and is not a day.
+		const r = parse(`${HEADER}\nVisa,2400,75,19.99,2026-02-30`);
+		eq(r.debts.length, 0, "a date that does not exist on the calendar is refused");
+	}
+	{
+		// ⛔ A FRACTIONAL COUNT SILENTLY REWRITES A BALANCE. `normalizeBnplInstallment` computes
+		// `balance = scheduled × remaining`, so 2.5 installments invents a number the user never typed.
+		// ⚠️ Asserted as `undefined` — the field is optional, so the row survives and falls back to the
+		// balance+minimum path rather than being refused over an optional column.
+		const r = parse(`${HEADER},type,remainingPayments\nKlarna,400,100,0,2026-09-01,bnpl,2.5`);
+		eq(r.debts[0]?.remainingPayments, undefined, "a fractional installment count is not accepted");
+		const neg = parse(`${HEADER},type,remainingPayments\nKlarna,400,100,0,2026-09-01,bnpl,-3`);
+		eq(neg.debts[0]?.remainingPayments, undefined, "…nor a negative one");
+		const ok = parse(`${HEADER},type,remainingPayments\nKlarna,400,100,0,2026-09-01,bnpl,4`);
+		eq(ok.debts[0]?.remainingPayments, 4, "…while a whole positive count still imports");
+	}
+
+	{
+		// ⛔ THE HEADERS THE SUPPORT PAGE TELLS USERS TO WRITE, and the spelling a bank export actually uses.
+		// `normalizeHeader` used to trim and lowercase only, so "Minimum Payment" and "Due Date" read as
+		// ABSENT and every row was skipped for "missing required fields" — the docs and the parser
+		// disagreed, and the user was told their file was wrong.
+		const r = parse("Name,Balance,Minimum Payment,APR,Due Date\nVisa,2400,75,19.99,2026-09-01");
+		eq(r.errors.length, 0, "headers written with spaces and capitals import cleanly");
+		eq(r.debts[0]?.minimumPayment, 75, "…and the spaced column is actually read");
+		eq(r.debts[0]?.dueDate, "2026-09-01", "…including the due date");
+	}
+
 	console.log(`\n✅ CSV debt import: ${passed} assertions passed\n`);
 }
 

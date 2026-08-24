@@ -129,9 +129,28 @@ surfaces ship on unit assertions with **no rendered proof**) · 44 baselined han
 `formatDisplayAmount` · `projectForecast` · `buildSmartInsights` all have live ROOT-tree consumers, so they
 must be deleted **with** that tree or P6.11 leaves four unreachable modules behind.
 
+▶ **NEXT SESSION STARTS AT `P6.8.9.7.10` — THE INDEPENDENT RE-VERIFICATION OF EVERYTHING BUILT IN .7.**
+`.7.1`–`.7.9` are CLOSED. ⛔ **Not by the builder**, and ⚠️ **do NOT hand the verifiers a list of where the
+builder was unsure** — .9.2's whole value was that nobody was told what had been built.
+
+⚡ **Why .7.10 is not ceremony: SIX defects were introduced BY the fixes in .7**, and every one was caught by
+an instrument that already existed rather than by re-reading the diff — a `toISOString()` round-trip that
+would have refused **every CSV row in Sydney and Auckland** (two of four launch storefronts) · `Promise.all`
+where `WithSkiaWeb` requires sequential, which turned **11 specs red including the non-blank canary** · a
+side effect in a render body, in a file whose own comment explains why that was moved out · a callout that
+ate taps · an unticked `✅gate` row · a dead local. **A fix is a change, and changes are unaudited.**
+
 ⛔ **P6.8.9 IS ACTIVE AND 🎯 HAS RULED ON IT (2026-08-24):** *"These findings all need to pass pinned. Approve
-it all to go in 2.0."* .9.1 (re-shoot) and .9.2 (verification) are CLOSED; **P6.8.9.7 is the pinning build**,
-decomposed on the plan. **33 ids verified by 7 independent agents, none told what was built: `CLOSED` 11 ·
+it all to go in 2.0."* — and later, *"I am not in the business of creating more debt… I'm all about folding
+in at this point."* .9.1 (re-shoot) and .9.2 (verification) are CLOSED; **P6.8.9.7 is the pinning build**,
+decomposed on the plan.
+
+⭐ **The result to carry out of .7: an id is often `UNPINNED` because the INSTRUMENT is wrong, not the fix.**
+Three of four came back pinnable only after changing the tool — `check-glossary` reads string LITERALS while
+the fix is an interpolated identifier · `innerText()` returns text **through** a line-clamp · an inline
+expression could not be reached because `fontScale` is always 1 on web. **Ask what could see this, not what
+assertion to write.** ⚠️ And its sibling: *a deferral is a claim about cost*. `/history` was filed as
+"needs a real fixture"; it needed three fields. **33 ids verified by 7 independent agents, none told what was built: `CLOSED` 11 ·
 `CLOSED-UNPINNED` 10 · `PARTIAL` 11 · `WRONG-REMEDY` 1 · `OPEN` 0 · `NOT-A-DEFECT` 0.** ⚡ **Zero OPEN is the
 headline** — every observation was real and every remedy aimed at something true; **the whole residue is
 "what else the site was doing" and "does anything stop it un-fixing."** ⛔ **`lint:closure` is blind to both

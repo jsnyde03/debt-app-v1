@@ -134,7 +134,34 @@ const SURFACES: Surface[] = [
   { name: 'money-debts', goto: '/money', states: ['empty', 'single', 'many', 'huge', 'long-names'] },
   { name: 'progress', goto: '/progress', states: ['empty', 'single', 'many', 'huge', 'divergent'] },
   { name: 'more', goto: '/more' },
-  { name: 'history', goto: '/history', states: ['empty'] },
+  {
+    /**
+     * ⛔ **[P6.8.9.7.7] THE POPULATED PAY CYCLE HISTORY HAD NEVER BEEN PHOTOGRAPHED** — the same defect
+     * `/living-expenses` had at .9.1: `scenario()` seeds no `cycleHistory`, so this route's ten default
+     * frames AND its two `empty` state frames were the same empty screen. Twelve pictures of one design,
+     * and the anchor figure, the per-cycle rows and the debt-delta arrows appeared in none of them.
+     *
+     * ⚠️ It was deferred at .9.1 on the grounds that its rows "come through `selectHistoryRows` off cycle
+     * records, so it needs a real fixture rather than a one-liner". **That was overcautious** —
+     * `cycleHistory` is a plain array of `PayCycleSnapshot`, and the selector reads three fields off it.
+     * ⚡ A deferral is a claim about cost, and this one was never measured.
+     *
+     * Balances fall and payments land, so `debtDelta` is negative across the run — which is what makes the
+     * summary's "paid down across N cycles" line and the row arrows render at all.
+     */
+    name: 'history',
+    goto: '/history',
+    seedOver: {
+      cycleHistory: Array.from({ length: 5 }, (_, i) => ({
+        cycleEndDate: day(-120 + i * 30),
+        totalDebtBalance: 5000 - i * 640,
+        totalPaidThisCycle: 640,
+        completedRecommendedActions: [],
+        payoffStrategy: 'snowball',
+      })),
+    },
+    states: ['empty'],
+  },
   // ⛔ P6.8.9.1 — THE POPULATED DESIGN HAD NEVER BEEN PHOTOGRAPHED. `scenario()` seeds no
   // `livingExpenses`, so this route's ten default frames AND its two `empty` state frames were the same
   // empty screen — twelve pictures of one design, and the summary card, the ledger rows and the `AddRow`
@@ -305,7 +332,32 @@ async function reseed(page: Page, blob: Record<string, unknown>, goto: string) {
  * ⚠️ Count-up animations are the other half (`CountUp` on the money heroes): P1 measured light `today.png`
  * mid-count at $577 against dark's settled $1,032, on the same seed.
  */
-const settle = (page: Page) => page.waitForTimeout(1_800);
+/**
+ * ⛔ **THE 1,800 ms WAS A GUESS AT A QUANTITY THAT MOVES, AND UNDER LOAD IT LOST.** P6.8.9.7.5.
+ *
+ * `useSkiaReady` opens on the CanvasKit promise; `WithSkiaWeb` awaits that **plus** `getComponent()`'s own
+ * chunk, a Suspense re-render and a first paint. So the labels always win, and the window between them is
+ * the photograph: a `ChartSkeleton` — four faint hairlines — under a full set of correctly-positioned axis
+ * labels, waypoint bead and end pill. **It looks like a finished chart with no curve.**
+ *
+ * Measured on the real export at this shutter: **serially 0/8 blank; with four browsers competing on a
+ * 4-core box, 10/10 blank on BOTH a 2-debt and a 12-debt portfolio.** Two workers is the matrix's default.
+ * ⚡ **A single serial pass is not a control — it is one sample of a race**, and reading one as proof is
+ * how the timing hypothesis was wrongly ruled out in the first place.
+ *
+ * ⚠️ **ORDER IS LOAD-BEARING: the skeleton check runs AFTER the timer, never instead of it.**
+ * `toHaveCount(0)` is true of a page that never rendered — this repo has two specs that stayed green with a
+ * defect planted for exactly that reason. The timer (and each surface's own `ready`) establishes that
+ * something is on screen; this establishes that no chart on it is still loading.
+ *
+ * ⚠️ Waiting on `chart-skeleton` rather than on `canvas` is deliberate: a canvas wait needs a LIST of which
+ * surfaces have charts, and enumerated lists have undercounted five consecutive times here. "No chart is
+ * still loading" is a property of every surface — a chartless one satisfies it instantly.
+ */
+const settle = async (page: Page) => {
+  await page.waitForTimeout(1_800);
+  await expect(page.getByTestId('chart-skeleton')).toHaveCount(0, { timeout: 15_000 });
+};
 
 // ── ROUTES × THEME × VIEWPORT ─────────────────────────────────────────────────────────────────────
 for (const [vpName, viewport] of Object.entries(VIEWPORTS) as [ViewportName, { width: number; height: number }][]) {

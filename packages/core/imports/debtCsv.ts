@@ -2,6 +2,7 @@ import type { Debt } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { normalizeBnplInstallment } from "@core/debt/bnplInstallment";
 import { parseAmountField, parseOptionalAmount } from "@core/utils/amountField";
+import { parseLocalDate, toLocalISODate } from "@core/utils/localDate";
 
 /**
  * CSV → `Debt[]`, for the bulk import the support FAQ documents.
@@ -90,17 +91,43 @@ function parseCsvLine(line: string) {
 	return values;
 }
 
+/**
+ * ⛔ **SPACES AND SEPARATORS ARE STRIPPED — the docs promised columns this could not read.** [P6.8.9.7.4]
+ *
+ * This trimmed and lowercased only, so the header `minimum payment` normalised to `"minimum payment"` and
+ * the lookup asks for `row.minimumpayment`. **`site/support.html` tells users the file "should have columns
+ * for name, balance, minimum payment, APR, and due date"** — spelled exactly that way — and a file written
+ * from those instructions had its minimum and due date read as ABSENT, so every row was skipped for
+ * "missing required fields". The instructions and the parser disagreed, and the user was told their file
+ * was wrong.
+ *
+ * ⚡ Fixed in the PARSER rather than only in the prose, because a real export from a bank or a spreadsheet
+ * says `Minimum Payment` and `Due Date`. Making the docs match a strict parser would have been correct and
+ * useless.
+ */
 function normalizeHeader(header: string) {
-	return header.trim().toLocaleLowerCase();
+	return header.trim().toLocaleLowerCase().replace(/[\s_-]/g, "");
 }
 
 /** A count field — installments remaining. Whole, positive, and not money, so it does not take separators. */
+/**
+ * A COUNT — whole, positive, or absent. [P6.8.9.7.4]
+ *
+ * ⛔ This returned any finite number, so `remainingPayments: 2.5` and `-3` both imported. That is not a
+ * cosmetic sloppiness: `normalizeBnplInstallment` reconciles an installment-native BNPL by computing
+ * **`balance = scheduledPaymentAmount × remainingPayments`**, so a fractional or negative count silently
+ * REWRITES the user's balance to a number they never typed and cannot trace to anything on screen.
+ *
+ * ⚠️ `undefined` rather than an error, deliberately, and this preserves the existing contract: the field is
+ * optional and a debt missing it falls through to the balance+minimum path (`migrations.ts` v6 documents
+ * that fallback). Refusing the ROW over an optional field would be a harsher change than the defect.
+ */
 function toCount(value: string | undefined) {
 	if (!value) return undefined;
 
 	const parsed = Number(value.trim());
 
-	return Number.isFinite(parsed) ? parsed : undefined;
+	return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
 function isValidRecurrence(value: string): value is Recurrence {
@@ -179,6 +206,29 @@ export function parseDebtCsvText(text: string, options: DebtCsvOptions): DebtCsv
 			return;
 		}
 
+		/**
+		 * ⛔ **A REQUIRED FIELD THAT WAS NEVER VALIDATED.** [P6.8.9.7.4] It was checked for emptiness and
+		 * nothing else, so `"next friday"`, `"12/25"` and `"soon"` all imported CLEAN — and the value goes
+		 * straight into `debt.dueDate`, where `guardianPredictionCore` reads it as a calendar date and
+		 * produces `NaN`. A row the importer called successful then breaks the plan silently, which is the
+		 * exact failure mode the APR guard above exists to prevent, one field along.
+		 *
+		 * ⚠️ The calendar check is not redundant with the shape check: `2026-02-30` matches the pattern and
+		 * is not a day. Re-serialising and comparing is what catches a rolled-over date.
+		 */
+		/**
+		 * ⚠️ `parseLocalDate` + `toLocalISODate`, NOT `new Date(...).toISOString()`. The first cut used the
+		 * latter and `lint:dates` caught it in the release gate: `toISOString` converts to UTC, so east of
+		 * UTC a valid date round-trips to the day BEFORE and every row would have been refused as "not a
+		 * date" for users in Sydney and Auckland — two of the four launch storefronts.
+		 * ⚡ A guard this repo already had, catching a defect written by the fix for a different one.
+		 */
+		const dueDateValid =
+			!!dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate) && toLocalISODate(parseLocalDate(dueDate)) === dueDate;
+		if (dueDate && !dueDateValid) {
+			errors.push(`Row ${rowNumber}: dueDate "${dueDate}" is not a date — use YYYY-MM-DD, e.g. 2026-09-01.`);
+			return;
+		}
 		if (!dueDate) {
 			errors.push(`Row ${rowNumber}: dueDate is required.`);
 			return;
@@ -187,7 +237,20 @@ export function parseDebtCsvText(text: string, options: DebtCsvOptions): DebtCsv
 		// ⚠️ A refused APR is the one that matters most. `Number(apr) || 0` turned a mistyped rate into 0%
 		// and the engine then projected an interest-free payoff on a card that charges — a wrong PLAN,
 		// which is worse than a skipped row. Blank is a real answer (0%); unreadable is not.
-		const apr = parseOptionalAmount(rawApr);
+		/**
+		 * ⛔ **STRIP `%` BEFORE PARSING — the reject path did and the accept path did not.** [P6.8.9.7.4]
+		 *
+		 * `parseOptionalAmount`'s `normalize` strips `,`, whitespace and `$`; it does not strip `%`, because
+		 * a percent sign in a MONEY field is not a thing. So `"19.99%"` — the way a person writes an APR,
+		 * and the way a bank exports one — parsed to `null`, fell into the branch below, and was refused
+		 * with **`"APR must be between 0 and 100"`**. 19.99 is between 0 and 100. The error told the user
+		 * their correct value was out of range, which sends them to change a number that was already right.
+		 *
+		 * ⚠️ Stripped HERE rather than in `parseOptionalAmount`, which is shared with every money field
+		 * (B1's owner). `%` is meaningful for a RATE and meaningless for an amount; widening the shared
+		 * parser would make `$40%` a valid bill.
+		 */
+		const apr = parseOptionalAmount(rawApr.replace(/%/g, ""));
 		if (apr === null || apr > 100) {
 			const readable = Number(rawApr.replace(/[,\s$%]/g, ""));
 			errors.push(

@@ -16,9 +16,11 @@ import { groupLabel, a11yExpanded } from '@/utils/a11y';
 import { useSkiaReady } from '@/utils/skia-ready';
 import { formatWhole } from '@/utils/format';
 
+import { TutorialTarget } from '@/store/tutorialTargets';
+
 import { TrajectoryCanvas } from './TrajectoryCanvas';
 import { StrategyCompare } from './StrategyCompare';
-import { trajectoryDomain, truncateToDomain } from './trajectoryDomain';
+import { endPillWidth, trajectoryDomain, truncateToDomain } from './trajectoryDomain';
 import { WhatIfControls } from './WhatIfControls';
 
 const H = 200;
@@ -36,6 +38,27 @@ const PAD = { l: 38, r: 14, t: 16, b: 26 };
  * ⚠️ Chart labels only. Prose elsewhere in the app scales freely — that is what Dynamic Type is for.
  */
 const LABEL_SCALE_MAX = 1.2;
+
+/**
+ * ⛔ **[V3-6 · P6.8.9.7.5] THE SCRUB READOUT'S WIDTH, WITH EXACTLY ONE OWNER.**
+ *
+ * The readout was clamped against a raw `132` while its own style permitted `maxWidth: 172` — so at its
+ * widest it overran the right edge by **40 pt**, and unlike `endPillW` twelve lines below it, the bound was
+ * never scaled. ⚡ **That is V3-5's mechanism verbatim, in the same file, and V3-5's fix stopped short of
+ * it** — which is why the verification found the id `PARTIAL` rather than closed.
+ *
+ * ⚠️ One constant feeds BOTH the style cap and the clamp. Two numbers describing one box is how they came
+ * to disagree in the first place: "one rule, one owner", and agreeing copies are still copies.
+ */
+const SCRUB_READOUT_MAX_W = 172;
+
+/**
+ * [V4-8] The SAME specifier `TrajectoryCanvas.web.tsx` hands to `getComponent`, so the module registry
+ * returns one promise for both and nothing is fetched twice. Module scope, not an inline lambda — a fresh
+ * function identity every render would re-run the readiness effect forever.
+ * ⚠️ Never called on native: `skia-ready.ts` ignores it, which is what keeps the chunk lazy on web only.
+ */
+const TRAJECTORY_SKIA_CHUNK = () => import('./TrajectorySkiaChart');
 
 function formatMonths(months: number): string {
   if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;
@@ -135,7 +158,7 @@ export function TrajectoryChart({
   const scheme = useColorScheme();
   const [w, setW] = useState(0);
   const { fontScale } = useWindowDimensions();
-  const skiaReady = useSkiaReady();
+  const skiaReady = useSkiaReady(TRAJECTORY_SKIA_CHUNK);
   // What-If is a secondary, opt-in tool — collapsed by default so the resting card stays calm.
   const [whatIfOpen, setWhatIfOpen] = useState(false);
   // C7 — the strategy comparison, collapsed by default for the same reason What-If is.
@@ -296,12 +319,10 @@ export function TrajectoryChart({
     setScrub(null);
   };
   // Estimate the debt-free pill's width (no layout round-trip) so it clamps on-screen at either chart edge.
-  // ⛔ Scaled by the user's REAL font scale, capped at the same ceiling the pill's own text carries. `6.5` is
-  // a per-character constant measured at 1×, and the same number is the right-edge clamp bound — so at any
-  // larger setting the untouched estimate is narrower than the pill it is keeping on screen, and the pill
-  // walks off the edge it exists to stay inside.
-  const labelScale = Math.min(fontScale, LABEL_SCALE_MAX);
-  const endPillW = (20 + (debtFreeDate ? shortDate(debtFreeDate).length : 8) * 6.5) * labelScale;
+  // ⚠️ [V3-5 · P6.8.9.7.7] The arithmetic moved to `endPillWidth` in `trajectoryDomain.ts` — not for tidiness
+  // but because it was untestable here: `fontScale` is always 1 in react-native-web, so no e2e could ever
+  // vary the one input that matters. The reasoning for the scaling and the `6.5` lives with the function.
+  const endPillW = endPillWidth(debtFreeDate ? shortDate(debtFreeDate) : null, fontScale, LABEL_SCALE_MAX);
 
   const dark = scheme === 'dark';
   const gold = dark ? '#f7cf5f' : '#dca01f';
@@ -328,6 +349,19 @@ export function TrajectoryChart({
         <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.secondary }]}>PAYOFF TRAJECTORY</Text>
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Balance over time</Text>
       </View>
+      {/*
+        ⛔ **[V2-6 · P6.8.9.7.3] THE COACH-MARK SUBJECT IS THE SCRUB SURFACE, NOT THE WHOLE CARD.**
+        It used to be declared in `progress.tsx` around this entire component, and **measurement is what
+        showed that was wrong**: the wrapper reported `362 pt` tall, because it included the What-If row,
+        the strategy-compare row and the legend. The callout needs 170 pt of clearance, and 362 + 170 is
+        more than the page can ever scroll (`needed 263` against a `maxScroll` of `196`) — so
+        "scroll until there is room" was arithmetically impossible against a subject that size.
+
+        ⚡ It is also the semantically right subject: the mark says *"Drag the curve"*, and THIS is the view
+        that handles the drag (`onResponderGrant={handleScrub}`). The disclosures below it are not the
+        thing being coached.
+      */}
+      <TutorialTarget id="trajectory-scrub">
       <View
         // A11Y-1: collapse the canvas + loose overlay fragments (axis labels, waypoint checks, end pill)
         // into ONE VoiceOver utterance — the shipped pattern on the ring + cash-flow. The scrub is a visual
@@ -444,7 +478,7 @@ export function TrajectoryChart({
                 <View
                   testID="traj-scrub-readout"
                   pointerEvents="none"
-                  style={[styles.scrubReadout, { left: clamp(scrub.x - 60, PAD.l, w - PAD.r - 132), top: PAD.t, backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
+                  style={[styles.scrubReadout, { left: clamp(scrub.x - 60, PAD.l, w - PAD.r - SCRUB_READOUT_MAX_W), top: PAD.t, backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
                   <Text maxFontSizeMultiplier={LABEL_SCALE_MAX} style={[textStyles.caption, styles.scrubReadoutText, { color: c.text.primary }]} numberOfLines={1}>
                     {monthDate(scrub.month).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
                     {'  ·  '}
@@ -460,6 +494,7 @@ export function TrajectoryChart({
           </>
         ) : null}
       </View>
+      </TutorialTarget>
       {skiaReady ? (
         <View style={styles.footer}>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Now</Text>
@@ -609,7 +644,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    maxWidth: 172,
+    maxWidth: SCRUB_READOUT_MAX_W,
   },
   scrubReadoutText: { fontWeight: '700', fontSize: 11 },
 });

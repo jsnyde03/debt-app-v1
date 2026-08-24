@@ -1,11 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
 import { TrajectoryChart } from '@/components/payoff/TrajectoryChart';
 import { useCoachMark } from '@/hooks/use-coach-mark';
-import { TutorialTarget } from '@/store/tutorialTargets';
+import { useTutorialTargets } from '@/store/tutorialTargets';
 import { CashFlowSection } from '@/components/progress/CashFlowSection';
 import { type JourneyRingChartProps, type MilestoneState } from '@/components/progress/JourneyRingChart';
 import { JourneyRingCanvas } from '@/components/progress/JourneyRingCanvas';
@@ -110,6 +110,35 @@ export default function ProgressScreen() {
   // The permanent trophy shelf of confirmed-cleared debts (raw store — a cleared debt is cleared).
   const paidOff = selectPaidOffDebts(store);
 
+  /**
+   * ⛔ **[V2-6 · P6.8.9.7.3] THE OFFER TO MAKE ROOM FOR A COACH MARK.**
+   *
+   * `trajectory-scrub` wraps the whole trajectory card, which at 402×874 starts at y≈570 and runs off the
+   * bottom — so its callout has nowhere to go that covers nothing, and the above-branch lands on the
+   * cash-flow card's date axis, legend and verdict. Scrolling is the only move that keeps both guarantees.
+   *
+   * ⚡ **Nothing new was invented for this.** `Screen`'s `scrollRef`/`onScroll` pair already exists for
+   * exactly this errand — its own docstring reads *"a handle on the body scroller, so an overlay can bring
+   * a coached subject into view"* — and Today already drives it this way for the walkthrough. The offset
+   * ref is required because, as `screen.tsx` says, **`scrollTo` takes an ABSOLUTE offset**, so moving by a
+   * measured delta means knowing where the scroller is now.
+   */
+  const scrollRef = useRef<ScrollView>(null);
+  const offsetRef = useRef(0);
+  const targets = useTutorialTargets();
+  useEffect(() => {
+    if (!targets) return;
+    targets.registerScrollHost((dy) => {
+      // ⚠️ NOT animated. An animated reveal makes every downstream measurement timing-dependent: the
+      // callout is positioned from a rect that is still moving, so it transiently overlaps BOTH its
+      // neighbour and its own subject — and `coach-marks.spec.ts:117` caught exactly that, measuring
+      // mid-glide. An instant adjustment before the hint settles has no such window.
+      scrollRef.current?.scrollTo({ y: Math.max(0, offsetRef.current + dy), animated: false });
+    });
+    // ⚠️ Deregister on unmount, or a backgrounded Progress keeps answering for whatever screen is up.
+    return () => targets.registerScrollHost(null);
+  }, [targets]);
+
   if (!view.hasDebts) {
     // Debt-free WITH a history → the calm resting state (the finale already fired the spectacle) + the
     // archive. Only a truly-empty user (never any debt) gets the "add a debt" prompt.
@@ -178,7 +207,20 @@ export default function ProgressScreen() {
   return (
     // 3.6.4 — a wider centered column on iPad (not two-column): the timeline charts (trajectory · cash
     // flow) read better with width than split, and the ring hero + stats get room. "Using the room."
-    <Screen title="Progress" right={<MoreButton />} maxWidth={isExpanded ? 980 : undefined}>
+    // [V2-6] Only THIS branch carries the trajectory card, so only this one needs the scroll handle — the
+    // two debt-free branches above have no coached subject at all.
+    <Screen
+      title="Progress"
+      right={<MoreButton />}
+      maxWidth={isExpanded ? 980 : undefined}
+      scrollRef={scrollRef}
+      onScroll={(e) => {
+        offsetRef.current = e.nativeEvent.contentOffset.y;
+        // [V2-6] The measured rect is in WINDOW coordinates, so scrolling makes it stale. Telling the
+        // registry that re-points the callout at its subject — which is also what stops a hand-scroll
+        // leaving the hint behind.
+        targets?.invalidate('trajectory-scrub');
+      }}>
       <LinearGradient
         colors={[surf.heroTop, surf.heroBottom]}
         start={{ x: 0, y: 0 }}
@@ -197,7 +239,7 @@ export default function ProgressScreen() {
           </View>
           <View style={styles.ringMeta}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]}>DEBT-FREE</Text>
-            <Text {...heroDateFit} style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
+            <Text testID="progress-hero-date" {...heroDateFit} style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
             <Text style={[textStyles.subhead, { color: surf.heroSub }]}>
               {/* 3.3.6b — early on, lead FORWARD (the remaining as a goal) instead of a deflating "$0 paid". */}
               {/* HON-1: whole dollars on the headline journey figure — matches every other Phase-3 surface (formatWhole). */}
@@ -221,8 +263,10 @@ export default function ProgressScreen() {
       <CashFlowSection cycles={cashCycles} floor={cushionFloor} />
 
       {/* 3.5.5.4 — the scrub is the premium interaction on this screen and it is invisible until touched.
-          The wrapper is a bare measuring View; it must not change the chart's layout. */}
-      <TutorialTarget id="trajectory-scrub">
+          ⛔ [V2-6 · P6.8.9.7.3] THE TARGET MOVED INSIDE `TrajectoryChart`, onto the scrub surface itself.
+          Here it wrapped the WHOLE card and measured 362 pt — What-If row, compare row and legend included —
+          so "scroll until the callout has room" needed 263 px against a maxScroll of 196 and was impossible
+          by arithmetic. The subject of "Drag the curve" is the view that handles the drag. */}
       <TrajectoryChart
         snowball={view.snowball}
         avalanche={view.avalanche}
@@ -239,7 +283,6 @@ export default function ProgressScreen() {
         extra={extra}
         onExtraChange={setExtra}
       />
-      </TutorialTarget>
 
       <PaidOffArchive debts={paidOff} />
     </Screen>

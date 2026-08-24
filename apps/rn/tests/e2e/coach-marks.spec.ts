@@ -132,6 +132,24 @@ test.describe('coach-marks — the callout does not cover its own subject', () =
     expect(calloutBox).not.toBeNull();
     expect(subjectBox).not.toBeNull();
 
-    expect(calloutBox!.y + calloutBox!.height).toBeLessThanOrEqual(subjectBox!.y);
+    /**
+     * ⛔ **NON-OVERLAP, NOT "ABOVE" — corrected at P6.8.9.7.3 [V2-6].** This read
+     * `calloutBottom <= subjectTop`, which encodes a PLACEMENT as a stand-in for the property this
+     * describe block names ("the callout does not cover its own subject"). Once V2-6 gave the layer room
+     * to scroll, the callout correctly landed **below** the subject and this assertion failed on a
+     * perfectly good layout — the proxy, not the subject, was what it was measuring.
+     *
+     * ⚠️ Strictly stronger, not looser: "above" permitted a callout sitting anywhere above, including on
+     * top of the neighbouring cash-flow card, which is the defect `coach-mark-neighbour.spec.ts` exists
+     * for. This asserts the actual overlap is zero, in either direction.
+     */
+    const cb = calloutBox!;
+    const sb = subjectBox!;
+    const overlap = Math.max(0, Math.min(cb.y + cb.height, sb.y + sb.height) - Math.max(cb.y, sb.y));
+    expect(
+      overlap,
+      `the callout (y ${Math.round(cb.y)}..${Math.round(cb.y + cb.height)}) covers its own subject ` +
+        `(y ${Math.round(sb.y)}..${Math.round(sb.y + sb.height)}) by ${Math.round(overlap)}px`,
+    ).toBe(0);
   });
 });
