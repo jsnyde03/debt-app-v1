@@ -18134,3 +18134,61 @@ Mutation: the `history.tsx` clamp removed → `lint:type-scale` red **by file, l
 restored → green. `typecheck` exit 0 · `lint:rn` exit 0 with both new gates inside it, quoted from the run
 *(`check-contrast` green · `check-type-scale`: 19 large figures checked)* · `test:app` and `test:regression`
 both pass.
+
+---
+
+## P6.8.7f.3 — LAYOUT + STATE (2026-08-23)
+
+### V2-1 — the hero date, and a second instance nobody filed
+
+The slot beside the ring is **186 pt** at the default 402 pt width. `October 2026` uses 165 of it and
+renders whole; `September 2026` does not fit and renders `September 2…`. ⚡ It is the month NAME's advance
+width, not the payoff distance — `April 2034` is a further-away date and fits — and the truncating seed is
+**a single $1,200 debt**, the most ordinary starting position the product has.
+
+⭐ **The finding names one site; there are two.** The all-paid hero renders `Every balance paid off` in the
+same `heroDate` style with the same `numberOfLines={1}`, at full width — a longer string on the app's best
+moment. Both now share one `heroDateFit`: two lines, `adjustsFontSizeToFit`, `minimumFontScale` 0.7.
+
+Two lines rather than a smaller font because a break at the space reads correctly (`September` / `2026`)
+and losing the year does not. ⚠️ **`adjustsFontSizeToFit` is a no-op in react-native-web**, so the small
+-phone slot (104 pt, which no full month name fits at this weight) is an **iOS-only** guarantee the harness
+cannot check. Filed as a device row rather than implied.
+
+### V2-6 — the hardcoded offset, and a test that agreed with the fix for the wrong reason
+
+`rect.y − 132` matched neither observed callout height. At 402 pt the body wraps to two lines, the callout
+is **144 px**, and its bottom edge lands **12 px inside** the trajectory card it exists to explain; at
+1194 pt the same copy is one line and 123 px and clears by 9. So the constant was the height of one
+particular wrap of one particular sentence, and every later copy edit re-rolled it. It is now the
+**measured** height, with the taller of the two observed wraps as the first-frame estimate — erring toward
+sitting too high, which is the failure this branch exists to prevent.
+
+⛔ **THE TEST I WROTE FOR IT PASSED WITH THE DEFECT PLANTED BACK.** It compared the callout's bottom edge
+to the `PAYOFF TRAJECTORY` label — and the label is inset by the card's padding, so a callout 12 px inside
+the card still cleared the text by 9. **A proxy for the subject is not the subject.** Re-pointed at
+`tutorial-target-trajectory-scrub`, the rect the layer itself measures, it fails at **581 > 569** — the
+refuter's 12 px, reproduced by the suite — and passes at 569 with the fix in.
+
+⚡ Worth naming as a shape: this is the sibling of *"an absence assertion passes before the app renders"*.
+Both are tests that agree with the fix for a reason that has nothing to do with the fix. **Going red on a
+plant is necessary and is not sufficient; what the assertion is red ABOUT has to be checked too** — and
+here the first plant was not even red.
+
+### V4-8 — a chart that reads as failed rather than loading
+
+Downgraded by R4 to a minor web-surface defect, but its fix was named and costs nothing: gate the labels on
+the same condition as the canvas. ⚠️ **That condition did not exist.** `WithSkiaWeb` keeps its own loading
+state private, so there was nothing for the parent to read.
+
+`useSkiaReady` is now that signal — a constant `true` on native (Skia is compiled in; the window does not
+exist there) and a subscription to the shared, idempotent CanvasKit load on web. The trajectory card's
+labels, the `Now` marker and the whole legend hang off it, so the card is wholly loading or wholly drawn
+rather than a confident axis and a legend naming two lines that are not on screen.
+
+**Verified by plant:** `useSkiaReady` forced to `false` → **3 trajectory tests red**; restored → green.
+That is what proves the gate is wired to the labels rather than merely present, which a passing suite on
+the loaded path cannot distinguish.
+
+⚠️ Residual: `insets.bottom` is 0 on web and ~34 pt on a device, so `roomBelow` is **less** often true
+there and MORE viewports take the above-branch. The device can only widen V2-6, never narrow it.

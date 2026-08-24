@@ -13,6 +13,7 @@ import type { DebtClearPoint, InterestSaved, TrajectoryPoint } from '@/store/pay
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel, a11yExpanded } from '@/utils/a11y';
+import { useSkiaReady } from '@/utils/skia-ready';
 import { formatWhole } from '@/utils/format';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
@@ -131,6 +132,7 @@ export function TrajectoryChart({
   const scheme = useColorScheme();
   const [w, setW] = useState(0);
   const { fontScale } = useWindowDimensions();
+  const skiaReady = useSkiaReady();
   // What-If is a secondary, opt-in tool — collapsed by default so the resting card stays calm.
   const [whatIfOpen, setWhatIfOpen] = useState(false);
   // Touch-scrub: the point under the finger (px position + its month/balance) — null when not scrubbing.
@@ -342,6 +344,13 @@ export function TrajectoryChart({
               axisColor={axisColor}
               palette={palette}
             />
+            {/* ⛔ Every label below is React Native and the curve, the area, the endpoint AND the gridlines
+                are all Skia — so without this gate a mid-load card renders a complete, confident axis and
+                legend over an empty plot, which reads as a chart that FAILED rather than one that is
+                loading. On native `useSkiaReady` is a constant `true` and this compiles away to nothing;
+                Skia is in the binary and the window does not exist there. */}
+            {skiaReady ? (
+              <>
             {/* balance labels — left gutter, aligned to each gridline */}
             {gridVals.map((v) => (
               <Text
@@ -423,14 +432,18 @@ export function TrajectoryChart({
                 </View>
               </>
             ) : null}
+              </>
+            ) : null}
           </>
         ) : null}
       </View>
-      <View style={styles.footer}>
-        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Now</Text>
-      </View>
+      {skiaReady ? (
+        <View style={styles.footer}>
+          <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Now</Text>
+        </View>
+      ) : null}
 
-      {showMinimums || showSimulated || band.hasBand ? (
+      {skiaReady && (showMinimums || showSimulated || band.hasBand) ? (
         <View style={styles.legend}>
           {/* Order mirrors the chart's line stacking (top→bottom): minimums rides highest, then the
               plan, then with-extra dips lowest. */}

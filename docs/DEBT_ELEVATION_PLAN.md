@@ -162,7 +162,7 @@ touched by every screen below them, so fixing a surface before its primitive mea
 |---|---|---|
 | ✅ **f.1** | **CONTRAST — DONE 2026-08-23** | **B6/V1-2** the light ramp is re-solved against `background.tertiary`, the darkest ground the app paints text on · **V1-5** a new `border.control` token clears SC 1.4.11 in **both** themes, on 23 sites. ⭐ **`lint:contrast` is the instrument** — the grid, the exemptions (machine-verified), the hero panel and token-value copies — 4 plants red by name. ⛔ **Four defects only the building found**, incl. an unchecked checkbox at 1.43:1 and a file that had copied the token hexes. Detail → log |
 | ✅ **f.2** | **DYNAMIC TYPE — DONE 2026-08-23** | **V3-1** all six clamped and the false `PlanHero` comment deleted · **V3-5/6** the pill width now scales by the user's **real** `fontScale`, and the labels carry one shared ceiling. ⭐ **`lint:type-scale` is the class** — the refuter's own prescription, and it found 5 sites the audit missed, **none of which should be fixed** *(28pt headings; clamping prose overrules Dynamic Type)*. ⛔ **P1-3 is NOT closed by this** — see the decision below. Detail → log |
-| **f.3** | **LAYOUT + STATE** | **V2-1** the truncating debt-free date · **V4-8** the split-view chart · **V2-6** the coach mark covering its own subject |
+| ✅ **f.3** | **LAYOUT + STATE — DONE 2026-08-23** | **V2-1** both hero variants share one fitting rule *(the second was never filed)* · **V2-6** the hardcoded `132` replaced by the **measured** callout height, **and pinned by an e2e that fails at 581 > 569** · **V4-8** `useSkiaReady` gates every RN label on the canvas it belongs to. ⛔ **The first version of the V2-6 test PASSED with the defect planted** — it asserted against a heading inside the subject rather than the subject. Detail → log |
 | **f.4** | **VOICEOVER** | **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⛔ **A1-7's obvious fix is documented-as-broken** and **A1-11 is 6 sites, not 1**, both already measured |
 | **f.5** | **Suites green** | The full gate, backgrounded with the real exit code captured — see the e.6 note on false failures |
 
@@ -526,6 +526,23 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7f.3's AFTER-scan (2026-08-23)**
+
+- ⛔ **AN ASSERTION AGAINST A PROXY FOR THE SUBJECT IS NOT AN ASSERTION ABOUT THE SUBJECT.** The V2-6 test
+  first compared the callout to the `PAYOFF TRAJECTORY` label; the label is inset by the card's padding, so
+  a callout sitting **12 px inside the card** still cleared it and the test **passed with the defect planted
+  back**. Re-pointed at `tutorial-target-trajectory-scrub` — the rect the layer itself measures — it fails
+  at 581 > 569. ⚠️ Sibling of *"an absence assertion passes before the app renders"*: both are tests that
+  agree with the fix for a reason unrelated to it. → **P6.8.9** *(re-check what each new test asserts
+  AGAINST, not only that it goes red)*.
+- ⚠️ **`adjustsFontSizeToFit` is a no-op in react-native-web.** The Progress hero's 320 pt guarantee is
+  therefore an **iOS-only** claim that the harness structurally cannot check — on web the two-line wrap does
+  all the work. → **P6.14** *(read the hero on a small device at a wide month: September, November,
+  December)*.
+- ⚠️ **`insets.bottom` is 0 on web and ~34 pt on a device**, which makes `roomBelow` **less** often true and
+  pushes more viewports into the above-branch — the branch that was broken. The device can only widen this
+  finding, never narrow it. → **P6.14**.
 
 **→ SURFACED BY P6.8.7f.2's AFTER-scan (2026-08-23)**
 

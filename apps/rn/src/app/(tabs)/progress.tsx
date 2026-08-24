@@ -32,6 +32,29 @@ import { decorative, groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
 const RING_SIZE = 112;
+
+/**
+ * The hero date's fitting props, shared by both hero variants because they share the style and the hazard.
+ *
+ * ⛔ At the DEFAULT iPhone width this line loses its year. The slot beside the ring is 186 pt
+ * (`402 − 2×20 screen − 2×22 card − 112 ring − 20 gap`), and `October 2026` uses 165 of it while
+ * `September 2026` needs more than the box has — so an entirely ordinary first-run user, one $1,200 debt,
+ * reads `September 2…` as the app's headline number. It is the month NAME's advance width, not the payoff
+ * distance: `April 2034` is a further-away date and renders whole.
+ *
+ * Two lines rather than one, because a break at the space reads correctly (`September` / `2026`) and losing
+ * the year does not. `adjustsFontSizeToFit` then covers the small-phone slot, which is 104 pt and cannot
+ * hold any full month name at this weight.
+ *
+ * ⚠️ `adjustsFontSizeToFit` is a no-op in react-native-web, so on the harness the wrap does all the work and
+ * the shrink is only ever seen on a device. The 320 pt guarantee is an iOS one and is filed as a P6.14 row.
+ */
+const heroDateFit = {
+  maxFontSizeMultiplier: 1.3,
+  numberOfLines: 2,
+  adjustsFontSizeToFit: true,
+  minimumFontScale: 0.7,
+} as const;
 const MILE_TS = [25, 50, 75, 100] as const;
 
 /** The green→gold ring palette — constants (the navy panel is theme-invariant, so its colors are too). */
@@ -99,7 +122,7 @@ export default function ProgressScreen() {
             end={{ x: 1, y: 1 }}
             style={[styles.hero, elevation.hero[scheme]]}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: c.surface.heroSub }]}>DEBT-FREE</Text>
-            <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroDate, { color: c.surface.heroText }]}>Every balance paid off</Text>
+            <Text {...heroDateFit} style={[styles.heroDate, { color: c.surface.heroText }]}>Every balance paid off</Text>
             <Text style={[textStyles.subhead, { color: c.surface.heroSub }]}>Your trophy shelf is below.</Text>
           </LinearGradient>
           <PaidOffArchive debts={paidOff} />
@@ -174,7 +197,7 @@ export default function ProgressScreen() {
           </View>
           <View style={styles.ringMeta}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]}>DEBT-FREE</Text>
-            <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
+            <Text {...heroDateFit} style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
             <Text style={[textStyles.subhead, { color: surf.heroSub }]}>
               {/* 3.3.6b — early on, lead FORWARD (the remaining as a goal) instead of a deflating "$0 paid". */}
               {/* HON-1: whole dollars on the headline journey figure — matches every other Phase-3 surface (formatWhole). */}

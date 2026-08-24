@@ -46,6 +46,7 @@ export function CoachMarkLayer({
   const active = useActiveCoachMark();
   const hosts = useCoachMarkHosts();
   const [rect, setRect] = useState<TargetRect | null>(null);
+  const [calloutH, setCalloutH] = useState(0);
 
   // 3.5.5.5 — a nested host announces itself so the root layer can stand down. Both rendering the same
   // callout is not merely a duplicate drawing: the root copy hides behind the sheet on device but stays
@@ -99,9 +100,19 @@ export function CoachMarkLayer({
 
   // Below the control when there is room beneath it, above it otherwise. The subject is the point; a
   // callout that covers it explains something the user can no longer see.
+  //
+  // ⛔ THE ABOVE-BRANCH USED A HARDCODED 132 AND IT BROKE THAT ONE GUARANTEE ON THE APP'S DEFAULT WIDTH.
+  // Measured at 402 pt: the body wraps to two lines, the callout renders **144** px tall, and its bottom
+  // edge lands **12 px inside** the trajectory card it exists to explain. At 1194 pt the same copy is one
+  // line and 123 px, and clears by 9. So 132 matched neither height — it was the height of one particular
+  // wrap of one particular sentence, and every later edit to the copy re-rolled the dice.
+  //
+  // ⚡ The height is now MEASURED rather than assumed, which is what makes the invariant hold for copy
+  // nobody has written yet. The first frame still uses the estimate, because a layout pass has to happen
+  // before there is anything to measure; it corrects on the next one, and only in the branch that needs it.
   const below = rect.y + rect.height + 12;
   const roomBelow = winH - below - insets.bottom > 140;
-  const top = roomBelow ? below : Math.max(insets.top + 8, rect.y - 132);
+  const top = roomBelow ? below : Math.max(insets.top + 8, rect.y - (calloutH || ESTIMATED_CALLOUT_H) - ABOVE_GAP);
 
   // 4.1.5.5 — anchor the HORIZONTAL axis to the subject too.
   //
@@ -130,6 +141,12 @@ export function CoachMarkLayer({
         // is a claim about there being exactly ONE of these, and a text lookup cannot express that
         // without also matching whatever the copy happens to say.
         testID="coach-mark"
+        // The measurement that replaced the hardcoded offset above. Guarded on a real change so a layout
+        // pass triggered by the new `top` cannot feed itself.
+        onLayout={(e) => {
+          const h = Math.round(e.nativeEvent.layout.height);
+          if (h > 0 && h !== calloutH) setCalloutH(h);
+        }}
         style={[styles.card, { backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
         {/* ⛔ `accessible` MOVED OFF THE CARD AND ONTO THE SENTENCE — it was swallowing the dismiss button.
             Marking a container `accessible` collapses its whole subtree into ONE element on iOS, so with
@@ -173,6 +190,16 @@ export function CoachMarkLayer({
 
 /** Narrow enough for a phone gutter, wide enough that one sentence is not a ribbon. Only binds when the
  *  subject is narrower than this — a full-width card never reaches it. */
+/**
+ * ⚠️ A FIRST-FRAME ESTIMATE ONLY — the real height is measured on layout and takes over. It is deliberately
+ * the TALLER of the two observed wraps, so a wrong first frame errs toward sitting too high rather than
+ * toward covering the subject, which is the failure this whole branch exists to prevent.
+ */
+const ESTIMATED_CALLOUT_H = 144;
+
+/** The breathing room between the callout's bottom edge and the subject it points at. */
+const ABOVE_GAP = 10;
+
 const MIN_CALLOUT_W = 260;
 
 const styles = StyleSheet.create({

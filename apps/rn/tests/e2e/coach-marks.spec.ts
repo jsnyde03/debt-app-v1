@@ -96,3 +96,42 @@ test.describe('coach-marks — offered once, and re-offerable', () => {
     await expect(page).toHaveURL(/\/schedule\/d0/);
   });
 });
+
+/**
+ * P6.8.7f.3 (V2-6) — the above-branch's ONE guarantee, held by a measurement instead of a constant.
+ *
+ * `CoachMarkLayer`'s docstring states it outright: *"a callout that covers it explains something the user
+ * can no longer see."* The above-branch honoured that with a hardcoded offset, and at the app's default
+ * width the body wraps to two lines, the callout grows past the constant, and its bottom edge lands inside
+ * the trajectory card it is pointing at. The offset is now the measured height — and a measurement is only
+ * worth having if something re-checks it, because the next edit to the copy changes the wrap again.
+ *
+ * ⚠️ Web CAN answer this one. The nested-in-a-sheet case genuinely cannot be positioned here — RN-web lays
+ * a Modal's contents out in document flow, which is why the tests above assert count and ownership rather
+ * than place — but the Progress mark is ROOT-mounted and absolutely positioned, and the audit measured the
+ * overlap from exactly this harness.
+ */
+test.describe('coach-marks — the callout does not cover its own subject', () => {
+  test.use({ viewport: { width: 402, height: 874 } });
+
+  test('the trajectory hint clears the chart it explains, at the default phone width', async ({ page }) => {
+    await seedStore(page, scenario());
+    await page.goto('/progress');
+
+    const callout = page.getByTestId('coach-mark');
+    await expect(callout).toBeVisible();
+    // ⛔ The SUBJECT's own wrapper, not a heading inside it. The first version of this test used the
+    // `PAYOFF TRAJECTORY` label and PASSED with the defect planted back: the label is inset by the card's
+    // padding, so the callout's bottom edge could sit 12 px inside the card and still clear the text. The
+    // rect this asserts against has to be the rect the layer measured.
+    const subject = page.getByTestId('tutorial-target-trajectory-scrub');
+    await expect(subject).toBeVisible();
+
+    const calloutBox = await callout.boundingBox();
+    const subjectBox = await subject.boundingBox();
+    expect(calloutBox).not.toBeNull();
+    expect(subjectBox).not.toBeNull();
+
+    expect(calloutBox!.y + calloutBox!.height).toBeLessThanOrEqual(subjectBox!.y);
+  });
+});
