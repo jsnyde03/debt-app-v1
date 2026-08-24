@@ -15,7 +15,7 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { parseAmountField, parseOptionalAmount } from '@/store/amountField';
+import { parseAmountField, parseOptionalAmount } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { useCoachMark } from '@/hooks/use-coach-mark';
 import { FORM_ERRORS, RECURRENCE_LABEL, recurrenceOptions } from '@/store/obligationForm';

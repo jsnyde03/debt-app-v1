@@ -8,7 +8,7 @@ import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { TextField } from '@/components/ui/TextField';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
-import { parseAmountField } from '@/store/amountField';
+import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectWindfallSplit, type WindfallBucketKey } from '@/store/guardianSelectors';

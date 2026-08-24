@@ -18495,3 +18495,90 @@ trusts the queue** — and it survived only because the check was mechanical.
 — then the same over every file path mentioned. **17 ids and 19 paths flagged; 2 ids and 1 path were real.**
 ⛔ **Do not skip the second pass:** the path sweep is what caught `DEBT_SITE_COPY_2.0.md` falling off A2-5,
 which would have left the Marketing-URL row with no pointer to where its copy lives.
+
+---
+
+## ✅ P6.8.7g.1 — C8's parser rescue: the deadline is met, and it was not the only one *(2026-08-24)*
+
+**The claim g.1 had to make true: P6.11 cannot take `packages/core/imports/debtCsv.ts` silently.**
+
+### The before-scan — the premises held, and the module was web-shaped in three ways
+
+✅ **Verified against the tree, not inherited.** `packages/core/imports/debtCsv.ts` exists; its only caller
+is `lib/hooks/useDebts.ts:6`, in the root tree. *(The other hits were `.next` build cache — untracked — and
+two comment references.)* ⛔ **It had no test at all.**
+
+⚡ **But "move it behind a caller" understates the job: the module could not RUN in `apps/rn` at all.**
+
+1. **`parseDebtCsv(file: File)` → `file.text()`.** `File` is DOM. Core is consumed by a React Native app
+   where it does not exist, so the parser could only ever run in a browser.
+2. **`crypto.randomUUID()`.** Not available in every runtime core runs in — and more to the point **the app
+   does not want a UUID.** c.1 deliberately derives debt ids from the ids that already exist
+   (`newDebtId` → `debt-<cycle>-<n>`), which is what makes them unique across a relaunch.
+3. **`toNumber` was `Number(value)`** — the exact class B1/[D55] fixed everywhere else. A bank export writes
+   `1,200` and `$1,200`; both read as `NaN`.
+
+### What was built
+
+**The parse takes text and the caller mints ids.** `parseDebtCsvText(text, { makeId })`. Reading bytes is
+the platform's job — an `<input type="file">` on the web, a document picker on a device — and turning them
+into debts is the module's. The legacy tree keeps its UUIDs *(what that surface has always persisted)*; g.2
+will pass a derived minter. ⭐ **`makeId` is called only for an ACCEPTED row**, so a skipped row does not
+punch a hole in a caller's derived sequence — pinned.
+
+⭐ **`amountField.ts` MOVED to `packages/core/utils/`, with its test** (`testAmountField.ts`, now in
+`test:regression` rather than `test:app`). **A CSV cell is a typed money string exactly like a form field.**
+Parsing them differently would mean the app accepts `1,200` in the debt sheet and refuses it from a file —
+and B1's own docstring calls that module *"the ONE place a typed money string becomes a number."* Two
+consumers is what makes it shared code rather than app code. 12 import sites re-pointed, compiler-verified.
+
+⛔ **APR is the optional-amount channel, and that is the fix that outranks the rest.** `Number(apr) || 0`
+turned a mistyped rate into **0%**, so the engine projected an interest-free payoff on a card that charges.
+**Blank is a real answer (0%); unreadable now stops the row.** A wrong PLAN outlives a skipped row.
+
+⚠️ **And the error messages stopped lying.** The old message for an unreadable balance was *"balance must be
+greater than 0"* — true of nothing the user typed, sending them to edit a number that parsed fine as text.
+Blank and unreadable are now reported apart, and the unreadable one quotes the cell.
+
+### Verification — and my own test caught my own message
+
+**61 asserts, `test:regression` exit 0.** ⛔ **Three plants, three reds, each by name:**
+
+| plant | red |
+|---|---|
+| **delete `debtCsv.ts`** *(how P6.11 would take it)* | `Cannot find module './debtCsv'`, exit 1 |
+| money back to `Number()` | `FAIL [a grouped balance is accepted (expected 0, got 1)]` |
+| `parseOptionalAmount(rawApr) ?? 0` | `FAIL [an unreadable APR refuses the row rather than defaulting to 0%]` |
+
+⚡ **The first plant is the whole item.** It proves the rescue does not depend on g.2 landing: **the TEST is
+the gate, not the caller.** g.2 can slip past P6.11 without losing the parser.
+
+⛔ **My first run went red on an assertion I had written, and the assertion was the thing that was wrong.**
+It banned the substring `"greater than 0"` from the unreadable-balance message — but stating the requirement
+*after* the read failure is useful; stating it *instead* is the defect. Re-pointed at what the message
+**leads with**. ⚡ **f.3's lesson arriving from the other direction:** that one was a test asserting against a
+proxy for its subject, this one was a test asserting against a proxy for its *rule*.
+
+**Gate:** `typecheck` 0 · `test:regression` 0 · `test:app` 0 · `test:scenarios` 0 · `lint:rn` 0.
+
+### The after-scan — two findings, and the first one is a second deadline
+
+⛔ **`debtCsv` WAS NOT THE ONLY MODULE ON THE P6.11 DEADLINE.** Core imports **from** the dying tree in four
+places: `history/selectVisibleHistory.ts` — production code with **zero callers in `apps/rn`**, so it is
+dead core code — plus `testSafeStorage`, `testSubscriptionGating`, and `runRegressionTests`' import of
+`@/lib/storage/testMigrateOriginalBalance`. They rest on **five root modules, 293 lines.**
+⚡ **The failure shape is inverted, which is why nobody had filed them next to C8:** the parser would have
+gone *silent*, these break `test:regression` *loudly*. Loud is safer, but it still means P6.11 cannot delete
+the tree in one step. ⚠️ `packages/core/tsconfig.json`'s `@/*` alias comment already routes them to "5.5.1",
+and **the plan's P6.11 row lists what to REMOVE and never what must MOVE FIRST.** → filed to P6.11.
+
+⚠️ **Moving a file into core silently drops it from `lint:comments`.** Measured rather than assumed:
+`lint:money`, `lint:apostrophes`, `lint:glossary` and `strings-inventory` all scan **core + `apps/rn/src`**,
+so the new user-facing error strings stayed gated — but `check-comment-convention.ts`'s roots are
+`apps/rn/src` and `apps/rn/tests` only. ⭐ The decidable version is **a gate on the gates**: assert every
+convention scanner covers the same root set, so a move cannot quietly reduce coverage. → P6.8.9.
+
+⚠️ **For g.2:** `site/support.html` promises *"In the Debts section, tap the import button"* and *"rows with
+missing required fields will be skipped with a count shown after import."* The parser satisfies the second
+clause by construction. The first is a placement constraint on g.2 — or the FAQ moves, decided at P6.21
+against the shipped build.

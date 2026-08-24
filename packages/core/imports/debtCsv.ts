@@ -1,161 +1,231 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { normalizeBnplInstallment } from "@core/debt/bnplInstallment";
+import { parseAmountField, parseOptionalAmount } from "@core/utils/amountField";
+
+/**
+ * CSV → `Debt[]`, for the bulk import the support FAQ documents.
+ *
+ * ⛔ **THE PARSE TAKES TEXT, NOT A `File`, AND THAT IS THE WHOLE POINT OF THIS MODULE'S SHAPE.**
+ * `File` and `file.text()` are DOM. `packages/core` is the shared pure-TS engine and is consumed by a
+ * React Native app where neither exists, so a parser that reads its own file can only ever run in a
+ * browser. Reading bytes is the platform's job — a `<input type="file">` on the web, a document picker
+ * on a device — and turning those bytes into debts is this file's. Each caller supplies the text.
+ *
+ * ⛔ **IDS ARE INJECTED FOR THE SAME REASON, PLUS A SECOND ONE.** `crypto.randomUUID` is not available in
+ * every JS runtime this package runs in, and — more importantly — the app does not want a UUID. Its debt
+ * ids are DERIVED from the ids that already exist (`debt-<cycle>-<n>`), which is what makes them unique
+ * across a relaunch; a module counter namespaced by a date that does not move within a cycle hands out
+ * duplicates. So the caller owns id minting and this file never guesses at it. ⚠️ `makeId` is called
+ * once per ACCEPTED row and must return an id unused by both the existing portfolio and the rows already
+ * returned from this same call.
+ *
+ * **Money goes through `amountField`, and it is the reason that module is shared code.** A CSV cell is a
+ * typed money string exactly like a form field: someone exports `1,200` or `$1,200` from their bank and
+ * `Number()` reads both as `NaN`. Parsing them differently here would mean the app accepts a number in
+ * the debt sheet and refuses the same number from a file, and would blame the balance for it.
+ * ⚠️ **APR is the optional-amount channel on purpose:** blank means 0%, unreadable STOPS the row. A
+ * mistyped APR silently becoming 0 makes the engine project an interest-free payoff on a card that
+ * charges, which is a wrong plan rather than a rejected row.
+ */
 
 type DebtType = "debt" | "bnpl";
 
 const allowedTypes: DebtType[] = ["debt", "bnpl"];
 
+/**
+ * ⚠️ Narrower than the `Recurrence` union, deliberately. A debt is terminating by definition, so its
+ * cadence describes the repayment rhythm; the quarterly/annual members exist for bills. Widening this
+ * changes what a CSV can express, which is a product call and not a parser detail.
+ */
 const allowedRecurrences: Recurrence[] = ["one-time", "weekly", "biweekly", "per-paycheck", "monthly"];
 
+export type DebtCsvResult = { debts: Debt[]; errors: string[] };
+
+export type DebtCsvOptions = {
+	/** Mint an id for one accepted row. See the note above on why this is not the parser's job. */
+	makeId: () => string;
+};
+
+/**
+ * One CSV record → its cells.
+ *
+ * Handles RFC-4180 quoting: a `""` inside a quoted field is a literal quote, and a comma inside quotes
+ * is data rather than a separator. ⚠️ A quoted field containing a NEWLINE is not supported, because the
+ * caller splits into records on newlines before this is reached. That is a real limit of the format this
+ * accepts, not an oversight — a debt name spanning two lines has never appeared in a bank export, and
+ * supporting it means a character-level record splitter.
+ */
 function parseCsvLine(line: string) {
-    const values: string[] = [];
-    let current = "";
-    let insideQuotes = false;
+	const values: string[] = [];
+	let current = "";
+	let insideQuotes = false;
 
-    for (let index = 0; index < line.length; index += 1) {
-        const char = line[index];
-        const nextChar = line[index + 1];
+	for (let index = 0; index < line.length; index += 1) {
+		const char = line[index];
+		const nextChar = line[index + 1];
 
-        if (char === '"' && nextChar === '"') {
-            current += '"';
-            index += 1;
-            continue;
-        }
+		if (char === '"' && nextChar === '"') {
+			current += '"';
+			index += 1;
+			continue;
+		}
 
-        if (char === '"') {
-            insideQuotes = !insideQuotes;
-            continue;
-        }
+		if (char === '"') {
+			insideQuotes = !insideQuotes;
+			continue;
+		}
 
-        if (char === "," && !insideQuotes) {
-            values.push(current.trim());
-            current = "";
-            continue;
-        }
+		if (char === "," && !insideQuotes) {
+			values.push(current.trim());
+			current = "";
+			continue;
+		}
 
-        current += char;
-    }
+		current += char;
+	}
 
-    values.push(current.trim());
+	values.push(current.trim());
 
-    return values;
+	return values;
 }
 
 function normalizeHeader(header: string) {
-    return header.trim().toLocaleLowerCase();
+	return header.trim().toLocaleLowerCase();
 }
 
-function toNumber(value: string | undefined) {
-    if (!value) return undefined;
+/** A count field — installments remaining. Whole, positive, and not money, so it does not take separators. */
+function toCount(value: string | undefined) {
+	if (!value) return undefined;
 
-    const parsed = Number(value);
+	const parsed = Number(value.trim());
 
-    return Number.isFinite(parsed) ? parsed: undefined;
+	return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function isValidRecurrence(value: string): value is Recurrence {
-    return allowedRecurrences.includes(value as Recurrence);
+	return allowedRecurrences.includes(value as Recurrence);
 }
 
 function isValidDebtType(value: string): value is DebtType {
-    return allowedTypes.includes(value as DebtType);
+	return allowedTypes.includes(value as DebtType);
 }
 
-export async function parseDebtCsv(file: File): Promise<{debts: Debt[]; errors: string[];}> {
-    const text = await file.text();
+/**
+ * Parse a whole CSV document into debts, skipping and REPORTING any row it cannot accept.
+ *
+ * A partially valid file imports what it can — the FAQ promises exactly that ("rows with missing required
+ * fields will be skipped with a count shown"). Errors are per row and name the row number as the user
+ * would count it in a spreadsheet, header included.
+ */
+export function parseDebtCsvText(text: string, options: DebtCsvOptions): DebtCsvResult {
+	const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 
-    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+	if (lines.length < 2) {
+		return {
+			debts: [],
+			errors: ["CSV must include a header row and at least one debt row."],
+		};
+	}
 
-    if (lines.length < 2) {
-        return {
-            debts: [],
-            errors: ["CSV must include a header row and at least one debt row."],
-        };
-    }
+	const headers = parseCsvLine(lines[0]).map(normalizeHeader);
+	const errors: string[] = [];
+	const debts: Debt[] = [];
 
-    const headers = parseCsvLine(lines[0]).map(normalizeHeader);
-    const errors: string[] = [];
-    const debts: Debt[] = [];
+	lines.slice(1).forEach((line, rowIndex) => {
+		const rowNumber = rowIndex + 2;
+		const values = parseCsvLine(line);
 
-    lines.slice(1).forEach((line, rowIndex) => {
-        const rowNumber = rowIndex + 2;
-        const values = parseCsvLine(line);
+		const row = headers.reduce<Record<string, string>>((current, header, index) => {
+			current[header] = values[index] ?? "";
+			return current;
+		}, {});
 
-        const row = headers.reduce<Record<string, string>>((current, header, index) => {
-            current[header] = values[index] ?? "";
-            return current;
-        }, {});
+		const name = row.name?.trim();
+		const rawBalance = row.balance?.trim() ?? "";
+		const rawMinimum = row.minimumpayment?.trim() ?? "";
+		const rawApr = row.apr?.trim() ?? "";
+		const dueDate = row.duedate?.trim();
+		const type = (row.type?.trim().toLowerCase() || "debt") as DebtType;
+		const recurrence = (row.recurrence?.trim().toLowerCase() || "monthly") as Recurrence;
+		const remainingPayments = toCount(row.remainingpayments);
+		const scheduledPaymentAmount = parseAmountField(row.scheduledpaymentamount?.trim() ?? "");
 
-        const name = row.name?.trim();
-        const balance = toNumber(row.balance);
-        const minimumPayment = toNumber(row.minimumpayment);
-        const apr = toNumber(row.apr) ?? 0;
-        const dueDate = row.duedate?.trim();
-        const type = (row.type?.trim().toLowerCase() || "debt") as DebtType;
-        const recurrence = (row.recurrence?.trim().toLowerCase() || "monthly") as Recurrence;
-        const remainingPayments = toNumber(row.remainingpayments);
-        const scheduledPaymentAmount = toNumber(row.scheduledpaymentamount);
+		if (!name) {
+			errors.push(`Row ${rowNumber}: name is required.`);
+			return;
+		}
 
-        if (!name) {
-            errors.push(`Row ${rowNumber}: name is required.`);
-            return;
-        }
+		// ⚠️ Blank and unreadable are reported apart. "balance must be greater than 0" over a cell reading
+		// `1.200,50` tells the user the wrong thing about their own file, and they will go and edit a
+		// number that was never the problem.
+		const balance = parseAmountField(rawBalance);
+		if (balance === null) {
+			errors.push(
+				rawBalance === ""
+					? `Row ${rowNumber}: balance is required.`
+					: `Row ${rowNumber}: could not read balance "${rawBalance}" — it must be an amount greater than 0.`,
+			);
+			return;
+		}
 
-        if (!balance || balance <= 0) {
-            errors.push(`Row ${rowNumber}: balance must be greater than 0`);
-            return;
-        }
+		const minimumPayment = parseAmountField(rawMinimum);
+		if (minimumPayment === null) {
+			errors.push(
+				rawMinimum === ""
+					? `Row ${rowNumber}: minimumPayment is required.`
+					: `Row ${rowNumber}: could not read minimumPayment "${rawMinimum}" — it must be an amount greater than 0.`,
+			);
+			return;
+		}
 
-        if (!minimumPayment || minimumPayment <= 0) {
-            errors.push(`Row ${rowNumber}: minimumPayment must be greater than 0`);
-            return;
-        }
+		if (!dueDate) {
+			errors.push(`Row ${rowNumber}: dueDate is required.`);
+			return;
+		}
 
-        if (!dueDate) {
-            errors.push(`Row ${rowNumber}: dueDate is required.`);
-            return;
-        }
+		// ⚠️ A refused APR is the one that matters most. `Number(apr) || 0` turned a mistyped rate into 0%
+		// and the engine then projected an interest-free payoff on a card that charges — a wrong PLAN,
+		// which is worse than a skipped row. Blank is a real answer (0%); unreadable is not.
+		const apr = parseOptionalAmount(rawApr);
+		if (apr === null || apr > 100) {
+			const readable = Number(rawApr.replace(/[,\s$%]/g, ""));
+			errors.push(
+				Number.isFinite(readable)
+					? `Row ${rowNumber}: APR must be between 0 and 100`
+					: `Row ${rowNumber}: could not read APR "${rawApr}" — leave it blank for 0%.`,
+			);
+			return;
+		}
 
-        if (apr < 0 || apr > 100) {
-            errors.push(`Row ${rowNumber}: APR must be between 0 and 100`);
-            return;
-        }
+		if (!isValidDebtType(type)) {
+			errors.push(`Row ${rowNumber}: type must be debt or bnpl`);
+			return;
+		}
 
-        if (!isValidDebtType(type)) {
-            errors.push(`Row ${rowNumber}: type must be debt or bnpl`);
-            return;
-        }
+		if (!isValidRecurrence(recurrence)) {
+			errors.push(`Row ${rowNumber}: recurrence must be one-time, weekly, biweekly, per-paycheck, or monthly`);
+			return;
+		}
 
-        if (!isValidRecurrence(recurrence)) {
-            errors.push(`Row ${rowNumber}: recurrence must be one-time, weekly, biweekly, per-paycheck, or monthly`);
-            return;
-        }
+		// Installment-native BNPL: reconcile balance + minimum to scheduled × remaining (2.7.2).
+		debts.push(normalizeBnplInstallment({
+			id: options.makeId(),
+			name,
+			balance,
+			originalBalance: balance,
+			minimumPayment,
+			apr,
+			dueDate,
+			originalDueDate: dueDate,
+			type,
+			recurrence,
+			remainingPayments: type === "bnpl" ? remainingPayments : undefined,
+			scheduledPaymentAmount: type === "bnpl" ? (scheduledPaymentAmount ?? undefined) : undefined,
+			minimumPaidThisCycle: false,
+			snowballPaidThisCycle: false,
+		}));
+	});
 
-        // Installment-native BNPL: reconcile balance + minimum to scheduled × remaining (2.7.2).
-        debts.push(normalizeBnplInstallment({
-            id: crypto.randomUUID(),
-            name,
-            balance,
-            originalBalance: balance,
-            minimumPayment,
-            apr,
-            dueDate,
-            originalDueDate: dueDate,
-            type,
-            recurrence,
-            remainingPayments: type === "bnpl" ? remainingPayments : undefined,
-            scheduledPaymentAmount: type === "bnpl" ? scheduledPaymentAmount : undefined,
-            minimumPaidThisCycle: false,
-            snowballPaidThisCycle: false,
-        }));
-
-
-
-
-
-    });
-
-    return { debts, errors };
+	return { debts, errors };
 }
-

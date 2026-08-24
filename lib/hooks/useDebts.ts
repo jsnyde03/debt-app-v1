@@ -3,7 +3,7 @@ import { usePersistedState } from "@/lib/storage/usePersistedState";
 import type { Debt } from "@core/storage/debtPlannerStorage";
 import type { Recurrence } from "@core/types/recurrence";
 import { triggerErrorHaptic, triggerMediumHaptic } from "@/lib/mobile/haptics";
-import { parseDebtCsv } from "@core/imports/debtCsv";
+import { parseDebtCsvText } from "@core/imports/debtCsv";
 
 export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => void) {
     const [debts, setDebts] = usePersistedState<Debt[]>("debtPlanner.debts", []);
@@ -185,7 +185,12 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
         if (!file) return;
 
         try {
-            const importResult = await parseDebtCsv(file);
+            // Reading the bytes is this tree's job (a browser `File`); turning them into debts is the
+            // shared parser's. Ids stay UUIDs here because that is what this surface has always
+            // persisted — the RN app derives its own instead, which is why the parser takes a minter.
+            const importResult = parseDebtCsvText(await file.text(), {
+                makeId: () => crypto.randomUUID(),
+            });
 
             if (importResult.debts.length > 0) {
                 setDebts((current) => [...current, ...importResult.debts]);

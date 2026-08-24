@@ -8,7 +8,7 @@ import { AnimatedSheet } from '@/components/ui/AnimatedSheet';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import type { Debt } from '@/data/models';
-import { parseAmountField } from '@/store/amountField';
+import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { spacing } from '@/theme/spacing';
 

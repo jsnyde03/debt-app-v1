@@ -1,4 +1,4 @@
-import { parseAmountField, parseNonNegativeAmount, parseOptionalAmount } from '@/store/amountField';
+import { parseAmountField, parseNonNegativeAmount, parseOptionalAmount } from './amountField';
 
 /**
  * P6.8.7c.1 (audit B1) — the money-field parser.

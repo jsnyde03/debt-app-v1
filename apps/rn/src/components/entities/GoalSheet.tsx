@@ -6,7 +6,7 @@ import { Select } from '@/components/ui/Select';
 import { TextField } from '@/components/ui/TextField';
 import type { Goal } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { parseAmountField, parseOptionalAmount } from '@/store/amountField';
+import { parseAmountField, parseOptionalAmount } from '@core/utils/amountField';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { useActiveStore } from '@/store/StoreContext';
 import { textStyles } from '@/theme/typography';

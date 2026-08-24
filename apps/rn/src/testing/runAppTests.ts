@@ -53,10 +53,6 @@ async function main() {
   // 3.7.B.2 (F10.1) — Today's time-aware greeting: every band boundary + the name normalisation.
   await import('../store/greeting.test');
 
-  // P6.8.7c.1 (audit B1) — the money-field parser every form now writes through: the NaN-producing
-  // strings that used to pass a `<= 0` guard and persist as null, and the three refusal channels.
-  await import('../store/amountField.test');
-
   // MF.4 (audit #5) — the debt-free projection runs on the steady-state (holdback-stripped) deploy.
   await import('../store/steadyStateProjection.test');
 

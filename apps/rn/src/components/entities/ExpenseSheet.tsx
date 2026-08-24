@@ -9,7 +9,7 @@ import { DateField } from '@/components/ui/DateField';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { RequiredExpense, RequiredExpenseCategory } from '@/data/models';
-import { parseAmountField, parseOptionalAmount } from '@/store/amountField';
+import { parseAmountField, parseOptionalAmount } from '@core/utils/amountField';
 import { billCategoryOptions, FORM_ERRORS, recurrenceOptions } from '@/store/obligationForm';
 import { useActiveStore } from '@/store/StoreContext';
 import { confirmDelete } from '@/utils/confirm';

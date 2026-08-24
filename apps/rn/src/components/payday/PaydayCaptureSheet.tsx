@@ -24,7 +24,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSheetPresentation } from '@/hooks/use-sheet-presentation';
 import { CountUp, haptics, useReduceMotion } from '@/motion';
 import { elevation } from '@/theme/elevation';
-import { parseNonNegativeAmount } from '@/store/amountField';
+import { parseNonNegativeAmount } from '@core/utils/amountField';
 import type { DebtBalanceView } from '@/store/balanceSelectors';
 import type { ActiveRecommendedAction, RequiredRow } from '@/store/planSelectors';
 import { spring } from '@/theme/motion';

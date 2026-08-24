@@ -5,7 +5,7 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import type { LivingExpense } from '@/data/models';
 import { useActiveStore } from '@/store/StoreContext';
-import { parseAmountField } from '@/store/amountField';
+import { parseAmountField } from '@core/utils/amountField';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { confirmDelete } from '@/utils/confirm';
 

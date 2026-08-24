@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { SaveForItSheet, type SavedInfo } from '@/components/plan/SaveForItSheet';
 import { PremiumInvite } from '@/components/premium/PremiumInvite';
 import { TextField } from '@/components/ui/TextField';
-import { parseAmountField } from '@/store/amountField';
+import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectAffordability, type Affordability } from '@/store/guardianSelectors';

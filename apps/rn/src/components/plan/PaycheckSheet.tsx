@@ -9,7 +9,7 @@ import { SwitchRow } from '@/components/ui/SwitchRow';
 import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { parseAmountField } from '@/store/amountField';
+import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { formatPaycheckDate, nextPaycheckFrom, paydayFieldError, PAY_CYCLE_OPTIONS, PAYCHECK_ERRORS, PAYCHECK_FIELDS, PAYCHECK_LEAN_HELP, PAYCHECK_SECTIONS } from '@/store/paycheckForm';
 import { selectPaycheckMissed } from '@/store/selectors';

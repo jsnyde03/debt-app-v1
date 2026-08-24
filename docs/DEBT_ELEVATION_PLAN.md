@@ -28,8 +28,8 @@ test to inherit. ⚠️ **C7's cited `TrajectoryChart.tsx:133` has DRIFTED** —
 
 | # | step | notes |
 |---|---|---|
-| **g.1** ▶ | 🔴 **RESCUE `debtCsv.ts` — the deadline** | Move it behind a live caller **and a test**, so P6.11 cannot silently take it. ⛔ Its only consumer today is the tree that dies; the rescue is what makes C8's wiring possible at all |
-| **g.2** | **Wire the CSV import into `apps/rn`** | ⚠️ **A new surface → must clear P6.10 feature lock.** ⛔ The live listing advertises CSV import **as free**, so this is also an M1-class claims fix, not only a capability |
+| ✅ **g.1** | **RESCUE `debtCsv.ts` — DONE 2026-08-24. The deadline is met.** | Parser is now pure (`parseDebtCsvText`: text in, ids injected — no DOM, no `crypto`) and money runs through the shared `amountField`, which **moved to `@core/utils`** with its test. New `testDebtCsv.ts` in `test:regression`: **61 asserts**, and **3 plants red by name** — including deleting the module, which is how P6.11 would take it. Detail → log |
+| **g.2** ▶ | 🔴 **Wire the CSV import into `apps/rn`** | ⚠️ **A new surface → must clear P6.10 feature lock.** ⛔ `site/support.html` tells users *"in the Debts section, tap the import button"* and there is no CSV path in `apps/rn/src`, so this is also an M1-class claims fix. ⚠️ Either the entry point lands **in Debts** or the FAQ moves — decide at P6.21 against the shipped build |
 | **g.3** | 🔴 **[DECISION] C7's shape → 🎯** | Both simulations already run every render and `:147` discards one. **Side-by-side is a new surface too** — present the shape before building it, the way R5's shape was settled |
 | **g.4** | 🔴 **P1-3 — the trajectory's x-domain** *(**[D58]**, 2.0)* | The domain is set by the grey minimums curve, not the user's plan, so **success shrinks their own line to a sliver** and the default seed draws neither curve. ⛔ **Before C7, not beside it** — C7 adds a curve to this same domain. ⚠️ A defect fix on an existing card, so no P6.10 exposure, unlike g.2 |
 | **g.5** | **C7 build** | Only after g.3 answers, and on top of g.4's domain |
@@ -439,6 +439,12 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   actually lived on. The existing `aria-valuetext` assertion was `/^\$\d+$/`, **a regex that REJECTS the
   correct answer**, green only because it was pinned to a surface that cannot exhibit the bug. Not gating —
   `lint:money` catches the class permanently; what is missing is a pin on the rendered a11y string. *(P6.4.2)*
+- ⚠️ **MOVING A FILE INTO `packages/core` SILENTLY DROPS IT FROM `lint:comments`, AND NOTHING FLAGS THAT.**
+  Measured rather than assumed: `lint:money`, `lint:apostrophes`, `lint:glossary` and `strings-inventory`
+  all scan **core + `apps/rn/src`**, so copy stayed gated when `amountField.ts` moved — but
+  `check-comment-convention.ts`'s roots are `apps/rn/src` and `apps/rn/tests` **only**. ⭐ The decidable
+  version is a gate on the gates: assert every copy/convention scanner covers the same root set, so a move
+  cannot quietly reduce coverage. **The "gate the class" shape, one level up.** *(g.1)*
 - **Gate docs owe two lines** — the suite's three ways of lying *(broad red that is noise)*, and
   `cmd; echo EXIT=$?` reporting the echo.
 
@@ -498,6 +504,15 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   it cannot diverge while it waits. *(f.1)*
 - **T10's dead-code verdicts owe a re-check against the ROOT tree** — `formatDisplayAmount` was called dead
   and has three live legacy call sites. ⭐ Deleting last is what keeps that tree readable long enough to check.
+- 🔴 **`debtCsv` WAS NOT THE ONLY MODULE ON THIS DEADLINE, and the rest fail the other way round.** ⛔ **Core
+  imports FROM the dying tree in four places** — `history/selectVisibleHistory.ts` *(production code, and it
+  has **zero callers in `apps/rn`**, so it is dead core code)* plus `testSafeStorage`,
+  `testSubscriptionGating` and `runRegressionTests`'s `@/lib/storage/testMigrateOriginalBalance`. They rest
+  on **five root modules totalling 293 lines** (`lib/subscription/{plans,hasFeatureAccess,features}` ·
+  `lib/storage/{safeStorage,migrateState}`). ⚡ **Different failure shape from C8:** the parser would have
+  gone *silent*; these break `test:regression` **loudly** — which is why they need moving, not rescuing.
+  ⚠️ `packages/core/tsconfig.json`'s own `@/*` alias comment already routes them here; **the P6.11 row lists
+  what to REMOVE and never what must MOVE FIRST.** *(g.1)*
 - **Split `DEBT_ELEVATION_LOG.md`** (18.4k lines, well past one-pass readability). ⚠️ Its ordering is mixed —
   newest-first at the top, but f.1–f.5 and [D58] appended at the **end**; the split should settle one order.
 

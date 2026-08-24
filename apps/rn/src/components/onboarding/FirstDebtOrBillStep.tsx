@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import { TextField } from '@/components/ui/TextField';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { parseAmountField, parseOptionalAmount } from '@/store/amountField';
+import { parseAmountField, parseOptionalAmount } from '@core/utils/amountField';
 import { appStore } from '@/store/appStore';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { spacing } from '@/theme/spacing';
