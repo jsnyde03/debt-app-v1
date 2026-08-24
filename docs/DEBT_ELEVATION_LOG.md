@@ -18668,3 +18668,51 @@ claim; only building it found the claim was also wrong. Replacement text is read
 user has chosen); and look at the new SF Symbol on device.
 
 ⚠️ **Feature lock:** g.2 is a new surface and must clear **P6.10**.
+
+---
+
+## ✅ [D59] — C7 compares the clear ORDER, not the curve (🎯 2026-08-24, on my recommendation)
+
+**g.3 was a [DECISION] gate: present C7's shape before building it, the way R5's was settled.** What made
+the presentation worth anything was measuring first.
+
+### The finding was true and its implied fix was not
+
+C7's premise is exact and verified: `TrajectoryChart.tsx:147` really is
+`const active = strategy === 'snowball' ? snowball : avalanche`, both simulations already run on every
+render, and the discarded one is free. ⚡ **Which is precisely why it was worth asking what the second
+curve would SHOW before drawing it.**
+
+⛔ **The two total-balance curves do not separate.** Worst vertical gap across four realistic portfolios:
+**0%, 0%, 2.8%, 0.1%** of the chart's own Y extent. The debt-free date was **identical in 5 of 6**
+non-degenerate portfolios; avalanche's best win anywhere was **2 months out of 53**.
+
+⚡ **The difference is WHICH DEBT CLEARS WHEN, and it is enormous.** On *tiny cheap + huge expensive*, the
+first cleared debt lands at **month 1 under snowball and month 20 under avalanche** — same date, same
+curve, and a nineteen-month difference in when the user gets their first win. On *five mixed* the order
+itself reshuffles (`A@2 → D@4 → B@10` vs `D@3 → B@9 → A@10`). **That is the entire snowball-vs-avalanche
+argument, and it lives in the waypoints rather than in the line.**
+
+### The call
+
+**Build the side-by-side out of the clear order** — per strategy, the sequence of debts with the month each
+clears, plus its debt-free date, under the existing chart. **No second curve.** ⭐ It shows the only thing
+that differs, and it keeps a sixth element off a card **P1-3 already reports as unreadable at its default
+domain** — the two items are in the same cluster and would otherwise have fought each other.
+
+### What this does not settle
+
+⚠️ **Total interest was NOT measured, and it is avalanche's whole case.** At month granularity both
+strategies finish the same month spending the same monthly budget, so total cash out is near-identical —
+but no finer-grained interest comparison was run. **If the comparison ever states a dollar advantage, that
+figure has to be measured before it is written.** Filed on the decision itself rather than left implicit.
+
+⚠️ **Two probe cases were degenerate** — a minimum payment below the monthly interest never clears the
+debt, so the simulation returns no zero-crossing. Correct behaviour, excluded from the tables, and a
+reminder that "months to payoff" has an infinite case that any comparison UI has to render.
+
+⛔ **This is the fifth time on this project that a finding's OBSERVATION held while its implied fix did
+not** — B3 · B2 · M3-5 · C5, and now C7. The observation *"the app computes both and shows one"* is exactly
+right. *"So show both"* is the part that measurement refuted.
+
+Evidence, with both probes and how to re-run them: `docs/evidence/2026-08-24-c7-strategy-divergence/`.

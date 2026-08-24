@@ -30,9 +30,9 @@ test to inherit. ⚠️ **C7's cited `TrajectoryChart.tsx:133` has DRIFTED** —
 |---|---|---|
 | ✅ **g.1** | **RESCUE `debtCsv.ts` — DONE 2026-08-24. The deadline is met.** | Parser is now pure (`parseDebtCsvText`: text in, ids injected — no DOM, no `crypto`) and money runs through the shared `amountField`, which **moved to `@core/utils`** with its test. New `testDebtCsv.ts` in `test:regression`: **61 asserts**, and **3 plants red by name** — including deleting the module, which is how P6.11 would take it. Detail → log |
 | ✅ **g.2** | **CSV IMPORT IS WIRED — DONE 2026-08-24. The FAQ's claim is now true.** | `ImportDebtsSheet` in the Debts section, **free**, in the empty state **and** the list footer. Paste path is primary and cross-platform; the picker (`csvImportFile`, native-only) sits on the **same** parse. Preview-before-apply, per-row skip report. **7 e2e · 11 id asserts · 3 plants red by name.** ⚠️ **New surface → must clear P6.10.** Detail → log |
-| **g.3** ▶ | 🔴 **[DECISION] C7's shape → 🎯** | Both simulations already run every render and `:147` discards one. **Side-by-side is a new surface too** — present the shape before building it, the way R5's shape was settled |
-| **g.4** | 🔴 **P1-3 — the trajectory's x-domain** *(**[D58]**, 2.0)* | The domain is set by the grey minimums curve, not the user's plan, so **success shrinks their own line to a sliver** and the default seed draws neither curve. ⛔ **Before C7, not beside it** — C7 adds a curve to this same domain. ⚠️ A defect fix on an existing card, so no P6.10 exposure, unlike g.2 |
-| **g.5** | **C7 build** | Only after g.3 answers, and on top of g.4's domain |
+| ✅ **g.3** | **[DECISION] ANSWERED 2026-08-24 — [D59]: C7 COMPARES THE ORDER, NOT THE CURVE** (🎯, on my recommendation) | Measured first: the two total-balance curves separate by **≤2.8% of chart height, usually <0.1%**, and the debt-free date is identical in **5 of 6** portfolios. What differs is **which debt clears when** — first win at **month 1 vs month 20** on one portfolio. [`evidence/2026-08-24-c7-strategy-divergence/`](evidence/2026-08-24-c7-strategy-divergence/) |
+| **g.4** ▶ | 🔴 **P1-3 — the trajectory's x-domain** *(**[D58]**, 2.0)* | The domain is set by the grey minimums curve, not the user's plan, so **success shrinks their own line to a sliver** and the default seed draws neither curve. ⛔ **Before C7, not beside it.** ⚠️ A defect fix on an existing card, so no P6.10 exposure, unlike g.2. ⚠️ **Verify its premises against the chart before acting** — its sibling's cited line had already drifted |
+| **g.5** | **C7 build — the strategy comparison** *(per [D59])* | Under the existing chart: per strategy, the **sequence of debts and the month each clears**, plus its debt-free date. ⛔ **No second curve.** ⚠️ Still a new surface → must clear **P6.10** |
 | **g.6** | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
 
 **Exit (g):** the parser survives P6.11 with a caller and a test, the CSV claim on the listing is true,
@@ -144,7 +144,6 @@ that file is the **checklist**.
 
 **Open decisions**
 
-- 🔴 **[DECISION] g.3 — C7's side-by-side shape.** Present before building, the way R5's shape was settled.
 - 🔴 **[DECISION] P1-1 · P1-2 · P1-4 · P1-5 — four majors in no ledger.** [D58] answered **P1-3 only**; these
   four were never judged either way — **missing, not declined** — and are now visible to the gate. → **P6.8.9**.
   *(The instrument was the cause: `check-audit-closure.ts` anchored `**Severity:**` at line start and
@@ -182,7 +181,7 @@ that file is the **checklist**.
 
 ✅ **Everything else in this section has been answered** — [D40]–[D48] · [D3] · [D53] *(no free trial in 2.0,
 which also closes **L5-19**'s trial call)* · [D58]; the Apple portal for iCloud, the Sentry DSN and the
-[D48] batched build are all done. Reasoning → log. ⚠️ **This list decays one way** — closing a decision
+[D48] batched build are all done, and **[D59]** settled C7's shape. Reasoning → log. ⚠️ **This list decays one way** — closing a decision
 updates the decisions ledger and nobody deletes the row that was waiting on it. Three rows claimed to be
 waiting after 🎯 had answered; re-check before presenting anything here as open.
 
@@ -695,7 +694,17 @@ every entry → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 **Phase 6 — launch**
 
-- **[D58]** ✅ 2026-08-24 — **P1-3 is in 2.0**, built at **g.4 BEFORE C7** (C7 adds a curve to the same
+- **[D59]** ✅ 2026-08-24 — **C7 COMPARES THE CLEAR ORDER, NOT THE CURVE** (🎯, on my recommendation).
+  ⛔ **Measured before recommending, and it undercut the finding's own implied fix:** the two
+  total-balance curves separate by **≤2.8% of chart height and usually <0.1%**, and the debt-free date is
+  **identical in 5 of 6** portfolios — avalanche's best win was **2 months out of 53**. ⚡ **What differs
+  is which debt clears when, and it is large:** first cleared debt at **month 1 under snowball vs month 20
+  under avalanche** on the same portfolio, and a reshuffled order on another. So the side-by-side is built
+  from the **waypoints**, not a second line — which also keeps a 6th element off a card **P1-3 already
+  reports as unreadable**. ⚠️ **Total interest was NOT measured** and is avalanche's whole case; if the
+  comparison ever states a dollar advantage, that figure has to be measured first.
+  → [`evidence/2026-08-24-c7-strategy-divergence/`](evidence/2026-08-24-c7-strategy-divergence/).
+- **[D58]** ✅ 2026-08-24 — **P1-3 is in 2.0**, built at **g.4 BEFORE C7** (C7 draws into the same
   x-domain). ⚠️ P1-1 · P1-2 · P1-4 · P1-5 are **not** decided by it → P6.8.9.
 - **[D57]** ✅ 2026-08-22 — **one surface for "could not read it"**: migration losses report through c.2's
   `pendingDataRepairs` card, and **c.3/c.4 swap** because W1-6 *produces* the outcome M3-20 reports.
