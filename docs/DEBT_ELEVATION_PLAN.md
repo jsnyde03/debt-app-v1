@@ -167,11 +167,13 @@ real discard is **`:147`**, `const active = strategy === 'snowball' ? snowball :
 | **g.1** | 🔴 **RESCUE `debtCsv.ts` — the deadline** | Move it behind a live caller **and a test**, so P6.11 cannot silently take it. ⛔ Its only consumer today is the tree that dies; the rescue is what makes C8's wiring possible at all |
 | **g.2** | **Wire the CSV import into `apps/rn`** | ⚠️ **A new surface → must clear P6.10 feature lock.** ⛔ The live listing advertises CSV import **as free**, so this is also an M1-class claims fix, not only a capability |
 | **g.3** | **[DECISION] C7's shape → 🎯** | Both simulations already run every render and `:147` discards one. **Side-by-side is a new surface too** — present the shape before building it, the way R5's shape was settled |
-| **g.4** | **C7 build** | Only after g.3 answers |
-| **g.5** | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
+| **g.4** | 🔴 **P1-3 — the trajectory's x-domain** *(**[D58]**, 2.0)* | The domain is set by the grey minimums curve, not the user's plan, so **success shrinks their own line to a sliver** and the default seed draws neither curve. ⛔ **Before C7, not beside it** — C7 adds a curve to this same domain. ⚠️ **A defect fix on an existing card, so no P6.10 exposure**, unlike g.2 |
+| **g.5** | **C7 build** | Only after g.3 answers, and on top of g.4's domain |
+| **g.6** | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
 
 **Exit (g):** the parser survives P6.11 with a caller and a test, the CSV claim on the listing is true,
-C7 carries 🎯's answer, and `validate:release:rn` is green **quoted from its record**.
+**P1-3's domain is driven by the user's own plan**, C7 carries 🎯's answer, and `validate:release:rn` is
+green **quoted from its record**.
 
 #### ✅ P6.8.7e — THE CORE LOOP *(CLOSED 2026-08-23)*
 
@@ -283,11 +285,9 @@ own #1 finding — *the instrument under-reports* — landing on the gate built 
 so these were never judged either way: **missing, not declined.** *(Third instance of the shape in three
 clusters — d and e each shipped an id no refutation covered; this is its mirror.)*
 
-⭐ **Recommendation: fix the regex now, take P1-3 into 2.0, and route the rest through P6.8.9's re-run.**
-P1-3 is the one f.2 just built around — the Payoff Trajectory renders **nine empty years, a stranded date
-pill and a legend describing two lines that are not on screen** on the default seed, across three viewports
-— and R6 warned that fixing V3-5's font arithmetic **without** it credits the cheap fix with the wrong
-outcome. ⚠️ **Whatever the widened gate then names is P6.8.9's list, not f's.**
+✅ **ANSWERED 2026-08-24 — [D58]: P1-3 IS IN 2.0**, scheduled at **g.4**, ahead of C7 rather than beside it.
+The regex is fixed (80 → **87** high+). ⚠️ **P1-1 · P1-2 · P1-4 · P1-5 stay open and are P6.8.9's**, now
+that the gate can see the lens at all — they are not decided by [D58].
 
 ▶ **The actionable list is [`DEBT_2.0_YOUR_STEPS.md`](DEBT_2.0_YOUR_STEPS.md)** — every step needing a
 human, an Apple login, a device or a decision, in the order it is worth doing. This section stays as the
@@ -1084,6 +1084,14 @@ a later version/tier**._
 
 ## Decisions
 
+- **[D58] ✅ 2026-08-24 — P1-3 IS IN 2.0** (🎯). The Payoff Trajectory's x-domain is set by the long grey
+  minimums curve rather than by the user's own plan, so **the closer someone is to debt-free — the better
+  their news — the more their trajectory collapses into an unreadable sliver**, and on the default seed
+  neither curve draws at all: nine empty years, a stranded date pill outside the domain, and a legend
+  confidently naming two lines that are not on screen, across three viewports. ⛔ **It builds BEFORE C7**,
+  not beside it: C7 adds a second curve to this same domain, so building it first means building it twice.
+  ⚠️ **The rest of the un-ledgered P1 majors (P1-1 · P1-2 · P1-4 · P1-5) are NOT decided by this** — they go
+  to P6.8.9's re-run now that the closure gate can see the lens. Detail → log.
 - **[D57] ✅ 2026-08-22 — ONE SURFACE FOR "COULD NOT READ IT", AND W1-6 GOES FIRST** (🎯, on my
   recommendation). Migration losses report through **c.2's existing `pendingDataRepairs` card** — a
   `migration` member on `DataRepair.entity` — rather than a second field and a second ack competing for

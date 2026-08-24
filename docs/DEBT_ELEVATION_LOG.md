@@ -18410,3 +18410,20 @@ row bounded only by spacing — none fail it, and none were in V1-5's scope eith
 ⚠️ **And f's own tests inherit f's own lesson.** `a11y-row-labels`, the coach-mark invariant and the
 affordability live region all assert their fix's INTENT. None would catch the next fix breaking an adjacent
 property — which is precisely how A1-7 got through twice.
+
+## [D58] — P1-3 is in 2.0 (🎯 2026-08-24)
+
+**Answered:** yes, P1-3 ships in 2.0. Scheduled **g.4**, and the placement is the part with content:
+**before C7, not beside it.** C7 draws a second trajectory into the same x-domain P1-3 says is wrong, so
+building C7 first means building it twice — and R6 had already warned the pair would otherwise "compete to
+be credited" with whichever outcome the user notices.
+
+⚠️ **Not decided by this:** `P1-1 · P1-2 · P1-4 · P1-5`. They go to P6.8.9's re-run, which is now possible
+at all because the closure gate's severity match was un-anchored — the lens was invisible to it, and its
+count went 80 → 87 high+.
+
+⭐ **Worth recording about the shape of the ask.** P1-3 reached 🎯 only because f.2's before-scan chased a
+refuter's aside — *"triage with P1-3 or the cheaper fix will be credited with the wrong outcome"* — for an
+id that appeared in **no ledger, no synthesis section and no refutation**. The instrument that exists to
+catch exactly that could not see the lens it came from. **Both halves had failed, and the finding surfaced
+from a footnote.**
