@@ -7,6 +7,7 @@ import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AppIcon } from '@/components/ui/AppIcon';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { CheckCircle, checkOffHaptic } from '@/components/ui/CheckCircle';
 import { Pill } from '@/components/ui/Pill';
@@ -46,11 +47,18 @@ export function RequiredActionsCard({
   unfunded,
   onMark,
   currentDate,
+  hasAnyBills,
+  onAddBill,
 }: {
   rows: RequiredRow[];
   unfunded: UnfundedItem[];
   onMark: (row: RequiredRow, paid: boolean) => void;
   currentDate: string;
+  /** P6.8.7e.3 [C5] — does the PLAN have any required expense at all? ⚠️ Not `rows.length > 0`: a plan can
+   *  hold bills with none falling in this cycle, and that user IS caught up. Only the store knows. */
+  hasAnyBills: boolean;
+  /** Opens the add-bill sheet in place — the same one-tap treatment the no-debts prompt gets. */
+  onAddBill?: () => void;
 }) {
   const c = useAppColors();
   const [paidThisVisit, setPaidThisVisit] = useState<Set<string>>(() => new Set());
@@ -101,9 +109,31 @@ export function RequiredActionsCard({
         {outstanding > 0 ? <Pill label={String(outstanding)} tone="neutral" /> : null}
       </View>
 
+      {/* ⛔ P6.8.7e.3 [C5 / M2-9] — TWO zero states, and they were rendering the same sentence.
+          "You're caught up for this paycheck", in success green, was shown to a user who had **never told
+          the app about a single bill** — onboarding takes one debt OR one bill, and there is no `'no-bills'`
+          member of `PlanState` to branch on. ⚡ R3: *"that is worse than the absence of a prompt — it
+          actively affirms them for a paycheck they have not told the app about."* Their whole first
+          Guardian read is computed as if rent does not exist, and free deploys undampened, so it is also
+          the most over-confident number they will ever see.
+          ⚠️ `rows.length === 0` is NOT the signal — a plan can have bills with none falling in this cycle.
+          The honest question is whether any required expense exists at all, so the caller passes it. */}
       {outstanding === 0 ? (
         <View style={styles.pad}>
-          <Text style={[textStyles.subhead, { color: c.accent.success }]}>You’re caught up for this paycheck.</Text>
+          {hasAnyBills ? (
+            <Text style={[textStyles.subhead, { color: c.accent.success }]}>You’re caught up for this paycheck.</Text>
+          ) : (
+            <>
+              <Text testID="required-no-bills" style={[textStyles.subhead, { color: c.text.primary }]}>
+                You haven’t added any bills yet.
+              </Text>
+              <Text style={[textStyles.caption, { color: c.text.secondary }]}>
+                Rent, utilities, subscriptions — anything that comes out every cycle. Until they are here,
+                this plan treats all of it as spendable.
+              </Text>
+              {onAddBill ? <Button label="Add a bill" variant="secondary" onPress={onAddBill} /> : null}
+            </>
+          )}
         </View>
       ) : null}
 

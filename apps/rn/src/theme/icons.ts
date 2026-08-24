@@ -54,6 +54,11 @@ export const appIconSF: Partial<Record<MaterialGlyph, SFSymbol>> = {
   'trending-down': 'chart.line.downtrend.xyaxis',
   'auto-graph': 'chart.xyaxis.line',
   assignment: 'doc.text.fill',
+  // P6.8.7e.3 [C5] — the "add your bills" prompt. ⚠️ Mapped rather than left to the Material fallback:
+  // `AppIcon.ios` renders an unmapped glyph through MaterialIcons, so it would have worked while looking
+  // foreign next to every other icon on the screen. `doc.plaintext` has been in SF Symbols since iOS 13,
+  // so it clears the min target without the §3.1.2 iOS-16 caveat.
+  'receipt-long': 'doc.plaintext',
   history: 'clock.arrow.circlepath',
   schedule: 'clock', // the Payday Countdown toggle (3.5.3)
   // 3.5.5.3 — "Show feature tips again". `lightbulb` (not `.fill`) has been in SF Symbols since iOS 13,

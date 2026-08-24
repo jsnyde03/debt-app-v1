@@ -73,6 +73,108 @@ entire `ready` branch is unreachable to the e2e suite. **Four P6.14 rows filed**
 matters most: back up, background twice, and confirm the **second** auto-backup goes through — that is what
 proves the re-stamp works and the guard is not a one-shot.
 
+## ✅ P6.8.7e.5 — C4, the Live Activity gate: VERIFIED and FILED, not built *(2026-08-23)*
+
+SYNTHESIS is explicit — *"DEVICE CHECK FIRST — do not decide now… one row on the next device build settles
+it"* — so this step is a verification and a filed row, and deliberately not a code change.
+
+**Confirmed in source.** `shouldRunPaydayActivity` gates on
+`wholeDaysBetween(paycheck.currentDate, nextPaycheckDate) <= 3`, and `currentDate` is a **cycle anchor**:
+`applyRollover` sets it to the payday just reached, after which `nextPaycheckDate` is the *following* one.
+So the expression measures the cycle's **length** (~14 or ~30), not the time remaining, and it does not
+count down as real days pass.
+
+⚠️ **Mechanism refined — "can never start" is too strong.** There is exactly one other writer:
+`paycheckForm.ts:102` sets `currentDate: todayLocalISO()`. So a premium user with the toggle on who happens
+to re-save their paycheck sheet inside the last three days **will** see it. ⚡ **That does not weaken the
+finding, it sharpens it: a premium feature whose availability depends on an unrelated user action.** It
+also means the device row cannot be a single "does it work" check — it needs **both** runs, with and
+without the re-save, or a green first run would be read as the feature being fine.
+
+Filed to P6.14 as the highest-value row in that ledger.
+
+---
+
+## ✅ P6.8.7e.4 — C5, the two zero states that said the same thing *(2026-08-23)*
+
+### ⛔ The finding's stated harm was WRONG, and measuring it changed the fix
+
+R3: the debt-first, bills-less user is shown *"You're caught up for this paycheck"* in success green —
+*"worse than the absence of a prompt."* **Measured: they never see that line at all.** `minimum_debt` is a
+REQUIRED category, so their debt's minimum is a row, `outstanding > 0`, and the zero-branch does not render.
+The e2e failed on exactly this before the code did, which is how it surfaced.
+
+**The observation survives; the explanation does not** — this audit's standing result, landing for the
+fourth time in two clusters. And it splits C5 into two real defects with different fixes:
+
+1. **The debt-first user's harm is the ABSENCE of a prompt.** `PlanState` has a `'no-debts'` member and no
+   `'no-bills'` counterpart, onboarding takes one debt **or** one bill, and nothing on Today ever asks for
+   rent. Their Guardian read is computed without it and free deploys undampened. → an *"Add your bills"*
+   `PromptCard`, mirroring the existing no-debts one, opening the sheet in place (🎯's *"one tap, no bounce
+   to Money"*). Gated off `'no-debts'` so an empty plan is asked for a debt first, bills next.
+2. **The zero-state IS still a false statement**, just for a rarer user — nothing due at all, and no bills
+   configured. → the branch inside `RequiredActionsCard`.
+
+⚠️ **`rows.length === 0` is not the signal.** A plan can hold bills with none due this cycle, and that user
+genuinely is caught up — so the card takes `hasAnyBills` from the store. A spec pins that case, so a future
+refactor to row-based detection fails there rather than in front of a user.
+
+⭐ **And the icon was mapped, not left to the fallback.** `AppIcon.ios` renders an unmapped glyph through
+MaterialIcons, so `receipt-long` would have *worked* while looking foreign beside every other icon on the
+screen — the `feedback_platform_split_reexport_gap` class the file's own header warns about.
+
+**Verification:** 4 e2e. Removing the prompt reds only the prompt spec; collapsing the two zero states back
+into one reds only the zero-state spec. The "user WITH bills is still told they are caught up" case is the
+one that stops a fix from passing by simply deleting the green line.
+
+---
+
+## ✅ P6.8.7e.3 — C2, the way back into payday capture *(2026-08-23)*
+
+### The gap
+
+`usePaydayCapture.open()` had **no caller anywhere** — and R3 measured that v1.6 ships the identical dead
+`open()`, whose own comment reads *"Manually open the sheet (e.g. from that affordance)"* for an affordance
+**neither codebase ever built.** A two-generation omission on the app's central recurring moment.
+
+⚠️ **The two dismiss doors are not symmetric, and only one was fatal.** `close()` (backdrop / X / swipe)
+sets component state and returns on the next launch. `dismiss()` — wired *only* to the low-emphasis
+**"Skip this payday"** text button — persists `lastHandledPaydayDate`, and `shouldPromptPaydayCapture`
+short-circuits on it until `applyRollover` advances the date. So one tap at the busiest moment of the month
+permanently forfeited that cycle's reconciliation: the confirm record, the required-bill decisions, the
+premium stale-balance re-verify batch, the capture beat and the review prompt. The user was not *stranded*
+— Today still offers "Start next pay cycle" — but rolling forward applies the plan **as planned**, so
+`cycleHistory` and the Guardian's proof-of-work carry a plan-shaped cycle instead of a real one, silently.
+
+### What was built
+
+*"Review this payday first"* on the awaiting-rollover card — the one surface reached from both doors —
+calling the `open()` that was already there and correct.
+
+⭐ **Folded in: the card no longer says *"Payday logged."*** It is reached after a capture *and* after a
+skip, and `completeCapture` / `dismiss` are indistinguishable afterwards (both merely stamp the date), so a
+user who skipped was told the app had logged a payday it had recorded nothing about. The sentence now
+describes what happens next rather than asserting what happened.
+
+### ⏭ C3 does not fall out of C2 — deferred on SYNTHESIS's own terms
+
+The row reads *"fold into C2 … if it doesn't fall out of C2, defer to 2.1."* It does not: C2's door
+re-opens capture for the **current** cycle, while C3 is a cycle already stepped past by a date advance, and
+no amount of re-opening reaches it. Filed to 2.1 rather than letting "folded" quietly mean "done."
+
+### ⚠️ A plant red a test for the wrong reason
+
+The copy assertion used `payday-reopen` as its render marker — **the very control the other plant
+removes** — so deleting the button turned it red and it would have reported a copy regression that never
+happened. Re-anchored on the card's own "Start next pay cycle" button, after which each plant reds exactly
+its own assertion: remove the button → the two recovery specs red, the copy spec green; restore
+*"Payday logged"* → the copy spec red, the recovery specs green.
+
+**This is the sibling of 7c's absence-assertion rule.** That one says *wait for something to render*; this
+one says *wait for something the plant does not touch.*
+
+---
+
 ## ✅ P6.8.7e.2 — C1, the absorb path's first way in *(2026-08-23)*
 
 ### The gap, verified exactly

@@ -142,31 +142,41 @@ rest of the work happens — the [D31] move, applied to a 30-item build rather t
 | **P6.8.7b** | ✅ **COPY — DONE 2026-08-21** | **A4/M1-9** the first screen no longer promises a premium feature · **C6** `PRIVACY_CLAIM.atEntry` on both money-asking steps · **M1-8** the inert analytics row gone, **coupled both ways** so it cannot stay gone if a sink appears · **L1-22** baseline **94 → 0**, the gate is now absolute · **P1-10** the windfall invite's false implication · **A1/A2/A3** drafted. ⛔ **Four premises were wrong**, incl. C6's pre-written wording being **unsafe** *(it denies the iCloud backup P6.3 shipped)* and one error of mine. Detail → log |
 | **P6.8.7c** | ✅ **DATA INTEGRITY — CLOSED 2026-08-22** | **B1** *(14 sites/7 files, one shared money parser)* · **B4** *(the reset screen + `pendingDataRepairs`)* · **W1-6** *(a refused database is no longer "a fresh install", and an inconclusive bridge no longer seeds)* · **M3-20** *(losses reported through B4's card)*. **220 e2e · 10 embed · lint exit 0.** ⛔ **Three results outlive the cluster:** an absence assertion passes before the app renders *(two specs stayed green with the defect planted)* · `lint:rn` green ≠ purity-clean · **M3-20 was scheduled as work and never refuted.** Detail → log |
 | **P6.8.7d** | ✅ **CLOUD / DESTRUCTIVE — CLOSED 2026-08-22** | **B3** *(the app now reasons about the REMOTE — `cloudBackupRemoteAt` + a guarded backup)* · **C9** *(`provider.delete()`, `clearQuarantine` finally called, and a failed remote delete blocks the local wipe)* · **M3-5** *(the diagnosis reaches the screen)*. **222 e2e · 10 embed · lint exit 0 · 9 plants red by name.** ⛔ **Three results outlive it:** M3-5 was scheduled as work and **appears in no refutation at all** *(the second instance — check the ids the BUILD schedules, not the slice's owed-list)* · the repo had already tagged the bare-`router.back()` defect `[C9]` **twice** while the destructive screen still had it · **"Delete all data" had zero e2e and no lens reported it.** Detail → log |
-| **P6.8.7e** ▶ | 🔴 **THE CORE LOOP — BUILDING NOW** *(decomposed below)* | **B2** celebration + finale reachable for free · **C1** absorb entry point *(entry only — the engine is correct)* · **C2** re-open payday capture **(+C3** folds here**)** · **C4** the Live Activity gate — ⚠️ **source-only; ships with a device row, not a claim** · **C5** the "no-bills" branch |
-| **P6.8.7f** | **VISUAL + A11Y** | **B6/V1-2** light contrast *(15 of 24 distinct pairs)* · **V1-5** borders *(⚠️ all four boundaries fail 1.4.11 — dark too)* · **V2-6** the coach mark covering its subject · **V2-1** the truncating debt-free date · **V3-1** six missing font clamps · **V3-5/6** the chart's hardcoded per-character width · **V4-8** split-view chart · **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⚠️ **A1-7's obvious fix is documented-as-broken; A1-11 is 6 sites not 1** |
+| **P6.8.7e** | ✅ **THE CORE LOOP — CLOSED 2026-08-23** | **B2** *(the celebration fires from the payoff, not from the premium estimator noticing one)* · **C1** *(the absorb path has an entry point)* · **C2** *(a way back into payday capture)* · **C5** *(both halves — the missing prompt AND the false "caught up")*. **C4 verified + filed as a device row; C3 → 2.1.** **234 e2e · 10 embed · lint exit 0.** ⛔ **C5's stated harm was false — the fourth mechanism wrong in two clusters.** Detail → log |
+| **P6.8.7f** ▶ | 🔴 **VISUAL + A11Y — BUILDING NOW** *(decomposed below)* | **B6/V1-2** light contrast *(15 of 24 distinct pairs)* · **V1-5** borders *(⚠️ all four boundaries fail 1.4.11 — dark too)* · **V2-6** the coach mark covering its subject · **V2-1** the truncating debt-free date · **V3-1** six missing font clamps · **V3-5/6** the chart's hardcoded per-character width · **V4-8** split-view chart · **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⚠️ **A1-7's obvious fix is documented-as-broken; A1-11 is 6 sites not 1** |
 | **P6.8.7g** | **NEW SURFACES** *(🎯's call, against my rec)* | **C8** ⚠️ **RESCUE `core/imports/debtCsv.ts` FIRST — its only caller dies at P6.11, the earliest deadline in this audit** — then wire the import · **C7** snowball-vs-avalanche side by side *(both simulations already run; `TrajectoryChart.tsx:133` discards one)* |
 
-#### ▶ P6.8.7e — THE CORE LOOP *(the ACTIVE decomposition — 2026-08-22)*
+#### ▶ P6.8.7f — VISUAL + A11Y *(the ACTIVE decomposition — 2026-08-23)*
 
-⛔ **d changed what still EXISTS; e changes what the app can still DO.** Every id here is a path the
-product's own loop is supposed to have and does not — three of them are dead code with no caller, which is
-why the audit's charter was *"is anything missing"* and not only *"is anything wrong"*.
+⛔ **Sequenced shared-primitive first**, the same move c/d/e used: the colour tokens and the type clamps are
+touched by every screen below them, so fixing a surface before its primitive means fixing it twice.
 
-⚠️ **Switch-in obligation, and it is the result d produced twice:** before building each id, check it
-against the **refutations**, not against its slice's owed-list. M3-20 and M3-5 were both scheduled as work
-un-refuted, and only opening the step caught them. **Assume the next one is un-refuted until seen.**
+⚠️ **Two switch-in obligations, both earned in d and e:**
+1. **Check each id against the REFUTATIONS, not its slice's owed-list.** M3-20 and M3-5 were both scheduled
+   as work un-refuted and only opening the step caught it. Assume the next one is un-refuted until seen.
+2. ⛔ **Re-read the finding's stated MECHANISM against the code before building it.** Four of the last
+   seven — B3 · B2 · M3-5 · C5 — had a sound observation and a wrong explanation, and in three of them the
+   proposed fix would not have closed the defect. **The site count is also a floor, never the class.**
 
 | # | step | notes |
 |---|---|---|
-| **e.1** | ✅ **B2 — DONE 2026-08-22** | ⚡ **Not a gate to remove — the celebration was wired to the wrong EVENT.** It fired from `confirmPayoff` ← the premium invitation; it now fires from the balance crossing to zero (`pendingPayoff`, stamped by all **4** balance-moving actions). **The premium line is untouched** — premium still buys the app *noticing* an unconfirmed payoff, which removes work; the moment does not. **3 e2e added (225 total), plant reds premium AND free.** ⚠️ Persisted, so the moment now survives a background. Detail → log |
-| **e.2** | ✅ **C1 — DONE 2026-08-23** | 🎯 **chose surprise-outflow only.** One optional field at the end of `PaydayCaptureSheet`, threaded to `capturePayday`'s third argument — the call at `index.tsx` passed **no actuals at all**, which is why `surpriseOutflowLog` could only grow in the sandbox. Engine untouched. **2 e2e, asserted on the STORE** (**227 total, exit 0, 0 error-contexts**); the plant (drop the actuals) reds the reach test and leaves the no-trace test green. ⏭ **`actualIncome` deferred to P6.10** — filed |
-| **e.3** | **C2 + C3 — re-open payday capture** | `usePaydayCapture.open()` has **no caller**, so "Skip this payday" is a one-way door out of the app's central recurring moment. ⚠️ **A two-generation omission** — v1.6 ships the same dead `open()`. C3 folds in here |
-| **e.4** | **C5 — the "no-bills" branch** | `RequiredActionsCard` has no honest empty state; R3 confirmed and worsened it |
-| **e.5** | **C4 — the Live Activity gate** | ⚠️ **SOURCE-ONLY. Ships with a P6.14 device row, never a claim** — the same rule the whole of d ran under |
-| **e.6** | **Suites green + device rows filed** | The full gate after the last id, and each id plant-verified red AND green as it lands |
+| **f.1** | 🔴 **CONTRAST — the tokens first** | **B6/V1-2** light-theme contrast *(15 of 24 distinct pairs)* · **V1-5** borders — ⚠️ **all four boundaries fail 1.4.11, dark included**, so this is not a light-theme-only fix |
+| **f.2** | **DYNAMIC TYPE** | **V3-1** six missing font clamps · **V3-5/6** the chart's hardcoded per-character width *(⚠️ a measurement problem wearing a layout problem's clothes)* |
+| **f.3** | **LAYOUT + STATE** | **V2-1** the truncating debt-free date · **V4-8** the split-view chart · **V2-6** the coach mark covering its own subject |
+| **f.4** | **VOICEOVER** | **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⛔ **A1-7's obvious fix is documented-as-broken** and **A1-11 is 6 sites, not 1**, both already measured |
+| **f.5** | **Suites green** | The full gate, backgrounded with the real exit code captured — see the e.6 note on false failures |
 
-**Exit (e):** every e-id carries a plant-verified fix or a recorded reason, the suites are green, and
-anything unprovable off-device is a filed P6.14 row rather than an assertion from source.
+**Exit (f):** every f-id carries a plant-verified fix or a recorded reason, contrast is checked against the
+**measured pairs** rather than by eye, and anything only provable on hardware is a filed P6.14 row.
+
+#### ✅ P6.8.7e — THE CORE LOOP *(CLOSED 2026-08-23)*
+
+✅ **All six steps done, every fix plant-verified red AND green.** B2 · C1 · C2 · C5 built, C4 verified and
+filed as a device row, C3 deferred to 2.1 on SYNTHESIS's own terms. **234 e2e · 10 embed · `lint:rn` exit
+0.** ⛔ **Two results outlive the cluster:** **C5's stated harm was false** *(the debt-first user never sees
+the "caught up" line — `minimum_debt` is a required row)*, making it the **fourth** finding in two clusters
+whose observation held and whose explanation did not; and **the full e2e suite died mid-run twice**,
+reporting 203 and 64 false failures that all passed in isolation. Detail → log.
 
 #### ✅ P6.8.7d — CLOUD / DESTRUCTIVE *(CLOSED 2026-08-22)*
 
@@ -446,6 +456,20 @@ which is the right trade given this pass exists)*:
 - ⚠️ **Kill the app immediately after backgrounding** — the stamp rides `flushPendingSave()` and a
   suspension inside that window costs it. Expected worst case is a **false conflict**, never a loss.
 
+**🔴 Owed from P6.8.7e.5 [C4] — THE ROW THAT SETTLES A PREMIUM FEATURE, and it is the highest-value row here:**
+- On a **premium** device with **Payday Countdown ON**, sit inside the last 3 days of a real pay cycle
+  **without re-saving the paycheck sheet**, and record whether the Live Activity ever appears.
+- ⛔ **Expected from source: it does not.** The gate is
+  `wholeDaysBetween(paycheck.currentDate, nextPaycheckDate) <= 3`, and `currentDate` is a **cycle anchor**
+  that only moves at rollover — so it measures the cycle's LENGTH, which is ~14 or ~30, and never counts
+  down as real days pass.
+- ⚠️ **Then the second run: re-save the paycheck sheet inside that window** *(`paycheckForm` writes
+  `currentDate: todayLocalISO()`)* and confirm it DOES appear. That is the mechanism refinement — the
+  feature is not dead, it is **contingent on an unrelated user action**, which is why one row cannot be
+  "does it work" but must be **both** runs.
+- ⭐ **If confirmed it is 2.0 by default** (🎯's standing call: you cannot sell a feature and ship it dead),
+  and it also restores the only second rollover door.
+
 **Owed from P6.8.7d.2 [C9] — the delete, whose refusal branch web cannot reach:**
 - **Delete all data with a backup in iCloud.** The file must be **gone** from the container, and the next
   launch must NOT offer a restore.
@@ -489,6 +513,54 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7e.6's AFTER-scan (2026-08-23)**
+
+- ⛔ **THE FULL E2E SUITE DIES MID-RUN AND THE CORPSES LOOK LIKE REGRESSIONS. Twice in one session.** Once
+  at test 24 *(203 false failures)*, once at test 171 *(64)*. Both times the failures were **contiguous from
+  the death point to the end**, spanned specs the change could not touch (`/history`, `/living-expenses`),
+  and **every one passed on an isolated re-run** — 14/14 and 52/52. ⚠️ **The first instance had a cause
+  (a SIGTERMed run left a live webServer); the second had NO stray process at all**, so the mechanism is
+  not yet known and "it's the stale server" is now an explanation of first resort rather than a diagnosis.
+  ⭐ **The discipline that works: re-run the failures in isolation before believing any broad failure.**
+  → **P6.8.9** *(and it belongs in the gate docs — a CI run that dies this way reports a red release)*.
+
+**→ SURFACED BY P6.8.7e.4 + e.5's AFTER-scan (2026-08-23)**
+
+- **⛔ A FOURTH mechanism wrong in two clusters — and this one was caught by a TEST, not by reading.** C5's
+  stated harm ("the debt-first user is told they're caught up") is false: `minimum_debt` is a required
+  category, so `outstanding > 0` and no zero-branch renders. **The e2e failed before the code did.** ⚡ The
+  running tally for d+e is **B3 · B2 · M3-5 · C5 — four findings whose observation held and whose
+  explanation did not.** → **P6.8.9** *(the verification audit should re-read every fix against its
+  finding's stated mechanism, not just against its id)*.
+- **⚠️ `PlanState` still has no `'no-bills'` member.** e.4 branches on `store.requiredExpenses.length === 0`
+  at two call sites rather than adding one to the union, because the union drives routing and a new member
+  would touch every consumer inside a converging freeze. ⭐ **The type is the right home** — it is what made
+  the asymmetry invisible in the first place. → 2.1.
+- **⚠️ An unmapped icon glyph renders FINE on iOS and looks foreign.** `AppIcon.ios` falls back to
+  MaterialIcons, so nothing breaks and nothing warns. e.4 mapped `receipt-long` → `doc.plaintext`. ⭐ **A
+  gate could assert every glyph used in `apps/rn/src` is in `appIconSF`** — the file's own header warns
+  about this class and nothing enforces it. → **P6.8.9**.
+
+**→ SURFACED BY P6.8.7e.3's AFTER-scan (2026-08-23)**
+
+- ⏭ **C3 — a user away one cycle + 8 days — DEFERRED TO 2.1, on SYNTHESIS's own terms.** The row reads
+  *"fold into C2 … if it doesn't fall out of C2, defer to 2.1."* **It does not fall out.** C2's door
+  re-opens capture for the CURRENT cycle; C3 is a cycle already stepped past by a date advance, and
+  re-opening cannot reach it. R3 had already killed half the finding (`PaycheckSheet` Save *does* advance
+  the date); what survives is that **the cycle can never be reconciled, and the escape hatch destroys it
+  silently**. Recording it here rather than letting "folded" quietly mean "done". → **2.1**.
+- **⚠️ A plant red me for the wrong reason, and the test would have lied later.** The copy assertion used
+  `payday-reopen` as its render marker — the very control the other plant removes — so deleting the button
+  turned it red and it would have reported a copy regression that never happened. **A marker must survive
+  the change the test is not about.** ⭐ This is the sibling of the absence-assertion rule from 7c: that one
+  is *"wait for something to render"*, this one is *"wait for something the plant does not touch."*
+  → **P6.8.9** *(worth one sweep of the specs added this phase)*.
+- **`completeCapture` and `dismiss` are indistinguishable after the fact** — both only stamp
+  `lastHandledPaydayDate`. That is why the card's copy had to become neutral rather than accurate: the app
+  genuinely cannot tell whether the user captured or skipped. **A one-bit distinction would let both the
+  card and `cycleHistory` be honest about a plan-shaped cycle.** Not built — it is a store-shape change for
+  a copy problem already solved. → 2.1.
 
 **→ SURFACED BY P6.8.7e.2's AFTER-scan (2026-08-23)**
 

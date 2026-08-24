@@ -9,6 +9,7 @@ import { router, useIsFocused } from 'expo-router';
 import { useGoToTab } from '@/hooks/use-go-to-tab';
 import { maybeRequestReview } from '@/lib/review';
 import { DebtSheet } from '@/components/entities/DebtSheet';
+import { ExpenseSheet } from '@/components/entities/ExpenseSheet';
 import { PaycheckSheet } from '@/components/plan/PaycheckSheet';
 import { PayoffInvitationCard } from '@/components/plan/PayoffInvitationCard';
 import { DataRepairsCard } from '@/components/plan/DataRepairsCard';
@@ -207,6 +208,9 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // which does not throw, it just renders nothing. Today came up blank; the e2e is what caught it.
   const reserveOffer = selectExpenseReserveOffer(store);
   const [addDebtOpen, setAddDebtOpen] = useState(false);
+  // P6.8.7e.3 [C5] — the bills counterpart, opened in place. Same call Jason made for the no-debts prompt:
+  // one tap, no bounce to Money and a second tap.
+  const [addBillOpen, setAddBillOpen] = useState(false);
 
   // VIS-4 — single priority ack-slot. Today shows at most ONE acknowledgment card at a time (ranked),
   // so the surface never stacks 5-6 acks. Dismissing the top one clears its condition, so the next in
@@ -443,6 +447,33 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
             was computed and thrown away. Onboarding offers "Debt | Expense" as equal choices, so that is
             a path the product itself hands out, and it ended with the headline feature invisible until
             you already had debt. It is an invitation now, and it sits BELOW the plan it adds to. */}
+        {/* ⛔ P6.8.7e.3 [C5 / M2-9] — THE NO-BILLS BRANCH. `PlanState` has a `'no-debts'` member and no
+            `'no-bills'` counterpart, and onboarding takes one debt **OR** one bill — so the debt-first user
+            was never asked for rent by anything on this screen. Their Guardian read is computed as if it
+            does not exist, and free deploys undampened, which makes it the most over-confident number they
+            will ever see.
+            ⚠️ **The finding's stated harm was WRONG and the measurement matters.** R3 said this user is
+            shown *"You're caught up for this paycheck"* in green. They are not: `minimum_debt` is a
+            REQUIRED category, so their debt's minimum is a row, `outstanding > 0`, and no zero-branch
+            renders at all. The false affirmation is real but reaches only a user with nothing due AND no
+            bills — handled inside `RequiredActionsCard`. **The debt-first user's harm is the ABSENCE of a
+            prompt, which is what this card is.**
+            ⚠️ Gated off `'no-debts'` so a genuinely empty plan is asked for a debt first and bills next,
+            rather than being handed two prompts at once. (`'no-paycheck'` is already excluded here — this
+            whole block only renders once a plan is running.) */}
+        {planState !== 'no-debts' && store.requiredExpenses.length === 0 ? (
+          <Motion delay={75}>
+            <PromptCard
+              icon="receipt-long"
+              iconColor={c.accent.primary}
+              title="Add your bills"
+              body="Rent, utilities, subscriptions. Until they are here, this plan counts that money as free to spend."
+              cta="Add a bill"
+              onCta={() => setAddBillOpen(true)}
+            />
+          </Motion>
+        ) : null}
+
         {planState === 'no-debts' ? (
           <Motion delay={75}>
             <PromptCard
@@ -466,7 +497,16 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               the RequiredActions "Short this paycheck — cover these" block so the two don't duplicate/compete. */}
           {/* Fenced: `onMark` / `onToggle` write the store and re-stage the very card a beat is narrating. */}
           <TutorialFence>
-            <RequiredActionsCard rows={requiredRows} unfunded={recovery ? [] : (allocation.unfundedRequiredItems ?? [])} onMark={(row, paid) => handleMark(store_, row, paid)} currentDate={store.paycheck.currentDate} />
+            {/* P6.8.7e.3 [C5] — `hasAnyBills` comes from the STORE, not from `requiredRows`: a plan can
+                hold bills with none due this cycle, and that user genuinely is caught up. */}
+            <RequiredActionsCard
+              rows={requiredRows}
+              unfunded={recovery ? [] : (allocation.unfundedRequiredItems ?? [])}
+              onMark={(row, paid) => handleMark(store_, row, paid)}
+              currentDate={store.paycheck.currentDate}
+              hasAnyBills={store.requiredExpenses.length > 0}
+              onAddBill={() => setAddBillOpen(true)}
+            />
           </TutorialFence>
         </Motion>
         <Motion delay={180}>
@@ -629,10 +669,31 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
 
       {payday.isAwaitingRollover ? (
         <Card tone="accent" style={styles.nudge}>
+          {/* ⚠️ P6.8.7e.3 [C2] — this no longer says "Payday logged", because it is reached from BOTH
+              doors and that sentence is false at one of them. `completeCapture` and `dismiss` are
+              indistinguishable afterwards (both just stamp `lastHandledPaydayDate`), so a user who tapped
+              "Skip this payday" was told the app had logged a payday it had recorded nothing about. */}
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>
-            Payday logged. Start your next pay cycle to apply this cycle’s payments and get your next plan.
+            Ready for your next pay cycle. Starting it applies this cycle’s payments and builds your next plan.
           </Text>
           <Button label="Start next pay cycle" onPress={() => store_.getState().rolloverPayCycle()} style={styles.nudgeBtn} />
+          {/* ⛔ P6.8.7e.3 [C2 / M2-2] — THE WAY BACK IN, and until now there was none.
+              `usePaydayCapture.open()` had **no caller anywhere**, in this app or in v1.6 — a two-generation
+              omission whose own comment said *"e.g. from that affordance"* for an affordance that never
+              existed. ⚠️ The two dismiss doors are not symmetric: `close()` is component state and comes
+              back on the next launch, but `dismiss()` — wired to the low-emphasis "Skip this payday" text
+              button — persists `lastHandledPaydayDate`, and `shouldPromptPaydayCapture` then short-circuits
+              on it forever. One tap at the busiest moment of the month permanently forfeited that cycle's
+              reconciliation: the confirm record, the required-bill decisions, the premium re-verify batch
+              and the capture beat. Rolling forward from here applies the plan *as planned*, so
+              `cycleHistory` and the Guardian's proof-of-work carry a plan-shaped cycle instead of a real
+              one — and nothing said so. */}
+          <Button
+            label="Review this payday first"
+            variant="text"
+            testID="payday-reopen"
+            onPress={payday.open}
+          />
         </Card>
       ) : null}
 
@@ -700,6 +761,8 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
       {/* Add-only here, so the schedule row never renders — but the handler is wired anyway so this host
           stays correct if Today ever opens an EXISTING debt (3.7.A0). Close first, then push: a presented
           Modal would occlude the route. */}
+      {/* P6.8.7e.3 [C5] — the no-bills prompt's sheet, add-only. */}
+      {addBillOpen ? <ExpenseSheet editing={null} onClose={() => setAddBillOpen(false)} /> : null}
       {addDebtOpen ? (
         <DebtSheet
           editing={null}
