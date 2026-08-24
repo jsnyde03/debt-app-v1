@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { test, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 import { day, scenario } from '../e2e/helpers/seed';
 
@@ -19,9 +19,21 @@ import { day, scenario } from '../e2e/helpers/seed';
  * sheet · card · state"*. There are **14 sheets**, and not one has ever been swept in both themes. They
  * are enumerated here by hand, from the tree.
  *
- * ⚠️ **ASSERTS NOTHING** — evidence, like `phase35-themes.shot.ts` and `floor-impact.shot.ts`. Appearance
- * is judged by looking. What it DOES assert is its own completeness: every recipe that fails to reach its
- * subject prints `⛔ UNREACHED`, so the matrix reports its holes instead of quietly having them.
+ * ⚠️ **ASSERTS NOTHING ABOUT APPEARANCE** — evidence, like `phase35-themes.shot.ts` and
+ * `floor-impact.shot.ts`. Appearance is judged by looking. What it DOES assert is its own completeness:
+ * every recipe that fails to reach its subject prints `⛔ UNREACHED` **and fails the run softly**.
+ *
+ * ⛔ **P6.8.9.1 — IT USED TO ONLY PRINT, AND THAT IS HOW FOUR HOLES SURVIVED THE ENTIRE AUDIT.** The
+ * `log-payment` and `living-expense-sheet` recipes reached nothing in either theme from the day this file
+ * was written. The run said so, every time, in four `⛔` lines — and the number that got carried into the
+ * plan, the synthesis and three memory files was **"226 frames"**, which is what landed rather than what
+ * was owed. **The true size was 230.** Thirteen lenses and six refuters then read a matrix that had
+ * absorbed its own holes into its headline count, with no frame of the Log-a-payment sheet at all.
+ *
+ * ⚡ The fix is `expect.soft`, not `throw`: a hard throw in the text-scale block — which loops surfaces
+ * INSIDE one test — would cost every surface after the first failure its frame, trading four known holes
+ * for a variable number of new ones. Soft keeps every frame this run can produce **and still exits 1**,
+ * and a non-zero exit is the one thing a headline count cannot absorb.
  *
  * ⛔ **WHAT THIS CANNOT CAPTURE, stated so no lens over-claims from it** *(measured, not assumed —
  * `DEBT_3.5_DEVICE_QA_CHECKLIST.md:213`)*: react-native-web has **no OS text scaling**
@@ -65,6 +77,16 @@ const STATES: Record<string, Record<string, unknown>> = {
   many: {
     debts: Array.from({ length: 12 }, (_, i) => ({ id: `d${i}`, name: `Creditor ${i + 1}`, balance: 900 + i * 431, minimumPayment: 25 + i * 7, apr: 9 + i, dueDate: day(3 + i), type: 'debt', recurrence: 'monthly' })),
     requiredExpenses: Array.from({ length: 14 }, (_, i) => ({ id: `e${i}`, name: `Bill ${i + 1}`, amount: 40 + i * 23, dueDate: day(2 + i), recurrence: 'monthly', category: 'other' })),
+  },
+  // ⛔ P6.8.9.1 — THE PORTFOLIO WHERE THE TWO STRATEGIES DISAGREE, and the matrix had no such state.
+  // Every seed here is one debt or twelve of a kind, so snowball and avalanche produce the SAME list and
+  // C7's whole surface has nothing to say in any of them. Smallest-balance-first and highest-APR-first
+  // pick opposite debts here, which is the difference [D59] built the comparison out of.
+  divergent: {
+    debts: [
+      { id: 'd0', name: 'Store card', balance: 800, minimumPayment: 25, apr: 8.0, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      { id: 'd1', name: 'Big card', balance: 6000, minimumPayment: 120, apr: 26.99, dueDate: day(11), type: 'debt', recurrence: 'monthly' },
+    ],
   },
   // ⚠️ Six figures and cents. The hero numbers clamp at `maxFontSizeMultiplier` but nothing clamps WIDTH.
   huge: {
@@ -110,10 +132,30 @@ interface Surface {
 const SURFACES: Surface[] = [
   { name: 'today', goto: '/', states: ['empty', 'single', 'many', 'huge', 'long-names'] },
   { name: 'money-debts', goto: '/money', states: ['empty', 'single', 'many', 'huge', 'long-names'] },
-  { name: 'progress', goto: '/progress', states: ['empty', 'single', 'many', 'huge'] },
+  { name: 'progress', goto: '/progress', states: ['empty', 'single', 'many', 'huge', 'divergent'] },
   { name: 'more', goto: '/more' },
   { name: 'history', goto: '/history', states: ['empty'] },
-  { name: 'living-expenses', goto: '/living-expenses', states: ['empty'] },
+  // ⛔ P6.8.9.1 — THE POPULATED DESIGN HAD NEVER BEEN PHOTOGRAPHED. `scenario()` seeds no
+  // `livingExpenses`, so this route's ten default frames AND its two `empty` state frames were the same
+  // empty screen — twelve pictures of one design, and the summary card, the ledger rows and the `AddRow`
+  // appeared in none of them. ⚠️ `states: ['empty']` still pins the empty branch explicitly, so nothing
+  // is lost; what is gained is the branch four lenses were blind to.
+  //
+  // ⚠️ `/history` has the SAME defect and is NOT fixed here: its rows come through `selectHistoryRows`
+  // off cycle records, not off a plain array, so seeding it is a real fixture and not a one-liner.
+  // Filed to P6.8.9.5 rather than guessed at.
+  {
+    name: 'living-expenses',
+    goto: '/living-expenses',
+    seedOver: {
+      livingExpenses: [
+        { id: 'l0', name: 'Groceries', amount: 320, enabled: true },
+        { id: 'l1', name: 'Gas', amount: 90, enabled: true },
+        { id: 'l2', name: 'Fun money', amount: 60, enabled: false },
+      ],
+    },
+    states: ['empty'],
+  },
   { name: 'cushion-forecast', goto: '/cushion-forecast' },
   { name: 'paywall', goto: '/paywall', seedOver: { subscriptionPlan: 'free' } },
   {
@@ -206,7 +248,13 @@ const SHEETS: Sheet[] = [
       await p.getByTestId('debt-log-payment').click({ timeout: FAST });
     },
   },
-  { name: 'living-expense-sheet', goto: '/living-expenses', open: (p) => p.getByText('Add', { exact: true }).first().click({ timeout: FAST }) },
+  // ⛔ P6.8.9.1 — THIS SCREEN HAS TWO DOORS AND THIS RECIPE NAMED NEITHER. It looked for `Add` (exact),
+  // which matches nothing on either branch. ⚠️ Two wrong fixes on the way here, and the second is the
+  // instructive one: `Add spending item` is a REAL label (`living-expenses.tsx:80`) and still matched
+  // nothing, because `scenario()` seeds NO `livingExpenses` at all — so this route only ever renders its
+  // EMPTY branch, whose CTA reads `Add your first item` (`living-expenses.tsx:49`).
+  // ⚡ A correct string for the branch that never renders is indistinguishable from a wrong string.
+  { name: 'living-expense-sheet', goto: '/living-expenses', open: (p) => p.getByText(/Add spending item|Add your first item/).first().click({ timeout: FAST }) },
   { name: 'backup-sheets', goto: '/more', open: (p) => p.getByText(/Back up|Backup/i).first().click({ timeout: FAST }) },
 ];
 
@@ -288,6 +336,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS) as [ViewportName, { w
             // ⛔ The matrix reports its own holes. A silently missing frame is how four lenses go blind
             // to the same surface at once — the exact instrument failure the last gate found.
             console.log(`  ⛔ UNREACHED ${vpName}/${theme}/${s.name} — ${(e as Error).message.split('\n')[0]}`);
+            expect.soft(`${vpName}/${theme}/${s.name}`, 'route recipe reached nothing').toBeNull();
           }
         });
       }
@@ -304,7 +353,27 @@ for (const theme of THEMES) {
     // recipe fails can no longer take its neighbours down with it.
     for (const s of SHEETS) {
       test(`sheet ${s.name} (${theme})`, async ({ page }) => {
-        await reseed(page, seed(theme, s.seedOver), s.goto);
+        // ⛔ P6.8.9.1 — `coachMarksSeen`, and it is the reason `log-payment` had NO FRAME IN EITHER THEME
+        // since the matrix was built. The `payoff-schedule` mark renders INSIDE the debt sheet's footer,
+        // in flow — look at `sheet-debt-sheet-edit.png` from any earlier run and it is sitting exactly
+        // where the "Log a payment" row belongs, having displaced it.
+        //
+        // ⚠️ The mark does NOT intercept: `coach-marks.spec.ts:89` asserts "the marked control stays live
+        // — a hint is not a modal", and line 33 names this same flow-layout artifact. So the first guess
+        // here (pointer interception) was wrong, and the spec had already written down why.
+        //
+        // ⚠️ Nothing is lost by suppressing it: the mark carries an assertion-bearing e2e spec AND pinned
+        // frames at `capture-ref/phase35/<theme>/coach-payoff-schedule.png` — strictly better coverage
+        // than a frame in an evidence set that asserts nothing.
+        const over = (s.seedOver ?? {}) as { prefs?: Record<string, unknown> };
+        await reseed(
+          page,
+          seed(theme, {
+            ...over,
+            prefs: { ...(over.prefs ?? {}), coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
+          }),
+          s.goto,
+        );
         try {
           await page.waitForTimeout(400);
           await s.open(page);
@@ -313,6 +382,7 @@ for (const theme of THEMES) {
           console.log(`  ✓ sheet ${theme}/${s.name}`);
         } catch (e) {
           console.log(`  ⛔ UNREACHED sheet ${theme}/${s.name} — ${(e as Error).message.split('\n')[0]}`);
+          expect.soft(`sheet ${theme}/${s.name}`, 'sheet recipe reached nothing').toBeNull();
         }
       });
     }
@@ -334,6 +404,7 @@ for (const theme of THEMES) {
             console.log(`  ✓ state ${theme}/${s.name}/${stateName}`);
           } catch (e) {
             console.log(`  ⛔ UNREACHED state ${theme}/${s.name}/${stateName} — ${(e as Error).message.split('\n')[0]}`);
+            expect.soft(`state ${theme}/${s.name}/${stateName}`, 'state recipe reached nothing').toBeNull();
           }
         });
       }
@@ -379,10 +450,104 @@ for (const theme of THEMES) {
             console.log(`  ✓ textscale ${scale}× ${vpName}/${theme}/${s.name}`);
           } catch (e) {
             console.log(`  ⛔ UNREACHED textscale ${scale}× ${vpName}/${theme}/${s.name} — ${(e as Error).message.split('\n')[0]}`);
+            // ⚠️ Soft matters MOST here: this block loops surfaces inside ONE test, so a throw would
+            // cost every surface after this one its frame.
+            expect.soft(`textscale ${scale}× ${vpName}/${theme}/${s.name}`, 'text-scale recipe reached nothing').toBeNull();
           }
         }
       });
     }
   });
 }
+}
+
+// ── EXPANDED DISCLOSURES, phone × both themes. ────────────────────────────────────────────────────
+//
+// ⛔ **P6.8.9.1 — THE STATE THE MATRIX HAS NEVER SHOT.** Both of the Trajectory card's disclosures ship
+// COLLAPSED, and for the strategy compare that is a deliberate choice ([D59]: "should I switch?" is an
+// occasional question, so opening it must not disturb the resting card). The consequence is that all 226
+// frames photograph the card at rest, and **everything behind both toggles has never been in the evidence
+// set at all** — including the entire C7 surface that cluster g built.
+//
+// ⚠️ g.5 stacked the second disclosure directly beneath the first, so the two now share one bottom edge
+// treatment. Whether they read as a stack or as clutter is a question **no closed frame can pose**, which
+// is why the both-open state is shot rather than either-open.
+//
+// ⚠️ `coachMarksSeen` is seeded here and nowhere else in this file: the mark's overlay intercepts pointer
+// events, so without it this recipe would time out rather than click. Every other block in this file only
+// navigates, which is why the omission has never bitten it.
+/**
+ * ⛔ **A COMPARISON NEEDS SOMETHING TO COMPARE, and the default seed has ONE debt.** With one debt
+ * snowball and avalanche are the same list, so the first version of `strategy-compare-full` photographed
+ * two identical columns — a frame of C7's feature in the one portfolio where C7 has nothing to say.
+ * ⚡ `DIVERGENT` is built so the two orders MUST disagree: snowball takes the smallest balance first
+ * (Store card, $800) and avalanche the highest APR first (Big card, 27%). Same debts, opposite first row —
+ * which is exactly the difference [D59] chose to show instead of two indistinguishable curves.
+ */
+const DIVERGENT = {
+  debts: [
+    { id: 'd0', name: 'Store card', balance: 800, minimumPayment: 25, apr: 8.0, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+    { id: 'd1', name: 'Big card', balance: 6000, minimumPayment: 120, apr: 26.99, dueDate: day(11), type: 'debt', recurrence: 'monthly' },
+  ],
+};
+
+const EXPANDED: { name: string; goto: string; open: (page: Page) => Promise<unknown>; seedOver?: Record<string, unknown> }[] = [
+  {
+    name: 'progress-disclosures-open',
+    goto: '/progress',
+    open: async (p) => {
+      // ⚠️ The what-if toggle carries no `testID` — its `accessibilityLabel` is the stable handle, and
+      // using it keeps this recipe out of app source. A testID would be a source edit, and a source edit
+      // owes its own `validate:release:rn`; an instrument is not worth that.
+      await p.getByRole('button', { name: /What if you paid extra/i }).first().click({ timeout: FAST });
+      await p.getByTestId('strategy-compare-toggle').click({ timeout: FAST });
+    },
+  },
+  {
+    // ⛔ P6.8.9.1 after-scan — THE FRAME ABOVE IS NOT ENOUGH, and an independent verifier caught it.
+    // With both disclosures open the card is taller than the viewport, so `expanded-progress-disclosures-open`
+    // stops one row into the comparison and **the avalanche column is in no frame in either theme** —
+    // C7's whole point is the two orders side by side, and half of it was still unphotographed.
+    // ⚡ The first frame is kept rather than replaced: it answers the STACK question (do two disclosures
+    // under one card read as a stack or as clutter), which a scrolled frame cannot pose.
+    name: 'strategy-compare-full',
+    goto: '/progress',
+    seedOver: DIVERGENT,
+    open: async (p) => {
+      await p.getByTestId('strategy-compare-toggle').click({ timeout: FAST });
+      // ⚠️ `scrollIntoViewIfNeeded` alone left the avalanche column half under the tab bar — RN Web's
+      // ScrollView satisfied "needed" with the element barely at the edge. `block: 'center'` is what
+      // actually puts the whole comparison in the frame.
+      await p.getByTestId('strategy-compare-takeaway').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    },
+  },
+];
+
+for (const theme of THEMES) {
+  test.describe(`expanded · ${theme}`, () => {
+    test.use({ viewport: VIEWPORTS.phone });
+
+    for (const s of EXPANDED) {
+      test(`expanded ${s.name} (${theme})`, async ({ page }) => {
+        await reseed(
+          page,
+          seed(theme, {
+            ...(s.seedOver ?? {}),
+            prefs: { coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
+          }),
+          s.goto,
+        );
+        try {
+          await page.waitForTimeout(400);
+          await s.open(page);
+          await settle(page);
+          await shot(page, 'phone', theme, `expanded-${s.name}`);
+          console.log(`  ✓ expanded ${theme}/${s.name}`);
+        } catch (e) {
+          console.log(`  ⛔ UNREACHED expanded ${theme}/${s.name} — ${(e as Error).message.split('\n')[0]}`);
+          expect.soft(`expanded ${theme}/${s.name}`, 'disclosure recipe reached nothing').toBeNull();
+        }
+      });
+    }
+  });
 }

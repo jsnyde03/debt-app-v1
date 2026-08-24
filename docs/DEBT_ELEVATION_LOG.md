@@ -19049,3 +19049,257 @@ description. C8's *"rescue the parser"* understated it by three defects.
 - 🔴 **Four decisions open:** **P1-1 · P1-2 · P1-4 · P1-5** *(P6.8.9.4)* · **L1-20** *(rec: defer)* ·
   **L4-13b** *(rec: "nowhere" + the half-closed token)* · **P1-10's tier gate** · the v1.6-bridge silent
   loop. All carry a recommendation.
+
+---
+
+## ✅ P6.8.9.1 — the matrix re-shoot, and the four holes it had always had *(2026-08-24)*
+
+### What the step was for
+
+126 of 226 frames predated cluster f (which moved every light token) and g (which changed the trajectory
+axis and stacked a second collapsible on Progress). Reading them would have been auditing a photograph of a
+defect already fixed. Re-shot: **232 frames · 0 stale · 0 UNREACHED · 9 fresh a11y trees.**
+
+### ⛔ The result that outlives the step: the instrument absorbed its own holes into its headline count
+
+`log-payment` and `living-expense-sheet` **reached nothing, in either theme, from the day the file was
+written.** The matrix printed `⛔ UNREACHED` on every run — exactly as designed — and **nobody ever read
+those four lines.** The number that got carried into the plan, `SYNTHESIS.md` and three memory files was
+**226**, which is what *landed* rather than what was *owed*. **The true size was 230.** Thirteen lenses and
+six refuters then read a matrix with no frame of the Log-a-payment sheet at all.
+
+⚡ **The spec's own header claimed the assertion it did not make:** *"what it DOES assert is its own
+completeness."* It printed. Now it fails soft — `expect.soft`, not `throw`, because the text-scale block
+loops surfaces inside ONE test and a throw would trade four known holes for a variable number of new ones.
+**Plant-verified both directions:** planted a broken locator → `2 failed`, `PW_EXIT=1`; reverted → `2 passed`.
+⚠️ The harness reported *"exit code 0"* on the RED run — the documented `echo`-exit trap, third occurrence.
+
+### Three mechanisms proposed, two wrong — the local instance of the standing law
+
+1. **log-payment.** First guess: *the coach mark intercepts pointer events.* **False** —
+   `coach-marks.spec.ts:89` asserts *"the marked control stays live — a hint is not a modal"*, and line 33
+   names the real thing: a **flow-layout** artifact. The `payoff-schedule` mark renders inside the debt
+   sheet's footer and **displaces** the Log-a-payment row. Seeding `coachMarksSeen` fixed it — confirmed by
+   outcome (7 → 8 sheet frames), not by the mechanism. ⚡ **The repo had already written down why my first
+   answer was wrong.**
+2. **living-expense-sheet.** Recipe looked for `Add` (exact). First fix: `Add spending item` — a **real**
+   label at `living-expenses.tsx:80`, and it still matched nothing, because `scenario()` seeds no
+   `livingExpenses` so the route only ever renders its EMPTY branch (`Add your first item`, `:49`).
+   ⚡ **A correct string for a branch that never renders is indistinguishable from a wrong string.**
+3. **The blank trajectory curve** (below) — hypotheses recorded and NOT resolved; handed out for measurement.
+
+### Blind spots closed, beyond the four holes
+
+- **`/living-expenses` had no populated frame at all** — its ten default frames and its two `empty` state
+  frames were the same empty screen. Twelve pictures of one design; the summary card, the ledger rows, the
+  disabled-item pill and the `AddRow` appeared in none of them.
+- **The both-disclosures-open state did not exist.** Both of the Trajectory card's disclosures ship
+  collapsed ([D59] deliberately), so **C7's entire surface — everything cluster g built — was in NO frame.**
+- **`strategy-compare-full` needed two corrections after an independent verifier read it:** the first frame
+  stopped one row in, leaving the avalanche column unphotographed; and the default seed has ONE debt, so
+  snowball and avalanche were **the same list** — a frame of C7's feature in the one portfolio where C7 has
+  nothing to say. `STATES.divergent` now makes the two orders disagree by construction.
+- **`/history` has the identical default-equals-empty defect and was NOT fixed** — its rows come through
+  `selectHistoryRows` off cycle records, so it needs a real fixture rather than a one-liner. Filed.
+
+### ⚠️ My own error, caught by a verifier and not by me
+
+`BRIEF.md` was written to `docs/audits/2026-08-21-p6.8-finish/docs/audits/2026-08-24-p6.8.9-verification/`
+— cwd had drifted, and `mkdir -p` built the tree under it. The cluster files landed correctly only because
+the agents used absolute paths. Relocated; stray tree removed. **The repo's own CLAUDE.md warns `cwd`
+drifts, and it did so twice more in this step** (an `npx tsc` resolved to the wrong binary).
+
+⚠️ **The blocked deletion earned its keep.** The first move was to delete the 226 stale frames; the sandbox
+refused, so a timestamp marker was used instead — and **that is what made the four permanent holes
+visible.** Deleting would have destroyed the evidence and left a fresh-looking 228 with no way to
+distinguish a hole from a success.
+
+---
+
+## ✅ P6.8.9.2 — the verification pass: 33 ids, seven independent verifiers *(2026-08-24)*
+
+Full record: [`docs/audits/2026-08-24-p6.8.9-verification/`](audits/2026-08-24-p6.8.9-verification/) —
+`BRIEF.md` (what they were asked), `SUMMARY.md` (the roll-up), and seven `cluster-*.md` files carrying
+per-id verdicts with `path:line` citations.
+
+**Method.** One verifier per build cluster. **None built the fix it checked and none was told what had been
+built** — a verifier told the answer checks a claim, not the code. Each was given the finding text, the
+log, the code, the re-shot matrix, and three questions: is the observation closed · what did the site ALSO
+do and does it still · was the implied REMEDY right.
+
+**Result: `CLOSED` 11 · `CLOSED-UNPINNED` 10 · `PARTIAL` 11 · `WRONG-REMEDY` 1 · `OPEN` 0 · `NOT-A-DEFECT` 0.**
+
+⚡ **Zero OPEN and zero NOT-A-DEFECT.** Every observation was real; every shipped remedy was aimed at
+something true. **The entire residue is in the two categories the brief predicted** — *what else the site
+was doing* and *whether anything stops it un-fixing*. Fifth confirmation of the law a–g produced.
+
+⛔ **Consequence for the exit criterion.** `lint:closure` counts **mentions in a ledger**. It is blind to
+both categories, so it can read clean while 21 of 33 fixes are unpinned or partial. **P6.8.9.6 green is not
+"the sweep is done."**
+
+### Two results worth keeping as method
+
+- ⭐ **P1-3 is the model.** The lens flagged one of its own clauses as unresolvable from stills; the builder
+  resolved it **by running the engine** rather than inheriting it — which is what stopped the item being
+  spent hunting a rendering bug that does not exist. *A lens usually knows which of its claims is soft.*
+- ⭐ **C6 and M3-5 were RIGHT to refuse their finding's remedy.** C6's pre-written wording (*"nothing
+  uploaded… airplane mode"*) became false when cloud backup shipped. **Refusing a stale remedy is a correct
+  outcome, not a skipped one.**
+
+### 🎯's ruling, 2026-08-24
+
+> *"These findings all need to pass pinned. Let's do this right. Approve it all to go in 2.0. That's the
+> point of these audits."*
+
+**All 33 go into 2.0, and the exit is PINNED — not merely closed.** → decomposed as **P6.8.9.7** on the plan.
+⚠️ Several are **unpinnable on web by construction** (the cloud seam: `CLOUD_BACKUP_SUPPORTED` is false;
+`fontScale` is always 1; `announceForAccessibility` is an empty body). Those take an explicit **P6.14 device
+row**, not a fake pin — a pin that cannot fail is the thing this whole pass exists to catch.
+
+---
+
+## ✅ P6.8.9.7.1 — the three gate holes *(2026-08-24)*
+
+⛔ **Two of the three implied remedies were WRONG, and building them as written would have made each gate
+worse.** Sixth, seventh and eighth entries in this repo's *observation-survives-explanation-doesn't* ledger.
+
+| gate | the finding's remedy | what was actually true |
+|---|---|---|
+| `lint:contrast` | *"`GROUNDS` is `background.*`; `#ffffff` is read as primitive"* | ✅ right — but the MECHANISM is that **`text.onAccent` flips and a literal cannot**. Light 5.79/5.80 ✅, **dark 2.69/2.72 ⛔**. A light-only read of either file finds nothing, which is why it survived review |
+| `check-native-a11y-props` | *"ban bare `accessibilityLiveRegion`"* | ⛔ **would have asserted something FALSE.** `BANNED` means *RNW drops it*; measured against `forwardedProps/index.js`, RNW **forwards** it to `aria-live`. Web works, **iOS is silent**. It is an OWNERSHIP rule, so it got its own `OWNED` list |
+| `check-apostrophes` | *"extend `ROOTS` to Swift"* | ⛔ **would have silently walked ZERO files** and gone on reporting green — everything above it is a TypeScript AST walk that cannot parse Swift. Needed a separate scanner |
+
+### What writing the definitions found that the findings did not
+
+- **A THIRD contrast site.** `TrajectoryChart.tsx:603`'s end pill, `#10264f`, measures **9.95:1 on the dark
+  gold and 6.44:1 on the light** — it clears AA on both and is **not a contrast defect**. It is a DRIFT
+  hazard, and the obvious fix is wrong: `surface.goldPillInk` pairs with `surface.goldPill` while this
+  component paints its own `gold` (`dark ? '#f7cf5f' : '#dca01f'`), so adopting the ink alone half-adopts a
+  pair and adopting both changes a **shipped light colour with no device to look at**. Exempted with the
+  measurement, keyed on the **literal** so it cannot become a file-wide hole.
+- **`SpokenForSheet` writes `'#fff'` — three digits.** The finding named `#ffffff`; a six-digit match
+  misses it entirely.
+- **One of the seven Swift apostrophes is a SIRI SPEECH MATCHER** (inside `phrases:`). Sweeping it changes
+  what the app matches against spoken input — unverifiable off-device, on a surface with no device proof at
+  all. Six swept, that one exempted. ⚡ Writing the exemption is what separated display copy from speech.
+
+### Shipped
+
+`ListRow`'s delete ink → a `text.onAccent` PROP (2.69 → **7.03:1** dark) · `SpokenForSheet`'s CTA
+(2.72 → **6.95:1**) · **A1-10 closed on the exact line it quoted** (`SaveFailedBanner.tsx:31`) — and that
+required hoisting `useLiveAnnouncement` **above the early `return null`**, since a hook cannot run after it;
+`null` while there is nothing to say is the primitive's own contract · six Swift strings, real U+2019,
+mojibake-checked.
+
+### Verification
+
+Every gate **red before the fix, green after**, and the exemptions planted against too: a straight
+apostrophe in dialog copy reds while one inside `phrases:` stays green — **planted in the same file**, so
+the scope is proven rather than assumed. A new literal planted inside the exempted TrajectoryChart also
+reds, so that exemption is a claim and not a hole.
+
+⭐ **The lesson applied to my own edit:** `SwipeDeleteAction` is **A1-7's site**, whose three properties are
+each pinned by a different spec. Ran all three (`swipe-delete` · `a11y-row-labels` · `a11y-axe`) — **13
+passed.** That is the whole point of this pass, turned on the person doing it.
+
+⚠️ **Fixed a summary line that undercounted its own coverage** — the a11y gate printed `BANNED.length`
+while guarding two lists. Same shape as "226 frames".
+
+---
+
+## ✅ P6.8.9.7.2 — B1, both halves *(2026-08-24)*
+
+### Half 1 — `SaveForItSheet`, the site a 23-site sweep never reached
+
+⛔ **It had NO test of any kind.** The only reference in the whole suite was a visibility assertion on the
+entry button, and `affordability.spec.ts` explains why: a Phase-4 note claiming `FormSheet` modals *"can't
+be reliably queried"* by RN-web Playwright. ⚠️ **That claim is stale** — the P6.8 matrix drives FormSheet
+modals by testID (`debt-log-payment` among them). Verified rather than inherited, and the sheet is now
+driven end to end.
+
+⚡ **The site failed in BOTH directions and the finding named one.**
+`Number("Infinity") > 0` is `true` → an infinite pace **commits**; `Number("1,200")` is `NaN` → a grouped
+number is **refused**, though every other money field accepts it and `migrations.ts` repairs stored values
+on exactly that reading. One expression, two opposite defects.
+
+**Pinned:** `apps/rn/tests/e2e/saveforit-pace.spec.ts`, asserting the **persisted store**, not the screen —
+a spec that only proved "the field refuses to submit" would pass against a version that committed `Infinity`
+and merely failed to re-render. ⭐ **The plant's output is the defect verbatim:**
+`{"priorityPerPaycheck": null, "targetAmount": 5000}` — `Infinity` through `JSON.stringify`, exactly as
+B1's docstring predicted.
+
+⚠️ **My first assertion was wrong in the classic way:** it read `goal.pace`, the component's LOCAL name.
+The stored key is `priorityPerPaycheck`. A proxy for the subject, caught by the test failing rather than by
+review.
+
+### Half 2 — goals were NEVER repaired
+
+`repairMoneyFields` ran over debts, required expenses and living expenses. **Goals fell through the `...r`
+spread untouched**, and `mapLegacyStore.ts:76` carries `goals: 'goals'` **straight across from v1.6** — so
+the one class of blob that cannot be fixed by reinstalling had no repair at all.
+
+⛔ **`DataRepair['entity']` had no `'goal'` member**, which is the cleanest proof the omission was
+structural rather than a dropped line. Adding it **failed the build at `DataRepairsCard.tsx:12`** — an
+exhaustive `Record` rather than an index signature, so the compiler is the gate for this class. Without it
+the user would have read *"Your item list — targetAmount"* via a `?? 'item'` fallback.
+
+⚡ **`priorityPerPaycheck` is why this is a MONEY defect, not a display one.** Its type doc: *"Absent → no
+cap (funds as fast as spare allows)."* An unreadable value serialises to `null`, `null` is not `undefined`,
+and every `??` reader treats it as absent — so a corrupt pace **removes the cap the user signed off on** and
+funds the goal ahead of debt at full speed.
+
+**Pinned:** `persistenceLifecycle.test.ts`, which already owned `runMigrations`' repair coverage.
+
+⛔ **The plant had to be run TWICE, and the second run is the real one.** These runners are throw-based and
+stop at the first failure, so the first plant proved only the `targetAmount` assert while the two pace
+asserts never executed. Reordered so the load-bearing assert is first; re-planted; it now reds on
+*"an infinite pace is never left as a non-finite cap."* ⚡ **An assertion ordered behind another is only
+ever proven by that other one** — the repo's own note, and it applied to a block written the same hour.
+
+### B2 — the once-ever finale could be lost forever, and the comment said otherwise
+
+⛔ **The claim in the code was false, and it was the justification for the defect.** `withPayoffCelebration`
+returned early on ANY `next.pendingPayoff`, defended by: *"the second crossing will still be there in
+`debts` for the finale check."* **There is no finale check.** `detectPayoff` is TRANSITION-based and needs
+`crossed.length > 0`:
+
+1. clear debt A → beat stamped · 2. clear debt B **before Today renders** → early return, B's crossing never
+detected · 3. acknowledge the beat → `pendingPayoff` cleared · 4. no later transition can cross again
+(`liveBefore.length === 0` → `null`) → **the finale is unreachable for the life of the install.**
+
+⚡ **Why every existing test missed it.** `payoffCelebration.test.ts` covers `detectPayoff` thoroughly —
+including *"clearing the last two in ONE batch is one finale."* **Every one of those calls `detectPayoff`
+directly.** The defect was never in `detectPayoff`; it was in the wrapper, which never asked. **The pure
+function was pinned and the wrapper was not** — and only driving the WIRED action twice reaches it.
+
+**Fix:** keep a pending payoff of the same rank (the earned moment), but let a **finale supersede a beat**.
+**Pinned** in `storeActions.test.ts` via `createDebtStore()` and two `updateDebt` calls.
+
+⭐ **TWO plants, and the second is the one worth having.**
+- Plant 1 — the original early return → reds on *"expected finale, got beat"*.
+- Plant 2 — the NAIVE over-fix (`always overwrite`) → **PASSES the finale assert and FAILS the
+  earned-moment assert.** That control is the whole lesson of P6.8.9 turned into a test: *a fix must
+  preserve every property that was right*, and a finding-only reading would have shipped exactly plant 2.
+
+### C9 — the residual is NOT a defect, and one of its two claims is false
+
+⛔ **Measured, not accepted.** The verification filed C9 `CLOSED-UNPINNED` with two extra concerns:
+- *"the pref is left on"* — **FALSE.** `handleDeleteAll` calls `reset()` → `createDefaultStore()`, and
+  `cloudBackupEnabled` is optional and absent from defaults, so it lands `undefined`. **Ninth measured-wrong
+  mechanism in this audit.**
+- *"the `deviceOnly` escape leaves a surviving remote the next launch offers"* — **true and BY DESIGN,
+  disclosed by name.** The sheet reads *"iCloud couldn't be reached, so the backup there would have
+  survived — try again, or delete on this device only."* Being offered it back is how the user recovers it.
+
+⚡ **Refusing a stale remedy is a correct outcome, not a skipped one** — the C6/M3-5 result, arriving a
+third time. What C9 genuinely owes is a **device row**: `CLOUD_BACKUP_SUPPORTED` is false on web, so
+`more.tsx:127`'s branch is unreachable by every test in the repo and deleting it outright leaves the suite
+green. → **§12.8, three rows**, in `DEBT_3.5_DEVICE_QA_CHECKLIST.md`.
+
+### ⚠️ Folded in: M1-8's stale device row (from .7.6, done here because it was live)
+
+**§12.7.1 was ticked `[x] ✅gate` and instructed a tester to confirm the "Share anonymous usage" control is
+present — a control cluster b DELETED.** It survived cluster b, 13 lenses and six refuters, in the file the
+plan calls *"the runnable truth"* for P6.14. Rewritten to confirm the **absence**. ⛔ **A stale checklist row
+is worse than a missing one:** it sends a human to look for something and reads as a defect when they cannot
+find it.

@@ -25,7 +25,7 @@ public class ScanVisionModule: Module {
     AsyncFunction("scanDocument") { (promise: Promise) in
       DispatchQueue.main.async {
         guard VNDocumentCameraViewController.isSupported else {
-          promise.reject("E_UNSUPPORTED", "Document scanning isn't supported on this device.")
+          promise.reject("E_UNSUPPORTED", "Document scanning isn’t supported on this device.")
           return
         }
         guard let presenter = self.appContext?.utilities?.currentViewController() else {

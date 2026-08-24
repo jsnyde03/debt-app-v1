@@ -36,14 +36,33 @@ import { recordMissedArrival, stampInputsFresh, stampOnboardedAt } from './subst
  * a premium feature by accident: the beat fired from `confirmPayoff`, reachable only via
  * `selectProvisionalPayoffs`, which returns `[]` for free. The event to watch is the CROSSING.
  *
- * ⚠️ An existing pending payoff is never overwritten. If the user clears a debt and then edits another
- * before Today has rendered the beat, the first moment is the one they earned — and the second crossing
- * will still be there in `debts` for the finale check.
+ * ⚠️ An existing pending payoff is not overwritten by another of the same rank: if the user clears a debt
+ * and then edits another before Today has rendered the beat, the first moment is the one they earned.
+ *
+ * ⛔ **BUT A FINALE OUTRANKS A PENDING BEAT, AND GETTING THAT WRONG LOST THE FINALE FOREVER.** Found by the
+ * P6.8.9.2 verification. This function used to return early on ANY `next.pendingPayoff`, and the comment
+ * that justified it claimed *"the second crossing will still be there in `debts` for the finale check."*
+ * **There is no such check.** `detectPayoff` is TRANSITION-based — it requires `crossed.length > 0` — so:
+ *
+ *   1. clear debt A  → beat stamped for A
+ *   2. clear debt B  *before Today renders* → early return; **B's crossing is never detected**
+ *   3. acknowledge the beat → `pendingPayoff` cleared
+ *   4. no future transition can ever cross again (`liveBefore.length === 0` → `null`), so the once-ever
+ *      **finale is unreachable for the rest of the app's life.**
+ *
+ * ⚡ This is the product's emotional terminus, it fires once, and the user cannot get it back — which is
+ * exactly the class this repo has measured three defects in, every one of them found only by changing code.
+ * A beat superseded by the finale loses nothing: the finale is the bigger moment and contains it.
+ *
+ * ⚠️ `detectPayoff` now runs on every balance-moving transform rather than being short-circuited. It is a
+ * single pass over `debts`; the early return was never load-bearing for cost.
  */
 function withPayoffCelebration(before: DebtStore, next: DebtStore): DebtStore {
-  if (next.pendingPayoff) return next;
   const payoff = detectPayoff(before.debts, next.debts, next.payoffStrategy);
-  return payoff ? { ...next, pendingPayoff: payoff } : next;
+  if (!payoff) return next;
+  // Keep what is already pending UNLESS this transition is the finale and the pending one is not.
+  if (next.pendingPayoff && !(payoff.kind === 'finale' && next.pendingPayoff.kind !== 'finale')) return next;
+  return { ...next, pendingPayoff: payoff };
 }
 
 /**

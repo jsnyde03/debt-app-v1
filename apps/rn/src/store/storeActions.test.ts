@@ -410,6 +410,60 @@ function run() {
     assert(s3.getState().store === before && s3.getState().intentRollback === null, 'logManualPayment: bad id / non-positive amount → no-op');
   }
 
+  // ── [B2 · P6.8.9.7.2] THE FINALE SURVIVES A PENDING BEAT ───────────────────────────────────────────
+  //
+  // ⛔ `payoffCelebration.test.ts` proves `detectPayoff` thoroughly — including that clearing the last two
+  // debts in ONE batch is a single finale. **Every one of those tests calls `detectPayoff` directly**, and
+  // the defect was never in `detectPayoff`: it was in `withPayoffCelebration`, which returned early on any
+  // existing `pendingPayoff` and therefore never asked. The pure function was pinned; the wrapper was not.
+  //
+  // ⚠️ So this drives the WIRED action twice, which is the only way to reach the bug: clear one debt (beat),
+  // then clear the last one before anything acknowledged the beat. Before the fix the second crossing was
+  // dropped, and because `detectPayoff` needs `crossed.length > 0`, no later transition could ever produce
+  // it again — the once-ever finale became unreachable for the life of the install.
+  {
+    const s = inst({
+      debts: [
+        { id: 'd0', name: 'Card', balance: 500, minimumPayment: 25, apr: 20, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' },
+        { id: 'd1', name: 'Loan', balance: 900, minimumPayment: 40, apr: 8, dueDate: '2026-08-12', type: 'debt', recurrence: 'monthly' },
+      ] as DebtStore['debts'],
+    });
+
+    s.getState().updateDebt('d0', { balance: 0 });
+    eq(s.getState().store.pendingPayoff?.kind, 'beat', 'B2 — clearing the first of two stamps the per-debt beat');
+
+    // ⛔ No acknowledge between them. That is the whole scenario: the user is faster than the render.
+    s.getState().updateDebt('d1', { balance: 0 });
+    eq(
+      s.getState().store.pendingPayoff?.kind,
+      'finale',
+      '⛔ B2 — clearing the LAST debt while a beat is pending UPGRADES to the finale (it was silently dropped)',
+    );
+  }
+
+  // ⚠️ And the half the fix must NOT break: two beats in a row still keep the FIRST moment. A fix that
+  // simply overwrote `pendingPayoff` would pass the assert above and quietly lose this — the property the
+  // original early-return existed to protect, and the one no finding mentioned.
+  {
+    const s = inst({
+      debts: [
+        { id: 'd0', name: 'Card', balance: 500, minimumPayment: 25, apr: 20, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' },
+        { id: 'd1', name: 'Loan', balance: 900, minimumPayment: 40, apr: 8, dueDate: '2026-08-12', type: 'debt', recurrence: 'monthly' },
+        { id: 'd2', name: 'Car', balance: 3000, minimumPayment: 150, apr: 6, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly' },
+      ] as DebtStore['debts'],
+    });
+
+    s.getState().updateDebt('d0', { balance: 0 });
+    const first = s.getState().store.pendingPayoff;
+    eq(first?.kind, 'beat', 'B2 control — the first of three stamps a beat');
+
+    s.getState().updateDebt('d1', { balance: 0 });
+    assert(
+      s.getState().store.pendingPayoff === first,
+      '⛔ B2 — a SECOND beat does not displace the first: the earned moment is preserved, object-identical',
+    );
+  }
+
   console.log(`✅ Store-action (RS.3) tests passed (${passed} asserts).`);
 }
 

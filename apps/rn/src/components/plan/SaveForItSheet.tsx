@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { parseAmountField } from '@core/utils/amountField';
 import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
 
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -63,7 +64,18 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
   const [customPer, setCustomPer] = useState('');
   const goalLabel = name.trim() || 'this purchase';
 
-  const customN = Number(customPer) > 0 ? Math.max(1, Math.ceil(amount / Number(customPer))) : null;
+  /**
+   * ⛔ **B1's LAST UNCONVERTED SITE, found by the P6.8.9.2 verification.** The sweep closed 23 call sites
+   * across 11 files and this one was never reached, so it kept the exact expression B1 exists to delete —
+   * `Number(raw) > 0`, which is **`true` for `"Infinity"`**. A committed pace of `Infinity` serialises
+   * through `JSON.stringify` as `null`.
+   *
+   * ⚠️ And it failed the OTHER way too, which the finding never mentioned: `Number("1,200")` is `NaN`, so
+   * this sheet **refused a grouped number that every other money field in the app accepts** — and that
+   * `data/migrations.ts` already repairs on the same reading. One expression, two opposite defects.
+   */
+  const customPace = parseAmountField(customPer);
+  const customN = customPace != null ? Math.max(1, Math.ceil(amount / customPace)) : null;
   const customReadyBy = customN != null ? addPaychecks(store.paycheck.currentDate, store.paycheck.payCycle, customN) : null;
 
   // Guard against a double-tap creating two goals (belt-and-suspenders; the card's saved-state also
@@ -76,10 +88,10 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
     let priority = false;
     let pace: number | undefined;
     if (selected === 'custom') {
-      const per = Number(customPer);
-      if (!(per > 0)) return; // need a pace before committing (flag NOT yet set → they can retry)
+      // ⛔ `parseAmountField`, not `Number` — see `customPace` above. `null` is the only refusal channel.
+      if (customPace == null) return; // need a pace before committing (flag NOT yet set → they can retry)
       priority = true;
-      pace = per;
+      pace = customPace;
     } else {
       const opt = options.find((o) => o.key === selected) ?? options[options.length - 1];
       priority = opt.prioritize;
@@ -146,7 +158,10 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
           </View>
           {selected === 'custom' ? (
             <>
-              <TextField label="Per paycheck" value={customPer} onChangeText={setCustomPer} placeholder="e.g. 100" keyboardType="decimal-pad" />
+              {/* testID per `TextField`'s own rule — "pass a testID for any field a flow types into".
+                  This path had NO test of any kind before P6.8.9.7.2, which is how B1's last site survived
+                  a 23-site sweep, a 13-lens audit and six refuters. */}
+              <TextField testID="saveforit-custom-per" label="Per paycheck" value={customPer} onChangeText={setCustomPer} placeholder="e.g. 100" keyboardType="decimal-pad" />
               {customN != null && customReadyBy != null ? (
                 <Text style={[textStyles.caption, styles.optPace, { color: c.text.secondary }]}>
                   {customN} {customN === 1 ? 'paycheck' : 'paychecks'} · ready by {shortDate(customReadyBy)}

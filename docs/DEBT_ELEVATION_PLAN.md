@@ -30,16 +30,38 @@ wrong mechanism looks identical to one that worked.
 
 | # | step | notes |
 |---|---|---|
-| **.9.1** ▶ | 🔴 **RE-SHOOT THE MATRIX FIRST** | ⛔ **126 of 226 frames in `apps/rn/capture-ref/p6.8/` no longer describe the app** — f.1 moved every light token (113), g.4 changed the trajectory axis and g.5 stacked a second collapsible on Progress (26). **Reading the old frames is auditing a photograph of a defect that is already fixed.** Include the both-collapsibles-open state. `npm run shots:demo` |
-| **.9.2** | **Verify each built fix against its finding — and against what the site ALSO did** | Every id closed in a–g. ⚠️ Not "does the id look closed": what property did the fix preserve, and which test proves it |
+| ✅ | **.9.1 — the matrix re-shoot** | DONE 2026-08-24. **232 frames · 0 stale · 0 UNREACHED · 9 a11y trees.** ⛔ **4 recipes had produced NO frame since the file was written and "226" was carried everywhere as complete** — the run printed its holes and nobody read them; it now fails soft, plant-verified both ways. Detail → log |
+| ✅ | **.9.2 — the verification pass** | DONE 2026-08-24. 33 ids, **7 independent verifiers, none told what was built**. **`CLOSED` 11 · `CLOSED-UNPINNED` 10 · `PARTIAL` 11 · `WRONG-REMEDY` 1 · `OPEN` 0.** Record → [`audits/2026-08-24-p6.8.9-verification/`](audits/2026-08-24-p6.8.9-verification/) |
+| **.9.7** ▶ | 🔴 **EVERY FINDING PASSES *PINNED* — BUILDING NOW** | 🎯 2026-08-24: *"These findings all need to pass pinned… Approve it all to go in 2.0."* Decomposed below |
 | **.9.3** | **Re-check the GATED CLASSES** | `lint:contrast` · `lint:type-scale` · `lint:icon-glyphs` · `lint:apostrophes` · native-a11y-props. ⛔ **And the classes c/d/e closed as lists were never gated at all** — that is where the residue is |
 | **.9.4** | 🔴 **[DECISION] P1-1 · P1-2 · P1-4 · P1-5 → 🎯** | Four majors that reached **no ledger** and were never judged either way. Now visible to the closure gate (80 → **87** high+). Present with a recommendation each |
 | **.9.5** | **Work the filed queue** | **27 items** routed here across the cluster, in the backlog below. ⚠️ Triage first — several are sweeps whose scope is the real question |
 | **.9.6** | **The mechanical exit criterion** | `lint:closure` clean on blocker+major. ⚠️ **Its report today: `39 of 87 high+ findings are named in NO ledger`** *(plan · log · refutations · SYNTHESIS)* — report-only until this step, and that 39 is the real size of the read. ⛔ **It reads clean for the wrong reason if an instrument is blind** — exactly how P1's seven majors were invisible until the regex was un-anchored |
 
-**Exit (P6.8.9):** every fix in a–g is confirmed against its finding *and* against the properties it had to
-preserve, the gated classes are re-checked rather than the ids re-read, the four P1 majors carry 🎯's
-answer, and `lint:closure` is clean **for a reason, not by construction**.
+### ▶ P6.8.9.7 — the PINNING build *(🎯 approved all 33 into 2.0, 2026-08-24)*
+
+⛔ **The exit is PINNED, not closed.** 21 of 33 fixes are unpinned or partial, and `lint:closure` is blind
+to both — it counts mentions in a ledger. ⚠️ **Some are unpinnable on web BY CONSTRUCTION** (the cloud seam,
+`fontScale`, `announceForAccessibility`): those take an explicit **P6.14 device row**, never a fake pin.
+⛔ **GATES FIRST** — the classes out-found the slices four times, and verification found holes in three gates.
+
+| # | step | scope |
+|---|---|---|
+| ✅ | **.7.1 — the three gate holes** | DONE 2026-08-24. All three closed, each **red-before / green-after** + exemptions planted against. ⛔ **2 of 3 implied remedies were WRONG** — the live-region one would have asserted RNW drops a prop it forwards; the apostrophe one would have walked **zero** Swift files through a TS AST. Shipped: `ListRow` 2.69→**7.03:1**, `SpokenForSheet` 2.72→**6.95:1**, **A1-10 closed on its own quoted line**, 6 Swift strings. Detail → log |
+| ✅ | **.7.2 — irreversible / data-loss** | DONE 2026-08-24. **B1** 🔒 both halves pinned + planted (`SaveForItSheet` admitted `Infinity` **and** refused `"1,200"`, with **zero tests**; **goals were never repaired at all**, and a corrupt `priorityPerPaycheck` **removes the pace cap**). **B2** the once-ever finale could be lost **forever** — the comment defending the early return claimed a finale check that does not exist; ⭐ **plant 2 (the naive over-fix) passes the finale assert and fails the earned-moment one**. **C9** — one claim measured **FALSE**, the other **by design and disclosed**; owed a device row, not a fix → §12.8. ⚠️ Folded in: **M1-8's stale `[x]` row** telling a tester to confirm a **deleted** control. Detail → log |
+| **.7.3** ▶ | 🔴 **The one WRONG-REMEDY — NEXT** | **V2-6** — build the cure the finding named (`CoachMarkLayer.tsx:115` reads no sibling's frame). ⛔ The shipped constant bump moved the callout **22 px further into the card** |
+| **.7.4** | **The new 2.0 surfaces** | **C7** `compareStrategies.ts:108` returns `"."` in 16 of 960 portfolios and `strategy-compare.spec.ts:77` asserts `length > 0` **over it** · **C8** `%` in an APR cell · unvalidated `dueDate` → `NaN` · fractional `remainingPayments` rewrites a balance · `site/support.html:285` documents columns that import nothing |
+| **.7.5** | **Visual + a11y partials** | **V1-5** `AddRow.tsx:33` 1.41:1 · **V3-6** raw `132` clamp (V3-5's mechanism, 12 lines below where it was fixed) · **V4-8** the Skia gate opens when the fetch BEGINS · **A1-10** apply the primitive to `SaveFailedBanner.tsx:30-31`, the finding's own quoted line |
+| **.7.6** | **The rest** | **M3-20** total-failure branch + `droppedRows` · **C1** the `actualIncome` half · **M1-8** `DEBT_3.5_DEVICE_QA_CHECKLIST.md:575` still tells a tester to confirm a **deleted** control, ticked `[x]` · **L1-22** the Swift sites |
+| **.7.7** | **Pin the 10 unpinned** | A4 + M1-9 share one assertion · C6 · P1-10 · A1-2 · V2-1 · V3-5 · **B3 · C9 · M3-5 → device rows, not pins** |
+| **.7.8** | ✅ **The blank trajectory curve — DIAGNOSED, and it is V4-8** | It is `WithSkiaWeb`'s `ChartSkeleton` caught by the shutter, proven from pixel geometry; the engine is innocent. `useSkiaReady` awaits **only** `LoadSkiaWeb` while `WithSkiaWeb` awaits that **plus** `getComponent()`'s own chunk — so labels always win. **Web-only by construction.** → the fix belongs to **.7.5's V4-8**. ⛔ **Not seed-specific: under 4-way contention 10/10 of BOTH portfolios blank**, including the "control". [`evidence/2026-08-24-trajectory-blank-divergent/`](evidence/2026-08-24-trajectory-blank-divergent/) |
+| **.7.9** | **`validate:release:rn` green + push** | Quote `gate-status.json`; never retype |
+| **.7.10** | 🔴 **INDEPENDENT re-verification of everything built in .7** | ⛔ **Fixes are changes and changes are unaudited** — and .9.2 measured that a fix aimed at a wrong mechanism looks identical to one that worked. Not by the builder |
+
+**Exit (P6.8.9):** all 33 findings pass **pinned** — each with a test that would fail on its original
+defect, or an explicit device row saying why no test can reach it; the three gate holes are closed and
+mutation-verified; the four P1 majors carry 🎯's answer; and `lint:closure` is clean **for a reason, not by
+construction**.
 
 ⛔ **DO NOT EDIT SOURCE WHILE `validate:release:rn` IS RUNNING.** The record is written at the END and
 fingerprints the tree *then*, so a mid-run edit records a green over code the suites never saw — [D49]'s
@@ -115,7 +137,7 @@ separately gated ([D46]). Full reasoning → log, *"THE ORDER TO SUBMISSION"*.
 
 | # | Step | State |
 |---|---|---|
-| ✅ | **P6.8.1–.6** the matrix, the surface census, **13 lenses**, **6 refuters**, the synthesis file, the structural-gap list | DONE 2026-08-21 — 226 frames · 9 a11y trees. [`audits/2026-08-21-p6.8-finish/SYNTHESIS.md`](audits/2026-08-21-p6.8-finish/SYNTHESIS.md) is the decision document. ⛔ **33 of 34 observations survived; 11 of 34 mechanisms were wrong** |
+| ✅ | **P6.8.1–.6** the matrix, the surface census, **13 lenses**, **6 refuters**, the synthesis file, the structural-gap list | DONE 2026-08-21 — ⚠️ **"226 frames" was WRONG and is corrected here**: 4 recipes had never produced a frame, so the lenses read 226 of an owed 230, with **no frame of the Log-a-payment sheet at all**. Re-shot complete at .9.1 (**232**) · 9 a11y trees. [`audits/2026-08-21-p6.8-finish/SYNTHESIS.md`](audits/2026-08-21-p6.8-finish/SYNTHESIS.md) is the decision document. ⛔ **33 of 34 observations survived; 11 of 34 mechanisms were wrong** |
 | ✅ | **P6.8.7 CLOSED 2026-08-24** — build everything except the refuted | All clusters **a–g** done, sequenced so the GUARDS landed first. Detail → log |
 | ✅ | **P6.8.8 DONE 2026-08-24** — the gate is green and pushed | Quoted from the record: **250 e2e · 10 embed · 663 source files**, zero `error-context.md`. CI run `32742084595` **success** |
 | **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS — BUILDING NOW** | *(decomposed at the top of this file)*. **27 filed items + 4 undecided P1 majors.** ⛔ Step 1 is re-shooting the matrix, not reading it |
@@ -394,6 +416,37 @@ hotspot)* and Dynamic-Type device QA.
 
 ⛔ **Grouped by WHERE IT LANDS, because that is how it gets read.** The `(x.y)` tag is the item whose scan
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
+
+### → P6.8.9.5 — surfaced by the .9.1 re-shoot and the .9.2 verification *(2026-08-24)*
+
+- 🔴 **`/history`'s default frame IS its empty frame** — same defect as `/living-expenses`, not fixed with
+  it: rows come through `selectHistoryRows` off cycle records, so it needs a real fixture. **The populated
+  Pay Cycle History design has never been photographed.** *(.9.1)*
+- ⚠️ **A1-9, two residuals in neither the log nor the slice:** the free-tier read announces on web and not
+  iOS (`verdictLine` is null when `!isPremium`), and the `applied`/`saved` states return before the wrapper
+  and announce on **neither** platform. *(.9.2, f-a11y)*
+- ⚠️ **A1-8 — three of four badges are held only by the type system**, one is test-pinned. Decide whether the
+  type is the pin. *(.9.2, f-a11y)*
+- ⚠️ **V3-5 is unpinnable as written** — the scale expression is inline rather than an exported function, and
+  the `lint:type-scale` floor (30 pt) is far above the 11 pt pill. Extract it, or accept a device row. *(.9.2)*
+- ⚠️ **`lint:type-scale`'s 28 pt exemption re-verified clean** by an independent read (five `title1`
+  consumers, all prose headings, none a figure) — no action, recorded so it is not re-litigated. *(.9.2)*
+- ⚠️ **`TrajectoryChart.tsx:603`'s end-pill ink is a TOKEN-ADOPTION question, deliberately not taken as a
+  contrast fix** — it measures 9.95:1 dark / 6.44:1 light and clears AA on both. `surface.goldPillInk`
+  pairs with `surface.goldPill` while the component paints its own `gold`, so adopting the ink alone
+  half-adopts a pair and adopting both changes a **shipped light colour with no device to look at**.
+  Exempted in `lint:contrast` with the measurement. *(.7.1)*
+- ⚠️ **Siri `phrases:` are exempt from the apostrophe sweep and that is a standing rule, not an oversight** —
+  they are matched against **speech**, so a typographic apostrophe is a behavioural change on a surface with
+  no device proof. If A8.4's device pass ever covers Siri, re-open it there. *(.7.1)*
+- 🔴 **THE MATRIX CAN PHOTOGRAPH A LOADING SKELETON AND IT DOES NOT LOOK LIKE ONE.** Two workers, a
+  1,800 ms shutter: under contention `ChartSkeleton` renders with **correct-looking labels over it**, and
+  10/10 frames of BOTH portfolios came back blank when four browsers competed. **The 226-frame audit set
+  was shot the same way, so any lens finding about the Progress or cash-flow charts may have been read off
+  a loading state.** Decide whether the matrix needs `workers: 1` or a Skia-settled `ready` guard. *(.9.1)*
+- ⛔ **Ask of every gate in this repo whether it PREVENTS or merely DESCRIBES.** The matrix printed four
+  `⛔ UNREACHED` lines every run for the whole audit and nothing read them; `lint:closure` counts ledger
+  mentions and cannot see an unpinned fix. **Both were reported as evidence of completeness.** *(.9.1)*
 
 ### → P6.8.9 — the verification pass
 

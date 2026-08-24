@@ -129,8 +129,20 @@ surfaces ship on unit assertions with **no rendered proof**) · 44 baselined han
 `formatDisplayAmount` · `projectForecast` · `buildSmartInsights` all have live ROOT-tree consumers, so they
 must be deleted **with** that tree or P6.11 leaves four unreachable modules behind.
 
+⛔ **P6.8.9 IS ACTIVE AND 🎯 HAS RULED ON IT (2026-08-24):** *"These findings all need to pass pinned. Approve
+it all to go in 2.0."* .9.1 (re-shoot) and .9.2 (verification) are CLOSED; **P6.8.9.7 is the pinning build**,
+decomposed on the plan. **33 ids verified by 7 independent agents, none told what was built: `CLOSED` 11 ·
+`CLOSED-UNPINNED` 10 · `PARTIAL` 11 · `WRONG-REMEDY` 1 · `OPEN` 0 · `NOT-A-DEFECT` 0.** ⚡ **Zero OPEN is the
+headline** — every observation was real and every remedy aimed at something true; **the whole residue is
+"what else the site was doing" and "does anything stop it un-fixing."** ⛔ **`lint:closure` is blind to both
+— it counts ledger mentions, so it can read clean with 21 of 33 unpinned or partial.**
+→ [`docs/audits/2026-08-24-p6.8.9-verification/`](docs/audits/2026-08-24-p6.8.9-verification/)
+
 ⭐ **P6.8.7's BUILD — a–e are CLOSED (2026-08-23); f is active, g follows.** ⭐ **P6.8's audit half is CLOSED**: 13 lenses, 6
-adversarial refuters, 226 frames, 9 a11y trees, all in
+adversarial refuters, ⚠️ **226 frames — and that number was WRONG**: four recipes had never produced a frame
+at all, so the lenses read 226 of an owed 230 with **no frame of the Log-a-payment sheet**. The matrix
+printed `⛔ UNREACHED` every run and nobody read it; re-shot complete at .9.1 (**232**), and it now fails
+soft. 9 a11y trees, all in
 [`docs/audits/2026-08-21-p6.8-finish/`](docs/audits/2026-08-21-p6.8-finish/). ⚠️ **Read `SYNTHESIS.md`
 FIRST** — it is the decision document and carries the ranked verdict, a recommendation on all ten scope
 calls, and a **do-not-build list**. ✅ P6.1 · P6.2 · P6.3 · P6.4 · P6.6 · P6.7 · R4 closed.

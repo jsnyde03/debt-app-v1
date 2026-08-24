@@ -79,7 +79,7 @@ struct LogPaymentIntent: AppIntent {
             return .result(dialog: "Logging a payment by voice is a Premium feature — open Debt Planner to unlock it.")
         }
         guard amount > 0 else {
-            return .result(dialog: "That amount doesn't look right — try again.")
+            return .result(dialog: "That amount doesn’t look right — try again.")
         }
         // A Siri intent can't touch the JS/MMKV store, so queue it for the app to apply on next
         // foreground (drains via `logManualPayment`, with Undo).

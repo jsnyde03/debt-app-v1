@@ -311,6 +311,70 @@ for (const file of files) {
 }
 
 /**
+ * ⛔ **LITERAL INK — the class this file was blindest to, and it had two live AA failures behind it.**
+ *
+ * Found by the P6.8.9.2 verification, 2026-08-24. Everything above reasons about TOKENS: the grid is keyed
+ * on `background.*`, `EXTRA_PAIRS` names token-on-token pairs, and the literal-equals-a-token check is
+ * scoped to `text.*`/`accent.*` with `#ffffff` and `#000000` deliberately excluded as primitives. **A
+ * hardcoded white painted on a semantic accent fill slips through all three at once**, and two did:
+ *
+ *   `ListRow.tsx:205`        `#ffffff` on `accent.danger`   — light 5.79:1 ✅  **dark 2.69:1 ⛔**
+ *   `SpokenForSheet.tsx:166`  `#fff`    on `accent.primary`  — light 5.80:1 ✅  **dark 2.72:1 ⛔**
+ *
+ * ⚡ **The mechanism is not "a literal equals a token" — it is that the token it stands in for FLIPS.**
+ * `text.onAccent` is `#ffffff` in light and `#08111f` in dark, so the literal is *correct in light and
+ * wrong in dark*, which is why it survived review and why a light-only reading of either file finds nothing.
+ * With the token: **7.03:1 and 6.95:1** in dark.
+ *
+ * ⚠️ **THREE things the enumeration caught that the finding did not.** The finding named `#ffffff`;
+ * `SpokenForSheet` writes **`#fff`**, so a six-digit match misses it entirely. It named two sites; there are
+ * **three**. And the third — `TrajectoryChart.tsx:603`'s end pill, `#10264f` on the gold pill — is
+ * **9.95:1 and NOT a contrast defect at all.** It is a hand-rolled ink where `surface.goldPillInk` exists
+ * for exactly that job, which is the *drift* hazard rather than the *contrast* one. ⛔ Writing this gate's
+ * definition is what separated them; the finding's list would have had one site fixed for the wrong reason.
+ *
+ * ⚠️ Scoped to `color:` — the INK. `backgroundColor` literals are a different question and are not this
+ * gate's, because a fill has no floor of its own until something is painted on it.
+ */
+const INK_LITERAL = /\bcolor:\s*'(#[0-9a-fA-F]{3,8}|white|black)'/g;
+
+/**
+ * An exemption here is a claim that a literal ink is CORRECT, and it has to say against what — with the
+ * measured number, in both schemes. ⛔ Keyed on the **literal**, not the file: a file-wide exemption would
+ * silently cover the next literal somebody adds to it, which is how an exemption stops being a claim.
+ */
+const INK_EXEMPT: readonly { file: string; literal: string; why: string }[] = [
+  {
+    file: 'components/payoff/TrajectoryChart.tsx',
+    literal: '#10264f',
+    why:
+      "the debt-free end pill, and it CLEARS AA in both schemes — measured 9.95:1 on the dark gold (#f7cf5f) " +
+      'and 6.44:1 on the light (#dca01f). ⚠️ It is a DRIFT hazard, not a contrast one, and the fix is not the ' +
+      'obvious one: `surface.goldPillInk` exists for this job but pairs with `surface.goldPill`, while this ' +
+      "component paints its own `gold` (`dark ? '#f7cf5f' : '#dca01f'`, line 307) — so adopting the ink alone " +
+      'would half-adopt a pair, and adopting both changes a SHIPPED light-theme colour with no device to ' +
+      'look at. Filed as a token-adoption question, deliberately not taken as a contrast fix.',
+  },
+];
+
+for (const file of files) {
+  const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
+  if (rel.endsWith('theme/colors.ts')) continue;
+  readFileSync(file, 'utf8')
+    .split('\n')
+    .forEach((line, i) => {
+      for (const m of withoutGradients(line).matchAll(INK_LITERAL)) {
+        if (INK_EXEMPT.some((e) => rel.endsWith(e.file) && e.literal.toLowerCase() === m[1].toLowerCase())) continue;
+        failures.push(
+          `${rel}:${i + 1} paints ink as the literal '${m[1]}' — a literal cannot flip with the theme, so ` +
+            'it is right in one scheme and unchecked in the other. Use a token (`text.onAccent` for an ' +
+            'accent fill), or declare an INK_EXEMPT entry saying what ground makes it correct',
+        );
+      }
+    });
+}
+
+/**
  * SC 1.4.11 on the CONTROL BOUNDARY. `border.control` is the token a field, a select, a radio, the segmented
  * thumb and the secondary button outline themselves with, and RN strokes it INSIDE the box — so the rendered
  * pixel is the token composited over the control's own fill, judged against the ground outside it.

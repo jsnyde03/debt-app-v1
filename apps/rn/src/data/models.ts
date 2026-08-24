@@ -247,7 +247,12 @@ export interface DataRepair {
    * It shares this channel because the user's question is identical in both cases (*"what could the app
    * not read?"*), and two cards competing for one ack slot would answer it twice.
    */
-  entity: 'debt' | 'requiredExpense' | 'livingExpense' | 'migration';
+  /**
+   * ⛔ `goal` added at P6.8.9.7.2 [B1]. It was absent because goals were never repaired at all — and the
+   * union having no member for them is the cleanest proof that the omission was structural rather than a
+   * dropped line. `mapLegacyStore` carries `goals: 'goals'` straight across from v1.6.
+   */
+  entity: 'debt' | 'requiredExpense' | 'livingExpense' | 'goal' | 'migration';
   id: string;
   name: string;
   field: string;

@@ -154,6 +154,26 @@ export function runMigrations(raw: unknown): DebtStore {
   });
   const requiredExpenses = repairMoneyFields(r.requiredExpenses, base.requiredExpenses, ['amount'], 'requiredExpense', repairs);
   const livingExpenses = repairMoneyFields(r.livingExpenses, base.livingExpenses, ['amount'], 'livingExpense', repairs);
+  /**
+   * ⛔ **GOALS WERE NEVER REPAIRED — B1's other half, found by the P6.8.9.2 verification.** Debts, required
+   * expenses and living expenses all ran through `repairMoneyFields`; goals fell through `...r` untouched,
+   * and `mapLegacyStore.ts:76` carries `goals: 'goals'` **straight across from v1.6**. So the one class of
+   * blob that cannot be fixed by reinstalling — an existing user's stored data — was the class with no
+   * repair.
+   *
+   * ⚠️ **`priorityPerPaycheck` is why this is a money defect and not a display one.** Its own type doc:
+   * *"Absent → no cap (funds as fast as spare allows)."* An unreadable value serialises to `null`, `null`
+   * is not `undefined`, and every `??` reader treats it as absent — so a corrupt pace does not show a
+   * wrong number, it **removes the cap the user signed off on** and funds the goal ahead of debt at full
+   * speed. `targetAmount` and `currentAmount` are the ordinary display half.
+   */
+  const goals = repairMoneyFields(
+    r.goals,
+    base.goals,
+    ['targetAmount', 'currentAmount', 'priorityPerPaycheck'],
+    'goal',
+    repairs,
+  );
   // v7 (5.6) — DROP two inert prefs. Both were measured at zero production reads, and the merge below
   // would otherwise carry them forward forever: `{ ...base.prefs, ...r.prefs }` preserves any extra key
   // an older blob happens to hold, so deleting them from the TYPE alone would leave them in the data.
@@ -169,6 +189,7 @@ export function runMigrations(raw: unknown): DebtStore {
     debts,
     requiredExpenses,
     livingExpenses,
+    goals,
     paycheck,
     prefs: { ...base.prefs, ...incomingPrefs, onboardingComplete: inferOnboarding(r, incomingPrefs, paycheck) },
     // ⚠️ REPLACED, not merged with whatever the blob carried. This describes what THIS read had to

@@ -154,7 +154,7 @@ export function ListRow({
     if (ok) onDelete();
     else swipeRef.current?.close(); // cancelled → snap the row back
   };
-  const renderRightActions = () => <SwipeDeleteAction title={title} onPress={handleDelete} fill={c.accent.danger} />;
+  const renderRightActions = () => <SwipeDeleteAction title={title} onPress={handleDelete} fill={c.accent.danger} ink={c.text.onAccent} />;
 
   // iOS long-press → native context menu (3.5.2): Edit (if the row is tappable) + a destructive Delete.
   // A discoverable alternative to the hidden swipe; tap + swipe stay untouched. Passthrough off-iOS.
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   // Clip the revealed action to the row's rounded shape so the red panel doesn't peek past the corners.
   swipeContainer: { borderRadius: layout.cardRadius, overflow: 'hidden' },
   deleteAction: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
-  deleteText: { color: '#ffffff', fontWeight: '700', fontSize: 15 },
+  deleteText: { fontWeight: '700', fontSize: 15 }, // colour is a PROP — see `SwipeDeleteAction`
 });
 
 /**
@@ -231,7 +231,24 @@ const styles = StyleSheet.create({
  * The intent is narrow and worth stating exactly: invisible to assistive technology, fully operable by the
  * finger that revealed it, and not a tab stop.
  */
-function SwipeDeleteAction({ title, onPress, fill }: { title: string; onPress: () => void; fill: string }) {
+function SwipeDeleteAction({
+  title,
+  onPress,
+  fill,
+  ink,
+}: {
+  title: string;
+  onPress: () => void;
+  fill: string;
+  /**
+   * ⛔ A PROP, not a literal, and the reason is the theme. This was `#ffffff` in the stylesheet — **5.79:1
+   * in light and 2.69:1 in dark**, because `accent.danger` lightens to `#fb7185` there while a literal
+   * cannot follow. `text.onAccent` flips to `#08111f` and reads **7.03:1**. Caught by `lint:contrast`'s
+   * literal-ink check (P6.8.9.7.1); the grid could not see it because the ground is an accent, not a
+   * `background.*`.
+   */
+  ink: string;
+}) {
   return (
     <Pressable
       onPress={onPress}
@@ -240,7 +257,7 @@ function SwipeDeleteAction({ title, onPress, fill }: { title: string; onPress: (
       tabIndex={-1}
       {...a11yHidden(true)}
       style={[styles.deleteAction, { backgroundColor: fill }]}>
-      <Text style={styles.deleteText}>Delete</Text>
+      <Text style={[styles.deleteText, { color: ink }]}>Delete</Text>
     </Pressable>
   );
 }

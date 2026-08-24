@@ -170,6 +170,71 @@ if (process.argv.includes('--baseline')) {
   process.exit(0);
 }
 
+/**
+ * ⛔ **SWIFT — THE HALF OF THE CLASS THIS GATE COULD NOT SEE.** Added P6.8.9.7.1, after the verification
+ * pass measured L1-22 `PARTIAL`: `ROOTS` is `packages/core` + `apps/rn/src`, both TypeScript, so
+ * **7 user-facing straight apostrophes shipped in Swift** — 6 of them spoken by Siri — while the gate
+ * reported the class absolutely closed at 0.
+ *
+ * ⚠️ **A SEPARATE SCAN, not another `ROOTS` entry**, and that is forced rather than stylistic: everything
+ * above walks the TypeScript AST, which cannot parse Swift. Extending `ROOTS` would have silently walked
+ * zero Swift files and gone on reporting green — the same shape of blindness, one layer down.
+ *
+ * ⚠️ `ios/App/` is deliberately OUT: it is the legacy Capacitor tree P6.11 deletes, and L1-16 already cost
+ * this repo ~20 string rewrites on a surface that was about to be removed.
+ */
+const SWIFT_ROOTS = [
+  join(REPO_ROOT, 'apps', 'rn', 'plugins'),
+  join(REPO_ROOT, 'apps', 'rn', 'targets'),
+  join(REPO_ROOT, 'apps', 'rn', 'modules'),
+];
+
+/**
+ * ⛔ **A SIRI INVOCATION PHRASE IS NOT DISPLAY COPY, AND MUST NOT BE SWEPT.** Writing the exemption is what
+ * separated these: everything in a `phrases:` array is matched against what the user *says*, so a
+ * typographic apostrophe there is a change to speech matching — unverifiable off-device, on a surface this
+ * repo has no device proof for at all. `IntentDescription` and `dialog:` ARE display copy and are swept.
+ */
+const SWIFT_EXEMPT_CONTEXT = /phrases:\s*\[/;
+
+function walkSwift(dir: string, out: string[] = []): string[] {
+  if (!existsSync(dir)) return out;
+  for (const entry of readdirSync(dir)) {
+    if (entry === 'node_modules' || entry.startsWith('.')) continue;
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) walkSwift(full, out);
+    else if (extname(full) === '.swift') out.push(full);
+  }
+  return out;
+}
+
+const swiftHits: string[] = [];
+for (const root of SWIFT_ROOTS) {
+  for (const file of walkSwift(root)) {
+    const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
+    const lines = readFileSync(file, 'utf8').split('\n');
+    let inPhrases = false;
+    lines.forEach((line, i) => {
+      if (SWIFT_EXEMPT_CONTEXT.test(line)) inPhrases = true;
+      else if (inPhrases && /\]/.test(line)) inPhrases = false;
+      if (inPhrases) return;
+      // Comments are not copy. `///` doc comments quote the very phrases this scan is about.
+      const code = line.replace(/\/\/.*$/, '');
+      for (const lit of code.match(/"(?:[^"\\]|\\.)*"/g) ?? []) {
+        if (CONTRACTION.test(lit)) swiftHits.push(`${rel}:${i + 1}  ${lit.trim().slice(0, 100)}`);
+      }
+    });
+  }
+}
+
+if (swiftHits.length > 0) {
+  console.error(`\n❌ apostrophes (Swift): ${swiftHits.length} straight-apostrophe string(s) in shipped native copy.\n`);
+  swiftHits.forEach((h) => console.error(`  ${h}`));
+  console.error("\n  Use the typographic apostrophe ’ (U+2019). Swift has NO baseline — this half of the");
+  console.error('  class was invisible until P6.8.9, so it starts at zero and stays there.\n');
+  process.exit(1);
+}
+
 if (!existsSync(BASELINE)) {
   console.error('\n❌ apostrophes: no baseline. Run `tsx scripts/check-apostrophes.ts --baseline`.\n');
   process.exit(1);

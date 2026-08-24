@@ -41,9 +41,9 @@ struct DebtFreeDateIntent: AppIntent {
         // `.swift` file, and a silent mismatch here does not crash — Siri just stops recognising the
         // debt-free state and reads "on track to be debt-free by Debt-free" instead.
         if snap.debtFreeDate == "Debt-free" {
-            return .result(dialog: "You're debt-free — nicely done.")
+            return .result(dialog: "You’re debt-free — nicely done.")
         }
-        return .result(dialog: "You're on track to be debt-free by \(snap.debtFreeDate).")
+        return .result(dialog: "You’re on track to be debt-free by \(snap.debtFreeDate).")
     }
 }
 
@@ -57,7 +57,7 @@ struct RemainingDebtIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let snap = DebtSnapshotRead.load()
         if !snap.hasData {
-            return .result(dialog: "You don't have any debts in Debt Planner yet.")
+            return .result(dialog: "You don’t have any debts in Debt Planner yet.")
         }
         return .result(dialog: "You have \(snap.remaining) in debt remaining.")
     }
@@ -67,7 +67,7 @@ struct RemainingDebtIntent: AppIntent {
 @available(iOS 16.0, *)
 struct PaycheckCheckIntent: AppIntent {
     static var title: LocalizedStringResource = "Check this paycheck"
-    static var description = IntentDescription("Hear the Payday Guardian's read for this paycheck.")
+    static var description = IntentDescription("Hear the Payday Guardian’s read for this paycheck.")
     static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult & ProvidesDialog {

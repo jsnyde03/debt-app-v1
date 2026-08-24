@@ -9,10 +9,17 @@ import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
 
+/**
+ * ⚠️ The `Record` is EXHAUSTIVE on purpose, and it earned that at P6.8.9.7.2: adding `goal` to
+ * `DataRepair['entity']` failed the build right here. An index signature would have shipped a repair the
+ * user reads as *"Your item list — targetAmount"*, via the `?? 'item'` fallback below, and nothing would
+ * have said so. The compiler is the gate for this class.
+ */
 const ENTITY_NOUN: Record<Exclude<DataRepair['entity'], 'migration'>, string> = {
   debt: 'debt',
   requiredExpense: 'bill',
   livingExpense: 'expense',
+  goal: 'savings goal',
 };
 
 /** "Chase card — balance", the whole-list case, or a migration loss, which is already a sentence. */

@@ -367,6 +367,44 @@ async function run() {
     eq(fwd.someFutureField, 42, 'unknown field → passed through (forward-compat)');
   }
 
+  // ── [B1 · P6.8.9.7.2] GOALS ARE REPAIRED — they were the one list that never was ──
+  //
+  // ⛔ Debts, required expenses and living expenses all ran through `repairMoneyFields`; goals fell through
+  // the `...r` spread untouched, and `mapLegacyStore.ts:76` carries `goals: 'goals'` straight from v1.6 —
+  // so the only blobs that cannot be fixed by reinstalling were the ones with no repair.
+  //
+  // ⚠️ `priorityPerPaycheck` is the assert that matters, and it is NOT a display concern. Its type doc says
+  // *"Absent → no cap (funds as fast as spare allows)"*, and an unreadable value serialises to `null`,
+  // which every `??` reader treats as absent. A corrupt pace therefore REMOVES the cap the user signed off
+  // on and funds the goal ahead of debt at full speed.
+  {
+    const g = runMigrations({
+      goals: [
+        { id: 'g0', name: 'Roof', type: 'savings', targetAmount: '4,000', currentAmount: null, priority: true, priorityPerPaycheck: 'Infinity' },
+      ],
+    } as unknown);
+    // ⛔ **THE LOAD-BEARING ASSERTS COME FIRST, DELIBERATELY.** This runner is throw-based and stops at the
+    // first failure, so an assertion ordered behind another is only ever proven by that other one — and the
+    // first plant of this block proved only the `targetAmount` line while the pace asserts never ran.
+    assert(
+      g.goals[0].priorityPerPaycheck === 0 || Number.isFinite(g.goals[0].priorityPerPaycheck ?? NaN),
+      'goal repair → an infinite pace is never left as a non-finite cap',
+    );
+    assert(
+      g.goals[0].priorityPerPaycheck !== undefined,
+      'goal repair → a corrupt pace does NOT become undefined, which readers treat as "no cap"',
+    );
+    eq(g.goals.length, 1, 'goal repair → the goal survives');
+    eq(g.goals[0].targetAmount, 4000, 'goal repair → a grouped targetAmount is read, not dropped');
+    eq(g.goals[0].currentAmount, 0, 'goal repair → an unreadable currentAmount becomes 0');
+    // And the repair is REPORTED, not silently applied — the user is owed the list.
+    assert(
+      runMigrations({ goals: [{ id: 'g0', name: 'Roof', type: 'savings', targetAmount: 'abc' }] } as unknown)
+        .pendingDataRepairs.some((r) => r.entity === 'goal'),
+      'goal repair → surfaces as a `goal` DataRepair rather than being applied silently',
+    );
+  }
+
   console.log(`✅ Persistence-lifecycle (RS.5) tests passed (${passed} asserts).`);
 }
 

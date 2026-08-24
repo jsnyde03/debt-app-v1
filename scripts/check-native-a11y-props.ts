@@ -107,6 +107,49 @@ for (const root of ROOTS) {
   }
 }
 
+/**
+ * ⛔ **THE OPPOSITE ASYMMETRY, AND IT IS NOT A `BANNED` ENTRY.** Added at P6.8.9.7.1 after the verification
+ * pass found A1-10 `PARTIAL`: the cross-platform primitive was built and correct, and **the finding's own
+ * quoted line was never converted** (`SaveFailedBanner.tsx:31`, one commit `fb9a821`, pre-dating cluster f).
+ *
+ * ⚠️ **`accessibilityLiveRegion` deliberately does NOT go in `BANNED`, and putting it there would assert
+ * something false.** `BANNED` means *RNW drops this prop*. Measured against the source of truth this file
+ * names — `forwardedProps/index.js` and `createDOMProps/index.js` — RNW **does** forward it, to `aria-live`.
+ * It works on web. **It does nothing on iOS**, where an announcement needs `announceForAccessibility`.
+ *
+ * So the rule is ownership, not forwarding: `useLiveAnnouncement` (`utils/a11y.ts:166`) does BOTH halves and
+ * is the only correct spelling. A bare live region is silence on the phone the app ships on.
+ * ⚡ The primitive's own docstring called this shot: *"'We have a check for this class' is what would let it
+ * ship."* It shipped anyway, because the class had a helper and no gate.
+ */
+const OWNED = [
+  {
+    prop: 'accessibilityLiveRegion',
+    owner: 'useLiveAnnouncement (@/utils/a11y)',
+    why: 'RNW forwards it to aria-live, so web is fine and iOS is SILENT — announceForAccessibility is the other half',
+    ownerFile: 'apps/rn/src/utils/a11y.ts',
+  },
+] as const;
+
+for (const root of ROOTS) {
+  for (const file of walk(root)) {
+    // Same `rel` spelling as the loop above — forward slashes, so `ownerFile` reads alike on Windows and CI.
+    const rel = relative(REPO_ROOT, file).split(sep).join('/');
+    const src = readFileSync(file, 'utf8');
+    const raw = src.split('\n');
+    stripComments(src)
+      .split('\n')
+      .forEach((line, i) => {
+        for (const o of OWNED) {
+          if (rel === o.ownerFile) continue;
+          if (new RegExp(`\\b${o.prop}\\b`).test(line)) {
+            hits.push(`${rel}:${i + 1}: ${o.prop} written by hand — ${o.why}. Use ${o.owner}. — ${raw[i]?.trim() ?? ''}`);
+          }
+        }
+      });
+  }
+}
+
 if (hits.length > 0) {
   console.error('\n❌ Native-only a11y props found (dropped silently by react-native-web):\n');
   hits.forEach((h) => console.error(`  ${h}`));
@@ -115,4 +158,10 @@ if (hits.length > 0) {
   console.error('it per-prop in EXEMPT with the reason — do not exempt the whole file.\n');
   process.exit(1);
 }
-console.log(`✅ native a11y props: ${BANNED.length} guarded, none outside the declared exemptions.`);
+// ⚠️ Counts BOTH lists. It said `BANNED.length` when `OWNED` was added, which undercounts what the gate
+// actually guards — and a completeness figure that omits part of its own coverage is precisely the defect
+// P6.8.9.1 found in the shot matrix ("226 frames", four of which never existed).
+console.log(
+  `✅ native a11y props: ${BANNED.length} dropped-by-RNW + ${OWNED.length} owned-by-a-helper guarded, ` +
+    'none outside the declared exemptions.',
+);

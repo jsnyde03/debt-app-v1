@@ -572,9 +572,33 @@ Premium** → **"See it in action"**.
       is a real defect, not a stale instruction.)_
 
 ### §12.7 — the opt-out control
-- [x] `[M]` **§12.7.1** ••• More → Preferences → **"Share anonymous usage"** is present, ON by default, and toggling it
-      persists across a force-quit. (Nothing is transmitted in this build either way — there is no sink
-      attached. This is confirming the control exists and sticks.) `✅gate`
+- [x] `[M]` **§12.7.1** ⛔ **REWRITTEN 2026-08-24 [M1-8 · P6.8.9.7.2] — the old row was FALSE.** It read
+      *"'Share anonymous usage' is present, ON by default"*. **Cluster b DELETED that control**, because
+      nothing was ever transmitted — there is no sink attached — so a toggle promising an opt-out from
+      analytics that do not exist was the dishonest half.
+      **The assertion is now the ABSENCE:** ••• More → Preferences carries **no** "Share anonymous usage"
+      row and no analytics/telemetry toggle of any name.
+      _(⚠️ The row survived cluster b, a 13-lens sweep and six refuters as an instruction to verify a
+      **deleted** control, in the file this plan calls "the runnable truth" for P6.14. A stale checklist row
+      is worse than a missing one: it sends a human looking for something and reads as a defect when they
+      cannot find it.)_
+      _(⚠️ **Still `[x] ✅gate`, and unticking it was my own error** — caught by `lint:coverage`, which reds
+      on a `✅gate` row with an empty box. The TEXT was wrong; the tick never was.
+      `analytics-optout.spec.ts:26` carries `COVERS: §12.7.1` and asserts a sibling **App Lock** row before
+      the absence — the defence against an absence assertion that a blank page would satisfy.)_ `✅gate`
+
+### §12.8 — iCloud delete: the DEVICE-ONLY escape — ⚠️ NEW, and nothing off-device can reach it
+- [ ] `[M]` **§12.8.1** [C9] With iCloud **signed out**, ••• More → **Delete all data** → confirm.
+      **Nothing is deleted**, and the sheet says so: *"Nothing was deleted. Sign in to iCloud on this device
+      so the backup there can be erased too — or delete on this device only."*
+- [ ] `[M]` **§12.8.2** [C9] Same state, tap **"Delete on this device only"**. The local plan IS wiped, the
+      app returns to onboarding, and `cloudBackupEnabled` comes back **off** (`reset()` → `createDefaultStore()`).
+- [ ] `[M]` **§12.8.3** [C9] Sign back into iCloud and relaunch. The surviving backup **is** offered for
+      restore. ⚠️ **This is CORRECT, not a defect** — the user was told in §12.8.1's copy that the backup
+      would survive, and the offer is how they get it back.
+      _(⛔ `CLOUD_BACKUP_SUPPORTED` is false on web, so `more.tsx:127`'s whole branch is unreachable by every
+      test in this repo — deleting it outright leaves the suite green. These three rows are the only thing
+      that can see it, which is why C9 ships `CLOSED-UNPINNED` with a device row rather than a fake pin.)_
 
 ---
 

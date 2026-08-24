@@ -97,7 +97,7 @@ export function SpokenForSheet({
             accessibilityRole="button"
             accessibilityLabel={`Set by ${formatCurrency(offer.offer)} for upcoming expenses`}
             style={[styles.cta, { backgroundColor: c.accent.primary }]}>
-            <Text style={[textStyles.body, styles.ctaText]}>Set by {formatCurrency(offer.offer)}</Text>
+            <Text style={[textStyles.body, styles.ctaText, { color: c.text.onAccent }]}>Set by {formatCurrency(offer.offer)}</Text>
           </Pressable>
           {/* Never required: the plan is correct at every contribution level, including none. */}
           <Text style={[textStyles.caption, styles.optional, { color: c.text.tertiary }]}>Optional — your plan works either way.</Text>
@@ -163,7 +163,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   offer: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, padding: spacing.md, gap: spacing.sm, marginTop: spacing.xs },
   cta: { borderRadius: 12, paddingVertical: spacing.sm, alignItems: 'center' },
-  ctaText: { color: '#fff', fontWeight: '700' },
+  // ⛔ Colour is applied inline from `text.onAccent` — it was `'#fff'`, which is 5.80:1 in light and **2.72:1 in dark** on `accent.primary`. A literal cannot flip with the theme.
+  ctaText: { fontWeight: '700' },
   optional: { textAlign: 'center' },
   undo: { paddingVertical: spacing.sm, alignItems: 'center' },
 });
