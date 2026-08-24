@@ -17957,3 +17957,109 @@ one that matters — it advances every due date, so the error compounds every cy
   command failed and the check never ran.
 - **Verify a plant LANDED and landed where intended.** One insert targeted the first of seven matching
   lines and silently instrumented the wrong test.
+
+---
+
+## P6.8.7f.1 — CONTRAST (2026-08-23)
+
+**B6/V1-2 and V1-5, and both of them turned out to be one defect with two symptoms:** the light tokens were
+solved against `#ffffff` while the app also paints text on `#e6ebf3` and `#dce4f0`, and `colors.ts` said so
+itself in its own annotations — *"amber-700 light >=4.5:1 on white"*, *"4.66 (light card)"*. Every one of
+those sentences was true, and none of them described the screen.
+
+### The instrument came first, and it is the exit condition
+
+`scripts/check-contrast.ts` → `npm run lint:contrast`, wired into `lint:rn`. It implements the WCAG
+luminance/contrast maths from the spec, resolves the token tree, and holds every foreground x every ground
+to AA 4.5, the control boundary to SC 1.4.11's 3:1, and each exemption to a stated mechanism.
+
+**It reproduced the refuter's arithmetic cell for cell before a single token moved** — 2.63 floor, 4.25 /
+3.89 / 4.17 / 3.37 / 2.81 / 2.84 / 4.03 / 3.92 / 3.77. That agreement is what made it safe to solve against.
+
+Two design decisions inside it are worth keeping:
+
+- **An exemption carries a mechanism, and `never-text` is VERIFIED from source every run.** `accent.brand`
+  is a CTA fill; if anyone paints it as ink, the run that makes the exemption false is the run that fails.
+  A declared exemption nobody re-checks is how a grid stops describing the app.
+- **A grid cell is not a rendered pair.** The quoted floor of 2.63 belongs to a combination nothing paints,
+  and saying so in the file is what stops the next reader treating the grid as a census.
+
+### The token solve
+
+Light only. Dark cleared AA on every cell before any of this and was not touched.
+
+| token | was | now | worst light ground |
+|---|---|---|---|
+| `text.secondary` | `#5a6b82` | **`#445163`** | 6.30 |
+| `text.tertiary` | `#68758b` | **`#5b667a`** | 4.52 |
+| `accent.primary` | `#2f66ea` | **`#2b5dd4`** | 4.53 |
+| `accent.success` | `#12a150` | **`#0d753a`** | 4.53 |
+| `accent.warning` | `#b45309` | **`#a44c08`** | 4.51 |
+| `accent.danger` | `#dc2626` | **`#c52222`** | 4.52 |
+| `accent.gold` | `#b7791f` | **`#b0751e`** | 3.03 *(non-text, 1.4.11)* |
+
+⚡ **`text.secondary` is deliberately past its floor and that is not padding.** Solved to the bare minimum,
+secondary and tertiary land within 0.02 of each other on `background.tertiary` — both legal, and the
+three-step ramp the tokens exist to express has silently stopped existing. **Arithmetic alone would have
+shipped a correct, unusable hierarchy.**
+
+### `border.control` — V1-5, re-framed as the refuter framed it
+
+The refutation's correction was that this is not a theme-parity defect: by SC 1.4.11 *all four* boundaries
+fail, dark included. So the fix is not "make light match dark", it is a token that clears 3:1 in both —
+`border.control`, light `rgba(16,38,84,0.58)` / dark `rgba(255,255,255,0.40)`, on 23 sites.
+
+⛔ **`subtle` / `default` / `strong` are deliberately NOT held to the floor.** They are decoration — a
+divider, a card edge, an underline — and holding a divider to 3:1 draws a line the design does not want.
+The split is the whole point: 1.4.11 governs what identifies a *component*, and treating every hairline as
+one turns a real criterion into a rubber stamp.
+
+**The binding case looked like a non-case.** My first check compared the border against the screen ground
+and passed at alpha 0.30. A field on a CARD has the card's own colour as its fill — so the border is not
+the best edge available, it is the only thing that exists, and dark failed at 0.30, 0.36 and 0.40 until the
+check looked at every ground rather than the one I pictured. **The ground I did not picture was the ground
+the control is usually on.**
+
+### Four defects that only the building found
+
+1. ⭐ **`accent.primary` on `accent.accentSoft` was 4.30:1 in light** — the Guardian's sandbox chip. **No
+   lens reported it and none could have:** every grid in the audit was keyed on `background.*`, and a fill
+   that is a ground is invisible to that shape. The gate now carries a small list of pairs whose ground is
+   not a background — including **the hero panel**, which carries the payday number, the ring percentage
+   and the paid-off moment and had been checked by nothing. *(It passes: 7.66 and above.)*
+2. ⭐ **`CashFlowSection.tsx` had typed the token hexes as literals** — `#dc2626`, `#b45309`, `#5a6b82` as
+   *label text colours*. A token gate cannot see a copy. **After the solve, that file would have gone on
+   rendering exactly the values that failed**, on a screen that passed its own audit. The labels now read
+   the tokens; the gradients stay raw, because no token describes a two-stop ramp.
+3. ⭐ **An unchecked `CheckCircle` was 1.43:1 in light and 1.90:1 in dark**, and the inactive `RadioGroup`
+   dot with it. These are shape-only state indicators — the ring is the entire control. **Neither was in
+   V1-5's two instances.** The site count is a floor, never the class; this is the seventh consecutive item
+   where that held.
+4. **`WhatIfControls`' extra-payment input is bounded only by a bottom border** — a `TextInput` the site
+   list missed because it is styled as a text underline rather than as a field.
+
+### The class, closed rather than the instance
+
+The literal-that-equals-a-token is now a gate check, scoped to `text.*` and `accent.*` — the groups whose
+values contrast work moves. `surface.*`, the backgrounds and pure white/black are excluded on purpose: a
+celebration is entitled to its own gold ramp, and a check that flags what everyone reaches for teaches
+people to skip it.
+
+⚠️ **Its first cut had the hole the defect itself lived in.** It skipped any line mentioning a gradient —
+and on `CashFlowSection` the copied label sits on the same line as the ramp it belongs to, so **the one
+line worth reading was the one line skipped.** It now blanks the array, never the line. The mutation that
+caught this is the one that put the original defect back.
+
+### Verification
+
+**Four plants, each red by NAME, each restored green:** a reverted text token · `border.control` consumed by
+nothing *(the "green arithmetic about a colour nothing paints" failure, which this repo has measured before)*
+· `accent.brand` painted as ink, breaking its own exemption · the `CashFlowSection` copy restored.
+
+`typecheck` exit 0 · `lint:rn` exit 0 *(with `lint:contrast` inside it, quoted from the run)* · `test:app`
+all passed. The full e2e suite is f.5's job.
+
+⛔ **One process note.** A mutation that sed-ed `border.control` back to `border.default` across every
+consumer was undone with `git checkout --` on six paths, which also threw away the site conversions and
+they had to be redone. **Stash a mutation that spans files; `git checkout` does not know which edits were
+the experiment.**

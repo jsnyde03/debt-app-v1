@@ -67,7 +67,7 @@ export function CheckCircle({
       // whether it was checked. The role was already right; only the state was missing.
       {...a11yChecked(checked)}
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.circle, { borderColor: checked ? fill : c.border.strong, opacity: pressed ? pressedOpacity : 1 }]}>
+      style={({ pressed }) => [styles.circle, { borderColor: checked ? fill : c.border.control, opacity: pressed ? pressedOpacity : 1 }]}>
       <Animated.View style={[StyleSheet.absoluteFill, styles.fill, fillStyle, { backgroundColor: fill }]} />
       <Animated.View style={fillStyle}>
         <AppIcon name="check" size={16} color={c.text.onAccent} />

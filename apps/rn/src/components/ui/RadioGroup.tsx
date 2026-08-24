@@ -28,7 +28,7 @@ export function RadioGroup<T extends string>({
             {...a11yChecked(active)}
             style={[
               styles.row,
-              { backgroundColor: c.background.secondary, borderColor: active ? c.accent.primary : c.border.default },
+              { backgroundColor: c.background.secondary, borderColor: active ? c.accent.primary : c.border.control },
             ]}>
             <View style={styles.rowText}>
               <Text style={[textStyles.body, { color: c.text.primary }]}>{o.label}</Text>
@@ -36,7 +36,7 @@ export function RadioGroup<T extends string>({
                 <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{o.sublabel}</Text>
               ) : null}
             </View>
-            <View style={[styles.dot, { borderColor: active ? c.accent.primary : c.border.strong }]}>
+            <View style={[styles.dot, { borderColor: active ? c.accent.primary : c.border.control }]}>
               {active ? <View style={[styles.dotFill, { backgroundColor: c.accent.primary }]} /> : null}
             </View>
           </Pressable>

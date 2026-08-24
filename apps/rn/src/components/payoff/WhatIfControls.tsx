@@ -77,7 +77,7 @@ export function WhatIfControls({
           style={[
             styles.readout,
             styles.readoutInput,
-            { color: simulating ? c.text.primary : c.text.tertiary, borderBottomColor: c.border.default },
+            { color: simulating ? c.text.primary : c.text.tertiary, borderBottomColor: c.border.control },
           ]}
         />
         <Text style={[textStyles.subhead, styles.per, { color: c.text.tertiary }]}>/mo</Text>

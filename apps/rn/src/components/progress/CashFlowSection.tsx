@@ -10,6 +10,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReduceMotion } from '@/motion';
 import type { TimelineCycle } from '@/store/payoffSelectors';
+import type { ResolvedColors } from '@/theme/colors';
 import { duration } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -21,21 +22,27 @@ type CushionStatus = TimelineCycle['cushionStatus'];
 /**
  * Cushion-bar color — green is DELIBERATELY absent (it means progress elsewhere on this screen).
  * Comfortable cycles recede to a calm slate; only the cycles you must plan for carry color + glow.
+ *
+ * ⛔ The gradient and the glow are raw because they are DECORATION and no token describes a two-stop ramp.
+ * The label is not: it is text, it is read, and it takes the semantic token. It was previously typed here as
+ * the same hex the token held — a second copy that `lint:contrast` cannot see, so when the light tokens were
+ * solved against the darkest ground this file would have kept rendering the values that failed. A literal
+ * that happens to equal a token is the most expensive kind, because it looks correct in review.
  */
-function barTone(status: CushionStatus, dark: boolean) {
+function barTone(status: CushionStatus, dark: boolean, c: ResolvedColors) {
   if (status === 'pressure') {
     return dark
-      ? { grad: ['#fda4af', '#fb7185'] as const, glow: 'rgba(251,113,133,0.5)', label: '#fb7185' }
-      : { grad: ['#f87171', '#dc2626'] as const, glow: 'rgba(220,38,38,0.38)', label: '#dc2626' };
+      ? { grad: ['#fda4af', '#fb7185'] as const, glow: 'rgba(251,113,133,0.5)', label: c.accent.danger }
+      : { grad: ['#f87171', '#dc2626'] as const, glow: 'rgba(220,38,38,0.38)', label: c.accent.danger };
   }
   if (status === 'tight') {
     return dark
-      ? { grad: ['#fcd34d', '#f59e0b'] as const, glow: 'rgba(251,191,36,0.45)', label: '#fbbf24' }
-      : { grad: ['#f59e0b', '#d97706'] as const, glow: 'rgba(217,119,6,0.34)', label: '#b45309' }; // A11Y-3: label text ≥AA (bars stay decorative)
+      ? { grad: ['#fcd34d', '#f59e0b'] as const, glow: 'rgba(251,191,36,0.45)', label: c.accent.warning }
+      : { grad: ['#f59e0b', '#d97706'] as const, glow: 'rgba(217,119,6,0.34)', label: c.accent.warning };
   }
   return dark
-    ? { grad: ['#5b6b86', '#3f4d68'] as const, glow: null, label: '#a6b9d4' }
-    : { grad: ['#aab6c9', '#8b99b0'] as const, glow: null, label: '#5a6b82' };
+    ? { grad: ['#5b6b86', '#3f4d68'] as const, glow: null, label: c.text.secondary }
+    : { grad: ['#aab6c9', '#8b99b0'] as const, glow: null, label: c.text.secondary };
 }
 
 function shortDate(iso: string): string {
@@ -119,7 +126,8 @@ function CushionBars({ cycles, floor }: { cycles: TimelineCycle[]; floor: number
 function CushionBar({ cycle, index, fraction }: { cycle: TimelineCycle; index: number; fraction: number }) {
   const dark = useColorScheme() === 'dark';
   const reduce = useReduceMotion();
-  const tone = barTone(cycle.cushionStatus, dark);
+  const c = useAppColors();
+  const tone = barTone(cycle.cushionStatus, dark, c);
   const target = Math.max(2, fraction * TRACK_H);
 
   const grow = useSharedValue(reduce ? 1 : 0);

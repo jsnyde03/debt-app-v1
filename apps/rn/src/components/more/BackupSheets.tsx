@@ -65,7 +65,7 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
         editable={false}
         multiline
         selectTextOnFocus
-        style={[styles.code, { color: c.text.primary, backgroundColor: c.background.secondary, borderColor: c.border.default }]}
+        style={[styles.code, { color: c.text.primary, backgroundColor: c.background.secondary, borderColor: c.border.control }]}
       />
     </FormSheet>
   );
@@ -153,7 +153,7 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
         placeholder="Paste your backup here"
         placeholderTextColor={c.text.tertiary}
         multiline
-        style={[styles.code, { color: c.text.primary, backgroundColor: c.background.secondary, borderColor: error ? c.accent.danger : c.border.default }]}
+        style={[styles.code, { color: c.text.primary, backgroundColor: c.background.secondary, borderColor: error ? c.accent.danger : c.border.control }]}
       />
       {error ? <Text testID="backup-import-error" style={[textStyles.caption, { color: c.accent.danger }]}>{error}</Text> : null}
     </FormSheet>

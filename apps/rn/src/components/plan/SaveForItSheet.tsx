@@ -116,7 +116,7 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
             onPress={() => setSelected(o.key)}
             accessibilityRole="radio"
             {...a11yChecked(active)}
-            style={[styles.option, { borderColor: active ? c.accent.primary : c.border.default, backgroundColor: active ? c.background.secondary : 'transparent' }]}>
+            style={[styles.option, { borderColor: active ? c.accent.primary : c.border.control, backgroundColor: active ? c.background.secondary : 'transparent' }]}>
             <View style={styles.optHead}>
               <AppIcon name={active ? 'radio-button-checked' : 'radio-button-unchecked'} size={18} color={active ? c.accent.primary : c.text.tertiary} />
               <Text style={[textStyles.subhead, styles.optTitle, { color: c.text.primary }]}>{o.title}</Text>
@@ -139,7 +139,7 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
           onPress={() => setSelected('custom')}
           accessibilityRole="radio"
           {...a11yChecked(selected === 'custom')}
-          style={[styles.option, { borderColor: selected === 'custom' ? c.accent.primary : c.border.default, backgroundColor: selected === 'custom' ? c.background.secondary : 'transparent' }]}>
+          style={[styles.option, { borderColor: selected === 'custom' ? c.accent.primary : c.border.control, backgroundColor: selected === 'custom' ? c.background.secondary : 'transparent' }]}>
           <View style={styles.optHead}>
             <AppIcon name={selected === 'custom' ? 'radio-button-checked' : 'radio-button-unchecked'} size={18} color={selected === 'custom' ? c.accent.primary : c.text.tertiary} />
             <Text style={[textStyles.subhead, styles.optTitle, { color: c.text.primary }]}>Set your own</Text>

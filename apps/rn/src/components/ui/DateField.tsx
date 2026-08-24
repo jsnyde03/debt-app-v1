@@ -87,7 +87,7 @@ export function DateField({
         accessibilityLabel={`${label}, ${display(value)}`}
         style={[
           styles.input,
-          { backgroundColor: c.background.secondary, borderColor: c.border.default },
+          { backgroundColor: c.background.secondary, borderColor: c.border.control },
         ]}>
         <Text style={[textStyles.body, { color: value ? c.text.primary : c.text.tertiary }]}>
           {value ? display(value) : 'Select a date'}

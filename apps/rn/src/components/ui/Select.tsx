@@ -27,7 +27,7 @@ export function Select<T extends string>({
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
-        style={[styles.control, { backgroundColor: c.background.secondary, borderColor: c.border.default }]}>
+        style={[styles.control, { backgroundColor: c.background.secondary, borderColor: c.border.control }]}>
         <Text style={[textStyles.body, { color: c.text.primary }]}>{current?.label ?? 'Select'}</Text>
         <AppIcon name="expand-more" size={20} color={c.text.tertiary} />
       </Pressable>

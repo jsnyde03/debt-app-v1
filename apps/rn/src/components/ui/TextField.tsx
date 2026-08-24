@@ -75,7 +75,7 @@ export function TextField({
           {
             color: c.text.primary,
             backgroundColor: c.background.secondary,
-            borderColor: error ? c.accent.danger : c.border.default,
+            borderColor: error ? c.accent.danger : c.border.control,
           },
         ]}
       />

@@ -61,7 +61,7 @@ export function SegmentedToggle<T extends string>({
       style={[styles.track, { backgroundColor: c.background.tertiary, borderColor: c.border.subtle }]}
       onLayout={(e) => setW(e.nativeEvent.layout.width)}>
       {w > 0 ? (
-        <Animated.View style={[styles.thumb, thumbStyle, { backgroundColor: c.background.secondary, borderColor: c.border.default }]} />
+        <Animated.View style={[styles.thumb, thumbStyle, { backgroundColor: c.background.secondary, borderColor: c.border.control }]} />
       ) : null}
       {options.map((o) => {
         const active = o.value === value;

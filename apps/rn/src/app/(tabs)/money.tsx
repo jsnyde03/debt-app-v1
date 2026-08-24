@@ -815,7 +815,7 @@ function AllocationBar({ segments }: { segments: AllocationSegment[] }) {
 function BillSearch({ value, onChange }: { value: string; onChange: (t: string) => void }) {
   const c = useAppColors();
   return (
-    <View style={[styles.search, { backgroundColor: c.background.secondary, borderColor: c.border.default }]}>
+    <View style={[styles.search, { backgroundColor: c.background.secondary, borderColor: c.border.control }]}>
       <AppIcon name="search" size={18} color={c.text.tertiary} />
       <TextInput
         value={value}

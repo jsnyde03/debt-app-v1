@@ -277,7 +277,7 @@ export function PaydayCaptureSheet({
                       // control. See `utils/a11y.ts` for why `aria-selected` on a button was a no-op.
                       accessibilityRole="checkbox"
                       {...a11yChecked(paid)}
-                      style={[styles.reconcileRow, { borderColor: paid ? c.accent.success : c.border.default, backgroundColor: c.background.secondary }]}>
+                      style={[styles.reconcileRow, { borderColor: paid ? c.accent.success : c.border.control, backgroundColor: c.background.secondary }]}>
                       <View style={styles.reconcileText}>
                         <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={2}>
                           {requiredDisplayLabel(row.item, row.view)}
@@ -333,7 +333,7 @@ export function PaydayCaptureSheet({
                 {staleBalances.map((v) => (
                   <View
                     key={v.debt.id}
-                    style={[styles.reconcileRow, { borderColor: c.border.default, backgroundColor: c.background.secondary }]}>
+                    style={[styles.reconcileRow, { borderColor: c.border.control, backgroundColor: c.background.secondary }]}>
                     <View style={styles.reconcileText}>
                       <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={1}>{v.debt.name}</Text>
                       <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
@@ -345,7 +345,7 @@ export function PaydayCaptureSheet({
                       value={balanceEdits[v.debt.id] ?? ''}
                       onChangeText={(t) => setBalanceEdits((cur) => ({ ...cur, [v.debt.id]: t }))}
                       accessibilityLabel={`Balance for ${v.debt.name}`}
-                      style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.default }]}
+                      style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.control }]}
                     />
                   </View>
                 ))}
@@ -436,7 +436,7 @@ export function PaydayCaptureSheet({
                             value={String(amount)}
                             onChangeText={(t) => setOverride(key, { actualAmount: parseNonNegativeAmount(t) ?? 0 })}
                             onBlur={() => setEditingExtraKey(null)}
-                            style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.default }]}
+                            style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.control }]}
                           />
                         ) : (
                           <Pressable onPress={() => setEditingExtraKey(key)} disabled={skipped} accessibilityRole="button">
@@ -478,7 +478,7 @@ export function PaydayCaptureSheet({
                   placeholder="$0"
                   placeholderTextColor={c.text.tertiary}
                   accessibilityLabel="Amount of an unexpected expense this cycle"
-                  style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.default }]}
+                  style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.control }]}
                 />
               </View>
 

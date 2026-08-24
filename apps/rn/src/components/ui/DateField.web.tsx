@@ -50,7 +50,7 @@ export function DateField({
           borderRadius: layout.inputRadius,
           borderWidth: StyleSheet.hairlineWidth,
           borderStyle: 'solid',
-          borderColor: c.border.default,
+          borderColor: c.border.control,
           backgroundColor: c.background.secondary,
           color: c.text.primary,
           paddingLeft: spacing.sm,

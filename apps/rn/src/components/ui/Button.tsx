@@ -38,7 +38,7 @@ export function Button({
         accent: { brand: colors.accent.brand.dark, danger: colors.accent.danger.dark },
         text: { onAccent: colors.text.onAccent.dark, primary: colors.text.primary.dark, secondary: colors.text.secondary.dark },
         background: { secondary: colors.background.secondary.dark },
-        border: { default: colors.border.default.dark },
+        border: { control: colors.border.control.dark },
       }
     : themeColors;
   // 3.6.6 — pointer/keyboard affordances via the OFFICIALLY-typed Pressable props (the style-callback's
@@ -50,7 +50,7 @@ export function Button({
     variant === 'primary' ? c.accent.brand : variant === 'danger' ? c.accent.danger : variant === 'secondary' ? c.background.secondary : 'transparent';
   const fg =
     variant === 'primary' || variant === 'danger' ? c.text.onAccent : variant === 'text' ? c.text.secondary : c.text.primary;
-  const border = variant === 'secondary' ? c.border.default : 'transparent';
+  const border = variant === 'secondary' ? c.border.control : 'transparent';
 
   return (
     <Pressable

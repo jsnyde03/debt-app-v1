@@ -160,7 +160,7 @@ touched by every screen below them, so fixing a surface before its primitive mea
 
 | # | step | notes |
 |---|---|---|
-| **f.1** | 🔴 **CONTRAST — the tokens first** | **B6/V1-2** light-theme contrast *(15 of 24 distinct pairs)* · **V1-5** borders — ⚠️ **all four boundaries fail 1.4.11, dark included**, so this is not a light-theme-only fix |
+| ✅ **f.1** | **CONTRAST — DONE 2026-08-23** | **B6/V1-2** the light ramp is re-solved against `background.tertiary`, the darkest ground the app paints text on · **V1-5** a new `border.control` token clears SC 1.4.11 in **both** themes, on 23 sites. ⭐ **`lint:contrast` is the instrument** — the grid, the exemptions (machine-verified), the hero panel and token-value copies — 4 plants red by name. ⛔ **Four defects only the building found**, incl. an unchecked checkbox at 1.43:1 and a file that had copied the token hexes. Detail → log |
 | **f.2** | **DYNAMIC TYPE** | **V3-1** six missing font clamps · **V3-5/6** the chart's hardcoded per-character width *(⚠️ a measurement problem wearing a layout problem's clothes)* |
 | **f.3** | **LAYOUT + STATE** | **V2-1** the truncating debt-free date · **V4-8** the split-view chart · **V2-6** the coach mark covering its own subject |
 | **f.4** | **VOICEOVER** | **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⛔ **A1-7's obvious fix is documented-as-broken** and **A1-11 is 6 sites, not 1**, both already measured |
@@ -513,6 +513,21 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7f.1's AFTER-scan (2026-08-23)**
+
+- **`progressColor()` in `apps/rn/src/theme/colors.ts` has no callers.** Exported through `theme/index.ts`,
+  so it reads as public API; the only thing named `progressColor` in a component is an unrelated prop. It
+  was left in place and made to DERIVE its rgb from the token rather than repeat it, so it cannot diverge
+  while it waits. → **P6.11** *(delete with the other dead modules, after the tree goes)*.
+- ⚠️ **The light-theme frames in `capture-ref/p6.8/` no longer describe the app.** Every light token moved.
+  Nothing depends on them today, but **P6.8.9 re-audits the results** and would be reading a photograph of
+  the defect. → **P6.8.9** *(re-shoot the light half of the matrix before the verification pass reads it)*.
+- **Left un-fixed on purpose, with numbers rather than a shrug:** the dashed `AddRow` and the OFF track of
+  every `Switch` sit at **1.41–1.90:1** on `border.strong`. Both are identifiable by other means — `AddRow`
+  carries its own label and icon, a `Switch` is a platform control whose own default off-track is no better
+  — so 1.4.11 is not violated by either. ⛔ **Recorded so the next sweep re-decides it rather than
+  re-discovers it.** → **P6.14** *(the felt severity of a hairline is a device question; DPR 1 flatters it)*.
 
 **→ SURFACED BY P6.8.7e.6's AFTER-scan (2026-08-23)**
 

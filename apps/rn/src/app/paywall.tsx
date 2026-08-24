@@ -318,10 +318,10 @@ export default function PaywallScreen() {
                   accessibilityLabel={`${plan.title}${plan.badge ? `, ${plan.badge}` : ''}, ${plan.priceString} ${plan.periodLabel}. ${plan.subnote}`}
                   style={[
                     styles.planRow,
-                    { backgroundColor: c.background.secondary, borderColor: isSel ? c.accent.primary : c.border.default },
+                    { backgroundColor: c.background.secondary, borderColor: isSel ? c.accent.primary : c.border.control },
                     isSel && { borderWidth: 2 },
                   ]}>
-                  <View style={[styles.radio, { borderColor: isSel ? c.accent.primary : c.border.default }, isSel && { backgroundColor: c.accent.primary }]}>
+                  <View style={[styles.radio, { borderColor: isSel ? c.accent.primary : c.border.control }, isSel && { backgroundColor: c.accent.primary }]}>
                     {isSel ? <AppIcon name="check" size={13} color={c.text.onAccent} /> : null}
                   </View>
                   <View style={styles.planMid}>
