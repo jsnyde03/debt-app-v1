@@ -14,6 +14,7 @@ import { formatCurrency } from '@core/utils/formatCurrency';
 import { AddObligationSheet, type AddKind } from '@/components/entities/AddObligationSheet';
 import { AmortizationPane } from '@/components/entities/AmortizationView';
 import { DebtSheet } from '@/components/entities/DebtSheet';
+import { ImportDebtsSheet } from '@/components/entities/ImportDebtsSheet';
 import { useCoachMark } from '@/hooks/use-coach-mark';
 import { selectExpenseReserveNow, selectLivingReserveRequest, selectRecurringSmoothed } from '@/store/expenseReserveSelectors';
 import { TutorialTarget } from '@/store/tutorialTargets';
@@ -213,6 +214,8 @@ function DebtsSection({
   const view = useMemo(() => selectPayoffView(store), [store]);
   const [sheet, setSheet] = useState<{ editing: Debt | null; prefill?: Partial<Debt> } | null>(null);
   const [logPaymentFor, setLogPaymentFor] = useState<Debt | null>(null);
+  // C8 — the CSV bulk import, offered from the empty state and from the list footer.
+  const [importing, setImporting] = useState(false);
   // 3.7.A0 — the debt whose payoff schedule fills the iPad DETAIL PANE. Compact never sets this: it
   // pushes the `/schedule/[id]` route instead (see `viewSchedule`).
   const [scheduleFor, setScheduleFor] = useState<string | null>(null);
@@ -312,7 +315,11 @@ function DebtsSection({
           ctaTestID="money-add"
         />
         {isScanAvailable() ? <View style={styles.scanEmpty}><AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /></View> : null}
+        {/* C8 — the empty state is where a bulk import matters MOST: a user arriving with a portfolio
+            already listed somewhere else should not have to type it in one debt at a time. */}
+        <View style={styles.scanEmpty}><AddRow label="Import from CSV" icon="upload-file" onPress={() => setImporting(true)} testID="debts-import-csv" /></View>
         {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} convertingExpenseId={converting ?? undefined} onViewSchedule={viewSchedule} onLogPayment={logPayment} /> : null}
+        {importing ? <ImportDebtsSheet onClose={() => setImporting(false)} /> : null}
       </>
     );
   }
@@ -401,6 +408,9 @@ function DebtsSection({
             <AddRow label="Add" onPress={onAdd} testID="money-add" />
             {/* §2.8 — scan a statement to prefill a new debt (free). Hidden where no native scanner. */}
             {isScanAvailable() ? <AddRow label="Scan a statement" icon="document-scanner" onPress={handleScan} /> : null}
+            {/* C8 — bulk import from a CSV (free). Offered on EVERY platform: the paste path needs no
+                native module, and the file picker hides itself where there isn't one. */}
+            <AddRow label="Import from CSV" icon="upload-file" onPress={() => setImporting(true)} testID="debts-import-csv" />
             {/* §2.7.5 — the consolidated BNPL calendar (renders only when there are upcoming installments). */}
             <BnplCalendarSection debts={active} currentDate={currentDate} />
           </View>
@@ -437,6 +447,7 @@ function DebtsSection({
         </>
       )}
       {logPaymentFor ? <LogPaymentSheet debt={logPaymentFor} onClose={() => setLogPaymentFor(null)} /> : null}
+      {importing ? <ImportDebtsSheet onClose={() => setImporting(false)} /> : null}
     </>
   );
 }

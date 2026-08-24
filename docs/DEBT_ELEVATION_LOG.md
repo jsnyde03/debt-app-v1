@@ -18582,3 +18582,89 @@ convention scanner covers the same root set, so a move cannot quietly reduce cov
 missing required fields will be skipped with a count shown after import."* The parser satisfies the second
 clause by construction. The first is a placement constraint on g.2 — or the FAQ moves, decided at P6.21
 against the shipped build.
+
+---
+
+## ✅ P6.8.7g.2 — C8: the CSV import, and the FAQ that was wrong about the feature it promised *(2026-08-24)*
+
+**A claim the app had never been able to keep.** `site/support.html` has told users for two versions to
+"tap the import button" in the Debts section. The parser existed; the door never did.
+
+### The before-scan — three precedents, and the house already had the answer
+
+⭐ **`isScanAvailable()` / "Scan a statement" is the same shape one row up.** An `AddRow` in the Debts
+section, platform-gated, rendered in **both** the empty state and the list footer. C8 is that row again.
+
+⭐ **`BackupSheets` is the interaction.** A **paste box** (cross-platform, no native module) *plus* a native
+"Choose a file", both feeding **one** parse, and a **check-then-confirm** step so nothing is written until
+the user has seen what will be. ⛔ **The paste path is not a fallback — it is what makes the feature
+testable at all.** `CSV_FILE_SUPPORTED` is false on web, exactly like `BACKUP_FILE_SUPPORTED`, so a
+file-only design would have shipped with its entire flow unexercised off-device.
+
+⚠️ **`csvImportFile.ts` is deliberately NOT a generalisation of `backupFile.ts`'s picker.** They differ only
+in accepted type, so sharing is tempting — but that file is a Phase-5 path verified on hardware, and
+re-shaping a verified door to save ten lines is not a trade to make while converging on a freeze. Stated in
+the file so the next reader sees a decision rather than an oversight.
+
+### What the building found that the plan could not
+
+⛔ **`newDebtId` CANNOT MINT A BATCH, and nothing had ever asked it to.** It derives uniqueness from the ids
+that already exist — which is precisely why calling it in a loop over an unchanged list returns **the same
+id every time**. The debt sheet adds one debt, so the defect had nowhere to appear. `mintDebtIds`
+accumulates, lives in `store/debtIds.ts` with `newDebtId` (which moved out of `DebtSheet.tsx`, so there is
+one id scheme for the entity), and carries its own test **including an assertion that the naive loop
+collides** — the regression stated as a property rather than remembered.
+
+⭐ **Ids are minted at APPLY, never at preview.** A preview the user backs out of must not consume ids, and
+the portfolio can change under a sheet left open.
+
+⛔ **`lint:copy` WENT RED ON THE RUN THE CODE WAS WRITTEN.** "That file couldn't be opened." now existed in
+the CSV importer and the backup importer. **Extracted, not baselined** → `FILE_UNREADABLE` in
+`copy/vocabulary.ts`: two doors reporting the same failure must not be able to describe it differently.
+⚡ **Fourth consecutive time a gate has out-found the work it was serving** — f's three, now this.
+
+### Verification
+
+**7 e2e (`csv-import.spec.ts`) · 11 id asserts.** Full gate green, quoted from `gate-status.json`: **244 e2e · 10 embed · 655 source files**, zero `error-context.md` *(237 → 244 is exactly this spec)*. The specs assert **what
+landed in the store**, not that a sheet opened — an import that showed a confident preview and wrote
+nothing, or wrote `null`, would satisfy every UI assertion while being the whole defect.
+
+⛔ **Three plants, three reds by name** — and 7/7 passing first try is exactly when to distrust a suite:
+
+| plant | red |
+|---|---|
+| mint ids with `newDebtId` in a loop *(no accumulator)* | `expect(new Set(ids).size).toBe(2)` → **Received: 1** |
+| `apply()` writes nothing | the poll for 2 debts times out at 1 |
+| remove the empty-state door | `debts-import-csv` never visible |
+
+### The after-scan
+
+⛔ **17 OF 42 ICON GLYPHS IN `apps/rn/src` ARE ABSENT FROM `appIconSF`** and render through the
+MaterialIcons fallback on iOS. Measured, then confirmed to actually reach `AppIcon` — `EmptyState` and
+`AddRow` both type the prop as `IconGlyph`. ⚡ **This is e.4's finding with a base rate instead of an
+anecdote**, and `document-scanner` — the row directly above the one just added — is one of them.
+⚠️ **Recommendation: build the GATE e.4 proposed; do not bulk-map.** Mapping 17 glyphs changes shipped
+visuals across many screens inside a converging freeze with no device to look at, and `lint:type-scale`'s
+precedent is that **writing the definition is where you learn which sites should not be fixed at all.**
+g.2 mapped only its own new `upload-file` → `square.and.arrow.down`, which has no "before" to preserve.
+*(`square.and.arrow.up` would have read as export — sending the debts away.)* → P6.8.9.
+
+⚠️ **TWO FILE DOORS A FEW TAPS APART HAVE OPPOSITE SEMANTICS.** The backup import **replaces everything**;
+this one **adds**. Both say "import", both are reached from a plan screen. Pinned in the spec so the
+behaviour cannot drift — **the wording is the open half.** → P6.8.9 / P6.10.
+
+⛔ **AND THE FAQ WAS WRONG ABOUT THE FEATURE IT WAS PROMISING.** Re-reading its steps against the built
+flow — which is what the site-copy entry was held open for — found that **"columns for name, balance,
+minimum payment, APR, and due date" would produce a FAILING file**: the parser matches headers case- and
+space-insensitively but not word-separated, so a reader who types the FAQ's English literally writes
+`minimum payment` and every row is rejected. Its second clause is stale in the app's favour (the count is
+shown *before* the import now, and the user confirms it). ⚡ **A claims fix is not finished when the
+feature exists — the claim's DETAILS have to be re-read against the built thing.** M1's lens found the
+claim; only building it found the claim was also wrong. Replacement text is ready to paste in
+`DEBT_SITE_COPY_2.0.md` → A2.4, verified at P6.21 against the shipped build.
+
+⚠️ **P6.14 owes three rows** — the picker itself is source-only on web: choose a real `.csv`; pick one from
+**iCloud Drive** rather than local (the case `copyToCacheDirectory` exists for, which fails *after* the
+user has chosen); and look at the new SF Symbol on device.
+
+⚠️ **Feature lock:** g.2 is a new surface and must clear **P6.10**.

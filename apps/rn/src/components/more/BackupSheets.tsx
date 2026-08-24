@@ -1,4 +1,4 @@
-import { EXPORT_BACKUP_TITLE, IMPORT_BACKUP_TITLE, REPLACE_DATA_ACTION } from '@core/copy/vocabulary';
+import { EXPORT_BACKUP_TITLE, FILE_UNREADABLE, IMPORT_BACKUP_TITLE, REPLACE_DATA_ACTION } from '@core/copy/vocabulary';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput } from 'react-native';
@@ -105,7 +105,7 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
     if (!picked.ok) {
       // ⛔ A cancel is silent. The user closing the picker is not a failure, and reporting it as one is
       // how a safe flow starts feeling broken.
-      if (picked.reason === 'error') setError("That file couldn’t be opened.");
+      if (picked.reason === 'error') setError(FILE_UNREADABLE);
       return;
     }
     setText(picked.text);

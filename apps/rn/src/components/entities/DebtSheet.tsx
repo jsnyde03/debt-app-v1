@@ -17,6 +17,7 @@ import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { parseAmountField, parseOptionalAmount } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
+import { newDebtId } from '@/store/debtIds';
 import { useCoachMark } from '@/hooks/use-coach-mark';
 import { FORM_ERRORS, RECURRENCE_LABEL, recurrenceOptions } from '@/store/obligationForm';
 import { TutorialTarget } from '@/store/tutorialTargets';
@@ -30,21 +31,6 @@ import { BNPL_PROVIDERS } from '@core/debt/bnplProviders';
 
 function shortDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-/**
- * A new debt's id, without `Date.now()` — the React Compiler treats it as an impure render-time call and
- * `submit` is declared in the component body.
- *
- * ⚠️ **Uniqueness comes from the ids that EXIST, not from a module counter.** A counter namespaced by the
- * cycle date looks equivalent and is not: it restarts at zero on every launch while the cycle date stays
- * put, so a debt added before a relaunch and one added after can be handed the same id.
- */
-function newDebtId(cycleDate: string, existing: { id: string }[]): string {
-  const used = new Set(existing.map((d) => d.id));
-  let n = existing.length + 1;
-  while (used.has(`debt-${cycleDate}-${n}`)) n += 1;
-  return `debt-${cycleDate}-${n}`;
 }
 
 // ⚠️ No 'one-time' here, and that is deliberate rather than an omission: a debt is terminating by

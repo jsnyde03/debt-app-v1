@@ -208,6 +208,19 @@ export const SEE_IT_IN_ACTION_CTA = "See it in action";
 export const PAY_CYCLE_HISTORY_TITLE = "Pay cycle history";
 export const EXPORT_BACKUP_TITLE = "Export backup";
 export const IMPORT_BACKUP_TITLE = "Import backup";
+
+/**
+ * What both file doors say when the picker returned something they could not read.
+ *
+ * ⛔ **Extracted rather than baselined, and the gate is what asked.** C8's CSV import repeated the backup
+ * importer's wording verbatim; `lint:copy` went red the run it was written. Two doors reporting the same
+ * failure must not be able to describe it differently — the day they diverge, one of them starts implying
+ * the app rejected the file on its merits rather than failing to open it.
+ *
+ * ⚠️ It blames neither the file nor the user. The common cause is a provider (iCloud Drive, Google Drive)
+ * the app could not read a second time, which is nobody's mistake and is not worth explaining on a toast.
+ */
+export const FILE_UNREADABLE = "That file couldn’t be opened.";
 /**
  * [P6.8.7c.2] The restore action, offered from More AND from the data-reset screen.
  *

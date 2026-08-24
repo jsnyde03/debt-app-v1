@@ -59,6 +59,10 @@ export const appIconSF: Partial<Record<MaterialGlyph, SFSymbol>> = {
   // foreign next to every other icon on the screen. `doc.plaintext` has been in SF Symbols since iOS 13,
   // so it clears the min target without the §3.1.2 iOS-16 caveat.
   'receipt-long': 'doc.plaintext',
+  // C8 — the CSV bulk import. `square.and.arrow.down` is the platform's IMPORT symbol (the arrow points
+  // into the tray); `square.and.arrow.up` is share/export and would read as sending the debts away, which
+  // is the opposite of what the row does. In SF Symbols since iOS 13, so it clears the min target.
+  'upload-file': 'square.and.arrow.down',
   history: 'clock.arrow.circlepath',
   schedule: 'clock', // the Payday Countdown toggle (3.5.3)
   // 3.5.5.3 — "Show feature tips again". `lightbulb` (not `.fill`) has been in SF Symbols since iOS 13,

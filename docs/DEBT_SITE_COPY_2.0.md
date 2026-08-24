@@ -96,15 +96,34 @@ becomes real only if **C7** ships.
 
 ---
 
-## A2.4 · `support.html` — the FAQ documents a CSV import that does not exist
+## A2.4 · `support.html` — the CSV FAQ is TRUE as of C8, and two of its three clauses are still wrong
 
-The FAQ gives instructions for importing a CSV. `detectBackupFormat.ts:27` accepts three JSON shapes and
-there is no CSV path in `apps/rn/src`.
+✅ **C8 SHIPPED at P6.8.7g.2 (2026-08-24), so the entry is no longer "documents a feature that does not
+exist."** The import is in the Debts section, free, in both the empty state and the list footer.
 
-⏳ **Do not delete this one yet.** **C8 (P6.8.7g) builds the CSV import**, and its parser
-(`core/imports/debtCsv.ts`) must be rescued before P6.11 deletes its only caller. If C8 ships, the FAQ
-becomes true and needs only its steps re-checked against the real flow. **If C8 slips, delete the entry.**
-⚠️ Decide this at **P6.21**, against the shipped build — not now.
+⛔ **But re-checking the steps against the real flow — which is what this entry was held open for — found
+two defects, and the first one makes a user's file fail.**
+
+1. 🔴 **"columns for name, balance, minimum payment, APR, and due date"** — the parser matches headers
+   case- and space-insensitively but **not word-separated**: it wants `minimumPayment` and `dueDate`.
+   A reader who types the FAQ's English literally writes `minimum payment` and `due date`, and **every row
+   is then rejected for a missing minimum**. The prose has to name the header tokens.
+2. ⚠️ **"skipped with a count shown after import"** — the count is shown **before**, in the preview, and
+   the user confirms it. That is the better behaviour and the sentence describes the older, worse one.
+   Also "missing required fields" understates it: an unreadable APR or balance skips its row too.
+3. ✅ **"In the Debts section, tap the import button"** — true. Worth naming the control (**Import from
+   CSV**) rather than describing it, since the screen has three add-rows.
+
+**Replacement text, ready to paste at P6.21:**
+
+> Yes. In the Debts section, tap **Import from CSV**. Your file needs a header row using these column
+> names: `name`, `balance`, `minimumPayment`, `apr`, `dueDate` — plus `type` and `remainingPayments` /
+> `scheduledPaymentAmount` if you are importing a BNPL plan. Amounts can include `$` and commas. Leave
+> `apr` blank for 0%. You will see exactly what will be added, and any rows that could not be read, before
+> anything changes.
+
+⚠️ **Verify against the shipped build at P6.21**, not against this note — the entry point's label is the
+kind of thing a late polish pass moves.
 
 ---
 

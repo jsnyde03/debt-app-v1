@@ -53,6 +53,10 @@ async function main() {
   // 3.7.B.2 (F10.1) — Today's time-aware greeting: every band boundary + the name normalisation.
   await import('../store/greeting.test');
 
+  // P6.8.7g.2 (audit C8) — debt id minting. The batch case is new: `newDebtId` derives uniqueness from
+  // the ids that exist, so a loop over an unchanged list hands out the same id every time.
+  await import('../store/debtIds.test');
+
   // MF.4 (audit #5) — the debt-free projection runs on the steady-state (holdback-stripped) deploy.
   await import('../store/steadyStateProjection.test');
 

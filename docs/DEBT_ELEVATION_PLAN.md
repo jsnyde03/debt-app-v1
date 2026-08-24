@@ -29,8 +29,8 @@ test to inherit. ⚠️ **C7's cited `TrajectoryChart.tsx:133` has DRIFTED** —
 | # | step | notes |
 |---|---|---|
 | ✅ **g.1** | **RESCUE `debtCsv.ts` — DONE 2026-08-24. The deadline is met.** | Parser is now pure (`parseDebtCsvText`: text in, ids injected — no DOM, no `crypto`) and money runs through the shared `amountField`, which **moved to `@core/utils`** with its test. New `testDebtCsv.ts` in `test:regression`: **61 asserts**, and **3 plants red by name** — including deleting the module, which is how P6.11 would take it. Detail → log |
-| **g.2** ▶ | 🔴 **Wire the CSV import into `apps/rn`** | ⚠️ **A new surface → must clear P6.10 feature lock.** ⛔ `site/support.html` tells users *"in the Debts section, tap the import button"* and there is no CSV path in `apps/rn/src`, so this is also an M1-class claims fix. ⚠️ Either the entry point lands **in Debts** or the FAQ moves — decide at P6.21 against the shipped build |
-| **g.3** | 🔴 **[DECISION] C7's shape → 🎯** | Both simulations already run every render and `:147` discards one. **Side-by-side is a new surface too** — present the shape before building it, the way R5's shape was settled |
+| ✅ **g.2** | **CSV IMPORT IS WIRED — DONE 2026-08-24. The FAQ's claim is now true.** | `ImportDebtsSheet` in the Debts section, **free**, in the empty state **and** the list footer. Paste path is primary and cross-platform; the picker (`csvImportFile`, native-only) sits on the **same** parse. Preview-before-apply, per-row skip report. **7 e2e · 11 id asserts · 3 plants red by name.** ⚠️ **New surface → must clear P6.10.** Detail → log |
+| **g.3** ▶ | 🔴 **[DECISION] C7's shape → 🎯** | Both simulations already run every render and `:147` discards one. **Side-by-side is a new surface too** — present the shape before building it, the way R5's shape was settled |
 | **g.4** | 🔴 **P1-3 — the trajectory's x-domain** *(**[D58]**, 2.0)* | The domain is set by the grey minimums curve, not the user's plan, so **success shrinks their own line to a sliver** and the default seed draws neither curve. ⛔ **Before C7, not beside it** — C7 adds a curve to this same domain. ⚠️ A defect fix on an existing card, so no P6.10 exposure, unlike g.2 |
 | **g.5** | **C7 build** | Only after g.3 answers, and on top of g.4's domain |
 | **g.6** | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
@@ -47,7 +47,7 @@ green **quoted from its record**.
 |---|---|
 | **State** | Phases 0–3 · 3.5 · 3.7 · 4 · 3.8 ✅ · the whole-app audit gate ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED**, cutover conditionally approved. **Phase 6 is everything that remains** and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale`; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. **Last: 2026-08-24 at P6.8.7f.5, exit 0 — 237 e2e · 10 embed · 648 source files.** ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not |
+| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale`; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. **Last: 2026-08-24 at P6.8.7g.2, exit 0 — 244 e2e · 10 embed · 655 source files**, zero `error-context.md`. ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]/[D52]): FEATURE LOCK ≠ FREEZE.** **FEATURE LOCK closes after P6.10** — the
@@ -334,6 +334,14 @@ from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc qu
 - **Delete all data with iCloud reachable but the unlink failing** (airplane mode mid-tap) — the `error`
   wording, and **Try again** succeeding once connectivity returns.
 
+**Owed from g.2 [C8] — the CSV picker, which web cannot reach:**
+- **Choose a real `.csv` from the Files app** and confirm it imports. `CSV_FILE_SUPPORTED` is false on web,
+  so the picker ships on **source only**; everything after the bytes arrive is covered by the paste path.
+- **Pick a CSV from iCloud Drive, not local** — the one case `copyToCacheDirectory` exists for. Without it
+  the read fails *after* the user has already chosen, which reads to them as the app rejecting their file.
+- **Look at the `Import from CSV` row on iOS**: it is the one new glyph mapped to an SF Symbol
+  (`square.and.arrow.down`); confirm it does not read as *export*.
+
 **Owed from f, all three structural to react-native-web:**
 - **VoiceOver on, type an amount into Can-I-Afford-It** — confirm the verdict is **spoken**
   (`announceForAccessibility` is an empty body on web, so the spoken half is unprovable in the harness).
@@ -445,8 +453,20 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   `check-comment-convention.ts`'s roots are `apps/rn/src` and `apps/rn/tests` **only**. ⭐ The decidable
   version is a gate on the gates: assert every copy/convention scanner covers the same root set, so a move
   cannot quietly reduce coverage. **The "gate the class" shape, one level up.** *(g.1)*
+- ⭐ **17 OF 42 ICON GLYPHS IN `apps/rn/src` ARE ABSENT FROM `appIconSF`, so they render through the
+  MaterialIcons fallback on iOS** — measured, and confirmed to reach `AppIcon` (`EmptyState` and `AddRow`
+  both type their prop as `IconGlyph`). ⛔ **This is the e.4 finding with a base rate instead of an
+  anecdote**, and the gate e.4 proposed is what names them. ⚠️ **Recommendation: build the GATE, do not
+  bulk-map** — mapping 17 glyphs changes shipped visuals across many screens inside a converging freeze
+  with no device to look at, and `lint:type-scale`'s precedent is that writing the definition is where you
+  learn which sites should not be fixed at all. *(g.2 mapped only its own new `upload-file`, which has no
+  "before" to preserve.)* *(g.2)*
 - **Gate docs owe two lines** — the suite's three ways of lying *(broad red that is noise)*, and
   `cmd; echo EXIT=$?` reporting the echo.
+- ⚠️ **TWO FILE DOORS A FEW TAPS APART HAVE OPPOSITE SEMANTICS.** The backup import **replaces
+  everything**; the CSV import **adds**. Both are reached from a plan screen, both say "import", and a
+  user who has just learned the destructive meaning may hesitate at the additive one — or, worse, not.
+  Pinned in `csv-import.spec.ts` so the behaviour cannot drift, but **the wording is the open half.** *(g.2)*
 
 ### → P6.10 — feature lock + the money lens *(last gate that can FIND a structural gap)*
 
