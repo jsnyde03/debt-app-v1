@@ -35,7 +35,7 @@ test to inherit. ⚠️ **C7's cited `TrajectoryChart.tsx:133` has DRIFTED** —
 | ✅ **g.5** | **C7 DONE 2026-08-24 — the strategy comparison, per [D59]** | `StrategyCompare`, collapsed by default behind *"Snowball or avalanche?"*, mirroring the What-If disclosure. Both clear-orders with their months + debt-free dates, a takeaway that is allowed to say *"these are the same plan"*, and **no dollar claim** — pinned by a test, since [D59] recorded the interest figure as unmeasured. **20 asserts · 4 e2e · 3 plants red.** ⚠️ New surface → must clear **P6.10**. Detail → log |
 | **g.6** ▶ | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
 | ✅ **g.7** | **`lint:icon-glyphs` BUILT 2026-08-24** *(🎯 agreed)* | **43 in use · 26 mapped · 17 exempt with a written reason**, in `lint:rn`. Ships with every unmapped glyph exempt **by design** — it prevents NEW ones, which is the half decidable without a device; the 17 are a P6.14 read. Also reds a **stale** exemption. ⛔ **Two instrument bugs first (CRLF · the wrong terminator), and a plant that stayed GREEN found a real hole** — default parameter values (`icon = 'add'`) were invisible, so the in-use count was 42 not 43. **4 plants red by name.** Detail → log |
-| **g.8** | **Push + CI** *(🎯 2026-08-24)* | ⛔ Push to **`v1.7-dev`**, never `release/v1`. GitHub Actions `web-e2e` runs on push; the **native/CodeMagic build is 🎯's to trigger** and is the one that carries the owed device rows |
+| ✅ **g.8** | **PUSHED + CI GREEN 2026-08-24** *(🎯)* | `v1.7-dev` at **`5b50866`**; `web-e2e` run [`32742084595`](https://github.com/jsnyde03/debt-app-v1/actions/runs/32742084595) **conclusion: success** — quoted from `gh run view`, not retyped. ⛔ **CI has now seen d, e, f and g**; the "last CI-green is `bc05054`" line was stale and is corrected. ▶ **The native/CodeMagic build is 🎯's to trigger** (manual-only, no `triggering:` block) and carries the owed device rows |
 
 **Exit (g):** the parser survives P6.11 with a caller and a test, the CSV claim on the listing is true,
 **P1-3's domain is driven by the user's own plan**, C7 carries 🎯's answer, the icon-glyph class is gated
@@ -638,6 +638,13 @@ the **vocabulary** ("paycheck", "BNPL"), which is a rewrite, not a blocker. **Th
 trader status → L5-15 → vocabulary.** Currency is the cosmetic layer on top of a real defect.
 
 ### → Tooling / hygiene
+
+- ⚠️ **CI is running our `actions/*@v4` steps on a forced Node 24.** Every run now annotates: *"Node.js 20
+  is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24 —
+  `actions/cache@v4`, `actions/checkout@v4`, `actions/setup-node@v4`."* Green today because the forcing is
+  GitHub's compatibility shim; it is **not permanent**, and when it is withdrawn the gate fails on
+  infrastructure rather than on code — the worst kind of red to debug under a freeze. ⭐ **Bump the three
+  actions to their Node-24 majors**, which is a workflow-only change with no product risk. *(g.8)*
 
 - ⚠️ **The APP ICON disagrees with its documented source.** Rasterising `render-icon2.html` against the
   shipped `apps/rn/assets/icon.png`: the icon is **globally darker** (corners `#3b2d7e` → `#0a051c`, bars

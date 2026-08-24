@@ -18934,3 +18934,64 @@ explicit **prop** · a **stale** exemption (glyph since mapped) · a **deleted**
 
 ⚡ **The count is now independently confirmed twice** — an ad-hoc grep during g.2's after-scan said 17 of
 42; the gate, written from scratch, says the same 17.
+
+---
+
+## ✅ P6.8.7g CLOSED — the whole-cluster after-scan *(2026-08-24)*
+
+**g.1 → g.8 all closed. `validate:release:rn` green — quoted from `gate-status.json`: 250 e2e · 10 embed ·
+663 source files · zero `error-context.md`.** Pushed to `v1.7-dev` at `5b50866`; `web-e2e` run
+`32742084595` **conclusion: success**, read from `gh run view`.
+
+### ⛔ THE RESULT THAT OUTLIVES THE CLUSTER: a finding's IMPLIED FIX is a hypothesis too
+
+f's law was *a finding names the property that is WRONG; the fix must preserve every property that was
+RIGHT.* **g extends it one step earlier: the finding's proposed REMEDY is also unverified.**
+
+- **C7** said *"the app computes both strategies and shows one"* — exactly right — and implied *"so show
+  both."* Measured: the curves separate by **<0.1%** on most portfolios. The remedy would have drawn two
+  indistinguishable lines on a card P1-3 had just been fixed for being unreadable.
+- **P1-3** said *"neither curve draws at all."* Measured: **both draw and both reach zero**; the plan's is
+  ~5% of the width. Same defect, wrong description — and the lens had itself flagged that clause as
+  unresolvable from stills.
+- **C8** said *"rescue the parser."* Building it showed the parser **could not run in `apps/rn` at all** —
+  DOM `File`, `crypto.randomUUID`, and `Number()` money. "Rescue" understated it by three defects.
+
+⚡ **Running tally of findings whose observation held while the explanation or remedy did not: B3 · B2 ·
+M3-5 · C5 · C7 · P1-3 — six.** → **P6.8.9 should re-read each built fix against its finding's stated
+remedy, not only against its id.**
+
+### ⭐ Four times this session a GATE out-found the work it was serving
+
+`lint:copy` caught a duplicated error string on the run it was written (g.2) · `lint:icon-glyphs` produced
+a count where there had been two anecdotes (g.7) · and the two instrument bugs plus the green plant inside
+that gate found a blind spot nothing else would have. **f's "gate the class, don't close the list" now has
+a second cluster of evidence.**
+
+### ⛔ Three plants failed to prove what they looked like they proved
+
+- **g.1:** my own test's assertion was wrong, not the code — it banned a substring instead of asserting what
+  the message leads with.
+- **g.5:** an e2e indexed line `[1]` for the first debt row and got the header's date.
+- **g.7:** a plant left the gate **GREEN** and that was the finding — default parameter values were
+  invisible to it.
+
+⚡ **All three are the same shape as f.3's:** *a test agreeing with the fix for a reason unrelated to it.*
+The g.7 one is the sharpest, because a green plant reads as "nothing to see."
+
+### Stale claims corrected by measurement, not by memory
+
+- ⛔ **"CI has not seen d, e or f; last CI-green is `bc05054`"** — false, and carried forward twice.
+  `gh run list` shows `web-e2e` green on the d/e close, the f close, and now g. **A stale pessimistic claim
+  decays exactly like a stale green one** and argued for risk that did not exist.
+- **L5-12** was carried twice as the best open structural-gap candidate and was already closed.
+- **Both Pages threads** were closed by P6.7's `guard` job.
+- **`scripts/*.ts` typechecked by nothing** — built at 7a-1.
+
+### Filed, not fixed
+
+**P6.11 has a second deadline** *(core imports FROM the dying tree in four places, 293 lines of root
+modules; `selectVisibleHistory` has zero callers)* · **17 icon glyphs** are now named and exempt, and each
+is a P6.14 read · **a `.click()` sweep** of `tutorial-invite.spec.ts` has a rule and deliberately no sweep ·
+**`actions/*@v4` on a forced Node 24** · **the capture-ref matrix is 126 of 226 frames stale** and P6.8.9
+re-shoots before it reads anything.
