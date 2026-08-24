@@ -12,34 +12,34 @@
 
 ---
 
-## ▶ BUILDING NOW — **P6.8.7g · NEW SURFACES** *(the ACTIVE decomposition — 2026-08-24)*
+## ▶ BUILDING NOW — **P6.8.9 · THE VERIFICATION PASS** *(the ACTIVE decomposition — 2026-08-24)*
 
-⛔ **C8 FIRST, AND THE ORDER IS A DEADLINE, NOT A PREFERENCE.** Premises re-verified against the tree at
-switch-in: `packages/core/imports/debtCsv.ts` exists and its **only** caller is `lib/hooks/useDebts.ts:6,188`
-— **in the root tree P6.11 deletes.** After that commit the parser is unreachable and its behaviour has no
-test to inherit. ⚠️ **C7's cited `TrajectoryChart.tsx:133` has DRIFTED** — the real discard is **`:147`**,
-`const active = strategy === 'snowball' ? snowball : avalanche`.
+⛔ **[AUDIT GATE] Re-audit the RESULTS, not the ledger.** Two questions: *(a)* did every fix actually fix
+its finding, and *(b)* does any other major+ issue remain. **Fixes are changes, and changes are unaudited**
+— this is P6.16's logic applied one gate earlier, and it exists because P6.8 measured that a fix aimed at a
+wrong mechanism looks identical to one that worked.
 
-⚠️ **Two obligations carried in from f, both earned by it:**
-1. ⛔ **A finding names the property that is WRONG; the fix must preserve every property that was RIGHT.**
-   Three of f's fixes needed a second attempt and every one failed on something its finding never mentioned.
-   **Before each fix: what did this site do BEFORE that it must still do?**
-2. **Write the gate, not the list.** All three of f's gates found something the slice had not.
+⚠️ **Three results from a–g set its method, and they are not optional framing:**
+1. ⛔ **A finding names the property that is WRONG; a fix must preserve every property that was RIGHT** —
+   and no lens enumerates those. **For each built fix, ask what the site did BEFORE that it must still do.**
+2. ⛔ **A finding's implied REMEDY is a hypothesis too.** C7's *"so show both"* would have drawn two
+   indistinguishable lines; P1-3's *"neither curve draws"* was the right defect with the wrong description.
+   **Six findings now** whose observation held while the explanation or remedy did not.
+3. ⛔ **c/d/e closed LISTS; f and g gated CLASSES, and the classes out-found the slices four times.**
+   **Re-check the classes, not the ids.**
 
 | # | step | notes |
 |---|---|---|
-| ✅ **g.1** | **RESCUE `debtCsv.ts` — DONE 2026-08-24. The deadline is met.** | Parser is now pure (`parseDebtCsvText`: text in, ids injected — no DOM, no `crypto`) and money runs through the shared `amountField`, which **moved to `@core/utils`** with its test. New `testDebtCsv.ts` in `test:regression`: **61 asserts**, and **3 plants red by name** — including deleting the module, which is how P6.11 would take it. Detail → log |
-| ✅ **g.2** | **CSV IMPORT IS WIRED — DONE 2026-08-24. The FAQ's claim is now true.** | `ImportDebtsSheet` in the Debts section, **free**, in the empty state **and** the list footer. Paste path is primary and cross-platform; the picker (`csvImportFile`, native-only) sits on the **same** parse. Preview-before-apply, per-row skip report. **7 e2e · 11 id asserts · 3 plants red by name.** ⚠️ **New surface → must clear P6.10.** Detail → log |
-| ✅ **g.3** | **[DECISION] ANSWERED 2026-08-24 — [D59]: C7 COMPARES THE ORDER, NOT THE CURVE** (🎯, on my recommendation) | Measured first: the two total-balance curves separate by **≤2.8% of chart height, usually <0.1%**, and the debt-free date is identical in **5 of 6** portfolios. What differs is **which debt clears when** — first win at **month 1 vs month 20** on one portfolio. [`evidence/2026-08-24-c7-strategy-divergence/`](evidence/2026-08-24-c7-strategy-divergence/) |
-| ✅ **g.4** | **P1-3 DONE 2026-08-24 — the x-axis belongs to the user's plan** *(**[D58]**)* | Mechanism confirmed **and quantified**: the user's own curve got **13.8% → 7.3% → 4.8%** of the axis as the plan got better. `trajectoryDomain.ts`, pure + tested. ⛔ Half its cases pin what the OLD code got RIGHT (the lean cone's reach; the never-clears fallback). **12 asserts · 2 e2e · 4 plants red.** Detail → log |
-| ✅ **g.5** | **C7 DONE 2026-08-24 — the strategy comparison, per [D59]** | `StrategyCompare`, collapsed by default behind *"Snowball or avalanche?"*, mirroring the What-If disclosure. Both clear-orders with their months + debt-free dates, a takeaway that is allowed to say *"these are the same plan"*, and **no dollar claim** — pinned by a test, since [D59] recorded the interest figure as unmeasured. **20 asserts · 4 e2e · 3 plants red.** ⚠️ New surface → must clear **P6.10**. Detail → log |
-| **g.6** ▶ | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
-| ✅ **g.7** | **`lint:icon-glyphs` BUILT 2026-08-24** *(🎯 agreed)* | **43 in use · 26 mapped · 17 exempt with a written reason**, in `lint:rn`. Ships with every unmapped glyph exempt **by design** — it prevents NEW ones, which is the half decidable without a device; the 17 are a P6.14 read. Also reds a **stale** exemption. ⛔ **Two instrument bugs first (CRLF · the wrong terminator), and a plant that stayed GREEN found a real hole** — default parameter values (`icon = 'add'`) were invisible, so the in-use count was 42 not 43. **4 plants red by name.** Detail → log |
-| ✅ **g.8** | **PUSHED + CI GREEN 2026-08-24** *(🎯)* | `v1.7-dev` at **`5b50866`**; `web-e2e` run [`32742084595`](https://github.com/jsnyde03/debt-app-v1/actions/runs/32742084595) **conclusion: success** — quoted from `gh run view`, not retyped. ⛔ **CI has now seen d, e, f and g**; the "last CI-green is `bc05054`" line was stale and is corrected. ▶ **The native/CodeMagic build is 🎯's to trigger** (manual-only, no `triggering:` block) and carries the owed device rows |
+| **.9.1** ▶ | 🔴 **RE-SHOOT THE MATRIX FIRST** | ⛔ **126 of 226 frames in `apps/rn/capture-ref/p6.8/` no longer describe the app** — f.1 moved every light token (113), g.4 changed the trajectory axis and g.5 stacked a second collapsible on Progress (26). **Reading the old frames is auditing a photograph of a defect that is already fixed.** Include the both-collapsibles-open state. `npm run shots:demo` |
+| **.9.2** | **Verify each built fix against its finding — and against what the site ALSO did** | Every id closed in a–g. ⚠️ Not "does the id look closed": what property did the fix preserve, and which test proves it |
+| **.9.3** | **Re-check the GATED CLASSES** | `lint:contrast` · `lint:type-scale` · `lint:icon-glyphs` · `lint:apostrophes` · native-a11y-props. ⛔ **And the classes c/d/e closed as lists were never gated at all** — that is where the residue is |
+| **.9.4** | 🔴 **[DECISION] P1-1 · P1-2 · P1-4 · P1-5 → 🎯** | Four majors that reached **no ledger** and were never judged either way. Now visible to the closure gate (80 → **87** high+). Present with a recommendation each |
+| **.9.5** | **Work the filed queue** | **27 items** routed here across the cluster, in the backlog below. ⚠️ Triage first — several are sweeps whose scope is the real question |
+| **.9.6** | **The mechanical exit criterion** | `lint:closure` clean on blocker+major. ⚠️ **Its report today: `39 of 87 high+ findings are named in NO ledger`** *(plan · log · refutations · SYNTHESIS)* — report-only until this step, and that 39 is the real size of the read. ⛔ **It reads clean for the wrong reason if an instrument is blind** — exactly how P1's seven majors were invisible until the regex was un-anchored |
 
-**Exit (g):** the parser survives P6.11 with a caller and a test, the CSV claim on the listing is true,
-**P1-3's domain is driven by the user's own plan**, C7 carries 🎯's answer, the icon-glyph class is gated
-rather than listed, and `validate:release:rn` is green **quoted from its record** — then pushed.
+**Exit (P6.8.9):** every fix in a–g is confirmed against its finding *and* against the properties it had to
+preserve, the gated classes are re-checked rather than the ids re-read, the four P1 majors carry 🎯's
+answer, and `lint:closure` is clean **for a reason, not by construction**.
 
 ⛔ **DO NOT EDIT SOURCE WHILE `validate:release:rn` IS RUNNING.** The record is written at the END and
 fingerprints the tree *then*, so a mid-run edit records a green over code the suites never saw — [D49]'s
@@ -54,7 +54,7 @@ the workflows · `.maestro` and four root files; **`docs/` is excluded**, so pro
 |---|---|
 | **State** | Phases 0–3 · 3.5 · 3.7 · 4 · 3.8 ✅ · the whole-app audit gate ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED**, cutover conditionally approved. **Phase 6 is everything that remains** and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale`; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. **Last: 2026-08-24 at P6.8.7g.2, exit 0 — 244 e2e · 10 embed · 655 source files**, zero `error-context.md`. ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not |
+| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale` · **`lint:icon-glyphs`**; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. **Last: 2026-08-24 at P6.8.7g.7, exit 0 — 250 e2e · 10 embed · 663 source files**, zero `error-context.md`; pushed, `web-e2e` run `32742084595` **success**. ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not. ⛔ **It went RED first and the harness said "exit code 0"** — read the gate's own summary line |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]/[D52]): FEATURE LOCK ≠ FREEZE.** **FEATURE LOCK closes after P6.10** — the
@@ -81,7 +81,7 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 | ✅ | **P6.6** splash screen | DONE 2026-08-20, row 1 passed on the badge version. ⚠️ **[D51] supersedes it with a light/dark pair** — splash re-runs on the next device build |
 | ✅ | **R4** the demo wrote to the real store 🔒 | CLOSED 2026-08-21 — refused **by construction** (`createDebtStore` `opts.refuse`), 15 sites, `lint:sandbox` |
 | ✅ | **P6.7** CI / Pages ops | CLOSED 2026-08-21 — tag trigger retired · the Pages deploy `guard` job (`release/v1` **and** [D44]'s green-`web-e2e`-for-this-SHA) · [D49] `gate-status.json` + `lint:gate-freshness`, mutation-verified |
-| **P6.8** ▶ | **[AUDIT GATE] Pre-release best-in-class FINISH sweep** | ▶ **BUILDING — decomposed below.** Audit half CLOSED; the build is at cluster **g** |
+| **P6.8** ▶ | **[AUDIT GATE] Pre-release best-in-class FINISH sweep** | ▶ **The audit half and the whole BUILD (a–g) are CLOSED; `validate:release:rn` green and pushed.** What remains is **P6.8.9**, the verification pass — decomposed at the top of this file |
 | **R5** | 🔴 **The expense reserve belongs IN the plan** *(2.0 feature — **[D54]**)* | Shape settled 🎯 2026-08-21: a **recommended-action row that can be declined**. ⛔ Build **through the existing `expenseReserveHeld` setter** — a second writer is how three free display behaviours stop being free. ⚠️ The Plan surface is NEW → must clear **P6.10**. Two residuals open (per-cycle vs permanent decline · whether the transition cycle is stated). Not started; decomposed at switch-in. Detail → log |
 | **P6.9** | ⭐ **[AUDIT GATE] Privacy / data-flow audit** | Trace EVERY egress and prove [D41]'s claim literally true: network · RevenueCat · Sentry · iCloud · scan OCR · logs. Owns retiring *"100% private"* and the ASC privacy label. 🔴 **P6.3 hands it a live counterexample** — `PRIVACY_CLAIM.body` still says *"stays on this device"* |
 | **P6.10** | ⭐ **[AUDIT GATE] Pre-submit functional + FINANCIAL-correctness money lens** · 🔒 **FEATURE LOCK CLOSES HERE ([D52])** | ⛔ **Last gate that can FIND a structural gap.** Boundary inputs across the engine: zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping · cross-cadence BNPL · huge/partial portfolios. ⛔ **Owns two carried defects:** `bulkMarkRequired.ts` writes pre-[D2] paid semantics · `appliedTopUp` is a manual-opt-in invariant every cushion reader must remember. Its filed queue is in the backlog below |
@@ -116,9 +116,9 @@ separately gated ([D46]). Full reasoning → log, *"THE ORDER TO SUBMISSION"*.
 | # | Step | State |
 |---|---|---|
 | ✅ | **P6.8.1–.6** the matrix, the surface census, **13 lenses**, **6 refuters**, the synthesis file, the structural-gap list | DONE 2026-08-21 — 226 frames · 9 a11y trees. [`audits/2026-08-21-p6.8-finish/SYNTHESIS.md`](audits/2026-08-21-p6.8-finish/SYNTHESIS.md) is the decision document. ⛔ **33 of 34 observations survived; 11 of 34 mechanisms were wrong** |
-| **P6.8.7** ▶ | 🔴 **BUILD EVERYTHING EXCEPT THE REFUTED** | Clusters **a–g**, sequenced so the GUARDS land first. **a–f CLOSED; g is ACTIVE** *(decomposed at the top of this file)* |
-| **P6.8.8** | **`validate:release:rn` green** | *(it records itself — do not type the result)* |
-| **P6.8.9** | 🔴 **[AUDIT GATE] THE VERIFICATION PASS** | Re-audit the RESULTS: *(a)* every fix actually fixed its finding, and *(b)* **no other major+ issue remains**. ⛔ **Fixes are changes, and changes are unaudited.** Its filed queue is the largest block in the backlog below |
+| ✅ | **P6.8.7 CLOSED 2026-08-24** — build everything except the refuted | All clusters **a–g** done, sequenced so the GUARDS landed first. Detail → log |
+| ✅ | **P6.8.8 DONE 2026-08-24** — the gate is green and pushed | Quoted from the record: **250 e2e · 10 embed · 663 source files**, zero `error-context.md`. CI run `32742084595` **success** |
+| **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS — BUILDING NOW** | *(decomposed at the top of this file)*. **27 filed items + 4 undecided P1 majors.** ⛔ Step 1 is re-shooting the matrix, not reading it |
 
 ### P6.8.7 — the clusters
 
@@ -130,7 +130,7 @@ separately gated ([D46]). Full reasoning → log, *"THE ORDER TO SUBMISSION"*.
 | **d** | **CLOUD / DESTRUCTIVE** | ✅ CLOSED 2026-08-22 — B3 · C9 · M3-5 |
 | **e** | **THE CORE LOOP** | ✅ CLOSED 2026-08-23 — B2 · C1 · C2 · C5. C4 verified + filed as a device row; C3 → 2.1 |
 | **f** | **VISUAL + A11Y** | ✅ CLOSED 2026-08-24 — B6/V1-2 · V1-5 · V2-1 · V2-6 · V3-1 · V3-5/6 · V4-8 · A1-2 · A1-7 · A1-8 · A1-9 · A1-10. ⭐ Added **`lint:contrast`** and **`lint:type-scale`**, both of which out-found the slice they served |
-| **g** ▶ | 🔴 **NEW SURFACES** | ▶ **BUILDING — decomposed at the top.** C8 the CSV parser rescue *(the earliest deadline in the audit)* · P1-3 · C7 |
+| **g** | ✅ **NEW SURFACES — CLOSED 2026-08-24** | **C8** the parser rescue *(the audit's earliest deadline, met)* + the CSV import wired · **P1-3** the trajectory's x-domain · **C7** the strategy comparison *(**[D59]** — the ORDER, not a second curve)* · **`lint:icon-glyphs`** · pushed, CI green. **13 plants red by name.** Detail → log |
 
 ⛔ **Two results from a–f govern g and P6.8.9.** *(1)* **A finding names the property that is WRONG; a fix
 must preserve every property that was RIGHT — and no lens enumerates those, so they are found only by

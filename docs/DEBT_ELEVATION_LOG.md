@@ -18995,3 +18995,57 @@ modules; `selectVisibleHistory` has zero callers)* · **17 icon glyphs** are now
 is a P6.14 read · **a `.click()` sweep** of `tutorial-invite.spec.ts` has a rule and deliberately no sweep ·
 **`actions/*@v4` on a forced Node 24** · **the capture-ref matrix is 126 of 226 frames stale** and P6.8.9
 re-shoots before it reads anything.
+
+---
+
+## 🔚 SESSION CLOSE 2026-08-24 — P6.8.7 closed end to end, pushed, CI green. Read this first.
+
+**Where it stands.** `v1.7-dev` at `67a036f`. `validate:release:rn` green — quoted from `gate-status.json`:
+**250 e2e · 10 embed · 663 source files**, zero `error-context.md`. `web-e2e` run **`32742084595`
+conclusion: success**. **P6.8's audit half AND its whole build (a–g) are closed.**
+▶ **Next: `P6.8.9`, the verification pass — decomposed at the top of `DEBT_ELEVATION_PLAN.md`.**
+
+### The session started with a plan compaction, and it found two live decisions
+
+🎯: *"there are a lot of decomposed and stale sections there that shouldn't be."* **1,278 → 870 lines.**
+Three sections claimed to be "the ACTIVE decomposition" at once; six closed items kept full narrative
+sections duplicating a ✅ row above them; the deferred backlog was ordered by *which after-scan surfaced
+it* — a log ordering living in the driver — and is now grouped by **where it lands**.
+
+⛔ **The id-survival check found what the compaction did not.** Diffing every finding id in the archived
+predecessor against the new file flagged 17 absences; 15 were legitimately closed and **two were open
+`[DECISION]` gates** — **L1-20** and **L4-13b**, both sitting inside a *closed* item's prose rather than in
+the decision queue. ⚡ **An open decision parked in a closed item's narrative is invisible to every reader
+who trusts the queue**, and it survived only because the check was mechanical. **Run that diff on any doc
+compaction**, then the same over file paths — the path sweep caught `DEBT_SITE_COPY_2.0.md` falling off
+A2-5.
+
+### The result that outlives the cluster
+
+**f:** *a finding names the property that is WRONG; a fix must preserve every property that was RIGHT.*
+**g adds:** ⛔ **the finding's implied REMEDY is a hypothesis too.** C7's *"so show both"* would have drawn
+two lines separated by <0.1%. P1-3's *"neither curve draws"* was the right defect with the wrong
+description. C8's *"rescue the parser"* understated it by three defects.
+⚡ **Six now: B3 · B2 · M3-5 · C5 · C7 · P1-3.**
+
+### What to distrust next session
+
+- ⛔ **The harness reports a RED gate as "exit code 0."** It happened again at g.6. `gate-status.json` did
+  **not** move, because it writes on success only — [D49] earning its keep. **Read the gate's own summary.**
+- ⛔ **A stale PESSIMISTIC claim decays like a stale green one.** *"CI has not seen d, e or f"* was carried
+  forward twice after it stopped being true, and argued for risk that did not exist. `gh run list` is one
+  command.
+- ⛔ **Three plants failed to prove what they looked like they proved** — twice my own assertion was wrong
+  (a banned substring; a line index), and once **a plant stayed GREEN**, which is how `lint:icon-glyphs`
+  found that default parameter values were invisible to it. **A green plant reads as "nothing to see."**
+- ⛔ **Do not edit source while `validate:release:rn` runs.** The fingerprint is written at the END, so a
+  mid-run edit records a green over code the suites never saw. `docs/` is excluded, so prose is safe.
+
+### Owed to 🎯
+
+- ▶ **The CodeMagic build is yours to trigger** (manual-only, no `triggering:` block). It carries [D51]'s
+  light/dark splash · the Sentry QA test-event button · R3's twice-fixed exit · the iCloud clobber-guard
+  rows · and three new CSV-picker rows. ⛔ Source-map upload stays OFF.
+- 🔴 **Four decisions open:** **P1-1 · P1-2 · P1-4 · P1-5** *(P6.8.9.4)* · **L1-20** *(rec: defer)* ·
+  **L4-13b** *(rec: "nowhere" + the half-closed token)* · **P1-10's tier gate** · the v1.6-bridge silent
+  loop. All carry a recommendation.
