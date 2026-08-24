@@ -18427,3 +18427,71 @@ refuter's aside — *"triage with P1-3 or the cheaper fix will be credited with 
 id that appeared in **no ledger, no synthesis section and no refutation**. The instrument that exists to
 catch exactly that could not see the lens it came from. **Both halves had failed, and the finding surfaced
 from a footnote.**
+
+---
+
+## PLAN COMPACTION — 1,278 → 791 lines (🎯 2026-08-24)
+
+🎯: *"There are a lot of decomposed and stale sections there that shouldn't be."* Verbatim predecessor:
+[`archive/DEBT_ELEVATION_PLAN_2026-08-24-precompaction.md`](archive/DEBT_ELEVATION_PLAN_2026-08-24-precompaction.md).
+Archived **first**, so the compaction could not lose anything, then verified id-by-id afterwards.
+
+### What was structurally wrong
+
+⛔ **THREE THINGS CLAIMED TO BE "the ACTIVE decomposition" AT ONCE** — P6.8's sub-step table *(2026-08-21)*,
+the P6.8.7 cluster table, and P6.8.7g *(2026-08-24)*. A reader could not tell which sequence was live, which
+is the exact failure the one-decomposed-section rule names. Now: **g is decomposed and sits at the TOP of the
+file**; P6.8 and the cluster table are terse rows; every closed cluster is one line.
+
+⛔ **SIX CLOSED ITEMS HAD KEPT THEIR FULL NARRATIVE SECTIONS** — P6.3 · R4 · P6.7 · P6.4 · P6.8.7c · 7d · 7e,
+each duplicating a ✅ row a few lines above it and each already written up in this log. Two consecutive
+`**Exit:**` blocks had accumulated where 7c's section ran into P6.8's.
+
+⭐ **The Deferred backlog was ordered by WHICH AFTER-SCAN SURFACED IT** — 26 date-stamped subsections, which
+is a *log* ordering living in the driver. Re-grouped by **where it lands** (P6.8.9 · P6.10 · P6.9 · P6.11 ·
+2.1 · international · tooling · later), each line tagged with the item whose scan surfaced it so the
+reasoning is still one grep away. That is the ordering the backlog is actually read in — at a gate, asking
+"what did we file to me?"
+
+### Six stale rows, each MEASURED rather than assumed
+
+⚡ **Every one is the `waiting-lists-decay-one-way` shape: closing a thing updates the thing, and nobody
+deletes the row that was waiting on it.** Sixth, seventh and eighth instances of it on this project.
+
+1. ⛔ **L5-12 — "the paywall never mentions the user's own money" — was carried TWICE as the best open
+   structural-gap candidate, and it is CLOSED.** `M1-claims-vs-product.md:282` asked for exactly this
+   correction *("the record should be corrected: L5-12 is closed, not open")* and nothing acted on it.
+   ⚡ **A finding the plan advertises as its best remaining opportunity is the one nobody re-checks.**
+2. ⛔ **Both "Pages, both → Phase 6" threads were closed by P6.7** — read in `embed-pages.yml`, not assumed:
+   there was never a deploy allow-list to flip *(the exposure was `workflow_dispatch`'s ref dropdown, and the
+   guard is in the job where it can see the selected ref)*, and [D44]'s green-`web-e2e`-for-this-SHA
+   assertion is built and `needs:`-wired.
+3. **`scripts/*.ts` is typechecked by NOTHING** — built at 7a-1 as `typecheck:scripts`.
+4. **L1-22 apostrophes** — 7b took the baseline 94 → 0; the gate is absolute.
+5. **L5-19's trial call** — answered by [D53].
+6. **`clearQuarantine` has zero call sites** — fixed with C9 at 7d.2. Plus the *"NEXT SESSION STARTS AT
+   `P6.8.7d.1`"* pointer, three clusters out of date.
+
+### Two live decisions the plan had lost, recovered by the survival check
+
+⛔ **The compaction's own after-check found them, not the compaction.** Diffing every finding id in the
+archive against the new file surfaced 17 absences; 15 traced to closed findings, and **two did not**:
+
+- **L1-20** *(eyebrow treatment)* — SYNTHESIS verdict **DECISION, recommend deferring**. Its mechanism is
+  **false on iOS**: RN uppercases the `NSString` itself, so VoiceOver reads "PAYDAY GUARDIAN" either way —
+  23 edits and 32 test pins for a change users cannot see.
+- **L4-13b** *(`PressableScale` app-wide or nowhere)* — verdict **DECISION, recommend "nowhere"** + a small
+  2.0 build. The finding says two press vocabularies; **there are three and the majority is the third** —
+  of 69 tap targets 1 springs, 11 dim, **57 have none**.
+
+⚡ **Both had been sitting inside a CLOSED item's prose** (P6.4's "carried out of" line and the P6.8.3 lens
+roster) rather than in the decision queue, which is why neither had been asked. ⭐ **The lesson generalises
+past this file: an open decision parked inside a closed item's narrative is invisible to every reader who
+trusts the queue** — and it survived only because the check was mechanical.
+
+### The check that caught it, worth repeating on any doc compaction
+
+`for id in $(grep -oE '<id pattern>' <archive> | sort -u); do grep -q "$id" <new> || echo MISSING; done`
+— then the same over every file path mentioned. **17 ids and 19 paths flagged; 2 ids and 1 path were real.**
+⛔ **Do not skip the second pass:** the path sweep is what caught `DEBT_SITE_COPY_2.0.md` falling off A2-5,
+which would have left the Marketing-URL row with no pointer to where its copy lives.
