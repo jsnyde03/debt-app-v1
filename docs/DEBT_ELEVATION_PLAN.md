@@ -17,7 +17,9 @@
 | **Gate** | `validate:release:rn` — **210 e2e · 10 embed · 10 `test:stamp` · 87 lane checks** + `lint:glossary` · `lint:money` · **`lint:apostrophes`** · `lint:closure` · **`lint:secrets`** *(the repo is PUBLIC — credentials live in the Codemagic env group, never the tree)*; tsc + lint clean, zero `error-context.md`. ~15 min locally. ⛔ **Record the run, never inherit it** — the gate was RED from `f4e5e11` (2026-08-19) to 2026-08-20 while three sessions carried a stale "last green" forward, and CI was failing on every push the whole time. ⭐ **THE GATE NOW RECORDS ITSELF ([D49], P6.7).** Its final link writes `gate-status.json` — SHA · UTC ·
 a content fingerprint of 580 source files — **on success only**, and `npm run lint:gate-freshness` says in
 under a second whether that pass still describes the tree. ⛔ **Do not type a gate result into this file
-again; quote the record.** Last run 2026-08-21 at P6.7.6, exit 0, read directly: **212 e2e · 10 embed**. ⚠️ It took THREE red cycles to get there and every red was mine — an orphaned binding, a [D17] comment violation, and two specs pinning a retired string. **`apps/rn` lint now runs `--max-warnings=0`** (🎯: lint clean before launch), mutation-verified. |
+again; quote the record.** Last run **2026-08-24 at P6.8.7f.5**, exit 0, read from `gate-status.json`:
+**237 e2e · 10 embed · 648 source files**. ⚠️ It ran on a dirty tree — freshness turns on the fingerprint,
+which matches; the SHA does not identify what was tested. ⚠️ It took THREE red cycles to get there and every red was mine — an orphaned binding, a [D17] comment violation, and two specs pinning a retired string. **`apps/rn` lint now runs `--max-warnings=0`** (🎯: lint clean before launch), mutation-verified. |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]): FEATURE LOCK ≠ FREEZE.** ⚠️ **Both MOVED 2026-08-20 ([D52]).**
@@ -143,31 +145,33 @@ rest of the work happens — the [D31] move, applied to a 30-item build rather t
 | **P6.8.7c** | ✅ **DATA INTEGRITY — CLOSED 2026-08-22** | **B1** *(14 sites/7 files, one shared money parser)* · **B4** *(the reset screen + `pendingDataRepairs`)* · **W1-6** *(a refused database is no longer "a fresh install", and an inconclusive bridge no longer seeds)* · **M3-20** *(losses reported through B4's card)*. **220 e2e · 10 embed · lint exit 0.** ⛔ **Three results outlive the cluster:** an absence assertion passes before the app renders *(two specs stayed green with the defect planted)* · `lint:rn` green ≠ purity-clean · **M3-20 was scheduled as work and never refuted.** Detail → log |
 | **P6.8.7d** | ✅ **CLOUD / DESTRUCTIVE — CLOSED 2026-08-22** | **B3** *(the app now reasons about the REMOTE — `cloudBackupRemoteAt` + a guarded backup)* · **C9** *(`provider.delete()`, `clearQuarantine` finally called, and a failed remote delete blocks the local wipe)* · **M3-5** *(the diagnosis reaches the screen)*. **222 e2e · 10 embed · lint exit 0 · 9 plants red by name.** ⛔ **Three results outlive it:** M3-5 was scheduled as work and **appears in no refutation at all** *(the second instance — check the ids the BUILD schedules, not the slice's owed-list)* · the repo had already tagged the bare-`router.back()` defect `[C9]` **twice** while the destructive screen still had it · **"Delete all data" had zero e2e and no lens reported it.** Detail → log |
 | **P6.8.7e** | ✅ **THE CORE LOOP — CLOSED 2026-08-23** | **B2** *(the celebration fires from the payoff, not from the premium estimator noticing one)* · **C1** *(the absorb path has an entry point)* · **C2** *(a way back into payday capture)* · **C5** *(both halves — the missing prompt AND the false "caught up")*. **C4 verified + filed as a device row; C3 → 2.1.** **234 e2e · 10 embed · lint exit 0.** ⛔ **C5's stated harm was false — the fourth mechanism wrong in two clusters.** Detail → log |
-| **P6.8.7f** ▶ | 🔴 **VISUAL + A11Y — BUILDING NOW** *(decomposed below)* | **B6/V1-2** light contrast *(15 of 24 distinct pairs)* · **V1-5** borders *(⚠️ all four boundaries fail 1.4.11 — dark too)* · **V2-6** the coach mark covering its subject · **V2-1** the truncating debt-free date · **V3-1** six missing font clamps · **V3-5/6** the chart's hardcoded per-character width · **V4-8** split-view chart · **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⚠️ **A1-7's obvious fix is documented-as-broken; A1-11 is 6 sites not 1** |
-| **P6.8.7g** | **NEW SURFACES** *(🎯's call, against my rec)* | **C8** ⚠️ **RESCUE `core/imports/debtCsv.ts` FIRST — its only caller dies at P6.11, the earliest deadline in this audit** — then wire the import · **C7** snowball-vs-avalanche side by side *(both simulations already run; `TrajectoryChart.tsx:133` discards one)* |
+| **P6.8.7f** | ✅ **VISUAL + A11Y — CLOSED 2026-08-24** | **B6/V1-2 · V1-5 · V2-1 · V2-6 · V3-1 · V3-5/6 · V4-8 · A1-2 · A1-7 · A1-8 · A1-9 · A1-10** all built and plant-verified; **A1-11** was already closed at 7a. ⭐ **Two gates were added and both out-found the slice they served** — `lint:contrast` and `lint:type-scale`, in `lint:rn`. `validate:release:rn` exit 0, quoted from the record. ⛔ **Every fix that needed a second attempt failed on a property its finding never mentioned.** Detail → log |
+| **P6.8.7g** ▶ | 🔴 **NEW SURFACES — BUILDING NOW** *(🎯's call, against my rec; decomposed below)* | **C8** the CSV parser rescue — ⚠️ **the earliest deadline in the audit** · **C7** snowball-vs-avalanche side by side |
 
-#### ▶ P6.8.7f — VISUAL + A11Y *(the ACTIVE decomposition — 2026-08-23)*
+#### ▶ P6.8.7g — NEW SURFACES *(the ACTIVE decomposition — 2026-08-24)*
 
-⛔ **Sequenced shared-primitive first**, the same move c/d/e used: the colour tokens and the type clamps are
-touched by every screen below them, so fixing a surface before its primitive means fixing it twice.
+⛔ **C8 FIRST, AND THE ORDER IS A DEADLINE, NOT A PREFERENCE.** Premises re-verified against the tree at
+switch-in: `packages/core/imports/debtCsv.ts` exists and its **only** caller is `lib/hooks/useDebts.ts:6,188`
+— **in the root tree P6.11 deletes.** After that commit the parser is unreachable and its behaviour has no
+test to inherit. ⚠️ **C7's cited `TrajectoryChart.tsx:133` has DRIFTED** — that line is now unrelated; the
+real discard is **`:147`**, `const active = strategy === 'snowball' ? snowball : avalanche`.
 
-⚠️ **Two switch-in obligations, both earned in d and e:**
-1. **Check each id against the REFUTATIONS, not its slice's owed-list.** M3-20 and M3-5 were both scheduled
-   as work un-refuted and only opening the step caught it. Assume the next one is un-refuted until seen.
-2. ⛔ **Re-read the finding's stated MECHANISM against the code before building it.** Four of the last
-   seven — B3 · B2 · M3-5 · C5 — had a sound observation and a wrong explanation, and in three of them the
-   proposed fix would not have closed the defect. **The site count is also a floor, never the class.**
+⚠️ **Two obligations carried in from f, both earned by it:**
+1. ⛔ **A finding names the property that is WRONG; the fix must preserve every property that was RIGHT.**
+   Three of f's fixes needed a second attempt and every one failed on something its finding never mentioned.
+   **Before each fix: what did this site do BEFORE that it must still do?**
+2. **Write the gate, not the list.** All three of f's gates found something the slice had not.
 
 | # | step | notes |
 |---|---|---|
-| ✅ **f.1** | **CONTRAST — DONE 2026-08-23** | **B6/V1-2** the light ramp is re-solved against `background.tertiary`, the darkest ground the app paints text on · **V1-5** a new `border.control` token clears SC 1.4.11 in **both** themes, on 23 sites. ⭐ **`lint:contrast` is the instrument** — the grid, the exemptions (machine-verified), the hero panel and token-value copies — 4 plants red by name. ⛔ **Four defects only the building found**, incl. an unchecked checkbox at 1.43:1 and a file that had copied the token hexes. Detail → log |
-| ✅ **f.2** | **DYNAMIC TYPE — DONE 2026-08-23** | **V3-1** all six clamped and the false `PlanHero` comment deleted · **V3-5/6** the pill width now scales by the user's **real** `fontScale`, and the labels carry one shared ceiling. ⭐ **`lint:type-scale` is the class** — the refuter's own prescription, and it found 5 sites the audit missed, **none of which should be fixed** *(28pt headings; clamping prose overrules Dynamic Type)*. ⛔ **P1-3 is NOT closed by this** — see the decision below. Detail → log |
-| ✅ **f.3** | **LAYOUT + STATE — DONE 2026-08-23** | **V2-1** both hero variants share one fitting rule *(the second was never filed)* · **V2-6** the hardcoded `132` replaced by the **measured** callout height, **and pinned by an e2e that fails at 581 > 569** · **V4-8** `useSkiaReady` gates every RN label on the canvas it belongs to. ⛔ **The first version of the V2-6 test PASSED with the defect planted** — it asserted against a heading inside the subject rather than the subject. Detail → log |
-| ✅ **f.4** | **VOICEOVER — DONE 2026-08-23** | **A1-2** the cushion bars speak the glossary, and the inverted core comment that produced it is rewritten · **A1-7** the swipe pane is fenced **permanently**, which sidesteps the documented-as-broken fix · **A1-8** `badges` is DATA now, so the spoken name cannot drop it · **A1-9 + A1-10** `useLiveAnnouncement` — the only primitive that speaks on both platforms. **A1-11 was already closed at 7a.** 4 plants red, each isolated. Detail → log |
-| **f.5** | **Suites green** | The full gate, backgrounded with the real exit code captured — see the e.6 note on false failures |
+| **g.1** | 🔴 **RESCUE `debtCsv.ts` — the deadline** | Move it behind a live caller **and a test**, so P6.11 cannot silently take it. ⛔ Its only consumer today is the tree that dies; the rescue is what makes C8's wiring possible at all |
+| **g.2** | **Wire the CSV import into `apps/rn`** | ⚠️ **A new surface → must clear P6.10 feature lock.** ⛔ The live listing advertises CSV import **as free**, so this is also an M1-class claims fix, not only a capability |
+| **g.3** | **[DECISION] C7's shape → 🎯** | Both simulations already run every render and `:147` discards one. **Side-by-side is a new surface too** — present the shape before building it, the way R5's shape was settled |
+| **g.4** | **C7 build** | Only after g.3 answers |
+| **g.5** | **Suites green** | ⛔ **Read the gate's own summary line and `gate-status.json`, never the wrapper's exit** — the harness reported a RED gate as *"exit code 0"* twice in f |
 
-**Exit (f):** every f-id carries a plant-verified fix or a recorded reason, contrast is checked against the
-**measured pairs** rather than by eye, and anything only provable on hardware is a filed P6.14 row.
+**Exit (g):** the parser survives P6.11 with a caller and a test, the CSV claim on the listing is true,
+C7 carries 🎯's answer, and `validate:release:rn` is green **quoted from its record**.
 
 #### ✅ P6.8.7e — THE CORE LOOP *(CLOSED 2026-08-23)*
 
@@ -533,6 +537,30 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ THE WHOLE-CLUSTER AFTER-SCAN ACROSS f (2026-08-24)** — what only shows with f.1–f.5 side by side
+
+- ⭐ **EVERY FIX IN f THAT NEEDED A SECOND ATTEMPT FAILED ON A PROPERTY ITS FINDING NEVER MENTIONED.**
+  **V1-5** was framed as theme parity; the binding case was a control on a CARD, where the fill IS the
+  ground, and my first check passed at alpha 0.30. **A1-7** was *"it is in the tree"*; the first fix broke
+  **operability**, the second broke **focusability**. **V2-6** was about a constant; my test asserted
+  against a **proxy**. ⚡ **A finding names the property that is WRONG. A fix must preserve every property
+  that was RIGHT — and no lens enumerates those, so they are found only by building.** This is the
+  cluster-level form of *"the mechanism is a hypothesis"*: even a correct mechanism is silent about what
+  else the site was doing. → **P6.8.9** *(for each built fix, ask what the site did BEFORE that it must
+  still do)*.
+- ⭐ **THE GATES OUT-FOUND THE SLICES, THREE FOR THREE.** `lint:contrast` found the `accentSoft` pair and
+  the `CashFlowSection` literal copies; `lint:type-scale` found 5 sites *(and that none should be fixed)*;
+  the closure-regex fix found **7 P1 high+ findings the audit could not see at all**. ⛔ **c, d and e closed
+  LISTS; f gated CLASSES, and the difference is measurable.** → **P6.8.9** *(the ids c/d/e closed were
+  never gated — re-check those classes, not those ids)*.
+- 🔴 **`lint:contrast` IS BLIND TO A CONTROL WITH NO BORDER AT ALL.** It holds `border.control` to 3:1, which
+  answers *"is the boundary visible"* and not *"is there one."* A `Slider`, a bare `TextInput`, a pressable
+  row bounded only by spacing — none of them fail it, and none of them were in V1-5's scope either. → **2.1**
+  *(a real gap, not a ship-blocker; naming it beats a gate written in a freeze)*.
+- ⚠️ **f's own tests inherit f's own lesson.** `a11y-row-labels`, `coach-marks` and the affordability live
+  region all assert the fix's INTENT. None of them would catch the next fix breaking an adjacent property,
+  which is exactly how A1-7 got through twice. → **P6.8.9**.
 
 **→ SURFACED BY P6.8.7f.5 (2026-08-23) — the gate earned its run**
 

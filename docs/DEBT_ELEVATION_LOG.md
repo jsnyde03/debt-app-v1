@@ -18368,3 +18368,45 @@ The regressions were that the control did not work, and that it was still focusa
 prove a fix is scoped to the fix's INTENT; the damage lives in what the fix also did.** Sibling of *"a test
 can agree for the wrong reason"*, and a distinct failure from a green suite that simply had no assertion —
 here the assertions existed, in a spec there was no reason to run.
+
+### f.5 — the third run, green
+
+`validate:release:rn` **exit 0**, read from `gate-status.json` rather than typed:
+**`2d448d9 · 2026-08-24T12:19:31Z · 648 source files`** — **237 e2e · 10 embed · zero `error-context.md`**,
+`lint:gate-freshness` green afterwards. ⚠️ Recorded on a **dirty** tree, so the SHA does not identify what
+was tested; the fingerprint does, and it still matches after the commit.
+
+237 reconciles: cluster e closed at 234, and f added three specs — the coach-mark overlap invariant, the
+row-label pair, and the affordability live region.
+
+## THE WHOLE-CLUSTER AFTER-SCAN ACROSS f (2026-08-24)
+
+⭐ **EVERY FIX IN f THAT NEEDED A SECOND ATTEMPT FAILED ON A PROPERTY ITS FINDING NEVER MENTIONED.** Three
+of them, and the pattern is only visible with the cluster laid out end to end:
+
+| finding | what it named | what the fix broke |
+|---|---|---|
+| **V1-5** | theme parity — *"light is broken, dark is fine"* | the binding ground: a control on a CARD, where the fill IS the ground. First check passed at alpha 0.30 |
+| **V2-6** | a hardcoded constant | nothing in the app — but the TEST asserted against a proxy for the subject and passed with the defect planted |
+| **A1-7** | *"it is in the accessibility tree"* | **operability** (`inert`), then **focusability** (`focusable={false}`) — two attempts, two different adjacent properties |
+
+⚡ **A finding names the property that is WRONG. A fix must preserve every property that was RIGHT — and no
+lens enumerates those, so they are discovered only by building.** This is the cluster-level form of *"the
+mechanism is a hypothesis"*, and it is sharper: even a **correct** mechanism is silent about what else the
+site was doing. The question to ask before each fix is *"what did this site do BEFORE that it must still
+do?"* — which nothing in the audit's format asks.
+
+⭐ **THE GATES OUT-FOUND THE SLICES, THREE FOR THREE.** `lint:contrast` found the `accentSoft` chip and the
+`CashFlowSection` literal copies; `lint:type-scale` found five sites *and* established that none of them
+should be fixed; the closure-regex fix found **seven P1 high+ findings the instrument could not see at
+all.** ⛔ **c, d and e closed LISTS. f gated CLASSES.** That difference is measurable and it applies
+backwards — the ids those clusters closed were never gated, so P6.8.9 should re-check the classes rather
+than re-read the ids.
+
+🔴 **What f did NOT close, named rather than implied:** `lint:contrast` holds `border.control` to 3:1, which
+answers *"is the boundary visible"* and not *"is there one."* A `Slider`, a bare `TextInput`, a pressable
+row bounded only by spacing — none fail it, and none were in V1-5's scope either. Filed to 2.1.
+
+⚠️ **And f's own tests inherit f's own lesson.** `a11y-row-labels`, the coach-mark invariant and the
+affordability live region all assert their fix's INTENT. None would catch the next fix breaking an adjacent
+property — which is precisely how A1-7 got through twice.
