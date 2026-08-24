@@ -27,12 +27,22 @@ decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submis
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-23).** P6.8's audit is closed and its BUILD is well under way:
-**7a (gates) · 7b (copy) · 7c (data integrity) · 7d (cloud/destructive) · 7e (the core loop) are ALL
-DONE**, every fix plant-verified red and green. **`test:e2e:rn` 234 passed, real exit 0, zero
-`error-context.md` · embed 10 · `lint:rn` exit 0.** ▶ **Next is `P6.8.7f.1`** — contrast, decomposed on
-the plan. Then **g** *(⛔ C8's parser rescue is the earliest deadline in the audit — its only caller dies
-at P6.11)*, **P6.8.8**, and **P6.8.9**'s verification pass.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-24).** P6.8's audit is closed and its BUILD is nearly done:
+**7a (gates) · 7b (copy) · 7c (data integrity) · 7d (cloud/destructive) · 7e (the core loop) · 7f (visual
++ a11y) are ALL DONE**, every fix plant-verified red and green. **`validate:release:rn` exit 0 — quote
+`gate-status.json`, do not retype it.** ▶ **Next is `P6.8.7g.1`** — the CSV parser rescue, decomposed on
+the plan and ⛔ **the earliest deadline in the whole audit: its only caller is `lib/hooks/useDebts.ts`, in
+the tree P6.11 deletes.** Then **P6.8.8** and **P6.8.9**'s verification pass.
+
+⭐ **f added TWO GATES and both out-found the slice they served** — `npm run lint:contrast` *(WCAG grid,
+machine-verified exemptions, the hero panel, and literals that equal a token)* and `npm run lint:type-scale`
+*(any figure ≥30pt with no font-scale cap)*. Both ride `lint:rn`.
+
+⛔ **AND THE CLOSURE GATE WAS BLIND TO A WHOLE LENS.** `check-audit-closure.ts` anchored `**Severity:**` to
+line start; `P1-premium-bar.md` writes it mid-line, so **0 of P1's findings were visible** and P6.8.9's
+mechanical exit criterion would have read clean with seven majors never examined. Un-anchored: **80 → 87
+high+**. ✅ **[D58]: P1-3 ships in 2.0** at g.4, *before* C7 — C7 draws into the same domain.
+⚠️ **P1-1 · P1-2 · P1-4 · P1-5 are still undecided and are P6.8.9's.**
 
 ⛔ **FOUR FINDINGS IN TWO CLUSTERS HAD A SOUND OBSERVATION AND A WRONG EXPLANATION — this is now the
 single most reliable thing known about this audit.** B3 *(both lenses' fix was measured not to work)* ·
@@ -50,31 +60,40 @@ code before building it, and treat its site count as a floor.**
   removed — it would have reported a regression that never happened.
 - **`seedStore` RE-SEEDS ON EVERY NAVIGATION** (`addInitScript`). Any spec that mutates then `goto`s
   asserts against the original fixture. Cost a full debugging cycle; `seedOnce` is the pattern.
-- ⛔ **THE FULL E2E SUITE DIES MID-RUN AND THE CORPSES LOOK LIKE REGRESSIONS.** Twice: 203 and 64 false
-  failures, contiguous from the death point, **all green on isolated re-runs.** ⚠️ The first had a cause
-  (a SIGTERMed run left a live webServer); **the second had no stray process**, so the mechanism is
-  unknown — do not reach for "stale server" as the explanation. **Re-run failures in isolation before
-  believing any broad red**, and run the suite backgrounded with the real exit code captured
-  (`cmd > log 2>&1; echo "REAL_EXIT=$?" >> log` — a bare `echo EXIT=$?` reports the ECHO).
+- ⛔ **THE FULL E2E SUITE DIES MID-RUN AND THE CORPSES LOOK LIKE REGRESSIONS.** Three times now: 203, 64,
+  and 3 false failures, **all green on isolated re-runs.** ⚠️ Three different causes — a SIGTERMed run left
+  a live webServer · **no stray process at all** · and 2026-08-24, **the machine's screen shut down
+  overnight mid-run** (9.5 h wall clock, confirmed by 🎯). So do not reach for any one explanation.
+  ⭐ **The discipline is what generalises: re-run failures in isolation before believing any broad red —
+  but never INSTEAD of reading them.** That same red run also carried **2 genuine defects**, which
+  reproduced in 3.6 minutes with a named axe violation. Dismissing the batch would have shipped both.
+  ⚠️ Run the suite backgrounded with the real exit captured (`cmd > log 2>&1; echo "REAL_EXIT=$?" >> log`)
+  — a bare `echo EXIT=$?` reports the ECHO, **and the harness's own "completed (exit code 0)" reported that
+  echo twice while the gate had exited 1.**
 - **`lint:rn` green does NOT mean the tree is purity-clean.** `react-hooks/purity` reports a component's
   violations only while the React Compiler can still analyse it — `DebtSheet` linted clean, then produced
   2 errors on `Date.now()` calls **nobody touched**, the moment an unanalysable call entered render scope.
-⏳ **CI HAS NOT YET SEEN `d78fdb5`** *(d + e)*. The last CI-green commit is **`bc05054`** (run
-`32604746153`, 7c) — everything after it is verified **on the desk only**. `web-e2e.yml` runs every link of
+⏳ **CI HAS NOT YET SEEN d, e OR f.** The last CI-green commit is **`bc05054`** (run `32604746153`, 7c) —
+**everything after it is verified on the desk only**, including a full local `validate:release:rn` at f.5.
+⚠️ **f touched the design tokens, `ListRow`'s props and two new gate scripts**, so this push is a wider
+surface than the previous ones and the first CI run on it deserves reading rather than assuming. `web-e2e.yml` runs every link of
 `validate:release:rn` except `gate:record`: typecheck (core + RN + **scripts**) · `lint:rn` ·
 **`test:stamp`** · regression · app · scenarios · **`test:e2e:rn`** · **`test:e2e:embed`**. ⛔ **Read the
 run, do not infer it from a local pass** — and given the mid-run-death result above, **a red CI run on this
 push is not automatically a regression**; check whether the failures are contiguous to the end.
 
 ⛔ **Two things a new session must know before touching anything:**
-- **`gate-status.json` is STALE and that is correct.** CI deliberately does not run `gate:record`, and
-  running it by hand forges a green — the writer is gated on `--from-gate` for exactly that reason. The
-  record is refreshed by a real local `validate:release:rn` at **P6.8.8**.
-- **`lint:closure` now reports the P6.8 audit too, and at the last run it said 40 of 80 high+ findings are
-  traceable to no ledger** *(43 before c.1)*. That is **report-only by design** until **P6.8.9**, which
-  flips it to `exit 1`. It is not a regression and must not be "fixed" by silencing it. ⛔ **Quote the
-  gate, never this line.** It moved 43 → 41 → 40 inside one session, and it was already stale twice in
-  that time — a carried number decays exactly like a carried premise.
+- ✅ **`gate-status.json` is FRESH as of 2026-08-24** — f.5 ran a real local `validate:release:rn` and its
+  final link wrote the record. `npm run lint:gate-freshness` answers in a second whether it still describes
+  the tree. ⚠️ It was recorded on a **dirty** tree, so **the SHA does not identify what was tested — the
+  fingerprint does**, and the gate says so itself. ⛔ Running `gate:record` by hand forges a green; the
+  writer is gated on `--from-gate` for exactly that reason.
+- **`lint:closure` reports the P6.8 audit too, report-only by design** until **P6.8.9**, which flips it to
+  `exit 1`. It is not a regression and must not be "fixed" by silencing it. ⛔ **Quote the gate, never a
+  number from this file.** The count has moved every session it was looked at, and on 2026-08-24 its
+  DENOMINATOR moved as well — the severity match was anchored to line start, so an entire lens was
+  invisible and the total went **80 → 87 high+**. A carried number decays exactly like a carried premise,
+  and this one was wrong in a way no re-reading of the number could have caught.
 
 ⭐ **What 🎯 owes, in one place: [`docs/DEBT_2.0_YOUR_STEPS.md`](docs/DEBT_2.0_YOUR_STEPS.md).** Every step
 needing a human, an Apple login, a device or a decision — with an *"already done, do not ask twice"*
