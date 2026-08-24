@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { AccessibilityInfo, type AccessibilityProps } from 'react-native';
 
 /**
@@ -141,4 +142,34 @@ export function a11yExpanded(expanded: boolean): AccessibilityProps {
 export function announce(message: string): void {
   if (!message) return;
   AccessibilityInfo.announceForAccessibility?.(message);
+}
+
+/**
+ * ⛔ THE ONLY WAY TO SAY SOMETHING ON BOTH PLATFORMS. Neither half works alone, and the two fail in
+ * opposite directions — which is why every attempt at this before now was half a fix.
+ *
+ * | | iOS | web |
+ * |---|---|---|
+ * | `accessibilityLiveRegion` / `aria-live` | ⛔ dropped — it is declared `@platform android` | ✅ works |
+ * | {@link announce} → `announceForAccessibility` | ✅ works | ⛔ **an empty function body** |
+ *
+ * So a live region alone is silence on the phone the app ships on, and an `announce()` alone is silence
+ * in every browser. This hook does both: it returns the props for the region and fires the announcement
+ * when — and only when — the message actually changes.
+ *
+ * ⚠️ It is a sibling of `check-native-a11y-props.ts`, not a duplicate. That guard exists because web
+ * drops native-only props; this is the same asymmetry arriving from the other side, and the guard's own
+ * premise leaves no room for it. "We have a check for this class" is what would let it ship.
+ *
+ * ⚠️ Pass `null` while there is nothing to say. Passing the same string twice does not re-announce — a
+ * verdict that re-fires on every keystroke is worse than one that never fires.
+ */
+export function useLiveAnnouncement(message: string | null | undefined): AccessibilityProps {
+  const spoken = useRef<string | null>(null);
+  useEffect(() => {
+    if (!message || message === spoken.current) return;
+    spoken.current = message;
+    announce(message);
+  }, [message]);
+  return { accessibilityLiveRegion: 'polite', 'aria-live': 'polite' } as AccessibilityProps;
 }

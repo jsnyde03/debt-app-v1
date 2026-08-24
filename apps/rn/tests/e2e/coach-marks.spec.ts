@@ -120,10 +120,10 @@ test.describe('coach-marks — the callout does not cover its own subject', () =
 
     const callout = page.getByTestId('coach-mark');
     await expect(callout).toBeVisible();
-    // ⛔ The SUBJECT's own wrapper, not a heading inside it. The first version of this test used the
-    // `PAYOFF TRAJECTORY` label and PASSED with the defect planted back: the label is inset by the card's
-    // padding, so the callout's bottom edge could sit 12 px inside the card and still clear the text. The
-    // rect this asserts against has to be the rect the layer measured.
+    // ⛔ The SUBJECT's own wrapper, and nothing inside it. `PAYOFF TRAJECTORY` looks like the same
+    // assertion and is not: the heading is inset by the card's padding, so a callout sitting 12 px INSIDE
+    // the card still clears the text, and a check against it passes with the defect present. The rect this
+    // compares against has to be the rect `CoachMarkLayer` itself measured.
     const subject = page.getByTestId('tutorial-target-trajectory-scrub');
     await expect(subject).toBeVisible();
 

@@ -34,7 +34,6 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ListRow } from '@/components/ui/ListRow';
 import { MasterDetail } from '@/components/ui/MasterDetail';
-import { Pill } from '@/components/ui/Pill';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import type { Debt, Goal, RequiredExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -486,10 +485,17 @@ function DebtRow({
     : isBnpl
       ? `${balanceText} · interest-free`
       : `${balanceText} · ${debt.apr}% APR`;
+  // ⛔ The provider chip is not decoration — `meta` above never names the provider, because the pill was
+  // designed to (2.7.3). While these were rendered nodes the row spoke the meta and dropped the pill, so a
+  // VoiceOver user heard "2 of 4 paid, interest-free" about a debt whose name they were never told.
   const chips = [
-    focus ? <Pill key="f" label="Focus" tone="action" /> : null,
-    isBnpl ? <Pill key="b" label={debt.bnplProvider || 'BNPL'} tone="neutral" /> : debt.isAutopay ? <Pill key="a" label="Autopay" tone="autopay" /> : null,
-  ].filter(Boolean);
+    focus ? { key: 'f', label: 'Focus', tone: 'action' as const } : null,
+    isBnpl
+      ? { key: 'b', label: debt.bnplProvider || 'BNPL', tone: 'neutral' as const }
+      : debt.isAutopay
+        ? { key: 'a', label: 'Autopay', tone: 'autopay' as const }
+        : null,
+  ].filter((chip) => chip !== null);
   return (
     <ListRow
       title={debt.name}
@@ -499,7 +505,7 @@ function DebtRow({
       onCaptionPress={canVerify ? () => store_.getState().verifyDebtBalance(debt.id, view.currentBalance, currentDate) : undefined}
       amount={formatCurrency(debt.minimumPayment)}
       amountSuffix={isBnpl ? (CADENCE_SUFFIX[debt.recurrence] || '/mo') : '/mo'}
-      badges={chips.length ? <>{chips}</> : undefined}
+      badges={chips.length ? chips : undefined}
       progress={progress}
       progressColor={focus ? c.accent.primary : undefined}
       onPress={() => onEdit(debt)}
@@ -766,7 +772,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
               title={item.name}
               meta={`Due ${shortDate(item.dueDate)} · ${item.recurrence}${item.expenseType === 'variable' ? ' · Variable' : ''}${item.isTrial && item.fullChargeDate ? ` · Trial → ${formatCurrency(item.fullAmount ?? 0)} ${shortDate(item.fullChargeDate)}` : ''}`}
               amount={formatCurrency(item.amount)}
-              badges={item.isAutopay ? <Pill label="Autopay" tone="autopay" /> : undefined}
+              badges={item.isAutopay ? [{ label: 'Autopay', tone: 'autopay' }] : undefined}
               onPress={() => setSheet({ editing: item })}
               onDelete={() => store_.getState().removeExpense(item.id)}
             />
@@ -966,7 +972,7 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
               meta={g.type === 'emergency' ? 'Emergency fund' : 'Savings'}
               amount={funded ? formatWhole(g.targetAmount) : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))}
               amountSuffix={funded ? ' saved' : ' left'}
-              badges={funded ? <Pill label="Funded" tone="paid" /> : undefined}
+              badges={funded ? [{ label: 'Funded', tone: 'paid' }] : undefined}
               progress={pct}
               onPress={() => setSheet({ editing: g })}
               onDelete={() => store_.getState().removeGoal(g.id)}

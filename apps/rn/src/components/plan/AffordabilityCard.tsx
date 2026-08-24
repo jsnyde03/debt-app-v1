@@ -17,6 +17,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
+import { useLiveAnnouncement } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
 // A session-unique id for an applied purchase / created goal — a plain counter (not `Date.now()`, which
@@ -106,6 +107,22 @@ export function AffordabilityCard() {
     short: { color: c.accent.danger, icon: 'cancel' },
   };
 
+  /**
+   * ⛔ THE VERDICT, AS ONE STRING, BECAUSE IT HAS TO BE SPOKEN AND NOT ONLY DRAWN. This card answers the
+   * question the user asked by swapping a `<Text>` — no role, no live region, no announcement — so a
+   * VoiceOver user typed an amount and got silence. Deriving the sentence here rather than announcing a
+   * paraphrase of it means the spoken answer and the drawn answer cannot come apart.
+   */
+  const verdictLine =
+    result && isPremium
+      ? result.verdict === 'short'
+        ? `Not this paycheck — you’d come up about ${formatWhole(result.shortBy)} short.`
+        : result.verdict === 'comfortable'
+          ? `Yes — you’d still hold about ${formatWhole(result.cushionAfter)}.`
+          : `Yes, but tight — you’d dip to about ${formatWhole(result.cushionAfter)}, below your ${formatWhole(result.floor)} line.`
+      : null;
+  const liveProps = useLiveAnnouncement(verdictLine);
+
   // ── Applied state: the purchase is in the plan; the Guardian + everything below has recomputed. ──
   if (applied) {
     return (
@@ -163,6 +180,10 @@ export function AffordabilityCard() {
       <TextField label="What is it? (optional)" value={name} onChangeText={(t) => { setName(t); setNameError(''); }} placeholder="e.g. New couch" />
       {nameError ? <Text style={[textStyles.caption, styles.hint, { color: c.accent.danger }]}>{nameError}</Text> : null}
 
+      {/* ⚠️ The live region is the STABLE wrapper, not the verdict inside it. A region that mounts together
+          with its own content has nothing to compare against, so the change it exists to announce is the
+          change it misses. This View is present in every state; only what it holds changes. */}
+      <View {...liveProps}>
       {!result ? (
         <Text style={[textStyles.caption, styles.hint, { color: c.text.tertiary }]}>Enter an amount to see if it fits this paycheck.</Text>
       ) : !isPremium ? (
@@ -175,9 +196,7 @@ export function AffordabilityCard() {
         <View style={styles.read}>
           <View style={styles.readHead}>
             <AppIcon name={tone.short.icon} size={18} color={tone.short.color} />
-            <Text style={[textStyles.subhead, styles.readText, { color: tone.short.color }]}>
-              Not this paycheck — you’d come up about {formatWhole(result.shortBy)} short.
-            </Text>
+            <Text style={[textStyles.subhead, styles.readText, { color: tone.short.color }]}>{verdictLine}</Text>
           </View>
           <AffordabilityImpactBar before={result.discretionaryNow} after={result.cushionAfter} floor={result.floor} verdict={result.verdict} />
           <Button label="Save for it →" variant="secondary" onPress={openSaveSheet} style={styles.action} />
@@ -187,11 +206,7 @@ export function AffordabilityCard() {
         <View style={styles.read}>
           <View style={styles.readHead}>
             <AppIcon name={tone[result.verdict].icon} size={18} color={tone[result.verdict].color} />
-            <Text style={[textStyles.subhead, styles.readText, { color: tone[result.verdict].color }]}>
-              {result.verdict === 'comfortable'
-                ? `Yes — you’d still hold about ${formatWhole(result.cushionAfter)}.`
-                : `Yes, but tight — you’d dip to about ${formatWhole(result.cushionAfter)}, below your ${formatWhole(result.floor)} line.`}
-            </Text>
+            <Text style={[textStyles.subhead, styles.readText, { color: tone[result.verdict].color }]}>{verdictLine}</Text>
           </View>
           {/* §3.3.4 — the animated impact: the cushion carves down to what's left, vs your floor line. */}
           <AffordabilityImpactBar before={result.discretionaryNow} after={result.cushionAfter} floor={result.floor} verdict={result.verdict} />
@@ -224,6 +239,7 @@ export function AffordabilityCard() {
           />
         </View>
       )}
+      </View>
     </Card>
     {isPremium && result && n != null ? (
       <SaveForItSheet visible={saveSheet} amount={n} name={name} onClose={() => setSaveSheet(false)} onSaved={setSaved} />

@@ -26,8 +26,14 @@ export type TimelineCycle = {
     items: TimelineItem[];
     endingBalance: number;
     cushionStatus: CushionStatus;
-    /** The canonical unified Guardian band for this cycle (§2.2 / round-4 F4). `cushionStatus` is its
-     *  display alias. Driven by floor-relative headroom (`net`), NOT `endingBalance`. */
+    /** The canonical unified Guardian band for this cycle (§2.2 / round-4 F4). Driven by floor-relative
+     *  headroom (`net`), NOT `endingBalance`.
+     *
+     *  ⛔ EVERY WORD A USER READS OR HEARS IS KEYED OFF THIS FIELD, through `GUARDIAN_STATE_LABEL`.
+     *  `cushionStatus` is the ENGINE's token — `stable` / `tight` / `pressure` — and it is never shown to
+     *  anyone. A cushion bar once announced it verbatim to VoiceOver, so a screen-reader user heard
+     *  "pressure" where a sighted user read "Very tight". If you are reaching for a status here to put in
+     *  front of a person, it is this one. */
     guardianState: GuardianState;
     isProjected: boolean;
     // v1.7 Guardian cross-cycle carry (2.4.D.6) — the substrate for §2.5 water-fill smoothing.

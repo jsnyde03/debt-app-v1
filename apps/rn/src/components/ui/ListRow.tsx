@@ -1,17 +1,19 @@
 import { LOG_PAYMENT_ENTRY, PAYOFF_SCHEDULE_TITLE } from '@core/copy/vocabulary';
-import { type ReactNode, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { AppIcon } from '@/components/ui/AppIcon';
+import { Pill, type PillTone } from '@/components/ui/Pill';
 import { RowContextMenu } from '@/components/ui/RowContextMenu';
 import type { RowMenuAction } from '@/components/ui/RowContextMenu.types';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInert } from '@/hooks/use-inert';
 import { cardElevation } from '@/theme/elevation';
 import { layout, pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-import { groupLabel } from '@/utils/a11y';
+import { a11yHidden, groupLabel } from '@/utils/a11y';
 import { confirmDelete } from '@/utils/confirm';
 
 /**
@@ -46,7 +48,18 @@ export function ListRow({
   onCaptionPress?: () => void;
   amount?: string;
   amountSuffix?: string;
-  badges?: ReactNode;
+  /**
+   * ⛔ DATA, NOT A `ReactNode`, AND THAT IS THE FIX. This used to take rendered children, so
+   * `groupLabel` — which takes strings — could not see a word of it: a row announced
+   * *"Klarna, 2 of 4 paid, interest-free"* **minus the word Klarna**, and `Focus` and `Autopay` reached
+   * nobody at all. On iOS an explicit `accessibilityLabel` stops the subtree being recursed; on web the
+   * computed name wins over the children. Two mechanisms, one cause: the label could not read the badge.
+   *
+   * A `badgeLabels` prop beside a `badges` node would have been a second copy of the same words, free to
+   * diverge the first time somebody edited one. Rendering the pills from the same array the label is built
+   * from makes divergence structurally impossible.
+   */
+  badges?: { label: string; tone?: PillTone; key?: string }[];
   progress?: number;
   /** Fill color for the progress bar — defaults to the success/progress green. */
   progressColor?: string;
@@ -68,8 +81,14 @@ export function ListRow({
   // 3.6.6 — iPad pointer / web-mouse hover cue (via the typed onHoverIn/Out props; inert on touch). A
   // subtle raise to the tertiary surface signals "interactive"; `selected` keeps its accent border.
   const [hovered, setHovered] = useState(false);
-  // One screen-reader utterance: "Visa, $2,400 · 22.99% APR, estimated verified Jun 3, $65.00/mo".
-  const a11y = groupLabel(title, [meta, caption].filter(Boolean).join(', ') || undefined, amount ? `${amount}${amountSuffix ?? ''}` : undefined);
+  // One screen-reader utterance: "Visa, Focus, $2,400 · 22.99% APR, estimated verified Jun 3, $65.00/mo".
+  // The badges sit right after the title, where a sighted reader meets them.
+  const a11y = groupLabel(
+    title,
+    badges?.map((b) => b.label).join(', ') || undefined,
+    [meta, caption].filter(Boolean).join(', ') || undefined,
+    amount ? `${amount}${amountSuffix ?? ''}` : undefined,
+  );
   const rowBody = (
     <Pressable
       onPress={onPress}
@@ -92,7 +111,7 @@ export function ListRow({
           <Text style={[textStyles.bodyMedium, { color: c.text.primary }]} numberOfLines={1}>
             {title}
           </Text>
-          {badges}
+          {badges?.map((b, i) => <Pill key={b.key ?? b.label ?? i} label={b.label} tone={b.tone} />)}
         </View>
         {meta ? (
           <Text style={[textStyles.caption, { color: c.text.tertiary }]} numberOfLines={1}>
@@ -136,15 +155,7 @@ export function ListRow({
     if (ok) onDelete();
     else swipeRef.current?.close(); // cancelled → snap the row back
   };
-  const renderRightActions = () => (
-    <Pressable
-      onPress={handleDelete}
-      accessibilityRole="button"
-      accessibilityLabel={`Delete ${title}`}
-      style={[styles.deleteAction, { backgroundColor: c.accent.danger }]}>
-      <Text style={styles.deleteText}>Delete</Text>
-    </Pressable>
-  );
+  const renderRightActions = () => <SwipeDeleteAction title={title} onPress={handleDelete} fill={c.accent.danger} />;
 
   // iOS long-press → native context menu (3.5.2): Edit (if the row is tappable) + a destructive Delete.
   // A discoverable alternative to the hidden swipe; tap + swipe stay untouched. Passthrough off-iOS.
@@ -194,3 +205,37 @@ const styles = StyleSheet.create({
   deleteAction: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
   deleteText: { color: '#ffffff', fontWeight: '700', fontSize: 15 },
 });
+
+/**
+ * The swipe-revealed Delete pane, fenced out of the accessibility tree PERMANENTLY.
+ *
+ * ⛔ It was reachable at rest and announced BEFORE the row it belongs to — `button "Delete Card"` came
+ * first in the tree, so a screen-reader user met a destructive action for a debt they had not yet been
+ * told about. The pane mounts with the row and lives outside an `overflow: hidden` container; nothing was
+ * hiding it because the component holds no open/closed state at all.
+ *
+ * ⚠️ PERMANENTLY, and not gated on open, on purpose. `RequiredActionsCard`'s own comment records that
+ * gating this on React state was measured to reset `ReanimatedSwipeable`'s pan mid-gesture — the row snaps
+ * shut the instant it opens — so the cheaper-looking fix carries a real regression risk. Nothing is lost
+ * by fencing it outright: Delete is reachable from the row's edit sheet on every platform, and from the
+ * long-press context menu on iOS. A swipe is a pointer gesture; it was never the screen-reader path.
+ *
+ * Both halves are required and neither is optional: `a11yHidden` is the cross-platform tree fence, and
+ * `useInert` is the web-only TAB-ORDER half — hidden from a screen reader while still reachable by Tab is
+ * worse than either alone, because the control then announces nothing when it receives focus.
+ */
+function SwipeDeleteAction({ title, onPress, fill }: { title: string; onPress: () => void; fill: string }) {
+  const ref = useRef<View>(null);
+  useInert(ref, true);
+  return (
+    <Pressable
+      ref={ref}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Delete ${title}`}
+      {...a11yHidden(true)}
+      style={[styles.deleteAction, { backgroundColor: fill }]}>
+      <Text style={styles.deleteText}>Delete</Text>
+    </Pressable>
+  );
+}

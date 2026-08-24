@@ -163,7 +163,7 @@ touched by every screen below them, so fixing a surface before its primitive mea
 | ✅ **f.1** | **CONTRAST — DONE 2026-08-23** | **B6/V1-2** the light ramp is re-solved against `background.tertiary`, the darkest ground the app paints text on · **V1-5** a new `border.control` token clears SC 1.4.11 in **both** themes, on 23 sites. ⭐ **`lint:contrast` is the instrument** — the grid, the exemptions (machine-verified), the hero panel and token-value copies — 4 plants red by name. ⛔ **Four defects only the building found**, incl. an unchecked checkbox at 1.43:1 and a file that had copied the token hexes. Detail → log |
 | ✅ **f.2** | **DYNAMIC TYPE — DONE 2026-08-23** | **V3-1** all six clamped and the false `PlanHero` comment deleted · **V3-5/6** the pill width now scales by the user's **real** `fontScale`, and the labels carry one shared ceiling. ⭐ **`lint:type-scale` is the class** — the refuter's own prescription, and it found 5 sites the audit missed, **none of which should be fixed** *(28pt headings; clamping prose overrules Dynamic Type)*. ⛔ **P1-3 is NOT closed by this** — see the decision below. Detail → log |
 | ✅ **f.3** | **LAYOUT + STATE — DONE 2026-08-23** | **V2-1** both hero variants share one fitting rule *(the second was never filed)* · **V2-6** the hardcoded `132` replaced by the **measured** callout height, **and pinned by an e2e that fails at 581 > 569** · **V4-8** `useSkiaReady` gates every RN label on the canvas it belongs to. ⛔ **The first version of the V2-6 test PASSED with the defect planted** — it asserted against a heading inside the subject rather than the subject. Detail → log |
-| **f.4** | **VOICEOVER** | **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⛔ **A1-7's obvious fix is documented-as-broken** and **A1-11 is 6 sites, not 1**, both already measured |
+| ✅ **f.4** | **VOICEOVER — DONE 2026-08-23** | **A1-2** the cushion bars speak the glossary, and the inverted core comment that produced it is rewritten · **A1-7** the swipe pane is fenced **permanently**, which sidesteps the documented-as-broken fix · **A1-8** `badges` is DATA now, so the spoken name cannot drop it · **A1-9 + A1-10** `useLiveAnnouncement` — the only primitive that speaks on both platforms. **A1-11 was already closed at 7a.** 4 plants red, each isolated. Detail → log |
 | **f.5** | **Suites green** | The full gate, backgrounded with the real exit code captured — see the e.6 note on false failures |
 
 **Exit (f):** every f-id carries a plant-verified fix or a recorded reason, contrast is checked against the
@@ -526,6 +526,23 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7f.4's AFTER-scan (2026-08-23)**
+
+- 🔴 **R5-N1 IS RESOLVED BY NOT COPYING THE PATTERN, and the contradiction it names is still open.**
+  `RequiredActionsCard`'s comment says gating a swipe pane on React state was **measured** to reset
+  `ReanimatedSwipeable`'s pan — the row snaps shut as it opens — and the shipped code in that same file does
+  exactly that. One of the two is wrong. `ListRow` fences its pane **permanently** instead, so it inherits
+  neither, but ⛔ **`RequiredActionsCard` still carries whichever of the two is the defect.** → **P6.8.9**.
+- ⚠️ **`announce()` is verified on web by being ABSENT.** `announceForAccessibility` is an empty function
+  body in react-native-web, so `useLiveAnnouncement`'s spoken half is unprovable in the harness by
+  construction; the e2e pins the `aria-live` half, which is the half web actually has. → **P6.14** *(turn
+  VoiceOver on, type an amount into Can-I-Afford-It, and confirm the verdict is spoken)*.
+- **Nothing compares a spoken string against the shipped glossary**, which is how A1-2 lived. `lint:glossary`
+  pins the constant and no gate reads an `accessibilityLabel`'s contents. ⭐ **The decidable version is
+  narrow and worth having:** flag an `accessibilityLabel` template that interpolates a raw engine status
+  field. → **2.1** *(not a ship-blocker now that the one site is fixed, and a new gate this close to a
+  freeze is the kind of scope the sweep exists to protect)*.
 
 **→ SURFACED BY P6.8.7f.3's AFTER-scan (2026-08-23)**
 

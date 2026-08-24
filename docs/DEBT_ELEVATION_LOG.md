@@ -18192,3 +18192,95 @@ the loaded path cannot distinguish.
 
 ⚠️ Residual: `insets.bottom` is 0 on web and ~34 pt on a device, so `roomBelow` is **less** often true
 there and MORE viewports take the above-branch. The device can only widen V2-6, never narrow it.
+
+---
+
+## P6.8.7f.4 — VOICEOVER (2026-08-23)
+
+⭐ **A1-11 was already closed at 7a** — `a11ySelected` retired, six sites re-roled to `a11yChecked`,
+`aria-allowed-attr` in the axe spec. Checked before building rather than after, which is the switch-in
+obligation this cluster inherited.
+
+### A1-2 — the app told a screen-reader user their money was `pressure`
+
+`CashFlowSection`'s cushion bars interpolated `cycle.cushionStatus` — the ENGINE's token — straight into
+`accessibilityLabel`. A sighted user read **Very tight**; a VoiceOver user heard **pressure**. The value was
+already in hand: `TimelineCycle` carries `guardianState` too, and `CashRunwayChart` has always used it.
+
+⚡ **The comment that produced it was rewritten, not annotated** ([D17]).
+`buildMultiCycleTimeline.ts` described `cushionStatus` as `guardianState`'s *"display alias"* — exactly
+backwards, since every displayed word is keyed off `guardianState`. An author reading that comment reaches
+for the wrong field, which is plausibly how this was written. It now says which field a person's words come
+from, and why.
+
+⚠️ **Nothing in the repo compares a spoken string against the glossary.** `lint:glossary` pins the constant;
+no gate reads a label's contents. Filed to 2.1 rather than built — a new gate this close to a freeze is the
+scope the sweep exists to protect.
+
+### A1-8 — `badges` became DATA, and that is the fix
+
+`groupLabel` takes strings and `badges` was a `ReactNode`, so the label could not see a word of it. Two
+different mechanisms, one cause: on iOS an explicit `accessibilityLabel` stops the subtree being recursed;
+on web the computed name wins over the children.
+
+⛔ **The dropped set is three, not two, and the third was a named product decision.** For a BNPL debt the
+second chip is the **provider name**, and `meta` never repeats it — the code says so at the chip's own
+construction: *"the pill names the provider (2.7.3)."* So a screen-reader user heard *"2 of 4 paid,
+interest-free"* about a debt whose provider they were never told.
+
+⭐ **`badgeLabels` beside `badges` would have been the obvious fix and the wrong one** — a second copy of the
+same words, free to diverge the first time anyone edited one. Rendering the pills from the same array the
+label is built from makes divergence structurally impossible. Four callers converted.
+
+### A1-7 — fenced permanently, which is how R5-N1 gets sidestepped
+
+The swipe-revealed Delete pane mounts with the row and sat in the tree at rest, announced **before** the row
+— a destructive action for a debt the user has not been told about yet.
+
+⛔ **The obvious fix is documented-as-broken.** `RequiredActionsCard`'s comment records that gating this on
+React state was **measured** to reset `ReanimatedSwipeable`'s pan mid-gesture, and its shipped code does
+exactly that. One of the two is wrong and it is not this cluster's to decide. `ListRow` fences the pane
+**permanently** instead: no state, no re-render, no animation risk — and nothing is lost, because Delete is
+reachable from the edit sheet on every platform and from the long-press menu on iOS. **A swipe is a pointer
+gesture; it was never the screen-reader path.** ⚠️ `RequiredActionsCard` still carries whichever of its two
+contradicting claims is the defect → filed to P6.8.9.
+
+Both halves are required: `a11yHidden` is the cross-platform tree fence, `useInert` the web-only tab-order
+half. Hidden from a screen reader while still reachable by Tab is worse than either alone.
+
+### A1-9 + A1-10 — `useLiveAnnouncement`, because neither half works alone
+
+| | iOS | web |
+|---|---|---|
+| `accessibilityLiveRegion` / `aria-live` | ⛔ dropped — declared `@platform android` | ✅ works |
+| `announce()` → `announceForAccessibility` | ✅ works | ⛔ **an empty function body** |
+
+⛔ **There was no primitive in this codebase that announces on both platforms**, so every previous attempt at
+this was half a fix by construction. The new hook does both, and fires only when the message actually
+changes — a verdict that re-announces on every keystroke is worse than one that never fires.
+
+Applied to `AffordabilityCard`, which answered the user's question by swapping a `<Text>` with no role, no
+region and no announcement. ⭐ **The verdict is now derived as one string and both drawn and spoken from
+it**, so the two cannot come apart. ⚠️ **The live region is the STABLE wrapper, not the verdict inside it**
+— a region that mounts together with its own content has nothing to compare against, so the change it
+exists to announce is the change it misses.
+
+### Verification
+
+**Four plants, isolated so each one proves its own fix:**
+- `groupLabel` stops reading the badges → the row's name loses `Focus`, red on the presence assertion.
+- `a11yHidden` + `useInert` removed → `Delete Card` is back in the tree, red on the absence assertion at
+  **0 expected, 1 received**.
+- the live region removed → red at **1 expected, 0 received**.
+- (f.3's `useSkiaReady` plant, re-run green.)
+
+⚠️ **The absence assertion is deliberately paired with a presence assertion on the same page**, because this
+repo has shipped two specs that stayed green with the defect planted back — an assertion that something is
+not there passes just as happily against a page that never rendered.
+
+`typecheck` exit 0 · `lint:rn` exit 0 · `test:app` pass · the three touched e2e specs green.
+
+⛔ **`lint:comments` caught a [D17] violation of mine** — the V2-6 test's comment narrated the earlier
+version of itself. Rewritten to state why the subject's own rect is the right one, with the narrative left
+here where it belongs. It was caught because f.3's spec was written after that cluster's last lint run;
+**the gate ran before the commit, the spec did not.**

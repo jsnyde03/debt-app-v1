@@ -9,6 +9,7 @@ import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useReduceMotion } from '@/motion';
+import { GUARDIAN_STATE_LABEL } from '@core/copy/vocabulary';
 import type { TimelineCycle } from '@/store/payoffSelectors';
 import type { ResolvedColors } from '@/theme/colors';
 import { duration } from '@/theme/motion';
@@ -140,7 +141,11 @@ function CushionBar({ cycle, index, fraction }: { cycle: TimelineCycle; index: n
     <View
       style={styles.col}
       accessible
-      accessibilityLabel={`${shortDate(cycle.cycleStart)}: ${formatWhole(cycle.net)} of room, ${cycle.cushionStatus}`}>
+      // ⛔ `guardianState`, never `cushionStatus`. The two describe the same cycle, but `cushionStatus` is
+      // the ENGINE's token — a screen-reader user was told their money was `pressure` while a sighted user
+      // read "Very tight", and no gate in the repo compares a spoken string to the shipped glossary.
+      // `CashRunwayChart` has always done it the right way; this is the same one-line lookup.
+      accessibilityLabel={`${shortDate(cycle.cycleStart)}: ${formatWhole(cycle.net)} of room, ${GUARDIAN_STATE_LABEL[cycle.guardianState]}`}>
       <Text style={[textStyles.caption, styles.val, { color: tone.label }]}>{formatWhole(cycle.net)}</Text>
       <View style={styles.track}>
         <Animated.View style={[styles.bar, barStyle, tone.glow ? { boxShadow: `0px 0px 8px 1px ${tone.glow}` } : null]}>

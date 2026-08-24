@@ -11,7 +11,6 @@ import { AddRow } from '@/components/ui/AddRow';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ListRow } from '@/components/ui/ListRow';
-import { Pill } from '@/components/ui/Pill';
 import type { LivingExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { formatWhole } from '@/utils/format';
@@ -68,7 +67,7 @@ export default function LivingExpensesScreen() {
               title={item.name}
               meta={item.enabled ? 'Counts toward reserve' : 'Not counted'}
               amount={formatCurrency(item.amount)}
-              badges={item.enabled ? undefined : <Pill label="Off" tone="neutral" />}
+              badges={item.enabled ? undefined : [{ label: 'Off', tone: 'neutral' }]}
               onPress={() => setSheet({ editing: item })}
               onDelete={() => store_.getState().removeLivingExpense(item.id)}
             />
