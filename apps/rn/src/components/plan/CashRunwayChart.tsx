@@ -169,7 +169,7 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
               />
             ))}
             {cycles.map((cyc, i) => (
-              <Text key={`x${i}`} numberOfLines={1} style={[textStyles.caption, styles.xLabel, { left: mapX(i) - 24, top: plotBottom + 4, color: i === sel ? c.text.secondary : c.text.tertiary }]}>
+              <Text key={`x${i}`} maxFontSizeMultiplier={1.2} numberOfLines={1} style={[textStyles.caption, styles.xLabel, { left: mapX(i) - 24, top: plotBottom + 4, color: i === sel ? c.text.secondary : c.text.tertiary }]}>
                 {shortDate(cyc.cycleStart)}
               </Text>
             ))}

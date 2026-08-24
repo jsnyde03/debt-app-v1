@@ -149,8 +149,8 @@ export function PlanHero({
         <CountUp
           value={shownPaycheck}
           format={formatWhole}
-          // T3B (audit L5-7) — the three tab heroes were the ONLY large figures with no font-scale cap,
-          // while 13 other large-number sites already carry one. At AX5 a 40pt figure scales unbounded.
+          // At AX5 an unbounded 40pt figure scales past anything the layout can hold. `lint:type-scale`
+          // is what keeps that true of every large figure rather than of the ones somebody remembered.
           maxFontSizeMultiplier={1.3}
           numberOfLines={1}
           style={[styles.amount, { color: s.heroText }]}

@@ -40,7 +40,7 @@ export default function HistoryScreen() {
     <Screen title={PAY_CYCLE_HISTORY_TITLE} onBack={() => router.back()}>
       {summary.paidDown > 0 ? (
         <View style={styles.anchor}>
-          <Text style={[styles.anchorNum, { color: c.accent.success }]}>{formatWhole(summary.paidDown)}</Text>
+          <Text maxFontSizeMultiplier={1.3} style={[styles.anchorNum, { color: c.accent.success }]}>{formatWhole(summary.paidDown)}</Text>
           <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
             paid down across {summary.cycleCount} cycles
           </Text>

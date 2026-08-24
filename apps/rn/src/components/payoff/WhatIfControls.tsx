@@ -65,7 +65,7 @@ export function WhatIfControls({
   return (
     <View style={styles.wrap}>
       <View style={styles.readoutRow}>
-        <Text style={[styles.readout, { color: simulating ? c.text.primary : c.text.tertiary }]}>+$</Text>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.readout, { color: simulating ? c.text.primary : c.text.tertiary }]}>+$</Text>
         <TextInput
           value={value ? String(value) : ''}
           onChangeText={onType}
@@ -73,6 +73,7 @@ export function WhatIfControls({
           placeholder="0"
           placeholderTextColor={c.text.tertiary}
           selectTextOnFocus
+          maxFontSizeMultiplier={1.3}
           accessibilityLabel="Extra monthly payment amount"
           style={[
             styles.readout,

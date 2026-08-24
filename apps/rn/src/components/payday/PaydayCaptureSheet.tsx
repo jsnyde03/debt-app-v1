@@ -528,6 +528,7 @@ function CaptureSuccess({ amount }: { amount: number }) {
       <CountUp
         value={shown}
         format={(n) => formatCurrency(Math.round(n))}
+        maxFontSizeMultiplier={1.3}
         style={[styles.capturedAmount, { color: c.accent.success }]}
       />
       <Text style={[textStyles.subhead, { color: c.text.secondary }]}>confirmed · your plan’s up to date</Text>

@@ -18063,3 +18063,74 @@ all passed. The full e2e suite is f.5's job.
 consumer was undone with `git checkout --` on six paths, which also threw away the site conversions and
 they had to be redone. **Stash a mutation that spans files; `git checkout` does not know which edits were
 the experiment.**
+
+---
+
+## P6.8.7f.2 — DYNAMIC TYPE (2026-08-23)
+
+### The before-scan found something larger than the step
+
+⛔ **`P1-1 · P1-2 · P1-3 · P1-4 · P1-5` are filed major in the P1 slice and appear in NO synthesis ledger.**
+Not in the major list, not in A/B/C, not among the refuted. R6 attacked only P1-9, P1-10 and P1-12, so
+these were never judged either way — **missing, not declined.** It is the third instance in three clusters
+of the same shape: 7c and 7d each shipped an id no refutation covered; this is its mirror, findings that
+were never scheduled at all. On the plan as a decision for 🎯, with the traceability sweep filed to P6.8.9.
+
+It reached f.2 directly. R6 on V3-5/6: *"triage with P1-3 or the cheaper fix will be credited with the
+wrong outcome"* — P1-3 says the same chart already strands the same pill at 1× for a **domain** reason.
+⚠️ **f.2's fix is right on its own arithmetic and does not close P1-3**, which is recorded rather than
+implied.
+
+### V3-1 — six clamps, and the comment that stopped the sweep
+
+All six verified at their cited sites, all six free-tier. `maxFontSizeMultiplier={1.3}`, the house value.
+
+⛔ **`PlanHero.tsx`'s comment was deleted, not annotated** ([D17]). It read *"the three tab heroes were the
+ONLY large figures with no font-scale cap"* — the count had been taken by enumerating **heroes** and
+written up as a claim about **large figures**, and it was the reason nobody re-ran the sweep.
+
+### `lint:type-scale` — the refuter's own prescription
+
+R6's closing line was that the countermeasure for an enumeration budgeted against the wrong class *"is not
+'count more carefully'; it is to state the class and gate on it."* `scripts/check-type-scale.ts` walks the
+TSX, resolves each text element's style against the file's own `StyleSheet.create` and the shared scale,
+and requires a cap on anything at or above the floor.
+
+⚡ **It found five more sites, and the correct action on every one of them is nothing.** They are 28pt
+`title1` headings — screen titles and onboarding headings. **Prose is what Dynamic Type is for; clamping a
+heading does not protect an accessibility user, it overrules one.** So the floor is 30, which is where the
+app's figures start, and the two points are argued in the file rather than assumed.
+
+⭐ **A count-driven sweep would have "fixed" all five and made the app less accessible.** That is the case
+for gating a class rather than closing a list — the gate had to be given a *definition*, and writing the
+definition is what surfaced that five of the sites were not the thing being defined.
+
+### V3-5 / V3-6 — the pill, and the real font scale
+
+`endPillW = 20 + len * 6.5` is a per-character estimate measured at 1×, and the same number is the
+right-edge clamp bound — so at any larger setting the estimate is narrower than the pill it is keeping on
+screen, and the pill walks off the edge it exists to stay inside.
+
+⭐ **Fixed with the user's actual scale, not a fudge factor:** `useWindowDimensions().fontScale`, capped at
+`LABEL_SCALE_MAX` — the same ceiling every chart label now carries. Multiplying by a constant 1.2 would
+have made the estimate an upper bound at AX sizes by mis-positioning the pill at 1×, which is the setting
+almost everyone is on.
+
+The labels themselves: one shared ceiling, plus `numberOfLines={1}` on the unbounded fixed-width boxes. A
+`width: 40` `<Text>` with no line limit does not truncate, it **wraps** — two stacked lines of ~31pt glyphs
+in a 26pt gutter inside a hard `H = 200` plot, overflowing upward into the curve.
+
+⛔ **A FIFTH stated mechanism was wrong.** R6's own `numberOfLines` census — written to correct the lens's
+miscount — reports `waypointLabel` as unbounded. It carries `numberOfLines={1}` and did before f.2 opened
+the file. The unbounded set is three, not four. **A refutation is a hypothesis on exactly the same terms as
+the finding it attacks.**
+
+`CashRunwayChart`'s x-label was folded in: premium-only and already line-limited, so it is not headline
+work, but it is the same hand-computed offset and it cost one prop.
+
+### Verification
+
+Mutation: the `history.tsx` clamp removed → `lint:type-scale` red **by file, line and style name**;
+restored → green. `typecheck` exit 0 · `lint:rn` exit 0 with both new gates inside it, quoted from the run
+*(`check-contrast` green · `check-type-scale`: 19 large figures checked)* · `test:app` and `test:regression`
+both pass.

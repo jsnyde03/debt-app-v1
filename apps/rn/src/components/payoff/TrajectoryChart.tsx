@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { type GestureResponderEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import { type GestureResponderEvent, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
@@ -21,6 +21,17 @@ import { WhatIfControls } from './WhatIfControls';
 const H = 200;
 // Left gutter holds the balance labels; bottom gutter holds the time ticks.
 const PAD = { l: 38, r: 14, t: 16, b: 26 };
+
+/**
+ * ⛔ EVERY POSITION IN THIS PLOT IS A HAND-WRITTEN POINT OFFSET, so the labels cannot be allowed to grow
+ * without bound — `H` is 200 and the bottom gutter is 26, and a tick that doubles does not truncate, it
+ * wraps into two stacked lines and overflows upward into the curve. This is the ceiling every chart label
+ * shares, and it is also the number the pill's width estimate is scaled by, so the estimate stays an upper
+ * bound rather than a guess that happens to be right at 1×.
+ *
+ * ⚠️ Chart labels only. Prose elsewhere in the app scales freely — that is what Dynamic Type is for.
+ */
+const LABEL_SCALE_MAX = 1.2;
 
 function formatMonths(months: number): string {
   if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;
@@ -119,6 +130,7 @@ export function TrajectoryChart({
   const c = useAppColors();
   const scheme = useColorScheme();
   const [w, setW] = useState(0);
+  const { fontScale } = useWindowDimensions();
   // What-If is a secondary, opt-in tool — collapsed by default so the resting card stays calm.
   const [whatIfOpen, setWhatIfOpen] = useState(false);
   // Touch-scrub: the point under the finger (px position + its month/balance) — null when not scrubbing.
@@ -260,7 +272,12 @@ export function TrajectoryChart({
     setScrub(null);
   };
   // Estimate the debt-free pill's width (no layout round-trip) so it clamps on-screen at either chart edge.
-  const endPillW = 20 + (debtFreeDate ? shortDate(debtFreeDate).length : 8) * 6.5;
+  // ⛔ Scaled by the user's REAL font scale, capped at the same ceiling the pill's own text carries. `6.5` is
+  // a per-character constant measured at 1×, and the same number is the right-edge clamp bound — so at any
+  // larger setting the untouched estimate is narrower than the pill it is keeping on screen, and the pill
+  // walks off the edge it exists to stay inside.
+  const labelScale = Math.min(fontScale, LABEL_SCALE_MAX);
+  const endPillW = (20 + (debtFreeDate ? shortDate(debtFreeDate).length : 8) * 6.5) * labelScale;
 
   const dark = scheme === 'dark';
   const gold = dark ? '#f7cf5f' : '#dca01f';
@@ -329,6 +346,8 @@ export function TrajectoryChart({
             {gridVals.map((v) => (
               <Text
                 key={`y${v}`}
+                maxFontSizeMultiplier={LABEL_SCALE_MAX}
+                numberOfLines={1}
                 style={[textStyles.caption, styles.yLabel, { top: mapY(v) - 7, color: c.text.tertiary }]}>
                 {formatAxisBalance(v)}
               </Text>
@@ -337,6 +356,8 @@ export function TrajectoryChart({
             {xTicks.map((t) => (
               <Text
                 key={`x${t.m}`}
+                maxFontSizeMultiplier={LABEL_SCALE_MAX}
+                numberOfLines={1}
                 style={[textStyles.caption, styles.xLabel, { left: mapX(t.m) - 20, top: baselineY + 6, color: c.text.tertiary }]}>
                 {t.label}
               </Text>
@@ -357,6 +378,7 @@ export function TrajectoryChart({
                     <Text
                       key={`wpl${i}`}
                       pointerEvents="none"
+                      maxFontSizeMultiplier={LABEL_SCALE_MAX}
                       style={[textStyles.caption, styles.waypointLabel, { left: wp.x - 40, top: wp.y - 22, color: c.text.tertiary }]}
                       numberOfLines={1}>
                       {/* COH-5: no "✓" on a FUTURE projected clear-month — the ✓ means done elsewhere (verified/paid).
@@ -373,7 +395,7 @@ export function TrajectoryChart({
                 testID="traj-endpoint-pill"
                 pointerEvents="none"
                 style={[styles.endPill, { left: clamp(endpoint.x - endPillW / 2, PAD.l, w - PAD.r - endPillW), top: baselineY - 30, backgroundColor: gold }]}>
-                <Text style={styles.endPillText}>{shortDate(debtFreeDate)}</Text>
+                <Text maxFontSizeMultiplier={LABEL_SCALE_MAX} numberOfLines={1} style={styles.endPillText}>{shortDate(debtFreeDate)}</Text>
               </View>
             ) : null}
             {/* touch-scrub — vertical guide + a dot on the curve + a floating date/balance/months readout */}
@@ -391,7 +413,7 @@ export function TrajectoryChart({
                   testID="traj-scrub-readout"
                   pointerEvents="none"
                   style={[styles.scrubReadout, { left: clamp(scrub.x - 60, PAD.l, w - PAD.r - 132), top: PAD.t, backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
-                  <Text style={[textStyles.caption, styles.scrubReadoutText, { color: c.text.primary }]} numberOfLines={1}>
+                  <Text maxFontSizeMultiplier={LABEL_SCALE_MAX} style={[textStyles.caption, styles.scrubReadoutText, { color: c.text.primary }]} numberOfLines={1}>
                     {monthDate(scrub.month).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
                     {'  ·  '}
                     {formatWhole(scrub.balance)}

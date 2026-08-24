@@ -52,7 +52,7 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
   return (
     <AnimatedSheet visible={visible} onClose={onClose} title="Where it goes">
       <View style={styles.echo}>
-        <Text style={[styles.echoNum, { color: c.text.primary }]}>{formatWhole(data.perPaycheckTotal)}</Text>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.echoNum, { color: c.text.primary }]}>{formatWhole(data.perPaycheckTotal)}</Text>
         {/* 3.8.4 — "recommended", not "reserved". This sheet's headline is the SMOOTHED LOAD, which is the
             right source here (the receipt explains the advice), but it carried the same false verb as the
             hero: nothing reserved it. The hero now shows what actually is reserved; this states the advice. */}

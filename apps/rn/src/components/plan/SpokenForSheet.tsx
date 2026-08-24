@@ -56,7 +56,7 @@ export function SpokenForSheet({
             tapped — same tier, same figure — and rendering it to the cent turned $486 into $486.34 across
             one tap with no state change. The per-ROW figures below stay `formatCurrency`; they are a
             ledger. See the rule in `@core/utils/formatCurrency`. */}
-        <Text style={[styles.echoNum, { color: c.text.primary }]}>{formatWhole(total)}</Text>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.echoNum, { color: c.text.primary }]}>{formatWhole(total)}</Text>
         <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>of this paycheck is already accounted for</Text>
       </View>
 

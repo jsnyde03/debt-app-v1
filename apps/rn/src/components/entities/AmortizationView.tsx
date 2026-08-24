@@ -66,7 +66,7 @@ export function AmortizationView({ debtId }: { debtId: string | null }) {
       ) : (
         <>
           <View style={styles.echo}>
-            <Text style={[styles.echoNum, { color: c.text.primary }]}>{monthLabel(amort.startDate, schedule.monthsToPayoff)}</Text>
+            <Text maxFontSizeMultiplier={1.3} style={[styles.echoNum, { color: c.text.primary }]}>{monthLabel(amort.startDate, schedule.monthsToPayoff)}</Text>
             <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>
               debt-free · {schedule.monthsToPayoff} {schedule.monthsToPayoff <= 1 ? 'month' : 'months'} ·{' '}
               {formatCurrency(schedule.totalInterest)} interest

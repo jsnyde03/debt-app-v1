@@ -161,7 +161,7 @@ touched by every screen below them, so fixing a surface before its primitive mea
 | # | step | notes |
 |---|---|---|
 | ✅ **f.1** | **CONTRAST — DONE 2026-08-23** | **B6/V1-2** the light ramp is re-solved against `background.tertiary`, the darkest ground the app paints text on · **V1-5** a new `border.control` token clears SC 1.4.11 in **both** themes, on 23 sites. ⭐ **`lint:contrast` is the instrument** — the grid, the exemptions (machine-verified), the hero panel and token-value copies — 4 plants red by name. ⛔ **Four defects only the building found**, incl. an unchecked checkbox at 1.43:1 and a file that had copied the token hexes. Detail → log |
-| **f.2** | **DYNAMIC TYPE** | **V3-1** six missing font clamps · **V3-5/6** the chart's hardcoded per-character width *(⚠️ a measurement problem wearing a layout problem's clothes)* |
+| ✅ **f.2** | **DYNAMIC TYPE — DONE 2026-08-23** | **V3-1** all six clamped and the false `PlanHero` comment deleted · **V3-5/6** the pill width now scales by the user's **real** `fontScale`, and the labels carry one shared ceiling. ⭐ **`lint:type-scale` is the class** — the refuter's own prescription, and it found 5 sites the audit missed, **none of which should be fixed** *(28pt headings; clamping prose overrules Dynamic Type)*. ⛔ **P1-3 is NOT closed by this** — see the decision below. Detail → log |
 | **f.3** | **LAYOUT + STATE** | **V2-1** the truncating debt-free date · **V4-8** the split-view chart · **V2-6** the coach mark covering its own subject |
 | **f.4** | **VOICEOVER** | **A1-2** Guardian vocabulary *(1 line)* · **A1-7/8/9/10/11** — ⛔ **A1-7's obvious fix is documented-as-broken** and **A1-11 is 6 sites, not 1**, both already measured |
 | **f.5** | **Suites green** | The full gate, backgrounded with the real exit code captured — see the e.6 note on false failures |
@@ -264,6 +264,19 @@ last-and-smallest flip carrying its own green gate.
 ---
 
 ## ⏸ Waiting on Jason
+
+🔴 **[DECISION] FIVE MAJOR FINDINGS FROM THE P1 LENS REACHED NO LEDGER — surfaced by f.2's before-scan,
+2026-08-23.** `P1-1 · P1-2 · P1-3 · P1-4 · P1-5` are filed **major** in
+[`slices/P1-premium-bar.md`](audits/2026-08-21-p6.8-finish/slices/P1-premium-bar.md) and appear **nowhere**
+in `SYNTHESIS.md` — not in the major list, not in A/B/C, not in the refuted list. Only P1-9/10/12 were
+refuted, so these were never judged either way; they are **missing, not declined**. ⛔ **This is the third
+instance of the same shape in three clusters** — d and e each shipped an id that no refutation covered, and
+this is its mirror: findings that were never scheduled at all. **The countermeasure is a traceability check,
+not another reading** — every slice's majors must trace to a synthesis disposition. ⭐ **Recommendation:
+P1-3 into 2.0, the rest to 2.1**, because P1-3 is the one f.2 just built around: the Payoff Trajectory
+renders **nine empty years, a stranded date pill and a legend describing two lines that are not on screen**
+on the default seed, across three viewports — and R6 warned that fixing V3-5's font arithmetic **without**
+it credits the cheap fix with the wrong outcome. ⚠️ **The whole traceability sweep belongs to P6.8.9.**
 
 ▶ **The actionable list is [`DEBT_2.0_YOUR_STEPS.md`](DEBT_2.0_YOUR_STEPS.md)** — every step needing a
 human, an Apple login, a device or a decision, in the order it is worth doing. This section stays as the
@@ -513,6 +526,17 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7f.2's AFTER-scan (2026-08-23)**
+
+- ⛔ **A FIFTH stated mechanism wrong.** R6's `numberOfLines` census reports `TrajectoryChart.tsx:360`
+  `waypointLabel` as unbounded; **it carries `numberOfLines={1}`** and did before f.2 touched it. So the
+  unbounded set is `yLabel · xLabel · endPillText` — **three, not four** — inside a refutation whose whole
+  point was that the lens had miscounted the same census in the other direction. → **P6.8.9**.
+- ⭐ **`lint:type-scale` found five sites the audit did not, and the right answer on all five is DO NOTHING.**
+  They are 28pt `title1` headings — prose, which Dynamic Type exists to scale. **A count-driven sweep would
+  have "fixed" them and made the app less accessible.** The gate's floor is 30 for that reason, stated in
+  the file. Recorded because the next sweep will find them again. → **no action**.
 
 **→ SURFACED BY P6.8.7f.1's AFTER-scan (2026-08-23)**
 
