@@ -265,18 +265,25 @@ last-and-smallest flip carrying its own green gate.
 
 ## ⏸ Waiting on Jason
 
-🔴 **[DECISION] FIVE MAJOR FINDINGS FROM THE P1 LENS REACHED NO LEDGER — surfaced by f.2's before-scan,
-2026-08-23.** `P1-1 · P1-2 · P1-3 · P1-4 · P1-5` are filed **major** in
-[`slices/P1-premium-bar.md`](audits/2026-08-21-p6.8-finish/slices/P1-premium-bar.md) and appear **nowhere**
-in `SYNTHESIS.md` — not in the major list, not in A/B/C, not in the refuted list. Only P1-9/10/12 were
-refuted, so these were never judged either way; they are **missing, not declined**. ⛔ **This is the third
-instance of the same shape in three clusters** — d and e each shipped an id that no refutation covered, and
-this is its mirror: findings that were never scheduled at all. **The countermeasure is a traceability check,
-not another reading** — every slice's majors must trace to a synthesis disposition. ⭐ **Recommendation:
-P1-3 into 2.0, the rest to 2.1**, because P1-3 is the one f.2 just built around: the Payoff Trajectory
-renders **nine empty years, a stranded date pill and a legend describing two lines that are not on screen**
-on the default seed, across three viewports — and R6 warned that fixing V3-5's font arithmetic **without**
-it credits the cheap fix with the wrong outcome. ⚠️ **The whole traceability sweep belongs to P6.8.9.**
+🔴 **[DECISION] THE CLOSURE GATE CANNOT SEE THE P1 LENS, AND FIVE OF ITS MAJORS REACHED NO LEDGER —
+surfaced by f.2's before-scan, 2026-08-23.**
+
+⛔ **The instrument first.** `check-audit-closure.ts` matches `^-?\s*\*\*Severity:\*\*` — **anchored at line
+start** — and `P1-premium-bar.md` writes `**Part:** A-craft · **Severity:** major` **mid-line**. So the
+whole P1 slice is invisible to it: the gate's `80 high+ findings` is short by P1's **seven majors**, and
+**P6.8.9's mechanical exit criterion would have read zero with P1 never examined.** ⚡ This is the audit's
+own #1 finding — *the instrument under-reports* — landing on the gate built to prevent it.
+
+⛔ **Then the findings.** `P1-1 · P1-2 · P1-3 · P1-4 · P1-5` are filed **major** and appear nowhere in
+`SYNTHESIS.md` — not in the major list, not in A/B/C, not among the refuted. R6 attacked only P1-9/10/12,
+so these were never judged either way: **missing, not declined.** *(Third instance of the shape in three
+clusters — d and e each shipped an id no refutation covered; this is its mirror.)*
+
+⭐ **Recommendation: fix the regex now, take P1-3 into 2.0, and route the rest through P6.8.9's re-run.**
+P1-3 is the one f.2 just built around — the Payoff Trajectory renders **nine empty years, a stranded date
+pill and a legend describing two lines that are not on screen** on the default seed, across three viewports
+— and R6 warned that fixing V3-5's font arithmetic **without** it credits the cheap fix with the wrong
+outcome. ⚠️ **Whatever the widened gate then names is P6.8.9's list, not f's.**
 
 ▶ **The actionable list is [`DEBT_2.0_YOUR_STEPS.md`](DEBT_2.0_YOUR_STEPS.md)** — every step needing a
 human, an Apple login, a device or a decision, in the order it is worth doing. This section stays as the
@@ -526,6 +533,22 @@ PERMANENT** — *"put the phone on a charger"* is physical state a simulator has
 ---
 
 ## Deferred backlog
+
+**→ SURFACED BY P6.8.7f.5 (2026-08-23) — the gate earned its run**
+
+- ⛔ **THE A11Y FENCE TOOK THE POINTER PATH WITH IT, AND MY OWN NEW TEST WAS BLIND TO IT.** `useInert`
+  applies `inert`, which removes a subtree from the tab order **and makes it non-interactive** — so
+  `SwipeDeleteAction` stopped responding to the tap it exists for and **swipe-to-delete silently stopped
+  working on web.** `a11y-row-labels.spec.ts`, written in the same step to prove the fence, passed happily:
+  it asks whether the control is in the tree, and the regression was that the control no longer *works*.
+  **Only the full suite caught it** (`swipe-delete.spec.ts`, 1 failed / 236 passed). Fixed with
+  `focusable={false}`, which removes the tab stop and touches nothing else. ⚡ **The lesson is not "run the
+  full suite" — it is that a test written to prove a fix is scoped to the fix's INTENT, and a regression
+  lives in what the fix also did.** → **P6.8.9**.
+- ⛔ **`cmd > log; echo EXIT=$?` REPORTED THE ECHO, AND THE HARNESS BELIEVED IT.** The backgrounded gate was
+  announced as *"completed (exit code 0)"* while `validate:release:rn` had exited **1**. The real result was
+  in the log. ⚠️ Already a standing constraint in this repo and it still landed — **read the gate's own
+  summary line, never the wrapper's.** → **the gate docs**.
 
 **→ SURFACED BY P6.8.7f.4's AFTER-scan (2026-08-23)**
 

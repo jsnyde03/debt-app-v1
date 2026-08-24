@@ -109,8 +109,14 @@ for (const file of readdirSync(P68_SLICES)) {
       current = heading[1];
       title = heading[2].trim();
     }
-    // ⚠️ Both spellings: the 2026-08-17 findings use a list item, these slices do not.
-    const severity = line.match(/^-?\s*\*\*Severity:\*\*\s*([a-z]+)/);
+    // ⚠️ Three spellings, and the third cost the whole P1 lens. The 2026-08-17 findings write the severity
+    // as a list item and the P6.8 slices write it bare, so this was anchored to the start of the line —
+    // but `P1-premium-bar.md` writes `**Part:** A-craft · **Severity:** major`, with the severity MID-LINE.
+    // ⛔ Anchored, this file reported `80 high+ findings` and saw **zero** of P1's, so P6.8.9's mechanical
+    // exit criterion would have read clean with seven majors — including five in no ledger at all — never
+    // examined. Un-anchoring finds 87. That is this audit's own headline landing on the gate built to
+    // prevent it: an instrument that under-reports is worse than no instrument, because it is believed.
+    const severity = line.match(/\*\*Severity:\*\*\s*([a-z]+)/);
     if (current && severity) {
       p68.push({ id: current, lens: file.replace(/\.md$/, ''), severity: severity[1], title });
       current = null;

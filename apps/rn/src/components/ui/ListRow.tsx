@@ -9,7 +9,6 @@ import { RowContextMenu } from '@/components/ui/RowContextMenu';
 import type { RowMenuAction } from '@/components/ui/RowContextMenu.types';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useInert } from '@/hooks/use-inert';
 import { cardElevation } from '@/theme/elevation';
 import { layout, pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -220,19 +219,25 @@ const styles = StyleSheet.create({
  * by fencing it outright: Delete is reachable from the row's edit sheet on every platform, and from the
  * long-press context menu on iOS. A swipe is a pointer gesture; it was never the screen-reader path.
  *
- * Both halves are required and neither is optional: `a11yHidden` is the cross-platform tree fence, and
- * `useInert` is the web-only TAB-ORDER half — hidden from a screen reader while still reachable by Tab is
- * worse than either alone, because the control then announces nothing when it receives focus.
+ * ⚠️ THE TAB-ORDER HALF IS `tabIndex`, AND THE TWO OBVIOUS ALTERNATIVES ARE BOTH WRONG — each was tried and
+ * each traded this defect for a different one:
+ *   • `useInert` applies `inert`, which also makes the subtree NON-INTERACTIVE. On web that takes the
+ *     pointer path with it: the pane stops answering the tap it exists for and swipe-to-delete silently
+ *     stops working. Caught by `swipe-delete.spec.ts`, not by any test written to prove the fence.
+ *   • `focusable={false}` never reaches the DOM. `Pressable` computes its own `tabIndex`
+ *     (`disabled ? -1 : 0`) and forwards it, so `createDOMProps`' `focusable` branch is dead code behind an
+ *     already-defined value — the button shipped `aria-hidden="true"` WITH `tabindex="0"`, which is the
+ *     `aria-hidden-focus` violation this fence exists to avoid. Caught by axe.
+ * The intent is narrow and worth stating exactly: invisible to assistive technology, fully operable by the
+ * finger that revealed it, and not a tab stop.
  */
 function SwipeDeleteAction({ title, onPress, fill }: { title: string; onPress: () => void; fill: string }) {
-  const ref = useRef<View>(null);
-  useInert(ref, true);
   return (
     <Pressable
-      ref={ref}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Delete ${title}`}
+      tabIndex={-1}
       {...a11yHidden(true)}
       style={[styles.deleteAction, { backgroundColor: fill }]}>
       <Text style={styles.deleteText}>Delete</Text>

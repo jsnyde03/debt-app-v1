@@ -18284,3 +18284,87 @@ not there passes just as happily against a page that never rendered.
 version of itself. Rewritten to state why the subject's own rect is the right one, with the narrative left
 here where it belongs. It was caught because f.3's spec was written after that cluster's last lint run;
 **the gate ran before the commit, the spec did not.**
+
+---
+
+## P6.8.7f.5 — THE GATE (2026-08-23)
+
+### The first run was RED, and it caught something no targeted test could
+
+`validate:release:rn` — **1 failed, 236 passed**: `swipe-delete.spec.ts` §3.4.4, the row was still there
+after the confirm.
+
+⛔ **f.4's accessibility fence had taken the pointer path with it.** `useInert` applies `inert`, which
+removes a subtree from the tab order **and makes it non-interactive** — so `SwipeDeleteAction` stopped
+responding to the tap it exists for, and **swipe-to-delete silently stopped working on web.** The intent was
+"invisible to assistive technology, fully operable by the finger that revealed it"; `inert` delivers the
+first half and destroys the second. `focusable={false}` removes the tab stop and touches nothing else.
+
+⚡ **The part worth carrying: `a11y-row-labels.spec.ts` — written in the same step, specifically to prove
+that fence — passed.** It asks whether the control is in the accessibility tree. The regression was that the
+control no longer *worked*. **A test written to prove a fix is scoped to the fix's INTENT, and a regression
+lives in what the fix also did.** That is a different failure from "the suite was green because nothing
+would have failed": here something *would* have failed, and it was in a spec I had no reason to run.
+
+⛔ **And the harness reported the red run as "completed (exit code 0)".** `cmd > log; echo EXIT=$?` reports
+the **echo**, not the command — a standing constraint in this repo that landed again. The real exit was in
+the log's own summary line.
+
+### The closure gate could not see the P1 lens
+
+Found by f.2's before-scan, measured here. `check-audit-closure.ts` matched
+`^-?\s*\*\*Severity:\*\*` — **anchored to line start** — while `P1-premium-bar.md` writes
+`**Part:** A-craft · **Severity:** major`, mid-line.
+
+```
+anchored: 157 findings,  80 high+   ·   P1 seen: 0
+relaxed:  170 findings,  87 high+   ·   P1 seen: 13  (P1-1 P1-2 P1-3 P1-4 P1-5 P1-10 P1-12)
+```
+
+⛔ **P6.8.9's mechanical exit criterion would have read clean with seven majors never examined**, five of
+them in no ledger at all. ⚡ This is the audit's own headline — *the instrument under-reports* — landing on
+the gate built to prevent exactly that, and it is the reason an instrument that under-reports is worse than
+no instrument: it is believed. Un-anchored, the sweep now counts **87**.
+
+⚠️ The five P1 ids now read as traced because the plan names them in a `[DECISION]` block. That is the
+gate's definition working correctly — *named in a ledger* — and the disposition is real: they are on 🎯's
+desk, which is where a structural scope call belongs.
+
+### The second gate run — 5 red, and the split that mattered
+
+`validate:release:rn` — **5 failed, 232 passed**, real exit **1**, wall clock **9.5 hours**. 🎯 confirmed
+the cause: **the machine's screen shut down overnight mid-run.** Re-running the five in isolation took 3.6
+minutes and split them cleanly:
+
+- **3 were sleep casualties** — `tutorial-invite` ×2 and `windfall` ×1, all green in isolation.
+- **2 were real, and both were mine** — `a11y-axe.spec.ts:149` and `:212`.
+
+⚡ **The sleep did not manufacture the real ones, and that is what the isolated re-run is for.** The axe
+failure reproduced immediately, with a named violation. This is the third time this suite has produced a
+broad red that was mostly noise, and the discipline holds: **re-run failures in isolation before believing
+any broad red** — but never *instead* of reading them.
+
+### The fence needed THREE properties, and I shipped two at a time, twice
+
+f.4 fenced the swipe-delete pane out of the accessibility tree. The intent is narrow: **invisible to
+assistive technology · fully operable by the finger that revealed it · not a tab stop.**
+
+| attempt | hidden | operable | not a tab stop | caught by |
+|---|:--:|:--:|:--:|---|
+| `useInert` | ✅ | ⛔ | ✅ | `swipe-delete.spec.ts` — Delete silently stopped working |
+| `focusable={false}` | ✅ | ✅ | ⛔ | axe — `aria-hidden="true"` **with** `tabindex="0"` |
+| **`tabIndex={-1}`** | ✅ | ✅ | ✅ | all three specs green together |
+
+⛔ **`focusable={false}` never reached the DOM, and I measured that rather than assuming it.**
+`react-native-web`'s `Pressable` computes its own `tabIndex` (`disabled ? -1 : 0`) and forwards it, so
+`createDOMProps`' `focusable === false` branch sits behind an already-defined value and is dead code. The
+button shipped hidden **and** tabbable — the precise `aria-hidden-focus` violation the fence exists to
+prevent, and the one the `useInert` docstring had already written down as the thing worse than either
+failure alone.
+
+⚡ **The result that outlives this: my own `a11y-row-labels.spec.ts` — written in the same step, expressly
+to prove that fence — passed through BOTH broken versions.** It asks whether the control is in the tree.
+The regressions were that the control did not work, and that it was still focusable. **A test written to
+prove a fix is scoped to the fix's INTENT; the damage lives in what the fix also did.** Sibling of *"a test
+can agree for the wrong reason"*, and a distinct failure from a green suite that simply had no assertion —
+here the assertions existed, in a spec there was no reason to run.
