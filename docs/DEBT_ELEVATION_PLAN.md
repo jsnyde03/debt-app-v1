@@ -32,8 +32,9 @@ test, and what made `readMoney`'s repair record the wrong thing to match on.
 | **.11.11** ▶ | 🔴 **BLOCKER — every Progress date is `setMonth`-overflowed — NEXT SESSION STARTS HERE** | `projectDebtPayoff.ts:229` · `forecast/projectForecast.ts:27,39` · `TrajectoryChart.tsx:273` · `AmortizationView.tsx:19` · `BnplCalendarSection.tsx:17`. ⚡ **The repo already wrote the clamp** (`recurrence/rolloverPayCycle.ts:25`: *"Jan 31 + 1mo -> Feb 28, NOT Mar 3 via setMonth's overflow"*) and it is **not exported**. A user paid on the 31st sees a debt-free date **up to a month late** — hero, end pill, legend, scrub readout, both compare columns. Export the helper, apply at every site, pin a 31st-payer fixture |
 | **.11.12** | 🔴 **the 9 open majors** | 6 of 15 closed at `.11.10`. Ranked with a consequence each in the audit SUMMARY. ⚠️ Work that order — money/import before discovery before gates |
 | **.11.13** | 🔴 **the `.11.9` TAIL — raised and never closed** | ⚠️ **`.11.10` did NOT sweep it up**: that round audited the *fixes* and the *app*, not `.11.9`'s leftovers. `.11.10`'s four Job-1 **PARTIALs** *(the legacy-`0` stand-down reports nothing · `runMigrations` throws on a `null` goal row · the attribution test cannot reach `readLegacyStores` · `DataRepairsCard`'s copy still promises a route that does not exist)* + **`const DIVERGENT = STATES.divergent`, an unchecked index in a file neither typechecked nor linted nor in CI** · `check-comment-convention` matches **per line**, so a multi-line annotation evades it · **`lint:rn` is `&&`-chained, so the first red hides every later gate** · a P6.14 row promised in `coach-marks.spec.ts` and never written |
-| **.11.14** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — seven instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
-| **.11.15** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11` + `.11.12` + `.11.13`, then SWEEP again for major+, with severity** | Same two-job shape as `.11.10`. ⛔ **Hand it `.11.10`'s "swept and found clean" list so it EXTENDS coverage rather than repeating it** — a coverage audit converges by ratcheting what has been looked at, not by finding less. ⚠️ `.11.12` is the larger half by count and spans money, import, discovery and the gates. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
+| **.11.14** | ✅ **[D60]'s accepted build** *(🎯 2026-08-25: "fold it all in")* | **P1-4** the 23-name run-on on the screen that speaks to someone short this paycheck — the idiom exists at `invariants.ts:100` · **P1-5** the backup sheet's **inverted button hierarchy** *(`Done` filled, `Copy to clipboard` secondary — a user can press the most prominent button and back up nothing)* + the raw envelope · **P1-1** shoot the **payoff finale** and **band-milestone beat**, which have zero frames · **the goal pace becomes editable in `GoalSheet`** *(written only at creation today, which is why `.11.3`'s repair notice names a workaround)* · **L4-13b's token cleanup only** — the 7 live inline opacities and the two Money cards that disagree · **L1-20's single `eyebrow` token**, sweep deferred |
+| **.11.15** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — seven instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
+| **.11.16** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11` + `.11.12` + `.11.13` + `.11.14`, then SWEEP again for major+, with severity** | Same two-job shape as `.11.10`. ⛔ **Hand it `.11.10`'s "swept and found clean" list so it EXTENDS coverage rather than repeating it** — a coverage audit converges by ratcheting what has been looked at, not by finding less. ⚠️ `.11.12` is the larger half by count and spans money, import, discovery and the gates. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
 
 ⚡ **Two instruments, and they mean opposite things.** A **diff re-verification** audits what changed — a
 rising density is a signal *about the fixer*. A **whole-app sweep** audits the app — a rising count means
@@ -163,26 +164,27 @@ that file is the **checklist**.
 
 **Open decisions**
 
-- 🔴 **[DECISION] P1-1 · P1-2 · P1-4 · P1-5 — four majors in no ledger.** [D58] answered **P1-3 only**; these
-  four were never judged either way — **missing, not declined** — and are now visible to the gate. → **P6.8.9**.
-  *(The instrument was the cause: `check-audit-closure.ts` anchored `**Severity:**` at line start and
-  `P1-premium-bar.md` writes it mid-line, so the whole lens was invisible. Fixed — 80 → **87** high+.)*
-- 🔴 **[DECISION] P1-10's Windfall tier gate** — free does the WORK, premium reports it, which is the premium
-  spec's price test upside down. The **copy** half shipped at 7b; the tier change is a monetisation call
-  inside a converging freeze and **must clear P6.10** if taken. → **P6.10**.
-- 🔴 **[DECISION] the v1.6 bridge that keeps failing is a SILENT LOOP.** Recommendation: **2.0 if the device
-  pass shows any real skip, otherwise 2.1** — Sentry now reports every inconclusive skip, so **P6.14 produces
-  the evidence** rather than it being guessed now. → **P6.10** *(new surface)*.
-- 🔴 **[DECISION] L1-20 — the eyebrow treatment. Recommendation: DEFER the sweep.** ⛔ Its mechanism is
-  **false on iOS** — RN uppercases the `NSString` itself, so VoiceOver reads "PAYDAY GUARDIAN" either way.
-  **23 edits + 32 test pins for a change users cannot see.** ⭐ The valuable slice is a single `eyebrow`
-  token, which is cheap and can ride any later visual pass. *(P6.4 → P6.8 W2)*
-- 🔴 **[DECISION] L4-13b — `PressableScale` app-wide or nowhere. Recommendation: "NOWHERE", plus a small
-  2.0 build.** ⛔ The finding says two press vocabularies; **there are three, and the majority is the
-  third** — of 69 tap targets **1 springs, 11 dim, 57 have none**. So "app-wide" is a **new design on ~45
-  targets inside a freeze**, with zero test coverage. ⭐ **What is worth building either way:** the
-  half-closed token — 7 inline opacities are still live and two cards on Money disagree with each other.
-  *(P6.4 → P6.8 W2)*
+- ✅ **[D60] ANSWERED 2026-08-25 — P1-1 · P1-2 · P1-4 · P1-5.** P1-2 closed itself at `.11.8` *(by `.7.3`,
+  aimed at a different id, **while reaching no ledger**)*; **P1-1, P1-4 and P1-5 are BUILD** → `.11.14`.
+  *(The instrument was the original cause: `check-audit-closure.ts` anchored `**Severity:**` at line start
+  and `P1-premium-bar.md` writes it mid-line, so the whole lens was invisible. Fixed — 80 → **87** high+.)*
+- ⏭ **[D60] ANSWERED 2026-08-25 — P1-10's Windfall tier gate → 2.1.** Free does the WORK, premium reports
+  it, which is the premium spec's price test upside down. **Nothing is wrong today** — the copy half shipped
+  at 7b and `selectors.ts:54` is pinned; what a future tier change would do is turn that line into a false
+  statement about the user's money with every test green. Monetisation inside a converging freeze.
+- ⚠️ **[D60] 2026-08-25 — the v1.6 SILENT LOOP stays with P6.14 to ANSWER, not to guess.** 2.0 if the
+  device pass shows a real skip, otherwise 2.1; Sentry reports every inconclusive skip, so the pass produces
+  the evidence. ⛔ **`.11.10` sharpened what to look for:** if a WebKit container can produce a **total**
+  decode failure, `isConfirmedFreshInstall` consults neither `droppedRows` nor `opened[].rows` — so the
+  container is called terminal, the retry is consumed, and the **entire v1.6 portfolio is stranded while the
+  app says "fresh install."** ⚡ **The single thing most worth measuring on device before ship.** → **P6.10**.
+- ✅ **[D60] ANSWERED 2026-08-25 — L1-20 eyebrows: DEFER the sweep, take the token** → `.11.14`. ⛔ The
+  mechanism is **false on iOS** — RN uppercases the `NSString` itself, so VoiceOver reads "PAYDAY GUARDIAN"
+  either way. **23 edits + 32 test pins for a change users cannot perceive.**
+- ✅ **[D60] ANSWERED 2026-08-25 — L4-13b `PressableScale`: NOWHERE, plus the token cleanup** → `.11.14`.
+  ⛔ The finding says two press vocabularies; **there are three, and the majority is the third** — of 69 tap
+  targets **1 springs, 11 dim, 57 have none**, so "app-wide" is a new design on ~45 targets inside a freeze
+  with zero coverage. ⭐ Built instead: the 7 live inline opacities and the two Money cards that disagree.
 
 **Owed by 🎯, not decisions**
 
@@ -423,11 +425,11 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   means `.9.1`'s *"0 stale"* and every earlier frame-based finding are not reproducible from the repo.
   **Rec: pin the frames a finding depends on into `docs/evidence/<date>-<topic>/`** — the mechanism the
   repo already has — rather than tracking all 236.
-- 🟠 **[DECISION] The coach mark covers the trajectory card's own footer — measured, not theorised.**
-  *(.11.8 · D-2)* `progress.png` and `state-progress-many.png`: the callout sits below the plot and across
-  the axis row, the What-If row and the compare toggle. ⚠️ It does **not** cover its subject, and `.11.5`
-  made its sentence transparent to touch, so those controls stay operable — the residue is **visual**, on a
-  first visit, behind a dismissible hint. **Rec: accept.** It is the price of not covering the subject.
+- ✅ **[D60] ACCEPTED 2026-08-25 — the coach mark covering the trajectory card's own footer.** *(.11.8 · D-2)*
+  Measured, not theorised: `progress.png` and `state-progress-many.png` show the callout below the plot and
+  across the axis row, the What-If row and the compare toggle. It does **not** cover its subject, and
+  `.11.5` made its sentence transparent to touch, so those controls stay operable — the residue is
+  **visual**, first-visit-only, behind a dismissible hint. **The price of not covering the subject.**
 - 🔴 **The coach-mark mis-tap window is closed in ONE spec and open in ten.** *(.11.5 after-scan · D-3)*
   `strategy-compare.spec.ts` seeds `coachMarksSeen`; ten other `/progress` specs meet the reveal unseeded,
   sharpest being `trajectory-interactivity.spec.ts:51-64`, which drives raw `page.mouse` coordinates on the
@@ -444,17 +446,17 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   was added, exactly as designed; the **behaviour** consumers are invisible to it, which is how the
   "Funded" badge over unreadable money shipped. Candidate gate: every `entity` member must be named in
   both the copy map **and** the celebration guards. → decide the decidable form.
-- 🔴 **Should the CSV parser ACCEPT `MM/DD/YYYY`, not just document `YYYY-MM-DD`?** *(.11.4 after-scan)*
-  `.11.4` made the in-app caption honest, which is the minimum, not necessarily the answer. A real bank or
-  spreadsheet export writes `9/1/2026` and currently loses **every** row. ⚠️ The header parser was widened
-  on the premise *"a real export says `Minimum Payment`"* — the same export says `9/1/2026`. 🎯's call: it
-  is a product decision about how much of a real export the importer promises to read.
+- ⏭ **[D60] DEFERRED 2026-08-25 — the CSV parser keeps requiring `YYYY-MM-DD`.** *(.11.4 after-scan)*
+  `.11.4` made the in-app caption honest, which is the floor and is enough for 2.0. ⚠️ A real bank or
+  spreadsheet export writes `9/1/2026` and loses **every** row — and the header parser was widened on the
+  premise *"a real export says `Minimum Payment`"*, which is the same export. **How much of a real export
+  the importer promises to read is a product decision, revisit for 2.1.**
 - 🔴 **A goal's per-paycheck pace cannot be changed or removed after creation.** *(.11.3 after-scan)*
   `priorityPerPaycheck` is written only at `SaveForItSheet.tsx:109`, reachable only from the *Can I afford
   it?* flow; `GoalSheet` edits name, target, current and type. So a user who chose *"$200 a paycheck"* can
-  never revise it, and `.11.3`'s repair notice had to name a workaround instead of an action. **Rec: add the
-  pace to `GoalSheet` as an optional field** — it closes the product gap and the copy at once. 🎯's call, as
-  it puts prioritisation on a second surface.
+  never revise it, and `.11.3`'s repair notice had to name a workaround instead of an action.
+  ✅ **[D60] ACCEPTED 2026-08-25 — add the pace to `GoalSheet` as an optional field** → `.11.14`. It closes
+  the product gap and the repair copy together.
 - 🔴 **Which other money fields is a `0` repair DANGEROUS for, not merely wrong?** *(.11.3 after-scan)*
   `readMoney` repairs everything to `0`, and `.11.3` measured that `0` is fail-visible for a balance and
   fail-silent for a pace. The enumeration is also known short — `RequiredExpense.fullAmount` ·
@@ -861,6 +863,39 @@ every entry → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 **Phase 6 — launch**
 
+- **[D60]** ✅ 2026-08-25 — **THE OPEN DECISIONS, CLOSED AS A BATCH** (🎯: *"Let's fold it all in"*, on my
+  recommendations). Seven calls, and the two largest are both **do not build**:
+  - 🔴 **L1-20 eyebrows — DEFER the sweep, take the token.** ⛔ Its mechanism is **false on iOS**: RN
+    uppercases the `NSString`, so VoiceOver reads "PAYDAY GUARDIAN" either way. **23 edits + 32 test pins
+    for a change no user can perceive.** The single `eyebrow` token is the valuable slice and rides a later
+    visual pass.
+  - 🔴 **L4-13b `PressableScale` — NOWHERE, plus the token cleanup.** ⛔ The finding says two press
+    vocabularies; **there are three and the majority is the third** — of 69 tap targets **1 springs, 11 dim,
+    57 have none**. "App-wide" is a new design on ~45 targets inside a freeze, untested. **Build instead:**
+    the 7 live inline opacities, and the two Money cards that disagree with each other.
+  - ✅ **P1-4 and P1-5 — BUILD BOTH.** P1-4 is a 23-name run-on on the one screen that speaks to someone
+    **short this paycheck**, and the idiom already exists at `invariants.ts:100`. P1-5's **button hierarchy
+    is the sharper half**: `Done` is the filled primary while `Copy to clipboard` — the only action that
+    backs anything up — is secondary, so a user can press the most prominent button and back up nothing.
+  - ✅ **P1-1 — shoot the payoff finale and the band-milestone beat before P6.10.** Instrument work, and
+    P1-1's own bar is that a surface missing from the matrix is one four lenses are blind to at once.
+  - ✅ **D-2 the coach mark over the trajectory footer — ACCEPT.** Measured, not theorised. It does not
+    cover its subject, and `.11.5` left those controls operable; first-visit-only behind a dismissible hint.
+    **The price of not covering the subject.**
+  - ✅ **The goal pace becomes editable in `GoalSheet`.** Today `priorityPerPaycheck` is written **only at
+    creation**, so a user who chose "$200 a paycheck" can never revise or remove it — which is why
+    `.11.3`'s repair notice had to name a workaround instead of an action. One optional field closes the
+    product gap and the copy together.
+  - 🔴 **CSV `MM/DD/YYYY` — DEFER.** `.11.4` made the in-app caption honest, which is the floor. How much
+    of a real bank export the importer promises to read is a product call, not a 2.0 blocker.
+  - ⏭ **P1-10's Windfall tier gate → 2.1.** The copy half shipped and `selectors.ts:54` is pinned, so
+    nothing is wrong today; a future tier change is what would turn that line into a false statement about
+    the user's money with every test green. Monetisation inside a converging freeze.
+  - ⚠️ **The v1.6 silent loop stays with P6.14 to ANSWER, not to guess.** ⛔ `.11.10` sharpened it: if a
+    WebKit container can produce a **total** decode failure, `isConfirmedFreshInstall` consults neither
+    `droppedRows` nor `opened[].rows` — so the container is called terminal, the retry is consumed, and the
+    **entire v1.6 portfolio is stranded while the app says "fresh install."** The one thing most worth
+    measuring on device before ship.
 - **[D59]** ✅ 2026-08-24 — **C7 COMPARES THE CLEAR ORDER, NOT THE CURVE** (🎯, on my recommendation).
   ⛔ **Measured before recommending, and it undercut the finding's own implied fix:** the two
   total-balance curves separate by **≤2.8% of chart height and usually <0.1%**, and the debt-free date is
