@@ -52,6 +52,54 @@ device. Confirm nothing in the suite depends on the record being written.
 
 ---
 
+## ✅ P6.8.9.7.11.13.6 — a fixture, not a fix — and two vacuous tests on the way *(2026-08-25)*
+
+### The row was already closed, and saying so precisely matters
+
+`.11.12.2` fixed the null-row throw at `repairMoneyFields`, the one seam all four lists pass through, and
+added per-entity assertions in `persistenceLifecycle.test.ts`. ⚠️ **So the plan row's claim — *"the pin is
+one member of the class"* — was true only of the `readBackup` corpus**, not of the codebase. Recorded that
+way rather than left to imply a bigger gap than existed.
+
+What was genuinely missing: the **import door**. `readBackup.test.ts`'s poisoned corpus carried `debts`
+only, and its own header states the reason that door is separate — *"Detection proves the top-level shape;
+`runMigrations` reaches inside."* Corpus 3 → 7: each of the four lists, plus all four at once.
+
+⚡ **`goals` is the one the finding was about**, because the priority stand-down dereferences
+`goal.priority` immediately after the seam — a regression there *throws*, where the other three merely
+carry a `null` to the first render.
+
+### ⛔ Two of my own tests were vacuous today, and both were caught by running rather than reading
+
+1. **These fixtures.** The first cut was `{ storeVersion: 7, paycheck: {}, goals: [null] }` — and
+   `detectBackupFormat` needs `storeVersion` + `paycheck` + **`debts`** *together* to call a blob
+   `raw-v17`. Without `debts` it is `unrecognised` and **refused before `runMigrations` ever runs**. They
+   asserted *"does not throw"* over a door that never opened. ⚠️ **Spotted because the third assertion's
+   line was absent from the output** — it is conditional on `result.ok`, so a refusal skips it in silence.
+   Adding `debts: []` is what makes each one reach the code under test.
+2. `.11.13.4`'s `paceN <= 0`, unreachable behind `parseAmountField`, whose test stayed green when the
+   clause was deleted.
+
+⭐ **Neither was visible by re-reading the test.** One needed a plant, the other needed reading the *shape*
+of a passing run. → [[plant-that-reds-early-hides-assertions]].
+
+### And the plant had to be aimed twice
+
+Removing the drop at the seam **reds an assertion from `.11.12.2` first**, so the new fixtures were never
+exercised — the same early-red masking, one file over. The mutation that isolates them is entity-scoped:
+keep the drop for every list *except* `goals`. Run alone, the goal fixture then reds at
+*"…imports what it can AND reports the loss"* — ⚡ **the very assertion the vacuous version was skipping**.
+
+⚠️ **And `does NOT throw` passed under that plant**, because `readBackup` catches and returns a failure
+result. So at the import door the loss-reporting assertion is the *only* one that can see this defect.
+
+### Verification
+
+`test:app` green (7 corpus entries × 3 assertions) · `typecheck` 0 · all 22 gates 0. Plant removed and
+`git diff` confirmed `migrations.ts` matches HEAD before believing it.
+
+---
+
 ## ✅ P6.8.9.7.11.13.5 — the migration that changed the plan and said nothing *(2026-08-25)*
 
 ### The defect

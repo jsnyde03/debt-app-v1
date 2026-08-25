@@ -160,9 +160,34 @@ function realV16Backup(): Record<string, unknown> {
 // ── ⛔ A RECOGNISED format is not a TRUSTED one — a poisoned payload refuses, never throws. ───────
 // Detection proves the top-level shape; `runMigrations` reaches inside. Unwrapped, these crash.
 {
+  /**
+   * ⛔ **[P6.8.9.7.11.13.6 · J1-1 Q2] THIS LIST HAD ONE MEMBER OF A FOUR-MEMBER CLASS.** A `null` row is
+   * dropped and reported at `repairMoneyFields` — the one seam `debts`, `requiredExpenses`,
+   * `livingExpenses` and `goals` all pass through (`.11.12.2`) — but only `debts` was ever poisoned here.
+   * ⚡ **`goals` is the one the finding was about**, because the priority stand-down dereferences
+   * `goal.priority` right after the seam, so a regression there throws where the others merely carry a
+   * `null` to the first render. **A test that picks the one member of a class that works reports on the
+   * member, not the class** — `.11.12.8`'s lesson, applied to a corpus instead of a mark.
+   *
+   * ⚠️ The fix is NOT this step's; `.11.12.2` shipped it. This is the fixture that would have caught it,
+   * which is the standing answer whenever a finding names a list: turn it into a corpus, never a list.
+   */
   const poisoned = [
     ['envelope with a string `debts`', { ...JSON.parse(serializeBackup(createDefaultStore(), { now: AT })), store: { storeVersion: 7, debts: 'oops', paycheck: {} } }],
     ['raw-v17 with a poisoned debt', { storeVersion: 7, paycheck: {}, debts: [null] }],
+    /**
+     * ⛔ **`debts: []` IS LOAD-BEARING ON EVERY ONE OF THESE, and leaving it out made them vacuous.**
+     * `detectBackupFormat` requires `storeVersion` + `paycheck` + `debts` **together** to call a blob
+     * `raw-v17` — so the first cut of these three, carrying only the poisoned list, was `unrecognised` and
+     * **refused before `runMigrations` ever ran.** They asserted "does not throw" over a door that never
+     * opened. ⚠️ Caught by noticing the `…imports what it can AND reports the loss` line was absent from
+     * their output, not by re-reading them: the assertion is conditional on `result.ok`, so a refusal
+     * skips it silently.
+     */
+    ['raw-v17 with a poisoned GOAL — the row the stand-down dereferences', { storeVersion: 7, paycheck: {}, debts: [], goals: [null] }],
+    ['raw-v17 with a poisoned required expense', { storeVersion: 7, paycheck: {}, debts: [], requiredExpenses: [null] }],
+    ['raw-v17 with a poisoned living expense', { storeVersion: 7, paycheck: {}, debts: [], livingExpenses: [null] }],
+    ['raw-v17 with every list poisoned at once', { storeVersion: 7, paycheck: {}, debts: [null], goals: [null], requiredExpenses: [null], livingExpenses: [null] }],
     ['v1.6 file with a string `debts`', { ...realV16Backup(), debts: 'oops' }],
   ] as [string, unknown][];
   for (const [label, value] of poisoned) {
