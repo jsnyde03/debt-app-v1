@@ -52,6 +52,63 @@ device. Confirm nothing in the suite depends on the record being written.
 
 ---
 
+## ✅ P6.8.9.7.11.13.4 — the recovery route two findings already promised *(2026-08-25)*
+
+### Why this moved ahead of the PARTIALs it was filed behind
+
+`priorityPerPaycheck` had **exactly one writer** — `SaveForItSheet.tsx:109`, reachable only through
+`AffordabilityCard.openSaveSheet`, which refuses a name a surviving goal already holds. So once
+`runMigrations` stands a goal down for an unreadable pace, there was no way back.
+
+⚡ **Two of `.11.13`'s own rows are that fact wearing different clothes:** `.5` wants to *emit* a repair
+notice and `.8` is that the notice *promises a route that does not exist*. Building the route first is what
+lets both say something true — otherwise I write copy naming a workaround and rewrite it two steps later.
+`DataRepairsCard.tsx:38` already said so in its own comment: *"`GoalSheet` edits name, target, current and
+type."*
+
+### What shipped
+
+A *"Fund this ahead of my debt"* switch and a *"Cap per paycheck"* field, in both add and edit modes.
+
+⛔ **Absent — not disabled — on THE emergency fund.** That goal is funded by the starter-EF rung, which
+consults neither `priority` nor the pace, so the controls would decide nothing there: *built UI that is
+dead*, the class P6.10 exists to catch. A disabled control still says *"this is a thing you could set"*.
+
+⚠️ **Asked of `@core/engine/emergencyFund`, not of `type === 'savings'`** — [D61] made a SECOND
+emergency-typed goal fund through the sinking-fund rung, so the naive test would be quietly wrong for it.
+⚠️ And asked of the store **as it would be after this save**, because `type` is editable here: switching
+the only emergency fund to Savings makes its pace start governing. The draft goal is placed in the array
+where `addGoal` would append it, because the primary is *the first* emergency-typed goal in store order —
+so where it lands is what decides the answer.
+
+### ⛔ A guard I wrote was unreachable, and the test that covered it was vacuous
+
+The submit path carried `if (paceN == null || paceN <= 0)`. **`parseAmountField` already returns `null`
+unless `n > 0`**, so the second clause could never fire — and `goal-pace-edit.spec.ts`'s *"a pace of 0 is
+REFUSED"* **stayed green when I deleted it**. The test was pinning `parseAmountField`'s guarantee while
+reading as though it pinned the sheet's.
+
+⚡ **Found only because the plant was run.** Three mutations went in together and two red exactly where
+expected; the third passing is what exposed this. **A green plant is a result, not a formality** — it is
+the only thing that separates a guard from a decoration.
+
+Resolved by deleting the dead clause and re-pointing the test at the mutation that can actually happen:
+swapping `parseAmountField` for `parseOptionalAmount`, which accepts `0` and would hand the defect
+straight through. That plant reds.
+
+### Verification
+
+- **GREEN:** `goal-pace-edit` 3/3 · `saveforit-pace` 2/2 · `typecheck` (4 projects) 0 · all 22 gates 0 ·
+  `test:app` · `test:regression` · `test:scenarios`.
+- **RED, three plants, each aimed at a different claim:**
+  - drop `priority` from the write → reds test 1's **last** assertion, the one sitting after `toBe(120)`.
+    That is the `.11.12.7` lesson paying off: without this plant the tail was never exercised.
+  - force `paceGoverns` true → reds the absence assertion on THE emergency fund.
+  - swap the parser → reds the `0` refusal.
+- All plants removed and `git status` checked before believing any green.
+
+---
+
 ## ✅ P6.8.9.7.11.13.3 — the unchecked index, and the reason it could exist *(2026-08-25)*
 
 ### ⛔ The correction this step owes to `.11.12.11`, made a few hours earlier in this same session
