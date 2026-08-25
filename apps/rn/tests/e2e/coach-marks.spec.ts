@@ -247,7 +247,10 @@ test.describe('coach-marks — offered once, and re-offerable', () => {
    * `elementFromPoint` over the sentence's own centre answers it directly, whatever is beneath.
    *
    * ⚠️ Web-only by construction: on iOS a plain `View` is `userInteractionEnabled` and consumes the touch
-   * for the same reason, but nothing off-device can observe it. → P6.14 row.
+   * for the same reason, but nothing off-device can observe it. ⛔ **Same symptom, TWO mechanisms** — so a
+   * green here says nothing about the device, and the row that says so was **promised here and never
+   * written** until `.11.13.9`. It is now in `DEBT_ELEVATION_PLAN.md` → *P6.14 reference*, under
+   * *"the coach-mark callout's own FOOTPRINT"*.
    */
   test('the callout does not eat taps over its own words', async ({ page }) => {
     await seedStore(page, scenario());

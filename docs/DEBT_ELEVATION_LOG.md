@@ -52,6 +52,80 @@ device. Confirm nothing in the suite depends on the record being written.
 
 ---
 
+## 📕 Session close 2026-08-25 (second session) — `.11.12` and `.11.13` both CLOSED
+
+**Closed:** `.11.12.9`–`.14` *(the last 6 of the 14 majors)* · **`.11.12` entire** · **`.11.13` entire**
+*(9 rows + green)*. **Next: `.11.14`**, decomposed on the plan and **not yet verified against code**.
+
+### Verification standing at close
+
+`typecheck` (4 projects) · `lint:rn` **22/22** · `test:stamp` · `test:regression` · `test:app` ·
+`test:scenarios` · **`test:e2e:rn` 272 passed, exit 0** · the shot matrix **275 passed, 0 `⛔ UNREACHED`**.
+
+⛔ **NOT a recorded gate pass.** `gate:record` was never reached and `test:e2e:embed` was not run, so
+`gate-status.json` still describes an older tree. **`.11.16` owns the real run — do not carry these
+greens forward as one.**
+
+### ⭐ The result of the session, and it is about my own work rather than the audit's
+
+**Three things I built or wrote this session were themselves the defect class I was closing.**
+
+1. ⛔ **`.11.12.11`'s required `ready` gated nothing.** I justified it with *"Playwright compiles this
+   file"* — Playwright **transpiles**. Measured at `.11.13.3`: a bare `const x: number = 'a string'` in
+   that file runs green, and `tests/` was excluded from `typecheck:rn`, so nothing was looking. It became
+   real only when `typecheck:tests` existed.
+2. ⛔ **`.11.13.4`'s `paceN <= 0` clause was unreachable**, and the test written for it **stayed green
+   when the clause was deleted**. `parseAmountField` was the real guard all along.
+3. ⛔ **`.11.13.6`'s first four fixtures were refused before the code under test ran** — `raw-v17`
+   detection needs `storeVersion` + `paycheck` + `debts` *together*. They asserted *"does not throw"* over
+   a door that never opened.
+
+⚡ **None of the three was visible by re-reading.** One needed a plant, one needed reading the *shape* of a
+passing run *(an assertion's line missing from the output)*, and one needed running the tool rather than
+believing a sentence about it. ⭐ **The standing rule sharpens: a green plant is a RESULT, not a
+formality** — it is the only thing separating a guard from a decoration. → the new portfolio memory
+`plant-that-reds-early-hides-assertions`.
+
+### And a second, about audit findings
+
+⛔ **`.11.12` measured four of fourteen findings' premises false**, and in two cases the correct fix
+differed as a result. ⚡ **`.11.13` added two more shapes**: one row (`.6`) was **already closed** by an
+earlier step, and one (`.8`) named **one of three** producers of the defect. Meanwhile `.11.12.14`'s
+arithmetic reproduced to the id — so the lesson is not *"findings are unreliable"* but that **the
+observation, the premise and the remedy fail independently and each needs its own measurement.**
+
+⚠️ **Two of the stale premises came from in-repo COMMENTS the findings quoted as evidence** — a spec
+comment dated 2026-08-10 (`.11.12.9`) and a docblock the code had moved past (`.11.13.8`). → the new
+memory `findings-cite-comments-as-evidence`.
+
+### Where the next session starts
+
+▶ **`P6.8.9.7.11.14`** — [D60]'s accepted build, decomposed at the top of the plan. ⛔ **Start by verifying
+each of its five rows against current code**; they were written from the audit and nothing has checked them
+since. `.2` in particular touches a sheet `.11.12.5` already changed, and `.3` adds a matrix entry under a
+`Surface` type that now **requires** `ready`.
+
+⚠️ **`.11.15` is new and [D62]-approved** — `originalBalance` becomes a high-water mark. It is not started.
+
+---
+
+## ✅ P6.8.9.7.11.13.9 — the device row a spec promised and nobody wrote *(2026-08-25)*
+
+`coach-marks.spec.ts` ends its tap-through test with *"→ P6.14 row"*. **Verified missing**: the ledger had
+no coach-mark entry at all, so the one platform that can answer the question was never asked to.
+
+⚡ **And the bare pointer under-stated why it matters.** The natural reading is *"web covered it, device
+confirms it"*. That is wrong: **the two platforms eat the tap for different mechanisms** — on web RNW emits
+`selector > * { pointer-events: auto }`, which the spec catches with `elementFromPoint`; on iOS a plain
+`View` is `userInteractionEnabled`. Same symptom, unrelated causes, so **the web green was never evidence
+about the device.** The row says that, and so does the spec now.
+
+Three checks: tap the callout's **sentence** and confirm the control underneath takes it; the note on why
+web cannot answer; and that **"Got it" still dismisses** — the one child that must stay interactive, and
+the fix is one prop away from disarming the callout's own exit.
+
+---
+
 ## ✅ P6.8.9.7.11.13.8 — J1-4, the card that named an action the app did not have *(2026-08-25)*
 
 ### The finding, and the half that closed itself

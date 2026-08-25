@@ -28,14 +28,27 @@ backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commi
 `5.5.1` means **P6.11.1**.
 
 ▶ **WHERE THIS SESSION LEFT OFF (2026-08-25).** 🎯: **"We're fixing all blockers and majors."**
-✅ **Both blockers CLOSED** *(the ack at `.11.8`, the `setMonth` overflow at `.11.11`)* and ⭐ **`.11.12` is
-CLOSED — all 14 majors**: money 3 · import 3 · discovery 4 · gates 4.
-▶ **NEXT IS `P6.8.9.7.11.13`** — the `.11.9` TAIL, decomposed on the plan, starting at `.13.1`
-*(unchain `lint:rn`, because 22 gates behind one `&&` decides what the rest of the item can even see)*.
+✅ **Both blockers CLOSED** *(the ack at `.11.8`, the `setMonth` overflow at `.11.11`)* and ⭐ **`.11.12`
+AND `.11.13` are BOTH CLOSED** — all 14 majors, then all 9 of the `.11.9` tail.
+▶ **NEXT IS `P6.8.9.7.11.14`** — [D60]'s accepted build, decomposed on the plan. ⛔ **Verify each of its
+five rows against current code before building**: they were written from the audit and nothing has checked
+them since, `.2` touches a sheet `.11.12.5` already changed, and `.3` adds a matrix entry under a `Surface`
+type that now **requires** `ready`.
 ⚠️ **`.11.15` is NEW — [D62]**, 🎯-approved: `originalBalance` becomes a **high-water mark**. The deciding
 case is not the setback but the **correction** (a typo at entry, or a premium user verifying a stale
 estimate upward) — today's ring reads 0% for the rest of that debt's life, and `verifyDebtBalances` is a
 flow the app *asks* people to use. `.11.16`–`.11.18` renumbered.
+
+⛔ **THREE THINGS I BUILT LAST SESSION WERE THE DEFECT CLASS I WAS CLOSING, and none was visible by
+re-reading.** `.11.12.11`'s required `ready` **gated nothing** *(Playwright TRANSPILES — measured: a bare
+`const x: number = 'a string'` in a spec runs green, and `tests/` was excluded from `typecheck:rn`)* ·
+`.11.13.4`'s `paceN <= 0` was **unreachable** and its test stayed green when the clause was deleted ·
+`.11.13.6`'s first fixtures were **refused before the code under test ran**. ⚡ One needed a plant, one
+needed reading the SHAPE of a passing run (an assertion's line missing from the output), one needed running
+the tool instead of believing a sentence about it. ⭐ **A green plant is a RESULT, not a formality.**
+✅ **`npm run typecheck:tests` now exists** — 79 spec/shot files, previously typechecked by nothing.
+✅ **`lint:rn` runs all 22 gates and names every failure** (`scripts/run-gates.ts`); the `&&` chain had been
+reporting 21 unknowns as passes.
 
 ⚡ **TWO RESULTS FROM THE DISCOVERY BLOCK, and both are about what a finding CARRIES:**
 1. ⛔ **A COMMENT IS A CARRIED PREMISE AND DECAYS LIKE A CARRIED NUMBER.** `.11.12.9`'s finding quoted a spec
@@ -49,15 +62,16 @@ flow the app *asks* people to use. `.11.16`–`.11.18` renumbered.
    nothing.** The answer was to split them **by direction**, not to pick a side. ⚠️ **Read the code AROUND
    the site, not only the site.**
 
-⛔ **DO NOT WORK FROM `SUMMARY.md` FOR `.11.12` — IT UNDER-COUNTS.** It says *"9 open"*; enumerated against
-the four auditor files there are **14** (A 3 · B 3 · C 4 · D 4), and its own header does not reconcile
-(*"15, of which 6 are closed"* over an open table of 14). ▶ **Work
-`docs/audits/2026-08-25-p6.8.9.7.11.10-severity/{A,B,C,D}-*.md`;** the SUMMARY is the map, not the ledger.
+⛔ **`SUMMARY.md` UNDER-COUNTS — work the four auditor files.** It said *"9 open"* where the auditor files
+hold **14**, and its own header did not reconcile. Closed now, but the habit stands for the next audit:
+▶ `docs/audits/2026-08-25-p6.8.9.7.11.10-severity/{A,B,C,D}-*.md` — **the SUMMARY is the map, not the
+ledger.**
 
-⛔ **THE GATE IS NOT RECORDED FOR THIS WORK.** Every component ran green individually — typecheck ·
-`lint:rn` · `test:stamp` · regression · app · scenarios · **262 e2e** · 10 embed — but `gate:record` was
-never reached, so `gate-status.json` still describes `.11.9` and `lint:gate-freshness` exits 1. `.11.15`
-owns the real run. **Do not carry the individual greens forward as a pass.**
+⛔ **THE GATE IS STILL NOT RECORDED.** As of 2026-08-25 every component ran green individually —
+typecheck (4 projects) · `lint:rn` **22/22** · `test:stamp` · regression · app · scenarios · **272 e2e** ·
+the shot matrix **275, zero `⛔ UNREACHED`** — but `gate:record` was never reached and `test:e2e:embed`
+was not run, so `gate-status.json` describes an older tree and `lint:gate-freshness` exits 1. **`.11.16`
+owns the real run. Do not carry the individual greens forward as a pass.**
 
 ⚡ **THREE LESSONS THIS SESSION PAID FOR, in the order they cost most:**
 
