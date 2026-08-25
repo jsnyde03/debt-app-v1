@@ -2,7 +2,9 @@ import { PAYOFF_SCHEDULE_TITLE } from '@core/copy/vocabulary';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { addMonthsToDate } from '@core/utils/addMonths';
 import { formatCurrency } from '@core/utils/formatCurrency';
+import { parseLocalDate } from '@core/utils/localDate';
 
 import { useAppColors } from '@/hooks/use-app-colors';
 import { selectDebtAmortization } from '@/store/analysisSelectors';
@@ -15,9 +17,12 @@ const INITIAL_ROWS = 12;
 
 /** startDate + N months → "Aug 2026" (the month a schedule row lands in). */
 function monthLabel(startISO: string, months: number): string {
-  const d = new Date(`${startISO}T00:00:00`);
-  d.setMonth(d.getMonth() + months);
-  return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+  // ⛔ Clamped. A schedule starting on the 31st would otherwise overflow past every short month, so the
+  // rows would name one month twice and skip another.
+  return addMonthsToDate(parseLocalDate(startISO), months).toLocaleString('en-US', {
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 /**

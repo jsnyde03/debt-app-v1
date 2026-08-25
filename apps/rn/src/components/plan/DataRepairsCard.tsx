@@ -9,28 +9,7 @@ import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
 
-/**
- * ⚠️ The `Record` is EXHAUSTIVE on purpose, and it earned that at P6.8.9.7.2: adding `goal` to
- * `DataRepair['entity']` failed the build right here. An index signature would have shipped a repair the
- * user reads as *"Your item list — targetAmount"*, via the `?? 'item'` fallback below, and nothing would
- * have said so. The compiler is the gate for this class.
- */
-const ENTITY_NOUN: Record<Exclude<DataRepair['entity'], 'migration'>, string> = {
-  debt: 'debt',
-  requiredExpense: 'bill',
-  livingExpense: 'expense',
-  goal: 'savings goal',
-};
-
-/** "Chase card — balance", the whole-list case, or a migration loss, which is already a sentence. */
-function describe(repair: DataRepair): string {
-  // M3-20 — a migration entry carries no entity and no name: its `field` IS the sentence, because the
-  // v1.6 key it came from ("debtPlanner.rolloverCount") means nothing to the person reading it.
-  if (repair.entity === 'migration') return repair.field;
-  const noun = ENTITY_NOUN[repair.entity] ?? 'item';
-  if (!repair.name) return `Your ${noun} list — ${repair.field}`;
-  return `${repair.name} — ${repair.field}`;
-}
+import { repairBlocks, repairsA11yLabel } from './dataRepairsCopy';
 
 /**
  * P6.8.7c.2 (audit B4/M3-2) — the amounts this launch could not read, said out loud.
@@ -48,44 +27,50 @@ function describe(repair: DataRepair): string {
  * ⚠️ Deliberately NOT auto-dismissing and not tied to a session: it is cleared only by
  * `acknowledgeDataRepairs`. The list it reads (`pendingDataRepairs`) exists precisely because the
  * per-read `dataRepairs` is empty again as soon as anything saves.
+ *
+ * ⛔ **THIS CARD USED TO STATE THE OPPOSITE OF WHAT HAPPENED, for the one repair that touches money.**
+ * It said the amounts *"are showing as $0, so your plan is leaving them out"* — true of a repaired
+ * balance, and **exactly backwards** for a goal's per-paycheck pace, which repaired to `0` and therefore
+ * funded the goal **uncapped, ahead of the user's debt**. The card told the person the benign version of
+ * the harm. (P6.8.9.7.10 · B-1.) Each line now carries its own consequence, because the consequences
+ * differ and no single sentence covers them honestly. The pace line is written in `migrations.ts`.
+ *
+ * ⚠️ "Open each one and enter the real amount" was also unfollowable for a pace: `GoalSheet` edits name,
+ * target, current and type, and `priorityPerPaycheck` is written **only at creation**
+ * (`SaveForItSheet.tsx:109`, reachable only from `AffordabilityCard`). The recovery route is named in
+ * that line instead of promised generically here.
+ *
+ * ⛔ **The words live in `dataRepairsCopy`, not here** — a recovered amount and a lost one are opposite
+ * events and the card said the loss sentence over both. Pinning the strings needs them out of JSX.
  */
 export function DataRepairsCard({ repairs, onAck }: { repairs: DataRepair[]; onAck: () => void }) {
   const c = useAppColors();
-  const lines = repairs.map(describe);
+  const blocks = repairBlocks(repairs);
 
   return (
     <Card tone="accent" testID="data-repairs-ack" style={styles.card}>
-      {/*
-        ⛔ **THIS CARD USED TO STATE THE OPPOSITE OF WHAT HAPPENED, for the one repair that touches money.**
-        It said the amounts *"are showing as $0, so your plan is leaving them out"* — true of a repaired
-        balance, and **exactly backwards** for a goal's per-paycheck pace, which repaired to `0` and
-        therefore funded the goal **uncapped, ahead of the user's debt**. The card told the person the
-        benign version of the harm. (P6.8.9.7.10 · B-1.)
-
-        ⚠️ The blanket sentence now says only what is true of EVERY repair — the plan is running without
-        the real number — and each line carries its own consequence, because the consequences differ and
-        no single sentence covers both honestly. The pace line is written in `migrations.ts`.
-
-        ⚠️ "Open each one and enter the real amount" was also unfollowable for a pace: `GoalSheet` edits
-        name, target, current and type, and `priorityPerPaycheck` is written **only at creation**
-        (`SaveForItSheet.tsx:109`, reachable only from `AffordabilityCard`). The recovery route is named
-        in that line instead of promised generically here.
-      */}
-      <View style={styles.head} {...groupLabel(`${lines.length === 1 ? 'An amount' : 'Some amounts'} could not be read. ${lines.join('. ')}. Your plan is running without ${lines.length === 1 ? 'it' : 'them'} until you set ${lines.length === 1 ? 'it' : 'them'} again.`)}>
-        <AppIcon name="error-outline" size={20} color={c.accent.warning} />
-        <Text style={[textStyles.subhead, styles.headText, { color: c.text.primary }]}>
-          {lines.length === 1 ? 'An amount could not be read' : `${lines.length} amounts could not be read`}
-        </Text>
-      </View>
-      <Text style={[textStyles.footnote, { color: c.text.secondary }]}>
-        Your plan is running without {lines.length === 1 ? 'it' : 'them'} until you set{' '}
-        {lines.length === 1 ? 'it' : 'each one'} again.
-      </Text>
-      <View style={styles.list}>
-        {lines.map((line) => (
-          <Text key={line} style={[textStyles.footnote, { color: c.text.primary }]}>
-            {line}
-          </Text>
+      <View {...groupLabel(repairsA11yLabel(blocks))}>
+        {blocks.map((block) => (
+          <View key={block.kind} style={styles.block}>
+            <View style={styles.head}>
+              {/* `healing` is the repair glyph the icon map already carries — a recovered amount was
+                  mended and is fine, which is not the warning the loss block is. */}
+              <AppIcon
+                name={block.kind === 'lost' ? 'error-outline' : 'healing'}
+                size={20}
+                color={block.kind === 'lost' ? c.accent.warning : c.text.secondary}
+              />
+              <Text style={[textStyles.subhead, styles.headText, { color: c.text.primary }]}>{block.heading}</Text>
+            </View>
+            <Text style={[textStyles.footnote, { color: c.text.secondary }]}>{block.detail}</Text>
+            <View style={styles.list}>
+              {block.lines.map((line) => (
+                <Text key={line} style={[textStyles.footnote, { color: c.text.primary }]}>
+                  {line}
+                </Text>
+              ))}
+            </View>
+          </View>
         ))}
       </View>
       <Button label="Got it" variant="text" onPress={onAck} testID="data-repairs-ack-button" />
@@ -95,7 +80,8 @@ export function DataRepairsCard({ repairs, onAck }: { repairs: DataRepair[]; onA
 
 const styles = StyleSheet.create({
   card: { gap: spacing.sm },
+  block: { gap: spacing.xxs },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   headText: { flex: 1, fontWeight: '600' },
-  list: { gap: spacing.xxs },
+  list: { gap: spacing.xxs, marginTop: spacing.xxs },
 });

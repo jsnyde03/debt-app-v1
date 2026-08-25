@@ -4,6 +4,620 @@
 
 ---
 
+## 📕 Session close 2026-08-25 — the `setMonth` blocker and 8 of the 14 majors
+
+**Closed:** `.11.11` *(blocker)* · `.11.12.1` – `.11.12.8`. **Open:** `.11.12.9` – `.11.12.14`, then `.15`.
+
+### What the session's own numbers were wrong about, every time in the same direction
+
+| the count as written | measured |
+|---|---|
+| `.11.11`'s site list: audit said 2, plan said 5 files | **7 sites in 6 files** |
+| `.11.12`'s row: *"the 9 open majors"* | **14** (A 3 · B 3 · C 4 · D 4) |
+| `A-J2-3`'s two throw sites | **three failure modes across five places** |
+| the Gate row: *"2026-08-24 · 663 files"* | the record said `01fc7ec` · **668** — a typed result already decayed |
+
+⛔ **Four enumerations, four undercounts, none of them adjacent to each other.** This is
+`audit-site-lists-undercount` holding for a fifth phase, and the standing answer applied twice: turn the
+class into a gate (`check-month-arithmetic`) or into a fixture (two hostile cases, two nested corpus
+fields), never into a fixed list.
+
+### Three instruments were found not to be instruments
+
+- **`audit.test.ts` printed `⛔ N violations` and returned cleanly** — report-only, while `hostile.test.ts`
+  runs the same invariants over the same doors and throws. Armed, after measuring clean at 522 cases.
+- **The replay e2e tested the one mark whose host remounts**, so it passed over the class it is named for.
+- ⛔ **My own new assertion was vacuous** — `toHaveCount(1)` counted the stuck callout it existed to catch,
+  and it took a plant run with the *preceding* assertion relaxed to see it. **A plant that reds early never
+  exercises the later assertions**, so a dead assertion can ride along while every plant reports the suite
+  sound. Now in the portfolio memory.
+
+### Verification standing at close
+
+⛔ **NOT a recorded gate pass.** Every component ran green **individually** — typecheck · `lint:rn` (whole
+chain) · `test:stamp` · `test:regression` · `test:app` · `test:scenarios` · **`test:e2e:rn` 262 passed** ·
+`test:e2e:embed` 10 passed — but `gate:record` was never reached, so `gate-status.json` still describes
+`.11.9`'s tree and `lint:gate-freshness` exits 1. **`.11.15` owns the real run.** No dev server left
+listening.
+
+### Where the next session starts
+
+▶ **`.11.12.9`** — `C-C`, the once-ever record written on *"a rect exists"* rather than *"the callout is on
+screen"*, so a hint is spendable at the y=1702 pre-spring transient the docblock itself cites.
+**Read-only analysis is done:** `DREW` is `!stoodDown && rect && COACH_MARKS[active]`, and the fix reuses
+the placement the render body already computes (`below` / `roomBelow` / `top`) rather than adding a second
+calculation. ⚠️ **Check before building:** gating on the viewport means react-native-web — where the
+callout measures 392 pt below the fold — stops recording that mark, so the e2e environment diverges from
+device. Confirm nothing in the suite depends on the record being written.
+
+---
+
+## ✅ P6.8.9.7.11.12.8 — C-B, the replay that could not reach the third record *(2026-08-25)*
+
+### The defect
+
+`resetCoachMarks()` clears **two** records and its own docstring names the failure it guards —
+*"resetting only the pref would produce a replay entry that appears to do nothing."* There is a **third**
+it cannot reach: `asked`, a closure local inside the offer subscription in `use-coach-mark`.
+
+`asked` is re-created only when that effect re-runs, and for a mark whose host is a **tab** it never does:
+
+| dep | why it never moves |
+|---|---|
+| `id` | a literal |
+| `ready` | a literal `true` for `trajectory-scrub`; stable once hydrated for `debt-row-actions` |
+| `targets` | the provider's memo — its only moving dep is the walkthrough's `activeId` |
+| the host | tabs do not unmount (`_layout.tsx` sets no `unmountOnBlur`), and More is a pushed route |
+
+So the subscription created at first launch survives the reset with `asked === true`, and every later
+`invalidate` — including the one Progress fires on **every scroll frame** — is dropped at the first clause.
+The app answers *"Tips will appear again as you go."* and two of the three tips cannot come back that
+session. `payoff-schedule` is the exception, because the debt sheet re-creates its host each time it opens.
+
+### ⛔ And the suite named for exactly this claim passed over it
+
+`coach-marks.spec.ts`'s *"More → Show feature tips again brings a seen mark back"* exercises
+**`payoff-schedule` — the only mark whose host remounts.** The store layer is genuinely correct and
+genuinely tested (`coachMarks.test.ts` asserts `show()` is accepted again after a reset), so every
+instrument pointed at this behaviour was green while two thirds of it was broken.
+
+⚡ That is the shape worth keeping: **a test that picks the one member of a class that works reports on the
+member, not the class** — the same lesson as `.11.11`'s "a tested helper is not a used helper", one level up.
+
+### What shipped
+
+- `coachMarks.epoch`, bumped by `resetCoachMarks`, exposed as `useCoachMarkEpoch` and read as an effect dep.
+  ⚠️ A counter rather than a flag: a flag would need un-setting by somebody, which is the "who owes the
+  release" problem suppressors already carry.
+- The docstring now says **all three** records, so the next author is not told there are two.
+- A new e2e on a **tab-hosted** mark: seed `trajectory-scrub` as seen, confirm it is withheld (which is
+  what arms the latch), reset from More, return, and require the callout to say *"Drag the curve"*.
+
+⚠️ **The assertion names the copy, not the count** — `.11.12.7` measured a count assertion here passing on
+a stale callout, so that lesson is applied rather than restated.
+
+**RED first:** `Expected substring: "Drag the curve"` · `element(s) not found` — no callout at all after
+the reset.
+
+**Verified:** typecheck 0 · eslint 0 · `test:app` 0 · `test:regression` 0 · `test:scenarios` 0 ·
+`coach-marks.spec.ts` **8/8**. The full RN e2e is batched across `.7` and `.8` rather than run twice.
+
+---
+
+## ✅ P6.8.9.7.11.12.7 — C-A, the hint that outlived its sheet *(2026-08-25)*
+
+### The defect
+
+`use-coach-mark` carries the rule *"a mark must not outlive the screen its subject is on"*, and it fires
+on **blur** (`if (isFocused) return;`). For a sheet-hosted mark there is no blur to fire on:
+
+- closing the sheet **unmounts** the hook, and an unmount is not a blur — the effect's cleanup did nothing;
+- the tab underneath never stopped being focused, so the condition it waits for never became true.
+
+So `active` kept the id of a subject that no longer exists. ⚡ **The second harm is the one that reaches the
+whole app**: `show()` refuses every mark while anything is active, so **one un-dismissed hint disables the
+entire discovery layer for the rest of the session** — silently, because a callout drawing at a stale rect
+can land off-screen.
+
+⭐ **The stale-rect half needed no separate fix.** The layer's primary rect effect already does
+`setRect(null)` on `!active`, so clearing `active` clears the rect with it. The `if (r)` guard the finding
+names is in the *scroll* effect, and it only matters while `active` is still set — which is the state this
+closes.
+
+### What shipped
+
+One cleanup-only effect in `use-coach-mark`, dismissing on unmount when the active mark is this one.
+⚠️ The `active === id` guard is read **at teardown**, so an unmount that is not this mark's turn cannot
+clear somebody else's. Nothing is lost by standing down, for the same reason the blur rule gives: the
+once-ever record is written by the layer on `DREW`, so a mark that reached the screen is already recorded
+and one that never drew keeps its turn.
+
+### ⛔ My first version of the pin was VACUOUS, and the plant is what said so
+
+The test closes the sheet and asserts the callout is gone, then navigates to Progress and asserts the
+discovery layer still works. The second assertion was `toHaveCount(1)` — and with the fix planted out it
+**passed**, because the stuck `payoff-schedule` callout *is* the one node it counted. **An assertion
+satisfied by the defect it exists to catch is worse than no assertion.**
+
+⚠️ It only surfaced because the plant was run with the FIRST assertion relaxed. Planting normally, the
+first assertion catches everything and the second is never exercised — so a test can carry a dead
+assertion indefinitely while every plant reports the suite as sound.
+
+Strengthened to name the copy, it reds with the mechanism written out verbatim:
+
+> Expected substring: `"Drag the curve"`
+> Received string: `"See the whole payoffEvery payment from here to debt-free, month by month.Got it"`
+
+— the payoff hint sitting on the Progress screen, which is the finding's user-facing consequence exactly.
+
+⚠️ **Nothing could have caught this before**: none of the five existing tests ever closes the sheet, and
+the closest navigates to `/schedule/d0` — which also unmounts the hook without blurring — then asserts only
+the URL.
+
+**Verified:** typecheck 0 · `test:app` 0 · eslint 0 · `comments` · `selectors` 0 ·
+`coach-marks.spec.ts` **7/7** · `coach-mark-neighbour` + `payoff-schedule` + `strategy-compare` +
+`a11y-axe` **24/24**. ⚠️ 18 specs touch the discovery layer; the wider run is batched with `.11.12.8`,
+which is the same subsystem.
+
+---
+
+## ✅ P6.8.9.7.11.12.6 — B-J2-3, the money audit that never looked at a goal *(2026-08-25)*
+
+### Blind in three places at once
+
+`moneyKeepsItsType` exists because *"`runMigrations` performs NO type validation … the question this
+settles is whether anything ENFORCES that at the boundary."* It checked debts, required expenses and
+living expenses, and its field list — `balance`, `minimumPayment`, `apr`, `amount` — contains **none of
+the fields a goal carries**.
+
+⚡ **And the corpus could not have supplied one anyway.** Its healthy goal was
+`{ id: 'g1', name: 'Emergency fund', target: 1000 }` — **`target` is a field v1.6 never wrote.** v1.6's
+own `useGoals` persists `targetAmount`, `currentAmount` and `type`. So every one of the generated cases
+carried a goal whose money fields did not exist and therefore could not be damaged, and the nested-damage
+list named only debt and required-expense fields.
+
+⛔ **This is the class the repo has been bitten by twice, in this same file** — `migrations.ts` records
+that *"goals fell through `...r` untouched"*, and that the first repair of it *"left the harm exactly where
+it was"* because `0` is the uncapped value, calling that **"the only finding in that pass that reaches a
+user's money."** Both were found by people reading. The audit could not have found either.
+
+### ⛔ …and even when it saw a violation, nothing failed
+
+Found while verifying the fix, not in the finding: **`audit.test.ts` printed `⛔ N violation(s)` and
+returned cleanly.** `hostile.test.ts` runs *the same invariants over the same doors* and throws. Two
+harnesses, one judgement, opposite consequences — and the quieter one was the one covering the generated
+corpus. The finding's own severity sentence says the pace is *"unguarded by the one instrument built to
+guard it"*, and report-only is exactly that, so arming it is the completion of the item rather than an
+addition to it.
+
+⚠️ **Measured clean before arming** — 522 cases × 2 doors, zero violations, zero drift. It is not being
+switched on over a known failure.
+
+### What shipped
+
+- `GOAL_MONEY_FIELDS` + `check(o.store.goals, 'goals', …)` in the invariant.
+- The corpus goal corrected to v1.6's real shape, and `goals[0].targetAmount` / `goals[0].currentAmount`
+  added to the nested-damage list — **522 cases**, up from 482 (20 damage variants per field, measured,
+  not assumed).
+- `audit.test.ts` **throws** on any violation or differential drift.
+- A hostile case, `goal-pace-unreadable-on-a-priority-goal`.
+
+### The auditor's own mutation, and why it needed the extra fixture
+
+They wrote: *"Remove `'priorityPerPaycheck'` from `migrations.ts:173` … and the migration audit reports
+zero violations."* ⚠️ **Measured after the invariant fix: still true.** That field is v1.7-only and both
+audited doors take v1.6 shapes, so no generated case can carry it — the invariant covered it defensively
+and nothing exercised the cover.
+
+⚡ The hostile corpus is the right home, because it exists for *"states the combinatorial generator
+structurally cannot produce"*, and the reachability is real: `readBackup` classifies any file carrying
+v1.6's marker fields as `v16-file`, and `mapLegacyStore` carries `goals` straight across, so an extra key
+on a goal row rides through — the same door the null-row case arrives by. With it, the mutation reds on
+**both doors**.
+
+### Plant-verified, three ways
+
+| plant | result |
+|---|---|
+| drop `targetAmount` from the goals repair list | **26 violations**, import + webkit — where it previously saw none |
+| the same, with the audit armed | `FAIL [migration audit: 26 invariant violation(s) in 2 root cause(s)]` — it now fails the suite, not just the console |
+| drop `priorityPerPaycheck` (the auditor's mutation) | hostile suite reds on both doors |
+
+**Verified:** typecheck 0 · `test:app` 0 · `test:regression` 0 · `test:scenarios` 0 · eslint 0 ·
+`comments` · `coverage` · `destructive` all 0.
+
+---
+
+## ✅ P6.8.9.7.11.12.5 — B-J2-2, the date the code said it showed *(2026-08-25)*
+
+### The defect
+
+`BackupEnvelope.exportedAt`'s own docstring: *"ISO timestamp of the export. **Surfaced to the user before a
+destructive restore** (5.8.4)."* It was not. `serializeBackup` wrote it, `parseBackupValue` carried it into
+the envelope — and `readBackup` then passed only `envelope.store` on, dropping it at that line. A repo-wide
+grep found the type, the writer, the parser, a v1.6 marker check and a metadata skip list. **No renderer.**
+
+So the sentence in front of an irreversible overwrite was entity counts alone — *"This backup has 4 debts,
+3 expenses and 1 goal."* — which reads **identically** for a backup exported this morning and one exported
+in March, under a subtitle saying *"This overwrites everything currently in the app. It can't be undone."*
+
+⚡ **The app already had both halves.** The iCloud door formatted and showed its timestamp before its own
+confirm. The file door was the one that dropped it.
+
+### What shipped
+
+- **`ReadBackupSuccess.exportedAt?`** — threaded from the envelope, and from a v1.6 file's own stamp
+  (`detectBackupFormat` requires a string `exportedAt` to classify a file as `v16-file` at all).
+- **`describeBackup` says when** — *"…and 1 goal. Saved 23/05/2026 at 2:02 pm."* One sentence, one owner,
+  so the visible text and the a11y reading cannot diverge.
+- ⛔ **Absent means absent.** A bare `raw-v17` store is not an envelope and carries no date; the clause is
+  omitted rather than filled with *"recently"*. Inventing a date is a claim about a file nothing knows
+  anything about, on the screen where being wrong is least recoverable. Pinned as its own case.
+- **`data/formatBackupTime.ts`** — lifted out of `CloudBackupSheet`, where it was a private function. Two
+  doors ask the same question; one of them was answering it, and a second copy is how they drift.
+
+### Pinned
+
+RED first at *"the export timestamp SURVIVES the read — `undefined`"*. Three unit cases (envelope · v1.6
+file · bare store, which must NOT claim a date) plus an assertion on the existing v1.6 restore e2e, since
+the unit test cannot tell whether the sentence reaches the sheet.
+
+**Verified:** typecheck 0 · `test:app` 0 · `test:regression` 0 · `test:scenarios` 0 · eslint 0 ·
+`comments` · `apostrophes` · `glossary` · `copy` · `copy-owners` · `local-dates` · `coverage` all 0 ·
+`backup.spec.ts` **11/11**.
+
+---
+
+## ✅ P6.8.9.7.11.12.4 — B-J2-1, returned to the error you just fixed *(2026-08-25)*
+
+### The defect
+
+`DataResetScreen` **is** the whole tree while `storageError === 'data-reset'` — `_layout` returns it
+instead of the navigator. Its file-import sheet committed with `importStore(found.store); onClose();` and
+nothing cleared the error, so the sheet lifted to reveal the same full-screen *"We couldn't open your saved
+plan · Something was wrong with the file, so the app started fresh"* panel: no confirmation, same three
+buttons, and the only way onward labelled **"Start fresh"** — which means the opposite of what they had
+just done. ⚡ The iCloud button five lines above it called `onStartFresh()` after its import and was fine;
+nothing made the two agree.
+
+⚠️ The data was never at risk — autosave is installed on this path and `importStore` replaces `prefs`,
+which takes the write-immediately branch. The whole damage was in what the user is told and what they do
+next.
+
+### What shipped, and why it is not in the caller
+
+`importStore` clears `storageError` when it reads `'data-reset'`. **At the seam, so no future import door
+can forget it** — there are five callers today (the launch-time offer, the iCloud restore, the file
+restore, the More-tab cloud restore, the legacy-bridge carry) and the defect was precisely that one of them
+did the extra step and another did not.
+
+⛔ **`read-failed` is deliberately NOT cleared, and that distinction is the design.** It says storage cannot
+be read; `bootstrapPersistence` returns early on it and installs **no autosave**, so nothing the user does
+is being written down. An import into memory does not make the disk readable, and clearing the banner would
+hide that. ⚡ The shape is copied from the precedent already in the file: a successful save clears
+`save-failed` and nothing else. Both are pinned.
+
+### Pinned — and the second test exists because the first cannot see the screen
+
+- **`persistenceLifecycle.test.ts`** — RED at *"expected null, got `data-reset`"*, plus the companion case
+  proving `read-failed` survives an import. `MockAdapter` gained a `readThrows` flag to reach it.
+- **`data-recovery.spec.ts`** — a restore **from** the reset screen: the combination no spec covered. The
+  reset-screen tests never opened the sheet, and `backup.spec.ts` drives the import only from `/more`.
+  Plant-verified: reverting the clear reds it at `Expected 0, Received 1` on the panel itself.
+
+⚠️ **The first cut of that e2e failed against a correct fix**, and the cause is worth keeping:
+`seedCorrupt` uses `addInitScript`, which re-runs on **every navigation**, so `goto('/money')` re-injected
+the corrupt bytes and the app re-hydrated straight back into the reset screen. The assertion now polls
+localStorage instead of navigating — and polls rather than reading once, because autosave is debounced and
+a single read asserts over whatever happened to be on disk at that instant.
+
+**Verified:** typecheck 0 · `test:app` 0 · `test:regression` 0 · `test:scenarios` 0 · eslint 0 ·
+`destructive` · `selectors` · `comments` · `coverage` all 0 · `data-recovery.spec.ts` **8/8**. No dev
+server left listening.
+
+---
+
+## ✅ P6.8.9.7.11.12.3 — A-J2-4, the emergency goal no rung would fund *(2026-08-25)*
+
+### The defect
+
+`goals.find((g) => g.type === "emergency")` resolves *the* emergency fund, and every rung is exclusive —
+the starter and fuller EF rungs take that one goal, and both sinking-fund rungs required
+`type === "savings"`. So a **second** `emergency`-typed goal matched none of the five and was allocated
+exactly `$0` every paycheck, while Money drew it a live progress bar and nothing anywhere said so.
+
+⚠️ **Reachable through the ordinary UI**: `GoalSheet` offers Emergency fund / Savings freely on add AND
+edit, and guards only name-uniqueness. *"Emergency Fund"* plus *"Car repair fund"*, also typed emergency,
+is an ordinary thing to build.
+
+### [D61] — 🎯 2026-08-25: fund it, do not refuse it
+
+⚡ **The fact that settled it: v1.6 has the identical defect** — same `find`, same savings-only post-debt
+rung (`v1.6-dev:lib/engine/allocatePaycheck.ts:310,372`). So a migrating user can **already** hold two
+emergency goals with one of them starved. A `GoalSheet` guard would prevent new occurrences and do nothing
+for the stores that exist, which is why the door-guard option lost.
+
+Options put to 🎯: fund as savings *(picked)* · refuse a second in `GoalSheet` · only say so on Money ·
+split the starter-EF cap across both.
+
+### What shipped
+
+- **`packages/core/engine/emergencyFund.ts`** — `primaryEmergencyGoal` · `fundsAsSinkingFund`, the one
+  owner of *"which goal is THE emergency fund"*.
+- ⚠️ **The rule is stated as a NEGATIVE on purpose:** everything that is not the emergency fund funds as a
+  sinking fund. Written as a positive it has to be kept in sync with the `Goal['type']` union at every
+  site; written this way a third type would fall through to the savings rungs rather than to nothing.
+- ⚠️ **Compared by REFERENCE, not by id.** Goal ids are user data and a hand-edited store can carry two
+  rows with the same one; identity cannot be spoofed, and every caller reads both values out of one array.
+
+### Three more consumers were disagreeing about which goal that is — found by enumerating, not by the finding
+
+| site | was | why it matters now |
+|---|---|---|
+| `migrations.ts` pace stand-down | `governed = goal.type === 'savings'` | its own comment says the priority rung is savings-only, so an emergency goal's pace governs nothing. **True before this change and false after** — a second EF goal's pace now governs, and a `type` test would have gone on treating it as ungoverned |
+| `guardianSelectors.ts` advice voice | `find(g => g.type === 'emergency' && underfunded)` | *any* underfunded emergency-typed goal raised an EF-vs-debt tradeoff voice. Now asks whether **THE** emergency fund is underfunded |
+| `money.tsx` goal row | `g.type === 'emergency' ? 'Emergency fund' : 'Savings'` | a row reading *"Emergency fund"* while funded as savings is the same misdescription the fix exists to end |
+
+⭐ **Checked and correctly unaffected:** `selectActiveRecommendedActions` filters by allocation CATEGORY,
+not goal type, so `efItems` still merges only the primary's two tranches, and a prioritised second EF goal
+flows through `sinkingFundItems` by construction.
+
+### Pinned
+
+Written RED first: **`Expected $800, received $0`** — the defect, through `allocatePaycheck`'s public
+signature. ⚠️ **And the guard assertion is not vacuous**: planting the naive fix (`fundsAsSinkingFund`
+always true) reds the lone-emergency-fund case at `Expected $400, received $800`, i.e. the primary drawing
+from an EF rung *and* a savings rung in one paycheck. Both directions are held.
+
+⚠️ **No fixture anywhere carried two emergency goals at once** — `testAllocation`, `testStressScenarios`,
+`testAbuseScenarios`, `testFullAppRegression`, `testSelectActiveRecommendedActions`. The class was
+unexercised, which is why nothing caught it.
+
+**Verified:** typecheck 0 · `test:regression` 0 · `test:app` 0 · `test:scenarios` 0 · eslint 0 ·
+`comments` · `glossary` · `copy` · `coverage` · `month-arithmetic` · `local-dates` all 0.
+
+### After-scan
+
+- **Noted, and it closes an item the audit filed as device-only:** `DataRepairsCard`'s a11y group label
+  was reported as read twice by VoiceOver. `groupLabel` sets `accessible: true`, which stops children
+  being announced individually, so there is no duplication to fix.
+- **Left alone deliberately:** `guardianSelectors`'s `isEmergencyFund` on the top-up SOURCE still reads
+  `type === 'emergency'`. It describes where money is being pulled FROM, and from the user's point of view
+  a goal they typed emergency is their emergency money regardless of which rung funds it.
+
+---
+
+## ✅ P6.8.9.7.11.12.2 — A-J2-3, a row that is not an object *(2026-08-25)*
+
+### The finding named two sites. Measured, the class was three failure modes across five places.
+
+`repairMoneyFields` passed a non-object row through untouched, and what happened next depended entirely on
+whether anything downstream dereferenced it:
+
+| list | before | consequence |
+|---|---|---|
+| `goals` | **throws** on `goal.priority` | hydrate quarantines the WHOLE blob, `storageError: 'data-reset'`, and the quarantined bytes have no restore surface — `clearQuarantinedData` only deletes them |
+| `debts` | **throws** on `debt.lastVerifiedDate` | same |
+| `requiredExpenses` | ⚠️ **does not throw** — the `null` survives into the store | waits for the first `g.amount` at render; the quieter of the two |
+| `livingExpenses` | ⚠️ same | same |
+| `legacyBridge/originalBalance.ts` | **throws** on `debt.originalBalance`, **before `runMigrations` runs at all** | both doors — the import refuses the file, the WebKit path quarantines |
+
+⛔ **The finding's own recommended fix would have relocated the crash rather than closed it.** It proposed
+`if (!goal || typeof goal !== 'object') continue;` in the two loops — which leaves the `null` **in the
+array**, so it lands in the store and throws in `goals.reduce((sum, g) => sum + g.targetAmount, 0)` on
+Money. Measured directly before building, which is why the fix went in one level up instead.
+
+⚡ **And the fifth site was found by the instrument, not by reading.** `originalBalance.ts` appears in no
+finding and in no site list; the hostile corpus red on the first run after the fixtures landed.
+
+### What shipped
+
+- **`repairMoneyFields` drops the row and RECORDS it** — `flatMap`, one repair per dropped row, `kind:
+  'lost'`. It is the single seam all four lists pass through, so one change covers the class.
+- ⚠️ **Dropping is the opposite of 5.10's rule for a bad AMOUNT, deliberately.** A row with an unreadable
+  balance keeps a name the user recognises, so it is repaired and surfaced — 5.10 rejected dropping
+  precisely because it destroys that. This row has no id, no name and no fields; the only fact about it is
+  that it existed, and the record is how the person is told.
+- **`withBackfilledOriginalBalance` passes a non-object through** rather than dropping it — dropping there
+  would put a second owner on the rule, and a row deleted quietly on the way to `repairMoneyFields` is a
+  silent loss the card can never mention.
+
+### The gate that could not fail on this class, and now can
+
+The contract test stated totality — *"`runMigrations` is now total, so the rest of the store survives"* —
+with a single fixture of `debts: 'nope'`, a **non-array**, which a different branch has always handled.
+Nothing supplied an array *containing* a non-object.
+
+- **Two new hostile-corpus cases** (`null-row-inside-every-list`, `scalar-and-array-rows-inside-every-list`),
+  judged by the existing eight invariants across both doors. ⚠️ The second exists because
+  `typeof [] === 'object'`: an array row passes a naive object test and then answers every field lookup
+  with `undefined`, which is the quietest of the four shapes.
+- **Two new `persistenceLifecycle` cases** — the four-list sweep through `runMigrations`, and a `hydrate`
+  case asserting no quarantine and no `data-reset`.
+
+**Plant-verified separately, because they prove different things:** reverting the bridge guard reds the
+corpus on `originalBalance` at both doors; reverting the drop reds the lifecycle suite with the production
+`TypeError` on `lastVerifiedDate`. The original RED was that same `TypeError`, not an assertion mismatch.
+
+**Verified:** typecheck 0 · `test:app` 0 · `test:regression` 0 · `test:scenarios` 0 · eslint 0 ·
+`comments` · `destructive` · `coverage` · `apostrophes` · `glossary` · `copy` all 0.
+
+### After-scan
+
+- **Nothing further surfaced** — after the two fixes the corpus is clean across 31 cases × 2 doors × 8
+  invariants, which is the check that found the site no list had.
+- **Checked, not assumed:** dropping a row changes array indices, and nothing keys on them —
+  `completedRecommendedActions` reference ids, and `originalBalanceBackfilled` compares against the
+  pre-migration array. Invariant ② accounts for source KEYS, not rows, so a dropped row is not a silent
+  drop by its definition — and it is reported to the user regardless.
+
+---
+
+## ✅ P6.8.9.7.11.12.1 — A-J2-2, the repairs card spoke one language for two opposite events *(2026-08-25)*
+
+### The premise was flagged unconfirmed, so it was measured first — and it was wrong
+
+The auditor rated this `major` on a narrow reading and `blocker`-shaped on a broad one, and said plainly
+which half it could not establish: *"I could not establish that a real v1.6 store ever wrote string
+money."* Measured against **`origin/v1.6-dev`**, the preserved shipped Capacitor tree:
+
+| v1.6 write path | what it persists |
+|---|---|
+| onboarding (`FirstDebtOrBillStep`) | `Number(balance)` · `Number(minimumPayment)` · `Number(apr) \|\| 0` |
+| debt edit (`DebtsSection.saveEditing`) | `parseDebtFormValues(...)` → numbers, garbage refused wholesale |
+| goal add (`useGoals.handleAddGoal`) | `Number(goalTargetAmount)`, guarded by `!targetAmount \|\| <= 0` |
+| goal edit (`GoalsSection.saveEditing`) | `clean()` + `Number.isFinite` on both fields |
+| living expenses | `Number(event.target.value \|\| 0)` |
+| `scheduledPaymentAmount` · `priorityPerPaycheck` | **do not exist in v1.6 at all** |
+
+⛔ **v1.6 never persisted a money field as a string.** Its *actual* defect is the one `migrations.ts`
+already records correctly — `Number("12,000")` → `NaN` → JSON writes **`null`** — which is the LOSS
+branch, where the loss copy is right. ⚡ **The live door is `readBackup`**, which hands an arbitrary
+user-supplied JSON file straight to `runMigrations` with no coercion anywhere in `mapLegacyStore`. So the
+defect is real but its blast radius is not *"every migrated v1.6 user"* — it is a restore of a
+hand-edited, third-party or foreign export.
+
+⚠️ **Two comments in the tree asserted the refuted premise** (*"v1.6 stored money from HTML inputs, so the
+string form is the ordinary case"*) and both cited no measurement. Corrected in place — a false comment is
+deleted, not annotated.
+
+### The defect, and the one the fix surfaced
+
+`readMoney` had two `repaired: true` returns and the caller could not tell them apart, so a goal stored as
+`targetAmount: '4,000'` — recovered to the real `4000` — rendered *"An amount could not be read · Your plan
+is running without it until you set it again"* on Today, while Money one tab over showed `$4,000` and the
+engine allocated against it. **Two screens contradicting each other about the user's money, and this was
+the one that was wrong.**
+
+⚡ **The repo had already found this distinction and applied it in exactly one place.** The priority
+stand-down matches on the VALUE, under a docblock reading *"A RECOVERED PACE IS NOT A LOST ONE, AND THE
+REPAIR RECORD CANNOT TELL THEM APART."* It was never propagated to the copy.
+
+⚡ **Surfaced only by writing the fix: a pace of `'0'` recovers AND is a loss.** The string parses, so
+`readMoney` calls it a recovery — but `0` is not a cap, the goal is stood down, and the person has lost the
+pace they chose. Forced to `lost` at the reword, or the card files a change that already happened to their
+plan under *"read in a different format"*, which reads as no action needed.
+
+### What shipped
+
+- **`DataRepair.kind?: 'recovered' | 'lost'`** — optional, absent-means-`lost`, so every stored blob
+  backfills without a version bump. Same shape as `acknowledged`, and `lost` is the safe direction: it asks
+  someone to check a number that was fine rather than saying nothing about one that was not.
+- **`readMoney` returns `'none' | 'recovered' | 'lost'`** instead of a boolean — the caller needs to know
+  which, so it is returned rather than inferred.
+- **`apps/rn/src/components/plan/dataRepairsCopy.ts`** — the card's words, out of JSX so they can be
+  pinned, rendering **two blocks, losses first**. Plurals count per block. `healing` (`bandage.fill`) was
+  already in the icon map, so the recovered block needed no glyph change.
+- **`unreadDebts` stops suppressing on a recovery.** It was the one bare `.some(...)` read of the list; the
+  goals guards already self-correct, because each conjoins an evidence check on the repaired VALUE and a
+  recovered value is not `0`. Left as-is, a genuinely cleared debt restored from a file holding `'0'` would
+  suppress *"Every balance cleared"* for the life of the install — `.11.8`'s defect, mirrored.
+
+**Pinned, and plant-verified at all three levels** — the words, the pipeline, and the screen:
+
+| suite | claim | planted red |
+|---|---|---|
+| `dataRepairsCopy.test.ts` (new, 23 asserts) | the sentences, given a record | `kindOf` → always `lost` → *"expected recovered, got lost"* |
+| `persistenceLifecycle.test.ts` | `runMigrations` records the right kind | drop `kind: repair` → *"expected recovered, got undefined"* |
+| `data-recovery.spec.ts` (new case) | the recovered block reaches a screen | same `kindOf` plant → element not found |
+
+⚠️ **The e2e is not redundant with the unit test.** `dataRepairsCopy.test` cannot see JSX, so it cannot
+tell whether the block renders at all — the `.11.11` lesson, applied on purpose.
+
+**Verified:** typecheck 0 · `test:app` 0 · `test:regression` 0 · `test:scenarios` 0 · `apps/rn` eslint 0 ·
+`lint:comments` · `apostrophes` · `glossary` · `copy` · `icon-glyphs` · `a11y-collapse` · `contrast` ·
+`coverage` · `selectors` all 0 · `data-recovery.spec.ts` **7/7**. Port 4319 confirmed free before the
+plant run, so no stale bundle could absorb it.
+
+### After-scan
+
+- **Measured and stated:** `mergeRepairs` keys on `entity|id|field` and **pending wins**, so a pre-fix
+  pending record (no `kind`) would outlive the fix and keep speaking the loss sentence over a recovered
+  amount. ⛔ **Unreachable** — the pre-fix behaviour exists only in unshipped builds; the last shipped
+  version is v1.6, which has none of this. Not built for; recorded so it is not re-derived.
+- **Noted, not filed:** `describeMigrationLosses` writes every entry with no `kind`, which defaults to
+  `lost` and is correct for all of them.
+- **Left alone deliberately:** the priority stand-down still matches on the VALUE, not the record. The
+  record can now answer the question, but the value also catches stores an earlier build wrote — which
+  hold a pace of `0` and carry no record at all.
+
+---
+
+## ✅ P6.8.9.7.11.11 — the month-overflow blocker *(2026-08-25)*
+
+### The defect, and the thing about it that is worth keeping
+
+`d.setMonth(d.getMonth() + n)` does not mean "n months later". When the target month is shorter than the
+day being carried, JS normalises the overflow **forward**: Jan 31 + 1 month is **Mar 3**. Everything
+downstream printed month-and-year only, so a three-day slip surfaced as **a different month**, always
+later than the truth — on the app's headline claim about the user's own plan.
+
+⚡ **The clamp already existed, was correct, and was already tested.** `recurrence/rolloverPayCycle.ts`
+carried it with a comment naming this exact case, written for the due-date path. What was missing was not
+the logic — it was **the call**. A test on a helper passes whether or not anything uses it, which is how a
+repo can hold a measured, documented fix for a defect it is currently shipping.
+
+### The enumeration was short, twice, and that is why there is now a gate
+
+| who | said |
+|---|---|
+| the audit (`C-E`) | 2 sites |
+| the plan row | 5 files |
+| **measured** | **7 `setMonth(` sites in 6 files** |
+
+The site every list missed was `onboarding/FirstDebtOrBillStep.tsx:24` — `setMonth(+1)` followed by
+`setDate(1)`, so a user onboarding on Jan 31 was handed a first bill due **Mar 1**. Swept independently
+for the other written form of the same arithmetic (`new Date(y, getMonth() + n, …)`) across
+`apps/rn/src` · `packages/core` · `scripts`: it exists only inside the clamp itself, so 7 is the closed set.
+
+⛔ `check-local-dates.ts` exists because the *UTC* calendar-date class was enumerated short twice. This
+class has now been enumerated short twice too, so it gets the same treatment:
+**`scripts/check-month-arithmetic.ts`**, wired into `lint:rn`, banning `setMonth`/`setFullYear` outside the
+owner. `setFullYear` has no live site — it is banned so the first Feb-29 one written is refused rather than
+discovered on a leap year. **Mutation-verified**: a bare `setMonth` planted into `projectForecast.ts`
+(plant confirmed present by `grep` + `git diff --stat` before the run) reds it at the right line, exit 1.
+
+### What shipped
+
+- **`packages/core/utils/addMonths.ts`** — `addMonthsToDate` · `addMonthsISO`, clamping to the target
+  month's last day, with `anchorDay` so a date that passes through a short month does not stay there.
+  `rolloverPayCycle` now delegates to it rather than carrying a second copy.
+- **All 7 sites re-pointed**: `projectDebtPayoff` · `projectForecast` ×2 · `TrajectoryChart` ·
+  `AmortizationView` · `BnplCalendarSection` · `FirstDebtOrBillStep`.
+- **`apps/rn/src/components/payoff/monthLabels.ts`** — `monthDate` was a closure over `startDate` inside
+  the component, a shape no node test can reach, which is precisely why the audit could report that
+  nothing tested the dates it produced. Extracted pure; three duplicated `toLocaleString` expressions
+  collapsed into `monthYearLabel` / `monthShortLabel`.
+- **Two suites, both RED-first against the real defect**, not against the helper:
+  `testAddMonths.ts` red on *"Expected February 2026, received March 2026"* through `projectDebtPayoff`'s
+  public signature; `monthLabels.test.ts` red on *"a 31st start: month 1 is February"* with the `setMonth`
+  form planted back. One case walks twelve consecutive months from the 31st, so no short month can be
+  skipped and none named twice.
+- **`check-local-dates`' hand-parse baseline ratcheted 44 → 41** — the fixes routed three hand-written
+  `T00:00:00` parses through `parseLocalDate`, and the gate's own docblock now says the baseline **ratchets
+  down in the same edit**, or ground gained is silently re-spendable. Its stale in-comment counts removed.
+
+**Verified:** `typecheck` 0 · `test:regression` 0 · `test:app` 0 · `test:scenarios` 0 ·
+`lint:month-arithmetic` 0 · `lint:local-dates` 0 · `lint:comments` 0 · `lint:rn-style` 0 ·
+`lint:coverage` 0 · `apps/rn` eslint 0. Each run with its own exit code, not `&&`-chained — `.11.13` owns
+the fact that `lint:rn`'s chaining hides every gate after the first red.
+
+### After-scan
+
+- **Folded in:** the missed 7th site · the gate · the `monthLabels` extraction and its pin · the baseline
+  ratchet and the rule that keeps it ratcheting.
+- **Filed to the backlog (P6.10):** `projectForecast` reads the clock inline instead of taking a
+  `startDate`, so its labels **cannot be pinned at all** — fixed but held by the gate alone · three of the
+  seven sites (`AmortizationView`, `BnplCalendarSection`, `FirstDebtOrBillStep`) have no test of their own,
+  so the call could be replaced with a different wrong answer and nothing would red. The two carrying the
+  user's headline claim are pinned.
+- **Surfaced for `.11.12`:** the plan row *"the 9 open majors"* is **wrong — there are 14** (A 3 · B 3 ·
+  C 4 · D 4, enumerated against the auditor files). The SUMMARY does not reconcile with itself either:
+  *"15, of which 6 are closed"* against an open table of 14 implies 20 found, and its gates block silently
+  omits D's `J2-1`, which is closed. ⛔ **Work the auditor files, not the SUMMARY.**
+
+---
+
 ## ✅ P6.8.7d.1 — B3 / M3-3, the iCloud clobber *(2026-08-22)*
 
 ### The defect, and why the obvious fix was not the fix

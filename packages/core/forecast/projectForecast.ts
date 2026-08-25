@@ -1,3 +1,5 @@
+import { addMonthsToDate } from "@core/utils/addMonths";
+
 import { getForecastStatus } from "./getForecastStatus";
 import type { ForecastMonth, ForecastStatus } from "./types";
 
@@ -23,8 +25,7 @@ export function projectForecast({ startingSafeCash, startingDebtBalance, monthly
     let recoveryMonth: string | undefined;
     for (let i = 0; i < months; i++) {
         if (roundMoney(startingSafeCash + bufferTrendPerMonth * i) >= 200) {
-            const d = new Date();
-            d.setMonth(d.getMonth() + i);
+            const d = addMonthsToDate(new Date(), i);
             recoveryMonth = d.toLocaleString("default", { month: "long", year: "numeric" });
             break;
         }
@@ -35,8 +36,9 @@ export function projectForecast({ startingSafeCash, startingDebtBalance, monthly
 
         const projectedSafeCash = roundMoney(startingSafeCash + bufferTrendPerMonth * index);
 
-        const monthDate = new Date();
-        monthDate.setMonth(monthDate.getMonth() + index);
+        // ⛔ Clamped, not `setMonth`. Run on the 31st, the overflow skips a month name entirely and
+        // prints the next one twice, so a forecast read on the last of the month names the wrong months.
+        const monthDate = addMonthsToDate(new Date(), index);
         const monthLabel = monthDate.toLocaleString("default", {
             month: "long",
             year: "numeric",

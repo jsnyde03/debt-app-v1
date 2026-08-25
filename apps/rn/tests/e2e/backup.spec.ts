@@ -113,6 +113,11 @@ test('a v1.6 backup restores — and the income is not silently blanked', async 
   // chance to notice a restore that is about to arrive empty.
   await expect(page.getByTestId('backup-found-summary')).toContainText('1 debt');
   await expect(page.getByTestId('backup-found-summary')).toContainText('older version');
+  // ⛔ **WHEN it was saved, on the screen before an irreversible overwrite.** [P6.8.9.7.11.12 · B-J2-2]
+  // The counts alone read identically for a backup made this morning and one made in March, and
+  // `exportedAt` was dropped inside `readBackup` before it could reach any renderer — while its own
+  // docstring said it was surfaced here.
+  await expect(page.getByTestId('backup-found-summary')).toContainText('Saved');
 
   await page.getByRole('button', { name: 'Replace my data' }).click();
 

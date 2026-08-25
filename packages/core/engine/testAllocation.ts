@@ -389,6 +389,83 @@ function runAllocationRegressionTests() {
         "[A2] a monthly bill counts once, and one due after the next payday counts zero"
     );
 
+    /**
+     * ⛔ **A SECOND `emergency` GOAL USED TO BE FUNDED BY NO RUNG AT ALL.** [P6.8.9.7.11.12 · A-J2-4] The
+     * emergency rungs take `find`'s first match and the two sinking-fund rungs required
+     * `type === "savings"`, so goal #2 matched none of the five — every paycheck allocated it exactly `$0`
+     * while Money drew it a live progress bar and nothing on any screen said so.
+     *
+     * ⚠️ **Reachable through the ordinary UI, and carried from v1.6.** `GoalSheet` offers the type freely
+     * and guards only name-uniqueness, and v1.6's engine has the identical `find` — so a migrating user
+     * can already hold two. 🎯 2026-08-25 chose to FUND it rather than refuse it, because refusing does
+     * nothing for the stores that already exist.
+     *
+     * ⚠️ No fixture anywhere carried two emergency goals at once, which is why nothing caught this.
+     */
+    const twoEmergencyGoals = allocatePaycheck({
+        paycheckAmount: 1000,
+        currentDate: "2026-05-04",
+        nextPaycheckDate: "2026-05-15",
+        strategy: "snowball",
+        expenses: [],
+        debts: [],
+        goals: [
+            {
+                id: "goal-ef",
+                name: "Emergency Fund",
+                targetAmount: 500,
+                currentAmount: 500,
+                type: "emergency",
+            },
+            {
+                id: "goal-car",
+                name: "Car repair fund",
+                targetAmount: 800,
+                currentAmount: 0,
+                type: "emergency",
+            },
+        ],
+    });
+
+    const toCarFund = twoEmergencyGoals.allocations
+        .filter((item) => item.goalId === "goal-car")
+        .reduce((sum, item) => sum + item.amount, 0);
+    assertMoney(toCarFund, 800, "[A-J2-4] a second emergency goal is FUNDED, not starved at $0");
+
+    // …and the first one keeps its own rung. A goal already at target draws nothing, which is what makes
+    // the assertion above unambiguous: every dollar that moved went to the second goal.
+    const toPrimary = twoEmergencyGoals.allocations
+        .filter((item) => item.goalId === "goal-ef")
+        .reduce((sum, item) => sum + item.amount, 0);
+    assertMoney(toPrimary, 0, "[A-J2-4] …and the funded primary emergency fund draws nothing");
+
+    /**
+     * ⛔ **THE PRIMARY MUST NOT BE DOUBLE-FUNDED BY THE CHANGE.** The rule is a negative — everything that
+     * is not THE emergency fund funds as a sinking fund — so the one case that would break it is the
+     * emergency fund also matching a savings rung and drawing twice in one paycheck.
+     */
+    const singleEmergencyGoal = allocatePaycheck({
+        paycheckAmount: 1000,
+        currentDate: "2026-05-04",
+        nextPaycheckDate: "2026-05-15",
+        strategy: "snowball",
+        expenses: [],
+        debts: [],
+        goals: [
+            {
+                id: "goal-ef",
+                name: "Emergency Fund",
+                targetAmount: 400,
+                currentAmount: 0,
+                type: "emergency",
+            },
+        ],
+    });
+    const toSingle = singleEmergencyGoal.allocations
+        .filter((item) => item.goalId === "goal-ef")
+        .reduce((sum, item) => sum + item.amount, 0);
+    assertMoney(toSingle, 400, "[A-J2-4] a lone emergency fund is funded to its target exactly once");
+
     console.log("✅ Allocation regression tests passed.");
 }
 

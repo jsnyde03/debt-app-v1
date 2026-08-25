@@ -36,6 +36,7 @@ import "../debt/testParseDebtFormValues";
 import "@/lib/storage/testMigrateOriginalBalance";
 import "@core/recurrence/testRolloverDueDates";
 import "@core/utils/testLocalDate";
+import "@core/utils/testAddMonths";
 import "@core/utils/testAmountField";
 import "@core/imports/testDebtCsv";
 import "../debt/testBuildPayoffTrajectory";

@@ -6,21 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { cloudBackupMessage } from '@/data/cloudBackupMessages';
+import { formatBackupTime } from '@/data/formatBackupTime';
 import { useCloudBackup, type CloudBackupAction } from '@/hooks/use-cloud-backup';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
-
-/**
- * ⚠️ `lastBackupAt` is an INSTANT (the iCloud file's mtime), not a calendar date — so this is the one
- * place a `Date` may be rendered through the platform locale. `@core/utils/localDate` deliberately does
- * NOT own this: its job is `YYYY-MM-DD` wall-calendar dates, and routing an instant through it would
- * throw away the time, which is the informative half of "last backed up".
- */
-function formatBackupTime(iso: string): string {
-  const at = new Date(iso);
-  if (Number.isNaN(at.getTime())) return 'recently';
-  return `${at.toLocaleDateString()} at ${at.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
-}
 
 /**
  * P6.3.3.5 — the iCloud backup sheet. It replaces the "coming soon" row this app has been shipping

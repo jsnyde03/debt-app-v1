@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { buildBnplSchedule, type BnplInstallmentEntry } from '@core/debt/bnplSchedule';
+import { addMonthsISO } from '@core/utils/addMonths';
 import { formatCurrency } from '@core/utils/formatCurrency';
-import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
 
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -12,11 +12,9 @@ import { textStyles } from '@/theme/typography';
 /** How far ahead the calendar lists before collapsing the rest into a "+ N more" line. */
 const HORIZON_MONTHS = 6;
 
-function addMonths(iso: string, n: number): string {
-  const d = parseLocalDate(iso);
-  d.setMonth(d.getMonth() + n);
-  return toLocalISODate(d);
-}
+// ⛔ Clamped. The horizon cutoff is compared against installment dates, so an overflow on a 29th–31st
+// cycle date pulls installments a whole month beyond the stated horizon into the list.
+const addMonths = addMonthsISO;
 
 function dayLabel(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });

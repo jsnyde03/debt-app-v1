@@ -1,7 +1,7 @@
 import { useIsFocused } from 'expo-router';
 import { useEffect } from 'react';
 
-import { coachMarks } from '@/store/coachMarks';
+import { coachMarks, useCoachMarkEpoch } from '@/store/coachMarks';
 import { probeCoachMark } from '@/store/coachMarkProbe';
 import { useTutorialTargets } from '@/store/tutorialTargets';
 
@@ -29,6 +29,7 @@ import { useTutorialTargets } from '@/store/tutorialTargets';
 export function useCoachMark(id: string, ready: boolean): void {
   const targets = useTutorialTargets();
   const isFocused = useIsFocused();
+  const epoch = useCoachMarkEpoch();
 
   /**
    * 4.1.5.4 — a mark must not outlive the screen its subject is on.
@@ -64,6 +65,32 @@ export function useCoachMark(id: string, ready: boolean): void {
     coachMarks.getState().dismiss();
   }, [isFocused, id]);
 
+  /**
+   * ⛔ **THE SAME RULE, FOR THE HOSTS THAT NEVER BLUR.** [P6.8.9.7.11.12 · C-C-A] The effect above is the
+   * whole stand-down, and it waits on a condition a sheet-hosted mark cannot produce: closing the sheet
+   * **unmounts** this hook, and an unmount is not a blur — while the tab underneath never stopped being
+   * focused, so `isFocused` never goes false. `payoff-schedule` is called from inside `DebtSheet`, so its
+   * mark stayed active with its subject gone.
+   *
+   * ⚡ **The second harm is the one that reaches the whole app.** `show()` refuses every mark while
+   * anything is active, so one hint left up by a sheet close disables the entire discovery layer for the
+   * rest of the session — and it is silent, because a callout drawing at a stale rect can land off-screen.
+   *
+   * ⚠️ **Nothing is lost by standing down**, for the same reason the blur rule gives: the once-ever record
+   * is written by the LAYER on `DREW`, so a mark that reached the screen is already recorded as seen, and
+   * one that never drew keeps its turn.
+   *
+   * ⚠️ Cleanup-only, with the `active === id` guard read at teardown — an unmount that is not this mark's
+   * turn must not clear somebody else's.
+   */
+  useEffect(() => {
+    return () => {
+      if (coachMarks.getState().active !== id) return;
+      probeCoachMark(`unmount:${id}=dismissed`);
+      coachMarks.getState().dismiss();
+    };
+  }, [id]);
+
   useEffect(() => {
     // 4.1.4c — record the ARM separately from the layout event. "The mark never appeared" is compatible
     // with `ready` never flipping, with no registry above the caller, and with the subject never laying
@@ -78,5 +105,16 @@ export function useCoachMark(id: string, ready: boolean): void {
       coachMarks.getState().show(id);
     });
     return unsubscribe;
-  }, [id, ready, targets]);
+    /**
+     * ⛔ **`epoch` IS A DEP BECAUSE `asked` IS A CLOSURE LATCH THAT NOTHING ELSE CAN REACH.**
+     * [P6.8.9.7.11.12 · C-C-B] `resetCoachMarks()` clears the persisted pref and the session set, and this
+     * subscription's `asked` is neither — it is re-created only when this effect re-runs. For a mark whose
+     * host is a TAB that never happens: tabs do not unmount, `id` is a literal, `ready` is stable once the
+     * store has hydrated, and `targets` is a memo whose only moving dep is the walkthrough's `activeId`.
+     *
+     * ⚡ So the reset re-armed the store and not the offer, and two of the three marks could not return in
+     * that session — while the app promised *"Tips will appear again as you go."* `payoff-schedule` was
+     * the exception, and the only one the suite tested, because the debt sheet re-creates its host.
+     */
+  }, [id, ready, targets, epoch]);
 }

@@ -18,6 +18,7 @@ import { formatWhole } from '@/utils/format';
 
 import { TutorialTarget } from '@/store/tutorialTargets';
 
+import { monthDate, monthShortLabel, monthYearLabel } from './monthLabels';
 import { TrajectoryCanvas } from './TrajectoryCanvas';
 import { StrategyCompare } from './StrategyCompare';
 import { endPillWidth, trajectoryDomain, truncateToDomain } from './trajectoryDomain';
@@ -268,11 +269,8 @@ export function TrajectoryChart({
   // Y-scale: balance gridlines 0 → niceMax. X-scale: year marks (each January) between Now and the end.
   const gridVals: number[] = [];
   for (let v = 0; v <= niceMax + 1; v += step) gridVals.push(v);
-  const monthDate = (m: number) => {
-    const d = new Date(`${startDate}T00:00:00`);
-    d.setMonth(d.getMonth() + m);
-    return d;
-  };
+  // The month step and its two written forms live in `monthLabels` — pure, so they can be pinned.
+  const monthAt = (m: number) => monthDate(startDate, m);
   // Year marks (each January). ⚠️ [P1-3] Clamping the domain made these able to run out: a plan clearing
   // in four months may span no January at all, and the fix for an unreadable axis must not hand back an
   // UNLABELLED one. Below two year marks the axis labels months instead — same ticks, a scale the span
@@ -280,7 +278,7 @@ export function TrajectoryChart({
   const xTicks: { m: number; label: string }[] = [];
   if (w > 0) {
     for (let m = 1; m < maxMonth; m++) {
-      const d = monthDate(m);
+      const d = monthAt(m);
       if (d.getMonth() === 0) xTicks.push({ m, label: String(d.getFullYear()) });
     }
     if (xTicks.length < 2) {
@@ -288,7 +286,7 @@ export function TrajectoryChart({
       // Aim for ~3 marks across whatever span this is, never closer together than a month.
       const stride = Math.max(1, Math.round(maxMonth / 3));
       for (let m = stride; m < maxMonth; m += stride) {
-        xTicks.push({ m, label: monthDate(m).toLocaleString('en-US', { month: 'short' }) });
+        xTicks.push({ m, label: monthShortLabel(startDate, m) });
       }
     }
   }
@@ -306,7 +304,7 @@ export function TrajectoryChart({
   const minEnd = minimums.find((p) => p.balance <= 0);
   const minimumsDateLabel =
     interestSaved.kind === 'saving' && minEnd
-      ? monthDate(minEnd.month).toLocaleString('en-US', { month: 'short', year: 'numeric' })
+      ? monthYearLabel(startDate, minEnd.month)
       : 'Not with minimums';
 
   // Touch-scrub: map the finger's x to the nearest trajectory point, snap the readout to it, and tick a
@@ -505,7 +503,7 @@ export function TrajectoryChart({
                   pointerEvents="none"
                   style={[styles.scrubReadout, { left: clamp(scrub.x - 60, PAD.l, w - PAD.r - SCRUB_READOUT_MAX_W), top: PAD.t, backgroundColor: c.background.secondary, borderColor: c.border.subtle }]}>
                   <Text maxFontSizeMultiplier={LABEL_SCALE_MAX} style={[textStyles.caption, styles.scrubReadoutText, { color: c.text.primary }]} numberOfLines={1}>
-                    {monthDate(scrub.month).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
+                    {monthYearLabel(startDate, scrub.month)}
                     {'  ·  '}
                     {formatWhole(scrub.balance)}
                     {'  ·  '}
@@ -623,7 +621,7 @@ export function TrajectoryChart({
           snowballClears={snowballClears}
           avalancheClears={avalancheClears}
           strategy={strategy}
-          monthLabel={(m) => monthDate(m).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
+          monthLabel={(m) => monthYearLabel(startDate, m)}
         />
       ) : null}
     </Card>

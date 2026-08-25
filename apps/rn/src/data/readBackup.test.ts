@@ -247,6 +247,52 @@ function realV16Backup(): Record<string, unknown> {
   }
 }
 
+/**
+ * ── B-J2-2: the DATE reaches the screen standing in front of an irreversible overwrite ────────────
+ *
+ * ⛔ **`BackupEnvelope.exportedAt`'s own docstring said it was surfaced before a destructive restore, and
+ * it was not.** [P6.8.9.7.11.12] `serializeBackup` wrote it and `parseBackupValue` carried it, and then
+ * `readBackup` passed only `envelope.store` on — so it was dropped at that line and reached no renderer
+ * anywhere in the app. What the confirm screen showed was entity counts, which are identical for a backup
+ * exported this morning and one exported in March, under a subtitle reading *"This overwrites everything
+ * currently in the app. It can't be undone."*
+ *
+ * ⚠️ The iCloud door already did this correctly, so the app had both the value and a formatter — the file
+ * door was the one that dropped it.
+ */
+{
+  const result = readBackup(serializeBackup(createDefaultStore(), { now: AT }));
+  assert(result.ok, 'read an envelope for its date');
+  if (result.ok) {
+    assert(result.exportedAt === AT.toISOString(), `⭐ the export timestamp SURVIVES the read — "${result.exportedAt}"`);
+    const text = describeBackup(result);
+    assert(text.includes('Saved'), `⛔ …and it is IN the confirm sentence — "${text}"`);
+    assert(text.includes(String(AT.getFullYear())), '  …carrying the year the file was actually exported');
+  }
+}
+{
+  // A v1.6 file stamps `exportedAt` too — `detectBackupFormat` requires it to call the file v1.6 at all.
+  const result = readBackup(JSON.stringify(realV16Backup()));
+  assert(result.ok, 'read a v1.6 file for its date');
+  if (result.ok) {
+    assert(result.exportedAt === '2026-05-23T14:02:11.000Z', 'a v1.6 file carries its date through too');
+    assert(describeBackup(result).includes('Saved'), '  …and it reaches the same sentence');
+  }
+}
+{
+  /**
+   * ⚠️ **A bare store is not an envelope and has no date — the sentence must simply not claim one.**
+   * Inventing "recently" here would be a statement about a file we know nothing about, on the screen
+   * where being wrong is least recoverable.
+   */
+  const result = readBackup(JSON.stringify(createDefaultStore()));
+  assert(result.ok, 'read a bare v1.7 store');
+  if (result.ok) {
+    assert(result.exportedAt === undefined, 'a raw store carries no export date');
+    assert(!describeBackup(result).includes('Saved'), '  …and the sentence does not invent one');
+  }
+}
+
 console.log(`✅ readBackup router tests passed (${passed} asserts).`);
 
 // ── ⛔ THE ONBOARDING GATE (found on a real device, 🎯 2026-08-19). ───────────────────────────────

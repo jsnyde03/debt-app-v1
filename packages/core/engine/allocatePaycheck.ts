@@ -1,3 +1,4 @@
+import { fundsAsSinkingFund, primaryEmergencyGoal } from "@core/engine/emergencyFund";
 import { combinedHoldback } from "@core/guardian/holdbackComposition";
 import type { LivingExpense } from "@core/types/livingExpense";
 import type { Recurrence } from "@core/types/recurrence";
@@ -595,7 +596,9 @@ export function allocatePaycheck({
 		}
 	}
 
-	const emergencyGoal = goals.find((goal) => goal.type === "emergency");
+	// ⛔ THE emergency fund — see `emergencyFund.ts`. Every other goal, including a SECOND `emergency`-typed
+	// one, funds through the sinking-fund rungs below; before P6.8.9.7.11.12 it matched no rung at all.
+	const emergencyGoal = primaryEmergencyGoal(goals);
 
 	// §2.5 waterfall (2.4.7.6): a small STARTER emergency fund funds BEFORE debt payoff (the standard
 	// sequence — a buffer first, then attack debt, then finish the fund). Capped at `starterEmergencyTarget`
@@ -626,7 +629,7 @@ export function allocatePaycheck({
 	// AFTER debt (below). Opt-in per goal; absent `priority` → unchanged behavior.
 	for (const goal of goals) {
 		if (remaining <= 0) break;
-		if (goal.priority !== true || goal.type !== "savings" || goal.currentAmount >= goal.targetAmount) continue;
+		if (goal.priority !== true || !fundsAsSinkingFund(goal, emergencyGoal) || goal.currentAmount >= goal.targetAmount) continue;
 		const needed = roundMoney(goal.targetAmount - goal.currentAmount);
 		// The per-paycheck pace cap (if any) keeps a chosen "$X/paycheck" plan real instead of greedy.
 		const pace = goal.priorityPerPaycheck != null && goal.priorityPerPaycheck > 0 ? goal.priorityPerPaycheck : Infinity;
@@ -696,7 +699,7 @@ export function allocatePaycheck({
 		(goal) =>
 			// §2.9: priority sinking funds already funded BEFORE debt (above) — exclude them here so they
 			// aren't double-funded.
-			goal.priority !== true && goal.type === "savings" && goal.currentAmount < goal.targetAmount
+			goal.priority !== true && fundsAsSinkingFund(goal, emergencyGoal) && goal.currentAmount < goal.targetAmount
 	);
 
 	for (const goal of savingsGoals) {

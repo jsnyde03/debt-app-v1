@@ -181,3 +181,88 @@ test('the celebration guard SURVIVES the acknowledgement', async ({ page }) => {
   await expect(page.getByText('Chase card')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('Every balance cleared')).toHaveCount(0);
 });
+
+// ── A-J2-2: a RECOVERED amount is not spoken as a lost one ───────────────────────────────────────
+test('an amount read in a different format is not reported as unreadable', async ({ page }) => {
+  /**
+   * ⛔ **THE CARD SAID THE LOSS SENTENCE OVER AN AMOUNT IT HAD READ CORRECTLY.**
+   * [P6.8.9.7.11.12 · A-J2-2] `targetAmount: '4,000'` recovers to the real 4000 — Money renders the goal
+   * at $4,000 and the engine allocates against it — while Today said *"An amount could not be read · Your
+   * plan is running without it until you set it again"*. Two screens contradicting each other about the
+   * user's money, and this was the one that was wrong.
+   *
+   * ⚠️ **This is the assertion `dataRepairsCopy.test` cannot make.** That suite pins the sentences given a
+   * record; it cannot see JSX, so it cannot tell whether the recovered block reaches a screen at all.
+   */
+  await seedStore(
+    page,
+    scenario({
+      goals: [{ id: 'g1', name: 'Roof fund', type: 'savings', targetAmount: '4,000', currentAmount: 0 }],
+    }),
+  );
+  await page.goto('/');
+
+  await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('An amount was written in a different format')).toBeVisible();
+  await expect(page.getByText(/Roof fund/)).toBeVisible();
+  // ⛔ The loss language must be ABSENT — and the card above is already on screen, so this is not an
+  // absence assertion racing an unrendered page.
+  await expect(page.getByText('An amount could not be read')).toHaveCount(0);
+});
+
+// ── B-J2-1: a restore FROM the reset screen must end the reset ───────────────────────────────────
+test('restoring a backup file from the reset screen leaves that screen', async ({ page }) => {
+  /**
+   * ⛔ **THE USER WAS RETURNED TO THE ERROR THEY HAD JUST FIXED.**
+   * [P6.8.9.7.11.12 · B-J2-1] `DataResetScreen` IS the whole tree while `storageError === 'data-reset'`.
+   * Its file-import sheet ran `importStore` and closed — nothing cleared the error — so the sheet lifted
+   * to reveal the same *"We couldn't open your saved plan"* panel, with no sign the restore worked and
+   * the only way onward labelled **"Start fresh"**. The iCloud button five lines above it called
+   * `onStartFresh()` afterwards and was fine; nothing made the two agree.
+   *
+   * ⚠️ **This is the combination no spec covered.** The reset-screen tests above never open the sheet,
+   * and `backup.spec.ts` drives the import only from `/more`.
+   */
+  await seedCorrupt(page);
+  await page.goto('/');
+  await expect(page.getByTestId('data-reset')).toBeVisible({ timeout: 15_000 });
+
+  await page.getByTestId('data-reset-import').click();
+  await page.getByTestId('backup-import-input').fill(
+    JSON.stringify(
+      scenario({
+        debts: [
+          { id: 'd1', name: 'Restored Visa', balance: 1200, minimumPayment: 35, apr: 19.99, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' },
+        ],
+      }),
+    ),
+  );
+  await page.getByRole('button', { name: 'Check backup' }).click();
+  await page.getByRole('button', { name: 'Replace my data' }).click();
+
+  // ⛔ The panel is GONE — not merely "the sheet closed". That distinction is the entire finding.
+  await expect(page.getByTestId('data-reset')).toHaveCount(0, { timeout: 15_000 });
+
+  /**
+   * …and the restored portfolio is really there, polled rather than read once — autosave is debounced,
+   * and a single `readStore` asserts over whatever happened to be on disk at that instant.
+   *
+   * ⛔ **Deliberately NOT `goto('/money')` to look for the debt.** `seedCorrupt` uses `addInitScript`,
+   * which re-runs on EVERY navigation, so a `goto` re-injects the corrupt bytes and the app re-hydrates
+   * straight back into the reset screen. Measured here: the first cut of this test failed for exactly
+   * that reason, against a correct fix — the same trap this file's header documents.
+   */
+  await expect
+    .poll(
+      async () => {
+        const raw = await page.evaluate((key) => window.localStorage.getItem(key), KEY);
+        try {
+          return (JSON.parse(raw ?? '{}') as { debts?: { name?: string }[] }).debts?.[0]?.name;
+        } catch {
+          return undefined;
+        }
+      },
+      { timeout: 15_000 },
+    )
+    .toBe('Restored Visa');
+});

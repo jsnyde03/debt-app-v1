@@ -1,4 +1,6 @@
 import { Debt } from "@core/storage/debtPlannerStorage";
+import { addMonthsToDate } from "@core/utils/addMonths";
+import { parseLocalDate } from "@core/utils/localDate";
 import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from "./bnplPayoffPace";
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
 
@@ -225,8 +227,10 @@ export function projectDebtPayoff({
         months += 1;
     }
 
-    const payoffDate = new Date(`${startDate}T00:00:00`);
-    payoffDate.setMonth(payoffDate.getMonth() + months);
+    // ⛔ The month step CLAMPS. `setMonth` overflows a short target month forward, and since only the
+    // month and year are printed, a start date on the 29th–31st surfaced as a whole month too late on
+    // the app's headline claim about the user's own plan.
+    const payoffDate = addMonthsToDate(parseLocalDate(startDate), months);
 
     return {
         strategy,

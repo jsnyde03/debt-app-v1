@@ -68,6 +68,17 @@ export interface CoachMarkState {
    * guesses. The reason is carried rather than inferred.
    */
   suppressorReasons: string[];
+  /**
+   * ⛔ **THE THIRD RECORD `resetCoachMarks` HAS TO REACH.** [P6.8.9.7.11.12 · C-C-B] It clears the
+   * persisted pref and the session `shown` set — and the offer subscription in `use-coach-mark` holds a
+   * **closure latch** that is neither. For a mark whose host is a TAB, that effect never re-runs (tabs do
+   * not unmount and every dep is stable), so the latch survived the reset and the mark could not come
+   * back for the rest of the session, while the app said *"Tips will appear again as you go."*
+   *
+   * ⚠️ A counter rather than a boolean: the hook uses it as an effect dep, and a flag would have to be
+   * un-set by somebody, which is the same "who owes the release" problem suppressors already carry.
+   */
+  epoch: number;
   show(id: string): void;
   /** Record the once-ever offer — called by the LAYER when the callout renders. See the implementation. */
   markDrawn(id: string): void;
@@ -82,6 +93,7 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
   suppressorReasons: [],
   shown: new Set<string>(),
   hosts: 0,
+  epoch: 0,
 
   show(id) {
     // 4.1.4c — every refusal below names ITSELF in the probe trace. Four wrong mechanisms for
@@ -168,17 +180,30 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
 /**
  * 3.5.5.3 — "Show feature tips again" (More).
  *
- * Clears BOTH records or it does not work: the persisted list is what survives a relaunch, and the
- * session `shown` set is what would otherwise swallow every mark until the user quit the app — so
- * resetting only the pref would produce a replay entry that appears to do nothing.
+ * Clears ALL THREE records or it does not work: the persisted list is what survives a relaunch, the
+ * session `shown` set is what would otherwise swallow every mark until the user quit the app, and
+ * `epoch` re-arms the offer subscriptions — so resetting only the pref, or only the pref and the set,
+ * produces a replay entry that appears to do nothing.
+ *
+ * ⚠️ **The third one was missing and the miss was invisible for two of the three marks.** See `epoch`.
  */
 export function resetCoachMarks(): void {
   appStore.getState().updatePrefs({ coachMarksSeen: [] });
-  coachMarks.setState({ shown: new Set<string>(), active: null });
+  coachMarks.setState((s) => ({ shown: new Set<string>(), active: null, epoch: s.epoch + 1 }));
   // 4.1.4c — the trace describes ONE attempt. Carrying the pre-reset entries forward would make the
   // readout show a `refused(seenPref)` from before the reset beside the attempt that followed it, which
   // is precisely the ambiguity the probe exists to remove.
   resetCoachMarkProbe();
+}
+
+/**
+ * The re-arm signal for an offer subscription — see `epoch`. Read as an effect dep, never rendered.
+ *
+ * ⚠️ Narrow by design: it changes only on *"Show feature tips again"*, so nothing re-renders for it in an
+ * ordinary session.
+ */
+export function useCoachMarkEpoch(): number {
+  return useStore(coachMarks, (s) => s.epoch);
 }
 
 /** Is THIS target the one currently marked? Subscribes narrowly so an unrelated mark re-renders nothing. */

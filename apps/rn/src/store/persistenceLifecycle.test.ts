@@ -32,7 +32,10 @@ class MockAdapter implements StorageAdapter {
   quarantines: { raw: string; reason: string }[] = [];
   cleared = 0;
   constructor(public blob: unknown | null = null) {}
+  /** Storage that cannot be READ at all — a different claim from "the bytes were corrupt". */
+  readThrows = false;
   async read() {
+    if (this.readThrows) throw new Error('mmkv unavailable');
     return this.blob;
   }
   failWrites = false;
@@ -108,6 +111,36 @@ async function run() {
     // why. `onboardingComplete: false` above is exactly what makes the silence indistinguishable from a
     // fresh install, which is why THIS assertion sits next to it.
     eq(s.getState().storageError, 'data-reset', '…⛔ and the reset is DECLARED, so the app can say so');
+
+    /**
+     * ⛔ **…AND A SUCCESSFUL IMPORT UN-DECLARES IT, or the user is returned to the error they just fixed.**
+     * [P6.8.9.7.11.12 · B-J2-1] `DataResetScreen` IS the whole tree while `storageError === 'data-reset'`
+     * (`_layout` returns it instead of the navigator). Restoring a backup file from that screen ran
+     * `importStore` and nothing else, so the sheet closed onto the same full-screen *"We couldn't open
+     * your saved plan"* panel — no sign the restore worked, and the only way onward labelled
+     * **"Start fresh"**, which means the opposite of what they just did. The iCloud button five lines
+     * above it called `onStartFresh()` afterwards and was fine.
+     *
+     * ⚠️ Fixed in `importStore` rather than in the caller, so no future import door can forget it — the
+     * same reason a successful save clears `save-failed` in `persist` rather than at each write site.
+     */
+    s.getState().importStore({ ...createDefaultStore(), prefs: { ...createDefaultStore().prefs, onboardingComplete: true } });
+    eq(s.getState().storageError, null, '⛔ a successful import clears the data-reset it disproves');
+  }
+
+  /**
+   * ⛔ **`read-failed` MUST SURVIVE AN IMPORT — it is a different claim.** `bootstrapPersistence` returns
+   * early on `read-failed` and installs no autosave, so nothing the user does is being written down. The
+   * banner is the only signal of that, and an import into memory does not make storage readable.
+   */
+  {
+    const a = new MockAdapter(null);
+    a.readThrows = true;
+    const s = createDebtStore();
+    await s.getState().hydrate(a);
+    eq(s.getState().storageError, 'read-failed', 'an unreadable adapter declares read-failed');
+    s.getState().importStore(createDefaultStore());
+    eq(s.getState().storageError, 'read-failed', '…and an import does NOT clear it — nothing is being saved');
   }
 
   // ── Malformed nested shape (debts not an array) — CONTRACT CHANGED AT 5.10, deliberately ──
@@ -133,6 +166,77 @@ async function run() {
     eq(s.getState().store.dataRepairs[0]?.entity, 'debt', '…naming what could not be read');
     eq(s.getState().isHydrated, true, '…and we stay hydrated');
     eq(s.getState().store.pendingDataRepairs.length, 1, '…⛔ and it is held for the USER, not just recorded');
+  }
+
+  /**
+   * ── A NON-OBJECT ROW *INSIDE* AN ARRAY — the case the contract above states and cannot check ──
+   *
+   * ⛔ **The fixture above is `debts: 'nope'`, a NON-ARRAY**, which `repairMoneyFields`'s `!Array.isArray`
+   * branch has always handled. Nothing supplied an array *containing* a `null`, and the two behaviours
+   * could not be less alike. [P6.8.9.7.11.12 · A-J2-3]
+   *
+   * ⚡ **MEASURED before fixing, and the class was bigger than the finding's two sites.** `goals` and
+   * `debts` threw a `TypeError` out of `runMigrations` — quarantining the entire portfolio at launch, with
+   * no restore surface for the quarantined bytes — while `requiredExpenses` and `livingExpenses` did NOT
+   * throw and passed the `null` straight through into the store, where the first `g.amount` at render
+   * finds it. Two doors, two failure modes, one cause.
+   *
+   * ⛔ **Guarding the two loops would have MOVED the crash, not closed it**: a surviving `null` throws in
+   * `goals.reduce((sum, g) => sum + g.targetAmount, 0)` on Money. The row has to leave the array.
+   *
+   * ⚠️ **Dropped rather than repaired, which is the opposite of 5.10's rule for a bad AMOUNT — and the
+   * difference is that there is nothing here to keep.** A row with an unreadable balance still has a name
+   * the user recognises, so it is repaired and surfaced. A `null` row has no id, no name and no fields:
+   * the only fact about it is that it existed, and that is exactly what the repair record says.
+   */
+  {
+    const s = runMigrations({
+      debts: [null, { id: 'd1', name: 'Card', balance: 100, minimumPayment: 10, apr: 0, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }],
+      goals: [null, { id: 'g1', name: 'Kept', targetAmount: 500, currentAmount: 0, type: 'savings' }],
+      requiredExpenses: [null, { id: 'e1', name: 'Rent', amount: 900, dueDate: '2026-09-01', recurrence: 'monthly' }],
+      livingExpenses: ['nope', { id: 'l1', name: 'Food', amount: 300 }],
+      paycheck: { amount: '2100' },
+    } as unknown);
+
+    eq(s.debts.length, 1, '⛔ a null DEBT row is dropped, and its sibling survives');
+    eq(s.goals.length, 1, '⛔ a null GOAL row is dropped, and its sibling survives');
+    eq(s.requiredExpenses.length, 1, '⛔ a null BILL row is dropped — it used to survive into the store');
+    eq(s.livingExpenses.length, 1, '⛔ a non-object EXPENSE row is dropped — same, and neither was in the finding');
+    eq(s.debts[0]?.name, 'Card', '…the surviving debt is the real one, not a hole');
+    eq(s.goals[0]?.name, 'Kept', '…and the surviving goal is the real one');
+    eq(s.paycheck.amount, '2100', '…⭐ and the income survives, which the whole-blob quarantine destroyed');
+
+    // The reporting half is the point: a drop with no record is a silent data loss wearing a fix.
+    const entities = s.dataRepairs.map((r) => r.entity).sort();
+    eq(entities.join(','), 'debt,goal,livingExpense,requiredExpense', '⛔ every dropped row is REPORTED, by entity');
+    eq(
+      s.dataRepairs.every((r) => r.kind === 'lost'),
+      true,
+      '…as a LOSS, never as a recovery — nothing about the row was read',
+    );
+    eq(s.pendingDataRepairs.length, 4, '…and held for the user, not just recorded for this read');
+  }
+
+  /**
+   * ⛔ **THE HYDRATE DOOR IS THE ONE THAT LOSES DATA.** The import door already degraded gracefully — it
+   * refuses the file and says so. Hydrate caught the `TypeError`, quarantined the whole blob under
+   * `migration-failed`, set `storageError: 'data-reset'` and overwrote storage with defaults, and
+   * `clearQuarantinedData` only DELETES quarantined bytes, so the portfolio was gone from the app. This
+   * asserts the branch that used to fire does not.
+   */
+  {
+    const a = new MockAdapter({
+      storeVersion: CURRENT_STORE_VERSION,
+      goals: [null, { id: 'g1', name: 'Kept', targetAmount: 500, currentAmount: 0, type: 'savings' }],
+      paycheck: { amount: '2100' },
+    });
+    const s = createDebtStore();
+    await s.getState().hydrate(a);
+    eq(a.quarantines.length, 0, '⛔ a null row no longer quarantines the WHOLE portfolio');
+    eq(s.getState().storageError, null, '…and there is no data-reset to declare, because none happened');
+    eq(s.getState().store.goals.length, 1, '…the good goal is still here');
+    eq(s.getState().store.paycheck.amount, '2100', '…and so is the income');
+    eq(s.getState().isHydrated, true, '…and we stay hydrated');
   }
 
   // ── P6.8.7c.2 (B4/M3-2): a repair OUTLIVES the read that raised it ──
@@ -459,10 +563,15 @@ async function run() {
     }
     /**
      * ⛔ **A RECOVERED PACE IS NOT A LOST ONE, AND THE REPAIR RECORD CANNOT TELL THEM APART.**
-     * [P6.8.9.7.11.9 · B-1] `readMoney` flags `'200'` as `repaired: true` — the FORMAT was repaired — and
+     * [P6.8.9.7.11.9 · B-1] `readMoney` records `'200'` as a repair — the FORMAT was repaired — and
      * returns the real 200. Standing the goal down on that record destroys a cap that was read correctly,
-     * which is a worse outcome than the defect being fixed. v1.6 stored money from HTML inputs, so the
-     * string form is the ordinary case, not an exotic one.
+     * which is a worse outcome than the defect being fixed.
+     *
+     * ⚠️ **How a string reaches here was MEASURED at P6.8.9.7.11.12, and it is the RESTORE door, not the
+     * v1.6 migration.** Every v1.6 write path coerces with `Number()` or a parser before persisting, on
+     * every field this repairs; its actual defect persisted `null` (`Number("12,000")` → `NaN` → JSON
+     * `null`), which is the loss branch. `readBackup` hands an arbitrary user-supplied file straight to
+     * `runMigrations`, so a hand-edited, third-party or foreign export is the live source of string money.
      *
      * ⚠️ The block above cannot catch this: its fixture carries THREE repairs at once, so "stand down any
      * goal with any repair" satisfies it. Only a goal whose pace is recovered while another field is not
@@ -480,6 +589,32 @@ async function run() {
         recovered.pendingDataRepairs.some((r) => r.entity === 'goal'),
         '…while the unreadable targetAmount beside it is still reported',
       );
+      /**
+       * ⛔ **THE RECORD NOW CARRIES WHICH ONE IT WAS.** [P6.8.9.7.11.12 · A-J2-2] Both fields above are
+       * repairs and only one is a loss, and the card said *"could not be read · running without it"* over
+       * both. This fixture is the one that separates them — same goal, same read, opposite outcomes — and
+       * it asserts the PIPELINE, because `dataRepairsCopy.test` can only prove the words given a record.
+       */
+      const paceRep = recovered.pendingDataRepairs.find((r) => r.field === 'priorityPerPaycheck');
+      const targetRep = recovered.pendingDataRepairs.find((r) => r.field === 'targetAmount');
+      eq(paceRep?.kind, 'recovered', '⛔ the comma-grouped pace is recorded as RECOVERED, not lost');
+      eq(targetRep?.kind, 'lost', '…while the unreadable target beside it is recorded as a loss');
+    }
+    /**
+     * ⛔ **A PACE OF `'0'` RECOVERS AND IS STILL A LOSS.** The string parses, so `readMoney` calls it a
+     * recovery — but `0` is not a cap, the goal is stood down, and the person has lost the pace they
+     * chose. Recorded as `lost`, or the card files it under "read in a different format", which reads as
+     * no action needed while the plan has already changed underneath them.
+     */
+    {
+      const zeroString = runMigrations({
+        goals: [
+          { id: 'g0', name: 'Roof', type: 'savings', targetAmount: 4000, currentAmount: 0, priority: true, priorityPerPaycheck: '0' },
+        ],
+      } as unknown);
+      eq(zeroString.goals[0].priority, false, 'a pace of "0" stands the goal down');
+      const rep = zeroString.pendingDataRepairs.find((r) => r.entity === 'goal');
+      eq(rep?.kind, 'lost', '⛔ …and the record says LOST, though the string itself parsed');
     }
     /**
      * ⛔ **THE STORES A PREVIOUS BUILD ALREADY WROTE.** A pace repaired to `0` by an earlier version is a

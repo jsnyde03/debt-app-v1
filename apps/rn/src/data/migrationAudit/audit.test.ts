@@ -85,4 +85,21 @@ export default async function run() {
   if (drift.length) console.log(`\n  ⛔ differential drift: ${drift.slice(0, 6).join(', ')}`);
 
   console.log(`\n  ${rows.length === 0 && drift.length === 0 ? '✅' : '⛔'} migration audit complete.\n`);
+
+  /**
+   * ⛔ **IT PRINTED `⛔` AND RETURNED CLEANLY, so a real corruption never failed anything.**
+   * [P6.8.9.7.11.12 · B-J2-3] This is the adversarial corpus that exists to prove a restore cannot corrupt
+   * the user's money, and its verdict reached a console and stopped there — while `hostile.test.ts`, which
+   * runs **the same invariants over the same doors**, throws. Two harnesses, one judgement, opposite
+   * consequences, and only the quieter one covered the generated corpus.
+   *
+   * ⚠️ **Measured clean before this was armed** — 522 cases × 2 doors, zero violations and zero drift — so
+   * it is not being switched on over a known failure.
+   */
+  if (rows.length > 0 || drift.length > 0) {
+    throw new Error(
+      `FAIL [migration audit: ${rows.length} invariant violation(s) in ${byCause.size} root cause(s)` +
+        `${drift.length ? `, ${drift.length} differential drift` : ''} — see the breakdown above]`,
+    );
+  }
 }

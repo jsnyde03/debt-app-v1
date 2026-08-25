@@ -4,6 +4,7 @@ import { Platform, Pressable, SectionList, StyleSheet, Text, TextInput, View } f
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { bnplPaymentsRemaining, bnplPaymentsTotal, isInstallmentNative } from '@core/debt/bnplInstallment';
+import { primaryEmergencyGoal } from '@core/engine/emergencyFund';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { parseStatementText } from '@core/scan/parseStatementText';
 // [T8 · L2-1] `CADENCE_SUFFIX` moved beside the type it keys on — it existed here AND in
@@ -351,7 +352,12 @@ function DebtsSection({
   // where every balance failed to parse produced the single worst screen in the product: "Every balance
   // cleared", with the debts still owed. The repairs card on Today names them; this makes sure the
   // celebration waits until the user has answered it.
-  const unreadDebts = store.pendingDataRepairs.some((r) => r.entity === 'debt');
+  // ⚠️ A RECOVERED repair is not an unread one. [P6.8.9.7.11.12 · A-J2-2] `'0'` parses to a real `0`, so a
+  // genuinely cleared debt restored from a file holding string money would suppress this celebration for
+  // the life of the install — the same permanent, invisible falsehood `.11.8` closed, mirrored. The goals
+  // guards below already self-correct: each conjoins an evidence check on the repaired VALUE, and a
+  // recovered value is not `0`. This one had no such conjunct, so it reads the distinction directly.
+  const unreadDebts = store.pendingDataRepairs.some((r) => r.entity === 'debt' && r.kind !== 'recovered');
   const allCleared = active.length === 0 && paidOff.length > 0 && !unreadDebts;
 
   const list = (
@@ -939,6 +945,8 @@ function LivingReserve({ total }: { total: number }) {
 // ── Goals ─────────────────────────────────────────────────────────────────────
 function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   const goals = useAppStore((s) => s.store.goals);
+  // Which goal the waterfall means by "the emergency fund" — the same owner the engine asks.
+  const primaryEf = primaryEmergencyGoal(goals);
   // See the `funded` guard below — a goal whose target could not be read repairs to `0`, and `0 >= 0`
   // badges it as Funded. Same rule the debts branch already applies via `unreadDebts`.
   const unreadGoals = useAppStore((s) => s.store.pendingDataRepairs.some((r) => r.entity === 'goal'));
@@ -1005,11 +1013,15 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
            * about the store being generally suspect.
            */
           const funded = g.currentAmount >= g.targetAmount && !(unreadGoals && g.targetAmount === 0);
+          // ⚠️ Only THE emergency fund is labelled as one. [P6.8.9.7.11.12 · A-J2-4] A second
+          // `emergency`-typed goal is funded through the savings rungs, and a row claiming "Emergency
+          // fund" while behaving as savings is the misdescription the fix exists to end.
+          const meta = g === primaryEf ? 'Emergency fund' : 'Savings';
           return (
             <ListRow
               key={g.id}
               title={g.name}
-              meta={g.type === 'emergency' ? 'Emergency fund' : 'Savings'}
+              meta={meta}
               amount={funded ? formatWhole(g.targetAmount) : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))}
               amountSuffix={funded ? ' saved' : ' left'}
               badges={funded ? [{ label: 'Funded', tone: 'paid' }] : undefined}

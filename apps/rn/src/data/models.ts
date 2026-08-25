@@ -269,6 +269,23 @@ export interface DataRepair {
    * ⚠️ Optional and absent-means-false, so every stored blob backfills without a version bump.
    */
   acknowledged?: boolean;
+  /**
+   * ⛔ **`recovered` AND `lost` ARE NOT THE SAME EVENT, and one word covering both made the app state
+   * something false about money it had read correctly.** [P6.8.9.7.11.12 · A-J2-2] `readMoney` repairs a
+   * numeric string by stripping its grouping — `'4,000'` becomes `4000`, the real number — and repairs
+   * anything else to `0`, which is a loss. Both used to arrive here identically, so the card said *"could
+   * not be read · your plan is running without it"* over a goal that Money one tab away rendered at its
+   * correct `$4,000`. The two screens contradicted each other and this one was wrong.
+   *
+   * ⚠️ Optional and absent-means-`lost`, so every stored blob backfills without a version bump — the same
+   * shape as `acknowledged`. `lost` is the safe default: it is what every record written before this
+   * existed meant.
+   *
+   * ⚠️ **The record is still not the right question for the priority stand-down**, which matches on the
+   * VALUE — a store written by an earlier build carries a pace of `0` and no record at all. See
+   * `migrations.ts`.
+   */
+  kind?: 'recovered' | 'lost';
 }
 
 export interface DebtStore {

@@ -1,5 +1,6 @@
 import { parseBackupValue, type BackupParseFailure } from './backup';
 import { detectBackupFormat, type BackupKind } from './detectBackupFormat';
+import { formatBackupTime } from './formatBackupTime';
 import { LEGACY_KEY_PREFIX } from './legacyBridge/webkitLocalStorage';
 import { mapLegacyStore, type LegacyMapReport } from './legacyBridge/mapLegacyStore';
 import { runMigrations } from './migrations';
@@ -30,6 +31,20 @@ export interface ReadBackupSuccess {
   store: DebtStore;
   /** Present only for `v16-file`: what was mapped, dropped, unknown or unparseable. Drives 5.8.4. */
   legacy?: LegacyMapReport;
+  /**
+   * When the file was exported, if it says.
+   *
+   * ⛔ **`BackupEnvelope.exportedAt` claimed to be *"surfaced to the user before a destructive restore"*
+   * and was dropped one line into this module.** [P6.8.9.7.11.12 · B-J2-2] The writer wrote it, the parser
+   * carried it, and then only `envelope.store` was passed on — so the screen standing between a live
+   * portfolio and an irreversible overwrite showed entity counts, which read identically for a backup made
+   * this morning and one made in March.
+   *
+   * ⚠️ **Optional, and absent means absent.** A bare `raw-v17` store is not an envelope and carries no
+   * date; inventing one would be a claim about a file nothing knows anything about, on the screen where
+   * being wrong is least recoverable.
+   */
+  exportedAt?: string;
 }
 
 export interface ReadBackupFailureResult {
@@ -85,16 +100,19 @@ export function readBackup(raw: string): ReadBackupResult {
     case 'envelope': {
       const result = parseBackupValue(parsed);
       if (!result.ok) return { ok: false, kind, reason: result.reason, message: result.message };
-      return migrated(kind, result.envelope.store);
+      return migrated(kind, result.envelope.store, undefined, result.envelope.exportedAt);
     }
 
     case 'raw-v17':
       return migrated(kind, parsed);
 
     case 'v16-file': {
-      const items = v16FileToLegacyItems(parsed as Record<string, unknown>);
+      const file = parsed as Record<string, unknown>;
+      const items = v16FileToLegacyItems(file);
       const { partial, report } = mapLegacyStore(items);
-      return migrated(kind, partial, report);
+      // ⚠️ `detectBackupFormat` requires a string `exportedAt` to call a file `v16-file` at all, so this is
+      // always present on this branch — read defensively regardless, because the two checks live apart.
+      return migrated(kind, partial, report, typeof file.exportedAt === 'string' ? file.exportedAt : undefined);
     }
 
     default:
@@ -129,7 +147,14 @@ export function describeBackup(result: ReadBackupSuccess): string {
   const contents = `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
   const dropped = result.legacy?.dropped.length ?? 0;
   const skipped = dropped > 0 ? ` ${plural(dropped, 'item', 'items')} the current version no longer uses won’t come across.` : '';
-  return `${SOURCE[result.kind]} has ${contents}.${skipped}`;
+  /**
+   * ⛔ **WHEN, not just what.** [P6.8.9.7.11.12 · B-J2-2] The counts are identical for a backup exported
+   * this morning and one exported in March, and this sentence is the last thing a person reads before an
+   * irreversible overwrite of a live portfolio. ⚠️ Omitted entirely when the file does not say — see
+   * `ReadBackupSuccess.exportedAt`.
+   */
+  const saved = result.exportedAt ? ` Saved ${formatBackupTime(result.exportedAt)}.` : '';
+  return `${SOURCE[result.kind]} has ${contents}.${saved}${skipped}`;
 }
 
 /**
@@ -154,9 +179,15 @@ export function describeBackup(result: ReadBackupSuccess): string {
  * and must still onboard — otherwise a user who exported before setting anything up gets dropped into a
  * blank Today with no way back to the setup flow. The signal is a portfolio existing at all.
  */
-function migrated(kind: BackupKind, value: unknown, legacy?: LegacyMapReport): ReadBackupResult {
+function migrated(kind: BackupKind, value: unknown, legacy?: LegacyMapReport, exportedAt?: string): ReadBackupResult {
   try {
-    return { ok: true, kind, store: runMigrations(value), ...(legacy ? { legacy } : {}) };
+    return {
+      ok: true,
+      kind,
+      store: runMigrations(value),
+      ...(legacy ? { legacy } : {}),
+      ...(exportedAt ? { exportedAt } : {}),
+    };
   } catch {
     return { ok: false, kind, reason: 'unreadable', message: UNREADABLE };
   }

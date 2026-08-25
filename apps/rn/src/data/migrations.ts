@@ -1,5 +1,7 @@
 import { normalizeBnplInstallment } from '@core/debt/bnplInstallment';
 import { createDefaultStore } from './defaults';
+import { fundsAsSinkingFund, primaryEmergencyGoal } from '@core/engine/emergencyFund';
+
 import { CURRENT_STORE_VERSION, type DataRepair, type DebtStore } from './models';
 
 /**
@@ -41,15 +43,24 @@ import { CURRENT_STORE_VERSION, type DataRepair, type DebtStore } from './models
  * row (destroys a record the user recognises by name), or repair-and-surface. Only the last one lets the
  * person find out, and finding out is one tap from being correct.
  */
-function readMoney(value: unknown): { value: number; repaired: boolean } {
-  if (typeof value === 'number' && Number.isFinite(value)) return { value, repaired: false };
-  // A numeric string is recoverable and common — v1.6's own inputs were HTML fields. Commas are stripped
-  // for the same reason its `parseDebtFormValues` tolerates them: "12,000" is a real thing users type.
+/**
+ * ⛔ **THREE OUTCOMES, NOT TWO.** A recovery and a loss are both *repairs*, and collapsing them to one
+ * boolean is what let the repairs card tell a user their `'4,000'` goal *"could not be read"* while the
+ * plan ran correctly on `4000`. The caller needs to know **which**, so it is returned, not inferred.
+ *
+ * ⚠️ **A recovered value is exactly right, not approximately right** — the string parses or it does not,
+ * and a string that does not parse falls to the loss branch. So `recovered` means the number is correct
+ * and only its FORMAT was wrong; nothing downstream should treat it as suspect data.
+ */
+function readMoney(value: unknown): { value: number; repair: 'none' | 'recovered' | 'lost' } {
+  if (typeof value === 'number' && Number.isFinite(value)) return { value, repair: 'none' };
+  // Commas are stripped for the same reason v1.6's `parseDebtFormValues` tolerates them: "12,000" is a
+  // real thing users type, and the JSON restore door hands this an arbitrary user-supplied file.
   if (typeof value === 'string') {
     const parsed = Number(value.replace(/,/g, '').trim());
-    if (Number.isFinite(parsed)) return { value: parsed, repaired: true };
+    if (Number.isFinite(parsed)) return { value: parsed, repair: 'recovered' };
   }
-  return { value: 0, repaired: true };
+  return { value: 0, repair: 'lost' };
 }
 
 
@@ -68,26 +79,51 @@ function repairMoneyFields<T extends Record<string, unknown>>(
     // `persistenceLifecycle`'s malformed-nested case caught it: a corrupt `debts` key became an empty
     // list with nothing to show for it — the precise silent drop this whole item exists to remove, added
     // by the fix for it. `rows === undefined` is the ordinary "key absent" case and is not a loss.
-    if (rows !== undefined) repairs.push({ entity, id: '', name: '', field: '(whole list unreadable)' });
+    if (rows !== undefined) repairs.push({ entity, id: '', name: '', field: '(whole list unreadable)', kind: 'lost' });
     return fallback;
   }
-  return rows.map((row) => {
-    if (!row || typeof row !== 'object' || Array.isArray(row)) return row as T;
+  return rows.flatMap((row) => {
+    /**
+     * ⛔ **A NON-OBJECT ROW IS DROPPED, NOT PASSED THROUGH — and passing it through failed two different
+     * ways at once.** [P6.8.9.7.11.12 · A-J2-3] A `null` inside the array reached `debt.lastVerifiedDate`
+     * and `goal.priority` and threw a `TypeError` out of `runMigrations`, which hydrate turns into a
+     * whole-blob quarantine and a `data-reset` — the user's entire portfolio, gone over one row, with no
+     * restore surface for the quarantined bytes. `requiredExpenses` and `livingExpenses` dereference
+     * nothing here, so for them the `null` survived INTO the store instead and waited for the first
+     * `g.amount` at render.
+     *
+     * ⚠️ **Guarding those dereferences would only move the crash.** A surviving `null` throws in
+     * `goals.reduce((sum, g) => sum + g.targetAmount, 0)` on Money. The row has to leave the array, and
+     * this is the one place all four lists pass through.
+     *
+     * ⚠️ **Dropping is the opposite of the rule for a bad AMOUNT, and that is deliberate.** A row with an
+     * unreadable balance keeps a name the user recognises, so it is repaired and surfaced; 5.10 rejected
+     * dropping precisely because it destroys that. This row has no id, no name and no fields — the only
+     * fact about it is that it was there, and the record is how the person is told.
+     *
+     * How one arises: not from the app. A hand-edited or third-party backup, a `JSON.stringify` of an
+     * array with a hole or an `undefined` element, or an external mutation of the stored blob.
+     */
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      repairs.push({ entity, id: '', name: '', field: '(a row could not be read)', kind: 'lost' });
+      return [];
+    }
     const next = { ...(row as Record<string, unknown>) };
     for (const field of fields) {
       if (next[field] === undefined) continue;
-      const { value, repaired } = readMoney(next[field]);
+      const { value, repair } = readMoney(next[field]);
       next[field] = value;
-      if (repaired) {
+      if (repair !== 'none') {
         repairs.push({
           entity,
           id: typeof next.id === 'string' ? next.id : '',
           name: typeof next.name === 'string' ? next.name : '',
           field,
+          kind: repair,
         });
       }
     }
-    return next as T;
+    return [next as T];
   });
 }
 
@@ -200,11 +236,11 @@ export function runMigrations(raw: unknown): DebtStore {
    */
   /**
    * ⛔ **MATCHED ON THE VALUE, NOT ON THE REPAIR RECORD — and the record is the wrong question twice.**
-   * [P6.8.9.7.11.9 · B-1] `readMoney` returns `repaired: true` for a **successful recovery** as well as
-   * for a loss: `'200'` and `'1,200'` parse to their real amounts and are still flagged, because the
-   * *format* was repaired. Standing a goal down on the record therefore destroyed caps that had been read
-   * **correctly** — a user who chose `$200 a paycheck`, stored as a string by v1.6's HTML inputs, lost the
-   * plan they signed off on. That is worse than the defect it was fixing.
+   * [P6.8.9.7.11.9 · B-1] A **successful recovery** and a loss are both repairs: `'200'` and `'1,200'`
+   * parse to their real amounts and are still recorded, because the *format* was repaired. Standing a goal
+   * down on the record therefore destroyed caps that had been read **correctly** — a user who chose
+   * `$200 a paycheck` and restored a backup file holding it as a string lost the plan they signed off on.
+   * That is worse than the defect it was fixing.
    *
    * ⚡ The value answers both questions the record cannot. `0` is the only thing an unreadable pace
    * becomes, so it identifies a real loss — **and it also catches the stores a previous build already
@@ -214,14 +250,18 @@ export function runMigrations(raw: unknown): DebtStore {
   for (const goal of goals) {
     if (goal.priority !== true || goal.priorityPerPaycheck !== 0) continue;
     /**
-     * ⛔ **THE PRIORITY RUNG IS `savings`-ONLY, so an EMERGENCY goal is a different story.**
-     * [P6.8.9.7.11.9 · B-4] `allocatePaycheck.ts:629` skips any goal whose `type !== "savings"`, so an
-     * emergency goal's pace never governed anything and standing it down changes nothing. It is still
-     * funded ahead of debt — by the **starter-EF rung** at `:605`, which consults neither `priority` nor
-     * the pace and is capped at `starterEmergencyTarget`. So the cap-removal harm does not apply, and
-     * claiming *"no longer funded ahead of your debt"* would be false of this type.
+     * ⛔ **THE PRIORITY RUNG DOES NOT GOVERN *THE* EMERGENCY FUND, so it is a different story.**
+     * [P6.8.9.7.11.9 · B-4] The sinking-fund rung skips it, so its pace never governed anything and
+     * standing it down changes nothing. It is still funded ahead of debt — by the **starter-EF rung**,
+     * which consults neither `priority` nor the pace and is capped at `starterEmergencyTarget`. So the
+     * cap-removal harm does not apply, and claiming *"no longer funded ahead of your debt"* would be
+     * false of it.
+     *
+     * ⚠️ **Asked of the engine's own rule rather than of `type`.** [P6.8.9.7.11.12 · A-J2-4] A SECOND
+     * `emergency`-typed goal now funds through the sinking-fund rung, so its pace DOES govern — and a
+     * `type === 'savings'` test here would have quietly gone on treating it as ungoverned.
      */
-    const governed = goal.type === 'savings';
+    const governed = fundsAsSinkingFund(goal, primaryEmergencyGoal(goals));
     if (governed) goal.priority = false;
     delete goal.priorityPerPaycheck;
     const rep = repairs.find((r) => r.entity === 'goal' && r.id === goal.id && r.field === 'priorityPerPaycheck');
@@ -231,6 +271,11 @@ export function runMigrations(raw: unknown): DebtStore {
       rep.field = governed
         ? 'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt'
         : 'the per-paycheck amount could not be read';
+      // ⛔ A pace of `'0'` RECOVERS to a real `0` — the string parsed — but `0` is not a cap, so the goal
+      // is stood down all the same and the person has genuinely lost the pace they chose. The record must
+      // say `lost` or this line renders under "read in a different format", which reads as no action
+      // needed while the plan has already changed underneath them.
+      rep.kind = 'lost';
     }
   }
   // v7 (5.6) — DROP two inert prefs. Both were measured at zero production reads, and the merge below

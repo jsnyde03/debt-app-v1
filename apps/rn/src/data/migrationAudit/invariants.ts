@@ -75,14 +75,28 @@ export const nothingSilentlyDropped: Invariant = (o) => {
  */
 const MONEY_FIELDS = ['balance', 'minimumPayment', 'apr', 'amount'] as const;
 
+/**
+ * ⛔ **GOALS WERE NOT CHECKED, AND GOALS ARE WHERE BOTH MONEY DEFECTS WERE FOUND.**
+ * [P6.8.9.7.11.12 · B-J2-3] This invariant looked at debts, required expenses and living expenses, and
+ * the field names it looked for — `balance`, `minimumPayment`, `apr`, `amount` — are **none of the ones a
+ * goal carries.** So the instrument built to prove a restore cannot corrupt the user's money ran to
+ * completion without ever looking at a goal, while `migrations.ts` records two separate goal-money
+ * findings in its own comments, both found by people reading rather than by this.
+ *
+ * ⚠️ `priorityPerPaycheck` is listed for completeness and is not reachable through either audited door
+ * today — it is a v1.7 field and both doors take v1.6 shapes. The instrument that reaches it is
+ * `persistenceLifecycle.test.ts`. Listing it here costs nothing and closes the hole the day a door does.
+ */
+const GOAL_MONEY_FIELDS = ['targetAmount', 'currentAmount', 'priorityPerPaycheck'] as const;
+
 export const moneyKeepsItsType: Invariant = (o) => {
   if (!o.store) return null;
   const bad: string[] = [];
-  const check = (rows: unknown, label: string) => {
+  const check = (rows: unknown, label: string, fields: readonly string[] = MONEY_FIELDS) => {
     if (!Array.isArray(rows)) return;
     rows.forEach((row, i) => {
       if (!row || typeof row !== 'object') return;
-      for (const field of MONEY_FIELDS) {
+      for (const field of fields) {
         const value = (row as Record<string, unknown>)[field];
         if (value === undefined || value === null) continue;
         if (typeof value !== 'number') bad.push(`${label}[${i}].${field} is ${typeof value} (${JSON.stringify(value)})`);
@@ -93,6 +107,7 @@ export const moneyKeepsItsType: Invariant = (o) => {
   check(o.store.debts, 'debts');
   check(o.store.requiredExpenses, 'requiredExpenses');
   check(o.store.livingExpenses, 'livingExpenses');
+  check(o.store.goals, 'goals', GOAL_MONEY_FIELDS);
   // `paycheck.amount` is deliberately a STRING on both sides (measured, 5.2) — it mirrors the input model
   // and is parsed at the engine boundary. Asserting it is a number would be asserting the wrong contract.
   const pay = o.store.paycheck?.amount;

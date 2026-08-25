@@ -2227,5 +2227,190 @@
       "lastSavedAt": "2026-05-23T14:00:00.000Z",
       "cycleHistory": []
     }
+  },
+  {
+    "id": "goal-pace-unreadable-on-a-priority-goal",
+    "why": "A goal carrying `priority: true` with an UNREADABLE `priorityPerPaycheck`, plus a second goal whose target is a string. `migrations.ts` calls the pace defect 'the only finding in that pass that reaches a user's money' — `0` is the UNCAPPED value, so a corrupt pace does not show a wrong number, it removes the cap the user signed off on and funds the goal ahead of their debt at full speed. Neither the generated corpus nor any other hostile case can produce this: the generator damages one field of the healthy v1.6 base, which has no pace field, and `priorityPerPaycheck` is a v1.7 field so no genuine v1.6 export carries it.",
+    "reachable": "A hand-edited or third-party file. `readBackup` classifies any file carrying v1.6's marker fields as `v16-file` and `mapLegacyStore` carries `goals` straight across, so an extra key on a goal row rides through untouched — the same door the null-row case arrives by.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 900,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly"
+        }
+      ],
+      "livingExpenses": [],
+      "debts": [
+        {
+          "id": "d1",
+          "name": "Chase card",
+          "balance": 1200,
+          "minimumPayment": 50,
+          "dueDate": "2026-06-01",
+          "apr": 19.99,
+          "type": "debt",
+          "recurrence": "monthly"
+        }
+      ],
+      "goals": [
+        {
+          "id": "g1",
+          "name": "New roof",
+          "targetAmount": 4000,
+          "currentAmount": 500,
+          "type": "savings",
+          "priority": true,
+          "priorityPerPaycheck": "not a number"
+        },
+        {
+          "id": "g2",
+          "name": "Car repair fund",
+          "targetAmount": "1,200",
+          "currentAmount": 0,
+          "type": "savings"
+        }
+      ],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "null-row-inside-every-list",
+    "why": "A null ELEMENT inside each of the four row arrays, beside a well-formed sibling. The corpus damages one FIELD of one healthy row, so it can never produce a row that is not an object at all — and the contract test for totality only ever supplied a non-ARRAY (`debts: 'nope'`), which a different branch handles. Measured at P6.8.9.7.11.12: debts and goals threw a TypeError out of runMigrations (hydrate quarantines the whole portfolio and declares a data-reset), while requiredExpenses and livingExpenses passed the null through into the store to be dereferenced at render. Invariant (1) never-throws is the judge.",
+    "reachable": "JSON.stringify of an array holding a hole or an undefined element serialises it as null, so any producer that spliced a row by index emits this. Also a hand-edited or third-party backup file, and any external mutation of the stored blob.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        null,
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 900,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly"
+        }
+      ],
+      "livingExpenses": [
+        null,
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        null,
+        {
+          "id": "d1",
+          "name": "Chase card",
+          "balance": 1200,
+          "originalBalance": 1500,
+          "minimumPayment": 50,
+          "dueDate": "2026-06-01",
+          "apr": 19.99,
+          "type": "debt",
+          "recurrence": "monthly"
+        }
+      ],
+      "goals": [
+        null,
+        {
+          "id": "g1",
+          "name": "Starter Emergency Fund",
+          "targetAmount": 1000,
+          "currentAmount": 650,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
+  },
+  {
+    "id": "scalar-and-array-rows-inside-every-list",
+    "why": "The same structural hole as the null case, in the shapes a null check alone would miss — a string, a number, a boolean and a nested ARRAY standing where a row object belongs. `typeof [] === 'object'`, so an array row passes a naive object test and then answers every field lookup with undefined, which is the quietest of the four.",
+    "reachable": "A third-party exporter writing a list of names rather than of records, a partially-parsed CSV, or a merge that concatenated the wrong level of a nested structure.",
+    "blob": {
+      "version": 1,
+      "exportedAt": "2026-05-23T14:02:11.000Z",
+      "amount": "2100",
+      "payCycle": "monthly",
+      "semiMonthlyFirstDay": "1",
+      "semiMonthlySecondDay": "15",
+      "monthlyPayDay": "12",
+      "currentDate": "2026-05-23",
+      "nextPaycheckDate": "2026-06-05",
+      "requiredExpenses": [
+        "Rent",
+        {
+          "id": "e1",
+          "name": "Rent",
+          "amount": 900,
+          "dueDate": "2026-06-01",
+          "recurrence": "monthly"
+        }
+      ],
+      "livingExpenses": [
+        400,
+        {
+          "id": "l1",
+          "name": "Groceries",
+          "amount": 400,
+          "enabled": true
+        }
+      ],
+      "debts": [
+        [],
+        {
+          "id": "d1",
+          "name": "Chase card",
+          "balance": 1200,
+          "minimumPayment": 50,
+          "dueDate": "2026-06-01",
+          "apr": 19.99,
+          "type": "debt",
+          "recurrence": "monthly"
+        }
+      ],
+      "goals": [
+        true,
+        {
+          "id": "g1",
+          "name": "Starter Emergency Fund",
+          "targetAmount": 1000,
+          "currentAmount": 650,
+          "type": "emergency"
+        }
+      ],
+      "completedRecommendedActions": [],
+      "payoffStrategy": "avalanche",
+      "lastSavedAt": "2026-05-23T14:00:00.000Z",
+      "cycleHistory": []
+    }
   }
 ]

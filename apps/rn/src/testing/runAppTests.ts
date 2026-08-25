@@ -61,6 +61,14 @@ async function main() {
   // expression got RIGHT: the lean cone's reach, and the never-pays-off fallback.
   await import('../components/payoff/trajectoryDomain.test');
 
+  // P6.8.9.7.11.11 (audit C-E) — the chart's month step. The clamp existed and was tested while this
+  // called `setMonth`, so these pin the LABEL a user reads, not the helper's return value.
+  await (await import('../components/payoff/monthLabels.test')).default();
+
+  // P6.8.9.7.11.12 (audit A-J2-2) — the repairs card's words. A recovery and a loss are opposite events
+  // and the card spoke the loss sentence over both, while nothing asserted a single string it rendered.
+  await (await import('../components/plan/dataRepairsCopy.test')).default();
+
   // P6.8.7g.2 (audit C8) — debt id minting. The batch case is new: `newDebtId` derives uniqueness from
   // the ids that exist, so a loop over an unchanged list hands out the same id every time.
   await import('../store/debtIds.test');

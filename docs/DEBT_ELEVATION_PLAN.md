@@ -29,12 +29,50 @@ test, and what made `readMoney`'s repair record the wrong thing to match on.
 | # | step | scope |
 |---|---|---|
 | ✅ | **.11.1 – .11.10** | DONE 2026-08-24/25. Closed `.7.10`'s 13, re-verified twice, then swept whole-app with a severity scale. **`.11.9`: ~13 more at twice the density, two of them REGRESSIONS worse than the defect. `.11.10`: 2 blockers · 15 majors, neither blocker from `.7` or `.11`.** Detail → log |
-| **.11.11** ▶ | 🔴 **BLOCKER — every Progress date is `setMonth`-overflowed — NEXT SESSION STARTS HERE** | `projectDebtPayoff.ts:229` · `forecast/projectForecast.ts:27,39` · `TrajectoryChart.tsx:273` · `AmortizationView.tsx:19` · `BnplCalendarSection.tsx:17`. ⚡ **The repo already wrote the clamp** (`recurrence/rolloverPayCycle.ts:25`: *"Jan 31 + 1mo -> Feb 28, NOT Mar 3 via setMonth's overflow"*) and it is **not exported**. A user paid on the 31st sees a debt-free date **up to a month late** — hero, end pill, legend, scrub readout, both compare columns. Export the helper, apply at every site, pin a 31st-payer fixture |
-| **.11.12** | 🔴 **the 9 open majors** | 6 of 15 closed at `.11.10`. Ranked with a consequence each in the audit SUMMARY. ⚠️ Work that order — money/import before discovery before gates |
+| ✅ | **.11.11** the `setMonth` overflow BLOCKER | CLOSED 2026-08-25. `@core/utils/addMonths` exported and applied at all 7 sites *(the census found one more than any list named)*, `rolloverPayCycle` delegates, `scripts/check-month-arithmetic.ts` gates the class mutation-verified, two suites pin the labels a user reads. Detail → log |
+| **.11.12** ▶ | 🔴 **the open majors — BUILDING NOW, 8 of 14 CLOSED** | ⚠️ **The count is 14, not the 9 this row used to say** — see the decomposition. Money and import blocks are done; discovery is half done. **Next: `.11.12.9`** |
 | **.11.13** | 🔴 **the `.11.9` TAIL — raised and never closed** | ⚠️ **`.11.10` did NOT sweep it up**: that round audited the *fixes* and the *app*, not `.11.9`'s leftovers. `.11.10`'s four Job-1 **PARTIALs** *(the legacy-`0` stand-down reports nothing · `runMigrations` throws on a `null` goal row · the attribution test cannot reach `readLegacyStores` · `DataRepairsCard`'s copy still promises a route that does not exist)* + **`const DIVERGENT = STATES.divergent`, an unchecked index in a file neither typechecked nor linted nor in CI** · `check-comment-convention` matches **per line**, so a multi-line annotation evades it · **`lint:rn` is `&&`-chained, so the first red hides every later gate** · a P6.14 row promised in `coach-marks.spec.ts` and never written |
 | **.11.14** | ✅ **[D60]'s accepted build** *(🎯 2026-08-25: "fold it all in")* | **P1-4** the 23-name run-on on the screen that speaks to someone short this paycheck — the idiom exists at `invariants.ts:100` · **P1-5** the backup sheet's **inverted button hierarchy** *(`Done` filled, `Copy to clipboard` secondary — a user can press the most prominent button and back up nothing)* + the raw envelope · **P1-1** shoot the **payoff finale** and **band-milestone beat**, which have zero frames · **the goal pace becomes editable in `GoalSheet`** *(written only at creation today, which is why `.11.3`'s repair notice names a workaround)* · **L4-13b's token cleanup only** — the 7 live inline opacities and the two Money cards that disagree · **L1-20's single `eyebrow` token**, sweep deferred |
 | **.11.15** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — seven instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
 | **.11.16** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11` + `.11.12` + `.11.13` + `.11.14`, then SWEEP again for major+, with severity** | Same two-job shape as `.11.10`. ⛔ **Hand it `.11.10`'s "swept and found clean" list so it EXTENDS coverage rather than repeating it** — a coverage audit converges by ratcheting what has been looked at, not by finding less. ⚠️ `.11.12` is the larger half by count and spans money, import, discovery and the gates. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
+
+#### ▶ `.11.12` decomposed — the open majors *(2026-08-25)*
+
+⛔ **This row said "the 9 open majors" and that number is WRONG — there are 14.** Enumerated against the
+four auditor files rather than the SUMMARY: **A 3 · B 3 · C 4 · D 4.** ⚠️ The SUMMARY's own header does not
+reconcile either (*"15, of which 6 are closed"* against an open table of 14 = 20 majors found), and its
+gates block silently drops D's `J2-1`, which is closed. **Work the auditor files; the SUMMARY under-counts.**
+
+⚠️ **Job-1 `PARTIAL`s are NOT here — they belong to `.11.13`.** This step is the **Job-2 sweep** findings only.
+
+| # | step | finding · consequence |
+|---|---|---|
+| **money** | | |
+| ✅ | **.1** `A/J2-2` repairs card | CLOSED 2026-08-25. `DataRepair.kind` carries recovered-vs-lost, the card speaks both, `unreadDebts` stops suppressing on a recovery. ⚠️ **Premise MEASURED against `origin/v1.6-dev` and narrowed** — v1.6 never persisted string money; the live door is the JSON restore. Detail → log |
+| ✅ | **.2** `A/J2-3` `runMigrations` | CLOSED 2026-08-25. Unreadable rows are dropped **and reported** at `repairMoneyFields`, the one seam all four lists share; the legacy bridge stops dereferencing them. ⚠️ **The class was 4 lists + a pre-`runMigrations` bridge site, not the 2 named** — and the finding's own one-line fix would have moved the crash to render. Gated by 2 new hostile-corpus cases. Detail → log |
+| ✅ | **.3** `A/J2-4` second emergency goal | CLOSED 2026-08-25. **[D61]** 🎯: fund it through the savings rungs, not refuse it — v1.6 carries the same defect, so refusing strands migrating users. `@core/engine/emergencyFund` is the one owner of *"which goal is THE emergency fund"*; 3 further consumers were disagreeing. Detail → log |
+| **import** | | |
+| ✅ | **.4** `B/J2-1` restore on the data-reset screen | CLOSED 2026-08-25. A successful `importStore` now clears the `data-reset` it disproves — fixed at the seam, not the caller, so no future import door can forget it. ⛔ `read-failed` deliberately survives. Pinned by the reset-screen restore no spec exercised. Detail → log |
+| ✅ | **.5** `B/J2-2` destructive file restore | CLOSED 2026-08-25. `exportedAt` reaches `ReadBackupSuccess` and the confirm sentence; `formatBackupTime` extracted so both restore doors share one owner instead of one of them dropping the value. ⛔ Omitted, never invented, when the file does not say. Detail → log |
+| ✅ | **.6** `B/J2-3` the migration audit | CLOSED 2026-08-25. Goals + their money fields are checked; the corpus's goal fixture used `target`, a field v1.6 never wrote, which is *why* it was blind. ⛔ **And the audit was REPORT-ONLY** — it printed `⛔` and returned cleanly, so it now throws. 522 cases, measured clean before arming. Detail → log |
+| **discovery** | | |
+| ✅ | **.7** `C/C-A` sheet-hosted mark | CLOSED 2026-08-25. The stand-down rule fired only on BLUR, which a sheet close cannot produce — it now also fires on unmount. ⚠️ **My first version of the pin was VACUOUS** (`toHaveCount(1)` counted the stuck callout); it asserts the copy now. Detail → log |
+| ✅ | **.8** `C/C-B` *"Show feature tips again"* | CLOSED 2026-08-25. `resetCoachMarks` reached two of three records; the third is a **closure latch** in the offer subscription, which a tab-hosted mark never re-creates. `epoch` re-arms it. ⛔ The suite that named this claim only ever tested the one mark whose host remounts. Detail → log |
+| **.9** ▶ | `C/C-C` the once-ever `DREW` record | Written on *"a rect exists"*, not *"the callout is on screen"* — spendable on a callout never shown |
+| **.10** | `C/C-D` Progress hero *"to go"* | Prints the **original** total, so a grown portfolio is told it owes less than it does |
+| **gates** | | |
+| **.11** | `D/J2-2` the `ready` guard | On 1 surface of 10 while `:318` claims every surface carries it; 8 text-scale frames shoot with it off |
+| **.12** | `D/J2-3` `check-destructive-writes` | Allow-list is **file-level** — a second unguarded `importStore` in a sanctioned file is admitted silently |
+| **.13** | `D/J2-4` `strings-inventory --gate` | Discards its own self-check via `process.exit(0)` |
+| **.14** | `D/J2-5` `check-audit-closure` | Counts **12 of 87** as traceable solely because their id appears in a SYNTHESIS heading — ⛔ **and that count is P6.8.9's stated exit criterion** |
+| **.15** | **Green + close** | `typecheck` · `test:regression` · `test:app` · the touched gates · after-scan filed atomically with the plan/log update |
+
+⛔ **Every fix red-before / green-after, and the plant confirmed to have LANDED before its red is believed.**
+⚠️ **Pin on the BEHAVIOUR a user meets, not on the helper** — `.11.11` shipped a defect whose clamp was
+already written and already tested, because what was missing was the CALL.
+
+**Exit (`.11.12`):** all 14 closed or 🎯-deferred with the consequence written down, each with a test that
+would fail on its original defect or a device row saying why none can reach it.
 
 ⚡ **Two instruments, and they mean opposite things.** A **diff re-verification** audits what changed — a
 rising density is a signal *about the fixer*. A **whole-app sweep** audits the app — a rising count means
@@ -67,7 +105,7 @@ the workflows · `.maestro` and four root files; **`docs/` is excluded**, so pro
 |---|---|
 | **State** | Phases 0–3 · 3.5 · 3.7 · 4 · 3.8 ✅ · the whole-app audit gate ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED**, cutover conditionally approved. **Phase 6 is everything that remains** and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale` · **`lint:icon-glyphs`**; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. **Last: 2026-08-24 at P6.8.7g.7, exit 0 — 250 e2e · 10 embed · 663 source files**, zero `error-context.md`; pushed, `web-e2e` run `32742084595` **success**. ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not. ⛔ **It went RED first and the harness said "exit code 0"** — read the gate's own summary line |
+| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale` · **`lint:icon-glyphs`** · **`lint:month-arithmetic`**; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. 🔴 **STALE as of 2026-08-25 — `lint:gate-freshness` exits 1.** Quoted from the record: `sha 01fc7ec` *(= `.11.9`)* · `at 2026-08-25T12:47:36Z` · **668 source files** · `dirty: true`. ⚠️ **The row here used to say *"2026-08-24 at P6.8.7g.7 · 663 files"*, which the record already disagreed with** — a typed result decaying exactly as [D49] predicts. ⛔ **`.11.12`'s components were each run green individually** *(typecheck · `lint:rn` · `test:stamp` · regression · app · scenarios · **262 e2e** · 10 embed)* **but `gate:record` was never reached, so nothing above is a recorded pass.** `.11.15` owns the real run. ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not. ⛔ **It went RED first and the harness said "exit code 0"** — read the gate's own summary line |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]/[D52]): FEATURE LOCK ≠ FREEZE.** **FEATURE LOCK closes after P6.10** — the
@@ -131,7 +169,7 @@ separately gated ([D46]). Full reasoning → log, *"THE ORDER TO SUBMISSION"*.
 | ✅ | **P6.8.1–.6** the matrix, the surface census, **13 lenses**, **6 refuters**, the synthesis file, the structural-gap list | DONE 2026-08-21 — ⚠️ **"226 frames" was WRONG and is corrected here**: 4 recipes had never produced a frame, so the lenses read 226 of an owed 230, with **no frame of the Log-a-payment sheet at all**. Re-shot complete at .9.1 (**232**) · 9 a11y trees. [`audits/2026-08-21-p6.8-finish/SYNTHESIS.md`](audits/2026-08-21-p6.8-finish/SYNTHESIS.md) is the decision document. ⛔ **33 of 34 observations survived; 11 of 34 mechanisms were wrong** |
 | ✅ | **P6.8.7 CLOSED 2026-08-24** — build everything except the refuted | All clusters **a–g** done, sequenced so the GUARDS landed first. Detail → log |
 | ✅ | **P6.8.8 DONE 2026-08-24** — the gate is green and pushed | Quoted from the record: **250 e2e · 10 embed · 663 source files**, zero `error-context.md`. CI run `32742084595` **success** |
-| **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS — BUILDING NOW** | *(decomposed at the top of this file)*. **Three rounds run: `.9.2` verified 33 ids · `.7.10` and `.11.9` re-verified the fixes · `.11.10` swept the whole app with a severity scale.** ▶ Now fixing **2 blockers + 15 majors** (🎯 2026-08-25), then a fourth round over that work. Still owed from `.9`: the gated-class re-check, the P1 decisions and the filed queue |
+| **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS — BUILDING NOW** | *(decomposed at the top of this file)*. **Three rounds run: `.9.2` verified 33 ids · `.7.10` and `.11.9` re-verified the fixes · `.11.10` swept the whole app with a severity scale.** ✅ **Both blockers CLOSED** (`.11.8`, `.11.11`); ▶ now the **14 open majors** — ⚠️ the SUMMARY says 9, the auditor files say 14 — then a fourth round over that work. Still owed from `.9`: the gated-class re-check, the P1 decisions and the filed queue |
 
 ### P6.8.7 — the clusters
 
@@ -164,6 +202,11 @@ that file is the **checklist**.
 
 **Open decisions**
 
+- ✅ **[D61] ANSWERED 2026-08-25 — a SECOND `emergency` goal is FUNDED, through the savings rungs.** It
+  matched no rung at all, so it drew `$0` every paycheck under a live progress bar. ⚡ **v1.6 carries the
+  identical defect**, so migrating users can already be in this state — which is why refusing to create one
+  in `GoalSheet` lost: it prevents new cases and strands every existing one. Built at `.11.12.3`; the rule
+  now has one owner (`@core/engine/emergencyFund`) and three consumers that disagreed with it were fixed.
 - ✅ **[D60] ANSWERED 2026-08-25 — P1-1 · P1-2 · P1-4 · P1-5.** P1-2 closed itself at `.11.8` *(by `.7.3`,
   aimed at a different id, **while reaching no ledger**)*; **P1-1, P1-4 and P1-5 are BUILD** → `.11.14`.
   *(The instrument was the original cause: `check-audit-closure.ts` anchored `**Severity:**` at line start
@@ -661,6 +704,20 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
 - ⚠️ **`testFullAppRegression.ts:63`'s conservation assert holds only when the reserve FITS** — with an
   over-sized everyday reserve, `paycheckAmount − livingExpenseReserve` goes negative while the allocation sum
   floors at 0. Not exercised today. *(T4–T8)*
+- ⚠️ **The repairs card's loss heading over-claims for a MIGRATION entry.** `describeMigrationLosses` writes
+  sentences like *"3 item(s) from your old version were not recognised"*, which land under
+  *"N amounts could not be read"* — they are not amounts, and the count conflates two different things.
+  Pre-existing and small; surfaced while splitting the card into recovered/lost blocks. *(.11.12.1
+  after-scan)*
+- ⛔ **`projectForecast` READS THE CLOCK, so its month labels cannot be pinned at all.** It calls `new Date()`
+  inline rather than taking a `startDate` like every other producer, so `.11.11` could fix its overflow but
+  could not write a test that would fail on it. ⚠️ **The gate is the only thing holding this site** — and a
+  gate catches reintroduction of one written form, not a different wrong answer. Thread a start date in and
+  pin the labels. *(.11.11 after-scan)*
+- ⚠️ **Three of the seven month-step sites are held by the GATE alone** — `AmortizationView`,
+  `BnplCalendarSection` and `FirstDebtOrBillStep` route through the clamped owner but have no test of their
+  own, so the call could be replaced with something else wrong and nothing reds. Stated rather than hidden;
+  the two that carry the user's headline claim (`projectDebtPayoff`, the chart) ARE pinned. *(.11.11 after-scan)*
 
 ### → P6.9 — the privacy / egress audit
 

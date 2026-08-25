@@ -810,6 +810,23 @@ export function createDebtStore(opts?: {
       // callers the interface advertises (iCloud restore, the Phase-D data bridge) so an unmigrated
       // blob can't land the v5 substrate fields `undefined` (NaN `genuineCycleCount`, broken staleness).
       set({ store: runMigrations(store) });
+      /**
+       * ⛔ **A SUCCESSFUL IMPORT UN-DECLARES THE RESET IT DISPROVES.** [P6.8.9.7.11.12 · B-J2-1]
+       * `DataResetScreen` IS the whole tree while this reads `data-reset` — `_layout` returns it instead
+       * of the navigator — so restoring a backup file from that screen closed the sheet onto the same
+       * full-screen *"We couldn't open your saved plan"* panel, with no sign the restore worked and the
+       * only way onward labelled **"Start fresh"**. The most likely reading was that the import failed,
+       * and the button offered meant the opposite of what they had just done.
+       *
+       * ⚠️ **Here rather than at the call site**, so no future import door can forget it — the same shape
+       * as a successful save clearing `save-failed` in `persist`. The iCloud button on that screen already
+       * called `onStartFresh()` afterwards; the file button did not, and nothing made them agree.
+       *
+       * ⛔ **`read-failed` is deliberately NOT cleared.** It says storage cannot be read, `bootstrapPersistence`
+       * installs no autosave on that path, and an import into memory does not make the disk readable —
+       * clearing it would hide the fact that nothing the user does is being written down.
+       */
+      if (get().storageError === 'data-reset') set({ storageError: null });
     },
     };
   });

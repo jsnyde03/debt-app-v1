@@ -2,6 +2,7 @@ import { DEBT_FIELD, PRIVACY_CLAIM } from '@core/copy/vocabulary';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { addMonthsToDate } from '@core/utils/addMonths';
 import { toLocalISODate } from '@core/utils/localDate';
 
 import { Button } from '@/components/ui/Button';
@@ -18,12 +19,15 @@ import { OnboardingLayout, onboardingStyles as s } from './OnboardingLayout';
 
 type EntryType = 'debt' | 'expense';
 
-/** First of next month — a safe default due date; the user refines it later on the Bills screen. */
+/**
+ * First of next month — a safe default due date; the user refines it later on the Bills screen.
+ *
+ * ⛔ The month step CLAMPS. Stepping with `setMonth` from the 31st overflowed into the month AFTER next
+ * before the day was pinned to the 1st, so onboarding on the last of a long month handed the user a
+ * first bill due a whole month later than the copy above it says.
+ */
 function nextMonthFirst(): string {
-  const d = new Date();
-  d.setMonth(d.getMonth() + 1);
-  d.setDate(1);
-  return toLocalISODate(d);
+  return toLocalISODate(addMonthsToDate(new Date(), 1, 1));
 }
 
 export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {

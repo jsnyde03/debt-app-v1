@@ -1,4 +1,5 @@
 import { bnplInstallmentsInWindow, isInstallmentNative } from '@core/debt/bnplInstallment';
+import { primaryEmergencyGoal } from '@core/engine/emergencyFund';
 import { computeAffordability, type AffordabilityVerdict } from '@core/guardian/affordability';
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
 import { reachedFloor, scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
@@ -617,9 +618,12 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   // §2.1 advice boundary (2.4.11.4a): the spare-to-debt move is a genuine EF-vs-debt tradeoff (→ a
   // two-sided-with-a-why voice) when a debt is live AND an emergency fund is underfunded AND the user
   // hasn't opted out via "savings elsewhere". Otherwise it's mechanical (single decisive voice).
-  const efGoal = store.goals.find(
-    (g) => g.type === 'emergency' && g.currentAmount < (g.targetAmount ?? Number.POSITIVE_INFINITY),
-  );
+  // ⚠️ THE emergency fund, then "is it underfunded" — not "any underfunded emergency-typed goal".
+  // [P6.8.9.7.11.12 · A-J2-4] A second `emergency`-typed goal is a sinking fund to the engine, so letting
+  // one satisfy this would raise an EF-vs-debt tradeoff voice over a goal that is not the EF.
+  const primaryEf = primaryEmergencyGoal(store.goals);
+  const efGoal =
+    primaryEf && primaryEf.currentAmount < (primaryEf.targetAmount ?? Number.POSITIVE_INFINITY) ? primaryEf : undefined;
   const deployTradeoff = !debtFree && !store.prefs.hasSavingsElsewhere && !!efGoal;
 
   // §2.10 tight-case top-up (2.4.11.2): cash the user moved from savings to hold the line THIS cycle

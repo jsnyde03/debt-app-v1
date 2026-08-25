@@ -16,6 +16,18 @@ import type { Debt } from '@core/storage/debtPlannerStorage';
  */
 export function withBackfilledOriginalBalance(debts: Debt[]): Debt[] {
   return debts.map((debt) => {
+    /**
+     * ⛔ **A ROW THAT IS NOT AN OBJECT IS PASSED THROUGH, NOT BACKFILLED — and it used to throw here.**
+     * [P6.8.9.7.11.12 · A-J2-3] The bridge runs BEFORE `runMigrations`, so a `null` element reached
+     * `debt.originalBalance` and threw a `TypeError` out of **both** doors — the import refusing the whole
+     * file, the WebKit path taking the quarantine-and-reset. The type says `Debt[]`; a hostile file is
+     * under no obligation to agree.
+     *
+     * ⚠️ **Passed through rather than dropped, deliberately.** Dropping it here would put a second owner on
+     * the rule — `repairMoneyFields` is the one place that removes an unreadable row AND records it for
+     * the user, and a row deleted quietly on the way there is a silent loss the card can never mention.
+     */
+    if (!debt || typeof debt !== 'object' || Array.isArray(debt)) return debt;
     const hasValidOriginal =
       typeof debt.originalBalance === 'number' && Number.isFinite(debt.originalBalance) && debt.originalBalance > 0;
     return hasValidOriginal ? debt : { ...debt, originalBalance: debt.balance };

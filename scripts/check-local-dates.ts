@@ -64,17 +64,20 @@ function stripComments(src: string): string {
  * ⚠️ **T8 / [T3.1 after-scan] — the hand-written LOCAL parse, `new Date(`${iso}T00:00:00`)`.**
  *
  * ⛔ **This is NOT the defect above. It is CORRECT** — it is precisely what you must write instead of the
- * UTC round-trip. The problem is only that it is written by hand at **44 code sites** while
- * `parseLocalDate` exists to own it: one rule, many owners, so a future change to how this app parses a
- * calendar date would have to find all 44.
+ * UTC round-trip. The problem is only that it is written by hand while `parseLocalDate` exists to own it:
+ * one rule, many owners, so a future change to how this app parses a calendar date would have to find
+ * every site.
  *
- * ⚠️ **Baselined rather than swept, deliberately.** Rewriting 44 correct call sites carries real
- * regression risk for zero user-visible gain, and the actual risk is GROWTH — a 45th. So the existing
- * count is frozen here and the gate fails only when it RISES. Burn-down is T10/Phase 6 work; the class
- * cannot get worse in the meantime. (Same shape as `duplicate-copy-baseline.json`.)
+ * ⚠️ **Baselined rather than swept, deliberately.** Rewriting correct call sites carries real regression
+ * risk for zero user-visible gain, and the actual risk is GROWTH — one more. So the count is frozen below
+ * and the gate fails only when it RISES. Burn-down is T10/Phase 6 work; the class cannot get worse in the
+ * meantime. (Same shape as `duplicate-copy-baseline.json`.)
+ *
+ * ⛔ **The baseline RATCHETS DOWN.** Work that routes a hand-parse through the owner must lower it in the
+ * same edit, or the ground it gained is silently re-spendable by the next author.
  */
 const HAND_PARSE = /new Date\(\s*[`'"][^`'"]*\$\{[^}]*\}T00:00:00[`'"]\s*\)|new Date\(\s*[`'"][\d-]+T00:00:00[`'"]\s*\)/;
-const HAND_PARSE_BASELINE = 44;
+const HAND_PARSE_BASELINE = 41;
 
 const hits: string[] = [];
 let handParseCount = 0;

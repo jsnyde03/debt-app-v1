@@ -27,15 +27,37 @@ decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submis
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-25).** P6.8.9.7's build is closed and has been **re-verified
-twice**, then swept as a whole app with a **severity scale**. ▶ **Next is `P6.8.9.7.11.11`** — 🎯 2026-08-25:
-**"We're fixing all blockers and majors."** Ranked, with a user-facing consequence on each, in
-**`docs/audits/2026-08-25-p6.8.9.7.11.10-severity/SUMMARY.md`. Start there.**
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-25).** 🎯: **"We're fixing all blockers and majors."**
+✅ **Both blockers CLOSED** *(the ack at `.11.8`, the `setMonth` overflow at `.11.11`)* and **8 of the 14
+majors** — `.11.12.1`–`.8`, the whole money and import blocks plus half of discovery.
+▶ **NEXT SESSION STARTS AT `P6.8.9.7.11.12.9`.** Its read-only analysis and the one thing to check first
+are written up in the log's **"Session close 2026-08-25"** entry — start there.
 
-🔴 **THE OPEN BLOCKER: every Progress date is `setMonth`-overflowed.** ⚡ The repo **already wrote the
-clamp** — `recurrence/rolloverPayCycle.ts:25`, *"Jan 31 + 1mo -> Feb 28, NOT Mar 3 via setMonth's
-overflow"* — and it is **not exported**, so five other sites still overflow. A user paid on the 31st sees a
-debt-free date **up to a month late** on the hero, end pill, legend, scrub readout and both compare columns.
+⛔ **DO NOT WORK FROM `SUMMARY.md` FOR `.11.12` — IT UNDER-COUNTS.** It says *"9 open"*; enumerated against
+the four auditor files there are **14** (A 3 · B 3 · C 4 · D 4), and its own header does not reconcile
+(*"15, of which 6 are closed"* over an open table of 14). ▶ **Work
+`docs/audits/2026-08-25-p6.8.9.7.11.10-severity/{A,B,C,D}-*.md`;** the SUMMARY is the map, not the ledger.
+
+⛔ **THE GATE IS NOT RECORDED FOR THIS WORK.** Every component ran green individually — typecheck ·
+`lint:rn` · `test:stamp` · regression · app · scenarios · **262 e2e** · 10 embed — but `gate:record` was
+never reached, so `gate-status.json` still describes `.11.9` and `lint:gate-freshness` exits 1. `.11.15`
+owns the real run. **Do not carry the individual greens forward as a pass.**
+
+⚡ **THREE LESSONS THIS SESSION PAID FOR, in the order they cost most:**
+
+1. ⛔ **A PLANT THAT REDS EARLY NEVER EXERCISES THE LATER ASSERTIONS.** A new assertion of mine was
+   *vacuous* — `toHaveCount(1)` counted the very stuck callout it existed to catch — and every normal plant
+   reported the test sound, because the assertion before it always fired first. **Re-run the plant with the
+   earlier assertion relaxed**, or assert content rather than count.
+2. **A tested helper is not a used helper.** `.11.11`'s clamp already existed, was correct and was tested,
+   while the defect shipped: what was missing was **the call**. Pin the behaviour a **user** meets.
+   Corollary from `.11.12.8`: **a test that picks the one member of a class that works reports on the
+   member, not the class.**
+3. **An instrument that reports is not an instrument that gates.** `audit.test.ts` printed `⛔ N
+   violations` and returned cleanly. Ask of every checker: does it *fail*, or only *say*?
+
+⚠️ **Four enumerations this session, four undercounts** *(2→7 sites · 9→14 majors · 2→5 throw sites ·
+663→668 files)*. Turn the class into a gate or a fixture; never into a list.
 
 ⚡ **TWO INSTRUMENTS, AND THEY MEAN OPPOSITE THINGS.** A **diff re-verification** audits what changed —
 its density rising (13 per 1,708 lines, then ~13 per 872) is a signal about *the fixer*. A **whole-app

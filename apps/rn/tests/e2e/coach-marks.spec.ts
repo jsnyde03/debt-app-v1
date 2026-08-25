@@ -86,6 +86,43 @@ test.describe('coach-marks — offered once, and re-offerable', () => {
     await expect(page.getByText(MARK)).toBeVisible();
   });
 
+  /**
+   * ⛔ **THE TEST ABOVE EXERCISES THE ONLY MARK THAT WORKS, AND THAT IS WHY THIS ONE EXISTS.**
+   * [P6.8.9.7.11.12 · C-C-B] `payoff-schedule`'s host is the debt sheet, which is **re-created every time
+   * the sheet opens** — so its offer effect re-runs and re-arms. The other two marks live on **tabs**,
+   * which never unmount (`_layout.tsx` sets no `unmountOnBlur`), and their offer subscription holds a
+   * closure latch, `asked`, that `resetCoachMarks()` cannot reach: it clears the persisted pref and the
+   * session set, and the latch is neither.
+   *
+   * ⚡ So the app answered *"Tips will appear again as you go."* and two of the three tips could not come
+   * back in that session no matter where the user went — while the suite named for exactly that claim
+   * passed, because it only ever asked the one mark whose host remounts.
+   *
+   * ⚠️ **A cold start DOES restore them**, so this is not permanent — but *"as you go"* is a claim about
+   * THIS session, and the row exists because *"without a way back the whole discovery layer is a one-shot
+   * a user can lose to a mis-tap"*.
+   */
+  test('Show feature tips again brings back a mark whose host is a TAB', async ({ page }) => {
+    await seedStore(page, scenario({ prefs: { onboardingComplete: true, coachMarksSeen: ['trajectory-scrub'] } }));
+
+    await page.goto('/progress');
+    // The subject is on screen and the mark is correctly withheld — so the latch has now been armed by a
+    // refused offer, which is the state the reset has to survive.
+    await expect(page.getByTestId('tutorial-target-trajectory-scrub')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('coach-mark')).toHaveCount(0);
+
+    // ⚠️ Client-side from here — every `page.goto` re-runs the seed script and would restore
+    // `coachMarksSeen`, silently undoing the reset this test exists to prove.
+    await page.getByRole('button', { name: 'More' }).first().click();
+    await page.getByText('Show feature tips again').click();
+    await expect(page.getByText('Tips will appear again as you go.')).toBeVisible();
+    await page.goBack();
+
+    await expect(page.getByTestId('tutorial-target-trajectory-scrub')).toBeVisible({ timeout: 15_000 });
+    // ⛔ The COPY, not the count — `.11.12.7` measured a count assertion here passing on a stale callout.
+    await expect(page.getByTestId('coach-mark')).toContainText('Drag the curve');
+  });
+
   test('the marked control stays live — a hint is not a modal', async ({ page }) => {
     await seedStore(page, scenario());
     await openDebt(page);
@@ -180,6 +217,57 @@ test.describe('coach-marks — offered once, and re-offerable', () => {
       hit.dismiss!.insideDismiss,
       '"Got it" is still hit-testable — opening the card must not disarm its own exit',
     ).toBe(true);
+  });
+
+  /**
+   * ⛔ **CLOSING THE SHEET WITHOUT TAPPING "GOT IT" LEFT THE MARK ACTIVE FOREVER.**
+   * [P6.8.9.7.11.12 · C-C-A] `use-coach-mark`'s stand-down rule — *"a mark must not outlive the screen its
+   * subject is on"* — fires on **blur**, and for a sheet-hosted mark there is no blur to fire on: closing
+   * the sheet **unmounts** the hook, and the tab underneath never stopped being focused. So `active` kept
+   * the id of a subject that no longer exists.
+   *
+   * ⚡ **Two harms, and the second is the worse one.** The callout can redraw over the list at the row's
+   * old coordinates, pointing at a control that is gone — and `show()` refuses every subsequent mark while
+   * anything is active (`coachMarks.ts:92`), so **one un-dismissed hint disables the whole discovery layer
+   * for the rest of the session.** That is what the second half of this test measures.
+   *
+   * ⚠️ **No test could have caught this**: none of the five tests above ever closes the sheet, and the
+   * closest one navigates to `/schedule/d0` — which also unmounts the hook without blurring — then asserts
+   * only the URL.
+   */
+  test('closing the sheet stands the mark down, and the discovery layer still works', async ({ page }) => {
+    await seedStore(page, scenario());
+    await openDebt(page);
+    await expect(page.getByTestId('coach-mark')).toHaveCount(1);
+
+    await page.getByTestId('sheet-close').click();
+    await expect(page.getByText('Edit debt')).toHaveCount(0);
+
+    // ⛔ The sheet is gone AND so is its callout. Asserting only the first is what let this ship: the
+    // sheet closing is the trigger for the defect, not evidence against it.
+    await expect(page.getByTestId('coach-mark')).toHaveCount(0);
+
+    /**
+     * ⛔ **THE COMPOUNDING HARM, which the absence assertion above cannot see.** A callout that draws
+     * off-screen is invisible and still holds `active` — so the count above can read 0 while the layer is
+     * jammed. The only decidable question is whether a DIFFERENT mark can still be offered.
+     *
+     * ⚠️ Client-side navigation, not `goto`: every `page.goto` re-runs the seed init script, and the app
+     * has by now written `payoff-schedule` into `coachMarksSeen` — reseeding would restore the pre-mark
+     * blob and quietly change what this asserts.
+     */
+    // The tab BUTTON, not its label — the idiom `bnpl.spec.ts` documents for this tab bar.
+    await page.getByTestId('tab-progress').click();
+    await expect(page.getByTestId('tutorial-target-trajectory-scrub')).toBeVisible({ timeout: 15_000 });
+    /**
+     * ⛔ **WHICH mark, not how many — and the count alone was VACUOUS.** Measured: with the stand-down
+     * planted out, `toHaveCount(1)` still **passed**, because the stuck `payoff-schedule` callout is
+     * itself the one node it counted. An assertion satisfied by the defect it is meant to catch is worse
+     * than no assertion, and only naming the copy separates "a new mark was offered" from "the old one
+     * never left".
+     */
+    await expect(page.getByTestId('coach-mark')).toContainText('Drag the curve');
+    await expect(page.getByText(MARK)).toHaveCount(0);
   });
 });
 

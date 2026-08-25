@@ -1,4 +1,5 @@
 import type { Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
+import { addMonthsISO } from "@core/utils/addMonths";
 import { parseLocalDate, toLocalISODate } from "@core/utils/localDate";
 
 // ⚠️ The rollover advances EVERY bill and debt due date, so a date helper that is a day out here does not
@@ -22,20 +23,10 @@ function dayOfMonth(date: string) {
 // is the intended day-of-month (from the ORIGINAL due date); clamping against
 // it instead of the running date prevents permanent drift once a date passes
 // through a short month (Feb 28 -> Mar 31, not Mar 28).
-function addMonths(date: string, months: number, anchorDay?: number) {
-    const current = toDate(date);
-    const day = anchorDay ?? current.getDate();
-    // First of the target month (new Date normalizes month overflow into years).
-    const target = new Date(current.getFullYear(), current.getMonth() + months, 1);
-    const lastDayOfTarget = new Date(
-        target.getFullYear(),
-        target.getMonth() + 1,
-        0
-    ).getDate();
-    target.setDate(Math.min(day, lastDayOfTarget));
-
-    return toDateString(target);
-}
+//
+// The clamp itself lives in `@core/utils/addMonths` — the projection paths need
+// the same step, and one operation with two implementations is one that drifts.
+const addMonths = addMonthsISO;
 
 export function advanceDueDateOnce(
     date: string,
