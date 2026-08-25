@@ -111,6 +111,15 @@ since. `.2` in particular touches a sheet `.11.12.5` already changed, and `.3` a
 
 ## ▶ P6.8.9.7.11.17 — THE HANDOFF, written for a session that was not here *(2026-08-25)*
 
+### 🔴 BEFORE ANYTHING ELSE: CI run `32897656792` was IN FLIGHT at session close
+
+`gh run view 32897656792` — the `web-e2e` push run for **`e892efb`**. ⛔ **Nobody has seen its result.**
+`validate:release:rn` was green **locally** and recorded (`5a5fa8c` · 689 files), but that is a different
+machine and a different cache. ⚠️ **A remembered gate result is an unrun one** — this cluster carried a
+false *"last green"* for three sessions while CI failed on every push, each session reasoning correctly
+from *"no source touched THIS session."* **Check it, do not infer it.**
+
+
 🎯 2026-08-25: *"The audit will do the best with fresh eyes and a new session."* **This is where the next
 session starts.** Everything below is what a cold reader needs; the plan carries only the row.
 
