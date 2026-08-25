@@ -143,6 +143,30 @@ async function run() {
     eq(s.getState().storageError, 'read-failed', '…and an import does NOT clear it — nothing is being saved');
   }
 
+  /**
+   * ── [P6.8.9.7.11.15 · D62] The high-water INVARIANT, on a blob already in the broken state ──
+   *
+   * ⛔ **This is the half that reaches anyone who corrected a balance BEFORE the fix shipped.** The store
+   * seams only raise the mark when an edit happens; a user who fixed their typo last month has a stored
+   * blob with `originalBalance: 500, balance: 5000` and would never touch that debt again. Without the
+   * migration the fix reaches nobody already stranded — which is the case [D62] calls out by name.
+   *
+   * ⚠️ It runs on **every hydrate**, not once at a version bump, so it also self-heals any path that
+   * writes a balance without going through a seam.
+   */
+  {
+    const migrated = runMigrations({
+      storeVersion: CURRENT_STORE_VERSION,
+      paycheck: { amount: '2100' },
+      debts: [
+        { id: 'typo', name: 'Card', balance: 5000, originalBalance: 500, minimumPayment: 50, apr: 20, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' },
+        { id: 'healthy', name: 'Loan', balance: 4800, originalBalance: 12000, minimumPayment: 310, apr: 6, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' },
+      ],
+    });
+    eq(migrated.debts[0].originalBalance, 5000, 'hydrate repairs a stranded stamp — the ring stops reading 0%');
+    eq(migrated.debts[1].originalBalance, 12000, '…and a healthy paid-down debt is untouched');
+  }
+
   // ── Malformed nested shape (debts not an array) — CONTRACT CHANGED AT 5.10, deliberately ──
   // ⛔ It used to throw out of `runMigrations` and take the quarantine-and-reset path, which discarded the
   // WHOLE blob over one bad key: a user with a corrupt `debts` also lost their income, expenses and goals.

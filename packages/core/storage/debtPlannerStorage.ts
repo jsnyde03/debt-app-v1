@@ -47,6 +47,18 @@ export type Debt = {
 	id: string;
 	name: string;
 	balance: number;
+	/**
+	 * ⛔ **THE MOST THIS DEBT HAS EVER BEEN — a HIGH-WATER MARK, not the first balance entered.**
+	 * [P6.8.9.7.11.15 · D62] The name is kept because renaming a persisted field is a migration for no
+	 * user-visible gain in 2.0; read it as *"the most you ever owed"*. Everything that divides by it —
+	 * the journey ring, the milestones, the finale's total — wants that meaning, not "the first number
+	 * typed".
+	 *
+	 * ⚠️ **Raised only through `raiseOriginalBalance` (`@core/debt/originalBalanceHighWater`).** Six
+	 * writers stamped this field with three different rules before that helper existed. ⛔ An
+	 * installment-native BNPL is **carved out and stays undefined** — `bnplPaymentsTotal` divides this to
+	 * say *"payment 2 of 4"*, and filling it there changes the count.
+	 */
 	originalBalance?: number;
 	minimumPayment: number;
 	dueDate: string;

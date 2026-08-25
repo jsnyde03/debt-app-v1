@@ -1,6 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 
 import { isInstallmentNative, normalizeBnplInstallment } from '@core/debt/bnplInstallment';
+import { raiseOriginalBalance } from '@core/debt/originalBalanceHighWater';
 import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import type { GuardianBand } from '@core/storage/debtPlannerStorage';
 
@@ -415,9 +416,13 @@ export function createDebtStore(opts?: {
         // them). Other edits (name, APR, due date) leave the dates alone.
         const balanceChanged = !!existing && !!merged && merged.balance !== existing.balance;
         const isBalanceEdit = updates.balance !== undefined || balanceChanged;
+        // [P6.8.9.7.11.15 · D62] `originalBalance` is a HIGH-WATER MARK, and THIS is the path that made
+        // it wrong: a user who corrects a typo — $500 entered, $5,000 meant — left the stamp behind and
+        // the ring read 0% for the rest of that debt's life. The rule lives in `raiseOriginalBalance`,
+        // never inline; six writers already disagreed about this field.
         const stamped = merged
           ? isBalanceEdit
-            ? { ...merged, lastVerifiedDate: updates.lastVerifiedDate ?? now, balanceAsOfDate: updates.balanceAsOfDate ?? now }
+            ? raiseOriginalBalance({ ...merged, lastVerifiedDate: updates.lastVerifiedDate ?? now, balanceAsOfDate: updates.balanceAsOfDate ?? now })
             : merged
           : null;
         const next = { ...s.store, debts: s.store.debts.map((d) => (d.id === id && stamped ? stamped : d)) };
@@ -439,7 +444,7 @@ export function createDebtStore(opts?: {
           stampInputsFresh({
             ...s.store,
             debts: s.store.debts.map((d) =>
-              d.id === id ? { ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate } : d
+              d.id === id ? raiseOriginalBalance({ ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate }) : d
             ),
           }),
         ),
@@ -452,9 +457,11 @@ export function createDebtStore(opts?: {
           s.store,
           stampInputsFresh({
             ...s.store,
+            // ⚠️ [D62] This is the batch `verifyDebtBalances`, and it is the flow the app ASKS people to
+            // use — so the high-water raise matters most here, not least.
             debts: s.store.debts.map((d) =>
               next.has(d.id)
-                ? { ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate }
+                ? raiseOriginalBalance({ ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate })
                 : d
             ),
           }),

@@ -19,6 +19,9 @@ import "../debt/testGetDebtsWithDisplayBalances";
 import "../debt/testProjectCurrentBalance";
 import "../debt/testBnplInstallment";
 import "../debt/testBnplSchedule";
+// [P6.8.9.7.11.15 · D62] originalBalance as a high-water mark. The BNPL block asserts the "payment 2 of
+// 4" COUNT rather than the field — the carve-out exists to protect a number a user reads.
+import "../debt/testOriginalBalanceHighWater";
 import "../scan/testParseStatementText";
 import "../guardian/testBuildGuardianBrief";
 import "../guardian/testGuardianPartition";

@@ -1,4 +1,5 @@
 import { normalizeBnplInstallment } from '@core/debt/bnplInstallment';
+import { raiseOriginalBalance } from '@core/debt/originalBalanceHighWater';
 import { createDefaultStore } from './defaults';
 import { fundsAsSinkingFund, primaryEmergencyGoal } from '@core/engine/emergencyFund';
 
@@ -186,7 +187,14 @@ export function runMigrations(raw: unknown): DebtStore {
     // ⚠️ Runs AFTER the money repair, deliberately: it multiplies `scheduledPaymentAmount × remaining`,
     // and multiplying an unrepaired `null` would produce a plausible-looking 0 balance from arithmetic
     // rather than from a value anyone can point at.
-    return normalizeBnplInstallment({ ...debt, lastVerifiedDate, balanceAsOfDate });
+    // [P6.8.9.7.11.15 · D62] The high-water invariant, and it is the half that reaches anyone ALREADY in
+    // the broken state — a stamp left behind by a correction made before this shipped. ⚠️ It runs on
+    // every hydrate rather than once, so it also self-heals; the store seams exist because an in-memory
+    // session is not re-hydrated between the edit and the render.
+    // ⛔ AFTER `normalizeBnplInstallment`, which re-derives an installment BNPL's balance — the helper
+    // carves those out, and asking it about a balance the line below is about to change would be asking
+    // the wrong question.
+    return raiseOriginalBalance(normalizeBnplInstallment({ ...debt, lastVerifiedDate, balanceAsOfDate }));
   });
   const requiredExpenses = repairMoneyFields(r.requiredExpenses, base.requiredExpenses, ['amount'], 'requiredExpense', repairs);
   const livingExpenses = repairMoneyFields(r.livingExpenses, base.livingExpenses, ['amount'], 'livingExpense', repairs);

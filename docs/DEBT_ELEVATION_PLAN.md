@@ -16,37 +16,35 @@
 
 🎯 2026-08-25: **"We're fixing all blockers and majors."** Ranked, with a user-facing consequence on each,
 in [`audits/2026-08-25-p6.8.9.7.11.10-severity/SUMMARY.md`](audits/2026-08-25-p6.8.9.7.11.10-severity/SUMMARY.md).
-**Start there, not here.**
+**Start there, not here.** ⛔ **`SUMMARY.md` under-counts — work the four `{A,B,C,D}-*.md` auditor files.**
 
-⛔ **Every fix is plant-verified red-before / green-after, and the plant is confirmed to have LANDED before
-its red is believed.** Five plants lied in one session — `>>` creates a file when the path is wrong,
-`git stash push <path>` stashes nothing once the change is committed, `perl`/`sed` no-op on CRLF, and the
-fifth applied correctly while the test raced `SAVE_DEBOUNCE_MS`. **Use the Edit tool; check `git status`.**
-
-⚠️ **Pin on the BEHAVIOUR, not the value.** That substitution is what let the goal-pace fix pass its own
-test, and what made `readMoney`'s repair record the wrong thing to match on.
+⛔ **Every fix is plant-verified, and the plant is confirmed to have LANDED before its red is believed** —
+five plants lied in one session. ⚠️ **Pin on the BEHAVIOUR a user meets, not on a value or a helper.**
+⚡ **And a plant that reds EARLY never exercises the later assertions** — re-run it with the earlier
+assertion relaxed, or the vacuous one stays hidden. Why, and the five ways a plant lies → log.
 
 | # | step | scope |
 |---|---|---|
-| ✅ | **.11.1 – .11.10** | DONE 2026-08-24/25. Closed `.7.10`'s 13, re-verified twice, then swept whole-app with a severity scale. **`.11.9`: ~13 more at twice the density, two of them REGRESSIONS worse than the defect. `.11.10`: 2 blockers · 15 majors, neither blocker from `.7` or `.11`.** Detail → log |
-| ✅ | **.11.11** the `setMonth` overflow BLOCKER | CLOSED 2026-08-25. `@core/utils/addMonths` exported and applied at all 7 sites *(the census found one more than any list named)*, `rolloverPayCycle` delegates, `scripts/check-month-arithmetic.ts` gates the class mutation-verified, two suites pin the labels a user reads. Detail → log |
-| ✅ | **.11.12** the 14 open majors | CLOSED 2026-08-25, all 14. Money · import · discovery · the four gates. ⚡ **Four of the findings' own premises were measured false** and two of the fixes came out different because of it. Detail → log |
-| ✅ | **.11.13** the `.11.9` TAIL | CLOSED 2026-08-25, all 9 + green. Two gates that hid results · a typecheck project that did not exist · the goal-pace recovery route · a silent migration now reported · a fixture for the null-row class · a decision moved somewhere an instrument can reach · a card that promised an impossible action · a device row. ⚡ **One of my own fixes from earlier the same day gated nothing, and two of my own tests were vacuous.** Detail → log |
-| ✅ | **.11.14** **[D60]'s accepted build** | CLOSED 2026-08-25, all five + green. P1-4's run-on · P1-5's raw envelope and its primary action · P1-1's four emotional beats *(72 frames)* · L4-13b's 7 press literals **+ a new `lint:press-opacity` gate** · L1-20's `eyebrow` token. **23/23 gates · 274 e2e.** ⚡ **Every finding's cost estimate was right about what it counted and silent about a dimension it never mentioned**, and **three of six sub-steps reproduced the class they were closing** — all three caught by an instrument, none by review. Detail → log |
-| **.11.15** ▶ | ✅ **[D62]'s build — `originalBalance` becomes a HIGH-WATER MARK** | **BUILDING NOW** — decomposed below |
-| **.11.16** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — seven instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
-| **.11.17** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11` + `.11.12` + `.11.13` + `.11.14` + `.11.15`, then SWEEP again for major+, with severity** | Same two-job shape as `.11.10`. ⛔ **Hand it `.11.10`'s "swept and found clean" list so it EXTENDS coverage rather than repeating it** — a coverage audit converges by ratcheting what has been looked at, not by finding less. ⚠️ `.11.12` is the larger half by count and spans money, import, discovery and the gates. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
+| ✅ | **.11.1 – .11.14** | CLOSED 2026-08-24/25. Both blockers, all 14 majors, the `.11.9` tail and [D60]'s five. **Three new gates** — `lint:month-arithmetic` · `lint:press-opacity` · `typecheck:tests`. Detail → log |
+| **.11.15** ▶ | **[D62]/[D63] — `originalBalance` becomes a HIGH-WATER MARK** | **BUILDING NOW** — decomposed below |
+| **.11.16** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — nine instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
+| **.11.17** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11`–`.11.15`, then SWEEP again for major+** | **The next session starts here, deliberately** (🎯 2026-08-25: *"the audit will do the best with fresh eyes and a new session"*). Decomposed at the top of the log — read that before starting |
 | **.11.18** | 🔴 **THE 51 — give every P6.8 high+ finding a closure record, then flip `lint:closure` to gating** | ⚡ Surfaced by `.11.12.14`, and **it is P6.8.9's stated exit criterion**: `npm run lint:closure -- --p68` names all 51. Most are believed BUILT under a consolidated action id (`A1`, `B4`, `C6`) — the work is writing the **lens** id into the plan or log line that closed it, because a 2-character id cannot be searched for. ⛔ **Then flip the report to `exit(1)`** — leaving it report-only past zero is the same failure as never building it |
 
 #### ▶ `.11.15` decomposed — [D62]'s high-water mark *(rows VERIFIED against current code 2026-08-25)*
 
-🔴 **THE BEFORE-SCAN FOUND A MONEY CONSUMER [D62] NEVER CONSIDERED, AND IT IS A 🎯 CALL.**
-`bnplInstallment.ts:73` uses `originalBalance` as the divisor for the user-facing **"payment 2 of 4"**,
-and `addDebt` leaves that field **deliberately undefined** on an installment-native BNPL so the basis
-falls back to `balance`. A high-water rule applied blindly would fill a field that is intentionally empty
-and turn *"2 of 4"* into *"2 of 6"*, with nothing red. ⭐ **Recommended: carve out installment-native
-BNPL** — it matches the decision `addDebt` already made, so it is the status quo rather than a new
-judgement. ⚠️ [D62]'s reasoning is entirely about the ring reading 0%; **nobody looked at BNPL.**
+✅ **[D63] ANSWERED 2026-08-25 — NO BNPL CARVE-OUT. One rule, every debt** (🎯: *"let's do it"*, on the
+corrected recommendation).
+
+⛔ **AND THE FIRST RECOMMENDATION WAS BUILT ON A MECHANISM I MEASURED FALSE AFTER 🎯 HAD ALREADY AGREED
+TO IT.** The claim was that a high-water stamp would turn *"payment 2 of 4"* into *"2 of 6"*.
+**Impossible:** `bnplPaymentsTotal` is `max(remaining, basis / scheduled)`, so a stamp can only RAISE the
+total, and an installment plan's `balance` **is** `scheduled × remaining` — the total rises only when the
+plan itself gets longer. Measured across fresh · half-paid · corrected-2→4, the count is unchanged or
+**more** correct with a stamp *(`"3 of 4"` where an unstamped plan says `"1 of 2"`)*. ⚠️ `addDebt`'s
+exemption is about **not drawing a momentum bar** — its own comment says so — and reading it as protection
+for the count was an inference. ⚡ **A mechanism stated from reading the code is a hypothesis, and this one
+reached a decision before it reached a test.**
 
 ⛔ **The row's site list was short again: SIX writers, not "addDebt already stamps it"** — `store.ts:394`
 (BNPL carve-out) · `:489` (the expense→debt conversion, deliberately reproduced) · `DebtSheet.tsx:184` ·
@@ -55,13 +53,13 @@ judgement. ⚠️ [D62]'s reasoning is entirely about the ring reading 0%; **nob
 
 | # | step | scope |
 |---|---|---|
-| **.1** ▶ | **One owner** — `raiseOriginalBalance(debt)` | ⛔ Six writers already disagree; a seventh inline `Math.max` is the defect this closes, reproduced |
-| **.2** | 🔴 **[DECISION] carve out installment-native BNPL** → 🎯 | Then pin `bnplPaymentsTotal` so "2 of 4" cannot move |
-| **.3** | **The live seams** | `updateDebt` · `verifyDebtBalance` · `verifyDebtBalances` |
-| **.4** | **The invariant in `migrations.ts`'s debt `.map()`** | ⚠️ It runs on **EVERY hydrate**, not once — so it reaches existing users and self-heals, while `.3` covers the un-rehydrated live session. **Both are needed; neither alone is enough** |
-| **.5** | **The model docstring** | The field means *the most you ever owed*. ⛔ Not renamed — a persisted-field rename is a migration for no user-visible gain ([D62]) |
-| **.6** | **Pins** | The **correction** case *($500 typo → $5,000, the deciding case [D62] names)* · the setback · **BNPL unchanged** · a paid-down debt unchanged · the ring afterwards |
-| **.7** | **Green + close** | ⛔ Still not a recorded gate pass — `.11.16` owns that |
+| ✅ | **.1** **One owner** — `raiseOriginalBalance` | DONE. `@core/debt/originalBalanceHighWater`, and every seam calls it — six writers already disagreed, so a seventh inline `Math.max` would be the defect reproduced |
+| ✅ | **.2** **[D63]** — no BNPL carve-out | DONE. One rule, every debt; the exemption's premise was measured false — see above |
+| ✅ | **.3** **The live seams** | DONE. `updateDebt` · `verifyDebtBalance` · `verifyDebtBalances` |
+| ✅ | **.4** **The invariant in `migrations.ts`** | DONE, and it is the half that reaches anyone **already stranded** — the seams only fire on an edit, and a user who fixed their typo last month never touches that debt again. Runs on every hydrate, so it self-heals too |
+| ✅ | **.5** **The model docstring** | DONE. The field means *the most you ever owed*; not renamed ([D62]) |
+| ✅ | **.6** **Pins** | DONE. 15 core assertions · the three store seams · the migration on a stranded blob. **Plant-verified three ways** — stamp-once reds the deciding case, a re-introduced carve-out reds the BNPL block, and removing the migration CALL reds while the helper stays green |
+| **.7** ▶ | **Green + close** | ⛔ Still not a recorded gate pass — `.11.16` owns that |
 
 **Exit (`.11.15`):** the ring is correct for a user who revises a balance **upward**, every writer goes
 through one owner, BNPL's installment count is pinned unchanged, and the migration reaches a user already
@@ -79,8 +77,6 @@ in the state.
 **Exit (P6.8.9):** every finding passes **pinned** — a test that would fail on its original defect, or an
 explicit device row saying why no test can reach it; the gated classes re-checked; the P1 majors carry
 🎯's answer; and `lint:closure` clean **for a reason, not by construction**.
-+-
-+
 
 ⛔ **DO NOT EDIT SOURCE WHILE `validate:release:rn` IS RUNNING.** The record is written at the END and
 fingerprints the tree *then*, so a mid-run edit records a green over code the suites never saw — [D49]'s

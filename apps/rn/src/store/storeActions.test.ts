@@ -225,6 +225,43 @@ function run() {
     eq(s.getState().store.debts.length, 1, '…unknown id ignored (no phantom debt)');
   }
 
+  /**
+   * ── [P6.8.9.7.11.15 · D62] `originalBalance` is a HIGH-WATER MARK, at the seams a USER reaches ──
+   *
+   * ⛔ The helper is pinned in `@core/debt/testOriginalBalanceHighWater`. **A tested helper is not a used
+   * helper** — `.11.11`'s clamp was correct, tested and uncalled while the defect shipped — so these drive
+   * the wired store actions and assert the number the ring divides by.
+   *
+   * ⚠️ The deciding case is a CORRECTION, not a setback: enter $500 by mistake, fix it to $5,000.
+   */
+  {
+    const typo = () => inst({ debts: [{ id: 'd0', name: 'Card', balance: 500, originalBalance: 500, minimumPayment: 50, apr: 20, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] });
+
+    const edited = typo();
+    edited.getState().updateDebt('d0', { balance: 5000 });
+    eq(edited.getState().store.debts[0].originalBalance, 5000, 'updateDebt — a balance corrected UPWARD raises the high-water mark');
+
+    // ⚠️ Asserted as the thing a user SEES. Before this, `paid = original − balance` was −4,500 and the
+    // ring read 0% for the rest of that debt's life.
+    const d = edited.getState().store.debts[0];
+    assert((d.originalBalance as number) - d.balance >= 0, '…so "paid" can never be negative');
+
+    // The batch verify is the flow the app ASKS people to use, which is why the old behaviour pointed a
+    // disincentive at the behaviour the product wants.
+    const batch = typo();
+    batch.getState().verifyDebtBalances([{ id: 'd0', balance: 5000 }], '2026-08-02');
+    eq(batch.getState().store.debts[0].originalBalance, 5000, 'verifyDebtBalances — the batch raises it too');
+
+    const single = typo();
+    single.getState().verifyDebtBalance('d0', 5000, '2026-08-02');
+    eq(single.getState().store.debts[0].originalBalance, 5000, 'verifyDebtBalance (singular) — the seam the plan row omitted');
+
+    // ⛔ And paying DOWN must never lower it, or the ring would reset every time someone made progress.
+    const paid = inst({ debts: [{ id: 'd0', name: 'Card', balance: 4800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] });
+    paid.getState().verifyDebtBalances([{ id: 'd0', balance: 3000 }], '2026-08-02');
+    eq(paid.getState().store.debts[0].originalBalance, 12000, '…and paying down leaves the mark alone');
+  }
+
   // ── 2.4.11.4b — safety-net (settling-in reserve) RELEASE at rollover ──
   {
     // A near-established premium user (genuineCycleCount 2 < the discovery gate of 3 → reserve held);

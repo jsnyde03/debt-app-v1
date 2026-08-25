@@ -122,7 +122,31 @@ measurement plus the sequence it implies; it moves to the plan when `.11.15` goe
 | *"`addDebt` already stamps it"* | ⛔ **SIX writers, not one.** `store.ts:394` (`addDebt`, **with a BNPL carve-out**) · `store.ts:489` (the expense→debt conversion, deliberately reproduced rather than shared) · `DebtSheet.tsx:184` · `:209` · `imports/debtCsv.ts:307` · `legacyBridge/originalBalance.ts:33`. ⚡ **The fourth-consumer-decides-for-itself shape `.11.12.3` closed is already here** |
 | *(silent)* | 🔴 **`bnplPaymentsTotal` READS IT AS A MONEY BASIS** — see below |
 
-### 🔴 THE FINDING THAT CHANGES THE SHAPE OF THE BUILD
+### ⛔ THE BNPL FINDING BELOW WAS MEASURED FALSE — read this first
+
+**The claim:** a high-water stamp would turn *"payment 2 of 4"* into *"2 of 6"*.
+**The measurement:** impossible. `bnplPaymentsTotal` is `max(remaining, basis / scheduled)`, so a stamp
+can only **raise** the total, and an installment plan's `balance` **is** `scheduled × remaining` — the
+total rises only when the plan itself gets longer.
+
+| state | reads |
+|---|---|
+| half-paid, no stamp | *"payment 1 of 2"* — its history already lost |
+| half-paid, stamp 400 | *"payment 3 of 4"* |
+| half-paid, stamp == balance | *"payment 1 of 2"* — unchanged |
+| plan corrected up 2→4, stamp 200 | *"payment 1 of 4"* — follows the schedule |
+
+⚡ **A stamp is neutral-to-better, never worse.** ⛔ **And `addDebt`'s exemption is about something else
+entirely** — its own comment says the row *"shows 'X of N', not a bar"*, i.e. it is declining to draw a
+**momentum bar**. Reading it as protection for the count was an inference.
+
+⚠️ **The cost of getting this wrong was not a bad build — it was a bad DECISION.** The recommendation
+reached 🎯 and was agreed to **before it reached a test**; the false precondition in the first draft of
+`testOriginalBalanceHighWater` is what exposed it. ✅ Reversed as **[D63] — no carve-out, one rule**
+(🎯: *"let's do it"*). ⚡ **Law IV again, and this time the agent stating the mechanism was me, quoting
+Law IV in the same document.**
+
+### ~~The finding that changes the shape of the build~~ *(refuted above; kept for the record)*
 
 `packages/core/debt/bnplInstallment.ts:73` —
 `const basis = debt.originalBalance && debt.originalBalance > 0 ? debt.originalBalance : debt.balance;`
