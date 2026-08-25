@@ -26,44 +26,10 @@ assertion relaxed, or the vacuous one stays hidden. Why, and the five ways a pla
 | # | step | scope |
 |---|---|---|
 | ✅ | **.11.1 – .11.14** | CLOSED 2026-08-24/25. Both blockers, all 14 majors, the `.11.9` tail and [D60]'s five. **Three new gates** — `lint:month-arithmetic` · `lint:press-opacity` · `typecheck:tests`. Detail → log |
-| **.11.15** ▶ | **[D62]/[D63] — `originalBalance` becomes a HIGH-WATER MARK** | **BUILDING NOW** — decomposed below |
+| ✅ | **.11.15** **[D62]/[D63] — `originalBalance` is a HIGH-WATER MARK** | CLOSED 2026-08-25. One owner, three store seams, and a `migrations.ts` invariant that reaches anyone **already stranded**. ⛔ **[D63]: no BNPL carve-out** — I recommended one, 🎯 agreed, and the test's own precondition then refuted the mechanism. Plant-verified three ways. Detail → log |
 | **.11.16** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — nine instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
-| **.11.17** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11`–`.11.15`, then SWEEP again for major+** | **The next session starts here, deliberately** (🎯 2026-08-25: *"the audit will do the best with fresh eyes and a new session"*). Decomposed at the top of the log — read that before starting |
+| **.11.17** ▶ | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11`–`.11.15`, then SWEEP again for major+** | **ACTIVE — and the next session starts here, deliberately** (🎯 2026-08-25: *"the audit will do the best with fresh eyes and a new session"*). ⛔ **Read the handoff at the TOP of [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) before anything else** — it carries both jobs, the swept-clean list to extend, the four reading rules this round paid for, and the state a cold reader should not have to derive. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
 | **.11.18** | 🔴 **THE 51 — give every P6.8 high+ finding a closure record, then flip `lint:closure` to gating** | ⚡ Surfaced by `.11.12.14`, and **it is P6.8.9's stated exit criterion**: `npm run lint:closure -- --p68` names all 51. Most are believed BUILT under a consolidated action id (`A1`, `B4`, `C6`) — the work is writing the **lens** id into the plan or log line that closed it, because a 2-character id cannot be searched for. ⛔ **Then flip the report to `exit(1)`** — leaving it report-only past zero is the same failure as never building it |
-
-#### ▶ `.11.15` decomposed — [D62]'s high-water mark *(rows VERIFIED against current code 2026-08-25)*
-
-✅ **[D63] ANSWERED 2026-08-25 — NO BNPL CARVE-OUT. One rule, every debt** (🎯: *"let's do it"*, on the
-corrected recommendation).
-
-⛔ **AND THE FIRST RECOMMENDATION WAS BUILT ON A MECHANISM I MEASURED FALSE AFTER 🎯 HAD ALREADY AGREED
-TO IT.** The claim was that a high-water stamp would turn *"payment 2 of 4"* into *"2 of 6"*.
-**Impossible:** `bnplPaymentsTotal` is `max(remaining, basis / scheduled)`, so a stamp can only RAISE the
-total, and an installment plan's `balance` **is** `scheduled × remaining` — the total rises only when the
-plan itself gets longer. Measured across fresh · half-paid · corrected-2→4, the count is unchanged or
-**more** correct with a stamp *(`"3 of 4"` where an unstamped plan says `"1 of 2"`)*. ⚠️ `addDebt`'s
-exemption is about **not drawing a momentum bar** — its own comment says so — and reading it as protection
-for the count was an inference. ⚡ **A mechanism stated from reading the code is a hypothesis, and this one
-reached a decision before it reached a test.**
-
-⛔ **The row's site list was short again: SIX writers, not "addDebt already stamps it"** — `store.ts:394`
-(BNPL carve-out) · `:489` (the expense→debt conversion, deliberately reproduced) · `DebtSheet.tsx:184` ·
-`:209` · `imports/debtCsv.ts:307` · `legacyBridge/originalBalance.ts:33`, and `verifyDebtBalance`
-**singular** was omitted from the seams. Measurement → log.
-
-| # | step | scope |
-|---|---|---|
-| ✅ | **.1** **One owner** — `raiseOriginalBalance` | DONE. `@core/debt/originalBalanceHighWater`, and every seam calls it — six writers already disagreed, so a seventh inline `Math.max` would be the defect reproduced |
-| ✅ | **.2** **[D63]** — no BNPL carve-out | DONE. One rule, every debt; the exemption's premise was measured false — see above |
-| ✅ | **.3** **The live seams** | DONE. `updateDebt` · `verifyDebtBalance` · `verifyDebtBalances` |
-| ✅ | **.4** **The invariant in `migrations.ts`** | DONE, and it is the half that reaches anyone **already stranded** — the seams only fire on an edit, and a user who fixed their typo last month never touches that debt again. Runs on every hydrate, so it self-heals too |
-| ✅ | **.5** **The model docstring** | DONE. The field means *the most you ever owed*; not renamed ([D62]) |
-| ✅ | **.6** **Pins** | DONE. 15 core assertions · the three store seams · the migration on a stranded blob. **Plant-verified three ways** — stamp-once reds the deciding case, a re-introduced carve-out reds the BNPL block, and removing the migration CALL reds while the helper stays green |
-| **.7** ▶ | **Green + close** | ⛔ Still not a recorded gate pass — `.11.16` owns that |
-
-**Exit (`.11.15`):** the ring is correct for a user who revises a balance **upward**, every writer goes
-through one owner, BNPL's installment count is pinned unchanged, and the migration reaches a user already
-in the state.
 
 ### ⏸ Still open from P6.8.9, after the pinning build
 
@@ -91,7 +57,7 @@ the workflows · `.maestro` and four root files; **`docs/` is excluded**, so pro
 |---|---|
 | **State** | Phases 0–3 · 3.5 · 3.7 · 4 · 3.8 ✅ · the whole-app audit gate ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED**, cutover conditionally approved. **Phase 6 is everything that remains** and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale` · **`lint:icon-glyphs`** · **`lint:month-arithmetic`** · **`lint:press-opacity`**; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. 🔴 **STALE as of 2026-08-25 — `lint:gate-freshness` exits 1.** Quoted from the record: `sha 01fc7ec` *(= `.11.9`)* · `at 2026-08-25T12:47:36Z` · **668 source files** · `dirty: true`. ⚠️ **The row here used to say *"2026-08-24 at P6.8.7g.7 · 663 files"*, which the record already disagreed with** — a typed result decaying exactly as [D49] predicts. ⛔ **`.11.12`'s components were each run green individually** *(typecheck · `lint:rn` · `test:stamp` · regression · app · scenarios · **262 e2e** · 10 embed)* **but `gate:record` was never reached, so nothing above is a recorded pass.** `.11.16` owns the real run *(it was `.11.15` until [D62] renumbered)*. ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not. ⛔ **It went RED first and the harness said "exit code 0"** — read the gate's own summary line |
+| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale` · **`lint:icon-glyphs`** · **`lint:month-arithmetic`** · **`lint:press-opacity`**; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. ⛔ **NEVER TYPE A RESULT HERE — run `npm run lint:gate-freshness` and read `gate-status.json`.** It answers in under a second whether the recorded pass still describes the tree, and every hand-typed figure this row has ever carried decayed *(it once said "2026-08-24 · 663 files" while the record said `01fc7ec` · **668**)*. ⚠️ A record can be written on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not. ⛔ **The harness reports exit 0 on a RED gate — nine instances**; read the gate's own summary line |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]/[D52]): FEATURE LOCK ≠ FREEZE.** **FEATURE LOCK closes after P6.10** — the
@@ -132,7 +98,7 @@ naming `5.5.1` means **P6.11.1**. 🔒 = ship-blocker.
 | **P6.18** | ⚠️ **TARGETED device re-check** · 🔒 **CODE FREEZE CLOSES HERE ([D52])** | Only the rows touching what P6.15/P6.17 changed. ⛔ Anything native has **no off-device proof at all**. Collapses to nothing if the fixes were pure logic or copy |
 | **P6.19** | **FINAL BUILD** | |
 | **P6.20** | ⭐ **Screenshots + App Preview FROM that build** | ⚡ A frozen UI is not a **binary** — the assets come after the build. ONE 886×1920 file, 15–30 s, off the proven capture pipeline |
-| **P6.21** | **ASC submission** | Listing · release notes *(lead with the 2.0 rewrite)* · privacy label declaring RevenueCat **and Sentry crash data** · **availability = US · CA · AU · NZ** *(🎯 2026-08-20)*. ⛔ **`£`/`€` storefronts are OUT of 2.0** — see the backlog for what they cost · ⚠️ App Review paywall-findability: the notes MUST say *"Tap ••• More → Unlock Premium"* · the assets from P6.20 · the launch-FLIP value gate · ⚠️ **A2-5** — the ASC-registered Marketing URL index page (`jsnyde03.github.io/debt-planner-site/`) was audited by **NO lens** and almost certainly repeats the same premium block the listing carries → [`DEBT_SITE_COPY_2.0.md`](DEBT_SITE_COPY_2.0.md) |
+| **P6.21** | **ASC submission** | Listing · release notes *(lead with the 2.0 rewrite)* · privacy label declaring RevenueCat **and Sentry crash data** · **availability = US · CA · AU · NZ** *(🎯 2026-08-20)*. ⛔ **`£`/`€` storefronts are OUT of 2.0** — see the backlog for what they cost · ⚠️ App Review paywall-findability: the notes MUST say *"Tap ••• More → Unlock Premium"* · the assets from P6.20 · the launch-FLIP value gate · ⚠️ **A2-5** — the ASC-registered Marketing URL index page (`jsnyde03.github.io/debt-planner-site/`) was audited by **NO lens** and almost certainly repeats the same premium block the listing carries → [`DEBT_SITE_COPY_2.0.md`](DEBT_SITE_COPY_2.0.md) · 🔴 **[D64] — the marketing page that HOLDS THE EMBED ships with 2.0.** ⛔ Cross-repo (`jsnyde03/debt-planner-site`), by hand, and it makes the embed's repo-named URL user-visible in an `iframe src` — **a brand call with a DNS dependency, now needed BEFORE submission** |
 
 **Exit:** `2.0.0` submitted to App Review off a build that passed P6.18, with `validate:release:rn` green on
 the shipping configuration and `QA_TOOLS` off.
@@ -764,6 +730,13 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
 
 ### → P6.11 — delete with the tree
 
+- 🔴 **`site/` IS DEAD AND ACTIVELY MISLEADING — delete it with the tree.** Two files at **v1.5**, last
+  touched `34c7c89` (2026-07-05), and **no workflow deploys them**; the pages App Review loads live in
+  `jsnyde03/debt-planner-site` at v1.7. ⚡ **It has already cost three findings** filed against
+  `site/*.html:<line>` quotes that are not the strings a reviewer sees — two changed verdict once the live
+  page was fetched. ⚠️ A stale copy of a file that exists elsewhere is worse than no copy: it answers the
+  question wrongly and confidently. ⛔ Check [D64]/`DEBT_SITE_COPY_2.0.md` first — deleting it must not
+  strand the corrections drafted against the live pages *(.11.16 after-scan)*
 - 🔴 **P6.4.6's obligation.** Four dead-code findings resolve to *"delete the consumer, then re-check"*:
   **L4-11** `formatDisplayAmount` *(3 live sites in `components/ResultsSection.tsx`)* · **L6-4/5**
   `projectForecast` *(`components/SnowballSection.tsx:290`)* · **L3-5** `buildSmartInsights`
@@ -888,6 +861,18 @@ trader status → L5-15 → vocabulary.** Currency is the cosmetic layer on top 
 
 ### → Tooling / hygiene
 
+- ⭐ **`validate:release:rn` RE-RUNS SUITES THAT ALREADY PASSED ON THE SAME FINGERPRINT** (🎯 2026-08-25:
+  *"full e2e shouldn't need to run again on .16"*). Measured across one session: **~9 `expo export` cycles
+  (~22 min) and two full 274-spec runs**, the second of which re-proved an unchanged tree ~15 minutes after
+  the first. ⛔ **It cannot simply be skipped** — `gate:record` is `&&`-chained behind the suites, and a
+  record written without them is the typed result [D49] exists to prevent. ⭐ **The decidable version:
+  fingerprint PER SUITE the way `lint:gate-freshness` already fingerprints the tree, and let a suite whose
+  inputs are unchanged report `↩ cached` instead of re-running** — the record then still describes what
+  passed against this exact tree. ⚠️ Two cheaper habits available today, no code: keep a `serve` warm on
+  4319 (`reuseExistingServer` already honours it, and it saved every shots re-run this session) and
+  re-export only when SOURCE changed; and reserve the full sweep for items touching shared code (theme,
+  store, migrations, `packages/core`), letting narrow items ride targeted specs + the gate. → **2.1**,
+  not inside a freeze
 - ⚠️ **CI is running our `actions/*@v4` steps on a forced Node 24.** Every run now annotates: *"Node.js 20
   is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24 —
   `actions/cache@v4`, `actions/checkout@v4`, `actions/setup-node@v4`."* Green today because the forcing is
@@ -978,6 +963,23 @@ every entry → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 **Phase 6 — launch**
 
+- **[D64]** ✅ 2026-08-25 — **THE MARKETING PAGE THAT HOLDS THE EMBED IS PART OF 2.0's ASC PREP**
+  (🎯). ⚡ **It closes a live loop:** the embed has been deployed and running since 3.5 with **no referrer
+  anywhere** — `site/` holds two files and no `iframe`, so a hosted demo nobody links to has been carrying a
+  build flag, a second export, three gate specs, a deploy workflow and a `guard` job. → **P6.21**.
+  - ⛔ **CROSS-REPO, AND THIS REPO CANNOT DO IT.** The pages App Review loads live in
+    **`jsnyde03/debt-planner-site`**; this repo's `site/` is **v1.5, stale, and deployed by nothing**
+    (`embed-pages.yml` publishes the embed only). ⚠️ That mismatch already cost **three findings filed
+    against `site/*.html` line numbers no reviewer ever sees**, two of which changed verdict once the live
+    page was fetched. **Read the live page, not `site/`** — [`DEBT_SITE_COPY_2.0.md`](DEBT_SITE_COPY_2.0.md).
+  - 🔴 **It promotes the URL question from backlog to LIVE.** An `iframe src` makes
+    `jsnyde03.github.io/debt-app-v1/` user-visible, so *"the embed's public URL names the repo"* becomes a
+    brand call **with a DNS dependency**, needed before submission rather than *"whenever the page exists"*.
+  - ⚠️ **Two separate Pages origins** — the page on `debt-planner-site`, the embed on `debt-app-v1`. Whether
+    that stays a cross-origin iframe or the embed moves is an unanswered structural question.
+  - ⭐ **What survives even if the embed were dropped**, so it is not re-litigated: `zero-egress.spec.ts` is
+    the machine proof behind [D41] and **P6.9 leans on it**, and the `scripted` demo is also **P6.20's
+    App-Preview vehicle** ([D23]).
 - **[D60]** ✅ 2026-08-25 — **THE OPEN DECISIONS, CLOSED AS A BATCH** (🎯: *"Let's fold it all in"*, on my
   recommendations). Seven calls, and the two largest are both **do not build**:
   - 🔴 **L1-20 eyebrows — DEFER the sweep, take the token.** ⛔ Its mechanism is **false on iOS**: RN

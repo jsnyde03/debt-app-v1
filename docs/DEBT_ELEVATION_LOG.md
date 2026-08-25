@@ -109,6 +109,57 @@ since. `.2` in particular touches a sheet `.11.12.5` already changed, and `.3` a
 
 ---
 
+## ▶ P6.8.9.7.11.17 — THE HANDOFF, written for a session that was not here *(2026-08-25)*
+
+🎯 2026-08-25: *"The audit will do the best with fresh eyes and a new session."* **This is where the next
+session starts.** Everything below is what a cold reader needs; the plan carries only the row.
+
+### What it audits
+
+**Two jobs, the same shape as `.11.10`.**
+**Job 1 — RE-VERIFY the fixes:** `.11.11` *(the `setMonth` blocker)* · `.11.12` *(14 majors)* ·
+`.11.13` *(the `.11.9` tail)* · `.11.14` *(P1-4 · P1-5 · P1-1 · L4-13b · L1-20)* · `.11.15`
+*(the high-water mark)*. **Job 2 — SWEEP the app again for major+, with the severity scale.**
+
+⛔ **HAND IT `.11.10`'s "SWEPT AND FOUND CLEAN" LIST so coverage RATCHETS rather than repeats** —
+`audits/2026-08-25-p6.8.9.7.11.10-severity/SUMMARY.md` §*"What the auditors swept and found clean"*.
+A coverage audit converges by extending what has been looked at, not by finding less.
+
+⛔ **`SUMMARY.md` UNDER-COUNTS — work the four `{A,B,C,D}-*.md` auditor files.** It said *"9 open"* where
+they hold **14**. The summary is the map, not the ledger.
+
+### ⚡ What this round measured that should shape how the audit READS its own findings
+
+1. ⛔ **Every finding's cost estimate was right about what it counted and silent about a dimension it never
+   mentioned.** Four of five counts were correct; the misses were a `.web.ts` fork, a past-tense docstring,
+   seven surfaces going bold, and a broken instrument. **Read what an estimate does not mention.**
+2. ⛔ **A finding taken off the capture matrix is a claim about the WEB build.** P1-5 described a layout
+   iOS never renders. **Check for a `.web.ts` fork before building any craft finding.**
+3. ⛔ **A stated mechanism is a hypothesis even when it is hours old and yours.** [D63] reversed a
+   recommendation 🎯 had already agreed to. **When the claim is about a computed value, print it.**
+4. ⛔ **Three of six sub-steps reproduced the class they were closing — all three caught by an INSTRUMENT,
+   none by review.** Expect the fixer's own work to carry the defect it is closing.
+
+### 🔴 Open, and this round did not close them
+
+- **The Progress hero ring is in no `progress.png` in the corpus** — the coach mark scrolls it out of shot
+  *(canvas at `y = −42` phone, `−261` phone-small, `+92` with marks seen)*. **Every visual lens judged that
+  tab without seeing its hero, and P1-3 was reasoned from those frames.** ⛔ Not fixed globally on purpose:
+  a live coach mark is part of what route frames exist to review, and **P1-2 was found because they show
+  it.** Whether the route block needs BOTH states is this round's call.
+- **`.11.18` — the 51.** `npm run lint:closure -- --p68`. P6.8.9's stated exit criterion, still report-only.
+- The backlog's 🔴 rows, and `.9.3`'s gated-class re-check *(the classes closed as LISTS are the residue)*.
+
+### State a cold reader should not have to derive
+
+**Branch `v1.7-dev`, ships as `2.0.0`.** ⛔ **Never push to `release/v1`.** · **23 gates** on `lint:rn`
+*(three added this cluster: `lint:month-arithmetic` · `lint:press-opacity` · `typecheck:tests`)* ·
+**274 e2e** · the shot corpus is **405 frames** and is **gitignored — a re-shoot overwrites the only copy**,
+so pin anything finding-critical to `docs/evidence/`. ⚠️ **The harness reports exit 0 on a RED gate — nine
+instances. Read the gate's own summary line.**
+
+---
+
 ## 🔎 P6.8.9.7.11.15 — the SWITCH-IN before-scan, authored ahead *(2026-08-25)*
 
 ⚠️ **Not the active decomposed section.** `.11.14` still holds it until its green lands. This is the
