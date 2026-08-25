@@ -161,6 +161,11 @@ async function main() {
   // over someone's real portfolio, and the one place it would surface is a real upgraded phone.
   await import('../data/legacyBridge/webkitLocalStorage.test');
 
+  // P6.8.9.7.11.13.7 (audit J1-5) — the CALL SITE of that decode: which candidate is picked, and whose
+  // undecodable rows become the user-facing loss. It lived in `readLegacyStores.ts`, which pulls
+  // `expo-file-system`/`expo-sqlite` and cannot be loaded here, so reverting it left every suite green.
+  await (await import('../data/legacyBridge/decodeCandidates.test')).default();
+
   // 5.1b.2 — finding those databases in our own container. The caps are the point: a walk that stops
   // quietly looks exactly like a container with nothing in it, and "nothing there" is the answer that
   // makes the bridge skip a real user's data.

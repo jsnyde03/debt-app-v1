@@ -52,6 +52,60 @@ device. Confirm nothing in the suite depends on the record being written.
 
 ---
 
+## ✅ P6.8.9.7.11.13.7 — J1-5, the decision nothing could reach *(2026-08-25)*
+
+### The defect
+
+`attributeDroppedRows` and `pickLegacyStore` are pure, and both are covered by
+`webkitLocalStorage.test.ts`. Their **call site** was in `readLegacyStores.ts`, which imports
+`expo-file-system` and `expo-sqlite` — so the app-layer runner cannot load it at all.
+`realContainer.test.ts` re-implements the read path over `node:sqlite` for exactly that reason.
+
+⛔ **So the three lines that decide which number becomes a user-facing claim ran nowhere off a device.**
+The finding states the consequence as a check anyone can perform: revert them to the pre-`.11.4`
+`report.droppedRows += result.dropped ?? 0` inside the loop, and **every suite in this repo stays green** —
+including all five assertions added for it one round earlier.
+
+⚡ **This is `.11.11`'s lesson one layer up.** There the clamp existed, was correct and was tested while the
+defect shipped, because what was missing was the *call*. Here the helpers exist, are correct and are
+tested, and the *call* is what nothing can see.
+
+### What the claim actually is
+
+`droppedRows` feeds *"N row(s) of your old data could not be read and were not carried over."* Two ways to
+get it wrong, in opposite directions:
+
+- **Sum before the pick** → an upgrader whose WebKit container holds a second app's database is told they
+  lost rows that were never theirs. The decode counts *any* undecodable row, with no `debtPlanner.*` filter.
+- **Attribute strictly and report zero when there is no pick** → worse. The no-pick case includes the
+  user's own database opening with **every row undecodable**, which `migrateFromLegacy` then reads as a
+  fresh install. This counter is the only evidence anything was there.
+
+### What shipped
+
+`decodeCandidates.ts` — the loop, the pick and the attribution, with `readOne` **injected**. That is the
+shape this directory already uses: `walkForLocalStorage` takes `listNativeDirectory` for the same reason.
+`readLegacyStores.ts` keeps only what genuinely needs a device and calls it.
+
+⚠️ **`Object.assign(report, await decodeCandidates(...))`, not four field copies** — so there is no
+per-field wiring left to get wrong. Trading one untestable decision for four testable assignments would
+have been a smaller version of the same defect.
+
+### Verification
+
+- **14 assertions**, driving the real wiring rather than a re-implementation of it — which is what
+  `realContainer.test.ts` has to do, and why it cannot see this.
+- **RED, and the first plant is the finding's own sentence**: summing before the pick →
+  *"…and the OTHER app's undecodable rows are not reported as the user's loss — got 9, expected 0"*.
+- ⛔ **A second plant, because the first reds in the opening block.** Reporting zero when there is no pick →
+  *"…so EVERYTHING is reported — a zero here reads as a fresh install — got 0, expected 8"*. Without it,
+  the case the finding calls the more costly one would never have been exercised by any plant.
+- **GREEN:** `test:app` · `typecheck` (4 projects) · all 22 gates · `test:regression` · `test:scenarios`.
+- ⚠️ The runner compiles to CJS, so the async cases are a `default` export rather than top-level `await` —
+  the `persistenceLifecycle.test` idiom.
+
+---
+
 ## ✅ P6.8.9.7.11.13.6 — a fixture, not a fix — and two vacuous tests on the way *(2026-08-25)*
 
 ### The row was already closed, and saying so precisely matters

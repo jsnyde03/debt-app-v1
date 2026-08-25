@@ -2,7 +2,8 @@ import { Directory, File, Paths } from 'expo-file-system';
 import { openDatabaseAsync } from 'expo-sqlite';
 
 import { walkForLocalStorage, webkitRootFrom, type ListDirectory } from './findLegacyStores';
-import { attributeDroppedRows, countLegacyKeys, decodeItemTable, pickLegacyStore, type WebKitItemRow } from './webkitLocalStorage';
+import { decodeCandidates } from './decodeCandidates';
+import { countLegacyKeys, decodeItemTable, type WebKitItemRow } from './webkitLocalStorage';
 import type { LegacyReadReport } from './report';
 
 /**
@@ -140,35 +141,18 @@ export async function readLegacyStores(): Promise<LegacyReadReport> {
     report.visited = walk.visited;
     report.truncated = walk.truncated;
 
-    // `dropped` rides WITH the candidate so the count can be attributed to whichever database is picked.
-    // Summing it across all of them (the first cut) reports another app's undecodable rows as the user's.
-    const decoded: { path: string; items: Record<string, string>; dropped: number }[] = [];
-    for (let i = 0; i < walk.candidates.length; i++) {
-      const result = await readOneDatabase(walk.candidates[i], i);
-      report.opened.push({
-        path: result.path,
-        rows: result.rows,
-        legacyKeys: result.legacyKeys,
-        ...(result.error ? { error: result.error } : {}),
-      });
-      if ('items' in result && result.items) {
-        decoded.push({ path: result.path, items: result.items, dropped: result.dropped ?? 0 });
-      }
-    }
-
-    report.store = pickLegacyStore(decoded);
     /**
-     * ⛔ **ATTRIBUTED AFTER THE PICK, NOT SUMMED BEFORE IT.** [P6.8.9.7.11.4] `droppedRows` feeds a
-     * user-facing repair line — *"N row(s) of your old data could not be read and were not carried over"* —
-     * and it was the total across every candidate database, computed before `pickLegacyStore` decided
-     * which one was the user's. The decode counts **any** undecodable row with no `debtPlanner.*` filter,
-     * so an upgrader whose WebKit container holds a second app's database was told they had lost data
-     * they never had. ⚠️ It also contradicted `describeMigrationLosses`'s own exclusion rule six lines
-     * above the line that read it: entries with a documented non-loss reason are deliberately not shown.
+     * ⛔ **[P6.8.9.7.11.13.7 · J1-5] THE DECODE LOOP, THE PICK AND THE ATTRIBUTION LIVE IN
+     * `decodeCandidates` — because nothing could reach them here.** This module imports
+     * `expo-file-system` and `expo-sqlite`, so the app-layer runner cannot load it, and the three lines
+     * that decide which number becomes a user-facing claim were executed by nothing off a device:
+     * reverting them left every suite in this repo green. The I/O is injected, exactly as
+     * `walkForLocalStorage` already takes `listNativeDirectory`, and this file keeps only what genuinely
+     * needs a device.
+     *
+     * ⚠️ `Object.assign`, not four field copies — there is then no per-field wiring left to get wrong.
      */
-    const attributed = attributeDroppedRows(decoded, report.store?.path);
-    report.droppedRows = attributed.droppedRows;
-    report.droppedRowsOtherCandidates = attributed.droppedRowsOtherCandidates;
+    Object.assign(report, await decodeCandidates(walk.candidates, readOneDatabase));
   } catch (error) {
     report.opened.push({ path: '(walk)', rows: 0, legacyKeys: 0, error: String(error) });
   }
