@@ -27,12 +27,25 @@ decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submis
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-24).** P6.8's audit is closed and its BUILD is nearly done:
-**7a (gates) · 7b (copy) · 7c (data integrity) · 7d (cloud/destructive) · 7e (the core loop) · 7f (visual
-+ a11y) are ALL DONE**, every fix plant-verified red and green. **`validate:release:rn` exit 0 — quote
-`gate-status.json`, do not retype it.** ▶ **Next is `P6.8.7g.1`** — the CSV parser rescue, decomposed on
-the plan and ⛔ **the earliest deadline in the whole audit: its only caller is `lib/hooks/useDebts.ts`, in
-the tree P6.11 deletes.** Then **P6.8.8** and **P6.8.9**'s verification pass.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-25).** P6.8.9.7's build is closed and has been **re-verified
+twice**, then swept as a whole app with a **severity scale**. ▶ **Next is `P6.8.9.7.11.11`** — 🎯 2026-08-25:
+**"We're fixing all blockers and majors."** Ranked, with a user-facing consequence on each, in
+**`docs/audits/2026-08-25-p6.8.9.7.11.10-severity/SUMMARY.md`. Start there.**
+
+🔴 **THE OPEN BLOCKER: every Progress date is `setMonth`-overflowed.** ⚡ The repo **already wrote the
+clamp** — `recurrence/rolloverPayCycle.ts:25`, *"Jan 31 + 1mo -> Feb 28, NOT Mar 3 via setMonth's
+overflow"* — and it is **not exported**, so five other sites still overflow. A user paid on the 31st sees a
+debt-free date **up to a month late** on the hero, end pill, legend, scrub readout and both compare columns.
+
+⚡ **TWO INSTRUMENTS, AND THEY MEAN OPPOSITE THINGS.** A **diff re-verification** audits what changed —
+its density rising (13 per 1,708 lines, then ~13 per 872) is a signal about *the fixer*. A **whole-app
+sweep** audits the app, and found **2 blockers neither round had touched**. 🎯: *"I expected this specific
+audit to require multiple rounds as it's evaluating the whole app."*
+
+⛔ **A PLANT LIED FIVE TIMES IN ONE SESSION.** `>>` **creates** a file when the path is wrong;
+`git stash push <path>` **stashes nothing** once the change is committed; `perl`/`sed` silently no-op on
+**CRLF**. Use the Edit tool, and **check `git status` before trusting a red**. The fifth applied correctly
+and still passed — the test was racing `SAVE_DEBOUNCE_MS`.
 
 ⭐ **f added TWO GATES and both out-found the slice they served** — `npm run lint:contrast` *(WCAG grid,
 machine-verified exemptions, the hero panel, and literals that equal a token)* and `npm run lint:type-scale`

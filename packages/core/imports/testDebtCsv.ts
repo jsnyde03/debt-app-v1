@@ -262,11 +262,23 @@ function runDebtCsvTests() {
 	// ⛔ [P6.8.9.7.11.9 · C-2] `%` IS ONE OF FOUR CHARACTERS THAT CAN EMPTY THE CELL. `parseOptionalAmount`'s
 	// `normalize` also strips `,`, whitespace and `$`, and its blank contract returns `0` — so guarding only
 	// the `%` case left `"$"` and `","` importing as a silent 0% on a card that charges interest.
-	// ⚠️ Whitespace is deliberately NOT in this list: a cell holding only spaces is indistinguishable from
-	// an empty one, and blank is a real answer (0%). `$` and `,` are characters someone typed on purpose.
-	for (const cell of ["$", ",", "$,"]) {
-		const r = parse(`${HEADER}\nVisa,2400,75,${cell},2026-09-01`);
+	/**
+	 * ⛔ **ASSERT THE REASON, NOT THE REFUSAL — the first version of these did not.** [P6.8.9.7.11.10 · B-J1-2]
+	 * `eq(r.debts.length, 0)` is satisfied by a row refused for ANY reason, and a cell containing a comma
+	 * shifts every later column, so `","` and `"$,"` were refused for a **missing dueDate** while the APR
+	 * was never reached. All four assertions passed with the fix reverted and the defect fully present.
+	 *
+	 * ⚠️ Whitespace stays out of the list on purpose: a cell of only spaces is indistinguishable from an
+	 * empty one, and blank is a real answer (0%). `$` and `,` are characters someone typed deliberately.
+	 * The comma cases are quoted so the CSV keeps its shape and the APR column is what is actually tested.
+	 */
+	for (const [cell, csv] of [["$", "$"], [",", '","'], ["$,", '"$,"']] as const) {
+		const r = parse(`${HEADER}\nVisa,2400,75,${csv},2026-09-01`);
 		eq(r.debts.length, 0, `an APR cell of "${cell}" is unreadable, NOT a blank 0%`);
+		assert(
+			r.errors.some((e) => e.includes("could not read APR")),
+			`…and it is the APR that refused it, not a column the comma shifted ("${cell}")`,
+		);
 	}
 	{
 		const r = parse(`${HEADER}\nVisa,2400,75, ,2026-09-01`);

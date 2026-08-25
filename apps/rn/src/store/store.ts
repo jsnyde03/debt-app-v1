@@ -744,9 +744,17 @@ export function createDebtStore(opts?: {
     },
     acknowledgeDataRepairs() {
       // P6.8.7c.2 (B4/M3-2): the user has now SEEN which amounts could not be read. ⛔ The only thing that
-      // empties this list — a save must not, because a save is what erases `dataRepairs` and that erasure
-      // is why the repairs were invisible in the first place.
-      set((s) => ({ store: { ...s.store, pendingDataRepairs: [] } }));
+      // acknowledges this list — a save must not, because a save is what erases `dataRepairs` and that
+      // erasure is why the repairs were invisible in the first place.
+      //
+      // ⛔ **MARKS, NEVER EMPTIES.** [P6.8.9.7.11.10 · A-J2-1] Emptying it took the card away *and* the
+      // two guards that read it — `money.tsx`'s `unreadDebts` and `unreadGoals` — while the repaired `0`s
+      // stayed forever. One tap therefore restored **"Every balance cleared"** over debts still owed. The
+      // ack is about the CARD; the data is still unread, and everything asking "is this number
+      // trustworthy" must keep getting the same answer it got before the tap.
+      set((s) => ({
+        store: { ...s.store, pendingDataRepairs: s.store.pendingDataRepairs.map((r) => ({ ...r, acknowledged: true })) },
+      }));
     },
     applyTightTopUp(goalId, amount) {
       // §2.10 (2.4.11.2): the user moved `amount` from savings to hold this cycle's line — draw it down

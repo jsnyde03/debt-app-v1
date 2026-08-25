@@ -39,8 +39,12 @@ export function useRequiredExpenses(saveResetSnapshot: (overrides?: { requiredEx
 
         if (Object.keys(nextErrors).length > 0) {
             setExpenseErrors(nextErrors);
+<<<<<<< Updated upstream
             void triggerErrorHaptic();
             return;
+=======
+            return false;
+>>>>>>> Stashed changes
         }
 
         setExpenseErrors({});
@@ -68,6 +72,8 @@ export function useRequiredExpenses(saveResetSnapshot: (overrides?: { requiredEx
         setExpenseType("fixed");
         setExpenseCategory("other");
         setExpenseIsAutopay(false);
+
+        return true;
     }
 
     function handleUpdateExpense(

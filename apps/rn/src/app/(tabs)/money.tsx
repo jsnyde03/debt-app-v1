@@ -969,18 +969,23 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
    * ⛔ **THE SAME RULE AS THE `Funded` BADGE, ON THE BIGGEST NUMBER ON THE SCREEN.** [P6.8.9.7.11.9 · B-7]
    * An unreadable `targetAmount` repairs to `0`, so a healthy goal beside a repaired one divides a real
    * `totalSaved` by a `totalTarget` missing that goal's share — and the hero reads **"150% funded"** with
-   * a full bar, over money the app could not read. The per-row badge was guarded and the summary above it
-   * was not, which is the louder of the two.
+   * a full bar, over money the app could not read.
+   *
+   * ⛔ **SUPPRESSED, NOT CLAMPED.** [P6.8.9.7.11.10 · A-J1] The first cut was `Math.min(1, …)`, which hides
+   * the arithmetic tell and keeps the falsehood: the same store then reads *"$1,500 · saved of $1,000
+   * target · 100% funded"* with a full bar. A percentage of a total the app could not read is not a number
+   * to bound — it is a number that must not be stated. The badge suppresses; so does this.
    */
-  const overall = totalTarget > 0 ? Math.min(1, totalSaved / totalTarget) : 0;
+  const overall = totalTarget > 0 ? totalSaved / totalTarget : 0;
+  const targetUnread = unreadGoals && goals.some((g) => g.targetAmount === 0);
 
   return (
     <>
       <MoneyHero
         value={formatWhole(totalSaved)}
-        sub={`saved of ${formatWhole(totalTarget)} target`}
-        caption={`${Math.round(overall * 100)}% funded`}
-        bar={<HeroProgressBar pct={overall} />}
+        sub={targetUnread ? 'saved — one target could not be read' : `saved of ${formatWhole(totalTarget)} target`}
+        caption={targetUnread ? undefined : `${Math.round(overall * 100)}% funded`}
+        bar={targetUnread ? undefined : <HeroProgressBar pct={overall} />}
       />
       <View style={styles.goalsList}>
         {goals.map((g) => {

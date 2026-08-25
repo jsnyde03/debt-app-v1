@@ -74,8 +74,12 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
         if (Object.keys(nextErrors).length > 0) {
             setDebtErrors(nextErrors);
             setDebtWarnings(nextWarnings);
+<<<<<<< Updated upstream
             void triggerErrorHaptic();
             return;
+=======
+            return false;
+>>>>>>> Stashed changes
         }
 
         setDebtErrors({});
@@ -118,6 +122,8 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
         setDebtRemainingPayments("");
         setDebtScheduledPaymentAmount("");
         setDebtIsAutopay(false);
+
+        return true;
     }
 
     function handleUpdateDebt(

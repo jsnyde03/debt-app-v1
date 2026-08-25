@@ -256,6 +256,19 @@ export interface DataRepair {
   id: string;
   name: string;
   field: string;
+  /**
+   * ⛔ **THE ACK HIDES THE CARD; IT DOES NOT UN-REPAIR THE DATA — and conflating those shipped a false
+   * statement about the user's money.** [P6.8.9.7.11.10 · A-J2-1] `acknowledgeDataRepairs` used to EMPTY
+   * this list, and two guards read it to suppress a celebration over money the app could not read
+   * (`money.tsx`'s `unreadDebts` and `unreadGoals`). The repaired `0`s are permanent and the list was not,
+   * so one *"Got it"* tap restored **"Every balance cleared"** over debts still owed, and badged a
+   * $0-target goal **Funded** — for the life of the install.
+   *
+   * ⚡ So the record survives the ack and carries the ack instead. The card filters on this; anything
+   * asking *"is this number trustworthy"* reads the whole list and keeps working forever.
+   * ⚠️ Optional and absent-means-false, so every stored blob backfills without a version bump.
+   */
+  acknowledged?: boolean;
 }
 
 export interface DebtStore {

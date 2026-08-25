@@ -183,7 +183,10 @@ for (const root of ROOTS) {
        * police. It went unnoticed only because the single direct call today lives in the owner file, which
        * is excluded above — so the gate was blind to the spelling any new file would use.
        */
-      const calls = stripped.match(/\b(announce|announceForAccessibility)\s*\(/g)?.length ?? 0;
+      // ⚠️ `?.(` too — the one call in the tree is `announceForAccessibility?.(message)` (`a11y.ts:144`),
+      // which is the form a new author copies from the owner file. Allowing only whitespace before `(`
+      // made the gate blind to the exact spelling this repo writes. [P6.8.9.7.11.10 · D-J2-1]
+      const calls = stripped.match(/\b(announce|announceForAccessibility)\s*\??\.?\s*\(/g)?.length ?? 0;
       const baselined = BARE_ANNOUNCE_BASELINE[rel] ?? 0;
       if (calls > baselined) {
         announceHits.push(

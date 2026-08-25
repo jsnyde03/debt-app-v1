@@ -118,7 +118,11 @@ test('the notice survives a reload — it is not a one-session message', async (
   // Acknowledging is what ends it — and it must stay ended.
   await page.getByTestId('data-repairs-ack-button').click();
   await expect(page.getByTestId('data-repairs-ack')).toHaveCount(0);
-  await waitForPersisted(page, (s) => (s.pendingDataRepairs?.length ?? 0) === 0);
+  // ⚠️ The record SURVIVES the ack and carries the acknowledgement — emptying it also disarmed the
+  // celebration guards that read it. The card is gone; the knowledge that these numbers are untrustworthy
+  // is not. [P6.8.9.7.11.10 · A-J2-1]
+  await waitForPersisted(page, (s) => (s.pendingDataRepairs ?? []).every((r) => r.acknowledged === true));
+  await waitForPersisted(page, (s) => (s.pendingDataRepairs?.length ?? 0) === 1);
   await page.reload();
   await expect(page.getByTestId('data-repairs-ack')).toHaveCount(0, { timeout: 15_000 });
 });
@@ -135,6 +139,45 @@ test('Money does not celebrate a portfolio it failed to read', async ({ page }) 
   // by an unrendered page, so without this the test passes before the app has drawn anything — measured:
   // it stayed green with the guard planted out. The debt row is the marker because it renders in both the
   // celebrating and the non-celebrating branch.
+  await expect(page.getByText('Chase card')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Every balance cleared')).toHaveCount(0);
+});
+
+test('the celebration guard SURVIVES the acknowledgement', async ({ page }) => {
+  /**
+   * ⛔ **THE ACK HID THE CARD AND DISARMED THE GUARD, AND THE REPAIRED ZEROS ARE PERMANENT.**
+   * [P6.8.9.7.11.10 · A-J2-1] `unreadDebts` reads `pendingDataRepairs`, which the ack used to EMPTY — so
+   * the test above passed on a first launch and Money reverted to **"Every balance cleared"**, over debts
+   * still owed, one tap later and for the life of the install.
+   *
+   * ⚠️ The test above cannot see this: it never taps *"Got it"*. A guard that holds only until the user
+   * dismisses a notice is not a guard, and the gap between the two states is one button.
+   */
+  await seedStore(
+    page,
+    scenario({ debts: [{ id: 'd1', name: 'Chase card', balance: null, minimumPayment: 50, apr: 20, dueDate: '2026-07-01', type: 'debt', recurrence: 'monthly' }] }),
+  );
+  await page.goto('/');
+  await page.getByTestId('data-repairs-ack-button').click();
+  await expect(page.getByTestId('data-repairs-ack')).toHaveCount(0);
+  /**
+   * ⛔ **WAIT FOR THE ACK TO PERSIST, OR THIS TEST PASSES BECAUSE IT NEVER HAPPENED.** Writes go through a
+   * `SAVE_DEBOUNCE_MS` debounce, and `goto` is a full navigation that re-hydrates from storage — so
+   * without this the next page loads the **pre-ack** store, the guard is still armed for the ordinary
+   * reason, and the assertion below holds while proving nothing. Measured: the planted defect passed.
+   * ⚠️ The sibling ack test waits for exactly this, which is where the shape came from.
+   */
+  await waitForPersisted(page, (s) => (s.pendingDataRepairs ?? []).some((r) => r.acknowledged === true));
+
+  await page.goto('/money');
+  await expect(page.getByText('Chase card')).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByText('Every balance cleared'),
+    'after the ack, Money still must not congratulate over a balance it could not read',
+  ).toHaveCount(0);
+
+  // …and across a relaunch, because the repair is durable and the guard has to be too.
+  await page.reload();
   await expect(page.getByText('Chase card')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('Every balance cleared')).toHaveCount(0);
 });

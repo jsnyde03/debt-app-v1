@@ -232,7 +232,9 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // P6.8.7c.2 (B4/M3-2) — money the app could not READ outranks every other ack, including a celebration.
   // Everything below this line is a statement about the user's plan, and none of those statements is
   // trustworthy while part of the plan is a repaired zero standing in for a number nobody has seen.
-  const dataRepairs = isExample ? [] : store.pendingDataRepairs;
+  // ⚠️ The CARD shows only what has not been acknowledged; the record itself survives the ack so the
+  // trust guards elsewhere keep working. See `DataRepair.acknowledged`. [P6.8.9.7.11.10 · A-J2-1]
+  const dataRepairs = isExample ? [] : store.pendingDataRepairs.filter((r) => !r.acknowledged);
   const activeAck: 'data-repairs' | 'milestone' | 'intent' | 'reserve-release' | 'reserve-walkback' | 'risk-cleared' | 'trial' | 'tutorial' | null =
     dataRepairs.length > 0
       ? 'data-repairs'

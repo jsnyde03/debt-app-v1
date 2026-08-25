@@ -20220,3 +20220,76 @@ mechanisms in the new test's docblocks.
 ⚡ **Every round has closed real defects and produced a similar number.** That is not a reason to stop
 auditing, and it is not a reason to keep going — it is the observation that the loop has no fixed point at
 this granularity, which is a question about method, not about diligence.
+
+---
+
+## ⭐ P6.8.9.7.11.10 — the whole-app severity audit *(2026-08-25)*
+
+**🎯's shape, not mine.** I had proposed closing the remaining tail and moving on, on the argument that
+two rounds of fix-then-re-verify had each produced ~13 findings and the loop was not converging. 🎯:
+*"The audit should verify the fixes and determine if there are any other major+ defects present. They need
+to return severity for our evaluation."*
+
+⚡ **THE CORRECTION, AND IT IS THE MOST USEFUL RESULT OF THE SESSION: those were two different instruments.**
+A **diff re-verification** audits what changed — its population is fixed and shrinking, so a rising density
+is a signal *about the fixer*. A **whole-app sweep** audits the app — its population is everything, and a
+rising count reflects **how much has been looked at**. I read the second as more of the first.
+🎯 afterwards: *"I expected this specific audit to require multiple rounds as it's evaluating the whole app."*
+
+**And the sweep immediately found two blockers neither `.7` nor `.11` had touched.** No diff read could
+reach either, at any number of rounds.
+
+### The instrument
+
+Four auditors, one per surface, each given **two separate jobs** — verify the `.11.9` fixes, then sweep the
+surface for **blocker and major only**, including code neither round changed. A defined scale, and one
+forcing rule: **write the user-facing consequence in a sentence, or the finding is `minor`.**
+
+⚠️ Two calibrations went in because the prior rounds got them wrong in opposite directions: **a wrong
+comment is `minor`** unless it is shown to the user or a safety decision rests on it — that class produced
+most of the volume and almost none of the risk — and **a test that passes with its own defect present is
+`major`**, because both prior rounds found blockers sitting behind exactly that.
+
+⚡ **My earlier verdict vocabulary was the actual problem.** `DEFECT` / `REGRESSION` / `WEAK-TEST` say what
+*kind* of thing is wrong and are useless for deciding what ships: a stale line number and a wrong number
+about someone's money sat side by side in one list, and 🎯 was being asked to triage that.
+
+### 🔴 The two blockers
+
+**1 · One "Got it" tap permanently restored two false congratulations.** The trust guards read
+`pendingDataRepairs`; the ack **emptied** it, while the repaired `$0`s are permanent. So Money reverted to
+**"Every balance cleared"** over debts still owed, and badged a $0-target goal **Funded**, for the life of
+the install. Both branches completely unpinned. **Fixed** — the record survives the ack and carries
+`acknowledged`; the card filters, everything asking *"is this number trustworthy"* reads the whole list.
+
+**2 · Every date on Progress is `setMonth`-overflowed.** ⚡ **The repo already wrote the clamp** —
+`recurrence/rolloverPayCycle.ts:25`, *"Jan 31 + 1mo -> Feb 28, NOT Mar 3 via setMonth's overflow"* — and it
+is **not exported**, so five other sites still overflow. A user paid on the 31st is shown a debt-free date
+**up to a month late** on the hero, the end pill, the legend, the scrub readout and both compare columns.
+Open, and the next session starts there.
+
+### ⛔ My test for blocker 1 passed with the defect planted back
+
+The plant **had** applied — so this was the second failure mode, not the first. The ack was racing
+`SAVE_DEBOUNCE_MS`: `goto` is a full navigation that re-hydrates from storage, so the next page loaded the
+**pre-ack** store and the guard stayed armed for the ordinary reason. The sibling ack test waits for
+exactly this, which is where the fix came from.
+
+⚡ **Five plants lied in one session, and four were shell plants that silently never applied:** `>>`
+**creates** the file when the path is wrong (twice — `imports/amountField.ts`, `check-secrets.ts`, neither
+of which exists); `git stash push <path>` **stashes nothing** once the change is committed, so two
+"reverted" runs measured the unchanged tree and I read the result twice. `perl`/`sed` no-op on CRLF.
+⛔ **A plant that turns something red is not evidence until `git status` says it landed where you aimed it.**
+
+### What else came back
+
+**15 majors**, six of them closed here — every one of those six mine, from `.11` or `.11.9`, including a
+`Math.min` "fix" that clamped the arithmetic and kept the falsehood (*"$1,500 · saved of $1,000 target ·
+100% funded"*), and CSV assertions that were **vacuous** because an unquoted comma shifted the columns and
+`eq(debts.length, 0)` passes for a row refused for any reason.
+
+⭐ **The auditors also recorded what they swept and found CLEAN**, at the bar, by name — including a
+re-check of every `toISOString`/`getUTC` site for the Sydney/Auckland class. A clean sweep is a result, and
+recording it is what stops the next round re-litigating it.
+
+▶ 🎯 2026-08-25: **"We're fixing all blockers and majors."**

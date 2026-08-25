@@ -28,13 +28,17 @@ export interface LegacyReadReport {
   /** The database judged to be ours, decoded — or `null` when none held a `debtPlanner.*` key. */
   store: LegacyStoreCandidate | null;
   /**
-   * Rows that would not decode in **the database judged to be ours**. Non-zero means the migration is
-   * INCOMPLETE — and because P6.8.9.7.6 wired this to a user-facing line, it has to mean exactly that.
+   * Rows that would not decode **in the database judged to be ours — or across all candidates when none
+   * was judged ours.** Non-zero means the migration is INCOMPLETE, and because P6.8.9.7.6 wired this to a
+   * user-facing line, it has to mean exactly that.
    *
-   * ⛔ **It used to be the sum across EVERY candidate**, added up before `pickLegacyStore` had chosen
-   * which one was the user's. A container holding a second WebKit database — a case `readLegacyStores`
-   * explicitly anticipates and `pickLegacyStore` exists to disambiguate — told the upgrader *"N row(s) of
-   * your old data could not be read"* when nothing of theirs was lost. (P6.8.9.7.10 · C-1.)
+   * ⛔ **Two failure directions, and the second is the one that costs data.** Summing across every
+   * candidate tells an upgrader whose container holds a second app's database that they lost rows that
+   * were never theirs. But attributing to the pick and reporting **zero** when there is no pick is worse:
+   * the case with no pick includes the user's own database opening with **every row undecodable**, which
+   * `migrateFromLegacy` then reads as *a fresh install*. This counter is the only evidence left.
+   * So: attribute when there is something to attribute to, and otherwise report everything.
+   * (P6.8.9.7.10 · C-1 → P6.8.9.7.11.9 · C-1.)
    */
   droppedRows: number;
   /**

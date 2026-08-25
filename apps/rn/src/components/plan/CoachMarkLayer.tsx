@@ -58,14 +58,24 @@ export function CoachMarkLayer({
     return coachMarks.getState().addHost();
   }, [nested]);
 
+  /**
+   * ⛔ **`calloutH` IS PER-MARK, AND ITS RESET IS KEYED ON THE MARK ALONE.** [P6.8.9.7.11.9 · D-6 →
+   * P6.8.9.7.11.10 · C-J1-2] It is component state on a layer mounted at the ROOT, which never unmounts —
+   * so without a reset, mark B begins with mark A's measured height and the reveal's `calloutH === 0`
+   * guard is satisfied by a number belonging to a different sentence.
+   *
+   * ⚠️ **Its own effect, NOT the measure effect's.** That one also depends on `remeasureOn`, which flips
+   * when a sheet's entrance spring settles — and nothing re-measures afterwards, because the card's frame
+   * does not change and RNW's `onLayout` fires on size only. Clearing there left `calloutH` at `0` for the
+   * rest of the mark's life, so placement fell back to the 144 pt guess and the sheet reveal was killed
+   * permanently. ⚡ Invisible at default type, where the guess happens to equal the measurement — which is
+   * why a reset that looked like a one-line safety improvement was a regression at Larger Text.
+   */
   useEffect(() => {
-    /**
-     * ⛔ **`calloutH` IS PER-MARK AND MUST BE CLEARED WITH THE RECT.** [P6.8.9.7.11.9 · D-6] It is component
-     * state on a layer mounted at the ROOT, which never unmounts — so without this, mark B begins with
-     * mark A's measured height, and the reveal's `calloutH === 0` guard is satisfied by a number belonging
-     * to a different sentence. The guard fixes the FIRST mark only; this makes it true of every one.
-     */
     setCalloutH(0);
+  }, [active]);
+
+  useEffect(() => {
     if (!active || !targets) {
       setRect(null);
       return;

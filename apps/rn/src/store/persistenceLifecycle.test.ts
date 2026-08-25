@@ -160,12 +160,22 @@ async function run() {
     eq(second.getState().store.pendingDataRepairs.length, 1, '…⭐ but the user has still not been told, so it STANDS');
     eq(second.getState().store.pendingDataRepairs[0]?.name, 'Chase card', '…with the name intact');
 
-    // Acknowledging is the only thing that clears it — and it must survive a re-hydrate too.
+    /**
+     * ⛔ **ACKNOWLEDGING MARKS THE RECORD; IT DOES NOT DELETE IT.** [P6.8.9.7.11.10 · A-J2-1] This block
+     * asserted the list was EMPTIED, which is the contract that shipped a blocker: two guards on Money
+     * suppress a celebration over money the app could not read, both read this list, and the repaired
+     * `0`s are permanent while the list was not. One *"Got it"* tap restored **"Every balance cleared"**
+     * over debts still owed, for the life of the install.
+     *
+     * ⚠️ What the user must not see again is the CARD, and that is what `acknowledged` now says. The
+     * record itself is durable knowledge — *these numbers were never read* — and nothing may delete it.
+     */
     second.getState().acknowledgeDataRepairs();
-    eq(second.getState().store.pendingDataRepairs.length, 0, 'acknowledging clears it');
+    eq(second.getState().store.pendingDataRepairs.length, 1, 'acknowledging KEEPS the record');
+    eq(second.getState().store.pendingDataRepairs[0]?.acknowledged, true, '…and marks it acknowledged');
     const third = createDebtStore();
     await third.getState().hydrate(new MockAdapter(JSON.parse(JSON.stringify(second.getState().store))));
-    eq(third.getState().store.pendingDataRepairs.length, 0, '…and it does not come back to nag');
+    eq(third.getState().store.pendingDataRepairs[0]?.acknowledged, true, '…and the ack survives a re-hydrate, so the card does not nag');
   }
 
   // ── Array blob is not a valid store → quarantined ──
