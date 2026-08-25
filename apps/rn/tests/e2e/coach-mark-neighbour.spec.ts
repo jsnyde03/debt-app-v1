@@ -11,10 +11,12 @@ import { scenario, seedStore } from './helpers/seed';
  * into the neighbour** (y437 → y415). V2-6 named the real cure in its own last line: *"the vertical axis
  * still has no neighbour-awareness."*
  *
- * ⚡ **Repositioning could never have delivered it.** Measured at 402×874: the subject (`trajectory-scrub`,
- * the whole trajectory card) starts at y≈570 and runs off the bottom; the cash-flow card ends at y≈560. A
- * 144 pt callout has **no position on that screen that covers nothing** — below is off-screen, above is the
- * cash-flow card, the top is the hero. So the page scrolls to make room instead.
+ * ⚡ **Repositioning could never have delivered it.** Measured at 402×874 **when `trajectory-scrub` still
+ * wrapped the whole trajectory card**: it started at y≈570 and ran off the bottom; the cash-flow card
+ * ended at y≈560. A 144 pt callout had **no position on that screen that covered nothing** — below is
+ * off-screen, above is the cash-flow card, the top is the hero. So the page scrolls to make room instead.
+ * ⚠️ `.7.3` moved the subject onto the scrub view, so those figures describe the argument's origin rather
+ * than today's layout. Kept because they are why the reveal exists. (P6.8.9.7.10 · D-5.)
  *
  * ⛔ **THE ASSERTION IS GEOMETRIC, AND IT HAS TO BE.** Occlusion is invisible to `toBeVisible()`: the
  * covered date axis, legend and verdict are all still in the DOM with non-zero boxes. Only comparing the
@@ -42,7 +44,11 @@ test('V2-6 — the trajectory coach mark does not cover the cash-flow card', asy
   await expect(mark).toBeVisible({ timeout: 15_000 });
   await expect(neighbour).toBeVisible();
 
-  // The scroll is animated, so let it come to rest before measuring — and measure the SETTLED rects.
+  // ⚠️ **The scroll is NOT animated** — `progress.tsx` passes `animated: false`, deliberately, so that
+  // downstream measurement is not timing-dependent. This comment said the opposite and justified the wait
+  // with it. (P6.8.9.7.10 · D-5.) The wait stays: what it is actually waiting for is the RE-MEASURE that
+  // follows the scroll (`invalidate` → `measure`, up to 500 ms) and the re-render that repositions the
+  // callout — a settle, not an animation.
   await page.waitForTimeout(1_200);
 
   const markBox = await mark.boundingBox();

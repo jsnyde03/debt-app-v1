@@ -99,7 +99,7 @@ export function CoachMarkLayer({
     if (!active || !targets) return;
     let inFlight = false;
     let cancelled = false;
-    return targets.subscribe((id) => {
+    const unsubscribe = targets.subscribe((id) => {
       if (id !== active || inFlight || cancelled) return;
       inFlight = true;
       void targets.measure(active).then((r) => {
@@ -107,6 +107,17 @@ export function CoachMarkLayer({
         if (!cancelled && r) setRect(r);
       });
     });
+    /**
+     * ⛔ **`cancelled` WAS DECLARED, READ TWICE, AND ASSIGNED NOWHERE.** [P6.8.9.7.11.5] The cleanup was
+     * `subscribe`'s unsubscribe returned bare, so it stopped future notifications and never tripped the
+     * flag — and an in-flight `measure()` for the PREVIOUS mark (up to 500 ms late) still resolved into
+     * the shared `setRect`, drawing mark B at mark A's coordinates with nothing left to re-measure it.
+     * ⚠️ The effect immediately above does this correctly, which is exactly why the shape read as done.
+     */
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [active, targets]);
 
   // 4.1.4c — the layer's final verdict, recorded from an EFFECT rather than from the render body: this
@@ -125,10 +136,13 @@ export function CoachMarkLayer({
   /**
    * ⛔ **[V2-6 · P6.8.9.7.3] WHEN NEITHER PLACEMENT IS CLEAN, MOVE THE PAGE — NOT THE CALLOUT.**
    *
-   * Measured at 402×874 on Progress: the subject (`trajectory-scrub`, the whole trajectory card) starts at
-   * y≈570 and runs off the bottom, and the cash-flow card ends at y≈560. A 144 pt callout therefore has
-   * **no position on that screen that covers nothing** — below is off-screen, above is the cash-flow card's
-   * date axis, legend and verdict, and the top is the hero. V2-6 rated that major and was right.
+   * Measured at 402×874 on Progress **when `trajectory-scrub` still wrapped the whole card**: it started
+   * at y≈570 and ran off the bottom, and the cash-flow card ended at y≈560. A 144 pt callout therefore had
+   * **no position on that screen that covered nothing** — below is off-screen, above is the cash-flow
+   * card's date axis, legend and verdict, and the top is the hero. V2-6 rated that major and was right.
+   * ⚠️ **Those numbers are the ARGUMENT'S ORIGIN, not the current geometry.** `.7.3` moved the subject onto
+   * the scrub view inside `TrajectoryChart`, so it is now the 200 pt plot rather than the 362 pt card.
+   * Read them as why the reveal exists; do not re-derive placement from them. (P6.8.9.7.10 · D-5.)
    *
    * ⚡ **This is why cluster f's fix made it WORSE.** Correcting the height estimate (132 → 144) is a true
    * fix for the self-occlusion the refuter added — and it moved the callout **22 px further into the
@@ -151,17 +165,36 @@ export function CoachMarkLayer({
    */
   useEffect(() => {
     if (!active || !rect || !targets) return;
+    /**
+     * ⛔ **A STOOD-DOWN LAYER MUST NOT ASK FOR A SCROLL.** [P6.8.9.7.11.5] This effect is declared above the
+     * `return null` that stands the root layer down under a sheet, and it carried no guard — while the
+     * verdict effect thirty lines up guards correctly. With a sheet open, BOTH the root layer and the
+     * nested one called `requestReveal`, and there is a single global scroller slot, so a mark belonging to
+     * a sheet scrolled **the tab underneath it** — invisibly, twice — while its own callout did not move
+     * and the one-shot latch was spent. Mirrors the render guard exactly.
+     */
+    if (!nested && hosts > 0) return;
     if (revealAskedFor.current === active) return;
+    /**
+     * ⛔ **WAIT FOR THE MEASUREMENT INSTEAD OF LATCHING AHEAD OF IT.** [P6.8.9.7.11.5] The comment below
+     * claimed the measured height and the control flow could never deliver it: `calloutH` is written only
+     * from the card's `onLayout`, the card does not render until `rect` exists, and this effect fires on
+     * the very commit `rect` arrives — so on the first mark `calloutH` is `0`, `need` took the 144 guess,
+     * and the latch on the next line meant the corrected re-run returned immediately.
+     * ⚡ **Placement (`roomBelow`, below) DID get the measurement**, because it is computed in the render
+     * body and re-runs when the state lands — which is why the claim read true to its author. One value,
+     * two consumers, only one of them reachable.
+     * ⚠️ Returning here is safe because `calloutH` is a dependency: the layout pass that sets it re-runs
+     * this effect, and *that* run does the work with a real number.
+     */
+    if (calloutH === 0) return;
     const belowY = rect.y + rect.height + 12;
     /**
-     * ⛔ **THE MEASURED HEIGHT, NOT THE 140 — and the first cut of this scrolled 13 px short because of it.**
      * `roomBelow`'s threshold is a hardcoded 140 while the callout measures **144**, so "there is room"
      * could be true of a gap the callout does not fit in. Asking for exactly that gap landed the reveal on
-     * the boundary and the overlap survived. ⚡ It is the same defect as the `132` this whole item is
-     * about, one constant along: **a guess at the callout's height, in a second place.**
-     * `+ 16` is margin, so the result CLEARS rather than ties.
+     * the boundary and the overlap survived. `+ 16` is margin, so the result CLEARS rather than ties.
      */
-    const need = (calloutH || ESTIMATED_CALLOUT_H) + ABOVE_GAP + 16;
+    const need = calloutH + ABOVE_GAP + 16;
     if (winH - belowY - insets.bottom > need) return; // there is already room; nothing to do
     revealAskedFor.current = active;
     /**
@@ -173,7 +206,7 @@ export function CoachMarkLayer({
      */
     const needed = belowY - (winH - insets.bottom - need) + REVEAL_MARGIN;
     if (needed > 0) targets.requestReveal(needed);
-  }, [active, rect, targets, winH, insets.bottom, calloutH]);
+  }, [active, rect, targets, winH, insets.bottom, calloutH, nested, hosts]);
 
   // The innermost host draws. Outside any sheet `hosts` is 0 and the root layer behaves exactly as before.
   if (!nested && hosts > 0) return null;
@@ -199,28 +232,10 @@ export function CoachMarkLayer({
   const roomBelow = winH - below - insets.bottom > (calloutH || ESTIMATED_CALLOUT_H) + ABOVE_GAP;
   const top = roomBelow ? below : Math.max(insets.top + 8, rect.y - (calloutH || ESTIMATED_CALLOUT_H) - ABOVE_GAP);
 
-  /**
-   * ⛔ **[V2-6] WHEN NEITHER PLACEMENT IS CLEAN, MOVE THE PAGE — NOT THE CALLOUT.**
-   *
-   * Measured at 402×874 on Progress: the subject (`trajectory-scrub`, the whole trajectory card) starts at
-   * y≈570 and runs off the bottom, and the cash-flow card ends at y≈560. A 144 pt callout therefore has
-   * **no position on that screen that covers nothing** — below is off-screen, above is the cash-flow card's
-   * date axis, legend and verdict, and the top is the hero. V2-6 rated that major, and it was right.
-   *
-   * ⚡ **This is why cluster f's fix made it WORSE.** It corrected the height estimate (132 → 144), which is
-   * a true fix for the self-occlusion the refuter added — and moved the callout **22 px further into the
-   * neighbour** (y437 → y415), because the above-branch subtracts the height. The finding named the real
-   * cure in its own last line: *"the vertical axis still has no neighbour-awareness."* Repositioning cannot
-   * deliver it; only changing the layout can.
-   *
-   * ⚠️ **Fires at most once per mark.** `requestReveal` scrolls, the subject re-lays out, `invalidate`
-   * re-measures, and this block runs again — so without the latch a screen already scrolled to its end
-   * would ask forever. The latch is keyed on the ACTIVE MARK, so a different mark later still gets its
-   * chance.
-   *
-   * ⚠️ Returns false where no scrolling host is registered (a sheet, a short screen). There the existing
-   * placement stands, which is the behaviour every other mark already had.
-   */
+  // ⚠️ A 22-line copy of the reveal-effect docblock stood here, describing code that had moved into that
+  // effect — so the render body carried an explanation of a mechanism it does not implement, and the two
+  // copies could drift without either looking wrong. Deleted; the live one is above the effect.
+  // (P6.8.9.7.10 · E-5.)
 
   // 4.1.5.5 — anchor the HORIZONTAL axis to the subject too.
   //
@@ -260,10 +275,21 @@ export function CoachMarkLayer({
          * ⚡ Giving the layer room to scroll moved it onto the trajectory card's own What-If and
          * Snowball-or-avalanche rows, and `strategy-compare.spec.ts` immediately timed out clicking a
          * toggle underneath it. **The hint was behaving as a modal after all**, exactly as
-         * `coach-marks.spec.ts:89` says it must not.
+         * `coach-marks.spec.ts` says it must not.
+         * ⛔ **`box-none` is NOT what fixed that spec.** The spec that ships was fixed by SEEDING
+         * `coachMarksSeen`, so it no longer renders a mark at all, and it files the mis-tap as a live
+         * residual. Two changes landed in one diff and only one of them was load-bearing — which is how
+         * `box-none` came to look verified while nothing exercised it. (P6.8.9.7.10 · E-5.)
          *
-         * `box-none` keeps the card visible and non-interactive while its "Got it" `Pressable` — a child,
-         * so unaffected — stays tappable.
+         * ⛔ **`box-none` ALONE OPENED ONLY THE PADDING RING.** [P6.8.9.7.11.5] It exempts the card ITSELF
+         * and leaves every direct child a hit target — and this card has two: the "Got it" `Pressable`,
+         * which must stay live, and the **alert wrapper holding the sentence**, which is most of the
+         * card's area. On web the RNW compiler emits `selector > * { pointer-events: auto }`; on iOS a
+         * plain `View` is `userInteractionEnabled` and consumes the touch. So *"the control stays live
+         * underneath"* was still false over the words, which is where the callout actually sits.
+         * ⚠️ The sentence therefore carries `pointerEvents="none"` explicitly (see below). It is not
+         * interactive by design — it is read, not touched — so nothing is lost, and VoiceOver is
+         * unaffected: `pointerEvents` governs touch routing, not the accessibility tree.
          */
         pointerEvents="box-none"
         // The measurement that replaced the hardcoded offset above. Guarded on a real change so a layout
@@ -292,7 +318,15 @@ export function CoachMarkLayer({
             The one-utterance property that `accessible` was there for is preserved — it just belongs on
             the TEXT, which is what should be read as one sentence, not on the card that also holds a
             button. */}
-        <View accessible accessibilityRole="alert" accessibilityLabel={`${copy.title}. ${copy.body}`}>
+        {/* ⛔ The sentence is READ, never touched — and it is most of the card's area, so while it was a
+            hit target the promise that "the control stays live underneath" was false wherever it counted.
+            `box-none` on the parent does not reach here: it exempts the card itself and leaves its direct
+            children interactive. (P6.8.9.7.10 · E-4.) */}
+        <View
+          accessible
+          accessibilityRole="alert"
+          accessibilityLabel={`${copy.title}. ${copy.body}`}
+          pointerEvents="none">
           <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>{copy.title}</Text>
           <Text style={[textStyles.subhead, { color: c.text.secondary }]}>{copy.body}</Text>
         </View>

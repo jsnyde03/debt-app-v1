@@ -29,15 +29,6 @@ export function clearMonth(traj: TrajectoryPoint[]): number | null {
 }
 
 /**
- * The x-axis span, in months.
- *
- * ⚠️ **Two properties the pre-clamp expression got RIGHT, which this keeps:**
- * - the **lean** curve (variable income) pays off later than the typical plan, and the domain has to reach
- *   its date or the cone is clipped — so "the user's own plan" is the latest of *their* curves, never the
- *   active one alone;
- * - a plan that **never clears** has no end to clamp to and must still draw across the full extent.
- */
-/**
  * The debt-free end pill's width, as an UPPER BOUND. [V3-5 · P6.8.9.7.7]
  *
  * ⛔ **Extracted so it can be tested at all.** V3-5's fix was correct and came back `CLOSED-UNPINNED` for a
@@ -56,6 +47,19 @@ export function endPillWidth(label: string | null, fontScale: number, scaleMax: 
   return (20 + chars * 6.5) * Math.min(fontScale, scaleMax);
 }
 
+/**
+ * The x-axis span, in months.
+ *
+ * ⚠️ **Two properties the pre-clamp expression got RIGHT, which this keeps:**
+ * - the **lean** curve (variable income) pays off later than the typical plan, and the domain has to reach
+ *   its date or the cone is clipped — so "the user's own plan" is the latest of *their* curves, never the
+ *   active one alone;
+ * - a plan that **never clears** has no end to clamp to and must still draw across the full extent.
+ *
+ * ⚠️ This docblock was stranded thirty lines above its subject when `endPillWidth` was inserted between
+ * the two — so the file read as though the pill's width function was the x-axis span, and the two
+ * paragraphs that follow a reader's eye described different functions. (P6.8.9.7.10 · D-4.)
+ */
 export function trajectoryDomain({
   active,
   cone,

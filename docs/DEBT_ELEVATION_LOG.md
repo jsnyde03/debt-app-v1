@@ -19592,3 +19592,549 @@ the panel never opened: **V2-6's reveal can move a control between a tap's actio
 tap.** A real user reaching for that control during the first render can mis-tap the same way. The spec now
 seeds `coachMarksSeen` (as four sibling specs already do), and the behaviour is filed as **§12.9's three
 device rows** plus a proposed *render-after-reveal* fix on the backlog.
+
+---
+
+## ✅ P6.8.9.7.11.1 — the four gate holes, closed *(2026-08-25)*
+
+The `.7.10` re-verification found that **4 of the 5 gates the `.7` build touched could not fully reach the
+class they police.** Gates first, per the result that has now held five times. Every fix here is
+**red-before / green-after**, and the red-before was produced by `git stash`-ing the script and re-running
+the *same* plant — so the claim is "the old gate was green on this exact defect", not "the new one catches
+something".
+
+### `check-apostrophes.ts` — three defects
+
+**1 · The Swift latch was one-way.** `if (EXEMPT.test(line)) inPhrases = true; else if (…) inPhrases = false;`
+— a **single-line** `phrases: ["…"]` matched the open, and the `else` meant the close was never tested, so
+the latch stayed set and every following line was skipped while the gate printed green.
+⚠️ **It was LATENT, not live**, and that is the interesting part: all four real sites
+(`SiriQueryIntents.swift:105,115,125,137`) are multi-line, so nothing was being mis-scanned *today*. The
+verifier reported it as *"forever"*; measured, it persists only until the next line containing `]`. Both the
+severity and the mechanism needed correcting, and the observation was right either way.
+
+**2 · The exemption was tested against the RAW line, before comments were stripped.** `///` doc comments in
+this repo quote the very phrases the scan is about, so a comment writing `phrases: [` opened the latch.
+Fixed by stripping comments **first** — the ordering is the fix.
+
+**3 · A Swift hit `process.exit(1)`-ed above the baseline read**, so a native failure ended the run before
+the TS class — the one the gate was originally built for — had been checked at all. Both classes now report
+before either exits.
+
+⛔ **Only the span from `phrases: [` onward is exempt now**, not the whole line: a `dialog:` literal earlier
+on the same line is display copy and is still swept.
+
+**Plants:** a one-line `phrases: ["Hey app"]` + a later `"Here's your plan"`; a `///` comment writing
+`phrases: [` + a later `"Don't do that"`. Old gate: **green on both.** New gate: both caught.
+**Preserved property** — a multi-line `phrases:` array containing `"What's my payoff date"` and
+`"How's my plan going"` still yields **exactly one** hit, the `dialog` beneath it. The exemption still does
+its job.
+
+### `check-contrast.ts` — the ink scan was blind twice
+
+**1 · `withoutGradients` blanked the inline style array.** That helper blanks any bracketed span containing
+a hex literal — which is exactly `style={[styles.x, { color: '#fff' }]}`. The two defects the check was
+built for lived in `StyleSheet.create` objects, so it caught those and **structurally could not see the
+conditional-inline half.**
+⭐ **The shape worth keeping: one helper, two consumers, opposite needs.** The token-drift scan matches
+*bare* literals and genuinely needs the exclusion; the ink scan is anchored on `color:` and is only harmed
+by it. Sharing the helper looked like consistency and was a blind spot. The ink scan now reads the raw line.
+
+**2 · `\bcolor:` only** — the JSX prop spelling `color="#fff"` was invisible, while `textUses` **in the same
+file** (`:160`) had already been written `\bcolor\s*[:=]` for that exact reason.
+
+**Plant:** a file with both spellings. Old gate: **green.** New gate: both caught.
+**Preserved property:** `INK_EXEMPT`'s `#10264f` entry still matches the widened regex and is still
+honoured — verified against `TrajectoryChart.tsx:638` rather than assumed from a green run.
+
+### `check-native-a11y-props.ts` — a false diagnosis, an ignored instruction, and the missing half
+
+**1 · One headline covered two lists** and said *"dropped silently by react-native-web"* — **false of every
+`OWNED` hit**, and false by this file's own docstring, which establishes that RNW *does* forward
+`accessibilityLiveRegion`. The `OWNED` failure is the opposite shape: works on web, silent on iOS. Split
+into two blocks with their own diagnoses.
+
+**2 · The failure text told the reader to declare an `EXEMPT` entry, and the `OWNED` loop never read
+`EXEMPT`.** An instruction a gate gives and does not honour costs a cycle to disbelieve. Now consulted.
+
+**3 · The symmetric half was ungated entirely** — a bare `announce()` is `announceForAccessibility`, an
+**empty function body** on react-native-web, i.e. silence in every browser. Six live sites.
+⛔ **Baselined, not exempted, and the distinction is honesty.** Whether a route-title announcement
+(`cushion-forecast`, `demo`, `schedule/[id]`) *should* become a live region is a real question with a real
+answer **on a device**; writing six confident `why` strings I cannot defend would convert an open question
+into a settled-looking list. The class reds for anything new — a new file **or** a new call in a baselined
+one, both plant-verified — and the six are filed as a **P6.14 device row**.
+
+⚠️ The green summary line now counts all three lists. It counted `BANNED` only when `OWNED` was added, and a
+completeness figure that omits part of its own coverage is the `226 frames` defect wearing a new face.
+
+### `check-copy-owners.ts` — the gate could be satisfied by an epitaph
+
+`src.includes(owner)` ran over the **raw** file, and all three sites carry long docblocks *about*
+`PRIVACY_CLAIM`. It passed only by the accident that none of them wrote the dotted form.
+⛔ **Plant: replace the JSX with `Your data stays here.` and leave `{/* was PRIVACY_CLAIM.atEntry */}`
+behind. The old gate went GREEN** — satisfied by the epitaph of the thing it was guarding. Comments are now
+stripped before the match.
+
+**And it pinned half a pairing.** `WelcomeStep.tsx:32` reads **two** constants — `PRIVACY_CLAIM.headline`
+and `PRIVACY_CLAIM.noSelling` — and the site's own comment at `:28` says *"Both halves are the CONSTANT,
+never a literal."* The gate covered one. Added; a half-revert of `noSelling` now reds.
+
+Also corrected: the docstring claimed A4/M1-9 was **excluded** because `earlyjourney.spec.ts` covers it,
+while `PAIRINGS` included it. Both belong — the e2e asserts the rendered words, this asserts the wiring, and
+**the e2e cannot tell a constant from a literal that happens to match.**
+
+### After-scan
+
+- ⚡ **Two consumers of one helper wanted opposite things** (`withoutGradients`). Only reading both call
+  sites found it; neither call site alone looks wrong.
+- ⚡ **Three of the four gates stated something false in prose** — a wrong mechanism, an instruction not
+  honoured, an exclusion claim. `.7.10`'s carried result applied to the gates themselves.
+- 🔴 **Filed:** `check-contrast`'s `border.strong` exclusion is still an unverified claim, and `AddRow` is
+  now the one `border.control` consumer with **no fill**, which is the premise its 3:1 model assumes. → backlog.
+
+---
+
+## ✅ P6.8.9.7.11.2 — the matrix instrument *(2026-08-25)*
+
+### ⭐ The before-scan found a defect nobody filed, and it is bigger than the two that were
+
+`.7.10`'s cluster A said the text-scale block loops ten surfaces inside ONE test and that `settle`'s 15 s
+throw could blow the shared 180 s budget. True, and a timing argument. **Reading the rule it broke turned it
+into a correctness argument.** This file states at the route block:
+
+> ⛔ ONE TEST PER SURFACE — NOT one test looping over surfaces. […] The actual cause: the PREVIOUS
+> surface's app is still alive when the next seed is written, and its 500 ms autosave debounce fires and
+> puts its own store back over the blob.
+
+That is not about timeouts. **The text-scale block was writing seeds into a page whose previous app was
+still alive**, 140 lines below the paragraph explaining why that cannot work.
+
+⚡ **Measured on the artifact, not argued.** Same `seedOver`, same theme, same viewport, two blocks:
+
+| frame | block | showed |
+|---|---|---|
+| `phone/dark/history.png` | route — one test per surface | **populated**: five cycles, *"$2,560 paid down"* |
+| `phone/dark/textscale-2x-history.png` | text-scale — ten surfaces per test | **empty**: *"No finished cycles yet."* |
+
+⛔ **And it is invisible by construction.** The frame exists, it is not stale, it is not `UNREACHED` — every
+completeness signal the shooter has reports fine. It only shows where a `seedOver` adds a key the base seed
+lacks. `/living-expenses` looks correct because the base seed already carries `livingExpenses`, which is an
+accident and not a defence — **the same accident that let `/living-expenses` escape A-1.**
+
+⚠️ **Consequence: part of the Dynamic Type evidence set was of the wrong state**, and V3's lens read it.
+
+### The fix, and what it closed at once
+
+Splitting the block to one test per surface (80 tests where there were 8) closes **both** the seed bleed
+*and* A-2's shared-budget hazard — each surface now has its own page, its own seed and its own 180 s.
+
+### A-1 — `/history`'s empty branch had zero frames
+
+`{ ...seedOver, ...STATES[stateName] }` and `STATES.empty` carried no `cycleHistory` key, so it could not
+override the five snapshots `seedOver` supplies. `state-history-empty` photographed the **populated**
+screen and `<EmptyHistory>` appeared in no frame in the matrix — **the gap inverted, not closed.**
+
+⭐ **Gated as a class, not fixed as a key.** Adding `cycleHistory: []` fixes today and says nothing about the
+next `seedOver`. The state recipe now asserts the property the state's *name* claims: for `empty`, no
+merged value may be a non-empty array. Red-before by construction — the guard threw on `/history` until the
+key was added.
+
+**Verified on both artifacts, after the change:**
+- `state-history-empty.png` → *"No finished cycles yet."* The empty branch has a frame for the first time.
+- `textscale-2x-history.png` → **$2,560, five cycles**, at 2×. The seed took.
+
+### A-7 — four documentation defects, and a fifth I wrote myself
+
+1. *"`/history` has the SAME defect and is NOT fixed here […] a real fixture and not a one-liner"* — false,
+   fifteen lines below its own `seedOver`. `cycleHistory` is a plain array. **A deferral is a claim about
+   cost, and that one was never measured.**
+2. *"`coachMarksSeen` is seeded here and nowhere else in this file"* — false in the commit that wrote it;
+   the sheet block seeds it too. *"Nowhere else"* is the sentence that stops the next person looking.
+3. *"all 226 frames photograph the card at rest"* — the count was already wrong when written. Replaced with
+   *"every other frame"*, which cannot go stale. ⚠️ A literal total in prose ages the moment a recipe lands.
+4. `DIVERGENT` was a **byte copy** of `STATES.divergent` — two portfolios that must disagree about strategy
+   order, maintained in two places. A drifted copy keeps the name and loses the property. Now one binding.
+5. ⚡ **Mine, written this session:** the header justified `expect.soft` with *"the text-scale block loops
+   surfaces INSIDE one test"* — a structure my own fix had just removed. Soft is still right, for a smaller
+   reason. **`.7.10`'s law landed on me inside the hour: the comment states the intent at the moment of
+   greatest conviction, and that is when the control flow is least checked.**
+
+### After-scan
+
+- 🔴 **The whole matrix needs re-shooting before the gate** — the text-scale frames for every surface whose
+  `seedOver` adds a key (`history`, `paywall`, `onboarding`) are of an unknown state. → folded into `.11.8`.
+- 🔴 **The corrected 2× history frame carries a real finding that could not exist before**: the title
+  truncates to *"Pay cycle h…"* and *"May 26, 2026"* wraps to two lines inside its row. → backlog.
+
+---
+
+## ✅ P6.8.9.7.11.3 — the money defect *(2026-08-25)*
+
+🔒 **The only finding in the `.7.10` pass that reaches a user's money, and the only one two blind verifiers
+reached independently** — C from the persistence test, B from the user-facing repairs card.
+
+### The defect, and why it is the sharpest instance of the pass's own law
+
+`migrations.ts` states the harm **correctly**, in its own comment, immediately above the fix:
+
+> An unreadable value serialises to `null` […] so a corrupt pace does not show a wrong number, it
+> **removes the cap the user signed off on** and funds the goal ahead of debt at full speed.
+
+And then `readMoney` returns **`0`** for anything unreadable — and `0` **is** the uncapped value:
+`allocatePaycheck.ts:632` reads `priorityPerPaycheck != null && > 0 ? pace : Infinity`, and
+`recommendedActions.ts:80` guards identically before falling through to the whole remaining goal.
+**The repaired store allocates identically to the corrupt one.** The author wrote the correct diagnosis and
+then shipped the behaviour they had just described.
+
+⚡ **The generalisable insight: `0` is not one repair.** It is fail-**visible** for a balance — a $12,000
+card showing $0.00 is obviously wrong to the person looking at it — and fail-**silent** for a pace, where it
+looks like nothing at all and quietly redirects every spare dollar away from the debt. Same helper, same
+value, opposite consequence. **A shared repair is a claim that the fields share a failure mode.**
+
+### The fix — stand the priority down, do not guess a number
+
+Any pace invented is a claim about what the user chose; the one thing known is that it cannot be read. So
+the goal keeps its name, target and balance and **stops being funded ahead of debt** until the person says
+otherwise — the safe direction, because it leaves the money with the debt rather than taking it.
+
+⛔ **The naive over-fix was planted and reds identically.** Deleting the unreadable value and leaving
+`priority: true` is the tempting minimal change — and it changes nothing, because the type doc says
+*"Absent → no cap (funds as fast as spare allows)."* **Both the corrupt value and its obvious repair
+produce the same $900.**
+
+### The card told the user the benign version of the harm
+
+*"They are showing as $0, so your plan is leaving them out. Open each one and enter the real amount."*
+**Backwards** for a pace — it was not left out, it was funded uncapped ahead of the debt — and
+**unfollowable**: `priorityPerPaycheck` is written only at creation (`SaveForItSheet.tsx:109`, reachable
+only from `AffordabilityCard`), and `GoalSheet` edits name, target, current and type.
+
+The blanket sentence now says only what is true of **every** repair — *"Your plan is running without them
+until you set them again"* — and each line carries its own consequence, because the consequences differ and
+no one sentence covers both honestly. The pace line names its own recovery route.
+
+### The test now asserts the allocation, and the two it replaces are why
+
+Both previous asserts **passed on the defect**. `priorityPerPaycheck === 0 || Number.isFinite(…)` admitted
+**by name** the exact value that reproduces the harm; its sibling guarded `undefined`, which `readMoney`
+can never return. The new assert runs the store through `selectBaseAllocation` — the selector the app
+actually reads — and names the money: **`FAIL […] NOT funded ahead of debt (got $900)`**, $900 of a $1,000
+paycheck.
+
+⛔ **And the preserved property is pinned separately**, because standing a goal down is the right answer to
+*"we cannot read your cap"* and the wrong answer to everything else: **a READABLE pace still funds, still
+capped at $200.** An over-match was planted — every priority goal stood down — and it reds
+(`expected 200, got 0`) while the primary assert stays green. A repair that quietly stopped funding every
+sinking fund in the app would be a worse defect than the one being fixed, **and would have looked identical
+in the green run.**
+
+### After-scan
+
+- 🔴 **`priorityPerPaycheck` cannot be changed or removed after creation** — a product gap, not a repair
+  problem. It is why the card's instruction had to name a workaround. → backlog.
+- 🔴 **The `0`-repair question generalises**: which other money fields is `0` *dangerous* rather than merely
+  wrong for? `readMoney`'s enumeration is already known short (`RequiredExpense.fullAmount`,
+  `RecommendationOverride.amount`, `IncomeActual`, `SurpriseOutflow`). → `.11.4` triages, backlog carries.
+- ⚠️ **Record corrected in `MEASURED.md`:** the B verifier's `plan/GoalSheet.tsx` path is wrong, but the
+  file exists at `entities/GoalSheet.tsx` and the finding holds. **A wrong `path:line` does not make an
+  observation wrong** — checking the claim rather than the citation is what tells you which you have.
+
+---
+
+## ✅ P6.8.9.7.11.4 — CSV + data integrity *(2026-08-25)*
+
+### B-2 · an APR cell of `"%"` imported as 0% — **the fix for the refusal wrote the defaulting**
+
+`.7.4` fixed a real defect: `"19.99%"` was refused with *"APR must be between 0 and 100"*, a message false
+of 19.99. The fix stripped **every** `%` and handed the rest to `parseOptionalAmount`, whose blank contract
+is `if (cleaned === '') return 0`. So `"%"` imported as **0% APR** and `"1%2"` as **12%** — the silent zero
+this function forbids twice in its own comments, on a card that charges interest. ⚡ **The accept path and
+the reject path simply swapped which one was wrong.**
+
+Now only a **trailing** sign is stripped (a rate is written `19.99%`, never `1%2`), and a cell that had
+content but strips to nothing is unreadable rather than blank.
+
+⛔ **The error message had the same bug a second time.** The old branch re-parsed the raw cell with
+`Number(...)` to choose between the two messages — and `Number("")` is `0`, which is finite, so `"%"` was
+reported as *"must be between 0 and 100"*: **the exact false message the `19.99%` fix existed to remove,
+surviving on a different input.** The messages are now decided by the parse itself: `null` is unreadable,
+`> 100` is out of range, and neither needs a heuristic.
+
+Pinned with `"%"`, `"1%2"`, and the preserved property (`"19.99 %"` still parses, blank still means 0%).
+Plant-verified: reverting the parser reds with `expected 0, got 1`.
+
+### B-3 · a savings goal badged **"Funded"** over money the app could not read
+
+An unreadable `targetAmount` repairs to `0`, and `0 >= 0` is true — so the goal rendered a green **Funded**
+badge reading *"$0 saved"*. ⛔ **The debts branch guards precisely this, six hundred lines up**, in a
+comment calling the ungated version *"the single worst screen in the product"*. Goals were added to
+`DataRepair['entity']` at `.7.2` and this consumer was never revisited.
+
+⚠️ Scoped to `targetAmount === 0` deliberately: a goal genuinely at its target must still read Funded while
+other repairs are pending. The suppression is about *this* number being unreadable, not about the store
+being generally suspect.
+
+### C-1 · another app's undecodable rows were reported as the user's loss
+
+`droppedRows` feeds a user-facing line — *"N row(s) of your old data could not be read and were not carried
+over"* — and it was summed across **every** candidate database, before `pickLegacyStore` decided which one
+was the user's. The decode counts any undecodable row with **no `debtPlanner.*` filter**, so an upgrader
+whose WebKit container holds a second app's database was told they had lost data they never had. It also
+contradicted `describeMigrationLosses`'s own exclusion rule six lines above the line that read it.
+
+⭐ **It was untestable where it lived, which is why it shipped.** `readLegacyStores()` takes no arguments
+and reads the native container through `Paths.cache.uri`; every `LegacyReadReport` fixture in the repo
+hard-codes `droppedRows: 0`, so deleting the logic went green. Extracted to a pure `attributeDroppedRows`
+beside `pickLegacyStore` and pinned four ways, including the case that produced the false claim — **no
+database judged ours means none of the drops are ours.** ⚡ **Fourth time in this project that an id was
+unpinnable because the instrument was wrong rather than the fix.**
+
+⚠️ The all-candidates total is kept as `droppedRowsOtherCandidates`, **optional** in the type: `droppedRows`
+is a claim to the user and every producer owes it; this is a debugging aid, and forcing it into seven
+fixtures that never exercise it would be ceremony.
+
+### B-4 · the one CSV rule that loses the whole file was the one rule not stated in the app
+
+`dueDate` is required and must be `YYYY-MM-DD`; a spreadsheet or bank export writes `9/1/2026`, every row
+is refused. `site/support.html` has always said so — the **in-app** caption did not, and the person pasting
+a CSV is not reading the support site while they do it. ⚡ **The same change that widened the header parser
+argued *"a real export from a bank or a spreadsheet says `Minimum Payment`"* — and that same export says
+`9/1/2026`.** One half of the premise was acted on and the other was not.
+
+### After-scan
+
+- ⚡ **Fixing a parser's ACCEPT path is a change to the REJECT path.** Both B-2 defects are that shape, one
+  of them twice. Worth carrying: after widening what a parser takes, re-ask what it now takes that it should
+  not.
+- 🔴 **Adding a member to `DataRepair['entity']` obliges a consumer sweep, and only the COPY consumer is
+  compiler-gated.** `ENTITY_NOUN`'s exhaustive `Record` caught the noun; `funded` is a behaviour consumer
+  and the compiler cannot see it. → backlog as a gate class.
+- 🔴 **Should the CSV parser ACCEPT `MM/DD/YYYY` rather than only document `YYYY-MM-DD`?** Documenting it
+  is the honest minimum, not necessarily the right answer. 🎯's call — it is a product decision about how
+  much of a real bank export the importer promises to read. → backlog.
+
+---
+
+## ✅ P6.8.9.7.11.5 — the reveal seam *(2026-08-25)*
+
+The `.7.10` convergence: **E** found the stood-down root layer still calling `requestReveal`; **F** found the
+backgrounded Progress screen still registered as the scroll host. One global scroller slot plus tabs that
+never unmount — either alone reads as a detail, together they are the machinery's actual defect.
+
+### F-1 · deregistering on unmount is deregistering never
+
+The cleanup stated the intent exactly — *"or a backgrounded Progress keeps answering for whatever screen is
+up"* — and could not deliver it: no `unmountOnBlur`, so a tab screen's cleanup never runs.
+⛔ **The repo had already written this down, three directories away**: `use-coach-mark.ts:42-45` records
+the *same* confusion being fixed by gating on focus *"because Today never unmounts"*. Third recorded
+instance of mount ≠ visible, and the corrected pattern was in the file that describes it.
+
+### E-2 · a stood-down layer was still asking for a scroll
+
+The reveal effect is declared above the `return null` that stands the root layer down under a sheet, and
+carried no guard — while the verdict effect thirty lines up guards correctly. With a sheet open, both
+layers called `requestReveal`, so a sheet's mark scrolled **the tab underneath it**, twice, invisibly,
+while its own callout did not move and the one-shot latch was spent.
+
+### E-1 · the reveal could not reach the measured height
+
+`calloutH` is written only from the card's `onLayout`; the card does not render until `rect` exists; this
+effect fires on the very commit `rect` arrives. So on the first mark it was `0`, `need` took the 144 guess,
+and the latch on the next line meant the corrected re-run returned immediately.
+⚡ **Placement, 35 lines below, DID get the measurement** — it is computed in the render body and re-runs
+when the state lands. One value, two consumers, only one of them reachable, which is exactly why the
+docblock claiming *"THE MEASURED HEIGHT, NOT THE 140"* read true to its author.
+
+### E-3 · `cancelled` declared, read twice, assigned nowhere
+
+Cleanup was `subscribe`'s unsubscribe returned bare. The effect immediately above does it correctly.
+
+### E-4 · `box-none` opened only the padding ring — and its instrument had been seeded away
+
+`box-none` exempts the card ITSELF and leaves every direct child a hit target. This card has two, and one
+of them is the **sentence**, which is most of the card's area — so *"the control stays live underneath"*
+was false precisely where the callout sits. The sentence now carries `pointerEvents="none"`.
+
+⛔ **Nothing could see it.** `strategy-compare.spec.ts`, the one spec that caught the real thing, was
+changed in the same diff to seed `coachMarksSeen` and no longer renders a mark; the existing *"a hint is
+not a modal"* test clicks a control that does not sit under the callout. **Deleting `box-none` turned
+nothing red.**
+
+⭐ **THE NEW SPEC TOOK THREE ATTEMPTS, AND EACH FAILURE IS THE POINT.**
+
+1. **Two round trips.** `boundingBox()` in the harness, coordinates back into `evaluate` — the reveal
+   scroll settles in that window, so it measured at one offset and probed at another. Rewritten to read the
+   rect and call `elementFromPoint` in the same frame.
+2. ⛔ **It passed vacuously.** `elementFromPoint` returns `null` outside the viewport and `null?.closest()`
+   is falsy — so *"not inside the callout"* is **also true of a callout below the fold**. The first run
+   passed and the planted run failed **for the same reason**, and neither said anything about pointer
+   events. A `hitSomething` guard now asserts the point hit *something* before asserting *what*.
+3. **`toBeVisible()` is not "on screen".** Playwright's visible means in-DOM with a box; this callout is
+   absolutely positioned and can rest below the fold. `toBeInViewport()` is the stated signal — not a
+   `waitForTimeout` — for *"it has come to rest somewhere hit-testable"*.
+
+**Only after all three did the plant red for the right reason:** *"a tap on the callout's own sentence
+reaches what is underneath"* — **expected false, received true.** ⚡ **Two of my own three attempts would
+have shipped a green test over a live defect.**
+
+### D-2 · the subject stopped re-measuring — treated as a hypothesis, not a fact
+
+`TutorialTarget` re-measures from its own `onLayout` and the scrub subject is a fixed-height box, so the
+footer and legend appearing **below** it move nothing and nothing re-measures. ⛔ The overlap this implies
+is a **stated** mechanism (D-2), and this repo has measured four times that a stated mechanism is a
+hypothesis — so the geometry is untouched. All that changed is a re-measure across `skiaReady`, which is
+correct whether or not the overlap is real. The overlap question goes to `.11.8`'s re-shoot.
+
+### After-scan
+
+- 🔴 **D-3: the mis-tap window is closed in one spec and open in ten.** With the sentence now transparent
+  to touch the user-facing half is gone; what remains is **suite flake**. → backlog.
+- ⚡ **The carried result: `toBeVisible()` and `elementFromPoint` disagree about "on screen", and the
+  disagreement is silent in the passing direction.** Any absence assertion built on `elementFromPoint`
+  needs a positive control in the same evaluate.
+
+---
+
+## ✅ P6.8.9.7.11.6 — the weak tests *(2026-08-25)*
+
+- **F-3 · the absence assert did not name what was retired.** A4/M1-9's bullet was *"Check any purchase
+  against your plan before you buy"*; the guard listed premium FEATURE NAMES, none of which appear in it.
+  **Re-adding the exact bullet passed all three assertions.** Aimed at the category, missed the instance it
+  was written for. Both now assert.
+- **F-4 · the spec proves the wrap, not the shrink.** The plant reverted `numberOfLines`. `heroDateFit`
+  also carries `adjustsFontSizeToFit` and `minimumFontScale`, **which RNW drops** — the source says so —
+  so on this harness the fit is delivered by `wordWrap: 'break-word'` and **deleting both shrink props
+  leaves the spec green while iOS truncates.** ⚠️ Not papered over with a stronger assertion: the property
+  is not observable off-device. The docstring now says so, and the P6.14 row is the instrument.
+- **D-6 · a newline hole.** `.` does not match a newline and `innerText()` returns the rendered breaks, so
+  a wrapped takeaway could not match. Failed **safe** (false red), which is why it survived. `s` flag added.
+- **C-3 · the finale→beat arm had no test.** The guard is an upgrade, one direction only. The two existing
+  blocks pin *beat→finale* and *beat→beat*, and **both also pass under the looser inequality** — the
+  natural way to write it, which lets a later beat destroy a persisted finale. Reachable in the ordinary
+  way (clear everything, add a debt, clear it), and `pendingPayoff` survives a relaunch, so the once-ever
+  moment is lost for the life of the install. Now pinned.
+
+---
+
+## ✅ P6.8.9.7.11.7 — claims + docs *(2026-08-25)*
+
+- **D-1 · "REPORTED rather than swallowed" is false on web.** `reportError`'s default sink is a dev-only
+  `console.warn` and `sentry.web.ts` is a deliberate no-op, so with `__DEV__` false nothing happens — and
+  this file only ever runs on web. ⚠️ **The behaviour is right and only the claim was wrong**, which is the
+  harder kind to notice. Not fixed by wiring a web reporter (Sentry is kept out of that bundle on purpose);
+  corrected in place and filed as an observability gap, sharpest on the embed's documented wasm 404.
+- **D-4 · two orphaned docblocks**, each stranded when an `export const` was inserted between a JSDoc and
+  its subject: `ChartSkeleton.tsx` opened with a paragraph describing something eighteen lines below, and
+  `trajectoryDomain.ts` read as though the pill-width helper were the x-axis span. Both re-attached.
+- **D-5 · geometry that stopped being true at `.7.3`.** Four sites still described `trajectory-scrub` as
+  *"the whole trajectory card"* with the y≈570 / 362 pt arithmetic; it is now the 200 pt scrub view. Kept
+  as the argument's origin, marked as history, present tense removed. And `coach-mark-neighbour.spec.ts`
+  justified its wait with *"the scroll is animated"* — `progress.tsx` passes `animated: false`
+  **deliberately**. The wait stays; what it waits for is the re-measure, which is now what it says.
+- **E-5 · two credit errors.** A 22-line copy of the reveal docblock sat in the render body describing a
+  mechanism that had moved into the effect — deleted. `box-none` was credited with fixing
+  `strategy-compare.spec.ts`; **the shipped spec was fixed by seeding the mark away**, and two changes
+  landing together is how `box-none` came to look verified. And the zero-overlap assertion was called
+  *"strictly stronger, not looser"* when on the predicate it is strictly **weaker**. ⚡ What makes the swap
+  right is that the extra thing the old form asserted was **never a property that block claims**. A test is
+  not improved by asserting more; it is improved by asserting the thing it names.
+
+---
+
+## ✅ P6.8.9.7.11.8a — the re-shoot, and what the frames said *(2026-08-25)*
+
+**236 recipes, 12.5 min, 0 UNREACHED.** ⛔ **A green run is not the result — the frames are.** Three
+questions were carried into this shoot deliberately, and the answers came from looking.
+
+### ⭐ D-2 is REAL, and it is now MEASURED rather than stated
+
+Cluster D filed *"the coach-mark subject stopped re-measuring"* as a mechanism it had not measured, and
+`.11.5` deliberately refused to change geometry on the strength of it. **The re-shot frames settle it:** in
+`phone/dark/progress.png` and `state-progress-many.png` the *"Drag the curve"* callout sits **below the
+plot and across the trajectory card's own footer** — the axis label row, the What-If row and the compare
+toggle are behind it.
+
+⚠️ **Scope it honestly.** The callout does **not** cover its subject (the plot is fully visible, which is
+what `.7.3` was for), and `.11.5` made the sentence transparent to touch, so the controls underneath are
+still operable. What remains is **visual**: on a first visit, a dismissible hint hides the card's two
+secondary controls. That is the price of not covering the subject, and it is a judgement call, not a defect.
+
+### ⭐ P1-2 is CLOSED — one of the four majors that reached no ledger
+
+P1-2 said the feature tip *"covers the lower half of the Cash Flow bars"* in five frames, taking the dashed
+`your $200` floor line, the five date labels, the legend and the verdict with it — *"none of that reaches
+the phone."* **All of it reaches the phone now.** Verified on the sharpest case it cited,
+`state-progress-many.png`: the **`-$658`** bar — *"the one bar a user most needs to see"* — is fully
+visible, with the floor line, all five labels, the legend and *"A cycle runs short ahead — plan for it."*
+
+Closed by `.7.3`'s reveal (the page scrolls to make room) rather than by anything aimed at P1-2. ⚡ **The
+finding reached no ledger and was fixed anyway, by work aimed at a different id** — which is exactly why
+the exit criterion is *pinned*, not *mentioned*.
+
+### P1-3 also draws now
+
+The same frame that P1-3 described as *"nine empty years, a stranded Oct 2026 pill outside the axis
+domain"* renders the curve, an Oct–Dec domain taken from the user's own plan, and the pill inside it.
+
+### ⚠️ The seed-bleed fix: proven on one surface, unprovable on the other two
+
+`history` was proven **before and after** — I held both frames. `paywall` now shows the free-tier upgrade
+view its `seedOver` asks for, and `onboarding` shows onboarding. But whether those two were *wrong before*
+is **unrecoverable**: `apps/rn/capture-ref/` is **gitignored**, so a re-shoot overwrites the only copy.
+
+⛔ **That is a property of the instrument worth naming: the matrix has no history.** A frame's prior state
+cannot be recovered after a re-shoot, which is precisely what makes a silent seed bleed unauditable in
+hindsight — and it is why `.9.1`'s *"0 stale"* and every earlier frame-based finding are not reproducible
+from the repo. → backlog.
+
+---
+
+## ✅ P6.8.9.7.11.8b — the gate went RED, and it caught me breaking [D17] *(2026-08-25)*
+
+⛔ **The harness reported "exit code 0". The gate's own summary said `❌ Comment convention ([D17])`.**
+Sixth recorded instance this workstream, and the standing constraint is the only reason it was read.
+
+### What it caught, and why it is the right catch
+
+Two comments in the `.11` diff annotated a false comment instead of deleting it — the exact shape [D17]
+exists to stop, stated in the gate's own failure text: *"correcting a false comment means DELETING it, not
+annotating it."* ⚡ **The whole of `.11.7` was correcting false comments**, so writing *"this said X, and X
+is false"* felt like precision. It is how a lean file regrows: the next reader gets the wrong claim **and**
+the correction, forever.
+
+Both rewritten to state the current truth, with the history of the CODE kept (which [D17] explicitly
+permits) and the history of the COMMENT dropped. Two more of my own annotations in the same class were
+found by re-reading rather than by the gate, and fixed with them.
+
+### ⭐ The gate could not see two of the three trees the diff touched
+
+`check-comment-convention.ts` walked `apps/rn/src` and `apps/rn/tests` only — not `packages/core`, not
+`scripts`. [D17] is a convention about how this repo writes comments, and the gates in `scripts/` are the
+most heavily commented code in it.
+
+**Measured before widening: zero existing violations in either tree**, so it cost nothing to close.
+Plant-verified in both directions — a meta-comment planted in `packages/core` reds, and one planted in
+`scripts/` reds too, which proves the new exemption is scoped to a single file rather than to the tree.
+
+⚠️ **That exemption is the checker's own file**, whose docstrings must quote *"six call sites"* and *"all
+FIVE published values"* as the examples that define the rule. **A gate cannot state its class without
+naming it** — so the owner is skipped by exact path, never by directory.
+
+### ⚠️ Two stray files, both created by a plant
+
+`>>` **creates the file if the path does not exist**, so a plant aimed at a mistyped path succeeds, reds
+the gate, and proves nothing about the file that was meant to be tested. It produced
+`packages/core/imports/amountField.ts` (the real one is in `utils/`) and `scripts/check-secrets.ts` (the
+real one is `check-committed-secrets.ts`). Both removed; `git status` is how they were found, because
+`git checkout` on an untracked path fails loudly while the edit itself had failed silently.
+
+⚡ **A plant that lands somewhere unintended still turns the gate red, which reads exactly like success.**
+The check is `git status`, before trusting the red.
+
+### After-scan
+
+- ⚡ **The class I widened, I had first under-measured.** The pre-check grepped **four** of the checker's
+  eleven `META` patterns and reported zero — the real clean run then found violations. The repo's
+  most-measured result, repeated by me inside the step that was closing it: *an enumeration that came up
+  short once comes up short again.* The fix was to run the actual gate rather than a hand-rolled subset.

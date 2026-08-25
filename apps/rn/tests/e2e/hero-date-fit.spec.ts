@@ -24,6 +24,15 @@ import { scenario, seedStore, day } from './helpers/seed';
  * ⚡ That is a property of the defect, not a weakness to paper over: V2-1's own evidence is that the month
  * NAME's advance width decides it, so the narrow width is the one that always tells the truth.
  *
+ * ⛔ **WHAT THE PLANT DID NOT PROVE, and the first version of this docstring implied it had.**
+ * [P6.8.9.7.11.6] The plant reverted `numberOfLines`, so it proves the **wrap**. `heroDateFit` also
+ * carries `adjustsFontSizeToFit` and `minimumFontScale`, and **react-native-web drops both** — the source
+ * says so at `progress.tsx:50`. So on this harness the fit is delivered entirely by RNW's
+ * `wordWrap: 'break-word'`, and **deleting both shrink props leaves this spec green while iOS truncates.**
+ * ⚠️ Nothing in this repo can reach that half. It is not a gap to be papered with a stronger assertion
+ * here — the property is not observable off-device — it is the P6.14 row *"Read the Progress hero on a
+ * small device at a wide month"*, and that row is the instrument. Do not read this spec as covering it.
+ *
  * ⚠️ **Measures OVERFLOW, not equality with an expected string.** `heroDateFit` sets `numberOfLines: 2`, so
  * a too-long value is clipped rather than wrapped past its box — and clipped content is exactly what
  * `scrollHeight > clientHeight` reports and what reading text cannot. This asserts the property (it fits)

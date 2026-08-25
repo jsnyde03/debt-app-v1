@@ -27,8 +27,26 @@ export interface LegacyReadReport {
   opened: { path: string; rows: number; legacyKeys: number; error?: string }[];
   /** The database judged to be ours, decoded — or `null` when none held a `debtPlanner.*` key. */
   store: LegacyStoreCandidate | null;
-  /** Rows that would not decode and were dropped. Non-zero means the migration is INCOMPLETE. */
+  /**
+   * Rows that would not decode in **the database judged to be ours**. Non-zero means the migration is
+   * INCOMPLETE — and because P6.8.9.7.6 wired this to a user-facing line, it has to mean exactly that.
+   *
+   * ⛔ **It used to be the sum across EVERY candidate**, added up before `pickLegacyStore` had chosen
+   * which one was the user's. A container holding a second WebKit database — a case `readLegacyStores`
+   * explicitly anticipates and `pickLegacyStore` exists to disambiguate — told the upgrader *"N row(s) of
+   * your old data could not be read"* when nothing of theirs was lost. (P6.8.9.7.10 · C-1.)
+   */
   droppedRows: number;
+  /**
+   * The same count across the candidates that were NOT picked. Diagnostics only — never shown to a user,
+   * because rows in someone else's database are not their loss. Kept because it is genuinely useful when
+   * `pickLegacyStore` chose wrong, which is the failure this separation makes visible instead of hiding.
+   *
+   * ⚠️ **Optional deliberately.** `droppedRows` is required because it is a claim to the user and every
+   * producer owes it; this one is a debugging aid, and absent means "not measured" rather than "zero".
+   * Making it required would force a meaningless value into seven fixtures that do not exercise it.
+   */
+  droppedRowsOtherCandidates?: number;
 }
 
 /**

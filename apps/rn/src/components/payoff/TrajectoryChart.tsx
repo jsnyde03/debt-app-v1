@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type GestureResponderEvent, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -16,7 +16,7 @@ import { groupLabel, a11yExpanded } from '@/utils/a11y';
 import { useSkiaReady } from '@/utils/skia-ready';
 import { formatWhole } from '@/utils/format';
 
-import { TutorialTarget } from '@/store/tutorialTargets';
+import { TutorialTarget, useTutorialTargets } from '@/store/tutorialTargets';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
 import { StrategyCompare } from './StrategyCompare';
@@ -159,6 +159,22 @@ export function TrajectoryChart({
   const [w, setW] = useState(0);
   const { fontScale } = useWindowDimensions();
   const skiaReady = useSkiaReady(TRAJECTORY_SKIA_CHUNK);
+  /**
+   * ⚠️ **`skiaReady` is a layout change this coach-mark subject cannot see.** [P6.8.9.7.11.5]
+   * `TutorialTarget` re-measures from its OWN `onLayout`, and the scrub subject is a fixed `height: H`
+   * box — so when the chart resolves and the footer and legend BELOW it appear, the subject does not move
+   * and nothing re-measures. The callout is placed under the subject, i.e. over the region that grew.
+   *
+   * ⛔ **The overlap itself is a STATED mechanism, not a measured one** (P6.8.9.7.10 · D-2), and this repo
+   * has now measured four times that a stated mechanism is a hypothesis. So this deliberately does not
+   * move the subject or touch the geometry — it only re-measures across a content change the component
+   * already knows about, which is correct whether or not the overlap turns out to be real. The overlap
+   * question itself is filed for the `.11.8` re-shoot.
+   */
+  const targets = useTutorialTargets();
+  useEffect(() => {
+    targets?.invalidate('trajectory-scrub');
+  }, [targets, skiaReady]);
   // What-If is a secondary, opt-in tool — collapsed by default so the resting card stays calm.
   const [whatIfOpen, setWhatIfOpen] = useState(false);
   // C7 — the strategy comparison, collapsed by default for the same reason What-If is.
@@ -360,6 +376,17 @@ export function TrajectoryChart({
         ⚡ It is also the semantically right subject: the mark says *"Drag the curve"*, and THIS is the view
         that handles the drag (`onResponderGrant={handleScrub}`). The disclosures below it are not the
         thing being coached.
+      */}
+      {/*
+        ⚠️ **`skiaReady` is a layout event this subject cannot see.** [P6.8.9.7.11.5] `TutorialTarget`
+        re-measures from its OWN `onLayout`, and this subject is a fixed `height: H` box — so when the
+        chart resolves and the footer (`:498`) and legend (`:504`) BELOW it appear, the subject does not
+        move and nothing re-measures. The callout is placed under the subject, i.e. over exactly the
+        region that just grew.
+        ⛔ **The overlap itself is a stated mechanism, not a measured one** (P6.8.9.7.10 · D-2), and this
+        repo has measured four times that a stated mechanism is a hypothesis — so this does NOT move the
+        subject or change the geometry. It only makes the measurement honest across a content change the
+        component already knows about. The overlap question is filed for the `.11.8` re-shoot.
       */}
       <TutorialTarget id="trajectory-scrub">
       <View

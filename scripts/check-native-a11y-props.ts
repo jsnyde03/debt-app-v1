@@ -131,24 +131,73 @@ const OWNED = [
   },
 ] as const;
 
+/**
+ * ⛔ **THE SYMMETRIC HALF — a bare `announce()` is silence in every BROWSER.** `OWNED` above catches a live
+ * region written without its iOS half; this catches the iOS half written without its region.
+ * `utils/a11y.ts:152` states the asymmetry as a table: `announceForAccessibility` is **an empty function
+ * body** on react-native-web. `useLiveAnnouncement` is the only spelling that speaks on both.
+ *
+ * ⚠️ **BASELINED, NOT EXEMPTED, AND THE DIFFERENCE IS HONESTY.** Six sites already call it bare. Whether a
+ * route-title announcement (`cushion-forecast`, `demo`, `schedule/[id]`) *should* become a live region is a
+ * real a11y question with a real answer on a device, and writing six confident `why` strings I cannot
+ * defend would convert an open question into a settled-looking list. So the class is gated going forward —
+ * a NEW file, or a NEW call in a baselined one, reds — and the sweep is filed at §12.8 as a device row.
+ * (P6.8.9.7.10 · A-5 residual.)
+ */
+const BARE_ANNOUNCE_BASELINE: Record<string, number> = {
+  'apps/rn/src/app/(tabs)/index.tsx': 2,
+  'apps/rn/src/app/cushion-forecast.tsx': 1,
+  'apps/rn/src/app/demo.tsx': 1,
+  'apps/rn/src/app/schedule/[id].tsx': 1,
+  'apps/rn/src/components/plan/TutorialOverlay.tsx': 1,
+};
+
+const announceHits: string[] = [];
+const ownedHits: string[] = [];
 for (const root of ROOTS) {
   for (const file of walk(root)) {
     // Same `rel` spelling as the loop above — forward slashes, so `ownerFile` reads alike on Windows and CI.
     const rel = relative(REPO_ROOT, file).split(sep).join('/');
+    // ⛔ **`EXEMPT` IS CONSULTED HERE TOO, BECAUSE THE FAILURE MESSAGE PROMISES IT IS.** The first cut
+    // skipped only the owner file, so the gate told the reader to *"declare it per-prop in EXEMPT"* and
+    // then ignored the entry they wrote — an instruction a gate gives and does not honour is worse than
+    // no instruction, because it costs a cycle to disbelieve. (P6.8.9.7.10 · A-5.)
+    const allowed = EXEMPT[rel] ?? [];
     const src = readFileSync(file, 'utf8');
     const raw = src.split('\n');
-    stripComments(src)
-      .split('\n')
-      .forEach((line, i) => {
-        for (const o of OWNED) {
-          if (rel === o.ownerFile) continue;
-          if (new RegExp(`\\b${o.prop}\\b`).test(line)) {
-            hits.push(`${rel}:${i + 1}: ${o.prop} written by hand — ${o.why}. Use ${o.owner}. — ${raw[i]?.trim() ?? ''}`);
-          }
+    const stripped = stripComments(src);
+    stripped.split('\n').forEach((line, i) => {
+      for (const o of OWNED) {
+        if (rel === o.ownerFile || allowed.includes(o.prop)) continue;
+        if (new RegExp(`\\b${o.prop}\\b`).test(line)) {
+          ownedHits.push(`${rel}:${i + 1}: ${o.prop} written by hand — ${o.why}. Use ${o.owner}. — ${raw[i]?.trim() ?? ''}`);
         }
-      });
+      }
+    });
+    // Comments are already blanked, so the prose that EXPLAINS this trap does not count as a call.
+    if (rel !== 'apps/rn/src/utils/a11y.ts') {
+      const calls = stripped.match(/\bannounce\s*\(/g)?.length ?? 0;
+      const baselined = BARE_ANNOUNCE_BASELINE[rel] ?? 0;
+      if (calls > baselined) {
+        announceHits.push(
+          `${rel}: ${calls} bare announce() call(s), baseline ${baselined} — ` +
+            'announceForAccessibility is an empty function on react-native-web, so this is silent in every ' +
+            'browser. Use useLiveAnnouncement (@/utils/a11y), which owns both halves',
+        );
+      }
+    }
   }
 }
+
+/**
+ * ⛔ **TWO CLASSES, TWO DIAGNOSES.** One headline covered both lists and said *"dropped silently by
+ * react-native-web"* — which is **false of every `OWNED` hit**, and this file's own docstring (`:115-118`)
+ * is where it is established as false: RNW *does* forward `accessibilityLiveRegion`, to `aria-live`. The
+ * `OWNED` failure is the opposite shape — the prop works on web and is **silent on iOS**.
+ * ⚠️ A gate that mis-states the mechanism sends the reader to fix the wrong thing, and this repo has now
+ * measured four times that a stated mechanism is a hypothesis. (P6.8.9.7.10 · A-5.)
+ */
+let failed = false;
 
 if (hits.length > 0) {
   console.error('\n❌ Native-only a11y props found (dropped silently by react-native-web):\n');
@@ -156,12 +205,33 @@ if (hits.length > 0) {
   console.error('\nUse the aria-* equivalent, or a helper from @/utils/a11y (a11yHidden, decorative,');
   console.error('a11yChecked, a11yAdjustableValue). If a native-only prop is genuinely wanted, declare');
   console.error('it per-prop in EXEMPT with the reason — do not exempt the whole file.\n');
-  process.exit(1);
+  failed = true;
 }
+
+if (ownedHits.length > 0) {
+  console.error('\n❌ A11y props written by hand where a helper owns BOTH halves of the platform split:\n');
+  ownedHits.forEach((h) => console.error(`  ${h}`));
+  console.error('\nThese are NOT dropped by react-native-web — they work on web and do nothing on iOS,');
+  console.error('which is why the helper exists and why half a fix looks exactly like a whole one. Use the');
+  console.error('named owner. If a site genuinely wants the web-only half, declare it per-prop in EXEMPT\n');
+  console.error('with the reason — do not exempt the whole file.\n');
+  failed = true;
+}
+
+if (announceHits.length > 0) {
+  console.error('\n❌ Bare announce() — speaks on iOS, silent in every browser:\n');
+  announceHits.forEach((h) => console.error(`  ${h}`));
+  console.error('\nUse useLiveAnnouncement (@/utils/a11y). If this site genuinely wants the iOS-only half,');
+  console.error('raise its BARE_ANNOUNCE_BASELINE entry in scripts/check-native-a11y-props.ts and say why.\n');
+  failed = true;
+}
+
+if (failed) process.exit(1);
 // ⚠️ Counts BOTH lists. It said `BANNED.length` when `OWNED` was added, which undercounts what the gate
 // actually guards — and a completeness figure that omits part of its own coverage is precisely the defect
 // P6.8.9.1 found in the shot matrix ("226 frames", four of which never existed).
 console.log(
-  `✅ native a11y props: ${BANNED.length} dropped-by-RNW + ${OWNED.length} owned-by-a-helper guarded, ` +
+  `✅ native a11y props: ${BANNED.length} dropped-by-RNW + ${OWNED.length} owned-by-a-helper + ` +
+    `bare announce() across ${Object.keys(BARE_ANNOUNCE_BASELINE).length} baselined file(s) guarded, ` +
     'none outside the declared exemptions.',
 );

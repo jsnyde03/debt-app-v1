@@ -3,12 +3,6 @@ import { View } from 'react-native';
 import { useAppColors } from '@/hooks/use-app-colors';
 
 /**
- * Faint placeholder shown while a Skia canvas's CanvasKit bundle loads on **web** (the `.web` canvases'
- * `fallback`), so a chart card never flashes empty. Native compiles Skia in, so this path isn't hit there.
- * A ghosted ring or a few gridlines — evokes the chart's shape at rest, in the subtlest border tint.
- */
-
-/**
  * ⛔ **THE TESTID IS AN INSTRUMENT CONTRACT, AND IT EXISTS BECAUSE THIS COMPONENT IS INVISIBLE TO A
  * SCREENSHOT.** P6.8.9.7.5, 2026-08-24.
  *
@@ -31,6 +25,15 @@ import { useAppColors } from '@/hooks/use-app-colors';
  */
 export const CHART_SKELETON_TESTID = 'chart-skeleton';
 
+/**
+ * Faint placeholder shown while a Skia canvas's CanvasKit bundle loads on **web** (the `.web` canvases'
+ * `fallback`), so a chart card never flashes empty. Native compiles Skia in, so this path isn't hit there.
+ * A ghosted ring or a few gridlines — evokes the chart's shape at rest, in the subtlest border tint.
+ *
+ * ⚠️ This docblock belongs to the COMPONENT. It was left stranded above `CHART_SKELETON_TESTID` when that
+ * const was inserted between the two, so the file opened with a paragraph describing something eighteen
+ * lines below it. (P6.8.9.7.10 · D-4.)
+ */
 export function ChartSkeleton(
   props: { shape: 'ring'; size: number; stroke?: number } | { shape: 'rect'; width: number; height: number },
 ) {

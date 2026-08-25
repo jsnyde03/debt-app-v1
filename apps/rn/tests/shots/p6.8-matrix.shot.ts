@@ -30,10 +30,13 @@ import { day, scenario } from '../e2e/helpers/seed';
  * was owed. **The true size was 230.** Thirteen lenses and six refuters then read a matrix that had
  * absorbed its own holes into its headline count, with no frame of the Log-a-payment sheet at all.
  *
- * ⚡ The fix is `expect.soft`, not `throw`: a hard throw in the text-scale block — which loops surfaces
- * INSIDE one test — would cost every surface after the first failure its frame, trading four known holes
- * for a variable number of new ones. Soft keeps every frame this run can produce **and still exits 1**,
- * and a non-zero exit is the one thing a headline count cannot absorb.
+ * ⚡ The fix is `expect.soft`, not `throw`: one surface failing to reach its subject must not read as "the
+ * pass is broken", and soft keeps every frame this run can produce **and still exits 1** — a non-zero exit
+ * being the one thing a headline count cannot absorb.
+ * ⚠️ **The original rationale here was "the text-scale block loops surfaces INSIDE one test, so a throw
+ * costs every later surface its frame." That is no longer true** — P6.8.9.7.11.2 split that block to one
+ * test per surface, because the shared page was silently losing seeds. Soft is still right, for the
+ * smaller reason above, but the sentence that justified it described a structure that is gone.
  *
  * ⛔ **WHAT THIS CANNOT CAPTURE, stated so no lens over-claims from it** *(measured, not assumed —
  * `DEBT_3.5_DEVICE_QA_CHECKLIST.md:213`)*: react-native-web has **no OS text scaling**
@@ -70,7 +73,9 @@ function seed(theme: string, over: Record<string, unknown> = {}) {
 /** ⛔ The states nothing else in the repo renders. Each one is a design question, not a data question. */
 const STATES: Record<string, Record<string, unknown>> = {
   // The shape 25 of 39 e2e specs accidentally used, and the one a brand-new user actually has.
-  empty: { debts: [], requiredExpenses: [], goals: [], livingExpenses: [] },
+  // ⚠️ `cycleHistory` was missing and `/history`'s `seedOver` supplies five — see the guard at the state
+  // recipe. Every collection any `seedOver` sets has to be named here, and the guard is what says so.
+  empty: { debts: [], requiredExpenses: [], goals: [], livingExpenses: [], cycleHistory: [] },
   // One of each — where "a list" and "a single item" are different designs and usually only one exists.
   single: { debts: [{ id: 'd0', name: 'Card', balance: 1200, minimumPayment: 40, apr: 19.99, dueDate: day(7), type: 'debt', recurrence: 'monthly' }], requiredExpenses: [], goals: [] },
   // Enough rows to push every list past its scroll, and past any fixed-height container.
@@ -168,9 +173,12 @@ const SURFACES: Surface[] = [
   // appeared in none of them. ⚠️ `states: ['empty']` still pins the empty branch explicitly, so nothing
   // is lost; what is gained is the branch four lenses were blind to.
   //
-  // ⚠️ `/history` has the SAME defect and is NOT fixed here: its rows come through `selectHistoryRows`
-  // off cycle records, not off a plain array, so seeding it is a real fixture and not a one-liner.
-  // Filed to P6.8.9.5 rather than guessed at.
+  // ⛔ **THIS COMMENT WAS FALSE, AND SO WAS ITS REASON.** It said `/history` had the same defect, was NOT
+  // fixed here, and needed "a real fixture and not a one-liner" because rows come through
+  // `selectHistoryRows` off cycle records. `cycleHistory` is a plain array, the selector reads three
+  // fields, and `/history`'s `seedOver` sits fifteen lines above this — it WAS fixed, in the same change
+  // that wrote the sentence saying it was not. ⚡ **A deferral is a claim about cost, and that one was
+  // never measured.** (P6.8.9.7.10 · A-7.)
   {
     name: 'living-expenses',
     goto: '/living-expenses',
@@ -449,7 +457,31 @@ for (const theme of THEMES) {
     for (const s of SURFACES) {
       for (const stateName of s.states ?? []) {
         test(`state ${s.name}/${stateName} (${theme})`, async ({ page }) => {
-          await reseed(page, seed(theme, { ...(s.seedOver ?? {}), ...STATES[stateName] }), s.goto);
+          const merged = { ...(s.seedOver ?? {}), ...STATES[stateName] };
+          /**
+           * ⛔ **A STATE CANNOT OVERRIDE A KEY IT DOES NOT NAME, AND `empty` HAS TO NAME THEM ALL.**
+           * `/history`'s `seedOver` supplies five `cycleHistory` snapshots and `STATES.empty` did not
+           * carry that key, so the spread left them in place and `state-history-empty` photographed the
+           * **populated** screen. `<EmptyHistory>` then appeared in no frame in the entire matrix — the
+           * gap the `seedOver` was added to close, inverted rather than closed. (P6.8.9.7.10 · A-1.)
+           *
+           * ⚡ **Gated as a class, not fixed as a key.** Adding `cycleHistory: []` to `STATES.empty` fixes
+           * today and says nothing about the next `seedOver` someone adds — and `/living-expenses` escaped
+           * only because `STATES.empty` happens to list `livingExpenses`, which is an accident, not a
+           * mechanism. This asserts the property the state's NAME claims.
+           */
+          if (stateName === 'empty') {
+            const populated = Object.entries(merged)
+              .filter(([, v]) => Array.isArray(v) && v.length > 0)
+              .map(([k]) => k);
+            if (populated.length > 0) {
+              throw new Error(
+                `state "empty" for ${s.name} still carries populated ${populated.join(', ')} from its seedOver — ` +
+                  'STATES.empty must name every collection any seedOver sets, or the frame is of the populated design',
+              );
+            }
+          }
+          await reseed(page, seed(theme, merged), s.goto);
           try {
             await settle(page);
             await shot(page, 'phone', theme, `state-${s.name}-${stateName}`);
@@ -480,8 +512,30 @@ for (const theme of THEMES) {
     test.use({ viewport });
 
     for (const scale of [1.35, 2.0]) {
-      test(`text at ${scale}× (${vpName}/${theme})`, async ({ page }) => {
-        for (const s of SURFACES) {
+      /**
+       * ⛔ **ONE TEST PER SURFACE — this block looped ten of them inside ONE test, and the rule it broke is
+       * stated 140 lines above it, in this same file.** That rule is not about tidiness or timeouts. It is
+       * there because *"the PREVIOUS surface's app is still alive when the next seed is written, and its
+       * 500 ms autosave debounce fires and puts its own store back over the blob."* A shared page cannot
+       * be reseeded reliably; only a fresh one can.
+       *
+       * ⚡ **MEASURED, NOT REASONED — P6.8.9.7.11.2 compared the two frames.**
+       * `phone/dark/history.png` (route block, one test per surface) shows five cycles and *"$2,560 paid
+       * down"*. `phone/dark/textscale-2x-history.png` (this block, ten surfaces per test), from the **same
+       * `seedOver`, theme and viewport**, shows *"No finished cycles yet."* **The seed did not take.**
+       *
+       * ⚠️ **And it is invisible by construction.** The frame exists, it is not stale, it is not UNREACHED
+       * — every completeness signal the shooter has says fine. It only shows where a `seedOver` adds
+       * something the base seed lacks; `/living-expenses` looks correct because the base seed already
+       * carries `livingExpenses`, which is an accident and not a defence.
+       *
+       * Splitting also retires the shared-timeout hazard the old `expect.soft` was patching: ten surfaces
+       * shared one 180 s budget, and `settle`'s 15 s skeleton wait meant a handful of stalls — the
+       * measured case under four-way contention — could take the whole test down with everything after it.
+       */
+      for (const s of SURFACES) {
+      test(`text at ${scale}× ${s.name} (${vpName}/${theme})`, async ({ page }) => {
+        {
           await reseed(page, seed(theme, s.seedOver), s.goto);
           try {
             await settle(page);
@@ -502,12 +556,13 @@ for (const theme of THEMES) {
             console.log(`  ✓ textscale ${scale}× ${vpName}/${theme}/${s.name}`);
           } catch (e) {
             console.log(`  ⛔ UNREACHED textscale ${scale}× ${vpName}/${theme}/${s.name} — ${(e as Error).message.split('\n')[0]}`);
-            // ⚠️ Soft matters MOST here: this block loops surfaces inside ONE test, so a throw would
-            // cost every surface after this one its frame.
+            // ⚠️ Still soft: one surface failing to settle must not read as "the text-scale pass is broken".
+            // It no longer has to carry the other nine — each has its own test and its own budget now.
             expect.soft(`textscale ${scale}× ${vpName}/${theme}/${s.name}`, 'text-scale recipe reached nothing').toBeNull();
           }
         }
       });
+      }
     }
   });
 }
@@ -517,17 +572,23 @@ for (const theme of THEMES) {
 //
 // ⛔ **P6.8.9.1 — THE STATE THE MATRIX HAS NEVER SHOT.** Both of the Trajectory card's disclosures ship
 // COLLAPSED, and for the strategy compare that is a deliberate choice ([D59]: "should I switch?" is an
-// occasional question, so opening it must not disturb the resting card). The consequence is that all 226
-// frames photograph the card at rest, and **everything behind both toggles has never been in the evidence
-// set at all** — including the entire C7 surface that cluster g built.
+// occasional question, so opening it must not disturb the resting card). The consequence is that **every
+// other frame in the matrix** photographs the card at rest, and everything behind both toggles had never
+// been in the evidence set at all — including the entire C7 surface that cluster g built.
+// ⚠️ This read "all 226 frames" and the count was already wrong when it was written; a literal total in
+// prose ages the moment a recipe is added. The claim it needs to make is *"every other frame"*, which
+// cannot go stale. (P6.8.9.7.10 · A-7.)
 //
 // ⚠️ g.5 stacked the second disclosure directly beneath the first, so the two now share one bottom edge
 // treatment. Whether they read as a stack or as clutter is a question **no closed frame can pose**, which
 // is why the both-open state is shot rather than either-open.
 //
-// ⚠️ `coachMarksSeen` is seeded here and nowhere else in this file: the mark's overlay intercepts pointer
-// events, so without it this recipe would time out rather than click. Every other block in this file only
-// navigates, which is why the omission has never bitten it.
+// ⚠️ `coachMarksSeen` is seeded here **and in the sheet block above** (see the `prefs` merge there): the
+// mark's card sits over the control, so without it a recipe that CLICKS can mis-tap or time out. Blocks
+// that only navigate are unaffected, which is why the omission took so long to bite.
+// ⛔ This used to claim the seeding happened "nowhere else in this file", which was false in the same
+// commit that wrote it — and the correction matters, because "nowhere else" is the sentence that stops
+// the next person looking. (P6.8.9.7.10 · A-7.)
 /**
  * ⛔ **A COMPARISON NEEDS SOMETHING TO COMPARE, and the default seed has ONE debt.** With one debt
  * snowball and avalanche are the same list, so the first version of `strategy-compare-full` photographed
@@ -536,12 +597,12 @@ for (const theme of THEMES) {
  * (Store card, $800) and avalanche the highest APR first (Big card, 27%). Same debts, opposite first row —
  * which is exactly the difference [D59] chose to show instead of two indistinguishable curves.
  */
-const DIVERGENT = {
-  debts: [
-    { id: 'd0', name: 'Store card', balance: 800, minimumPayment: 25, apr: 8.0, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
-    { id: 'd1', name: 'Big card', balance: 6000, minimumPayment: 120, apr: 26.99, dueDate: day(11), type: 'debt', recurrence: 'monthly' },
-  ],
-};
+// ⛔ **ONE DEFINITION, NOT A BYTE COPY.** This was duplicated from `STATES.divergent` verbatim — two
+// portfolios that MUST disagree about strategy order, maintained in two places, where editing one balance
+// silently makes the state frames and the disclosure frames disagree about what "divergent" means. The
+// whole value of this seed is that snowball and avalanche pick opposite first rows; a drifted copy keeps
+// the name and loses the property. (P6.8.9.7.10 · A-7.)
+const DIVERGENT = STATES.divergent;
 
 const EXPANDED: { name: string; goto: string; open: (page: Page) => Promise<unknown>; seedOver?: Record<string, unknown> }[] = [
   {

@@ -44,6 +44,15 @@ for (const theme of ['light', 'dark'] as const) {
      */
     await expect(page.getByText('Private by design')).toBeVisible();
     await expect(page.getByText(/never be sold more debt/)).toBeVisible();
+    /**
+     * ⛔ **THE ABSENCE ASSERT DID NOT NAME THE THING THAT WAS RETIRED.** [P6.8.9.7.11.5] The regex below
+     * lists premium FEATURE NAMES, and A4/M1-9's retired bullet was a sentence — *"Check any purchase
+     * against your plan before you buy"* — which contains none of those words. **Re-adding that exact
+     * bullet passed all three assertions in this block.** The guard was aimed at the category and missed
+     * the instance it was written for. (P6.8.9.7.10 · F-3.)
+     */
+    await expect(page.getByText(/Check any purchase against your plan/i)).toHaveCount(0);
+    // The broader net stays: it catches a DIFFERENT premium promise arriving in this slot later.
     await expect(page.getByText(/Smart Insights|Forecast|What-If|Strategy Comparison/i)).toHaveCount(0);
   });
 

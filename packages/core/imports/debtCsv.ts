@@ -250,14 +250,33 @@ export function parseDebtCsvText(text: string, options: DebtCsvOptions): DebtCsv
 		 * (B1's owner). `%` is meaningful for a RATE and meaningless for an amount; widening the shared
 		 * parser would make `$40%` a valid bill.
 		 */
-		const apr = parseOptionalAmount(rawApr.replace(/%/g, ""));
-		if (apr === null || apr > 100) {
-			const readable = Number(rawApr.replace(/[,\s$%]/g, ""));
-			errors.push(
-				Number.isFinite(readable)
-					? `Row ${rowNumber}: APR must be between 0 and 100`
-					: `Row ${rowNumber}: could not read APR "${rawApr}" — leave it blank for 0%.`,
-			);
+		/**
+		 * ⛔ **ONE TRAILING `%`, NOT EVERY `%` — and a cell that strips to nothing is UNREADABLE, not blank.**
+		 * [P6.8.9.7.11.4] The fix above stripped `%` globally and handed the result to
+		 * `parseOptionalAmount`, whose blank contract is `if (cleaned === '') return 0` — so an APR cell of
+		 * **`"%"` imported as 0%**, and `"1%2"` imported as **12%**. That is the silent zero this very
+		 * function forbids twice in its own comments: a wrong PLAN, not a skipped row. ⚡ **The fix for the
+		 * refusal wrote the defaulting it was written to prevent** — the accept path and the reject path
+		 * swapped which one was wrong.
+		 *
+		 * A rate is written `19.99%`, never `1%2`, so only a trailing sign is stripped; anything else keeps
+		 * its `%` and fails to parse, which is the correct outcome for a cell nobody meant.
+		 */
+		const rawTrimmed = rawApr.trim();
+		const aprText = rawTrimmed.replace(/%$/, "").trim();
+		const apr = rawTrimmed !== "" && aprText === "" ? null : parseOptionalAmount(aprText);
+		/**
+		 * ⚠️ The two messages are decided by the PARSE, not by a second re-read of the raw cell. The old
+		 * branch re-parsed with `Number(...)` to guess which message to use, and `Number("")` is `0` — so
+		 * `"%"` was reported as *"must be between 0 and 100"*, the same false message the `19.99%` fix
+		 * existed to remove, on a different input. `apr === null` IS unreadable; `apr > 100` IS out of range.
+		 */
+		if (apr === null) {
+			errors.push(`Row ${rowNumber}: could not read APR "${rawApr}" — leave it blank for 0%.`);
+			return;
+		}
+		if (apr > 100) {
+			errors.push(`Row ${rowNumber}: APR must be between 0 and 100 — got ${apr}.`);
 			return;
 		}
 

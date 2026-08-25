@@ -241,6 +241,30 @@ function runDebtCsvTests() {
 		eq(r.errors.length, 0, "an APR written with a percent sign imports cleanly");
 		eq(r.debts[0]?.apr, 19.99, "…and keeps its value");
 	}
+	// ── [P6.8.9.7.11.4] THE BLAST RADIUS OF THE FIX ABOVE ──
+	//
+	// ⛔ Stripping every `%` and handing the rest to `parseOptionalAmount` — whose blank contract is
+	// `return 0` — turned two unreadable cells into a **silent 0% and a silent 12%**. A wrong PLAN, which
+	// is the outcome this file forbids in its own comments, written BY the fix for the opposite defect.
+	// ⚡ The accept path and the reject path simply swapped which one was wrong.
+	{
+		const r = parse(`${HEADER}\nVisa,2400,75,%,2026-09-01`);
+		eq(r.debts.length, 0, "an APR cell of just '%' is unreadable, NOT a blank 0%");
+		assert(
+			r.errors.some((e) => e.includes("could not read APR")),
+			"…and it is reported as unreadable, not as out of range — `Number('')` is 0, which chose the false message",
+		);
+	}
+	{
+		const r = parse(`${HEADER}\nVisa,2400,75,1%2,2026-09-01`);
+		eq(r.debts.length, 0, "a `%` INSIDE the number does not silently concatenate to 12%");
+	}
+	{
+		// The preserved property, both directions: blank still means 0%, and a spaced sign still parses.
+		const r = parse(`${HEADER}\nVisa,2400,75,19.99 %,2026-09-01`);
+		eq(r.errors.length, 0, "a space before the percent sign is still a rate");
+		eq(r.debts[0]?.apr, 19.99, "…with its value intact");
+	}
 	{
 		// ⛔ A REQUIRED FIELD THAT WAS NEVER VALIDATED. This imported clean and produced NaN downstream in
 		// `guardianPredictionCore` — a row the importer called successful, breaking the plan silently.

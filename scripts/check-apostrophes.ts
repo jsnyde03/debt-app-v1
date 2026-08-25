@@ -215,24 +215,36 @@ for (const root of SWIFT_ROOTS) {
     const lines = readFileSync(file, 'utf8').split('\n');
     let inPhrases = false;
     lines.forEach((line, i) => {
-      if (SWIFT_EXEMPT_CONTEXT.test(line)) inPhrases = true;
-      else if (inPhrases && /\]/.test(line)) inPhrases = false;
-      if (inPhrases) return;
-      // Comments are not copy. `///` doc comments quote the very phrases this scan is about.
+      // ⛔ **COMMENTS ARE STRIPPED FIRST, AND THAT ORDER IS THE FIX.** `///` doc comments quote the very
+      // phrases this scan is about, so testing the exemption against the RAW line let a comment mentioning
+      // `phrases: [` open the latch and silence the rest of the file. (P6.8.9.7.10 · A-3.)
       const code = line.replace(/\/\/.*$/, '');
-      for (const lit of code.match(/"(?:[^"\\]|\\.)*"/g) ?? []) {
+      /**
+       * ⛔ **A ONE-LINE `phrases: ["…"]` OPENS AND CLOSES ON THE SAME LINE.** The first cut tested the
+       * close with an `else if`, so that case set the latch and never cleared it — every following line
+       * was skipped while the gate printed green, until some unrelated `]` happened along.
+       * ⚠️ It was LATENT, not live: all four real sites are multi-line, which is exactly why re-reading
+       * the diff would never have surfaced it.
+       *
+       * Only the span from `phrases: [` onward is exempt — a `dialog:` literal earlier on the same line is
+       * still display copy and is still swept.
+       */
+      let scanPart = code;
+      if (inPhrases) {
+        scanPart = '';
+        if (/\]/.test(code)) inPhrases = false;
+      } else {
+        const open = SWIFT_EXEMPT_CONTEXT.exec(code);
+        if (open) {
+          scanPart = code.slice(0, open.index);
+          inPhrases = !/\]/.test(code.slice(open.index + open[0].length));
+        }
+      }
+      for (const lit of scanPart.match(/"(?:[^"\\]|\\.)*"/g) ?? []) {
         if (CONTRACTION.test(lit)) swiftHits.push(`${rel}:${i + 1}  ${lit.trim().slice(0, 100)}`);
       }
     });
   }
-}
-
-if (swiftHits.length > 0) {
-  console.error(`\n❌ apostrophes (Swift): ${swiftHits.length} straight-apostrophe string(s) in shipped native copy.\n`);
-  swiftHits.forEach((h) => console.error(`  ${h}`));
-  console.error("\n  Use the typographic apostrophe ’ (U+2019). Swift has NO baseline — this half of the");
-  console.error('  class was invisible until P6.8.9, so it starts at zero and stays there.\n');
-  process.exit(1);
 }
 
 if (!existsSync(BASELINE)) {
@@ -243,6 +255,23 @@ if (!existsSync(BASELINE)) {
 const baseline = new Set<string>(JSON.parse(readFileSync(BASELINE, 'utf8')) as string[]);
 const fresh = sorted.filter((s) => !baseline.has(s));
 
+/**
+ * ⛔ **BOTH CLASSES ARE REPORTED BEFORE EITHER EXITS.** The Swift block used to `process.exit(1)` above the
+ * baseline read, so a single native hit ended the run before the TS class — the one this gate was
+ * originally built for — had been checked at all. You fixed Swift, re-ran, and only then learned about the
+ * copy. (P6.8.9.7.10 · A-3.) A gate that can only tell you about one half of its own class at a time turns
+ * one CI cycle into two.
+ */
+let failed = false;
+
+if (swiftHits.length > 0) {
+  console.error(`\n❌ apostrophes (Swift): ${swiftHits.length} straight-apostrophe string(s) in shipped native copy.\n`);
+  swiftHits.forEach((h) => console.error(`  ${h}`));
+  console.error("\n  Use the typographic apostrophe ’ (U+2019). Swift has NO baseline — this half of the");
+  console.error('  class was invisible until P6.8.9, so it starts at zero and stays there.\n');
+  failed = true;
+}
+
 if (fresh.length > 0) {
   console.error(`\n❌ apostrophes: ${fresh.length} NEW straight-apostrophe string(s) in user-facing copy.\n`);
   for (const s of fresh) {
@@ -252,8 +281,10 @@ if (fresh.length > 0) {
   console.error("\n  Use the typographic apostrophe ’ (U+2019) in copy. L1-22's baselined sites are");
   console.error('  baselined and are swept at P6.8 — this guard only stops the count growing.');
   console.error('  If you just SWEPT some, re-record with `--baseline`.\n');
-  process.exit(1);
+  failed = true;
 }
+
+if (failed) process.exit(1);
 
 // ⚠️ Stale entries are reported, never red: removing copy is exactly what the P6.8 sweep will do, and a
 // gate that reds on progress is a gate that gets reverted. But an unreported drift means the baseline

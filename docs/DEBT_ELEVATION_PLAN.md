@@ -34,7 +34,7 @@ wrong mechanism looks identical to one that worked.
 | ✅ | **.9.2 — the verification pass** | DONE 2026-08-24. 33 ids, **7 independent verifiers, none told what was built**. **`CLOSED` 11 · `CLOSED-UNPINNED` 10 · `PARTIAL` 11 · `WRONG-REMEDY` 1 · `OPEN` 0.** Record → [`audits/2026-08-24-p6.8.9-verification/`](audits/2026-08-24-p6.8.9-verification/) |
 | **.9.7** ▶ | 🔴 **EVERY FINDING PASSES *PINNED* — BUILDING NOW** | 🎯 2026-08-24: *"These findings all need to pass pinned… Approve it all to go in 2.0."* Decomposed below |
 | **.9.3** | **Re-check the GATED CLASSES** | `lint:contrast` · `lint:type-scale` · `lint:icon-glyphs` · `lint:apostrophes` · native-a11y-props. ⛔ **And the classes c/d/e closed as lists were never gated at all** — that is where the residue is |
-| **.9.4** | 🔴 **[DECISION] P1-1 · P1-2 · P1-4 · P1-5 → 🎯** | Four majors that reached **no ledger** and were never judged either way. Now visible to the closure gate (80 → **87** high+). Present with a recommendation each |
+| **.9.4** | 🔴 **[DECISION] P1-1 · P1-2 · P1-4 · P1-5 → 🎯** | Four majors that reached **no ledger** and were never judged either way. Now visible to the closure gate (80 → **87** high+). **Re-verified against the tree 2026-08-24, and against the `.11.8` re-shoot 2026-08-25:** **P1-1 is one third closed** — onboarding is genuinely captured now, but the **payoff finale and the band-milestone beat still have ZERO frames** · ✅ **P1-2 is CLOSED** — the re-shot `state-progress-many.png` shows the **`-$658`** bar, the floor line, all five date labels, the legend and the verdict, all of which P1-2 said *"none of that reaches the phone"*. ⚡ Closed by `.7.3`'s reveal, aimed at a different id, **while reaching no ledger** · **P1-4 unchanged** (`RecoveryPlanSection.tsx:62`, the 23-name run-on; ⭐ the repo already has the idiom at `invariants.ts:100`) · **P1-5 unchanged** (`BackupSheets.tsx:61` — raw envelope + `Done` filled while the only backing-up action is secondary) |
 | **.9.5** | **Work the filed queue** | **27 items** routed here across the cluster, in the backlog below. ⚠️ Triage first — several are sweeps whose scope is the real question |
 | **.9.6** | **The mechanical exit criterion** | `lint:closure` clean on blocker+major. ⚠️ **Its report today: `39 of 87 high+ findings are named in NO ledger`** *(plan · log · refutations · SYNTHESIS)* — report-only until this step, and that 39 is the real size of the read. ⛔ **It reads clean for the wrong reason if an instrument is blind** — exactly how P1's seven majors were invisible until the regex was un-anchored |
 
@@ -53,10 +53,30 @@ to both — it counts mentions in a ledger. ⚠️ **Some are unpinnable on web 
 | ✅ | **.7.4 — the new 2.0 surfaces** | DONE 2026-08-24. **C7** the `"."` takeaway closed on **both** paths that reached it, and the `text.length > 0` proxy that let it ship is rewritten *(`"."` has length 1)*. **C8** the enumeration came up short a **second** time: `19.99%` refused with a **false** message · `dueDate` never validated (`next friday` → `NaN` downstream) · a fractional `remainingPayments` **silently rewrote a balance** · and ⭐ `normalizeHeader` never stripped spaces, so the columns `support.html` **told users to write** were unreadable. Detail → log |
 | ✅ | **.7.5 — visual + a11y partials** | DONE 2026-08-24. **V1-5** `AddRow` → `border.control`; ⛔ the exclusion's stated reason (*"a divider, a card edge, an underline"*) was **false of all ten** `border.strong` consumers — only AddRow moved, the other nine carry written reasons. **V3-6** the raw `132` vs `maxWidth: 172` now share one owner. **V4-8** the gate awaited the wasm but not the **second chunk** its own docstring named — and a rejection hung it forever; it now reports and stays honestly closed. **A1-10** closed at .7.1. Detail → log |
 | ✅ | **.7.6 — the rest** | DONE 2026-08-24. **M3-20** `droppedRows` — documented as *"the migration is INCOMPLETE"* — reached **only a `qaEnabled()` probe**, and `QA_TOOLS` is flipped false at P6.17, so in a shipping build it reached **nobody**; now on the `migration` repair channel B4 built. **C1** stays 🎯-deferred and is marked at the site + promoted onto P6.10's row, because the verification's real point was that *nothing reds when it is forgotten*. ✅ **M1-8** at .7.2 · ✅ **L1-22** at .7.1 |
-| ✅ | **.7.7 — pin the unpinned** | DONE 2026-08-24. **A4 + M1-9** pinned in `earlyjourney.spec.ts` (plant reds both themes) — nothing had asserted welcome bullet 3 at all. ⭐ **New `lint:copy-owners`** for the class `lint:copy`/`lint:glossary` **structurally cannot see**: these ids were closed by making a screen READ a constant, and the copy gates read *literals*, so each closure could be deleted invisibly. Covers **C6** (both money-asking steps) + **A4/M1-9**; plant-verified; registered in `lint:rn`. **B3 · C9 · M3-5** → device rows (§12.8), never fake pins. 🔴 **Still open: P1-10 · A1-2 · V2-1 · V3-5** — see the backlog row |
+| ✅ | **.7.7 — pin the unpinned** | DONE 2026-08-24. **A4 + M1-9** pinned in `earlyjourney.spec.ts` (plant reds both themes) — nothing had asserted welcome bullet 3 at all. ⭐ **New `lint:copy-owners`** for the class `lint:copy`/`lint:glossary` **structurally cannot see**: these ids were closed by making a screen READ a constant, and the copy gates read *literals*, so each closure could be deleted invisibly. Covers **C6** (both money-asking steps) + **A4/M1-9**; plant-verified; registered in `lint:rn`. **B3 · C9 · M3-5** → device rows (§12.8), never fake pins. 🔴 **Still open: P1-10 only** *(A1-2 · V2-1 · V3-5 were pinned later the same day — verified in tree 2026-08-24: `CashFlowSection.tsx:151` · `hero-date-fit.spec.ts:62` · `trajectoryDomain.ts:54`)*. P1-10 is 🎯's monetisation decision, not a test gap |
 | **.7.8** | ✅ **The blank trajectory curve — DIAGNOSED, and it is V4-8** | It is `WithSkiaWeb`'s `ChartSkeleton` caught by the shutter, proven from pixel geometry; the engine is innocent. `useSkiaReady` awaits **only** `LoadSkiaWeb` while `WithSkiaWeb` awaits that **plus** `getComponent()`'s own chunk — so labels always win. **Web-only by construction.** → the fix belongs to **.7.5's V4-8**. ⛔ **Not seed-specific: under 4-way contention 10/10 of BOTH portfolios blank**, including the "control". [`evidence/2026-08-24-trajectory-blank-divergent/`](evidence/2026-08-24-trajectory-blank-divergent/) |
 | **.7.9** | **`validate:release:rn` green + push** | Quote `gate-status.json`; never retype |
-| **.7.10** ▶ | 🔴 **INDEPENDENT re-verification of everything built in .7 — NEXT SESSION STARTS HERE** | ⛔ **Fixes are changes and changes are unaudited.** ⚡ **This session is the evidence, not the theory: SIX defects were introduced BY the fixes** — a `toISOString()` round-trip that would have refused every CSV row in Sydney and Auckland · `Promise.all` where the library requires sequential (11 specs red, including the non-blank canary) · a side effect in a render body · a callout that ate taps · an unticked `✅gate` row · a dead local. **Every one was caught by an existing instrument, none by re-reading the diff.** Not by the builder. ⚠️ **Do NOT tell the verifiers where the builder was unsure** — .9.2's value came from independence; a list of worry-spots converts readers into confirmers |
+| ✅ | **.7.10 — INDEPENDENT re-verification of `.7`** | DONE 2026-08-24. Six blind verifiers over `8e4540a..3dc3c22` (42 files / 1,708 insertions). **`SOUND` 23 · `SOUND-UNPINNED` 12 · `DEFECT` 13 · `WEAK-TEST` 5 · `REGRESSION` 3.** ⚡ **`.9.2` audited the same work against the FINDINGS and returned zero `OPEN`; auditing it as CODE returns 13 defects** — well-aimed and defectively built are separate properties. ⭐ **Two convergences** (blind verifiers, opposite directions, one defect): the **goal pace**, the only money finding here, and the **reveal seam**. ⛔ **The carried result: a fix's comment is the least reliable line in the diff** — six docblocks assert a property the code beside them does not deliver. Record → [`audits/2026-08-24-p6.8.9.7.10-reverification/`](audits/2026-08-24-p6.8.9.7.10-reverification/) |
+| **.7.11** ▶ | 🔴 **CLOSE ALL 13 — BUILDING NOW** | 🎯 2026-08-24: **fix all 13 now**, not the blocker subset. ⚠️ I flagged that this is a large new unaudited diff and 🎯 took it anyway — so **`.11.9` re-verifies it**, because `.7.10` just measured the rate at **13 defects per 1,708 lines.** Decomposed below |
+
+### ▶ P6.8.9.7.11 — closing the re-verification's 13 *(🎯: fix all 13, 2026-08-24)*
+
+⛔ **GATES FIRST**, per the result that has now held five times: the classes out-found the slices, and
+`.7.10` found 4 of the 5 gates touched cannot fully reach the class they police.
+⛔ **Every fix is plant-verified red-before / green-after.** ⚠️ **Pin on the BEHAVIOUR, not the value** —
+that substitution is exactly what let the goal-pace fix pass its own test.
+
+| # | step | scope |
+|---|---|---|
+| ✅ | **.11.1 — the four gate holes** | DONE 2026-08-25. All four closed, each **red-before / green-after** with the red-before produced by re-running the *same* plant against the stashed script. ⛔ **`check-copy-owners` went GREEN on an epitaph** — the JSX deleted and `{/* was PRIVACY_CLAIM.atEntry */}` left behind. ⚡ **One helper, two consumers, opposite needs** (`withoutGradients` blinded the ink scan while the drift scan needs it). ⚠️ **The Swift latch was LATENT, not live** — the verifier's *"forever"* is bounded by the next `]`, and all four real sites are multi-line. The bare-`announce()` half is now gated, **baselined not exempted**, with the six filed as a P6.14 device row. Detail → log |
+| ✅ | **.11.2 — the matrix instrument** | DONE 2026-08-25. ⭐ **The before-scan found a defect nobody filed, and it outranks the two that were: the text-scale block was silently LOSING SEEDS.** Same `seedOver`/theme/viewport — `history.png` populated, `textscale-2x-history.png` **empty** — because it reseeded a shared page, 140 lines below the paragraph in its own file explaining why that cannot work. **Invisible by construction**: the frame exists, is not stale, is not UNREACHED. ⚠️ Part of the Dynamic Type evidence V3 read was of the wrong state. One split (8 → 80 tests) closed it **and** A-2's shared-budget hazard. **A-1** gated as a class — `empty` may not merge a non-empty array — not fixed as a key. **A-7**'s four doc defects closed, plus **a fifth I wrote myself this session**. Both artifacts re-shot and inspected. Detail → log |
+| ✅ | **.11.3 — 🔒 the money defect** | DONE 2026-08-25. ⚡ **`0` is not one repair: fail-VISIBLE for a balance, fail-SILENT for a pace.** A corrupt pace repaired to `0` is the *uncapped* value in both readers, so the repaired store allocated identically to the corrupt one — with the file's own comment stating that harm directly above the fix. Now the priority **stands down** rather than guessing a number. ⛔ **The naive over-fix (drop the value, keep `priority`) reds identically** — *absent* also means no cap. The card said the **opposite** of what happened and pointed at a field written only at creation; blanket copy is now true of every repair, each line carries its own consequence. ⭐ The test asserts the **allocation** through `selectBaseAllocation` and names the money — **`got $900`** of a $1,000 paycheck — and a separate assert pins the preserved property (**a readable pace still caps at $200**), red-verified against a planted over-match. Detail → log |
+| ✅ | **.11.4 — 🔒 CSV + data integrity** | DONE 2026-08-25. **B-2** APR `"%"` → 0% and `"1%2"` → 12%: ⚡ **the fix for the refusal wrote the defaulting** — accept and reject paths swapped which was wrong, and **the false message survived on a different input** because `Number("")` is `0`. Now only a trailing sign strips and the parse picks the message. **B-3** a goal badged **"Funded"** over an unreadable target (`0 >= 0`), with the rule already written 600 lines up for debts. **C-1** another app's undecodable rows reported as the user's loss — summed across every candidate *before* the pick; ⭐ **untestable where it lived**, so extracted to a pure `attributeDroppedRows` and pinned four ways (**4th time an id was unpinnable because the instrument was wrong**). **B-4** the one CSV rule that loses the whole file (`YYYY-MM-DD`) was the one rule the in-app caption omitted. Detail → log |
+| ✅ | **.11.5 — the reveal seam** | DONE 2026-08-25. **F-1** deregister-on-unmount in a tab that never unmounts — ⛔ **the corrected pattern (`useIsFocused`) was in the file that documents this exact confusion**, third recorded instance. **E-2** the stood-down layer scrolled the tab under a sheet. **E-1** the reveal fired one commit before `calloutH` existed and latched — ⚡ **placement 35 lines below DID get the measurement**, which is why the claim read true. **E-3** dead `cancelled`. **E-4** `box-none` left the sentence a hit target. ⭐ **The new spec took THREE attempts — a cross-round-trip race, then a VACUOUS pass (`elementFromPoint` is `null` off-viewport), then `toBeVisible()` ≠ on screen. Two of my own three would have shipped green over a live defect.** Plant finally red for the right reason: *expected false, received true*. **D-2** treated as a hypothesis — re-measure only, geometry untouched. Detail → log |
+| ✅ | **.11.6 — the 5 weak tests** | DONE 2026-08-25. **F-3** the absence assert listed premium *feature names* while the retired promise was a sentence — **re-adding the exact bullet passed all three asserts**. **F-4** the spec proves the wrap, not the shrink (RNW drops both shrink props); ⚠️ not papered over — the property is not observable off-device, so the docstring says so and the P6.14 row is the instrument. **D-6** a newline hole that failed *safe*, which is why it survived. **C-3** the finale→beat arm — **both existing blocks also pass under the looser inequality that destroys a persisted finale**. Detail → log |
+| ✅ | **.11.7 — claims + docs** | DONE 2026-08-25. **D-1** *"REPORTED rather than swallowed"* is false on web (dev-only sink + a deliberate no-op) — ⚠️ **behaviour right, claim wrong**; corrected, and the telemetry gap filed rather than papered. **D-4** two docblocks orphaned by an `export const` inserted between JSDoc and subject. **D-5** four sites still carrying pre-`.7.3` geometry, and a wait justified by an animation that is explicitly `animated: false`. **E-5** a 22-line duplicate docblock in the render body, `box-none` credited with a fix that was actually a seeded-away spec, and *"strictly stronger"* where the predicate is strictly weaker. Detail → log |
+| ✅ | **.11.8 — re-shoot + gate** | DONE 2026-08-25. **236 recipes, 12.5 min, 0 UNREACHED.** ⭐ The frames answered three carried questions: **P1-2 CLOSED** (the `-$658` bar, floor line, labels, legend and verdict all reach the phone — closed by `.7.3`, aimed at a different id, **while reaching no ledger**) · **P1-3 draws** · **D-2 MEASURED** — the callout does cover the trajectory card's own footer, but not its subject, and `.11.5` left those controls operable → 🟠 decision row. ⛔ **The gate went RED on "exit code 0" (6th time) and caught ME breaking [D17]** — annotating false comments instead of deleting them, in the very item that was correcting false comments. ⭐ Folded in: `lint:comments` **could not see `packages/core` or `scripts`**; widened (measured clean first), plant-verified both trees, owner-file exemption scoped by exact path. **Gate GREEN, quoted from `gate-status.json`: 668 source files · 2026-08-25T05:35:44Z · 257 e2e + 10 embed**, zero `error-context.md`. Detail → log | ⛔ **The re-shoot is not optional** — `.11.2` proved the text-scale block was seeding a shared page, so every frame for a surface whose `seedOver` adds a key (`history` · `paywall` · `onboarding`) is of an **unknown** state, and `.11.5` changes UI that other frames photograph. Quote `gate-status.json`; never retype |
+| **.11.9** | 🔴 **re-verify the `.7.11` diff** | ⛔ **This build is unaudited work by the same author, which is the whole finding of `.7.10`.** Independent, uninformed, no worry-list | ⚡ **This session is the evidence, not the theory: SIX defects were introduced BY the fixes** — a `toISOString()` round-trip that would have refused every CSV row in Sydney and Auckland · `Promise.all` where the library requires sequential (11 specs red, including the non-blank canary) · a side effect in a render body · a callout that ate taps · an unticked `✅gate` row · a dead local. **Every one was caught by an existing instrument, none by re-reading the diff.** Not by the builder. ⚠️ **Do NOT tell the verifiers where the builder was unsure** — .9.2's value came from independence; a list of worry-spots converts readers into confirmers |
 
 **Exit (P6.8.9):** all 33 findings pass **pinned** — each with a test that would fail on its original
 defect, or an explicit device row saying why no test can reach it; the three gate holes are closed and
@@ -373,6 +393,13 @@ from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc qu
 **Owed from f, all three structural to react-native-web:**
 - **VoiceOver on, type an amount into Can-I-Afford-It** — confirm the verdict is **spoken**
   (`announceForAccessibility` is an empty body on web, so the spoken half is unprovable in the harness).
+- 🔴 **VoiceOver on, visit the six BARE `announce()` sites and decide which owe a live region** *(.7.11)* —
+  `(tabs)/index.tsx` ×2 (ack + impact), `cushion-forecast.tsx`, `demo.tsx`, `schedule/[id].tsx`,
+  `TutorialOverlay.tsx`. All six speak on iOS and are **silent in every browser**. ⚠️ The two on Today are
+  verdict text and almost certainly want `useLiveAnnouncement`; the three route-title ones are a genuine
+  question — a screen title may want focus management instead, and that is not decidable off-device.
+  ⛔ **Baselined, not exempted**, in `check-native-a11y-props.ts`: the class reds for anything new, and this
+  row is what stops the six becoming permanent by silence.
 - **Read the Progress hero on a small device at a wide month** — September, November, December
   (`adjustsFontSizeToFit` is a no-op on web; the 320 pt guarantee is an iOS-only claim).
 - **The dashed `AddRow` and every `Switch` OFF track sit at 1.41–1.90:1** on `border.strong`, left un-fixed
@@ -419,6 +446,67 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
 
 ### → P6.8.9.5 — surfaced by the .9.1 re-shoot and the .9.2 verification *(2026-08-24)*
 
+- 🔴 **The matrix has NO HISTORY — `apps/rn/capture-ref/` is gitignored.** *(.11.8 after-scan)* A re-shoot
+  overwrites the only copy of every frame, so a frame's prior state cannot be recovered. ⚡ That is exactly
+  what made `.11.2`'s seed bleed unauditable in hindsight: `history` was proven before/after only because
+  both frames happened to be in one session's context, and `paywall`/`onboarding` **can never be**. It also
+  means `.9.1`'s *"0 stale"* and every earlier frame-based finding are not reproducible from the repo.
+  **Rec: pin the frames a finding depends on into `docs/evidence/<date>-<topic>/`** — the mechanism the
+  repo already has — rather than tracking all 236.
+- 🟠 **[DECISION] The coach mark covers the trajectory card's own footer — measured, not theorised.**
+  *(.11.8 · D-2)* `progress.png` and `state-progress-many.png`: the callout sits below the plot and across
+  the axis row, the What-If row and the compare toggle. ⚠️ It does **not** cover its subject, and `.11.5`
+  made its sentence transparent to touch, so those controls stay operable — the residue is **visual**, on a
+  first visit, behind a dismissible hint. **Rec: accept.** It is the price of not covering the subject.
+- 🔴 **The coach-mark mis-tap window is closed in ONE spec and open in ten.** *(.11.5 after-scan · D-3)*
+  `strategy-compare.spec.ts` seeds `coachMarksSeen`; ten other `/progress` specs meet the reveal unseeded,
+  sharpest being `trajectory-interactivity.spec.ts:51-64`, which drives raw `page.mouse` coordinates on the
+  coached card behind a 2 s wait. ⚠️ `.11.5` made the callout's sentence transparent to touch, which
+  removes the *user-facing* half — the remaining exposure is **flake in the suite**, not a shipping defect.
+  Decide whether the ten seed it or whether the reveal waits for idle.
+- 🔴 **The Skia load failure is unreported in a production web build.** *(.11.7 · D-1)* `reportError`'s
+  default sink is a dev-only `console.warn` and `sentry.web.ts` is a deliberate no-op, so with `__DEV__`
+  false nothing happens — including on the marketing embed, where `canvaskit.ts:15-20` documents a real
+  wasm 404. ⚠️ **Behaviour is correct (it fails closed); the telemetry is missing.** The claim in the source
+  is corrected; wiring a web reporter is a scope decision (Sentry is kept out of the web bundle on purpose).
+- 🔴 **Adding a member to `DataRepair['entity']` obliges a consumer sweep — and only the COPY consumer is
+  compiler-gated.** *(.11.4 after-scan)* `ENTITY_NOUN`'s exhaustive `Record` failed the build when `goal`
+  was added, exactly as designed; the **behaviour** consumers are invisible to it, which is how the
+  "Funded" badge over unreadable money shipped. Candidate gate: every `entity` member must be named in
+  both the copy map **and** the celebration guards. → decide the decidable form.
+- 🔴 **Should the CSV parser ACCEPT `MM/DD/YYYY`, not just document `YYYY-MM-DD`?** *(.11.4 after-scan)*
+  `.11.4` made the in-app caption honest, which is the minimum, not necessarily the answer. A real bank or
+  spreadsheet export writes `9/1/2026` and currently loses **every** row. ⚠️ The header parser was widened
+  on the premise *"a real export says `Minimum Payment`"* — the same export says `9/1/2026`. 🎯's call: it
+  is a product decision about how much of a real export the importer promises to read.
+- 🔴 **A goal's per-paycheck pace cannot be changed or removed after creation.** *(.11.3 after-scan)*
+  `priorityPerPaycheck` is written only at `SaveForItSheet.tsx:109`, reachable only from the *Can I afford
+  it?* flow; `GoalSheet` edits name, target, current and type. So a user who chose *"$200 a paycheck"* can
+  never revise it, and `.11.3`'s repair notice had to name a workaround instead of an action. **Rec: add the
+  pace to `GoalSheet` as an optional field** — it closes the product gap and the copy at once. 🎯's call, as
+  it puts prioritisation on a second surface.
+- 🔴 **Which other money fields is a `0` repair DANGEROUS for, not merely wrong?** *(.11.3 after-scan)*
+  `readMoney` repairs everything to `0`, and `.11.3` measured that `0` is fail-visible for a balance and
+  fail-silent for a pace. The enumeration is also known short — `RequiredExpense.fullAmount` ·
+  `RecommendationOverride.amount` · `IncomeActual` · `SurpriseOutflow` are unrepaired. ⚠️ Ask per field
+  *"what does 0 MEAN to the engine"*, not *"is it repaired"*.
+- 🔴 **Pay cycle history breaks at 2× text, and the frame that shows it has only just existed.** *(.11.2
+  after-scan)* The corrected `phone/dark/textscale-2x-history.png` truncates the title to *"Pay cycle h…"*
+  and wraps *"May 26, 2026"* onto two lines inside its row. ⚠️ **Every earlier text-scale frame of this
+  screen was of the EMPTY state**, so no lens has ever seen the populated design at scale — this is new
+  evidence, not a re-read. Judge it after `.11.8`'s re-shoot, and expect siblings on `paywall` /
+  `onboarding` for the same reason.
+- ⚠️ **`check-contrast`'s control-boundary model does not describe `AddRow`.** *(.11.1 after-scan)* The gate
+  models a control edge as `border.control` over a `background.secondary` **fill** and takes
+  `max(border, fillOnly)` (`check-contrast.ts:407-413`) — **AddRow has no fill**, which is the premise of the
+  fix that moved it there. Hand-computed at ≈3.7:1 light, so it passes; **by arithmetic the gate never
+  performed.** And the `border.strong` exclusion beside it is still an unverified claim. Decide whether the
+  model gains a no-fill case or the exclusion gains a proof.
+- ⚠️ **A closure updates ONE row and leaves the others standing — candidate gate class.** *(.7.10 before-scan)*
+  Two found in one read: `.7.7`'s row still said A1-2 · V2-1 · V3-5 were open, and the backlog still said
+  V3-5 was "unpinnable as written" — both contradicted by a ✅ row **in the same file**. `lint:closure` counts
+  mentions, so it reads clean on exactly this. **Decidable version:** an id may not appear as both open and
+  closed in `DEBT_ELEVATION_PLAN.md`. Both instances corrected in place.
 - 🔴 **`/history`'s default frame IS its empty frame** — same defect as `/living-expenses`, not fixed with
   it: rows come through `selectHistoryRows` off cycle records, so it needs a real fixture. **The populated
   Pay Cycle History design has never been photographed.** *(.9.1)*
@@ -427,8 +515,8 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   and announce on **neither** platform. *(.9.2, f-a11y)*
 - ⚠️ **A1-8 — three of four badges are held only by the type system**, one is test-pinned. Decide whether the
   type is the pin. *(.9.2, f-a11y)*
-- ⚠️ **V3-5 is unpinnable as written** — the scale expression is inline rather than an exported function, and
-  the `lint:type-scale` floor (30 pt) is far above the 11 pt pill. Extract it, or accept a device row. *(.9.2)*
+- ✅ **V3-5 — CLOSED at .7.7, row kept only so .9.5 does not re-open it.** Extracted to `endPillWidth()`
+  (`trajectoryDomain.ts:54`) and pinned in `trajectoryDomain.test.ts`. *(.9.2)*
 - ⚠️ **`lint:type-scale`'s 28 pt exemption re-verified clean** by an independent read (five `title1`
   consumers, all prose headings, none a figure) — no action, recorded so it is not re-litigated. *(.9.2)*
 - 🔴 **V2-6's REVEAL CAN MOVE THE PAGE UNDER A USER'S FINGER, and it is a first-visit-only window.** *(.7.9)*

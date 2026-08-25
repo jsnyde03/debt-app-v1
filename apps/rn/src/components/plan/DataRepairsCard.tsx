@@ -55,15 +55,31 @@ export function DataRepairsCard({ repairs, onAck }: { repairs: DataRepair[]; onA
 
   return (
     <Card tone="accent" testID="data-repairs-ack" style={styles.card}>
-      <View style={styles.head} {...groupLabel(`${lines.length === 1 ? 'An amount' : 'Some amounts'} could not be read. ${lines.join('. ')}. These are showing as $0 until you set them.`)}>
+      {/*
+        ⛔ **THIS CARD USED TO STATE THE OPPOSITE OF WHAT HAPPENED, for the one repair that touches money.**
+        It said the amounts *"are showing as $0, so your plan is leaving them out"* — true of a repaired
+        balance, and **exactly backwards** for a goal's per-paycheck pace, which repaired to `0` and
+        therefore funded the goal **uncapped, ahead of the user's debt**. The card told the person the
+        benign version of the harm. (P6.8.9.7.10 · B-1.)
+
+        ⚠️ The blanket sentence now says only what is true of EVERY repair — the plan is running without
+        the real number — and each line carries its own consequence, because the consequences differ and
+        no single sentence covers both honestly. The pace line is written in `migrations.ts`.
+
+        ⚠️ "Open each one and enter the real amount" was also unfollowable for a pace: `GoalSheet` edits
+        name, target, current and type, and `priorityPerPaycheck` is written **only at creation**
+        (`SaveForItSheet.tsx:109`, reachable only from `AffordabilityCard`). The recovery route is named
+        in that line instead of promised generically here.
+      */}
+      <View style={styles.head} {...groupLabel(`${lines.length === 1 ? 'An amount' : 'Some amounts'} could not be read. ${lines.join('. ')}. Your plan is running without ${lines.length === 1 ? 'it' : 'them'} until you set ${lines.length === 1 ? 'it' : 'them'} again.`)}>
         <AppIcon name="error-outline" size={20} color={c.accent.warning} />
         <Text style={[textStyles.subhead, styles.headText, { color: c.text.primary }]}>
           {lines.length === 1 ? 'An amount could not be read' : `${lines.length} amounts could not be read`}
         </Text>
       </View>
       <Text style={[textStyles.footnote, { color: c.text.secondary }]}>
-        {lines.length === 1 ? 'It is' : 'They are'} showing as $0, so your plan is leaving {lines.length === 1 ? 'it' : 'them'} out. Open{' '}
-        {lines.length === 1 ? 'it' : 'each one'} and enter the real amount.
+        Your plan is running without {lines.length === 1 ? 'it' : 'them'} until you set{' '}
+        {lines.length === 1 ? 'it' : 'each one'} again.
       </Text>
       <View style={styles.list}>
         {lines.map((line) => (

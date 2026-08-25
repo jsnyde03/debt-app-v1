@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
+  attributeDroppedRows,
   countLegacyKeys,
   decodeItemTable,
   decodeWebKitValue,
@@ -186,6 +187,36 @@ try {
   eq(debts[0].name, 'Visa', 'the decoded blob JSON.parses back to the v1.6 value');
 } finally {
   rmSync(dir, { recursive: true, force: true });
+}
+
+// ── [C-1 · P6.8.9.7.11.4] DROPPED ROWS BELONG TO THE DATABASE THEY WERE DROPPED FROM ──
+//
+// ⛔ `droppedRows` feeds a USER-FACING line — "N row(s) of your old data could not be read and were not
+// carried over" — and it was summed across every candidate database BEFORE `pickLegacyStore` decided
+// which one was the user's. The decode counts any undecodable row with no `debtPlanner.*` filter, so an
+// upgrader whose WebKit container holds a second app's database was told they had lost data they never
+// had. ⚡ Untestable where it lived (`readLegacyStores()` takes no arguments and reads the native
+// container), which is why it shipped: every report fixture in the repo hard-codes `droppedRows: 0`.
+{
+  const decoded = [
+    { path: '/ours', dropped: 2 },
+    { path: '/someone-else', dropped: 7 },
+  ];
+  const ours = attributeDroppedRows(decoded, '/ours');
+  eq(ours.droppedRows, 2, 'only the PICKED database contributes to the number the user is shown');
+  eq(ours.droppedRowsOtherCandidates, 7, "…and another app's undecodable rows are kept as diagnostics");
+
+  // ⚠️ The case that produced the false claim: nothing of ours was found, so nothing of ours was lost.
+  const none = attributeDroppedRows(decoded, undefined);
+  eq(none.droppedRows, 0, 'no database judged ours → the user is told of NO loss, not of nine rows');
+  eq(none.droppedRowsOtherCandidates, 9, '…and all nine are attributed elsewhere');
+
+  // The preserved property: an ordinary single-database container still reports its own real losses.
+  eq(
+    attributeDroppedRows([{ path: '/only', dropped: 3 }], '/only').droppedRows,
+    3,
+    'the ordinary one-database upgrade still reports its real losses',
+  );
 }
 
 console.log(`✅ webkitLocalStorage tests passed (${passed} asserts).`);

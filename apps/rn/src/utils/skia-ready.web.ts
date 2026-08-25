@@ -53,8 +53,19 @@ export function useSkiaReady(chunk?: () => Promise<unknown>): boolean {
      * ⛔ **A REJECTION USED TO HANG THE GATE FOREVER**, leaving the card permanently in its skeleton with
      * no label, no curve and nothing said — flagged by the verification pass as V4-8's other half. The gate
      * stays CLOSED on failure, deliberately: opening it would restore the original defect (a confident axis
-     * over an empty plot), and a skeleton is the honest picture of "this did not load". What changes is
-     * that the failure is now REPORTED rather than swallowed.
+     * over an empty plot), and a skeleton is the honest picture of "this did not load".
+     *
+     * ⛔ **ON WEB THE FAILURE IS SWALLOWED, NOT REPORTED.** [P6.8.9.7.10 · D-1] `reportError`'s default
+     * sink is a **dev-only** `console.warn` (`reportError.ts:16-19`), and web never registers a real one —
+     * `sentry.web.ts:7-9` is a no-op whose own docstring says it *"keeps the default `reportError` console
+     * sink"*. This file only ever runs on web. So with `__DEV__` false, **nothing happens.**
+     *
+     * ⚠️ The `catch` is still load-bearing: failing closed is the correct behaviour regardless of where it
+     * reports, and removing it restores the hang. What is absent is the telemetry, exactly where it would
+     * matter most — `canvaskit.ts:15-20` documents a real wasm 404 on the marketing embed, which is this
+     * rejection.
+     * ⛔ Deliberately not fixed by wiring a web reporter: Sentry is kept out of the web bundle on purpose,
+     * so that is a scope decision rather than a defect. Filed as an observability gap.
      */
     /**
      * ⛔ **SEQUENTIAL, NOT `Promise.all` — and the first cut got this wrong and cost eleven tests.**

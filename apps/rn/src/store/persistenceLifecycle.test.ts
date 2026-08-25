@@ -3,6 +3,9 @@ import { runMigrations } from '@/data/migrations';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
 import { StorageLockedError, type StorageAdapter } from '@/storage/adapter';
 import { bootstrapPersistence, SAVE_DEBOUNCE_MS } from '@/store/persistence';
+// B1's pace assert runs through the SELECTOR the app actually reads, not through a hand-built engine
+// call — the question is what this store allocates, and that is the path that answers it.
+import { selectBaseAllocation } from '@/store/selectors';
 import { createDebtStore } from '@/store/store';
 
 /**
@@ -386,14 +389,64 @@ async function run() {
     // ⛔ **THE LOAD-BEARING ASSERTS COME FIRST, DELIBERATELY.** This runner is throw-based and stops at the
     // first failure, so an assertion ordered behind another is only ever proven by that other one — and the
     // first plant of this block proved only the `targetAmount` line while the pace asserts never ran.
-    assert(
-      g.goals[0].priorityPerPaycheck === 0 || Number.isFinite(g.goals[0].priorityPerPaycheck ?? NaN),
-      'goal repair → an infinite pace is never left as a non-finite cap',
-    );
-    assert(
-      g.goals[0].priorityPerPaycheck !== undefined,
-      'goal repair → a corrupt pace does NOT become undefined, which readers treat as "no cap"',
-    );
+    //
+    // ⛔ **THESE ASSERT THE ALLOCATION, NOT THE VALUE — and the two versions this replaces are why.**
+    // They read `priorityPerPaycheck === 0 || Number.isFinite(…)` and `!== undefined`. Both PASSED on the
+    // defect. `readMoney` repairs an unreadable pace to `0`, and `0` is the **uncapped** value at
+    // `allocatePaycheck.ts:632` (`!= null && > 0 ? pace : Infinity`), so the first assert admitted by name
+    // the exact value that reproduces the harm — while the comment four lines above it stated that harm
+    // correctly. The second guards `undefined`, which `readMoney` can never return. (P6.8.9.7.10 · C-2.)
+    //
+    // ⚡ **The subject is "does this goal still take money ahead of the debt", and only an allocation can
+    // answer it.** A value assert is a proxy for the subject, and a proxy for the subject is not the
+    // subject — measured five times in this project now.
+    {
+      const corrupt: DebtStore = {
+        ...g,
+        paycheck: { ...g.paycheck, amount: '1000', currentDate: '2026-08-25', nextPaycheckDate: '2026-09-08' },
+        debts: [
+          { id: 'd0', name: 'Card', balance: 3000, minimumPayment: 50, apr: 20, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' },
+        ],
+        requiredExpenses: [],
+        livingExpenses: [],
+      } as DebtStore;
+      const alloc = selectBaseAllocation(corrupt);
+      assert(alloc !== null, 'goal repair → the fixture allocates at all (guards a vacuous pass)');
+      const toGoal = (alloc?.allocations ?? [])
+        .filter((a) => a.goalId === 'g0')
+        .reduce((sum, a) => sum + a.amount, 0);
+      // The corrupt store funded this goal with the ENTIRE remainder, ahead of the debt. Whatever the
+      // repair chooses to do, it may not leave that behaviour standing.
+      assert(
+        toGoal === 0,
+        `goal repair → a goal whose pace could not be read is NOT funded ahead of debt (got $${toGoal})`,
+      );
+    }
+    // ⛔ **THE PRESERVED PROPERTY — a finding names what is WRONG; the fix must keep what was RIGHT.**
+    // Standing a goal down is the correct answer to *"we cannot read your cap"* and the WRONG answer to
+    // everything else. A repair that over-matches would quietly stop funding every sinking fund in the
+    // app, which is a worse defect than the one being fixed and would look identical in the green run
+    // above. So: a READABLE pace still caps, and still funds ahead of debt.
+    {
+      const healthy = runMigrations({
+        goals: [
+          { id: 'g0', name: 'Roof', type: 'savings', targetAmount: 4000, currentAmount: 0, priority: true, priorityPerPaycheck: 200 },
+        ],
+      } as unknown);
+      const store: DebtStore = {
+        ...healthy,
+        paycheck: { ...healthy.paycheck, amount: '1000', currentDate: '2026-08-25', nextPaycheckDate: '2026-09-08' },
+        debts: [
+          { id: 'd0', name: 'Card', balance: 3000, minimumPayment: 50, apr: 20, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' },
+        ],
+        requiredExpenses: [],
+        livingExpenses: [],
+      } as DebtStore;
+      const toGoal = (selectBaseAllocation(store)?.allocations ?? [])
+        .filter((a) => a.goalId === 'g0')
+        .reduce((sum, a) => sum + a.amount, 0);
+      eq(toGoal, 200, 'goal repair → a READABLE pace is untouched: still funded, still capped at its pace');
+    }
     eq(g.goals.length, 1, 'goal repair → the goal survives');
     eq(g.goals[0].targetAmount, 4000, 'goal repair → a grouped targetAmount is read, not dropped');
     eq(g.goals[0].currentAmount, 0, 'goal repair → an unreadable currentAmount becomes 0');

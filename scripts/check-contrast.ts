@@ -336,7 +336,13 @@ for (const file of files) {
  * ⚠️ Scoped to `color:` — the INK. `backgroundColor` literals are a different question and are not this
  * gate's, because a fill has no floor of its own until something is painted on it.
  */
-const INK_LITERAL = /\bcolor:\s*'(#[0-9a-fA-F]{3,8}|white|black)'/g;
+/**
+ * ⛔ **BOTH SPELLINGS, BOTH QUOTE STYLES.** The first cut matched `color:` only, so the JSX prop form
+ * `color="#fff"` was invisible — while `textUses` (`:160`) in this same file had already been written
+ * `\bcolor\s*[:=]` for exactly that reason. A gate that reads one spelling of the thing it polices is a
+ * gate the next instance walks straight past. (P6.8.9.7.10 · A-4.)
+ */
+const INK_LITERAL = /\bcolor\s*[:=]\s*['"](#[0-9a-fA-F]{3,8}|white|black)['"]/g;
 
 /**
  * An exemption here is a claim that a literal ink is CORRECT, and it has to say against what — with the
@@ -363,7 +369,19 @@ for (const file of files) {
   readFileSync(file, 'utf8')
     .split('\n')
     .forEach((line, i) => {
-      for (const m of withoutGradients(line).matchAll(INK_LITERAL)) {
+      /**
+       * ⛔ **THE INK SCAN READS THE RAW LINE — `withoutGradients` BLINDED IT.** That helper blanks any
+       * bracketed span containing a hex literal, which is precisely the shape of an inline style array:
+       * `style={[styles.x, { color: '#fff' }]}`. The two defects this check was built for happened to live
+       * in `StyleSheet.create` objects, so it caught those and could never have seen the conditional-inline
+       * half. (P6.8.9.7.10 · A-4.)
+       *
+       * ⚠️ Dropping the exclusion here is safe **because `INK_LITERAL` is anchored on `color:`/`color=`**,
+       * and every gradient in this repo passes bare literals through `colors={[…]}` — verified across
+       * `expo-linear-gradient` and Skia's `LinearGradient`, neither of which uses a `color` key. The token
+       * drift scan above keeps the exclusion, because it matches bare literals and genuinely needs it.
+       */
+      for (const m of line.matchAll(INK_LITERAL)) {
         if (INK_EXEMPT.some((e) => rel.endsWith(e.file) && e.literal.toLowerCase() === m[1].toLowerCase())) continue;
         failures.push(
           `${rel}:${i + 1} paints ink as the literal '${m[1]}' — a literal cannot flip with the theme, so ` +

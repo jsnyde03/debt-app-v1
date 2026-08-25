@@ -939,6 +939,9 @@ function LivingReserve({ total }: { total: number }) {
 // ── Goals ─────────────────────────────────────────────────────────────────────
 function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   const goals = useAppStore((s) => s.store.goals);
+  // See the `funded` guard below — a goal whose target could not be read repairs to `0`, and `0 >= 0`
+  // badges it as Funded. Same rule the debts branch already applies via `unreadDebts`.
+  const unreadGoals = useAppStore((s) => s.store.pendingDataRepairs.some((r) => r.entity === 'goal'));
   // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
   const store_ = useActiveStore();
   const [sheet, setSheet] = useState<{ editing: Goal | null } | null>(null);
@@ -975,7 +978,21 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
       <View style={styles.goalsList}>
         {goals.map((g) => {
           const pct = g.targetAmount > 0 ? g.currentAmount / g.targetAmount : 0;
-          const funded = g.currentAmount >= g.targetAmount;
+          /**
+           * ⛔ **NEVER CONGRATULATE OVER MONEY THE APP COULD NOT READ** — the rule this file already states
+           * for debts (see `allCleared` above), applied to the branch that never got it. [P6.8.9.7.11.4]
+           *
+           * An unreadable `targetAmount` repairs to `0`, and `0 >= 0` is **true** — so a goal whose target
+           * failed to parse rendered a green **"Funded"** badge reading *"$0 saved"*. The debts branch
+           * guards precisely this, six hundred lines up, in a comment that calls the ungated version *"the
+           * single worst screen in the product"*. Goals were added to `DataRepair['entity']` at
+           * P6.8.9.7.2 and this consumer was never revisited.
+           *
+           * ⚠️ Scoped to `pct === 0` deliberately: a goal genuinely at its target must still read Funded
+           * while OTHER repairs are pending. The suppression is about *this* number being unreadable, not
+           * about the store being generally suspect.
+           */
+          const funded = g.currentAmount >= g.targetAmount && !(unreadGoals && g.targetAmount === 0);
           return (
             <ListRow
               key={g.id}

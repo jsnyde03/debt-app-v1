@@ -464,6 +464,37 @@ function run() {
     );
   }
 
+  /**
+   * ⛔ **THE FINALE→BEAT ARM, WHICH NOTHING REACHED.** [P6.8.9.7.11.6 · C-3] The guard reads
+   * `payoff.kind === 'finale' && next.pendingPayoff.kind !== 'finale'` — an upgrade, one direction only.
+   * The two blocks above pin *beat→finale upgrades* and *beat→beat preserves*, and **both also pass under
+   * the looser `payoff.kind !== next.pendingPayoff.kind`** — which is the natural way to write it and
+   * which DESTROYS a persisted finale by letting a later beat overwrite it.
+   *
+   * ⚡ Reachable in the ordinary way: clear everything (finale pending, unconsumed), then add a debt and
+   * clear it. `pendingPayoff` survives a relaunch, so the window is not hypothetical — and the finale is
+   * once-ever, so what is lost here is lost for the life of the install.
+   */
+  {
+    const s = inst({
+      debts: [
+        { id: 'd0', name: 'Card', balance: 500, minimumPayment: 25, apr: 20, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' },
+      ] as DebtStore['debts'],
+    });
+    s.getState().updateDebt('d0', { balance: 0 });
+    const finale = s.getState().store.pendingPayoff;
+    eq(finale?.kind, 'finale', 'control — clearing the only debt stamps the finale');
+
+    s.getState().addDebt({
+      id: 'd1', name: 'Loan', balance: 900, minimumPayment: 40, apr: 8, dueDate: '2026-08-12', type: 'debt', recurrence: 'monthly',
+    } as DebtStore['debts'][number]);
+    s.getState().updateDebt('d1', { balance: 0 });
+    assert(
+      s.getState().store.pendingPayoff === finale,
+      '⛔ C-3 — a later payoff NEVER displaces an unconsumed finale: it is once-ever, and this is the only arm that guards it',
+    );
+  }
+
   console.log(`✅ Store-action (RS.3) tests passed (${passed} asserts).`);
 }
 

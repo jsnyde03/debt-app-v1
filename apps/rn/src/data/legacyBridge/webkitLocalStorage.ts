@@ -196,6 +196,33 @@ export function countLegacyKeys(items: Record<string, string>): number {
  * `debtPlanner.*` key — which is the correct answer for a fresh install, and MUST NOT be confused with
  * "the read failed": the caller distinguishes those, exactly as `hydrate` already does.
  */
+/**
+ * Split undecodable-row counts into **ours** and **everyone else's**, given the database `pickLegacyStore`
+ * chose. [P6.8.9.7.11.4]
+ *
+ * ⛔ **Extracted so it can be SEEN.** The attribution lived inline in `readLegacyStores()`, which takes no
+ * arguments and reads the native container through `Paths.cache.uri` — so nothing off-device could reach
+ * it, and every `LegacyReadReport` fixture in the repo hard-codes `droppedRows: 0`. Deleting the logic
+ * would have gone green. ⚡ **The repo has measured three times that an id is unpinnable because the
+ * INSTRUMENT is wrong, not the fix** — the question is *what could see this*, and the answer here is a
+ * pure function.
+ *
+ * ⚠️ `pickedPath` `undefined` means no database was ours, so **none of the drops are ours either** —
+ * the case that produced the false claim in the first place.
+ */
+export function attributeDroppedRows(
+  decoded: readonly { path: string; dropped: number }[],
+  pickedPath: string | undefined,
+): { droppedRows: number; droppedRowsOtherCandidates: number } {
+  let droppedRows = 0;
+  let droppedRowsOtherCandidates = 0;
+  for (const d of decoded) {
+    if (pickedPath !== undefined && d.path === pickedPath) droppedRows += d.dropped;
+    else droppedRowsOtherCandidates += d.dropped;
+  }
+  return { droppedRows, droppedRowsOtherCandidates };
+}
+
 export function pickLegacyStore<T extends LegacyStoreCandidate>(candidates: readonly T[]): T | null {
   let best: T | null = null;
   let bestCount = 0;

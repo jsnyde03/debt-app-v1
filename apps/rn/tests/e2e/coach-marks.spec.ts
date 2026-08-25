@@ -95,6 +95,92 @@ test.describe('coach-marks — offered once, and re-offerable', () => {
     await page.getByTestId('debt-view-schedule').click();
     await expect(page).toHaveURL(/\/schedule\/d0/);
   });
+
+  /**
+   * ⛔ **THE TEST ABOVE PASSES WITH THE CARD EATING TAPS, AND THAT IS WHY THIS ONE EXISTS.**
+   * [P6.8.9.7.11.5] It clicks a control that does not happen to sit under the callout, so it proves the
+   * hint is not a full-screen modal and says nothing about the card's own footprint. `box-none` exempts
+   * the card ITSELF and leaves every direct child a hit target — and the sentence wrapper is most of the
+   * card's area. `strategy-compare.spec.ts`, the one spec that caught the real thing, was changed in the
+   * same diff to seed `coachMarksSeen`, so it no longer renders a mark at all: **deleting `box-none`
+   * turned nothing red.**
+   *
+   * ⚡ **The decidable form is "what is under this pixel", not "did a click work"** — a click test needs a
+   * control to be underneath, which depends on layout and is exactly the coincidence that hid this.
+   * `elementFromPoint` over the sentence's own centre answers it directly, whatever is beneath.
+   *
+   * ⚠️ Web-only by construction: on iOS a plain `View` is `userInteractionEnabled` and consumes the touch
+   * for the same reason, but nothing off-device can observe it. → P6.14 row.
+   */
+  test('the callout does not eat taps over its own words', async ({ page }) => {
+    await seedStore(page, scenario());
+    await openDebt(page);
+    const card = page.getByTestId('coach-mark');
+    await expect(card).toBeVisible();
+    /**
+     * ⛔ **`toBeVisible()` IS NOT "ON SCREEN", AND THE DIFFERENCE IS SILENT IN THE PASSING DIRECTION.**
+     * [P6.8.9.7.11.5] Playwright's visible means *in the DOM with a non-empty box*; this callout is
+     * absolutely positioned and can rest **below the fold** while the reveal scroll settles. In that state
+     * `elementFromPoint` returns `null` for every point in it, so an absence assertion over the callout
+     * passes for a reason that has nothing to do with pointer events — and a planted defect fails for that
+     * same unrelated reason. Two runs cost, before the viewport was ruled out as the variable.
+     * ⚠️ A viewport assertion, not a `waitForTimeout`: what is being waited for is *"the callout has come
+     * to rest somewhere hit-testable"*, and that is a state the harness can observe directly.
+     */
+    await expect(card).toBeInViewport();
+    await expect(page.getByTestId('coach-mark-dismiss')).toBeInViewport();
+
+    /**
+     * ⛔ **MEASURED AND HIT-TESTED IN ONE EVALUATE, DELIBERATELY.** The first cut took each `boundingBox()`
+     * in the harness and passed the coordinates back in — two round trips per element — and the dismiss
+     * check failed against a button that a probe proved *is* hit-testable. **The reveal scroll settles in
+     * that window**, so the box was measured at one scroll offset and probed at another. ⚠️ Cluster E
+     * flagged exactly this shape in this file: bounding boxes with no settle wait, over a page that is
+     * still moving. Reading the rect and calling `elementFromPoint` in the same frame removes the race
+     * rather than papering it with a wait.
+     */
+    const hit = await page.evaluate(() => {
+      const at = (el: Element | null) => {
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        const x = r.x + r.width / 2;
+        const y = r.y + r.height / 2;
+        const found = document.elementFromPoint(x, y);
+        return {
+          // ⛔ **THE VACUITY GUARD, AND IT CAUGHT ITSELF.** `elementFromPoint` returns `null` for a point
+          // outside the viewport, and `null?.closest(...)` is falsy — so `insideCallout === false` is
+          // ALSO true of a callout that is simply off-screen. The first cut asserted only the `false`,
+          // and a run where the card sat below the fold passed it while proving nothing. This repo has
+          // two specs that stayed green with a defect planted for exactly this shape. [P6.8.9.7.11.5]
+          hitSomething: found !== null,
+          insideCallout: !!found?.closest('[data-testid="coach-mark"]'),
+          insideDismiss: !!found?.closest('[data-testid="coach-mark-dismiss"]'),
+        };
+      };
+      const cardEl = document.querySelector('[data-testid="coach-mark"]');
+      // The sentence wrapper: the alert-role View that holds the title and body.
+      const sentenceEl = cardEl?.querySelector('[role="alert"]') ?? null;
+      return { sentence: at(sentenceEl), dismiss: at(document.querySelector('[data-testid="coach-mark-dismiss"]')) };
+    });
+
+    expect(hit.sentence, 'the callout sentence is in the DOM to test').not.toBeNull();
+    expect(
+      hit.sentence!.hitSomething,
+      'the sentence is ON SCREEN — without this the assert below is true of a callout below the fold',
+    ).toBe(true);
+    expect(
+      hit.sentence!.insideCallout,
+      "a tap on the callout's own sentence reaches what is underneath, not the callout",
+    ).toBe(false);
+
+    // The preserved property: the dismiss button is the ONE part that must still take a tap.
+    expect(hit.dismiss, 'the dismiss button is in the DOM to test').not.toBeNull();
+    expect(hit.dismiss!.hitSomething, 'the dismiss button is ON SCREEN').toBe(true);
+    expect(
+      hit.dismiss!.insideDismiss,
+      '"Got it" is still hit-testable — opening the card must not disarm its own exit',
+    ).toBe(true);
+  });
 });
 
 /**
@@ -139,9 +225,13 @@ test.describe('coach-marks — the callout does not cover its own subject', () =
      * to scroll, the callout correctly landed **below** the subject and this assertion failed on a
      * perfectly good layout — the proxy, not the subject, was what it was measuring.
      *
-     * ⚠️ Strictly stronger, not looser: "above" permitted a callout sitting anywhere above, including on
-     * top of the neighbouring cash-flow card, which is the defect `coach-mark-neighbour.spec.ts` exists
-     * for. This asserts the actual overlap is zero, in either direction.
+     * ⚠️ **Not "strictly stronger" — DIFFERENT, and correctly so.** On the predicate alone it is strictly
+     * *weaker*: `bottom <= top` implies zero overlap, and zero overlap does not imply `bottom <= top`. The
+     * earlier docstring claimed the reverse. What makes the swap right is that the extra thing the old
+     * form asserted — *"the callout must be ABOVE"* — was **never a property this block claims**, and was
+     * false of a good layout the moment the layer could scroll. ⚡ A test is not improved by asserting
+     * more; it is improved by asserting the thing it names. The neighbour case is a separate claim and
+     * has its own spec. (P6.8.9.7.10 · E-5.)
      */
     const cb = calloutBox!;
     const sb = subjectBox!;

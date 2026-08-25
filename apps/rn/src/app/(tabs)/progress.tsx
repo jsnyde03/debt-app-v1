@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useIsFocused } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -113,9 +114,13 @@ export default function ProgressScreen() {
   /**
    * ⛔ **[V2-6 · P6.8.9.7.3] THE OFFER TO MAKE ROOM FOR A COACH MARK.**
    *
-   * `trajectory-scrub` wraps the whole trajectory card, which at 402×874 starts at y≈570 and runs off the
-   * bottom — so its callout has nowhere to go that covers nothing, and the above-branch lands on the
-   * cash-flow card's date axis, legend and verdict. Scrolling is the only move that keeps both guarantees.
+   * When `trajectory-scrub` still wrapped the whole trajectory card, it started at y≈570 at 402×874 and
+   * ran off the bottom — so its callout had nowhere to go that covered nothing, and the above-branch
+   * landed on the cash-flow card's date axis, legend and verdict. Scrolling is the only move that keeps
+   * both guarantees.
+   * ⚠️ **Present tense was wrong from `.7.3` onward:** the subject is now the 200 pt scrub view inside
+   * `TrajectoryChart`, not the 362 pt card. The reveal is still needed; the arithmetic is history.
+   * (P6.8.9.7.10 · D-5.)
    *
    * ⚡ **Nothing new was invented for this.** `Screen`'s `scrollRef`/`onScroll` pair already exists for
    * exactly this errand — its own docstring reads *"a handle on the body scroller, so an overlay can bring
@@ -126,8 +131,22 @@ export default function ProgressScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const offsetRef = useRef(0);
   const targets = useTutorialTargets();
+  /**
+   * ⛔ **DEREGISTERING ON UNMOUNT IS DEREGISTERING NEVER — TAB SCREENS DO NOT UNMOUNT.**
+   * [P6.8.9.7.11.5] The cleanup below stated the intent exactly — *"or a backgrounded Progress keeps
+   * answering for whatever screen is up"* — and could not deliver it: `_layout.tsx` sets no
+   * `unmountOnBlur`, so this effect's cleanup never runs and a backgrounded Progress stayed the one
+   * registered scroll host. A mark on Money or inside a sheet then got `true` from `requestReveal`,
+   * silently scrolled an invisible list, and spent its one-shot latch.
+   *
+   * ⚡ **The repo had already written this down, three directories away** — `use-coach-mark.ts:42-45`:
+   * *"it was fixed by gating on focus — because Today never unmounts. The offer was left on mount
+   * semantics, so the identical confusion (mount ≠ visible) survived."* Same confusion, third recorded
+   * time, and the corrected pattern (`useIsFocused`) was in the file that describes it.
+   */
+  const isFocused = useIsFocused();
   useEffect(() => {
-    if (!targets) return;
+    if (!targets || !isFocused) return;
     targets.registerScrollHost((dy) => {
       // ⚠️ NOT animated. An animated reveal makes every downstream measurement timing-dependent: the
       // callout is positioned from a rect that is still moving, so it transiently overlaps BOTH its
@@ -135,9 +154,9 @@ export default function ProgressScreen() {
       // mid-glide. An instant adjustment before the hint settles has no such window.
       scrollRef.current?.scrollTo({ y: Math.max(0, offsetRef.current + dy), animated: false });
     });
-    // ⚠️ Deregister on unmount, or a backgrounded Progress keeps answering for whatever screen is up.
+    // ⚠️ Deregister on BLUR — see above. On unmount alone this never ran.
     return () => targets.registerScrollHost(null);
-  }, [targets]);
+  }, [targets, isFocused]);
 
   if (!view.hasDebts) {
     // Debt-free WITH a history → the calm resting state (the finale already fired the spectacle) + the

@@ -174,6 +174,45 @@ export function runMigrations(raw: unknown): DebtStore {
     'goal',
     repairs,
   );
+  /**
+   * ⛔ **REPAIRING THE PACE TO `0` LEFT THE HARM EXACTLY WHERE IT WAS.** The paragraph above states the
+   * defect correctly — a corrupt pace *"removes the cap the user signed off on and funds the goal ahead of
+   * debt at full speed"* — and then `readMoney` returns `0` for anything unreadable, and **`0` is the
+   * uncapped value**: `allocatePaycheck.ts:632` reads `priorityPerPaycheck != null && > 0 ? pace : Infinity`
+   * and `recommendedActions.ts:80` guards identically, falling through to the whole remaining goal. The
+   * repaired store allocates **identically to the corrupt one.** Found by two independent verifiers from
+   * opposite directions at P6.8.9.7.10 (C-2 and B-1), and it is the only finding in that pass that reaches
+   * a user's money.
+   *
+   * ⚡ **The insight is that `0` is not one repair — it is fail-VISIBLE for a balance and fail-SILENT for a
+   * pace.** A $12,000 card repaired to $0 is obviously wrong to the person looking at it. A pace repaired
+   * to $0 looks like nothing at all and quietly redirects every spare dollar away from their debt. Same
+   * value, same helper, opposite consequence — so the pace needs a repair of its own.
+   *
+   * ⛔ **Stand the priority DOWN rather than guess a number.** Any pace we invent is a claim about what the
+   * user chose; the one thing we know is that we can no longer read it. So the goal keeps its name, target
+   * and balance, and stops being funded ahead of debt until the person says otherwise — the safe direction,
+   * because it leaves the money with the debt rather than taking it.
+   *
+   * ⚠️ The repair's `field` becomes a SENTENCE here. Every other entry renders as `"Roof — targetAmount"`,
+   * and a camel-cased identifier is already poor copy; for this one the consequence is the part the reader
+   * needs, and it is not guessable from the field name.
+   */
+  for (const rep of repairs) {
+    if (rep.entity !== 'goal' || rep.field !== 'priorityPerPaycheck') continue;
+    const goal = goals.find((g) => g.id === rep.id);
+    if (!goal) continue;
+    if (goal.priority === true) {
+      goal.priority = false;
+      rep.field =
+        'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt — ' +
+        'set it up again from Can I afford it?';
+    } else {
+      // Not prioritised, so there was no cap to lose and nothing changes about the plan.
+      rep.field = 'the per-paycheck amount could not be read';
+    }
+    delete goal.priorityPerPaycheck;
+  }
   // v7 (5.6) — DROP two inert prefs. Both were measured at zero production reads, and the merge below
   // would otherwise carry them forward forever: `{ ...base.prefs, ...r.prefs }` preserves any extra key
   // an older blob happens to hold, so deleting them from the TYPE alone would leave them in the data.

@@ -28,7 +28,19 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
-const ROOTS = [join(REPO_ROOT, 'apps', 'rn', 'src'), join(REPO_ROOT, 'apps', 'rn', 'tests')];
+/**
+ * ⛔ **`packages/core` AND `scripts` ARE IN SCOPE, and leaving them out was a reach gap, not a decision.**
+ * [P6.8.9.7.11.8] [D17] is a convention about how this repo writes comments, not about one directory —
+ * and the gates in `scripts/` are the most heavily commented code here, while `packages/core` holds the
+ * engine every finding eventually cites. ⚡ **Measured before widening: zero existing violations in either
+ * tree**, so this costs nothing today and closes the hole for everything written from here.
+ */
+const ROOTS = [
+  join(REPO_ROOT, 'apps', 'rn', 'src'),
+  join(REPO_ROOT, 'apps', 'rn', 'tests'),
+  join(REPO_ROOT, 'packages', 'core'),
+  join(REPO_ROOT, 'scripts'),
+];
 const EXTS = new Set(['.ts', '.tsx']);
 
 /** Half 1 — the comment talking about a comment. */
@@ -59,6 +71,15 @@ const COUNTS = [
   /\b(two|three|four|five|six|seven|eight|nine|ten|twelve) (call ?sites?|published values?)\b/i,
   /\bwhich today is (two|three|four|five|six|seven|eight)\b/i,
 ];
+
+/**
+ * ⛔ **THE ONE FILE THAT MUST CONTAIN THE BANNED STRINGS IS THIS ONE.** [P6.8.9.7.11.8] Widening the scan
+ * to `scripts/` brought the checker inside its own jurisdiction, and its docstrings quote *"six call
+ * sites"* and *"all FIVE published values"* as the examples that define the rule. A gate cannot state its
+ * class without naming it. ⚠️ Scoped to this exact file, never to `scripts/` as a whole — the other gates
+ * are ordinary code and are policed like any other.
+ */
+const OWNER_FILE = 'scripts/check-comment-convention.ts';
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
@@ -118,6 +139,7 @@ const hits: string[] = [];
 for (const root of ROOTS) {
   for (const file of walk(root)) {
     const rel = relative(REPO_ROOT, file);
+    if (rel.replace(/\\/g, '/') === OWNER_FILE) continue;
     commentLines(readFileSync(file, 'utf8')).forEach((line, i) => {
       if (line === null) return;
       if (META.some((r) => r.test(line))) hits.push(`${rel}:${i + 1}  [meta-comment]  ${line.slice(0, 100)}`);

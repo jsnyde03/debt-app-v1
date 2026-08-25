@@ -15,10 +15,17 @@ import { join, relative } from 'path';
  * the words are right — the constant's own definition and `lint:glossary` do that — only that the site is
  * still asking the owner rather than answering for itself.
  *
- * ⚠️ **Deliberately NOT an e2e.** Two of these live on onboarding steps that nothing in the suite can reach
- * without inventing a drive-through-onboarding path, and a fragile new locator chain is a worse instrument
- * than a structural one. Where a surface IS reachable, the e2e is better and exists (A4/M1-9 are pinned in
- * `earlyjourney.spec.ts`); this covers the ones that are not.
+ * ⚠️ **Deliberately NOT an e2e.** These live on onboarding steps that nothing in the suite can reach without
+ * inventing a drive-through-onboarding path, and a fragile new locator chain is a worse instrument than a
+ * structural one. ⛔ **A4/M1-9 belongs here TOO, even though `earlyjourney.spec.ts` covers it**: that e2e
+ * asserts the rendered words and this asserts the wiring, and they fail in different directions — an e2e
+ * cannot tell a constant from a literal that happens to match. (P6.8.9.7.10 · A-6.)
+ *
+ * ⛔ **COMMENTS ARE STRIPPED BEFORE THE MATCH, AND THAT IS THE DIFFERENCE BETWEEN A GATE AND A GREEN LIGHT.**
+ * The first cut ran `src.includes(owner)` over the raw file — and all three sites carry long docblocks
+ * *about* `PRIVACY_CLAIM`. It passed only by the accident that none of them happened to write the dotted
+ * form. Deleting the JSX and leaving `// was PRIVACY_CLAIM.atEntry` behind kept it green: the gate would
+ * have been satisfied by the epitaph of the thing it was guarding.
  */
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -51,7 +58,23 @@ const PAIRINGS: readonly Pairing[] = [
     owner: 'PRIVACY_CLAIM.headline',
     why: 'bullet 3, which used to promise a PREMIUM feature to a user who has not chosen a tier',
   },
+  {
+    // ⛔ The site's OWN comment says *"Both halves are the CONSTANT, never a literal"* (`WelcomeStep.tsx:28`)
+    // and the gate pinned one of them. Half a pairing is exactly the shape this whole check exists to
+    // refuse. (P6.8.9.7.10 · A-6.)
+    id: 'A4 / M1-9',
+    file: 'apps/rn/src/components/onboarding/WelcomeStep.tsx',
+    owner: 'PRIVACY_CLAIM.noSelling',
+    why: 'the second half of bullet 3 — the "never sold more debt" promise, on the same line as the headline',
+  },
 ];
+
+/**
+ * Line structure is irrelevant here — only presence is — so this blanks rather than preserves. The
+ * `[^:]` guard keeps a `https://` inside a string from being read as the start of a comment.
+ */
+const stripComments = (src: string): string =>
+  src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, (_m, p1: string) => p1);
 
 const failures: string[] = [];
 
@@ -61,7 +84,7 @@ for (const p of PAIRINGS) {
     failures.push(`[${p.id}] ${p.file} does not exist — the closure's site is gone entirely`);
     continue;
   }
-  const src = readFileSync(abs, 'utf8');
+  const src = stripComments(readFileSync(abs, 'utf8'));
   if (!src.includes(p.owner)) {
     failures.push(
       `[${p.id}] ${relative(REPO_ROOT, abs).replace(/\\/g, '/')} no longer reads \`${p.owner}\` — ${p.why}`,

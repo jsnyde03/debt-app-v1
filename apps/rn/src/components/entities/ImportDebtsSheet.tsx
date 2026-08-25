@@ -115,8 +115,19 @@ export function ImportDebtsSheet({ onClose }: { onClose: () => void }) {
       {CSV_FILE_SUPPORTED ? (
         <Button label="Choose a file" variant="primary" testID="csv-import-file" onPress={chooseFile} />
       ) : null}
+      {/*
+        ⛔ **THE DATE FORMAT IS THE ONE RULE THAT LOSES THE WHOLE FILE, AND IT WAS THE ONE RULE NOT STATED
+        HERE.** [P6.8.9.7.11.4] `dueDate` is required and must be `YYYY-MM-DD`; a spreadsheet or bank
+        export writes `9/1/2026`, every row is refused, and the sheet gave no way to know that in advance.
+        ⚡ The same change that widened the header parser argued *"a real export from a bank or a
+        spreadsheet says `Minimum Payment`"* — **and that same export says `9/1/2026`.** One half of the
+        premise was acted on and the other was not.
+        ⚠️ `site/support.html` has said this since it was written; the in-app copy is what disagreed, and
+        the person pasting a CSV is not reading the support site while they do it.
+      */}
       <Text style={[textStyles.caption, { color: c.text.secondary }]}>
-        Columns: name, balance, minimumPayment, apr, dueDate. APR can be left blank for 0%.
+        Columns: name, balance, minimumPayment, apr, dueDate. Dates must be written as YYYY-MM-DD, for
+        example 2026-09-01. APR can be left blank for 0%.
       </Text>
       <TextInput
         testID="csv-import-input"
