@@ -94,9 +94,33 @@ const SOURCES = [
  * tokens. ⛔ **When a cap reaches 0, delete it and require the token outright.**
  */
 const CLOSES = /\[closes:\s*([^\]]+)\]/g;
+
+/**
+ * ⛔ **A QUOTED TOKEN IS AN EXAMPLE, NOT A RECORD — and skipping this minted four fabricated closures
+ * within hours.** [S0.1, corrected at S0.1b · REVERIFY-1]
+ *
+ * The S0.1 log entry that *documented* this token wrote it twice: once as the syntax example and once in
+ * the plant table. Both sit in `DEBT_ELEVATION_LOG.md`, which **is** a closure SOURCE — so `L0-1`, `L5-5`
+ * and `M2-1` immediately read as machine-checkably closed, and both caps dropped on that evidence.
+ *
+ * ⚡ **That is M12 exactly, one mechanism over.** M12 was *"a postmortem ABOUT twelve ids counted as the
+ * closure FOR them."* The fix for it then produced *"the documentation OF the token counted as a use of
+ * the token."* ⛔ **The fixer's own write-up is inside the corpus the fixer is measuring**, and that is
+ * true of every instrument whose ledger is the project's own prose.
+ *
+ * **The convention, and it is mechanical rather than a matter of care:** a closure record is written as
+ * **plain text**; anything inside markdown code — a fenced block or an inline span — is quoted, so it is
+ * an example and does not count. Blanking both before the scan is what makes documenting the token safe.
+ */
+function stripMarkdownCode(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/`[^`\n]*`/g, (m) => m.replace(/[^\n]/g, ' '));
+}
+
 const explicit = new Set<string>();
 for (const src of SOURCES) {
-  for (const m of readFileSync(src, 'utf8').matchAll(CLOSES)) {
+  for (const m of stripMarkdownCode(readFileSync(src, 'utf8')).matchAll(CLOSES)) {
     for (const id of m[1].split(/[\s,·]+/)) if (id.trim()) explicit.add(id.trim());
   }
 }
@@ -119,7 +143,7 @@ for (const file of readdirSync(FINDINGS)) {
   if (!file.endsWith('.md') || file.startsWith('L9')) continue;
   let current: string | null = null;
   let title = '';
-  for (const line of readFileSync(join(FINDINGS, file), 'utf8').split('\n')) {
+  for (const line of readFileSync(join(FINDINGS, file), 'utf8').split(/\r?\n/)) {
     const heading = line.match(/^### (L\d+-\d+)\s*[—–·-]?\s*(.*)$/);
     if (heading) {
       current = heading[1];
@@ -182,7 +206,7 @@ for (const file of readdirSync(P68_SLICES)) {
   if (!file.endsWith('.md')) continue;
   let current: string | null = null;
   let title = '';
-  for (const line of readFileSync(join(P68_SLICES, file), 'utf8').split('\n')) {
+  for (const line of readFileSync(join(P68_SLICES, file), 'utf8').split(/\r?\n/)) {
     // `### W1-1`, `### V3-5`, `### A1-11`, `### M4-8` — one to two letters, an optional lens digit.
     const heading = line.match(/^#{2,4} ([A-Z]{1,2}\d?-\d+[a-z]?)\s*[—–·-]?\s*(.*)$/);
     if (heading) {

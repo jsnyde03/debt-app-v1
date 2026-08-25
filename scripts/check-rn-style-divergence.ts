@@ -118,7 +118,7 @@ for (const root of ROOTS) {
       // are this repo's dominant form, so a same-line test failed CORRECT code — the loudest failure mode
       // a lint gate has, and the one that gets it switched off.
       if (!/overflow:\s*['"]hidden['"]/.test(objectAround(src, m.index))) {
-        const lineNo = src.slice(0, m.index).split('\n').length;
+        const lineNo = src.slice(0, m.index).split(/\r?\n/).length;
         hits.push(`${rel}:${lineNo}  ${m[0].split(':')[0]}: ${raw} (${value}) with no overflow: 'hidden'`);
       }
     }

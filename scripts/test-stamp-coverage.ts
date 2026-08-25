@@ -220,7 +220,7 @@ const rowOf = (path: string, id: string) => parseChecklist(path).checks.find((c)
   // Normalise every stamp on BOTH sides: what remains must be identical, or something else moved.
   const norm = (s: string) => s.replace(/✅auto·\d+/g, '✅auto·N');
   check('nothing but the run ids changed', norm(before) === norm(after));
-  check('line count unchanged', before.split('\n').length === after.split('\n').length);
+  check('line count unchanged', before.split(/\r?\n/).length === after.split(/\r?\n/).length);
   rmSync(sb.dir, { recursive: true, force: true });
 }
 

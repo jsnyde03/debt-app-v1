@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { generateV16Cases, type Case } from '@/data/migrationAudit/corpus';
 import { importDoor, webkitDoor } from '@/data/migrationAudit/doors';
 import { INVARIANTS, checkAll, type DoorOutcome } from '@/data/migrationAudit/invariants';
@@ -170,5 +171,25 @@ export function selfCheck(): void {
     throw new Error('FAIL [self-check: verdict() ignored differential drift — the two-door oracle is unguarded]');
   }
 
-  console.log(`  ✓ self-check: the invariants fire (${fired.length} on a poisoned outcome) and the verdict throws`);
+  /**
+   * ⛔ **…AND THAT THE VERDICT IS STILL CALLED.** [S0.4b · REVERIFY-1 finding 5]
+   *
+   * ⚠️ **S0.4 proved `verdict()` throws and stopped there, which moved the disarm from four lines to
+   * ONE** — delete the `verdict(...)` call in `run()` and the audit is report-only again, now with a
+   * *reassuring* self-check line printed first. **A guard that verifies the guard and not its use is the
+   * `tested-helper-is-not-a-used-helper` shape reproduced by the fix for that shape.**
+   *
+   * ⚡ Reading its own source is unusual and it is the only thing here that can see a missing CALL: the
+   * call has no return value, no observable effect on a clean run, and the runner cannot tell the
+   * difference. ⚠️ **Residual, named:** someone can delete this assertion too — but that is now a
+   * deliberate edit to a block that says what it is for, not a one-line deletion nobody would notice.
+   */
+  const selfSource = readFileSync(__filename, 'utf8');
+  if (!/\n\s*verdict\(rows, drift, byCause\.size\);/.test(selfSource)) {
+    throw new Error(
+      'FAIL [self-check: run() no longer calls verdict(rows, drift, byCause.size) — the migration audit computes a verdict and discards it]',
+    );
+  }
+
+  console.log(`  ✓ self-check: the invariants fire (${fired.length} on a poisoned outcome), the verdict throws, and run() still calls it`);
 }

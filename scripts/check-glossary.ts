@@ -88,7 +88,7 @@ for (const root of ROOTS) {
     // Core's suites are `testXxx.ts`; the app's are `*.test.ts`. Test NAMES quote retired words on
     // purpose ("exactly at the floor is not a crunch") and are not user-facing copy.
     if (base.endsWith('.test.ts') || /^test[A-Z]/.test(base)) continue;
-    const lines = stripComments(readFileSync(file, 'utf8')).split('\n');
+    const lines = stripComments(readFileSync(file, 'utf8')).split(/\r?\n/);
     lines.forEach((line, i) => {
       for (const frag of copyFragments(line)) {
         for (const { pattern, word, use } of RETIRED) {

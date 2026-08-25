@@ -161,7 +161,7 @@ function textUses(token: Foreground, files: string[]): string[] {
   const hits: string[] = [];
   for (const file of files) {
     readFileSync(file, 'utf8')
-      .split('\n')
+      .split(/\r?\n/)
       .forEach((line, i) => {
         if (pattern.test(line)) hits.push(`${relative(REPO_ROOT, file).replace(/\\/g, '/')}:${i + 1}`);
       });
@@ -297,7 +297,7 @@ const withoutGradients = (line: string): string => line.replace(/\[[^\]]*'#[0-9a
 for (const file of files) {
   if (file.replace(/\\/g, '/').endsWith('theme/colors.ts')) continue;
   readFileSync(file, 'utf8')
-    .split('\n')
+    .split(/\r?\n/)
     .forEach((line, i) => {
       for (const raw of withoutGradients(line).match(/'#[0-9a-fA-F]{6}'/g) ?? []) {
         const token = TOKEN_VALUES.get(raw.slice(1, -1).toLowerCase());
@@ -367,7 +367,7 @@ for (const file of files) {
   const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
   if (rel.endsWith('theme/colors.ts')) continue;
   readFileSync(file, 'utf8')
-    .split('\n')
+    .split(/\r?\n/)
     .forEach((line, i) => {
       /**
        * ⛔ **THE INK SCAN READS THE RAW LINE — `withoutGradients` BLINDED IT.** That helper blanks any

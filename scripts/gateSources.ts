@@ -56,6 +56,24 @@ const ROOTS = [
   'apps/rn/.maestro',
   '.github/workflows',
   '.github/actions',
+  /**
+   * ⛔ **THE LEGACY ROOT TREES — a gate READS them, so the fingerprint must SEE them.**
+   * [P6.8.9.7.11.18 · S0.2b · REVERIFY-1 finding 7]
+   *
+   * `check-month-arithmetic`'s `PENDING_DELETION` scans these four and asserts they still exist, so its
+   * output is a function of their contents. They were in no root here — which meant **P6.11's deletion
+   * would change what that gate does while `lint:gate-freshness` still called the recorded pass fresh.**
+   * That is [D49]'s own failure mode, arriving through a gate added to close a different one.
+   *
+   * ⚠️ **The coupling is intentional and it is temporary**: P6.11 deletes this tree, which will change
+   * the fingerprint once and then remove these roots along with the `PENDING_DELETION` entry that
+   * requires them. Until then a legacy-tree edit correctly invalidates the recorded pass, because a
+   * legacy-tree edit can correctly change a gate's verdict.
+   */
+  'app',
+  'components',
+  'lib',
+  'tests',
 ];
 
 /** Repo-root files that change what the gate builds or runs and sit outside every root above. */

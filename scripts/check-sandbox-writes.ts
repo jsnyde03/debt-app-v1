@@ -22,6 +22,7 @@
  *
  * Usage: npm run lint:sandbox   ·   runs inside `lint:rn` → `validate:release:rn`
  */
+import { stripCommentsOnly } from './lib/stripCode';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 
@@ -108,16 +109,19 @@ const DEFINITION = 'apps/rn/src/store/appStore.ts';
 for (const file of walk(ROOT)) {
   const rel = relative(REPO_ROOT, file).split(sep).join('/');
   if (rel === DEFINITION) continue;
-  const lines = readFileSync(file, 'utf8').split('\n');
+  const source = readFileSync(file, 'utf8');
+  const lines = source.split(/\r?\n/);
+  /**
+   * ⛔ **COMMENTS ONLY — this gate matches the import PATH, which is a string literal.** Blanking string
+   * contents turned `from '@/store/appStore'` into `from '                  '` and reported all 24
+   * allow-list entries stale. Caught by `lint:rn` on the first run after the change.
+   */
+  const code = stripCommentsOnly(source).split(/\r?\n/);
   lines.forEach((raw, i) => {
-    // Strip line comments and doc-comment bodies — several files DISCUSS the singleton in prose
-    // explaining a defect that was fixed, and a guard that reds on its own postmortem is noise.
-    // ⛔ **`\r` FIRST, or both strips below silently no-op.** [S0.3] `packages/core` is **66% CRLF**;
-    // `split('\n')` leaves the `\r`, JS `.` never matches it and `$` (no `m` flag) will not sit before
-    // one — so `.*$` fails and every doc-comment body was scanned as code. An OVER-match, not blindness:
-    // the gate reads more than it should. Found on the sibling gate `check-destructive-writes` at S0.3,
-    // where a comment *explaining the guarded defect* was reported as an unsanctioned call.
-    const line = raw.replace(/\r$/, '').replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '');
+    // Several files DISCUSS the singleton in prose explaining a defect that was fixed, and a guard that
+    // reds on its own postmortem is noise. ⛔ [S0.3b · REVERIFY-1 finding 4] one stateful scanner — the
+    // regex pair this replaces truncated at a `//` inside a string AND no-oped entirely on CRLF.
+    const line = code[i] ?? '';
     if (!IMPORT.test(line)) return;
     seen.add(rel);
     if (ALLOWED[rel]) return;

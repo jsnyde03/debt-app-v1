@@ -115,7 +115,7 @@ if (build) {
   // ⚡ A save that omits a path the restore lists is a cache that hits and comes back INCOMPLETE — and
   // 4.1.9b's whole probe fix depends on the XCUITest products being in BOTH lists.
   const norm = (v: unknown) =>
-    String(v ?? '').split('\n').map((l) => l.trim()).filter(Boolean).sort().join('\n');
+    String(v ?? '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean).sort().join('\n');
   check(
     'the restore and save path lists are identical',
     norm(restore?.with?.path) === norm(save?.with?.path),
@@ -364,7 +364,7 @@ for (const [jobName, job] of Object.entries(wf?.jobs ?? {}) as [string, any][]) 
 // ⛔ Every line in a `path: |` block is a literal PATTERN, not YAML. A `#` line there became a path and
 // moved the artifact's common root, gaining an `apps/rn/` segment mid-investigation.
 for (const [label, raw] of [['native-e2e.yml', wfRaw], ['app-preview.yml', previewRaw]] as const) {
-  const lines = raw.split('\n');
+  const lines = raw.split(/\r?\n/);
   let inPath = false;
   let indent = 0;
   let offenders: number[] = [];

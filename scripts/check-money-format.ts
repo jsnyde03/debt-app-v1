@@ -128,7 +128,7 @@ for (const root of ROOTS) {
     if (isTestHarness(file)) continue;
     const rel = relative(REPO_ROOT, file);
     const stripped = stripComments(readFileSync(file, 'utf8'));
-    stripped.split('\n').forEach((line, i) => {
+    stripped.split(/\r?\n/).forEach((line, i) => {
       for (const { pattern, why } of HAND_ROLLED) {
         if (pattern.test(line)) {
           problems.push(`  ${rel}:${i + 1}  ${why}\n      ${line.trim().slice(0, 100)}`);

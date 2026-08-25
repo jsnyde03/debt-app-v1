@@ -497,6 +497,104 @@ row that read *"663 files"* while the record said **668**.
 
 ---
 
+## 📕 P6.8.9.7.11.18 · S0.8 — the re-verify, and four of six fixes carried the class they closed *(2026-08-25)*
+
+**Pass 1 of S0's convergence loop, pinned to `2b10a6c`: 0 blockers, 7 majors.** All seven closed, plus
+**three more found while closing them**. Report: `audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-1.md`.
+
+⭐ **THE LOOP PAID FOR ITSELF ON ITS FIRST TURN.** Under the old shape these seven would have sat until a
+whole-round audit weeks later — and three of them are defects the S0 commit *introduced*.
+
+### ⛔ The result: the fix for M12 reproduced M12, in the log entry that documented it
+
+**M12 was:** *a postmortem ABOUT twelve ids counted as the closure FOR them.*
+**S0.1's fix produced:** *the documentation OF the `[closes: …]` token counted as a use of the token.*
+
+The S0.1 log entry wrote the token twice — once as the syntax example, once in the plant table — and
+`DEBT_ELEVATION_LOG.md` **is** a closure SOURCE. Measured: **4 fabricated closures**, caps silently
+dropping 55 → 53 and 48 → 47 on evidence that was prose about the mechanism.
+
+⚡ **The general shape, and it applies to every instrument here: the fixer's own write-up is inside the
+corpus the fixer is measuring.** Fixed mechanically rather than by care — a token inside markdown code
+(fenced or inline) is an **example**; only plain text is a **record**. Verified both directions: a quoted
+token counts 0, a plain-text one moves 55 → 54.
+
+### ⛔ The worst of the seven: a CRLF checkout makes the GATING half vacuous
+
+`check-audit-closure`'s own slice parsers use `$`-anchored heading regexes over `split('\n')`. Measured:
+
+| corpus | `[D37]` findings parsed |
+|---|---|
+| as-is (LF) | **117** |
+| CRLF | **0** — and it prints `✅ [D37]: all 0 high+ findings trace`, exit 0 |
+
+⚠️ `core.autocrlf=true` with no `.gitattributes` means **a fresh Windows clone produces exactly that.**
+Fixed as a class rather than at the two sites: **30 `split('\n')` → `split(/\r?\n/)` across 17 gate
+scripts**, verified by re-parsing a CRLF corpus (117 and 87 hold).
+
+### ⛔ And the `//`-inside-a-string truncation was still in three gates — in the line S0.3 had just edited
+
+S0.3 patched the `\r` half of that line and **left the string half in place**, in the same commit that
+named it. ⚡ **Neither regex ORDER can win** — comments-first truncates at a `//` inside a string;
+strings-first lets a lone backtick in a comment open a template literal that runs to the next backtick.
+**Which construct opens first is a property of the text, not of the pass order.** Replaced by one stateful
+scanner in `scripts/lib/stripCode.ts`, in two variants:
+
+- `stripCommentsAndStrings` — for gates matching **code** (`check-destructive-writes`, `check-month-arithmetic`)
+- `stripCommentsOnly` — for gates whose subject is **inside** the strings (`check-apostrophes`, and
+  `check-sandbox-writes`, which matches the import PATH)
+
+⛔ **`lint:rn` caught me getting that split wrong on the first run** — blanking string contents turned
+`from '@/store/appStore'` into blanks and reported all 24 sandbox allow-list entries stale. **The gate
+that S0 exists to strengthen is what refused the change.**
+
+### ⚡ Invariant ⑨ was unreachable — and making it reachable found a REAL defect
+
+Pass 1: *"⑨ can be deleted, inverted or broken with everything green"* — `corpus.ts` produced **0** goals
+carrying a pace. **A judgement with no input is worth exactly as much as no judgement.** Retiring the
+false premise at S0.6 was necessary and not sufficient; the corpus had to change too.
+
+Added a second, **sinking-fund-governed** goal (the first is `emergency`, which the stand-down exempts by
+design) plus the pace to the damage axis — 522 → **542** cases. ⛔ **Its first run reported a violation:**
+
+> `goals[1].priorityPerPaycheck:negative → goals[1] is priority with priorityPerPaycheck -1 — reads as UNCAPPED`
+
+**Through both doors.** The stand-down fires on `priorityPerPaycheck !== 0 → continue`, while
+`allocatePaycheck.ts:635` treats **every non-positive number** as `Infinity`. A negative pace is a finite
+number, so `readMoney` reports no repair at all — nothing upstream flags it and the branch built to catch
+exactly this harm stepped over it. **A restored plan with `pace: -1` funds that goal uncapped, ahead of
+the user's debt.** Fixed to `typeof pace !== 'number' || pace > 0 → continue`; `undefined` deliberately
+still means the legitimate *"fund it fully"* state.
+
+### The other three
+
+- **S0.4's fix moved the disarm from four lines to ONE.** It proved `verdict()` *throws* and never that it
+  is *called* — and now printed a reassuring self-check line first. ⚡ **A guard that verifies the guard
+  but not its use is `tested-helper-is-not-a-used-helper` reproduced by the fix for that shape.**
+  `selfCheck` now asserts its own source still contains the call; plant-verified.
+- **`PENDING_DELETION` read four trees `gateSources.ts` did not fingerprint**, so P6.11's deletion would
+  change a gate's verdict while `lint:gate-freshness` called the record fresh — [D49]'s failure mode
+  arriving through a gate added to close a different one. The four roots are now fingerprinted.
+- **`corpus.ts` held a raw NUL byte**, so grep/ripgrep reported *"Binary file matches"* and showed nothing
+  — **which is why two rounds reasoned about that file from its comments.** It was inside a deliberately
+  hostile unicode string; escaped as ` `, identical at runtime, file is text again.
+
+### ⚠️ And I measured the stripper regression WRONG before measuring it right
+
+Pass 1 called the string stripper *"45× blinder — 257 → 11,694 blanked chars."* My first check produced
+**478,413**. ⛔ **Both numbers answer the wrong question:** blanking string *contents* is the intended
+behaviour of that fix, so a large delta is the feature. The question is whether it hides a **live site**:
+
+> `setMonth`-family lines hidden: **0.** `new Date(` lines hidden: **1** — the gate's own output string,
+> correctly.
+
+⚡ **So finding 2 is a real latent hazard and NOT live blindness** — a runaway needs an *odd* backtick
+count in one comment, and this repo's comments almost always pair them. Fixed as a hazard, with the
+measurement recorded so the severity is not re-inflated by the next reader. **A metric that moves in the
+right direction is not evidence until you check it is measuring the defect and not the fix.**
+
+---
+
 ## 🔎 P6.8.9.7.11.17 — the SWITCH-IN before-scan, and the handoff's own premises measured *(2026-08-25)*
 
 ⛔ **The handoff was written for a session that was not here, and two of the things it told that session to
@@ -22756,4 +22854,5 @@ re-check of every `toISOString`/`getUTC` site for the Sydney/Auckland class. A c
 recording it is what stops the next round re-litigating it.
 
 ▶ 🎯 2026-08-25: **"We're fixing all blockers and majors."**
+
 

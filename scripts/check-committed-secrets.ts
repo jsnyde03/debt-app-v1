@@ -80,7 +80,7 @@ for (const rel of files) {
     continue; // cheap pre-filter, so the regexes only run where they can possibly match
   }
 
-  const lines = text.split('\n');
+  const lines = text.split(/\r?\n/);
   for (const { name, re, note } of PATTERNS) {
     lines.forEach((line, i) => {
       if (re.test(line)) hits.push({ file: rel, line: i + 1, name, note });

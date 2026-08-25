@@ -143,7 +143,7 @@ function commentBlocks(src: string): CommentBlock[] {
 function commentLines(src: string): (string | null)[] {
   const out: (string | null)[] = [];
   let inBlock = false;
-  for (const line of src.split('\n')) {
+  for (const line of src.split(/\r?\n/)) {
     const t = line.trim();
     if (inBlock) {
       out.push(t);

@@ -24,6 +24,7 @@
  * Usage: tsx scripts/check-apostrophes.ts            # gate
  *        tsx scripts/check-apostrophes.ts --baseline # re-record (only after a deliberate sweep)
  */
+import { stripCommentsOnly } from './lib/stripCode';
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -212,15 +213,19 @@ const swiftHits: string[] = [];
 for (const root of SWIFT_ROOTS) {
   for (const file of walkSwift(root)) {
     const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
-    const lines = readFileSync(file, 'utf8').split('\n');
+    const source = readFileSync(file, 'utf8');
+    const lines = source.split(/\r?\n/);
+    /** Comments blanked, string CONTENTS kept — this gate's subject lives inside the strings. */
+    const codeLines = stripCommentsOnly(source).split(/\r?\n/);
     let inPhrases = false;
     lines.forEach((line, i) => {
       // ⛔ **COMMENTS ARE STRIPPED FIRST, AND THAT ORDER IS THE FIX.** `///` doc comments quote the very
       // phrases this scan is about, so testing the exemption against the RAW line let a comment mentioning
       // `phrases: [` open the latch and silence the rest of the file. (P6.8.9.7.10 · A-3.)
-      // [S0.3] `\r` first — `.*$` no-ops on a CRLF line, so the `//` strip never ran on 66% of
-      // `packages/core`. Same class as `check-sandbox-writes.ts`; see its note for the mechanism.
-      const code = line.replace(/\r$/, '').replace(/\/\/.*$/, '');
+      // ⛔ [S0.3b · REVERIFY-1 finding 4] `/\/\/.*$/` truncated at a `//` **inside a string** — and this
+      // gate's whole subject is what is inside strings, so it was cutting its own corpus. String contents
+      // are deliberately PRESERVED here; only comments go. See `lib/stripCode.ts`.
+      const code = codeLines[i] ?? '';
       /**
        * ⛔ **A ONE-LINE `phrases: ["…"]` OPENS AND CLOSES ON THE SAME LINE.** The first cut tested the
        * close with an `else if`, so that case set the latch and never cleared it — every following line

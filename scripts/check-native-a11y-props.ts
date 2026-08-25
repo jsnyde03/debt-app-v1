@@ -93,9 +93,9 @@ for (const root of ROOTS) {
     const rel = relative(REPO_ROOT, file).split(sep).join('/');
     const allowed = EXEMPT[rel] ?? [];
     const src = readFileSync(file, 'utf8');
-    const raw = src.split('\n');
+    const raw = src.split(/\r?\n/);
     stripComments(src)
-      .split('\n')
+      .split(/\r?\n/)
       .forEach((line, i) => {
         for (const prop of BANNED) {
           if (allowed.includes(prop)) continue;
@@ -164,9 +164,9 @@ for (const root of ROOTS) {
     // no instruction, because it costs a cycle to disbelieve. (P6.8.9.7.10 · A-5.)
     const allowed = EXEMPT[rel] ?? [];
     const src = readFileSync(file, 'utf8');
-    const raw = src.split('\n');
+    const raw = src.split(/\r?\n/);
     const stripped = stripComments(src);
-    stripped.split('\n').forEach((line, i) => {
+    stripped.split(/\r?\n/).forEach((line, i) => {
       for (const o of OWNED) {
         if (rel === o.ownerFile || allowed.includes(o.prop)) continue;
         if (new RegExp(`\\b${o.prop}\\b`).test(line)) {

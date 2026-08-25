@@ -123,7 +123,7 @@ function download(runId: string): string[] {
   let names: string[];
   try {
     names = gh(['api', `repos/{owner}/{repo}/actions/runs/${runId}/artifacts`, '-q', '.artifacts[].name'])
-      .split('\n').map((s) => s.trim()).filter(Boolean);
+      .split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
   } catch (e) {
     return die(`could not list run ${runId}'s artifacts: ${(e as Error).message.trim()}\n   Not an absence — the question could not be asked. Check \`gh auth status\` and that the run id is this repo's.`);
   }

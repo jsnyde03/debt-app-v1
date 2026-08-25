@@ -256,7 +256,26 @@ export function runMigrations(raw: unknown): DebtStore {
    * `0` re-reads as `repaired: false`). Those would otherwise fund uncapped forever.
    */
   for (const goal of goals) {
-    if (goal.priority !== true || goal.priorityPerPaycheck !== 0) continue;
+    /**
+     * ⛔ **`<= 0`, NOT `=== 0` — and the corpus found the gap the moment it could reach this branch.**
+     * [P6.8.9.7.11.18 · S0.6b · REVERIFY-1 finding 6]
+     *
+     * The uncapped condition is not "the pace is zero". `allocatePaycheck.ts:635` is
+     * `pace != null && pace > 0 ? pace : Infinity`, and `recommendedActions.ts:80` guards identically —
+     * so **every non-positive number is uncapped**, and this loop only ever caught one of them.
+     *
+     * ⚡ **Found by the instrument, not by reading.** Adding a priority goal to the audit corpus made
+     * invariant ⑨ reachable, and its first run reported `priorityPerPaycheck: -1` surviving as
+     * `priority: true` through **both** doors. A negative pace is a finite number, so `readMoney` reports
+     * no repair at all — nothing upstream flags it, and the branch built to catch exactly this harm
+     * stepped over it.
+     *
+     * ⚠️ **`undefined` is deliberately NOT stood down.** `priority: true` with no pace is the legitimate
+     * "fund it fully" state a user can choose; the allocator reads it as uncapped **on purpose**. What is
+     * being repaired here is a pace that is *present and nonsensical*, not an absent one.
+     */
+    const pace = goal.priorityPerPaycheck;
+    if (goal.priority !== true || typeof pace !== 'number' || pace > 0) continue;
     /**
      * ⛔ **THE PRIORITY RUNG DOES NOT GOVERN *THE* EMERGENCY FUND, so it is a different story.**
      * [P6.8.9.7.11.9 · B-4] The sinking-fund rung skips it, so its pace never governed anything and

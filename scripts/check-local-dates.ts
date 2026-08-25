@@ -86,9 +86,9 @@ for (const root of ROOTS) {
     const rel = relative(REPO_ROOT, file);
     if (EXEMPT.some((e) => rel === e)) continue;
     const raw = readFileSync(file, 'utf8');
-    const lines = raw.split('\n');
+    const lines = raw.split(/\r?\n/);
     stripComments(raw)
-      .split('\n')
+      .split(/\r?\n/)
       .forEach((line, i) => {
         if (BANNED.test(line)) hits.push(`${rel}:${i + 1}: ${lines[i]?.trim() ?? ''}`);
         if (HAND_PARSE.test(line)) handParseCount++;

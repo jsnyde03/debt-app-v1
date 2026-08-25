@@ -34,6 +34,7 @@
  *
  * Usage: npm run lint:destructive   ·   runs inside `lint:rn` → `validate:release:rn`
  */
+import { stripCommentsAndStrings } from './lib/stripCode';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 
@@ -119,17 +120,18 @@ const found = new Map<string, number>();
 
 for (const file of walk(ROOT)) {
   const rel = relative(REPO_ROOT, file).split(sep).join('/');
-  const lines = readFileSync(file, 'utf8').split('\n');
+  const source = readFileSync(file, 'utf8');
+  const lines = source.split(/\r?\n/);
+  /** Comments and string CONTENTS blanked in one stateful pass — see `lib/stripCode.ts`. */
+  const code = stripCommentsAndStrings(source).split(/\r?\n/);
   lines.forEach((raw, i) => {
-    // Strip line comments and doc-comment bodies — several files DISCUSS `importStore(demoStore())` in
-    // prose explaining a defect that was fixed, and a guard that reds on its own postmortem is noise.
-    // ⛔ **`\r` FIRST — the doc-comment strip below never worked on a CRLF file.** [S0.3] This repo has
-    // mixed line endings; `split('\n')` leaves a trailing `\r`, and JS `.` does not match `\r` while `$`
-    // (no `m` flag) does not sit before one — so `/^\s*\*.*$/` failed on EVERY CRLF file and every
-    // doc-comment body sailed through unstripped. Latent since the gate was written: the old call-shape
-    // pattern needed a `(`, and prose does not write `importStore(`. Widening the pattern is what exposed
-    // it, on `sandboxStore.ts:16` — a comment explaining the very defect this gate guards.
-    const line = raw.replace(/\r$/, '').replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '');
+    // Several files DISCUSS `importStore(demoStore())` in prose explaining a defect that was fixed, and
+    // a guard that reds on its own postmortem is noise.
+    // ⛔ **[S0.3b · REVERIFY-1 finding 4] THE REGEX PAIR THIS REPLACES WAS WRONG TWICE OVER.** `/\/\/.*$/`
+    // truncates at a `//` **inside a string**, taking real code with it; and `.*$` matched nothing at all
+    // on a CRLF file, so every doc-comment body was scanned as code. The `\r` half was patched at S0.3 —
+    // the string half was left in this exact line, in the same commit that named it. One scanner now.
+    const line = code[i] ?? '';
     if (!CALL.test(line)) return;
     found.set(rel, (found.get(rel) ?? 0) + 1);
     if (rel in ALLOWED) return;
