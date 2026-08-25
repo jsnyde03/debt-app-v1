@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { a11yChecked } from '@/utils/a11y';
 import { formatWhole, summariseNames } from '@/utils/format';
 
@@ -174,7 +174,7 @@ export function RecoveryPlanSection({
 
 const styles = StyleSheet.create({
   wrap: { gap: spacing.md },
-  eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
+  eyebrow: { ...eyebrow, marginBottom: spacing.xs },
   coverTotal: { fontWeight: '600' },
   coverMore: { fontWeight: '600' },
   deferBlock: { gap: spacing.sm },

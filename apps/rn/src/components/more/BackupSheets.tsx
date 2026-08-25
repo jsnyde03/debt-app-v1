@@ -27,10 +27,8 @@ import { notify } from '@/utils/confirm';
 /**
  * Export: says what the backup HOLDS, offers the action that saves it, and keeps the raw JSON one tap away.
  *
- * ⚠️ This sentence used to read *"shows the full store as selectable JSON to copy somewhere safe"*, which
- * described the sheet accurately until `.11.14.2` and then described nothing. ⛔ **The file that documents
- * a surface is the last place anyone checks after changing it** — the same decay `L4-13`'s token docstring
- * was caught in, where the past tense claimed a fix that had only reached half the sites.
+ * ⚠️ The summary sentence is `describeStoreContents`, which the IMPORT sheet also speaks before a
+ * destructive replace — one owner, so the two doors cannot describe the same backup differently.
  */
 export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();

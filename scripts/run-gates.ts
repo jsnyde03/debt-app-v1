@@ -50,6 +50,7 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     'lint:a11y-collapse',
     'lint:contrast',
     'lint:type-scale',
+    'lint:press-opacity',
     'lint:icon-glyphs',
     'lint:copy-owners',
     'lint:lane',

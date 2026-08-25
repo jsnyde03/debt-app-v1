@@ -12,7 +12,7 @@ import { CountUp, haptics, useReduceMotion } from '@/motion';
 import { colors } from '@/theme/colors';
 import { duration, spring } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 import { reportError } from '@/utils/reportError';
 import { shareDebtCard } from '@/utils/share-card';
@@ -169,7 +169,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.xs,
   },
-  eyebrow: { letterSpacing: 1, fontWeight: '700' },
+  // ⚠️ [P6.8.9.7.11.14.5] Display tracking on the navy takeover, kept deliberately — see `ShareCard`.
+  eyebrow: { ...eyebrow, letterSpacing: 1, fontWeight: '700' },
   gone: { fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
   amount: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'], marginTop: spacing.xs },
   cascade: { textAlign: 'center', marginTop: spacing.sm },

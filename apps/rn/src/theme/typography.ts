@@ -41,3 +41,30 @@ export const textStyles = {
 } satisfies Record<string, TextStyle>;
 
 export type TextStyleName = keyof typeof textStyles;
+
+/**
+ * [P6.8.9.7.11.14.5 · audit L1-20] The EYEBROW treatment — the small uppercase label above a card's
+ * content. A modifier, not a scale entry: it carries no `fontSize`, because the size comes from the
+ * `footnote`/`caption` base it is composed onto.
+ *
+ * ⛔ **The a11y half of L1-20 is REFUTED, and it was the finding's stated reason.** *"VoiceOver can spell
+ * out or alter intonation on literal all-caps"* is false on the platform that ships: RN applies
+ * `textTransform` by uppercasing the `NSString` itself
+ * (`RCTTextAttributes.mm:303`, `RCTTextTransformUppercase: return [text uppercaseString]`), so the native
+ * accessibility value is "PAYDAY GUARDIAN" either way. **The DRIFT half survives**, and it is the only
+ * reason this exists: fifteen `eyebrow` styles, six applying `textTransform` and nine relying on the
+ * string's own caps, means a future change reaches half the headers.
+ *
+ * ⚠️ **`fontWeight` IS DELIBERATELY NOT HERE, and that is a decision rather than an omission.** The
+ * fifteen styles are two authoring generations: the six styled ones carry `'700'`, the nine literal-caps
+ * ones carry none and inherit **400**. Folding a weight in would make **seven live surfaces bold** — a
+ * visible design change across the app, inside a code freeze, that no instrument in this repo would
+ * judge. ⚡ **The auditor's own cost note said this token "touches zero strings and zero tests"; true,
+ * and it says nothing about pixels.** `letterSpacing` converges (0.5–1.0 → 0.5, sub-pixel per character
+ * at 12–13 pt); the weight is filed as a 2.1 design call.
+ *
+ * ⛔ Scope is the fifteen styles NAMED `eyebrow`. W2 counted **34** uppercase-display styles under eleven
+ * different names (`groupLabel`, `statLabel`, `colMonth`, `sectionTitle`…) — a `statLabel` is not an
+ * eyebrow, and sweeping them together would be inventing a role, not adopting one.
+ */
+export const eyebrow: TextStyle = { textTransform: 'uppercase', letterSpacing: 0.5 };

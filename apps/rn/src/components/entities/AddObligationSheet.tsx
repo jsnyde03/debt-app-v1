@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedSheet } from '@/components/ui/AnimatedSheet';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { layout, spacing } from '@/theme/spacing';
+import { layout, pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 /** The three things Money can hold. Matches `MoneyView`, because choosing one also routes there. */
@@ -92,7 +92,7 @@ export function AddObligationSheet({ onPick, onClose }: { onPick: (kind: AddKind
             accessibilityLabel={`${choice.title}. ${choice.clause} For example: ${choice.examples.replace(/ · /g, ', ')}.`}
             style={({ pressed }) => [
               styles.choice,
-              { backgroundColor: c.background.secondary, borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 },
+              { backgroundColor: c.background.secondary, borderColor: c.border.subtle, opacity: pressed ? pressedOpacity : 1 },
             ]}>
             <Text style={[textStyles.bodyMedium, { color: c.text.primary }]}>{choice.title}</Text>
             <Text style={[textStyles.subhead, styles.clause, { color: c.text.secondary }]}>{choice.clause}</Text>

@@ -6,7 +6,7 @@ import { AppIcon } from '@/components/ui/AppIcon';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 
 /**
@@ -90,7 +90,10 @@ function Stat({ value, label, surf }: { value: string; label: string; surf: { go
 const styles = StyleSheet.create({
   card: { width: W, alignItems: 'center', paddingVertical: 40, paddingHorizontal: spacing.xl, gap: spacing.sm, borderRadius: 28 },
   ring: { width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
-  eyebrow: { letterSpacing: 1, fontWeight: '700' },
+  // ⚠️ [P6.8.9.7.11.14.5] The wider tracking is an OVERRIDE, not residue. This card is an exported image
+  // rather than a screen, and its label is display type — narrowing it to the token's 0.5 would change a
+  // shareable artifact to make a stylesheet tidier. Same call on `PaidOffBeat`'s takeover.
+  eyebrow: { ...eyebrow, letterSpacing: 1, fontWeight: '700' },
   headline: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5, marginTop: spacing.xs, textAlign: 'center' },
   amount: { fontSize: 34, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },
   sub: { textAlign: 'center' },

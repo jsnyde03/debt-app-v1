@@ -16,7 +16,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { useLiveAnnouncement } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
@@ -249,7 +249,7 @@ export function AffordabilityCard() {
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
+  eyebrow: { ...eyebrow, marginBottom: spacing.xs },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   title: { flex: 1 },
   hint: { marginTop: spacing.sm },

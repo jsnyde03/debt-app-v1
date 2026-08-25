@@ -17,7 +17,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import type { GuardianBrief, GuardianProofOfWork, GuardianState, TightTopUp } from '@/store/guardianSelectors';
 import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { a11yHidden, decorative, groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
@@ -530,7 +530,7 @@ function Stat({
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
+  eyebrow: { ...eyebrow, marginBottom: spacing.xs },
   // flexWrap so a title long enough to squeeze the chips reflows instead of crushing them — the
   // Example marker losing its label is the one failure this row can't afford.
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },

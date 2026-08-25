@@ -13,7 +13,7 @@ import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
 import { duration } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 
 // On-navy semantics: the hero panel is deep navy in BOTH themes, so its accents are the dark-tuned
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
-  eyebrow: { textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: '700' },
+  eyebrow: { ...eyebrow, fontWeight: '700' },
   amount: { fontSize: 40, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'], marginBottom: spacing.sm },
   bar: { flexDirection: 'row', height: 12, borderRadius: 6, overflow: 'hidden', gap: 3, transformOrigin: 'left' },
   seg: { height: 12, borderRadius: 3, minWidth: 6 },

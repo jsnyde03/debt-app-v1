@@ -12,7 +12,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { GuardianState } from '@/store/guardianSelectors';
 import type { TimelineCycle } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 
 import { CashRunwayCanvas } from './CashRunwayCanvas';
@@ -230,7 +230,7 @@ function DetailRow({ label, value, color, valueColor, bold }: { label: string; v
 
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: spacing.xs },
-  eyebrow: { textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: '700' },
+  eyebrow: { ...eyebrow, fontWeight: '700' },
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
   dashSwatch: { width: 14, height: 0, borderTopWidth: 1.5, borderStyle: 'dashed' },
   xLabel: { position: 'absolute', width: 48, textAlign: 'center', fontSize: 10 },

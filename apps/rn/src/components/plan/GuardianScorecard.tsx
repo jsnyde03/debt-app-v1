@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { CalibrationScore } from '@/store/guardianSelectors';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 
 /**
  * §2.9 Guardian accuracy scorecard (2.4.9). A CALM reference section in the cushion-forecast drill-down —
@@ -98,7 +98,7 @@ function ErrorReadout({ label, sub, value }: { label: string; sub: string; value
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
+  eyebrow: { ...eyebrow, marginBottom: spacing.xs },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   headTitle: { flex: 1 },
   body: { marginTop: spacing.xs },

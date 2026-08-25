@@ -14,7 +14,7 @@ import type { TimelineCycle } from '@/store/payoffSelectors';
 import type { ResolvedColors } from '@/theme/colors';
 import { duration } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 import { decorative } from '@/utils/a11y';
 
@@ -160,7 +160,7 @@ function CushionBar({ cycle, index, fraction }: { cycle: TimelineCycle; index: n
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginBottom: spacing.md },
+  eyebrow: { ...eyebrow, fontWeight: '700', marginBottom: spacing.md },
   body: { marginTop: spacing.md },
   tracksRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs, position: 'relative' },
   col: { flex: 1, alignItems: 'center', gap: 4 },

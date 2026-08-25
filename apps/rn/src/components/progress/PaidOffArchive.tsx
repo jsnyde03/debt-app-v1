@@ -11,7 +11,7 @@ import { Motion } from '@/motion';
 import type { PaidOffDebt } from '@/store/celebrationSelectors';
 import { stagger } from '@/theme/motion';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { decorative, groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 import { reportError } from '@/utils/reportError';
@@ -92,7 +92,7 @@ function shortDate(iso: string): string {
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginBottom: spacing.md },
+  eyebrow: { ...eyebrow, fontWeight: '700', marginBottom: spacing.md },
   list: { gap: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   badge: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },

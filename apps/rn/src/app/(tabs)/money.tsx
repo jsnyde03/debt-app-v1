@@ -47,7 +47,7 @@ import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { useAppStore } from '@/store/useAppStore';
-import { layout, spacing } from '@/theme/spacing';
+import { layout, pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { formatWhole, monthlyEquivalent } from '@/utils/format';
 import { decorative, a11yExpanded } from '@/utils/a11y';
@@ -884,7 +884,7 @@ function BillGroupHeader({
       accessibilityRole="button"
       {...a11yExpanded(open)}
       accessibilityLabel={`${title}, ${count} ${count === 1 ? 'expense' : 'expenses'}, ${subtotalA11y}`}
-      style={({ pressed }) => [styles.groupHeader, { opacity: pressed && !disabled ? 0.6 : 1 }]}>
+      style={({ pressed }) => [styles.groupHeader, { opacity: pressed && !disabled ? pressedOpacity : 1 }]}>
       {!disabled ? (
         <AppIcon name={open ? 'expand-more' : 'chevron-right'} size={20} color={c.text.tertiary} />
       ) : null}
@@ -919,7 +919,10 @@ function LivingReserve({ total }: { total: number }) {
           ? 'Everyday spending reserve, nothing set up yet. Opens management.'
           : `Everyday spending reserve, ${formatCurrency(total)}. Opens management.`
       }
-      style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}>
+      style={({ pressed }) => [{ opacity: pressed ? pressedOpacity : 1 }]}>
+      {/* ⛔ [P6.8.9.7.11.14.4 · L4-13b] THIS CARD AND THE HERO BELOW ARE THE FINDING, BY NAME: two
+          card-sized targets on ONE screen dimming to 0.85 and 0.8 — a difference a user can see and
+          nobody chose. Both are the token now. */}
       <Card tone="accent" style={styles.living}>
         <View style={styles.livingRow}>
           <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Everyday spending reserve</Text>
@@ -1082,7 +1085,7 @@ function MoneyHero({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${value} ${sub}${caption ? `, ${caption}` : ''}. See where it goes.`}
-      style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}>
+      style={({ pressed }) => [{ opacity: pressed ? pressedOpacity : 1 }]}>
       {body}
     </Pressable>
   );

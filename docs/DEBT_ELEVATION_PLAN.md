@@ -32,32 +32,40 @@ test, and what made `readMoney`'s repair record the wrong thing to match on.
 | ✅ | **.11.11** the `setMonth` overflow BLOCKER | CLOSED 2026-08-25. `@core/utils/addMonths` exported and applied at all 7 sites *(the census found one more than any list named)*, `rolloverPayCycle` delegates, `scripts/check-month-arithmetic.ts` gates the class mutation-verified, two suites pin the labels a user reads. Detail → log |
 | ✅ | **.11.12** the 14 open majors | CLOSED 2026-08-25, all 14. Money · import · discovery · the four gates. ⚡ **Four of the findings' own premises were measured false** and two of the fixes came out different because of it. Detail → log |
 | ✅ | **.11.13** the `.11.9` TAIL | CLOSED 2026-08-25, all 9 + green. Two gates that hid results · a typecheck project that did not exist · the goal-pace recovery route · a silent migration now reported · a fixture for the null-row class · a decision moved somewhere an instrument can reach · a card that promised an impossible action · a device row. ⚡ **One of my own fixes from earlier the same day gated nothing, and two of my own tests were vacuous.** Detail → log |
-| **.11.14** ▶ | ✅ **[D60]'s accepted build** *(🎯 2026-08-25: "fold it all in")* | **BUILDING NOW** — decomposed below |
-| **.11.15** | ✅ **[D62]'s build — `originalBalance` becomes a HIGH-WATER MARK** | Raise it wherever a balance is written above it, and **backfill `max(original, balance)` in a migration** or the fix reaches nobody already in the state. ⛔ **At the SEAMS, not the call sites** — `updateDebt` (`store.ts:406`) · `verifyDebtBalances` (`:457`) · `addDebt` already stamps it; `.11.12.3` closed a defect that existed because four consumers each decided for themselves. ⚠️ The field name will no longer describe the field — document the semantics on the model rather than renaming a persisted field for 2.0 |
+| ✅ | **.11.14** **[D60]'s accepted build** | CLOSED 2026-08-25, all five + green. P1-4's run-on · P1-5's raw envelope and its primary action · P1-1's four emotional beats *(72 frames)* · L4-13b's 7 press literals **+ a new `lint:press-opacity` gate** · L1-20's `eyebrow` token. **23/23 gates · 274 e2e.** ⚡ **Every finding's cost estimate was right about what it counted and silent about a dimension it never mentioned**, and **three of six sub-steps reproduced the class they were closing** — all three caught by an instrument, none by review. Detail → log |
+| **.11.15** ▶ | ✅ **[D62]'s build — `originalBalance` becomes a HIGH-WATER MARK** | **BUILDING NOW** — decomposed below |
 | **.11.16** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — seven instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
 | **.11.17** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11` + `.11.12` + `.11.13` + `.11.14` + `.11.15`, then SWEEP again for major+, with severity** | Same two-job shape as `.11.10`. ⛔ **Hand it `.11.10`'s "swept and found clean" list so it EXTENDS coverage rather than repeating it** — a coverage audit converges by ratcheting what has been looked at, not by finding less. ⚠️ `.11.12` is the larger half by count and spans money, import, discovery and the gates. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
 | **.11.18** | 🔴 **THE 51 — give every P6.8 high+ finding a closure record, then flip `lint:closure` to gating** | ⚡ Surfaced by `.11.12.14`, and **it is P6.8.9's stated exit criterion**: `npm run lint:closure -- --p68` names all 51. Most are believed BUILT under a consolidated action id (`A1`, `B4`, `C6`) — the work is writing the **lens** id into the plan or log line that closed it, because a 2-character id cannot be searched for. ⛔ **Then flip the report to `exit(1)`** — leaving it report-only past zero is the same failure as never building it |
 
-#### ▶ `.11.14` decomposed — [D60]'s accepted build *(rows VERIFIED against current code 2026-08-25)*
+#### ▶ `.11.15` decomposed — [D62]'s high-water mark *(rows VERIFIED against current code 2026-08-25)*
 
-⚡ **The before-scan ran and three of five rows were wrong.** Corrections are in the rows themselves; the
-measurement is in the log. **Each sub-step still takes its own before-scan** — this pass verified the
-row's premise, not its build.
+🔴 **THE BEFORE-SCAN FOUND A MONEY CONSUMER [D62] NEVER CONSIDERED, AND IT IS A 🎯 CALL.**
+`bnplInstallment.ts:73` uses `originalBalance` as the divisor for the user-facing **"payment 2 of 4"**,
+and `addDebt` leaves that field **deliberately undefined** on an installment-native BNPL so the basis
+falls back to `balance`. A high-water rule applied blindly would fill a field that is intentionally empty
+and turn *"2 of 4"* into *"2 of 6"*, with nothing red. ⭐ **Recommended: carve out installment-native
+BNPL** — it matches the decision `addDebt` already made, so it is the status quo rather than a new
+judgement. ⚠️ [D62]'s reasoning is entirely about the ring reading 0%; **nobody looked at BNPL.**
+
+⛔ **The row's site list was short again: SIX writers, not "addDebt already stamps it"** — `store.ts:394`
+(BNPL carve-out) · `:489` (the expense→debt conversion, deliberately reproduced) · `DebtSheet.tsx:184` ·
+`:209` · `imports/debtCsv.ts:307` · `legacyBridge/originalBalance.ts:33`, and `verifyDebtBalance`
+**singular** was omitted from the seams. Measurement → log.
 
 | # | step | scope |
 |---|---|---|
-| ✅ | **.1** **P1-4** — the 23-name run-on | CLOSED 2026-08-25. `summariseNames` + the total leading + a tap that reveals the rest, on the app's own `AmortizationView` disclosure idiom. **Plant-verified twice** — the run-on reds the first assertion, the naive over-fix reds a later one. Detail → log |
-| ✅ | **.2** **P1-5** — the export sheet's raw envelope + button hierarchy | CLOSED 2026-08-25. The sheet says what the backup holds (`describeStoreContents`, one owner across both doors), the raw JSON moves behind a disclosure, and the primary action is the one that backs up. ⚡ **The button half of the finding was a WEB-ONLY layout** — `BACKUP_FILE_SUPPORTED` is a `.web.ts` fork, so iOS had two competing primaries, not an inverted one. **Plant-verified twice**, and the first draft of the hierarchy pin was vacuous. Detail → log |
-| ✅ | **.3** **P1-1** — shoot the emotional beats | CLOSED 2026-08-25. **72 frames, zero `⛔ UNREACHED`**, every one looked at. ⛔ **The first `band-milestone` frames photographed the CASH-FLOW CARD under a name promising the ring pulse** — the coach mark scrolls the hero out of shot; measured by varying that one input. ⚠️ **A mechanism I stated off n=1 was refuted by the re-run** (16,161 ms → 1,836 ms). Detail → log |
-| **.4** | **L4-13b** — the token cleanup ONLY | ✅ **7 press-opacity literals confirmed live** at 5 values (`money.tsx:887,922,1085` · `AddObligationSheet.tsx:95` · `DebtSheet.tsx:283,295` · `Button.tsx:68`) against `pressedOpacity = 0.8`. ⛔ **The sweep is NOT in scope, and "NOWHERE" is an ANSWER, not an edit** — [D60] enumerates the build as the literals only, so `SettingRow` keeps `PressableScale` |
-| **.5** | **L1-20** — the single `eyebrow` token | Sweep deferred, deliberately. ⚠️ **Scope call at its own before-scan:** the auditor's *"touches zero tests"* holds only if adoption does not normalise `letterSpacing` — 34 styles span five values, and changing them is visible |
-| **.6** | **Green + close** | Same shape as `.11.13.10`, and ⛔ **still not a recorded gate pass** — `.11.16` owns that |
+| **.1** ▶ | **One owner** — `raiseOriginalBalance(debt)` | ⛔ Six writers already disagree; a seventh inline `Math.max` is the defect this closes, reproduced |
+| **.2** | 🔴 **[DECISION] carve out installment-native BNPL** → 🎯 | Then pin `bnplPaymentsTotal` so "2 of 4" cannot move |
+| **.3** | **The live seams** | `updateDebt` · `verifyDebtBalance` · `verifyDebtBalances` |
+| **.4** | **The invariant in `migrations.ts`'s debt `.map()`** | ⚠️ It runs on **EVERY hydrate**, not once — so it reaches existing users and self-heals, while `.3` covers the un-rehydrated live session. **Both are needed; neither alone is enough** |
+| **.5** | **The model docstring** | The field means *the most you ever owed*. ⛔ Not renamed — a persisted-field rename is a migration for no user-visible gain ([D62]) |
+| **.6** | **Pins** | The **correction** case *($500 typo → $5,000, the deciding case [D62] names)* · the setback · **BNPL unchanged** · a paid-down debt unchanged · the ring afterwards |
+| **.7** | **Green + close** | ⛔ Still not a recorded gate pass — `.11.16` owns that |
 
-**Exit (`.11.14`):** all five closed or 🎯-deferred with the consequence written down, each with a test
-that would fail on its original defect — or a device row saying why none can reach it.
-
-⚠️ **The goal-pace edit that was on this row is DONE** — moved to `.11.13.4`, because two of `.11.13`'s
-findings write copy promising that route and it had to exist before either could say anything true.
+**Exit (`.11.15`):** the ring is correct for a user who revises a balance **upward**, every writer goes
+through one owner, BNPL's installment count is pinned unchanged, and the migration reaches a user already
+in the state.
 
 ### ⏸ Still open from P6.8.9, after the pinning build
 
@@ -87,7 +95,7 @@ the workflows · `.maestro` and four root files; **`docs/` is excluded**, so pro
 |---|---|
 | **State** | Phases 0–3 · 3.5 · 3.7 · 4 · 3.8 ✅ · the whole-app audit gate ✅ ([D37] 55/55, `lint:closure` in CI) · **Phase 5 ✅ CLOSED**, cutover conditionally approved. **Phase 6 is everything that remains** and it ends at ASC submission |
 | **Ships as** | **`2.0.0`** ([D38]). The internal workstream keeps the name *"the v1.7 Elevation"* |
-| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale` · **`lint:icon-glyphs`** · **`lint:month-arithmetic`**; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. 🔴 **STALE as of 2026-08-25 — `lint:gate-freshness` exits 1.** Quoted from the record: `sha 01fc7ec` *(= `.11.9`)* · `at 2026-08-25T12:47:36Z` · **668 source files** · `dirty: true`. ⚠️ **The row here used to say *"2026-08-24 at P6.8.7g.7 · 663 files"*, which the record already disagreed with** — a typed result decaying exactly as [D49] predicts. ⛔ **`.11.12`'s components were each run green individually** *(typecheck · `lint:rn` · `test:stamp` · regression · app · scenarios · **262 e2e** · 10 embed)* **but `gate:record` was never reached, so nothing above is a recorded pass.** `.11.16` owns the real run *(it was `.11.15` until [D62] renumbered)*. ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not. ⛔ **It went RED first and the harness said "exit code 0"** — read the gate's own summary line |
+| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale` · **`lint:icon-glyphs`** · **`lint:month-arithmetic`** · **`lint:press-opacity`**; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. 🔴 **STALE as of 2026-08-25 — `lint:gate-freshness` exits 1.** Quoted from the record: `sha 01fc7ec` *(= `.11.9`)* · `at 2026-08-25T12:47:36Z` · **668 source files** · `dirty: true`. ⚠️ **The row here used to say *"2026-08-24 at P6.8.7g.7 · 663 files"*, which the record already disagreed with** — a typed result decaying exactly as [D49] predicts. ⛔ **`.11.12`'s components were each run green individually** *(typecheck · `lint:rn` · `test:stamp` · regression · app · scenarios · **262 e2e** · 10 embed)* **but `gate:record` was never reached, so nothing above is a recorded pass.** `.11.16` owns the real run *(it was `.11.15` until [D62] renumbered)*. ⚠️ Recorded on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not. ⛔ **It went RED first and the harness said "exit code 0"** — read the gate's own summary line |
 | **Env** | `git -C /c/Users/Jason/debt-app-v1 …` (cwd drifts) · `npm --prefix apps/rn run export:web` · e2e `npm run test:e2e:rn` |
 
 ⛔ **TWO LINES, NOT ONE ([D39]/[D52]): FEATURE LOCK ≠ FREEZE.** **FEATURE LOCK closes after P6.10** — the
@@ -789,6 +797,16 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   answers *"is the boundary visible"* and not *"is there one."* A `Slider`, a bare `TextInput`, a pressable
   row bounded only by spacing — none fail it, and none were in V1-5's scope either. A real gap, not a
   ship-blocker; naming it beats a gate written in a freeze. *(f)*
+- ⚠️ **THE EYEBROW WEIGHT IS TWO AUTHORING GENERATIONS, AND CONVERGING IT IS A DESIGN CALL.** Of the 15
+  `eyebrow` styles, six carry `fontWeight: '700'` and nine carry none — so they inherit **400** from their
+  `footnote`/`caption` base. ⛔ **Folding a weight into the token would make seven live surfaces bold**
+  *(Affordability · Graduation · GuardianScorecard · LeanSuggestion · PaydayGuardian · RecoveryPlan ·
+  Windfall)*, and no instrument here judges that. ⚡ **The auditor priced this token as *"touches zero
+  strings and zero tests"* — true, and silent about pixels.** `.11.14.5` took `textTransform` +
+  `letterSpacing` (invariant, sub-pixel) and left the weight at each site. **The 19 uppercase-display
+  styles under OTHER names** (`groupLabel` · `statLabel` · `colMonth` · `sectionTitle` …) are the same
+  question one ring out — a `statLabel` is not an eyebrow. → **2.1**, with the token already in place so
+  it becomes a one-line change *(.11.14.5 before-scan)*
 - 🔴 **THE PROGRESS HERO RING IS IN NO `progress.png` FRAME IN THE CORPUS — a live blind spot, not a
   cosmetic one.** Measured at `.11.14.3`: the route block is the **only** shooting block that does not seed
   `coachMarksSeen` (`SHEETS` and the text-scale block both do), so on `/progress` the *"Drag the curve"*

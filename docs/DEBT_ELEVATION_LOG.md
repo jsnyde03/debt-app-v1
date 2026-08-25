@@ -109,6 +109,196 @@ since. `.2` in particular touches a sheet `.11.12.5` already changed, and `.3` a
 
 ---
 
+## 🔎 P6.8.9.7.11.15 — the SWITCH-IN before-scan, authored ahead *(2026-08-25)*
+
+⚠️ **Not the active decomposed section.** `.11.14` still holds it until its green lands. This is the
+measurement plus the sequence it implies; it moves to the plan when `.11.15` goes active.
+
+### The row's premises, measured
+
+| the row says | measured |
+|---|---|
+| the seams are `updateDebt` (`store.ts:406`) · `verifyDebtBalances` (`:457`) | line numbers stale. The **balance** writers are `updateDebt`, `verifyDebtBalance` (**singular** — the row omits it) and `verifyDebtBalances` (`:448`) |
+| *"`addDebt` already stamps it"* | ⛔ **SIX writers, not one.** `store.ts:394` (`addDebt`, **with a BNPL carve-out**) · `store.ts:489` (the expense→debt conversion, deliberately reproduced rather than shared) · `DebtSheet.tsx:184` · `:209` · `imports/debtCsv.ts:307` · `legacyBridge/originalBalance.ts:33`. ⚡ **The fourth-consumer-decides-for-itself shape `.11.12.3` closed is already here** |
+| *(silent)* | 🔴 **`bnplPaymentsTotal` READS IT AS A MONEY BASIS** — see below |
+
+### 🔴 THE FINDING THAT CHANGES THE SHAPE OF THE BUILD
+
+`packages/core/debt/bnplInstallment.ts:73` —
+`const basis = debt.originalBalance && debt.originalBalance > 0 ? debt.originalBalance : debt.balance;`
+— and `bnplPaymentsTotal` divides it by the scheduled payment to produce the user-facing
+**"payment 2 of 4"**.
+
+⛔ **`addDebt` deliberately leaves `originalBalance` UNDEFINED for an installment-native BNPL**
+(`isInstallmentNative(debt) ? undefined : debt.balance`) precisely so that basis falls back to `balance`.
+A high-water rule applied blindly at the seams would **start populating a field that is deliberately
+empty**, and *"payment 2 of 4"* would silently become *"2 of 6"*.
+
+⚡ **So this is not a display change.** [D62]'s reasoning is entirely about the ring reading 0%; the BNPL
+path makes it a money-correctness item, and it must clear **P6.10**'s lens or carve BNPL out. ⭐
+**Recommendation: carve out installment-native BNPL**, matching the decision `addDebt` already made — one
+rule, one owner, and the carve-out is the status quo rather than a new judgement.
+
+### The sequence this implies
+
+| # | step |
+|---|---|
+| **.1** | **One owner** — a `raiseOriginalBalance(debt)` helper. ⛔ Six writers already disagree; a seventh inline `Math.max` is the defect this closes, reproduced |
+| **.2** | **Carve out installment-native BNPL**, and pin `bnplPaymentsTotal` so "2 of 4" cannot move |
+| **.3** | **The live seams** — `updateDebt` · `verifyDebtBalance` · `verifyDebtBalances` |
+| **.4** | **The invariant in `migrations.ts`'s debt `.map()`** ⚠️ which runs on **EVERY hydrate**, not once — so it covers existing users *and* self-heals, while `.3` covers the un-rehydrated live session. Both are needed; neither alone is enough |
+| **.5** | **The model docstring** — the field means *the most you ever owed*. ⛔ Not renamed: a persisted field rename is a migration for no user-visible gain ([D62]) |
+| **.6** | **Pins** — the **correction** case ($500 typo → $5,000, the deciding case [D62] names) · the setback case · **BNPL unchanged** · a paid-down debt unchanged · the ring reading afterwards |
+| **.7** | **Green + close** |
+
+⚠️ **The revolving-credit read, recorded so it is a decision and not a discovery:** a card paid down and
+run back up gets a high-water mark at its new peak, so the ring falls. **That is not a regression** — the
+ring falls today too when a balance rises. High-water only changes the case where balance **exceeds** the
+stamp, which is the correction case.
+
+---
+
+## 🔎 P6.8.9.7.11.14 — the WHOLE-ITEM after-scan *(2026-08-25)*
+
+### ⚡ EVERY FINDING'S COST ESTIMATE WAS RIGHT ABOUT WHAT IT COUNTED AND SILENT ABOUT WHAT IT DID NOT
+
+Five findings, five estimates, and the miss is the same shape every time — not an error in the count, an
+**omission of a dimension**:
+
+| step | the estimate | what it did not price |
+|---|---|---|
+| **.1** P1-4 | *"the list-joining idiom already exists"* | it exists as an inline **diagnostic string** in a migration-audit module; nothing exports a list formatter |
+| **.2** P1-5 | *"`Done` is filled, `Copy` is secondary"* | a **`.web.ts` fork**. iOS renders a filled `Save as a file` the matrix cannot photograph — two competing primaries, not one inverted |
+| **.3** P1-1 | *"adding three captures is hours"* | true, and the **instrument itself was broken two ways** — a missing `--clear` and a coach mark that scrolls the subject out of shot |
+| **.4** L4-13b | the docstring's **past tense**: the literals are gone | **seven were live at five values**, including the two cards the same docstring names by shape |
+| **.5** L1-20 | *"touches zero strings and zero tests"* | true, and silent about **pixels** — a complete token makes **7 live surfaces bold** |
+
+⭐ **The generalisation for `.11.17`: read what an estimate does not mention.** A count that is correct is
+not a scope that is complete, and four of these five were correct counts.
+
+### ⛔ THREE OF SIX SUB-STEPS REPRODUCED THE CLASS THEY WERE CLOSING
+
+- **.2** shipped a **vacuous assertion** — `getByRole('button', {name:'Copy to clipboard'}).toBeVisible()`
+  is true of the defect and the fix alike. That is the class `.11.12.11` closed. Caught by **writing the
+  plant**, not by re-reading the test.
+- **.3** wrote frames of the **cash-flow card** under a name promising the ring pulse, having printed `✓`.
+  That is the class the whole matrix exists to catch, on the entry added to close a finding about it.
+- **.4/.5** **annotated** two false docstrings instead of deleting them — [D17], while closing a
+  [D17]-shaped defect. Caught by `lint:comments`.
+
+⚡ **All three were caught by an instrument, none by review.** The two that had a gate were caught in
+seconds; the one that did not (`.3`) needed a human to open the PNG. **That is the argument for gating a
+class rather than closing a list, stated by the item that spent the most time on instruments.**
+
+### What the item left behind
+
+✅ **`lint:press-opacity`** — a new gate, mutation-verified on the bare literal AND the half-fixed shape ·
+✅ **`--clear`** on the third shots config · ✅ **`form-sheet-submit`** so a test can name the primary
+action · ✅ **72 new frames** of the four emotional beats · ✅ `summariseNames` · `describeStoreContents` ·
+the `eyebrow` token.
+🔴 **Filed, not fixed:** the Progress hero ring is in no `progress.png` *(→ `.11.17`)* · the eyebrow
+**weight** and the 19 other-named uppercase styles *(→ 2.1)* · the unbounded-name-join class has no gate
+and cannot be closed as a list *(→ 2.1)*.
+
+⚠️ **`GATES=0` ON A RED SWEEP — NINTH INSTANCE.** `npm run lint:rn` printed `❌ 1 of 23 gates FAILED` in
+its own summary while the harness reported exit 0. **Read the gate's summary line; never the exit code.**
+
+---
+
+## ✅ P6.8.9.7.11.14.5 — L1-20's eyebrow token, and the half the costing did not price *(2026-08-25)*
+
+### What shipped
+
+**`theme/typography.ts` exports `eyebrow`** — a *modifier*, not a scale entry, carrying no `fontSize`
+because the size comes from the `footnote`/`caption` base it composes onto. **Adopted by all 15** styles
+named `eyebrow`. `PaidOffBeat` and `ShareCard` keep `letterSpacing: 1` as an **explicit override** with a
+comment saying why: one is a navy takeover and the other is an exported image, both display type, and
+narrowing them to tidy a stylesheet would change a shareable artifact.
+
+⛔ **The finding's stated reason is REFUTED and the token exists anyway.** *"VoiceOver can spell out or
+alter intonation on literal all-caps"* is false on the shipping platform — RN uppercases the `NSString`
+itself (`RCTTextAttributes.mm:303`), so the a11y value is *"PAYDAY GUARDIAN"* either way. What survives is
+the **drift** clause: six styles applied `textTransform` and nine relied on the string's own caps, so a
+future change reached half the headers. That is the whole justification, and it is enough.
+
+### ⛔ THE SCOPE CALL, AND IT WENT AGAINST THE AUDITOR'S COSTING
+
+W2 priced this token as *"touches zero strings and zero tests"* — **true, and silent about pixels.**
+
+Measured: of the 15 styles, six carry `fontWeight: '700'` and **nine carry none**, inheriting **400**.
+A complete token would therefore make **seven live surfaces bold** — Affordability · Graduation ·
+GuardianScorecard · LeanSuggestion · PaydayGuardian · RecoveryPlan · Windfall. ⚡ **That is a visible
+design change across the app, inside a code freeze, that no instrument in this repo would judge**: no test
+asserts type weight, and the matrix would have to be re-shot and re-read to notice.
+
+So the token takes the two properties that are genuinely invariant — `textTransform` (idempotent; every
+consumer already passes caps) and `letterSpacing` (0.5–1.0 → 0.5, sub-pixel per character at 12–13 pt) —
+and **leaves the weight at each site**. ⚠️ Filed to 2.1 with the token already in place, so converging it
+later is a one-line change rather than a fifteen-file one.
+
+⛔ **Scope is the fifteen styles NAMED `eyebrow`.** W2 counted **34** uppercase-display styles under eleven
+names; a `statLabel` is not an eyebrow, and sweeping them together would be inventing a role rather than
+adopting one. Also filed.
+
+⚡ **The pattern across `.4` and `.5`, one day apart:** both findings arrived with a cost estimate, and in
+both the estimate was right about what it counted and silent about what it did not — `.4`'s docstring
+claimed a finished fix while seven literals were live, `.5`'s costing claimed no risk while carrying a
+bold-weight change for seven surfaces. **Price the thing the estimate does not mention.**
+
+---
+
+## ✅ P6.8.9.7.11.14.4 — L4-13b, and the docstring had been lying in the past tense *(2026-08-25)*
+
+### The defect
+
+`theme/spacing.ts:37-48` describes `pressedOpacity`'s arrival in the **past tense**: *"every one an inline
+literal with no token, so two cards of the same size on the same screen dimmed by visibly different
+amounts."* ⛔ **Those two cards still did.** P6.4.5's fix reached the four `ui/` primitives
+(`AddRow` · `CheckCircle` · `ListRow` · `Pill`) and stopped; **seven literals at five values stayed live**
+— including Money's Living-reserve card at **0.85** and its tappable hero at **0.8**, which are the exact
+pair the docstring names by shape.
+
+⚡ **The file documenting the fix was the last place that would have told you.** Same class as
+`.11.14.2`'s stale `ExportBackupSheet` docstring, found the same day.
+
+### What shipped
+
+All 7 → `pressedOpacity`. Values that MOVED: `0.6` (Money group header) · `0.85` (reserve card, and
+`Button`) · `0.7` ×3 (the add-chooser and both `DebtSheet` rows). The hero card was already 0.8.
+⭐ **`hoveredOpacity` / `disabledOpacity`** added so `Button` holds no bare numbers — ⚠️ **values
+unchanged (0.9 / 0.5), naming only.** A pointer hover and a disabled control are different questions from
+a press, and answering them with `pressedOpacity` would be convergence for its own sake.
+
+⛔ **`PressableScale` = NOWHERE is an ANSWER, not an edit.** `SettingRow` keeps it; removing its only
+consumer would re-open `L4-16`'s dead-primitive question for no user-visible gain. The docstring now
+records W2's census — of **69** tap targets **1** springs, **11** dim, **57** have no feedback at all — so
+the next reader does not re-litigate it.
+
+### ⭐ The class is GATED, because nothing else can see it
+
+`npm run lint:press-opacity` (`scripts/check-press-opacity.ts`), on `lint:rn` and the release gate.
+
+⚠️ **No test in this repo asserts `opacity`.** `lint:contrast` reads colour PAIRS; press *feel* is routed
+to the device pass, which is after the freeze. A regression here would ship silently — which is precisely
+how the seven survived.
+
+**Mutation-verified three ways:**
+
+| mutation | result |
+|---|---|
+| a bare literal (`pressed ? 0.7 : 1`) | ❌ exit 1 |
+| ⭐ **the HALF-FIXED shape** (`disabled ? 0.5 : pressed ? pressedOpacity : …`) | ❌ exit 1 |
+| decorative opacities left alone *(`dimmed: 0.4`, legend swatches 0.55/0.5, scrims 0.7/0.8)* | ✅ green on 377 files |
+
+The second is the one that matters: it is the shape that actually shipped for four months — a token
+adopted at some sites and a literal left beside it. The third is the negative control, and it is
+inherent rather than contrived: the gate was green on a tree that already contains all of those.
+
+⛔ **Scoped to the STATE ternary, never to `opacity` in general.** A decorative opacity is a design value
+that belongs at its site; banning it would make the gate wrong, and a wrong gate gets switched off.
+
+---
+
 ## ✅ P6.8.9.7.11.14.3 — P1-1, and I built the defect class I was closing *(2026-08-25)*
 
 ### What shipped

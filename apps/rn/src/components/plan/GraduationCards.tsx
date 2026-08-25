@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { openFinancialFreedom } from '@/utils/ecosystem';
 
 /**
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   bannerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   icon: { width: 52, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   bannerText: { flex: 1, gap: spacing.xs },
-  eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
+  eyebrow: { ...eyebrow, marginBottom: spacing.xs },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   headTitle: { flex: 1 },
   body: { marginTop: spacing.sm },

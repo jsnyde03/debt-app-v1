@@ -15,7 +15,7 @@ import { selectWindfallSplit, type WindfallBucketKey } from '@/store/guardianSel
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { formatWhole } from '@/utils/format';
 
 /** Display meta per windfall bucket — the label + glyph (all in the iOS SF-symbol map, `@/theme/icons`). */
@@ -137,7 +137,7 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
 
 const styles = StyleSheet.create({
   split: { marginTop: spacing.md, gap: spacing.sm },
-  eyebrow: { letterSpacing: 0.8 },
+  eyebrow: { ...eyebrow },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rowLabel: { flex: 1, fontWeight: '600' },
   footHint: { marginTop: spacing.xs },

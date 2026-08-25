@@ -11,7 +11,7 @@ import type { WhatIfResult } from '@/store/analysisSelectors';
 import type { DebtFreeBand } from '@/store/planSelectors';
 import type { DebtClearPoint, InterestSaved, TrajectoryPoint } from '@/store/payoffSelectors';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { groupLabel, a11yExpanded } from '@/utils/a11y';
 import { useSkiaReady } from '@/utils/skia-ready';
 import { formatWhole } from '@/utils/format';
@@ -630,7 +630,7 @@ export function TrajectoryChart({
 
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: spacing.sm },
-  eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
+  eyebrow: { ...eyebrow, fontWeight: '700' },
   yLabel: { position: 'absolute', left: 0, width: PAD.l - 6, textAlign: 'right', fontSize: 10 },
   xLabel: { position: 'absolute', width: 40, textAlign: 'center', fontSize: 10 },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },

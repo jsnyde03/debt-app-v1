@@ -7,7 +7,7 @@ import { useActiveStore } from '@/store/StoreContext';
 import type { LeanNudge } from '@/store/incomeLearning';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
 
@@ -45,7 +45,7 @@ export function LeanSuggestionCard({ nudge }: { nudge: LeanNudge }) {
 
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  eyebrow: { letterSpacing: 0.8 },
+  eyebrow: { ...eyebrow },
   detail: { marginTop: spacing.sm },
   actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
 });

@@ -23,7 +23,7 @@ import { FORM_ERRORS, RECURRENCE_LABEL, recurrenceOptions } from '@/store/obliga
 import { TutorialTarget } from '@/store/tutorialTargets';
 import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { useAppStore } from '@/store/useAppStore';
-import { spacing } from '@/theme/spacing';
+import { pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { confirmDelete } from '@/utils/confirm';
 import { formatWhole } from '@/utils/format';
@@ -280,7 +280,7 @@ export function DebtSheet({
               testID="debt-log-payment"
               onPress={() => onLogPayment(editing)}
               accessibilityRole="button"
-              style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
+              style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? pressedOpacity : 1 }]}>
               <Text style={[textStyles.body, { color: c.accent.primary }]}>{LOG_PAYMENT_ENTRY}</Text>
               <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
             </Pressable>
@@ -292,7 +292,7 @@ export function DebtSheet({
                 testID="debt-view-schedule"
                 onPress={() => onViewSchedule(editing.id)}
                 accessibilityRole="button"
-                style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? 0.7 : 1 }]}>
+                style={({ pressed }) => [styles.scheduleRow, { borderColor: c.border.subtle, opacity: pressed ? pressedOpacity : 1 }]}>
                 <Text style={[textStyles.body, { color: c.accent.primary }]}>View payoff schedule</Text>
                 <AppIcon name="chevron-right" size={20} color={c.accent.primary} />
               </Pressable>

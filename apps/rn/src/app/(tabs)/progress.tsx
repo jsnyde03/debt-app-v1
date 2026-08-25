@@ -29,7 +29,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
 import { layout, spacing } from '@/theme/spacing';
-import { textStyles } from '@/theme/typography';
+import { eyebrow, textStyles } from '@/theme/typography';
 import { decorative, groupLabel } from '@/utils/a11y';
 
 const RING_SIZE = 112;
@@ -324,6 +324,6 @@ const styles = StyleSheet.create({
   ringMeta: { flex: 1, gap: 3 },
   ringPct: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
   nextMile: { marginTop: 2 },
-  eyebrow: { textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
+  eyebrow: { ...eyebrow, fontWeight: '700' },
   heroDate: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
 });

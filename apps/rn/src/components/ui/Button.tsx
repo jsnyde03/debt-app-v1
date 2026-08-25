@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'rea
 
 import { useAppColors } from '@/hooks/use-app-colors';
 import { colors } from '@/theme/colors';
-import { layout, spacing } from '@/theme/spacing';
+import { disabledOpacity, hoveredOpacity, layout, pressedOpacity, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
 type Variant = 'primary' | 'secondary' | 'text' | 'danger';
@@ -65,7 +65,14 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         variant === 'text' && styles.textVariant,
-        { backgroundColor: bg, borderColor: focused ? c.accent.brand : border, opacity: disabled ? 0.5 : pressed ? 0.85 : hovered ? 0.9 : 1 },
+        {
+          backgroundColor: bg,
+          borderColor: focused ? c.accent.brand : border,
+          // [P6.8.9.7.11.14.4 · L4-13b] Three states, three tokens. The pressed value MOVES (0.85 → 0.8):
+          // this is the app's most-used control and it was dimming differently from every row and card
+          // that already used the token. `hovered`/`disabled` keep their exact values — see `spacing.ts`.
+          opacity: disabled ? disabledOpacity : pressed ? pressedOpacity : hovered ? hoveredOpacity : 1,
+        },
         focused && styles.focusRing,
         style,
       ]}>
