@@ -268,3 +268,37 @@ test('restoring a backup file from the reset screen leaves that screen', async (
     )
     .toBe('Restored Visa');
 });
+
+/**
+ * ⛔ **[P6.8.9.7.11.13.5 · J1-1 Q2] THE MIGRATION CHANGED THE PLAN AND SAID NOTHING.**
+ *
+ * A store an earlier build already wrote carries `priority: true` with a pace of `0`, and a finite `0`
+ * re-reads as `repaired: false` — so it carries **no repair record**. `runMigrations` stands the goal down
+ * for it (correctly: `0` is the UNCAPPED value, and leaving it funds the goal at full speed ahead of the
+ * debt) and used to do so with no card and no entry. That is the silent drop `migrations.ts`'s own opening
+ * rule forbids: *"money that cannot be read is REPAIRED and REPORTED."*
+ *
+ * ⚠️ **Why this is a spec and not only a unit assertion.** `persistenceLifecycle.test.ts` pins the record;
+ * what it cannot show is that the record reaches a screen — the record travels through `runMigrations` on
+ * hydrate, into `pendingDataRepairs`, into `repairBlocks`, into the card. **Every link is the claim.**
+ *
+ * ⚠️ *"Until you set it again"* only became followable at `.11.13.4`, which is why this is reportable now:
+ * `GoalSheet` can set the pace. Reporting a loss with no way to act on it would have been a different
+ * defect wearing the same words.
+ */
+test('a legacy stood-down goal is NAMED on Today, with the consequence', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      goals: [{ id: 'g0', name: 'Roof', type: 'savings', targetAmount: 4000, currentAmount: 0, priority: true, priorityPerPaycheck: 0 }],
+    }),
+  );
+  await page.goto('/');
+
+  await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
+  // The NAME, or the person cannot tell which goal changed.
+  await expect(page.getByText(/Roof/)).toBeVisible();
+  // ⛔ And the CONSEQUENCE. "could not be read" alone describes a field; what the user needs to know is
+  // that their plan stopped funding this ahead of their debt — the half a field name cannot carry.
+  await expect(page.getByText(/no longer funded ahead of your debt/)).toBeVisible();
+});

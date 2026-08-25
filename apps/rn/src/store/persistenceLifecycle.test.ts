@@ -630,7 +630,23 @@ async function run() {
       } as unknown);
       eq(legacyZero.goals[0].priority, false, '⛔ a stored pace of 0 stands the goal down, with no repair record to go on');
       eq(legacyZero.goals[0].priorityPerPaycheck, undefined, '…and the meaningless cap is cleared');
-      eq(legacyZero.pendingDataRepairs.length, 0, '…and nothing is reported, because the loss was not today');
+      /**
+       * ⛔ **THIS ASSERTION USED TO REQUIRE SILENCE, AND THE SILENCE WAS THE DEFECT.** [P6.8.9.7.11.13.5 ·
+       * J1-1 Q2] It read `pendingDataRepairs.length === 0`, *"because the loss was not today"* — so the one
+       * population the value-match exists for had its plan changed with no card and no entry, inside the
+       * module whose opening rule forbids exactly that. ⚠️ **Not deleted — inverted**, because the
+       * behaviour it described was real and is now deliberately the other way.
+       *
+       * The date objection was true of a *timestamp* and never of a record: no repair entry carries one.
+       */
+      eq(legacyZero.pendingDataRepairs.length, 1, '⛔ …and the stand-down is REPORTED — a silent change to the plan is what this module forbids');
+      const legacyRep = legacyZero.pendingDataRepairs[0];
+      eq(legacyRep.kind, 'lost', '…as a loss, so the card offers the action rather than "your plan is using it"');
+      eq(legacyRep.name, 'Roof', '…naming the goal, because the card has to say WHICH one');
+      assert(
+        legacyRep.field.includes('no longer funded ahead of your debt'),
+        '…and stating the consequence, which is the half a field name cannot carry',
+      );
     }
     eq(g.goals.length, 1, 'goal repair → the goal survives');
     eq(g.goals[0].targetAmount, 4000, 'goal repair → a grouped targetAmount is read, not dropped');

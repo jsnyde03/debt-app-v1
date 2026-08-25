@@ -265,8 +265,38 @@ export function runMigrations(raw: unknown): DebtStore {
     if (governed) goal.priority = false;
     delete goal.priorityPerPaycheck;
     const rep = repairs.find((r) => r.entity === 'goal' && r.id === goal.id && r.field === 'priorityPerPaycheck');
-    // ⚠️ Only reworded when there IS a record. A store already carrying `0` has nothing to report — the
-    // loss happened in an earlier launch — and inventing a repair line would date it to today.
+    /**
+     * ⛔ **[P6.8.9.7.11.13.5 · J1-1 Q2] THE LEGACY BRANCH CHANGED THE USER'S PLAN AND TOLD THEM NOTHING.**
+     *
+     * A store an earlier build already wrote carries `priority: true` with a pace of `0` and **no repair
+     * record at all** — a finite `0` re-reads as `repaired: false`. That is the exact population the
+     * value-match above exists to catch, and for it the goal stopped being funded ahead of debt with no
+     * entry in `pendingDataRepairs` and no card. **This module's opening rule is *"money that cannot be
+     * read is REPAIRED and REPORTED, never trusted and never silently dropped"* — this branch was the
+     * silent drop, inside the file that forbids it.**
+     *
+     * ⚠️ **The old reasoning was that inventing a line would date the loss to today.** That is a true
+     * objection to a *timestamp*, not to a record: no repair entry carries one, the card speaks in the
+     * present tense about what the plan is doing NOW, and *"say nothing"* and *"say when"* were never the
+     * only two options. The sentence below claims only what is still true at this moment.
+     *
+     * ⚡ **`kind: 'lost'` is what makes this safe to add** — `.11.12.1` split recovered from lost, so this
+     * lands under *"An amount could not be read · your plan is running without it until you set it again"*
+     * rather than under *"written in a different format · your plan is using it"*. ⚠️ And *"until you set
+     * it again"* became a followable instruction at `.11.13.4`, which is why this is reportable now and
+     * was not before: `GoalSheet` can set the pace.
+     */
+    if (!rep) {
+      repairs.push({
+        entity: 'goal',
+        id: goal.id,
+        name: goal.name,
+        field: governed
+          ? 'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt'
+          : 'the per-paycheck amount could not be read',
+        kind: 'lost',
+      });
+    }
     if (rep) {
       rep.field = governed
         ? 'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt'

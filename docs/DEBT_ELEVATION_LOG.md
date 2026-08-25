@@ -52,6 +52,52 @@ device. Confirm nothing in the suite depends on the record being written.
 
 ---
 
+## ✅ P6.8.9.7.11.13.5 — the migration that changed the plan and said nothing *(2026-08-25)*
+
+### The defect
+
+A store an earlier build already wrote carries `priority: true` with a pace of `0`, and **a finite `0`
+re-reads as `repaired: false`** — so it arrives with no repair record. `runMigrations` stands the goal down
+for it, correctly: `0` is the *uncapped* value, so leaving it funds the goal at full speed ahead of the
+debt. But it did so with **no `pendingDataRepairs` entry and no card**.
+
+⛔ That is the silent drop this module's own opening rule forbids — *"money that cannot be read is REPAIRED
+and REPORTED, never trusted and never silently dropped"* — committed inside the file that states it. And
+it is the exact population the value-match was written to reach.
+
+### The objection that was in the way, and why it did not hold
+
+The code said: *"inventing a repair line would date it to today."* ⚡ **That is a true objection to a
+timestamp and not to a record.** No repair entry carries a date; the card speaks in the present tense about
+what the plan is doing *now*; and *"say nothing"* and *"say when"* were never the only two options. The
+sentence emitted claims only what is still true at this moment.
+
+⚠️ **Two things had to exist first, and both landed earlier in this same item.** `DataRepair.kind`
+(`.11.12.1`) puts it under *"An amount could not be read · your plan is running without it until you set it
+again"* rather than *"written in a different format · your plan is using it"*. And `.11.13.4` made *"until
+you set it again"* a followable instruction. **Reporting a loss with no way to act on it would have been a
+different defect wearing the same words** — which is why this row sat behind that one.
+
+### The test that pinned the defect was INVERTED, not deleted
+
+`persistenceLifecycle.test.ts` asserted `pendingDataRepairs.length === 0` with the label *"…and nothing is
+reported, because the loss was not today."* It described real behaviour, so it is turned around rather than
+removed, and the reason is written where it stood. Three assertions now: the record exists, it is `lost`,
+it names the goal — and its sentence carries the consequence, *"no longer funded ahead of your debt"*,
+which is the half a field name cannot.
+
+### Verification
+
+- **Unit RED:** re-planting the silence → `expected 1, got 0`.
+- **e2e RED:** the same plant → no repairs card at all on Today.
+- ⚠️ **Both layers, deliberately.** The unit test proves the record exists; only the spec proves it
+  *reaches a screen* — through `runMigrations` on hydrate, into `pendingDataRepairs`, into `repairBlocks`,
+  into the card. Every link is part of the claim, and `data-recovery.spec.ts`'s own header says so.
+- **GREEN:** `data-recovery` 9/9 · `typecheck` 0 · all 22 gates 0 · `test:app` · `test:regression` ·
+  `test:scenarios`. Plant removed and `git status` checked before believing it.
+
+---
+
 ## ✅ P6.8.9.7.11.13.4 — the recovery route two findings already promised *(2026-08-25)*
 
 ### Why this moved ahead of the PARTIALs it was filed behind
