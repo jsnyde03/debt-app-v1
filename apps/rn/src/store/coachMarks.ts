@@ -133,6 +133,18 @@ export const coachMarks = createStore<CoachMarkState>((set, get) => ({
    * dismissal, because *"a user who saw the hint and ignored it has been told"*. Drawn-and-ignored still
    * counts as told. What no longer counts is drawn-into-the-void.
    *
+   * ⛔ **AND FOR THREE WEEKS THAT LAST SENTENCE WAS FALSE.** [P6.8.9.7.11.12.9 · C-C] Moving the write
+   * from `show()` into the layer changed *who* wrote it, not *when*: the layer's condition was `rect &&
+   * copy`, and in the sheet case the first `measure()` **is** the y=1702 transient this docblock cites. So
+   * the same run, at the same instant, recorded the same mark — the caller was simply better named.
+   * ⚡ Measured on the web harness 2026-08-25: persisted with the callout **555 pt below the fold**, 621 ms
+   * before it came on screen. The layer now gates on the placement it draws with (`calloutOnScreen`), and
+   * the condition this paragraph describes is finally the condition in the code.
+   *
+   * ⚠️ **A caller can therefore draw and NOT record**, which is new. `markDrawn` stays a dumb recorder —
+   * "is this visible" is a question only the layer that placed the card can answer, and pushing it here
+   * would need the store to know about insets and window height.
+   *
    * Idempotent: the layer re-renders freely, and a mark already in the list is left alone.
    */
   markDrawn(id) {

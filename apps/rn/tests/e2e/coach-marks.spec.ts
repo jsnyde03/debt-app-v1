@@ -27,19 +27,24 @@ test.describe('coach-marks — offered once, and re-offerable', () => {
    * and would test the harness rather than the app. Seeding `coachMarksSeen` is what the app actually
    * meets on a cold start, which is the case the pref exists for.
    *
-   * The offer is also deliberately never dismissed via "Got it": the record is written on OFFER, and on
-   * the web that button is not clickable anyway — RN-web lays the sheet out in normal document flow, so
-   * the callout lands far below the fold and Playwright cannot scroll an absolutely-positioned layer into
-   * view. Same flow-layout artifact `payoff-schedule.spec.ts` documents, not a reachability defect.
+   * The offer is also deliberately never dismissed via "Got it" — this test is about the offer, and the
+   * dismissal has its own spec.
    *
-   * ⚠️ **Measured 2026-08-10 (3.5.6.2): the callout lands at y≈1266 in an 874pt viewport** — 392pt below
-   * the fold, in both themes. So WHERE this mark sits is a question web cannot answer at all, and it is
-   * device-owed; frames are pinned at `apps/rn/capture-ref/phase35/<theme>/coach-payoff-schedule.png`.
+   * ⛔ **TWO CLAIMS THAT STOOD HERE WERE STALE, AND THE C-C AUDIT QUOTED BOTH.** [P6.8.9.7.11.12.9]
+   * *"The record is written on OFFER"* — no: 4.1.4c moved it to `CoachMarkLayer`, and `.11.12.9` moved it
+   * again, to the layer's own viewport test. And **"the callout lands far below the fold"** with its
+   * *"y≈1266 in an 874pt viewport, 392pt below the fold"* (2026-08-10) described the **entrance transient**
+   * without knowing it. ⚡ **Re-measured 2026-08-25 at four viewports** — 440×956, 440×740, 402×874,
+   * 390×664 — **the seated callout is on screen in every one** (402×874: y 543..687). The below-fold
+   * position is real and it is transient, which is the whole of C-C: the record was written during it.
+   * → `docs/evidence/2026-08-25-p6.8.9.7.11.12.9-coach-void/`.
    *
-   * That is also why `toBeVisible()` cannot carry this test: RN-web satisfies it with a node anywhere in
-   * the document, off-screen included. The assertions below say what web genuinely proves — exactly ONE
-   * callout, and it is the Modal's own copy, which is precisely what 3.5.5.5 built. Both were checked by
-   * deleting `<CoachMarkLayer nested />` and confirming this test goes red.
+   * ⚠️ **`toBeVisible()` still cannot carry this test**: RN-web satisfies it with a node anywhere in the
+   * document, off-screen included — so it is true throughout that transient. What web genuinely proves
+   * here is exactly ONE callout, and that it is the Modal's own copy, which is precisely what 3.5.5.5
+   * built. Both were checked by deleting `<CoachMarkLayer nested />` and confirming this test goes red.
+   * Frames for the device question are pinned at
+   * `apps/rn/capture-ref/phase35/<theme>/coach-payoff-schedule.png`.
    */
   test("an unseen mark is offered — exactly one, from the sheet's own host", async ({ page }) => {
     await seedStore(page, scenario());
@@ -121,6 +126,101 @@ test.describe('coach-marks — offered once, and re-offerable', () => {
     await expect(page.getByTestId('tutorial-target-trajectory-scrub')).toBeVisible({ timeout: 15_000 });
     // ⛔ The COPY, not the count — `.11.12.7` measured a count assertion here passing on a stale callout.
     await expect(page.getByTestId('coach-mark')).toContainText('Drag the curve');
+  });
+
+  /**
+   * ⛔ **THE HINT WAS SPENT BEFORE IT WAS EVER ON SCREEN.** [P6.8.9.7.11.12.9 · C-C] `coachMarks.ts`
+   * promises *"the once-ever record is written when the callout ACTUALLY DRAWS … what no longer counts is
+   * drawn-into-the-void"*, and the layer decided that on `rect && copy`. A sheet's entrance spring makes
+   * the subject measure a full sheet-height below where it will rest, so a rect can exist, be honest, and
+   * describe a card far below the fold.
+   *
+   * ⚡ **MEASURED here before it was fixed:** at this viewport the record was already **persisted** on the
+   * first frame the callout painted, with its bottom edge at **1511** in a 956 pt window, and the callout
+   * did not come on screen for another **621 ms**. Closing the sheet inside that window — or tapping the
+   * very row the hint points at — loses the hint permanently.
+   *
+   * ⛔ **WHY A rAF TIMELINE AND NOT TWO READS.** The store persists on a **500 ms debounce**, so "read the
+   * record now" answers a question about half a second ago. A single sample therefore cannot tell "not
+   * recorded" from "recorded and not yet flushed", and the version of this test that took one reads GREEN
+   * with the defect present. Sampling every frame and asking *"was the callout ever off-screen while the
+   * record existed"* removes the timing from the assertion instead of guessing at it.
+   *
+   * ⚠️ **The first two assertions are the vacuity guards, and they FAIL rather than skip.** If the
+   * entrance transient stops happening (Reduce Motion, a snap, a faster spring) this test can no longer
+   * decide anything — and a test that cannot decide must say so out loud, not pass. This repo has shipped
+   * two specs that stayed green with the defect planted back for exactly this reason.
+   */
+  test('a hint drawn below the fold is not spent — the record waits for the callout to be on screen', async ({ page }) => {
+    /** `persistence.ts` — how long a record can sit in memory before localStorage can show it. */
+    const SAVE_DEBOUNCE_MS = 500;
+
+    await seedStore(page, scenario());
+    // Installed BEFORE the app loads: the record is written on the layer's first commit, which is earlier
+    // than anything the harness can await.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __coachSamples: { t: number; bottom: number; winH: number; seen: boolean }[] };
+      w.__coachSamples = [];
+      const t0 = performance.now();
+      const tick = () => {
+        const el = document.querySelector('[data-testid="coach-mark"]');
+        if (el) {
+          let seen = false;
+          try {
+            const blob = JSON.parse(window.localStorage.getItem('debtPlanner.rnStore') || 'null');
+            seen = !!blob?.prefs?.coachMarksSeen?.includes('payoff-schedule');
+          } catch {
+            /* a partially-written blob is simply "not seen yet" */
+          }
+          const r = el.getBoundingClientRect();
+          w.__coachSamples.push({ t: Math.round(performance.now() - t0), bottom: Math.round(r.bottom), winH: window.innerHeight, seen });
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+
+    await openDebt(page);
+    const card = page.getByTestId('coach-mark');
+    await expect(card).toBeVisible();
+    // The seated position — `FormSheet`'s `remeasureOn={settled}` re-measures and the callout is redrawn
+    // where it can be seen. That redraw is what the record should have been waiting for all along.
+    await expect(card).toBeInViewport();
+    // …and then long enough for the record made at THAT draw to reach localStorage, so the last assertion
+    // is asking about a flushed value rather than about the debounce.
+    await page.waitForTimeout(SAVE_DEBOUNCE_MS + 300);
+
+    const samples = await page.evaluate(
+      () => (window as unknown as { __coachSamples: { t: number; bottom: number; winH: number; seen: boolean }[] }).__coachSamples,
+    );
+
+    expect(samples.length, 'the callout painted at least one frame to sample').toBeGreaterThan(0);
+    const offScreen = samples.filter((s) => s.bottom > s.winH);
+    const firstOnScreen = samples.find((s) => s.bottom <= s.winH);
+
+    // GUARD 1 — the void the record has to be excluded from was actually entered.
+    expect(offScreen.length, 'the entrance transient never put the callout below the fold, so this test cannot decide anything').toBeGreaterThan(0);
+    // GUARD 2 — and it lasted longer than the persistence debounce, so a record made in the void MUST be
+    // observable inside it. Without this, a short transient would let the broken behaviour flush after the
+    // callout had seated and the assertion below would pass for a reason unrelated to the fix.
+    expect(firstOnScreen, 'the callout never came on screen at all').toBeDefined();
+    expect(
+      firstOnScreen!.t - samples[0].t,
+      `the off-screen window (${firstOnScreen!.t - samples[0].t}ms) is shorter than the ${SAVE_DEBOUNCE_MS}ms save debounce — a record written in it could flush after it, so this instrument cannot decide`,
+    ).toBeGreaterThan(SAVE_DEBOUNCE_MS);
+
+    // THE ASSERTION. Not one reading of the record, but every frame it existed for.
+    const spentInTheVoid = offScreen.filter((s) => s.seen);
+    expect(
+      spentInTheVoid.map((s) => `t=${s.t}ms bottom=${s.bottom} winH=${s.winH}`),
+      'the hint was recorded as seen while its callout was below the fold',
+    ).toEqual([]);
+
+    // …and the other direction, which is the whole reason this is not just "never record": a callout that
+    // IS on screen still spends the hint. Without this, deleting the write passes everything above.
+    const last = samples[samples.length - 1];
+    expect(last.bottom, 'the last sample is of a callout on screen').toBeLessThanOrEqual(last.winH);
+    expect(last.seen, 'a hint the user could actually see is still recorded as seen').toBe(true);
   });
 
   test('the marked control stays live — a hint is not a modal', async ({ page }) => {

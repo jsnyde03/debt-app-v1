@@ -10,11 +10,27 @@
  * added without anyone noticing it is one.** The three current callers each earned their place for a
  * different reason; a fourth is not automatically wrong, but it must never arrive silently.
  *
- * So this is an ALLOW-LIST, not a count. A count tells you the number changed; an allow-list tells you
- * WHICH file appeared, which is the question a reviewer actually has. Adding a caller means adding a line
- * here with a reason — the same discipline `mapLegacyStore`'s `DROPPED` table uses, and for the same
- * reason: "we did not think about this" and "we decided this" look identical in the result, and only one
- * of them is a defect.
+ * So this is an ALLOW-LIST, not a bare count. A bare count tells you the number changed; an allow-list
+ * tells you WHICH file appeared, which is the question a reviewer actually has. Adding a caller means
+ * adding a line here with a reason — the same discipline `mapLegacyStore`'s `DROPPED` table uses, and for
+ * the same reason: "we did not think about this" and "we decided this" look identical in the result, and
+ * only one of them is a defect.
+ *
+ * ⛔ **[P6.8.9.7.11.12.12 · D-J2-3] AND FOR A MONTH THE UNIT OF SANCTION WAS THE FILE, SO A SECOND CALL IN
+ * A SANCTIONED FILE ARRIVED SILENTLY.** The old check was `if (rel in ALLOWED) return;` — **before the call
+ * was ever examined** — while every reason below describes **one specific call site**: *"the fresh-install
+ * iCloud restore OFFER"*, *"behind an in-sheet two-tap confirm"*. Nothing bound the exemption to that site.
+ * A second, unguarded `importStore(blob)` fifty lines away in the same file was admitted, and the staleness
+ * check could not notice either — it only asked whether the file still contains *a* call.
+ *
+ * ⚡ The sibling gate in this same family already argues the discipline explicitly —
+ * `check-native-a11y-props.ts`: *"Per-PROP rather than per-file deliberately: exempting a whole file to
+ * permit one prop silently un-gates the other six in it."* `importStore` is the most destructive operation
+ * in the app, and it was the one place the weaker rule was used.
+ *
+ * ⚠️ **So each entry now declares HOW MANY sites it sanctions, and the count is checked exactly.** A second
+ * call cannot arrive without editing the line that holds the reason — which is the whole mechanism: not
+ * that a new caller is forbidden, but that it cannot be added without someone writing down why.
  *
  * Usage: npm run lint:destructive   ·   runs inside `lint:rn` → `validate:release:rn`
  */
@@ -24,18 +40,36 @@ import { extname, join, relative, sep } from 'node:path';
 const REPO_ROOT = join(import.meta.dirname, '..');
 const ROOT = join(REPO_ROOT, 'apps', 'rn', 'src');
 
-/** Every sanctioned caller of a wholesale store overwrite, with the reason it is allowed to be one. */
-const ALLOWED: Record<string, string> = {
-  'apps/rn/src/store/store.ts': 'the definition itself',
-  'apps/rn/src/store/persistence.ts': 'hydrate — the store is EMPTY at this point, so nothing is overwritten',
-  'apps/rn/src/components/more/BackupSheets.tsx':
-    'the backup restore — gated behind readBackup (refuses unrecognised input) AND a second deliberate tap (5.8.4)',
-  'apps/rn/src/app/_layout.tsx':
-    "the fresh-install iCloud restore OFFER (P6.3.3.6) — same verified input (decodeCloudBackup → readBackup), and consent is the whole point of the dialog: it only ever runs for a store that has NOT onboarded, and only the explicit 'Restore' button calls this. Declining sets `declinedRestore`, which then suppresses auto-backup",
-  'apps/rn/src/components/DataResetScreen.tsx':
-    'the corrupt-store recovery (P6.8.7c.2) — same verified input as the other two cloud callers (decodeCloudBackup → readBackup), and an explicit tap on the offered action. ⚡ It is also the weakest case this check can ever see: the store it overwrites is `createDefaultStore()`, because the wipe it exists to recover from has already happened, so there is nothing left to destroy',
-  'apps/rn/src/hooks/use-cloud-backup.ts':
-    'the iCloud restore (P6.3.3.5) — the blob goes through decodeCloudBackup → readBackup, so it is VERIFIED and not merely parsed, and the caller is behind an in-sheet two-tap confirm naming what is lost. It also refuses a SANDBOX store outright',
+/**
+ * Every sanctioned site of a wholesale store overwrite, with the reason it is allowed to be one **and how
+ * many sites that reason covers.**
+ *
+ * ⚠️ `sites` is not bookkeeping — it is the binding between the reason and the code. Every reason below is
+ * written about ONE call; declaring the number is what stops a second one inheriting it.
+ * ⛔ **`store.ts` is 2 and neither is a call** — see `CALL`.
+ */
+const ALLOWED: Record<string, { sites: number; reason: string }> = {
+  'apps/rn/src/store/store.ts': { sites: 2, reason: 'the definition itself — the interface member and the implementation, neither of them a call' },
+  'apps/rn/src/store/persistence.ts': { sites: 1, reason: 'hydrate — the store is EMPTY at this point, so nothing is overwritten' },
+  'apps/rn/src/components/more/BackupSheets.tsx': {
+    sites: 1,
+    reason: 'the backup restore — gated behind readBackup (refuses unrecognised input) AND a second deliberate tap (5.8.4)',
+  },
+  'apps/rn/src/app/_layout.tsx': {
+    sites: 1,
+    reason:
+      "the fresh-install iCloud restore OFFER (P6.3.3.6) — same verified input (decodeCloudBackup → readBackup), and consent is the whole point of the dialog: it only ever runs for a store that has NOT onboarded, and only the explicit 'Restore' button calls this. Declining sets `declinedRestore`, which then suppresses auto-backup",
+  },
+  'apps/rn/src/components/DataResetScreen.tsx': {
+    sites: 1,
+    reason:
+      'the corrupt-store recovery (P6.8.7c.2) — same verified input as the other two cloud callers (decodeCloudBackup → readBackup), and an explicit tap on the offered action. ⚡ It is also the weakest case this check can ever see: the store it overwrites is `createDefaultStore()`, because the wipe it exists to recover from has already happened, so there is nothing left to destroy',
+  },
+  'apps/rn/src/hooks/use-cloud-backup.ts': {
+    sites: 1,
+    reason:
+      'the iCloud restore (P6.3.3.5) — the blob goes through decodeCloudBackup → readBackup, so it is VERIFIED and not merely parsed, and the caller is behind an in-sheet two-tap confirm naming what is lost. It also refuses a SANDBOX store outright',
+  },
 };
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -48,10 +82,19 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** A CALL, not a mention — `importStore(` with a preceding `.` or a declaration. Comments are stripped. */
+/**
+ * ⚠️ **A SITE, and "site" is looser than "call" — measured, 2026-08-25.** This pattern also matches the
+ * interface member `importStore(store: DebtStore): void;` and the implementation `importStore(store) {`,
+ * which is why `store.ts` declares **2**. The docstring here used to claim *"a CALL, not a mention"*; it
+ * excludes mentions in prose, and nothing more. Left as it is deliberately — over-matching on the
+ * definition file costs one number in the allow-list, while narrowing the pattern risks missing a real
+ * call shape. **What it must never do is under-match.**
+ */
 const CALL = /(?<![\w.])importStore\s*\(|\.\s*importStore\s*\(/;
 
 const offenders: { file: string; line: number; text: string }[] = [];
+/** Sites found per file, whether or not the file is sanctioned. */
+const found = new Map<string, number>();
 
 for (const file of walk(ROOT)) {
   const rel = relative(REPO_ROOT, file).split(sep).join('/');
@@ -61,6 +104,7 @@ for (const file of walk(ROOT)) {
     // prose explaining a defect that was fixed, and a guard that reds on its own postmortem is noise.
     const line = raw.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '');
     if (!CALL.test(line)) return;
+    found.set(rel, (found.get(rel) ?? 0) + 1);
     if (rel in ALLOWED) return;
     offenders.push({ file: rel, line: i + 1, text: raw.trim() });
   });
@@ -77,22 +121,29 @@ if (offenders.length > 0) {
   process.exit(1);
 }
 
-// ⚠️ Also fail when a sanctioned entry stops existing. An allow-list that outlives its subject quietly
-// stops guarding anything, and reads as coverage while providing none.
-const stale = Object.keys(ALLOWED).filter((f) => {
-  try {
-    return !CALL.test(readFileSync(join(REPO_ROOT, f), 'utf8'));
-  } catch {
-    return true;
+/**
+ * ⛔ **[P6.8.9.7.11.12.12 · D-J2-3] THE COUNT, AND IT SUBSUMES THE OLD STALENESS CHECK.** That one asked
+ * whether a sanctioned file still contains *a* call — so it could not see a second one arriving, and it
+ * could not see the first one leaving while a different one took its place. Comparing the exact number
+ * answers both: 0 found is a stale entry, more than declared is an unreviewed new caller.
+ */
+const drift = Object.entries(ALLOWED)
+  .map(([file, { sites }]) => ({ file, declared: sites, actual: found.get(file) ?? 0 }))
+  .filter((d) => d.declared !== d.actual);
+
+if (drift.length > 0) {
+  console.error(`\n❌ wholesale overwrite: ${drift.length} ALLOWED entr(y/ies) no longer match the code.\n`);
+  for (const d of drift) {
+    console.error(`  ${d.file}\n    sanctioned: ${d.declared}   found: ${d.actual}`);
   }
-});
-if (stale.length > 0) {
-  console.error(`\n❌ wholesale overwrite: ${stale.length} ALLOWED entr(y/ies) no longer call \`importStore\`:\n`);
-  for (const f of stale) console.error(`  ${f}`);
-  console.error('\n  Remove it — a stale allow-list entry is a hole with a comment in front of it.\n');
+  console.error(
+    '\n  Each reason in ALLOWED is written about a SPECIFIC call site, so the number is the binding\n' +
+      '  between the two. If a site was ADDED, it needs verified input and deliberate consent like the\n' +
+      '  others — say so in the reason and raise the count. If one was REMOVED, lower it, and delete the\n' +
+      '  entry at 0: a stale allow-list entry is a hole with a comment in front of it.\n',
+  );
   process.exit(1);
 }
 
-console.log(
-  `✅ wholesale overwrite: ${Object.keys(ALLOWED).length}/${Object.keys(ALLOWED).length} \`importStore\` callers sanctioned, none unaccounted for.`,
-);
+const total = Object.values(ALLOWED).reduce((n, { sites }) => n + sites, 0);
+console.log(`✅ wholesale overwrite: ${total}/${total} \`importStore\` sites sanctioned across ${Object.keys(ALLOWED).length} files, none unaccounted for.`);

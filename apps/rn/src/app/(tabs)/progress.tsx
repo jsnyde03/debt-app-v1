@@ -21,6 +21,7 @@ import { CountUp } from '@/motion';
 import { selectWhatIf, selectWhatIfBaseline } from '@/store/analysisSelectors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaidOffDebts } from '@/store/celebrationSelectors';
+import { selectJourneyTotals } from '@/store/journeySelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { selectOnPlanStreakLabel } from '@/store/planSelectors';
 import { effectivePaycheckBuffer } from '@/store/selectors';
@@ -30,7 +31,6 @@ import { elevation } from '@/theme/elevation';
 import { layout, spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { decorative, groupLabel } from '@/utils/a11y';
-import { formatWhole } from '@/utils/format';
 
 const RING_SIZE = 112;
 
@@ -190,10 +190,17 @@ export default function ProgressScreen() {
     );
   }
 
-  const totalOriginal = store.debts.reduce((sum, d) => sum + (d.originalBalance ?? d.balance), 0);
-  const totalCurrent = store.debts.reduce((sum, d) => sum + d.balance, 0);
-  const totalPaid = Math.max(0, totalOriginal - totalCurrent);
-  const pct = totalOriginal > 0 ? Math.round((totalPaid / totalOriginal) * 100) : 0;
+  // ⚠️ [P6.8.9.7.11.12.10 · C-D] The figures AND the sentence that reads them come from one owner. They
+  // used to be derived here and printed seventy lines below, and the "to go" branch picked the ORIGINAL
+  // total — see `journeySelectors.ts` for what that told a user whose balances had grown.
+  //
+  // ⛔ **BOTH BALANCE SETS, and 2.4's rule above decides which figure gets which.** "% paid" is backward-
+  // looking and stays on the confirmed anchors; *"$X to go"* is a claim about what is owed TODAY, so it
+  // reads the projection — the same number Money's hero states (*"Premium sums the projected
+  // (always-current) balances so the hero reconciles with the rows"*). ⚠️ A first cut passed `engineStore`
+  // for both, which would have made "% paid" FALL as interest accrued while the user did nothing. Free is
+  // unaffected either way: `withProjectedBalances` returns the store untouched.
+  const { pct, line: journeyLine } = selectJourneyTotals(store.debts, engineStore.debts);
   const surf = c.surface;
 
   // Milestone states for the on-ring nodes: passed (green) · next (gold glow, the pull-forward) ·
@@ -259,10 +266,11 @@ export default function ProgressScreen() {
           <View style={styles.ringMeta}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]}>DEBT-FREE</Text>
             <Text testID="progress-hero-date" {...heroDateFit} style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
-            <Text style={[textStyles.subhead, { color: surf.heroSub }]}>
-              {/* 3.3.6b — early on, lead FORWARD (the remaining as a goal) instead of a deflating "$0 paid". */}
-              {/* HON-1: whole dollars on the headline journey figure — matches every other Phase-3 surface (formatWhole). */}
-              {totalPaid > 0 ? `${formatWhole(totalPaid)} of ${formatWhole(totalOriginal)} paid` : `${formatWhole(totalOriginal)} to go`}
+            {/* ⚠️ [P6.8.9.7.11.12.10] The branch, both figures and the wording live together in
+                `selectJourneyTotals` — this line exists to be READ, and a testID so a spec can name it
+                rather than matching a dollar amount that appears elsewhere on the screen. */}
+            <Text testID="progress-hero-journey" style={[textStyles.subhead, { color: surf.heroSub }]}>
+              {journeyLine}
             </Text>
             {/* 3.4.2.1 — the next milestone, read as a clean caption (the ring's glowing node marks it visually). */}
             {nextMilestoneLabel ? (

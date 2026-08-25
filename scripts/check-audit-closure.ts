@@ -37,6 +37,23 @@ const FINDINGS = join(REPO_ROOT, 'docs/audits/2026-08-17-v1.7-audit-gate/finding
  * "unassigned" findings that were almost all aliases. Recording the alias next to the action id is what
  * makes the closure traceable, which is [D37]'s whole thesis restated: an untraceable closure is
  * indistinguishable from an open finding.
+ *
+ * ⛔ **AND THE FIX FOR THAT WAS TO READ SYNTHESIS AS A LEDGER, WHICH MADE THIS COUNT 12 SHORT.**
+ * [P6.8.9.7.11.12.14 · D-J2-5] `SYNTHESIS.md` is the finish sweep's own summary: it names its findings in
+ * its section headings — `### 1 · … *(M1-5 · R2 CONFIRMED, strengthened)*` — so **every** id it raised was
+ * added to the recorded set. That is the audit citing itself, counted as a closure. ⚡ Measured by running
+ * this gate with and without it: **39 with, 51 without**, and the 12 that turn on it alone are
+ * `M1-1 M1-2 M1-5 M1-6 M2-1 M2-2 M2-5 M2-6 O1-9 V1-0 V1-1 V4-7` — the finding's figures, reproduced
+ * exactly. ⚠️ This file's own headline applies to itself: *an instrument that under-reports is worse than
+ * no instrument, because it is believed* — and `:150-151` conditions the flip to `exit(1)` on this number
+ * reaching zero.
+ *
+ * ⚠️ **SO WHY NOT AN ALIAS MAP INSTEAD?** Because the consolidated ids are `A1`, `B4`, `C6` — two
+ * characters, no dash — and the ledgers are hundreds of kilobytes of prose. Measured: `\bA1\b` matches
+ * **9** times in the plan and **25** in the log, almost all incidental. **A token that short cannot be
+ * searched for**, so an alias map keyed on it would rebuild the very defect above: traceability by
+ * coincidental mention. ⭐ The alias has to be recorded where the closure is — write the LENS id into the
+ * plan or log line that closes it, and this gate finds it with no special case at all.
  */
 const P68_SLICES = join(REPO_ROOT, 'docs/audits/2026-08-21-p6.8-finish/slices');
 
@@ -124,9 +141,15 @@ for (const file of readdirSync(P68_SLICES)) {
   }
 }
 
-/** Any lens id written down anywhere a closure may be recorded, slash-lists expanded (`A1-7/8/9`). */
+/**
+ * Any lens id written down anywhere a **closure** may be recorded, slash-lists expanded (`A1-7/8/9`).
+ *
+ * ⛔ `SOURCES` and nothing else. [P6.8.9.7.11.12.14 · D-J2-5] `SYNTHESIS.md` used to be appended here, and
+ * an audit's own summary of what it found is not a record of anything being done about it — see the
+ * docstring at the top of this file for the measurement and for why an alias map cannot replace it.
+ */
 const p68Recorded = new Set<string>();
-for (const src of [...SOURCES, join(REPO_ROOT, 'docs/audits/2026-08-21-p6.8-finish/SYNTHESIS.md')]) {
+for (const src of SOURCES) {
   for (const m of readFileSync(src, 'utf8').matchAll(/\b([A-Z]{1,2}\d?)-(\d+(?:\/\d+)*[a-z]?)\b/g)) {
     for (const n of m[2].split('/')) p68Recorded.add(`${m[1]}-${n}`);
   }
@@ -151,8 +174,10 @@ const p68Missing = p68HighPlus.filter((f) => !p68Recorded.has(f.id));
 // that point would be the same failure as never having built it.
 if (p68Missing.length > 0) {
   console.log(
-    `📋 P6.8 sweep: ${p68Missing.length} of ${p68HighPlus.length} high+ findings are named in NO ledger ` +
-      `(plan · log · refutations · SYNTHESIS). Report-only until P6.8.9 — see the note in this file.`,
+    `📋 P6.8 sweep: ${p68Missing.length} of ${p68HighPlus.length} high+ findings are named in NO CLOSURE ledger ` +
+      `(plan · log · refutations). Report-only until P6.8.9 — see the note in this file.\n` +
+      `   ⚠️ The audit's own SYNTHESIS is deliberately NOT counted (D-J2-5) — a finding is closed by a line ` +
+      `in the plan or log naming its LENS id, not by the audit that raised it.`,
   );
   if (process.argv.includes('--p68')) {
     for (const f of p68Missing) console.log(`   ${f.id.padEnd(8)} ${f.lens.padEnd(22)} ${f.title.slice(0, 70)}`);

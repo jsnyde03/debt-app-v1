@@ -139,16 +139,56 @@ export function CoachMarkLayer({
 
   // 4.1.4c — the layer's final verdict, recorded from an EFFECT rather than from the render body: this
   // component renders on every host/rect change, and a side effect in a render path is exactly the kind
-  // of instrument that reports something other than what shipped. Mirrors the returns below.
+  // of instrument that reports something other than what shipped.
+  //
+  // ⚠️ It no longer mirrors the returns below, and that asymmetry is the fix: the layer DRAWS in the
+  // `offScreen` case (there is a rect and there is copy, so a card is rendered) and simply does not
+  // SPEND the hint for it. Drawing and being seen stopped being the same question.
+  /**
+   * ⛔ **[P6.8.9.7.11.12.9 · C-C] `DREW` WAS THREE FACTS, AND "THE CALLOUT IS ON SCREEN" WAS NOT ONE.**
+   *
+   * `markDrawn`'s own docblock states the guarantee this effect is supposed to hold — *"the once-ever
+   * record is written when the callout ACTUALLY DRAWS … what no longer counts is drawn-into-the-void"* —
+   * and cites run 31700074087, where `payoff-schedule` measured **y=1702 on a 956pt screen** because the
+   * sheet was still a full sheet-height below its seated position. ⚡ **Moving the write out of `show()`
+   * and into this layer did not exclude that case**: `rect` is whatever the first `measure()` returned,
+   * and in the sheet case that first measurement *is* the transient. The write moved; the void did not.
+   *
+   * ⚡ **MEASURED on the web harness, 2026-08-25** (`docs/evidence/2026-08-25-p6.8.9.7.11.12.9-coach-void/`):
+   * at 440×956 the record was already persisted on the FIRST frame the callout painted, with its bottom
+   * edge at **1511** — 555 pt below the fold — and the callout did not come on screen for another
+   * **621 ms**. Anything that ends the sheet inside that window spends a hint the user never saw:
+   * closing it, swiping it down, or tapping the very row the hint points at.
+   *
+   * ⚠️ **What saves the user today is a RACE, not this check.** `FormSheet`'s `remeasureOn={settled}`
+   * re-measures the seated rect a few hundred ms later and the callout is redrawn where it can be seen —
+   * so on the common path the hint does land. The record never waited for it.
+   *
+   * ⚠️ **The gate reuses the placement the render body computes** (`calloutTop`) rather than deriving a
+   * second answer; one owner, so the two can never disagree about where the card is. Residual, and it is
+   * the same first-frame gap placement already carries: before `onLayout` lands, both use
+   * `ESTIMATED_CALLOUT_H`, so a callout taller than the estimate could be recorded while its bottom edge
+   * is clipped. Deliberately not tightened to "measured height only" — a record that can never be written
+   * if a layout event never arrives is a mark that nags forever, which is the worse failure.
+   */
   useEffect(() => {
     if (!active) return;
-    const verdict = !nested && hosts > 0 ? `stoodDownFor(hosts=${hosts})` : !rect ? 'noRect' : !COACH_MARKS[active] ? 'noCopy' : 'DREW';
+    const verdict =
+      !nested && hosts > 0
+        ? `stoodDownFor(hosts=${hosts})`
+        : !rect
+          ? 'noRect'
+          : !COACH_MARKS[active]
+            ? 'noCopy'
+            : !calloutOnScreen(rect, calloutH || ESTIMATED_CALLOUT_H, winH, insets.top, insets.bottom)
+              ? 'offScreen'
+              : 'DREW';
     probeCoachMark(`draw:${active}=${verdict} nested=${nested ? 1 : 0}`);
     // 4.1.4c — the once-ever record is written HERE, by the layer that actually put pixels on screen,
     // rather than by `show()` which only ever knew a mark had been asked for. `DREW` is the same verdict
     // the probe prints, so the trace and the record can never disagree about what happened.
     if (verdict === 'DREW') coachMarks.getState().markDrawn(active);
-  }, [active, rect, hosts, nested]);
+  }, [active, rect, hosts, nested, calloutH, winH, insets.top, insets.bottom]);
 
   /**
    * ⛔ **[V2-6 · P6.8.9.7.3] WHEN NEITHER PLACEMENT IS CLEAN, MOVE THE PAGE — NOT THE CALLOUT.**
@@ -231,23 +271,13 @@ export function CoachMarkLayer({
   const copy = COACH_MARKS[active];
   if (!copy) return null;
 
-  // Below the control when there is room beneath it, above it otherwise. The subject is the point; a
-  // callout that covers it explains something the user can no longer see.
-  //
-  // ⛔ THE ABOVE-BRANCH USED A HARDCODED 132 AND IT BROKE THAT ONE GUARANTEE ON THE APP'S DEFAULT WIDTH.
-  // Measured at 402 pt: the body wraps to two lines, the callout renders **144** px tall, and its bottom
-  // edge lands **12 px inside** the trajectory card it exists to explain. At 1194 pt the same copy is one
-  // line and 123 px, and clears by 9. So 132 matched neither height — it was the height of one particular
-  // wrap of one particular sentence, and every later edit to the copy re-rolled the dice.
-  //
-  // ⚡ The height is now MEASURED rather than assumed, which is what makes the invariant hold for copy
-  // nobody has written yet. The first frame still uses the estimate, because a layout pass has to happen
-  // before there is anything to measure; it corrects on the next one, and only in the branch that needs it.
-  const below = rect.y + rect.height + 12;
-  // ⚠️ [V2-6] The MEASURED height, not a hardcoded 140 — which was less than the callout's real 144, so
-  // "there is room" could be true of a gap the callout does not fit in. Same class as the `132` above.
-  const roomBelow = winH - below - insets.bottom > (calloutH || ESTIMATED_CALLOUT_H) + ABOVE_GAP;
-  const top = roomBelow ? below : Math.max(insets.top + 8, rect.y - (calloutH || ESTIMATED_CALLOUT_H) - ABOVE_GAP);
+  // ⚠️ [P6.8.9.7.11.12.9] The branch and everything measured about it now live on `calloutTop`, because
+  // the once-ever record has to ask the same question and a second derivation is how two answers about one
+  // card come to disagree. The rationale moved WITH the code — this file has already paid for a 22-line
+  // explanation left behind by the mechanism it described (P6.8.9.7.10 · E-5, twenty lines down).
+  // ⚡ The height is MEASURED rather than assumed. The first frame still uses the estimate, because a
+  // layout pass has to happen before there is anything to measure; it corrects on the next one.
+  const top = calloutTop(rect, calloutH || ESTIMATED_CALLOUT_H, winH, insets.top, insets.bottom);
 
   // ⚠️ A 22-line copy of the reveal-effect docblock stood here, describing code that had moved into that
   // effect — so the render body carried an explanation of a mechanism it does not implement, and the two
@@ -379,6 +409,49 @@ const ABOVE_GAP = 10;
 const REVEAL_MARGIN = 24;
 
 const MIN_CALLOUT_W = 260;
+
+/**
+ * Where the callout's top edge lands for a given subject rect and callout height — **the one owner of that
+ * placement**, read by the render body and by the once-ever record.
+ *
+ * Below the control when there is room beneath it, above it otherwise. The subject is the point; a callout
+ * that covers it explains something the user can no longer see. The above-branch is clamped to the
+ * safe-area top, so this can only ever run off the BOTTOM by more than a hair.
+ *
+ * ⛔ THE ABOVE-BRANCH USED A HARDCODED 132 AND IT BROKE THAT ONE GUARANTEE ON THE APP'S DEFAULT WIDTH.
+ * Measured at 402 pt: the body wraps to two lines, the callout renders **144** px tall, and its bottom edge
+ * lands **12 px inside** the trajectory card it exists to explain. At 1194 pt the same copy is one line and
+ * 123 px, and clears by 9. So 132 matched neither height — it was the height of one particular wrap of one
+ * particular sentence, and every later edit to the copy re-rolled the dice.
+ *
+ * ⚠️ [V2-6] `roomBelow` compares against the caller's height, not a hardcoded 140 — which was less than the
+ * callout's real 144, so "there is room" could be true of a gap the callout does not fit in. Same class as
+ * the `132` above.
+ *
+ * ⚠️ Pure and parameterised rather than reading the component's scope: the effect that gates the record
+ * runs on a different commit from the render that draws, and a helper closing over live state would answer
+ * for whichever commit it happened to be created in.
+ */
+function calloutTop(rect: TargetRect, h: number, winH: number, insetTop: number, insetBottom: number): number {
+  const below = rect.y + rect.height + 12;
+  const roomBelow = winH - below - insetBottom > h + ABOVE_GAP;
+  return roomBelow ? below : Math.max(insetTop + 8, rect.y - h - ABOVE_GAP);
+}
+
+/**
+ * ⛔ **[P6.8.9.7.11.12.9 · C-C] Is the callout, as placed, somewhere a person could actually see it?**
+ *
+ * The question the once-ever record has to answer, and it is not the one `rect && copy` answers. A subject
+ * measured during a sheet's entrance spring reports a position a full sheet-height below where it will
+ * rest, so a rect can exist, be honest, and describe a card **555 pt below the fold** — measured, 2026-08-25.
+ *
+ * ⚠️ `winH - insetBottom`, the same bound the reveal effect tests against: on device the bottom inset is a
+ * tab bar or a home indicator, and a callout underneath one is not visible in the sense a user means.
+ */
+function calloutOnScreen(rect: TargetRect, h: number, winH: number, insetTop: number, insetBottom: number): boolean {
+  const top = calloutTop(rect, h, winH, insetTop, insetBottom);
+  return top >= insetTop && top + h <= winH - insetBottom;
+}
 
 const styles = StyleSheet.create({
   // `box-none` on the wrapper and nothing full-screen behind it: the screen underneath stays fully

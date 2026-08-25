@@ -52,6 +52,355 @@ device. Confirm nothing in the suite depends on the record being written.
 
 ---
 
+## ✅ P6.8.9.7.11.12 — CLOSED, all 14 majors *(2026-08-25)*
+
+**Money 3 · import 3 · discovery 4 · gates 4.** Per-finding detail in the entries below.
+
+### ⛔ The result of the block: four of the fourteen findings had a premise that measurement killed
+
+And in two of the four, believing it would have produced a different, worse fix.
+
+| finding | the premise | measured |
+|---|---|---|
+| `A/J2-2` | v1.6 persisted string money | ⛔ It never did. The live door is the JSON restore — the fix narrowed |
+| `A/J2-3` | two throw sites | **Three failure modes across five places**, and the finding's own one-line fix would have moved the crash to render |
+| `C/C-C` | *"on web the seated callout is off-screen"* | ⛔ False at four viewports. The below-fold position is the **entrance transient** — which was the real mechanism, described by a stale comment that did not know it |
+| `D/J2-3` | *"each sanctioned file contains exactly one call"* | `store.ts` has **2**, and the regex called *"a CALL, not a mention"* matches a type declaration |
+
+⚡ **And one finding's arithmetic was exactly right** — `D/J2-5`'s 39 / 51 / 12 reproduced to the id. Its
+*remedy* was the part that would have failed: an alias map keyed on two-character ids that match
+incidentally (`\bA1\b` is 9 hits in the plan, 25 in the log).
+
+⭐ **So the standing rule refines rather than repeats.** It is not *"agent explanations are unreliable"* —
+it is that **the premise and the remedy fail independently of the observation**, and each needs its own
+measurement. Every one of the fourteen observations was real. → [[findings-cite-comments-as-evidence]].
+
+### The block-level after-scan
+
+- ⛔ **A fix collided with a standing decision written three lines above the code it touched**
+  (`.11.12.10`, 2.4's *"backward-looking % paid stays on the raw balances"*) — **and passed every test I
+  had written for it.** The per-item scans cannot catch this shape; only reading the code *around* the
+  site does. It is now the second half of the memory above.
+- ⛔ **Two gates in this block were report-only** (`.11.12.6`'s migration audit, `.11.12.13`'s self-check).
+  Asked of every checker in the block: *does it fail, or only say?* Both now fail.
+- **[D62] surfaced and was answered** (🎯) — `originalBalance` becomes a high-water mark → `.11.15`.
+- **`.11.17` renumbered from `.11.16`**, and a new `.11.15` inserted for [D62]'s build.
+- **Filed to the deferred backlog:** the `tests/` typecheck hole (→ P6.10) and the `originalBalance`
+  decision, now promoted out of the backlog into the queue as [D62].
+- ⚠️ **One e2e failed in the full 267-spec run and passed in isolation** —
+  `trajectory-interactivity.spec.ts:78`, a 5 s default timeout on a What-If simulation under four-way
+  worker contention. Read before dismissing, per the standing rule; the assertion's fragility is real but
+  it is not a regression from this block.
+
+---
+
+## ✅ P6.8.9.7.11.12.11 — D-J2-2, the guard that was on one surface of ten *(2026-08-25)*
+
+### The defect
+
+`p6.8-matrix.shot.ts`'s stated job is its own completeness, and the one failure it cannot see through
+`⛔ UNREACHED` is **a recipe that reaches a page and photographs the WRONG screen** — nothing throws.
+`ready` exists for exactly that, and the file's own prose said *"That is why every surface now carries a
+`ready` assertion."*
+
+⛔ **It was on ONE of the ten surfaces**, and consulted in one of the two blocks that shoot a `Surface`.
+The concrete hole: the text-scale block loops `SURFACES` across two scales × two viewports × two themes, so
+**eight `textscale-*x-onboarding` frames were shot with the guard off** — on the one route whose seed
+`runMigrations` → `inferOnboarding` is documented to overrule on read.
+
+⚠️ **The prose is why this rates `major` rather than `minor`.** It is the sentence that tells the next
+author the class is closed.
+
+### What shipped — the sentence is now true by construction
+
+- **`ready` is REQUIRED** on the `Surface` interface. A surface added without one does not compile.
+  ⚠️ That matters here because `apps/rn/tsconfig.json` **excludes `tests/`** from `typecheck:rn` — but
+  Playwright compiles this file itself, so the error lands when the matrix runs, which is when it counts.
+- **A `heading()` helper**, and every surface uses it. `Screen` renders its title with
+  `accessibilityRole="header"` → RNW `role="heading"`, so **the screen's own accessibility claim about what
+  it is** becomes the identity check. Not a testID: a testID is a marker added for the test, whereas this
+  makes the assertion and the product claim the same claim.
+  - Today's is the **greeting's shape** (`/^Good (morning|afternoon|evening)/`), not one of its values — a
+    literal would make the matrix pass or fail by the clock.
+  - `not-found` is the one route with no `Screen` scaffold; its own sentence is the identity, matched
+    loosely because `lint:apostrophes` requires the curly apostrophe in it.
+- **Both `SURFACES` loops call it** — the route block already did; the states and text-scale blocks now do.
+
+⚠️ **A `ready` must therefore be state-agnostic** — the states block shoots `empty` and `huge` through the
+same recipe. Every one is the heading, which all states render alike.
+
+### ⛔ The finding counted four un-guarded blocks; two of them do not shoot a `Surface` at all
+
+`SHEETS` and `EXPANDED` are different arrays with an `open` recipe whose `FAST` timeout throws — the same
+guarantee under another name. The real holes were two. ⚠️ It also said *"eleven entries in `SURFACES`"*;
+there are **ten**.
+
+### Verification, and it answered the finding's own open question
+
+The finding recorded as **undetermined**: *"whether any current `textscale-*-onboarding.png` frame is in
+fact Today — only observable by running `npm run shots:demo` and looking."* Nobody had.
+
+⚡ **Run: 275 passed, 17.1 minutes, `⛔ UNREACHED` zero, and all eight `textscale-*-onboarding` frames
+green with the guard on.** So the guard was genuinely absent and the frames were genuinely fine — the hole
+was real and had not yet been paid for in bad evidence. ⭐ **Worth stating plainly, because the temptation
+was to assume the worst from a true premise:** an ungated door is not the same as an intruder.
+
+---
+
+## ✅ P6.8.9.7.11.12.12–.14 — the three gates that could not fail *(2026-08-25)*
+
+Three findings, one shape: **an instrument that reports without gating, or gates on the wrong unit.** Taken
+together because each fix is small and the lesson only appears when they are read side by side.
+
+### `.12` · `D-J2-3` — the allow-list sanctioned a FILE, so a second call arrived silently
+
+`check-destructive-writes.ts` did `if (rel in ALLOWED) return;` **before the call was ever examined**,
+while every reason in the list describes one specific site — *"the fresh-install iCloud restore OFFER"*,
+*"behind an in-sheet two-tap confirm"*. A second unguarded `importStore(blob)` fifty lines away in a
+sanctioned file was admitted, and the staleness check could not see it either: it only asked whether the
+file still contains *a* call. ⚡ The sibling gate argues the opposite discipline in its own comments —
+`check-native-a11y-props.ts`: *"Per-PROP rather than per-file deliberately."* `importStore` is the most
+destructive operation in the app and was the one place the weaker rule was used.
+
+**Shipped:** each entry declares `sites: N`, and the count is compared exactly — which **subsumes** the old
+staleness check (0 found is a stale entry, more than declared is an unreviewed caller) and replaces its
+`try/catch` on a missing file with the same comparison.
+
+⚠️ **Two of the finding's figures were wrong, and measuring them improved the fix.** It said *"each of the
+six sanctioned files contains exactly one call — … `store.ts:799`"*. Measured with the gate's own regex:
+**`store.ts` has 2**, at `:235` and `:807` — the interface member `importStore(store: DebtStore): void;`
+and the implementation. ⚡ So the pattern the docstring calls *"a CALL, not a mention"* **matches a type
+declaration**. Left as it is deliberately — over-matching on the definition file costs one number in the
+allow-list; narrowing the pattern risks missing a real call shape, and this gate must never under-match.
+
+**Mutation-verified both directions:** a duplicated call in `use-cloud-backup.ts` → `sanctioned: 1
+found: 2`; a sanctioned file that does not exist → `sanctioned: 1  found: 0`.
+
+### `.13` · `D-J2-4` — `process.exit(0)` threw away the instrument's own verdict
+
+The origin-label self-check sets `process.exitCode = 1` and says why in exactly these terms: *"An audit
+instrument that is silently wrong is worse than none, because its output is trusted."* The `--gate` branch
+then called `process.exit(0)`, **and an explicit code overrides `exitCode`.**
+
+⚡ **The consequence is not cosmetic.** A mis-bucketed string is not `copy`, and the duplicate gate filters
+on `bucket === 'copy'` — so broken labelling silently removes user-facing phrases from the gate's input.
+The pass is reported over a corpus the instrument has just said it cannot classify.
+
+⛔ **Measured, not reasoned.** With the self-check driven red (its 48-char threshold mutated to 4) the old
+code printed **`❌ strings-inventory: 350 origin label(s)…`** and **`✅ duplicate copy: no new cross-file
+phrases`** in the same output and exited **0**. With the fix: exit **1**.
+
+⚠️ **Class-scanned rather than assumed:** five `process.exit(0)` sites exist in `scripts/`;
+`strings-inventory.ts` is the only one that also sets `process.exitCode`. The class is one.
+
+### `.14` · `D-J2-5` — the closure gate counted the audit's own summary as a closure
+
+`check-audit-closure.ts` appended `SYNTHESIS.md` to the recorded set and added **every** finding id in it.
+SYNTHESIS is the finish sweep's own summary and names its findings in its section headings — `### 1 · … *(M1-5
+· R2 CONFIRMED, strengthened)*`. So an audit citing itself counted as somebody having done something about it.
+
+⭐ **The finding's arithmetic was exactly right, which is worth recording on its own.** Measured by running
+the gate with and without the file — not by re-implementing its parser: **39 with, 51 without**, and the 12
+that turn on SYNTHESIS alone are `M1-1 M1-2 M1-5 M1-6 M2-1 M2-2 M2-5 M2-6 O1-9 V1-0 V1-1 V4-7` — the same
+ids, in the same order. ⚠️ Against this phase's standing result (*observations survive, explanations do
+not*), an audit whose numbers reproduce exactly is the exception, and it earned the benefit of the doubt.
+
+⛔ **But its implied remedy would have rebuilt the defect.** The docstring justifies SYNTHESIS as an *alias
+map* (`C5` is M2-9, `C6` is M4-8), and the consolidated ids the ledgers are written in are **two
+characters, no dash**. Measured: `\bA1\b` matches **9** times in the plan and **25** in the log, almost all
+incidental. **A token that short cannot be searched for**, so an alias map keyed on it is traceability by
+coincidental mention — the very thing being fixed. ⭐ The alias has to be recorded *where the closure is*:
+write the LENS id into the line that closes it, and the gate finds it with no special case.
+
+**Shipped:** SYNTHESIS dropped; the message now says *"NO CLOSURE ledger (plan · log · refutations)"* and
+names the exclusion. The count is **51**.
+
+### After-scan
+
+- **New plan row `.11.18`** *(filed as `.11.17`, renumbered when [D62] took `.11.15`)***:** the 51 need closure records, and **P6.8.9's exit criterion is this number
+  reaching zero** — after which the gate flips to `exit(1)`. `npm run lint:closure -- --p68` lists them.
+- **Filed to the deferred backlog (→ P6.10):** `apps/rn/tsconfig.json` **excludes `tests/`**, so ~40 spec
+  files and the 230-frame shot matrix are untypechecked by `validate:release:rn` — the same class as
+  `.11.13`'s *"a file neither typechecked nor linted nor in CI"*, an order of magnitude larger.
+- ⚠️ **`node -e` wrote nothing and reported nothing** while making a four-site edit to the shot matrix —
+  the fifth instance of `shell-is-a-participant` this phase. Caught by grepping the file afterwards, and
+  redone with the Edit tool.
+
+---
+
+## ✅ P6.8.9.7.11.12.10 — C-D, the hero that understated the debt *(2026-08-25)*
+
+### The defect
+
+`progress.tsx`'s hero subhead read `totalPaid > 0 ? "$X of $Y paid" : "$Y to go"` — and `$Y` is
+**`totalOriginal`**, the sum of each debt's balance *when it was first entered*. `originalBalance` is
+stamped at creation (`DebtSheet.tsx:184`, `:209`) or backfilled for a legacy blob, and **no edit path
+updates it** — verified by census, not by the finding's word.
+
+So a user who revises a balance upward — interest, new spending, the ordinary life of revolving debt — has
+`balance > originalBalance`. ⚡ **`totalPaid = max(0, original − current)` clamps to `0`, and `0` is what
+selects the "to go" branch**: the understatement and the branch that commits it have one cause. Money says
+*"$5,400 remaining"* one tab away, on the same store.
+
+### What shipped
+
+- **`selectJourneyTotals`** — the figures and the sentence that reads them, in one owner. They used to be
+  derived at `:193` and printed at `:265`, seventy lines apart, which is how one could be substituted for
+  the other without either looking wrong.
+- **"to go" states what is owed now.** "Paid" keeps its original denominator, because that is what *paid*
+  means.
+- A `progress-hero-journey` testID, so a spec names the line instead of matching a dollar amount that also
+  appears on the debt row.
+
+### ⛔ The finding's remedy collided with a standing decision, and both were right
+
+`progress.tsx:84-86` carries 2.4's rule: *forward-looking computations read the projected balances for
+premium; **backward-looking "% paid" stays on the raw/confirmed balances, because progress is what you have
+actually paid, not a projection.*** ⚡ **A first cut moved the whole selector onto `engineStore` — and it
+passed every test I had written** — which would have made "% paid" **fall as interest accrued while the user
+did nothing**, exactly the outcome that note exists to prevent.
+
+The resolution splits the two figures **by direction** rather than picking a side:
+
+| branch | claim | reads |
+|---|---|---|
+| *"$X of $Y paid"* | how far have I come | **confirmed** balances, against the original |
+| *"$X to go"* | what do I still owe | **projected** — the same figure Money's hero states |
+
+⚡ **That also closes a second half of C-D the finding never named.** The hero's own debt-free date is
+computed from the projected balances while its total read the stored anchors: **one line of one hero, two
+balance sets.** Money's hero has projected since it was built. Progress was the odd surface out.
+
+### The class, enumerated rather than assumed
+
+Every consumer of `originalBalance`, checked against the same growth case:
+
+| site | verdict |
+|---|---|
+| `progress.tsx:265` | ⛔ the finding |
+| `money.tsx:493` — the row's progress bar | ✅ safe. Goes negative, and `ListRow` clamps to `[0,100]`, so it renders empty |
+| `payday.ts:121` — the portfolio milestone | ✅ safe. Negative progress crosses no threshold, and `maxProgress` already prevents regression |
+| `celebrationSelectors.ts:59` | ✅ correct by construction — it sums **cleared** debts, whose balance is 0 |
+
+### Verification
+
+- **Unit — the matrix, 26 assertions** (`journeySelectors.test.ts`, registered in `runAppTests`): the case
+  where the defect is invisible (`original === current`) is kept **first**, because it is the only shape
+  anyone had pictured and is why this shipped.
+- **e2e — the CALL, four cases.** `.11.11`'s lesson applies directly: *a tested helper is not a used
+  helper*. Includes the cross-tab equality, asserted **between the two screens** rather than against a
+  literal — the projected figure is a function of today's date and an APR, so a constant would be a spec
+  that expires.
+- **RED — planted twice.** `formatWhole(totalOriginal)` restored → unit reds on *"to go is what is owed
+  TODAY"* and e2e reds `$5,000` for `$5,400`. Then `engineStore` reverted to `store` → the cross-tab test
+  reds `$5,000` for `$5,096`, ⚠️ **while the other three stayed green**, which is what proves the premium
+  half is a distinct claim and not a restatement.
+- **GREEN:** typecheck 0 · `lint:rn` whole chain 0 · `test:app` · `test:regression` · `test:scenarios` ·
+  `progress-hero-journey` 4/4 · `hero-date-fit` 2/2.
+
+### After-scan
+
+- **Filed to the deferred backlog (→ P6.10) as a [DECISION]:** should `originalBalance` follow an upward
+  revision? It is the root cause; C-D only patched the sentence. A user who grows $5,000 → $5,400 and pays
+  back to $5,000 is shown **0% paid** having really paid $400. Both answers are defensible, so it is 🎯's.
+- **`MoneyHero` gained an optional per-caller `valueTestID`** rather than a fixed id — Money renders three
+  of them, so a fixed one would be ambiguous the moment a second spec looked for it.
+
+---
+
+## ✅ P6.8.9.7.11.12.9 — C-C, the hint that was spent before anyone could see it *(2026-08-25)*
+
+### The defect
+
+`coachMarks.ts`'s `markDrawn` states the guarantee outright — *"the once-ever record is written when the
+callout ACTUALLY DRAWS … what no longer counts is drawn-into-the-void"* — and cites the run that produced
+it: `payoff-schedule` measured at **y=1702 on a 956 pt screen**, because a sheet's entrance spring puts the
+subject a full sheet-height below where it will rest.
+
+⚡ **Moving the write out of `show()` and into the layer changed WHO wrote it, not WHEN.** The layer's
+verdict was `!stoodDown && rect && COACH_MARKS[active]` — three facts, and *"the callout is on screen"* is
+not one of them. `rect` is whatever the first `measure()` returned, and in the sheet case that first
+measurement **is** the transient the docblock cites. Same run, same instant, same record; better-named
+caller.
+
+### What measuring changed about the finding
+
+The observation held. **Two of its supporting premises did not**, and both were quoted from a comment in
+`coach-marks.spec.ts` dated 2026-08-10:
+
+| the claim | measured 2026-08-25 |
+|---|---|
+| *"on react-native-web [the seated callout] is [off-screen] — 392 pt below the fold"* | ⛔ **False today.** The **seated** callout is on screen at 440×956, 440×740, 402×874 and 390×664 |
+| *"the record is written on OFFER"* | Stale since 4.1.4c — it moved to the layer, and now to the layer's viewport test |
+
+⚡ **The stale comment was describing the ENTRANCE TRANSIENT without knowing it** — which is the actual
+mechanism of the finding it was cited in support of. Both claims are corrected in place.
+
+The transient itself, sampled every frame at 440×956:
+
+```
+first callout frame     t=1594ms  bottom=1511  winH=956  seen=["payoff-schedule"]
+first ON-SCREEN frame   t=2215ms  bottom= 769  winH=956  seen=["payoff-schedule"]
+```
+
+**The record was already persisted on the first frame the card painted**, 555 pt below the fold, and the
+callout did not become visible for another **621 ms**. Persistence runs on a 500 ms debounce, so the write
+itself happened at the layer's first commit — earlier than anything a harness can await.
+
+### What shipped
+
+- **`calloutTop` extracted** — the below/above placement, with its whole measured rationale, moved out of
+  the render body into one pure owner. The record asks it where the card lands instead of deriving a second
+  answer; ⚠️ the rationale moved **with** the code, which this file has already paid for once
+  (`P6.8.9.7.10 · E-5`, a 22-line docblock left behind by the mechanism it described).
+- **`calloutOnScreen`** — `top` and `top + h` against `insetTop` and `winH - insetBottom`, the same bound
+  the reveal effect already tests. The verdict gains an `offScreen` value, so the probe trace and the record
+  still say the same thing.
+- ⚠️ **The verdict no longer mirrors the render returns, and that asymmetry IS the fix**: the layer still
+  draws in the `offScreen` case and simply does not spend the hint for it.
+- **Residual, stated rather than tightened:** before `onLayout` lands, both placement and gate use
+  `ESTIMATED_CALLOUT_H`. Gating on "measured height only" was considered and rejected — a record that can
+  never be written if a layout event never arrives is a mark that nags forever, which is the worse failure.
+
+### ⛔ The pin is a frame timeline, because two reads were UNDECIDABLE
+
+The store persists on a **500 ms debounce**, so *"read the record now"* answers a question about half a
+second ago — a single sample cannot separate **not recorded** from **recorded, not yet flushed**, and the
+first cut of this test was green with the defect present. The shipped test samples every animation frame and
+asks the timing-free question: **was the callout ever off-screen while the record existed?**
+
+Its two guards **fail rather than skip**: the off-screen window must have been entered, and it must be
+**longer than the save debounce**, or the test says out loud that it cannot decide. (This repo has shipped
+two specs that stayed green with a defect planted back, for exactly the shape those guards close.)
+
+### Verification
+
+- **RED — the original defect, not a plant.** The test ran first against the pre-fix bundle and listed ~30
+  frames of `bottom=1613 winH=956` with the record present, from the first sampled frame on.
+- **GREEN:** `coach-marks.spec.ts` 9/9 · `coach-mark-neighbour.spec.ts` 1/1 · typecheck 0 · `lint:rn` whole
+  chain 0 · `test:app` · `test:regression` · `test:scenarios` all 0.
+- ⛔ **And a second plant, for the assertion the first one could never reach.** `calloutOnScreen` forced to
+  `false` — *never record* — reds on *"a hint the user could actually see is still recorded as seen"*. That
+  assertion sits **after** the one the original defect reds, so `.11.12.7`'s lesson applies directly: **a
+  plant that reds early never exercises the later assertions.** Without this run, "delete the write
+  entirely" would have passed everything the first red exercised.
+
+→ [`docs/evidence/2026-08-25-p6.8.9.7.11.12.9-coach-void/`](evidence/2026-08-25-p6.8.9.7.11.12.9-coach-void/)
+
+### After-scan
+
+- **Filed to the deferred backlog (→ P6.10):** the fix **inverts** the failure — a hint that was spent
+  silently is now offered every launch, because nothing else writes the record. It bites only where no
+  placement ever fits; the candidates are Larger Text and the shortest supported screen, and it wants a
+  device measurement before a bound is chosen.
+- **The class was checked, not assumed.** The only other once-ever prefs write is `markTutorialSeen`
+  (`TutorialCoach.tsx:37`), and it fires from `leave()` — a user action, not a layout signal. So
+  `coachMarksSeen` was the only record written off a measurement, and the class is one.
+- **Folded in:** the two stale claims in `coach-marks.spec.ts`'s docblock, corrected against today's
+  measurement rather than left for the sweep that quoted them.
+
+---
+
 ## ✅ P6.8.9.7.11.12.8 — C-B, the replay that could not reach the third record *(2026-08-25)*
 
 ### The defect

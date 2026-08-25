@@ -30,54 +30,35 @@ test, and what made `readMoney`'s repair record the wrong thing to match on.
 |---|---|---|
 | ✅ | **.11.1 – .11.10** | DONE 2026-08-24/25. Closed `.7.10`'s 13, re-verified twice, then swept whole-app with a severity scale. **`.11.9`: ~13 more at twice the density, two of them REGRESSIONS worse than the defect. `.11.10`: 2 blockers · 15 majors, neither blocker from `.7` or `.11`.** Detail → log |
 | ✅ | **.11.11** the `setMonth` overflow BLOCKER | CLOSED 2026-08-25. `@core/utils/addMonths` exported and applied at all 7 sites *(the census found one more than any list named)*, `rolloverPayCycle` delegates, `scripts/check-month-arithmetic.ts` gates the class mutation-verified, two suites pin the labels a user reads. Detail → log |
-| **.11.12** ▶ | 🔴 **the open majors — BUILDING NOW, 8 of 14 CLOSED** | ⚠️ **The count is 14, not the 9 this row used to say** — see the decomposition. Money and import blocks are done; discovery is half done. **Next: `.11.12.9`** |
-| **.11.13** | 🔴 **the `.11.9` TAIL — raised and never closed** | ⚠️ **`.11.10` did NOT sweep it up**: that round audited the *fixes* and the *app*, not `.11.9`'s leftovers. `.11.10`'s four Job-1 **PARTIALs** *(the legacy-`0` stand-down reports nothing · `runMigrations` throws on a `null` goal row · the attribution test cannot reach `readLegacyStores` · `DataRepairsCard`'s copy still promises a route that does not exist)* + **`const DIVERGENT = STATES.divergent`, an unchecked index in a file neither typechecked nor linted nor in CI** · `check-comment-convention` matches **per line**, so a multi-line annotation evades it · **`lint:rn` is `&&`-chained, so the first red hides every later gate** · a P6.14 row promised in `coach-marks.spec.ts` and never written |
+| ✅ | **.11.12** the 14 open majors | CLOSED 2026-08-25, all 14. Money · import · discovery · the four gates. ⚡ **Four of the findings' own premises were measured false** and two of the fixes came out different because of it. Detail → log |
+| **.11.13** ▶ | 🔴 **the `.11.9` TAIL — raised and never closed** | **BUILDING NOW** — decomposed below |
 | **.11.14** | ✅ **[D60]'s accepted build** *(🎯 2026-08-25: "fold it all in")* | **P1-4** the 23-name run-on on the screen that speaks to someone short this paycheck — the idiom exists at `invariants.ts:100` · **P1-5** the backup sheet's **inverted button hierarchy** *(`Done` filled, `Copy to clipboard` secondary — a user can press the most prominent button and back up nothing)* + the raw envelope · **P1-1** shoot the **payoff finale** and **band-milestone beat**, which have zero frames · **the goal pace becomes editable in `GoalSheet`** *(written only at creation today, which is why `.11.3`'s repair notice names a workaround)* · **L4-13b's token cleanup only** — the 7 live inline opacities and the two Money cards that disagree · **L1-20's single `eyebrow` token**, sweep deferred |
-| **.11.15** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — seven instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
-| **.11.16** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11` + `.11.12` + `.11.13` + `.11.14`, then SWEEP again for major+, with severity** | Same two-job shape as `.11.10`. ⛔ **Hand it `.11.10`'s "swept and found clean" list so it EXTENDS coverage rather than repeating it** — a coverage audit converges by ratcheting what has been looked at, not by finding less. ⚠️ `.11.12` is the larger half by count and spans money, import, discovery and the gates. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
+| **.11.15** | ✅ **[D62]'s build — `originalBalance` becomes a HIGH-WATER MARK** | Raise it wherever a balance is written above it, and **backfill `max(original, balance)` in a migration** or the fix reaches nobody already in the state. ⛔ **At the SEAMS, not the call sites** — `updateDebt` (`store.ts:406`) · `verifyDebtBalances` (`:457`) · `addDebt` already stamps it; `.11.12.3` closed a defect that existed because four consumers each decided for themselves. ⚠️ The field name will no longer describe the field — document the semantics on the model rather than renaming a persisted field for 2.0 |
+| **.11.16** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — seven instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
+| **.11.17** | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11` + `.11.12` + `.11.13` + `.11.14` + `.11.15`, then SWEEP again for major+, with severity** | Same two-job shape as `.11.10`. ⛔ **Hand it `.11.10`'s "swept and found clean" list so it EXTENDS coverage rather than repeating it** — a coverage audit converges by ratcheting what has been looked at, not by finding less. ⚠️ `.11.12` is the larger half by count and spans money, import, discovery and the gates. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
+| **.11.18** | 🔴 **THE 51 — give every P6.8 high+ finding a closure record, then flip `lint:closure` to gating** | ⚡ Surfaced by `.11.12.14`, and **it is P6.8.9's stated exit criterion**: `npm run lint:closure -- --p68` names all 51. Most are believed BUILT under a consolidated action id (`A1`, `B4`, `C6`) — the work is writing the **lens** id into the plan or log line that closed it, because a 2-character id cannot be searched for. ⛔ **Then flip the report to `exit(1)`** — leaving it report-only past zero is the same failure as never building it |
 
-#### ▶ `.11.12` decomposed — the open majors *(2026-08-25)*
+#### ▶ `.11.13` decomposed — the `.11.9` tail *(2026-08-25)*
 
-⛔ **This row said "the 9 open majors" and that number is WRONG — there are 14.** Enumerated against the
-four auditor files rather than the SUMMARY: **A 3 · B 3 · C 4 · D 4.** ⚠️ The SUMMARY's own header does not
-reconcile either (*"15, of which 6 are closed"* against an open table of 14 = 20 majors found), and its
-gates block silently drops D's `J2-1`, which is closed. **Work the auditor files; the SUMMARY under-counts.**
+⚠️ **`.11.10` did NOT sweep this up.** That round audited the *fixes* and the *app*; these are `.11.9`'s
+own leftovers, raised and never closed. ⛔ **Each row is a HYPOTHESIS** — three were verified against
+current code at switch-in *(`DIVERGENT` at `p6.8-matrix.shot.ts:663`, `check-comment-convention`'s
+per-line loop at `:110`, and the missing P6.14 row)*; the four `PARTIAL`s are not yet re-measured.
 
-⚠️ **Job-1 `PARTIAL`s are NOT here — they belong to `.11.13`.** This step is the **Job-2 sweep** findings only.
-
-| # | step | finding · consequence |
+| # | step | scope |
 |---|---|---|
-| **money** | | |
-| ✅ | **.1** `A/J2-2` repairs card | CLOSED 2026-08-25. `DataRepair.kind` carries recovered-vs-lost, the card speaks both, `unreadDebts` stops suppressing on a recovery. ⚠️ **Premise MEASURED against `origin/v1.6-dev` and narrowed** — v1.6 never persisted string money; the live door is the JSON restore. Detail → log |
-| ✅ | **.2** `A/J2-3` `runMigrations` | CLOSED 2026-08-25. Unreadable rows are dropped **and reported** at `repairMoneyFields`, the one seam all four lists share; the legacy bridge stops dereferencing them. ⚠️ **The class was 4 lists + a pre-`runMigrations` bridge site, not the 2 named** — and the finding's own one-line fix would have moved the crash to render. Gated by 2 new hostile-corpus cases. Detail → log |
-| ✅ | **.3** `A/J2-4` second emergency goal | CLOSED 2026-08-25. **[D61]** 🎯: fund it through the savings rungs, not refuse it — v1.6 carries the same defect, so refusing strands migrating users. `@core/engine/emergencyFund` is the one owner of *"which goal is THE emergency fund"*; 3 further consumers were disagreeing. Detail → log |
-| **import** | | |
-| ✅ | **.4** `B/J2-1` restore on the data-reset screen | CLOSED 2026-08-25. A successful `importStore` now clears the `data-reset` it disproves — fixed at the seam, not the caller, so no future import door can forget it. ⛔ `read-failed` deliberately survives. Pinned by the reset-screen restore no spec exercised. Detail → log |
-| ✅ | **.5** `B/J2-2` destructive file restore | CLOSED 2026-08-25. `exportedAt` reaches `ReadBackupSuccess` and the confirm sentence; `formatBackupTime` extracted so both restore doors share one owner instead of one of them dropping the value. ⛔ Omitted, never invented, when the file does not say. Detail → log |
-| ✅ | **.6** `B/J2-3` the migration audit | CLOSED 2026-08-25. Goals + their money fields are checked; the corpus's goal fixture used `target`, a field v1.6 never wrote, which is *why* it was blind. ⛔ **And the audit was REPORT-ONLY** — it printed `⛔` and returned cleanly, so it now throws. 522 cases, measured clean before arming. Detail → log |
-| **discovery** | | |
-| ✅ | **.7** `C/C-A` sheet-hosted mark | CLOSED 2026-08-25. The stand-down rule fired only on BLUR, which a sheet close cannot produce — it now also fires on unmount. ⚠️ **My first version of the pin was VACUOUS** (`toHaveCount(1)` counted the stuck callout); it asserts the copy now. Detail → log |
-| ✅ | **.8** `C/C-B` *"Show feature tips again"* | CLOSED 2026-08-25. `resetCoachMarks` reached two of three records; the third is a **closure latch** in the offer subscription, which a tab-hosted mark never re-creates. `epoch` re-arms it. ⛔ The suite that named this claim only ever tested the one mark whose host remounts. Detail → log |
-| **.9** ▶ | `C/C-C` the once-ever `DREW` record | Written on *"a rect exists"*, not *"the callout is on screen"* — spendable on a callout never shown |
-| **.10** | `C/C-D` Progress hero *"to go"* | Prints the **original** total, so a grown portfolio is told it owes less than it does |
-| **gates** | | |
-| **.11** | `D/J2-2` the `ready` guard | On 1 surface of 10 while `:318` claims every surface carries it; 8 text-scale frames shoot with it off |
-| **.12** | `D/J2-3` `check-destructive-writes` | Allow-list is **file-level** — a second unguarded `importStore` in a sanctioned file is admitted silently |
-| **.13** | `D/J2-4` `strings-inventory --gate` | Discards its own self-check via `process.exit(0)` |
-| **.14** | `D/J2-5` `check-audit-closure` | Counts **12 of 87** as traceable solely because their id appears in a SYNTHESIS heading — ⛔ **and that count is P6.8.9's stated exit criterion** |
-| **.15** | **Green + close** | `typecheck` · `test:regression` · `test:app` · the touched gates · after-scan filed atomically with the plan/log update |
+| **.1** ▶ | **`lint:rn` is `&&`-chained, so the first red hides every later gate** | **First deliberately** — it decides what I can SEE while building the rest of this item. 22 gates behind one `&&`; a red at gate 2 has been reporting 20 unknowns as if they were passes |
+| **.2** | `check-comment-convention` matches **per line** | So a multi-line annotation evades it (`:110`, `for (const line of src.split('\n'))`). Same class as `.11.12.14`: the instrument answers a narrower question than its name |
+| **.3** | `const DIVERGENT = STATES.divergent` — an unchecked index | `p6.8-matrix.shot.ts:663`. ⚠️ **The enabler is bigger than the site**: `apps/rn/tsconfig.json` excludes `tests/`, so nothing typechecks it — filed to the backlog, and this step fixes only the site |
+| **.4** | `PARTIAL` — the legacy-`0` stand-down reports nothing | ⛔ Re-measure the premise before building |
+| **.5** | `PARTIAL` — `runMigrations` throws on a `null` goal row | ⚠️ Adjacent to `.11.12.2`, which fixed the same shape for money fields at `repairMoneyFields`; check whether that seam already covers this |
+| **.6** | `PARTIAL` — the attribution test cannot reach `readLegacyStores` | An instrument that cannot reach its subject, i.e. `.11.12.11`'s class in the unit layer |
+| **.7** | `PARTIAL` — `DataRepairsCard`'s copy promises a route that does not exist | User-facing false statement; the smallest of the four and the only one a user meets directly |
+| **.8** | The **P6.14 row promised in `coach-marks.spec.ts` and never written** | Verified missing from the ledger. On iOS a plain `View` is `userInteractionEnabled`, so the callout's sentence eats taps — web cannot observe it |
+| **.9** | **Green + close** | `typecheck` · `lint:rn` (now unchained) · `test:app` · `test:regression` · `test:scenarios` · touched gates · after-scan filed atomically with the plan/log update |
 
-⛔ **Every fix red-before / green-after, and the plant confirmed to have LANDED before its red is believed.**
-⚠️ **Pin on the BEHAVIOUR a user meets, not on the helper** — `.11.11` shipped a defect whose clamp was
-already written and already tested, because what was missing was the CALL.
-
-**Exit (`.11.12`):** all 14 closed or 🎯-deferred with the consequence written down, each with a test that
-would fail on its original defect or a device row saying why none can reach it.
-
-⚡ **Two instruments, and they mean opposite things.** A **diff re-verification** audits what changed — a
-rising density is a signal *about the fixer*. A **whole-app sweep** audits the app — a rising count means
-coverage grew. 🎯 2026-08-25: *"This is a whole app finish suite… **I'd be worried if there weren't any
-major+ defects.**"* ⛔ **A clean result here would be evidence the instrument did not reach.**
+**Exit (`.11.13`):** all eight closed or 🎯-deferred with the consequence written down, each with a test
+that would fail on its original defect — or a device row saying why none can reach it.
 
 ### ⏸ Still open from P6.8.9, after the pinning build
 
@@ -91,6 +72,8 @@ major+ defects.**"* ⛔ **A clean result here would be evidence the instrument d
 **Exit (P6.8.9):** every finding passes **pinned** — a test that would fail on its original defect, or an
 explicit device row saying why no test can reach it; the gated classes re-checked; the P1 majors carry
 🎯's answer; and `lint:closure` clean **for a reason, not by construction**.
++-
++
 
 ⛔ **DO NOT EDIT SOURCE WHILE `validate:release:rn` IS RUNNING.** The record is written at the END and
 fingerprints the tree *then*, so a mid-run edit records a green over code the suites never saw — [D49]'s
@@ -202,6 +185,18 @@ that file is the **checklist**.
 
 **Open decisions**
 
+- ✅ **[D62] ANSWERED 2026-08-25 — `originalBalance` becomes a HIGH-WATER MARK** (🎯: *"agree with your
+  rec"*). It is stamped once at creation and no edit path updates it, so the ring reads **0% paid** for a
+  portfolio that has grown. ⚡ **The deciding case is not the setback, it is the CORRECTION** — a typo at
+  entry, or a premium user verifying a stale estimate upward against a statement. The app cannot tell the
+  two apart, and today's behaviour gets the second one catastrophically wrong: enter `$500` by mistake,
+  fix it to `$5,000`, and the ring reads 0% for the next $4,500 of real repayment, permanently.
+  ⚠️ `verifyDebtBalances` is a flow the app **asks** people to use, so the status quo points a
+  disincentive at the behaviour the product wants. Side effects, both improvements: the 25/50/75
+  milestones become reachable again, and the payoff celebration (`celebrationSelectors.ts:32` announces
+  `originalBalance` as what you paid off) stops understating. ⛔ **The name will lie** — it means *the most
+  you ever owed*; keep it for 2.0 (renaming a persisted field is a migration for no user-visible gain) and
+  state the semantics on the model. Built at `.11.15`.
 - ✅ **[D61] ANSWERED 2026-08-25 — a SECOND `emergency` goal is FUNDED, through the savings rungs.** It
   matched no rung at all, so it drew `$0` every paycheck under a live progress bar. ⚡ **v1.6 carries the
   identical defect**, so migrating users can already be in this state — which is why refusing to create one
@@ -680,6 +675,26 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   without it: **`LeanSuggestionCard` stays unreachable** and `guardianPredictionCore`'s confidence stays thin.
   ⭐ The expensive half — threading actuals through `onCapture` → `capturePayday` — is already shipped by e.2.
   *(e.2)*
+- ⛔ **`apps/rn/tsconfig.json` EXCLUDES `tests/`, so the ENTIRE e2e + shot harness is untypechecked by
+  `validate:release:rn`.** *(.11.12.11 after-scan)* ~40 spec files and the 230-frame matrix: a type error in
+  any of them surfaces only when Playwright compiles that file at run time, and the shot matrix is not in
+  the release gate at all. ⚠️ Same class as `.11.13`'s *"a file neither typechecked nor linted nor in CI"*,
+  one order of magnitude larger. **Rec: a `tsconfig.tests.json` in `typecheck`** — the exclusion's own
+  comment says the harness *"is node/@playwright code that Playwright compiles itself"*, which is an
+  argument for a second project, not for no coverage.
+- 🔴 **[DECISION] SHOULD `originalBalance` FOLLOW AN UPWARD REVISION?** *(.11.12.10 after-scan)* It is stamped
+  once at creation and **no edit path updates it**, which is the root cause C-D only patched the sentence of.
+  Consequence that still ships: a user whose card grows $5,000 → $5,400 and who then pays it back to $5,000
+  is shown **0% paid** on the ring, having really paid $400. Honest as *"you are back where you started"*,
+  and wrong as *"you have made no progress"*. ⚠️ Either answer is defensible and it is a product call, so it
+  is 🎯's. **Cheap to change** — one field, written at `DebtSheet.tsx:184/:209`.
+- ⚠️ **A COACH MARK THAT CAN NEVER BE PLACED ON SCREEN IS NOW OFFERED EVERY LAUNCH.** *(.11.12.9 after-scan)*
+  `.11.12.9` made the once-ever record conditional on the callout being inside the viewport — correct, and it
+  inverts the failure: a hint that used to be **spent silently** is now **re-offered forever**, since nothing
+  else writes the record. It bites only where no placement ever fits, and `requestReveal` returns false for a
+  sheet or a short screen. ▶ **Does such a layout exist?** The candidates are Larger Text (the callout grows,
+  the estimate does not) and the shortest supported screen. **Measure on device before deciding a bound** —
+  recording after N refused offers, or on a failed `requestReveal`, are both cheap once the answer is known.
 - 🔴 **[DECISION] the v1.6 bridge that keeps failing is a SILENT LOOP** — see *Waiting on Jason*. *(c.3)*
 - 🔴 **[DECISION] P1-10's Windfall tier gate** — see *Waiting on Jason*. *(7b)*
 - ⛔ **AN ABSENCE ASSERTION PASSES BEFORE THE APP RENDERS, and it bit on two consecutive items.**

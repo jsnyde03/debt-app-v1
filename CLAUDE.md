@@ -28,10 +28,26 @@ backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commi
 `5.5.1` means **P6.11.1**.
 
 ▶ **WHERE THIS SESSION LEFT OFF (2026-08-25).** 🎯: **"We're fixing all blockers and majors."**
-✅ **Both blockers CLOSED** *(the ack at `.11.8`, the `setMonth` overflow at `.11.11`)* and **8 of the 14
-majors** — `.11.12.1`–`.8`, the whole money and import blocks plus half of discovery.
-▶ **NEXT SESSION STARTS AT `P6.8.9.7.11.12.9`.** Its read-only analysis and the one thing to check first
-are written up in the log's **"Session close 2026-08-25"** entry — start there.
+✅ **Both blockers CLOSED** *(the ack at `.11.8`, the `setMonth` overflow at `.11.11`)* and ⭐ **`.11.12` is
+CLOSED — all 14 majors**: money 3 · import 3 · discovery 4 · gates 4.
+▶ **NEXT IS `P6.8.9.7.11.13`** — the `.11.9` TAIL, decomposed on the plan, starting at `.13.1`
+*(unchain `lint:rn`, because 22 gates behind one `&&` decides what the rest of the item can even see)*.
+⚠️ **`.11.15` is NEW — [D62]**, 🎯-approved: `originalBalance` becomes a **high-water mark**. The deciding
+case is not the setback but the **correction** (a typo at entry, or a premium user verifying a stale
+estimate upward) — today's ring reads 0% for the rest of that debt's life, and `verifyDebtBalances` is a
+flow the app *asks* people to use. `.11.16`–`.11.18` renumbered.
+
+⚡ **TWO RESULTS FROM THE DISCOVERY BLOCK, and both are about what a finding CARRIES:**
+1. ⛔ **A COMMENT IS A CARRIED PREMISE AND DECAYS LIKE A CARRIED NUMBER.** `.11.12.9`'s finding quoted a spec
+   comment dated 2026-08-10 for two of its claims, and **both were stale**: *"on web the seated callout is
+   off-screen"* is false at four viewports *(the below-fold position is the **entrance transient** — which
+   was the real mechanism, described without knowing it)*, and *"the record is written on OFFER"* had been
+   wrong since 4.1.4c.
+2. ⛔ **`.11.12.10`'S REMEDY COLLIDED WITH A STANDING DECISION AND PASSED EVERY TEST I HAD WRITTEN.** 2.4's
+   rule — *backward-looking "% paid" stays on the raw balances* — sits three lines above the code the fix
+   touched. Moving both figures onto the projection would have made **progress fall while the user did
+   nothing.** The answer was to split them **by direction**, not to pick a side. ⚠️ **Read the code AROUND
+   the site, not only the site.**
 
 ⛔ **DO NOT WORK FROM `SUMMARY.md` FOR `.11.12` — IT UNDER-COUNTS.** It says *"9 open"*; enumerated against
 the four auditor files there are **14** (A 3 · B 3 · C 4 · D 4), and its own header does not reconcile

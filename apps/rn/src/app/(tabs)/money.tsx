@@ -365,7 +365,7 @@ function DebtsSection({
       {allCleared ? (
         <MoneyHero value="Every balance cleared" sub={`${paidOff.length} ${paidOff.length === 1 ? 'debt' : 'debts'} paid off`} />
       ) : (
-        <MoneyHero value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
+        <MoneyHero valueTestID="money-hero-debts-value" value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
       )}
       {/* ⚠️ Not rendered at all when cleared, rather than hidden — a strategy toggle with nothing to
           order is an inert control, and "listed in payoff order" is false above an empty section. */}
@@ -1053,12 +1053,21 @@ function HeroProgressBar({ pct }: { pct: number }) {
 /** The calm anchoring stat for a Money section — one big number + context, on a hairline (no box).
  *  Optional dim caption for a secondary frame, an optional micro-viz `bar`, and `onPress` (a trailing
  *  chevron + the whole block becomes a tap target — e.g. Bills' "where it goes" breakdown). */
-function MoneyHero({ value, sub, caption, bar, onPress }: { value: string; sub: string; caption?: string; bar?: ReactNode; onPress?: () => void }) {
+function MoneyHero({
+  value,
+  sub,
+  caption,
+  bar,
+  onPress,
+  // ⚠️ Optional and per-CALLER, because Money renders three of these (debts, allocation, goals) — a fixed
+  // id here would be ambiguous the moment a spec looked for it. [P6.8.9.7.11.12.10]
+  valueTestID,
+}: { value: string; sub: string; caption?: string; bar?: ReactNode; onPress?: () => void; valueTestID?: string }) {
   const c = useAppColors();
   const body = (
     <View style={styles.hero}>
       <View style={styles.heroTop}>
-        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroNum, { color: c.text.primary }]}>{value}</Text>
+        <Text testID={valueTestID} maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.heroNum, { color: c.text.primary }]}>{value}</Text>
         {onPress ? <AppIcon name="chevron-right" size={22} color={c.text.tertiary} /> : null}
       </View>
       <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>{sub}</Text>

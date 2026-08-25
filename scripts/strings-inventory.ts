@@ -508,6 +508,29 @@ if (process.argv.includes('--update-baseline')) {
     );
     process.exit(1);
   }
+  /**
+   * ⛔ **[P6.8.9.7.11.12.13 · D-J2-4] THE SELF-CHECK'S VERDICT WAS THROWN AWAY HERE.** The origin-label
+   * check above sets `process.exitCode = 1` and explains why in exactly these terms: *"An audit instrument
+   * that is silently wrong is worse than none, because its output is trusted."* This branch then called
+   * `process.exit(0)`, and **an explicit exit code overrides `exitCode`** — so `npm run lint:copy` printed
+   * `❌ strings-inventory: N origin label(s)…` and exited **0**, in the same output as a `✅`.
+   *
+   * ⚡ **The consequence is not cosmetic.** A mis-bucketed string is not `copy`, and `gateFindings` filters
+   * on `bucket === 'copy'` — so broken labelling silently REMOVES user-facing phrases from this gate's
+   * input. The pass it reports is over a corpus it has just said it cannot classify.
+   *
+   * ⚠️ Checked as a class: `strings-inventory.ts` is the only script in `scripts/` that sets
+   * `process.exitCode` and later calls `process.exit(0)`. The other four `exit(0)` sites have no verdict
+   * to discard.
+   */
+  if (badOrigins.length) {
+    console.error(
+      '\n❌ strings-inventory: the self-check above FAILED, so this gate cannot vouch for its own input —\n' +
+        '   a mis-labelled string is not bucketed as `copy`, and the duplicate gate only ever sees `copy`.\n' +
+        '   Refusing to report a pass over a corpus the instrument says it could not classify.\n',
+    );
+    process.exit(1);
+  }
   console.log(`✅ duplicate copy: no new cross-file phrases (${baseline.size} baselined).`);
   // ⚠️ Gate mode writes NOTHING. A lint step that regenerates two committed artifacts would leave CI
   // with a dirty tree of its own making, and every local gate run would churn a diff nobody asked for.

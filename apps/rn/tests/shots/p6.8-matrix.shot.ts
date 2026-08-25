@@ -121,12 +121,36 @@ const STATES: Record<string, Record<string, unknown>> = {
  */
 const FAST = 8_000;
 
+/**
+ * ⛔ **[P6.8.9.7.11.12.11 · D-J2-2] THE SCREEN'S OWN IDENTITY, and it is why `ready` is not optional.**
+ *
+ * `Screen` renders its `title` with `accessibilityRole="header"`, which RNW emits as `role="heading"` — so
+ * every route that uses the scaffold already carries a machine-readable claim about **which screen this
+ * is**. That is exactly the assertion the matrix needs: the failure class it cannot otherwise see is *a
+ * recipe that reaches a page and photographs the WRONG screen*, and `⛔ UNREACHED` cannot see it because
+ * nothing throws.
+ *
+ * ⚠️ **Not `toBeVisible`, and not a testID.** A testID would be a marker added for the test; the heading is
+ * the thing the app already tells a screen reader it is, so the assertion and the product claim are the
+ * same claim. ⚠️ It also means **a copy change breaks the matrix loudly** — correct for an identity check,
+ * and a one-line fix when it happens.
+ */
+const heading = (name: string | RegExp) => (p: Page) => p.getByRole('heading', { name }).first().waitFor({ timeout: FAST });
+
 /** A route worth a frame, and what it needs to be worth one. */
 interface Surface {
   name: string;
   goto: string;
-  /** Wait for THIS before shooting, or the frame is of a loading state pretending to be a design. */
-  ready?: (page: Page) => Promise<unknown>;
+  /**
+   * ⛔ **REQUIRED — this is the gate, and the type is what enforces it.** [P6.8.9.7.11.12.11 · D-J2-2] It
+   * was optional and **one** of the ten surfaces set it, while the prose below the shooting blocks claimed
+   * *"every surface now carries a `ready` assertion."* A new surface could be added with no way to tell a
+   * correct frame from a photograph of Today, and nothing would say so.
+   *
+   * ⚠️ Playwright compiles this file, so an entry without one fails the run rather than merely linting —
+   * which matters here because `apps/rn/tsconfig.json` **excludes `tests/`** from `typecheck:rn`.
+   */
+  ready: (page: Page) => Promise<unknown>;
   seedOver?: Record<string, unknown>;
   /** Which viewports this surface is shot at. Defaults to all. */
   only?: ViewportName[];
@@ -135,10 +159,14 @@ interface Surface {
 }
 
 const SURFACES: Surface[] = [
-  { name: 'today', goto: '/', states: ['empty', 'single', 'many', 'huge', 'long-names'] },
-  { name: 'money-debts', goto: '/money', states: ['empty', 'single', 'many', 'huge', 'long-names'] },
-  { name: 'progress', goto: '/progress', states: ['empty', 'single', 'many', 'huge', 'divergent'] },
-  { name: 'more', goto: '/more' },
+  // ⚠️ Today's header is the GREETING, which is time-dependent — so the identity is the greeting's shape,
+  // not one of its three values. A literal would make the matrix pass or fail by the clock.
+  { name: 'today', goto: '/', ready: heading(/^Good (morning|afternoon|evening)/), states: ['empty', 'single', 'many', 'huge', 'long-names'] },
+  { name: 'money-debts', goto: '/money', ready: heading('Money'), states: ['empty', 'single', 'many', 'huge', 'long-names'] },
+  { name: 'progress', goto: '/progress', ready: heading('Progress'), states: ['empty', 'single', 'many', 'huge', 'divergent'] },
+  // ⚠️ The HEADING named "More", not the ••• button of the same name that Today and Money render — the
+  // role is what separates them.
+  { name: 'more', goto: '/more', ready: heading('More') },
   {
     /**
      * ⛔ **[P6.8.9.7.7] THE POPULATED PAY CYCLE HISTORY HAD NEVER BEEN PHOTOGRAPHED** — the same defect
@@ -156,6 +184,7 @@ const SURFACES: Surface[] = [
      */
     name: 'history',
     goto: '/history',
+    ready: heading('Pay cycle history'),
     seedOver: {
       cycleHistory: Array.from({ length: 5 }, (_, i) => ({
         cycleEndDate: day(-120 + i * 30),
@@ -182,6 +211,7 @@ const SURFACES: Surface[] = [
   {
     name: 'living-expenses',
     goto: '/living-expenses',
+    ready: heading('Everyday spending'),
     seedOver: {
       livingExpenses: [
         { id: 'l0', name: 'Groceries', amount: 320, enabled: true },
@@ -191,8 +221,8 @@ const SURFACES: Surface[] = [
     },
     states: ['empty'],
   },
-  { name: 'cushion-forecast', goto: '/cushion-forecast' },
-  { name: 'paywall', goto: '/paywall', seedOver: { subscriptionPlan: 'free' } },
+  { name: 'cushion-forecast', goto: '/cushion-forecast', ready: heading('Your cushion forecast') },
+  { name: 'paywall', goto: '/paywall', seedOver: { subscriptionPlan: 'free' }, ready: heading('Premium') },
   {
     // ⛔ THE PLAN MUST BE EMPTY, NOT JUST THE FLAG FALSE — and this took three tries to get right.
     // `runMigrations` → `inferOnboarding` (migrations.ts:112) returns `hasIncome && hasObligation`, so a
@@ -219,7 +249,10 @@ const SURFACES: Surface[] = [
     // photographing the wrong screen is its mirror. A frame that cannot find its subject must now fail.
     ready: (p) => p.getByText(/Take control|Get started|Welcome/i).first().waitFor({ timeout: FAST }),
   },
-  { name: 'not-found', goto: '/no-such-route' },
+  // ⚠️ The one surface with no `Screen` scaffold and so no heading — `+not-found.tsx` is a bare `View`.
+  // Its own sentence is the identity, matched loosely because the apostrophe in it is a curly one
+  // (`lint:apostrophes` requires that, and a straight one here would silently never match).
+  { name: 'not-found', goto: '/no-such-route', ready: (p) => p.getByText(/This screen doesn.t exist/).first().waitFor({ timeout: FAST }) },
 ];
 
 /** A sheet, and the recipe that opens it. ⛔ NONE of these has ever been swept in both themes. */
@@ -315,7 +348,20 @@ const shot = (page: Page, viewport: string, theme: string, name: string) =>
  *
  * ⚡ **An instrument that fails LOUDLY is safer than one that fails accurately most of the time.** The
  * sheet timeouts announced themselves and cost two frames; this failed silently and cost ten. That is
- * why every surface now carries a `ready` assertion.
+ * why every surface carries a `ready` assertion.
+ *
+ * ⛔ **AND FOR A MONTH THAT SENTENCE WAS FALSE.** [P6.8.9.7.11.12.11 · D-J2-2] `ready` was **optional** and
+ * exactly ONE of the ten surfaces set it, while this paragraph told every later author the class was
+ * closed — *load-bearing prose*, which is the whole reason a wrong sentence here rates `major`. It was
+ * also consulted in only one of the two blocks that shoot a `Surface`, so **eight
+ * `textscale-*x-onboarding.png` frames were taken with the guard off**, on the one route documented to
+ * have its seed overruled on read.
+ *
+ * ⚠️ **The sentence is now true BY CONSTRUCTION, not by diligence:** `ready` is a required field, so a
+ * surface added without one does not compile, and both `SURFACES` loops call it. ⚠️ The other two
+ * shooting blocks (`SHEETS`, `EXPANDED`) never took a `ready` and never should — they carry an `open`
+ * recipe whose own `FAST` timeout throws, which is the same guarantee by a different name. **The finding
+ * counted four blocks as un-guarded; two of them do not shoot a `Surface` at all.**
  */
 async function reseed(page: Page, blob: Record<string, unknown>, goto: string) {
   // An origin has to exist before `localStorage` is reachable.
@@ -483,6 +529,12 @@ for (const theme of THEMES) {
           }
           await reseed(page, seed(theme, merged), s.goto);
           try {
+            // ⛔ [P6.8.9.7.11.12.11 · D-J2-2] The identity check runs HERE TOO. This block loops the same
+            // `SURFACES` array as the route block and consulted `ready` in neither — so a state frame
+            // could be a photograph of the wrong screen with nothing to say so. ⚠️ A `ready` must
+            // therefore be state-AGNOSTIC: every one of them is the screen's heading, which `empty` and
+            // `huge` render alike.
+            await s.ready(page);
             await settle(page);
             await shot(page, 'phone', theme, `state-${s.name}-${stateName}`);
             console.log(`  ✓ state ${theme}/${s.name}/${stateName}`);
@@ -538,6 +590,12 @@ for (const theme of THEMES) {
         {
           await reseed(page, seed(theme, s.seedOver), s.goto);
           try {
+            // ⛔ [P6.8.9.7.11.12.11 · D-J2-2] **THIS WAS THE CONCRETE HOLE.** This block loops `SURFACES`
+            // across two scales × two viewports × two themes and never consulted `ready` — so the EIGHT
+            // `textscale-{1.35,2}x-onboarding.png` frames were shot with the guard that exists for that
+            // exact route switched off, on the one route whose seed `runMigrations` is documented to
+            // overrule. A frame of Today under the name `onboarding` exited 0 and printed `✓`.
+            await s.ready(page);
             await settle(page);
             // ⛔ MULTIPLY THE *COMPUTED* SIZE, ELEMENT BY ELEMENT. The first version used a stylesheet
             // rule `font-size: calc(1em * S)`, and lens V3 measured that it inverted the type hierarchy:

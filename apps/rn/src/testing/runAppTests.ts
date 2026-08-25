@@ -53,6 +53,11 @@ async function main() {
   // 3.7.B.2 (F10.1) — Today's time-aware greeting: every band boundary + the name normalisation.
   await import('../store/greeting.test');
 
+  // P6.8.9.7.11.12.10 (audit C-D) — the Progress hero's journey line. The whole matrix, because the ONE
+  // shape where the defect was invisible (nothing paid yet, so the two totals agree) is also the only
+  // shape anyone had pictured.
+  await import('../store/journeySelectors.test');
+
   // P6.8.7g.5 (audit C7 / [D59]) — the strategy comparison. The cases are the MEASURED portfolios from
   // the evidence folder, including the one where both strategies produce exactly the same plan.
   await import('../components/payoff/compareStrategies.test');
