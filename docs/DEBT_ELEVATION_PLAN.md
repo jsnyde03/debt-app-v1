@@ -47,10 +47,10 @@ per-line loop at `:110`, and the missing P6.14 row)*; the four `PARTIAL`s are no
 
 | # | step | scope |
 |---|---|---|
-| **.1** ▶ | **`lint:rn` is `&&`-chained, so the first red hides every later gate** | **First deliberately** — it decides what I can SEE while building the rest of this item. 22 gates behind one `&&`; a red at gate 2 has been reporting 20 unknowns as if they were passes |
-| **.2** | `check-comment-convention` matches **per line** | So a multi-line annotation evades it (`:110`, `for (const line of src.split('\n'))`). Same class as `.11.12.14`: the instrument answers a narrower question than its name |
-| **.3** | `const DIVERGENT = STATES.divergent` — an unchecked index | `p6.8-matrix.shot.ts:663`. ⚠️ **The enabler is bigger than the site**: `apps/rn/tsconfig.json` excludes `tests/`, so nothing typechecks it — filed to the backlog, and this step fixes only the site |
-| **.4** | `PARTIAL` — the legacy-`0` stand-down reports nothing | ⛔ Re-measure the premise before building |
+| ✅ | **.1** **`lint:rn` is `&&`-chained** | CLOSED 2026-08-25. `scripts/run-gates.ts` runs all 22, streams each gate's own output unchanged, and names every failure in a summary. ⚡ **Costs nothing when green** — a green run already executed all 22; the `&&` only ever saved time on the run whose full output is worth most. Mutation-verified with reds at links 3 **and** 8; the old shape measured to never reach link 8. Detail → log |
+| ✅ | **.2** `check-comment-convention` matched **per line** | CLOSED 2026-08-25. Patterns now test a joined run of adjacent comment lines, and the report names the matched phrase rather than the block head. ⚡ **It found 2 REAL violations on its first run** — every rule needs two halves within `[^.]{0,60}`, and this repo hard-wraps at ~110 chars, so the banned form was *usually* split across a line break. Both fixed by deletion, per [D17]. Detail → log |
+| ✅ | **.3** `const DIVERGENT = STATES.divergent` — an unchecked index | CLOSED 2026-08-25, and **the enabler was fixed rather than the site**. ⛔ **`typecheck:tests` is NEW**: 79 test files had no type coverage at all, and Playwright *transpiles* — measured, a bare `const x: number = 'a string'` runs green. **So `.11.12.11`'s required `ready` was gating nothing** until now. 10 real errors found and fixed; `STATES` uses `satisfies` + a `StateName` union, so a renamed state reds in **2** places instead of silently seeding the default scenario. Detail → log |
+| **.4** ▶ | `PARTIAL` — the legacy-`0` stand-down reports nothing | ⛔ Re-measure the premise before building |
 | **.5** | `PARTIAL` — `runMigrations` throws on a `null` goal row | ⚠️ Adjacent to `.11.12.2`, which fixed the same shape for money fields at `repairMoneyFields`; check whether that seam already covers this |
 | **.6** | `PARTIAL` — the attribution test cannot reach `readLegacyStores` | An instrument that cannot reach its subject, i.e. `.11.12.11`'s class in the unit layer |
 | **.7** | `PARTIAL` — `DataRepairsCard`'s copy promises a route that does not exist | User-facing false statement; the smallest of the four and the only one a user meets directly |
@@ -675,13 +675,15 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   without it: **`LeanSuggestionCard` stays unreachable** and `guardianPredictionCore`'s confidence stays thin.
   ⭐ The expensive half — threading actuals through `onCapture` → `capturePayday` — is already shipped by e.2.
   *(e.2)*
-- ⛔ **`apps/rn/tsconfig.json` EXCLUDES `tests/`, so the ENTIRE e2e + shot harness is untypechecked by
-  `validate:release:rn`.** *(.11.12.11 after-scan)* ~40 spec files and the 230-frame matrix: a type error in
-  any of them surfaces only when Playwright compiles that file at run time, and the shot matrix is not in
-  the release gate at all. ⚠️ Same class as `.11.13`'s *"a file neither typechecked nor linted nor in CI"*,
-  one order of magnitude larger. **Rec: a `tsconfig.tests.json` in `typecheck`** — the exclusion's own
-  comment says the harness *"is node/@playwright code that Playwright compiles itself"*, which is an
-  argument for a second project, not for no coverage.
+- ⚠️ **`test:stamp && test:regression && test:app && test:scenarios` — four INDEPENDENT suites behind
+  `&&`, so a red stamp hides three.** *(.11.13.1 after-scan)* The small remainder of the chain defect
+  `.11.13.1` fixed in `lint:rn`. ⛔ **The rest of `validate:release:rn` is deliberately NOT the same case**
+  — its links are dependent (a failed typecheck makes the web export unreliable, so the 9-minute e2e run
+  behind it would be noise), and `gate:record` must run only on a full pass. **Rec: unchain only the four
+  suites**, keeping the dependency edges.
+- ✅ **CLOSED at `.11.13.3`, same day it was filed** — `apps/rn/tsconfig.tests.json` + `typecheck:tests`.
+  ⛔ **And the premise I filed it under was too weak**: *"a type error surfaces only when Playwright
+  compiles that file"* — Playwright **transpiles**, it does not typecheck, so nothing surfaced ever.
 - 🔴 **[DECISION] SHOULD `originalBalance` FOLLOW AN UPWARD REVISION?** *(.11.12.10 after-scan)* It is stamped
   once at creation and **no edit path updates it**, which is the root cause C-D only patched the sentence of.
   Consequence that still ships: a user whose card grows $5,000 → $5,400 and who then pays it back to $5,000

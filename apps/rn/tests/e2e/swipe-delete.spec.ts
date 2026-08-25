@@ -31,7 +31,9 @@ test('§3.4.4 swipe-to-delete reveals Delete and removes the row after confirm',
   const cy = Math.round(box.y + box.height / 2);
 
   const client = await page.context().newCDPSession(page);
-  const touch = (type: string, x?: number) =>
+  // ⚠️ The CDP union, not `string` — the protocol accepts four values and a typo in one of them would
+  // dispatch nothing while the test read as a swipe that did not work. [P6.8.9.7.11.13.3]
+  const touch = (type: 'touchStart' | 'touchEnd' | 'touchMove' | 'touchCancel', x?: number) =>
     client.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' || x === undefined ? [] : [{ x, y: cy }] });
 
   // Swipe the row left to reveal the right-side Delete action.

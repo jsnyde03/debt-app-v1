@@ -31,7 +31,9 @@ async function seedOnce(page: Page, store: Record<string, unknown>) {
 }
 
 /** Wait until the app has actually PERSISTED the state under test — autosave is debounced. */
-async function waitForPersisted(page: Page, predicate: (store: { pendingDataRepairs?: unknown[] }) => boolean) {
+// ⚠️ The element type is named rather than `unknown[]`: two callers read `r.acknowledged`, and under
+// `unknown` that is only legal because nothing typechecked this tree. [P6.8.9.7.11.13.3]
+async function waitForPersisted(page: Page, predicate: (store: { pendingDataRepairs?: { acknowledged?: boolean }[] }) => boolean) {
   await expect
     .poll(async () => {
       const raw = await page.evaluate((key) => window.localStorage.getItem(key), KEY);

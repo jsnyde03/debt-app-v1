@@ -52,6 +52,166 @@ device. Confirm nothing in the suite depends on the record being written.
 
 ---
 
+## ✅ P6.8.9.7.11.13.3 — the unchecked index, and the reason it could exist *(2026-08-25)*
+
+### ⛔ The correction this step owes to `.11.12.11`, made a few hours earlier in this same session
+
+`.11.12.11` made `ready` a **required** field on `Surface` and justified it in the code and in this log with:
+*"Playwright compiles this file, so an entry without one fails the run rather than merely linting."*
+
+⛔ **That is false. Playwright TRANSPILES; it does not typecheck.** Measured, because the claim was load-
+bearing and I had asserted it rather than run it: a bare `const PROBE_TYPE_ERROR: number = 'this is a
+string, not a number'` appended to `p6.8-matrix.shot.ts` **runs green** — `1 passed`. And
+`apps/rn/tsconfig.json` excluded `tests/`, so nothing else was looking either.
+
+⚡ **So the gate I had just built gated nothing**, which is precisely the class this phase keeps closing —
+*an instrument that reports is not an instrument that gates* — committed by the step that closed an
+instance of it. It surfaced only because `.11.13.3`'s subject forced the same question one file over.
+
+### The item as written, and why the fix moved
+
+The row named `const DIVERGENT = STATES.divergent` — an unchecked index at `p6.8-matrix.shot.ts`. Under
+`STATES: Record<string, Record<string, unknown>>` that expression types fine whether or not the key exists,
+and **`{ ...undefined }` is `{}`, not a throw** — so renaming the state would have silently seeded the
+DEFAULT scenario into the strategy-disclosure frames, which would then look entirely plausible. The same
+*photographs the wrong thing, quietly* class the matrix exists to catch.
+
+⚠️ **The site was not the problem; the absence of any typechecker was.** Fixing the one expression would
+have left 78 other files in the same condition.
+
+### What shipped
+
+- **`apps/rn/tsconfig.tests.json` + `npm run typecheck:tests`**, in the `typecheck` chain and therefore in
+  `validate:release:rn`. **79 files** now covered.
+  - ⛔ **The first version was a false green**, caught before it was believed: `extends` inherits `exclude`,
+    and the base config excludes `tests` — so the new project compiled **0 files** and reported 0 errors.
+    `--listFiles | grep -c` is what settled it. A gate that reports a pass over an empty input is the same
+    failure as the one being fixed, one level up.
+- **10 real type errors**, all fixed rather than suppressed — and each was a latent defect, not noise:
+  `waitForPersisted`'s `unknown[]` element while two callers read `r.acknowledged` · a CDP touch `type:
+  string` where the protocol takes four values, so a typo would dispatch nothing while reading as a swipe
+  that did not work · two `NodeList` spreads that need `downlevelIteration` · four `window as
+  Record<string, unknown>` casts TypeScript rejects.
+- **`STATES` uses `satisfies`** plus a `StateName = keyof typeof STATES` union on `Surface.states`.
+
+### Verification
+
+- **`typecheck` 0 · all 22 gates 0 · the `divergent` state still shoots**, both themes.
+- **RED, planted twice.** A `Surface` with no `ready` → `TS2741: Property 'ready' is missing` — the claim
+  from `.11.12.11`, true for the first time. Renaming `divergent` → **two** errors, at the `states:` list
+  and at the `DIVERGENT` const; under the old annotation both were silent.
+- Both plants removed and `git status` confirmed clean before believing either green.
+
+### After-scan
+
+- **The backlog entry filed at `.11.12.11` is closed the same day** — and its stated premise was itself too
+  weak, which is now recorded next to it.
+- ⭐ **The result worth carrying: a type-level requirement is only a gate where a typechecker runs.**
+  Requiring a field, narrowing a union, `satisfies` — all of it is documentation in a tree nothing compiles.
+  **Ask of any type-level gate: which command would fail?**
+
+---
+
+## ✅ P6.8.9.7.11.13.2 — the guard that was blind to its own house style *(2026-08-25)*
+
+### The defect
+
+`check-comment-convention` tested its patterns **one source line at a time**. Every [D17] rule needs two
+halves close together — `the comment above` … `was wrong` — and **this repo hard-wraps every docblock at
+~110 characters.** So the dominant written form of the thing being banned is the form that splits across a
+line break, and the guard could not see it. ⚡ It was blind specifically to the house style it exists to
+police.
+
+### What shipped
+
+`commentBlocks()` — a maximal run of adjacent comment lines, markers stripped, joined with a space — and
+the patterns test that. The report names the **matched phrase**, not the block's first line: a block can be
+twenty lines long, and pointing at its head sends the reader to a sentence that is not the offending one.
+
+⚠️ **Joining does not widen the rules, and that is worth being precise about.** Every pattern bounds its
+gap with `[^.]{0,60}`, so a full stop still ends the reach — a twenty-line block cannot make a pattern span
+two sentences. **That bound was doing the work all along; the line break was doing it by accident.**
+
+### ⭐ It found two real violations on its first run
+
+Neither was reachable per-line, and one of them is in a file this session had already edited twice:
+
+- `CoachMarkLayer.tsx:235` — *"The comment below claimed the measured height and the control flow could
+  never deliver it"*: commentary about a comment that no longer exists.
+- `date-field.spec.ts:56` — *"The first version of this test did exactly that"*.
+
+**Both fixed by deletion, which is what [D17] asks for** — *"correcting a false comment means DELETING it,
+not annotating it"* — keeping the mechanism each one was carrying and dropping the annotation. The first
+now states why the guard is needed in the present tense; the second states what the failure looks like
+without narrating a draft.
+
+⚡ **The pattern this repeats:** a gate widened for a stated reason out-finds the slice that widened it —
+`lint:money` found 4 hand-rolled formatters on its first run, `lint:contrast` and `lint:type-scale` both
+out-found their cluster, and the un-anchoring of `**Severity:**` moved a denominator 80 → 87.
+
+### Verification
+
+- **Whole tree green** after the two fixes; all 22 gates pass; `typecheck` 0.
+- **RED, mutation-planted**: a wrapped `the comment above` / `was wrong` split across two lines is caught,
+  and the report shows the joined phrase — which is the proof that the join is what caught it.
+- ⛔ **Counterfactual measured:** `grep -c "the comment above.*was wrong"` over the planted file returns
+  **0**. No single line carries the pattern, so per-line matching could never have found it.
+- Plant removed, `git status` clean before believing the green.
+
+---
+
+## ✅ P6.8.9.7.11.13.1 — the chain that hid twenty gates *(2026-08-25)*
+
+### The defect
+
+`lint:rn` was **22 npm scripts joined by `&&`**. The first red ended the run, so a session fixing gate 3
+had no way to know whether it had one problem or fifteen — and every green after a red push was a green
+whose scope nobody knew. The chain answered *"a gate failed"* when the question is always *"WHICH gates
+failed."*
+
+⚡ **And short-circuiting bought nothing.** A green run already executes all 22; the `&&` only ever saved
+time on a run that was going to fail — the one run whose complete output is worth the most. The trade was
+backwards.
+
+### What shipped
+
+`scripts/run-gates.ts`, and `lint:rn` is now one line that calls it.
+
+- **`stdio: 'inherit'`** — every gate's own output streams exactly as before, in order. ⚠️ Deliberate:
+  capturing and re-printing would buffer, lose colour, and risk a wrapper that *summarises* instead of
+  showing, which is the failure mode this whole phase keeps paying for.
+- **The exit code is the product.** Any non-zero child → exit 1, and the summary names each one. `.11.12.13`
+  closed a gate that printed `❌` and exited 0; the plan records **seven** instances of the harness
+  reporting exit 0 over a red gate.
+- ⚠️ **The summary says what a partial pass is NOT**: *"20 passing does not mean the tree is clean — it
+  means these 2 are what is left."*
+- **The gate list moved out of `package.json`.** A 22-link one-liner is unreadable and unreviewable, which
+  is part of how the `&&` survived being looked at.
+- ⚠️ **A signal death (`status === null`) is not a pass**, written explicitly rather than left to
+  `!== 0` being accidentally right.
+
+### Verification
+
+- **GREEN:** all 22 pass, exit 0.
+- **RED, mutation-planted at links 3 AND 8** (`lint:comments`, `lint:glossary`): both named, exit 1.
+- ⛔ **The counterfactual measured, not assumed.** The old shape, minimally: `npm run lint:comments && npm
+  run lint:glossary` → exit 1 with **zero** occurrences of "glossary" in the output. Link 8 never ran.
+- Plants removed and `git status` confirmed clean before believing the green.
+
+### After-scan — and why the PARENT chain is deliberately left alone
+
+`validate:release:rn` is `&&`-chained too, and it looks like the identical defect. It is not, and the
+distinction is worth writing down: **`lint:rn`'s 22 gates are independent of one another, while the release
+chain's links are DEPENDENT** — a failed `typecheck` means the RN web export is unreliable, so running the
+9-minute e2e suite behind it would produce cascading noise, not information. Its final link, `gate:record`,
+must also run only on a full pass, which the chain gives for free.
+
+⚠️ **One part of it is the same defect, at small scale:** `test:stamp && test:regression && test:app &&
+test:scenarios` are four *independent* suites, so a red stamp hides three. Filed to the deferred backlog
+rather than folded in — it is a different chain, and `.11.17`'s sweep will see it either way.
+
+---
+
 ## ✅ P6.8.9.7.11.12 — CLOSED, all 14 majors *(2026-08-25)*
 
 **Money 3 · import 3 · discovery 4 · gates 4.** Per-finding detail in the entries below.
@@ -113,9 +273,10 @@ author the class is closed.
 
 ### What shipped — the sentence is now true by construction
 
-- **`ready` is REQUIRED** on the `Surface` interface. A surface added without one does not compile.
-  ⚠️ That matters here because `apps/rn/tsconfig.json` **excludes `tests/`** from `typecheck:rn` — but
-  Playwright compiles this file itself, so the error lands when the matrix runs, which is when it counts.
+- **`ready` is REQUIRED** on the `Surface` interface. ⛔ **The justification written here was wrong** —
+  *"Playwright compiles this file itself, so the error lands when the matrix runs"*. Playwright
+  **transpiles**; it does not typecheck, and `tests/` was excluded from `typecheck:rn`, so this requirement
+  gated **nothing** until `.11.13.3` added `typecheck:tests` a few hours later. See that entry.
 - **A `heading()` helper**, and every surface uses it. `Screen` renders its title with
   `accessibilityRole="header"` → RNW `role="heading"`, so **the screen's own accessibility claim about what
   it is** becomes the identity check. Not a testID: a testID is a marker added for the test, whereas this

@@ -103,6 +103,42 @@ function blankStrings(line: string): string {
   return line.replace(/(['"`])(?:\\.|(?!\1)[^\\])*\1?/g, (m, q: string) => q + ' '.repeat(Math.max(0, m.length - 2)) + (m.endsWith(q) && m.length > 1 ? q : ''));
 }
 
+/**
+ * A run of adjacent comment lines, joined — **the unit the patterns are tested against.**
+ *
+ * ⛔ **[P6.8.9.7.11.13.2 · from `.11.9`'s tail] MATCHING PER LINE MEANT A WRAPPED PHRASE EVADED EVERY
+ * PATTERN.** Each rule needs two halves close together — `the comment above` … `was wrong` — and every
+ * docblock in this repo is hard-wrapped at ~110 characters, so the dominant written form of the thing
+ * being banned is the form that splits across a line break. The guard was blind to its own house style.
+ *
+ * ⚠️ **Joining does not widen the rules.** Every pattern bounds the gap with `[^.]{0,60}`, and a full stop
+ * still ends the reach — so a block can be twenty lines long without any pattern spanning two sentences.
+ * That bound was doing the work all along; the line break was doing it by accident.
+ *
+ * The leading `*` / `//` / `/*` markers are stripped when joining, or the join would insert them into the
+ * middle of the sentence being matched.
+ */
+interface CommentBlock {
+  /** 1-based line where the run starts — what a reader needs to find it. */
+  line: number;
+  text: string;
+}
+
+function commentBlocks(src: string): CommentBlock[] {
+  const blocks: CommentBlock[] = [];
+  let open: CommentBlock | null = null;
+  commentLines(src).forEach((raw, i) => {
+    if (raw === null) {
+      open = null;
+      return;
+    }
+    const text = raw.replace(/^\s*(\/\*+|\/\/+|\*+\/?)\s*/, '').trim();
+    if (open) open.text += ` ${text}`;
+    else blocks.push((open = { line: i + 1, text }));
+  });
+  return blocks;
+}
+
 /** Only COMMENT text is examined — a string literal that happens to say "five sites" is not the target. */
 function commentLines(src: string): (string | null)[] {
   const out: (string | null)[] = [];
@@ -140,11 +176,14 @@ for (const root of ROOTS) {
   for (const file of walk(root)) {
     const rel = relative(REPO_ROOT, file);
     if (rel.replace(/\\/g, '/') === OWNER_FILE) continue;
-    commentLines(readFileSync(file, 'utf8')).forEach((line, i) => {
-      if (line === null) return;
-      if (META.some((r) => r.test(line))) hits.push(`${rel}:${i + 1}  [meta-comment]  ${line.slice(0, 100)}`);
-      else if (COUNTS.some((r) => r.test(line))) hits.push(`${rel}:${i + 1}  [count-of-code]  ${line.slice(0, 100)}`);
-    });
+    for (const block of commentBlocks(readFileSync(file, 'utf8'))) {
+      // ⚠️ The MATCHED text is reported, not the head of the block — a block can be twenty lines long, and
+      // printing its first line would send the reader to a sentence that is not the offending one.
+      const meta = META.map((r) => block.text.match(r)).find(Boolean);
+      const count = meta ? null : COUNTS.map((r) => block.text.match(r)).find(Boolean);
+      if (meta) hits.push(`${rel}:${block.line}  [meta-comment]   …${meta[0].slice(0, 100)}…`);
+      else if (count) hits.push(`${rel}:${block.line}  [count-of-code]  …${count[0].slice(0, 100)}…`);
+    }
   }
 }
 

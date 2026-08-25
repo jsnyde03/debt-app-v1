@@ -70,8 +70,16 @@ function seed(theme: string, over: Record<string, unknown> = {}) {
   return scenario({ prefs: { onboardingComplete: true, themeMode: theme, ...(prefs ?? {}) }, ...rest });
 }
 
-/** ⛔ The states nothing else in the repo renders. Each one is a design question, not a data question. */
-const STATES: Record<string, Record<string, unknown>> = {
+/**
+ * ⛔ The states nothing else in the repo renders. Each one is a design question, not a data question.
+ *
+ * ⚠️ **`satisfies`, not a `Record<string, …>` annotation.** [P6.8.9.7.11.13.3] Under the annotation every
+ * key read off this object was an UNCHECKED INDEX — `STATES.divergent` typed fine whether or not
+ * `divergent` existed, and `{ ...undefined }` is `{}` rather than a throw. So renaming a state would have
+ * silently seeded the DEFAULT scenario into the disclosure frames, and they would have looked plausible:
+ * the same *photographs the wrong thing, quietly* class this whole file exists to catch.
+ */
+const STATES = {
   // The shape 25 of 39 e2e specs accidentally used, and the one a brand-new user actually has.
   // ⚠️ `cycleHistory` was missing and `/history`'s `seedOver` supplies five — see the guard at the state
   // recipe. Every collection any `seedOver` sets has to be named here, and the guard is what says so.
@@ -107,7 +115,10 @@ const STATES: Record<string, Record<string, unknown>> = {
     ],
     requiredExpenses: [{ id: 'e0', name: 'Homeowners association quarterly assessment', amount: 415, dueDate: day(4), recurrence: 'quarterly', category: 'housing' }],
   },
-};
+} satisfies Record<string, Record<string, unknown>>;
+
+/** ⚠️ So a `states:` entry naming a state that does not exist is a compile error, not an empty spread. */
+type StateName = keyof typeof STATES;
 
 /**
  * ⛔ FAIL FAST. A recipe that cannot reach its subject must cost seconds, not the 180 s test timeout —
@@ -147,15 +158,18 @@ interface Surface {
    * *"every surface now carries a `ready` assertion."* A new surface could be added with no way to tell a
    * correct frame from a photograph of Today, and nothing would say so.
    *
-   * ⚠️ Playwright compiles this file, so an entry without one fails the run rather than merely linting —
-   * which matters here because `apps/rn/tsconfig.json` **excludes `tests/`** from `typecheck:rn`.
+   * ⛔ **AND FOR A FEW HOURS THIS REQUIREMENT GATED NOTHING.** [P6.8.9.7.11.13.3] It was introduced with
+   * the reasoning *"Playwright compiles this file, so an entry without one fails the run"* — **Playwright
+   * TRANSPILES; it does not typecheck.** Measured: a bare `const x: number = 'a string'` in this file runs
+   * green. And `apps/rn/tsconfig.json` excluded `tests/`, so nothing else looked either. `typecheck:tests`
+   * now covers this tree and a surface without a `ready` is a real compile error — verified by planting one.
    */
   ready: (page: Page) => Promise<unknown>;
   seedOver?: Record<string, unknown>;
   /** Which viewports this surface is shot at. Defaults to all. */
   only?: ViewportName[];
   /** States to shoot in addition to the default seed (phone + both themes only — the cross product bites). */
-  states?: string[];
+  states?: StateName[];
 }
 
 const SURFACES: Surface[] = [

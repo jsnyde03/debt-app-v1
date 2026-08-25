@@ -776,8 +776,10 @@ test.describe('tutorial invitation + in-situ shell', () => {
     const trapped = async () =>
       page.evaluate(() => {
         const FOCUSABLE = '[tabindex="0"],a[href],button,input,select,textarea';
-        return [...document.querySelectorAll('[aria-hidden="true"]')]
-          .flatMap((el) => [el, ...el.querySelectorAll(FOCUSABLE)])
+        // ⚠️ `Array.from`, not spread — a `NodeList` is only iterable with `downlevelIteration`, which this
+        // tree does not set. It ran anyway because nothing typechecked it. [P6.8.9.7.11.13.3]
+        return Array.from(document.querySelectorAll('[aria-hidden="true"]'))
+          .flatMap((el) => [el, ...Array.from(el.querySelectorAll(FOCUSABLE))])
           .filter((el) => el.matches(FOCUSABLE) && !el.closest('[inert]'))
           .length;
       });
@@ -816,7 +818,7 @@ test.describe('tutorial invitation + in-situ shell', () => {
 test.describe('the walkthrough follows the in-app theme, not the OS', () => {
   const CARD_BG = async (page: import('@playwright/test').Page) =>
     page.evaluate(() => {
-      const el = [...document.querySelectorAll('div')].find((d) => d.textContent?.startsWith('PAYDAY GUARDIAN'));
+      const el = Array.from(document.querySelectorAll('div')).find((d) => d.textContent?.startsWith('PAYDAY GUARDIAN'));
       let n: HTMLElement | null = el as HTMLElement;
       while (n) {
         const bg = getComputedStyle(n).backgroundColor;

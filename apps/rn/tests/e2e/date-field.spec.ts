@@ -56,9 +56,9 @@ test('picking a date writes it straight through, with no timezone drift', async 
   // Save, reopen, and read it back: the round trip through the store is where a conversion would happen.
   //
   // ⛔ REOPEN WITHOUT NAVIGATING. `seedStore` installs its blob via `addInitScript`, which re-runs on
-  // EVERY navigation — so a `page.goto()` here re-seeds the store and wipes the save. The first version
-  // of this test did exactly that and failed with the seeded `2026-07-01`, which reads precisely like the
-  // app discarding the edit. The sheet closes on save, so re-clicking the row is enough.
+  // EVERY navigation — so a `page.goto()` here re-seeds the store and wipes the save. ⚠️ The failure it
+  // produces reads precisely like the app discarding the edit: the assertion below comes back with the
+  // seeded `2026-07-01`. The sheet closes on save, so re-clicking the row is enough.
   await page.getByText('Save', { exact: true }).click();
   await page.getByText('Card', { exact: true }).first().click();
   await expect(page.getByText('APR %')).toBeVisible({ timeout: 10_000 });

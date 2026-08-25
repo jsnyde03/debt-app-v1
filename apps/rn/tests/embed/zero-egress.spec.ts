@@ -83,12 +83,17 @@ test.describe('the embed is private by construction', () => {
     // ⚠️ 3.5.7.2's before-scan established there is nothing to omit: the funnel has no sink and no vendor
     // SDK, Sentry's `.web.ts` keeps the SDK out of the web bundle, and RevenueCat is stubbed. This holds
     // that TRUE rather than re-asserting it — the claim is cheap to keep and expensive to notice losing.
-    const globals = await page.evaluate(() => ({
-      sentry: typeof (window as Record<string, unknown>).Sentry !== 'undefined',
-      ga: typeof (window as Record<string, unknown>).ga !== 'undefined',
-      gtag: typeof (window as Record<string, unknown>).gtag !== 'undefined',
-      dataLayer: Array.isArray((window as Record<string, unknown>).dataLayer),
-    }));
+    // ⚠️ Through `unknown` — `Window` has no string index signature, so the direct cast is one TypeScript
+    // rejects. It compiled only because nothing typechecked this tree. [P6.8.9.7.11.13.3]
+    const globals = await page.evaluate(() => {
+      const w = window as unknown as Record<string, unknown>;
+      return {
+        sentry: typeof w.Sentry !== 'undefined',
+        ga: typeof w.ga !== 'undefined',
+        gtag: typeof w.gtag !== 'undefined',
+        dataLayer: Array.isArray(w.dataLayer),
+      };
+    });
 
     expect(globals, 'an analytics or crash-reporter global reached the embed bundle').toEqual({
       sentry: false,

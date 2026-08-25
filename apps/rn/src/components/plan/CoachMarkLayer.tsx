@@ -233,14 +233,13 @@ export function CoachMarkLayer({
     if (!nested && hosts > 0) return;
     if (revealAskedFor.current === active) return;
     /**
-     * ⛔ **WAIT FOR THE MEASUREMENT INSTEAD OF LATCHING AHEAD OF IT.** [P6.8.9.7.11.5] The comment below
-     * claimed the measured height and the control flow could never deliver it: `calloutH` is written only
-     * from the card's `onLayout`, the card does not render until `rect` exists, and this effect fires on
-     * the very commit `rect` arrives — so on the first mark `calloutH` is `0`, `need` took the 144 guess,
-     * and the latch on the next line meant the corrected re-run returned immediately.
-     * ⚡ **Placement (`roomBelow`, below) DID get the measurement**, because it is computed in the render
-     * body and re-runs when the state lands — which is why the claim read true to its author. One value,
-     * two consumers, only one of them reachable.
+     * ⛔ **WAIT FOR THE MEASUREMENT INSTEAD OF LATCHING AHEAD OF IT.** [P6.8.9.7.11.5] `calloutH` is
+     * written only from the card's `onLayout`, the card does not render until `rect` exists, and this
+     * effect fires on the very commit `rect` arrives — so on a mark's first run `calloutH` is `0`. Without
+     * this guard `need` took the 144 pt estimate and the latch on the next line swallowed the corrected
+     * re-run, so the reveal was computed once, from a guess.
+     * ⚡ **Placement (`roomBelow`, below) DOES get the measurement**, because it is computed in the render
+     * body and re-runs when the state lands. One value, two consumers, and only one of them was reachable.
      * ⚠️ Returning here is safe because `calloutH` is a dependency: the layout pass that sets it re-runs
      * this effect, and *that* run does the work with a real number.
      */

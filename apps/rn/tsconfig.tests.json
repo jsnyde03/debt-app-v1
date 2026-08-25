@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "exclude": ["node_modules", "dist", ".expo"],
+  "include": ["tests/**/*.ts", "tests/**/*.tsx", "playwright.config.ts", "playwright.shots.config.ts", "playwright.embed.config.ts"]
+}
