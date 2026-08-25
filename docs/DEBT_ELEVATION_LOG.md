@@ -169,6 +169,543 @@ instances. Read the gate's own summary line.**
 
 ---
 
+## 📕 P6.8.9.7.11.18 · S0.1 — M12, and the gate that was green by prose *(2026-08-25)*
+
+**Shipped:** an explicit closure token `[closes: L5-5 M2-1]` read from the three closure SOURCES, plus a
+**downward-only** `MAX_UNTOKENISED = { d37: 55, p68: 48 }` cap on both halves of `check-audit-closure.ts`.
+`typecheck:scripts` clean. **Both plants red, both confirmed landed.**
+
+### ⚡ Found by BUILDING: the defect is in the half that GATES
+
+`.11.17` filed M12 against the **P6.8** half, which is report-only. Reading the file to fix it showed the
+`[D37]` half — `:97-101`, the one that runs `process.exit(1)` in CI and prints *"✅ all 55 high+ findings
+trace"* on every push — **is the same mention check over the same prose.** Measured: **55 of 55** trace by
+mention; **0 of 142** closures across both halves are machine-checkable.
+
+⛔ **This is the after-scan earning its keep, and it is the second time this cluster.** A per-item before-scan
+structurally cannot find it: the finding named one half, and only opening the file shows both halves share
+the mechanism. ⚠️ **It also means P6.8.9's mechanical exit criterion and [D37]'s gating green rest on the
+same unverifiable signal** — and [D37]'s has been reported green since 2026-08-18.
+
+### ⛔ I was wrong twice about the remedy, and the second time is the interesting one
+
+**E proposed** requiring the id on a line that also carries a closure marker. **Measured: that moves the
+P6.8 count to 67, not to E's estimated 50** — and it rejects genuine closures.
+
+| my marker | what it wrongly rejected |
+|---|---|
+| `CLOSED` / `✅`, case-sensitive | `*(all closed at 7a)*` — a real closure of five findings, lowercase |
+| + case-insensitive verbs | `**T3.6 · L5-5 — the stranded filter.**` — a real closure written as **step-id attribution**, which carries no verb at all |
+
+⚡ **Prose mis-classifies in BOTH directions, and no marker set fixes that** — which is *this file's own
+stated reason* for refusing an alias map (`:51-56`), arriving from the opposite end. ⛔ **So the fix is not
+a better heuristic. It is an explicit token that cannot occur by accident.**
+
+⚠️ **And a correction to my own first draft, which called the number "coincidences."** It is not: some of
+those lines are real closures written in prose, some are the postmortem sentence that rescued eleven ids,
+**and the instrument cannot tell them apart — which IS the finding.** The gate now counts exactly what can
+be said: *closures that are not machine-checkable.* **Naming a measurement for what you suspect rather than
+for what it counts is how the next reader inherits your guess as a fact.**
+
+### The ratchet, and why it is not a deferral
+
+⛔ **🎯's rule is 0 blockers/majors, NO deferrals** — so M12 had to be *fixed*, not filed. Requiring the
+token outright would red both halves on 142 findings and block every other surface's gate run, so the fix
+is the **cap**: the count is printed, capped, and the cap may only ever go **down**. **A NEW finding landing
+without a token reds immediately** — the class is closed today. The 142-item backlog is `.11.19`'s work, and
+it now has a mechanical target instead of a reading task. ⛔ **When a cap reaches 0, delete it and require
+the token.**
+
+**Direction check** *(the rule this cluster bought)*: the fix runs toward **stricter** — the number goes up,
+never down. The opposite direction is a genuine closure that now needs a token; it costs one line edit and
+is the behaviour the gate exists to produce. Under-reporting silently signs off findings nobody examined.
+**Asymmetric, and the fix runs to the safe side.**
+
+### The plants
+
+| plant | landed | result |
+|---|---|---|
+| `MAX_UNTOKENISED.d37` 55 → 54 *(a new untokenised finding arrives)* | verified by re-reading `:108` | ❌ **exit 1**, names all 55 |
+| `[closes: L0-1]` appended to the log *(the escape route works)* | verified by `tail` | **55 → 54 untokenised, 0 → 1 explicit** |
+
+⚠️ Plant 2 matters more than plant 1: it proves `.11.19` has a **working mechanism** rather than a
+requirement with no way to satisfy it. Removed after measuring; `Phase 5 closes:` at `:5378` was checked
+and does **not** false-positive — the token needs the bracket.
+
+---
+
+## 📕 P6.8.9.7.11.18 · S0.2 — M10, and a widening that red-flagged four correct sites *(2026-08-25)*
+
+**Shipped:** `setUTCMonth`/`setUTCFullYear` added to the ban · a `new Date(y, m±n, day)` constructor check ·
+**string literals blanked BEFORE comments** · `ROOTS` +3 playwright configs *(**627** files, was ~624)* ·
+the legacy tree scanned and **reported, not failed**, behind a **self-retiring** exemption.
+`typecheck:scripts` clean. **Four plants red, one safe control silent.**
+
+### Every spelling measured by printing the value, not by reading
+
+| spelling | Jan 31 + 1 month | matched before |
+|---|---|---|
+| `d.setMonth(d.getMonth() + 1)` | `2026-03-03` | ✅ |
+| `new Date(y, m + 1, d.getDate())` | **`2026-03-03`** — identical | ❌ |
+| `d.setUTCMonth(…)` | **`2026-03-03`** — identical | ❌ |
+| `d.setFullYear(y + 1)` on Feb 29 | `2025-03-01` | ✅ |
+| `new Date(y + 1, m, d.getDate())` on Feb 29 | **`2025-03-01`** — identical | ❌ |
+
+⚡ **The constructor form is the one the OWNER FILE demonstrates** (`addMonths.ts:25`), safe there only
+because the day is the literal `1`. An author who reds on this gate opens that module to learn the house
+form and finds the unmatched spelling. **Same shape as the bare-`announce` gate missing
+`announceForAccessibility?.(…)` — the miss is the spelling a new author copies from the file they are told
+to copy.**
+
+### ⛔ THE RESULT OF THE STEP: my widening flagged 4 sites and ALL 4 WERE CORRECT
+
+Banning a `+`/`-` in the month slot fired on `getNextPaycheckDate.ts:61,62,76` and `DateField.tsx:41`.
+Reading them:
+
+- `new Date(year, month + 1, clampDay(year, month + 1, payDay))` — `clampDay` is
+  `Math.min(day, new Date(y, m + 1, 0).getDate())`. **The day is clamped to the target month before
+  construction** — the same trick that makes `addMonths` correct.
+- `new Date(y, m - 1, d)` parsing `YYYY-MM-DD` — `m - 1` is a **1-based→0-based index conversion**, not a
+  step by months.
+
+⚡ **So the DAY slot decides, not the month slot.** The defect is *carrying a source date's day across a
+month step*, and its signature is `getDate()` in the day slot — which is the original blocker verbatim.
+⛔ **A gate that reds on correct code gets deleted rather than obeyed**, which this very file already argues
+about its own comment-stripping. **Widening a guard is not free: over-match is the safe DIRECTION and still
+a real cost, and the only way to find it is to run the wider version and read what it caught.**
+
+⚠️ **Residual named rather than hidden:** a day pre-extracted into a variable
+(`const day = d.getDate()` … `new Date(y, m + n, day)`) is **not** matched — this is a line-based gate with
+no symbol table. If that shape appears it needs a parser, not a wider regex.
+
+### The `//`-inside-a-string hole, and why the old guard aimed at the symptom
+
+`const s = 'a // b'; d.setMonth(…)` stripped to `const s = 'a` — **the real call was blanked with the
+comment.** The old `[^:]` lookbehind existed to spare `https://`, i.e. it patched the URL case and left
+every other string open. Blanking literal **contents first** removes the cause; code outside the quotes
+survives. ⚡ **A guard written against one observed instance covers one observed instance.**
+
+### The plants
+
+| plant | result |
+|---|---|
+| `new Date(d.getFullYear(), d.getMonth() + n, d.getDate())` | ❌ red |
+| `d.setUTCMonth(d.getUTCMonth() + 1)` | ❌ red |
+| `const s = 'a // b'; d.setMonth(…)` | ❌ red *(green before this step)* |
+| `PENDING_DELETION` pointed at a missing path | ❌ red — *"P6.11 has run… delete the entry"* |
+| **control:** `new Date(y, m + n, 1)` | **silent** — the sanctioned idiom stays legal |
+
+⚠️ **The control is the load-bearing one.** Three reds only prove the gate fires; the silent control proves
+it still distinguishes, which is the property that decides whether anyone keeps it.
+
+**Direction check:** the fix runs **stricter**, and the opposite direction — a correct site now refused —
+was measured and cost the narrowing above rather than being assumed away.
+
+⭐ **And it confirmed [B]'s legacy count exactly:** `components/AmortizationCalendar.tsx:24` and
+`components/Onboarding/FirstDebtOrBillStep.tsx:15`, now printed by the gate on every run instead of living
+in an audit file. **P6.11's deletion is what closes them, and the exemption fails the gate the moment that
+tree disappears.**
+
+---
+
+## 📕 P6.8.9.7.11.18 · S0.3 — M11, and a comment-stripper that never ran on two thirds of core *(2026-08-25)*
+
+**Shipped:** `check-destructive-writes`'s `CALL` now matches the **identifier** rather than a list of call
+shapes; `\r` stripped before the comment strip in **three** gates — `check-destructive-writes` ·
+`check-sandbox-writes` · `check-apostrophes`. All five touched gates green, `typecheck:scripts` clean.
+**2 plants red, and the control that mattered stayed silent.**
+
+### The audit named three misses. There are four.
+
+| spelling | old `CALL` |
+|---|---|
+| `importStore(b)` · `s.importStore(b)` · `s?.importStore(b)` · destructured | MATCH |
+| `s.importStore?.(b)` — optional call | ❌ MISS |
+| `const fn = s.importStore; fn(b)` — aliased | ❌ MISS |
+| `s['importStore'](b)` — computed | ❌ MISS |
+| **`s.importStore.call(s, b)`** | ❌ MISS — **not in the finding** |
+
+⚡ **Enumerating call shapes is the losing game, and this is the third time in one cluster** — five month
+spellings, the bare-`announce` gate's `announceForAccessibility?.(…)`, now four call shapes. **So the gate
+matches the IDENTIFIER and every way of reaching it comes free.** That is deliberately looser, and the
+file's own docstring already licenses loose: it explains why the interface member and the implementation
+both count as sites and why over-match costs one number in the allow-list. ⭐ **The count came out
+unchanged — 7/7 across 6 files — so the wider pattern found exactly the same sites, which is the result
+that says the looseness is free here.**
+
+### ⛔ FOUND BY BUILDING: `.` NEVER MATCHES `\r`, AND THIS REPO IS 66% CRLF IN CORE
+
+Widening the pattern immediately red-flagged `sandboxStore.ts:16` — **a doc-comment explaining the very
+defect the gate guards.** The stripper was `raw.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '')`, and:
+
+- the file is **CRLF**, so `split('\n')` leaves a trailing `\r`;
+- JS `.` does not match `\r`, and `$` without the `m` flag does not sit before one;
+- so `.*$` **fails to match at all** and both strips silently no-op.
+
+| root | CRLF files |
+|---|---|
+| `packages/core` | **92 of 139 — 66%** |
+| `apps/rn/src` | 29 of 378 — 8% |
+| `scripts` | 5 of 33 — 15% |
+
+⚠️ **Direction, stated precisely, because the first draft of this note overstated it:** failing to strip a
+comment makes the gate read **more** text, not less. **It is an OVER-match — noise, not blindness.** It
+had stayed invisible for the life of the gate because the old pattern needed a `(` and prose does not
+write `importStore(`; **widening the pattern is what exposed it.** ⚡ The second-order risk is the real
+one: a noisy gate earns exemptions, and an exemption is how a guard goes quiet for good.
+
+⛔ **Two sibling gates carried the identical line** and were fixed with it — `check-sandbox-writes`
+*(which guards R4, the demo-writes-to-the-real-store blocker)* and `check-apostrophes`.
+⚠️ `coverage-model.ts:154` has the same idiom on a heading; cosmetic, and it is **not** a gate.
+⚠️ **My first sweep for this class used shell `grep -c '\\r'` and returned counts of 188–430 — it was
+matching the letter `r` in prose.** The real answer needed a script. `shell-is-a-participant`, again.
+
+### The plants
+
+| plant *(in a deliberately CRLF file)* | result |
+|---|---|
+| `s.importStore?.(b)` | ❌ red |
+| `s["importStore"](b)` | ❌ red |
+| **control:** a doc-comment line naming `importStore` in prose | **silent** |
+
+⭐ **The control is the proof of the CRLF fix, and nothing else is.** Two reds only show the wider pattern
+fires; the silent comment line shows the strip now runs on a CRLF file — before the fix that same line was
+reported as an unsanctioned call.
+
+---
+
+## 📕 P6.8.9.7.11.18 · S0.4 + S0.5 — the two suites that could not fail *(2026-08-25)*
+
+**Shipped:** `audit.test.ts` — the verdict extracted to `verdict()` plus a `selfCheck()` run **before** the
+corpus; `hostile.test.ts` — a **door-reaching floor** (`HOSTILE_FLOOR = 32`, downward-only) with the
+breakdown printed. `typecheck:rn` clean, `test:app` green. **Four plants red, one counterfactual proven.**
+
+### S0.4 — being ARMED was never the same as being GUARDED
+
+`.11.12` turned the migration audit from report-only into a throwing suite. `.11.17` then measured that
+**deleting the throw returned it to report-only with the entire repo green.** The invariants are shared
+with `hostile.test.ts`, which throws independently — so a plant in `invariants.ts` reds over *there* and
+says nothing about this file — and `runAppTests.ts` would notice the *export* vanishing, not the *throw*.
+⚡ **`tested-helper-is-not-a-used-helper`, one level up: the judgement existed, was correct, and its
+CONSEQUENCE was the unguarded part.**
+
+⭐ **The fix is the MIRROR of a control the file already had.** `audit.test.ts` has carried a healthy
+control since it was written — *the corpus is not vacuous, something survives.* What it never had is the
+other half — *the verdict is not vacuous, something is caught.* **A suite needs both, and this one had been
+running on one for its whole life.** `selfCheck()` asserts two links that break independently: the
+invariants still **fire** on a deliberately poisoned outcome, and the verdict still **throws** when they do.
+
+| plant | result |
+|---|---|
+| disarm the verdict (`if (false)`) | ❌ *"verdict() did not throw — the migration audit is REPORT-ONLY again"* |
+| remove **only** the `\|\| drift.length > 0` clause | ❌ *"verdict() ignored differential drift — the two-door oracle is unguarded"* |
+
+⚠️ **The second plant is the one that follows this cluster's own rule** — *a plant that reds early never
+exercises the later assertions.* It leaves the rows path working so the first assertion passes, and the
+drift assertion still fires **with its own message**. Two assertions, independently proven live.
+
+### S0.5 — a refused corpus was the pass condition, and the counterfactual is now on the record
+
+`CASES.length >= 20` guards the corpus going **empty**. It does not guard the corpus going **unreadable**,
+and those are different failures wearing the same green: if the blobs stop being recognised as v1.6, both
+doors refuse, no invariant has anything to judge, `violations` is `[]`, and every assertion passes while
+**not one line of migration code ran.** ⚡ **`.11.13.6`'s defect exactly** — its four fixtures asserted
+*"does not throw"* over a door that never opened. **The fixtures were fixed; the harness that could not
+have noticed was not.**
+
+⛔ **Proven by counterfactual rather than argued.** Stripping `version` from all 32 blobs drove the file
+door to **0/32**, and with the new floor set to `0` the suite reported **`✅ 5.10.5 hostile-state tests
+passed (36 asserts)`**. *Thirty-two cases, none of them read, thirty-six green assertions.*
+
+⚠️ **Deliberately NOT "all 32 must open."** A hostile blob a door safely **refuses** is a correct outcome
+and one of the things this corpus exists to produce. The floor asserts the corpus still *reaches* the
+logic, not that every case survives it.
+
+### ⚠️ Two process notes, both the same shape as this cluster's standing memories
+
+- ⛔ **My first S0.5 plant landed in the file and changed nothing.** I stripped `storeVersion` and `debts`
+  and the doors still opened 32/32 — because the fixture is a **v1.6 backup shape keyed on `version`**, not
+  a store shape. `verify-the-plant-applied`: the edit applied, the behaviour under assertion did not move.
+  Reading the actual blob keys took one probe and would have taken zero guesses.
+- ⛔ **`node -e` returned empty output twice** while inspecting that JSON — the quoted payload is mangled
+  by this shell. A scratch file answered immediately. `shell-is-a-participant`, second time this session.
+
+---
+
+## 📕 P6.8.9.7.11.18 · S0.6 — M16, the branch worth the most money and judged by nothing *(2026-08-25)*
+
+**Shipped:** invariant **⑨ `priorityGoalIsCapped`** · the false premise in `invariants.ts` retired · both
+hardcoded *"8 invariants"* log lines now derive from `INVARIANTS.length`. `typecheck:rn` clean, `test:app`
+green at **9 invariants × 1,044 outcomes**.
+
+### The branch `migrations.ts:228` calls *"the only finding that reaches a user's money"* — 0 of 8 saw it
+
+`.11.17` simulated the stand-down being deleted, so a goal keeps `priority: true` with a pace repaired to
+`0`, and `checkAll` returned `[]`. `moneyKeepsItsType` passes because `0` is a finite number; `idempotent`
+and `repairsAreNotRepeated` pass because a second pass over a finite `0` records nothing.
+⚡ **`0` is fail-VISIBLE for a balance and fail-SILENT for a pace** — a $12,000 card repaired to $0 is
+obviously wrong to whoever looks at it; a pace repaired to $0 looks like nothing and quietly redirects
+every spare dollar away from the user's debt.
+
+### ⛔ AND THE INVARIANT IS `!(pace > 0)`, NOT `=== 0`
+
+`allocatePaycheck.ts:635` is `pace != null && pace > 0 ? pace : Infinity`, and `recommendedActions.ts:80`
+guards identically — **so a NEGATIVE pace is uncapped exactly as `0` is.** The finding named `0`.
+⚠️ **An invariant written to the finding's wording would have shipped with half the hole still open** —
+the enumerate-the-spellings mistake, and this is the **fourth** time in this cluster: five month
+spellings, four `importStore` call shapes, `announceForAccessibility?.(…)`, now two uncapped values.
+⭐ **The rule that keeps working: judge the CONDITION the consumer actually evaluates, never the example
+the finding happened to cite.**
+
+### The comment was false, it was ours, and it was load-bearing
+
+`invariants.ts` claimed `priorityPerPaycheck` *"is not reachable through either audited door today — it is
+a v1.7 field and both doors take v1.6 shapes."* **`mapLegacyStore` carries `goals` straight across**, so a
+goal in a v1.6-shaped blob passes any field it likes through both doors — and the hostile fixture
+`goal-pace-unreadable-on-a-priority-goal` does exactly that, one directory over.
+
+⛔ **It was the stated justification for `corpus.ts` not adding the field to its nested-damage axis**, so
+the generated corpus produced **0 of 522** goals carrying a pace and hit the stand-down **0 times.**
+⚡ **A wrong sentence in a comment kept an entire money branch out of the corpus** —
+`findings-cite-comments-as-evidence`, with the comment written by us, for the third time this cluster.
+
+### Measuring it, and why the end-to-end plant was abandoned
+
+Deleting the stand-down in `migrations.ts` **did** red the suite — but with
+`persistenceLifecycle.test.ts:559`'s hand-written message, not the invariant's. Relaxing that assertion
+surfaced a *second* hand-written guard underneath it. ⚠️ **Two masking layers is the plant-reds-early rule
+at depth**, and chasing it further would have meant disabling real tests to prove a third one works.
+
+⛔ **So the measurement was taken the way `.11.17` took it** — `checkAll` over the poisoned outcome
+directly, which makes the two numbers comparable:
+
+| state | `checkAll` |
+|---|---|
+| baseline *(minimal synthetic store)* | 1 |
+| **`priority: true, pace: 0`** — the un-fix | **2** |
+| **`priority: true, pace: −50`** | **2** |
+| control — correctly stood down *(field deleted)* | 1 |
+| control — `priority: false, pace: 0` | 1 |
+| control — legitimate capped pace `150` | 1 |
+
+**The differential is exactly invariant ⑨**, and all three legitimate controls stay silent — including the
+`priority: false` case, whose pace governs nothing and must not be flagged.
+
+⚠️ **Two hardcoded `8`s were found while adding the ninth** and now derive from the array. A count typed
+into a log line is a claim that decays the moment the thing it counts changes — the same class as the plan
+row that read *"663 files"* while the record said **668**.
+
+---
+
+## 🔎 P6.8.9.7.11.17 — the SWITCH-IN before-scan, and the handoff's own premises measured *(2026-08-25)*
+
+⛔ **The handoff was written for a session that was not here, and two of the things it told that session to
+check were already stale by the time it read them.** Both in the same direction: *more settled than stated.*
+
+| the handoff says | measured |
+|---|---|
+| 🔴 *"CI run `32897656792` was IN FLIGHT at session close. Nobody has seen its result."* | ⛔ **`cancelled`** — not in flight, not green. The push of `c8d54fa` superseded it, and GitHub cancels the in-flight run for the older SHA. ⚡ **A cancelled run is not a result, and it looks like one in a run list.** The live question is run **`32897953240`** for `c8d54fa`, still in progress |
+| `.11.16` *"`validate:release:rn` green + push"* as an open row | **Locally CLOSED.** `lint:gate-freshness` is green: the record `5a5fa8c` · `2026-08-25T20:49:23Z` · **689** source files still fingerprints this tree, so every commit after it was docs-only. ⚠️ **`dirty: true`** — the fingerprint identifies what was tested; the SHA does not |
+
+⚡ **The generalisable half:** the handoff's rule *"a remembered gate result is an unrun one — check it, do
+not infer it"* was **correct and was still not enough**, because it aimed the next reader at a run id rather
+than at a question. The id resolved to `cancelled`, which is neither pass nor fail, and a reader skimming a
+run list for red would have scored it green-adjacent. ⛔ **Hand over the QUESTION ("is there a green CI run
+for the tree that ships?"), not the id that was open when you left.**
+
+### The round as dispatched
+
+**Five auditors, not four.** `.11.10`'s partition (money · import · discovery · gates) does not cover this
+fix range: `.11.11` and `.11.15` created a **date-arithmetic and balance-basis surface** — `addMonths`,
+`originalBalanceHighWater`, `monthLabels`, `check-month-arithmetic` — that did not exist when that partition
+was drawn, and it is where both a blocker and a reversed decision landed. Splitting it out of *money* is the
+only structural change; the other four keep their scope so their swept-clean lists ratchet cleanly.
+
+| | surface | the question it exists to answer |
+|---|---|---|
+| **A** | money · goals · plan cards | did the suppression fixes over-match, and is a second `emergency` goal still funded by no rung |
+| **B** | date arithmetic · balance basis | is the `setMonth` site count right on the **fourth** enumeration, and does [D63]'s counter-measurement survive being printed |
+| **C** | import · legacy bridge · backup | can a total decode failure still strand a v1.6 portfolio behind *"fresh install"* |
+| **D** | discovery · progress · craft | does gating `DREW` on the viewport diverge web from device, and does the route block need both mark states |
+| **E** | gates · tests · instruments | ⛔ **can a red gate still report exit 0** |
+
+⛔ **Brief hardened in three ways over `.11.10`'s**, each paying for a specific miss this cluster measured:
+the swept-clean list is handed over **as a ratchet** with the four files the fix range **edited** called out
+*(a clean verdict does not survive an edit)*; the four reading rules are carried in by name; and job 1's
+pinning question is now *"which assertion carries the finding, and would an earlier one red first"* rather
+than *"does a test exist"* — because a plant that reds early never exercises the later assertions.
+
+⛔ **No fixes this round.** 🎯 reviews the findings before any implementation opens.
+
+---
+
+## 📕 P6.8.9.7.11.17 CLOSED — the fourth round, and the after-scan *(2026-08-25)*
+
+**Result: 2 blockers · 17 majors** *(19 entries; 2 pairs found independently by two auditors, which is
+corroboration rather than noise)*. Ledger and method →
+[`audits/2026-08-25-p6.8.9.7.11.17-reverification/`](audits/2026-08-25-p6.8.9.7.11.17-reverification/).
+⛔ **No source was touched.** `git status` at close: two docs files and the new audit folder.
+
+### ⚠️ The framing this round got wrong, and 🎯 corrected in flight
+
+My first summary called the count **"flat (2+15 → 2+17)"** and read the composition as evidence the audit
+was not converging. 🎯: *"we also fixed things that were hanging out and the tail of 1.9, so the count is
+down comparatively."* **Correct, in two independent ways I had collapsed into one number:**
+
+1. ⛔ **The pool shrank and I compared against the old one.** `.11.10` swept the **whole app** after
+   clusters a–g. `.11.17` swept a **93-file range**. A comparable count against a much smaller denominator
+   is an improvement, and "flat" concealed it.
+2. ⛔ **12 of 17 majors are RESERVOIR** — pre-existing, surfaced for the first time, one of them in a
+   **byte-unchanged file**. Only **7** were authored by recent work.
+
+⚡ **The generalisable half, and it is a rule about audit arithmetic rather than about this round:** a
+finding count is **two populations added together** — reservoir being drained and damage being made — and
+they move in *opposite* directions as a project converges. Summing them produces a number that looks flat
+while both halves are moving. ⛔ **Report defect counts BY ORIGIN or they cannot be trended.** The
+surviving claim is narrow and worth keeping: **7 self-inflicted defects, including both blockers, inside
+one fix range** — a statement about the fix loop, not about the trend.
+
+### What the round measured that outlives it
+
+- ⛔ **A PLAN LINE IS RETIRED: "the harness reports exit 0 on a RED gate — nine instances" is FALSE** as of
+  `run-gates.ts`. Proven by **reproduction** (a fake three-gate npm project running the harness's exact
+  mechanism), then confirmed by reading: `run-gates.ts:68` sets `ok = res.status === 0`, so a signal
+  death's `null` reads as **not** a pass; `:85` exits 1; the `&&` chain stops and `gate:record` never runs.
+  ⚠️ **The residual is what those instances actually were** — the harness is blind to a *child* gate that
+  prints ❌ and exits 0, and **all 23 gates were swept individually: that class is currently empty.**
+  ⚠️ The count never agreed with itself either — the plan said **nine**, `run-gates.ts`'s docblock says
+  **seven**. `audit-site-lists-undercount`, fifth phase.
+- ⚡ **`findings-cite-comments-as-evidence`, with the arrow REVERSED.** The memory was written about
+  auditors quoting stale comments as evidence. **Here the fixer wrote the comment and then reasoned from
+  it one file over, in the same cluster, and a blocker came out** — `readMoney`'s *"a recovered value is
+  exactly right"* is quoted almost verbatim at `money.tsx:355-359` as the justification for the narrowing
+  that produced blocker 1. **Three docblocks now state the opposite of their code.**
+- ⛔ **THE PATTERN WORTH MORE THAN THE COUNT: instruments keep passing by selecting the member of the class
+  that works.** Three sightings, none adjacent: the coach-mark e2e moved from *"the one mark whose host
+  remounts"* to *"the one platform with one claimant"* — **a test written to close exactly this reproduced
+  it one level up**; `hostile.test.ts` passes on a corpus refused wholesale; and
+  `testOriginalBalanceHighWater.ts:92` holds `scheduled` fixed at 100, which is the one variable that
+  breaks the claim it asserts.
+- ⚡ **Both blockers share one shape: a guard narrowed or a stamp raised to fix a FALSE NEGATIVE, opening a
+  FALSE POSITIVE its own justifying comment said was impossible.** `.11.15`'s docblock names the deciding
+  case as *"a typo at entry"* and reasons it in **one direction only** — the correction case is the
+  argument **for** the high-water mark and equally the argument **against** it, and the symmetry was never
+  written down. ⛔ **When a fix is justified by a directional argument, write the other direction down and
+  say why it does not apply.**
+
+### The handoff's own premises, measured *(carried up from the before-scan)*
+
+⛔ **The handoff aimed the next reader at a RUN ID rather than at a QUESTION**, and the id resolved to
+`cancelled` — neither pass nor fail, and green-adjacent in a run list. **Hand over *"is there a green CI
+run for the tree that ships?"*** ✅ **Answered since: run `32897953240` for `c8d54fa` completed `success`,
+so `.11.16` is closed on both the local record and CI.**
+
+### ⚠️ My own dispatch carried an unverified path
+
+I gave auditor C `apps/rn/src/imports/debtCsv.ts`. **That directory does not exist** — the parser is
+`packages/core/imports/debtCsv.ts`, unchanged in the range. ⛔ **The brief I wrote says "verify the path
+exists before citing it" and I did not do it in the brief itself.** C caught it and re-measured the right
+file. The lesson is not new; the site is: **the dispatch is part of the audit and gets the audit's rules.**
+
+### 🔎 The after-scan — what is filed and where
+
+Five items to the **Deferred backlog** under *"surfaced by the `.11.17` audit round"*, atomically with this
+entry: the **device log line** that decides M4's severity *(fold into the next device build, not a build of
+its own)* · the **2 legacy-tree `setMonth` sites** *(do not fix — verify P6.11's deletion covers them)* ·
+the **swept-clean ratchet list** for the next round · the **39-untraceable question** *(answered by
+`.11.19`)* · and **`money.tsx:493`'s mixed numerator/denominator** *(decide inside M1's fix — same question
+about the same field)*.
+
+⛔ **`.11.19` is GATED ON M12 and that is a sequencing consequence, not a preference.** `check-audit-closure`
+is the instrument whose number *is* P6.8.9's exit criterion, and `.11.17` measured it counting a postmortem
+**about** twelve ids as the closure trace **for** them — 87 high+, 39 untraceable, and **deleting one log
+line moves it to 50.** Working the count before fixing the counter meets the exit criterion by construction.
+
+---
+
+## ▶ P6.8.9.7.11.18 — the fix cluster, DECOMPOSED AHEAD *(⏸ awaiting 🎯's triage — not the active section)*
+
+⚠️ **Authored ahead and parked here deliberately** — the plan carries one decomposed section and it is not
+this one until the triage lands. 🎯 2026-08-25: *"Do not start implementation on the fixes until we review
+them."*
+
+### ⭐ THE SHAPE CHANGED — 🎯 2026-08-25: converge PER SURFACE, do not wait for the end
+
+> *"I want to stop waiting until the end to reverify. When we finish a set of fixes for say
+> money-goals-plan section, we reverify right away in the background and continue through each until we
+> get a convergence. Convergence to me is 0 blockers/majors on a surface."*
+
+⛔ **This replaces the fix-everything-then-audit-everything loop that ran `.11.11` → `.11.17`.** Each
+surface is fixed, then **immediately re-verified in the background against a pinned commit**, and the
+surface is not done until a verifier that **extended its sweep** reports zero blockers and zero majors.
+
+⚡ **Why it is the better shape, in this project's own measured terms.** The whole-round audit is a
+**barrier**: every surface waits for the slowest, and this cluster's 7 self-inflicted defects sat
+undetected for as long as five sub-steps. Per-surface verification **pipelines** — the fix is re-read while
+the reasoning that produced it is still live, which is precisely the window in which the three
+*"instrument picked the member of the class that works"* defects would have been visible.
+
+### ⛔ Four ways "0 on a surface" can be reached WITHOUT converging — each has a rule
+
+| the failure | the rule |
+|---|---|
+| **A verifier converges by looking at LESS.** Zero findings is the trivially reachable state | ⛔ **Every re-verify is handed the previous pass's swept-clean list and must EXTEND it.** A pass that sweeps a subset of the prior pass is not a clean pass, it is a shorter one |
+| **A defect that SPANS two surfaces is invisible to both.** ⚡ Not hypothetical — **blocker 1 is exactly this**: the root is `migrations.ts` (surface C) and the false screen is `money.tsx` (surface A), and it was found only because one auditor read across the seam | ⛔ **A cross-surface finding is fixed once and re-verified by BOTH owners**, and neither surface converges until both agree. Surfaces are cut along **data flow**, not directories |
+| **The tree moves while the verifier reads it.** [D49]'s failure mode wearing a third face | ⛔ **Every re-verify is pinned to a COMMIT SHA, never "the working tree."** The verifier is told the SHA and quotes it |
+| **One clean pass is noise.** A tired verifier and a converged surface produce the same report | ⛔ **Two consecutive clean passes with an extended sweep**, the loop-until-dry rule this portfolio already uses for unknown-size discovery |
+
+### ⛔ CONVERGENCE = 0 BLOCKERS / 0 MAJORS. **NO DEFERRALS.** *(🎯 2026-08-25)*
+
+> *"my rule is converge = 0 blockers/majors. no deferrals."*
+
+⚠️ **This overrides my own draft**, which had let a major *"🎯-deferred with its consequence written down"*
+count as closed. **It does not.** Every blocker and every major is **fixed**, and a surface is converged
+only when a verifier finds none.
+
+⚡ **The consequence is procedural, and it is the point:** a major that is a pure **product decision** with
+no code question under it can no longer be parked — it becomes a **decision brought to 🎯 and then built**.
+M9 *(what a second emergency fund is called)* is the live example: under the old rule it would have been
+filed with a note; under this one it is [D66], answered *"Savings"*, and shipped inside S1.
+
+⛔ **What this forecloses, deliberately:** the deferral bucket was the pressure valve that let a hard finding
+leave the round wearing a written excuse. Removing it means the only two exits from a major are **fix it**
+or **prove it was never a major** — and the second one has to be a measurement, not a rating.
+
+### The five surfaces, and the order is the recommendation
+
+⛔ **S0 FIRST, and it is not negotiable: a converged app surface verified by a blind instrument is not
+converged.** M12 leads S0 because it changes a number the phase exits on.
+
+| # | surface | carries | converges when |
+|---|---|---|---|
+| **S0** ▶ | **The instruments** | M10 · M11 · M12 · M13 · M14 · M16 | every gate matches **every spelling** of its class, and each has a plant that reds |
+| **S1** | **Money · goals · plan** | 🔴 **Blocker 1** *(display half)* · M17a · **[DECISION] M9** | ⚠️ **cross-surface with S3** |
+| **S2** | **Dates · balances** | 🔴 **Blocker 2** · M1 · M2 · M3 · M17b/c · `money.tsx:493` | ⛔ **[DECISION] gates it** — see below |
+| **S3** | **Import · bridge · backup** | M4 · M5 · M6 · **Blocker 1** *(root half)* · M14 | ⚠️ M4's severity is **device-gated** |
+| **S4** | **Discovery · progress · craft** | M7 · M8 · M15 | M7/M8 are **one mechanism** — `asked` set before `show()`, plus no focus gate — and must be read together |
+
+**Then:** ⛔ **a final CROSS-SURFACE pass** — the seams, which is where both blockers lived — and
+`validate:release:rn` green + push. ⚡ Per-surface convergence is **necessary and not sufficient**;
+blocker 1 is the proof.
+
+### 🔴 The two decisions 🎯 owns, and both block a surface
+
+- **S2 — blocker 2's direction.** The app **cannot distinguish a typo from a payment**. A balance corrected
+  downward is either a **re-baseline** or a **payment**, and only the user knows which. **Rec: ask, at the
+  moment of the edit** — a one-line choice on the balance-edit path *("did you pay this down, or was the
+  old figure wrong?")*, because any silent rule is wrong half the time and this is the field the Progress
+  ring is computed from.
+- **S1 — M9, what a second emergency fund is CALLED** on three screens. **Rec: "Savings"**, the word the
+  Money row already uses, because it is the only one of the three that stays true when a user has two.
+
+⛔ **Every fix plant-verified, and the plant confirmed to have LANDED before its red is believed.** ⚠️ **Pin
+on the BEHAVIOUR a user meets.** ⚡ **Re-run each plant with the earlier assertion relaxed** — a plant that
+reds early never exercises the later assertions. ⛔ **And one rule this round bought: before writing any
+fix, state the direction its justification runs in and write down why the opposite direction does not
+apply.** Both blockers came from skipping exactly that.
+
+---
+
 ## 🔎 P6.8.9.7.11.15 — the SWITCH-IN before-scan, authored ahead *(2026-08-25)*
 
 ⚠️ **Not the active decomposed section.** `.11.14` still holds it until its green lands. This is the
@@ -22219,3 +22756,4 @@ re-check of every `toISOString`/`getUTC` site for the Sydney/Auckland class. A c
 recording it is what stops the next round re-litigating it.
 
 ▶ 🎯 2026-08-25: **"We're fixing all blockers and majors."**
+

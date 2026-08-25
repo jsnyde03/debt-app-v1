@@ -90,7 +90,28 @@ function walk(dir: string, out: string[] = []): string[] {
  * definition file costs one number in the allow-list, while narrowing the pattern risks missing a real
  * call shape. **What it must never do is under-match.**
  */
-const CALL = /(?<![\w.])importStore\s*\(|\.\s*importStore\s*\(/;
+/**
+ * ⛔ **[P6.8.9.7.11.18 · S0.3 · M11] THE CALL-SHAPE PATTERN UNDER-MATCHED — FOUR WAYS, MEASURED.**
+ * The docstring above already names the one thing this must never do, and it was doing it:
+ *
+ * | spelling | old pattern |
+ * |---|---|
+ * | `importStore(blob)` · `s.importStore(blob)` · `s?.importStore(blob)` · destructured | MATCH |
+ * | **`s.importStore?.(blob)`** — the optional call | ❌ **MISS** |
+ * | **`const fn = s.importStore; fn(blob)`** — aliased | ❌ **MISS** |
+ * | **`s['importStore'](blob)`** — computed | ❌ **MISS** |
+ * | **`s.importStore.call(s, blob)`** | ❌ **MISS** *(the audit named three; this is the fourth)* |
+ *
+ * ⚡ **Enumerating call SHAPES is the wrong game** — it is the same loop as the month gate's five
+ * spellings and the bare-`announce` gate's `announceForAccessibility?.(…)`, and the enumeration has been
+ * short every single time. So this matches the **IDENTIFIER**, and every way of reaching it comes free.
+ *
+ * ⚠️ **That is deliberately looser, and the file already accepts loose:** the docstring above explains
+ * why the interface member and the implementation both count as "sites" and why over-matching costs only
+ * a number in the allow-list. **A site is now "this file names the un-undoable operation" — which is the
+ * question a reviewer actually wants answered.**
+ */
+const CALL = /(?<![\w$])importStore(?![\w$])/;
 
 const offenders: { file: string; line: number; text: string }[] = [];
 /** Sites found per file, whether or not the file is sanctioned. */
@@ -102,7 +123,13 @@ for (const file of walk(ROOT)) {
   lines.forEach((raw, i) => {
     // Strip line comments and doc-comment bodies — several files DISCUSS `importStore(demoStore())` in
     // prose explaining a defect that was fixed, and a guard that reds on its own postmortem is noise.
-    const line = raw.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '');
+    // ⛔ **`\r` FIRST — the doc-comment strip below never worked on a CRLF file.** [S0.3] This repo has
+    // mixed line endings; `split('\n')` leaves a trailing `\r`, and JS `.` does not match `\r` while `$`
+    // (no `m` flag) does not sit before one — so `/^\s*\*.*$/` failed on EVERY CRLF file and every
+    // doc-comment body sailed through unstripped. Latent since the gate was written: the old call-shape
+    // pattern needed a `(`, and prose does not write `importStore(`. Widening the pattern is what exposed
+    // it, on `sandboxStore.ts:16` — a comment explaining the very defect this gate guards.
+    const line = raw.replace(/\r$/, '').replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '');
     if (!CALL.test(line)) return;
     found.set(rel, (found.get(rel) ?? 0) + 1);
     if (rel in ALLOWED) return;

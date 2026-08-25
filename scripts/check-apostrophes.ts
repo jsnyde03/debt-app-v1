@@ -218,7 +218,9 @@ for (const root of SWIFT_ROOTS) {
       // ⛔ **COMMENTS ARE STRIPPED FIRST, AND THAT ORDER IS THE FIX.** `///` doc comments quote the very
       // phrases this scan is about, so testing the exemption against the RAW line let a comment mentioning
       // `phrases: [` open the latch and silence the rest of the file. (P6.8.9.7.10 · A-3.)
-      const code = line.replace(/\/\/.*$/, '');
+      // [S0.3] `\r` first — `.*$` no-ops on a CRLF line, so the `//` strip never ran on 66% of
+      // `packages/core`. Same class as `check-sandbox-writes.ts`; see its note for the mechanism.
+      const code = line.replace(/\r$/, '').replace(/\/\/.*$/, '');
       /**
        * ⛔ **A ONE-LINE `phrases: ["…"]` OPENS AND CLOSES ON THE SAME LINE.** The first cut tested the
        * close with an `else if`, so that case set the latch and never cleared it — every following line

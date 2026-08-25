@@ -112,7 +112,12 @@ for (const file of walk(ROOT)) {
   lines.forEach((raw, i) => {
     // Strip line comments and doc-comment bodies — several files DISCUSS the singleton in prose
     // explaining a defect that was fixed, and a guard that reds on its own postmortem is noise.
-    const line = raw.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '');
+    // ⛔ **`\r` FIRST, or both strips below silently no-op.** [S0.3] `packages/core` is **66% CRLF**;
+    // `split('\n')` leaves the `\r`, JS `.` never matches it and `$` (no `m` flag) will not sit before
+    // one — so `.*$` fails and every doc-comment body was scanned as code. An OVER-match, not blindness:
+    // the gate reads more than it should. Found on the sibling gate `check-destructive-writes` at S0.3,
+    // where a comment *explaining the guarded defect* was reported as an unsanctioned call.
+    const line = raw.replace(/\r$/, '').replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '');
     if (!IMPORT.test(line)) return;
     seen.add(rel);
     if (ALLOWED[rel]) return;

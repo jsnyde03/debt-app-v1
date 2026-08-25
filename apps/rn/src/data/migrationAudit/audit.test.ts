@@ -1,6 +1,6 @@
 import { generateV16Cases, type Case } from '@/data/migrationAudit/corpus';
 import { importDoor, webkitDoor } from '@/data/migrationAudit/doors';
-import { checkAll, type DoorOutcome } from '@/data/migrationAudit/invariants';
+import { INVARIANTS, checkAll, type DoorOutcome } from '@/data/migrationAudit/invariants';
 
 /**
  * 5.10 — the adversarial migration audit.
@@ -36,6 +36,9 @@ const cases: Case[] = generateV16Cases();
 if (cases.length < 100) throw new Error(`FAIL [the generator produced only ${cases.length} cases — it is not generating]`);
 
 export default async function run() {
+  // ⛔ FIRST, and deliberately: prove this harness can fail before trusting it to say nothing is wrong.
+  selfCheck();
+
   const drift: string[] = [];
   let bothProduced = 0;
 
@@ -54,7 +57,7 @@ export default async function run() {
     }
   }
 
-  console.log(`\n  migration audit — ${cases.length} cases × 2 doors, ${checked} outcomes, 8 invariants each`);
+  console.log(`\n  migration audit — ${cases.length} cases × 2 doors, ${checked} outcomes, ${INVARIANTS.length} invariants each`);
   console.log(`  differential — ${bothProduced} cases produced a store through BOTH doors, ${drift.length} disagreed`);
 
   // ⚠️ The healthy control must survive. A corpus that refuses EVERYTHING satisfies every invariant
@@ -96,10 +99,76 @@ export default async function run() {
    * ⚠️ **Measured clean before this was armed** — 522 cases × 2 doors, zero violations and zero drift — so
    * it is not being switched on over a known failure.
    */
+  verdict(rows, drift, byCause.size);
+}
+
+/**
+ * ⛔ **THE VERDICT, EXTRACTED SO IT CAN BE PINNED.** [P6.8.9.7.11.18 · S0.4 · M13]
+ *
+ * ⚠️ **Being armed was not the same as being guarded.** `.11.12` turned this suite from report-only into
+ * a throwing one, and `.11.17` then measured that **deleting the throw returned it to report-only with
+ * the entire repo green** — every suite, every gate, every CI run. The invariants are shared with
+ * `hostile.test.ts`, which throws independently, so a plant in `invariants.ts` reds over *there* and says
+ * nothing about this file; and `runAppTests.ts` would notice the *export* vanishing, not the *throw*.
+ *
+ * ⚡ **`tested-helper-is-not-a-used-helper`, one level up:** the judgement existed, was correct, and its
+ * CONSEQUENCE was the unguarded part.
+ */
+export function verdict(rows: Row[], drift: string[], causes: number): void {
   if (rows.length > 0 || drift.length > 0) {
     throw new Error(
-      `FAIL [migration audit: ${rows.length} invariant violation(s) in ${byCause.size} root cause(s)` +
+      `FAIL [migration audit: ${rows.length} invariant violation(s) in ${causes} root cause(s)` +
         `${drift.length ? `, ${drift.length} differential drift` : ''} — see the breakdown above]`,
     );
   }
+}
+
+/**
+ * ⛔ **CAN THIS HARNESS FAIL AT ALL?** The mirror of the healthy control above, and the half that was
+ * missing. That one proves the corpus is not vacuous — *something survives*. This proves the verdict is
+ * not vacuous — *something is caught*. **A suite needs both, and only ever had the first.**
+ *
+ * Two independent links, because they break independently:
+ *   ① the invariants still FIRE on a deliberately corrupt outcome, and
+ *   ② the verdict still THROWS when they do.
+ *
+ * ⚠️ Deleting the throw at `verdict` now reds link ②. Deleting this block is no longer *"four lines"* —
+ * it is removing a guard that says in its own name what it is for.
+ */
+export function selfCheck(): void {
+  const poisoned: DoorOutcome = {
+    door: 'self-check',
+    input: {},
+    inputBefore: '{}',
+    inputAfter: '{}',
+    store: null,
+    refused: false,
+    threw: new Error('deliberate: the self-check poisons invariant ①'),
+  };
+  const fired = checkAll(poisoned);
+  if (fired.length === 0) {
+    throw new Error('FAIL [self-check: the invariants did not fire on a deliberately corrupt outcome — this harness cannot detect anything]');
+  }
+
+  let threw = false;
+  try {
+    verdict([{ invariant: 'self-check', cause: 'self-check', example: 'deliberate' }], [], 1);
+  } catch {
+    threw = true;
+  }
+  if (!threw) {
+    throw new Error('FAIL [self-check: verdict() did not throw on a violation — the migration audit is REPORT-ONLY again]');
+  }
+
+  let threwOnDrift = false;
+  try {
+    verdict([], ['self-check-drift'], 0);
+  } catch {
+    threwOnDrift = true;
+  }
+  if (!threwOnDrift) {
+    throw new Error('FAIL [self-check: verdict() ignored differential drift — the two-door oracle is unguarded]');
+  }
+
+  console.log(`  ✓ self-check: the invariants fire (${fired.length} on a poisoned outcome) and the verdict throws`);
 }

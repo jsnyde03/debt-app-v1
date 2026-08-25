@@ -27,9 +27,29 @@ assertion relaxed, or the vacuous one stays hidden. Why, and the five ways a pla
 |---|---|---|
 | ✅ | **.11.1 – .11.14** | CLOSED 2026-08-24/25. Both blockers, all 14 majors, the `.11.9` tail and [D60]'s five. **Three new gates** — `lint:month-arithmetic` · `lint:press-opacity` · `typecheck:tests`. Detail → log |
 | ✅ | **.11.15** **[D62]/[D63] — `originalBalance` is a HIGH-WATER MARK** | CLOSED 2026-08-25. One owner, three store seams, and a `migrations.ts` invariant that reaches anyone **already stranded**. ⛔ **[D63]: no BNPL carve-out** — I recommended one, 🎯 agreed, and the test's own precondition then refuted the mechanism. Plant-verified three ways. Detail → log |
-| **.11.16** | **`validate:release:rn` green + push** | ⛔ **The harness reports exit 0 on a RED gate — nine instances.** Read the gate's own summary line, and quote `gate-status.json`; a fresh stamp means `gate:record` was reached, which is `&&`-chained behind every check |
-| **.11.17** ▶ | 🔴 **[AUDIT GATE] RE-VERIFY `.11.11`–`.11.15`, then SWEEP again for major+** | **ACTIVE — and the next session starts here, deliberately** (🎯 2026-08-25: *"the audit will do the best with fresh eyes and a new session"*). ⛔ **Read the handoff at the TOP of [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) before anything else** — it carries both jobs, the swept-clean list to extend, the four reading rules this round paid for, and the state a cold reader should not have to derive. **Exit: no blocker, and every major either closed or 🎯-deferred with its consequence written down** |
-| **.11.18** | 🔴 **THE 51 — give every P6.8 high+ finding a closure record, then flip `lint:closure` to gating** | ⚡ Surfaced by `.11.12.14`, and **it is P6.8.9's stated exit criterion**: `npm run lint:closure -- --p68` names all 51. Most are believed BUILT under a consolidated action id (`A1`, `B4`, `C6`) — the work is writing the **lens** id into the plan or log line that closed it, because a 2-character id cannot be searched for. ⛔ **Then flip the report to `exit(1)`** — leaving it report-only past zero is the same failure as never building it |
+| ✅ | **.11.16** **`validate:release:rn` green + push** | CLOSED 2026-08-25 locally — `lint:gate-freshness` green, the record (`5a5fa8c` · **689** files) still fingerprints this tree. ⚠️ **The record was written on a DIRTY tree**, so the SHA does not identify what was tested; the fingerprint does. 🔴 **CI is a SEPARATE claim and it is still open** — the `e892efb` run was **CANCELLED**, not green *(the handoff said "in flight")*; run `32897953240` for `c8d54fa` is in progress. ⛔ **Never carry a local green as a CI green.** Detail → log |
+| ✅ | **.11.17** **[AUDIT GATE] the fourth round — re-verify + sweep** | CLOSED 2026-08-25. Five auditors over `6736a64..c8d54fa`. **2 blockers · 17 majors**, ledger + method in [`audits/2026-08-25-p6.8.9.7.11.17-reverification/SUMMARY.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/SUMMARY.md). ⛔ **SUMMARY is the map; the five `{A..E}-*.md` files are the ledger.** ⚡ **Both blockers were made by the fixing**, and **12 of 17 majors are pre-existing reservoir** — the number to track is **7 self-inflicted**, not 19. ⛔ **Plan line RETIRED: a red gate CANNOT report exit 0** *(proven by reproduction)*. Detail → log |
+| **.11.18** ▶ | 🔴 **FIX — PER-SURFACE CONVERGENCE LOOPS** *(🎯 2026-08-25 — the shape changed)* | ▶ **BUILDING — S0 active, decomposed below.** ⭐ **No more fix-everything-then-audit-everything**: each surface is fixed, **re-verified immediately in the background against a pinned SHA**, repeating until **two consecutive clean passes with an EXTENDED sweep**. Order **S0 instruments → S1 money → S2 dates → S3 import → S4 discovery → cross-surface**. ⛔ **S0 first — a converged surface verified by a blind instrument is not converged.** ⛔ **Per-surface convergence is NOT sufficient: blocker 1 spans two surfaces**, so the cross-surface pass closes it. ✅ **[D65] + [D66] answered 2026-08-25.** ⚠️ M4's severity is **device-gated**. The four ways "0 on a surface" lies → log |
+| **.11.19** | 🔴 **THE CLOSURE LEDGER — drive both `MAX_UNTOKENISED` caps to 0, then flip `lint:closure` to gating** | ⚠️ **SCOPE RE-MEASURED at S0.1, and it GREW: not "the 51" but 142** — `[D37]` **55/55** + P6.8 **48/48** untokenised, plus the **39** P6.8 findings in no ledger at all. ⚡ **S0.1 built the mechanism** (`[closes: ID]`, both caps downward-only); this writes the records. ⛔ **A cap may only ever go DOWN** — raising one to pass is the defect the gate exists to catch. ⛔ At 0, delete the cap and require the token |
+
+### ▶ .11.18 · **S0 — THE INSTRUMENTS** *(the active decomposition — 2026-08-25)*
+
+⛔ **Convergence = 0 blockers / 0 majors. NO DEFERRALS** (🎯). A major exits by being **fixed** or by being
+**measured** never to have been one; a re-rating is not a proof.
+
+| # | step | exit |
+|---|---|---|
+| ✅ | **S0.1 — M12 `check-audit-closure`** | CLOSED 2026-08-25. Explicit `[closes: ID]` token + a **downward-only** `MAX_UNTOKENISED` cap on both halves. ⚡ **Found by building: the `[D37]` half has the SAME defect and it GATES at `exit(1)`** — *"all 55 trace"* on every push, **0 of 142 machine-checkable**. Both plants red. Detail → log |
+| ✅ | **S0.2 — M10 `check-month-arithmetic`** | CLOSED 2026-08-25. All 5 spellings *(each confirmed by printing its overflow)* · string-literals stripped **before** comments · +3 configs → **627 files** · legacy tree reported-not-failed with a **self-retiring** exemption. ⚡ **My first widening red-flagged 4 sites and all 4 were CORRECT code** — the day slot decides, not the month. 4 plants red + a safe control that stayed silent. Detail → log |
+| ✅ | **S0.3 — M11 `check-destructive-writes`** | CLOSED 2026-08-25. Matches the **identifier**, not a list of call shapes — the audit named 3 misses, measurement found **4**. ⚡ **Found by building: the doc-comment stripper never worked on a CRLF file** *(`.` never matches `\r`)*, and `packages/core` is **66% CRLF** — same one-line defect fixed in `check-sandbox-writes` + `check-apostrophes`. 2 plants red, CRLF control silent. Detail → log |
+| ✅ | **S0.4 — M13 pin `audit.test.ts`'s arming** | CLOSED 2026-08-25. Verdict extracted + a `selfCheck()` that proves **the invariants fire** and **the verdict throws**, run before the corpus. 2 plants red — and the drift-only plant reds with the *drift* message, so the earlier assertion does not mask it. Detail → log |
+| ✅ | **S0.5 — M14 `hostile.test.ts` non-vacuity** | CLOSED 2026-08-25. A door-reaching floor (**32/32**, downward-only). ⚡ **Counterfactual proven, not inferred:** with the control off, a corpus the file door refuses **0/32** passes green at 36 asserts. Detail → log |
+| ✅ | **S0.6 — M16 the goal PACE branch** | CLOSED 2026-08-25. **Invariant ⑨ `priorityGoalIsCapped`** — and it judges `!(pace > 0)`, not `=== 0`, because `allocatePaycheck.ts:635` treats **negative as uncapped too**. The false premise that kept the field out of `corpus.ts` is retired. Both invariant counts now derive from `INVARIANTS.length` *(two hardcoded "8"s found)*. Fires on both uncapped states, silent on 3 controls. Detail → log |
+| **S0.7** ▶ | **Gate green, then launch S0's background re-verify against a pinned SHA** | ⛔ Two consecutive clean passes with an **extended** sweep, or S0 is not converged |
+
+⛔ **Every fix plant-verified, the plant confirmed to have LANDED, and re-run with the earlier assertion
+relaxed.** ⛔ **State the direction each fix's justification runs in, and why the opposite does not apply** —
+both blockers came from skipping that.
 
 ### ⏸ Still open from P6.8.9, after the pinning build
 
@@ -435,6 +455,28 @@ hotspot)* and Dynamic-Type device QA.
 
 ⛔ **Grouped by WHERE IT LANDS, because that is how it gets read.** The `(x.y)` tag is the item whose scan
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
+
+### → surfaced by the `.11.17` audit round *(2026-08-25)* — filed, NOT in the fix cluster
+
+- 🔴 **[DEVICE] One log line on the existing probe decides whether M4 is a blocker.** *(.11.17 after-scan)*
+  `expo-sqlite`'s on-device BLOB representation is unmeasured; under `node:sqlite` the captured iOS 26.2
+  container gives 22 rows, all `Uint8Array`, **0 dropped**, but it is a **driver** property so the failure
+  is **all-or-nothing** — a Buffer-shaped return drops 22/22 and strands a whole v1.6 portfolio behind
+  *"fresh install"*. **Rec: fold the log line into the next device build** *(P6.13/P6.14)*, not a build of
+  its own.
+- **2 live `setMonth` sites remain in the LEGACY root Next surface** *(.11.17 · B)* —
+  `components/AmortizationCalendar.tsx:24`, `components/Onboarding/FirstDebtOrBillStep.tsx:15`, which
+  `check-month-arithmetic`'s `ROOTS` does not scan. **Out of `2.0.0`; P6.11 deletes that tree.** Rec: **do
+  not fix — verify the deletion covers them** at P6.11 switch-in. Filed so the count is not re-derived.
+- **The `.11.17` swept-clean list must be handed to the NEXT audit round as a ratchet** *(.11.17
+  after-scan)* — it is in `SUMMARY.md` §*"Swept and found clean"* and now carries the allocation engine's
+  14-input boundary set, the nine plan cards, `packages/core/imports/`, and `addMonths` across 5 timezones.
+- **Whether the 39 untraceable P6.8 findings are actually open**, or merely unwritable by a 2-character id
+  *(.11.17 · E)*. Answered by `.11.19`, not before — recording it so the question is not lost if M12's fix
+  changes the number again.
+- ⚠️ **`money.tsx:493`'s bar mixes a projected numerator with a stamped denominator** *(.11.17 · B, not
+  rated)* — needs the same by-direction call `.11.12.10` made. **Rec: decide it inside M1's fix**, since
+  that is the same question about the same field.
 
 ### → P6.8.9.5 — surfaced by the .9.1 re-shoot and the .9.2 verification *(2026-08-24)*
 

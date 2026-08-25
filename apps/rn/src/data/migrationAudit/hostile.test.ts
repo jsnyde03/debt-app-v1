@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { importDoor, webkitDoor } from '@/data/migrationAudit/doors';
-import { checkAll } from '@/data/migrationAudit/invariants';
+import { INVARIANTS, checkAll } from '@/data/migrationAudit/invariants';
 
 /**
  * 5.10.5 — hostile v1.6 states the combinatorial generator structurally cannot produce.
@@ -23,6 +23,13 @@ import { checkAll } from '@/data/migrationAudit/invariants';
  * The same eight invariants judge these as judge the generated corpus. Nothing here asserts an expected
  * output; if these shapes are safe, they are safe by the same properties everything else is.
  */
+
+/**
+ * ⛔ **DOWNWARD-ONLY, like every other floor in this cluster.** Set to the measured count at S0.5. A case
+ * that stops opening is a real change to what this corpus tests, and it must be SEEN rather than absorbed:
+ * if a fixture is legitimately retired, lower this deliberately. **Never raise it to make a run pass.**
+ */
+const HOSTILE_FLOOR = 32; // measured S0.5: 32/32 through both doors
 
 let passed = 0;
 function assert(cond: boolean, label: string) {
@@ -48,11 +55,18 @@ export default async function run() {
 
   const violations: string[] = [];
   let drift = 0;
+  /** ⛔ The non-vacuity control — see the assertion after the loop. */
+  let openedFile = 0;
+  let openedKeys = 0;
+  const refusedBoth: string[] = [];
 
   for (const testCase of CASES) {
     assert(!!testCase.blob && typeof testCase.blob === 'object', `${testCase.id}: has a blob`);
     const viaFile = importDoor(testCase.blob);
     const viaKeys = await webkitDoor(testCase.blob);
+    if (viaFile.store) openedFile++;
+    if (viaKeys.store) openedKeys++;
+    if (!viaFile.store && !viaKeys.store) refusedBoth.push(testCase.id);
 
     for (const violation of [...checkAll(viaFile), ...checkAll(viaKeys)]) {
       violations.push(`${testCase.id} → ${violation.invariant}: ${violation.detail}`);
@@ -64,11 +78,36 @@ export default async function run() {
     }
   }
 
-  console.log(`  5.10.5 — ${CASES.length} agent-generated hostile v1.6 states × 2 doors × 8 invariants`);
+  console.log(`  5.10.5 — ${CASES.length} agent-generated hostile v1.6 states × 2 doors × ${INVARIANTS.length} invariants`);
   if (violations.length) {
     console.log(`  ⛔ ${violations.length} violation(s):`);
     for (const line of violations.slice(0, 12)) console.log(`     ${line}`);
   }
+  /**
+   * ⛔ **THE NON-VACUITY CONTROL — a refused corpus is this suite's PASS CONDITION without it.**
+   * [P6.8.9.7.11.18 · S0.5 · M14]
+   *
+   * ⚠️ The `CASES.length >= 20` floor above guards the corpus going *empty*. It does not guard the corpus
+   * going *unreadable* — and those are different failures with the same green. If these blobs stop being
+   * recognised as v1.6 (a detection change, a renamed key, a version bump), **both doors refuse, no
+   * invariant has anything to judge, `violations` is `[]`, and every assertion below passes** while not
+   * one line of migration code ran.
+   *
+   * ⚡ **This is `.11.13.6`'s defect exactly** — four fixtures there asserted *"does not throw"* over a
+   * door that never opened, because `raw-v17` detection needs `storeVersion` + `paycheck` + `debts`
+   * **together**. The fixtures were fixed; the harness that could not have noticed was not.
+   *
+   * ⛔ **Deliberately NOT "all 32 must open."** A hostile blob that a door safely REFUSES is a correct
+   * outcome and one of the things this corpus exists to produce. The floor asserts the corpus still
+   * *reaches* the logic, not that every case survives it.
+   */
+  console.log(`  doors opened: ${openedFile}/${CASES.length} file · ${openedKeys}/${CASES.length} webkit · ${refusedBoth.length} refused by both`);
+  if (refusedBoth.length) console.log(`     refused by both: ${refusedBoth.slice(0, 8).join(', ')}`);
+  assert(
+    openedFile >= HOSTILE_FLOOR && openedKeys >= HOSTILE_FLOOR,
+    `the hostile corpus still REACHES the migration logic — file ${openedFile}, webkit ${openedKeys}, floor ${HOSTILE_FLOOR} (a corpus refused at the door satisfies every invariant vacuously)`,
+  );
+
   assert(violations.length === 0, `no invariant violations across the hostile corpus (${violations.length})`);
   assert(drift === 0, `the two doors agree on every hostile state (${drift} disagreed)`);
 

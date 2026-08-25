@@ -64,6 +64,49 @@ const SOURCES = [
   join(FINDINGS, 'L9-refutations.md'),
 ];
 
+/**
+ * ⭐ **THE EXPLICIT CLOSURE TOKEN — `[closes: L5-5 M2-1]`.** *(P6.8.9.7.11.18 · S0.1 · M12)*
+ *
+ * ⛔ **Everything above this line is a MENTION check over prose, and a mention is not a closure.**
+ * `.11.17` measured the P6.8 half counting **one sentence** — the fixer's own postmortem listing twelve
+ * ids as untraceable — as the closure record for eleven of them. The gate's count went 39 → 51 → 39 inside
+ * one commit range, and the second move was made by *the documentation of the first*.
+ *
+ * ⚡ **AND THE SAME DEFECT IS IN THE `[D37]` HALF, WHICH GATES AT `exit(1)`** and prints
+ * *"all 55 high+ findings trace"* on every push. It is the same mention check over the same prose.
+ *
+ * ⛔ **WHY A CLEVERER REGEX IS NOT THE FIX — measured twice, wrong twice, while writing this.** A
+ * same-line closure-verb heuristic rejects `*(all closed at 7a)*` when the verb is capitalised, and
+ * rejects `**T3.6 · L5-5 — the stranded filter.**` — a genuine closure written as step-id attribution —
+ * when it is not. **Prose mis-classifies in BOTH directions**, which is this file's own stated reason for
+ * refusing an alias map (`:51-56`), arriving from the other end.
+ *
+ * ⚠️ **SO THE NUMBER BELOW IS NOT "COINCIDENCES" — that was the first draft's overclaim, and it does not
+ * survive contact with the corpus.** Some of these are real closures written in prose; some are the
+ * postmortem sentence that rescued eleven ids. ⛔ **The instrument cannot tell them apart, and that IS the
+ * finding.** What is counted is exactly what can be said: **closures that are not machine-checkable.**
+ * Measured at `c8d54fa`: **0 of 142** carry a token, so both caps start at *everything*.
+ *
+ * ⚠️ **The token does not replace the mention check — it RATCHETS it.** Requiring it outright would red
+ * both halves on 142 findings and block every other surface's gate run. Instead the untokenised count is
+ * printed and **capped by `MAX_UNTOKENISED`, which may only ever go DOWN**. A NEW finding that lands
+ * without a token reds immediately; the backlog is retired by `.11.19`, which lowers each cap as it writes
+ * tokens. ⛔ **When a cap reaches 0, delete it and require the token outright.**
+ */
+const CLOSES = /\[closes:\s*([^\]]+)\]/g;
+const explicit = new Set<string>();
+for (const src of SOURCES) {
+  for (const m of readFileSync(src, 'utf8').matchAll(CLOSES)) {
+    for (const id of m[1].split(/[\s,·]+/)) if (id.trim()) explicit.add(id.trim());
+  }
+}
+
+/**
+ * ⛔ **DOWNWARD ONLY. Raising either number to make a gate pass is the defect this gate exists to catch.**
+ * Both measured at `c8d54fa` by a probe reproducing this file's own parsers and regexes verbatim.
+ */
+const MAX_UNTOKENISED = { d37: 55, p68: 48 };
+
 interface Finding {
   id: string;
   lens: string;
@@ -102,6 +145,7 @@ for (const src of SOURCES) {
 }
 
 const missing = highPlus.filter((id) => !recorded.has(id));
+const d37Untokenised = [...new Set(highPlus)].filter((id) => recorded.has(id) && !explicit.has(id));
 if (missing.length > 0) {
   console.error(`\n❌ [D37]: ${missing.length} of ${highPlus.length} high+ findings are not traceable.\n`);
   missing.forEach((id) => console.error(`  ${id}`));
@@ -110,6 +154,25 @@ if (missing.length > 0) {
   process.exit(1);
 }
 console.log(`✅ [D37]: all ${highPlus.length} high+ findings trace to a closure or a recorded refutation.`);
+
+// ⛔ …and how much of that green is a COINCIDENCE. See the `[closes: …]` docstring above.
+if (d37Untokenised.length > MAX_UNTOKENISED.d37) {
+  console.error(
+    `\n❌ [D37] untokenised-closure cap: ${d37Untokenised.length} high+ findings trace ONLY by an unmarked mention ` +
+      `(cap ${MAX_UNTOKENISED.d37}).\n`,
+  );
+  d37Untokenised.forEach((id) => console.error(`  ${id}`));
+  console.error(
+    `\n  A mention is not a closure. Record it where the closure IS, with the explicit token:\n` +
+      `      [closes: ${d37Untokenised[0]}]\n` +
+      `  ⛔ Do NOT raise the cap — it only ever goes down.\n`,
+  );
+  process.exit(1);
+}
+console.log(
+  `   ⚠️ …but ${d37Untokenised.length} of ${new Set(highPlus).size} trace ONLY by an unmarked mention ` +
+    `(cap ${MAX_UNTOKENISED.d37}, downward-only). ${explicit.size} carry an explicit \`[closes: …]\` token.`,
+);
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 // [P6.8.9-1] THE P6.8 FINISH SWEEP — same promise, same strictness, different id shape.
@@ -158,6 +221,21 @@ for (const src of SOURCES) {
 const p68HighPlus = p68.filter((f) => f.severity === 'blocker' || f.severity === 'major');
 const p68Missing = p68HighPlus.filter((f) => !p68Recorded.has(f.id));
 
+// ⛔ Traced, but by prose that only DISCUSSES the finding. See the `[closes: …]` docstring above.
+const p68Untokenised = p68HighPlus.filter((f) => p68Recorded.has(f.id) && !explicit.has(f.id));
+if (p68Untokenised.length > MAX_UNTOKENISED.p68) {
+  console.error(
+    `\n❌ P6.8 untokenised-closure cap: ${p68Untokenised.length} high+ findings trace ONLY by an unmarked mention ` +
+      `(cap ${MAX_UNTOKENISED.p68}).\n`,
+  );
+  p68Untokenised.forEach((f) => console.error(`  ${f.id.padEnd(8)} ${f.lens}`));
+  console.error(
+    `\n  Record it where the closure IS: [closes: ${p68Untokenised[0]?.id}]\n` +
+      `  ⛔ Do NOT raise the cap — it only ever goes down.\n`,
+  );
+  process.exit(1);
+}
+
 // ⛔ **REPORT-ONLY UNTIL P6.8.9, AND THAT IS A DESIGN CHOICE WITH A DATE ON IT.**
 //
 // The sweep is mid-build: P6.8.7c–g are unwritten, so an untraced high+ finding is the EXPECTED state
@@ -177,7 +255,9 @@ if (p68Missing.length > 0) {
     `📋 P6.8 sweep: ${p68Missing.length} of ${p68HighPlus.length} high+ findings are named in NO CLOSURE ledger ` +
       `(plan · log · refutations). Report-only until P6.8.9 — see the note in this file.\n` +
       `   ⚠️ The audit's own SYNTHESIS is deliberately NOT counted (D-J2-5) — a finding is closed by a line ` +
-      `in the plan or log naming its LENS id, not by the audit that raised it.`,
+      `in the plan or log naming its LENS id, not by the audit that raised it.\n` +
+      `   ⚠️ Of the ${p68HighPlus.length - p68Missing.length} that DO trace, ${p68Untokenised.length} trace ` +
+      `only by an unmarked mention (cap ${MAX_UNTOKENISED.p68}, downward-only) — a mention is not a closure.`,
   );
   if (process.argv.includes('--p68')) {
     for (const f of p68Missing) console.log(`   ${f.id.padEnd(8)} ${f.lens.padEnd(22)} ${f.title.slice(0, 70)}`);

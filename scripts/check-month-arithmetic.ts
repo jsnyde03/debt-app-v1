@@ -22,7 +22,7 @@
  *
  * Usage: tsx scripts/check-month-arithmetic.ts
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -31,12 +31,111 @@ const ROOTS = [
   join(REPO_ROOT, 'apps', 'rn', 'src'),
   join(REPO_ROOT, 'apps', 'rn', 'tests'),
   join(REPO_ROOT, 'scripts'),
+  // [S0.2] `apps/rn`'s three playwright configs sat outside every root above.
+  join(REPO_ROOT, 'apps', 'rn', 'playwright.config.ts'),
+  join(REPO_ROOT, 'apps', 'rn', 'playwright.embed.config.ts'),
+  join(REPO_ROOT, 'apps', 'rn', 'playwright.shots.config.ts'),
+];
+
+/**
+ * ⛔ **THE LEGACY ROOT SURFACE — SCANNED, REPORTED, NOT FAILED, AND THE EXEMPTION SELF-RETIRES.**
+ *
+ * [P6.8.9.7.11.17 · B] measured **2 live unconverted sites** here — `components/AmortizationCalendar.tsx`
+ * and `components/Onboarding/FirstDebtOrBillStep.tsx` — in a tree **P6.11 deletes outright**. They are not
+ * in `2.0.0`, so failing on them would block every other surface's gate run to fix code that is about to
+ * cease existing.
+ *
+ * ⚠️ **But an exemption with no expiry is how a scope hole becomes permanent.** So the paths are asserted
+ * to EXIST: when P6.11 deletes the tree, this gate **fails** until the entry is removed — the exemption
+ * cannot outlive its reason, and nobody has to remember it.
+ */
+const PENDING_DELETION = [
+  join(REPO_ROOT, 'app'),
+  join(REPO_ROOT, 'components'),
+  join(REPO_ROOT, 'lib'),
+  join(REPO_ROOT, 'tests'),
 ];
 
 /** The one module allowed to define the step. */
 const EXEMPT = [join('packages', 'core', 'utils', 'addMonths.ts')];
 
-const BANNED = /\.\s*(setMonth|setFullYear)\s*\(/;
+/**
+ * ⛔ **FIVE SPELLINGS, NOT ONE.** [P6.8.9.7.11.17 · B + E, independently] this gate matched `setMonth` and
+ * `setFullYear` only. **Measured at S0.2 by printing the values, not by reading:**
+ *
+ * | spelling | Jan 31 + 1 month | matched before |
+ * |---|---|---|
+ * | `d.setMonth(d.getMonth() + 1)` | `2026-03-03` | ✅ |
+ * | `new Date(y, m + 1, d.getDate())` | **`2026-03-03`** — identical | ❌ |
+ * | `d.setUTCMonth(d.getUTCMonth() + 1)` | **`2026-03-03`** — identical | ❌ |
+ * | `d.setFullYear(y + 1)` on Feb 29 | `2025-03-01` | ✅ |
+ * | `new Date(y + 1, m, d.getDate())` on Feb 29 | **`2025-03-01`** — identical | ❌ |
+ *
+ * ⚡ **And the constructor form is the one the OWNER FILE demonstrates.** `addMonths.ts:25` is
+ * `new Date(date.getFullYear(), date.getMonth() + months, 1)`. That is **safe** — day `1` cannot overflow,
+ * which is exactly the trick that makes `addMonths` correct — but an author who reds on this gate opens the
+ * owner module to learn the house form, and substituting `d.getDate()` for the `1` reproduces the original
+ * blocker with the gate green. **Same shape as the bare-`announce` gate missing `announceForAccessibility?.(…)`:
+ * the miss is the spelling a new author copies from the file they are told to copy.**
+ *
+ * ⛔ So the constructor check bans a stepped month/year **only when the day argument can overflow** — a
+ * literal `0` or `1` is the sanctioned idiom and stays legal.
+ */
+const BANNED = /\.\s*(setMonth|setFullYear|setUTCMonth|setUTCFullYear)\s*\(/;
+
+/**
+ * ⛔ **THE DAY SLOT IS WHAT DECIDES, NOT THE MONTH SLOT — and the first cut of this got it wrong.**
+ *
+ * A `+`/`-` in the month slot alone flags correct code. Measured at S0.2, the widened check fired on 4
+ * sites and **all 4 were false positives**:
+ *
+ * - `getNextPaycheckDate.ts:61,62,76` — `new Date(year, month + 1, clampDay(year, month + 1, payDay))`.
+ *   `clampDay` is `Math.min(day, new Date(y, m + 1, 0).getDate())`, i.e. the day is **clamped to the
+ *   target month before construction**. That is the same trick that makes `addMonths` correct.
+ * - `DateField.tsx:41` — `new Date(y, m - 1, d)` parsing `YYYY-MM-DD`. `m - 1` is a **1-based to 0-based
+ *   index conversion**, not a step by months.
+ *
+ * ⚡ **A gate that reds on correct code gets deleted rather than obeyed** — this file already says exactly
+ * that about its own comment-stripping. So the discriminator is the DAY: the defect is *carrying a source
+ * date's day across a month step*, whose signature is `getDate()` in the day slot —
+ * `new Date(d.getFullYear(), d.getMonth() + n, d.getDate())`, the original blocker, verbatim.
+ *
+ * ⚠️ **Named residual, not hidden:** a day pre-extracted into a variable (`const day = d.getDate()` on an
+ * earlier line, then `new Date(y, m + n, day)`) is NOT matched — this is a line-based gate with no symbol
+ * table. The `setMonth` family ban above still covers the common spelling, and `addMonths` remains the
+ * owner. **If that shape ever appears, this needs a real parser, not a wider regex.**
+ */
+const DAY_CARRIES_SOURCE = /getDate\s*\(\s*\)/;
+
+/** Split `new Date(` arguments at top level — nested calls like `d.getMonth()` must not split. */
+function dateArgs(line: string, from: number): string[] | null {
+  let depth = 0;
+  const args: string[] = [];
+  let cur = '';
+  for (let i = from; i < line.length; i++) {
+    const c = line[i];
+    if (c === '(') { depth++; if (depth === 1) continue; }
+    if (c === ')') { depth--; if (depth === 0) { args.push(cur); return args; } }
+    if (c === ',' && depth === 1) { args.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  return null; // unbalanced on this line — a multi-line call, not judged here
+}
+
+/** `new Date(y, m ± n, day)` / `new Date(y ± n, m, day)` with a day that can overflow. */
+function constructorOverflow(line: string): boolean {
+  for (const m of line.matchAll(/new\s+Date\s*\(/g)) {
+    const args = dateArgs(line, m.index + m[0].length - 1);
+    if (!args || args.length < 3) continue;
+    const [year, month, day] = args;
+    // The step: a `+`/`-` offset in the month or year slot. The defect: an UNCLAMPED source day carried
+    // into it. Both halves are required — see `DAY_CARRIES_SOURCE` for the four false positives that
+    // proved the month slot alone is not enough.
+    if (!DAY_CARRIES_SOURCE.test(day)) continue;
+    if (/[+\-]/.test(month) || /[+\-]/.test(year)) return true;
+  }
+  return false;
+}
 
 const EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.cjs', '.mjs']);
 
@@ -56,27 +155,57 @@ function walk(dir: string, out: string[] = []): string[] {
  * numbers are preserved so a real hit still points at the right line.
  */
 function stripComments(src: string): string {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1: string) => p1 + ' '.repeat(m.length - p1.length));
+  return (
+    src
+      // ⛔ **STRING LITERALS FIRST, and this was a live hole.** [P6.8.9.7.11.17 · B] a `//` inside a
+      // string blanked the REST OF THE LINE, taking a real call with it — measured at S0.2:
+      // `const s = 'a // b'; d.setMonth(d.getMonth() + 1);` stripped to `const s = 'a` and the ban did
+      // not match. The `[^:]` guard was there to spare `https://`, which addressed the symptom in URLs
+      // and left every other string open. Blanking literal CONTENTS first removes the cause: the `//`
+      // is gone before the comment pass ever runs, and code outside the quotes survives intact.
+      .replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, (m) =>
+        m.replace(/[^\n]/g, ' '),
+      )
+      .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+      .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1: string) => p1 + ' '.repeat(m.length - p1.length))
+  );
+}
+
+function scan(roots: string[], out: string[]): number {
+  let n = 0;
+  for (const root of roots) {
+    const files = statSync(root).isDirectory() ? walk(root) : [root];
+    for (const file of files) {
+      const rel = relative(REPO_ROOT, file);
+      if (EXEMPT.some((e) => rel === e)) continue;
+      n++;
+      const raw = readFileSync(file, 'utf8');
+      const lines = raw.split('\n');
+      stripComments(raw)
+        .split('\n')
+        .forEach((line, i) => {
+          if (BANNED.test(line) || constructorOverflow(line)) {
+            out.push(`${rel}:${i + 1}: ${lines[i]?.trim() ?? ''}`);
+          }
+        });
+    }
+  }
+  return n;
 }
 
 const hits: string[] = [];
-let scanned = 0;
-for (const root of ROOTS) {
-  for (const file of walk(root)) {
-    const rel = relative(REPO_ROOT, file);
-    if (EXEMPT.some((e) => rel === e)) continue;
-    scanned++;
-    const raw = readFileSync(file, 'utf8');
-    const lines = raw.split('\n');
-    stripComments(raw)
-      .split('\n')
-      .forEach((line, i) => {
-        if (BANNED.test(line)) hits.push(`${rel}:${i + 1}: ${lines[i]?.trim() ?? ''}`);
-      });
-  }
+const scanned = scan(ROOTS, hits);
+
+// ⛔ The legacy tree: reported, not failed — and the exemption self-retires. See `PENDING_DELETION`.
+const legacyHits: string[] = [];
+const missingPending = PENDING_DELETION.filter((p) => !existsSync(p));
+if (missingPending.length > 0) {
+  console.error('\n❌ PENDING_DELETION names a path that no longer exists — P6.11 has run.\n');
+  missingPending.forEach((p) => console.error(`  ${relative(REPO_ROOT, p)}`));
+  console.error('\n  Delete the entry from check-month-arithmetic.ts. An exemption must not outlive its reason.\n');
+  process.exit(1);
 }
+const legacyScanned = scan(PENDING_DELETION, legacyHits);
 
 if (hits.length > 0) {
   console.error('\n❌ A date stepped by months with setMonth/setFullYear (overflows a short month forward):\n');
@@ -86,4 +215,14 @@ if (hits.length > 0) {
   process.exit(1);
 }
 
-console.log(`✅ month arithmetic: ${scanned} files, no setMonth/setFullYear outside ${EXEMPT.join(', ')}.`);
+if (legacyHits.length > 0) {
+  console.log(
+    `\n⚠️  legacy tree (${legacyScanned} files, P6.11 deletes it): ${legacyHits.length} unconverted site(s), reported not failed:`,
+  );
+  legacyHits.forEach((h) => console.log(`   ${h}`));
+}
+
+console.log(
+  `✅ month arithmetic: ${scanned} files, no setMonth/setUTCMonth/setFullYear/setUTCFullYear and no ` +
+    `overflowing \`new Date(y, m±n, day)\` outside ${EXEMPT.join(', ')}.`,
+);

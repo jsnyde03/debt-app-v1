@@ -83,9 +83,19 @@ const MONEY_FIELDS = ['balance', 'minimumPayment', 'apr', 'amount'] as const;
  * completion without ever looking at a goal, while `migrations.ts` records two separate goal-money
  * findings in its own comments, both found by people reading rather than by this.
  *
- * ⚠️ `priorityPerPaycheck` is listed for completeness and is not reachable through either audited door
- * today — it is a v1.7 field and both doors take v1.6 shapes. The instrument that reaches it is
- * `persistenceLifecycle.test.ts`. Listing it here costs nothing and closes the hole the day a door does.
+ * ⛔ **THE PARAGRAPH THAT USED TO SIT HERE WAS FALSE, AND IT WAS LOAD-BEARING.**
+ * [P6.8.9.7.11.18 · S0.6 · M16] It claimed `priorityPerPaycheck` *"is not reachable through either audited
+ * door today — it is a v1.7 field and both doors take v1.6 shapes."* **Measured false at `.11.17`:**
+ * `mapLegacyStore` carries `goals` **straight across**, so a goal object in a v1.6-shaped blob passes any
+ * field it likes through both doors — and the hostile fixture `goal-pace-unreadable-on-a-priority-goal`
+ * does exactly that, one directory over, through both.
+ *
+ * ⚠️ **It was load-bearing because it is the stated justification for `corpus.ts` not adding the field to
+ * its nested-damage axis** — so the generated corpus produced **0 of 522** goals carrying a pace and hit
+ * the stand-down **0 times.** A wrong sentence in a comment kept a whole branch out of the corpus.
+ * ⚡ **`findings-cite-comments-as-evidence`, and here the comment was ours.**
+ *
+ * ⭐ The branch itself is now judged by invariant ⑨, `priorityGoalIsCapped`, below.
  */
 const GOAL_MONEY_FIELDS = ['targetAmount', 'currentAmount', 'priorityPerPaycheck'] as const;
 
@@ -178,6 +188,47 @@ export const repairsAreNotRepeated: Invariant = (o) => {
     : v('repairs-not-repeated', `${o.door}: ${o.second.dataRepairs.length} repair(s) re-reported on a clean second pass`);
 };
 
+/**
+ * ⑨ **A PRIORITY GOAL MAY NOT EMERGE UNCAPPED.** [P6.8.9.7.11.18 · S0.6 · M16]
+ *
+ * ⛔ **The branch this judges is the one `migrations.ts:228` calls *"the only finding in that pass that
+ * reaches a user's money"*, and ZERO of the eight invariants above could see it.** Measured at `.11.17`:
+ * simulate the stand-down being deleted, so a goal keeps `priority: true` with a pace repaired to `0`, and
+ * `checkAll` returns `[]`. `moneyKeepsItsType` passes because `0` is a finite number; `idempotent` and
+ * `repairsAreNotRepeated` pass because a second pass over a finite `0` records nothing.
+ *
+ * ⚡ **`0` is not one repair — it is fail-VISIBLE for a balance and fail-SILENT for a pace.** A $12,000
+ * card repaired to $0 is obviously wrong to whoever is looking. A pace repaired to $0 looks like nothing
+ * and quietly redirects every spare dollar away from the user's debt.
+ *
+ * ⛔ **NOT `=== 0` — `> 0` is the real gate, so NEGATIVE is uncapped too.** `allocatePaycheck.ts:635` is
+ * `pace != null && pace > 0 ? pace : Infinity` and `recommendedActions.ts:80` guards identically. An
+ * invariant written against `0` alone would have left the negative half of the same hole open, which is
+ * the enumerate-the-spellings mistake this cluster has now paid for four times.
+ *
+ * ⚠️ **Cannot false-positive on legitimate data:** the stand-down `delete`s `priorityPerPaycheck` on BOTH
+ * of its branches — whether or not the goal is `governed` — so no correctly-migrated store can carry
+ * `priority: true` with a non-positive pace. A goal with `priority: false` is skipped deliberately: its
+ * pace governs nothing.
+ */
+export const priorityGoalIsCapped: Invariant = (o) => {
+  if (!o.store) return null;
+  const bad: string[] = [];
+  const goals: unknown = o.store.goals;
+  if (!Array.isArray(goals)) return null;
+  goals.forEach((row, i) => {
+    if (!row || typeof row !== 'object') return;
+    const g = row as Record<string, unknown>;
+    if (g.priority !== true) return;
+    const pace = g.priorityPerPaycheck;
+    if (pace === undefined || pace === null) return;
+    if (typeof pace !== 'number' || !(pace > 0)) {
+      bad.push(`goals[${i}] is priority with priorityPerPaycheck ${JSON.stringify(pace)} — reads as UNCAPPED`);
+    }
+  });
+  return bad.length ? v('priority-goal-is-capped', bad.join('; ')) : null;
+};
+
 export const INVARIANTS: Invariant[] = [
   neverThrows,
   nothingSilentlyDropped,
@@ -187,6 +238,7 @@ export const INVARIANTS: Invariant[] = [
   refusalIsTotal,
   idempotent,
   repairsAreNotRepeated,
+  priorityGoalIsCapped,
 ];
 
 export function checkAll(outcome: DoorOutcome): Violation[] {
