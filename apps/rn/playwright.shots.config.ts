@@ -27,7 +27,19 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
   },
   webServer: {
-    command: `npm --prefix "${RN_DIR}" run export:web && npx serve "${path.join(RN_DIR, 'dist')}" -l ${PORT} -s`,
+    // ⛔ **[P6.8.9.7.11.14.3] `--clear`, AND THIS IS THE THIRD CONFIG TO NEED IT.** 3.5.7.4 measured that
+    // Metro's transform cache does NOT invalidate on an `EXPO_PUBLIC_*` change, and wrote the fix into
+    // `playwright.embed.config.ts`. `playwright.config.ts`'s own comment then records applying it to *"ONE
+    // of the two configs"* — and nobody looked at the third. This one exports flag-free, so after any
+    // `test:e2e:embed` run (flag=1) it could reuse the embed's transforms and emit a `dist/` whose storage
+    // backing is `sessionStorage`.
+    //
+    // ⚡ **That failure is worse HERE than in the gate.** `reseed` writes `localStorage`, so the matrix
+    // would photograph the un-seeded app — 300+ plausible frames of the wrong state, which is precisely
+    // the *"photographs the wrong thing, quietly"* class this instrument exists to catch, turned on the
+    // instrument itself. ⚠️ Not re-measured for THIS config; the mechanism is the one already measured
+    // and the fix costs a cold export, so the cheap side of the bet is to take it.
+    command: `npm --prefix "${RN_DIR}" run export:web -- --clear && npx serve "${path.join(RN_DIR, 'dist')}" -l ${PORT} -s`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,

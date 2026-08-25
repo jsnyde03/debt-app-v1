@@ -1,11 +1,11 @@
 import { EXPORT_BACKUP_TITLE, FILE_UNREADABLE, IMPORT_BACKUP_TITLE, REPLACE_DATA_ACTION } from '@core/copy/vocabulary';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { FormSheet } from '@/components/ui/FormSheet';
-import { backupFilename, serializeBackup } from '@/data/backup';
+import { backupFilename, describeStoreContents, serializeBackup } from '@/data/backup';
 import { BACKUP_FILE_SUPPORTED, exportBackupFile, pickBackupFile } from '@/data/backupFile';
 import { describeBackup, readBackup, type ReadBackupSuccess } from '@/data/readBackup';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -24,7 +24,14 @@ import { notify } from '@/utils/confirm';
  * neither the sheet nor the picker re-implements the shape.
  */
 
-/** Export: shows the full store as selectable JSON to copy somewhere safe. */
+/**
+ * Export: says what the backup HOLDS, offers the action that saves it, and keeps the raw JSON one tap away.
+ *
+ * ⚠️ This sentence used to read *"shows the full store as selectable JSON to copy somewhere safe"*, which
+ * described the sheet accurately until `.11.14.2` and then described nothing. ⛔ **The file that documents
+ * a surface is the last place anyone checks after changing it** — the same decay `L4-13`'s token docstring
+ * was caught in, where the past tense claimed a fix that had only reached half the sites.
+ */
 export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();
   const store = useAppStore((s) => s.store);
@@ -33,6 +40,7 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
   // the app's own export a total-loss round trip: measured at 1 debt → 0, income 2100 → blank.
   const json = serializeBackup(store);
   const [copied, setCopied] = useState(false);
+  const [showRaw, setShowRaw] = useState(false);
 
   async function copy() {
     await Clipboard.setStringAsync(json);
@@ -47,26 +55,67 @@ export function ExportBackupSheet({ onClose }: { onClose: () => void }) {
     if (!result.ok) notify("Couldn’t save", 'Saving the file failed. You can still copy the text below.');
   }
 
+  /**
+   * ⛔ [P6.8.9.7.11.14.2 · audit P1-5] THE SHEET'S PRIMARY ACTION IS THE ONE THAT BACKS SOMETHING UP.
+   *
+   * It was `Done` — filled, sticky, and it dismisses. `Copy to clipboard`, the only control on the sheet
+   * that puts the user's data anywhere, was the secondary treatment. **A user could press the most
+   * prominent button on the screen and back up nothing.**
+   *
+   * ⚠️ **And the frame that finding was written from is a WEB frame.** `BACKUP_FILE_SUPPORTED` is `false`
+   * in `backupFile.web.ts` and `true` on iOS, so the capture matrix could not photograph the filled
+   * `Save as a file` button the shipping platform renders — where the real defect was **two** filled
+   * buttons competing, not one inverted. Both platforms are fixed by the same move, because the platform
+   * decides which action is primary and `Done` is never it.
+   */
+  const primary = BACKUP_FILE_SUPPORTED
+    ? { label: 'Save as a file', onPress: saveFile }
+    : { label: copied ? 'Copied ✓' : 'Copy to clipboard', onPress: copy };
+
   return (
     <FormSheet
       visible
       title={EXPORT_BACKUP_TITLE}
-      subtitle="Copy this and save it somewhere safe. Paste it into Import to restore."
-      submitLabel="Done"
-      onSubmit={onClose}
-      onClose={onClose}>
+      subtitle="Save this somewhere safe. You can bring it back any time from Import."
+      submitLabel={primary.label}
+      onSubmit={primary.onPress}
+      onClose={onClose}
+      footerAccessory={<Button label="Done" variant="text" testID="backup-export-done" onPress={onClose} />}>
+      {/* ⛔ THE WORST SINGLE FRAME IN THE MATRIX WAS THIS SHEET LEADING WITH `"formatVersion": 1,
+          "storeVersion": 7, "paycheck": { "amount": "2000" …`. The bar is that a trust surface lets the
+          user see the RESTRAINT working; this let them see the schema, inside the one interaction where
+          they are being asked to believe the data is theirs. It now says what is in the backup, in the
+          same words the import sheet uses before a destructive replace — one owner, so the two doors
+          cannot drift. */}
+      <Text testID="backup-export-summary" style={[textStyles.body, { color: c.text.primary }]}>
+        {`This backup has ${describeStoreContents(store)}.`}
+      </Text>
       {BACKUP_FILE_SUPPORTED ? (
-        <Button label="Save as a file" variant="primary" testID="backup-export-file" onPress={saveFile} />
+        <Button label={copied ? 'Copied ✓' : 'Copy to clipboard'} variant="secondary" onPress={copy} />
       ) : null}
-      <Button label={copied ? 'Copied ✓' : 'Copy to clipboard'} variant="secondary" onPress={copy} />
-      <TextInput
-        testID="backup-export-text"
-        value={json}
-        editable={false}
-        multiline
-        selectTextOnFocus
-        style={[styles.code, { color: c.text.primary, backgroundColor: c.background.secondary, borderColor: c.border.control }]}
-      />
+      {/* ⚠️ The raw text stays REACHABLE, not deleted. It is the whole copy/paste path on web, it is what
+          `backup.spec.ts`'s round trip reads, and hiding a user's own data from them on a trust surface
+          would invert the point of the fix. What changed is which one is the FACE of the sheet. */}
+      <Pressable
+        onPress={() => setShowRaw((v) => !v)}
+        hitSlop={6}
+        accessibilityRole="button"
+        testID="backup-export-raw-toggle"
+        accessibilityLabel={showRaw ? 'Hide the raw backup data' : 'Show the raw backup data'}>
+        <Text style={[textStyles.caption, styles.rawToggle, { color: c.accent.primary }]}>
+          {showRaw ? 'Hide the raw data' : 'Show the raw data'}
+        </Text>
+      </Pressable>
+      {showRaw ? (
+        <TextInput
+          testID="backup-export-text"
+          value={json}
+          editable={false}
+          multiline
+          selectTextOnFocus
+          style={[styles.code, { color: c.text.primary, backgroundColor: c.background.secondary, borderColor: c.border.control }]}
+        />
+      ) : null}
     </FormSheet>
   );
 }
@@ -161,6 +210,7 @@ export function ImportBackupSheet({ onClose }: { onClose: () => void }) {
 }
 
 const styles = StyleSheet.create({
+  rawToggle: { fontWeight: '600' },
   code: {
     minHeight: 180,
     maxHeight: 320,

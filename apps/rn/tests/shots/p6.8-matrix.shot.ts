@@ -133,6 +133,20 @@ type StateName = keyof typeof STATES;
 const FAST = 8_000;
 
 /**
+ * [P6.8.9.7.11.14.3] A Skia canvas gets a longer leash than a DOM node, and `FAST` is not it.
+ *
+ * ⛔ **Do NOT read a number off one run.** A `band-milestone` probe measured 16,161 ms once at
+ * `phone-small` and **1,836 ms** on the very next run of the same recipe — so "that viewport paints
+ * slower" was a mechanism invented from n=1, and it was wrong. What the two `⛔ UNREACHED` frames
+ * actually shared was a coach mark scrolling the canvas off-screen; the timeout was the symptom.
+ *
+ * This exists because `FAST`'s job is *"a recipe that cannot reach its subject must cost seconds"* — true
+ * of a heading, and the wrong budget for a lazily-loaded CanvasKit chunk. Matched to `settle`'s own
+ * 15 s skeleton wait, which is the only other Skia-aware timeout in this file.
+ */
+const SKIA = 15_000;
+
+/**
  * ⛔ **[P6.8.9.7.11.12.11 · D-J2-2] THE SCREEN'S OWN IDENTITY, and it is why `ready` is not optional.**
  *
  * `Screen` renders its `title` with `accessibilityRole="header"`, which RNW emits as `role="heading"` — so
@@ -237,6 +251,106 @@ const SURFACES: Surface[] = [
   },
   { name: 'cushion-forecast', goto: '/cushion-forecast', ready: heading('Your cushion forecast') },
   { name: 'paywall', goto: '/paywall', seedOver: { subscriptionPlan: 'free' }, ready: heading('Premium') },
+
+  /**
+   * ⛔ **[P6.8.9.7.11.14.3 · audit P1-1] THE FOUR EMOTIONAL BEATS, WHICH HAD ZERO FRAMES BETWEEN THEM.**
+   *
+   * The finding: *"The matrix carries 14 sheet frames and 40 Dynamic-Type frames but not one frame of the
+   * moment the entire motion spec is built around."* `DEBT_MOTION_SPEC` §5 calls the finale *"the one
+   * licensed spectacle"* (Tier 3) and the band milestone a *beat* (Tier 2) — and four visual lenses plus
+   * O1 had never seen either, in any state, at any width, in either theme.
+   *
+   * ⚡ **The recipe was already proven and pointed somewhere nobody reads.** `e2e/celebration.spec.ts`
+   * screenshots all four into `test-results/` — transient, per-run, outside the lens corpus. What was
+   * missing was not a way to reach these screens; it was their presence in the instrument.
+   *
+   * ⚠️ **Seeded, not clicked.** The e2e reaches the finale by pressing *Confirm paid off*; here the
+   * persisted field IS the state (`migrations.ts:321` spreads `...r` wholesale, and Today reads
+   * `store.pendingPayoff` ungated at `index.tsx:191`). That keeps these entries the same shape as every
+   * other row — one blob, one navigation — instead of a recipe that can break on a button's label.
+   *
+   * ⛔ **`ready` waits for a CANVAS, not only for the CTA, and it does NOT swallow the failure.** Both
+   * takeovers draw their subject in Skia (the gold journey ring, the mesh gradient), and this file's own
+   * 1,800 ms `settle` was measured losing that race under load — *"it looks like a finished chart with no
+   * curve."* The celebration spec wraps the same wait in `.catch(() => {})`; here a missing canvas must
+   * report **⛔ UNREACHED** rather than write a plausible frame of a ringless finale. A silent bad frame
+   * is what this whole instrument exists to stop.
+   */
+  {
+    name: 'payoff-finale',
+    goto: '/',
+    // Every debt cleared, each carrying the `originalBalance` the stat trio counts up from.
+    seedOver: {
+      onboardedAt: '2026-01-01',
+      debts: [
+        { id: 'd0', name: 'Chase Freedom', balance: 0, originalBalance: 4200, minimumPayment: 120, apr: 19.99, dueDate: day(-30), type: 'debt', recurrence: 'monthly', lastVerifiedDate: day(-2), balanceAsOfDate: day(-2) },
+        { id: 'd1', name: 'Auto Loan', balance: 0, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: day(-14), type: 'debt', recurrence: 'monthly', lastVerifiedDate: day(-1), balanceAsOfDate: day(-1) },
+      ],
+      pendingPayoff: { kind: 'finale' },
+    },
+    ready: async (p) => {
+      await p.getByRole('button', { name: 'Continue' }).waitFor({ timeout: FAST });
+      await p.locator('canvas').first().waitFor({ state: 'visible', timeout: SKIA });
+    },
+  },
+  {
+    // Tier 3's other half — one debt cleared while another is still live, so the beat renders instead of
+    // the takeover. ⚠️ The payload is CAPTURED AT THE CROSSING (`models.ts` on `PendingPayoff`), so these
+    // figures are seeded rather than derived; that is the shape the store actually persists.
+    name: 'payoff-beat',
+    goto: '/',
+    seedOver: {
+      debts: [
+        { id: 'd0', name: 'Chase Freedom', balance: 0, originalBalance: 4200, minimumPayment: 120, apr: 19.99, dueDate: day(-30), type: 'debt', recurrence: 'monthly', lastVerifiedDate: day(-1), balanceAsOfDate: day(-1) },
+        { id: 'd1', name: 'Auto Loan', balance: 9800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: day(12), type: 'debt', recurrence: 'monthly' },
+      ],
+      pendingPayoff: { kind: 'beat', debtName: 'Chase Freedom', amount: 4200, freed: 120, nextDebtName: 'Auto Loan' },
+    },
+    ready: async (p) => {
+      await p.getByRole('button', { name: 'Keep going' }).waitFor({ timeout: FAST });
+      await p.locator('canvas').first().waitFor({ state: 'visible', timeout: SKIA });
+    },
+  },
+  {
+    // Tier 2, as the spec defines it: *"the Progress ring PULSES at the crossed band."* ⚠️ The pulse is
+    // `withRepeat(…, -1, true)` while `pendingMilestone` is set (`JourneyRingChart.tsx:52`), so the halo
+    // is present in any frame — its radius is the phase, and that is the one thing here a still cannot pin.
+    name: 'band-milestone',
+    goto: '/progress',
+    seedOver: {
+      debts: [{ id: 'car', name: 'Auto Loan', balance: 4800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: day(12), type: 'debt', recurrence: 'monthly' }],
+      pendingMilestone: { threshold: 50, progressPercent: 60 },
+      // ⛔ **`coachMarksSeen` IS WHAT PUTS THE SUBJECT IN THE FRAME, and the first version of this entry
+      // did not have it.** MEASURED by varying this one input at `phone-small`: with marks live the
+      // journey ring's canvas sits at **y = −261** — scrolled off the top — and with them seen it sits at
+      // **y = +92**. The coach mark scrolls itself into view and takes the hero out of shot.
+      //
+      // ⚡ **So the first `band-milestone` frames were photographs of the cash-flow card**, under a name
+      // promising the ring pulse, having printed `✓`. That is this file's own headline defect class,
+      // reproduced by the entry added to close a finding about that class.
+      //
+      // ⚠️ The route block is the ONLY shooting block that does not seed this — `SHEETS` and the
+      // text-scale block both do. Fixing it here rather than globally is deliberate: a live coach mark is
+      // part of the design the route frames exist to review, and P1-2 was found *because* they show it.
+      prefs: { coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
+    },
+    ready: async (p) => {
+      await heading('Progress')(p);
+      await p.locator('canvas').first().waitFor({ state: 'visible', timeout: SKIA });
+    },
+  },
+  {
+    // The same crossing where a user actually MEETS it — Today's gold ack card (3.3.2.2). ⚠️ It renders
+    // only when `activeAck === 'milestone'` (`index.tsx:238`), which `dataRepairs` outranks; the seed
+    // carries none, so the slot is this card's.
+    name: 'milestone-ack',
+    goto: '/',
+    seedOver: {
+      debts: [{ id: 'car', name: 'Auto Loan', balance: 4800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: day(12), type: 'debt', recurrence: 'monthly' }],
+      pendingMilestone: { threshold: 50, progressPercent: 60 },
+    },
+    ready: (p) => p.getByText('Halfway to debt-free').first().waitFor({ timeout: FAST }),
+  },
   {
     // ⛔ THE PLAN MUST BE EMPTY, NOT JUST THE FLAG FALSE — and this took three tries to get right.
     // `runMigrations` → `inferOnboarding` (migrations.ts:112) returns `hasIncome && hasObligation`, so a

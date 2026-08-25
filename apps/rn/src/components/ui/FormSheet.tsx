@@ -43,6 +43,14 @@ export function FormSheet({
   visible: boolean;
   title: string;
   subtitle?: string;
+  /**
+   * The sheet's ONE primary action — filled, sticky, and the most prominent thing on the surface.
+   *
+   * ⛔ [P6.8.9.7.11.14.2 · audit P1-5] **It carries `testID="form-sheet-submit"` so a test can assert
+   * WHICH action holds it.** The export sheet put `Done` here while the only control that backed anything
+   * up was secondary, and *"a Copy button is visible"* is true in both worlds — an assertion that cannot
+   * tell the defect from the fix. Pin the submit's own label, not the presence of a button.
+   */
   submitLabel: string;
   onSubmit: () => void;
   onRemove?: () => void;
@@ -102,7 +110,7 @@ export function FormSheet({
         </ScrollView>
         {footerAccessory}
         <View style={styles.actions}>
-          <Button label={submitLabel} onPress={onSubmit} />
+          <Button label={submitLabel} onPress={onSubmit} testID="form-sheet-submit" />
           {onRemove ? (
             <Pressable onPress={onRemove} accessibilityRole="button" style={styles.remove}>
               <Text style={[textStyles.bodyMedium, { color: c.accent.danger }]}>Delete</Text>
@@ -168,7 +176,7 @@ export function FormSheet({
             {footerAccessory}
 
             <View style={styles.actions}>
-              <Button label={submitLabel} onPress={onSubmit} />
+              <Button label={submitLabel} onPress={onSubmit} testID="form-sheet-submit" />
               {onRemove ? (
                 <Pressable onPress={onRemove} accessibilityRole="button" style={styles.remove}>
                   <Text style={[textStyles.bodyMedium, { color: c.accent.danger }]}>Delete</Text>

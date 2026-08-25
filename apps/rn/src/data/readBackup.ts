@@ -1,4 +1,4 @@
-import { parseBackupValue, type BackupParseFailure } from './backup';
+import { describeStoreContents, parseBackupValue, type BackupParseFailure } from './backup';
 import { detectBackupFormat, type BackupKind } from './detectBackupFormat';
 import { formatBackupTime } from './formatBackupTime';
 import { LEGACY_KEY_PREFIX } from './legacyBridge/webkitLocalStorage';
@@ -138,13 +138,7 @@ const SOURCE: Record<BackupKind, string> = {
  * describe what will actually land, or it is reassurance rather than information.
  */
 export function describeBackup(result: ReadBackupSuccess): string {
-  const { store } = result;
-  const parts = [
-    plural(store.debts?.length ?? 0, 'debt', 'debts'),
-    plural((store.requiredExpenses?.length ?? 0) + (store.livingExpenses?.length ?? 0), 'expense', 'expenses'),
-    plural(store.goals?.length ?? 0, 'goal', 'goals'),
-  ];
-  const contents = `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+  const contents = describeStoreContents(result.store);
   const dropped = result.legacy?.dropped.length ?? 0;
   const skipped = dropped > 0 ? ` ${plural(dropped, 'item', 'items')} the current version no longer uses won’t come across.` : '';
   /**

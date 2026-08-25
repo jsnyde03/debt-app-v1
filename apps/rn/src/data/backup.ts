@@ -99,6 +99,28 @@ export function serializeBackup(store: DebtStore, opts?: { now?: Date }): string
   return JSON.stringify(envelope, null, 2);
 }
 
+/**
+ * [P6.8.9.7.11.14.2 · audit P1-5] What a store CONTAINS, in one human clause — *"4 debts, 3 expenses and
+ * 1 goal"*.
+ *
+ * ⛔ **Lifted out of `describeBackup` so both doors count the same way.** The import sheet already said
+ * this sentence before a destructive replace; the export sheet said nothing at all and showed the raw
+ * envelope instead. Two surfaces asking the same question with one of them answering it is exactly the
+ * shape `.11.12.5` closed on the export TIMESTAMP, one function over — see `formatBackupTime`.
+ *
+ * ⚠️ Counts, never money. This sentence appears on a screen a user may be sharing or reading in public,
+ * and *"$14,320 across 4 debts"* is a disclosure the surface was not asked to make.
+ */
+export function describeStoreContents(store: Partial<DebtStore>): string {
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const parts = [
+    plural(store.debts?.length ?? 0, 'debt', 'debts'),
+    plural((store.requiredExpenses?.length ?? 0) + (store.livingExpenses?.length ?? 0), 'expense', 'expenses'),
+    plural(store.goals?.length ?? 0, 'goal', 'goals'),
+  ];
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
 /** True when `raw` carries our envelope marker — 5.8.2's detection layer dispatches on this. */
 export function isBackupEnvelope(parsed: unknown): boolean {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;

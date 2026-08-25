@@ -109,6 +109,129 @@ since. `.2` in particular touches a sheet `.11.12.5` already changed, and `.3` a
 
 ---
 
+## ✅ P6.8.9.7.11.14.3 — P1-1, and I built the defect class I was closing *(2026-08-25)*
+
+### What shipped
+
+**Four surfaces**, 🎯-approved over the two P1-1 names: `payoff-finale` · `payoff-beat` · `band-milestone`
+(the Progress ring pulse, which is what `DEBT_MOTION_SPEC` §5 Tier 2 actually names) · `milestone-ack`.
+**72 frames** — 40 route (5 viewports × 2 themes) **+ 32 Dynamic-Type** (2 viewports × 2 themes × 2
+scales), because a `SURFACES` entry feeds both blocks. Corpus 333 → **405**. Zero `⛔ UNREACHED`.
+
+⚡ **The recipe already existed and pointed somewhere nobody reads.** `e2e/celebration.spec.ts` has
+screenshotted all four into `test-results/` for months — transient, per-run, outside the lens corpus. The
+gap was never reachability; it was presence in the instrument. Here they are **seeded, not clicked**
+(`migrations.ts:321` spreads `...r`, Today reads `store.pendingPayoff` ungated), so they are the same shape
+as every other row.
+
+### ⛔ THE FIRST `band-milestone` FRAMES WERE PHOTOGRAPHS OF THE CASH-FLOW CARD
+
+`ready` passed. `settle` passed. It printed `✓`. And the frame did not contain the ring pulse it is named
+for. **That is this file's own headline defect class — reproduced by the entry added to close a finding
+about that class**, which makes it the fifth time this cluster has rebuilt the class it was closing.
+
+**Measured by varying one input** — `coachMarksSeen`, at `phone-small`:
+
+| seed | first canvas `y` |
+|---|---|
+| marks live *(route-block default)* | **−261** — scrolled off the top |
+| marks seen | **+92** — on screen |
+
+The *"Drag the curve"* coach mark scrolls itself into view and takes the hero out of shot. ⚠️ **The route
+block is the only shooting block that does not seed `coachMarksSeen`** — `SHEETS` and the text-scale block
+both do.
+
+### ⛔ AND A MECHANISM I STATED OFF n=1 WAS REFUTED BY THE NEXT RUN
+
+The two `⛔ UNREACHED` frames failed an 8 s canvas wait. A probe measured **16,161 ms** at `phone-small`
+against **3,785 ms** at `phone`, and I wrote that up as *"the narrower viewport paints 4.3× slower."*
+**The re-run measured 1,836 ms** — faster than `phone`. ⚡ **The delay was never the cause; the scroll
+was.** Law IV with me as the agent: a finding that arrives with a mechanism is a hypothesis, and n=1 is
+not a measurement. ✅ The canvas waits still moved to a new `SKIA = 15_000` — `FAST` exists so *"a recipe
+that cannot reach its subject costs seconds"*, which is right for a heading and wrong for a lazily-loaded
+CanvasKit chunk — but that is robustness, **not** the fix.
+
+### 🔴 The pre-existing hole it exposed → filed
+
+**No `progress.png` in the corpus shows the Progress hero ring.** Same mechanism: −42 at `phone`
+(clipped to a sliver), −261 at `phone-small` (gone). Every visual lens that judged the Progress tab did so
+without seeing its hero, and **P1-3's axis finding was reasoned from those frames.** ⛔ Deliberately NOT
+fixed globally — a live coach mark is part of what the route frames exist to review, and **P1-2 was found
+because they show it.** Whether the route block needs both states is a scope call → **`.11.17`**.
+
+### Folded in
+
+⛔ **`playwright.shots.config.ts` was the THIRD config missing `--clear`.** `playwright.config.ts`'s own
+comment records applying 3.5.7.4's fix to *"ONE of the two configs"*; nobody looked at the third. A
+flag-free export reusing an embed run's transforms emits a `dist/` backed by `sessionStorage`, and `reseed`
+writes `localStorage` — so the whole matrix would have re-rendered as the un-seeded app, on a corpus with
+**no history to notice against**. ⚠️ Not re-measured for this config; the mechanism was measured once
+already and the fix costs a cold export.
+
+### After-scan
+
+- The probe was **deleted**, not kept. It asserted nothing and answered its question; a diagnostic left in
+  `tests/shots` would be a file that shoots no frames and gates nothing.
+- ⚠️ `payoff-finale` · `payoff-beat` · `milestone-ack` were each **opened and looked at**, not inferred
+  from green. The finale's stat trio reconciles with its seed ($4,200 + $12,000 = **$16,200 paid off**).
+
+---
+
+## ✅ P6.8.9.7.11.14.2 — P1-5, and the finding described a screen iOS never renders *(2026-08-25)*
+
+### The defect, and the half of it that was wrong
+
+Filed as *"the worst single frame in the matrix"*: the export sheet led with
+`"format": "debt-planner-backup", "formatVersion": 1, "storeVersion": 7, "paycheck": { "amount": "2000" …`
+— engineering exhaust inside the app's most important **trust** interaction. Secondary, same frame:
+*"`Done` is filled and `Copy to clipboard` is secondary, so a user can press the most prominent button and
+back up nothing."*
+
+⛔ **The raw-envelope half held. The button half was measured HALF-TRUE, and the reason generalises.**
+`BACKUP_FILE_SUPPORTED` is a `.web.ts` fork — `false` in `backupFile.web.ts`, `true` in `backupFile.ts` —
+so on iOS the sheet **already** rendered a filled `Save as a file` button that the capture matrix, being a
+web instrument, could not photograph. The shipping defect was **two filled buttons competing**, not one
+inverted. ⚡ **A craft finding taken off this matrix is a claim about the WEB build; check for a platform
+fork before building it.** *(Same class as `.11.12.9`'s stale comment: the finding's observation was
+sound and its mechanism was not.)*
+
+⚠️ The row also warned *"`.11.12.5` already touched this sheet — re-read it."* It did not. `.11.12.5`
+changed `describeBackup`/`readBackup`/`formatBackupTime`, which render in the **Import** sheet;
+`BackupSheets.tsx` had not changed since `9bdbf69`.
+
+### What shipped
+
+- **The sheet says what the backup HOLDS** — *"This backup has 1 debt, 2 expenses and 0 goals."*
+- ⭐ **`describeStoreContents` is now one owner in `data/backup.ts`**, and `describeBackup` calls it. The
+  import door was already answering this question before a destructive replace while the export door
+  answered nothing — the same asymmetry `.11.12.5` closed on the timestamp, one function over. ⚠️ Counts,
+  never money: this screen may be read in public.
+- **The raw JSON is behind `Show the raw data`** — reachable, not deleted. It is the entire copy/paste
+  path on web and what `backup.spec.ts`'s round trip reads. What changed is which one is the sheet's face.
+- **The primary action is the one that backs something up** — `Save as a file` on iOS, `Copy to clipboard`
+  on web, with `Done` demoted to a text button in `footerAccessory`. The platform picks the action;
+  `Done` is never it.
+
+### Pinned — and the first draft of the pin was VACUOUS
+
+⛔ **`getByRole('button', { name: 'Copy to clipboard' }).toBeVisible()` cannot tell the defect from the
+fix.** Copy is visible in both worlds; only its *slot* differs. The finding is about which action is
+PRIMARY, so the assertion has to name the primary — ✅ **`FormSheet`'s submit now carries
+`testID="form-sheet-submit"`**, and the test asserts its label.
+
+⚡ **I found that by writing the plant, not by re-reading the test.** Two plants:
+
+| plant | reds at |
+|---|---|
+| the raw envelope as the face, summary gone | assertion **1** — `backup-export-summary` not found |
+| the partial fix: summary + disclosure kept, hierarchy left inverted | assertion **3** — submit reads `Done` |
+
+The second cleared the summary assertions before failing, which is what proves the rewritten pin
+discriminates. ⚠️ The absence assertion (`backup-export-text` count 0) runs **after** a positive one, so it
+cannot pass on a sheet that never opened — [[absence-assertions-pass-before-render]].
+
+---
+
 ## ✅ P6.8.9.7.11.14.1 — P1-4, the run-on nobody had viewed with 40 items on screen *(2026-08-25)*
 
 ### The defect

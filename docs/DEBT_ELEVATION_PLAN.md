@@ -47,8 +47,8 @@ row's premise, not its build.
 | # | step | scope |
 |---|---|---|
 | ✅ | **.1** **P1-4** — the 23-name run-on | CLOSED 2026-08-25. `summariseNames` + the total leading + a tap that reveals the rest, on the app's own `AmortizationView` disclosure idiom. **Plant-verified twice** — the run-on reds the first assertion, the naive over-fix reds a later one. Detail → log |
-| **.2** ▶ | **P1-5** — the export sheet's raw envelope + button hierarchy | ⛔ **CORRECTED twice.** `.11.12.5` never touched `BackupSheets.tsx` (last change `9bdbf69`); it changed `describeBackup`, which renders in the **Import** sheet — P1-5 is the **Export** sheet. And *"`Done` is the only filled button"* is **web-only**: `BACKUP_FILE_SUPPORTED` is `false` on web, `true` on iOS, so **the shipping platform has TWO filled buttons** (`Save as a file` + `Done`) — competing primaries, not an inverted one |
-| **.3** | **P1-1** — shoot the **payoff finale** and the **band-milestone beat** | Both have zero frames. ✅ **Premise holds and the cost is lower than the row implied**: `ready` is required on `Surface`, and both beats are **persisted store fields** (`pendingPayoff: {kind:'finale'}` · `pendingMilestone`), so a `seedOver` reaches them — no new harness mechanism |
+| ✅ | **.2** **P1-5** — the export sheet's raw envelope + button hierarchy | CLOSED 2026-08-25. The sheet says what the backup holds (`describeStoreContents`, one owner across both doors), the raw JSON moves behind a disclosure, and the primary action is the one that backs up. ⚡ **The button half of the finding was a WEB-ONLY layout** — `BACKUP_FILE_SUPPORTED` is a `.web.ts` fork, so iOS had two competing primaries, not an inverted one. **Plant-verified twice**, and the first draft of the hierarchy pin was vacuous. Detail → log |
+| ✅ | **.3** **P1-1** — shoot the emotional beats | CLOSED 2026-08-25. **72 frames, zero `⛔ UNREACHED`**, every one looked at. ⛔ **The first `band-milestone` frames photographed the CASH-FLOW CARD under a name promising the ring pulse** — the coach mark scrolls the hero out of shot; measured by varying that one input. ⚠️ **A mechanism I stated off n=1 was refuted by the re-run** (16,161 ms → 1,836 ms). Detail → log |
 | **.4** | **L4-13b** — the token cleanup ONLY | ✅ **7 press-opacity literals confirmed live** at 5 values (`money.tsx:887,922,1085` · `AddObligationSheet.tsx:95` · `DebtSheet.tsx:283,295` · `Button.tsx:68`) against `pressedOpacity = 0.8`. ⛔ **The sweep is NOT in scope, and "NOWHERE" is an ANSWER, not an edit** — [D60] enumerates the build as the literals only, so `SettingRow` keeps `PressableScale` |
 | **.5** | **L1-20** — the single `eyebrow` token | Sweep deferred, deliberately. ⚠️ **Scope call at its own before-scan:** the auditor's *"touches zero tests"* holds only if adoption does not normalise `letterSpacing` — 34 styles span five values, and changing them is visible |
 | **.6** | **Green + close** | Same shape as `.11.13.10`, and ⛔ **still not a recorded gate pass** — `.11.16` owns that |
@@ -64,7 +64,7 @@ findings write copy promising that route and it had to exist before either could
 | # | step | notes |
 |---|---|---|
 | **.9.3** | **Re-check the GATED CLASSES** | `lint:contrast` · `lint:type-scale` · `lint:icon-glyphs` · `lint:apostrophes` · native-a11y-props. ⛔ **And the classes c/d/e closed as lists were never gated at all** — that is where the residue is |
-| **.9.4** | 🔴 **[DECISION] P1-1 · P1-4 · P1-5 → 🎯** | ✅ **P1-2 CLOSED** at `.11.8` — the re-shot `state-progress-many.png` shows the `-$658` bar, floor line, all five labels, legend and verdict, all of which it said *"none of that reaches the phone"*; ⚡ closed by `.7.3`, aimed at a different id, **while reaching no ledger**. **P1-1** one third closed *(onboarding captured; the payoff finale and band-milestone beat still have ZERO frames)* · **P1-4** unchanged (`RecoveryPlanSection.tsx:62`, the 23-name run-on) · **P1-5** unchanged (`BackupSheets.tsx:61`, raw envelope + `Done` filled while the only backing-up action is secondary) |
+| ~~.9.4~~ | ✅ **CLOSED — the whole P1 major set** | **P1-2** at `.11.8` · **P1-4 · P1-5 · P1-1** at `.11.14.1–.3`. ⚠️ This row was a `[DECISION]` gate [D60] answered on 2026-08-25 and it still read *"unchanged"* for three findings a day later, at line numbers that had moved — **closing a decision updates the decisions section and leaves the row that was waiting on it.** Kept as a marker, not a queue item |
 | **.9.5** | **Work the filed queue** | **27 items** routed here across the cluster, in the backlog below. ⚠️ Triage first — several are sweeps whose scope is the real question |
 | **.9.6** | **The mechanical exit criterion** | `lint:closure` clean on blocker+major. ⛔ **It reads clean for the wrong reason if an instrument is blind** — exactly how P1's seven majors were invisible until the regex was un-anchored, and ⚠️ `.11.10` measured that **12 of 87 count as traceable only because their id appears in a SYNTHESIS heading** |
 
@@ -789,6 +789,16 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   answers *"is the boundary visible"* and not *"is there one."* A `Slider`, a bare `TextInput`, a pressable
   row bounded only by spacing — none fail it, and none were in V1-5's scope either. A real gap, not a
   ship-blocker; naming it beats a gate written in a freeze. *(f)*
+- 🔴 **THE PROGRESS HERO RING IS IN NO `progress.png` FRAME IN THE CORPUS — a live blind spot, not a
+  cosmetic one.** Measured at `.11.14.3`: the route block is the **only** shooting block that does not seed
+  `coachMarksSeen` (`SHEETS` and the text-scale block both do), so on `/progress` the *"Drag the curve"*
+  mark scrolls itself into view and takes the hero out of shot — the ring canvas sits at **y = −42** on
+  `phone` and **y = −261** on `phone-small`, against **y = +92** with the marks seen. ⚡ **So every visual
+  lens that judged the Progress tab did so without ever seeing its hero**, and P1-3's axis finding was
+  reasoned from those frames. ⛔ **NOT fixed globally on purpose** — a live coach mark is part of what the
+  route frames exist to review, and **P1-2 was found because they show it**. The real question is whether
+  the route block needs BOTH states, which is a scope call, not a one-liner. → hand to **`.11.17`**
+  *(.11.14.3 after-scan)*
 - ⚠️ **The unbounded-name-join class has no gate, and it cannot be closed as a list.** `.11.14.1` fixed
   `RecoveryPlanSection`'s `.join(' · ')`; the same shape at `ImportDebtsSheet.tsx:95` was measured and
   **deliberately left alone** — it is a confirmation before adding N debts, inside a scroll, where seeing
