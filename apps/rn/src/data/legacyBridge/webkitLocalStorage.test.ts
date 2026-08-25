@@ -206,10 +206,14 @@ try {
   eq(ours.droppedRows, 2, 'only the PICKED database contributes to the number the user is shown');
   eq(ours.droppedRowsOtherCandidates, 7, "…and another app's undecodable rows are kept as diagnostics");
 
-  // ⚠️ The case that produced the false claim: nothing of ours was found, so nothing of ours was lost.
+  // ⛔ **NO PICK REPORTS EVERYTHING — the direction matters more than the number.** [P6.8.9.7.11.9 · C-1]
+  // If the user's own database opens and every row fails to decode, `countLegacyKeys` is 0,
+  // `pickLegacyStore` returns null, and the container reads as a FRESH INSTALL. This counter is then the
+  // only evidence anything was lost, so suppressing it trades a measured false positive for an unmeasured
+  // false negative — on data nobody can get back. Attribution needs a pick; with none, it fails safe.
   const none = attributeDroppedRows(decoded, undefined);
-  eq(none.droppedRows, 0, 'no database judged ours → the user is told of NO loss, not of nine rows');
-  eq(none.droppedRowsOtherCandidates, 9, '…and all nine are attributed elsewhere');
+  eq(none.droppedRows, 9, 'no database judged ours → every drop is REPORTED, because none can be excluded');
+  eq(none.droppedRowsOtherCandidates, 0, '…and nothing is filed away as someone else’s');
 
   // The preserved property: an ordinary single-database container still reports its own real losses.
   eq(

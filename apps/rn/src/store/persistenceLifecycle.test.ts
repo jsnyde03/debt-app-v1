@@ -447,6 +447,46 @@ async function run() {
         .reduce((sum, a) => sum + a.amount, 0);
       eq(toGoal, 200, 'goal repair → a READABLE pace is untouched: still funded, still capped at its pace');
     }
+    /**
+     * ⛔ **A RECOVERED PACE IS NOT A LOST ONE, AND THE REPAIR RECORD CANNOT TELL THEM APART.**
+     * [P6.8.9.7.11.9 · B-1] `readMoney` flags `'200'` as `repaired: true` — the FORMAT was repaired — and
+     * returns the real 200. Standing the goal down on that record destroys a cap that was read correctly,
+     * which is a worse outcome than the defect being fixed. v1.6 stored money from HTML inputs, so the
+     * string form is the ordinary case, not an exotic one.
+     *
+     * ⚠️ The block above cannot catch this: its fixture carries THREE repairs at once, so "stand down any
+     * goal with any repair" satisfies it. Only a goal whose pace is recovered while another field is not
+     * separates the two rules.
+     */
+    {
+      const recovered = runMigrations({
+        goals: [
+          { id: 'g0', name: 'Roof', type: 'savings', targetAmount: 'nonsense', currentAmount: 0, priority: true, priorityPerPaycheck: '1,200' },
+        ],
+      } as unknown);
+      eq(recovered.goals[0].priorityPerPaycheck, 1200, 'goal repair → a comma-grouped pace is RECOVERED, not lost');
+      eq(recovered.goals[0].priority, true, '⛔ …and the goal keeps its priority: the value was read, so nothing was lost');
+      assert(
+        recovered.pendingDataRepairs.some((r) => r.entity === 'goal'),
+        '…while the unreadable targetAmount beside it is still reported',
+      );
+    }
+    /**
+     * ⛔ **THE STORES A PREVIOUS BUILD ALREADY WROTE.** A pace repaired to `0` by an earlier version is a
+     * finite number, so it re-reads as `repaired: false` and carries no record — nothing would ever detect
+     * it, and `0` funds uncapped ahead of debt forever. Matching on the value reaches it; matching on the
+     * record cannot.
+     */
+    {
+      const legacyZero = runMigrations({
+        goals: [
+          { id: 'g0', name: 'Roof', type: 'savings', targetAmount: 4000, currentAmount: 0, priority: true, priorityPerPaycheck: 0 },
+        ],
+      } as unknown);
+      eq(legacyZero.goals[0].priority, false, '⛔ a stored pace of 0 stands the goal down, with no repair record to go on');
+      eq(legacyZero.goals[0].priorityPerPaycheck, undefined, '…and the meaningless cap is cleared');
+      eq(legacyZero.pendingDataRepairs.length, 0, '…and nothing is reported, because the loss was not today');
+    }
     eq(g.goals.length, 1, 'goal repair → the goal survives');
     eq(g.goals[0].targetAmount, 4000, 'goal repair → a grouped targetAmount is read, not dropped');
     eq(g.goals[0].currentAmount, 0, 'goal repair → an unreadable currentAmount becomes 0');

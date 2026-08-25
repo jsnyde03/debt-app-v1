@@ -60,10 +60,12 @@ export function useSkiaReady(chunk?: () => Promise<unknown>): boolean {
      * `sentry.web.ts:7-9` is a no-op whose own docstring says it *"keeps the default `reportError` console
      * sink"*. This file only ever runs on web. So with `__DEV__` false, **nothing happens.**
      *
-     * ⚠️ The `catch` is still load-bearing: failing closed is the correct behaviour regardless of where it
-     * reports, and removing it restores the hang. What is absent is the telemetry, exactly where it would
-     * matter most — `canvaskit.ts:15-20` documents a real wasm 404 on the marketing embed, which is this
-     * rejection.
+     * ⚠️ **The `catch` does not change the gate, and saying it did would be a second false claim.** On a
+     * rejection `setReady(true)` is skipped either way, and `loading ??=` caches the rejected promise for
+     * every later mount — so the card stays in its skeleton with or without it. What the `catch` buys is
+     * the absence of an unhandled rejection in the console, and what is missing is the telemetry, exactly
+     * where it would matter most: `canvaskit.ts:15-20` documents a real wasm 404 on the marketing embed,
+     * which is this rejection.
      * ⛔ Deliberately not fixed by wiring a web reporter: Sentry is kept out of the web bundle on purpose,
      * so that is a scope decision rather than a defect. Filed as an observability gap.
      */

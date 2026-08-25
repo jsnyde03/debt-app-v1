@@ -965,7 +965,14 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
 
   const totalSaved = goals.reduce((s, g) => s + g.currentAmount, 0);
   const totalTarget = goals.reduce((s, g) => s + g.targetAmount, 0);
-  const overall = totalTarget > 0 ? totalSaved / totalTarget : 0;
+  /**
+   * ⛔ **THE SAME RULE AS THE `Funded` BADGE, ON THE BIGGEST NUMBER ON THE SCREEN.** [P6.8.9.7.11.9 · B-7]
+   * An unreadable `targetAmount` repairs to `0`, so a healthy goal beside a repaired one divides a real
+   * `totalSaved` by a `totalTarget` missing that goal's share — and the hero reads **"150% funded"** with
+   * a full bar, over money the app could not read. The per-row badge was guarded and the summary above it
+   * was not, which is the louder of the two.
+   */
+  const overall = totalTarget > 0 ? Math.min(1, totalSaved / totalTarget) : 0;
 
   return (
     <>

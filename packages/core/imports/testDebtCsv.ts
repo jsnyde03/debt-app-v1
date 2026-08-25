@@ -259,6 +259,30 @@ function runDebtCsvTests() {
 		const r = parse(`${HEADER}\nVisa,2400,75,1%2,2026-09-01`);
 		eq(r.debts.length, 0, "a `%` INSIDE the number does not silently concatenate to 12%");
 	}
+	// ⛔ [P6.8.9.7.11.9 · C-2] `%` IS ONE OF FOUR CHARACTERS THAT CAN EMPTY THE CELL. `parseOptionalAmount`'s
+	// `normalize` also strips `,`, whitespace and `$`, and its blank contract returns `0` — so guarding only
+	// the `%` case left `"$"` and `","` importing as a silent 0% on a card that charges interest.
+	// ⚠️ Whitespace is deliberately NOT in this list: a cell holding only spaces is indistinguishable from
+	// an empty one, and blank is a real answer (0%). `$` and `,` are characters someone typed on purpose.
+	for (const cell of ["$", ",", "$,"]) {
+		const r = parse(`${HEADER}\nVisa,2400,75,${cell},2026-09-01`);
+		eq(r.debts.length, 0, `an APR cell of "${cell}" is unreadable, NOT a blank 0%`);
+	}
+	{
+		const r = parse(`${HEADER}\nVisa,2400,75, ,2026-09-01`);
+		eq(r.errors.length, 0, "…while a cell of only spaces IS blank, and blank is 0%");
+		eq(r.debts[0]?.apr, 0, "…imported at 0%");
+	}
+	{
+		// ⛔ [C-5] A NEGATIVE IS A NUMBER THAT IS OUT OF RANGE, not an unreadable cell. `parseOptionalAmount`
+		// returns `null` for both, which collapses the two messages onto the wrong one.
+		const r = parse(`${HEADER}\nVisa,2400,75,-5,2026-09-01`);
+		eq(r.debts.length, 0, "a negative APR is refused");
+		assert(
+			r.errors[0].includes("between 0 and 100"),
+			"…and reported as OUT OF RANGE, not as unreadable — it is a number, and the user can see that",
+		);
+	}
 	{
 		// The preserved property, both directions: blank still means 0%, and a spaced sign still parses.
 		const r = parse(`${HEADER}\nVisa,2400,75,19.99 %,2026-09-01`);

@@ -20138,3 +20138,85 @@ The check is `git status`, before trusting the red.
   eleven `META` patterns and reported zero — the real clean run then found violations. The repo's
   most-measured result, repeated by me inside the step that was closing it: *an enumeration that came up
   short once comes up short again.* The fix was to run the actual gate rather than a hand-rolled subset.
+
+---
+
+## ⛔ P6.8.9.7.11.9 — the second re-verification, and the rate went UP *(2026-08-25)*
+
+Five blind verifiers over `3dc3c22..4877d90` (872 source lines), same method as `.7.10`.
+
+### The number that matters
+
+| build | source lines | defects found | density |
+|---|---|---|---|
+| `.7` (audited by `.7.10`) | 1,708 | 13 | 1 per 131 lines |
+| **`.11`** (audited by `.11.9`) | **872** | **~13** *(7 `DEFECT` · 2 `REGRESSION` · 1 `DEAD` · 3 `WEAK-TEST`)* | **1 per 67 lines** |
+
+⛔ **Fixing 13 defects introduced roughly 13 more, at twice the density**, and two of them were
+**regressions in the money and data paths — strictly worse than what they replaced.**
+
+### The two that were worse than the defect they fixed
+
+**B-1 · a RECOVERED pace was destroyed as if it were lost.** `readMoney` returns `repaired: true` for a
+**successful** recovery as well as a loss — `'200'` and `'1,200'` parse to their real amounts and are still
+flagged, because the *format* was repaired. `.11.3` stood the goal down on the **record**, so a user who
+chose `$200 a paycheck`, stored as a string by v1.6's HTML inputs, lost the plan they signed off on.
+⚡ Matching on the **value** answers both questions the record cannot — `0` is the only thing an unreadable
+pace becomes, **and it also reaches the stores an earlier build already wrote**, which hold `priority: true`
+with a pace of `0`, carry no record at all, and would have funded uncapped forever.
+
+**C-1 · `droppedRows` went silent in exactly the case it exists for.** `.11.4` attributed drops to the
+picked database — correct when there IS a pick. With none, it filed everything under *someone else's*. But
+the binding case is the user's own database opening and **every row failing to decode**: `countLegacyKeys`
+is `0`, `pickLegacyStore` returns `null`, and the container then reads as **a fresh install**. That counter
+was the only evidence anything was lost. A measured false positive was traded for an unmeasured false
+negative, on data nobody can recover.
+
+### Three more where the fix was aimed at the wrong thing
+
+- **B-4 · the priority rung is `savings`-only.** An emergency goal never reached it, so standing it down
+  changes nothing — while the repair line claimed *"no longer funded ahead of your debt"*. It still is, by
+  the starter-EF rung, which consults neither `priority` nor the pace. Copy and stand-down now scoped.
+- **C-2 · `%` is one of FOUR characters that can empty a cell.** `normalize` also strips `,`, whitespace
+  and `$`, so `"$"` and `","` still imported as a silent **0% APR**. ⚡ **The enumeration came up short
+  again** — the repo's most-measured result, repeated inside the item that was closing it. The rate is now
+  parsed directly rather than borrowed from the money parser.
+- **C-5 · a negative APR was reported as unreadable.** `parseOptionalAmount` returns `null` for "not a
+  number" *and* for "negative", collapsing two messages onto the wrong one. `.11.4` removed a false message
+  on `%` and wrote one on `-5`.
+
+### And the tests
+
+- **E-1 · the C-3 finale test could not reach its own subject.** `detectPayoff` returns `finale` whenever
+  no live debt remains, so *clear everything → add one debt → clear it* stamps a **second finale**, which
+  both the tight guard and the loose one keep. The block asserted identity and discriminated nothing.
+  Reaching finale→beat needs **two** debts added and **one** cleared. Corrected, and now red-verified
+  against the loose guard it exists to catch.
+- **B-4 · the pace test passed under B-1.** Its corrupt fixture carries three repairs at once, so *"stand
+  down any goal with any repair"* satisfied it. Only a goal whose pace is **recovered** while another field
+  is lost separates the two rules; that case is now pinned, plus the legacy `0` store.
+- **E-2 · the `s` flag was added on a false mechanism and weakened the assert.** `innerText()` emits `\n`
+  for block boundaries, never for a soft wrap, and this takeaway is one line in one `<Text>`. Reverted.
+- **D-1 · the `skiaReady` re-measure was DEAD.** The subject is a fixed-height box, so the rect is
+  identical; on iOS `useSkiaReady` is a constant `true` and the dependency never changes. ⚡ And it was not
+  free — `invalidate` is also the coach-mark SHOW trigger, so a mount effect offers the subject **before it
+  lays out**, which is the mount-versus-layout confusion `use-coach-mark.ts` exists to remove. Removed.
+
+### Also closed
+
+`D-6` `calloutH` never reset across marks, so mark B latched on mark A's height · `A-1` the bare-`announce`
+gate missed `announceForAccessibility(` — **the most direct spelling of the defect it polices** · `B-7` the
+goals hero read **"150% funded"** over unreadable money while the per-row badge was guarded · `C-3` a
+docblock orphaned by an inserted export — **the same defect `.11.7` fixed in two other files, written while
+fixing them** · `C-6` a false provenance claim · `C-7`/`report.ts` a count of code.
+
+### ⛔ What remains open, and why it is a decision rather than a task
+
+A tail is still unclosed: stale `path:line` citations in prose, an unchecked `STATES.divergent` index in a
+file that is neither typechecked nor linted nor in CI, `check-comment-convention`'s per-line matching being
+blind to a multi-line annotation, a P6.14 row promised in a spec and never written, and two misattributed
+mechanisms in the new test's docblocks.
+
+⚡ **Every round has closed real defects and produced a similar number.** That is not a reason to stop
+auditing, and it is not a reason to keep going — it is the observation that the loop has no fixed point at
+this granularity, which is a question about method, not about diligence.

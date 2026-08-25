@@ -1,3 +1,4 @@
+import { detectPayoff } from '@/store/payoffCelebration';
 import { applyCapture, applyRollover } from '@/store/payday';
 
 import { createDefaultStore } from '@/data/defaults';
@@ -471,8 +472,13 @@ function run() {
    * the looser `payoff.kind !== next.pendingPayoff.kind`** — which is the natural way to write it and
    * which DESTROYS a persisted finale by letting a later beat overwrite it.
    *
-   * ⚡ Reachable in the ordinary way: clear everything (finale pending, unconsumed), then add a debt and
-   * clear it. `pendingPayoff` survives a relaunch, so the window is not hypothetical — and the finale is
+   * ⛔ **REACHING IT NEEDS TWO NEW DEBTS AND ONLY ONE CLEARED.** `detectPayoff` returns `finale` whenever
+   * `liveAfter.length === 0` (`payoffCelebration.ts:46`), so clearing everything, adding ONE debt and
+   * clearing that leaves no live debt and stamps a **second finale** — finale→finale, which both the tight
+   * guard and the loose one keep. Such a block asserts identity and discriminates nothing.
+   * Two debts added and one cleared leaves `liveAfter.length === 1`, which is the beat this arm is about.
+   *
+   * ⚡ `pendingPayoff` survives a relaunch, so the window is not hypothetical — and the finale is
    * once-ever, so what is lost here is lost for the life of the install.
    */
   {
@@ -488,10 +494,24 @@ function run() {
     s.getState().addDebt({
       id: 'd1', name: 'Loan', balance: 900, minimumPayment: 40, apr: 8, dueDate: '2026-08-12', type: 'debt', recurrence: 'monthly',
     } as DebtStore['debts'][number]);
+    s.getState().addDebt({
+      id: 'd2', name: 'Car', balance: 3000, minimumPayment: 150, apr: 6, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly',
+    } as DebtStore['debts'][number]);
     s.getState().updateDebt('d1', { balance: 0 });
+    // The control that makes the assert below mean something: this transition really is a BEAT, so the
+    // two `kind`s differ and the loose guard would overwrite.
+    eq(
+      detectPayoff(
+        [{ id: 'd1', balance: 900 }, { id: 'd2', balance: 3000 }] as DebtStore['debts'],
+        [{ id: 'd1', balance: 0 }, { id: 'd2', balance: 3000 }] as DebtStore['debts'],
+        s.getState().store.payoffStrategy,
+      )?.kind,
+      'beat',
+      'control — clearing one of two live debts is a BEAT, not a second finale',
+    );
     assert(
       s.getState().store.pendingPayoff === finale,
-      '⛔ C-3 — a later payoff NEVER displaces an unconsumed finale: it is once-ever, and this is the only arm that guards it',
+      '⛔ C-3 — a BEAT never displaces an unconsumed finale: it is once-ever, and this is the only arm that guards it',
     );
   }
 

@@ -98,10 +98,12 @@ test('the takeaway names the real difference and claims no dollar saving', async
    * ⚠️ Asserts SHAPE, not exact copy: this spec's subject is that a sentence reaches the user, and pinning
    * the wording here would duplicate `compareStrategies.test.ts`, which owns the phrasing.
    */
-  // ⚠️ `s` flag: `.` does not match a newline, and `innerText()` returns the rendered line breaks — so a
-  // takeaway that wrapped onto two lines could not match and reported a defect that was not there.
-  // It failed SAFE (a false red rather than a false green), which is why it survived. [P6.8.9.7.11.6]
-  expect(text, 'the takeaway is a sentence, not punctuation').toMatch(/[A-Za-z]{3,}.*\.$/s);
+  // ⛔ **NO `s` FLAG, DELIBERATELY.** [P6.8.9.7.11.9 · E-2] `innerText()` emits `\n` for block boundaries
+  // and `<br>`, never for a soft wrap — and every branch of `compareStrategies` returns a single line into
+  // a single `<Text>`, so this string cannot contain one. Adding `s` would let `.` span newlines, which
+  // drops the requirement that the FINAL line end in a sentence: strictly weaker, for a hazard that does
+  // not exist here.
+  expect(text, 'the takeaway is a sentence, not punctuation').toMatch(/[A-Za-z]{3,}.*\.$/);
   // ⛔ [D59] — the interest advantage was never measured, so the app must not assert one. This is the
   // assertion that stops a later "helpful" edit from inventing a number about the user's money.
   expect(text).not.toMatch(/\$|interest|cheaper|save/i);

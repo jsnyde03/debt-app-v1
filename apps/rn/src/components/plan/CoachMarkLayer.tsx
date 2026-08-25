@@ -59,6 +59,13 @@ export function CoachMarkLayer({
   }, [nested]);
 
   useEffect(() => {
+    /**
+     * ⛔ **`calloutH` IS PER-MARK AND MUST BE CLEARED WITH THE RECT.** [P6.8.9.7.11.9 · D-6] It is component
+     * state on a layer mounted at the ROOT, which never unmounts — so without this, mark B begins with
+     * mark A's measured height, and the reveal's `calloutH === 0` guard is satisfied by a number belonging
+     * to a different sentence. The guard fixes the FIRST mark only; this makes it true of every one.
+     */
+    setCalloutH(0);
     if (!active || !targets) {
       setRect(null);
       return;

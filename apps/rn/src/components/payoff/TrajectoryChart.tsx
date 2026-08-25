@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { type GestureResponderEvent, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -16,7 +16,7 @@ import { groupLabel, a11yExpanded } from '@/utils/a11y';
 import { useSkiaReady } from '@/utils/skia-ready';
 import { formatWhole } from '@/utils/format';
 
-import { TutorialTarget, useTutorialTargets } from '@/store/tutorialTargets';
+import { TutorialTarget } from '@/store/tutorialTargets';
 
 import { TrajectoryCanvas } from './TrajectoryCanvas';
 import { StrategyCompare } from './StrategyCompare';
@@ -160,21 +160,19 @@ export function TrajectoryChart({
   const { fontScale } = useWindowDimensions();
   const skiaReady = useSkiaReady(TRAJECTORY_SKIA_CHUNK);
   /**
-   * ⚠️ **`skiaReady` is a layout change this coach-mark subject cannot see.** [P6.8.9.7.11.5]
-   * `TutorialTarget` re-measures from its OWN `onLayout`, and the scrub subject is a fixed `height: H`
-   * box — so when the chart resolves and the footer and legend BELOW it appear, the subject does not move
-   * and nothing re-measures. The callout is placed under the subject, i.e. over the region that grew.
+   * ⛔ **NO `skiaReady` RE-MEASURE OF THE COACH-MARK SUBJECT.** [P6.8.9.7.11.9 · D-1/D-2] The scrub subject
+   * is a fixed `height: H` box, so re-measuring returns the identical rect: every `skiaReady`-gated node is
+   * either absolutely positioned INSIDE that box or rendered below `</TutorialTarget>`, and nothing above
+   * it reflows. On iOS it would not even fire — `skia-ready.ts` returns a constant `true`, so the
+   * dependency never changes.
    *
-   * ⛔ **The overlap itself is a STATED mechanism, not a measured one** (P6.8.9.7.10 · D-2), and this repo
-   * has now measured four times that a stated mechanism is a hypothesis. So this deliberately does not
-   * move the subject or touch the geometry — it only re-measures across a content change the component
-   * already knows about, which is correct whether or not the overlap turns out to be real. The overlap
-   * question itself is filed for the `.11.8` re-shoot.
+   * ⚡ And it would not have been free. `invalidate` is also the coach-mark SHOW trigger
+   * (`tutorialTargets.tsx` → `use-coach-mark.ts`), so calling it from a mount effect offers this subject
+   * **before it has laid out** — the mount-versus-layout confusion `use-coach-mark.ts` exists to remove.
+   *
+   * ⚠️ The overlap that motivated it is real and measured (`.11.8`: the callout does sit across this card's
+   * own footer). But it is a PLACEMENT question, and re-measuring an unmoved rect could never answer it.
    */
-  const targets = useTutorialTargets();
-  useEffect(() => {
-    targets?.invalidate('trajectory-scrub');
-  }, [targets, skiaReady]);
   // What-If is a secondary, opt-in tool — collapsed by default so the resting card stays calm.
   const [whatIfOpen, setWhatIfOpen] = useState(false);
   // C7 — the strategy comparison, collapsed by default for the same reason What-If is.

@@ -122,8 +122,8 @@ export function ImportDebtsSheet({ onClose }: { onClose: () => void }) {
         ⚡ The same change that widened the header parser argued *"a real export from a bank or a
         spreadsheet says `Minimum Payment`"* — **and that same export says `9/1/2026`.** One half of the
         premise was acted on and the other was not.
-        ⚠️ `site/support.html` has said this since it was written; the in-app copy is what disagreed, and
-        the person pasting a CSV is not reading the support site while they do it.
+        ⚠️ `site/support.html` states the same rule, and the person pasting a CSV is not reading the
+        support site while they do it — so the app has to say it too.
       */}
       <Text style={[textStyles.caption, { color: c.text.secondary }]}>
         Columns: name, balance, minimumPayment, apr, dueDate. Dates must be written as YYYY-MM-DD, for

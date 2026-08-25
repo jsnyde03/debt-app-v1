@@ -190,13 +190,6 @@ export function countLegacyKeys(items: Record<string, string>): number {
 }
 
 /**
- * Choose the v1.6 store from everything the probe opened. Ranks on legacy-key COUNT, so a stray
- * database from some other origin (an in-app web view, a WKWebView an SDK made) cannot win, and a
- * partially-written one loses to a complete one. Returns `null` when no candidate holds a single
- * `debtPlanner.*` key — which is the correct answer for a fresh install, and MUST NOT be confused with
- * "the read failed": the caller distinguishes those, exactly as `hydrate` already does.
- */
-/**
  * Split undecodable-row counts into **ours** and **everyone else's**, given the database `pickLegacyStore`
  * chose. [P6.8.9.7.11.4]
  *
@@ -207,22 +200,36 @@ export function countLegacyKeys(items: Record<string, string>): number {
  * INSTRUMENT is wrong, not the fix** — the question is *what could see this*, and the answer here is a
  * pure function.
  *
- * ⚠️ `pickedPath` `undefined` means no database was ours, so **none of the drops are ours either** —
- * the case that produced the false claim in the first place.
+ * ⛔ **NO PICK MEANS REPORT EVERYTHING, AND THAT DIRECTION IS THE WHOLE POINT.** Sending every drop to the
+ * other-candidates bucket when nothing was picked is the case this counter exists for, inverted: if the
+ * user's own v1.6 database opens and **every row fails to decode**, `countLegacyKeys` is `0`,
+ * `pickLegacyStore` returns `null`, and `migrateFromLegacy` then reads the container as *a fresh install*.
+ * `droppedRows` is the only number left saying anything was lost — so zeroing it trades a measured false
+ * positive for an unmeasured **false negative**, on data the user cannot get back.
+ * Attribution needs a pick; with no pick, a data-loss signal fails SAFE by reporting.
  */
 export function attributeDroppedRows(
   decoded: readonly { path: string; dropped: number }[],
   pickedPath: string | undefined,
 ): { droppedRows: number; droppedRowsOtherCandidates: number } {
+  const total = decoded.reduce((sum, d) => sum + d.dropped, 0);
+  if (pickedPath === undefined) return { droppedRows: total, droppedRowsOtherCandidates: 0 };
   let droppedRows = 0;
-  let droppedRowsOtherCandidates = 0;
-  for (const d of decoded) {
-    if (pickedPath !== undefined && d.path === pickedPath) droppedRows += d.dropped;
-    else droppedRowsOtherCandidates += d.dropped;
-  }
-  return { droppedRows, droppedRowsOtherCandidates };
+  for (const d of decoded) if (d.path === pickedPath) droppedRows += d.dropped;
+  return { droppedRows, droppedRowsOtherCandidates: total - droppedRows };
 }
 
+/**
+ * Choose the v1.6 store from everything the probe opened. Ranks on legacy-key COUNT, so a stray
+ * database from some other origin (an in-app web view, a WKWebView an SDK made) cannot win, and a
+ * partially-written one loses to a complete one. Returns `null` when no candidate holds a single
+ * `debtPlanner.*` key — which is the correct answer for a fresh install, and MUST NOT be confused with
+ * "the read failed": the caller distinguishes those, exactly as `hydrate` already does.
+ *
+ * ⚠️ Re-attached at P6.8.9.7.11.9 — `attributeDroppedRows` was inserted between this block and its
+ * subject, which is the same defect `.11.7` fixed in two other files. Third instance, and the second one
+ * written while fixing the first two.
+ */
 export function pickLegacyStore<T extends LegacyStoreCandidate>(candidates: readonly T[]): T | null {
   let best: T | null = null;
   let bestCount = 0;

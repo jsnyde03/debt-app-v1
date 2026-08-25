@@ -262,20 +262,29 @@ export function parseDebtCsvText(text: string, options: DebtCsvOptions): DebtCsv
 		 * A rate is written `19.99%`, never `1%2`, so only a trailing sign is stripped; anything else keeps
 		 * its `%` and fails to parse, which is the correct outcome for a cell nobody meant.
 		 */
-		const rawTrimmed = rawApr.trim();
-		const aprText = rawTrimmed.replace(/%$/, "").trim();
-		const apr = rawTrimmed !== "" && aprText === "" ? null : parseOptionalAmount(aprText);
 		/**
-		 * ⚠️ The two messages are decided by the PARSE, not by a second re-read of the raw cell. The old
-		 * branch re-parsed with `Number(...)` to guess which message to use, and `Number("")` is `0` — so
-		 * `"%"` was reported as *"must be between 0 and 100"*, the same false message the `19.99%` fix
-		 * existed to remove, on a different input. `apr === null` IS unreadable; `apr > 100` IS out of range.
+		 * ⛔ **A RATE IS PARSED HERE, NOT BORROWED FROM THE MONEY PARSER.** `parseOptionalAmount` exists for
+		 * amounts, and two of its properties are wrong for a rate: its `normalize` strips `,`, whitespace
+		 * **and `$`**, so a cell of `"$"` or `","` reduces to `""` and its blank contract returns **`0`** —
+		 * a silent 0% APR on a card that charges; and it refuses negatives by returning `null`, which is
+		 * indistinguishable from "not a number" and reports `-5` as unreadable rather than out of range.
+		 *
+		 * ⚡ Guarding only the emptiness that `%`-stripping produces covers **one** of the four characters
+		 * that can empty a cell. Parsing the rate directly is what makes the rule *"a cell with content but
+		 * no number is UNREADABLE, not blank"* true of all of them.
 		 */
-		if (apr === null) {
+		const rawTrimmed = rawApr.trim();
+		// A rate is written `19.99%`, never `1%2`, so only a TRAILING sign is stripped; anything else keeps
+		// its `%`, fails to parse, and is refused — the correct outcome for a cell nobody meant.
+		const aprText = rawTrimmed.replace(/%$/, "").trim().replace(/[,\s$]/g, "");
+		const parsed = aprText === "" ? Number.NaN : Number(aprText);
+		if (rawTrimmed !== "" && !Number.isFinite(parsed)) {
 			errors.push(`Row ${rowNumber}: could not read APR "${rawApr}" — leave it blank for 0%.`);
 			return;
 		}
-		if (apr > 100) {
+		// Blank is a real answer (0%); every other value has to land in range, negatives included.
+		const apr = rawTrimmed === "" ? 0 : parsed;
+		if (apr < 0 || apr > 100) {
 			errors.push(`Row ${rowNumber}: APR must be between 0 and 100 — got ${apr}.`);
 			return;
 		}

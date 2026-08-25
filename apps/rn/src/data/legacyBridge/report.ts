@@ -44,7 +44,7 @@ export interface LegacyReadReport {
    *
    * ⚠️ **Optional deliberately.** `droppedRows` is required because it is a claim to the user and every
    * producer owes it; this one is a debugging aid, and absent means "not measured" rather than "zero".
-   * Making it required would force a meaningless value into seven fixtures that do not exercise it.
+   * Making it required would force a meaningless value into every construction site, most of which never exercise it.
    */
   droppedRowsOtherCandidates?: number;
 }

@@ -176,7 +176,14 @@ for (const root of ROOTS) {
     });
     // Comments are already blanked, so the prose that EXPLAINS this trap does not count as a call.
     if (rel !== 'apps/rn/src/utils/a11y.ts') {
-      const calls = stripped.match(/\bannounce\s*\(/g)?.length ?? 0;
+      /**
+       * ⛔ **BOTH SPELLINGS — the helper AND the platform API it wraps.** [P6.8.9.7.11.9 · A-1] Matching
+       * `announce(` alone missed `AccessibilityInfo.announceForAccessibility(…)`, which is **the most
+       * direct way to write the defect** and the exact call whose emptiness on web this gate exists to
+       * police. It went unnoticed only because the single direct call today lives in the owner file, which
+       * is excluded above — so the gate was blind to the spelling any new file would use.
+       */
+      const calls = stripped.match(/\b(announce|announceForAccessibility)\s*\(/g)?.length ?? 0;
       const baselined = BARE_ANNOUNCE_BASELINE[rel] ?? 0;
       if (calls > baselined) {
         announceHits.push(

@@ -198,20 +198,40 @@ export function runMigrations(raw: unknown): DebtStore {
    * and a camel-cased identifier is already poor copy; for this one the consequence is the part the reader
    * needs, and it is not guessable from the field name.
    */
-  for (const rep of repairs) {
-    if (rep.entity !== 'goal' || rep.field !== 'priorityPerPaycheck') continue;
-    const goal = goals.find((g) => g.id === rep.id);
-    if (!goal) continue;
-    if (goal.priority === true) {
-      goal.priority = false;
-      rep.field =
-        'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt — ' +
-        'set it up again from Can I afford it?';
-    } else {
-      // Not prioritised, so there was no cap to lose and nothing changes about the plan.
-      rep.field = 'the per-paycheck amount could not be read';
-    }
+  /**
+   * ⛔ **MATCHED ON THE VALUE, NOT ON THE REPAIR RECORD — and the record is the wrong question twice.**
+   * [P6.8.9.7.11.9 · B-1] `readMoney` returns `repaired: true` for a **successful recovery** as well as
+   * for a loss: `'200'` and `'1,200'` parse to their real amounts and are still flagged, because the
+   * *format* was repaired. Standing a goal down on the record therefore destroyed caps that had been read
+   * **correctly** — a user who chose `$200 a paycheck`, stored as a string by v1.6's HTML inputs, lost the
+   * plan they signed off on. That is worse than the defect it was fixing.
+   *
+   * ⚡ The value answers both questions the record cannot. `0` is the only thing an unreadable pace
+   * becomes, so it identifies a real loss — **and it also catches the stores a previous build already
+   * wrote**, which hold `priority: true` with a pace of `0` and carry no repair record at all (a finite
+   * `0` re-reads as `repaired: false`). Those would otherwise fund uncapped forever.
+   */
+  for (const goal of goals) {
+    if (goal.priority !== true || goal.priorityPerPaycheck !== 0) continue;
+    /**
+     * ⛔ **THE PRIORITY RUNG IS `savings`-ONLY, so an EMERGENCY goal is a different story.**
+     * [P6.8.9.7.11.9 · B-4] `allocatePaycheck.ts:629` skips any goal whose `type !== "savings"`, so an
+     * emergency goal's pace never governed anything and standing it down changes nothing. It is still
+     * funded ahead of debt — by the **starter-EF rung** at `:605`, which consults neither `priority` nor
+     * the pace and is capped at `starterEmergencyTarget`. So the cap-removal harm does not apply, and
+     * claiming *"no longer funded ahead of your debt"* would be false of this type.
+     */
+    const governed = goal.type === 'savings';
+    if (governed) goal.priority = false;
     delete goal.priorityPerPaycheck;
+    const rep = repairs.find((r) => r.entity === 'goal' && r.id === goal.id && r.field === 'priorityPerPaycheck');
+    // ⚠️ Only reworded when there IS a record. A store already carrying `0` has nothing to report — the
+    // loss happened in an earlier launch — and inventing a repair line would date it to today.
+    if (rep) {
+      rep.field = governed
+        ? 'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt'
+        : 'the per-paycheck amount could not be read';
+    }
   }
   // v7 (5.6) — DROP two inert prefs. Both were measured at zero production reads, and the merge below
   // would otherwise carry them forward forever: `{ ...base.prefs, ...r.prefs }` preserves any extra key
