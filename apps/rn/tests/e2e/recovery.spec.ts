@@ -34,6 +34,39 @@ test.describe('§2.6 Recovery Plan — the shortfall card builds + applies the c
     await expect(page.getByText(/cover these from savings or your next paycheck/)).toHaveCount(0);
   });
 
+  /**
+   * [P6.8.9.7.11.14.1 · audit P1-4] The cover-now block at a real portfolio size.
+   *
+   * ⛔ **The defect was a bare `.join(' · ')`** — `state-today-many.png` showed 23 generic names as a
+   * four-line paragraph with the total welded on by an em-dash. ⚠️ The unit test pins `summariseNames`;
+   * a tested helper is not a used helper, so this pins what a **user** meets: the eleventh name must not
+   * be on the screen until they ask for it.
+   */
+  test('P1-4 · many essentials truncate to a countable line, and the tap reveals the rest', async ({ page }) => {
+    const essentials = Array.from({ length: 11 }, (_, i) => ({
+      id: `ess${i}`,
+      name: `Essential ${i + 1}`,
+      amount: 80,
+      dueDate: '2026-07-01',
+      recurrence: 'monthly' as const,
+      category: 'housing' as const,
+    }));
+    await seedStore(page, scenario({ paycheck: { amount: '500' }, requiredExpenses: essentials, debts: [] }));
+    await page.goto('/');
+    await expect(page.getByText('COVER NOW')).toBeVisible();
+
+    // The run-on is gone: three names, then a count of what is held back.
+    await expect(page.getByText('+8 more')).toBeVisible();
+    await expect(page.getByText('Essential 1 · Essential 2 · Essential 3', { exact: false })).toBeVisible();
+    // ⚠️ Asserted on the LAST name rather than on a length: a helper that returned every name with
+    // "+8 more" beside it would pass a count assertion while rendering the paragraph the finding is about.
+    await expect(page.getByText('Essential 11', { exact: false })).toHaveCount(0);
+
+    await page.getByRole('button', { name: /Show all 11/ }).click();
+    await expect(page.getByText('Essential 11', { exact: false })).toBeVisible();
+    await expect(page.getByText('Show fewer')).toBeVisible();
+  });
+
   test('applying the defers closes the gap and the card relaxes out of the shortfall', async ({ page }) => {
     await seedStore(page, shortfall());
     await page.goto('/');

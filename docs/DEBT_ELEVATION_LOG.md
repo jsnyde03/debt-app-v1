@@ -109,6 +109,74 @@ since. `.2` in particular touches a sheet `.11.12.5` already changed, and `.3` a
 
 ---
 
+## ✅ P6.8.9.7.11.14.1 — P1-4, the run-on nobody had viewed with 40 items on screen *(2026-08-25)*
+
+### The defect
+
+`RecoveryPlanSection.tsx` built its cover-now line as `plan.coverNow.map((i) => i.name).join(' · ')` with
+the total welded on by an em-dash. At 40 obligations `state-today-many.png` shows that as 23 generic names
+across four lines — on the **one** surface that speaks to a user who is short this paycheck, and the one
+place in the product where the bar is *"reassurance, not a lecture."* Everything above and below it on the
+card is calm, which is what makes the block read as a `join` nobody looked at with a real portfolio.
+
+### What shipped
+
+- **`summariseNames(names, max)`** in `utils/format.ts` → `{ shown, more }`. ⚠️ It **declines to truncate
+  at `max + 1`**: hiding one name to show *"+1 more"* is longer and says less. That boundary is the whole
+  reason this is a function rather than a `slice`.
+- **The figure leads.** `$2,658` first (with `23 bills` beside it) — it is the only actionable part of the
+  block — then three names, then `+8 more`.
+- **The rest is one tap away**, on the app's own existing disclosure idiom (`AmortizationView`'s
+  *"Show all N months"*), with the a11y label naming what is hidden. ⛔ **The `Pressable` exists only when
+  something is behind it** — a control that expands nothing is the class `.11.13.8` closed.
+
+### Pinned
+
+**Two plants, because one was not enough** — [[plant-that-reds-early-hides-assertions]]:
+
+| plant | reds at |
+|---|---|
+| the original bare `join` | assertion **1** (`+8 more` not found) — every later assertion unexercised |
+| the naive over-fix *(affordance kept, list not truncated)* | assertion **4** (`Essential 11` visible when it must not be) |
+
+⚡ The second is the one that matters: a helper returning all 23 names **with `+8 more` beside them**
+passes every count assertion in the first plant's reach. Unit: 14 assertions, both plants red. E2e:
+`recovery.spec.ts` at 11 essentials, asserting on the **last name** rather than on a length.
+
+⛔ **The harness reported "exit code 0" on BOTH red runs** — eighth instance. The log's own `EXIT=` line
+is what caught it.
+
+### After-scan
+
+- ⚠️ **The class has no gate and must not be closed as a list** → filed to the 2.1 backlog.
+  `ImportDebtsSheet.tsx:95` is the identical shape and was **deliberately not changed**: it confirms N
+  debts before adding them, inside a scroll, where every name is the point. ⚡ Same code, opposite correct
+  answer — so any gate on the shape needs an exemption, which is a judgement authored under a freeze.
+- `progress.tsx:228`'s `reached.join(', ')` is bounded at three milestones. Not this class.
+- ⚠️ Minor: `AmortizationView`'s disclosure is **one-way** and this one toggles. Two disclosures, two
+  behaviours. Not worth a change inside the freeze; recorded so the next author picks one on purpose.
+
+---
+
+## 🔎 P6.8.9.7.11.14 — the ITEM before-scan: three of five rows were wrong *(2026-08-25)*
+
+The rows were authored from the audit and the plan said so. Verified against the tree before building.
+
+| row | the row said | measured |
+|---|---|---|
+| **.1** P1-4 | *"the list-joining idiom already exists at `invariants.ts:100`"* | ❌ **No idiom to adopt.** `:100` is inside `moneyKeepsItsType`'s field loop; the `slice(0,3).join(' · ') + (+N)` shape is at **`:115`**, built inline as a **diagnostic string** in the migration-audit module. A repo-wide search for an exported list formatter (`formatList` / `joinNames` / `+N more`) over `apps/rn/src` + `packages/core` returns **nothing**. One must be written |
+| **.2** P1-5 | *"`.11.12.5` already touched this sheet"* · *"`Done` is filled and `Copy to clipboard` is secondary"* | ❌ **Both.** `.11.12.5` changed `describeBackup`/`readBackup`/`formatBackupTime` — rendered by the **Import** sheet; `BackupSheets.tsx` itself has not changed since `9bdbf69` (P6.8.7g.2), and P1-5 is the **Export** sheet. ⚡ **And the finding is a WEB frame describing a WEB-ONLY layout:** `BACKUP_FILE_SUPPORTED` is `false` in `backupFile.web.ts` and `true` in `backupFile.ts`, so the matrix could not photograph the primary `Save as a file` button that iOS renders. On the shipping platform the defect is **two filled buttons**, not one |
+| **.3** P1-1 | *"needs a recipe in the matrix"* | ✅ Holds, and cheaper than implied. `ready` **is** required on `Surface` (`p6.8-matrix.shot.ts:167`), and both beats hang off **persisted** store fields — `pendingPayoff: {kind:'finale'}` and `pendingMilestone: {threshold, progressPercent}` (`models.ts:323,342`) — so `seedOver` reaches them the way `/history` and `/living-expenses` are reached |
+| **.4** L4-13b | *"the 7 live inline opacities"* | ✅ **Exactly 7, still live**, at five values — `money.tsx:887` 0.6 · `:922` 0.85 · `:1085` 0.8 · `AddObligationSheet.tsx:95` 0.7 · `DebtSheet.tsx:283,295` 0.7 · `Button.tsx:68` 0.85/0.9/0.5 — against `pressedOpacity = 0.8` (`theme/spacing.ts:49`). ⚡ **The first count this cluster has not undercounted** |
+| **.5** L1-20 | *"the single `eyebrow` token"* | ⚠️ Unresolved by design. The auditor's *"touches zero strings and zero tests"* is true of **defining** the token; **adopting** it across the 34 uppercase-display styles normalises `letterSpacing` from five values to one, which a user can see. Scoped at `.5`'s own before-scan |
+
+⚡ **The generalisable half:** row .2's premise failed because the audit's instrument is a **web** capture and
+the finding was written as if it photographed the product. `BACKUP_FILE_SUPPORTED` is a `.web.ts` fork, and
+a `.web.ts` fork is invisible to a matrix that only runs on web. **Any craft finding off this matrix should
+be checked for a platform fork before it is built.**
+
+---
+
 ## ✅ P6.8.9.7.11.13.9 — the device row a spec promised and nobody wrote *(2026-08-25)*
 
 `coach-marks.spec.ts` ends its tap-through test with *"→ P6.14 row"*. **Verified missing**: the ledger had

@@ -8,7 +8,7 @@ import type { RecoveryPlan } from '@/store/recoverySelectors';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 import { a11yChecked } from '@/utils/a11y';
-import { formatWhole } from '@/utils/format';
+import { formatWhole, summariseNames } from '@/utils/format';
 
 /**
  * §2.6 Recovery Plan — the Guardian's shortfall card, rolled up its sleeves. Same visual language as the
@@ -38,6 +38,11 @@ export function RecoveryPlanSection({
   const remaining = Math.max(0, Math.round((plan.gap - closed) * 100) / 100);
   const covered = remaining <= 0.005;
   const count = checked.size;
+  // [P6.8.9.7.11.14.1 · P1-4] Three names is what fits one caption line on a phone; the helper declines to
+  // truncate at four, where "+1 more" would be longer than the name it hid.
+  const coverNames = plan.coverNow.map((i) => i.name);
+  const [coverExpanded, setCoverExpanded] = useState(false);
+  const coverSummary = summariseNames(coverNames, 3);
   const allChecked = count === plan.safeToDefer.length && count > 0;
   const coverNowTotal = plan.coverNow.reduce((s, i) => s + i.amount, 0);
 
@@ -58,9 +63,38 @@ export function RecoveryPlanSection({
       {plan.coverNow.length > 0 ? (
         <View>
           <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>COVER NOW</Text>
-          <Text style={[textStyles.caption, { color: c.text.secondary }]}>
-            {plan.coverNow.map((i) => i.name).join(' · ')} — {formatWhole(coverNowTotal)}
+          {/* ⛔ [P6.8.9.7.11.14.1 · audit P1-4] This was `names.join(' · ') — total`, and at 40 obligations
+              it rendered 23 generic names as a four-line run-on with the total welded onto the end by an
+              em-dash — on the ONE surface that speaks to a user who is short this paycheck. The figure now
+              leads (it is the only part of this block that is actionable), the names truncate, and the rest
+              are reachable by a tap rather than by reading a paragraph. */}
+          <Text style={[textStyles.caption, styles.coverTotal, { color: c.text.primary }]}>
+            {formatWhole(coverNowTotal)}
+            {coverNames.length > 1 ? <Text style={{ color: c.text.tertiary }}>{`  ${coverNames.length} bills`}</Text> : null}
           </Text>
+          {/* ⚠️ The Pressable exists ONLY when there is something behind it. A control that expands nothing
+              is the class `.11.13.8` closed — a card naming an action the app did not have. */}
+          <Pressable
+            disabled={coverSummary.more === 0}
+            onPress={() => setCoverExpanded((v) => !v)}
+            hitSlop={6}
+            accessibilityRole={coverSummary.more === 0 ? undefined : 'button'}
+            accessibilityLabel={
+              coverSummary.more === 0
+                ? undefined
+                : coverExpanded
+                  ? `Showing all ${coverNames.length} bills to cover now. Show fewer`
+                  : `${coverSummary.shown}, and ${coverSummary.more} more. Show all ${coverNames.length}`
+            }>
+            <Text style={[textStyles.caption, { color: c.text.secondary }]}>
+              {coverExpanded ? coverNames.join(' · ') : coverSummary.shown}
+              {coverSummary.more === 0 ? null : (
+                <Text style={[styles.coverMore, { color: c.accent.primary }]}>
+                  {coverExpanded ? '  Show fewer' : `  +${coverSummary.more} more`}
+                </Text>
+              )}
+            </Text>
+          </Pressable>
         </View>
       ) : null}
 
@@ -141,6 +175,8 @@ export function RecoveryPlanSection({
 const styles = StyleSheet.create({
   wrap: { gap: spacing.md },
   eyebrow: { letterSpacing: 0.8, marginBottom: spacing.xs },
+  coverTotal: { fontWeight: '600' },
+  coverMore: { fontWeight: '600' },
   deferBlock: { gap: spacing.sm },
   // [L1-15] Sits directly under the eyebrow, which already carries its own bottom margin.
   deferCaveat: { marginTop: -spacing.xs },

@@ -34,3 +34,31 @@ export function monthlyEquivalent(amount: number, recurrence: Recurrence, cycles
   if (recurrence === 'per-paycheck') return amount * cyclesPerMonth;
   return amount * MONTHLY_FACTOR[recurrence];
 }
+
+/** A truncated name list plus the count it left out. `more === 0` means `shown` is the whole list. */
+export interface NameSummary {
+  shown: string;
+  more: number;
+}
+
+/**
+ * [P6.8.9.7.11.14.1 · audit P1-4] Entity names as a readable list rather than a run-on paragraph.
+ *
+ * ⛔ **The defect this exists to stop was a bare `.join(' · ')` on the shortfall card** — at 40
+ * obligations it rendered 23 generic names across four lines with a total welded onto the end, on the one
+ * surface that speaks to someone who is short this paycheck. Nothing downstream truncates, so the fix has
+ * to be at the point the string is built.
+ *
+ * ⚠️ **Truncation only starts when it actually SAVES something.** At `max + 1` names, *"+1 more"* is
+ * longer than the name it hides and tells the reader strictly less, so the whole list is shown instead —
+ * `more` is 0 and the caller renders no overflow affordance. Pinned; it is the case an off-by-one gets
+ * wrong in the direction nobody looks at.
+ *
+ * ⚠️ **`max` is a count of names, not of characters.** A caller with a hard line budget wants a smaller
+ * `max`, not a change here — this helper knows nothing about the type scale, and guessing at it is how a
+ * formatter starts disagreeing with the layout it serves.
+ */
+export function summariseNames(names: readonly string[], max: number): NameSummary {
+  if (max < 1 || names.length <= max + 1) return { shown: names.join(' · '), more: 0 };
+  return { shown: names.slice(0, max).join(' · '), more: names.length - max };
+}

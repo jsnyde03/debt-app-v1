@@ -74,6 +74,11 @@ async function main() {
   // and the card spoke the loss sentence over both, while nothing asserted a single string it rendered.
   await (await import('../components/plan/dataRepairsCopy.test')).default();
 
+  // P6.8.9.7.11.14.1 (audit P1-4) — the name-list truncation that replaced the shortfall card's bare
+  // `.join(' · ')`. The `max + 1` boundary is the one that matters: truncating there hides a name and
+  // shows "+1 more" in its place, which is longer.
+  await import('../utils/format.test');
+
   // P6.8.7g.2 (audit C8) — debt id minting. The batch case is new: `newDebtId` derives uniqueness from
   // the ids that exist, so a loop over an unchanged list hands out the same id every time.
   await import('../store/debtIds.test');
