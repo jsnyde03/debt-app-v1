@@ -35,10 +35,15 @@ import { repairBlocks, repairsA11yLabel } from './dataRepairsCopy';
  * the harm. (P6.8.9.7.10 · B-1.) Each line now carries its own consequence, because the consequences
  * differ and no single sentence covers them honestly. The pace line is written in `migrations.ts`.
  *
- * ⚠️ "Open each one and enter the real amount" was also unfollowable for a pace: `GoalSheet` edits name,
- * target, current and type, and `priorityPerPaycheck` is written **only at creation**
- * (`SaveForItSheet.tsx:109`, reachable only from `AffordabilityCard`). The recovery route is named in
- * that line instead of promised generically here.
+ * ⛔ **"UNTIL YOU SET IT AGAIN" WAS FALSE FOR THREE OF THE FIVE PRODUCERS OF A REPAIR RECORD.**
+ * [P6.8.9.7.11.13.8 · J1-4] It was written for a named item with a sheet behind it, and applied to
+ * everything: a whole list that would not read, a single row that would not read, and the v1.6 bridge's
+ * counts have **no item to open**. ⚡ Enumerated from the producers, not from the audit's list.
+ *
+ * ⚠️ **The pace half of this closed differently** — at `.11.13.4`, by making the promise TRUE:
+ * `GoalSheet` now writes `priorityPerPaycheck`, so a stood-down goal has a route. The rest is split into
+ * its own block in `dataRepairsCopy`, because for those there is genuinely nothing to reopen and the only
+ * honest instruction is to check against the old app.
  *
  * ⛔ **The words live in `dataRepairsCopy`, not here** — a recovered amount and a lost one are opposite
  * events and the card said the loss sentence over both. Pinning the strings needs them out of JSX.
@@ -56,9 +61,12 @@ export function DataRepairsCard({ repairs, onAck }: { repairs: DataRepair[]; onA
               {/* `healing` is the repair glyph the icon map already carries — a recovered amount was
                   mended and is fine, which is not the warning the loss block is. */}
               <AppIcon
-                name={block.kind === 'lost' ? 'error-outline' : 'healing'}
+                // ⚠️ [P6.8.9.7.11.13.8] `unrecoverable` is a LOSS and takes the warning glyph — a two-way
+                // `=== 'lost' ? … : …` would have handed it `healing`, the mended-amount icon, which is
+                // the opposite claim. The block kinds are now three; this had to stop being a boolean.
+                name={block.kind === 'recovered' ? 'healing' : 'error-outline'}
                 size={20}
-                color={block.kind === 'lost' ? c.accent.warning : c.text.secondary}
+                color={block.kind === 'recovered' ? c.text.secondary : c.accent.warning}
               />
               <Text style={[textStyles.subhead, styles.headText, { color: c.text.primary }]}>{block.heading}</Text>
             </View>

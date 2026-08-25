@@ -26,6 +26,13 @@ function eq<T>(actual: T, expected: T, label: string) {
   console.log(`  ✓ ${label}`);
 }
 
+/** For claims about a sentence's CONTENT rather than its exact wording — see `.11.13.8`'s cases. */
+function assert(cond: boolean, label: string) {
+  if (!cond) throw new Error(`FAIL [${label}]`);
+  passed++;
+  console.log(`  ✓ ${label}`);
+}
+
 function repair(over: Partial<DataRepair> = {}): DataRepair {
   return { entity: 'goal', id: 'g0', name: 'Roof', field: 'targetAmount', ...over };
 }
@@ -129,6 +136,50 @@ export default function run() {
 
   // An empty list must produce no blocks — the card is only mounted when something is pending, and a
   // stray empty block would render a heading with nothing under it.
+  /**
+   * ⛔ **[P6.8.9.7.11.13.8 · J1-4] "UNTIL YOU SET IT AGAIN" IS FALSE OF A RECORD WITH NOTHING TO OPEN.**
+   * Three of the five producers emit one: a whole list that would not read, a single row that would not
+   * read, and the v1.6 bridge's counts. Each case below is one of those producers' actual output.
+   */
+  {
+    const blocks = repairBlocks([
+      { entity: 'migration', id: '', name: '', field: '3 item(s) from your old version were not recognised' },
+    ]);
+    eq(blocks[0].kind, 'unrecoverable', 'a v1.6 bridge count is not something you can go and set');
+    assert(
+      !blocks[0].detail.includes('set it again') && !blocks[0].detail.includes('set each one again'),
+      '⛔ …so the card must not tell them to',
+    );
+    assert(blocks[0].detail.includes('check this against your old app'), '…and it names what they CAN do');
+  }
+  {
+    const blocks = repairBlocks([
+      { entity: 'debt', id: '', name: '', field: '(a row could not be read)', kind: 'lost' },
+      { entity: 'goal', id: '', name: '', field: '(whole list unreadable)', kind: 'lost' },
+    ]);
+    eq(blocks.length, 1, 'both nameless losses land in one block');
+    eq(blocks[0].kind, 'unrecoverable', '⛔ a row or a list that would not read has nothing to reopen');
+    assert(blocks[0].detail.includes('nothing to reopen for them'), '…and the plural says so');
+  }
+  {
+    // ⚠️ The discriminator is the NAME, not the entity — a named debt is actionable, a nameless one is not.
+    const blocks = repairBlocks([
+      { entity: 'debt', id: 'd0', name: 'Car', field: 'balance', kind: 'lost' },
+      { entity: 'debt', id: '', name: '', field: '(a row could not be read)', kind: 'lost' },
+    ]);
+    eq(blocks.length, 2, 'a named loss and a nameless one are different claims and get different blocks');
+    eq(blocks[0].kind, 'lost', 'the named one keeps the actionable sentence');
+    eq(blocks[0].lines.join(''), 'Car — balance', '…and holds only itself');
+    eq(blocks[1].kind, 'unrecoverable', '…while the nameless one is separated out');
+  }
+  {
+    // The stood-down pace: named, and since `.11.13.4` genuinely settable in `GoalSheet`.
+    const blocks = repairBlocks([
+      { entity: 'goal', id: 'g0', name: 'Roof', field: 'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt', kind: 'lost' },
+    ]);
+    eq(blocks[0].kind, 'lost', '⛔ a stood-down pace IS actionable now — the promise became true rather than being dropped');
+  }
+
   eq(repairBlocks([]).length, 0, 'no repairs produces no blocks');
 
   console.log(`✅ All data-repairs copy tests passed (${passed}).`);

@@ -52,6 +52,64 @@ device. Confirm nothing in the suite depends on the record being written.
 
 ---
 
+## ✅ P6.8.9.7.11.13.8 — J1-4, the card that named an action the app did not have *(2026-08-25)*
+
+### The finding, and the half that closed itself
+
+J1-4: *"the card still tells a user whose sinking-fund pace was lost to 'set it again', and no screen in
+the app can set it again."*
+
+⚡ **That half is closed by `.11.13.4`, and it closed in the better direction — the promise became TRUE
+rather than being softened.** `GoalSheet` now writes `priorityPerPaycheck`. Which is why that step was
+pulled ahead of this one.
+
+### ⛔ The rest, enumerated from the producers rather than taken from the list
+
+The blanket sentence was written for a named item with a sheet behind it and applied to every record.
+Every producer of a `DataRepair`, counted:
+
+| producer | record | can the user open and set it? |
+|---|---|---|
+| `migrations.ts:82` | `(whole list unreadable)` — no id, no name | ⛔ no |
+| `migrations.ts:108` | `(a row could not be read)` — no id, no name | ⛔ no |
+| `migrations.ts:117` | a named field on a named item | ✅ yes |
+| `migrations.ts:290` | the goal stand-down sentence | ✅ yes, **since `.11.13.4`** |
+| `persistence.ts:134` | the v1.6 bridge's counts (`entity: 'migration'`) | ⛔ no |
+
+**Three of five.** ⚠️ The finding named only the pace — the standing result that *an audit finding's site
+list is where to START looking, never the class*, holding again.
+
+⚡ **And the discriminator was already in the file.** `describeRepair` writes *"Your debt list — …"* for a
+record with no `name`, precisely because there is nothing to point at. The same test now chooses the
+sentence as well as the noun — no new concept, and nothing to keep in sync.
+
+### What shipped
+
+A third block, `unrecoverable`: *"Some of your old data did not come across · There is nothing to reopen
+for it — check this against your old app and add anything missing."* That is the action
+`describeMigrationLosses` already says these records should prompt.
+
+⚠️ **The icon condition had to stop being a boolean.** `block.kind === 'lost' ? 'error-outline' :
+'healing'` would have handed the new block **`healing`** — the mended-amount glyph, the opposite claim.
+Inverted to test for `recovered` instead, so the default is the warning.
+
+⚠️ **Same move as `.11.12.1`'s recovered/lost split, for the same reason**: one word covering two events
+made the app state something false about the user's money.
+
+### Verification
+
+- **Four unit cases**, one per producer shape, plus the mixed case — a named loss and a nameless one land
+  in different blocks, which is the property the split exists for.
+- **e2e: J1-4's Q3 answered.** It recorded *"nothing asserts either sentence, and no fixture in the repo
+  produces a goal-pace repair on screen."* Both fixtures now exist — `.11.13.5` added the goal-pace one,
+  and this adds the nameless-loss one, asserting the honest sentence is present **and** the false one is
+  absent *(after proving the card rendered — an absence assertion is trivially true of a blank page)*.
+- **RED:** `actionable` forced to `true` → *"expected `unrecoverable`, got `lost`"*.
+- **GREEN:** `data-recovery` 10/10 · `test:app` · `typecheck` · all 22 gates including `lint:copy`, which
+  is what checks the new sentences are not duplicates of existing copy.
+
+---
+
 ## ✅ P6.8.9.7.11.13.7 — J1-5, the decision nothing could reach *(2026-08-25)*
 
 ### The defect

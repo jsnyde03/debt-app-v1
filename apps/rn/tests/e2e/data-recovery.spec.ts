@@ -302,3 +302,28 @@ test('a legacy stood-down goal is NAMED on Today, with the consequence', async (
   // that their plan stopped funding this ahead of their debt — the half a field name cannot carry.
   await expect(page.getByText(/no longer funded ahead of your debt/)).toBeVisible();
 });
+
+/**
+ * ⛔ **[P6.8.9.7.11.13.8 · J1-4] THE CARD TOLD PEOPLE TO GO AND SET SOMETHING THAT CANNOT BE SET.**
+ *
+ * *"Your plan is running without it until you set it again"* was written for a named item with a sheet
+ * behind it and applied to every record. **Three of the five producers of a repair emit one with no item
+ * to open** — a whole list that would not read, a single row that would not read, and the v1.6 bridge's
+ * counts. J1-4's own Q3 says nothing asserted either sentence and no fixture produced the case; this is
+ * that fixture.
+ *
+ * ⚠️ **The block SPLIT rather than the sentence softening.** A named loss keeps the actionable wording,
+ * because for it the wording is true — and at `.11.13.4` it became true of a stood-down goal pace too.
+ */
+test('a loss with nothing to reopen is not told to "set it again"', async ({ page }) => {
+  // A `null` row is dropped and reported by `repairMoneyFields` — no id, no name, nothing to open.
+  await seedStore(page, scenario({ debts: [null] }));
+  await page.goto('/');
+
+  await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Some of your old data did not come across')).toBeVisible();
+  await expect(page.getByText(/nothing to reopen for it/)).toBeVisible();
+  // ⛔ And the false instruction is ABSENT. ⚠️ Asserted only after the card is proven on screen — an
+  // absence assertion is trivially true of a page that never rendered.
+  await expect(page.getByText(/until you set it again/)).toHaveCount(0);
+});
