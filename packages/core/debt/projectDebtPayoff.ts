@@ -72,10 +72,20 @@ function sortDebts(debts: ProjectedDebt[], strategy: PayoffStrategy) {
         });
 }
 
-function cannotAmortize(
-    debts: ProjectedDebt[],
-    monthlyExtraPayment: number
-) {
+// ⛔ COMPARE AGAINST THE BUDGET THE LOOP ACTUALLY SPENDS, NOT THE SHRINKING MINIMUM SUM (S1P3-A1).
+// This guard used to re-sum the minimums of the debts still LIVE at that month and add the extra. But
+// the loop below does not spend that number — it spends `monthlyBudget`, a CONSTANT that deliberately
+// keeps a paid-off debt's freed minimum in the pool (the defining snowball/avalanche mechanic, see the
+// comment above `totalMinimums`). So the instant the first debt cleared, this compared the remaining
+// interest against a payment total that no longer included the money actually being paid, and bailed
+// out of a plan that amortizes fine: a $2,000 car loan at 5% (min $500) plus a $10,000 Visa at 25%
+// (min $50) returned "Unable to estimate" at month 5 while `buildPayoffTrajectory` — same inputs, same
+// directory — drew that plan clearing at month 30. The Progress hero printed `—` over its own chart.
+// ⚠️ The `monthlyBudget > 0` half is NOT incidental and must not be dropped: a $0 recurring budget
+// (an all-one-time-BNPL plan with no extra) is not un-amortizable — the lumps clear via their month-1
+// minimum — and `0 >= 0` would call it unpayable. `buildPayoffTrajectory.ts:91` already had both halves;
+// this is the second producer of one fact being brought into line with the first, not a new rule.
+function cannotAmortize(debts: ProjectedDebt[], monthlyBudget: number) {
     const activeDebts = debts.filter((debt) => debt.balance > 0);
 
     const monthlyInterestTotal = activeDebts.reduce(
@@ -83,11 +93,7 @@ function cannotAmortize(
         0
     );
 
-    const monthlyPaymentTotal =
-        activeDebts.reduce((sum, debt) => sum + debt.minimumPayment, 0) +
-        Math.max(0, monthlyExtraPayment);
-
-    return monthlyInterestTotal >= monthlyPaymentTotal;
+    return monthlyBudget > 0 && monthlyInterestTotal >= monthlyBudget;
 }
 
 export function projectDebtPayoff({
@@ -138,7 +144,7 @@ export function projectDebtPayoff({
         projectedDebts.some((debt) => debt.balance > 0) &&
         months < maxMonths
     ) {
-        if (cannotAmortize(projectedDebts, monthlyExtraPayment)) {
+        if (cannotAmortize(projectedDebts, monthlyBudget)) {
             return {
                 strategy,
                 monthsToDebtFree: months,

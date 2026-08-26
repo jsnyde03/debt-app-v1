@@ -391,6 +391,17 @@ grouping is by destination. Each bullet keeps its own `→` where it had one.
 
 **→ surfaced while classifying pass 2 under [D69] *(2026-08-26)***
 
+- ⛔ **A GITIGNORED DIRECTORY IS INVISIBLE TO `git status` AND VISIBLE TO `tsc`.** Auditor C wrote its
+  probes to `apps/rn/capture-out/probe/`, which `apps/rn/.gitignore` ignores — so the pass ended with
+  `git status` clean, the pin diff **empty**, and every auditor correctly reporting *"no source touched"*,
+  while **`npx tsc -p apps/rn/tsconfig.json` was exit 2** on 14 stray files. ⚡ **Two instruments, two
+  answers, and the clean one is the one everybody read.** `validate:release:rn` runs `tsc`, so this would
+  have surfaced as a mystery red at the gate with nothing in `git status` to explain it. ⚠️ **Found only
+  because `| tail` hid the real exit code and I re-measured** — the nine-instance trap, again. Debris
+  removed. **The durable fix is a gate**: either the scratch convention moves outside the repo, or
+  `tsconfig` excludes `capture-out`, or a check asserts the tree is tsc-clean *and* status-clean together.
+  → **S1.10.6.5 / S0 instruments**
+
 - ⛔ **`lint:secrets:authoring` may not scan the report it exists to scan.** Invoked as
   `check-committed-secrets.ts --working-tree`, it printed *"none across 1206 tracked files in **index+HEAD**"*
   while the pass-3 brief and four routing manifests sat **untracked** beside it. M10 added this variant

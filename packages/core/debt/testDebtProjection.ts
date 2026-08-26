@@ -1,6 +1,6 @@
 import { applyDebtPaymentProjection } from "./applyDebtPaymentProjection";
 import { buildPayoffTrajectory } from "./buildPayoffTrajectory";
-import { projectDebtPayoff } from "./projectDebtPayoff";
+import { DEBT_FREE_DATE_UNPAYABLE, projectDebtPayoff } from "./projectDebtPayoff";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
     if (actual !== expected) {
@@ -358,6 +358,46 @@ function runDebtProjectionTests() {
         startDate: "2026-05-01",
     });
     assertEqual(oneTimeBnpl.monthsToDebtFree, 1, "one-time BNPL clears the month it lands (B1)");
+
+    // ⛔ S1P3-A1 — THE NEGATIVE-AMORTIZATION GUARD MUST COMPARE AGAINST THE CONSTANT BUDGET.
+    // It used to re-sum the minimums of the debts still LIVE that month, so the instant the first debt
+    // cleared it compared the remaining interest against a total that no longer included the freed
+    // minimum the loop actually keeps spending — and bailed out of a plan that amortizes fine.
+    // ⚠️ THE ASSERTION THAT CARRIES THIS FINDING IS THE DATE, NOT THE MONTH COUNT. The defect returned
+    // `monthsToDebtFree: 5` — a plausible small number — with the date set to the UNPAYABLE sentinel, so
+    // a month-count assertion alone could be satisfied by the defect. Assert the sentinel is absent AND
+    // the real term, and assert the date first so it is the one that reds.
+    // ⚠️ No earlier assertion in this block can fire first: `freedMinimumRolls` is built fresh here.
+    const freedMinimumRolls = projectDebtPayoff({
+        debts: [
+            { id: "car", name: "Car loan", balance: 2000, minimumPayment: 500, apr: 5, dueDate: "2026-01-15", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
+            { id: "visa", name: "Visa", balance: 10000, minimumPayment: 50, apr: 25, dueDate: "2026-01-15", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
+        ],
+        monthlyExtraPayment: 0,
+        strategy: "avalanche",
+        startDate: "2026-01-15",
+    });
+    assertEqual(
+        freedMinimumRolls.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE,
+        true,
+        "a plan that amortizes is not called unpayable once a debt clears (S1P3-A1)"
+    );
+    assertEqual(freedMinimumRolls.monthsToDebtFree, 30, "…and it clears in 30 months (S1P3-A1)");
+    // ⛔ The DATE and the CHART are two producers of one fact and disagreed here — the hero printed the
+    // sentinel over a chart drawing the same plan to zero at month 30. Pin them to each other.
+    const trajectory = buildPayoffTrajectory({
+        debts: [
+            { id: "car", name: "Car loan", balance: 2000, minimumPayment: 500, apr: 5, type: "debt", recurrence: "monthly" },
+            { id: "visa", name: "Visa", balance: 10000, minimumPayment: 50, apr: 25, type: "debt", recurrence: "monthly" },
+        ],
+        monthlyExtraPayment: 0,
+        strategy: "avalanche",
+    });
+    assertEqual(
+        trajectory.find((point) => point.balance <= 0.01)?.month,
+        freedMinimumRolls.monthsToDebtFree,
+        "the debt-free DATE and the payoff CHART agree on the same plan (S1P3-A1)"
+    );
 
     // R2.2 — a one-time BNPL must NOT phantom-accelerate a coexisting debt. A $1000 card ($100/mo, 0%)
     // takes 10 months alone; adding a $2000 one-time BNPL must leave the card at 10 months (the one-time

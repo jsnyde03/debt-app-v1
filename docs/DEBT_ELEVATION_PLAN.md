@@ -70,11 +70,42 @@ the coverage number will not move.
 | ✅ | **S1.10.2 — the dispatch verified** ([D68]): 8 links · 4 explicit paths · **17 bare filenames each resolving to exactly one tracked file** · 5 SHAs. ⚡ **It caught one wrong number in my own brief** — *"8 of 9"* counted from memory where pass 2's [D69] table says **5**; corrected in place, with the miss left on the page |
 | ✅ | **S1.10.3 — RUN.** Four fresh auditors at `96d1f11` → **11 blockers · 9 majors · 14 minors** ([`pass3/SUMMARY.md`](audits/2026-08-26-s1-money-pass3/SUMMARY.md)). ⛔ **No auditor edited source** — `git diff 96d1f11 -- apps packages scripts` is empty. D ran every plant in an isolated worktree at the pin |
 | ✅ | **S1.10.4 – S1.10.5 — recorded and classified**, claims written back in the same step. **9 of 20 blocker+majors COUNT · 11 are first-look.** Coverage **331 → 113 unswept**; `s1p3` had to be registered in `SWEPT_CLAIMS` first, exactly as `s1p2` did. ⚡ **D's own reconciliation said 48/61 and the truth is 46/63** — braced tokens are two files each, so the write-back was computed from the manifests and *reconciled against* each auditor's number, not taken from it |
-| ▶ | **S1.10.6 — FIX.** 20 blocker+majors, every one plant-verified with a control, and the **naive over-fix** planted too. ⛔ Fix by CLASS, not by id — three separate ids are one rule wired to a subset |
+| ▶ | **S1.10.6 — FIX** *(decomposed below)*. 20 blocker+majors. ⛔ **By CLASS, not by id** — eight separate ids are one rule wired to a subset |
 | **S1.10.7** | ⛔ **[D74]: a round ends with the NET, not the record.** Full e2e + embed green, commit, **push** — and `gate:record` only if pass 3 CONVERGES. ⚠️ It does not; the hand-off states *no current record* and names `818f934` |
 
 **Exit (S1.10):** 0 blockers / 0 majors on the widened surface, the `s1p3` claims written back ✅, and the
 consecutive-clean count standing at **zero** — pass 4 is the next first-candidate.
+
+#### S1.10.6's sub-steps — the fix, grouped by CLASS
+
+⛔ **Grouped by class because the ids are not independent.** `C-1 C-2 C-3 C-4 C-5 C-6 D3-1 D3-2` are **one
+rule wired to a subset**; fixing them one id at a time is what produced this round's recurrence. Each
+sub-step is: reproduce with a control → fix → re-run the control → **plant the original defect and confirm
+the new guard REDS** → plant the **naive over-fix** → register the guard.
+
+| # | class | ids | state |
+|---|---|---|---|
+| **S1.10.6.1** | **The payoff engine** — three blockers in `packages/core/{debt,history}`, all first-look | `A1` `A2` `A4` | ▶ **A1 DONE** *(see below)* · A2, A4 next |
+| **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** — wire the claim table's `'row-figures'` route to its consumers and reach the three claim sites the table never covered | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | not started |
+| **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — the direction nobody had looked: Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | not started |
+| **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, the two restore doors | `B3` `B4` `C-7` | not started |
+| **S1.10.6.5** | ⛔ **The instruments** — five gates that report green while doing less than they claim. ⚠️ **Fix LAST of the code classes**: these are the gates the other fixes are verified *with*, so a mid-flight change to them invalidates the verification already done | `B1` `A3` `D3-3` `D3-4` | not started |
+| **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | not started |
+| **S1.10.6.7** | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | not started |
+| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | not started |
+
+**Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
+`lint:rn` + the unit suites green.
+
+✅ **S1.10.6.1 · `A1` CLOSED.** `cannotAmortize` now compares against `monthlyBudget` — the constant the
+loop actually spends — instead of the shrinking active-minimum sum. Control: the car-loan + Visa plan went
+*"Unable to estimate" at month 5* → **July 2028, 30 months, $4,019.18**, matching both the chart and an
+independent hand-simulation. ⚡ **Three plants, and the middle one lied first:** the naive over-fix
+*(dropping `monthlyBudget > 0`)* appeared harmless until I found my own fixture keyed
+`bnplInstallmentsTotal` where the code keys `recurrence === 'one-time'` — **the plant had applied and never
+reached the guard.** With a fixture that reaches it, the over-fix reds, and the existing
+`testDebtProjection.ts:360` already catches it. A new guard pins A1 itself, **verified to red on the
+restored defect**, and pins the DATE to the CHART so the two producers cannot diverge again.
 
 ⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
 green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one
