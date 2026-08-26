@@ -12,48 +12,46 @@
 
 ---
 
-## ▶ BUILDING NOW — **P6.8.9.7.11 · FIX EVERY BLOCKER AND MAJOR** *(the ACTIVE decomposition — 2026-08-25)*
+## ▶ BUILDING NOW — **P6.8.9.7.11.18 · S0 — THE INSTRUMENTS** *(the ACTIVE decomposition — 2026-08-26)*
 
-🎯 2026-08-25: **"We're fixing all blockers and majors."** Ranked, with a user-facing consequence on each,
-in [`audits/2026-08-25-p6.8.9.7.11.10-severity/SUMMARY.md`](audits/2026-08-25-p6.8.9.7.11.10-severity/SUMMARY.md).
-**Start there, not here.** ⛔ **`SUMMARY.md` under-counts — work the four `{A,B,C,D}-*.md` auditor files.**
+⛔ **CONVERGENCE = 0 blockers / 0 majors. NO DEFERRALS** (🎯 2026-08-25). A major exits by being **fixed**,
+or by being **measured** never to have been one — a re-rating is not a proof.
 
-⛔ **Every fix is plant-verified, and the plant is confirmed to have LANDED before its red is believed** —
-five plants lied in one session. ⚠️ **Pin on the BEHAVIOUR a user meets, not on a value or a helper.**
-⚡ **And a plant that reds EARLY never exercises the later assertions** — re-run it with the earlier
-assertion relaxed, or the vacuous one stays hidden. Why, and the five ways a plant lies → log.
+⛔ **Fix a surface → re-verify it in the background against a PINNED SHA → repeat until TWO CONSECUTIVE
+CLEAN PASSES.** Order **S0 instruments → S1 money → S2 dates → S3 import → S4 discovery → cross-surface**.
+S0 is first because a surface verified by a blind instrument is not verified. ⛔ **Per-surface convergence
+is NOT sufficient — blocker 1 spans two surfaces**, which is what the cross-surface pass is for.
+The four ways "0 on a surface" lies, and the two 🎯 decisions [D65]/[D66], are in the log.
 
-| # | step | scope |
+| # | step | state |
 |---|---|---|
-| ✅ | **.11.1 – .11.14** | CLOSED 2026-08-24/25. Both blockers, all 14 majors, the `.11.9` tail and [D60]'s five. **Three new gates** — `lint:month-arithmetic` · `lint:press-opacity` · `typecheck:tests`. Detail → log |
-| ✅ | **.11.15** **[D62]/[D63] — `originalBalance` is a HIGH-WATER MARK** | CLOSED 2026-08-25. One owner, three store seams, and a `migrations.ts` invariant that reaches anyone **already stranded**. ⛔ **[D63]: no BNPL carve-out** — I recommended one, 🎯 agreed, and the test's own precondition then refuted the mechanism. Plant-verified three ways. Detail → log |
-| ✅ | **.11.16** **`validate:release:rn` green + push** | CLOSED 2026-08-25 locally — `lint:gate-freshness` green, the record (`5a5fa8c` · **689** files) still fingerprints this tree. ⚠️ **The record was written on a DIRTY tree**, so the SHA does not identify what was tested; the fingerprint does. 🔴 **CI is a SEPARATE claim and it is still open** — the `e892efb` run was **CANCELLED**, not green *(the handoff said "in flight")*; run `32897953240` for `c8d54fa` is in progress. ⛔ **Never carry a local green as a CI green.** Detail → log |
-| ✅ | **.11.17** **[AUDIT GATE] the fourth round — re-verify + sweep** | CLOSED 2026-08-25. Five auditors over `6736a64..c8d54fa`. **2 blockers · 17 majors**, ledger + method in [`audits/2026-08-25-p6.8.9.7.11.17-reverification/SUMMARY.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/SUMMARY.md). ⛔ **SUMMARY is the map; the five `{A..E}-*.md` files are the ledger.** ⚡ **Both blockers were made by the fixing**, and **12 of 17 majors are pre-existing reservoir** — the number to track is **7 self-inflicted**, not 19. ⛔ **Plan line RETIRED: a red gate CANNOT report exit 0** *(proven by reproduction)*. Detail → log |
-| **.11.18** ▶ | 🔴 **FIX — PER-SURFACE CONVERGENCE LOOPS** *(🎯 2026-08-25 — the shape changed)* | ▶ **BUILDING — S0 active, decomposed below.** ⭐ **No more fix-everything-then-audit-everything**: each surface is fixed, **re-verified immediately in the background against a pinned SHA**, repeating until **two consecutive clean passes with an EXTENDED sweep**. Order **S0 instruments → S1 money → S2 dates → S3 import → S4 discovery → cross-surface**. ⛔ **S0 first — a converged surface verified by a blind instrument is not converged.** ⛔ **Per-surface convergence is NOT sufficient: blocker 1 spans two surfaces**, so the cross-surface pass closes it. ✅ **[D65] + [D66] answered 2026-08-25.** ⚠️ M4's severity is **device-gated**. The four ways "0 on a surface" lies → log |
-| **.11.19** | 🔴 **THE CLOSURE LEDGER — drive both `MAX_UNTOKENISED` caps to 0, then flip `lint:closure` to gating** | ⚠️ **SCOPE RE-MEASURED at S0.1, and it GREW: not "the 51" but 142** — `[D37]` **55/55** + P6.8 **48/48** untokenised, plus the **39** P6.8 findings in no ledger at all. ⚡ **S0.1 built the mechanism** (`[closes: ID]`, both caps downward-only); this writes the records. ⛔ **A cap may only ever go DOWN** — raising one to pass is the defect the gate exists to catch. ⛔ At 0, delete the cap and require the token |
-
-### ▶ .11.18 · **S0 — THE INSTRUMENTS** *(the active decomposition — 2026-08-25)*
-
-⛔ **Convergence = 0 blockers / 0 majors. NO DEFERRALS** (🎯). A major exits by being **fixed** or by being
-**measured** never to have been one; a re-rating is not a proof.
-
-| # | step | exit |
-|---|---|---|
-| ✅ | **S0.1 — M12 `check-audit-closure`** | CLOSED 2026-08-25. Explicit `[closes: ID]` token + a **downward-only** `MAX_UNTOKENISED` cap on both halves. ⚡ **Found by building: the `[D37]` half has the SAME defect and it GATES at `exit(1)`** — *"all 55 trace"* on every push, **0 of 142 machine-checkable**. Both plants red. Detail → log |
-| ✅ | **S0.2 — M10 `check-month-arithmetic`** | CLOSED 2026-08-25. All 5 spellings *(each confirmed by printing its overflow)* · string-literals stripped **before** comments · +3 configs → **627 files** · legacy tree reported-not-failed with a **self-retiring** exemption. ⚡ **My first widening red-flagged 4 sites and all 4 were CORRECT code** — the day slot decides, not the month. 4 plants red + a safe control that stayed silent. Detail → log |
-| ✅ | **S0.3 — M11 `check-destructive-writes`** | CLOSED 2026-08-25. Matches the **identifier**, not a list of call shapes — the audit named 3 misses, measurement found **4**. ⚡ **Found by building: the doc-comment stripper never worked on a CRLF file** *(`.` never matches `\r`)*, and `packages/core` is **66% CRLF** — same one-line defect fixed in `check-sandbox-writes` + `check-apostrophes`. 2 plants red, CRLF control silent. Detail → log |
-| ✅ | **S0.4 — M13 pin `audit.test.ts`'s arming** | CLOSED 2026-08-25. Verdict extracted + a `selfCheck()` that proves **the invariants fire** and **the verdict throws**, run before the corpus. 2 plants red — and the drift-only plant reds with the *drift* message, so the earlier assertion does not mask it. Detail → log |
-| ✅ | **S0.5 — M14 `hostile.test.ts` non-vacuity** | CLOSED 2026-08-25. A door-reaching floor (**32/32**, downward-only). ⚡ **Counterfactual proven, not inferred:** with the control off, a corpus the file door refuses **0/32** passes green at 36 asserts. Detail → log |
-| ✅ | **S0.6 — M16 the goal PACE branch** | CLOSED 2026-08-25. **Invariant ⑨ `priorityGoalIsCapped`** — and it judges `!(pace > 0)`, not `=== 0`, because `allocatePaycheck.ts:635` treats **negative as uncapped too**. The false premise that kept the field out of `corpus.ts` is retired. Both invariant counts now derive from `INVARIANTS.length` *(two hardcoded "8"s found)*. Fires on both uncapped states, silent on 3 controls. Detail → log |
-| ✅ | **S0.7 — gate + re-verify pass 1** | Gate recorded green at `2b10a6c` *(274 e2e · 10 embed · 689 files · 23/23)*, pushed `b99165e`, CI green. **Re-verify pass 1: 0 blockers, 7 majors — four of six fixes carried the class they closed.** Report: [`S0-REVERIFY-1.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-1.md) |
-| ✅ | **S0.8 — fix all 7, + 3 more found fixing them** | CLOSED 2026-08-25. ⚡ **My S0.1 log entry MINTED 4 fake closures** — the token's own documentation counted as a use of it, M12 one mechanism over. ⚡ **A CRLF corpus made `[D37]` parse 117 → 0 findings and print *"all 0 high+ trace"***. ⚡ **Invariant ⑨ was unreachable, and making it reachable found a REAL defect** — the stand-down fires on `=== 0` while the allocator treats every non-positive as uncapped, so `pace: -1` funds uncapped ahead of debt. Detail → log |
-| ✅ | **S0.9 — gate + re-verify pass 2** | Gate green at `b03e0d3` *(**789** files — +100 from the `gateSources` fix — and `dirty:false`, a first for this cluster)*. **Pass 2: 0 blockers, 3 majors**, all one shape: *a class declared closed after the spellings that had occurred were fixed*. [`S0-REVERIFY-2.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-2.md) |
-| ✅ | **S0.10 — fix all 3** | CLOSED 2026-08-26. ⚡ **The scanner didn't model REGEX LITERALS**, so the runaway it was written to kill was still live · **the remedy reached 3 of 9 strippers** and `check-month-arithmetic` held a hand-*copy* of the scanner · **`stripMarkdownCode` knew 1 of 4 code spellings**, and the gate printed a **real id** in its remediation — paste the error into the log and it closes the finding it names. **M12's shape a fifth time.** Detail → log |
-| **S0.11** ▶ | **Gate green + push, then re-verify pass 3** | ⛔ Pass 2 found 3, so the count **restarts again**. S0 needs **two consecutive clean passes** |
+| ✅ | **.11.1 – .11.17** | CLOSED 2026-08-24/25 — both blockers, all 14 majors, the `.11.9` tail, [D60]'s five, [D62]/[D63]'s high-water mark, and the **fourth audit round** *(5 auditors: 2 blockers · 17 majors)*. Detail → log |
+| ✅ | **S0.1 – S0.10** | CLOSED 2026-08-25/26 — the 6 instrument findings, then **pass 1's 7** and **pass 2's 3**. ⚡ **10 of the 16 were introduced by the fixing.** Detail → log |
+| ✅ | **S0.11 — gate + re-verify pass 3** | Gate green at `1782769` *(274 e2e · 10 embed · 789 files · 23/23)*. **Pass 3: 0 blockers · 0 majors · 6 minors — THE FIRST CLEAN PASS.** Decisive test: every gate's hit set computed twice, pre- and post-diff strippers — **0 lost, 0 gained across all ten**. Scanner **3.5× less blind, 13× less noisy**. [`S0-REVERIFY-3.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-3.md) |
+| **S0.12** ▶ | **Pass 4 — the SECOND consecutive clean pass, now with [D67]'s job ③** | ⛔ **Three jobs: verify · sweep · INVENTORY THE GUARDS.** ✅ **Job-③ gaps + minors ⇒ S0 CONVERGED** (🎯 2026-08-26); only a job-①/② blocker or major restarts the count |
+| **S0.13** | **BUILD the missing guards** *(from pass 4's job-③ inventory)* | Not an audit gate — a build item. ⛔ **Do it before S1 gets deep**: S0's guards are what stop S1–S4 from silently regressing S0. Expect tests for the scanner's modelled constructs and the per-gate variant choice |
+| **.11.19** | 🔴 **THE CLOSURE LEDGER — drive both `MAX_UNTOKENISED` caps to 0, then flip `lint:closure` to gating** | ⚠️ **Scope re-measured at S0.1: not "the 51" but 142** — `[D37]` 55/55 + P6.8 48/48 untokenised, plus 39 in no ledger at all. ⛔ A cap only ever goes **DOWN** |
 
 ⛔ **Every fix plant-verified, the plant confirmed to have LANDED, and re-run with the earlier assertion
-relaxed.** ⛔ **State the direction each fix's justification runs in, and why the opposite does not apply** —
-both blockers came from skipping that.
+relaxed** — a plant that reds early never exercises the later ones. ⛔ **State the direction each fix's
+justification runs in and why the opposite does not apply**; both blockers came from skipping that.
+⛔ **A metric moving the right way is not evidence until you check it measures the DEFECT, not the FIX** —
+the same stripper was mis-measured three times, by 40× in both directions.
+
+**Exit (S0):** two consecutive clean passes at the blocker/major bar on **jobs ① and ②**.
+
+⚠️ **Three jobs, and job ③ is new:** ① verify the fixes · ② sweep for major+ · ③ **inventory the guards**
+([D67]). ⛔ **Coverage ratchets forward; FINDINGS did not** — a pass only ever re-checked the pass before
+it, which is the hole [D67] closes.
+
+⛔ **JOB ③'s OUTPUT DOES NOT BLOCK CONVERGENCE** *(🎯 2026-08-26)*. **If pass 4's only findings are job-③
+gaps plus minors, S0 is CONVERGED and S1 opens.** ⚡ **Why that is not a loophole:** a job-③ finding is not
+a defect — pass 3 measured the code *correct*; the gap is that nothing would catch it regressing. Applying
+a new bar for the first time always yields a backlog, and that backlog is not evidence the surface is still
+producing bugs, which is the only thing the two-clean-pass rule ever measured.
+⚠️ **The guards still get BUILT** — as **S0.13**, not as an audit gate, because S0's guards are what stop
+S1–S4's work from silently regressing S0.
+
 
 ### ⏸ Still open from P6.8.9, after the pinning build
 
@@ -176,46 +174,25 @@ independently** rather than on my word.
 an Apple login, a device or a decision, in the order it is worth doing. This section is the **reasoning**;
 that file is the **checklist**.
 
-**Open decisions**
+**Open decisions — none.**
 
-- ✅ **[D62] ANSWERED 2026-08-25 — `originalBalance` becomes a HIGH-WATER MARK** (🎯: *"agree with your
-  rec"*). It is stamped once at creation and no edit path updates it, so the ring reads **0% paid** for a
-  portfolio that has grown. ⚡ **The deciding case is not the setback, it is the CORRECTION** — a typo at
-  entry, or a premium user verifying a stale estimate upward against a statement. The app cannot tell the
-  two apart, and today's behaviour gets the second one catastrophically wrong: enter `$500` by mistake,
-  fix it to `$5,000`, and the ring reads 0% for the next $4,500 of real repayment, permanently.
-  ⚠️ `verifyDebtBalances` is a flow the app **asks** people to use, so the status quo points a
-  disincentive at the behaviour the product wants. Side effects, both improvements: the 25/50/75
-  milestones become reachable again, and the payoff celebration (`celebrationSelectors.ts:32` announces
-  `originalBalance` as what you paid off) stops understating. ⛔ **The name will lie** — it means *the most
-  you ever owed*; keep it for 2.0 (renaming a persisted field is a migration for no user-visible gain) and
-  state the semantics on the model. Built at `.11.15`.
-- ✅ **[D61] ANSWERED 2026-08-25 — a SECOND `emergency` goal is FUNDED, through the savings rungs.** It
-  matched no rung at all, so it drew `$0` every paycheck under a live progress bar. ⚡ **v1.6 carries the
-  identical defect**, so migrating users can already be in this state — which is why refusing to create one
-  in `GoalSheet` lost: it prevents new cases and strands every existing one. Built at `.11.12.3`; the rule
-  now has one owner (`@core/engine/emergencyFund`) and three consumers that disagreed with it were fixed.
-- ✅ **[D60] ANSWERED 2026-08-25 — P1-1 · P1-2 · P1-4 · P1-5.** P1-2 closed itself at `.11.8` *(by `.7.3`,
-  aimed at a different id, **while reaching no ledger**)*; **P1-1, P1-4 and P1-5 are BUILD** → `.11.14`.
-  *(The instrument was the original cause: `check-audit-closure.ts` anchored `**Severity:**` at line start
-  and `P1-premium-bar.md` writes it mid-line, so the whole lens was invisible. Fixed — 80 → **87** high+.)*
-- ⏭ **[D60] ANSWERED 2026-08-25 — P1-10's Windfall tier gate → 2.1.** Free does the WORK, premium reports
-  it, which is the premium spec's price test upside down. **Nothing is wrong today** — the copy half shipped
-  at 7b and `selectors.ts:54` is pinned; what a future tier change would do is turn that line into a false
-  statement about the user's money with every test green. Monetisation inside a converging freeze.
-- ⚠️ **[D60] 2026-08-25 — the v1.6 SILENT LOOP stays with P6.14 to ANSWER, not to guess.** 2.0 if the
-  device pass shows a real skip, otherwise 2.1; Sentry reports every inconclusive skip, so the pass produces
-  the evidence. ⛔ **`.11.10` sharpened what to look for:** if a WebKit container can produce a **total**
-  decode failure, `isConfirmedFreshInstall` consults neither `droppedRows` nor `opened[].rows` — so the
-  container is called terminal, the retry is consumed, and the **entire v1.6 portfolio is stranded while the
-  app says "fresh install."** ⚡ **The single thing most worth measuring on device before ship.** → **P6.10**.
-- ✅ **[D60] ANSWERED 2026-08-25 — L1-20 eyebrows: DEFER the sweep, take the token** → `.11.14`. ⛔ The
-  mechanism is **false on iOS** — RN uppercases the `NSString` itself, so VoiceOver reads "PAYDAY GUARDIAN"
-  either way. **23 edits + 32 test pins for a change users cannot perceive.**
-- ✅ **[D60] ANSWERED 2026-08-25 — L4-13b `PressableScale`: NOWHERE, plus the token cleanup** → `.11.14`.
-  ⛔ The finding says two press vocabularies; **there are three, and the majority is the third** — of 69 tap
-  targets **1 springs, 11 dim, 57 have none**, so "app-wide" is a new design on ~45 targets inside a freeze
-  with zero coverage. ⭐ Built instead: the 7 live inline opacities and the two Money cards that disagree.
+⛔ **This heading carried SIX rows all marked ✅ ANSWERED** *(cleaned 2026-08-26)*. A section called
+*"Waiting on Jason → Open decisions"* listing nothing open reads as six answers owed. ⚡ **The rot is
+one-directional and it is why this needs checking rather than reading: answering a decision updates the
+Decisions section and leaves the row that was waiting on it.** ⚠️ **[D61] and [D62] were not in the
+Decisions section at all** — their answers existed *only* here, under a heading that said they were
+outstanding. Both are now recorded below where answers live.
+
+**Still genuinely open, and it is not a decision — it is a MEASUREMENT:**
+
+- ⚠️ **[D60] — the v1.6 SILENT LOOP stays with P6.14 to ANSWER, not to guess.** 2.0 if the device pass
+  shows a real skip, otherwise 2.1; Sentry reports every inconclusive skip, so the pass produces the
+  evidence. ⛔ **`.11.10` sharpened what to look for, and `.11.17` MEASURED it still live:** if a WebKit
+  container can produce a **total** decode failure, `isConfirmedFreshInstall` consults neither
+  `droppedRows` nor `opened[].rows` — the container is called terminal, the retry is consumed, and the
+  **entire v1.6 portfolio is stranded while the app says "fresh install."** ⚡ **One log line on the
+  existing device probe decides whether this is a major or a blocker.** → **P6.10 / S3**.
+
 
 **Owed by 🎯, not decisions**
 
@@ -346,10 +323,17 @@ Wave A, of 14 items, **5 did not exist and 4 more were materially misdescribed**
 
 ## 📋 P6.14 reference — the device-QA ledger
 
-Verify on real hardware; web cannot cover these. **🎯 The runnable truth is
-[`DEBT_3.5_DEVICE_QA_CHECKLIST.md`](DEBT_3.5_DEVICE_QA_CHECKLIST.md)** — §11 · §12 · §13, plus the 60
-coverable-not-built rows and 3.5's folded-in pass ([D35]). This is the index, not the list. ⚠️ Read figures
+Verify on real hardware; web cannot cover these. [`DEBT_3.5_DEVICE_QA_CHECKLIST.md`](DEBT_3.5_DEVICE_QA_CHECKLIST.md)
+holds §11 · §12 · §13, the 60 coverable-not-built rows and 3.5's folded-in pass ([D35]). ⚠️ Read figures
 from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them.
+
+⛔ **THIS SECTION IS NOT AN INDEX — IT IS THE ONLY COPY OF THE ROWS BELOW, and the header used to say the
+opposite.** *(Found in the 2026-08-26 plan cleanup, by checking the pointer instead of trusting it.)*
+Measured: `C4` · *"Payday Countdown"* · `wholeDaysBetween` · *"v1.6 backup FILE"* each appear **0 times**
+in that checklist. ⚡ **So the highest-value row in P6.14 — the one that decides whether a premium feature
+ships dead — is reachable only from here**, while the sentence above told a reader to work from the other
+file. **A pointer that is wrong about where the content lives is worse than no pointer**, because it is
+followed. → **P6.14 switch-in owes: move these rows INTO the checklist, then reduce this to a real index.**
 
 **🔴 Highest-value row — P6.8.7e.5 [C4], and it settles a premium feature:**
 - On a **premium** device with **Payday Countdown ON**, sit inside the last 3 days of a real pay cycle
@@ -491,11 +475,6 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   means `.9.1`'s *"0 stale"* and every earlier frame-based finding are not reproducible from the repo.
   **Rec: pin the frames a finding depends on into `docs/evidence/<date>-<topic>/`** — the mechanism the
   repo already has — rather than tracking all 236.
-- ✅ **[D60] ACCEPTED 2026-08-25 — the coach mark covering the trajectory card's own footer.** *(.11.8 · D-2)*
-  Measured, not theorised: `progress.png` and `state-progress-many.png` show the callout below the plot and
-  across the axis row, the What-If row and the compare toggle. It does **not** cover its subject, and
-  `.11.5` made its sentence transparent to touch, so those controls stay operable — the residue is
-  **visual**, first-visit-only, behind a dismissible hint. **The price of not covering the subject.**
 - 🔴 **The coach-mark mis-tap window is closed in ONE spec and open in ten.** *(.11.5 after-scan · D-3)*
   `strategy-compare.spec.ts` seeds `coachMarksSeen`; ten other `/progress` specs meet the reveal unseeded,
   sharpest being `trajectory-interactivity.spec.ts:51-64`, which drives raw `page.mouse` coordinates on the
@@ -566,17 +545,6 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   better UX than either current option. Not taken at .7.9 because it is more surgery on a component this
   item already changed heavily, on the eve of a session close. **→ also a P6.14 device row**, since the
   feel of an instant scroll is not judgeable off-device.
-- ✅ **THREE of the four `CLOSED-UNPINNED` ids are now PINNED** *(folded in at .7.7 on 🎯's "no more debt"
-  call)*. ⚡ **All three were unpinnable because the INSTRUMENT was wrong, not the fix** — `A1-2` (the
-  glossary gate reads literals; the fix is an interpolated identifier) · `V2-1` (`innerText()` returns text
-  **through** a line-clamp) · `V3-5` (inline expression + `fontScale` always 1 on web). Extracting,
-  measuring geometry, and asserting the rendered `aria-label` reached all three. Plants red by name.
-  🔴 **P1-10 remains, and it is not a test gap** — the copy is pinned; the FACT it depends on
-  (`selectors.ts:54` ungated) is not, so a future tier gate would turn that line into a false statement
-  about the user's money with every test green. **🎯's monetisation decision.**
-- ✅ **`/history`'s matrix gap closed** — the populated Pay Cycle History design now has frames. ⚠️ I had
-  deferred it claiming it needed "a real fixture rather than a one-liner"; `cycleHistory` is a plain array
-  and the selector reads three fields. **A deferral is a claim about cost, and that one was never measured.**
 - ⚠️ **`TrajectoryChart.tsx:603`'s end-pill ink is a TOKEN-ADOPTION question, deliberately not taken as a
   contrast fix** — it measures 9.95:1 dark / 6.44:1 light and clears AA on both. `surface.goldPillInk`
   pairs with `surface.goldPill` while the component paints its own `gold`, so adopting the ink alone
@@ -585,12 +553,6 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
 - ⚠️ **Siri `phrases:` are exempt from the apostrophe sweep and that is a standing rule, not an oversight** —
   they are matched against **speech**, so a typographic apostrophe is a behavioural change on a surface with
   no device proof. If A8.4's device pass ever covers Siri, re-open it there. *(.7.1)*
-- ✅ **THE MATRIX CAN NO LONGER PHOTOGRAPH A LOADING SKELETON** *(closed 2026-08-24 at .7.5a)*. 🎯 chose the
-  **stated-signal guard over `workers: 1`** — the latter is probabilistic, does not gate the class, and
-  doubles the run. `ChartSkeleton` now carries `testID="chart-skeleton"` and `settle()` waits for zero
-  skeletons **after** its timer (order matters: `toHaveCount(0)` is true of a page that never rendered).
-  Plant-verified: 10 failed / 10 passed. **Matrix re-shot in full** — .9.1's frames had the same
-  contamination and the f-visual verifier read them. Detail → log.
 - ⛔ **Ask of every gate in this repo whether it PREVENTS or merely DESCRIBES.** The matrix printed four
   `⛔ UNREACHED` lines every run for the whole audit and nothing read them; `lint:closure` counts ledger
   mentions and cannot see an unpinned fix. **Both were reported as evidence of completeness.** *(.9.1)*
@@ -669,10 +631,6 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   `check-comment-convention.ts`'s roots are `apps/rn/src` and `apps/rn/tests` **only**. ⭐ The decidable
   version is a gate on the gates: assert every copy/convention scanner covers the same root set, so a move
   cannot quietly reduce coverage. **The "gate the class" shape, one level up.** *(g.1)*
-- ✅ **GATED at g.7 — `lint:icon-glyphs`.** The 17 unmapped glyphs are now named and exempt with a written
-  reason rather than merely unnoticed. ⚠️ **Every reason is the same honest one — nobody has looked at them
-  on an iOS device** — so the remaining work is a **P6.14 read**, one glyph at a time, and mapping any of
-  them is a decision made while looking at the screen. ⛔ **Do not bulk-map.** *(g.2 → g.7)*
 - ⚠️ **A `.click()` sweep of `tutorial-invite.spec.ts` is filed and deliberately NOT done.** g.6's red was
   the scrim intercepting a plumbing click; the fix was `dispatchEvent` at that ONE site of 54. ⛔ Where a
   click's **reachability** is the subject, `.click()` is correct and `dispatchEvent` would weaken it —
@@ -709,9 +667,6 @@ surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATIO
   — its links are dependent (a failed typecheck makes the web export unreliable, so the 9-minute e2e run
   behind it would be noise), and `gate:record` must run only on a full pass. **Rec: unchain only the four
   suites**, keeping the dependency edges.
-- ✅ **CLOSED at `.11.13.3`, same day it was filed** — `apps/rn/tsconfig.tests.json` + `typecheck:tests`.
-  ⛔ **And the premise I filed it under was too weak**: *"a type error surfaces only when Playwright
-  compiles that file"* — Playwright **transpiles**, it does not typecheck, so nothing surfaced ever.
 - 🔴 **[DECISION] SHOULD `originalBalance` FOLLOW AN UPWARD REVISION?** *(.11.12.10 after-scan)* It is stamped
   once at creation and **no edit path updates it**, which is the root cause C-D only patched the sentence of.
   Consequence that still ships: a user whose card grows $5,000 → $5,400 and who then pays it back to $5,000
@@ -1009,6 +964,46 @@ every entry → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 **Phase 6 — launch**
 
+⛔ **[D61]–[D63] and [D65]–[D66] were MISSING from this section entirely** *(found in the 2026-08-26
+cleanup)*. [D61] and [D62] lived only under *"⏸ Waiting on Jason → Open decisions"*, marked ✅ — i.e. the
+answer was filed in the list of things still owed. **Answering a decision updates one place and leaves the
+other**, in both directions. Reasoning for each → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+- **[D67]** ✅ 2026-08-26 — **A CLOSED FINDING NEEDS A STANDING GUARD, OR IT IS NOT CLOSED** (🎯: *"I
+  agree"*). ⛔ **The gap it fixes:** each convergence pass verified only the **immediately prior** pass's
+  findings, so pass 3 never re-checked pass 1's seven — while S0.10 edited **nine gates**, exactly the
+  change that could regress one. ⚠️ Re-reading every prior finding each pass grows quadratically and rests
+  on an agent not tiring. ⭐ **So the durable protection is a permanent guard, not a re-read.** Some
+  findings already have one *(invariant ⑨ fires in the suite · `HOSTILE_FLOOR` gates · `selfCheck` reds on
+  a disarm · the caps ratchet)*; others have **nothing** *("`stripMarkdownCode` covers four spellings",
+  "each of the nine gates uses the right variant")* — verified by a plant that ran once and was deleted.
+  ⛔ **Every closed finding now needs (a) a test or gate that fails if it regresses, or (b) a written
+  reason it cannot have one.** Job 1 then shrinks to *"do the guards still exist and still fail"* —
+  mechanical and constant-cost. **A finding with neither is NOT converged.** Applies to S0–S4 and the
+  cross-surface pass. *(Same rule as `tested-helper-is-not-a-used-helper` and "a green plant is a result,
+  not a formality.")*
+- **[D66]** ✅ 2026-08-25 — **a second emergency fund is called "Savings"** on all three screens, the word
+  the Money row already uses and the only one of the three that stays true when a user has two. → **S1**.
+- **[D65]** ✅ 2026-08-25 — **a balance corrected DOWNWARD asks at the moment of the edit** *("did you pay
+  this down, or was the old figure wrong?")*. The app cannot tell a typo from a payment and only the user
+  knows; any silent rule is wrong half the time, on the field the Progress ring is computed from. → **S2**.
+- **[D63]** ✅ 2026-08-25 — **NO BNPL carve-out for the high-water mark.** ⛔ I recommended one, 🎯 agreed,
+  and the test's own precondition then **refuted the mechanism**: `bnplPaymentsTotal` is
+  `max(remaining, basis / scheduled)`, so a stamp can only RAISE the total, and an installment plan's
+  `balance` **is** `scheduled × remaining` — the total rises only when the plan itself gets longer.
+  ⚡ A stamp is neutral-to-better, never worse. *(A stated mechanism is a hypothesis even when it is hours
+  old and yours.)*
+- **[D62]** ✅ 2026-08-25 — **`originalBalance` becomes a HIGH-WATER MARK** (🎯: *"agree with your rec"*).
+  ⚡ **The deciding case is the CORRECTION, not the setback** — enter `$500` by mistake, fix it to `$5,000`,
+  and the ring read 0% for the next $4,500 of real repayment, permanently. ⛔ **The name will lie** — it
+  means *the most you ever owed*; kept for 2.0 because renaming a persisted field is a migration for no
+  user-visible gain. Built at `.11.15`. ⚠️ **The DOWNWARD direction was never reasoned** and became a
+  blocker at `.11.17` → [D65].
+- **[D61]** ✅ 2026-08-25 — **a SECOND `emergency` goal is FUNDED, through the savings rungs.** It matched
+  no rung at all, so it drew `$0` every paycheck under a live progress bar. ⚡ **v1.6 carries the identical
+  defect**, so migrating users can already be in this state — which is why refusing to create one in
+  `GoalSheet` lost: it prevents new cases and strands every existing one. Built at `.11.12.3`; one owner
+  (`@core/engine/emergencyFund`), three disagreeing consumers fixed.
 - **[D64]** ✅ 2026-08-25 — **THE MARKETING PAGE THAT HOLDS THE EMBED IS PART OF 2.0's ASC PREP**
   (🎯). ⚡ **It closes a live loop:** the embed has been deployed and running since 3.5 with **no referrer
   anywhere** — `site/` holds two files and no `iframe`, so a hosted demo nobody links to has been carrying a

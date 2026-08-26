@@ -276,7 +276,11 @@ if (p68Untokenised.length > MAX_UNTOKENISED.p68) {
   p68Untokenised.forEach((f) => console.error(`  ${f.id.padEnd(8)} ${f.lens}`));
   console.error(
     // ⛔ Placeholder, not a real id — see the note on the [D37] branch above.
-    `\n  Record it where the closure IS: [closes: THE-ID-HERE]   (e.g. ${p68Untokenised[0]?.id})\n` +
+    // ⚠️ **SIX-SPACE INDENT, matching that branch.** [REVERIFY-3 · attack 5] At two spaces this line is
+    // not inside a markdown code block, so pasting it into the log registers `THE-ID-HERE` in `explicit`.
+    // Inert — `explicit` is only read via `.has(realId)` — but it inflates the printed `explicit.size`,
+    // and *"inert today"* is how the live version of this got here.
+    `\n  Record it where the closure IS:\n      [closes: THE-ID-HERE]   (e.g. ${p68Untokenised[0]?.id})\n` +
       `  ⛔ Do NOT raise the cap — it only ever goes down.\n`,
   );
   process.exit(1);

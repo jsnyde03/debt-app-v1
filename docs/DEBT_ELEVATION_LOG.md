@@ -675,6 +675,134 @@ check it measures the DEFECT and not the FIX.** Measure the gate's verdict, neve
 
 ---
 
+## 📕 SESSION CLOSE 2026-08-26 — the audit round, the S0 surface, and a convergence loop that works
+
+### ▶ WHERE THE NEXT SESSION STARTS: **S0.12 — re-verify pass 4**
+
+**Three jobs now** ([D67]): ① verify · ② sweep for major+ · ③ **inventory the guards**.
+✅ **Job-③ gaps plus minors ⇒ S0 is CONVERGED and S1 opens** (🎯 2026-08-26). Only a job-①/② **blocker or
+major** restarts the two-clean-pass count. **Pass 3 was the first clean pass.**
+Brief pattern, swept-clean lists and attack points → the three `S0-REVERIFY-*.md` files.
+
+⛔ **Read the plan's ACTIVE section first** — it carries the surface order and the four ways *"0 on a
+surface"* lies.
+
+### ⛔ CHECK THESE, DO NOT INFER THEM — and they are QUESTIONS, not ids
+
+⚡ **Last session's handoff aimed its reader at a run id, which resolved to `cancelled` — neither pass nor
+fail, and green-adjacent in a run list.** So:
+
+1. **Is there a green CI run for the tree that ships?** Not "is run X green" — the id will be stale.
+2. **Does `gate-status.json` describe the CURRENT tree?** `npm run lint:gate-freshness`, in under a second.
+   ⛔ **Never read `gate-status.json` out of a commit** — pass 3 found `1782769`'s committed copy holding
+   `b03e0d3`'s fingerprint, so freshness was RED at that commit until the in-flight run rewrote it.
+   *(commit → record → push leaves that window open by construction.)*
+
+### State a cold reader should not have to derive
+
+**Branch `v1.7-dev`, ships as `2.0.0`.** ⛔ **Never push to `release/v1`.** · **23 gates** on `lint:rn` ·
+**274 e2e · 10 embed** · **789 source files** in the fingerprint *(689 + the four legacy trees added at
+S0.8)* · the shot corpus is **405 frames and gitignored — a re-shoot overwrites the only copy.**
+⚠️ **The plan line *"the harness reports exit 0 on a RED gate"* is RETIRED** — proven false by reproduction;
+`run-gates.ts` exits 1 and the `&&` chain stops before `gate:record`.
+
+### What this session did
+
+| | |
+|---|---|
+| **`.11.17`** | The fourth audit round — **5 auditors, 2 blockers, 17 majors**, both blockers made by the fixing |
+| **S0.1–S0.6** | The six instrument findings |
+| **S0.8** | Pass 1's **7**, plus **3** found while fixing them |
+| **S0.10** | Pass 2's **3** |
+| **S0.11** | Pass 3 — **0 blockers, 0 majors.** First clean pass |
+| **plan** | Cleaned: one decomposed section, six dead backlog rows, and **two real defects** *(a waiting-list of six answered decisions; a device ledger whose pointer sent readers to a file missing its highest-value row)* |
+
+⚡ **16 majors closed on this surface. TEN of them were introduced by the fixing.** That number is the
+argument for the whole loop: under the old shape they would have waited weeks for a whole-round audit.
+
+### ⭐ The five things this session measured that outlive it
+
+1. ⛔ **A metric moving the right way is not evidence until you check it measures the DEFECT, not the FIX.**
+   The same stripper was measured at **11,694 · 478,413 · 8,807** — all three counted its *output*, which
+   is what it exists to change. Pass 3 counted **the gates' verdicts**: 0 lost, 0 gained.
+2. ⛔ **The fixer's own write-up is inside the corpus the fixer is measuring.** The `[closes: …]` docs minted
+   four fabricated closures; the gate's remediation text printed a live token; a self-referential grep
+   matched its own docblock. **Three instances, one root.**
+3. ⛔ **Enumerating spellings has failed SIX times** — month arithmetic (5), `importStore` call shapes (4),
+   `announceForAccessibility?.()`, uncapped pace values (2), markdown code (4), and the scanner's own
+   constructs. **Judge the condition the consumer evaluates, never the example the finding cited.**
+4. ⛔ **Coverage ratchets; findings do not** — which is [D67], and the reason job ③ exists.
+5. ⛔ **A pointer that is wrong about where content lives is worse than none, because it is followed.**
+
+### Verification standing at close
+
+**Gate recorded green at `1782769`** — 274 e2e · 10 embed · 789 files · 23/23, `sourceHash 045a310…`.
+⚠️ Docs and one `check-audit-closure.ts` indent fix landed **after** that record, so
+**`lint:gate-freshness` will be RED until the next run** — that is correct behaviour, not a regression.
+🔴 **The next session owes a fresh `validate:release:rn` before anything is called green.**
+
+---
+
+## 📕 P6.8.9.7.11.18 · S0.11 — pass 3, the first clean pass *(2026-08-26)*
+
+**0 blockers · 0 majors · 6 minors**, pinned to `1782769`. Gate green: 274 e2e · 10 embed · 789 files ·
+23/23. **This is the first of the two consecutive clean passes convergence requires.**
+
+### The decisive test, run the way the rule demands
+
+⛔ **Every gate's own hit set, computed TWICE** — once with the pre-diff stripper lifted from `b03e0d3`,
+once with the shipped one. **Across all ten strip-using gates: 0 LOST, 0 GAINED.** Not one verdict moved.
+
+Scored against a **TypeScript-parser ground truth**, the scanner went **8,030 → 2,314** plain-code chars
+wrongly blanked and **11,457 → 869** comment chars wrongly exposed — **3.5× less blind, 13× less noisy**,
+with 2,230 of the residual being pass 2's known nested-template desync.
+
+⚡ **This is the measurement the cluster spent three wrong attempts learning to make.** 11,694 · 478,413 ·
+8,807 all counted stripper output; **this counted the gates' verdicts.** Note the direction: pass 2 filed
+the `}`-ambiguity as a major and the real figure is **84 chars over 10 lines**, all JSX and shebangs —
+**1.2% of the filed severity, in the opposite direction of travel.** A finding can be right about the
+mechanism and an order of magnitude wrong about the size.
+
+### What it caught that my own write-up got wrong
+
+⛔ **SIX gates changed behaviour with no hit-list in my log** — the four I did not name, `check-copy-owners`,
+and **`check-apostrophes`, whose Swift half changed underneath it without its file being touched.** All six
+measured 0/0. ⚠️ **A change log that lists the files you EDITED is not a list of the gates you AFFECTED.**
+
+⛔ **And every variant choice was verified by SWAPPING it**, which is the only way to know: sandbox 31→0,
+local-dates 42→0, glossary 30→0, money-format 20→0 hits. **Four gates would have gone silently blind on the
+wrong pick**, and I made that exact wrong pick once during S0.8 — `lint:rn` caught it.
+
+### 🔴 A stale gate record at the pinned commit — recorded so nobody quotes it
+
+⚠️ `git show 1782769:gate-status.json` holds **`b03e0d3`'s fingerprint**, while that commit changed nine
+`scripts/` files — so **`lint:gate-freshness` was RED at the commit pass 3 was pinned to**, until the
+in-flight run rewrote it. **The instrument did its job.** ⛔ The lesson is the ordering: *commit → record →
+push* leaves a window where the committed record describes the previous tree. **Never quote a
+`gate-status.json` read out of a commit; read the working one and check freshness.**
+
+### The sharpest minor, and why it stays minor
+
+**The migration corpus draws its KEY axis from the artefact under test** — `corpus.ts:177` reads
+`mapLegacyStore`'s own tables — so across 542 + 32 cases the buckets are
+`mapped 8153 · dropped 0 · unknown 0 · unparseable 0`. **Invariant ② never sees the bucket its own docstring
+calls "the dangerous one."** ⚡ A generator that asks the code under test what the inputs are cannot produce
+the input the code forgot. ⚠️ **Minor, not major, and the reason is evidence rather than judgement:**
+`mapLegacyStore.test.ts` covers all four buckets directly, including a real captured container asserting
+zero unknowns. → filed for **S3**.
+
+### ⛔ [D67] — and pass 3 is exactly why it exists
+
+🎯 2026-08-26 asked whether each pass handles **all** prior findings. **It does not** — coverage ratchets,
+findings did not: a pass only ever re-checked the pass before it, while S0.10 edited nine gates.
+**[D67]: a closed finding needs a standing GUARD or it is not closed.** Pass 4 adds **job 3 — inventory the
+guards.** ⚠️ Expect real work: invariant ⑨, `HOSTILE_FLOOR`, `selfCheck` and the caps have standing guards;
+*"`stripMarkdownCode` covers four spellings"* and *"each of the nine gates uses the right variant"* have
+**none** — they were proven by a plant that ran once and was deleted. **S0 is further from converged than
+the finding count suggests, which is better known now than at pass 6.**
+
+---
+
 ## 🔎 P6.8.9.7.11.17 — the SWITCH-IN before-scan, and the handoff's own premises measured *(2026-08-25)*
 
 ⛔ **The handoff was written for a session that was not here, and two of the things it told that session to
