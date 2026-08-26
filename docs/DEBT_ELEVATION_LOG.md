@@ -6,6 +6,13 @@
 
 ## 📕 SESSION CLOSE 2026-08-26 (second) — every S1 blocker closed, and the instruments with them
 
+### 🔴 CI: run `32970802274` (`web-e2e`, push of `85ee923`)
+
+Pushed at close and **watched to completion** — the result is recorded below in *"Verification standing at
+close"*, not left in flight. ⚠️ The prior session handed over a run nobody had seen; this cluster has
+carried a false *"last green"* for three sessions before, so **a remembered gate result is an unrun one.**
+If the row below says anything other than success, that is the first action.
+
 ### ▶ WHERE THE NEXT SESSION STARTS: **S1.5.5 — the four app majors**
 
 ⛔ **Read the plan's ACTIVE section first.** M1 uncategorised bill renders nowhere · M2 over-funded goal
@@ -30,7 +37,8 @@ Then **S1.6** *(gate + record — `lint:gate-freshness` is red and stays red unt
 
 | | |
 |---|---|
-| **HEAD** | `317d922` · branch `v1.7-dev` · working tree clean |
+| **HEAD** | `85ee923` · branch `v1.7-dev` · working tree clean · **pushed** |
+| **CI** | ✅ **`32970802274` `web-e2e` — completed / success**, watched to completion rather than handed over in flight |
 | **`lint:rn`** | ✅ **27 of 27** *(`test:gate-plants` joined the chain at M5)* |
 | `typecheck` · `test:app` · `test:scenarios` · `test:regression` | ✅ green |
 | **full RN e2e** | ✅ **288 passed, 0 failed** at `bbbabb7`. ⚠️ **No app source has changed since** — S1.5.4 touched only `scripts/`, `docs/` and one npm script — so that run still describes this tree |
