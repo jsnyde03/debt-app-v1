@@ -1,6 +1,6 @@
 # S1 — MONEY · GOALS · PLAN CARDS. **Pass 2.** The brief.
 
-**Pin:** `<PIN-SHA>` · branch `v1.7-dev` · ships as `2.0.0`. **Do not push. Do not edit source.**
+**Pin:** `4b58d75` · branch `v1.7-dev` · ships as `2.0.0`. **Do not push. Do not edit source.**
 **Repo:** `git -C /c/Users/Jason/debt-app-v1 …` — ⚠️ **the cwd drifts between calls; always pass `-C`, and
 never use a relative pathspec.** A `git log -- scripts/x.ts` run from a drifted cwd returns EMPTY and looks
 exactly like *"this file has no history."* That has happened while writing three of these briefs.
@@ -46,9 +46,13 @@ for most registered findings sat in files no auditor was ever pointed at, while 
 every surface audit to re-verify the previous surfaces' guards. **S1.7 widened the roots.** `apps/rn/tests`
 is now an S1 root; `packages/core/testing` and `apps/rn/src/testing` are S0 roots.
 
-⚡ **So 51 of S1's 116 unswept files are specs, and all 23 of S0's new ones are runners — and every one is
-`never`.** They are not a footnote to this pass; on the measurement above, **they are where it should
-point.**
+⚡ **51 of S1's 116 unswept files are e2e specs. 33 of S0's 48 are the test runners (23) and the shot
+recipes (10). Every one is `never`.** They are not a footnote to this pass; on the measurement above,
+**they are where it should point.**
+
+⚠️ Counted from `lint:s*-coverage`, not from the commit that added them — an earlier draft of this line
+said *"23"* for S0 because it counted one of the two root-widenings and not the other. **Rule 5, in this
+brief, while writing it.**
 
 ⛔ **`lint:finding-guards` is not a substitute and cannot be made into one.** It proves a token still sits
 on a non-comment line. It cannot prove the assertion behind it can still fail. ⚡ **Measured in the range
@@ -129,7 +133,7 @@ the changed part**, even where the ratchet covers the file.
 ## The fix range you are verifying
 
 ```
-git -C /c/Users/Jason/debt-app-v1 diff 78c6020..<PIN-SHA> -- apps packages scripts
+git -C /c/Users/Jason/debt-app-v1 diff 78c6020..4b58d75 -- apps packages scripts
 ```
 
 Everything pass 1 found, in the order it was fixed. **The finding text is below; the verdict is yours.**
