@@ -54,9 +54,36 @@ interface Entry {
  * ⚠️ An identifier-shaped token is matched on word boundaries; a sentence token (which cannot be renamed
  * into a longer identifier) keeps plain containment.
  */
+/**
+ * ⛔ S1.5.4 [M6] — THE BOUNDARY IS PER-END, NOT PER-TOKEN-SHAPE, and the old rule fixed only half its own
+ * registry.
+ *
+ * The word-boundary branch was reached **only** when the WHOLE token matched `/^[\w$]+$/`. A token holding
+ * a space or a hyphen fell back to `text.includes` — the exact implementation the paragraph above records
+ * this gate already failing open on. Measured on three live entries, all identifier-PREFIXED (a keyword
+ * plus a name that can grow):
+ *
+ *     `function isClamp`          → `function isClampLegacy`   GREEN, guard gone
+ *     `export function selfCheck` → `export function selfCheckAll`  GREEN, guard gone
+ *     `cat-file`                  → `cat-file-batched`         GREEN
+ *
+ * ⚠️ **The question is not "does the token contain a space."** It is *"could this token still be a
+ * substring of the renamed thing"* — which is a property of each END. A token that ENDS in a name
+ * character needs a trailing boundary; one that BEGINS with a name character needs a leading one. A
+ * sentence token gets neither and keeps plain containment, which is correct: a sentence cannot be renamed
+ * into a longer identifier.
+ *
+ * ⚠️ **A kebab-case name grows across a hyphen**, so for a token containing one the name charset must
+ * include `-` — otherwise `cat-file` still matches `cat-file-batched`, since `-` is not a `\w`.
+ */
 function present(text: string, token: string): boolean {
-  if (!/^[\w$]+$/.test(token)) return text.includes(token);
-  return new RegExp(`(?<![\\w$])${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w$])`).test(text);
+  const nameChars = token.includes('-') ? '\\w$\\-' : '\\w$';
+  const startsWithName = new RegExp(`^[${nameChars}]`).test(token);
+  const endsWithName = new RegExp(`[${nameChars}]$`).test(token);
+  if (!startsWithName && !endsWithName) return text.includes(token);
+  const lead = startsWithName ? `(?<![${nameChars}])` : '';
+  const tail = endsWithName ? `(?![${nameChars}])` : '';
+  return new RegExp(`${lead}${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${tail}`).test(text);
 }
 
 const registry = JSON.parse(readFileSync(REGISTRY, 'utf8')) as Record<string, Entry>;
@@ -67,8 +94,55 @@ const ids = Object.keys(registry);
  * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
-const MIN_ENTRIES = 24;
+const MIN_ENTRIES = 60;
 const MAX_UNGUARDED = 16;
+
+/**
+ * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.
+ *
+ * Two entries sharing an id drop one and lower the count with nothing to show for it. That was invisible
+ * while the floor carried slack; under strict equality it would red for the wrong reason, and a gate that
+ * reds with a misleading message is worse than one that does not red at all. Counted off the raw text,
+ * because the parsed object is exactly what cannot see this.
+ */
+/**
+ * ⛔ S1.5.4 [M7] — THE TOKEN MUST SURVIVE ON A LINE OF CODE, not on a comment about the code.
+ *
+ * Measured across the whole registry, not sampled: delete every non-comment line carrying the token and
+ * **five entries stayed GREEN**, each held up by a docstring sentence alone. `GUARDED-5` was the sharpest
+ * — `GAP-2` already records that deleting an invariant from `INVARIANTS` is silent, so the two holes
+ * composed into a fully silent removal of an invariant, with `lint:rn` green throughout.
+ *
+ * ⚠️ **A comment is a claim; an assertion is a guard.** The gate exists because *"the file survived; the
+ * assertion inside it did not"* — and prose describing an assertion is exactly the shape that survives
+ * the assertion's deletion.
+ *
+ * ⚠️ **Line-based, and honest about it:** a `//` line, a `*` continuation, and anything inside a `/* … *​/`
+ * block are comments. That misses a token trailing real code on the same line as a comment — but it errs
+ * toward calling a line CODE, so the check never reds a genuine guard.
+ */
+function presentInCode(text: string, token: string): boolean {
+  let inBlock = false;
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    // ⚠️ A block OPENS only when the line begins one. The first cut asked `line.includes('/*')`, and this
+    // file's own source broke it: `const opens = line.includes('/*')` contains the delimiter as a STRING
+    // LITERAL, so the scanner entered a block that never closed and every line below it — including the
+    // code this gate was pointed at — read as comment. ⚡ Found by this check failing on its own new
+    // guard entry. A delimiter inside a literal is not a comment; a line that starts with one is.
+    const startsBlock = line.startsWith('/*') && !line.includes('*/');
+    const wasInBlock = inBlock;
+    if (startsBlock) inBlock = true;
+    else if (wasInBlock && line.includes('*/')) inBlock = false;
+    if (wasInBlock || startsBlock || line.startsWith('//') || line.startsWith('*')) continue;
+    if (present(raw, token)) return true;
+  }
+  return false;
+}
+
+const rawRegistry = readFileSync(REGISTRY, 'utf8');
+const keyLines = [...rawRegistry.matchAll(/^\s{2}"([^"]+)":/gm)].map((m) => m[1]);
+const dupes = keyLines.filter((k, i) => keyLines.indexOf(k) !== i);
 
 const problems: string[] = [];
 let guarded = 0;
@@ -89,26 +163,67 @@ for (const [id, e] of Object.entries(registry)) {
     problems.push(`${id} — guard file is GONE: ${e.file}  (${e.what})`);
     continue;
   }
-  if (!present(readFileSync(abs, 'utf8'), e.token)) {
+  const text = readFileSync(abs, 'utf8');
+  if (!present(text, e.token)) {
     problems.push(
       `${id} — the guard is gone from ${e.file}: no ${JSON.stringify(e.token)}  (${e.what})\n` +
         '        the file survived; the assertion inside it did not, which is the shape this gate exists for',
     );
     continue;
   }
+  // ⛔ S1.5.4 [M7] — present, but only in prose. See `presentInCode`.
+  if (!presentInCode(text, e.token)) {
+    problems.push(
+      `${id} — the guard token appears in ${e.file} ONLY IN A COMMENT: ${JSON.stringify(e.token)}  (${e.what})\n` +
+        '        a comment describing an assertion survives that assertion being deleted, so it guards nothing.\n' +
+        '        Point the token at the assertion itself — the line that would have to change for the defect to return.',
+    );
+    continue;
+  }
   guarded++;
 }
 
-if (ids.length < MIN_ENTRIES) {
+if (dupes.length) {
   problems.push(
-    `the registry holds ${ids.length} findings; ${MIN_ENTRIES} are expected. Entries were REMOVED — ` +
-      'a finding dropping out is how a closure stops being tracked. Do not lower the floor.',
+    `duplicate id(s) in the registry: ${[...new Set(dupes)].join(', ')} — JSON.parse keeps only the LAST, ` +
+      'so one finding is silently untracked and the count is short by one.',
   );
 }
-if (unguarded.length > MAX_UNGUARDED) {
+
+/**
+ * ⛔ S1.5.4 [M8] — BOTH FLOORS ARE STRICT EQUALITY NOW, and the slack was ten entries wide.
+ *
+ * `MIN_ENTRIES` was 24 against a 34-entry registry, checked with `<`. All six S1 guard entries — blocker
+ * #1 among them — plus four `REVERIFY4-*` could be deleted in one edit with the gate green. The docstring
+ * above already said the floor may only rise; nothing made it rise, and nothing redded when the count
+ * exceeded it. ⚠️ `MAX_UNGUARDED` was `>`, so it acquires the identical slack the moment one backlog entry
+ * is guarded.
+ *
+ * ⚡ **Its sibling in the same commit range does this correctly, which is what made it a defect rather
+ * than a style choice:** `check-committed-secrets.ts` uses `!==` on `MAX_EXEMPT` and reds in BOTH
+ * directions, with a message telling the human to lower the cap.
+ *
+ * ⚠️ Strict equality means adding a guard is a two-line edit — the entry, and the number. That friction is
+ * the feature: it is the moment a human confirms the registry grew on purpose.
+ */
+if (ids.length !== MIN_ENTRIES) {
   problems.push(
-    `${unguarded.length} findings are unguarded; the cap is ${MAX_UNGUARDED} and it only ever goes DOWN. ` +
-      'Raising it to make this pass is the defect this gate exists to catch.',
+    ids.length < MIN_ENTRIES
+      ? `the registry holds ${ids.length} findings; ${MIN_ENTRIES} are expected. Entries were REMOVED — ` +
+        'a finding dropping out is how a closure stops being tracked. Do not lower the floor.'
+      : `the registry holds ${ids.length} findings and MIN_ENTRIES is ${MIN_ENTRIES}. Raise it to ` +
+        `${ids.length} in the same edit that added the entr${ids.length - MIN_ENTRIES === 1 ? 'y' : 'ies'} — ` +
+        'a floor that trails the count is slack a deletion can hide in.',
+  );
+}
+if (unguarded.length !== MAX_UNGUARDED) {
+  problems.push(
+    unguarded.length > MAX_UNGUARDED
+      ? `${unguarded.length} findings are unguarded; the cap is ${MAX_UNGUARDED} and it only ever goes DOWN. ` +
+        'Raising it to make this pass is the defect this gate exists to catch.'
+      : `${unguarded.length} findings are unguarded and the cap is still ${MAX_UNGUARDED}. Lower it to ` +
+        `${unguarded.length} — the cap is the high-water mark, and leaving it above the count is room for ` +
+        'a guard to disappear unnoticed.',
   );
 }
 

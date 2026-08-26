@@ -27,7 +27,7 @@
   "S1-M9-GUARDIAN": {
     "what": "isEmergencyFund was `goal.type === 'emergency'`, so the Guardian called a SECOND emergency-typed pot \"your emergency fund\" while Money labelled the same goal Savings; no fixture in the repo carried two emergency goals on this path",
     "file": "apps/rn/src/store/guardianSelectors.test.ts",
-    "token": "the larger of two emergency pots is the source"
+    "token": "it is NOT called the emergency fund"
   },
   "S1-M9-SHEET": {
     "what": "GoalSheet's Type selector offered 'Emergency fund' for a goal that cannot be one, so the sheet, Money and the Guardian gave three answers for one goal; the repo's only two-EF fixture asserted the CONTROLS, not the labels",
@@ -135,6 +135,46 @@
     "what": "pass-1 B5's third consequence — `rows.length + unfunded.length` double-counted a partially-funded bill (a `Pay X (partial)` row AND a `Finish X` remainder), reading 6 for 5 obligations. ⚠️ The fixture needs TWO fully-unfunded bills or the two error modes cancel: strip the engine's `targetId` and every expense remainder collapses to `e:undefined`, which offsets the missing merge exactly — measured, both spellings returned 4 on a one-bill fixture",
     "file": "apps/rn/tests/e2e/no-bills-branch.spec.ts",
     "token": "the count is of OBLIGATIONS"
+  },
+  "S1P1-M5-CHAIN": {
+    "what": "pass-1 M5 — test:gate-plants, the only thing in the tree asserting a gate fails CLOSED, was in NO chain: not run-gates.ts, not validate:release:rn, not CI. A repo-wide search returned 11 files and no runner. All 15 of S0's majors were gates green while doing less than they claimed, and REVERIFY4-4's only behavioural guard is one of its scenarios",
+    "file": "scripts/run-gates.ts",
+    "token": "test:gate-plants"
+  },
+  "S1P1-M6-BOUNDARY": {
+    "what": "pass-1 M6 — present()'s word-boundary branch was reached only when the WHOLE token was identifier-shaped, so an identifier-PREFIXED token (`function isClamp`) fell back to text.includes and survived the rename it exists to catch. Measured: 3 of 18 tokens failed open on exactly that class. The boundary is now decided per END, with `-` in the name charset so a kebab name cannot grow past it either",
+    "file": "scripts/check-finding-guards.ts",
+    "token": "startsWithName"
+  },
+  "S1P1-M7-CODELINE": {
+    "what": "pass-1 M7 — 5 of 18 tokens survived on a DOCSTRING line alone, so deleting the assertion left the gate green; GUARDED-5 composed with GAP-2 into a fully silent removal of an invariant. A token must now appear on a non-comment line. Mechanism A fixed separately: S1-M9-GUARDIAN's token sat on the PRECONDITION line, so the finding's own assertion could be deleted with the gate green",
+    "file": "scripts/check-finding-guards.ts",
+    "token": "presentInCode"
+  },
+  "S1P1-M8-STRICT": {
+    "what": "pass-1 M8 — MIN_ENTRIES was 24 against 34 entries and checked with `<`, so ten closed findings could be deleted with the gate green; MAX_UNGUARDED used `>` and would acquire the same slack on the next guarded entry. Both are strict equality now, matching MAX_EXEMPT in the same commit range. Plus a duplicate-id check, because JSON.parse silently keeps the last of a repeated key",
+    "file": "scripts/check-finding-guards.ts",
+    "token": "keyLines"
+  },
+  "S1P1-M9-ROOTS": {
+    "what": "pass-1 M9-A — the S1 surface roots were four directories plus ten hand-named files, i.e. an ENUMERATION, inside the file whose own docstring says an inclusion list fails silent. store/ was 6 of 88, data/ 3 of 21, (tabs)/ 1 of 4, and (tabs)/index.tsx — 1,087 lines, where blocker B5 is wired — was on no surface at all. Widened to whole directories with routed exclusions: 72 files became 137",
+    "file": "scripts/surface-coverage.s1.json",
+    "token": "apps/rn/src/app/(tabs)/index.tsx"
+  },
+  "S1P1-M9-VOCAB": {
+    "what": "pass-1 M9-B — unswept was `every(v => v === 'never' || 'unknown' || 'partial')`, so ANY other string counted as SWEPT: `nevr`, `Never`, ` never` all silently converted an unread file into a read one, in the count and in the generated inventory. The vocabulary is now an allow-list checked before anything is counted",
+    "file": "scripts/surface-coverage.ts",
+    "token": "VALID_CLAIMS"
+  },
+  "S1P1-M9-ROUTING": {
+    "what": "pass-1 M9-C — an exclusion could route a file to a surface that does not exist, and 13 did: they named `s4`, which has no SURFACES entry and no claims file. The docblock's rule (every exclusion names the surface that owns the file) was enforced by nothing. Routings are now typed and validated against KNOWN_SURFACES, which deliberately includes not-yet-built surfaces and an explicit `none`",
+    "file": "scripts/surface-coverage.ts",
+    "token": "KNOWN_SURFACES"
+  },
+  "S1P1-M10-AUTHORING": {
+    "what": "pass-1 M10 — an audit report quoting a credential shape as evidence reds lint:secrets, and therefore lint:rn, on every committed tree; it happened on 2 of 2 rounds, the second while quoting the gate's own evidence. The author got no warning because untracked files are invisible to the committed scan BY DESIGN, and both exits were refused by the instrument's own text. `--working-tree` is an authoring-time read that loosens nothing and is deliberately NOT in lint:rn",
+    "file": "scripts/check-committed-secrets.ts",
+    "token": "WORKING_TREE"
   },
   "S1P1-B2-INVALIDATE": {
     "what": "pass-1 B2 — intentRollback snapshots the ENTIRE DebtStore and undoIntentAction restores the whole thing; nothing ever cleared it, so a debt, a goal, a bill and a strategy change made after logging a payment were all destroyed (and persisted) by an Undo whose card promises only to undo the payment. Fixed as a CLASS in the set wrapper: any patch that moves `store` without mentioning `intentRollback` is somebody else's write. ⚠️ The wrapper was also made unconditional — it used to fall through to the raw setter when neither `bound` nor `refuse` was passed, which is every store a test builds",

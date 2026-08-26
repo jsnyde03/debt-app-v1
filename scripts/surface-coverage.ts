@@ -73,9 +73,52 @@ interface Surface {
   roots: string[];
   claims: string;
   inventory: string;
-  /** ⛔ every `true` must name the surface that owns the file instead — see the docblock */
-  excluded: (rel: string) => boolean;
+  /**
+   * ⛔ S1.5.4 [M9-C] — AN EXCLUSION MUST NAME THE SURFACE THAT OWNS THE FILE, and now the gate checks it.
+   * Returning a bare `true` used to be legal, and the docblock's rule (*"every `true` must name the
+   * surface"*) was enforced by nothing: 13 files were routed to a surface key — `s4` — that does not
+   * exist and never has. Return `null` to keep the file, or a routing whose `to` is a `KNOWN_SURFACES`
+   * member. A typo now reds instead of silently deleting a file from every surface.
+   */
+  excluded: (rel: string) => Routing | null;
 }
+
+/** Where an excluded file goes instead. `why` is printed by `--report`, so routing stays reviewable. */
+interface Routing {
+  to: string;
+  why: string;
+}
+
+/**
+ * ⛔ S1.5.4 [M9-C] — every surface key a routing may name, INCLUDING ones not yet built.
+ *
+ * Validating against `SURFACES` alone would be wrong: the whole point of routing is to say *"not mine,
+ * S3 owns it"* before S3 exists. Validating against nothing is what let 13 files be routed to a key that
+ * appears in no plan, no file and no gate. This list is the seam: adding a surface means adding it here,
+ * and a routing to anything else is a typo the gate reds on.
+ */
+const KNOWN_SURFACES = new Set([
+  's0', 's1', 's2', 's3', 's4',
+  // ⚠️ `none` is a real answer and is deliberately spelled, not left implicit: a tsconfig or a fixture is
+  // on NO surface because it is not code anyone audits, which is a different statement from "somebody
+  // else's". Spelling it keeps "I decided" distinguishable from "I forgot".
+  'none',
+]);
+
+/**
+ * ⛔ S1.5.4 [M9-B] — the claim vocabulary, validated.
+ *
+ * `unswept` was computed as `every(v => v === 'never' || v === 'unknown' || v === 'partial')`, so **any
+ * string that is not exactly one of those three counted as SWEPT** — `"Never"`, `"nevr"`, `" never"`,
+ * `"partial (diff only)"` all silently convert an unread file into a read one, in the gate's count *and*
+ * in the inventory the next auditor reads. There was no allow-list check anywhere in the file.
+ *
+ * ⚠️ The docstring's vocabulary had already drifted from the data's: `g4` was documented as a value and
+ * appears in neither claims file. Documented and enforced are now the same list, by construction.
+ */
+const UNSWEPT_CLAIMS = ['never', 'unknown', 'partial'] as const;
+const SWEPT_CLAIMS = ['p1', 'p2', 'p3', 'p4', 'g4', 'r10', 'r17', 's1p1'] as const;
+const VALID_CLAIMS = new Set<string>([...UNSWEPT_CLAIMS, ...SWEPT_CLAIMS]);
 
 const SOURCE_EXT = new Set(['.ts', '.tsx', '.mjs', '.cjs', '.json', '.sh']);
 
@@ -83,10 +126,14 @@ const SOURCE_EXT = new Set(['.ts', '.tsx', '.mjs', '.cjs', '.json', '.sh']);
  * ⚠️ Shared by every surface: `tsconfig.json` configures a surface rather than sitting on it, fixtures are
  * DATA, and this gate's own claim files are its record rather than its subject.
  */
-const commonExcluded = (rel: string): boolean =>
-  rel.endsWith('tsconfig.json') ||
-  rel.includes('__fixtures__') ||
-  /^scripts\/surface-coverage\.[a-z0-9]+\.json$/.test(rel);
+const commonExcluded = (rel: string): Routing | null =>
+  rel.endsWith('tsconfig.json')
+    ? { to: 'none', why: 'configures a surface rather than sitting on one' }
+    : rel.includes('__fixtures__')
+      ? { to: 'none', why: 'fixtures are DATA, not surface' }
+      : /^scripts\/surface-coverage\.[a-z0-9]+\.json$/.test(rel)
+        ? { to: 'none', why: "this gate's own record, not its subject" }
+        : null;
 
 /**
  * ⛔ **S4 owns discovery, the coach marks and the demo director; they live in `components/plan/` for
@@ -112,21 +159,30 @@ const SURFACES: Record<string, Surface> = {
   s1: {
     gate: 's1-coverage',
     title: 'S1 surface inventory — money · goals · plan cards',
+    /**
+     * ⛔ S1.5.4 [M9-A] — WHOLE DIRECTORIES. This was four directories **plus ten hand-named files**, and
+     * for `store/`, `data/` and `(tabs)/` that made the scope an ENUMERATION — the failure mode this
+     * file's own docblock warns about, occurring inside it. Measured at the time: `store/` was **6 of
+     * 88**, `data/` **3 of 21**, `(tabs)/` **1 of 4**, and the two sharpest omissions were both money —
+     * `(tabs)/index.tsx`, the 1,087-line screen that composes every plan card and where blocker [B5] is
+     * wired, was on **no surface at all**, and `planSelectors.test.ts` was absent while its source was
+     * present, an asymmetry no other pair in the list had.
+     *
+     * ⚡ And the file claimed the opposite to a human in two places: *"the FILE LIST is walked from disk
+     * — mechanical, cannot undercount."* The walk is mechanical **within a root**; the roots were hand
+     * written, so the list under-counted exactly as far as they did, and nothing could notice because a
+     * file on no root is never compared against anything.
+     *
+     * ⛔ **Do not re-add individual files here.** Widen a root and route what is not money below.
+     */
     roots: [
       'apps/rn/src/components/plan',
       'apps/rn/src/components/entities',
+      'apps/rn/src/app/(tabs)',
+      'apps/rn/src/store',
+      'apps/rn/src/data',
       'packages/core/engine',
       'packages/core/guardian',
-      'apps/rn/src/app/(tabs)/money.tsx',
-      'apps/rn/src/store/guardianSelectors.ts',
-      'apps/rn/src/store/guardianSelectors.test.ts',
-      'apps/rn/src/store/journeySelectors.ts',
-      'apps/rn/src/store/journeySelectors.test.ts',
-      'apps/rn/src/store/planSelectors.ts',
-      'apps/rn/src/store/store.ts',
-      'apps/rn/src/data/models.ts',
-      'apps/rn/src/data/migrations.ts',
-      'apps/rn/src/data/migrations.test.ts',
     ],
     claims: 'scripts/surface-coverage.s1.json',
     inventory: 'docs/audits/2026-08-26-s1-money/S1-SURFACE-INVENTORY.md',
@@ -135,11 +191,35 @@ const SURFACES: Record<string, Surface> = {
      * is there and its false screen is `money.tsx`, and the standing rule is that **a cross-surface finding
      * is fixed once and re-verified by BOTH owners.** A file on one surface only is a seam nobody reads.
      */
-    excluded: (rel) =>
-      commonExcluded(rel) ||
-      S4_OWNED.has(rel.split('/').pop() ?? '') ||
-      rel.endsWith('components/plan/AppStoreCta.tsx') ||
-      rel.endsWith('components/plan/AppStoreCta.web.tsx'),
+    /**
+     * ⛔ **ROUTING, NOT DISMISSAL — and it fails SAFE.** Anything whose owner is not unambiguous stays on
+     * the money surface as `never`, because an exclusion list's whole virtue is that a file nobody
+     * thought about is still counted. Widening the roots admitted 127 files; only those with a clear,
+     * already-precedented owner are routed out.
+     */
+    excluded: (rel) => {
+      const common = commonExcluded(rel);
+      if (common) return common;
+      const base = rel.split('/').pop() ?? '';
+      if (S4_OWNED.has(base)) return { to: 's4', why: 'discovery / tutorial / demo, in components/plan for layout reasons' };
+      if (/components\/plan\/AppStoreCta(\.web)?\.tsx$/.test(rel)) return { to: 's4', why: 'store listing CTA, not money' };
+      // S0 already walks this directory as a root of its own — a file on two surfaces needs a reason,
+      // and "the migration audit is an instrument" is S0's reason, not S1's.
+      if (rel.startsWith('apps/rn/src/data/migrationAudit/')) return { to: 's0', why: 'an S0 root in its own right' };
+      // The import/restore half: file pickers, backup encoders, the v1.6 bridge.
+      if (rel.startsWith('apps/rn/src/data/legacyBridge/')) return { to: 's3', why: 'the v1.6 import bridge' };
+      if (/^apps\/rn\/src\/data\/(backup|backupFile|cloudBackup|cloudBackupMessages|csvImportFile|detectBackupFormat|formatBackupTime|readBackup)\b/.test(rel))
+        return { to: 's3', why: 'backup / restore / CSV import' };
+      // Discovery: the tutorial, the demo, the sandbox that drives them, and coach marks.
+      // ⚠️ Deliberately NARROW. `greeting`, `onboardingFinish` and `paywallLead` were routed here on a
+      // first pass and put back: a greeting renders on Today, onboarding decides the opening plan, and
+      // the paywall lead is monetisation, so none has an owner obvious enough to justify removing it from
+      // the money surface. **When the owner is arguable the file stays**, because an exclusion list only
+      // fails safe for as long as its entries are certainties.
+      if (/^apps\/rn\/src\/store\/(tutorial|demo|sandbox|coachMark)/.test(rel))
+        return { to: 's4', why: 'tutorial / demo / sandbox / coach marks — the discovery surface' };
+      return null;
+    },
   },
 };
 
@@ -186,7 +266,30 @@ for (const r of ROOTS) {
   if (isDir) walk(abs, surface);
   else surface.push(r);
 }
-const files = [...new Set(surface)].filter((f) => !excluded(f)).sort();
+// ⛔ S1.5.4 [M9-C] — every routing is validated as it is applied, so a mis-typed owner reds instead of
+// silently removing a file from every surface there is.
+const routed = new Map<string, Routing>();
+const badRoutes: string[] = [];
+const files = [...new Set(surface)]
+  .filter((f) => {
+    const r = excluded(f);
+    if (!r) return true;
+    if (!KNOWN_SURFACES.has(r.to)) badRoutes.push(`${f}  → "${r.to}" is not a known surface (${r.why})`);
+    routed.set(f, r);
+    return false;
+  })
+  .sort();
+
+if (badRoutes.length) {
+  console.error(`\n❌ ${SURFACE.gate}: ${badRoutes.length} exclusion(s) route to a surface that does not exist.\n`);
+  for (const b of badRoutes) console.error(`  ${b}`);
+  console.error(
+    `\n  ⛔ An exclusion is a ROUTING STATEMENT. Naming a surface nobody maintains removes the file from\n` +
+      `  every surface at once, which is the silent failure an exclusion list exists to avoid.\n` +
+      `  Known surfaces: ${[...KNOWN_SURFACES].join(', ')}.\n`,
+  );
+  process.exit(1);
+}
 
 /**
  * The recorded claim per file. Values are the pass that examined it at the blocker/major bar:
@@ -212,11 +315,29 @@ try {
   process.exit(1);
 }
 
+// ⛔ S1.5.4 [M9-B] — the vocabulary is checked BEFORE anything is counted. A value outside the allow-list
+// used to fall through `every(...)` as SWEPT, so a single typo silently converted an unread file into a
+// read one — in the count and in the generated inventory the next auditor works from.
+const badClaims: string[] = [];
+for (const [f, c] of Object.entries(claims)) {
+  if (!Array.isArray(c)) { badClaims.push(`${f}  → not an array`); continue; }
+  for (const v of c) if (!VALID_CLAIMS.has(v)) badClaims.push(`${f}  → ${JSON.stringify(v)}`);
+}
+if (badClaims.length) {
+  console.error(`\n❌ ${SURFACE.gate}: ${badClaims.length} claim value(s) outside the vocabulary.\n`);
+  for (const b of badClaims) console.error(`  ${b}`);
+  console.error(
+    `\n  ⛔ An unrecognised value used to read as SWEPT, so "nevr" or " never" exempted a file from [D69]\n` +
+      `  silently. Unswept: ${UNSWEPT_CLAIMS.join(' · ')}. Swept: ${SWEPT_CLAIMS.join(' · ')}.\n`,
+  );
+  process.exit(1);
+}
+
 const missing = files.filter((f) => !(f in claims));
 const stale = Object.keys(claims).filter((f) => !files.includes(f));
 const unswept = files.filter((f) => {
   const c = claims[f] ?? ['unknown'];
-  return c.length === 0 || c.every((v) => v === 'never' || v === 'unknown' || v === 'partial');
+  return c.length === 0 || c.every((v) => (UNSWEPT_CLAIMS as readonly string[]).includes(v));
 });
 
 if (REPORT) {

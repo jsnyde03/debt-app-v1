@@ -38,6 +38,7 @@
     "gate:begin": "tsx scripts/begin-gate-run.ts",
     "gate:record": "tsx scripts/write-gate-status.ts",
     "lint:secrets": "tsx scripts/check-committed-secrets.ts",
+    "lint:secrets:authoring": "tsx scripts/check-committed-secrets.ts --working-tree",
     "lint:selectors": "tsx scripts/check-maestro-selectors.ts",
     "lint:coverage": "tsx scripts/coverage-split.ts --gate",
     "lint:a11y-collapse": "tsx scripts/check-a11y-collapse.ts",

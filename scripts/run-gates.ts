@@ -61,6 +61,16 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     'lint:icon-glyphs',
     'lint:copy-owners',
     'lint:lane',
+    // ⛔ S1.5.4 [M5] — THE ONLY THING IN THE TREE ASSERTING A GATE FAILS **CLOSED**, and it was in no
+    // chain at all: not here, not `validate:release:rn`, not CI. A repo-wide search for `gate-plants`
+    // returned eleven files and not one runner. ⚡ All FIFTEEN of S0's majors were gates reporting green
+    // while doing less than they claimed, so the instrument built for that class was itself unexecuted —
+    // and `REVERIFY4-4`'s only BEHAVIOURAL guard is one of its scenarios.
+    // ⚠️ Not deliberate: `lint:gate-freshness` is the file that IS deliberately outside every chain and
+    // says so in its own docstring (GAP-14). This one carried no such statement.
+    // ⚠️ Last, and it costs ~50s: it plants into a scratch file and runs five gates, so it is the most
+    // expensive link here. It does not recurse — it invokes named gates, never `lint:rn`.
+    'test:gate-plants',
   ].map((name) => ({ name, cmd: 'npm', args: ['run', name] })),
 ];
 

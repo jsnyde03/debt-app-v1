@@ -180,6 +180,61 @@ function eachBlob(specs: string[], visit: (spec: string, text: string) => void):
 const hits: { rev: string; file: string; line: number; name: string; note: string }[] = [];
 const scanned = new Set<string>();
 
+/**
+ * ⛔ S1.5.4 [M10] — `--working-tree`: THE AUTHORING-TIME SCAN, so an auditor sees the hit BEFORE the commit.
+ *
+ * ⚡ The measured class: **an audit report that quotes a credential shape as evidence reds `lint:secrets`,
+ * and therefore `lint:rn`, on every committed tree** — and it has now happened on 2 of 2 audit rounds.
+ * `S0-REVERIFY-4.md` did it, and the very next report did it four more times *while quoting this gate's own
+ * evidence*. The author gets no warning, because an untracked file is invisible to the committed scan **by
+ * design** — that design is correct and is not what changes here.
+ *
+ * ⛔ **Both of the author's exits are refused by this file's own text:** editing the report is GAP-17's
+ * *"regenerate the baseline wider to make a red gate green"*, and adding exemptions is refused by the
+ * downward-only cap below. So the author was between two options the instrument calls wrong, and the only
+ * remaining move — redacting by hand — is a discipline, which `write-gate-status.ts` argues cannot close a
+ * class: *"a documentation rule is exactly what failed."*
+ *
+ * ⚠️ **This flag LOOSENS NOTHING.** It scans the same patterns with the same ledger over files git has not
+ * been told about yet, and it is deliberately **not** in `lint:rn`: making untracked files gate the tree is
+ * the design this gate already rejected. It is a pre-commit read, run by the author of a report.
+ *
+ * ⚠️ It is the narrower of the two shapes the finding sketched. The other — teaching the gate that a fenced
+ * transcript under `docs/audits/**` is evidence — is a path carve-out wearing a smaller hat, and would make
+ * `docs/`, the gate's most likely REAL hit, the one place it stops looking.
+ */
+const WORKING_TREE = process.argv.includes('--working-tree');
+
+if (WORKING_TREE) {
+  const untracked = (() => {
+    try {
+      return execFileSync('git', ['ls-files', '-z', '--others', '--exclude-standard'], { cwd: REPO_ROOT, encoding: 'utf8' })
+        .split('\0')
+        .filter(Boolean)
+        .filter((f) => f !== SELF);
+    } catch {
+      return [];
+    }
+  })();
+  for (const rel of untracked) {
+    let text: string;
+    try {
+      text = readFileSync(join(REPO_ROOT, rel), 'utf8');
+    } catch {
+      continue; // binary, deleted mid-run, or unreadable — not evidence of anything
+    }
+    const lines = text.split(/\r?\n/);
+    for (const { name, re, note } of PATTERNS) {
+      lines.forEach((line, i) => {
+        const m = re.exec(line);
+        if (!m) return;
+        if (exemptKeys.has(keyOf(rel, hashOf(m[0])))) return;
+        hits.push({ rev: 'untracked', file: rel, line: i + 1, name, note });
+      });
+    }
+  }
+}
+
 for (const rev of ['index', 'HEAD'] as const) {
   const files = tracked(rev);
   const prefix = rev === 'index' ? ':' : 'HEAD:';

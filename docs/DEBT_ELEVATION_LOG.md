@@ -4,6 +4,107 @@
 
 ---
 
+## ✅ S1.5.4 — the instruments: M5 · M6 · M7 · M8 · M9 · M10, and the claims nobody wrote back *(2026-08-26)*
+
+⛔ **These had to land before pass 2 because they decide what pass 2 can SEE.** Every one is an instrument
+reporting green while doing less than it claimed — the shape all fifteen of S0's majors had.
+
+### 🔴 First, the thing the S1.5.3 after-scan found: PASS 1'S COVERAGE WAS NEVER RECORDED
+
+`surface-coverage.s1.json` held **zero** `s1p1` labels while four auditors had swept the surface — auditor D
+alone wrote *"I opened all 45 + 3 = 48. Nothing in my assignment was left unopened."* [D69] exempts a
+first-look finding **mechanically, from the inventory**, so pass 2 would have re-classified its own repeats
+as coverage results: *the exemption that exists to stop the count lying would have been the thing lying.*
+
+Written back from each auditor's own by-path section — **62 files on S1, and 16 on S0**, because auditor B
+swept a large slice of the instrument surface. ⛔ **"Read in support, not swept" was excluded**: the
+auditors were explicit that those are citations, and counting them is the over-claim the inventory exists
+to stop. ⚠️ Verified through git, not through the script's own report — identical key sets, **0 labels
+lost, and every gained label was `s1p1`**.
+
+⚡ **And the result was alarming rather than reassuring: S1 went to `0 unswept` on 72 files** — a perfect
+score for a surface M9 proves is missing its largest file. That made the root widening urgent, not optional.
+
+### [M9] — the surface under-counted by construction and over-counted on a typo
+
+**A · the roots were an ENUMERATION** — four directories plus ten hand-named files — inside the file whose
+own docblock says an inclusion list fails silent. `store/` was **6 of 88**, `data/` **3 of 21**, `(tabs)/`
+**1 of 4**. ⛔ **`(tabs)/index.tsx` — 1,087 lines, where blocker [B5] is wired — was on no surface at all**,
+and the file claimed to a human in two places that the list *"cannot undercount."* The walk is mechanical
+**within a root**; the roots were hand-written.
+
+Widened to whole directories with **routed** exclusions. **72 files → 137, 65 unswept** — the honest number.
+⚠️ Routing errs toward keeping: `greeting`, `onboardingFinish` and `paywallLead` were routed to S4 on a
+first pass and **put back**, because an exclusion list only fails safe while its entries are certainties.
+
+**B · the claim vocabulary was unvalidated**, so any string outside `never`/`unknown`/`partial` counted as
+**SWEPT** — `nevr`, `Never`, `" never"` each silently converted an unread file into a read one, in the count
+*and* in the generated inventory. Now an allow-list, checked before anything is counted.
+
+**C · an exclusion could route to a surface that does not exist**, and 13 did: they named `s4`, which has no
+entry and no claims file. Routings are typed now and validated against `KNOWN_SURFACES`, which deliberately
+includes not-yet-built surfaces and an explicit `none`.
+
+### [M6] [M7] [M8] — the guard registry, three ways
+
+| | before | after |
+|---|---|---|
+| **M6** | the boundary check ran only when the WHOLE token was identifier-shaped, so `function isClamp` fell to `text.includes` and survived `function isClampLegacy`. **3 of 18 tokens failed open on exactly the class the check was built for** | decided **per END**; `-` joins the name charset so `cat-file` cannot grow into `cat-file-batched` either. Measured: all three renames now red, **all 36 real tokens still found** |
+| **M7** | **5 of 18 tokens survived on a DOCSTRING alone.** `GUARDED-5` composed with `GAP-2` into a fully silent removal of an invariant. And `S1-M9-GUARDIAN`'s token sat on the **precondition** line, so the finding's own assertion could be deleted with the gate green | a token must appear on a **non-comment** line; the precondition token re-pointed at the finding |
+| **M8** | `MIN_ENTRIES = 24` against 34 entries, checked with `<` — **ten entries of slack**, enough to delete every S1 guard in one edit. `MAX_UNGUARDED` used `>` and would acquire the same slack on the next guarded entry | **strict equality both ways**, matching `MAX_EXEMPT` in the same commit range, plus a duplicate-id check because `JSON.parse` keeps only the last of a repeated key |
+
+⚡ **M7's gate caught two of my own new guard entries** as comment-only, and then caught a third thing: its
+own scanner. `const opens = line.includes('/*')` carries the delimiter as a **string literal**, so the
+tracker entered a block that never closed and read every line below it as comment. A block now opens only
+when a line *begins* one. ⛔ **The gate found the defect in the gate**, one edit after it was written.
+
+### [M5] — the only proof any gate fails CLOSED was in no chain
+
+`test:gate-plants` was in `run-gates.ts`? No. `validate:release:rn`? No. CI? No. A repo-wide search returned
+**eleven files and not one runner**, while `REVERIFY4-4`'s only *behavioural* guard is one of its scenarios.
+⚠️ Not deliberate — `check-gate-freshness` is the file that IS outside every chain and says so. Added to
+`lint:rn`, last, ~50s; **27 gates now**. It plants into scratch files and invokes named gates, so it does
+not recurse.
+
+### [M10] — an audit report quoting a credential shape reds the whole tree
+
+Measured on **2 of 2 rounds**: the second happened *while quoting this gate's own evidence*. The author gets
+no warning, because untracked files are invisible to the committed scan **by design** — and both exits are
+refused by the instrument's own text (editing the report is GAP-17; adding exemptions is refused by the
+downward-only cap). The remaining move is hand-redaction, a *discipline*, which `write-gate-status.ts`
+argues cannot close a class.
+
+`--working-tree` / `lint:secrets:authoring` is the **narrower** of the two shapes the finding sketched: an
+authoring-time read that **loosens nothing** and is deliberately **not** in `lint:rn`. ⛔ The alternative —
+teaching the gate that a fenced transcript under `docs/audits/**` is evidence — is a path carve-out wearing
+a smaller hat, and would make `docs/` the one place the gate stops looking.
+
+### Plants — five, each with a control
+
+| # | plant | reds |
+|---|---|---|
+| 13 | an exclusion routed to `s7` | 15 files named, gate exits 1 |
+| 14 | the `(tabs)` root narrowed back to `money.tsx` | `index.tsx` · `_layout.tsx` · `progress.tsx` **STALE** — the claims file pins the roots |
+| 15 | `cat-file` removed from code, left in its docstring | M7's comment-only check, by name |
+| 16 | `S1-M9-GUARDIAN`'s assertion deleted, precondition left | the re-pointed token. ⭐ **Control: the OLD token was still present and would have stayed green** |
+| 17 | an untracked report carrying a Sentry DSN shape | the authoring scan names `file:line`; ⭐ the committed scan stays **green**, as designed |
+
+⚠️ **One plant reported green and had never applied** — a `node -e` write silently did nothing, which is
+the logged failure mode for that tool in this repo. Caught by grepping for the planted string before
+believing the result. *A plant that never landed looks exactly like a gate that works.*
+
+### Verification
+
+| | |
+|---|---|
+| **`lint:rn`** | ✅ **27 of 27** (up from 26 — `test:gate-plants` joined the chain) |
+| `typecheck` · `test:app` | ✅ green |
+| **coverage** | `lint:s1-coverage` **137 files · 65 unswept** · `lint:s0-coverage` **58 · 15** |
+| **guards** | `lint:finding-guards` **60 findings · 44 guarded · 16 unguarded**, cap unmoved |
+| **e2e** | not re-run, and stated rather than implied: **no app source changed since `bbbabb7`**, whose full suite was 288/288. The only non-`scripts/`, non-`docs/` change is a new npm script |
+
+---
+
 ## ✅ S1.5.3 — B2 · B3 · B4: state correct for the flow it was written for, reused by a later one *(2026-08-26)*
 
 ⚡ **C's one-sentence diagnosis is the most useful thing in the round, and it held for all three:** none is
