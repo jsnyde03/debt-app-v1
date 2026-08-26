@@ -4,6 +4,76 @@
 
 ---
 
+## 📕 SESSION CLOSE 2026-08-26 — S1 opened, audited, and one blocker closed
+
+### ▶ WHERE THE NEXT SESSION STARTS: **S1.5.2 — pass-1 blocker B5**
+
+⛔ **Read the plan's ACTIVE section first.** S1.5 is decomposed **S1.5.1 – S1.5.5**, then S1.6 gate+record,
+then S1.7 pass 2. **14 findings remain: 4 blockers · 10 majors.**
+
+⚠️ **S1.5.4 (the instruments) must land BEFORE pass 2** — M9 and M10 decide what pass 2 can *see* and
+whether its tree can be committed green.
+
+### Verification standing at close
+
+| | |
+|---|---|
+| **HEAD** | `805095e` · branch `v1.7-dev` · **working tree clean** · nothing pushed |
+| **`lint:rn`** | ✅ **26 of 26** on the committed tree |
+| **`typecheck` · `test:app`** | ✅ green |
+| **`lint:gate-freshness`** | 🔴 **RED, and correctly so** — `gate:record` has not been run since `613adf2`. **S1.6 owns the real run.** ⛔ Do not carry the individual greens forward as a pass |
+| **e2e** | only the touched specs were run *(`data-recovery` 11 · `goal-pace-edit` 4 · `progress-hero-journey` 5)*. **The full suite has not run this session** |
+
+### What this session did
+
+| | |
+|---|---|
+| **S1.1** | The three findings S1 already carried — blocker #1 + M17a, M9 on all three screens ([D66]/[D71]) — **plus two blocker-class findings found by building them** |
+| **S1.2** | The coverage instrument generalised so [D69] has a lookup on every surface; the brief |
+| **S1.3/S1.4** | Pass 1: four fresh auditors, **5 blockers · 10 majors**, ⭐ **S0's fixes verified and holding** |
+| **S1.5.1** | **B1 — the trust guard now has one owner** |
+| **[D71] · [D72]** | 🎯 answered mid-session: `GoalSheet` does not offer a second emergency fund; `lint:secrets` gets a content-hashed exemption ledger |
+
+### ⭐ The four things this session measured that outlive it
+
+1. ⛔ **"SWEPT" WAS 14 OF 72 FILES.** The money surface had been audited twice and **80% of it had never
+   been opened** — including all 12 `packages/core/guardian/` files. **5 blockers and 4 app-majors came out
+   of the unswept 58**, while the two prior rounds sweeping the swept 14 found none of them. ⚡ **S0.12a's
+   result reproduced exactly on a second surface: the variable is not the tree, it is where you point.**
+2. ⛔ **A TEST THAT PICKS THE ONE MEMBER OF A CLASS THAT WORKS — measured FOUR times in one day.** Every
+   unreadable-money fixture seeded `balance: null`, so **10 of 11 `data-recovery` tests stayed green with
+   the blocker planted back**; the only two-EF fixture asserts the *controls*, not the labels; the four-test
+   suite written for *"You're caught up"* has `shortfall === 0` in all four stores; **4 of 5 Progress tests
+   stayed green** with B1 restored. ⚠️ **In every case exactly one test red — the new one.**
+3. ⛔ **A FIX FOR A FALSE STATEMENT CAN BE A FALSE STATEMENT.** My first cut of B1's Progress half replaced
+   the trophy with *"Your payoff journey starts here · Add a debt"* — over debts the user still owes. It
+   was caught **only** because the e2e asserts the honest state **by name** rather than asserting the false
+   one is absent. ⚠️ **Assert what the screen SHOULD say, not only what it should not.**
+4. ⛔ **THE INSTRUMENT'S OWN RULE, BROKEN BY ITS AUTHOR, IN THE SAME FILE, THE SAME DAY.**
+   `surface-coverage.ts` says *"an inclusion list fails silent"* — and S1's roots are a hand-written
+   inclusion list, so the file B5 is wired in was never on the surface. ⚡ **It also refutes a sentence I
+   put in that docstring** *("the file list is walked from disk, cannot undercount")*: true of S0's
+   directory roots, false of S1's hybrid. **Auditor B found it; I had found the same gap an hour earlier
+   verifying a different finding, and had not connected it to my own claim.**
+
+### ⚠️ The session's after-scan
+
+- **Three self-inflicted defects, all caught by an instrument rather than by review:** the Progress
+  "Add a debt" state · two `lint:comments` violations counting code members · and, at S1.1, a **NUL byte**
+  written as a template-literal separator that made a source file *binary* to git and grep.
+- ⛔ **`node -e` returned EMPTY on a probe twice, and `sed -i` reported "binary file matches" and
+  no-opped.** Both are on the standing list and both cost a diagnosis cycle anyway. ⭐ **The `.bak` is what
+  proved the NULs pre-dated `sed`** — check `git status` before believing a red, and before believing a
+  plant landed.
+- **Ratchets at close:** `finding-guards` **36 findings · 20 guarded · 16 unguarded** *(cap tight)* ·
+  `s1-coverage` **72 · 58 unswept** *(⛔ under-counting — M9)* · `s0-coverage` **58 · 20** ·
+  `secrets-exemptions` **2 of 2**.
+- **Filed to the backlog this session:** which fixtures pick the easy member of their class · the two
+  independent empty-string money guards with no shared helper · `pickTopUpGoal` ranking a second
+  emergency-typed pot as the safety net.
+
+---
+
 ## 📕 P6.8.9.7.11.18 · S1.3 + S1.4 — pass 1: 5 blockers, 10 majors *(2026-08-26)*
 
 Four fresh auditors at `bc29dfe` ([D68]). **No auditor touched a source file.** Full ledger →

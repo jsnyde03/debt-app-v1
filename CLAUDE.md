@@ -27,17 +27,37 @@ decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submis
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-25).** 🎯: **"We're fixing all blockers and majors."**
-✅ **Both blockers CLOSED** *(the ack at `.11.8`, the `setMonth` overflow at `.11.11`)* and ⭐ **`.11.12`
-AND `.11.13` are BOTH CLOSED** — all 14 majors, then all 9 of the `.11.9` tail.
-▶ **NEXT IS `P6.8.9.7.11.14`** — [D60]'s accepted build, decomposed on the plan. ⛔ **Verify each of its
-five rows against current code before building**: they were written from the audit and nothing has checked
-them since, `.2` touches a sheet `.11.12.5` already changed, and `.3` adds a matrix entry under a `Surface`
-type that now **requires** `ready`.
-⚠️ **`.11.15` is NEW — [D62]**, 🎯-approved: `originalBalance` becomes a **high-water mark**. The deciding
-case is not the setback but the **correction** (a typo at entry, or a premium user verifying a stale
-estimate upward) — today's ring reads 0% for the rest of that debt's life, and `verifyDebtBalances` is a
-flow the app *asks* people to use. `.11.16`–`.11.18` renumbered.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-26).** 🎯: **"Continue through S until you need my input"** —
+standing authority to run the surface audits **to convergence**, every surface on S0's criteria.
+**S0 is CONVERGED. S1 is OPEN and audited.** HEAD `805095e`, tree clean, **`lint:rn` 26/26**.
+
+▶ **NEXT IS `S1.5.2`** — pass-1 blocker **B5**, decomposed on the plan as **S1.5.1–S1.5.5 → S1.6 → S1.7**.
+**14 findings remain: 4 blockers · 10 majors**, ledger in
+[`docs/audits/2026-08-26-s1-money/SUMMARY.md`](docs/audits/2026-08-26-s1-money/SUMMARY.md).
+⛔ **The SUMMARY is the map; the four `{A,B,C,D}` files are the ledger.**
+
+⚠️ **S1.5.4 (the instruments) must land BEFORE pass 2** — M9 and M10 decide what pass 2 can *see* and
+whether its tree can be committed green. ⚠️ **`lint:gate-freshness` is RED and correctly so**; S1.6 owns
+the real `validate:release:rn` run, and **the full e2e suite has not run this session.**
+
+⭐ **S0's fixes were verified and HOLD** — `REVERIFY4-1…-5` all `CLOSED`. [D70] left no fifth S0 pass, so
+S1's pass 1 was the only chance to catch S0's close-out coming undone.
+
+⛔ **"SWEPT" MEANT 14 OF 72 FILES.** The money surface had been audited twice and **80% had never been
+opened**. **5 blockers and 4 app-majors came out of the unswept 58**; the two prior rounds, sweeping the
+swept 14, found none of them. ⚡ **The variable is not the tree, it is where you point** — and
+`lint:s1-coverage` is what makes that answerable. ⛔ **It currently under-counts** (pass-1 M9): its roots
+are a hand-written **inclusion list**, so `index.tsx` — the file blocker B5 is *wired* in — is off-surface.
+
+⛔ **A FIX FOR A FALSE STATEMENT CAN BE A FALSE STATEMENT.** B1's first cut replaced *"Every balance paid
+off"* with *"Add a debt"*, over debts the user still owes. Caught only because the e2e asserts the honest
+state **by name**. ⚠️ **Assert what the screen SHOULD say, not only what it should not.**
+
+⚠️ **[D71]** `GoalSheet` does not offer a second emergency fund *(read-only Type row; stored `type` never
+rewritten)*. **[D72]** `lint:secrets` has a **content-hashed** exemption ledger, self-ratcheting cap.
+⛔ **[D72] fixed the instance, not the class** — pass-1 M10: the ledger keys per **value**, the class is per
+**audit report**, and an auditor's own draft carried four credential-shaped strings while the gate printed
+green *(it is blind to untracked files by design)*.
 
 ⛔ **THREE THINGS I BUILT LAST SESSION WERE THE DEFECT CLASS I WAS CLOSING, and none was visible by
 re-reading.** `.11.12.11`'s required `ready` **gated nothing** *(Playwright TRANSPILES — measured: a bare

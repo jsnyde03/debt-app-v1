@@ -68,19 +68,23 @@ computes **`true`**.
 | # | sub-step | exit line |
 |---|---|---|
 | ✅ | **S1.1 — the three findings S1 already carried.** CLOSED 2026-08-26: blocker #1 + M17a · **M9 on all three screens** ([D66]/[D71]) · and **two blocker-class findings folded in** — an absent REQUIRED money field reaching the store `undefined` with totals `NaN`, and `lint:secrets` red on `HEAD` ([D72]). **6 guards registered · every fix plant-verified with a control · `lint:rn` 25/25.** Detail → log |
-| **S1.2** | **Write the S1 brief.** Surface: money · goals · plan cards. **Four standing jobs beyond the sweep:** ⓪ re-verify S1.1's five · ① confirm S0's 5 fixes still hold · ② confirm every guard in `finding-guards.json` exists **and still fails** · ③ **sweep the 4 new S0 instruments**, which are unswept and load-bearing. ✅ **Coverage instrument generalised first** — `lint:s1-coverage`, **72 files · 58 unswept** | a brief carrying no verdict, every path verified, the ratchet handed over |
+| ✅ | **S1.2 — the brief**, carrying no verdict. ✅ **Coverage instrument generalised first** so [D69] has a lookup on every surface — `lint:s1-coverage`, **72 files · 58 unswept**. Detail → log |
 | ✅ | **S1.3 + S1.4 — pass 1 run and recorded.** Four fresh auditors at `bc29dfe`; **5 blockers · 10 majors**; no auditor touched source. ⭐ **Job ① passed — `REVERIFY4-1…-5` all `CLOSED`, and it was S0's only verification.** [D69] applied from the inventory: **5 count as churn, 10 are coverage.** → [`SUMMARY.md`](audits/2026-08-26-s1-money/SUMMARY.md) *(the map)*, the four `{A,B,C,D}` files *(the ledger)*, [`VERIFICATION.md`](audits/2026-08-26-s1-money/VERIFICATION.md) *(my re-measurement)* |
-| 🔵 | **S1.5 — FIX, active.** 15 findings. ⚡ **B2·B3·B4 are one shape** *(state scoped to the flow it was written for, reused by a later one)*; **B1·B5 are another** *(a guard right on one screen, absent on the screen that says the same thing)*. ⛔ **B1's remedy is ONE owner, not a third copy of the conjunct** — three call sites already disagreed once this week and that was M9 | no fix accepted on a green alone |
-| **S1.6** | **Gate + record**, then register each fix's guard in `finding-guards.json` | `validate:release:rn` green **and recorded**; `MAX_UNGUARDED` unchanged or lower |
+| ✅ | **S1.5.1 — B1, the trust guard.** `trustSelectors.ts` is the one owner; `selectPlanState` gained `'debt-free-unverified'`. **4 plants, each with a control.** Detail → log |
+| 🔵 | **S1.5.2 — B5** *(premium + shortfall → *"You're caught up"* over unpaid bills)*. ⚠️ Same shape as B1 — a count right on one path, wrong on the other. ⛔ **`index.tsx:506` empties `unfunded` when a recovery plan exists**; free is the working control | the four-test `no-bills-branch.spec.ts` extended to a **non-zero-shortfall** store |
+| | **S1.5.3 — B2 · B3 · B4, ONE SHAPE**: `intentRollback` · `cycleTopUp` · `converting` — state correct for the flow it was written for, reused by a later one. ⛔ **Fix the scope, not the arithmetic**; none of the three is a wrong calculation | each plant-verified; the shared-record cases asserted in BOTH directions *(teleport and invention)* |
+| | **S1.5.4 — M5–M10, the instruments.** ⛔ **Must land BEFORE pass 2** — they decide what pass 2 can see. M9 *(surface roots are an inclusion list)* · M10 *(secrets class is per-report)* · M5 *(`test:gate-plants` in no chain)* · M6 · M7 · M8 | every ratchet strict-equality or floored; `test:gate-plants` in a chain |
+| | **S1.5.5 — M1–M4, the app majors.** M1 uncategorised bill renders nowhere · M2 over-funded goal understates · M3 top-up suppresses the shortfall sentence · M4 `PlanHero` stops conserving | each plant-verified with a control |
+| | **S1.6 — gate + record.** ⚠️ `lint:gate-freshness` is RED now and stays red until this runs | `validate:release:rn` green **and recorded**, then **commit immediately** — a record on a dirty tree names bytes no commit held |
+| | **S1.7 — re-verify, pass 2**, fresh agents, pinned. ⛔ **Two consecutive clean passes**, and pass 2 carries the standing S0 jobs ①/② again | 0 blockers / 0 majors, twice |
 
-⚠️ **M9's site count is a floor.** A named three surfaces; `EMERGENCY_FUND_NOUN` has **four more**
-consumers — `WindfallSheet.tsx:25` · `planSelectors.ts:341` · `buildGuardianBrief.ts:378` ·
-`guardianSelectors.ts:605`. Each is about **the** rung, not a second pot; verify that, do not assume it.
-
-⚠️ **S1.2's brief must carry this: `lint:rn` was RED on every committed tree from `74f2064` until S1.1.**
-`lint:secrets` fired on the audit report describing its own plant — **third gate to fire on its own
-write-up** — so S0's `dirty: true` green never transferred to a commit. Closed by [D72]. **A recorded green
-on a dirty tree is a green for bytes no commit ever held.**
+⛔ **THE S1 SURFACE LIST IS WRONG AND IS ITSELF S1.5.4's FIRST JOB** *(pass-1 M9)*. Its roots are a
+**hand-written inclusion list**, which `surface-coverage.ts`'s own docstring says fails **silent** — so
+`index.tsx` *(1,087 lines, imports 19 plan modules, and the file B5 is wired in)* is off-surface, `store/`
+is **6 of 88**, `data/` **3 of 21**. ⚡ **Demonstrated again by B1's own fix**: adding `trustSelectors.ts`
+left the count at 72. ⛔ **Widen the ROOTS to whole directories and route the exclusions** — do not extend
+the hand-list. **And any claim value that is not exactly `never`/`unknown`/`partial` currently reads as
+SWEPT**; that needs validating in the same edit.
 
 **Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
 new instruments swept.
