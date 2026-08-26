@@ -4,6 +4,70 @@
 
 ---
 
+## 🧹 PLAN CLEANUP 2026-08-26 — the ACTIVE block, and a residue number that had already decayed
+
+🎯: *"clean up the debt elevation plan. It is very hard to find current work."* Verbatim predecessor:
+[`archive/DEBT_ELEVATION_PLAN_2026-08-26-precleanup.md`](archive/DEBT_ELEVATION_PLAN_2026-08-26-precleanup.md).
+
+**What made current work unfindable — three structural faults, not verbosity:**
+
+1. ⛔ **The page led with a CLOSED item.** `## ▶ BUILDING NOW — S0 — THE INSTRUMENTS *(the ACTIVE
+   decomposition)*` was the first heading, and S0 converged 2026-08-25. The live build, S1, sat 36 lines
+   below it as a `###` — **structurally a child of the closed item.**
+2. ⛔ **Three places claimed to be the current work.** The S0 header · the `### THE ACTIVE BUILD — S1`
+   subheading · and the Phase 6 table's **P6.8.9** row, still reading *"BUILDING NOW … now the 14 open
+   majors … then a fourth round"*, which describes the world before S0 existed.
+3. ⛔ **~50 lines of retrospective between the S1 table and the next section** — S0's rewritten exit,
+   [D70]'s derivation, the retired pass count, job ③'s non-blocking status, the superseded trigger.
+   **Every one of those already existed in this log** *(the [D70] section, the pass-4 auditor entries)*.
+   The plan was carrying a second copy of its own history above the queue.
+
+**The new shape:** `▶ RIGHT NOW` *(one line — the item, the surface, the count of what remains)* → the S1
+decomposition → the rules that are live **while S1 builds** → the residue ledger → `⏸ OPEN, but NOT being
+built` *(.11.19 · .9.3 · .9.5 · .9.6)* → `✅ Closed on the way here`. A **how-to-read** line in the header
+says where the queue stops and the reference half begins.
+
+### ⚡ What the cleanup FOUND — the residue table's numbers had already decayed
+
+It read **"34 findings · 18 guarded"**. Read from the gate instead of the page:
+
+| | plan said | gate says |
+|---|---|---|
+| `npm run lint:finding-guards` | 34 · 18 guarded | **36 findings · 20 guarded · 16 unguarded** (cap 16) |
+| `npm run lint:s1-coverage` | 72 · 58 unswept | ✅ 72 · 58 |
+| `npm run lint:s0-coverage` | 58 · 20 unswept | ✅ 58 · 20 |
+| `npm run lint:secrets` | 2 of cap 2 | ✅ 2 of 2 |
+
+⛔ **This is [D49]'s class, one level down.** [D49] stopped the *gate* result being typed into the plan;
+nothing stopped the *ledger* results being typed. **A hand-typed figure decays the moment the thing it
+counts moves** — and S1.1 registering six guards is exactly the event that moved it. The table now carries
+the **command per row**, and the numbers are dated and labelled as a reading, not a fact.
+
+### ⚠️ The id-diff caught three real losses inside the cut prose
+
+Per the compaction rule — archive verbatim, then diff **every id and path** old → new. 120 ids in the cut
+region; 23 absent afterwards; **three of them were live obligations hiding inside closed items' narrative:**
+
+- ⛔ **The four unaudited instruments** — `check-finding-guards.ts` · `test-gate-plants.ts` ·
+  `s0-surface-coverage.ts` · `begin-gate-run.ts`. S0's convergence rests on them, **one failed open on its
+  own core case during construction**, and their names lived only in a paragraph about S0's close-out.
+  The S1 exit line said *"the four new instruments swept"* — **naming a count, not the files.** Restored by name.
+- `scripts/finding-guards.json` and `scripts/secrets-exemptions.json` — the residue table had been rewritten
+  to name the *command* and dropped **where the ledger lives**. Both columns now present.
+- The gate fingerprint's **scope** *(`apps/rn` · `packages/core` · `scripts` · the workflows · `.maestro`)* —
+  trimmed to just *"`docs/` is excluded"*, which is the exemption without the rule. Restored.
+
+⚡ **The other 20 were closed-item ids** *(`S0.6` · `S0.11` · `S0.12` · `S0.12a` · the struck `.9.4` · the
+pins `1782769` / `613adf2` / `74f2064`)* **or false positives from backtick-boundary matching** — the diff's
+value is that it forced each one to be *decided* rather than assumed.
+
+⛔ **The lesson, and it is the second time:** *two open decisions were hiding inside closed items' prose* was
+written after the 2026-08-24 compaction. **It repeated at the 2026-08-26 one** — because a closed item's
+narrative is exactly where a live obligation gets phrased as background. **The id-diff is not optional
+hygiene; it is the only thing that caught it either time.**
+
+---
+
 ## 📕 SESSION CLOSE 2026-08-26 — S1 opened, audited, and one blocker closed
 
 ### ▶ WHERE THE NEXT SESSION STARTS: **S1.5.2 — pass-1 blocker B5**

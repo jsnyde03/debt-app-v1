@@ -7,110 +7,157 @@
 > went" belongs in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) — if an item here grows a story, cut it.
 >
 > ⛔ **EXACTLY ONE DECOMPOSED SECTION LIVES HERE — the ACTIVE item's.** Everything else is one terse row.
-> Compacted [2026-08-24](archive/DEBT_ELEVATION_PLAN_2026-08-24-precompaction.md) *(1,278 lines)* and
-> again [2026-08-26](archive/DEBT_ELEVATION_PLAN_2026-08-26-precleanup.md) — both predecessors verbatim in `archive/`.
->
-> **How to read this file.** **§1 [RIGHT NOW](#-right-now--s152--pass-1-blocker-b5)** — the one thing being
-> built, decomposed · **§2 [OPEN, but NOT being built](#-open-but-not-being-built)** — the only other live
-> queue · **everything after that is REFERENCE**: where v1.7 is · the Phase 6 order to submission · what is
-> waiting on Jason · the device ledger · the deferred backlog · the decisions ledger.
+> Compacted 2026-08-24, 1,278 → this; the verbatim predecessor is
+> [`archive/DEBT_ELEVATION_PLAN_2026-08-24-precompaction.md`](archive/DEBT_ELEVATION_PLAN_2026-08-24-precompaction.md).
 
 ---
 
-## ▶ RIGHT NOW — **S1.5.2 · pass-1 blocker B5**
+## ▶ BUILDING NOW — **P6.8.9.7.11.18 · S0 — THE INSTRUMENTS** *(the ACTIVE decomposition — 2026-08-26)*
 
-**Surface S1 · money · goals · plan cards.** Pass 1 is in and **14 findings remain: 4 blockers · 10 majors.**
-S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block on this page is **reference, not queue** —
-Phase 6's order, the device ledger, the backlog, the decisions. Detail for anything closed →
-[`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+⛔ **CONVERGENCE = 0 blockers / 0 majors. NO DEFERRALS** (🎯 2026-08-25). A major exits by being **fixed**,
+or by being **measured** never to have been one — a re-rating is not a proof.
 
-### 🔨 THE ACTIVE DECOMPOSITION — S1 *(the ONLY decomposed section on this doc)*
+⛔ **[D68] EVERY AUDIT PASS IS RUN BY FRESH AGENTS — HARD RULE** *(🎯 2026-08-25: "we specifically make
+sure new eyes are on these audits… make that a hard rule")*. The driving session writes the brief and
+records the result; **it never performs the pass itself.** The incumbent re-reads its own premises instead
+of the code — the measured class *"the fixer's own write-up is inside the corpus the fixer is measuring."*
+⛔ **Do not put your verdict in the brief**: hand over the finding text, the fix range, the ratchet and the
+attack points, never the answer. ⛔ **The dispatch is part of the audit and gets the audit's rules** — every
+path and id in a brief is verified before it is handed over.
+
+⛔ **[D69] A FIRST-LOOK FINDING DOES NOT RESTART THE COUNT** *(🎯 2026-08-25)*. A blocker/major against a
+file **no prior pass actually examined** is a **coverage** result, not a churn result — and the two-clean-pass
+count only ever measured churn: *are our repairs still producing bugs?* It **carries into the next surface
+run's standing re-check** instead of holding the surface open. ⛔ **Exempt from the count is NOT exempt from
+the fix** — [D65]'s no-deferrals rule is untouched. ⚠️ **The exemption is mechanical, never the auditor's
+judgement**: it applies only to a file the **surface inventory** marks unswept *(see S0.12a)*.
+
+⛔ **Fix a surface → re-verify it in the background against a PINNED SHA → repeat until TWO CONSECUTIVE
+CLEAN PASSES.** Order **S0 instruments → S1 money → S2 dates → S3 import → S4 discovery → cross-surface**.
+S0 is first because a surface verified by a blind instrument is not verified. ⛔ **Per-surface convergence
+is NOT sufficient — blocker 1 spans two surfaces**, which is what the cross-surface pass is for.
+The four ways "0 on a surface" lies, and the two 🎯 decisions [D65]/[D66], are in the log.
+
+| # | step | state |
+|---|---|---|
+| ✅ | **.11.1 – .11.17** | CLOSED 2026-08-24/25 — both blockers, all 14 majors, the `.11.9` tail, [D60]'s five, [D62]/[D63]'s high-water mark, and the **fourth audit round** *(5 auditors: 2 blockers · 17 majors)*. Detail → log |
+| ✅ | **S0.1 – S0.10** | CLOSED 2026-08-25/26 — the 6 instrument findings, then **pass 1's 7** and **pass 2's 3**. ⚡ **10 of the 16 were introduced by the fixing.** Detail → log |
+| ✅ | **S0.11 — gate + re-verify pass 3** | Gate green at `1782769` *(274 e2e · 10 embed · 789 files · 23/23)*. **Pass 3: 0 blockers · 0 majors · 6 minors — THE FIRST CLEAN PASS.** Decisive test: every gate's hit set computed twice, pre- and post-diff strippers — **0 lost, 0 gained across all ten**. Scanner **3.5× less blind, 13× less noisy**. [`S0-REVERIFY-3.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-3.md) |
+| ✅ | **S0.12 — pass 4, two fresh auditors** *(closed 2026-08-25, pin `613adf2`)* | **A: 0 blockers · 5 majors**, all first-look, job ① `CLOSED`-unpinned → [`S0-REVERIFY-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-4.md). **B: 37 findings · 11 guarded · 18 gaps · 8 n/a** → [`S0-GUARDS-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-GUARDS-4.md). ⛔ **20 findings, 0 that count** — which is what retired the count ([D70]). Detail → log |
+| ✅ | **S0.12a + S0.13 — the S0 close-out** *(closed 2026-08-25)* | **9 of 9, each plant-verified with a control.** 3 new gates + `gate:begin`; **25 gates** on `lint:rn`. ✅ **`validate:release:rn` GREEN and RECORDED** — `274 e2e · 10 embed · 795 files · 25/25`, `sourceHash 314e383…`. Detail → log |
+| ✅ | 🎯 **S0 — CONVERGED 2026-08-25** | [D70]'s exit met: inventory built, pass 4's 5 majors fixed, guards built, gate green and recorded. ⛔ **Verified by S1 pass 1, not by an S0 pass.** |
+| **.11.19** | 🔴 **THE CLOSURE LEDGER — drive both `MAX_UNTOKENISED` caps to 0, then flip `lint:closure` to gating** | ⚠️ **Scope re-measured at S0.1: not "the 51" but 142** — `[D37]` 55/55 + P6.8 48/48 untokenised, plus 39 in no ledger at all. ⛔ A cap only ever goes **DOWN** |
+
+### 🔨 THE ACTIVE BUILD — **S1 · MONEY · GOALS · PLAN CARDS** *(the ONLY decomposed section on this doc)*
+
+⛔ **S1's FIRST PASS IS LOAD-BEARING FOR S0** ([D70]) — it is the pass that verifies S0, and no S0 pass
+will. ⛔ **Fresh agents** ([D68]): the brief is written here, the pass is never run here.
+
+⚠️ **The S0 close-out grew the instrument surface and left the new instruments UNSWEPT — 57 files, 19
+unswept.** `check-finding-guards.ts` · `test-gate-plants.ts` · `s0-surface-coverage.ts` · `begin-gate-run.ts`
+are the guards S0's convergence now rests on, **and nobody has audited them.** ⚡ **One already failed open
+on its own core case during construction.** S1.2 carries them.
+
+⛔ **S1.1 IS NEW — the decomposition opened with *write the brief* and S1 has THREE FINDINGS ALREADY
+OPEN AGAINST IT.** The loop is **fix a surface → re-verify it pinned**, which is how S0 ran *(S0.1–S0.6
+fixed the six, then the passes)*. Auditing first would spend a fresh-agent pass re-finding known work and
+leave job ① with nothing to verify. **Measured at switch-in, 2026-08-26, against `74f2064`** — all three
+are live: `runMigrations` on two `""` balances returns two `kind: 'recovered'` repairs and `allCleared`
+computes **`true`**.
 
 | # | sub-step | exit line |
 |---|---|---|
-| ✅ | **S1.1** — the three findings S1 already carried | CLOSED 2026-08-26 · blocker #1 + M17a · M9 ×3 screens · two blocker-class folded in · 6 guards. Detail → log |
-| ✅ | **S1.2** — the brief, carrying no verdict; coverage instrument generalised first | CLOSED 2026-08-26 · `lint:s1-coverage`. Detail → log |
-| ✅ | **S1.3 + S1.4** — pass 1 run and recorded, four fresh auditors at `bc29dfe` | CLOSED 2026-08-26 · 5 blockers · 10 majors · **job ① passed, S0's only verification** → [`SUMMARY.md`](audits/2026-08-26-s1-money/SUMMARY.md) · [`VERIFICATION.md`](audits/2026-08-26-s1-money/VERIFICATION.md) |
-| ✅ | **S1.5.1 — B1**, the trust guard | CLOSED 2026-08-26 · `trustSelectors.ts` the one owner · 4 plants, each with a control. Detail → log |
-| ▶ | **S1.5.2 — B5** · premium + shortfall renders *"You're caught up"* over unpaid bills. Same shape as B1: a count right on one path, wrong on the other. ⛔ `index.tsx:506` empties `unfunded` when a recovery plan exists; **free is the working control** | `no-bills-branch.spec.ts` extended to a **non-zero-shortfall** store, plant-verified |
-| | **S1.5.3 — B2 · B3 · B4, ONE SHAPE** · `intentRollback` · `cycleTopUp` · `converting`: state correct for the flow it was written for, reused by a later one. ⛔ **Fix the scope, not the arithmetic** — none is a wrong calculation | each plant-verified; shared-record cases asserted in BOTH directions *(teleport and invention)* |
-| | **S1.5.4 — M5–M10, the instruments.** ⛔ **Must land BEFORE pass 2** — they decide what pass 2 can see. M9 *(surface roots are an inclusion list — see below)* · M10 *(secrets class is per-report)* · M5 *(`test:gate-plants` in no chain)* · M6 · M7 · M8 | every ratchet strict-equality or floored; `test:gate-plants` in a chain |
+| ✅ | **S1.1 — the three findings S1 already carried.** CLOSED 2026-08-26: blocker #1 + M17a · **M9 on all three screens** ([D66]/[D71]) · and **two blocker-class findings folded in** — an absent REQUIRED money field reaching the store `undefined` with totals `NaN`, and `lint:secrets` red on `HEAD` ([D72]). **6 guards registered · every fix plant-verified with a control · `lint:rn` 25/25.** Detail → log |
+| ✅ | **S1.2 — the brief**, carrying no verdict. ✅ **Coverage instrument generalised first** so [D69] has a lookup on every surface — `lint:s1-coverage`, **72 files · 58 unswept**. Detail → log |
+| ✅ | **S1.3 + S1.4 — pass 1 run and recorded.** Four fresh auditors at `bc29dfe`; **5 blockers · 10 majors**; no auditor touched source. ⭐ **Job ① passed — `REVERIFY4-1…-5` all `CLOSED`, and it was S0's only verification.** [D69] applied from the inventory: **5 count as churn, 10 are coverage.** → [`SUMMARY.md`](audits/2026-08-26-s1-money/SUMMARY.md) *(the map)*, the four `{A,B,C,D}` files *(the ledger)*, [`VERIFICATION.md`](audits/2026-08-26-s1-money/VERIFICATION.md) *(my re-measurement)* |
+| ✅ | **S1.5.1 — B1, the trust guard.** `trustSelectors.ts` is the one owner; `selectPlanState` gained `'debt-free-unverified'`. **4 plants, each with a control.** Detail → log |
+| 🔵 | **S1.5.2 — B5** *(premium + shortfall → *"You're caught up"* over unpaid bills)*. ⚠️ Same shape as B1 — a count right on one path, wrong on the other. ⛔ **`index.tsx:506` empties `unfunded` when a recovery plan exists**; free is the working control | the four-test `no-bills-branch.spec.ts` extended to a **non-zero-shortfall** store |
+| | **S1.5.3 — B2 · B3 · B4, ONE SHAPE**: `intentRollback` · `cycleTopUp` · `converting` — state correct for the flow it was written for, reused by a later one. ⛔ **Fix the scope, not the arithmetic**; none of the three is a wrong calculation | each plant-verified; the shared-record cases asserted in BOTH directions *(teleport and invention)* |
+| | **S1.5.4 — M5–M10, the instruments.** ⛔ **Must land BEFORE pass 2** — they decide what pass 2 can see. M9 *(surface roots are an inclusion list)* · M10 *(secrets class is per-report)* · M5 *(`test:gate-plants` in no chain)* · M6 · M7 · M8 | every ratchet strict-equality or floored; `test:gate-plants` in a chain |
 | | **S1.5.5 — M1–M4, the app majors.** M1 uncategorised bill renders nowhere · M2 over-funded goal understates · M3 top-up suppresses the shortfall sentence · M4 `PlanHero` stops conserving | each plant-verified with a control |
 | | **S1.6 — gate + record.** ⚠️ `lint:gate-freshness` is RED now and stays red until this runs | `validate:release:rn` green **and recorded**, then **commit immediately** — a record on a dirty tree names bytes no commit held |
-| | **S1.7 — re-verify, pass 2**, fresh agents, pinned. Carries the standing S0 jobs ①/② again | 0 blockers / 0 majors, **twice consecutively** |
+| | **S1.7 — re-verify, pass 2**, fresh agents, pinned. ⛔ **Two consecutive clean passes**, and pass 2 carries the standing S0 jobs ①/② again | 0 blockers / 0 majors, twice |
 
-**Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and **the four
-new instruments swept** — ⚠️ `check-finding-guards.ts` · `test-gate-plants.ts` · `s0-surface-coverage.ts` ·
-`begin-gate-run.ts` are what S0's convergence now rests on and **nobody has audited them**; ⚡ one already
-failed open on its own core case during construction. S1.2's brief carries them.
+⛔ **THE S1 SURFACE LIST IS WRONG AND IS ITSELF S1.5.4's FIRST JOB** *(pass-1 M9)*. Its roots are a
+**hand-written inclusion list**, which `surface-coverage.ts`'s own docstring says fails **silent** — so
+`index.tsx` *(1,087 lines, imports 19 plan modules, and the file B5 is wired in)* is off-surface, `store/`
+is **6 of 88**, `data/` **3 of 21**. ⚡ **Demonstrated again by B1's own fix**: adding `trustSelectors.ts`
+left the count at 72. ⛔ **Widen the ROOTS to whole directories and route the exclusions** — do not extend
+the hand-list. **And any claim value that is not exactly `never`/`unknown`/`partial` currently reads as
+SWEPT**; that needs validating in the same edit.
 
-⛔ **S1.5.4's FIRST JOB — the S1 surface list is WRONG** *(pass-1 M9)*. Its roots are a **hand-written
-inclusion list**, which `surface-coverage.ts`'s own docstring says fails **silent** — so `index.tsx`
-*(1,087 lines, 19 plan modules, the file B5 is wired in)* is off-surface, `store/` is **6 of 88**, `data/`
-**3 of 21**. ⚡ B1's own fix demonstrated it again: adding `trustSelectors.ts` left the count at 72.
-⛔ **Widen the ROOTS to whole directories and route the exclusions** — do not extend the hand-list. **And any
-claim value that is not exactly `never`/`unknown`/`partial` currently reads as SWEPT** — validate in the same edit.
+**Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
+new instruments swept.
 
-### ⛔ The rules that are LIVE while S1 builds
+| | the S0 residue, mechanically tracked — not a queue item |
+|---|---|
+| **16 unguarded findings** | `scripts/finding-guards.json`, capped by `MAX_UNGUARDED = 16`, **downward-only**. Drains as S1–S4 build guards; the gate reds if it rises. **34 findings · 18 guarded** after S1.1's six |
+| **20 unswept S0 files** | `lint:s0-coverage` — **58 files**. Printed green every run; [D69] reads it |
+| **58 unswept S1 files** | `lint:s1-coverage` — ⚡ **72 files and only 14 have EVER been examined.** The money surface has been audited twice and 80% of it has never been opened. ⛔ **Update the claims after every pass**, or coverage stops ratcheting |
+| **2 secrets exemptions** | `scripts/secrets-exemptions.json`, `MAX_EXEMPT = 2`, **self-ratcheting** — reds above *and* below. A stale entry reds |
 
-- **[D65] CONVERGENCE = 0 blockers / 0 majors. NO DEFERRALS.** A major exits by being **fixed**, or by being
-  **measured** never to have been one — a re-rating is not a proof.
-- **[D68] EVERY AUDIT PASS IS RUN BY FRESH AGENTS.** The driving session writes the brief and records the
-  result; **it never performs the pass itself.** ⛔ **No verdict in the brief** — hand over the finding text,
-  the fix range, the ratchet and the attack points. ⛔ The dispatch is part of the audit: every path and id in
-  a brief is verified before hand-over.
-- **[D69] A FIRST-LOOK FINDING DOES NOT RESTART THE COUNT.** A blocker/major against a file no prior pass
-  examined is a **coverage** result; the count only ever measured churn. It carries into the next surface
-  run's standing re-check. ⛔ **Exempt from the count is NOT exempt from the fix.** ⚠️ Mechanical, from the
-  surface inventory — never the auditor's judgement.
-- **THE LOOP:** fix a surface → re-verify it in the background against a **PINNED SHA** → repeat until **TWO
-  CONSECUTIVE CLEAN PASSES.** Order **S0 instruments ✅ → S1 money ▶ → S2 dates → S3 import → S4 discovery →
-  cross-surface.** ⛔ Per-surface convergence is not sufficient — blocker 1 spans two surfaces.
-- **EVERY SURFACE AUDIT RE-VERIFIES THE PREVIOUS SURFACES' GUARDS** *(🎯 2026-08-26)* — that is what makes
-  findings ratchet the way coverage already does. A guard nobody re-checks is a guard nobody has confirmed exists.
-- **EVERY FIX IS PLANT-VERIFIED**, the plant confirmed to have **LANDED**, and re-run with the earlier
-  assertion relaxed — a plant that reds early never exercises the later ones. ⛔ **State the direction each
-  fix's justification runs in and why the opposite does not apply**; both blockers came from skipping that.
-  ⛔ **A metric moving the right way is not evidence until you check it measures the DEFECT, not the FIX.**
-- ⛔ **DO NOT EDIT SOURCE WHILE `validate:release:rn` IS RUNNING.** The record is written at the END and
-  fingerprints the tree *then*, so a mid-run edit records a green over code the suites never saw — [D49]'s
-  own failure mode wearing a new face. The fingerprint covers `apps/rn` · `packages/core` · `scripts` · the
-  workflows · `.maestro` and four root files; **`docs/` is excluded**, so prose is safe to edit mid-run.
+⛔ **Every fix plant-verified, the plant confirmed to have LANDED, and re-run with the earlier assertion
+relaxed** — a plant that reds early never exercises the later ones. ⛔ **State the direction each fix's
+justification runs in and why the opposite does not apply**; both blockers came from skipping that.
+⛔ **A metric moving the right way is not evidence until you check it measures the DEFECT, not the FIX** —
+the same stripper was mis-measured three times, by 40× in both directions.
 
-### The residue — mechanically tracked · ⛔ read it from the gate, never from this table
+**Exit (S0) — ⛔ REWRITTEN BY [D70], 🎯 2026-08-25.** ⛔ **NOT "two consecutive clean passes" any more, and
+there is no pass 5.** **S0 converges when S0.12a + S0.13 LAND** — the surface inventory built, pass 4's two
+majors fixed, and the guards built. ⛔ **The VERIFICATION of all of it is the FIRST PASS OF S1**, which is
+therefore a **fresh-agent S1 pass carrying a standing S0 job**, not an S0 pass.
 
-| ledger | where it lives | command | 2026-08-26 |
-|---|---|---|---|
-| unguarded findings, `MAX_UNGUARDED` **downward-only** | `scripts/finding-guards.json` | `npm run lint:finding-guards` | 36 findings · **20 guarded · 16 unguarded** (cap 16) |
-| S0 files never swept | `scripts/surface-inventory.ts` | `npm run lint:s0-coverage` | 58 files · **20 unswept** |
-| S1 files never swept | same inventory, S1 roots | `npm run lint:s1-coverage` | 72 files · **58 unswept** — ⚡ the money surface has been audited twice and 80% of it has never been opened. ⛔ Update the claims after every pass or coverage stops ratcheting |
-| secrets exemptions, `MAX_EXEMPT` **self-ratcheting** *(reds above AND below — a stale entry reds)* | `scripts/secrets-exemptions.json` | `npm run lint:secrets` | 2 of cap 2 |
+⚡ **Why the count was retired rather than satisfied:** pass 4 returned **20 findings and 0 that count** —
+A's two majors exempt under [D69], B's 18 gaps exempt under [D67]. **A pass that cannot fail is not a
+measurement.** ⛔ **And S0 exists for one reason** — *"a surface verified by a blind instrument is not
+verified"* — so its exit belongs on **instruments-sound**, not on two quiet passes. Pass 4 measured the
+freshness gate minting a green over untested code, the secrets gate reporting clean over a live credential
+in `HEAD`, and **seven of ten strip-using gates green while reading nothing.** Opening S1 against those
+would verify S1 with the instruments S0 just failed.
 
-⚠️ **This table's numbers decayed once already** — it read *"34 findings · 18 guarded"* while the gate said
-**36 · 20** *(caught in the 2026-08-26 cleanup)*. Same class as [D49]: **quote the instrument, never type the result.**
+⚠️ **Three jobs, and job ③ is new:** ① verify the fixes · ② sweep for major+ · ③ **inventory the guards**
+([D67]). ⛔ **Coverage ratchets forward; FINDINGS did not** — a pass only ever re-checked the pass before
+it, which is the hole [D67] closes.
 
----
+⭐ **EVERY SURFACE AUDIT VERIFIES THE PREVIOUS SURFACES' GUARDS** *(🎯 2026-08-26: "add a stipulation to
+the next surface audit to verify against S0 that the guards are there")*. ⛔ **This is what makes findings
+ratchet the way coverage already does.** ⛔ **[D70] makes S1's first pass load-bearing rather than merely
+standing: it is the pass that VERIFIES S0** — the S0.12a inventory is accurate and complete, pass 4's two
+majors are closed, and S0.13's guards exist and fail on their originals. **S0 is not re-verified by another
+S0 pass; there is no pass 5.** S1's brief carries a standing job: *confirm every guard S0 left
+behind still exists and still fails* — cheap, because a guard is a named test or gate, so the check is
+mechanical rather than a re-read. S2 verifies S0+S1, and so on. ⚡ **A guard that is never re-checked is a
+guard nobody has confirmed exists**, which is the same shape as the once-deleted plant it replaced.
 
-## ⏸ OPEN, but NOT being built
+⛔ **SUPERSEDED IN PART BY [D70]** — the trigger below is retired *(S0 no longer converges on a pass; it
+converges when S0.12a + S0.13 land)*, but the **reasoning** stands and is why [D69] followed it.
 
-| # | item | notes |
+⛔ **JOB ③'s OUTPUT DOES NOT BLOCK CONVERGENCE** *(🎯 2026-08-26)*. ~~**If pass 4's only findings are job-③
+gaps plus minors, S0 is CONVERGED and S1 opens.**~~ ⚡ **Why that is not a loophole:** a job-③ finding is not
+a defect — pass 3 measured the code *correct*; the gap is that nothing would catch it regressing. Applying
+a new bar for the first time always yields a backlog, and that backlog is not evidence the surface is still
+producing bugs, which is the only thing the two-clean-pass rule ever measured.
+⚠️ **The guards still get BUILT** — as **S0.13**, not as an audit gate, because S0's guards are what stop
+S1–S4's work from silently regressing S0.
+
+
+### ⏸ Still open from P6.8.9, after the pinning build
+
+| # | step | notes |
 |---|---|---|
-| **.11.19** | 🔴 **THE CLOSURE LEDGER** — drive both `MAX_UNTOKENISED` caps to 0, then flip `lint:closure` to gating | ⚠️ Scope re-measured at S0.1: **not "the 51" but 142** — `[D37]` 55/55 + P6.8 48/48 untokenised, plus 39 in no ledger at all. ⛔ A cap only ever goes **DOWN** |
-| **.9.3** | **Re-check the GATED CLASSES** | `lint:contrast` · `lint:type-scale` · `lint:icon-glyphs` · `lint:apostrophes` · native-a11y-props. ⛔ **The classes c/d/e closed as LISTS were never gated at all** — that is where the residue is |
-| **.9.5** | **Work the filed queue** | **27 items** routed across the cluster, in the backlog below. ⚠️ Triage first — several are sweeps whose scope is the real question |
-| **.9.6** | **The mechanical exit criterion** | `lint:closure` clean on blocker+major. ⛔ It reads clean for the wrong reason if an instrument is blind — how P1's seven majors stayed invisible; `.11.10` measured **12 of 87** traceable only because their id appears in a SYNTHESIS heading |
+| **.9.3** | **Re-check the GATED CLASSES** | `lint:contrast` · `lint:type-scale` · `lint:icon-glyphs` · `lint:apostrophes` · native-a11y-props. ⛔ **And the classes c/d/e closed as lists were never gated at all** — that is where the residue is |
+| ~~.9.4~~ | ✅ **CLOSED — the whole P1 major set** | **P1-2** at `.11.8` · **P1-4 · P1-5 · P1-1** at `.11.14.1–.3`. ⚠️ This row was a `[DECISION]` gate [D60] answered on 2026-08-25 and it still read *"unchanged"* for three findings a day later, at line numbers that had moved — **closing a decision updates the decisions section and leaves the row that was waiting on it.** Kept as a marker, not a queue item |
+| **.9.5** | **Work the filed queue** | **27 items** routed here across the cluster, in the backlog below. ⚠️ Triage first — several are sweeps whose scope is the real question |
+| **.9.6** | **The mechanical exit criterion** | `lint:closure` clean on blocker+major. ⛔ **It reads clean for the wrong reason if an instrument is blind** — exactly how P1's seven majors were invisible until the regex was un-anchored, and ⚠️ `.11.10` measured that **12 of 87 count as traceable only because their id appears in a SYNTHESIS heading** |
 
 **Exit (P6.8.9):** every finding passes **pinned** — a test that would fail on its original defect, or an
-explicit device row saying why no test can reach it; the gated classes re-checked; `lint:closure` clean
-**for a reason, not by construction**.
+explicit device row saying why no test can reach it; the gated classes re-checked; the P1 majors carry
+🎯's answer; and `lint:closure` clean **for a reason, not by construction**.
 
-### ✅ Closed on the way here — detail → log
-
-| | |
-|---|---|
-| **.11.1 – .11.17** | CLOSED 2026-08-24/25 — both blockers, all 14 majors, the `.11.9` tail, [D60]'s five, [D62]/[D63]'s high-water mark, and the fourth audit round *(5 auditors: 2 blockers · 17 majors)* |
-| **S0.1 – S0.13** | CLOSED 2026-08-25/26 — 6 instrument findings, pass 1's 7, pass 2's 3, **pass 3 the first clean pass** *(0 / 0 / 6 minors)*, pass 4's 5 majors + the 37-finding guard inventory, then the close-out: 3 new gates + `gate:begin`, **25 gates on `lint:rn`**. ⚡ **10 of the first 16 were introduced by the fixing.** [`S0-REVERIFY-3.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-3.md) · [`S0-REVERIFY-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-4.md) · [`S0-GUARDS-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-GUARDS-4.md) |
-| 🎯 **S0 CONVERGED 2026-08-25** | ⛔ **[D70] rewrote the exit: instruments-sound, not a pass count — there is no pass 5.** Pass 4 returned **20 findings and 0 that counted**, and *a pass that cannot fail is not a measurement*. ⛔ **S0 was verified by S1's pass 1, not by an S0 pass** — and it passed: `REVERIFY4-1…-5` all `CLOSED`. Full reasoning → log, *"[D70]"* |
+⛔ **DO NOT EDIT SOURCE WHILE `validate:release:rn` IS RUNNING.** The record is written at the END and
+fingerprints the tree *then*, so a mid-run edit records a green over code the suites never saw — [D49]'s
+own failure mode wearing a new face. The fingerprint covers `apps/rn` · `packages/core` · `scripts` ·
+the workflows · `.maestro` and four root files; **`docs/` is excluded**, so prose is safe to edit mid-run.
 
 ---
 
@@ -184,7 +231,7 @@ separately gated ([D46]). Full reasoning → log, *"THE ORDER TO SUBMISSION"*.
 | ✅ | **P6.8.1–.6** the matrix, the surface census, **13 lenses**, **6 refuters**, the synthesis file, the structural-gap list | DONE 2026-08-21 — ⚠️ **"226 frames" was WRONG and is corrected here**: 4 recipes had never produced a frame, so the lenses read 226 of an owed 230, with **no frame of the Log-a-payment sheet at all**. Re-shot complete at .9.1 (**232**) · 9 a11y trees. [`audits/2026-08-21-p6.8-finish/SYNTHESIS.md`](audits/2026-08-21-p6.8-finish/SYNTHESIS.md) is the decision document. ⛔ **33 of 34 observations survived; 11 of 34 mechanisms were wrong** |
 | ✅ | **P6.8.7 CLOSED 2026-08-24** — build everything except the refuted | All clusters **a–g** done, sequenced so the GUARDS landed first. Detail → log |
 | ✅ | **P6.8.8 DONE 2026-08-24** — the gate is green and pushed | Quoted from the record: **250 e2e · 10 embed · 663 source files**, zero `error-context.md`. CI run `32742084595` **success** |
-| **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS** — ▶ **this is what is being built; see [RIGHT NOW](#-right-now--s152--pass-1-blocker-b5) at the top** | Ran as `.9.1/.9.2`, then `.7.10`/`.11.9`/`.11.10`, then `.11.18`'s **per-surface convergence loop** — S0 ✅ converged, **S1 in flight**, S2–S4 + cross-surface to come. Still owed from `.9` itself: `.9.3` gated-class re-check · `.9.5` the filed queue · `.9.6` `lint:closure` clean **for a reason** — all three in *"OPEN, but NOT being built"* above |
+| **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS — BUILDING NOW** | *(decomposed at the top of this file)*. **Three rounds run: `.9.2` verified 33 ids · `.7.10` and `.11.9` re-verified the fixes · `.11.10` swept the whole app with a severity scale.** ✅ **Both blockers CLOSED** (`.11.8`, `.11.11`); ▶ now the **14 open majors** — ⚠️ the SUMMARY says 9, the auditor files say 14 — then a fourth round over that work. Still owed from `.9`: the gated-class re-check, the P1 decisions and the filed queue |
 
 ### P6.8.7 — the clusters
 
