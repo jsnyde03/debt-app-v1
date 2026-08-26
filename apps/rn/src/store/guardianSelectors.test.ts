@@ -1,6 +1,6 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
-import { selectAffordability, selectCalibrationScore, selectPaydayGuardian, selectRiskNotification, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
+import { selectAffordability, selectAppliedTopUp, selectCalibrationScore, selectPaydayGuardian, selectRiskNotification, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 
 /**
  * RS.2 — comprehensive break-it coverage for the Guardian SELECTORS (the newest, least-covered
@@ -340,6 +340,103 @@ function run() {
     const affordCovered = selectAffordability(coveredWithTopUp, 150);
     eq(affordCovered?.verdict, 'comfortable', 'M3b — a covered cycle is unmoved');
     assert((affordCovered?.cushionAfter ?? 0) > 0, '…and still counts the moved cash, per 3.7.A3.6');
+  }
+
+
+  /**
+   * ⛔ **S1.9.3 [pass-2 A1] — THREE READS OF THE SAME MONEY, AND THEY MUST AGREE.**
+   *
+   * ⚡ **The block above pins `topUp 200` against `shortfall 400`, and so does every other test in the
+   * tree** — `guardian-shortfall-topup.spec.ts:28` included. That is the member of the class where a
+   * blanket `0` and netting agree **exactly**, so every existing assertion passes under both
+   * implementations and none of them can see this. Nothing exercised `topUp > shortfall` at all.
+   *
+   * Measured on the live selectors: a premium user **$1 short** after moving $200 at the Guardian's own
+   * suggestion was told *"Not this paycheck — you'd come up about $20 short"* about a $20 purchase, in the
+   * same card saying the $200 *"holds your line"*, with **$199 unspent**.
+   *
+   * ⛔ **Written as a COMPARISON, not as three expected values** — the same shape `trustSelectors.test.ts`
+   * uses for B1, and for the same reason: a test that pins three numbers goes green again the moment a
+   * fourth read of this money is added without asking. The invariant is that the seams do not disagree.
+   */
+  {
+    const floor = 200;
+    /** Short by `short` before any top-up, with `topUp` already moved this cycle. */
+    const cycle = (short: number, topUp: number) =>
+      store({ premium: true, amount: '2000', bills: [2000 + short], floor, topUp, goals: [{ type: 'savings', current: 1000 }] });
+
+    /** The three sentences, as the components compose them. */
+    const reads = (s: DebtStore, buy: number) => ({
+      band: selectPaydayGuardian(s)?.state,
+      holdsLine: selectAppliedTopUp(s)?.holdsLine,
+      verdict: selectAffordability(s, buy)?.verdict,
+      shortBy: selectAffordability(s, buy)?.shortBy,
+      spare: selectAffordability(s, buy)?.discretionaryNow,
+    });
+
+    // ── THE CASE THAT SHIPPED: one dollar short, $200 moved, a $20 purchase ──
+    {
+      const r = reads(cycle(1, 200), 20);
+      // ⛔ The false dollar figure, by name. $199 of that move is sitting in checking.
+      assert(r.shortBy === 0, `⛔ A1 — no purchase this small is "short" with $199 unspent (shortBy ${r.shortBy})`);
+      assert(r.verdict !== 'short', '⛔ A1 — …so the card must not say "not this paycheck"');
+      assert(r.spare === 199, `⛔ A1 — the spare is the SURPLUS, stated: $199 (got ${r.spare})`);
+      // ⛔ THE INVARIANT, and it is the assertion that survives a fourth read being added: the band and the
+      // card cannot disagree about whether the line is held.
+      eq(r.holdsLine, r.band === 'clear', '⛔ A1 — `holdsLine` and the band are ONE expression, so they agree');
+      eq(r.band, 'tight', '…and $199 against a $200 floor is tight — neither at-risk nor clear');
+    }
+
+    // ── the same shape, wider: a $600 move against a $50 shortfall genuinely holds the line ──
+    {
+      const r = reads(cycle(50, 600), 20);
+      eq(r.band, 'clear', '⛔ A1 — a top-up that covers the shortfall AND clears the floor is clear');
+      eq(r.holdsLine, true, '…and the card says so, agreeing with the band');
+      eq(r.verdict, 'comfortable', '…and a $20 purchase against $550 spare is comfortable');
+      assert(r.spare === 550, `…the surplus, netted once: 600 − 50 (got ${r.spare})`);
+    }
+
+    // ── ⭐ THE CONTROL, and it is AS-3's own case: `topUp ≤ shortfall` must not move at all ──
+    // ⚠️ This is the member the existing tests pin. If the netting were wrong in the other direction it
+    // would show here, so the pair is what makes either assertion mean anything.
+    {
+      const r = reads(cycle(400, 200), 150);
+      eq(r.band, 'at-risk', '⭐ A1 control — a shortfall the move does NOT cover is still at-risk (M3 intact)');
+      eq(r.verdict, 'short', '⭐ A1 control — …and the purchase is still short (AS-3 intact)');
+      eq(r.shortBy, 150, '…by the whole amount, exactly as before');
+      eq(r.spare, 0, '…with no spare, because the surplus is 0 — not because of a blanket rule');
+      eq(r.holdsLine, false, '…and the move did not hold the line');
+      // ⚡ **AND THE FIGURE IN THE SENTENCE MOVED, which the after-scan measured rather than assumed.**
+      // The card used to say *"about $400 short"* over a user who had already moved $200 into checking.
+      // $200 is what they still need, and it is the number the same netting produces — one rule, and the
+      // copy gets more honest as a side effect rather than needing its own patch.
+      const brief = selectPaydayGuardian(cycle(400, 200));
+      assert(!!brief?.detail?.includes('$200'), `⛔ A1 — the shortfall named is what is STILL short (got: ${brief?.detail})`);
+      assert(!brief?.detail?.includes('$400'), '…never the gap before the money the user already moved');
+    }
+
+    // ── ⭐ AND THE NO-TOP-UP CONTROL: the fix must be invisible where there is no money on record ──
+    {
+      const r = reads(cycle(400, 0), 150);
+      eq(r.band, 'at-risk', '⭐ A1 control — unmoved with no top-up');
+      eq(r.verdict, 'short', '⭐ A1 control — unmoved');
+      eq(r.shortBy, 150, '⭐ A1 control — unmoved');
+    }
+
+    /**
+     * ⛔ **THE OFFER READS THE RESIDUAL TOO, and this is the fourth seam — the plan named three.**
+     * `selectTightTopUp` refused while the RAW shortfall stood, so in the range where the band now says
+     * `tight` it would have offered nothing at all: a card saying "you are under your line" beside no
+     * control to do anything about it. ⚠️ The direction is permissive, so it is stated: it can only make
+     * the offer available where the band already agrees the obligations are met.
+     */
+    {
+      const s = cycle(50, 200);
+      eq(selectPaydayGuardian(s)?.state, 'tight', 'the band calls this cycle tight…');
+      assert(selectTightTopUp(s) !== null, '⛔ A1 — …so the tight-case offer exists for it');
+      // ⭐ …and it still refuses where the shortfall genuinely stands.
+      eq(selectTightTopUp(cycle(400, 200)), null, '⭐ A1 control — a real shortfall still refuses the offer');
+    }
   }
 
   console.log(`✅ Guardian selector (RS.2) tests passed (${passed} asserts).`);

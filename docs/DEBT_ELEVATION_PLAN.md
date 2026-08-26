@@ -59,7 +59,7 @@ number about money the app could not read* was wired to a subset of **claim site
 |---|---|
 | ✅ **S1.9.1** | **D2-2** — CLOSED 2026-08-26 · `undoTightTopUp(source, draw?)`: the Guardian keeps whole-entry *(it displays the entry)*, a caller showing ONE cover passes it and gets exactly it back, clamped to what the entry holds. The card now records what LEFT the goal, not what was asked for. **3 plants · 2 guards · `lint:rn` 27/27.** Detail → log |
 | ✅ **S1.9.2** | **C4 · C2 · C3 · C1, one owner** — CLOSED 2026-08-26 · a **claim TABLE** in `trustSelectors` routes every repairable field to a claim, **gated both ways** against `migrations`' own `REPAIRABLE_MONEY_FIELDS` · C4 a third zero state · C2 per-field, per-row · C3 `selectCelebration` at the VARIABLE *(gating the JSX would have hidden the repairs card)* · C1 a reset path as a class in the `set` wrapper + an explicit confirm signal. ⚡ **The after-scan found C2's exact shape on the DEBTS hero.** **13 plants · 7 guards · `lint:rn` 27/27.** Detail → log |
-| **S1.9.3** | **A1 — 🎯 chose: net the top-up against the shortfall ONCE; all three reads take the residual.** `residual = max(0, shortfall − appliedTopUp)`; band at-risk iff `residual > 0`; affordability `spendable + topUp − shortfall` floored at 0; `holdsLine` judged on the same residual. ⛔ **Honours M3 rather than reverting it** — M3's defect was a top-up lifting a PROXY while the shortfall went untouched. ⚠️ **Behaviour change**: a top-up that genuinely covers a small shortfall now clears the band |
+| ✅ **S1.9.3** | **A1** — CLOSED 2026-08-26 · netted ONCE into `residual` + `surplus`; ⚠️ **the plan named three seams and there are six** *(`selectTightTopUp` was refusing on the raw shortfall, so the band's new `tight` range had no control)*. ⚡ The shortfall sentence now names what is **still** short — $200, not $400. **6 plants** incl. **the naive over-fix, caught by three pre-existing M3 guards.** `lint:rn` 27/27. Detail → log |
 | **S1.9.4** | **B-1 — the seven fail-open guards**, and `test-gate-plants` covers none of the seven gates. ⛔ **Before pass 3**, per S1.5.4: an instrument fix decides what the next pass can see |
 | **S1.9.5** | **`packages/core/timeline` onto the S1 roots** + write-back. One line; it is where D2-1 lives |
 | **S1.9.6** | **D2-1** — the three producers. ⚠️ May be absorbed by S1.9.3's residual; **measure before building**, and if it is not absorbed it is a design call, not a patch |
@@ -504,6 +504,15 @@ hotspot)* and Dynamic-Type device QA.
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
 
 ### → surfaced while classifying pass 2 under [D69] *(2026-08-26)*
+
+### → surfaced by S1.9.3's after-scan *(2026-08-26)*
+
+- ⚠️ **THE CARD'S COPY GOT MORE HONEST AS A SIDE EFFECT, AND NOTHING ASKED FOR IT.** A1's netting changed
+  the shortfall sentence from *"about $400 short"* to *"about $200 short"* for a user who had already moved
+  $200 — correct, pinned, and **not part of the finding**. ⚡ Worth a note because it is evidence for the
+  one-rule approach over per-seam patches: two of the three sentences A1 complained about needed no copy
+  change at all once the arithmetic behind them agreed. **Nothing to do; recorded so pass 3 does not read
+  the moved figure as a regression.**
 
 ### → surfaced by S1.9.2's after-scan *(2026-08-26)*
 

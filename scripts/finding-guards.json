@@ -191,6 +191,11 @@
     "file": "apps/rn/tests/e2e/intent-undo.spec.ts",
     "token": "logging a payment still offers the Undo on Today"
   },
+  "S1P2-A1-NETTED": {
+    "what": "pass-2 A1 - three reads of the same money and the last fix range moved two of them; a user $1 short after moving $200 at the Guardian's own suggestion was told a $20 purchase would leave them $20 short, in the card saying the $200 holds their line, with $199 unspent. Every prior test fixed topUp 200 against shortfall 400 - the member where a blanket 0 and netting agree exactly",
+    "file": "apps/rn/src/store/guardianSelectors.test.ts",
+    "token": "the band are ONE expression"
+  },
   "S1P2-C2-DEBTS-HERO": {
     "what": "found by C2's after-scan, on the other list - a balance repaired to 0 is not in `active`, so the debts hero's total AND its count both excluded a debt the user still owes; the guard beside it (allCleared) only ever covered the case where EVERY balance is unread",
     "file": "apps/rn/tests/e2e/data-recovery.spec.ts",

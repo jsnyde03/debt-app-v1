@@ -4,6 +4,99 @@
 
 ---
 
+## S1.9.3 — [A1], three reads of the same money *(2026-08-26)*
+
+**The finding.** A premium user **$1 short** after moving $200 at the Guardian's own suggestion was told
+*"Not this paycheck — you'd come up about $20 short"* about a $20 purchase, **in the same card** saying the
+$200 *"holds your line"*, with **$199 sitting unspent**. Three reads, and the last fix range moved two of
+them: M3 made the band net the shortfall, AS-3 made the affordability figure a blanket `0` while short, and
+`holdsLine` was left on the old expression.
+
+⛔ **EVERY EXISTING TEST PASSES UNDER BOTH IMPLEMENTATIONS.** `guardianSelectors.test.ts` and
+`guardian-shortfall-topup.spec.ts` both fix `topUp 200` against `shortfall 400` — the member of the class
+where a blanket `0` and netting agree **exactly**. Nothing in the tree exercised `topUp > shortfall` at all,
+which is why a defect with a false dollar figure on it survived two fix rounds aimed at this very code.
+
+**The rule (🎯 2026-08-26).** The top-up is netted against the shortfall **once**, and every read takes the
+result. Two complementary quantities, because a dollar of top-up is spent on the gap or it is cushion,
+never both: `residual = max(0, shortfall − topUp)` · `surplus = max(0, topUp − shortfall)`.
+
+⛔ **This HONOURS M3 rather than reverting it.** M3's defect was a top-up lifting a *proxy* while the
+shortfall itself went untouched; here the money is applied to the shortfall first, and
+`shortfall > 0 → at-risk` stays the band's rule verbatim.
+
+⚡ **AS-3's docblock rejected netting explicitly, and its reason was sound while its premise was not.** It
+feared netting would leave a small spare beside an `at-risk` band, re-creating the two-cards-disagreeing
+class. The measurement showed the disagreement existed **anyway** — between the band and `holdsLine`, with
+a dollar figure attached — and under this rule that range is no longer `at-risk`, so the case it feared
+cannot arise.
+
+### ⚠️ The plan named THREE seams. There are SIX.
+
+| seam | change |
+|---|---|
+| the brief's `shortfall` | the **residual** |
+| the brief's `discretionary` + `kept` | the **surplus**, not the whole move — adding the whole move here while `shortfall` carried the whole gap counted the same dollars twice, in opposite directions, on one card |
+| `selectAffordability` | `max(0, spendable + surplus)`, replacing the blanket `0` |
+| `selectAppliedTopUp.holdsLine` | the surplus, so this flag and the band are **one expression** and cannot disagree |
+| `selectTightTopUp` | the residual — ⛔ **the seam nobody listed.** It refused while the RAW shortfall stood, so in the range the band now calls `tight` it would have offered nothing: a card saying *"you are under your line"* beside no control to do anything about it |
+
+⚠️ **Sixth enumeration in a row that came up short** (`audit-site-lists-undercount`). Found by grepping
+`shortfall` across the file rather than by working the plan's list.
+
+### The behaviour changes, stated rather than discovered
+
+1. **A top-up that genuinely covers a small shortfall now clears the band.** That is the point — the money
+   is in checking and the bills can be paid.
+2. ⚡ **The shortfall SENTENCE now names what is still short.** Measured in the after-scan, not assumed: the
+   card said *"about $400 short"* to a user who had already moved $200 into checking, and now says
+   **$200**. One rule, and the copy got more honest as a side effect rather than needing its own patch.
+3. **Nothing else in the card's copy is made false by it** — measured, all five rows printed. The
+   `toppedUp` branch (*"Your line's held"*) is now reachable where it was not, and it is true there; the
+   tight branch says *"covered this paycheck — $199 after everything required, a little under your $200
+   line"*, which is exactly what happened.
+
+### Verified — 6 plants, each landed
+
+Each of the five seams reverted individually reds its own assertion. ⛔ **And the sixth is the NAIVE
+OVER-FIX** — net everywhere, including where `topUp ≤ shortfall`, which is the fix a reader who skimmed
+the finding would write. ⭐ **It is caught by THREE separate pre-existing M3 guards** before reaching any
+assertion of mine, the first of them a vacuity guard. That is the strongest available answer to *"does
+anything catch the wrong version of this fix?"*, and it is why M3's assertions were left untouched.
+
+⚠️ Plant 1 redded on the first assertion of its block, so it was re-run with that assertion relaxed.
+
+**No NEW e2e**, and that is the finding's own scoping — *"that is the assertion, and it is a unit test, not
+an e2e."* ⚠️ Justified rather than assumed: no call site changed, so there is no wiring for a
+*tested-helper-is-not-a-used-helper* gap to hide in.
+
+⛔ **BUT THE FULL E2E RUN FOUND AN EXISTING GUARD THAT HAD TO MOVE**, which no unit suite did.
+`guardian-shortfall-topup.spec.ts` — M3's own guard — asserted *"about $400 short"* on a store carrying a
+$200 top-up. Its INTENT is intact and is why the file exists: the band is still `at-risk` and the sentence
+is still **rendered**, which is the whole of what M3 protects. What moved is the figure inside it, and
+**$400 over-states the gap by money the user has already provided.**
+
+⚡ **The pair now DISCRIMINATES and did not before.** Both rows asserted `$400`, so the recorded top-up —
+the only variable between them — made no difference to any asserted value. They now read $200 with the
+top-up and $400 without, and the un-netted figure is asserted **absent** in the first.
+
+⛔ **Verified as a measurement, not an accommodation**: reverting `shortfall: residual` reds the updated
+assertion and leaves the no-top-up control green. Changing a number to make a test pass is exactly what
+that plant exists to rule out.
+
+⚠️ **The run reported `exit code 0` with a test failing** — `npx playwright … | tail -30` reports *tail's*
+status. Read the summary line, never the exit code.
+
+⛔ **`lint:comments` caught a [D17] violation in my own work** — I *annotated* a false comment in
+`migrations.ts` (*"This sentence used to end…"*) instead of replacing it. Rationale about the CODE's past
+is encouraged; rationale about a COMMENT's past is how a lean file regrows. Rewritten to state the rule.
+
+**Guard.** `S1P2-A1-NETTED` *(`guardianSelectors.test.ts`)*, confirmed to red when its line is deleted.
+`MIN_ENTRIES` 82 → **83**; 67 of 83 guarded. `typecheck` 4/4 · `lint:rn` **27/27** · `test:app`,
+`test:regression`, `test:scenarios` green.
+
+---
+
 ## S1.9.2 — the trust class, one owner: C4 · C2 · C3 · C1 *(2026-08-26)*
 
 ⚡ **THE FINDING BEHIND ALL FOUR IS AUDITOR C'S SENTENCE:** B1's rule — *never state a number about money

@@ -275,13 +275,55 @@ export function selectAppliedTopUp(
   // ⚡ **T4.1b's "measure before changing: it moves Guardian states" was itself REFUTED for the BAND:**
   // `computeState` compares against `effectivePaycheckBuffer`, which the engine reserves *before* clamping
   // the expense reserve, so the band flipped **0 times in 1,820**. This site was the only real divergence.
-  const holdsLine = !!allocation && selectDiscretionary(allocation) + rec.amount >= (store.cushionFloor ?? 200);
+  // ⛔ S1.9.3 [A1] — THE SURPLUS, and `selectDiscretionary` unchanged beside it, so this flag and the band
+  // are computed from one expression. They disagreed wherever the top-up cleared the floor while a
+  // shortfall stood: the card said "to hold your line" while the band said `at-risk`, three lines apart.
+  // ⚠️ It now answers *"is the line held"* rather than *"did MY move hold it"*, deliberately — a card that
+  // contradicts the band beside it is the class A1 was raised for, and agreement is the fix.
+  const holdsLine = !!allocation && selectDiscretionary(allocation) + nettedTopUp(store, allocation).surplus >= (store.cushionFloor ?? 200);
   return { amount: rec.amount, goalId: rec.goalId, goalName: goal.name, holdsLine };
 }
 
 /** The top-up already applied for the CURRENT cycle (cycle-keyed → a stale one self-corrects). */
 function appliedTopUp(store: DebtStore): number {
   return store.cycleTopUp?.forCycle === store.paycheck.nextPaycheckDate ? Math.max(0, store.cycleTopUp.amount) : 0;
+}
+
+/**
+ * ⛔ **S1.9.3 [pass-2 A1] — THE TOP-UP IS NETTED AGAINST THE SHORTFALL EXACTLY ONCE, AND EVERY READ TAKES
+ * THE RESULT.** 🎯 2026-08-26 chose this rule over the alternatives.
+ *
+ * ⚡ **Three reads of the same money, and the last fix range moved two of them.** M3 made the band net the
+ * shortfall; AS-3 made the affordability figure a blanket `0` while short; `holdsLine` was left on the old
+ * expression. Measured: a premium user **$1 short** after moving $200 at the Guardian's own suggestion was
+ * told a $20 purchase would leave them *"$20 short"*, in the same card saying the $200 *"holds your line"*,
+ * with $199 sitting unspent. **The three seams needed one rule, not a third patch.**
+ *
+ * ⛔ **Every existing test passes under BOTH implementations.** `guardianSelectors.test.ts` and
+ * `guardian-shortfall-topup.spec.ts` both fix `topUp 200` against `shortfall 400` — the member of the
+ * class where a blanket `0` and netting agree exactly. Nothing in the tree exercised `topUp > shortfall`.
+ *
+ * The two quantities, and they are complements — a dollar of top-up is spent on the shortfall or it is
+ * cushion, never both:
+ *
+ *  - **`residual`** — what the paycheck still cannot cover. `> 0` is what makes the band `at-risk`, which
+ *    keeps M3 intact: ⛔ **this HONOURS M3 rather than reverting it.** M3's defect was a top-up lifting a
+ *    *proxy* (`discretionary`) while the shortfall itself went untouched; here the shortfall is what the
+ *    money is actually applied to first.
+ *  - **`surplus`** — what is left over afterwards, and the only part that can be cushion.
+ *
+ * ⚠️ **This is a real behaviour change, stated rather than discovered:** a top-up that genuinely covers a
+ * small shortfall now clears the band. That is the point — the money is in checking and the bills can be
+ * paid. AS-3's docblock rejected netting for fear of leaving a small spare beside an `at-risk` band; under
+ * this rule the band is not `at-risk` in that range, so the case it feared cannot arise.
+ */
+function nettedTopUp(store: DebtStore, allocation: Allocation | null): { residual: number; surplus: number } {
+  const topUp = appliedTopUp(store);
+  const shortfall = Math.max(0, allocation?.shortfall ?? 0);
+  return {
+    residual: Math.round(Math.max(0, shortfall - topUp) * 100) / 100,
+    surplus: Math.round(Math.max(0, topUp - shortfall) * 100) / 100,
+  };
 }
 
 /**
@@ -293,9 +335,15 @@ function appliedTopUp(store: DebtStore): number {
 export function selectTightTopUp(store: DebtStore): TightTopUp | null {
   if (store.subscriptionPlan !== 'premium') return null;
   const allocation = selectAllocation(store);
-  if (!allocation || allocation.shortfall > 0) return null;
+  // ⛔ S1.9.3 [A1] — THE RESIDUAL, not the raw engine figure. This offer exists for the *tight* case, and
+  // "tight" is the band's word; reading a shortfall the money on record has already covered would refuse
+  // the offer in a cycle the band calls `clear` but that is still under the line. ⚠️ The direction is the
+  // permissive one, which is why it is stated: it can only make the offer available where the band agrees
+  // the obligations are met.
+  const { residual, surplus } = nettedTopUp(store, allocation);
+  if (!allocation || residual > 0) return null;
   const floor = store.cushionFloor ?? 200;
-  const cushion = selectDiscretionary(allocation) + appliedTopUp(store);
+  const cushion = selectDiscretionary(allocation) + surplus;
   const gap = Math.round((floor - cushion) * 100) / 100;
   if (gap <= 0) return null; // at or above the line already
   const goal = pickTopUpGoal(store.goals, gap, ['savings', 'emergency']);
@@ -411,14 +459,18 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   //       with the record → shortfall 400 · verdict TIGHT       · cushionAfter 50 · shortBy 0
   //       without it      → shortfall 400 · verdict SHORT       ·  cushionAfter 0 · shortBy 150
   //
-  // ⚡ **A blanket 0, not `spendable + topUp − shortfall`**, and the reason is this comment's own history:
-  // netting would leave a small spare whenever the top-up exceeded the shortfall, and the Guardian's band
-  // is `at-risk` for the whole of that range — so the two cards would sit on ONE screen disagreeing about
-  // the same cushion again, which is the exact class the paragraph above exists to record. One rule,
-  // stated once, at both seams: **while the cycle is short there is no spare.**
+  // ⛔ **S1.9.3 [A1] — AND THE BLANKET `0` ABOVE WAS ITSELF A FALSE FIGURE.** The paragraph that used to
+  // stand here argued for a blanket `0` over `spendable + topUp − shortfall`, on the grounds that netting
+  // would leave a small spare while the band was `at-risk` and re-create the two-cards-disagreeing class.
+  // ⚡ **The fear was sound and the premise was not:** measured, the disagreement existed anyway — between
+  // the band and `holdsLine`, with a dollar figure attached. A user $1 short after moving $200 was told a
+  // $20 purchase would leave them *"$20 short"* while $199 sat unspent.
   //
-  // ⚠️ The control is unmoved by construction: with no top-up on record the figure was already 0 here.
-  const discretionaryNow = base.shortfall > 0 ? 0 : selectSpendable(base) + appliedTopUp(store);
+  // `nettedTopUp` now applies the money to the shortfall FIRST and the band takes the residual, so the
+  // range this comment feared is no longer `at-risk` — and the surplus is real spendable cash, so saying
+  // there is none is the false statement. ⚠️ The control is still unmoved by construction: with no top-up
+  // on record the surplus is 0 and `selectSpendable` is 0 on any shortfall, exactly as before.
+  const discretionaryNow = Math.max(0, selectSpendable(base) + nettedTopUp(store, base).surplus);
   const floor = store.cushionFloor ?? 200;
   const { verdict, cushionAfter, shortBy } = computeAffordability(discretionaryNow, amount, floor);
 
@@ -664,6 +716,8 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   // §2.10 tight-case top-up (2.4.11.2): cash the user moved from savings to hold the line THIS cycle
   // lifts the effective cushion (it's really in checking now) — so the read reflects the held line.
   const topUp = appliedTopUp(store);
+  // ⛔ S1.9.3 [A1] — netted ONCE, here, and the three reads below take the result.
+  const { residual, surplus } = nettedTopUp(store, allocation);
 
   return buildGuardianBrief({
     isPremium: store.subscriptionPlan === 'premium',
@@ -672,8 +726,11 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     floor: store.cushionFloor ?? 200,
     // Headroom after every obligation drives the band (a choice to deploy isn't a risk). The plan
     // reserves the floor for premium (effectivePaycheckBuffer), so `kept` = the protected cushion.
-    discretionary: selectDiscretionary(allocation) + topUp,
-    kept: selectLiquidCushion(allocation) + topUp,
+    // ⛔ S1.9.3 [A1] — THE SURPLUS. A dollar of top-up is spent on the shortfall or it is cushion, never
+    // both; adding the whole move here while `shortfall` below carried the whole gap counted the same
+    // dollars twice, in opposite directions, on one card.
+    discretionary: selectDiscretionary(allocation) + surplus,
+    kept: selectLiquidCushion(allocation) + surplus,
     toppedUp: topUp > 0,
     // T5.2 (L3-1) — the brief must name the pot that was actually drained, not assume the EF.
     topUpSourceName: selectAppliedTopUp(store)?.goalName,
@@ -691,7 +748,10 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
     })(),
     // The extra fills targets in order, so it spans >1 when it exceeds the first target's need.
     deploySpread: debtFree ? savingsItems.length > 1 : snowballItems.length > 1,
-    shortfall: allocation.shortfall,
+    // ⛔ S1.9.3 [A1] — the RESIDUAL. M3's `shortfall > 0 → at-risk` branch is untouched and still the
+    // band's rule; what changed is that money the user actually moved is applied to the gap before the
+    // gap is reported. A top-up that genuinely covers a small shortfall now clears the band.
+    shortfall: residual,
     focusDebtName,
     deployTargetName,
     deployTradeoff,

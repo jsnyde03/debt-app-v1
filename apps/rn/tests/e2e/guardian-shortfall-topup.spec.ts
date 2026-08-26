@@ -51,17 +51,30 @@ test('a shortfall states its amount on the card even with a top-up on record', a
   const card = page.getByTestId('payday-guardian-card');
   await expect(card).toBeVisible({ timeout: 10_000 });
 
-  // ⛔ THE GUARDIAN'S OWN SENTENCE, not "the card mentions $400 somewhere". Measured under the plant:
+  // ⛔ THE GUARDIAN'S OWN SENTENCE, not "the card mentions a figure somewhere". Measured under the plant:
   // the defective card still contained `$400` — the `RecoveryPlanSection` prints *"cover the $400 gap
   // from savings"* — so a bare `/\$400/` assertion PASSED with the defect present. That surviving figure
   // is exactly why this finding is a major and not a blocker, and it is also what makes the loose
   // assertion vacuous. `brief.detail` is the only place the Guardian states it in its own voice.
-  await expect(card).toContainText(/about \$400 short/);
+  //
+  // ⛔ **S1.9.3 [pass-2 A1] — $200, WHICH IS THE RESIDUAL, and the change is deliberate.** M3's protection
+  // is what this test exists for and it is intact: the band is still `at-risk` and the sentence is still
+  // RENDERED. What moved is the figure inside it. The user is $400 short and has already moved $200 into
+  // checking, so $400 over-states the gap by money they have already provided — the top-up is applied to
+  // the shortfall before the shortfall is reported.
+  //
+  // ⚡ **The pair below now DISCRIMINATES, which it did not before.** Both rows used to assert `$400`, so
+  // the recorded top-up — the only variable between them — made no difference to any asserted value.
+  await expect(card).toContainText(/about \$200 short/);
+  // …and never the pre-netting figure, which is the false statement the residual replaces.
+  await expect(card).not.toContainText(/about \$400 short/);
 });
 
 test('the control — the same store with no top-up on record already behaved', async ({ page }) => {
   // Without this row the test above cannot distinguish "the fix works" from "this store was never the
   // defect's shape". The recorded top-up is the ONLY difference between the two.
+  // ⚠️ S1.9.3 [A1] — and it is now the row that pins the UN-netted figure: nothing has been moved here, so
+  // the residual IS the whole $400. If the netting ever ran on a cycle with no top-up, this reds.
   await seedStore(page, shortStore(false));
   await page.goto('/');
 

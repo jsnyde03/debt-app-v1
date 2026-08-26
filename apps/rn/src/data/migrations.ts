@@ -432,11 +432,11 @@ export function runMigrations(raw: unknown): DebtStore {
     // question outlives the read that raised it — the list above is empty again as soon as anything
     // saves.
     //
-    // ⚠️ **This sentence used to end "Only an acknowledgement empties this one", and it has been wrong
-    // twice.** A-J2-1 made the ack MARK rather than empty (emptying it restored "Every balance cleared"
-    // over debts still owed), and S1.9.2 [C1] added the answer that does empty it: the user supplying the
-    // number again, watched as a class in the store's `set` wrapper. A record with nothing to reopen is
-    // still settled by the ack, because for those there is no other answer. See `clearResuppliedRepairs`.
+    // ⛔ **What empties THIS one is the user ANSWERING it**, which is a different event from the ack: the
+    // ack marks the record (A-J2-1 — emptying it restored "Every balance cleared" over debts still owed),
+    // and the answer is the number being supplied again, watched as a class in the store's `set` wrapper.
+    // A record with nothing to reopen is settled by the ack instead, because for those no other answer
+    // exists. S1.9.2 [C1]; the rules are in `clearResuppliedRepairs`.
     //
     // ⚠️ Deduped by entity+id+field so a blob re-migrated before the user acknowledges cannot stack the
     // same repair twice. That is also what keeps a second pass identical to the first, which the
