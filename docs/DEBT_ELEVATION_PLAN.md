@@ -29,7 +29,7 @@ The four ways "0 on a surface" lies, and the two 🎯 decisions [D65]/[D66], are
 | ✅ | **S0.1 – S0.10** | CLOSED 2026-08-25/26 — the 6 instrument findings, then **pass 1's 7** and **pass 2's 3**. ⚡ **10 of the 16 were introduced by the fixing.** Detail → log |
 | ✅ | **S0.11 — gate + re-verify pass 3** | Gate green at `1782769` *(274 e2e · 10 embed · 789 files · 23/23)*. **Pass 3: 0 blockers · 0 majors · 6 minors — THE FIRST CLEAN PASS.** Decisive test: every gate's hit set computed twice, pre- and post-diff strippers — **0 lost, 0 gained across all ten**. Scanner **3.5× less blind, 13× less noisy**. [`S0-REVERIFY-3.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-3.md) |
 | **S0.12** ▶ | **Pass 4 — the SECOND consecutive clean pass, now with [D67]'s job ③** | ⛔ **Three jobs: verify · sweep · INVENTORY THE GUARDS.** ✅ **Job-③ gaps + minors ⇒ S0 CONVERGED** (🎯 2026-08-26); only a job-①/② blocker or major restarts the count |
-| **S0.13** | **BUILD the missing guards** *(from pass 4's job-③ inventory)* | Not an audit gate — a build item. ⛔ **Do it before S1 gets deep**: S0's guards are what stop S1–S4 from silently regressing S0. Expect tests for the scanner's modelled constructs and the per-gate variant choice |
+| **S0.13** | **BUILD the missing guards + `lint:finding-guards`** *(from pass 4's job-③ inventory)* | Not an audit gate — a build item. ⛔ **Do it before S1 gets deep**: S0's guards are what stop S1–S4 from silently regressing S0. Tests for the scanner's modelled constructs and the per-gate variant choice, **plus a gate that pins finding → guard** *(the `check-copy-owners` pattern applied to findings — registry only grows; a finding with no guard needs a written reason)*. 🎯 2026-08-26: *"I'm sure that we can make a test or something to ensure that everywhere is covered"* |
 | **.11.19** | 🔴 **THE CLOSURE LEDGER — drive both `MAX_UNTOKENISED` caps to 0, then flip `lint:closure` to gating** | ⚠️ **Scope re-measured at S0.1: not "the 51" but 142** — `[D37]` 55/55 + P6.8 48/48 untokenised, plus 39 in no ledger at all. ⛔ A cap only ever goes **DOWN** |
 
 ⛔ **Every fix plant-verified, the plant confirmed to have LANDED, and re-run with the earlier assertion
@@ -43,6 +43,13 @@ the same stripper was mis-measured three times, by 40× in both directions.
 ⚠️ **Three jobs, and job ③ is new:** ① verify the fixes · ② sweep for major+ · ③ **inventory the guards**
 ([D67]). ⛔ **Coverage ratchets forward; FINDINGS did not** — a pass only ever re-checked the pass before
 it, which is the hole [D67] closes.
+
+⭐ **EVERY SURFACE AUDIT VERIFIES THE PREVIOUS SURFACES' GUARDS** *(🎯 2026-08-26: "add a stipulation to
+the next surface audit to verify against S0 that the guards are there")*. ⛔ **This is what makes findings
+ratchet the way coverage already does.** S1's brief carries a standing job: *confirm every guard S0 left
+behind still exists and still fails* — cheap, because a guard is a named test or gate, so the check is
+mechanical rather than a re-read. S2 verifies S0+S1, and so on. ⚡ **A guard that is never re-checked is a
+guard nobody has confirmed exists**, which is the same shape as the once-deleted plant it replaced.
 
 ⛔ **JOB ③'s OUTPUT DOES NOT BLOCK CONVERGENCE** *(🎯 2026-08-26)*. **If pass 4's only findings are job-③
 gaps plus minors, S0 is CONVERGED and S1 opens.** ⚡ **Why that is not a loophole:** a job-③ finding is not
