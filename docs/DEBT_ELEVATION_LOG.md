@@ -4,6 +4,53 @@
 
 ---
 
+## 📕 P6.8.9.7.11.18 · S1.3 + S1.4 — pass 1: 5 blockers, 10 majors *(2026-08-26)*
+
+Four fresh auditors at `bc29dfe` ([D68]). **No auditor touched a source file.** Full ledger →
+[`SUMMARY.md`](audits/2026-08-26-s1-money/SUMMARY.md) and the four `{A,B,C,D}` reports beside it.
+
+### ⭐ The result that could only be got here: S0's fixes hold
+
+**`REVERIFY4-1` … `-5` all `CLOSED`.** [D70] retired the pass count and there is no fifth S0 pass, so this
+was the **only** chance to find S0's close-out come undone. It has not. ⚠️ Two verdicts recorded so they
+are not read as clean: `REVERIFY4-2` is **`CLOSED-UNPINNED`**, and `REVERIFY4-3`'s guard **prints rather
+than reds** — its own chosen remedy, recorded so nobody carries away *"the stale class now reds."*
+
+### ⚡ Three shapes, and they explain fourteen of the fifteen findings
+
+1. **A scope that outlived its occasion** — `intentRollback`, `cycleTopUp`, `converting`. **Three blockers,
+   one shape:** state that is correct for the one flow it was written for, reused by a second flow that
+   arrived later. ⛔ **None is a wrong calculation.**
+2. **A guard that is right on the screen it was written for and absent on the screen that says the same
+   thing** — B1 is *S1.1's own blocker* on Today and Progress; B5 is the caught-up sentence on the premium
+   path only. ⚠️ **The whole app has exactly TWO trust guards and both are in `money.tsx`.**
+3. **An instrument whose ratchet has slack** — `MIN_ENTRIES` carrying ten, `present()` matching only
+   identifier-shaped tokens, six tokens pinning a comment instead of an assertion.
+
+### ⛔ The measurement that indicts where we pointed — and then indicts this round too
+
+**14 of 72 S1 files had ever been examined. 5 blockers and 4 app-majors came out of the other 58**, while
+two prior money rounds sweeping the swept 14 found none of them. **S0.12a reproduced exactly on a second
+surface.**
+
+⚡ **And then B measured the same failure in the surface list I had written that morning** (M9): the file
+B5 is *wired* in — `index.tsx`, **1,087 lines importing 19 plan modules** — was never on it, `store/` was
+**6 of 88**, `data/` **3 of 21**. ⛔ **A hand-written root list is an inclusion list wearing a directory's
+clothes**, and the instrument's own docstring says an inclusion list fails silent. **I wrote that sentence
+and then broke it in the same file, on the same day.** It also refutes a claim I put in that docstring and
+repeated here — *"the file list is walked from disk, cannot undercount"* — which is true of S0's directory
+roots and false of S1's hybrid.
+
+### ⛔ A's major is the class of [D72] rather than an instance of it
+
+The exemption ledger is keyed per **value**; the class is per **audit report**. ⚡ **A's own draft carried
+four credential-shaped strings while `lint:secrets` printed green** — the gate ignores untracked files *by
+design* — so `lint:rn` would have re-reddened on every committed tree the moment this round landed. A
+redacted its four before finishing and said so. **Both exits are refused by the instrument's own text:**
+editing the report is *"the rejected option"*, and a third exemption is refused by the downward-only cap.
+
+---
+
 ## 📕 P6.8.9.7.11.18 · S1.2 — the coverage instrument, generalised *(2026-08-26)*
 
 **Pin for S1's pass: `87655e9`.** ⛔ An audit is pinned to a **commit**, never the working tree, so S1.1
