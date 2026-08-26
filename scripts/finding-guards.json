@@ -66,7 +66,7 @@
   },
   "D69-INVENTORY": {
     "what": "\"first look\" was the auditor's own claim; [D69] needs it to be a lookup",
-    "file": "scripts/s0-surface-coverage.ts",
+    "file": "scripts/surface-coverage.ts",
     "token": "UNCLASSIFIED"
   },
   "GUARDED-1": {

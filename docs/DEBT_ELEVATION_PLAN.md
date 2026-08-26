@@ -68,7 +68,7 @@ computes **`true`**.
 | # | sub-step | exit line |
 |---|---|---|
 | ✅ | **S1.1 — the three findings S1 already carried.** CLOSED 2026-08-26: blocker #1 + M17a · **M9 on all three screens** ([D66]/[D71]) · and **two blocker-class findings folded in** — an absent REQUIRED money field reaching the store `undefined` with totals `NaN`, and `lint:secrets` red on `HEAD` ([D72]). **6 guards registered · every fix plant-verified with a control · `lint:rn` 25/25.** Detail → log |
-| **S1.2** | **Write the S1 brief.** Surface: money · goals · plan cards. **Four standing jobs beyond the sweep:** ⓪ re-verify S1.1's three · ① confirm S0's 5 fixes still hold · ② confirm every guard in `finding-guards.json` exists **and still fails** · ③ **sweep the 4 new S0 instruments**, which are unswept and load-bearing | a brief carrying no verdict, every path verified, the ratchet handed over |
+| **S1.2** | **Write the S1 brief.** Surface: money · goals · plan cards. **Four standing jobs beyond the sweep:** ⓪ re-verify S1.1's five · ① confirm S0's 5 fixes still hold · ② confirm every guard in `finding-guards.json` exists **and still fails** · ③ **sweep the 4 new S0 instruments**, which are unswept and load-bearing. ✅ **Coverage instrument generalised first** — `lint:s1-coverage`, **72 files · 58 unswept** | a brief carrying no verdict, every path verified, the ratchet handed over |
 | **S1.3** | **Dispatch fresh auditors** ([D68]), pinned to the S1 SHA | reports on disk, written incrementally |
 | **S1.4** | **Record findings + severities**; apply [D69] via `lint:s0-coverage` — first-look is a **lookup** | every finding rated; exemptions justified mechanically |
 | **S1.5** | **Fix**, each plant-verified with the plant confirmed **landed** and a control | no fix accepted on a green alone |
@@ -89,7 +89,8 @@ new instruments swept.
 | | the S0 residue, mechanically tracked — not a queue item |
 |---|---|
 | **16 unguarded findings** | `scripts/finding-guards.json`, capped by `MAX_UNGUARDED = 16`, **downward-only**. Drains as S1–S4 build guards; the gate reds if it rises. **34 findings · 18 guarded** after S1.1's six |
-| **20 unswept surface files** | `lint:s0-coverage` — **58 files** after S1.1 added `secrets-exemptions.json`. Printed green every run; [D69] reads it |
+| **20 unswept S0 files** | `lint:s0-coverage` — **58 files**. Printed green every run; [D69] reads it |
+| **58 unswept S1 files** | `lint:s1-coverage` — ⚡ **72 files and only 14 have EVER been examined.** The money surface has been audited twice and 80% of it has never been opened. ⛔ **Update the claims after every pass**, or coverage stops ratcheting |
 | **2 secrets exemptions** | `scripts/secrets-exemptions.json`, `MAX_EXEMPT = 2`, **self-ratcheting** — reds above *and* below. A stale entry reds |
 
 ⛔ **Every fix plant-verified, the plant confirmed to have LANDED, and re-run with the earlier assertion

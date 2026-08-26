@@ -4,6 +4,46 @@
 
 ---
 
+## 📕 P6.8.9.7.11.18 · S1.2 — the coverage instrument, generalised *(2026-08-26)*
+
+**Pin for S1's pass: `87655e9`.** ⛔ An audit is pinned to a **commit**, never the working tree, so S1.1
+was committed before the brief was written.
+
+### ⛔ The before-scan found [D69] had no lookup outside S0
+
+`s0-surface-coverage.ts` served one surface. **S1–S4 had nothing**, so *"first look"* would have been the
+auditor's own claim on every remaining surface — the exact state S0.12a was built to end. ⚠️ **And running
+without a table is not the neutral option:** no table means no exemptions, which never wrongly excuses a
+finding but makes the two-clean-pass count restart on **coverage** forever, on a surface only two rounds
+have partly read. That is the one thing [D69] exists to separate from churn.
+
+Renamed to `scripts/surface-coverage.ts` with a `SURFACES` map and `--surface=`; claims live in
+`surface-coverage.<key>.json`. Four non-doc references, each of which **reds a gate** if missed rather than
+failing silent, which is what made the rename safe. `lint:s0-coverage` reports **58 · 20 unswept**,
+byte-identical to before — the regression check that the generalisation changed nothing.
+
+### ⚡ The measurement, and it is the reason the brief points where it does
+
+**S1 is 72 files and 58 are unswept — only 14 have EVER been examined.** The money surface has been
+audited twice and **80% of it has never been opened.** ⛔ **This is S0.12a repeating exactly**: *"all four
+S0 passes declared their surface as `scripts/check-*.ts` and 9 of the 21 had never been swept."*
+
+### ⛔ Two encoding decisions the classification forced
+
+1. **`partial` is a new state, and it is UNSWEPT.** `.11.17`'s money auditor reviewed nine plan cards **as
+   a diff** (*"token-only changes, no behaviour"*) and `store.ts` only at its *"goal / paycheck / repairs
+   seams."* Recording either as swept repeats the error the surface exists to stop — ⚡ *"swept clean" is a
+   claim about a SUBJECT; coverage is a property of a FILE.* A finding in the unread half of a part-read
+   file **is** a first look.
+2. ⛔ **S1.1's own edits are NOT coverage.** Every file I touched fixing blocker #1 stays at its prior
+   claim. A fix is not a pass, and [D68] exists because *the fixer's own write-up is inside the corpus the
+   fixer is measuring.* Those files are the **fix range job ⓪ verifies**, which is the opposite of swept.
+3. **Exclusions are ROUTED.** Eleven `components/plan/` files are S4's (coach marks, tutorial, the demo
+   director) and are named as such in the config. An exclusion with no destination is a file that belongs
+   to nobody — the failure mode the "exclusion lists fail safe" rule quietly assumes away.
+
+---
+
 ## 📕 P6.8.9.7.11.18 · S1.1 — the three findings S1 already carried *(2026-08-26)*
 
 **Pin at switch-in: `74f2064`.** ⛔ **The decomposition opened at *"write the brief"* while three findings

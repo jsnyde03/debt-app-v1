@@ -50,6 +50,7 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // [D69] — the S0 surface inventory. Reds when a file joins or leaves the instrument surface without
     // its coverage being recorded, which is what keeps "first look" a lookup rather than a claim.
     'lint:s0-coverage',
+    'lint:s1-coverage',
     // [D67] — finding → guard, the `check-copy-owners` pattern applied to findings. Reds when a guard's
     // assertion is removed even though its file survives.
     'lint:finding-guards',

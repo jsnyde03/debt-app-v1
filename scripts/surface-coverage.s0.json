@@ -49,7 +49,7 @@
   "scripts/preflight-native-lane.ts": ["p4"],
   "scripts/preflight-xcuitest-target.ts": ["never"],
   "scripts/run-gates.ts": ["p1", "p3"],
-  "scripts/s0-surface-coverage.ts": ["never"],
+  "scripts/surface-coverage.ts": ["never"],
   "scripts/stamp-coverage.ts": ["p2"],
   "scripts/strings-inventory.ts": ["p4", "r17"],
   "scripts/surface-inventory.ts": ["never"],
