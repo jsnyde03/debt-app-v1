@@ -380,7 +380,6 @@ const NOT_SOURCE: { dir: string; why: string }[] = [
   { dir: 'public', why: 'static assets' },
   { dir: 'site', why: 'the marketing site' },
   { dir: '.github', why: 'CI workflow config — preflight-native-lane owns it, and asserts on it' },
-  { dir: '.claude', why: 'agent config' },
   { dir: 'ios', why: 'the native shell — the native lane pre-flight owns it' },
   { dir: 'apps/rn/modules', why: 'the native Expo modules — the native lane owns them' },
   /**
@@ -401,19 +400,6 @@ const MAX_INVISIBLE = 0;
 function runCompleteness(): never {
   const everyRoot = Object.values(SURFACES).flatMap((sf) => sf.roots);
 
-  // ⚠️ A skip naming a directory that no longer exists is a STALE permission — see the legacy note above.
-  // Checked first, so a deletion cannot quietly widen what is skipped.
-  const stale = NOT_SOURCE.filter((e) => !existsSync(join(REPO_ROOT, e.dir)));
-  if (stale.length) {
-    console.error('\n❌ surface-complete: the skip list names director(ies) that no longer exist.\n');
-    for (const e of stale) console.error(`  ${e.dir}  — "${e.why}"`);
-    console.error(
-      '\n  ⛔ Remove the entry. A skip for something that is gone is a standing permission for\n' +
-        '  whatever takes the name next.\n',
-    );
-    process.exit(1);
-  }
-
   let tracked: string[];
   try {
     tracked = execFileSync('git', ['ls-files', '-z'], { cwd: REPO_ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
@@ -423,6 +409,28 @@ function runCompleteness(): never {
     // ⛔ Not a soft failure. This gate's whole claim rests on the file list being authoritative, and a
     // guess would report "everything is covered" over a list it never obtained.
     console.error('\n❌ surface-complete: `git ls-files` failed, so the file list is unknown.\n');
+    process.exit(1);
+  }
+
+  /**
+   * ⚠️ A skip naming a directory that no longer exists is a STALE permission — see the legacy note above.
+   * Checked first, so a deletion cannot quietly widen what is skipped.
+   *
+   * ⛔ **ASKED OF GIT, NOT THE FILESYSTEM, and the first cut got that wrong — CI caught it and a local run
+   * could not.** `existsSync` is a property of the WORKING COPY: `.claude/` is untracked, so it exists on
+   * my machine and not in a fresh checkout, and this gate redded on CI while passing here. ⚡ **The file
+   * list above already came from `git ls-files`; taking staleness from the disk mixed two worlds in one
+   * instrument** — which is `REVERIFY4-2` exactly (`lint:secrets` took its file list from git and its
+   * content from the working tree). **An instrument must take all of its inputs from the same world.**
+   */
+  const stale = NOT_SOURCE.filter((e) => !tracked.some((f) => f === e.dir || f.startsWith(`${e.dir}/`)));
+  if (stale.length) {
+    console.error('\n❌ surface-complete: the skip list names director(ies) that no longer exist.\n');
+    for (const e of stale) console.error(`  ${e.dir}  — "${e.why}"`);
+    console.error(
+      '\n  ⛔ Remove the entry. A skip for something that is gone is a standing permission for\n' +
+        '  whatever takes the name next.\n',
+    );
     process.exit(1);
   }
 

@@ -50,7 +50,13 @@ if (hash !== status.sourceHash) {
     `recorded: ${status.sha.slice(0, 7)} · ${status.at} · ${status.fileCount} files`,
     `now:      ${fileCount} files · fingerprint differs`,
     '',
-    '⛔ Do NOT carry the recorded result forward. Run `npm run validate:release:rn`.',
+    '⛔ Do NOT carry the recorded result forward — as a RESULT. It describes an older tree.',
+    '',
+    '⚠️ [D74] — mid-audit this is the EXPECTED state, not a fault. The record is written at'
+      + ' convergence and before a release build, never per round, because a green recorded over a',
+    '   surface with open findings claims releasable on a tree the audit says is not. Per fix run'
+      + ' `typecheck`, `lint:rn`, the unit suites and the e2e specs whose surface changed; per round',
+    '   the full e2e + embed. Run the whole chain — `npm run validate:release:rn` — at convergence.',
     '   This is the shape that went wrong: the gate was red from f4e5e11 to 2026-08-20 and three',
     '   sessions recorded it green, each reasoning "no source touched THIS session" over a tree',
     '   where source had moved. A remembered gate result is an unrun one.',

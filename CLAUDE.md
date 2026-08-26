@@ -100,15 +100,27 @@ hold **14**, and its own header did not reconcile. Closed now, but the habit sta
 ▶ `docs/audits/2026-08-25-p6.8.9.7.11.10-severity/{A,B,C,D}-*.md` — **the SUMMARY is the map, not the
 ledger.**
 
-⭐ **THE GATE IS GREEN AND RECORDED (2026-08-26).** `validate:release:rn` on a CLEAN tree at
-`818f934` — typecheck 4/4 · `lint:rn` **28/28** · `test:stamp` · regression · app · scenarios ·
-**310 e2e** · **10 embed**, with **zero failure signatures anywhere in the run** *(checked, not
-inferred from the exit code — this harness has reported 0 on a red gate nine times)*. Fingerprint
-**`d2743681`**, 807 source files, `dirty: false`. ⛔ **Quote the fingerprint, never the SHA**, and
-ask `npm run lint:gate-freshness` rather than trusting this paragraph.
+⛔ **[D74] — THE RECORD IS WRITTEN AT CONVERGENCE, NOT PER ROUND** *(🎯 2026-08-26)*. `validate:release:rn`
++ `gate:record` run at [D65] convergence and before a release build. **Per fix**: `typecheck` · `lint:rn` ·
+the unit suites · the e2e specs whose surface changed. **Per round**: full e2e + embed, no record.
+⚡ Measured: the full e2e ran three times during S1.9 and caught **one** thing, and a **one-line fix to a
+gate script** invalidated the fingerprint and demanded a 25-minute re-run of 310 specs that cannot import it.
 
-✅ **PUSHED — `78c6020..6f93846`.** CI had not run since `78c6020`; nine commits of guards had been
-executed only by hand runs on this machine, and now are not.
+⚠️ **SO THERE IS NO CURRENT RECORD, AND THAT IS THE EXPECTED STATE.** The last **full** pass was
+`818f934` · fingerprint **`d2743681`** · 807 files · clean tree · 310 e2e + 10 embed, with zero failure
+signatures anywhere in the run. **The tree has moved since** — ask `npm run lint:gate-freshness`, which
+prints exactly this and sits outside every chain, so nothing is red because of it. ⛔ **Never quote
+`d2743681` as if it describes the current tree.**
+
+✅ **PUSHED through `f08a0c6`.** CI had not run since `78c6020`.
+
+⛔ **AND THE FIRST CI RUN AFTER THAT PUSH WAS RED, ON A GATE I HAD JUST BUILT.**
+`lint:surface-complete` took its file list from `git ls-files` and its **staleness check from
+`existsSync`** — `.claude/` is untracked, so it exists here and not in a fresh checkout. ⚡ **`REVERIFY4-2`
+wearing new clothes** *(`lint:secrets`: list from git, content from the working tree)*. Fixed by picking
+ONE world; **the corrected gate reproduces the CI failure locally, which the original could not.**
+⚠️ **`gh run watch --exit-status | tail` exited 0 over that failed run** — the pipeline reports *tail's*
+status. **Ask `gh run view --json conclusion` and read the field.**
 
 ⚡ **THREE LESSONS THIS SESSION PAID FOR, in the order they cost most:**
 

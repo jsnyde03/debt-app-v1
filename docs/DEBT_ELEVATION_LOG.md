@@ -338,6 +338,55 @@ other**, in both directions. Reasoning for each → [`DEBT_ELEVATION_LOG.md`](DE
 
 ---
 
+## ⛔ S1.9.8b — the new gate passed locally and FAILED CI, on its first push *(2026-08-26)*
+
+`lint:surface-complete` — built in S1.9.5, green in the recorded `validate:release:rn` — **redded on CI**
+for the push of `6f93846`, the first time it had ever run anywhere but this machine.
+
+**The cause is my own, and it is a shape this repo has measured before.** The gate takes its file list from
+`git ls-files`, deliberately, so build output and symlinks cannot appear. Its **staleness check** — no skip
+entry may name a directory that no longer exists — used `existsSync`. ⛔ **`.claude/` is untracked**: it is
+in my working copy and not in a fresh checkout.
+
+⚡ **`REVERIFY4-2` wearing new clothes.** That finding was `lint:secrets` taking its file list from git and
+its content from the working tree, and passing over a HEAD holding a credential. **Same shape, different
+file, five weeks apart, and I wrote this one.**
+
+**Fixed by picking ONE world**: staleness now asks whether git tracks anything under the path, and
+`.claude` is gone from the list entirely — an untracked directory can never appear in a git-sourced file
+list, so a skip for it was meaningless. ⭐ **The corrected gate reproduces the CI failure locally**, which
+the original could not; that, not the green, is the property worth having.
+
+⛔ **AND THE WATCH LIED.** `gh run watch --exit-status | tail -12` **exited 0 over a failed run** — the
+pipeline reports *tail's* status. I nearly closed the session on it, and only caught it by asking
+`gh run view --json conclusion` out of habit. ⚠️ Two independent instruments said "green" about a red CI:
+the local gate, and the watch.
+
+⚠️ **`scripts/` is fingerprinted, so the fix invalidated the recorded pass** — and the re-run started.
+
+⚡ **🎯 STOPPED IT, AND THE OBJECTION WAS RIGHT:** *"Running the entire release gate again for one failed
+lint finding seems excessive."* A gate script cannot be imported by the 310 e2e or the 10 embed specs, so
+~20 of the 25 minutes were re-proving what the change cannot reach.
+
+⛔ **The first answer I designed — a `--partial` record state — was DELETED rather than shipped.** 🎯 then
+asked the better question: *"Do we need to always run a full release scan during audits? Or when they're
+all fixed we kick off the audit and run the release gate at convergence?"* ⚡ **That makes the partial
+machinery unnecessary**, and it is an instrument change to the RECORD — the highest-risk kind — designed
+around a cadence we were abandoning.
+
+**→ [D74]: the record is written at CONVERGENCE, not per round.** The gate bundles a *regression net* and a
+*release claim*; only the first belongs on a per-fix cadence. Writing *"the gate is green"* mid-audit
+asserts something the audit denies. Measured both ways: the full e2e caught **one** thing in three
+mid-item runs, while `converge-per-surface-not-per-round` measured that batching the **testing** costs
+self-inflicted defects — so the net stays per-fix and only the record moves.
+
+⚠️ **The surface-complete fix was verified with the new net** — `typecheck` 4/4 and `lint:rn` **28/28**,
+which is exactly what a gate-script change can reach. **No record was written**, and
+`check-gate-freshness`'s own advice was updated to say that mid-audit staleness is the expected state
+rather than a fault.
+
+---
+
 ## 📕 SESSION CLOSE 2026-08-26 (fourth) — S1.9 CLOSED, and the plan compacted to a driver
 
 ### ▶ WHERE THE NEXT SESSION STARTS: **S1.10 — pass 3**

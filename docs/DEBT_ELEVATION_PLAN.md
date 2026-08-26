@@ -67,13 +67,17 @@ the coverage number will not move.
 | **S1.10.4** | **Record, and classify each finding under [D69] MECHANICALLY** from `surface-coverage.s1.json` — never from an auditor's judgement. ⚠️ With 331 unswept, **expect most findings to be first-look**, i.e. coverage results that do not restart the count. ⛔ Exempt from the count is NOT exempt from the fix |
 | **S1.10.5** | **Write the `s1p3` claims back in the SAME step as the record.** ⛔ `s1p2` did not exist until S1.9.5 — pass 2 swept and none of it was recorded, which is the second time this has happened |
 | **S1.10.6** | **Fix, every one plant-verified with a control**, and plant the **naive over-fix** too — that found a real hole once in two tries across S1.9 |
-| **S1.10.7** | `validate:release:rn` green **and recorded**, commit, **push** |
+| **S1.10.7** | ⛔ **[D74]: a round ends with the NET, not the record.** Full e2e + embed green, commit, **push** — and `gate:record` only if pass 3 CONVERGES *(0/0, and the second consecutive clean pass)*. ⚠️ Otherwise the hand-off states *no current record* and names the last full pass |
 
 **Exit (S1.10):** 0 blockers / 0 majors on the widened surface, the `s1p3` claims written back, and the
 consecutive-clean count standing at **one**.
 
 ### ⛔ The rules that are LIVE while S1 builds
 
+- **[D74] THE RECORD IS WRITTEN AT CONVERGENCE, NOT PER ROUND.** Per fix: `typecheck` · `lint:rn` · the
+  unit suites · the e2e specs whose surface changed. Per round: full e2e + embed, **no record**. ⛔ Writing
+  *"the gate is green"* on a surface with open findings claims releasable on a tree the audit says is not.
+  ⚠️ **Mid-audit there is no current record** — say so, and name the last full pass; never quote a stale one.
 - **[D65] CONVERGENCE = 0 blockers / 0 majors. NO DEFERRALS.** A major exits by being **fixed**, or by being
   **measured** never to have been one — a re-rating is not a proof.
 - **[D68] EVERY AUDIT PASS IS RUN BY FRESH AGENTS.** The driving session writes the brief and records the
@@ -400,6 +404,35 @@ appeared **nowhere** in the log, so this page was their only copy — found by g
 id rather than trusting the sentence above. The whole ledger is now mirrored there verbatim.
 
 **Phase 6 — launch**
+
+- **[D74]** ✅ 2026-08-26 *(🎯: "Do we need to always run a full release scan during audits? Or when
+  they're all fixed we kick off the audit and run the release gate at convergence?")* — **THE RECORD IS
+  WRITTEN AT CONVERGENCE, NOT PER ROUND.** `validate:release:rn` + `gate:record` run at [D65] convergence
+  and before a release build; **not** at the end of every fix cluster.
+
+  ⛔ **The gate bundles two different jobs and only one of them belongs on a per-fix cadence.** The
+  *regression net* answers *"did my fix break something else"* — that stays at full frequency, because
+  `converge-per-surface-not-per-round` measured that batching fixes cost seven self-inflicted defects, and
+  S1.9 added three more. The *record* answers *"is this tree releasable"*, and **writing that mid-audit
+  asserts something the audit itself denies.** A surface with open findings is not releasable, so the
+  record gets more honest by being rarer.
+
+  ⚡ **Measured, which is why this is a decision and not a preference:** the full e2e ran three times
+  during S1.9 and caught **one** thing — a spec directly about the code just changed. And a **one-line fix
+  to a GATE SCRIPT** invalidated the fingerprint and demanded a 25-minute re-run of 310 e2e specs that
+  cannot import it.
+
+  **The cadence:** per fix → `typecheck` · `lint:rn` · the unit suites · the e2e specs whose surface
+  changed. Per round, once its findings are all fixed → full e2e + embed, **no record**. At convergence →
+  the whole chain, recorded, pushed.
+
+  ⛔ **A `--partial` record state was designed for this and DELETED rather than shipped** — it was an
+  instrument built around a cadence we were abandoning, and a change to the record itself is the highest-risk
+  instrument change there is.
+
+  ⚠️ **Mid-audit there is therefore NO current record.** The hand-off must say *"no current record; last
+  full pass was `<fingerprint>`; the tree has moved N commits since"* — never quote a stale one as if fresh.
+  `npm run lint:gate-freshness` prints exactly that and sits outside every chain, so nothing goes red.
 
 ⛔ **[D61]–[D63] and [D65]–[D66] were MISSING from this section entirely** *(found in the 2026-08-26
 cleanup)*. [D61] and [D62] lived only under *"⏸ Waiting on Jason → Open decisions"*, marked ✅ — i.e. the
