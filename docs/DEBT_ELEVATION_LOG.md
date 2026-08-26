@@ -4,6 +4,109 @@
 
 ---
 
+## ✅ S1.5.2 — B5: suppressing ADVICE is not the same act as denying the debt exists *(2026-08-26)*
+
+**The blocker.** A premium user whose $1,000 paycheck went entirely on rent, with $200 of bills unpaid,
+read **"You're caught up for this paycheck."** in success green — directly under a Guardian card saying
+*"This paycheck won't cover everything."* A free user with the identical plan got the checklist.
+
+**The mechanism, confirmed verbatim at all four cited sites** *(auditor D's write-up was right end to end;
+`measure agent mechanisms` still applies, and this time it held)*:
+
+`allocatePaycheck` only pushes an allocation row when `coveredAmount > 0 || potShare > 0`, so an obligation
+this paycheck **cannot fund at all** exists only in `unfundedRequiredItems`. `index.tsx:506` read
+`unfunded={recovery ? [] : …}` — MF.6's *"the Recovery Plan owns the shortfall, don't compete"* — and
+`RequiredActionsCard:77` computed `outstanding` **from the emptied array**. Both terms went to zero and
+the zero state fired.
+
+⚡ **MF.6's intent was sound and its implementation reached too far.** It wanted one sentence suppressed;
+it suppressed the *evidence*. The fix separates the two: `unfunded` is now always the allocation's real
+array, and a new `shortfallAdviceOwnedElsewhere` prop changes only the wording
+(*"Not covered by this paycheck — your recovery plan below works through these."*).
+
+### The count is now owned, and it was wrong in BOTH directions
+
+`countOutstandingRequired` in `planSelectors.ts` — the B1 pattern, one owner for one question. It counts
+**obligations**, not list entries, keyed in `requiredRowKey`'s namespace:
+
+| | old `rows.filter(unhandled).length + unfunded.length` | new |
+|---|---|---|
+| premium, $200 short, rent paid | **0** ⛔ → *"You're caught up"* | **2** |
+| free, identical store *(the control)* | 2 | 2 |
+| free, Electric partially funded | **6** for 5 obligations | **5** |
+
+The double-count is the same expression read the other way: a partially-funded bill is a `Pay X (partial)`
+row **and** a `Finish X` remainder. Dedupe needs an id, so `UnfundedRequiredItem` gained `targetId` — the
+debt branch always carried `debtId`, the expense branch carried nothing.
+
+### ⚡ The plant that did not discriminate, and why the fixture has a fourth bill
+
+Stripping the engine's new `targetId` **left the count unchanged at 4** on the natural three-bill fixture.
+⛔ **Two errors cancelled exactly:** without an id every expense remainder keys to `e:undefined`, so
+`Finish Electric` wrongly merging with `Pay Phone` offset `Finish Electric` no longer merging with its own
+row. **Measured before it was believed** — a `tsx` probe over the real selectors, both spellings returning 4.
+A second fully-unfunded bill (Water) separates them: **5 with the id, 4 without.** ⚠️ The fixture's fourth
+bill is not padding; it is what makes the fixture able to fail.
+
+### ⚠️ A page-wide absence assertion was a PROXY, and the fix broke the proxy without touching the subject
+
+`recovery.spec.ts:45` (P1-4) asserted `getByText('Essential 11').toHaveCount(0)` across the whole page. Its
+own comment says the subject is `summariseNames`' truncation of the cover-now line. Restoring the
+obligations to the RequiredActions card put *"Pay Essential 11"* legitimately on Today, and the test went
+red **with `summariseNames` untouched.** Rescoped to a new `recovery-cover-now-names` testID and
+**plant-verified against P1-4's original run-on** — the scoped form still reds on the defect it exists for.
+⛔ *A proxy for the subject is not the subject*, and this is the shape where you find out: when the app
+legitimately starts saying the same words somewhere else.
+
+### Five plants, each with a control
+
+| # | plant | reds | stays green |
+|---|---|---|---|
+| 1 | `unfunded={recovery ? [] : …}` restored | the two PREMIUM tests | ⭐ **the FREE control** — the tier claim, in the direction it runs |
+| 1b | …re-run with the **first** assertion relaxed | the count assertion reds **independently** | — |
+| 2 | the naive over-fix: delete the advice suppression | my MF.6 test **and two pre-existing `recovery.spec` guards** | the blocker tests |
+| 3 | the old `rows + unfunded` arithmetic | the obligations count **only** | the blocker tests — clean isolation |
+| 4 | engine `targetId` removed | 5, 6 and 8 *(2→1, 2→1, 5→4)* | the zero-shortfall four |
+| 5 | P1-4's run-on restored | the **rescoped** assertion | — |
+
+⛔ **Plant 4 had to be redone.** A `sed` intended for one line matched **two** — it also stripped the
+long-standing `targetId` off the *allocations* push, confounding the plant. Caught by diffing against the
+saved original, not by reading the command. **`prefer the Edit tool over scripts`, measured again**; the
+redone single-site plant was verified by diff *before* the run.
+
+### Verification
+
+| | |
+|---|---|
+| **full RN e2e** | ✅ **281 passed, 0 failed** (8.0m) — run in full rather than batched to S1.6, because the change touches a shared card, a shared `Pill` and an engine type |
+| **`lint:rn`** | ✅ **26 of 26** — ⚠️ red on the first attempt: eslint caught `rowHandledNow` left imported and unused by my own edit. *The fix writes the next defect, and an existing guard caught it* |
+| `typecheck` · `test:app` · `test:scenarios` · `test:regression` | ✅ all green |
+| **guards** | 5 registered — `S1P1-B5-{COUNT,TIER,MF6,OBLIGATIONS,PROXY}`. **41 findings · 25 guarded · 16 unguarded**, cap unmoved |
+
+⚠️ **`Pill` dropped `testID` on its static branch**, so a rendered count could only be asserted with a bare
+`getByText('4')` that collides with every dollar figure on screen. Threaded through, and the docstring's
+claim (*"only meaningful with `onPress`"*) corrected: a static pill is not DRIVEN, but it is READ.
+
+### 🔴 The after-scan found something that breaks PASS 2
+
+⛔ **PASS 1's COVERAGE CLAIMS WERE NEVER WRITTEN BACK.** `scripts/surface-coverage.s1.json` carries
+**zero** `s1p1` labels — the tally is `never: 47 · partial: 11 · r17: 11 · r10: 2`, which is the world
+*before* four auditors read the surface. Auditor D's own report states **"I opened all 45 + 3 = 48.
+Nothing in my assignment was left unopened."**
+
+⚡ **Why this is not bookkeeping:** [D69] exempts a first-look finding from the churn count **mechanically,
+from the inventory**. An inventory that still says `never` for 48 files pass 1 read would let pass 2
+re-classify its own repeat findings as coverage results. **The exemption that exists to stop the count
+lying would be the thing lying.** → folded into **S1.5.4**, which already must land before pass 2, and
+sequenced *after* M9's root widening so the claims are written once against the right file set.
+
+**Also filed to the backlog** *(neither is a pass-1 finding; both are newly surfaced)*: the unfunded block
+has **no truncation at scale** — 11 unfunded essentials render 11 rows on Today, pre-existing on free and
+now reachable on premium; and an unfunded obligation **still has no mark-paid control on Today**, while the
+card's own copy tells the user to cover it from savings.
+
+---
+
 ## 🧹 PLAN CLEANUP 2026-08-26 — the ACTIVE block, and a residue number that had already decayed
 
 🎯: *"clean up the debt elevation plan. It is very hard to find current work."* Verbatim predecessor:

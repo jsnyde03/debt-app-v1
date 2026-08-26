@@ -108,6 +108,13 @@ export type UnfundedRequiredItem = {
 	amount: number;
 	category: "expense" | "minimum_debt" | "autopay_expense" | "autopay_debt";
 	debtId?: string;
+	/** ⛔ S1.5.2 [B5] — WHICH obligation this shortfall belongs to. A partially-funded bill appears
+	 *  TWICE: once in `allocations` as `Pay X (partial)` and again here as `Finish X`. Without an id the
+	 *  only way to tell "the remainder of a bill already listed" from "a second, separate bill" is to
+	 *  parse the label, and `label` is diagnostic, not a key (T4.2). The debt branch has always carried
+	 *  `debtId`; the expense branch carried nothing, so every consumer that counted obligations
+	 *  double-counted a partial. */
+	targetId?: string;
 };
 
 type AllocatePaycheckParams = {
@@ -451,6 +458,7 @@ export function allocatePaycheck({
 							: `Pay ${expense.name}`,
 				amount: unfundedAmount,
 				category: expense.isAutopay ? "autopay_expense" : "expense",
+				targetId: expense.id,
 			});
 		}
 	}

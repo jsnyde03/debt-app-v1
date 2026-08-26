@@ -55,15 +55,22 @@ test.describe('§2.6 Recovery Plan — the shortfall card builds + applies the c
     await page.goto('/');
     await expect(page.getByText('COVER NOW')).toBeVisible();
 
+    // ⛔ S1.5.2 — SCOPED TO THE COVER-NOW LINE, which is this test's actual subject. It used to assert
+    // page-wide that "Essential 11" appeared nowhere, and that was a PROXY: valid only while nothing else
+    // on Today named the bills. [B5] restored the unfunded obligations to the RequiredActions card (a
+    // premium user in a shortfall was being told "You're caught up" because they had been withheld), so
+    // the page-wide form went red without `summariseNames` — the thing under test — changing at all.
+    const coverNames = page.getByTestId('recovery-cover-now-names');
+
     // The run-on is gone: three names, then a count of what is held back.
     await expect(page.getByText('+8 more')).toBeVisible();
-    await expect(page.getByText('Essential 1 · Essential 2 · Essential 3', { exact: false })).toBeVisible();
+    await expect(coverNames).toContainText('Essential 1 · Essential 2 · Essential 3');
     // ⚠️ Asserted on the LAST name rather than on a length: a helper that returned every name with
     // "+8 more" beside it would pass a count assertion while rendering the paragraph the finding is about.
-    await expect(page.getByText('Essential 11', { exact: false })).toHaveCount(0);
+    await expect(coverNames).not.toContainText('Essential 11');
 
     await page.getByRole('button', { name: /Show all 11/ }).click();
-    await expect(page.getByText('Essential 11', { exact: false })).toBeVisible();
+    await expect(coverNames).toContainText('Essential 11');
     await expect(page.getByText('Show fewer')).toBeVisible();
   });
 

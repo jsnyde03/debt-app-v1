@@ -16,7 +16,10 @@ export function Pill({
   label: string;
   tone?: PillTone;
   onPress?: () => void;
-  /** ⚠️ Only meaningful with `onPress` — a static pill is not a target anything drives. */
+  /** ⚠️ A static pill is not a target anything DRIVES — but it is one a test may need to READ, and
+   *  dropping the prop on that branch meant a count rendered here could only be asserted by a bare
+   *  `getByText('4')`, which collides with every dollar figure on the screen. S1.5.2 [B5] needed the
+   *  outstanding count observable, so both branches carry it. */
   testID?: string;
 }) {
   const c = useAppColors();
@@ -47,7 +50,11 @@ export function Pill({
       </Pressable>
     );
   }
-  return <View style={base}>{body}</View>;
+  return (
+    <View style={base} testID={testID}>
+      {body}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

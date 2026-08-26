@@ -495,15 +495,21 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
         right={
           <>
         <Motion delay={90}>
-          {/* MF.6 (audit #7) — when the premium Recovery Plan is showing, IT owns the shortfall; suppress
-              the RequiredActions "Short this paycheck — cover these" block so the two don't duplicate/compete. */}
+          {/* MF.6 (audit #7) — when the premium Recovery Plan is showing, IT owns the shortfall, so this
+              card must not offer a competing plan of action.
+              ⛔ S1.5.2 [B5] — MF.6 USED TO BE IMPLEMENTED AS `unfunded={recovery ? [] : …}`, and emptying
+              the array did far more than hide a sentence: `outstanding` is computed from it, so a premium
+              user in a shortfall got "You're caught up for this paycheck." in success green, directly under
+              a Guardian card saying the opposite. Free was the control and behaved correctly. The array is
+              now always the truth and `shortfallAdviceOwnedElsewhere` changes the wording instead. */}
           {/* Fenced: `onMark` / `onToggle` write the store and re-stage the very card a beat is narrating. */}
           <TutorialFence>
             {/* P6.8.7e.3 [C5] — `hasAnyBills` comes from the STORE, not from `requiredRows`: a plan can
                 hold bills with none due this cycle, and that user genuinely is caught up. */}
             <RequiredActionsCard
               rows={requiredRows}
-              unfunded={recovery ? [] : (allocation.unfundedRequiredItems ?? [])}
+              unfunded={allocation.unfundedRequiredItems ?? []}
+              shortfallAdviceOwnedElsewhere={!!recovery}
               onMark={(row, paid) => handleMark(store_, row, paid)}
               currentDate={store.paycheck.currentDate}
               hasAnyBills={store.requiredExpenses.length > 0}

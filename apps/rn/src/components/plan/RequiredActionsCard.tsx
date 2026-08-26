@@ -15,8 +15,8 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useInert } from '@/hooks/use-inert';
 import {
   bucketRequiredRows,
+  countOutstandingRequired,
   requiredRowKey,
-  rowHandledNow,
   type RequiredBucket,
   type RequiredRow,
 } from '@/store/planSelectors';
@@ -49,8 +49,12 @@ export function RequiredActionsCard({
   currentDate,
   hasAnyBills,
   onAddBill,
+  shortfallAdviceOwnedElsewhere = false,
 }: {
   rows: RequiredRow[];
+  /** ⛔ S1.5.2 [B5] — THE ALLOCATION'S REAL ARRAY, ALWAYS. Never an emptied one to hide the list: this
+   *  drives the outstanding count, and an emptied array asserts the user owes nothing. Use
+   *  `shortfallAdviceOwnedElsewhere` to change what is SHOWN. */
   unfunded: UnfundedItem[];
   onMark: (row: RequiredRow, paid: boolean) => void;
   currentDate: string;
@@ -59,6 +63,13 @@ export function RequiredActionsCard({
   hasAnyBills: boolean;
   /** Opens the add-bill sheet in place — the same one-tap treatment the no-debts prompt gets. */
   onAddBill?: () => void;
+  /** MF.6 (audit #7) — the premium Recovery Plan is on screen and IT owns the "what do I do about the
+   *  shortfall" advice, so this card must not compete with a second plan of action. ⛔ It changes ONE
+   *  SENTENCE. The obligations stay listed and stay counted: MF.6 was implemented by emptying `unfunded`
+   *  at the call site, which withheld them from the count too and rendered "You're caught up for this
+   *  paycheck." over $1,060 of unpaid bills ([B5]). Suppressing advice is not the same act as denying
+   *  the debt exists. */
+  shortfallAdviceOwnedElsewhere?: boolean;
 }) {
   const c = useAppColors();
   const [paidThisVisit, setPaidThisVisit] = useState<Set<string>>(() => new Set());
@@ -74,7 +85,10 @@ export function RequiredActionsCard({
   );
 
   const buckets = bucketRequiredRows(rows, currentDate, paidThisVisit);
-  const outstanding = rows.filter((r) => !rowHandledNow(r)).length + unfunded.length;
+  // ⛔ S1.5.2 [B5] — `rows.filter(unhandled).length + unfunded.length` was wrong in BOTH directions: it
+  // double-counted a partially-funded bill (a row AND a remainder), and it read 0 whenever the caller
+  // emptied `unfunded`. `countOutstandingRequired` owns the question and counts OBLIGATIONS.
+  const outstanding = countOutstandingRequired(rows, unfunded);
   const flat = buckets.length === 1 && buckets[0].key === 'thisWeek';
 
   const handleMark = (row: RequiredRow, paid: boolean) => {
@@ -106,7 +120,7 @@ export function RequiredActionsCard({
           </View>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Bills and minimums due this paycheck.</Text>
         </View>
-        {outstanding > 0 ? <Pill label={String(outstanding)} tone="neutral" /> : null}
+        {outstanding > 0 ? <Pill testID="required-outstanding-count" label={String(outstanding)} tone="neutral" /> : null}
       </View>
 
       {/* ⛔ P6.8.7e.3 [C5 / M2-9] — TWO zero states, and they were rendering the same sentence.
@@ -151,8 +165,13 @@ export function RequiredActionsCard({
 
       {unfunded.length > 0 ? (
         <View style={[styles.unfunded, { borderTopColor: c.border.subtle }]}>
-          <Text style={[textStyles.caption, styles.unfundedNote, { color: c.accent.warning }]}>
-            Short this paycheck — cover these from savings or your next paycheck.
+          <Text
+            testID="required-unfunded-note"
+            style={[textStyles.caption, styles.unfundedNote, { color: c.accent.warning }]}
+          >
+            {shortfallAdviceOwnedElsewhere
+              ? 'Not covered by this paycheck — your recovery plan below works through these.'
+              : 'Short this paycheck — cover these from savings or your next paycheck.'}
           </Text>
           {unfunded.map((u, i) => (
             <View key={`unf-${i}`} style={styles.unfundedRow}>

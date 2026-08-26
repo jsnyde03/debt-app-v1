@@ -114,5 +114,31 @@
   "GAP-14": { "what": "lint:gate-freshness is in no chain — not run-gates.ts, not validate:release:rn, not CI", "unguarded": "S0.13 remaining — deliberate per its own docstring (a freshness check inside the thing that establishes freshness deadlocks); the open question is whether a POST-run check belongs in CI. See S0-GUARDS-4.md" },
   "GAP-15": { "what": "strings-inventory's origin-label self-check has no test of its own", "unguarded": "S0.13 remaining — subsumed by GAP-16's harness once a scenario is added. See S0-GUARDS-4.md" },
   "GAP-17": { "what": "the apostrophe and webkit-flex baselines can be regenerated WIDER to make a red gate green", "unguarded": "S0.13 remaining — duplicate-copy is fixed (REVERIFY4-3); the other two need the same stale-drift report. See S0-GUARDS-4.md" },
-  "GAP-18": { "what": "a raw NUL in the ledger makes it a binary file to rg, so the closure gate's corpus stops being greppable", "unguarded": "S0.13 remaining — assert the two SOURCES contain no NUL. See S0-GUARDS-4.md" }
+  "GAP-18": { "what": "a raw NUL in the ledger makes it a binary file to rg, so the closure gate's corpus stops being greppable", "unguarded": "S0.13 remaining — assert the two SOURCES contain no NUL. See S0-GUARDS-4.md" },
+
+  "S1P1-B5-COUNT": {
+    "what": "pass-1 B5 — index.tsx emptied `unfunded` for a premium user with a recovery plan, and `outstanding` was computed from the emptied array, so Today rendered \"You're caught up for this paycheck.\" in success green over unpaid bills; free was the working control",
+    "file": "apps/rn/tests/e2e/no-bills-branch.spec.ts",
+    "token": "PREMIUM in a shortfall is NOT told they are caught up"
+  },
+  "S1P1-B5-TIER": {
+    "what": "pass-1 B5 — the free control. `recovery` is `isPremium ? … : null`, so the tier decided what the user was told they owed; the two tiers must agree on an identical store",
+    "file": "apps/rn/tests/e2e/no-bills-branch.spec.ts",
+    "token": "the tier does not change what is owed"
+  },
+  "S1P1-B5-MF6": {
+    "what": "pass-1 B5 — the property MF.6 was built for, which the fix must not undo: with the premium Recovery Plan on screen this card states the obligations WITHOUT a competing plan of action. Plant-verified: deleting `shortfallAdviceOwnedElsewhere` reds this AND two pre-existing recovery.spec guards",
+    "file": "apps/rn/tests/e2e/no-bills-branch.spec.ts",
+    "token": "MF.6 preserved"
+  },
+  "S1P1-B5-OBLIGATIONS": {
+    "what": "pass-1 B5's third consequence — `rows.length + unfunded.length` double-counted a partially-funded bill (a `Pay X (partial)` row AND a `Finish X` remainder), reading 6 for 5 obligations. ⚠️ The fixture needs TWO fully-unfunded bills or the two error modes cancel: strip the engine's `targetId` and every expense remainder collapses to `e:undefined`, which offsets the missing merge exactly — measured, both spellings returned 4 on a one-bill fixture",
+    "file": "apps/rn/tests/e2e/no-bills-branch.spec.ts",
+    "token": "the count is of OBLIGATIONS"
+  },
+  "S1P1-B5-PROXY": {
+    "what": "pass-1 B5's fallout — recovery.spec's P1-4 test asserted page-wide that \"Essential 11\" appeared nowhere, a PROXY for the cover-now line that held only while nothing else on Today named the bills. Restoring the obligations reddened it without `summariseNames` changing. Rescoped to `recovery-cover-now-names` and plant-verified against P1-4's original run-on",
+    "file": "apps/rn/tests/e2e/recovery.spec.ts",
+    "token": "recovery-cover-now-names"
+  }
 }

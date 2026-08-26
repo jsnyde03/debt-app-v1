@@ -1,7 +1,7 @@
 import { EMERGENCY_FUND_NOUN, GOALS_DESTINATION, OVERDUE_LABEL } from '@core/copy/vocabulary';
 import { computeStreak } from '@core/debt/computeStreak';
 import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocationItem } from '@core/debt/deriveRequiredActionView';
-import { PROTECTED_CUSHION_CATEGORIES } from '@core/engine/allocatePaycheck';
+import { PROTECTED_CUSHION_CATEGORIES, type UnfundedRequiredItem } from '@core/engine/allocatePaycheck';
 import { DEBT_FREE_DATE_UNPAYABLE, projectDebtPayoff } from '@core/debt/projectDebtPayoff';
 import { selectActiveRecommendedActions } from '@core/debt/selectActiveRecommendedActions';
 import { computeState } from '@core/guardian/computeState';
@@ -242,6 +242,37 @@ export function requiredRowKey(r: RequiredRow): string {
 /** True when a row needs no action — paid, or an autopay presumed to have run. */
 export function rowHandledNow(r: RequiredRow): boolean {
   return r.view.isPaid || (r.isAutopay && r.view.presumedPaid && !r.view.autopayFailed);
+}
+
+/** The obligation an unfunded shortfall belongs to, in `requiredRowKey`'s namespace so the two compare. */
+export function unfundedItemKey(u: UnfundedRequiredItem): string {
+  const isExpense = u.category === 'expense' || u.category === 'autopay_expense';
+  return `${isExpense ? 'e' : 'd'}:${u.debtId ?? u.targetId}`;
+}
+
+/**
+ * ⛔ S1.5.2 [B5] — THE ONE OWNER OF "how many required obligations are still outstanding this paycheck."
+ *
+ * ⚠️ It is a count of OBLIGATIONS, not of list entries, and the two differ in both directions:
+ *
+ *  - **An obligation can produce two entries.** A partially-funded bill is an `allocations` row
+ *    (`Pay Electric (partial) $100`) AND an `unfundedRequiredItems` entry (`Finish Electric $200`).
+ *    `rows.length + unfunded.length` counted it twice — measured at 5 for 4 obligations.
+ *  - **An obligation can produce zero rows.** `allocatePaycheck` only pushes an allocation when
+ *    `coveredAmount > 0 || potShare > 0`, so a bill this paycheck cannot fund AT ALL exists only in
+ *    `unfundedRequiredItems`. Any caller that hands this function an emptied array is asserting the
+ *    user owes nothing — which is how [B5] rendered "You're caught up for this paycheck." in success
+ *    green over $1,060 of unpaid bills. ⛔ **Pass the allocation's real array. Suppressing a LIST is a
+ *    render decision and belongs in the render, never in the number.**
+ *
+ * An obligation counts as outstanding when it has an unhandled row, or an unfunded remainder, or both.
+ * A row that is handled while a remainder stands still counts — paying $100 of a $300 bill leaves $200 owed.
+ */
+export function countOutstandingRequired(rows: RequiredRow[], unfunded: UnfundedRequiredItem[]): number {
+  const keys = new Set<string>();
+  for (const r of rows) if (!rowHandledNow(r)) keys.add(requiredRowKey(r));
+  for (const u of unfunded) keys.add(unfundedItemKey(u));
+  return keys.size;
 }
 
 function daysBetween(fromISO: string, toISO?: string): number {

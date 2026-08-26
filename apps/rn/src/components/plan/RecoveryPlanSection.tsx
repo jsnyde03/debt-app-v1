@@ -86,7 +86,11 @@ export function RecoveryPlanSection({
                   ? `Showing all ${coverNames.length} bills to cover now. Show fewer`
                   : `${coverSummary.shown}, and ${coverSummary.more} more. Show all ${coverNames.length}`
             }>
-            <Text style={[textStyles.caption, { color: c.text.secondary }]}>
+            {/* ⚠️ S1.5.2 — testID so P1-4's truncation can be asserted ON THIS LINE. It used to be checked
+                with a page-wide `getByText('Essential 11').toHaveCount(0)`, which was a PROXY that only held
+                while nothing else on Today named the bills; [B5] put the unfunded obligations back on the
+                RequiredActions card and the proxy broke without the subject changing at all. */}
+            <Text testID="recovery-cover-now-names" style={[textStyles.caption, { color: c.text.secondary }]}>
               {coverExpanded ? coverNames.join(' · ') : coverSummary.shown}
               {coverSummary.more === 0 ? null : (
                 <Text style={[styles.coverMore, { color: c.accent.primary }]}>
