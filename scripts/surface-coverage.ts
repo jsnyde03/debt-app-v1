@@ -150,7 +150,32 @@ const SURFACES: Record<string, Surface> = {
   s0: {
     gate: 's0-coverage',
     title: 'S0 surface inventory — which pass actually swept which file',
-    roots: ['scripts', 'apps/rn/src/data/migrationAudit'],
+    /**
+     * ⛔ [D73] — **THE TEST RUNNERS ARE INSTRUMENTS, AND THEY WERE ON NO SURFACE.** `packages/core/testing`
+     * (20 files) holds `runRegressionTests` and every suite it drives; `apps/rn/src/testing` (3) holds the
+     * app + scenario runners. S0 already owns `apps/rn/src/data/migrationAudit` for exactly this reason —
+     * an instrument is audited by the surface that audits instruments.
+     *
+     * ⚠️ **This admits files to S0 AFTER it converged, and that is the honest consequence rather than an
+     * argument against it.** [D70] closed S0 on *instruments-sound*, not on a pass count, and a runner
+     * nobody has ever read is precisely an unaudited instrument. The unswept count rises; that is the
+     * measurement, the same way M9's root-widening took S1 from 72 to 137.
+     *
+     * ⛔ **`apps/rn/tests/shots` IS A ROOT HERE BECAUSE S1 ROUTES IT HERE.** [D73, found by S1.7's own
+     * after-scan] Routing to a surface that EXISTS but does not WALK the directory removes the file from
+     * the sending surface and adds it to nothing — the silent hole this whole decision exists to close,
+     * re-created while closing it. ⚠️ Routing to `s2`/`s3`/`s4` is a different case and is fine: those
+     * surfaces are not built, so the routing records an owner for when they are. **The trap is a routing
+     * to a LIVE surface whose roots do not cover the file.** Same shape as `migrationAudit`, which S1
+     * routes here and which is a root here for exactly this reason.
+     */
+    roots: [
+      'scripts',
+      'apps/rn/src/data/migrationAudit',
+      'packages/core/testing',
+      'apps/rn/src/testing',
+      'apps/rn/tests/shots',
+    ],
     claims: 'scripts/surface-coverage.s0.json',
     inventory: 'docs/audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-SURFACE-INVENTORY.md',
     // ⚠️ `.tsx` joined SOURCE_EXT when this became multi-surface; `scripts/` has none, so S0 is unchanged.
@@ -183,6 +208,22 @@ const SURFACES: Record<string, Surface> = {
       'apps/rn/src/data',
       'packages/core/engine',
       'packages/core/guardian',
+      /**
+       * ⛔ [D73] — **THE GUARDS WERE ON NO SURFACE.** `grep -c "tests/e2e"` returned **0** against both
+       * claims files: co-located `*.test.ts` under `src/` were on-surface, and the whole of
+       * `apps/rn/tests/` was not. So the standing rule — *every surface audit re-verifies the previous
+       * surfaces' guards* — pointed auditors at files they were never given.
+       *
+       * ⛔ **`lint:finding-guards` is not a substitute and cannot be made into one.** It proves a token
+       * still sits on a non-comment line; it cannot prove the assertion behind it can still fail.
+       * ⚡ Measured in S1.5.5's own range: an assertion that a card contained `$400` passed **with the
+       * defect present**, because the defective card printed `$400` from a neighbouring section. A plant
+       * caught it. The registry would have counted that finding guarded indefinitely.
+       *
+       * ⚠️ **A root, not a file list** — the whole point of M9. Everything under here lands on the money
+       * surface unless `excluded` names a different owner with certainty.
+       */
+      'apps/rn/tests',
     ],
     claims: 'scripts/surface-coverage.s1.json',
     inventory: 'docs/audits/2026-08-26-s1-money/S1-SURFACE-INVENTORY.md',
@@ -218,6 +259,26 @@ const SURFACES: Record<string, Surface> = {
       // fails safe for as long as its entries are certainties.
       if (/^apps\/rn\/src\/store\/(tutorial|demo|sandbox|coachMark)/.test(rel))
         return { to: 's4', why: 'tutorial / demo / sandbox / coach marks — the discovery surface' };
+
+      /**
+       * ⛔ [D73] — THE TEST TREE'S ROUTINGS. **Only certainties move.** The specs below name a surface
+       * that already owns their subject in the source routings above, so each is the same statement made
+       * one directory over. ⚠️ Everything not matched here — including every visual / a11y / layout spec
+       * (`a11y-axe`, `blur-glass`, `ipad-layouts`, `sheet-polish`, `route-smoke`) — **stays on the money
+       * surface**, because visual/a11y is not one of S0–S4 and this list only fails safe for as long as
+       * its entries are certainties. A spec routed to a surface that does not exist would be a worse
+       * error than a spec counted as money.
+       */
+      if (rel.startsWith('apps/rn/tests/shots/'))
+        return { to: 's0', why: 'screenshot recipes — instruments that produce the audit rounds\' own evidence' };
+      if (rel.startsWith('apps/rn/tests/embed/'))
+        return { to: 's4', why: 'the marketing-embed harness — same owner as the AppStoreCta routing above' };
+      if (/^apps\/rn\/tests\/e2e\/(backup|csv-import|data-recovery|delete-all-data|scan)\.spec\.ts$/.test(rel))
+        return { to: 's3', why: 'backup / restore / CSV import / scan — the import surface' };
+      if (/^apps\/rn\/tests\/e2e\/(coach-marks|coach-mark-neighbour|tutorial-invite|demo-containment|probe-mark-ipad-rail|probe-mark-route-push)\.spec\.ts$/.test(rel))
+        return { to: 's4', why: 'tutorial / demo / coach marks — the discovery surface' };
+      if (/^apps\/rn\/tests\/e2e\/date-field\.spec\.ts$/.test(rel))
+        return { to: 's2', why: 'the date control — the dates surface' };
       return null;
     },
   },

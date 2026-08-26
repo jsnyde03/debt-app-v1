@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**58 files on the S0 surface · 43 swept · 15 unswept.**
+**91 files on the S0 surface · 43 swept · 48 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -22,6 +22,39 @@
 | `apps/rn/src/data/migrationAudit/interruption.test.ts` | ⛔ **never** |
 | `apps/rn/src/data/migrationAudit/invariants.ts` | p1 · p3 · s1p1 |
 | `apps/rn/src/data/migrationAudit/run.ts` | ⛔ **never** |
+| `apps/rn/src/testing/runAppTests.ts` | ⛔ **never** |
+| `apps/rn/src/testing/runScenarioTests.ts` | ⛔ **never** |
+| `apps/rn/src/testing/scenarios/guardianColdStartLifecycle.scenario.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/add-chooser.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/demo-beats.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/explore-demo.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/floor-impact.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/guardian-spacing.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/misfiled-hint.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/money-sections.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/p6.8-a11y.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/p6.8-matrix.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/phase35-themes.shot.ts` | ⛔ **never** |
+| `packages/core/testing/runRegressionTests.ts` | ⛔ **never** |
+| `packages/core/testing/seedPlannerState.ts` | ⛔ **never** |
+| `packages/core/testing/simSmokeSeed.ts` | ⛔ **never** |
+| `packages/core/testing/testAbuseScenarios.ts` | ⛔ **never** |
+| `packages/core/testing/testAprMath.ts` | ⛔ **never** |
+| `packages/core/testing/testDebtMathRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testDemoModeSeed.ts` | ⛔ **never** |
+| `packages/core/testing/testEngineFuzz.ts` | ⛔ **never** |
+| `packages/core/testing/testFinalLaunchRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testForecastRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testFullAppRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testMultiCycleTimelineRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testPayCycleHistoryRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testPlannerStateHardening.ts` | ⛔ **never** |
+| `packages/core/testing/testRecommendedActionsRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testSafeStorage.ts` | ⛔ **never** |
+| `packages/core/testing/testStressScenarios.ts` | ⛔ **never** |
+| `packages/core/testing/testSubscriptionGating.ts` | ⛔ **never** |
+| `packages/core/testing/testTimelineRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testV11Regression.ts` | ⛔ **never** |
 | `scripts/apostrophe-baseline.json` | p4 |
 | `scripts/begin-gate-run.ts` | never · s1p1 |
 | `scripts/check-a11y-collapse.ts` | p4 |
@@ -78,6 +111,39 @@
 - `apps/rn/src/data/migrationAudit/cutoverFiles.test.ts`
 - `apps/rn/src/data/migrationAudit/interruption.test.ts`
 - `apps/rn/src/data/migrationAudit/run.ts`
+- `apps/rn/src/testing/runAppTests.ts`
+- `apps/rn/src/testing/runScenarioTests.ts`
+- `apps/rn/src/testing/scenarios/guardianColdStartLifecycle.scenario.ts`
+- `apps/rn/tests/shots/add-chooser.shot.ts`
+- `apps/rn/tests/shots/demo-beats.shot.ts`
+- `apps/rn/tests/shots/explore-demo.shot.ts`
+- `apps/rn/tests/shots/floor-impact.shot.ts`
+- `apps/rn/tests/shots/guardian-spacing.shot.ts`
+- `apps/rn/tests/shots/misfiled-hint.shot.ts`
+- `apps/rn/tests/shots/money-sections.shot.ts`
+- `apps/rn/tests/shots/p6.8-a11y.shot.ts`
+- `apps/rn/tests/shots/p6.8-matrix.shot.ts`
+- `apps/rn/tests/shots/phase35-themes.shot.ts`
+- `packages/core/testing/runRegressionTests.ts`
+- `packages/core/testing/seedPlannerState.ts`
+- `packages/core/testing/simSmokeSeed.ts`
+- `packages/core/testing/testAbuseScenarios.ts`
+- `packages/core/testing/testAprMath.ts`
+- `packages/core/testing/testDebtMathRegression.ts`
+- `packages/core/testing/testDemoModeSeed.ts`
+- `packages/core/testing/testEngineFuzz.ts`
+- `packages/core/testing/testFinalLaunchRegression.ts`
+- `packages/core/testing/testForecastRegression.ts`
+- `packages/core/testing/testFullAppRegression.ts`
+- `packages/core/testing/testMultiCycleTimelineRegression.ts`
+- `packages/core/testing/testPayCycleHistoryRegression.ts`
+- `packages/core/testing/testPlannerStateHardening.ts`
+- `packages/core/testing/testRecommendedActionsRegression.ts`
+- `packages/core/testing/testSafeStorage.ts`
+- `packages/core/testing/testStressScenarios.ts`
+- `packages/core/testing/testSubscriptionGating.ts`
+- `packages/core/testing/testTimelineRegression.ts`
+- `packages/core/testing/testV11Regression.ts`
 - `scripts/collect-lane-diagnostics.mjs`
 - `scripts/compare-ios-screenshots.mjs`
 - `scripts/conform-app-preview.sh`

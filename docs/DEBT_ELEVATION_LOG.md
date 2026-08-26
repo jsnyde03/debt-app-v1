@@ -262,7 +262,66 @@ helper gained a `topUp` option keyed to `nextPaycheckDate`, because a record key
 
 ---
 
-## 📋 [D73] — the test tree goes on a surface. S1.7's decomposition, authored ahead of switch-in
+## ✅ S1.7 — [D73]: the test tree goes on a surface *(2026-08-26)*
+
+🎯: *"We should have e2e coverage on audits. I agree with your reasoning."*
+
+| surface | before | after |
+|---|---|---|
+| **S1** money | 137 files · 65 unswept | **188 · 116** |
+| **S0** instruments | 58 · 15 | **91 · 48** |
+
+**Roots, not file lists** — `apps/rn/tests` onto S1; `packages/core/testing`, `apps/rn/src/testing` and
+`apps/rn/tests/shots` onto S0. Hand-named files in `roots` *was* M9, so the fix could not repeat it.
+**Routings moved only certainties**: backup/restore/CSV/scan → `s3` · coach-marks/tutorial/demo/probe-mark
+→ `s4` · `date-field` → `s2` · `shots/` → `s0` · `embed/` → `s4` on the `AppStoreCta` precedent.
+
+⚠️ **The visual/a11y specs stayed on money, deliberately** — `a11y-axe`, `blur-glass`, `ipad-layouts`,
+`sheet-polish`, `route-smoke`. Visual/a11y is not one of S0–S4, and the instrument's own rule is *when the
+owner is arguable the file stays*, because an exclusion list fails safe only while its entries are
+certainties. **S1's count absorbs them. That is the design working, not a mis-routing.**
+
+### ⚡ The after-scan caught the hole being RE-CREATED while it was being closed
+
+`shots/` was routed to `s0` — and **S0's roots did not walk `apps/rn/tests`.** Routing to a surface that
+**exists but does not walk the directory** removes the file from the sending surface and adds it to
+nothing: ten files landed on **no surface at all**, which is precisely what [D73] exists to end.
+
+⛔ **The distinction, now written into the instrument:** routing to `s2`/`s3`/`s4` is *fine* — those
+surfaces are not built, so the routing records an owner for when they are. **The trap is a routing to a
+LIVE surface whose roots do not cover the file.** `migrationAudit` is the precedent that should have
+caught this: S1 routes it to S0 **and** S0 carries it as a root, for exactly this reason.
+
+⚠️ Found by re-reading the instrument's own output — `grep -c "tests/shots" surface-coverage.s0.json`
+returned **0** after a routing whose whole point was to put them there. **The routing was verified by
+reading the result rather than by trusting the edit.**
+
+### The plants
+
+| plant | result |
+|---|---|
+| delete a guarded spec (`plan-hero-conserves.spec.ts`) | `s1-coverage` reds **`STALE — recorded but no longer on the surface`**; `lint:finding-guards` reds on **both** its entries with `guard file is GONE`. ⚡ **This is new capability** — before [D73] the coverage gate had nothing to say about a deleted spec |
+| route to a surface that does not exist (`s9`) | reds: *"1 exclusion(s) route to a surface that does not exist"* — S1.5.4's M9-C guard still fails closed on the new routings |
+
+⚡ **And the gate caught my own litter unprompted:** a one-shot write-back script left in `scripts/` was
+walked as an S0 surface file, written into the claims, and then — once deleted — reported `STALE`. The
+instrument policed the person using it.
+
+### Verification
+
+Both coverage gates green · `typecheck:scripts` green · `lint:rn` **27 of 27** · `lint:finding-guards`
+**57 of 73 guarded, cap unmoved**. Both `S*-SURFACE-INVENTORY.md` regenerate themselves from the claims,
+so the docs cannot disagree with the data. **The residue table quotes the gates; nothing was typed.**
+
+⚠️ **The claim write-back was done by a script, against the memory rule that prefers `Edit`.** 74 keys is
+past what hand-editing survives — so the script verified **from disk, against `git show HEAD:`**, that every
+committed key survived byte-identical and every addition was exactly `["never"]`, and it was deleted
+afterwards. ⛔ **A `node -e` verification of the same thing printed NOTHING and exited clean** — the fourth
+logged instance. The check that caught it was noticing there was no output.
+
+---
+
+## 📋 [D73] — the decomposition, authored ahead of switch-in *(superseded by the entry above)*
 
 🎯 2026-08-26: *"We should have e2e coverage on audits. I agree with your reasoning."* Answers the
 `[DECISION]` S1.5.5's whole-item after-scan filed. **Held until S1.6's gate record is committed** —

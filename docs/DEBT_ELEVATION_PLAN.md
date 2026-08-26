@@ -37,9 +37,9 @@ Phase 6's order, the device ledger, the backlog, the decisions. Detail for anyth
 | ✅ | **S1.5.3 — B2 · B3 · B4, ONE SHAPE** | CLOSED 2026-08-26 · every fix a lifetime or an ownership change, no arithmetic touched. `intentRollback` invalidated as a **class** in the `set` wrapper *(which also closed `importStore` and `reset()`)* · `cycleTopUp` gains per-source **entries**, `amount` derived · `convertingExpenseId` moved into the sheet's own state. ⚡ **A fourth blocker found because a plant did NOT red** — `submit()`'s BNPL branch never consulted the convert flag, so a bill converted to a BNPL was reserved AND projected at once. **7 plants · 11 guards · `lint:rn` 26/26.** Detail → log |
 | ✅ | **S1.5.4 — M5–M10, the instruments** | CLOSED 2026-08-26 · **M9** roots widened to directories with routed, validated exclusions *(72 → **137 files**; `index.tsx`, where B5 is wired, was on no surface at all)* + claim vocabulary allow-listed · **M6** boundary decided per token END · **M7** a token must pin a **non-comment** line · **M8** both floors strict equality + duplicate-id check · **M5** `test:gate-plants` in the chain *(**27 gates**)* · **M10** `lint:secrets:authoring`. ⚡ **Pass 1's coverage was never recorded — 0 `s1p1` labels; written back for 62 S1 + 16 S0 files**, or [D69] would have let pass 2 re-exempt its own repeats. **5 plants · 8 guards.** Detail → log |
 | ✅ | **S1.5.5 — M1–M4, the app majors** | CLOSED 2026-08-26 · M1 `resolveBillCategory` partitions into the real `'other'` · M2 the funded branch prints what is SAVED · M3 a shortfall is `at-risk` by its own branch · M4 the paycheck split conserves. ⚡ **Three of the four after-scans found a SECOND door, each reachable only because of the fix or measured rather than reasoned** — and one of my own new assertions was **vacuous**, caught by a plant. **14 plants · 13 guards · `lint:rn` 27/27.** Detail → log |
-| ▶ | **S1.6 — gate + record.** ⚠️ `lint:gate-freshness` is RED now and stays red until this runs | `validate:release:rn` green **and recorded**, then **commit immediately** — a record on a dirty tree names bytes no commit held |
-| | **S1.7 — [D73] put the TEST TREE on a surface.** Measured scope: **99 off-surface files** — `apps/rn/tests` **76** *(62 e2e + helpers + embed + shots)* · `packages/core/testing` **20** · `apps/rn/src/testing` **3**. Roots widen; owners route; **anything arguable stays, per the instrument's own fail-safe.** Decomposed at switch-in | both coverage gates green on the widened roots, the new unswept counts **written back**, and `lint:rn` still 27/27 |
-| | **S1.8 — re-verify, pass 2**, fresh agents, pinned. Carries the standing S0 jobs ①/② again. Brief drafted at [`2026-08-26-s1-money-pass2/BRIEF.md`](audits/2026-08-26-s1-money-pass2/BRIEF.md) — ⚠️ **needs the pin SHA and a re-write of its job ② once S1.7 lands**, because the guard files it currently names by hand will be on the surface instead | 0 blockers / 0 majors, **twice consecutively** |
+| ✅ | **S1.6 — gate + record** | CLOSED 2026-08-26 · `e2b6627` · **300 e2e** *(288 + the 12 new)* · 10 embed · 807 source files · fingerprint **`69c372a0`** · `lint:rn` 27/27, freshness green. ⚠️ Recorded on a dirty tree, then committed immediately — **quote the fingerprint, not the SHA** |
+| ✅ | **S1.7 — [D73] put the TEST TREE on a surface** | CLOSED 2026-08-26 · **S1 137 → 188 files** *(65 → **116** unswept)* · **S0 58 → 91** *(15 → **48**)* · 2 gate plants · `lint:rn` 27/27. ⚡ **The after-scan caught the hole being re-created while closing it** — `shots/` routed to a LIVE surface whose roots did not cover it, so ten files landed on nothing. Detail → log |
+| ▶ | **S1.8 — re-verify, pass 2**, fresh agents, pinned *(decomposed below)* | 0 blockers / 0 majors — and S1 exits only on **TWO consecutive clean passes**, so a clean pass 2 is half the exit, not the exit |
 
 **Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
 new instruments swept. ✅ **The instrument half is DONE** — pass 1 swept `check-finding-guards.ts`,
@@ -47,6 +47,24 @@ new instruments swept. ✅ **The instrument half is DONE** — pass 1 swept `che
 found in them. ⚡ Every one was the S0 shape: *an instrument reporting green while doing less than it
 claimed.*
 
+
+#### S1.8's sub-steps — pass 2, fresh agents ([D68])
+
+Brief drafted and every path in it verified: [`2026-08-26-s1-money-pass2/BRIEF.md`](audits/2026-08-26-s1-money-pass2/BRIEF.md).
+
+| # | sub-step |
+|---|---|
+| **S1.8.1** | **Commit S1.7 and pin.** ⛔ The brief's `<PIN-SHA>` is a placeholder — a pass audits a **commit**, and a pin naming a dirty tree is [D49]'s failure one level up |
+| **S1.8.2** | Re-read the brief against the **pinned** tree — every path, every id, every count. ⛔ **The dispatch is part of the audit** |
+| **S1.8.3** | Dispatch **4 fresh auditors** (A fixes · B guards+instruments · C money/goals/store · D plan cards/Guardian/`index.tsx`). ⛔ **No sub-agents; no source edits;** each writes one report |
+| **S1.8.4** | Record the result — `SUMMARY.md` counted **from the auditor files**, never from an auditor's own summary *(a prior round's summary said "9 open" where its files held 14)* |
+| **S1.8.5** | Apply [D69] **mechanically from the inventory** — which findings count as churn, which are coverage. ⛔ Exempt from the count is **not** exempt from the fix |
+| **S1.8.6** | Fix everything found, each plant-verified with a control, then **write the pass-2 coverage claims back** *(`s1p2`)* — ⛔ S1.5.4's lesson: pass 1's claims were never written back, and [D69] would have let pass 2 re-exempt its own repeats |
+
+⚠️ **Expect first-look findings.** Pass 2 is the first pass to read **116 unswept S1 files, 51 of them the
+specs that guard the other findings** — and on the two occasions this measurement has been taken, the pass
+that swept never-swept ground out-found the pass that re-swept swept ground **5 majors to 0**, then
+**9 to 0**.
 
 ### ⛔ The rules that are LIVE while S1 builds
 
@@ -79,8 +97,8 @@ claimed.*
 | ledger | where it lives | command | 2026-08-26 *(after S1.5.4)* |
 |---|---|---|---|
 | unguarded findings, **both floors now strict equality** *(M8)* | `scripts/finding-guards.json` | `npm run lint:finding-guards` | 73 findings · **57 guarded · 16 unguarded** (cap 16) *(after S1.5.5)*. ⚠️ Adding a guard is now a two-line edit — the entry **and** `MIN_ENTRIES` |
-| S0 files never swept | `scripts/surface-coverage.s0.json` | `npm run lint:s0-coverage` | 58 files · **15 unswept** *(20 before pass 1's sweep was written back)* |
-| S1 files never swept | `scripts/surface-coverage.s1.json` | `npm run lint:s1-coverage` | **137 files · 65 unswept.** ⚡ The surface was 72 files and read **0 unswept** — a perfect score for a list missing `index.tsx`. **M9 widened the roots; 65 is the honest number.** ⛔ Write the claims back after **every** pass or coverage stops ratcheting |
+| S0 files never swept | `scripts/surface-coverage.s0.json` | `npm run lint:s0-coverage` | **91 files · 48 unswept** *(after [D73])*. ⚠️ Was 58 · 15 — **the test RUNNERS and the shot recipes joined S0**, and S0 had converged. [D70] closed it on *instruments-sound*, and a runner nobody read is an unaudited instrument |
+| S1 files never swept | `scripts/surface-coverage.s1.json` | `npm run lint:s1-coverage` | **188 files · 116 unswept** *(after [D73])*. ⚡ **Twice now the honest number came from widening the roots**: 72 → 137 at M9 *(a perfect 0-unswept score for a list missing `index.tsx`)*, then 137 → **188** when the test tree joined. ⛔ Write the claims back after **every** pass or coverage stops ratcheting |
 | secrets exemptions, `MAX_EXEMPT` **self-ratcheting** *(reds above AND below — a stale entry reds)* | `scripts/secrets-exemptions.json` | `npm run lint:secrets` | 2 of cap 2. ⚠️ Writing an audit report? Run **`npm run lint:secrets:authoring`** before committing it *(M10)* |
 
 ⚠️ **This table's numbers decayed once already** — it read *"34 findings · 18 guarded"* while the gate said

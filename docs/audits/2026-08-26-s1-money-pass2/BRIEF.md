@@ -20,16 +20,18 @@ is no fifth S0 pass. Job ① is the second and last verification S0's close-out 
 
 ## ⚡ The two most useful numbers in this brief
 
-**1. The surface is 137 files. 65 have never been examined by anybody.**
+**1. The surface is 188 files. 116 have never been examined by anybody.**
 
 ```
-npm run lint:s1-coverage              # 137 files · 65 unswept
+npm run lint:s1-coverage              # 188 files · 116 unswept
 npm run lint:s1-coverage -- --report
 ```
 
-⚠️ Pass 1 ran against a **72-file** list that turned out to be an inclusion list wearing a directory's
-clothes — `index.tsx`, 1,087 lines and where blocker B5 was wired, **was on no surface at all.** The roots
-were widened to whole directories at S1.5.4 and 65 is the honest number.
+⚠️ **Pass 1 ran against a 72-file list, and it was wrong twice over.** It was an inclusion list wearing a
+directory's clothes — `index.tsx`, 1,087 lines and where blocker B5 was wired, **was on no surface at
+all** — so S1.5.4 widened the roots to whole directories (**137**). Then [D73] admitted the test tree
+(**188**). ⛔ **Both corrections came from widening roots, and both times the pre-correction number looked
+healthier.** 116 is the honest one.
 
 ⚠️ **This is not a hint that the unswept files are where the bugs are. It is a measurement of where nobody
 has looked** — and it has now predicted the outcome twice. On S0, the pass that swept never-swept ground
@@ -37,12 +39,22 @@ found 5 majors while the pass sweeping swept ground found 0. On S1 pass 1, **14 
 examined, and 5 blockers plus 4 app-majors came out of the other 58.** ⛔ **The variable is not the tree.
 It is where the auditor points.**
 
-**2. 🔴 NO e2e SPEC IS ON ANY SURFACE — so this brief hands you the guard files by name.**
+**2. The test tree joined the surface four hours ago, and nobody has ever audited it.**
 
-`grep -c "tests/e2e"` returns **0** against both `surface-coverage.s0.json` and `surface-coverage.s1.json`.
-Co-located `*.test.ts` files under `src/` are on-surface; the whole of `apps/rn/tests/` is not. **Job ② is
-where that gets corrected by hand.** Whether those roots should widen is an open `[DECISION]` and is **not
-yours to settle** — read the files this brief names and report on them.
+Until [D73] *(🎯, 2026-08-26)*, `grep -c "tests/e2e"` returned **0** against both claims files: the guards
+for most registered findings sat in files no auditor was ever pointed at, while the standing rule requires
+every surface audit to re-verify the previous surfaces' guards. **S1.7 widened the roots.** `apps/rn/tests`
+is now an S1 root; `packages/core/testing` and `apps/rn/src/testing` are S0 roots.
+
+⚡ **So 51 of S1's 116 unswept files are specs, and all 23 of S0's new ones are runners — and every one is
+`never`.** They are not a footnote to this pass; on the measurement above, **they are where it should
+point.**
+
+⛔ **`lint:finding-guards` is not a substitute and cannot be made into one.** It proves a token still sits
+on a non-comment line. It cannot prove the assertion behind it can still fail. ⚡ **Measured in the range
+you are auditing:** an assertion that a card contained `$400` **passed with the defect present**, because
+the defective card printed `$400` from a neighbouring section. A plant caught it; the registry would have
+counted that finding guarded indefinitely. **Assume there are others.**
 
 ---
 
@@ -188,27 +200,23 @@ check, not a proof.** Your job is the half the gate cannot do:
 ⛔ **"The token is there" is not an answer.** ⛔ **"A test file exists" is not a guard.**
 ⚠️ The 16 `unguarded` entries are a known backlog, **not your finding** — confirm the count and move on.
 
-⛔ **THESE FILES ARE ON NO SURFACE. Nobody has ever audited them.** The thirteen newest:
+⛔ **DO NOT WORK FROM A LIST IN THIS BRIEF — ask the instrument.** An earlier draft named thirteen guard
+files by hand, which is an inclusion list wearing a brief's clothes and is the exact defect M9 punished.
+Every guard file is now on a surface, so the registry and the coverage report between them enumerate your
+scope mechanically:
 
 ```
-apps/rn/tests/e2e/bill-category-partition.spec.ts     (M1, AS-1)
-apps/rn/tests/e2e/goal-row-saved.spec.ts              (M2, AS-2)
-apps/rn/tests/e2e/guardian-shortfall-topup.spec.ts    (M3 render gate)
-apps/rn/tests/e2e/plan-hero-conserves.spec.ts         (M4)
-apps/rn/src/store/guardianSelectors.test.ts           (M3, AS-3)
-packages/core/guardian/testBuildGuardianBrief.ts      (M3, core)
-apps/rn/tests/e2e/no-bills-branch.spec.ts             (B5 ×4)
-apps/rn/tests/e2e/intent-undo.spec.ts                 (B2)
-apps/rn/tests/e2e/misfiled-expense.spec.ts            (B4 ×3)
-apps/rn/src/store/storeActions.test.ts                (B2, B3, B4)
-apps/rn/src/store/trustSelectors.test.ts              (B1)
-apps/rn/tests/e2e/progress-hero-journey.spec.ts       (B1)
-apps/rn/tests/e2e/recovery.spec.ts                    (B5's rescoped proxy)
+npm run lint:finding-guards          # 73 findings · 57 guarded · 16 unguarded, each entry naming its file
+npm run lint:s1-coverage -- --report # every spec, with its claim
 ```
 
-⚡ **One vacuous assertion is already known to have been written in this range and caught by a plant, not
-by a gate**: a card asserted to contain `$400` while the *defective* card contained `$400` from a
-neighbouring section. **Assume there are others. Rule 10 is your job.**
+⚠️ **`node -e` file reads and writes silently no-op on this machine** — three logged instances, each of
+which made the following check print green over work that never happened. Use a script FILE.
+
+⚠️ **Start with the four written yesterday** — `bill-category-partition`, `goal-row-saved`,
+`guardian-shortfall-topup`, `plan-hero-conserves` — plus `guardianSelectors.test.ts` and
+`testBuildGuardianBrief.ts`. **They have had exactly one pair of eyes on them, and it was the author's.**
+Rule 10 is your job.
 
 ## AUDITOR C — job ③: `money.tsx`, goals, the store, and the 65 unswept
 

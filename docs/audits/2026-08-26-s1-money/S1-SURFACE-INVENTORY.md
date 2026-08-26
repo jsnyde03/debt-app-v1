@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**137 files on the S1 surface · 72 swept · 65 unswept.**
+**188 files on the S1 surface · 72 swept · 116 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -134,6 +134,57 @@
 | `apps/rn/src/store/trustSelectors.ts` | ⛔ **never** |
 | `apps/rn/src/store/useAppStore.ts` | ⛔ **never** |
 | `apps/rn/src/store/windfallSplit.test.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/a11y-axe.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/a11y-row-labels.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/absorb-entry.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/ack-coordinator.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/affordability.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/amount-guards.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/analytics-optout.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/bill-category-partition.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/blur-glass.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/bnpl.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/celebration.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/cushion-forecast.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/earlyjourney.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/enh-audit-screens.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/expense-reserve.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/goal-pace-edit.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/goal-row-saved.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/greeting.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/guardian-shortfall-topup.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/guardian.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/helpers/seed.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/hero-date-fit.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/intent-undo.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/ipad-layouts.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/misfiled-expense.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/money-add-chooser.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/no-bills-branch.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/on-plan-streak.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/payday-reopen.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/payoff-schedule.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/paywall.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/plan-hero-conserves.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/premium-entry.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/progress-hero-journey.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/proofofwork.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/recovery.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/route-smoke.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/saveforit-pace.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/sheet-polish.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/sheet-remove.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/spoken-state.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/strategy-compare.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/swipe-delete.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/swipe-mark-paid.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/topup-sources.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/trajectory-domain.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/trajectory-interactivity.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/trials.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/variable-income.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/vis5-cone.spec.ts` | ⛔ **never** |
+| `apps/rn/tests/e2e/windfall.spec.ts` | ⛔ **never** |
 | `packages/core/engine/allocatePaycheck.ts` | r17 |
 | `packages/core/engine/emergencyFund.ts` | r17 |
 | `packages/core/engine/recommendedActions.ts` | never · s1p1 |
@@ -219,4 +270,55 @@
 - `apps/rn/src/store/trustSelectors.ts`
 - `apps/rn/src/store/useAppStore.ts`
 - `apps/rn/src/store/windfallSplit.test.ts`
+- `apps/rn/tests/e2e/a11y-axe.spec.ts`
+- `apps/rn/tests/e2e/a11y-row-labels.spec.ts`
+- `apps/rn/tests/e2e/absorb-entry.spec.ts`
+- `apps/rn/tests/e2e/ack-coordinator.spec.ts`
+- `apps/rn/tests/e2e/affordability.spec.ts`
+- `apps/rn/tests/e2e/amount-guards.spec.ts`
+- `apps/rn/tests/e2e/analytics-optout.spec.ts`
+- `apps/rn/tests/e2e/bill-category-partition.spec.ts`
+- `apps/rn/tests/e2e/blur-glass.spec.ts`
+- `apps/rn/tests/e2e/bnpl.spec.ts`
+- `apps/rn/tests/e2e/celebration.spec.ts`
+- `apps/rn/tests/e2e/cushion-forecast.spec.ts`
+- `apps/rn/tests/e2e/earlyjourney.spec.ts`
+- `apps/rn/tests/e2e/enh-audit-screens.spec.ts`
+- `apps/rn/tests/e2e/expense-reserve.spec.ts`
+- `apps/rn/tests/e2e/goal-pace-edit.spec.ts`
+- `apps/rn/tests/e2e/goal-row-saved.spec.ts`
+- `apps/rn/tests/e2e/greeting.spec.ts`
+- `apps/rn/tests/e2e/guardian-shortfall-topup.spec.ts`
+- `apps/rn/tests/e2e/guardian.spec.ts`
+- `apps/rn/tests/e2e/helpers/seed.ts`
+- `apps/rn/tests/e2e/hero-date-fit.spec.ts`
+- `apps/rn/tests/e2e/intent-undo.spec.ts`
+- `apps/rn/tests/e2e/ipad-layouts.spec.ts`
+- `apps/rn/tests/e2e/misfiled-expense.spec.ts`
+- `apps/rn/tests/e2e/money-add-chooser.spec.ts`
+- `apps/rn/tests/e2e/no-bills-branch.spec.ts`
+- `apps/rn/tests/e2e/on-plan-streak.spec.ts`
+- `apps/rn/tests/e2e/payday-reopen.spec.ts`
+- `apps/rn/tests/e2e/payoff-schedule.spec.ts`
+- `apps/rn/tests/e2e/paywall.spec.ts`
+- `apps/rn/tests/e2e/plan-hero-conserves.spec.ts`
+- `apps/rn/tests/e2e/premium-entry.spec.ts`
+- `apps/rn/tests/e2e/progress-hero-journey.spec.ts`
+- `apps/rn/tests/e2e/proofofwork.spec.ts`
+- `apps/rn/tests/e2e/recovery.spec.ts`
+- `apps/rn/tests/e2e/route-smoke.spec.ts`
+- `apps/rn/tests/e2e/saveforit-pace.spec.ts`
+- `apps/rn/tests/e2e/sheet-polish.spec.ts`
+- `apps/rn/tests/e2e/sheet-remove.spec.ts`
+- `apps/rn/tests/e2e/spoken-state.spec.ts`
+- `apps/rn/tests/e2e/strategy-compare.spec.ts`
+- `apps/rn/tests/e2e/swipe-delete.spec.ts`
+- `apps/rn/tests/e2e/swipe-mark-paid.spec.ts`
+- `apps/rn/tests/e2e/topup-sources.spec.ts`
+- `apps/rn/tests/e2e/trajectory-domain.spec.ts`
+- `apps/rn/tests/e2e/trajectory-interactivity.spec.ts`
+- `apps/rn/tests/e2e/trials.spec.ts`
+- `apps/rn/tests/e2e/variable-income.spec.ts`
+- `apps/rn/tests/e2e/vis5-cone.spec.ts`
+- `apps/rn/tests/e2e/windfall.spec.ts`
 
