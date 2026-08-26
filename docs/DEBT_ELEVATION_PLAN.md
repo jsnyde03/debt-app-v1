@@ -12,7 +12,7 @@
 > [2026-08-26](archive/DEBT_ELEVATION_PLAN_2026-08-26-precleanup2.md) *(1,434 → 641 lines)* — every
 > predecessor verbatim in `archive/`.
 >
-> **How to read this file.** **§1 [RIGHT NOW](#-right-now--s19--fixing-pass-2)** — the one thing being
+> **How to read this file.** **§1 [RIGHT NOW](#-right-now--s110--pass-3)** — the one thing being
 > built, decomposed · **§2 [OPEN, but NOT being built](#-open-but-not-being-built)** — the only other live
 > queue · **everything after that is REFERENCE**: where v1.7 is · the Phase 6 order to submission · what is
 > waiting on Jason · the decisions ledger.
@@ -26,20 +26,21 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.9 · fixing pass 2**
+## ▶ RIGHT NOW — **S1.10 · pass 3**
 
-**Surface S1 · money · goals · plan cards.** Pass 1 fixed and re-verified; **pass 2's 3 blockers, 6 majors
-and 4 of its 12 minors are closed** — S1.9.1–.6. What remains is **S1.9.7** *(D2-3 + the rest of the
-minors)* and **S1.9.8** *(the recorded gate, then push)*. S0 converged 2026-08-25. ⛔ Everything below the
-ACTIVE block is **reference, not queue**. Detail for anything closed →
-[`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+**Surface S1 · money · goals · plan cards.** Passes 1 and 2 are **run and fully fixed**; the gate is green
+and recorded at fingerprint **`d2743681`**. ⛔ **S1 does NOT converge yet** — [D65] exits on 0/0 **twice
+consecutively**, and pass 2 reset the count. **Pass 3 is the first candidate**, and [D68] means a **new
+session** runs it. S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not
+queue**. Detail for anything closed → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 ### 🔨 THE ACTIVE DECOMPOSITION — S1 *(the ONLY decomposed section on this doc)*
 
 | # | sub-step | exit line |
 |---|---|---|
 | ✅ | **S1.1 – S1.8** — the surface opened, both passes run and pass 1 fixed | CLOSED 2026-08-26 · pass 1: **5 blockers · 10 majors**, every one fixed and guarded · **S1.6** the gate recorded at fingerprint `69c372a0` · **S1.7** [D73] put the TEST TREE on a surface · **S1.8** pass 2, four fresh auditors at `4b58d75` → **3 blockers · 6 majors · 12 minors** ([`SUMMARY.md`](audits/2026-08-26-s1-money-pass2/SUMMARY.md)). ⭐ **A issued 23 verdicts and 22 came back CLOSED.** Detail → log |
-| ▶ | **S1.9 — fix pass 2** *(decomposed below)* | every finding fixed and plant-verified, then `validate:release:rn` green **and recorded**, then commit immediately |
+| ✅ | **S1.9 — pass 2 FIXED** | CLOSED 2026-08-26 · 3 blockers · 6 majors · 12 minors, **57 plants · 22 guards**. ⚡ **Three times the fix WAS the defect class**; the roots were wrong twice more *(1 dir → 18, then 184 invisible files)*; `lint:rn` 27 → **28 gates**. Detail → log |
+| ▶ | **S1.10 — pass 3** *(decomposed below)* | ⛔ **[D68]: a NEW SESSION runs it.** The surface is **2.5×** what pass 2 read |
 
 **Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
 new instruments swept. ✅ **The instrument half is DONE** — pass 1 swept `check-finding-guards.ts`,
@@ -48,25 +49,28 @@ found in them. ⚡ Every one was the S0 shape: *an instrument reporting green wh
 claimed.*
 
 
-#### S1.9's sub-steps — fixing pass 2
+#### S1.10's sub-steps — pass 3, the first candidate for a clean pass
 
-⚡ **The three blockers are ONE SHAPE and get ONE owner, not three patches** — B1's rule *never state a
-number about money the app could not read* was wired to a subset of **claim sites** and a subset of
-**fields**. Patching each site rebuilds the defect a fourth time.
+⛔ **[D65] exits on 0 blockers / 0 majors TWICE CONSECUTIVELY.** Pass 2 reset the count; pass 3 is the first
+candidate, and a clean pass 3 still owes a pass 4.
+
+⚠️ **THE SURFACE IS 2.5× THE ONE PASS 2 READ — 188 → 470 files, 116 → 331 unswept.** S1.9.5 admitted all of
+`packages/core` *(18 directories, 102 files — `debt` alone is 53)* and all of `apps/rn/src` *(184 files
+under no root at all)*. ⛔ **A brief that reuses pass 2's routing hands four auditors the old surface** and
+the coverage number will not move.
 
 | # | sub-step |
 |---|---|
-| ✅ **S1.9.1** | **D2-2** — CLOSED 2026-08-26 · `undoTightTopUp(source, draw?)`: the Guardian keeps whole-entry *(it displays the entry)*, a caller showing ONE cover passes it and gets exactly it back, clamped to what the entry holds. The card now records what LEFT the goal, not what was asked for. **3 plants · 2 guards · `lint:rn` 27/27.** Detail → log |
-| ✅ **S1.9.2** | **C4 · C2 · C3 · C1, one owner** — CLOSED 2026-08-26 · a **claim TABLE** in `trustSelectors` routes every repairable field to a claim, **gated both ways** against `migrations`' own `REPAIRABLE_MONEY_FIELDS` · C4 a third zero state · C2 per-field, per-row · C3 `selectCelebration` at the VARIABLE *(gating the JSX would have hidden the repairs card)* · C1 a reset path as a class in the `set` wrapper + an explicit confirm signal. ⚡ **The after-scan found C2's exact shape on the DEBTS hero.** **13 plants · 7 guards · `lint:rn` 27/27.** Detail → log |
-| ✅ **S1.9.3** | **A1** — CLOSED 2026-08-26 · netted ONCE into `residual` + `surplus`; ⚠️ **the plan named three seams and there are six** *(`selectTightTopUp` was refusing on the raw shortfall, so the band's new `tight` range had no control)*. ⚡ The shortfall sentence now names what is **still** short — $200, not $400. **6 plants** incl. **the naive over-fix, caught by three pre-existing M3 guards.** `lint:rn` 27/27. Detail → log |
-| ✅ **S1.9.4** | **B-1** — CLOSED 2026-08-26 · 6 new `test-gate-plants` scenarios *(5 → **11**)* + a routing **self-check** + **all 7 tokens re-pointed**; the auditor's table inverted, all seven un-fixes now red. ⚡ **`expect` (red for the RIGHT reason) caught one that still exited 1**, and **my own self-check was the defect it was closing.** ⛔ **The enumeration was short by SIX.** Detail → log |
-| ✅ **S1.9.5** | **the roots** — CLOSED 2026-08-26 · ⛔ **"one line" was wrong by 18, then by 184 more.** Roots are now `apps/rn/src` · `apps/rn/tests` · `packages/core`; **S1 188 → 470 files, 116 → 331 unswept**. ⚡ **`lint:surface-complete` ends the class** — every *tracked* source file must be under some surface's roots, cap 0. `s1p2` written back *(90 S1 · 20 S0)*. 4 plants · 3 guards · **28 gates**. Detail → log |
-| ✅ **S1.9.6** | **D2-1** — CLOSED 2026-08-26 · ⚠️ **measured: NOT absorbed by A1** *(its case has no shortfall, so `surplus == topUp`)*. 🎯 chose: **the band reads spendable cash in all three producers**, the forecast on **cycle 0 only**; `PlanHero`'s partition legend deliberately unmoved *(conservation, [M4])*. ⚡ **The over-fix plant stayed GREEN** — nothing guarded *cycle 0 only*. 5 plants · 2 guards. Detail → log |
-| ✅ **S1.9.7** | **D2-3 + the minors** — CLOSED 2026-08-26 · ⚡ **the before-scan found 4 of the 12 already closed** by S1.9.1–.6, one of them the `lint:secrets` hole I had rediscovered the expensive way. D2-3 asserts the `PromptCard` by name · **C-m1's CLASS gated** *(every repairable field must have words)* · C-m2 · B-2 · B-3 · N9 · A#7. ⚡ **S1.9.4's re-pointed `GUARDED-1` caught my own B-2 edit** — a bare identifier would have said nothing. 8 plants · 4 guards. Detail → log |
-| **S1.9.8** | `validate:release:rn` green **and recorded**, commit immediately. ⛔ **Push** — CI has not run since `78c6020`, so four e2e guards have never been executed by anything but a hand run |
+| **S1.10.1** | **The brief, pinned at S1.9.8's SHA, carrying NO verdict** ([D68]). ⛔ **Route the 282 newly-admitted files explicitly** — `packages/core/{debt,cashflow,forecast,income,insights,obligations,payCycle,recovery,history,timeline}` and `apps/rn/src/{utils,premium,storage,hooks,liveActivity,widget,components/*}`. ⚠️ **`utils/format.ts` is the highest-value single file**: every dollar figure in the app passes through it and **no pass has ever been pointed at it** |
+| **S1.10.2** | **Verify every path and id in the brief before hand-over** — the dispatch is part of the audit ([D68]). ⚠️ Pass 2's brief carried a WRONG fix range and auditor A corrected it mid-pass |
+| **S1.10.3** | **Run it — four fresh agents, no sub-agents, incremental writes.** ⛔ The driving session never performs the pass |
+| **S1.10.4** | **Record, and classify each finding under [D69] MECHANICALLY** from `surface-coverage.s1.json` — never from an auditor's judgement. ⚠️ With 331 unswept, **expect most findings to be first-look**, i.e. coverage results that do not restart the count. ⛔ Exempt from the count is NOT exempt from the fix |
+| **S1.10.5** | **Write the `s1p3` claims back in the SAME step as the record.** ⛔ `s1p2` did not exist until S1.9.5 — pass 2 swept and none of it was recorded, which is the second time this has happened |
+| **S1.10.6** | **Fix, every one plant-verified with a control**, and plant the **naive over-fix** too — that found a real hole once in two tries across S1.9 |
+| **S1.10.7** | `validate:release:rn` green **and recorded**, commit, **push** |
 
-⛔ **Every fix plant-verified with a control, and ⚠️ NOT on the member of the class where the remedies
-agree** — that is precisely how AS-3 shipped over-matched with three tests green.
+**Exit (S1.10):** 0 blockers / 0 majors on the widened surface, the `s1p3` claims written back, and the
+consecutive-clean count standing at **one**.
 
 ### ⛔ The rules that are LIVE while S1 builds
 

@@ -338,6 +338,135 @@ other**, in both directions. Reasoning for each → [`DEBT_ELEVATION_LOG.md`](DE
 
 ---
 
+## 📕 SESSION CLOSE 2026-08-26 (fourth) — S1.9 CLOSED, and the plan compacted to a driver
+
+### ▶ WHERE THE NEXT SESSION STARTS: **S1.10 — pass 3**
+
+⛔ **Read the plan's ACTIVE section first.** [D68] is the rule that shapes the whole session: **the driving
+session writes the brief and records the result; it never performs the pass.** Decomposed S1.10.1–.7.
+
+⚠️ **THE SURFACE IS 2.5× WHAT PASS 2 READ — 188 → 470 files, 116 → 331 unswept.** A brief that reuses
+pass 2's routing hands four auditors the old surface. **`apps/rn/src/utils/format.ts` is the single
+highest-value file no pass has ever been pointed at.**
+
+### What this session did
+
+| | |
+|---|---|
+| **S1.9.1** | [D2-2], the only regression — one entry is not one draw. `undoTightTopUp(source, draw?)` |
+| **S1.9.2** | [C4 · C2 · C3 · C1] — the trust class gets one owner and a **gated claim table** |
+| **S1.9.3** | [A1] — the top-up netted **once**; the plan named 3 seams and there were **6** |
+| **S1.9.4** | [B-1] — the seven guards that could not see their own un-fix; **all seven now red** |
+| **S1.9.5** | the roots — *"one line"* was wrong by 18, then by 184 more; **`lint:surface-complete` ends the class** |
+| **S1.9.6** | [D2-1] — the one state machine's three producers agree; **the over-fix plant found a real hole** |
+| **S1.9.7** | [D2-3] + the minors — and **4 of the 12 were already closed** by the earlier sub-steps |
+| **the plan** | **1,434 → 641 lines.** Three registers got their own home; an id-diff and a bullet-count invariant say nothing was lost |
+
+**57 plants. 22 new guards.** `lint:rn` **27 → 28 gates**; the registry **73 → 95 findings, 79 guarded**,
+with **13 tokens re-pointed** off bare identifiers.
+
+### ⛔ THE FOUR RESULTS THAT OUTLIVE THE ITEM
+
+1. **Three times the fix I wrote WAS the defect class I was closing** — and not one was visible by
+   re-reading the diff. Each was caught by a plant or a standing guard.
+2. **Plant the naive OVER-FIX, not only the defect** — one real hole in two attempts. S1.9.3's was caught by
+   three pre-existing guards *(the strongest proof the old protection is intact)*; S1.9.6's by **nothing**.
+3. **A red is not evidence until you know which claim produced it** — a gate that reds for a *different*
+   reason scores a perfect pass under an exit-code-only check, measured on the first un-fix it met.
+4. **Seven short enumerations, then the remedy changed shape.** `lint:surface-complete` does not list the
+   trees it audits; it takes the list from `git ls-files`. **A gate that enumerates its own scope is blind
+   to what the list omits.**
+
+### 🔴 UNPUSHED — and the push is the last thing S1.9.8 owes
+
+⚠️ **CI has not run since `78c6020`.** Every guard added since then has been executed only by hand runs on
+this machine.
+
+---
+
+## 🔎 S1.9 — THE WHOLE-ITEM AFTER-SCAN *(2026-08-26)*
+
+Seven sub-steps, 3 blockers · 6 majors · 12 minors, **57 plants**. What follows is what only shows when the
+whole item is read at once — per-sub-step scans structurally cannot see it.
+
+### ⛔ 1. THREE TIMES THE FIX I WROTE *WAS* THE DEFECT CLASS I WAS CLOSING
+
+| where | the defect I introduced | found by |
+|---|---|---|
+| **S1.9.2** | `migration` repairs dropped at BOOTSTRAP — `findRow` returns nothing for an entity that owns no list, so every v1.6 bridge loss read as *"the row is gone"* | a **standing** test (`persistenceLifecycle`) |
+| **S1.9.2** | a fixture that gagged nothing, used to test a gag — the `migration` record I chose deliberately poisons no claim | my own assertion, redding on a store where the claim was allowed |
+| **S1.9.4** | a routing self-check that asserted the **predicate**, so `if (false && !routeIsKnown(...))` at the call site stayed green — *tested-helper-is-not-a-used-helper*, written into the fix for a finding whose sharpest instance is that exact shape | the plant |
+
+⚡ **Not one was visible by re-reading the diff**, and I re-read every one of them. This is the fourth
+session to measure it; it is not a lapse, it is the shape of the work. **The plant is not a formality at the
+end of a fix — it is the only instrument that sees this class.**
+
+### ⛔ 2. SEVEN SHORT ENUMERATIONS, THEN THE REMEDY CHANGED SHAPE
+
+Every count I or an auditor made during S1.9 was low: 2→7 sites, 9→14 majors, 3 seams→6, 7 bare-identifier
+guards→13, 9 repairable fields→10, one `packages/core` directory→**18**, and zero invisible directories→**184**.
+
+⚡ **The fix stopped being "count more carefully" at S1.9.5.** `lint:surface-complete` does not enumerate
+the trees it audits — it takes the file list from `git ls-files` and requires every survivor to be under a
+surface root. ⛔ **A gate that lists what it covers is blind to what the list omits, which is the same
+defect one level up.** The deny-list version showed both failure modes on its first two runs before the
+inversion landed.
+
+**Carry this into pass 3:** an enumeration in a finding is a lower bound. The question to ask of any list
+is not *"is it complete?"* but *"what would make completeness checkable?"*
+
+### ⚡ 3. THE OVER-FIX PLANT IS THE HIGHEST-YIELD PLANT, AND IT IS THE ONE I NEARLY SKIPPED TWICE
+
+Planting the **naive wrong version of my own fix** — not the original defect — twice:
+
+- **S1.9.3** — net everywhere, including where `topUp ≤ shortfall`. ⭐ Caught by **three pre-existing M3
+  guards** before reaching any assertion of mine. That is the strongest possible answer to *"is the old
+  protection intact?"*, and it is why M3's assertions were left untouched.
+- **S1.9.6** — apply the surplus to every projected cycle. ⛔ **Caught by NOTHING.** All three producers
+  still agreed, because they agreed about cycle 0 and no assertion looked further out. The property was in
+  my docblock and in nothing executable.
+
+**One real hole in two attempts.** A fix's own after-scan should ask *what is the plausible wrong version
+of this, and would anything red?*
+
+### ⚡ 4. A RED IS NOT EVIDENCE UNTIL YOU KNOW WHICH CLAIM PRODUCED IT
+
+Twice, in opposite directions:
+- **S1.9.4** — with the vocabulary check defeated, `lint:s1-coverage` **still exits 1**, for the inventory
+  reason. Exit-code-only, that scenario scores a perfect pass. `expect` — *red for the PLANTED reason* — is
+  what caught it, on the first un-fix it met.
+- **S1.9.6** — the first probe reported *"THEY DISAGREE"* on a tree where all three producers already
+  agreed: `GuardianState` is `clear|tight|at-risk`, `CushionStatus` is `stable|tight|pressure`. **A false
+  negative that would have justified more work.**
+
+### 5. What the sub-steps could not see about each other
+
+- **4 of the 12 minors were already closed** by earlier sub-steps when S1.9.7's before-scan looked —
+  including `lint:secrets --working-tree`, which the auditor had **filed as a minor** and which I
+  rediscovered the expensive way in S1.9.5 by committing a credential-shaped fixture. ⛔
+  `the-codebase-already-said-it`, in a report whose summary I had read.
+- **S1.9.4's re-pointed `GUARDED-1` caught S1.9.7's own edit** to the line it names. A token on the bare
+  identifier would have said nothing when the cap went slack *or* when it was fixed.
+- **Two [D17] slips in my own comments**, both caught by `lint:comments` — rationale about a COMMENT's past
+  rather than the code's. The gate is load-bearing for a habit I have twice.
+
+### The instruments after S1.9
+
+| | before | after |
+|---|---|---|
+| `lint:rn` gates | 27 | **28** *(`lint:surface-complete`)* |
+| `test:gate-plants` scenarios | 5 | **11**, and they red for the right REASON |
+| finding-guard registry | 73 · 57 guarded | **95 · 79 guarded**, and **13 tokens re-pointed** off bare identifiers |
+| S1 surface | 188 files · 116 unswept | **470 · 331** |
+| S0 surface | 91 · 48 | **97 · 50** |
+| files invisible to every surface | *unmeasured* | **0 of cap 0**, gated |
+
+⛔ **The three numbers that got WORSE are the honest ones.** Unswept 116 → 331 is not a regression; it is
+the first count taken against a surface that includes `utils/format.ts`, which every dollar figure in the
+app passes through.
+
+---
+
 ## S1.9.7 — [D2-3] and the minors *(2026-08-26)*
 
 ⚡ **THE BEFORE-SCAN FOUND FOUR OF THE TWELVE MINORS ALREADY CLOSED**, as side effects of S1.9.1–.6 rather

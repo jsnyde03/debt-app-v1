@@ -377,6 +377,14 @@
 
 ## → surfaced by the S1 scans, 2026-08-25/26 — routed per bullet
 
+- ⚠️ **C-m2's DEAD SENTENCE HAS A SECOND COPY, and the enumeration came up short for the eighth time.**
+  `goal-row-saved.spec.ts:10` still carries *"`applyTightTopUp` (a top-up undo) can push `currentAmount`
+  past the target on its own"* — the mechanism [B3] deleted, which S1.9.7 removed from `money.tsx` and only
+  from there. ⚡ **Found DURING S1.9.8's gate run**, so fixing it would have invalidated a fingerprint the
+  suites had just earned; filed rather than poisoning the record ([D49]). ⛔ **A comment-only fix, and it is
+  a carried premise the next reader will cite as proof.** → **S1.10**
+
+
 ⚠️ **Thirteen separate headings, one per scan, collapsed into this.** Grouping by *which scan found
 it* is grouping by an accident of when someone looked; the plan's own header already said the
 grouping is by destination. Each bullet keeps its own `→` where it had one.
