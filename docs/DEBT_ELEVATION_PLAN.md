@@ -28,11 +28,16 @@
 
 ## ▶ RIGHT NOW — **S1.10 · pass 3**
 
-**Surface S1 · money · goals · plan cards.** Passes 1 and 2 are **run and fully fixed**; the gate is green
-and recorded at fingerprint **`d2743681`**. ⛔ **S1 does NOT converge yet** — [D65] exits on 0/0 **twice
-consecutively**, and pass 2 reset the count. **Pass 3 is the first candidate**, and [D68] means a **new
-session** runs it. S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not
-queue**. Detail for anything closed → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+**Surface S1 · money · goals · plan cards.** Passes 1 and 2 are **run and fully fixed**. ⛔ **S1 does NOT
+converge yet** — [D65] exits on 0/0 **twice consecutively**, and pass 2 reset the count. **Pass 3 is
+running** at pin `96d1f11`, four fresh auditors ([D68]). S0 converged 2026-08-25. ⛔ Everything below the
+ACTIVE block is **reference, not queue**. Detail for anything closed → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⛔ **THERE IS NO CURRENT GATE RECORD** ([D74]). `lint:gate-freshness` is **RED**: the record is real
+*(`818f934` · `d2743681` · 807 files)* but **`96d1f11` moved source after it**, so it no longer describes
+this tree. The last full pass is **`818f934`**. ⚠️ **A recorded fingerprint decays without anyone editing
+it** — this block was accurate when written and stopped being so one commit later. That is the whole reason
+[D49] says quote `lint:gate-freshness`, never a fingerprint typed onto this page.
 
 ### 🔨 THE ACTIVE DECOMPOSITION — S1 *(the ONLY decomposed section on this doc)*
 
@@ -61,16 +66,21 @@ the coverage number will not move.
 
 | # | sub-step |
 |---|---|
-| **S1.10.1** | **The brief, pinned at S1.9.8's SHA, carrying NO verdict** ([D68]). ⛔ **Route the 282 newly-admitted files explicitly** — `packages/core/{debt,cashflow,forecast,income,insights,obligations,payCycle,recovery,history,timeline}` and `apps/rn/src/{utils,premium,storage,hooks,liveActivity,widget,components/*}`. ⚠️ **`utils/format.ts` is the highest-value single file**: every dollar figure in the app passes through it and **no pass has ever been pointed at it** |
-| **S1.10.2** | **Verify every path and id in the brief before hand-over** — the dispatch is part of the audit ([D68]). ⚠️ Pass 2's brief carried a WRONG fix range and auditor A corrected it mid-pass |
-| **S1.10.3** | **Run it — four fresh agents, no sub-agents, incremental writes.** ⛔ The driving session never performs the pass |
-| **S1.10.4** | **Record, and classify each finding under [D69] MECHANICALLY** from `surface-coverage.s1.json` — never from an auditor's judgement. ⚠️ With 331 unswept, **expect most findings to be first-look**, i.e. coverage results that do not restart the count. ⛔ Exempt from the count is NOT exempt from the fix |
-| **S1.10.5** | **Write the `s1p3` claims back in the SAME step as the record.** ⛔ `s1p2` did not exist until S1.9.5 — pass 2 swept and none of it was recorded, which is the second time this has happened |
-| **S1.10.6** | **Fix, every one plant-verified with a control**, and plant the **naive over-fix** too — that found a real hole once in two tries across S1.9 |
-| **S1.10.7** | ⛔ **[D74]: a round ends with the NET, not the record.** Full e2e + embed green, commit, **push** — and `gate:record` only if pass 3 CONVERGES *(0/0, and the second consecutive clean pass)*. ⚠️ Otherwise the hand-off states *no current record* and names the last full pass |
+| ✅ | **S1.10.1 — the brief**, no verdict ([D68]), at [`pass3/BRIEF.md`](audits/2026-08-26-s1-money-pass3/BRIEF.md). ⚠️ **Pinned `96d1f11`, not S1.9.8's `6f93846`** — [D74]'s own commit changed two S0 instruments after it. ⛔ **Routing is four generated manifests, not a sentence** — `ROUTING-{A,B,C,D}.txt`, asserted **331 routed · 0 unrouted · 0 duplicated · 0 missing**. ⚡ **This step's own pre-authored route list named 118 of the 331** *(it omitted `apps/rn/src/store`, 24 files, and the whole test tree)* — the sixth instance of the undercount class, which is why the route is now a file |
+| ✅ | **S1.10.2 — the dispatch verified** ([D68]): 8 links · 4 explicit paths · **17 bare filenames each resolving to exactly one tracked file** · 5 SHAs. ⚡ **It caught one wrong number in my own brief** — *"8 of 9"* counted from memory where pass 2's [D69] table says **5**; corrected in place, with the miss left on the page |
+| ✅ | **S1.10.3 — RUN.** Four fresh auditors at `96d1f11` → **11 blockers · 9 majors · 14 minors** ([`pass3/SUMMARY.md`](audits/2026-08-26-s1-money-pass3/SUMMARY.md)). ⛔ **No auditor edited source** — `git diff 96d1f11 -- apps packages scripts` is empty. D ran every plant in an isolated worktree at the pin |
+| ✅ | **S1.10.4 – S1.10.5 — recorded and classified**, claims written back in the same step. **9 of 20 blocker+majors COUNT · 11 are first-look.** Coverage **331 → 113 unswept**; `s1p3` had to be registered in `SWEPT_CLAIMS` first, exactly as `s1p2` did. ⚡ **D's own reconciliation said 48/61 and the truth is 46/63** — braced tokens are two files each, so the write-back was computed from the manifests and *reconciled against* each auditor's number, not taken from it |
+| ▶ | **S1.10.6 — FIX.** 20 blocker+majors, every one plant-verified with a control, and the **naive over-fix** planted too. ⛔ Fix by CLASS, not by id — three separate ids are one rule wired to a subset |
+| **S1.10.7** | ⛔ **[D74]: a round ends with the NET, not the record.** Full e2e + embed green, commit, **push** — and `gate:record` only if pass 3 CONVERGES. ⚠️ It does not; the hand-off states *no current record* and names `818f934` |
 
-**Exit (S1.10):** 0 blockers / 0 majors on the widened surface, the `s1p3` claims written back, and the
-consecutive-clean count standing at **one**.
+**Exit (S1.10):** 0 blockers / 0 majors on the widened surface, the `s1p3` claims written back ✅, and the
+consecutive-clean count standing at **zero** — pass 4 is the next first-candidate.
+
+⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
+green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one
+of them was created by pass 2's own fix. ⛔ **And `B1`'s rule — never state a number the app could not read
+— has been widened twice and missed a third direction each time**; this round it is **every claim site
+outside the app**: the Home Screen, the Lock Screen, Siri and the Live Activity.
 
 ### ⛔ The rules that are LIVE while S1 builds
 
@@ -104,16 +114,18 @@ consecutive-clean count standing at **one**.
 
 ### The residue — mechanically tracked · ⛔ read it from the gate, never from this table
 
-| ledger | where it lives | command | 2026-08-26 *(after S1.5.4)* |
-|---|---|---|---|
-| unguarded findings, **both floors now strict equality** *(M8)* | `scripts/finding-guards.json` | `npm run lint:finding-guards` | 73 findings · **57 guarded · 16 unguarded** (cap 16) *(after S1.5.5)*. ⚠️ Adding a guard is now a two-line edit — the entry **and** `MIN_ENTRIES` |
-| S0 files never swept | `scripts/surface-coverage.s0.json` | `npm run lint:s0-coverage` | **91 files · 48 unswept** *(after [D73])*. ⚠️ Was 58 · 15 — **the test RUNNERS and the shot recipes joined S0**, and S0 had converged. [D70] closed it on *instruments-sound*, and a runner nobody read is an unaudited instrument |
-| S1 files never swept | `scripts/surface-coverage.s1.json` | `npm run lint:s1-coverage` | **470 files · 331 unswept** *(after S1.9.5)*. ⚡ **Five root corrections now**: 72 → 137 (M9) → 188 ([D73]) → 286 (`packages/core`) → **470** (`apps/rn/src` entire, 184 files under no root at all). ⛔ **The class is closed by `lint:surface-complete`**, not by this row |
-| ⚡ **files invisible to EVERY surface** | `scripts/surface-coverage.ts` *(`NOT_SOURCE`)* | `npm run lint:surface-complete` | **0 of cap 0**, downward-only. Sourced from `git ls-files`, so build output and symlinks cannot appear and a new one cannot widen it. ⚠️ The legacy-tree skips **expire**: a skip naming a deleted directory reds |
-| secrets exemptions, `MAX_EXEMPT` **self-ratcheting** *(reds above AND below — a stale entry reds)* | `scripts/secrets-exemptions.json` | `npm run lint:secrets` | 2 of cap 2. ⚠️ Writing an audit report? Run **`npm run lint:secrets:authoring`** before committing it *(M10)* |
+⛔ **THIS TABLE NO LONGER CARRIES NUMBERS, BY DESIGN.** It decayed **three times** — *"34 · 18"* against an
+instrument saying **36 · 20**, then *"73 findings · 57 guarded"* against **95 · 79** and *"91 · 48"* against
+**97 · 50** *(both caught 2026-08-26 while writing the pass-3 brief)*. ⚡ **A number typed here has never once
+survived to be read.** Run the command. What the table keeps is the part a command cannot tell you.
 
-⚠️ **This table's numbers decayed once already** — it read *"34 findings · 18 guarded"* while the gate said
-**36 · 20** *(caught in the 2026-08-26 cleanup)*. Same class as [D49]: **quote the instrument, never type the result.**
+| ledger | where it lives | command | what the command will not tell you |
+|---|---|---|---|
+| unguarded findings, **both floors strict equality** *(M8)* | `scripts/finding-guards.json` | `npm run lint:finding-guards` | ⛔ **Green ≠ guarded.** It proves a token sits on a non-comment line; pass 2 measured **7 green entries that survived their own un-fix**, three of them the fixes to the checker itself. ⚠️ Adding a guard is a two-line edit — the entry **and** `MIN_ENTRIES` |
+| S0 files never swept | `scripts/surface-coverage.s0.json` | `npm run lint:s0-coverage` | **The test RUNNERS and the shot recipes joined S0 after it had converged.** [D70] closed S0 on *instruments-sound*, and a runner nobody read is an unaudited instrument |
+| S1 files never swept | `scripts/surface-coverage.s1.json` | `npm run lint:s1-coverage` | ⚡ **Five root corrections**: 72 → 137 (M9) → 188 ([D73]) → 286 (`packages/core`) → 470 (`apps/rn/src` entire). **Every one came from widening roots, and every time the pre-correction number looked healthier.** ⛔ The class is closed by `lint:surface-complete`, not by this row |
+| ⚡ **files invisible to EVERY surface** | `scripts/surface-coverage.ts` *(`NOT_SOURCE`)* | `npm run lint:surface-complete` | Cap is **downward-only** and sourced from `git ls-files`, so build output and symlinks cannot appear and a new file cannot widen it. ⚠️ The legacy-tree skips **expire**: a skip naming a deleted directory reds |
+| secrets exemptions, `MAX_EXEMPT` **self-ratcheting** *(reds above AND below — a stale entry reds)* | `scripts/secrets-exemptions.json` | `npm run lint:secrets` | ⚠️ Writing an audit report? Run **`npm run lint:secrets:authoring`** before committing it *(M10)* |
 
 ---
 

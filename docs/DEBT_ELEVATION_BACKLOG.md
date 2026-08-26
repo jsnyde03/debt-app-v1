@@ -391,6 +391,16 @@ grouping is by destination. Each bullet keeps its own `→` where it had one.
 
 **→ surfaced while classifying pass 2 under [D69] *(2026-08-26)***
 
+- ⛔ **`lint:secrets:authoring` may not scan the report it exists to scan.** Invoked as
+  `check-committed-secrets.ts --working-tree`, it printed *"none across 1206 tracked files in **index+HEAD**"*
+  while the pass-3 brief and four routing manifests sat **untracked** beside it. M10 added this variant
+  precisely so an audit report is checked **before** it is committed — but an uncommitted report is not in
+  index or HEAD, so the flag may be inert and the green may describe the wrong file set. ⚠️ **Not yet
+  measured** — the plant needs a secret-shaped string in an untracked `docs/` file, and four auditors were
+  mid-pass on a clean-tree self-check, so a stray file would have manufactured a false finding for them.
+  ⚡ **Exactly the cluster's own shape: an instrument reporting green while doing less than it claims.**
+  → **S1.10.7 / S0 standing re-check**
+
 
 **→ surfaced by S1.9.6's after-scan *(2026-08-26)***
 

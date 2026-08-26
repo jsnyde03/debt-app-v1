@@ -25692,3 +25692,151 @@ recording it is what stops the next round re-litigating it.
 ▶ 🎯 2026-08-25: **"We're fixing all blockers and majors."**
 
 
+
+
+---
+
+## S1.10.1 – S1.10.2 — the pass-3 brief, and what verifying the dispatch caught
+
+**2026-08-26.** The driving session writes the brief and never performs the pass ([D68]). Pass 3 is the
+first candidate for a clean pass since pass 2 reset [D65]'s consecutive count. Brief at
+[`audits/2026-08-26-s1-money-pass3/BRIEF.md`](audits/2026-08-26-s1-money-pass3/BRIEF.md).
+
+### The pin moved, and the plan had the wrong one
+
+S1.10 was pre-authored as *"pinned at S1.9.8's SHA"* — `6f93846`. **Two commits landed after it, and
+`96d1f11` ([D74]) changed source**: `scripts/surface-coverage.ts` and `scripts/check-gate-freshness.ts`,
+both S0 instruments pass 3 is asked to re-verify. A brief pinned at `6f93846` would have pointed four
+auditors at superseded versions of the two files they were told to measure. Pinned at `96d1f11` instead.
+
+⚡ **This is the pre-authored-item class doing exactly what it always does** — the premise was true when
+written and false by the time it was acted on, and the only thing that catches it is checking rather than
+reading.
+
+### The route list named 118 of 331 — the sixth instance
+
+S1.10.1 carried an explicit route: `packages/core/{debt,cashflow,forecast,income,insights,obligations,payCycle,recovery,history,timeline}`
+and `apps/rn/src/{utils,premium,storage,hooks,liveActivity,widget,components/*}`. Measured against the
+instrument's own unswept set, that names **118 of the 331**. It omitted:
+
+- **`apps/rn/src/store`** — 24 files, 2,794 lines. The app's own store. `storage` was on the list; `store`
+  is a different directory and was not.
+- **the entire test tree** — 36 e2e specs, 3,130 lines, admitted by [D73] and never routed.
+- **five `packages/core` directories** — `utils` *(10 files, incl. `formatCurrency`, `money`, `localDate`)*,
+  `types`, `recurrence`, `constants`, `storage`.
+
+⛔ **The fix is not a longer list.** Routing is now four **generated manifests** — `ROUTING-{A,B,C,D}.txt`,
+built from `scripts/surface-coverage.s1.json` by the same instrument the coverage row quotes, and asserted
+**331 routed · 0 unrouted · 0 duplicated · 0 missing on disk**. The brief points at the file and tells each
+auditor not to re-derive it from a directory name.
+
+⚡ **An enumerated list becomes the menu the reader orders from** — the Hearthlight law, measured again here.
+Lanes came out at 75 / 81 / 66 / 109 files and 7,177 / 6,669 / 7,297 / 7,433 lines, which no hand-written
+list would have balanced.
+
+### Verifying the dispatch caught a wrong number in my own brief
+
+S1.10.2 checked, mechanically: **8 markdown links** (0 broken) · **4 explicit source paths** (0 missing) ·
+**17 bare filenames**, each required to resolve to exactly one `git ls-files` entry (0 missing, 0 ambiguous)
+· **5 SHAs** (all commits).
+
+That is the check the step was written for. The thing it actually caught was prose: the brief claimed
+*"8 of pass 2's 9 blockers and majors were against `never` files."* Pass 2's own [D69] table says **4 churn ·
+4 coverage · 1 off-surface** — so the honest number is **5 against ground nobody had examined**. I had
+counted it from memory. ⛔ **Corrected in place, and the miss left on the page** — it is rule 5 of the
+brief's own eleven, committed while writing the brief, for the second brief running.
+
+### Two decays found in the plan while sourcing the brief's numbers
+
+- **The residue table, third decay.** It read *"73 findings · 57 guarded"* against `lint:finding-guards`
+  saying **95 · 79 · 16 unguarded**, and *"91 files · 48 unswept"* for S0 against **97 · 50**. ⛔ **The
+  numbers are now removed from that table entirely.** Three decays is enough evidence that the row cannot
+  hold a number; what it keeps is the part a command cannot print — that green is not guarded, that every
+  root correction came from widening, that the legacy skips expire.
+- **`lint:gate-freshness` is RED.** The record *(`818f934` · `d2743681` · 807 files)* is real and was
+  accurate when S1.9.8 wrote it; `96d1f11` moved source one commit later. ⚠️ **A recorded fingerprint decays
+  without anyone editing it** — which is the case for [D49] stated more sharply than before. Per [D74] there
+  is no current record mid-audit, and the brief says so rather than quoting the stale green.
+
+
+---
+
+## S1.10.3 – S1.10.5 — pass 3 run, recorded, classified. **11 blockers · 9 majors · 14 minors.**
+
+**2026-08-26.** Pin `96d1f11`. Four fresh auditors ([D68]); the driving session wrote the brief and never
+performed the pass. Map: [`audits/2026-08-26-s1-money-pass3/SUMMARY.md`](audits/2026-08-26-s1-money-pass3/SUMMARY.md).
+
+### The pass held its own constraints
+
+`git diff 96d1f11 -- apps packages scripts` is **empty** after the pass — no auditor edited source. Two
+planted defects to measure gate behaviour; **D ran every plant in an isolated git worktree at the pin**,
+with `node_modules` junctioned and its own Playwright port, because three auditors shared the checkout and
+a plant in `apps/rn/src` would have manufactured a false finding for them. ⚠️ **One plant file did briefly
+appear in `apps/rn/src` and auditor C reported it in its own report before its author removed it** — the
+containment worked, and it worked because C wrote down a tree state it did not cause rather than assuming
+the tree was its own.
+
+### The finding behind the findings, for the third pass running
+
+⚡ **Three of the four auditors independently found an instrument that reports green while doing less than
+it claims**, and the class now has five members in this round alone:
+
+- **`B1`** — `lint:money`'s two `Intl` patterns are **unsatisfiable**. My reading would have been *"the
+  regex is applied per line"*; B disproved that with a **one-line plant that also passed**, then printed
+  the real mechanism: `[^)]*\)` consumes through the formatter's own closing paren, so the pattern requires
+  `style: 'currency'` to appear **after** the call closes. The only string that satisfies it is not a
+  formatter. Green over a tenth planted formatter *and* over two live ones today.
+- **`A3`** — `test:gate-plants`' `lint:secrets` scenario plants an **untracked** file, so the
+  modified-tracked half **added in this very fix range** stays green when un-fixed. 2×2 with a control.
+- **`C-1`** — pass 2's own trust-table fix declares a `'row-figures'` route and the completeness gate
+  asserts it exists. **Zero production consumers** — three grep hits, all the declaration or its own test.
+- **`D3-3`** — the registry entry guarding **`B-1`'s own fix** is green with that fix's defect restored:
+  the token names the line that *computes* the check, not the line that *uses* it.
+- **`D3-4`** — `REVERIFY4-2` is still unpinned; the un-fix leaves `lint:secrets`, `lint:finding-guards`
+  **and** `test:gate-plants` green.
+
+⛔ **Pass 2's `B-1` is CLOSED, seven of seven, by plant — and its fix produced `D3-3`.** *The fix is the
+most likely place for the next defect*, now measured at the instrument layer too.
+
+### And the second shape: one rule, widened twice, incomplete in a third direction each time
+
+`B1`'s rule — *never state a number about money the app could not read*:
+
+| pass | widened | still missed |
+|---|---|---|
+| 1 → 2 | the **claim sites** inside the app | the **fields** (`currentAmount`, `minimumPayment`, `apr`) |
+| 2 → 3 | the **fields**, into a gated claim table | the table's route has **no callers** (`C-1`), and three claim sites it never reached still speak (`C-3` `C-4` `C-5`) |
+| — | — | ⚡ **every claim site OUTSIDE the app** — the **Home Screen widget**, the **Lock Screen**, **Siri**, the **Live Activity** (`D3-1` `D3-2`) |
+
+⚠️ **The brief explicitly asked whether the subset the fix widened to was itself complete.** It was not, in
+two independent directions, and one of them is the loudest surface the product has.
+
+### [D69], applied mechanically
+
+**9 of 20 blocker+majors COUNT · 11 are first-look.** ⚡ **Five of the nine that count are the instruments**
+— the churn in this round is concentrated almost entirely in the gate layer, which a raw total hides and
+the [D69] split exists to reveal. The eleven first-look results are on ground S1.9.5's root widening
+admitted: `packages/core/{debt,history}`, `storage/cloudBackup`, `liveActivity`. **The brief's one number
+predicted the outcome for the fourth consecutive pass.**
+
+### The claim write-back, and why it was not taken from the auditors
+
+Coverage **331 → 113 unswept**; 218 files marked `s1p3`. ⛔ **`s1p3` did not exist as a token** and
+`surface-coverage.ts` rejected the whole file until it was added to `SWEPT_CLAIMS` — the strictness added
+after *"nevr"* silently read as swept, doing its job. Same registration `s1p2` needed at S1.9.5.
+
+Swept was computed as **manifest minus each auditor's explicitly-named NOT-reached list**, then reconciled
+against the auditor's own stated figure. A, B and C matched exactly. ⚡ **D's said 48 swept / 61 not
+reached; the correct figures are 46 / 63** — `AppIcon{,.ios}` and `DateField{,.web}` are **two files each**
+and the list had been counted in tokens. **The site-count-under-reports rule, firing inside an auditor's
+own self-check** — which is the whole argument for reconciling rather than transcribing.
+
+⛔ **NOT-reached is not clean, it is unread**, and the largest hole is not on any not-reached list: it is in
+auditor C's *part-read* list — `app/_layout.tsx`, 376 lines, the app's entire bootstrap, of which exactly
+one fact was established.
+
+### What ran
+
+⚡ **The full RN e2e suite had never been executed by any prior pass.** D ran it: **310 passed, 8.3 min.**
+`test:app` all passed · `lint:rn` **28** gates · `test-gate-plants` 11/11 fail closed. ⛔ **All eleven
+blockers survive that suite** — each reproduced live in the same tree while it was green.
