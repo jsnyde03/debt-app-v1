@@ -4,6 +4,88 @@
 
 ---
 
+## S1.9.4 — [B-1], the seven guards that could not see their own un-fix *(2026-08-26)*
+
+**The finding.** Seven registry entries were pinned by an identifier inside a *gate script's own logic*, and
+the defect can be restored without touching the identifier. Auditor B measured all fourteen (seven plus
+three controls, every plant confirmed applied): **all seven green with the defect back**, three controls
+red. ⛔ **Three of the seven are the fixes to `check-finding-guards.ts` itself** — the gate that certifies
+all 57. The sharpest: deleting the *call* to `presentInCode` leaves the helper, the token and the green,
+which is `tested-helper-is-not-a-used-helper` cited **by name in the docblock of the fix it defeats**.
+
+⚠️ For a guard living in a TEST the token names an assertion, and deleting the assertion deletes the token.
+That is why 38 of 38 test-file guards were sound and the failures are all on the other side of that line.
+
+### What was built
+
+| | |
+|---|---|
+| `test-gate-plants` | **`also[]`** — a scenario can create N files, so a gate whose input is a **config file** can be planted at all. The first five plant a source file and let the gate find it; these gates read JSON or the git index, so a created `.ts` had nothing to say to them |
+| | **`args[]` / `controlArgs[]`** — how a gate is pointed at the planted input, and how the control is pointed back at its real one |
+| | ⛔ **`expect`** — the planted run must red **for the planted reason** |
+| `check-finding-guards` | `--registry=<path>` |
+| `surface-coverage` | `--claims=<path>` + a routing **self-check** |
+| the registry | **all seven tokens re-pointed** at the line that would have to change *(auditor B's remedy 3, which named four as convertible)* |
+
+⚡ **`expect` PROVED ITSELF ON THE FIRST UN-FIX IT MET.** With the vocabulary check defeated,
+`lint:s1-coverage` **still exits 1** — for the *inventory* reason instead. Exit-code-only, that scenario
+scores a perfect pass. `reason=WRONG` is what caught it. ⚠️ Same shape as an assertion that reds before the
+one it exists to exercise: a red is not evidence until you know which claim produced it.
+
+⛔ **THE CONTROLS RED ON THE FIRST RUN — ALL FIVE — AND THAT WAS MY DEFECT, NOT THE GATES'.** Deleting the
+plant left `--registry=` pointing at nothing, so the control redded for *"the input is missing"*. A control
+that reds says nothing about the planted run ([D63]). The control now drops the override and runs the gate
+on its **real** input; the variable is the input rather than one file's presence.
+
+### ⛔ MY OWN SELF-CHECK WAS THE DEFECT IT WAS CLOSING, and only the plant found it
+
+The routing check reads a predicate in `surface-coverage.ts` rather than a file, so no scenario can hand it
+anything. The first cut asserted `routeIsKnown('__no_such_surface__') === false` — **which proves the
+PREDICATE and says nothing about the call.** Measured: with `if (false && !routeIsKnown(r.to))` planted at
+the call site, `lint:s1-coverage` was **still green**.
+
+⚡ *A tested helper is not a used helper* — written into the fix for a finding whose sharpest instance is
+that exact shape, on the same afternoon I quoted it. **Re-reading the diff would not have found it.**
+
+The remedy: the refusal lives in `collectBadRoutes`, and the self-check runs **that function** over a
+synthetic file whose route names a surface that does not exist. Any edit that stops the body refusing stops
+the self-check refusing, because it is the same body.
+
+### Verified — the auditor's table, inverted
+
+All seven un-fixes applied one at a time to the real gate source. **`lint:finding-guards` was GREEN on all
+seven before**, reproducing auditor B's measurement exactly.
+
+| un-fix | now caught by |
+|---|---|
+| `[M8]` `!==` → `<` · `[M7]` the call deleted · `[M6]` `lead` → `''` | `test:gate-plants` reds |
+| `[M10]` `if (false && WORKING_TREE)` · `[D69]` `missing.length` dropped | `test:gate-plants` reds |
+| `[M9-vocab]` `if (false && !VALID_CLAIMS…)` | `test:gate-plants` reds — **on `expect`, not the exit code** |
+| `[M9-routing]` `if (false && …)` at the call | the **self-check** reds `lint:s1-coverage` |
+| **and all seven** | the **re-pointed registry** now reds as well — 7 of 7, where the auditor called four convertible |
+
+### The after-scan — the enumeration was short again, by six
+
+⛔ **THE AUDITOR NAMED SEVEN; MEASURED ACROSS ALL 23 NON-TEST ENTRIES THERE WERE SIX MORE** of the identical
+shape — a cap or floor constant whose un-fix changes the *number* and leaves the name (`MIN_SCENARIOS`,
+`MAX_UNTOKENISED`, `MIN_CHECKS`, `MAX_EXEMPT`), an invariant whose un-fix drops it from the array and leaves
+the function (`priorityGoalIsCapped`), and a helper whose un-fix stops *calling* it (`resolveBillCategory`).
+**Seventh short enumeration in a row.** All six re-pointed; five plant-verified to red.
+
+⚡ **The sixth would not red, and measuring why was worth more than the fix.** `money.tsx` holds **two
+identical `resolveBillCategory(e) === category` call sites**, and a token cannot count occurrences — so a
+SINGLE-site revert leaves it green, which is M1's own finding wearing the guard's clothes. ⭐ Measured: the
+behavioural guards catch it, **3 of the 4 tests in `bill-category-partition.spec.ts` red** on that plant.
+The ledger entry now states what the token can and cannot see rather than making a claim it cannot keep.
+
+**Filed:** `lint:rn` runs 27 gates and `test:gate-plants` now covers 11. The remaining 16 are the same
+question one directory over. → backlog.
+
+**Guards.** `S1P2-B1-PLANTS` · `S1P2-B1-REASON` · `S1P2-B1-SELFCHECK`. `MIN_ENTRIES` 83 → **86**; 70 of 86
+guarded, cap 16 unchanged. `typecheck` 4/4 · `lint:rn` **27/27** · `test:gate-plants` **11/11**.
+
+---
+
 ## S1.9.3 — [A1], three reads of the same money *(2026-08-26)*
 
 **The finding.** A premium user **$1 short** after moving $200 at the Guardian's own suggestion was told

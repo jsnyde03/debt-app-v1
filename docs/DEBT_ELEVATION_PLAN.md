@@ -60,7 +60,7 @@ number about money the app could not read* was wired to a subset of **claim site
 | ✅ **S1.9.1** | **D2-2** — CLOSED 2026-08-26 · `undoTightTopUp(source, draw?)`: the Guardian keeps whole-entry *(it displays the entry)*, a caller showing ONE cover passes it and gets exactly it back, clamped to what the entry holds. The card now records what LEFT the goal, not what was asked for. **3 plants · 2 guards · `lint:rn` 27/27.** Detail → log |
 | ✅ **S1.9.2** | **C4 · C2 · C3 · C1, one owner** — CLOSED 2026-08-26 · a **claim TABLE** in `trustSelectors` routes every repairable field to a claim, **gated both ways** against `migrations`' own `REPAIRABLE_MONEY_FIELDS` · C4 a third zero state · C2 per-field, per-row · C3 `selectCelebration` at the VARIABLE *(gating the JSX would have hidden the repairs card)* · C1 a reset path as a class in the `set` wrapper + an explicit confirm signal. ⚡ **The after-scan found C2's exact shape on the DEBTS hero.** **13 plants · 7 guards · `lint:rn` 27/27.** Detail → log |
 | ✅ **S1.9.3** | **A1** — CLOSED 2026-08-26 · netted ONCE into `residual` + `surplus`; ⚠️ **the plan named three seams and there are six** *(`selectTightTopUp` was refusing on the raw shortfall, so the band's new `tight` range had no control)*. ⚡ The shortfall sentence now names what is **still** short — $200, not $400. **6 plants** incl. **the naive over-fix, caught by three pre-existing M3 guards.** `lint:rn` 27/27. Detail → log |
-| **S1.9.4** | **B-1 — the seven fail-open guards**, and `test-gate-plants` covers none of the seven gates. ⛔ **Before pass 3**, per S1.5.4: an instrument fix decides what the next pass can see |
+| ✅ **S1.9.4** | **B-1** — CLOSED 2026-08-26 · 6 new `test-gate-plants` scenarios *(5 → **11**)* + a routing **self-check** + **all 7 tokens re-pointed**; the auditor's table inverted, all seven un-fixes now red. ⚡ **`expect` (red for the RIGHT reason) caught one that still exited 1**, and **my own self-check was the defect it was closing.** ⛔ **The enumeration was short by SIX.** Detail → log |
 | **S1.9.5** | **`packages/core/timeline` onto the S1 roots** + write-back. One line; it is where D2-1 lives |
 | **S1.9.6** | **D2-1** — the three producers. ⚠️ May be absorbed by S1.9.3's residual; **measure before building**, and if it is not absorbed it is a design call, not a patch |
 | **S1.9.7** | **D2-3 + the 12 minors**, triaged — including B-3 and N9, both stale claims in comments I wrote |
@@ -504,6 +504,22 @@ hotspot)* and Dynamic-Type device QA.
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
 
 ### → surfaced while classifying pass 2 under [D69] *(2026-08-26)*
+
+### → surfaced by S1.9.4's after-scan *(2026-08-26)*
+
+- **`test:gate-plants` COVERS 11 OF THE 27 GATES ON `lint:rn`.** B-1 was *"the seven gates whose registry
+  entry cannot see their own un-fix"*; the remaining 16 gates are the same question one directory over —
+  none has a scenario proving it fails closed, and S0's whole finding class was *a gate reporting green
+  while doing less than it claimed.* ⚠️ Not a defect in any named gate: it is the coverage number, and it
+  is now readable off `MIN_SCENARIOS` rather than being unknown. Rec: one scenario per gate, in the order
+  a gate's blindness would cost most *(`lint:closure`, `lint:money`, `lint:glossary` are already done)*.
+  → **S0's standing re-check / the tooling sweep**
+- ⚠️ **A TOKEN CANNOT COUNT OCCURRENCES, and one registry entry needs that.** `money.tsx` holds two
+  identical `resolveBillCategory(e) === category` sites and `S1P1-M1-CALL` is one token, so a SINGLE-site
+  revert leaves it green — which is M1's own finding wearing the guard's clothes. ⭐ **Measured: the
+  behavioural guards do catch it** (3 of 4 in `bill-category-partition.spec.ts` red), and the ledger entry
+  now says what the token can and cannot see. **No further action; recorded so pass 3 does not re-open it
+  as a hole.**
 
 ### → surfaced by S1.9.3's after-scan *(2026-08-26)*
 

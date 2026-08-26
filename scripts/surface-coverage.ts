@@ -290,7 +290,13 @@ if (!SURFACE) {
   console.error(`\n❌ surface-coverage: unknown surface "${requested}". Known: ${Object.keys(SURFACES).join(', ')}.\n`);
   process.exit(1);
 }
-const CLAIMS_FILE = join(REPO_ROOT, SURFACE.claims);
+/**
+ * ⛔ **S1.9.4 [pass-2 B-1] — THE CLAIMS FILE IS AN INPUT, so `test-gate-plants` can hand this gate a
+ * defect of its own class.** Two of this file's three registry entries (`S1P1-M9-VOCAB`, `D69-INVENTORY`)
+ * were pinned by an identifier that survives the un-fix, so both read green with the check defeated.
+ * ⚠️ A flag, matching `--surface=` beside it; the npm scripts pass nothing, so CI reads the real claims.
+ */
+const CLAIMS_FILE = join(REPO_ROOT, process.argv.find((a) => a.startsWith('--claims='))?.split('=')[1] ?? SURFACE.claims);
 const INVENTORY = join(REPO_ROOT, SURFACE.inventory);
 const ROOTS = SURFACE.roots;
 const excluded = SURFACE.excluded;
@@ -330,16 +336,57 @@ for (const r of ROOTS) {
 // ⛔ S1.5.4 [M9-C] — every routing is validated as it is applied, so a mis-typed owner reds instead of
 // silently removing a file from every surface there is.
 const routed = new Map<string, Routing>();
-const badRoutes: string[] = [];
+/**
+ * ⛔ **S1.9.4 [pass-2 B-1] — THE ROUTING CHECK PROVES ITSELF, because nothing else can.**
+ *
+ * `S1P1-M9-ROUTING` was pinned by the identifier `KNOWN_SURFACES`, and the un-fix — `if (false &&
+ * !KNOWN_SURFACES.has(r.to))` — leaves that identifier exactly where it is. ⚠️ **No token-based guard
+ * survives that class.** And unlike the vocabulary and inventory checks, this one reads a PREDICATE in
+ * this file rather than a file on disk, so `test-gate-plants` has nothing to hand it either.
+ *
+ * ⛔ **THE FIRST CUT OF THIS SELF-CHECK WAS THE DEFECT IT WAS CLOSING, and the plant caught it.** It
+ * asserted that `routeIsKnown('__no_such_surface__')` is false — which proves the PREDICATE and says
+ * nothing about the call. Measured: with `if (false && !routeIsKnown(r.to))` planted at the call site,
+ * `lint:s1-coverage` was **still green**. *A tested helper is not a used helper*, written into the fix for
+ * a finding whose sharpest instance is that exact shape.
+ *
+ * ⚡ So the refusal lives in a FUNCTION, and the self-check runs that function over a synthetic file whose
+ * route names a surface that does not exist. Any edit that stops the body refusing — a `false &&`, a
+ * dropped `!`, a deleted line — stops the self-check refusing too, because it is the same body.
+ */
+function collectBadRoutes(files: readonly string[], route: (f: string) => Routing | null): string[] {
+  const bad: string[] = [];
+  for (const f of files) {
+    const r = route(f);
+    if (r && !KNOWN_SURFACES.has(r.to)) bad.push(`${f}  → "${r.to}" is not a known surface (${r.why})`);
+  }
+  return bad;
+}
+
+// ⚠️ Runs on EVERY invocation, before anything is reported, and exits rather than printing — an
+// instrument that reports is not an instrument that gates.
+if (collectBadRoutes(['__self_check__'], () => ({ to: '__no_such_surface__', why: 'the routing self-check' })).length !== 1) {
+  console.error(
+    `\n❌ ${SURFACE.gate}: the routing check did not refuse a surface that does not exist, so it is not checking.\n` +
+      '  ⛔ Every exclusion would route anywhere, and the coverage number would describe nothing.\n',
+  );
+  process.exit(1);
+}
+
+let badRoutes: string[] = [];
 const files = [...new Set(surface)]
   .filter((f) => {
     const r = excluded(f);
     if (!r) return true;
-    if (!KNOWN_SURFACES.has(r.to)) badRoutes.push(`${f}  → "${r.to}" is not a known surface (${r.why})`);
+    // ⛔ Judged by `collectBadRoutes` below — the same body the self-check above exercises. An inline
+    // `if` here is what the un-fix neutered with the identifier still in place.
     routed.set(f, r);
     return false;
   })
   .sort();
+
+// ⛔ S1.9.4 — the routings the walk collected, judged by the function the self-check above proved.
+badRoutes = collectBadRoutes([...routed.keys()], (f) => routed.get(f) ?? null);
 
 if (badRoutes.length) {
   console.error(`\n❌ ${SURFACE.gate}: ${badRoutes.length} exclusion(s) route to a surface that does not exist.\n`);

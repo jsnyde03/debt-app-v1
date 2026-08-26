@@ -28,7 +28,22 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
-const REGISTRY = join(REPO_ROOT, 'scripts', 'finding-guards.json');
+/**
+ * ⛔ **S1.9.4 [pass-2 B-1] — THE REGISTRY IS AN INPUT, so that this gate can be PLANTED like any other.**
+ *
+ * ⚡ Seven registry entries were pinned by an identifier inside a gate script's own logic, and **all seven
+ * stayed green with the defect restored** — three of them the fixes to THIS file, the gate that certifies
+ * all of them. A token proves an identifier is present; it cannot prove the gate still refuses anything.
+ * `test-gate-plants` is what proves that, and it needs to hand this script an input of its own.
+ *
+ * ⚠️ **A flag, not an environment variable**, deliberately: it is visible in the command line a human or a
+ * CI log shows, and `--working-tree` / `--surface=` already established the idiom here. The npm script
+ * passes nothing, so the real registry is what CI reads.
+ */
+const REGISTRY = join(
+  REPO_ROOT,
+  process.argv.find((a) => a.startsWith('--registry='))?.split('=')[1] ?? 'scripts/finding-guards.json',
+);
 
 interface Entry {
   /** what the finding was, in one line — so a failure explains itself without opening the audit */
@@ -94,7 +109,7 @@ const ids = Object.keys(registry);
  * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
-const MIN_ENTRIES = 83;
+const MIN_ENTRIES = 86;
 const MAX_UNGUARDED = 16;
 
 /**

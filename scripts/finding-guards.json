@@ -35,9 +35,9 @@
     "token": "a second emergency fund is called Savings in the sheet too"
   },
   "S1-SECRETS-EXEMPT": {
-    "what": "[D72] lint:secrets fired 4 times on the audit report that documents its own plant, so lint:rn was red on every committed tree since the fix; exemptions are now keyed on a SHA-256 of the matched value, with a self-ratcheting cap and stale entries red",
+    "what": "[D72] lint:secrets fired 4 times on the audit report that documents its own plant, so lint:rn was red on every committed tree since the fix; exemptions are now keyed on a SHA-256 of the matched value, with a self-ratcheting cap and stale entries red ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
     "file": "scripts/check-committed-secrets.ts",
-    "token": "MAX_EXEMPT"
+    "token": "if (exemptions.length !== MAX_EXEMPT)"
   },
   "REVERIFY4-1": {
     "what": "the freshness record was fingerprinted at the END of validate:release:rn, so a mid-run edit was recorded as tested",
@@ -60,9 +60,9 @@
     "token": "function isClamp"
   },
   "REVERIFY4-5": {
-    "what": "preflight-native-lane's four flow-ordering assertions sat inside a fail-open if (iphoneList.length)",
+    "what": "preflight-native-lane's four flow-ordering assertions sat inside a fail-open if (iphoneList.length) ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
     "file": "scripts/preflight-native-lane.ts",
-    "token": "MIN_CHECKS"
+    "token": "assertions ran; ${MIN_CHECKS} are expected"
   },
   "GAP-1": {
     "what": "invariant 9's reachability — deleting the goals[1] loop in corpus.ts restored the original defect with the repo green",
@@ -70,19 +70,19 @@
     "token": "invariant ⑨ is unreachable"
   },
   "GAP-16": {
-    "what": "no planted-input harness proved any gate fails CLOSED — all 15 of S0's majors were gates failing open",
+    "what": "no planted-input harness proved any gate fails CLOSED — all 15 of S0's majors were gates failing open ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
     "file": "scripts/test-gate-plants.ts",
-    "token": "MIN_SCENARIOS"
+    "token": "if (SCENARIOS.length < MIN_SCENARIOS)"
   },
   "D69-INVENTORY": {
-    "what": "\"first look\" was the auditor's own claim; [D69] needs it to be a lookup",
+    "what": "\"first look\" was the auditor's own claim; [D69] needs it to be a lookup ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
     "file": "scripts/surface-coverage.ts",
-    "token": "UNCLASSIFIED"
+    "token": "if (missing.length || stale.length)"
   },
   "GUARDED-1": {
-    "what": "the untokenised caps red on a prose rescue",
+    "what": "the untokenised caps red on a prose rescue ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
     "file": "scripts/check-audit-closure.ts",
-    "token": "MAX_UNTOKENISED"
+    "token": "if (p68Untokenised.length > MAX_UNTOKENISED.p68)"
   },
   "GUARDED-3": {
     "what": "selfCheck proves the invariants fire, the verdict throws, and that run() still CALLS it",
@@ -95,27 +95,74 @@
     "token": "HOSTILE_FLOOR"
   },
   "GUARDED-5": {
-    "what": "the branch invariant 9 judges — a priority goal's pace reading as uncapped",
+    "what": "the branch invariant 9 judges — a priority goal's pace reading as uncapped ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
     "file": "apps/rn/src/data/migrationAudit/invariants.ts",
-    "token": "priorityGoalIsCapped"
+    "token": "  priorityGoalIsCapped,"
   },
-  "GAP-2": { "what": "deleting any invariant from INVARIANTS is silent; INVARIANTS.length is printed and asserted nowhere", "unguarded": "S0.13 remaining — one poisoned outcome per invariant, plus an INVARIANTS.length floor. See S0-GUARDS-4.md" },
-  "GAP-3": { "what": "moneyKeepsItsType's GOAL_MONEY_FIELDS catch nothing on the live corpus, so deleting them is silent", "unguarded": "S0.13 remaining — folds into GAP-2's harness. See S0-GUARDS-4.md" },
-  "GAP-4": { "what": "removing stripMarkdownCode mints 4 fabricated closure ids and lint:closure stays green", "unguarded": "S0.13 remaining — a fixture carrying the token in every markdown spelling, plus a downward-only assertion on explicit.size. See S0-GUARDS-4.md" },
-  "GAP-5": { "what": "nothing reads the closure gate's own stderr, so the pass-4 indent fix can be reverted unobserved", "unguarded": "S0.13 remaining — run both remediation strings through stripMarkdownCode and assert both blank. See S0-GUARDS-4.md" },
-  "GAP-6": { "what": "MAX_UNTOKENISED's downward-only rule is stated in a docstring and enforced by nothing", "unguarded": "S0.13 remaining — fail when the count is BELOW the cap, making it self-ratcheting. See S0-GUARDS-4.md" },
-  "GAP-7": { "what": "HOSTILE_FLOOR can be LOWERED to absorb a fixture that stopped opening", "unguarded": "S0.13 remaining — assert HOSTILE_FLOOR === CASES.length. See S0-GUARDS-4.md" },
-  "GAP-8": { "what": "seven of ten strip-using gates report green while reading nothing when the stripper is blinded", "unguarded": "S0.13 remaining — a per-gate hit floor, downward-only, as check-destructive-writes already does. See S0-GUARDS-4.md" },
-  "GAP-9": { "what": "scripts/lib/stripCode.ts has no test at all", "unguarded": "S0.13 remaining — partly covered by GAP-16's harness; a direct unit test over the modelled constructs is still owed. See S0-GUARDS-4.md" },
-  "GAP-10": { "what": "check-month-arithmetic's five banned spellings and constructorOverflow have no test", "unguarded": "S0.13 remaining — GAP-16 now plants one spelling; the other four and the exempt idioms are owed. See S0-GUARDS-4.md" },
-  "GAP-11": { "what": "reverting check-destructive-writes' CALL to the pre-M11 call shape leaves the gate green", "unguarded": "S0.13 remaining — fixtures for the four importStore spellings its docstring tabulates. See S0-GUARDS-4.md" },
-  "GAP-12": { "what": "the CRLF sweep is invisible to an LF-only ubuntu-latest CI", "unguarded": "S0.13 remaining — a CRLF fixture committed with .gitattributes -text. See S0-GUARDS-4.md" },
-  "GAP-13": { "what": "gateSources ROOTS can lose a root without anything noticing", "unguarded": "S0.13 remaining — a file-count floor on the fingerprint. See S0-GUARDS-4.md" },
-  "GAP-14": { "what": "lint:gate-freshness is in no chain — not run-gates.ts, not validate:release:rn, not CI", "unguarded": "S0.13 remaining — deliberate per its own docstring (a freshness check inside the thing that establishes freshness deadlocks); the open question is whether a POST-run check belongs in CI. See S0-GUARDS-4.md" },
-  "GAP-15": { "what": "strings-inventory's origin-label self-check has no test of its own", "unguarded": "S0.13 remaining — subsumed by GAP-16's harness once a scenario is added. See S0-GUARDS-4.md" },
-  "GAP-17": { "what": "the apostrophe and webkit-flex baselines can be regenerated WIDER to make a red gate green", "unguarded": "S0.13 remaining — duplicate-copy is fixed (REVERIFY4-3); the other two need the same stale-drift report. See S0-GUARDS-4.md" },
-  "GAP-18": { "what": "a raw NUL in the ledger makes it a binary file to rg, so the closure gate's corpus stops being greppable", "unguarded": "S0.13 remaining — assert the two SOURCES contain no NUL. See S0-GUARDS-4.md" },
-
+  "GAP-2": {
+    "what": "deleting any invariant from INVARIANTS is silent; INVARIANTS.length is printed and asserted nowhere",
+    "unguarded": "S0.13 remaining — one poisoned outcome per invariant, plus an INVARIANTS.length floor. See S0-GUARDS-4.md"
+  },
+  "GAP-3": {
+    "what": "moneyKeepsItsType's GOAL_MONEY_FIELDS catch nothing on the live corpus, so deleting them is silent",
+    "unguarded": "S0.13 remaining — folds into GAP-2's harness. See S0-GUARDS-4.md"
+  },
+  "GAP-4": {
+    "what": "removing stripMarkdownCode mints 4 fabricated closure ids and lint:closure stays green",
+    "unguarded": "S0.13 remaining — a fixture carrying the token in every markdown spelling, plus a downward-only assertion on explicit.size. See S0-GUARDS-4.md"
+  },
+  "GAP-5": {
+    "what": "nothing reads the closure gate's own stderr, so the pass-4 indent fix can be reverted unobserved",
+    "unguarded": "S0.13 remaining — run both remediation strings through stripMarkdownCode and assert both blank. See S0-GUARDS-4.md"
+  },
+  "GAP-6": {
+    "what": "MAX_UNTOKENISED's downward-only rule is stated in a docstring and enforced by nothing",
+    "unguarded": "S0.13 remaining — fail when the count is BELOW the cap, making it self-ratcheting. See S0-GUARDS-4.md"
+  },
+  "GAP-7": {
+    "what": "HOSTILE_FLOOR can be LOWERED to absorb a fixture that stopped opening",
+    "unguarded": "S0.13 remaining — assert HOSTILE_FLOOR === CASES.length. See S0-GUARDS-4.md"
+  },
+  "GAP-8": {
+    "what": "seven of ten strip-using gates report green while reading nothing when the stripper is blinded",
+    "unguarded": "S0.13 remaining — a per-gate hit floor, downward-only, as check-destructive-writes already does. See S0-GUARDS-4.md"
+  },
+  "GAP-9": {
+    "what": "scripts/lib/stripCode.ts has no test at all",
+    "unguarded": "S0.13 remaining — partly covered by GAP-16's harness; a direct unit test over the modelled constructs is still owed. See S0-GUARDS-4.md"
+  },
+  "GAP-10": {
+    "what": "check-month-arithmetic's five banned spellings and constructorOverflow have no test",
+    "unguarded": "S0.13 remaining — GAP-16 now plants one spelling; the other four and the exempt idioms are owed. See S0-GUARDS-4.md"
+  },
+  "GAP-11": {
+    "what": "reverting check-destructive-writes' CALL to the pre-M11 call shape leaves the gate green",
+    "unguarded": "S0.13 remaining — fixtures for the four importStore spellings its docstring tabulates. See S0-GUARDS-4.md"
+  },
+  "GAP-12": {
+    "what": "the CRLF sweep is invisible to an LF-only ubuntu-latest CI",
+    "unguarded": "S0.13 remaining — a CRLF fixture committed with .gitattributes -text. See S0-GUARDS-4.md"
+  },
+  "GAP-13": {
+    "what": "gateSources ROOTS can lose a root without anything noticing",
+    "unguarded": "S0.13 remaining — a file-count floor on the fingerprint. See S0-GUARDS-4.md"
+  },
+  "GAP-14": {
+    "what": "lint:gate-freshness is in no chain — not run-gates.ts, not validate:release:rn, not CI",
+    "unguarded": "S0.13 remaining — deliberate per its own docstring (a freshness check inside the thing that establishes freshness deadlocks); the open question is whether a POST-run check belongs in CI. See S0-GUARDS-4.md"
+  },
+  "GAP-15": {
+    "what": "strings-inventory's origin-label self-check has no test of its own",
+    "unguarded": "S0.13 remaining — subsumed by GAP-16's harness once a scenario is added. See S0-GUARDS-4.md"
+  },
+  "GAP-17": {
+    "what": "the apostrophe and webkit-flex baselines can be regenerated WIDER to make a red gate green",
+    "unguarded": "S0.13 remaining — duplicate-copy is fixed (REVERIFY4-3); the other two need the same stale-drift report. See S0-GUARDS-4.md"
+  },
+  "GAP-18": {
+    "what": "a raw NUL in the ledger makes it a binary file to rg, so the closure gate's corpus stops being greppable",
+    "unguarded": "S0.13 remaining — assert the two SOURCES contain no NUL. See S0-GUARDS-4.md"
+  },
   "S1P1-B5-COUNT": {
     "what": "pass-1 B5 — index.tsx emptied `unfunded` for a premium user with a recovery plan, and `outstanding` was computed from the emptied array, so Today rendered \"You're caught up for this paycheck.\" in success green over unpaid bills; free was the working control",
     "file": "apps/rn/tests/e2e/no-bills-branch.spec.ts",
@@ -142,19 +189,19 @@
     "token": "test:gate-plants"
   },
   "S1P1-M6-BOUNDARY": {
-    "what": "pass-1 M6 — present()'s word-boundary branch was reached only when the WHOLE token was identifier-shaped, so an identifier-PREFIXED token (`function isClamp`) fell back to text.includes and survived the rename it exists to catch. Measured: 3 of 18 tokens failed open on exactly that class. The boundary is now decided per END, with `-` in the name charset so a kebab name cannot grow past it either",
+    "what": "pass-1 M6 — present()'s word-boundary branch was reached only when the WHOLE token was identifier-shaped, so an identifier-PREFIXED token (`function isClamp`) fell back to text.includes and survived the rename it exists to catch. Measured: 3 of 18 tokens failed open on exactly that class. The boundary is now decided per END, with `-` in the name charset so a kebab name cannot grow past it either ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
     "file": "scripts/check-finding-guards.ts",
-    "token": "startsWithName"
+    "token": "const lead = startsWithName"
   },
   "S1P1-M7-CODELINE": {
-    "what": "pass-1 M7 — 5 of 18 tokens survived on a DOCSTRING line alone, so deleting the assertion left the gate green; GUARDED-5 composed with GAP-2 into a fully silent removal of an invariant. A token must now appear on a non-comment line. Mechanism A fixed separately: S1-M9-GUARDIAN's token sat on the PRECONDITION line, so the finding's own assertion could be deleted with the gate green",
+    "what": "pass-1 M7 — 5 of 18 tokens survived on a DOCSTRING line alone, so deleting the assertion left the gate green; GUARDED-5 composed with GAP-2 into a fully silent removal of an invariant. A token must now appear on a non-comment line. Mechanism A fixed separately: S1-M9-GUARDIAN's token sat on the PRECONDITION line, so the finding's own assertion could be deleted with the gate green ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
     "file": "scripts/check-finding-guards.ts",
-    "token": "presentInCode"
+    "token": "if (!presentInCode(text, e.token))"
   },
   "S1P1-M8-STRICT": {
-    "what": "pass-1 M8 — MIN_ENTRIES was 24 against 34 entries and checked with `<`, so ten closed findings could be deleted with the gate green; MAX_UNGUARDED used `>` and would acquire the same slack on the next guarded entry. Both are strict equality now, matching MAX_EXEMPT in the same commit range. Plus a duplicate-id check, because JSON.parse silently keeps the last of a repeated key",
+    "what": "pass-1 M8 — MIN_ENTRIES was 24 against 34 entries and checked with `<`, so ten closed findings could be deleted with the gate green; MAX_UNGUARDED used `>` and would acquire the same slack on the next guarded entry. Both are strict equality now, matching MAX_EXEMPT in the same commit range. Plus a duplicate-id check, because JSON.parse silently keeps the last of a repeated key ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
     "file": "scripts/check-finding-guards.ts",
-    "token": "keyLines"
+    "token": "ids.length !== MIN_ENTRIES"
   },
   "S1P1-M9-ROOTS": {
     "what": "pass-1 M9-A — the S1 surface roots were four directories plus ten hand-named files, i.e. an ENUMERATION, inside the file whose own docstring says an inclusion list fails silent. store/ was 6 of 88, data/ 3 of 21, (tabs)/ 1 of 4, and (tabs)/index.tsx — 1,087 lines, where blocker B5 is wired — was on no surface at all. Widened to whole directories with routed exclusions: 72 files became 137",
@@ -162,19 +209,19 @@
     "token": "apps/rn/src/app/(tabs)/index.tsx"
   },
   "S1P1-M9-VOCAB": {
-    "what": "pass-1 M9-B — unswept was `every(v => v === 'never' || 'unknown' || 'partial')`, so ANY other string counted as SWEPT: `nevr`, `Never`, ` never` all silently converted an unread file into a read one, in the count and in the generated inventory. The vocabulary is now an allow-list checked before anything is counted",
+    "what": "pass-1 M9-B — unswept was `every(v => v === 'never' || 'unknown' || 'partial')`, so ANY other string counted as SWEPT: `nevr`, `Never`, ` never` all silently converted an unread file into a read one, in the count and in the generated inventory. The vocabulary is now an allow-list checked before anything is counted ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
     "file": "scripts/surface-coverage.ts",
-    "token": "VALID_CLAIMS"
+    "token": "if (!VALID_CLAIMS.has(v))"
   },
   "S1P1-M9-ROUTING": {
-    "what": "pass-1 M9-C — an exclusion could route a file to a surface that does not exist, and 13 did: they named `s4`, which has no SURFACES entry and no claims file. The docblock's rule (every exclusion names the surface that owns the file) was enforced by nothing. Routings are now typed and validated against KNOWN_SURFACES, which deliberately includes not-yet-built surfaces and an explicit `none`",
+    "what": "pass-1 M9-C — an exclusion could route a file to a surface that does not exist, and 13 did: they named `s4`, which has no SURFACES entry and no claims file. The docblock's rule (every exclusion names the surface that owns the file) was enforced by nothing. Routings are now typed and validated against KNOWN_SURFACES, which deliberately includes not-yet-built surfaces and an explicit `none` ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
     "file": "scripts/surface-coverage.ts",
-    "token": "KNOWN_SURFACES"
+    "token": "if (r && !KNOWN_SURFACES.has(r.to))"
   },
   "S1P1-M10-AUTHORING": {
-    "what": "pass-1 M10 — an audit report quoting a credential shape as evidence reds lint:secrets, and therefore lint:rn, on every committed tree; it happened on 2 of 2 rounds, the second while quoting the gate's own evidence. The author got no warning because untracked files are invisible to the committed scan BY DESIGN, and both exits were refused by the instrument's own text. `--working-tree` is an authoring-time read that loosens nothing and is deliberately NOT in lint:rn",
+    "what": "pass-1 M10 — an audit report quoting a credential shape as evidence reds lint:secrets, and therefore lint:rn, on every committed tree; it happened on 2 of 2 rounds, the second while quoting the gate's own evidence. The author got no warning because untracked files are invisible to the committed scan BY DESIGN, and both exits were refused by the instrument's own text. `--working-tree` is an authoring-time read that loosens nothing and is deliberately NOT in lint:rn ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
     "file": "scripts/check-committed-secrets.ts",
-    "token": "WORKING_TREE"
+    "token": "if (WORKING_TREE) {"
   },
   "S1P1-B2-INVALIDATE": {
     "what": "pass-1 B2 — intentRollback snapshots the ENTIRE DebtStore and undoIntentAction restores the whole thing; nothing ever cleared it, so a debt, a goal, a bill and a strategy change made after logging a payment were all destroyed (and persisted) by an Undo whose card promises only to undo the payment. Fixed as a CLASS in the set wrapper: any patch that moves `store` without mentioning `intentRollback` is somebody else's write. ⚠️ The wrapper was also made unconditional — it used to fall through to the raw setter when neither `bound` nor `refuse` was passed, which is every store a test builds",
@@ -190,6 +237,21 @@
     "what": "pass-1 B2 — the Today Undo card had NO end-to-end coverage at all; the only test called logManualPayment and undoIntentAction with nothing in between. This is the property that must SURVIVE the fix: an over-eager invalidation would delete the card from the product and nothing else would notice. ⚠️ Navigation must be by TAB, never page.goto — intentRollback is transient by design, so a reload would find it missing and read as a break",
     "file": "apps/rn/tests/e2e/intent-undo.spec.ts",
     "token": "logging a payment still offers the Undo on Today"
+  },
+  "S1P2-B1-PLANTS": {
+    "what": "pass-2 B-1 - seven registry entries were pinned by an identifier the un-fix leaves in place, and ALL SEVEN stayed green with the defect restored; three of them the fixes to check-finding-guards.ts itself, the gate that certifies the rest. test:gate-plants covered none of the seven gates. These six scenarios plant a real defect of each gate's own class",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "...B1_SCENARIOS,"
+  },
+  "S1P2-B1-REASON": {
+    "what": "pass-2 B-1's harness half - an exit-code-only check scores a pass when a gate reds for a DIFFERENT reason than the planted defect; measured on the M9-vocab un-fix, where the gate still exited 1 for the inventory reason and the scenario would have counted as sound",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "const rightReason = !s.expect || withPlant.out.includes(s.expect)"
+  },
+  "S1P2-B1-SELFCHECK": {
+    "what": "pass-2 B-1's un-plantable seventh - the routing check reads a predicate in surface-coverage.ts rather than a file, so no scenario can hand it a defect; the first self-check asserted the PREDICATE and stayed green with `if (false && ...)` planted at the call site, which is tested-helper-is-not-a-used-helper written into the fix for it",
+    "file": "scripts/surface-coverage.ts",
+    "token": "the routing self-check"
   },
   "S1P2-A1-NETTED": {
     "what": "pass-2 A1 - three reads of the same money and the last fix range moved two of them; a user $1 short after moving $200 at the Guardian's own suggestion was told a $20 purchase would leave them $20 short, in the card saying the $200 holds their line, with $199 unspent. Every prior test fixed topUp 200 against shortfall 400 - the member where a blanket 0 and netting agree exactly",
@@ -282,9 +344,9 @@
     "token": "converting a QUARTERLY bill keeps its cadence"
   },
   "S1P1-M1-CALL": {
-    "what": "pass-1 M1 — the grouped Expenses list and the 'where it goes' receipt both ENUMERATED BILL_CATEGORY_ORDER and filtered `e.category === category`, so a bill with an absent or unrecognised category matched no bucket and rendered nowhere while still being reserved from every paycheck. The fix is a CALL, not a helper: `resolveBillCategory` partitions into the real 'other' member, and a correct unused resolver is exactly what the defect already was",
+    "what": "pass-1 M1 - the grouped Expenses list and the 'where it goes' receipt ENUMERATED categories instead of partitioning, so a bill the app could not categorise vanished from both. ⚠️ S1.9.4 after-scan: this token was the bare identifier `resolveBillCategory` and is now the CALL expression - but `money.tsx` holds TWO identical call sites, and a token cannot count occurrences, so a SINGLE-site revert leaves it green. Measured, and the behavioural guards do catch it: reverting the second site alone reds 3 of the 4 tests in bill-category-partition.spec.ts. This entry guards a both-sites removal; S1P1-M1-LIST / -RECEIPT / -SHEET are what guard the behaviour.",
     "file": "apps/rn/src/app/(tabs)/money.tsx",
-    "token": "resolveBillCategory"
+    "token": "resolveBillCategory(e) === category"
   },
   "S1P1-M1-LIST": {
     "what": "pass-1 M1's user-facing half — the uncategorised bill renders under Other AND a known bill keeps its own heading. Both classes are asserted: the original `e.category ===` plant reds the first, an 'everything resolves to Other' plant reds the second, and either assertion alone leaves the other direction unfalsifiable. The helper waits on a ROW so the heading assertions are reached under both plants",
