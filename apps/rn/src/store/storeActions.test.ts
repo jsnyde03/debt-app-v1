@@ -141,15 +141,20 @@ function run() {
   {
     const s = inst();
     const cycle = s.getState().store.paycheck.nextPaycheckDate;
-    s.getState().applyTightTopUp('g0', 200);
+    s.getState().applyTightTopUp('guardian', 'g0', 200);
     eq(s.getState().store.goals[0].currentAmount, 300, 'applyTightTopUp → draws the amount from the goal');
     eq(s.getState().store.cycleTopUp?.amount, 200, '…records the cycle top-up');
     eq(s.getState().store.cycleTopUp?.forCycle, cycle, '…keyed to this cycle');
-    s.getState().applyTightTopUp('g0', 100);
+    s.getState().applyTightTopUp('guardian', 'g0', 100);
     eq(s.getState().store.cycleTopUp?.amount, 300, 'repeat top-up same cycle → accumulates');
     // over-draw clamps the goal at zero (break-it: amount > balance)
-    s.getState().applyTightTopUp('g0', 99999);
+    s.getState().applyTightTopUp('guardian', 'g0', 99999);
     eq(s.getState().store.goals[0].currentAmount, 0, 'over-draw → goal clamped at 0 (never negative)');
+    // ⛔ S1.5.3 [B3] — …AND THE RECORD CLAMPS WITH IT. This assertion did not exist, and its absence is
+    // named in the auditor's report: the old code recorded the full requested amount while the goal
+    // stopped at 0, so `cycleTopUp.amount` read **100,299** against $500 that actually moved — and
+    // `appliedTopUp()` credits the cushion with that number. Σ entries must equal what LEFT the goals.
+    eq(s.getState().store.cycleTopUp?.amount, 500, '⛔ B3 — the record holds what actually LEFT the goal, not what was asked for');
   }
 
   // ── 3.7.A3.5 — the top-up is REVERSIBLE from the store alone ──
@@ -159,17 +164,98 @@ function run() {
   {
     const s = inst();
     const before = s.getState().store.goals[0].currentAmount;
-    s.getState().applyTightTopUp('g0', 200);
+    s.getState().applyTightTopUp('guardian', 'g0', 200);
 
     const rec = selectAppliedTopUp(s.getState().store);
     assert(rec !== null, 'A3.5 — an applied top-up is exposed as a reversible record');
     eq(rec?.goalId, 'g0', '…naming the goal it drew from');
     eq(rec?.amount, 200, '…and the amount');
 
-    // Undo = the SAME action with a negative amount, exactly as the affordability card reverses a cover.
-    s.getState().applyTightTopUp(rec!.goalId, -rec!.amount);
+    s.getState().undoTightTopUp('guardian');
     eq(s.getState().store.goals[0].currentAmount, before, '…undo restores the goal to where it started');
     eq(selectAppliedTopUp(s.getState().store), null, '…and there is nothing left to undo');
+  }
+
+  // ⛔ S1.5.3 [B3] — TWO SOURCES, ONE RECORD. Both variants the auditor measured, plus the invariant.
+  //
+  // The Guardian's tight top-up and the affordability card's cover-a-dip both wrote `cycleTopUp`, which
+  // accumulated an amount and kept only the MOST RECENT `goalId`. Existing coverage used the single goal
+  // `'g0'` in every call — one member of the class, and the member that works.
+  {
+    const twoGoals = () =>
+      inst({
+        goals: [
+          { id: 'S1', name: 'Savings 1', type: 'savings', currentAmount: 100, targetAmount: 1000 },
+          { id: 'S2', name: 'Savings 2', type: 'savings', currentAmount: 60, targetAmount: 1000 },
+        ] as DebtStore['goals'],
+      });
+    const bal = (s: ReturnType<typeof inst>, id: string) => s.getState().store.goals.find((g) => g.id === id)!.currentAmount;
+
+    // ── VARIANT A: money teleports between goals ──
+    {
+      const s = twoGoals();
+      s.getState().applyTightTopUp('guardian', 'S1', 70);
+      s.getState().applyTightTopUp('affordability', 'S2', 50);
+      eq(s.getState().store.cycleTopUp?.amount, 120, 'B3 — the cycle total is still the sum of both draws');
+
+      // The Guardian's card offers to undo ITS OWN $70, not the shared $120.
+      eq(selectAppliedTopUp(s.getState().store)?.amount, 70, '⛔ B3 — the Guardian card offers its own draw, not the cycle total');
+      eq(selectAppliedTopUp(s.getState().store)?.goalId, 'S1', '⛔ B3 — …from its own goal, not whichever source wrote last');
+
+      s.getState().undoTightTopUp('guardian');
+      eq(bal(s, 'S1'), 100, '⛔ B3 — S1 gets its $70 back (it used to land in S2, permanently)');
+      eq(bal(s, 'S2'), 10, '…and S2 keeps only its own $50 drawn');
+      eq(s.getState().store.cycleTopUp?.amount, 50, '…the record retains the affordability draw alone');
+    }
+
+    // ── VARIANT B: $50 created from nothing, with only ONE goal ──
+    {
+      const s = inst({ goals: [{ id: 'S1', name: 'Savings 1', type: 'savings', currentAmount: 500, targetAmount: 1000 }] as DebtStore['goals'] });
+      s.getState().applyTightTopUp('guardian', 'S1', 70);
+      s.getState().applyTightTopUp('affordability', 'S1', 50);
+      eq(bal(s, 'S1'), 380, 'B3 — both draws leave the one goal');
+
+      s.getState().undoTightTopUp('guardian');
+      eq(bal(s, 'S1'), 450, 'B3 — the Guardian undo returns exactly its own $70');
+      // ⛔ The second tap: the card's undo used to read `applied.cover` from COMPONENT state, so the
+      // Guardian having already reversed was invisible and the goal gained $50 that never existed.
+      s.getState().undoTightTopUp('affordability');
+      eq(bal(s, 'S1'), 500, '⛔ B3 — the second undo returns its own $50 and no more');
+      // …and a THIRD tap invents nothing, because the entry is gone from the store.
+      s.getState().undoTightTopUp('affordability');
+      s.getState().undoTightTopUp('guardian');
+      eq(bal(s, 'S1'), 500, '⛔ B3 — a repeated undo is a NO-OP; it used to drive the record to −50 where Math.max(0,…) hid it');
+      eq(s.getState().store.cycleTopUp?.amount, 0, '…and the record cannot go negative');
+    }
+
+    // ── the invariant nothing asserted: Σ entries === what actually left the goals ──
+    {
+      const s = twoGoals();
+      s.getState().applyTightTopUp('guardian', 'S1', 70);
+      s.getState().applyTightTopUp('affordability', 'S2', 9999); // more than S2 holds
+      const moved = 100 - bal(s, 'S1') + (60 - bal(s, 'S2'));
+      eq(s.getState().store.cycleTopUp?.amount, moved, '⛔ B3 — Σ cycleTopUp === what actually LEFT the goals');
+      eq(moved, 130, '…which is $70 + the $60 S2 could actually supply, not the $9,999 asked for');
+    }
+
+    // ── a goal that does not exist supplies nothing, and must not be recorded ──
+    {
+      const s = twoGoals();
+      s.getState().applyTightTopUp('guardian', 'nope', 40);
+      eq(s.getState().store.cycleTopUp?.amount ?? 0, 0, '⛔ B3 — an unknown goalId records NOTHING (it used to credit the cushion anyway)');
+    }
+
+    // ⚠️ THE LEGACY CONTROL: a pre-S1.5.3 blob has `amount`/`goalId` and no `entries`. It must keep
+    // behaving exactly as it did — the Guardian card can undo it — or this fix silently strands money
+    // that is mid-cycle across an upgrade.
+    {
+      const s = twoGoals();
+      const cycleKey = s.getState().store.paycheck.nextPaycheckDate;
+      s.setState({ store: { ...s.getState().store, cycleTopUp: { forCycle: cycleKey, amount: 70, goalId: 'S1' } } });
+      eq(selectAppliedTopUp(s.getState().store)?.amount, 70, '⭐ B3 legacy — an entry-less record still reads as the Guardian’s own draw');
+      s.getState().undoTightTopUp('guardian');
+      eq(bal(s, 'S1'), 170, '⭐ B3 legacy — …and is still undoable, back to the goal it names');
+    }
   }
 
   // ── risk-notified (2.4.10) ──
@@ -550,6 +636,94 @@ function run() {
       s.getState().store.pendingPayoff === finale,
       '⛔ C-3 — a BEAT never displaces an unconsumed finale: it is once-ever, and this is the only arm that guards it',
     );
+  }
+
+  // ⛔ S1.5.3 [B4] — `convertExpenseToDebt` was a REDUCED COPY of `addDebt`, and its comment said why:
+  // "a conversion never arrives in that shape (an expense has no installment schedule to derive from)."
+  // Measured false: the same 4×$50 input stored as $200 via `addDebt` and $0 via `convertExpenseToDebt`,
+  // and a $0 balance files the debt the user just added under PAID OFF. Both now share `prepareNewDebt`,
+  // so the assertion is EQUIVALENCE — a future divergence fails here rather than in front of a user.
+  {
+    const bnpl = {
+      id: 'b1', name: 'Affirm Sofa', balance: 0, minimumPayment: 0, apr: 0,
+      dueDate: '2026-09-01', type: 'bnpl' as const, recurrence: 'biweekly' as const,
+      scheduledPaymentAmount: 50, remainingPayments: 4,
+    };
+
+    // ⚠️ The control instance is seeded WITH a bill on purpose. `plan()` carries none, so a control that
+    // asserts `requiredExpenses.length === 0` after an add is vacuously true — it cannot tell "did not
+    // delete" from "there was nothing to delete."
+    const added = inst({
+      requiredExpenses: [{ id: 'e1', name: 'Sofa payment', amount: 50, dueDate: '2026-09-01', recurrence: 'monthly', category: 'other' }] as DebtStore['requiredExpenses'],
+    });
+    added.getState().addDebt({ ...bnpl } as DebtStore['debts'][number]);
+    const viaAdd = added.getState().store.debts.find((d) => d.id === 'b1')!;
+
+    const converted = inst({
+      requiredExpenses: [{ id: 'e1', name: 'Sofa payment', amount: 50, dueDate: '2026-09-01', recurrence: 'monthly', category: 'other' }] as DebtStore['requiredExpenses'],
+    });
+    converted.getState().convertExpenseToDebt('e1', { ...bnpl } as DebtStore['debts'][number]);
+    const viaConvert = converted.getState().store.debts.find((d) => d.id === 'b1')!;
+
+    eq(viaAdd.balance, 200, 'addDebt derives an installment-native BNPL balance (50 × 4)');
+    eq(viaConvert.balance, 200, '⛔ B4 — convertExpenseToDebt derives it IDENTICALLY; it used to store $0');
+    eq(viaConvert.minimumPayment, viaAdd.minimumPayment, 'B4 — …and the same minimum');
+    eq(viaConvert.originalBalance, viaAdd.originalBalance, 'B4 — …and the same originalBalance carve-out');
+    // The conversion's own job still happens: the bill is gone, in the same write.
+    eq(converted.getState().store.requiredExpenses.length, 0, 'B4 — the converted expense is removed');
+    // ⚠️ The control, and it is the one the whole blocker turns on: a plain add must leave the bill alone.
+    eq(added.getState().store.requiredExpenses.map((e) => e.id).join(','), 'e1', 'B4 control — addDebt leaves the bill in place');
+  }
+
+  // ⛔ S1.5.3 [B2] — the whole-store Undo snapshot, and everything that must invalidate it.
+  //
+  // `intentRollback` snapshots the ENTIRE store and `undoIntentAction` restores the whole thing; nothing
+  // ever cleared it. So a user who logged a payment and then kept working lost every later edit the
+  // moment they tapped an Undo whose card promises only to undo the payment.
+  //
+  // ⚠️ The existing coverage at :434 is rule 2's archetype — it calls `logManualPayment` and
+  // `undoIntentAction` with NOTHING in between and asserts one field of one debt, so it picks the single
+  // member of the class that works and passes with the defect entirely present. These are the members
+  // that fail.
+  {
+    // 1 · the property that must SURVIVE: with nothing in between, Undo still undoes the payment.
+    const kept = inst();
+    kept.getState().logManualPayment('d0', 200);
+    eq(kept.getState().store.debts[0].balance, 4800, 'B2 control — the payment lands');
+    kept.getState().undoIntentAction();
+    eq(kept.getState().store.debts[0].balance, 5000, '⭐ B2 control — an IMMEDIATE Undo still reverses the payment');
+
+    // 2 · an unrelated edit invalidates the snapshot, and SURVIVES.
+    const edited = inst();
+    edited.getState().logManualPayment('d0', 200);
+    assert(edited.getState().intentRollback !== null, 'B2 — the snapshot is armed by the payment');
+    edited.getState().addGoal({ id: 'g9', name: 'New goal', type: 'savings', currentAmount: 0, targetAmount: 100 } as DebtStore['goals'][number]);
+    eq(edited.getState().intentRollback, null, '⛔ B2 — an unrelated edit INVALIDATES the whole-store snapshot');
+    // …and the tap that used to destroy it is now a no-op.
+    edited.getState().undoIntentAction();
+    eq(edited.getState().store.goals.filter((g) => g.id === 'g9').length, 1, '⛔ B2 — the later edit survives; Undo cannot reach back past it');
+    eq(edited.getState().store.debts[0].balance, 4800, '…and the payment is NOT silently reversed either — there is nothing to undo');
+
+    // 3 · the SECOND DOOR the auditor named as inference: a restore must not be undoable by a payment card.
+    const restored = inst();
+    restored.getState().logManualPayment('d0', 200);
+    restored.getState().importStore(plan({ debts: [{ id: 'dX', name: 'Restored', balance: 111, minimumPayment: 10, apr: 1, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] as DebtStore['debts'] }));
+    eq(restored.getState().intentRollback, null, '⛔ B2 — importStore (restore a backup) invalidates it too');
+    restored.getState().undoIntentAction();
+    eq(restored.getState().store.debts.map((d) => d.id).join(','), 'dX', '⛔ B2 — the freshly-restored portfolio is not replaced by the pre-restore one');
+
+    // 4 · reset() is the third door — "Delete all data" must not be reversible by a payment card.
+    const wiped = inst();
+    wiped.getState().logManualPayment('d0', 200);
+    wiped.getState().reset();
+    eq(wiped.getState().intentRollback, null, '⛔ B2 — reset() invalidates it too');
+
+    // 5 · the control on the RULE ITSELF: `keepIntentAction`/dismiss touches no store, so it must not be
+    // mistaken for somebody else's write — and the two writers set both keys in one patch, so arming
+    // must not immediately disarm itself.
+    const armed = inst();
+    armed.getState().logManualPayment('d0', 200);
+    assert(armed.getState().intentRollback !== null, '⭐ B2 control — arming does not self-invalidate (the writer patches both keys at once)');
   }
 
   console.log(`✅ Store-action (RS.3) tests passed (${passed} asserts).`);

@@ -4,6 +4,139 @@
 
 ---
 
+## ✅ S1.5.3 — B2 · B3 · B4: state correct for the flow it was written for, reused by a later one *(2026-08-26)*
+
+⚡ **C's one-sentence diagnosis is the most useful thing in the round, and it held for all three:** none is
+a wrong calculation. Each is a piece of state whose SCOPE outgrew the flow it was written for. **Fix the
+scope.** Every fix here is a lifetime or an ownership change, and not one of them adjusts arithmetic.
+
+### [B4] — the flag that outlived its flow
+
+`money.tsx` held `convertingExpenseId` in a `useState` set by the conversion effect and cleared by
+**nothing** — `grep -n setConverting` returned exactly one line, the setter. It was handed to every later
+`DebtSheet` in the Debts section, and `DebtSheet:213` routes to `convertExpenseToDebt` whenever it is
+present, which unconditionally deletes that expense. Tap *"Move to Debts"*, change your mind, add any
+ordinary debt without leaving the section → **the bill you backed out of converting is gone**, no
+confirmation, no undo, and the per-paycheck reserve silently drops by its amount.
+
+⛔ **The fix is a LIFETIME, not a guard.** `convertingExpenseId` now lives inside `money.tsx`'s `sheet`
+state, so it is born and dies with the sheet — `onClose` is `setSheet(null)`. `DebtSheet`'s docblock
+claimed *"`convertingExpenseId` is set only on the convert path"*; that sentence is now true **by
+construction** rather than by assertion.
+
+**Its two stated consequences, both closed:**
+- `convertExpenseToDebt` was a reduced copy of `addDebt` that skipped `normalizeBnplInstallment`, and said
+  why: *"a conversion never arrives in that shape."* ⚡ **False twice over** — the misroute sent plain adds
+  down it, **and** `DebtSheet`'s type picker is on screen during a real conversion. Both paths now share
+  `prepareNewDebt`, so they cannot disagree. *(The auditor's measurement reproduced exactly: $200 via
+  `addDebt`, **$0** via `convertExpenseToDebt`, and a $0 balance files the debt under PAID OFF.)*
+- `DebtSheet` seeded `recurrence` from `editing?.recurrence ?? 'monthly'` while `name`,
+  `minimumPayment` and `dueDate` all honoured the prefill — so converting a **quarterly** bill filed its
+  amount as a **monthly** minimum, inside the debt-free date.
+
+### ⚡ A THIRD blocker, found because a plant did NOT red
+
+Plant 6 restored B4's leaking flag and the BNPL test **stayed green**. Investigating instead of accepting
+it: `DebtSheet.submit()`'s BNPL branch ended `else addDebt(…)` and **never consulted `convertingExpenseId`
+at all**. So converting a bill into a BNPL ADDED the debt and LEFT the expense — measured on the real app,
+a $1,600 Mortgage ending as `debts: ["Mortgage:1600"]` **and** `requiredExpenses: ["Mortgage"]`: the same
+money reserved from every paycheck as a bill *and* projected as a debt, permanently.
+
+⛔ That is **verbatim** the window the non-BNPL branch's own comment says the one-write design exists to
+prevent. One branch carried the guard; its neighbour never did. Both now route through one `commit()`.
+
+⭐ **The lesson: a plant that fails to red is evidence about the CODE, not only about the test.** The
+existing rule says a plant must go red; it does not say what to do when a sound plant doesn't. Here the
+answer was a blocker.
+
+### [B2] — an Undo that reverted the whole store
+
+`intentRollback` snapshots the **entire** `DebtStore` and `undoIntentAction` restores the whole thing.
+Seven references in `store.ts` and they were the complete set: two writers, two clearers, the type, the
+initial value. **Nothing cleared it.** So a debt, a goal, a bill and a strategy change made after logging a
+payment were all destroyed — and **persisted**, because `persistence.ts` schedules a write whenever
+`state.store` changes by reference — by an Undo whose card promises only to undo the payment.
+
+⛔ **Fixed as a CLASS, in the `set` wrapper, deliberately NOT as "clear it in every other action."** That
+would be a list, and the list is what left `importStore` and `reset()` as two more doors onto the same
+snapshot. The two writers set `store` and `intentRollback` in the SAME patch, so **any patch that moves
+`store` without mentioning `intentRollback` is by definition somebody else's write.** Keyed on
+`patch.store !== state.store`, the same line `persistence.ts` already draws.
+
+⚠️ **The wrapper was also made unconditional.** It used to fall through to the raw setter when neither
+`bound` nor `refuse` was supplied — which is every store a test builds. *A rule enforced in a wrapper that
+tests do not get is not a testable rule.*
+
+⚠️ **This card had NO end-to-end coverage at all**, and the only store test called `logManualPayment` and
+`undoIntentAction` with nothing in between — one member of the class, the member that works.
+⛔ `intent-undo.spec.ts` navigates **by tab, never `page.goto`**: `intentRollback` is transient by design,
+so a spec that reloaded would find the card missing and conclude the feature was broken.
+
+### [B3] — two one-tap money moves, one record
+
+`cycleTopUp` accumulated a single `amount` and kept only the **most recent** `goalId`, while two
+independent flows wrote to it and each had its own Undo. Both variants reproduced:
+
+| | before | after |
+|---|---|---|
+| **A · teleport** | $70 from S1 + $50 from S2 → one **$120** Undo into **S2**; S1 permanently short, **aggregate conserved**, which is why nothing noticed | the Guardian card offers **its own $70**, back to **S1** |
+| **B · invention** | both undos fire; the card's read `applied.cover` from **component state**, so the Guardian having already reversed was invisible → the goal gained **$50 that never existed**, `amount` hit **−50**, and `Math.max(0, …)` hid it | a repeat undo is a **no-op by construction** — the entry is gone from the store |
+| **the record vs reality** | the full requested amount was recorded while the goal clamped at 0 *(**100,299** against $200 actually moved)*, and recorded even for a `goalId` matching no goal | `amount` is **derived** from the entries; each entry holds what actually **left** the goal |
+
+⛔ **`entries` is the truth and `amount` is derived**, so *Σ `cycleTopUp` === what actually left the goals*
+— the invariant nothing asserted — cannot drift. `undoTightTopUp(source)` replaces both negative-apply
+call sites; neither caller supplies the goal or the amount any more.
+
+⚠️ **No migration, and none should be added.** A pre-S1.5.3 blob reads as a single `'guardian'` entry,
+which is the behaviour it already had; the record is cycle-keyed, so a legacy one stops being read at the
+next rollover. **The legacy path has its own control assertion** — without it the fix would strand money
+that is mid-cycle across an upgrade.
+
+⚠️ **And a tested helper is not a used helper.** Both call sites typecheck perfectly while passing the
+WRONG `source` — the affordability card saying `'guardian'` re-creates the blocker with every unit test
+still green. The cover-from-savings path had **no e2e at all**, so `topup-sources.spec.ts` now drives it,
+on a fixture **measured** (not guessed) to produce a tight verdict with a cover offer.
+
+### The plants — seven, each with a control
+
+| # | plant | reds | stays green |
+|---|---|---|---|
+| 6 | B4's screen-lifetime flag restored | the blocker test **and** the BNPL test *(the latter only after `commit()` existed — before it, the plant's failure to red is what found the third blocker)* | the real-conversion tests |
+| 7 | the BNPL branch bypassing `commit()` | the one-write test **only** | everything else |
+| 8 | `prepareNewDebt` un-shared | balance **$0**, then the minimum, independently | the control instance |
+| 9 | B2's invalidation removed | **all six** doors, each independently once relaxed | ⭐ the "Undo still works" control |
+| 10 | B3's single accumulated record | **five** assertions, independently | the single-source case |
+| 11 | recording the requested amount | the clamp **and** the Σ invariant | the two-source routing |
+| 12 | undo not removing its entry | the repeat-undo no-op | — |
+
+⛔ **Plant 4 (S1.5.2) had to be redone and the same discipline caught it here:** a `sed` aimed at one line
+matched **two**, silently stripping a long-standing `targetId` from a different push. Every plant since is
+**diff-verified against the saved original before the run**, and every early red is re-run with the earlier
+assertion relaxed — otherwise a plant that reds at assertion 1 never exercises assertions 2–6.
+
+### Verification
+
+| | |
+|---|---|
+| **full RN e2e** | ✅ **288 passed, 0 failed** (8.1m) — up from 285 at S1.5.2; the new specs are `intent-undo` ×2 and `topup-sources` ×1, plus 4 in `misfiled-expense` |
+| **`lint:rn`** | ✅ **26 of 26** — ⚠️ red first on **`lint:comments` [D17]**: I annotated a false comment instead of deleting it. *Correcting a comment means deleting it.* Rewritten to state the code's past, which the gate permits |
+| `typecheck` · `test:app` · `test:scenarios` · `test:regression` | ✅ green — **1,568 assertions**, including `affordability.test.ts`'s legacy-shaped `cycleTopUp` fixtures, which prove the back-compat path |
+| **guards** | 11 registered across S1.5.2 + S1.5.3. **52 findings · 36 guarded · 16 unguarded**, cap unmoved |
+
+⛔ **The first full-suite run was DISCARDED, not read.** Two tests reported **4.3 h** runtimes — the
+machine slept mid-run, which is one of the three causes this repo has already measured behind a broad red
+that was mostly noise. A run whose clock is wrong is not a measurement; it was killed and re-run against
+the warm server, with `dist` confirmed newer than every source edit first.
+
+### After-scan
+
+- **A fully-undone top-up still marks the cycle `disturbed`.** `guardianPredictionCore:94` tests only
+  `cycleTopUp?.forCycle`, and a spent record survives with `amount: 0`. ⚠️ **Pre-existing and unchanged by
+  this fix** — the old negative-apply left `{forCycle, amount: 0}` too. Whether an applied-then-undone
+  top-up should still disturb calibration is a §2.9 semantics call, not a bug to fix in passing. **Filed.**
+
+---
+
 ## ✅ S1.5.2 — B5: suppressing ADVICE is not the same act as denying the debt exists *(2026-08-26)*
 
 **The blocker.** A premium user whose $1,000 paycheck went entirely on rent, with $200 of bills unpaid,

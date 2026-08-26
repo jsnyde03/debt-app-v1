@@ -10,6 +10,7 @@ import { runMigrations } from '@/data/migrations';
 import {
   CURRENT_STORE_VERSION,
   type CompletedRecommendedAction,
+  type CycleTopUpEntry,
   type Debt,
   type DebtStore,
   type Goal,
@@ -24,6 +25,7 @@ import type { StorageAdapter } from '@/storage/adapter';
 import { reportError } from '@/utils/reportError';
 
 import { recordDriftBaseline } from './drift';
+import { buildCycleTopUp, topUpEntries } from './topUpSelectors';
 import { stampCyclePrediction } from './guardianPrediction';
 import { applyCapture, applyRollover, type PaydayActuals } from './payday';
 import { detectPayoff } from './payoffCelebration';
@@ -225,7 +227,9 @@ export interface DebtAppState {
   acknowledgeReserveWalkback(): void;
   /** §2.10 tight-case (2.4.11.2) — hold this cycle's line by moving `amount` from a savings/EF goal to
    *  checking: reduce the goal + record the top-up for the current cycle. */
-  applyTightTopUp(goalId: string, amount: number): void;
+  applyTightTopUp(source: CycleTopUpEntry['source'], goalId: string, amount: number): void;
+  /** ⛔ S1.5.3 [B3] — reverse THIS source's own entry, read from the store. Never a negative apply. */
+  undoTightTopUp(source: CycleTopUpEntry['source']): void;
   /** 3.8 — SET this cycle's expense-reserve contribution to `amount` (not add to it). Idempotent by
    *  design: the user acts on a single recommended "reserve $X" offer, and an accumulating action would
    *  silently double the hold on a double-tap. `0` clears it. Never required — the plan is correct at
@@ -235,9 +239,33 @@ export interface DebtAppState {
   // Import (shared by JSON import + iCloud restore + the Phase-D data bridge)
   importStore(store: DebtStore): void;
 }
-
 /** Stable identity for a completed recommended action (dedup key for toggle). */
 const recKey = (a: CompletedRecommendedAction) => `${a.category}:${a.targetId}:${a.paymentSource ?? 'paycheck'}`;
+
+/**
+ * ⛔ S1.5.3 [B4] — THE ONE OWNER OF "a debt is arriving from a form, prepare it for the store."
+ *
+ * A debt's balance is verified NOW (the user just typed a real number), so both dates stamp; an
+ * installment-native BNPL has its balance and minimum DERIVED from scheduled × remaining (2.7.2); and
+ * `originalBalance` seeds from the first entered balance so every debt row can show a momentum bar —
+ * skipped for BNPL, which shows "X of N" rather than a bar.
+ *
+ * ⚠️ `convertExpenseToDebt` used to reproduce this **minus the normalisation**, and said why:
+ * *"a conversion never arrives in that shape (an expense has no installment schedule to derive from)."*
+ * **That premise is false.** `DebtSheet`'s type picker is on screen during a conversion, so a user can
+ * convert a bill into a BNPL — and the same sheet's `convertingExpenseId` used to leak into a plain add,
+ * which routed ordinary new debts down the un-normalised path. Measured: the same 4×$50 input stored as
+ * **$200 via `addDebt` and $0 via `convertExpenseToDebt`**, and a $0 balance files the debt the user just
+ * added under PAID OFF. Sharing the preparation is what makes the two paths incapable of disagreeing.
+ */
+function prepareNewDebt(debt: Debt, now: string): Debt {
+  return normalizeBnplInstallment({
+    ...debt,
+    originalBalance: debt.originalBalance ?? (isInstallmentNative(debt) ? undefined : debt.balance),
+    lastVerifiedDate: debt.lastVerifiedDate ?? now,
+    balanceAsOfDate: debt.balanceAsOfDate ?? now,
+  });
+}
 
 /**
  * Build a store instance.
@@ -276,16 +304,43 @@ export function createDebtStore(opts?: {
     // [R4] `refuse` runs in the same wrapper, AFTER `bound` — the veto must judge the value that would
     // actually land, not the pre-clamp one. Returning the state unchanged is how a `set` is dropped:
     // zustand compares by reference, so no subscriber is notified and nothing re-renders.
-    const set: typeof rawSet = !bound && !refuse
-      ? rawSet
-      : ((partial: unknown, replace?: boolean) =>
-          (rawSet as (p: unknown, r?: boolean) => void)((state: DebtAppState) => {
-            const next = typeof partial === 'function' ? (partial as (s: DebtAppState) => unknown)(state) : partial;
-            let patch = next as Partial<DebtAppState> | null;
-            if (bound && patch && patch.store) patch = { ...patch, store: bound(patch.store) };
-            if (refuse && patch && patch.store && refuse(state.store, patch.store)) return state;
-            return patch;
-          }, replace)) as typeof rawSet;
+    //
+    // ⛔ S1.5.3 [B2] — AND IT IS NO LONGER CONDITIONAL ON `bound || refuse`. It used to fall through to
+    // the raw setter when neither was supplied, which is every `createDebtStore()` in every test; a rule
+    // enforced here has to hold for the store a test builds or it is not testable. Both extra branches
+    // are no-ops when their input is absent.
+    const set: typeof rawSet = ((partial: unknown, replace?: boolean) =>
+      (rawSet as (p: unknown, r?: boolean) => void)((state: DebtAppState) => {
+        const next = typeof partial === 'function' ? (partial as (s: DebtAppState) => unknown)(state) : partial;
+        let patch = next as Partial<DebtAppState> | null;
+        if (bound && patch && patch.store) patch = { ...patch, store: bound(patch.store) };
+        if (refuse && patch && patch.store && refuse(state.store, patch.store)) return state;
+        //
+        // ⛔ S1.5.3 [B2] — A STORE WRITE THAT IS NOT THE INTENT'S OWN INVALIDATES THE UNDO SNAPSHOT.
+        //
+        // `intentRollback` snapshots the ENTIRE `DebtStore` and `undoIntentAction` restores the whole
+        // thing. Nothing ever cleared it — `grep -n intentRollback` returned seven lines and they were
+        // the complete set: two writers, two clearers, the type and the initial value. So after logging a
+        // payment, everything the user did next was destroyed the moment they tapped an **Undo** whose
+        // card promises only to undo the payment. Measured: a debt, a goal, a bill and a strategy change,
+        // gone, with no confirm and no re-undo — and PERSISTED, because `persistence.ts` schedules a
+        // write whenever `state.store` changes by reference.
+        //
+        // ⛔ **The remedy is deliberately not "clear it in every other action"** — that is a list, and a
+        // list is what left `importStore` and `reset()` as two more doors onto the same snapshot (restore
+        // a backup, return to Today, tap Undo, and the freshly-restored portfolio is replaced by the
+        // pre-restore one). The rule is a CLASS: the two writers set `store` and `intentRollback` in the
+        // SAME patch, so any patch that moves `store` WITHOUT mentioning `intentRollback` is by
+        // definition somebody else's write, and the snapshot it would restore is already stale.
+        //
+        // ⚠️ Keyed on `patch.store !== state.store`, not on `patch.store` being present: an action that
+        // returns the store unchanged by reference has not moved anything, and the persistence
+        // subscription draws exactly the same line.
+        if (patch && patch.store && patch.store !== state.store && state.intentRollback && !('intentRollback' in patch)) {
+          patch = { ...patch, intentRollback: null };
+        }
+        return patch;
+      }, replace)) as typeof rawSet;
 
     return {
     store: createDefaultStore(),
@@ -382,27 +437,12 @@ export function createDebtStore(opts?: {
     },
 
     addDebt(debt) {
-      // A new debt's balance is verified NOW (the user just entered a real number) → stamp both dates.
-      set((s) => {
-        const now = s.store.paycheck.currentDate;
-        // Installment-native BNPL: derive balance + minimum from scheduled × remaining (2.7.2).
-        const stored = normalizeBnplInstallment({
-          ...debt,
-          // NEW-1: seed `originalBalance` from the first entered balance when unset, so every debt row can
-          // show a momentum bar (the Progress % + the row bar read off it) instead of only debts that
-          // happened to carry one. The user's just-entered number IS their starting point. Skip BNPL
-          // (installment-native): its balance is DERIVED from installments and it shows "X of N", not a bar.
-          originalBalance: debt.originalBalance ?? (isInstallmentNative(debt) ? undefined : debt.balance),
-          lastVerifiedDate: debt.lastVerifiedDate ?? now,
-          balanceAsOfDate: debt.balanceAsOfDate ?? now,
-        });
-        return {
-          store: stampInputsFresh(recordDriftBaseline({
-            ...s.store,
-            debts: [...s.store.debts, stored],
-          }, 'user', clock)),
-        };
-      });
+      set((s) => ({
+        store: stampInputsFresh(recordDriftBaseline({
+          ...s.store,
+          debts: [...s.store.debts, prepareNewDebt(debt, s.store.paycheck.currentDate)],
+        }, 'user', clock)),
+      }));
     },
     updateDebt(id, updates) {
       set((s) => {
@@ -486,25 +526,17 @@ export function createDebtStore(opts?: {
       }));
     },
     convertExpenseToDebt(expenseId, debt) {
-      set((s) => {
-        const now = s.store.paycheck.currentDate;
-        // The same stamping `addDebt` does — the balance was just entered by hand, so it is verified NOW.
-        // Reproduced rather than shared because `addDebt` also normalizes BNPL installments, and a
-        // conversion never arrives in that shape (an expense has no installment schedule to derive from).
-        const stored: Debt = {
-          ...debt,
-          originalBalance: debt.originalBalance ?? debt.balance,
-          lastVerifiedDate: debt.lastVerifiedDate ?? now,
-          balanceAsOfDate: debt.balanceAsOfDate ?? now,
-        };
-        return {
-          store: stampInputsFresh({
-            ...s.store,
-            debts: [...s.store.debts, stored],
-            requiredExpenses: s.store.requiredExpenses.filter((e) => e.id !== expenseId),
-          }),
-        };
-      });
+      // ⛔ S1.5.3 [B4] — `prepareNewDebt` and `recordDriftBaseline` are SHARED with `addDebt` now, not
+      // reproduced. This action deletes a bill, so the only thing that may ever route a caller here is a
+      // real conversion: `convertingExpenseId` now lives inside `money.tsx`'s `sheet` state, so it is born
+      // and dies with the sheet instead of outliving it.
+      set((s) => ({
+        store: stampInputsFresh(recordDriftBaseline({
+          ...s.store,
+          debts: [...s.store.debts, prepareNewDebt(debt, s.store.paycheck.currentDate)],
+          requiredExpenses: s.store.requiredExpenses.filter((e) => e.id !== expenseId),
+        }, 'user', clock)),
+      }));
     },
 
     addGoal(goal) {
@@ -763,26 +795,68 @@ export function createDebtStore(opts?: {
         store: { ...s.store, pendingDataRepairs: s.store.pendingDataRepairs.map((r) => ({ ...r, acknowledged: true })) },
       }));
     },
-    applyTightTopUp(goalId, amount) {
-      // §2.10 (2.4.11.2): the user moved `amount` from savings to hold this cycle's line — draw it down
-      // from the goal + record the top-up (cycle-keyed). The plan refills the goal next cycle via the
-      // waterfall, so this self-corrects. `cycleTopUp` accumulates if they top up more than once.
+    applyTightTopUp(source, goalId, amount) {
+      // §2.10 (2.4.11.2): the user moved money from savings to hold this cycle's line — draw it down from
+      // the goal + record it, cycle-keyed. The plan refills the goal next cycle via the waterfall, so this
+      // self-corrects.
+      //
+      // ⛔ S1.5.3 [B3] — ONE ENTRY PER SOURCE, and the entry records what ACTUALLY LEFT THE GOAL.
+      // The old shape accumulated a single `amount` and kept only the most recent `goalId`, so the second
+      // of two flows overwrote the first's source and one Undo handed both draws back to the wrong goal.
+      // It also recorded the full requested `amount` while the goal itself clamped at 0, which credited
+      // the cushion with money that never moved.
       set((s) => {
+        if (!(amount > 0)) return {};
         const forCycle = s.store.paycheck.nextPaycheckDate;
-        const prior = s.store.cycleTopUp?.forCycle === forCycle ? s.store.cycleTopUp.amount : 0;
+        const goal = s.store.goals.find((g) => g.id === goalId);
+        // ⚠️ A goal that does not exist supplies nothing. The old code recorded the amount anyway.
+        const drawn = goal ? Math.round(Math.min(amount, Math.max(0, goal.currentAmount)) * 100) / 100 : 0;
+        if (drawn <= 0) return {};
+        const prior = topUpEntries(s.store).filter((e) => e.source !== source);
+        const mine = topUpEntries(s.store).find((e) => e.source === source);
+        // Re-tapping the same source accumulates within that source, and stays on ITS goal.
+        const entries: CycleTopUpEntry[] = [
+          ...prior,
+          mine && mine.goalId === goalId
+            ? { ...mine, amount: Math.round((mine.amount + drawn) * 100) / 100 }
+            : { source, goalId, amount: drawn },
+          // A same-source re-tap against a DIFFERENT goal keeps the earlier draw as its own entry, so its
+          // money still knows where to go home to.
+          ...(mine && mine.goalId !== goalId ? [mine] : []),
+        ];
         return {
           store: {
             ...s.store,
             goals: s.store.goals.map((g) =>
-              g.id === goalId ? { ...g, currentAmount: Math.max(0, Math.round((g.currentAmount - amount) * 100) / 100) } : g,
+              g.id === goalId ? { ...g, currentAmount: Math.round((g.currentAmount - drawn) * 100) / 100 } : g,
             ),
-            // 3.7.A3.5 — record WHICH goal, so the move can be reversed by anything holding only the
-            // store. `goalId` is dropped once the accumulated amount returns to 0 (a full undo), so a
-            // spent record cannot offer an undo of nothing.
-            cycleTopUp: (() => {
-              const total = Math.round((prior + amount) * 100) / 100;
-              return total > 0 ? { forCycle, amount: total, goalId } : { forCycle, amount: total };
-            })(),
+            cycleTopUp: buildCycleTopUp(forCycle, entries),
+          },
+        };
+      });
+    },
+    undoTightTopUp(source) {
+      // ⛔ S1.5.3 [B3] — REMOVE THIS SOURCE'S OWN ENTRY and return its money to the goal it came from.
+      //
+      // Both undos used to be spelled `applyTightTopUp(goalId, -amount)`, reading the goal and the amount
+      // from whatever the CALLER happened to be holding — the store for one, React state for the other.
+      // That is why a second undo could invent $50: the affordability card's `applied.cover` survived the
+      // Guardian having already reversed the draw, and a negative "apply" subtracted from a shared
+      // accumulator rather than clearing anything. Reading the entry from the store makes a second undo a
+      // no-op by construction.
+      set((s) => {
+        const forCycle = s.store.paycheck.nextPaycheckDate;
+        const entries = topUpEntries(s.store);
+        const mine = entries.find((e) => e.source === source);
+        if (!mine) return {};
+        const rest = entries.filter((e) => e !== mine);
+        return {
+          store: {
+            ...s.store,
+            goals: s.store.goals.map((g) =>
+              g.id === mine.goalId ? { ...g, currentAmount: Math.round((g.currentAmount + mine.amount) * 100) / 100 } : g,
+            ),
+            cycleTopUp: buildCycleTopUp(forCycle, rest),
           },
         };
       });

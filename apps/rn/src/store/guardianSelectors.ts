@@ -14,6 +14,7 @@ import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './gu
 import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectExtraToDebt, selectHeldReserve, selectLiquidCushion, selectDeployedBeforeDebt, selectDeployedBeforeDebtGoalId } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
+import { topUpEntries } from './topUpSelectors';
 import type { AllocationCategory } from '@core/engine/allocatePaycheck';
 import { cadenceSuffix } from '@core/types/recurrence';
 import { formatWhole } from '@/utils/format';
@@ -249,8 +250,13 @@ export interface TightTopUp {
 export function selectAppliedTopUp(
   store: DebtStore,
 ): { amount: number; goalId: string; goalName: string; holdsLine: boolean } | null {
-  const rec = store.cycleTopUp;
-  if (!rec || rec.forCycle !== store.paycheck.nextPaycheckDate || rec.amount <= 0 || !rec.goalId) return null;
+  // ⛔ S1.5.3 [B3] — THE GUARDIAN'S OWN ENTRY, not the cycle's accumulated total. This read
+  // `store.cycleTopUp` directly, so once the affordability card had also drawn, the Guardian's card
+  // offered to undo **both** draws and handed the whole sum back to whichever goal was written LAST.
+  // Measured: $70 out of S1 and $50 out of S2 became one $120 undo into S2, leaving S1 permanently short
+  // while the aggregate conserved — which is exactly why nothing noticed.
+  const rec = topUpEntries(store).find((e) => e.source === 'guardian');
+  if (!rec) return null;
   const goal = store.goals.find((g) => g.id === rec.goalId);
   if (!goal) return null;
   // 3.7.A3.6 — did the move actually reach the line? A draw capped by the goal's balance does not, and

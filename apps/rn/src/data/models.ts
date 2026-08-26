@@ -288,6 +288,20 @@ export interface DataRepair {
   kind?: 'recovered' | 'lost';
 }
 
+/**
+ * ⛔ S1.5.3 [B3] — WHICH one-tap move drew this money, and from where.
+ *
+ * The `source` is the whole point: two flows write to this cycle's record and each has its own Undo, so
+ * an undo must be able to find ITS OWN entry rather than the last one written. Adding a member here
+ * without giving that flow its own undo path is how this defect is re-created.
+ */
+export type CycleTopUpEntry = {
+  source: 'guardian' | 'affordability';
+  goalId: string;
+  /** What actually LEFT the goal — clamped by its balance, not the amount requested. */
+  amount: number;
+};
+
 export interface DebtStore {
   storeVersion: number;
   paycheck: PaycheckConfig;
@@ -396,7 +410,30 @@ export interface DebtStore {
    *  not from where, so only a caller holding the goal in component state could reverse it — which is
    *  exactly why the affordability path had an undo and the Guardian card did not. Optional and
    *  backfill-safe: an older blob parses with it undefined and simply offers no undo. */
-  cycleTopUp?: { forCycle: string; amount: number; goalId?: string };
+  /**
+   * ⛔ S1.5.3 [B3] — `entries` IS THE TRUTH; `amount` and `goalId` are the derived/legacy view.
+   *
+   * ONE record with ONE `goalId` served **two independent one-tap money moves** — the Guardian's tight
+   * top-up and the affordability card's cover-a-dip — and it accumulated an amount while keeping only the
+   * MOST RECENT source. Measured both ways, on the real store:
+   *
+   *  - **$70 teleports.** `pickTopUpGoal` returns the largest-balance funded goal, so once the Guardian's
+   *    draw shrinks S1 the affordability flow picks S2. The record's `goalId` becomes S2, one Undo hands
+   *    the whole $120 back to S2, and S1 is permanently $70 short. The aggregate conserves, which is
+   *    exactly why nothing noticed.
+   *  - **$50 is created from nothing.** With a single goal, both undos fire: the card's `undo()` reads
+   *    `applied.cover` from COMPONENT STATE, never the store, so the Guardian having already reversed it
+   *    is invisible. `amount` lands at **−50** and `appliedTopUp()`'s `Math.max(0, …)` hides it.
+   *
+   * ⚠️ Each entry records **what actually left the goal**, not what was asked for: the goal clamps at 0
+   * and the record used not to, so a draw larger than the balance credited the cushion with money that
+   * never moved.
+   *
+   * Backfill-safe. A pre-S1.5.3 blob has `amount`/`goalId` and no `entries`; `topUpEntries()` reads it as
+   * a single `'guardian'` entry, which is the behaviour it already had. No migration — the record is
+   * cycle-keyed, so a stale one reads as 0 regardless.
+   */
+  cycleTopUp?: { forCycle: string; amount: number; goalId?: string; entries?: CycleTopUpEntry[] };
   /** §2.0.c settling-in reserve (2.4.11.4b) — the reserve-held state (`deriveConfidenceContext.provisional`)
    *  as of the last rollover, so the next rollover can detect the held → free transition (mirrors
    *  `priorGuardianBand`). Undefined on old/new stores → the pre-rollover value is computed as the fallback. */

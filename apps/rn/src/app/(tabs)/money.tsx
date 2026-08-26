@@ -214,7 +214,14 @@ function DebtsSection({
   // Memoized on the store so re-renders that don't change the plan (e.g. the parent's Debts/Bills/Goals
   // section toggle) don't rebuild all three payoff trajectories.
   const view = useMemo(() => selectPayoffView(store), [store]);
-  const [sheet, setSheet] = useState<{ editing: Debt | null; prefill?: Partial<Debt> } | null>(null);
+  // ⛔ S1.5.3 [B4] — `convertingExpenseId` LIVES IN HERE, not beside it. It used to be its own
+  // `useState` set on the conversion and cleared by nothing (`grep setConverting` returned exactly one
+  // line: the setter). It was handed to every subsequent `DebtSheet`, and `DebtSheet:213` routes to
+  // `convertExpenseToDebt` whenever it is present — which unconditionally deletes that expense. So:
+  // tap "Move to Debts", back out, add any ordinary debt without leaving the Debts section, and the
+  // original bill is deleted with no confirmation and no undo. Held on the sheet, it cannot outlive the
+  // flow that created it, because `onClose` is `setSheet(null)`.
+  const [sheet, setSheet] = useState<{ editing: Debt | null; prefill?: Partial<Debt>; convertingExpenseId?: string } | null>(null);
   const [logPaymentFor, setLogPaymentFor] = useState<Debt | null>(null);
   // C8 — the CSV bulk import, offered from the empty state and from the list footer.
   const [importing, setImporting] = useState(false);
@@ -238,12 +245,11 @@ function DebtsSection({
 
   // 3.7.A10.2 — a conversion arriving from Bills. Prefills everything the expense already knows; the
   // user supplies the balance and the APR, which is the whole reason this is a form and not a re-file.
-  const [converting, setConverting] = useState<string | null>(null);
   useEffect(() => {
     if (!convertFrom) return;
-    setConverting(convertFrom.id);
     openEditor({
       editing: null,
+      convertingExpenseId: convertFrom.id,
       prefill: { name: convertFrom.name, minimumPayment: convertFrom.amount, dueDate: convertFrom.dueDate, recurrence: convertFrom.recurrence },
     });
     onConvertHandled?.();
@@ -260,7 +266,7 @@ function DebtsSection({
   useCoachMark('debt-row-actions', Platform.OS === 'ios' && view.order.length > 0);
 
   /** Opening the editor clears any schedule in the pane — the detail pane has exactly one owner. */
-  const openEditor = (next: { editing: Debt | null; prefill?: Partial<Debt> }) => {
+  const openEditor = (next: { editing: Debt | null; prefill?: Partial<Debt>; convertingExpenseId?: string }) => {
     setScheduleFor(null);
     setSheet(next);
   };
@@ -320,7 +326,7 @@ function DebtsSection({
         {/* C8 — the empty state is where a bulk import matters MOST: a user arriving with a portfolio
             already listed somewhere else should not have to type it in one debt at a time. */}
         <View style={styles.scanEmpty}><AddRow label="Import from CSV" icon="upload-file" onPress={() => setImporting(true)} testID="debts-import-csv" /></View>
-        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} convertingExpenseId={converting ?? undefined} onViewSchedule={viewSchedule} onLogPayment={logPayment} /> : null}
+        {sheet ? <DebtSheet editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} convertingExpenseId={sheet.convertingExpenseId} onViewSchedule={viewSchedule} onLogPayment={logPayment} /> : null}
         {importing ? <ImportDebtsSheet onClose={() => setImporting(false)} /> : null}
       </>
     );
@@ -433,7 +439,7 @@ function DebtsSection({
   // The iPad detail pane shows whichever the user last asked for — the schedule (read) or the editor.
   // They're mutually exclusive: opening one clears the other, so the pane never has two owners.
   const editor = sheet ? (
-    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} convertingExpenseId={converting ?? undefined} onViewSchedule={viewSchedule} onLogPayment={logPayment} />
+    <DebtSheet inline={isExpanded} editing={sheet.editing} prefill={sheet.prefill} onClose={() => setSheet(null)} convertingExpenseId={sheet.convertingExpenseId} onViewSchedule={viewSchedule} onLogPayment={logPayment} />
   ) : null;
   const detail = scheduleFor ? <AmortizationPane debtId={scheduleFor} /> : editor;
 

@@ -117,7 +117,11 @@ export function DebtSheet({
   const [apr, setApr] = useState(seed?.apr != null ? String(seed.apr) : '');
   const [dueDate, setDueDate] = useState(seed?.dueDate ?? todayLocalISO());
   const [type, setType] = useState<'debt' | 'bnpl'>(seed?.type ?? 'debt');
-  const [recurrence, setRecurrence] = useState<Recurrence>(editing?.recurrence ?? 'monthly');
+  // ⛔ S1.5.3 [B4, third consequence] — seeds from `seed`, not `editing`. `name`, `minimumPayment` and
+  // `dueDate` above all honour a prefill; this one silently discarded it, so converting a QUARTERLY or
+  // ANNUAL bill filed its amount as a MONTHLY minimum — money.tsx prefills `recurrence` and this line
+  // threw it away.
+  const [recurrence, setRecurrence] = useState<Recurrence>(seed?.recurrence ?? 'monthly');
   const [autopay, setAutopay] = useState(editing?.isAutopay ?? false);
   const [remainingPayments, setRemainingPayments] = useState(editing?.remainingPayments != null ? String(editing.remainingPayments) : '');
   const [scheduledPaymentAmount, setScheduledPaymentAmount] = useState(editing?.scheduledPaymentAmount != null ? String(editing.scheduledPaymentAmount) : '');
@@ -158,6 +162,35 @@ export function DebtSheet({
     setError('');
   }
 
+  /**
+   * ⛔ S1.5.3 [B4, found by planting] — THE ONE PLACE THAT DECIDES edit / convert / add.
+   *
+   * The BNPL branch below used to end `else store_.getState().addDebt(…)` and **never consulted
+   * `convertingExpenseId` at all**, so converting a mis-filed bill into a BNPL ADDED the debt and LEFT
+   * the expense. Measured: a $1,600 Mortgage ended as `debts: ["Mortgage:1600"]` AND
+   * `requiredExpenses: ["Mortgage"]` — the same money reserved from every paycheck as a bill and
+   * projected as a debt at the same time. ⚡ Which is verbatim the window the non-BNPL branch's own
+   * comment says the one-write design exists to prevent; that branch got the guard and this one did not.
+   *
+   * ⚠️ Found because a plant did NOT red a test it should have: the plant restored B4's leaking flag,
+   * and the BNPL test stayed green because this path never reads the flag. **A plant that fails to red
+   * is evidence about the code, not only about the test.**
+   */
+  function commit(fields: Omit<Debt, 'id'>, originalBalance: number) {
+    if (isEdit && editing) return store_.getState().updateDebt(editing.id, fields);
+    const fresh = {
+      id: newDebtId(currentDate, store_.getState().store.debts),
+      originalBalance,
+      isPaidThisCycle: false,
+      minimumPaidThisCycle: false,
+      ...fields,
+    };
+    // 3.7.A10.2 — a conversion is ONE write, not an add followed by a delete: two writes leave a window
+    // where the same money is reserved as an expense and projected as a debt at the same time.
+    if (convertingExpenseId) store_.getState().convertExpenseToDebt(convertingExpenseId, fresh);
+    else store_.getState().addDebt(fresh);
+  }
+
   function submit() {
     if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
 
@@ -180,8 +213,7 @@ export function DebtSheet({
         scheduledPaymentAmount: bnplSched,
         bnplProvider: bnplProvider || undefined,
       };
-      if (isEdit && editing) store_.getState().updateDebt(editing.id, fields);
-      else store_.getState().addDebt({ id: newDebtId(currentDate, store_.getState().store.debts), originalBalance: derived, isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields });
+      commit(fields, derived);
       onClose();
       return;
     }
@@ -206,12 +238,7 @@ export function DebtSheet({
       scheduledPaymentAmount: undefined,
       bnplProvider: undefined,
     };
-    const fresh = { id: newDebtId(currentDate, store_.getState().store.debts), originalBalance: balanceN, isPaidThisCycle: false, minimumPaidThisCycle: false, ...fields };
-    if (isEdit && editing) store_.getState().updateDebt(editing.id, fields);
-    // 3.7.A10.2 — a conversion is ONE write, not an add followed by a delete: two writes leave a window
-    // where the same money is reserved as an expense and projected as a debt at the same time.
-    else if (convertingExpenseId) store_.getState().convertExpenseToDebt(convertingExpenseId, fresh);
-    else store_.getState().addDebt(fresh);
+    commit(fields, balanceN);
     onClose();
   }
   // 3.5.6b — the Remove in the sheet's sticky action bar now confirms, like every other delete path.
@@ -236,6 +263,10 @@ export function DebtSheet({
         Maestro flow 07 on run 31598337615 — the native lane's first real find.
         The sheet already knew: `convertingExpenseId` is set only on the convert path and is what drives
         `convertExpenseToDebt` below. The copy just never asked it.
+        ⛔ **S1.5.3 [B4] — and "set only on the convert path" is true BY CONSTRUCTION, not by assertion.**
+        It used to be a `useState` in `money.tsx` that nothing ever cleared, so it stayed set for every
+        later sheet in the Debts section and routed ordinary new debts into `convertExpenseToDebt`,
+        deleting an unrelated bill. It now lives inside `money.tsx`'s `sheet` state and dies with the sheet.
         ⚠️ Same shape as the audit gate's proxy-gate sweep: copy asserting an OUTCOME gated on something
         that merely CORRELATED with it. The gate is now the claim itself.
         ⚠️ The convert STRINGS are placeholders owned by the wording/voice gate ([D26] splits mechanism

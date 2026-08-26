@@ -136,6 +136,61 @@
     "file": "apps/rn/tests/e2e/no-bills-branch.spec.ts",
     "token": "the count is of OBLIGATIONS"
   },
+  "S1P1-B2-INVALIDATE": {
+    "what": "pass-1 B2 — intentRollback snapshots the ENTIRE DebtStore and undoIntentAction restores the whole thing; nothing ever cleared it, so a debt, a goal, a bill and a strategy change made after logging a payment were all destroyed (and persisted) by an Undo whose card promises only to undo the payment. Fixed as a CLASS in the set wrapper: any patch that moves `store` without mentioning `intentRollback` is somebody else's write. ⚠️ The wrapper was also made unconditional — it used to fall through to the raw setter when neither `bound` nor `refuse` was passed, which is every store a test builds",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "an unrelated edit INVALIDATES the whole-store snapshot"
+  },
+  "S1P1-B2-DOORS": {
+    "what": "pass-1 B2's second and third doors, which the auditor flagged as read-only inference and are now measured: importStore (restore a backup) and reset() (delete all data) both left the snapshot intact, so a payment card could replace a freshly-restored portfolio with the pre-restore one. A per-action fix would have been a LIST and would have missed exactly these",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "importStore (restore a backup) invalidates it too"
+  },
+  "S1P1-B2-CARD": {
+    "what": "pass-1 B2 — the Today Undo card had NO end-to-end coverage at all; the only test called logManualPayment and undoIntentAction with nothing in between. This is the property that must SURVIVE the fix: an over-eager invalidation would delete the card from the product and nothing else would notice. ⚠️ Navigation must be by TAB, never page.goto — intentRollback is transient by design, so a reload would find it missing and read as a break",
+    "file": "apps/rn/tests/e2e/intent-undo.spec.ts",
+    "token": "logging a payment still offers the Undo on Today"
+  },
+  "S1P1-B3-SOURCES": {
+    "what": "pass-1 B3 variant A — two independent one-tap money moves shared ONE cycleTopUp record with ONE goalId, so the second overwrote the first's source: $70 out of S1 and $50 out of S2 became a single $120 Undo into S2, leaving S1 permanently short. The aggregate conserved, which is why nothing noticed. Entries are per-source now and each undo finds its own",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "the Guardian card offers its own draw, not the cycle total"
+  },
+  "S1P1-B3-DOUBLEUNDO": {
+    "what": "pass-1 B3 variant B — the affordability card's undo read applied.cover from COMPONENT STATE, never the store, so the Guardian having already reversed the draw was invisible: both undos fired, the goal gained $50 that never existed, cycleTopUp.amount landed at -50 and appliedTopUp()'s Math.max(0,…) hid it. Undo now removes this source's own entry from the store, so a repeat is a no-op by construction",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "the second undo returns its own $50 and no more"
+  },
+  "S1P1-B3-INVARIANT": {
+    "what": "pass-1 B3's related-same-root half — applyTightTopUp recorded the full requested amount while the goal clamped at 0, and recorded it even when goalId matched no goal, so the cushion was credited with money that never moved (100,299 against $200 actually drawn). The invariant nothing asserted: SUM(cycleTopUp entries) === what actually LEFT the goals. `amount` is now derived from the entries and never written independently",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "what actually LEFT the goals"
+  },
+  "S1P1-B3-LEGACY": {
+    "what": "pass-1 B3's back-compat control — a pre-S1.5.3 blob has amount/goalId and no entries. topUpEntries reads it as a single 'guardian' entry so it keeps behaving exactly as it did, or the fix would strand money that is mid-cycle across an upgrade. No migration: the record is cycle-keyed, so a legacy one stops being read at the next rollover",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "an entry-less record still reads as the Guardian"
+  },
+  "S1P1-B4-FLAG": {
+    "what": "pass-1 B4 — money.tsx's `converting` was a useState set by the conversion effect and cleared by NOTHING (grep returned one line, the setter), so it was handed to every later DebtSheet in the Debts section and routed ordinary new debts into convertExpenseToDebt, silently deleting an unrelated bill. Fixed by SCOPE: it lives inside the `sheet` state and dies with the sheet",
+    "file": "apps/rn/tests/e2e/misfiled-expense.spec.ts",
+    "token": "backing out of a conversion does not arm the next debt to delete that bill"
+  },
+  "S1P1-B4-ONEWRITE": {
+    "what": "S1.5.3 — DebtSheet.submit()'s BNPL branch never consulted convertingExpenseId, so converting a bill into a BNPL ADDED the debt and LEFT the expense: $1,600 reserved as a bill AND projected as a debt at once, which is verbatim the window the non-BNPL branch's comment says the one-write design prevents. ⚠️ Found because a plant FAILED to red a test it should have — both branches now route through one commit()",
+    "file": "apps/rn/tests/e2e/misfiled-expense.spec.ts",
+    "token": "converting a bill INTO a BNPL is still ONE write"
+  },
+  "S1P1-B4-PREPARE": {
+    "what": "pass-1 B4's second consequence — convertExpenseToDebt was a reduced copy of addDebt that skipped normalizeBnplInstallment, justified by 'a conversion never arrives in that shape'. False: the type picker is on screen during a conversion. The same 4x$50 input stored as $200 via addDebt and $0 via convertExpenseToDebt, and $0 files the debt under PAID OFF. Both share prepareNewDebt; the guard asserts EQUIVALENCE, with a control instance seeded WITH a bill so 'did not delete' is distinguishable from 'nothing to delete'",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "convertExpenseToDebt derives it IDENTICALLY"
+  },
+  "S1P1-B4-PREFILL": {
+    "what": "pass-1 B4's third consequence — DebtSheet seeded `recurrence` from `editing?.recurrence ?? 'monthly'` while name/minimumPayment/dueDate all honoured the prefill, so converting a QUARTERLY or ANNUAL bill filed its amount as a MONTHLY minimum inside the debt-free date",
+    "file": "apps/rn/tests/e2e/misfiled-expense.spec.ts",
+    "token": "converting a QUARTERLY bill keeps its cadence"
+  },
   "S1P1-B5-PROXY": {
     "what": "pass-1 B5's fallout — recovery.spec's P1-4 test asserted page-wide that \"Essential 11\" appeared nowhere, a PROXY for the cover-now line that held only while nothing else on Today named the bills. Restoring the obligations reddened it without `summariseNames` changing. Rescoped to `recovery-cover-now-names` and plant-verified against P1-4's original run-on",
     "file": "apps/rn/tests/e2e/recovery.spec.ts",

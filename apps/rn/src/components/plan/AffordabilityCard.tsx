@@ -84,15 +84,19 @@ export function AffordabilityCard() {
     const id = localId('purchase', store.paycheck.currentDate);
     const purchaseName = name.trim() || 'Purchase';
     store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time', category: 'discretionary' });
-    store_.getState().applyTightTopUp(r.coverFromSavings.goalId, r.coverFromSavings.amount);
+    store_.getState().applyTightTopUp('affordability', r.coverFromSavings.goalId, r.coverFromSavings.amount);
     haptics.success(); // 3.3.5.3
     setApplied({ id, name: purchaseName, cover: { goalId: r.coverFromSavings.goalId, amount: r.coverFromSavings.amount, goalName: r.coverFromSavings.goalName, holdsLine: r.coverFromSavings.holdsLine } });
   }
   function undo() {
     if (applied) {
       store_.getState().removeExpense(applied.id);
-      // Reverse a cover the same way it was applied — a negative top-up restores the goal + clears the cycle top-up.
-      if (applied.cover) store_.getState().applyTightTopUp(applied.cover.goalId, -applied.cover.amount);
+      // ⛔ S1.5.3 [B3] — REVERSED FROM THE STORE, not from `applied.cover`. This used to read the goal and
+      // the amount out of COMPONENT STATE and apply a negative top-up, so the Guardian's Undo having
+      // already reversed the same draw was invisible here: both fired, `cycleTopUp.amount` landed at −50,
+      // and `appliedTopUp()`'s `Math.max(0, …)` swallowed it while the goal had gained $50 that never
+      // existed. Removing this source's own entry makes a second undo a no-op by construction.
+      if (applied.cover) store_.getState().undoTightTopUp('affordability');
     }
     setApplied(null);
   }

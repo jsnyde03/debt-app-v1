@@ -351,11 +351,15 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               proofOfWork={proofOfWork}
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
-              onTopUp={() => tightTopUp && store_.getState().applyTightTopUp(tightTopUp.goalId, tightTopUp.topUp)}
+              onTopUp={() => tightTopUp && store_.getState().applyTightTopUp('guardian', tightTopUp.goalId, tightTopUp.topUp)}
               appliedTopUp={appliedTopUp}
-              // Reversed exactly as the affordability card reverses its cover: a NEGATIVE top-up hands
-              // the money back to the goal and unwinds the cycle record. One mechanism, two callers.
-              onUndoTopUp={() => appliedTopUp && store_.getState().applyTightTopUp(appliedTopUp.goalId, -appliedTopUp.amount)}
+              // ⛔ S1.5.3 [B3] — REVERSES THE GUARDIAN'S OWN ENTRY, never the cycle's total.
+              // This used to be a negative `applyTightTopUp` against `appliedTopUp.goalId`, and the
+              // affordability card's cover wrote the SAME record: whichever flow tapped last owned
+              // `goalId`, so one Undo handed both draws back to the wrong goal — $70 out of S1 and $50 out
+              // of S2 became a single $120 returned to S2, leaving S1 permanently short while the
+              // aggregate conserved. Sources are entries now; each undo finds its own.
+              onUndoTopUp={() => store_.getState().undoTightTopUp('guardian')}
               // Withheld on example money: "How this works" restarts the walkthrough, and offering that
               // FROM INSIDE the walkthrough is incoherent: an offer to restart something you are in.
               // Not a reachability question: taps pass through the CUTOUT only, and this link sits under

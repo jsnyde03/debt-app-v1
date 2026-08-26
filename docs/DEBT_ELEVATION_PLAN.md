@@ -10,16 +10,17 @@
 > Compacted [2026-08-24](archive/DEBT_ELEVATION_PLAN_2026-08-24-precompaction.md) *(1,278 lines)* and
 > again [2026-08-26](archive/DEBT_ELEVATION_PLAN_2026-08-26-precleanup.md) — both predecessors verbatim in `archive/`.
 >
-> **How to read this file.** **§1 [RIGHT NOW](#-right-now--s153--pass-1-blockers-b2--b3--b4)** — the one thing being
+> **How to read this file.** **§1 [RIGHT NOW](#-right-now--s154--the-instruments-m5m10)** — the one thing being
 > built, decomposed · **§2 [OPEN, but NOT being built](#-open-but-not-being-built)** — the only other live
 > queue · **everything after that is REFERENCE**: where v1.7 is · the Phase 6 order to submission · what is
 > waiting on Jason · the device ledger · the deferred backlog · the decisions ledger.
 
 ---
 
-## ▶ RIGHT NOW — **S1.5.3 · pass-1 blockers B2 · B3 · B4**
+## ▶ RIGHT NOW — **S1.5.4 · the instruments (M5–M10)**
 
-**Surface S1 · money · goals · plan cards.** Pass 1 is in and **13 findings remain: 3 blockers · 10 majors.**
+**Surface S1 · money · goals · plan cards.** Pass 1 is in; **every blocker is closed** and **10 majors
+remain.** ⛔ S1.5.4 must land **before pass 2** — these decide what pass 2 can *see*.
 S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block on this page is **reference, not queue** —
 Phase 6's order, the device ledger, the backlog, the decisions. Detail for anything closed →
 [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
@@ -33,8 +34,8 @@ Phase 6's order, the device ledger, the backlog, the decisions. Detail for anyth
 | ✅ | **S1.3 + S1.4** — pass 1 run and recorded, four fresh auditors at `bc29dfe` | CLOSED 2026-08-26 · 5 blockers · 10 majors · **job ① passed, S0's only verification** → [`SUMMARY.md`](audits/2026-08-26-s1-money/SUMMARY.md) · [`VERIFICATION.md`](audits/2026-08-26-s1-money/VERIFICATION.md) |
 | ✅ | **S1.5.1 — B1**, the trust guard | CLOSED 2026-08-26 · `trustSelectors.ts` the one owner · 4 plants, each with a control. Detail → log |
 | ✅ | **S1.5.2 — B5**, and its two folded-in consequences | CLOSED 2026-08-26 · `countOutstandingRequired` is the one owner; `unfunded` is always the truth and `shortfallAdviceOwnedElsewhere` changes the wording. **5 plants, each with a control** · engine `targetId` added · a page-wide proxy assertion in `recovery.spec` rescoped and re-planted. **281 e2e · `lint:rn` 26/26 · 5 guards.** Detail → log |
-| ▶ | **S1.5.3 — B2 · B3 · B4, ONE SHAPE** · `intentRollback` · `cycleTopUp` · `converting`: state correct for the flow it was written for, reused by a later one. ⛔ **Fix the scope, not the arithmetic** — none is a wrong calculation | each plant-verified; shared-record cases asserted in BOTH directions *(teleport and invention)* |
-| | **S1.5.4 — M5–M10, the instruments.** ⛔ **Must land BEFORE pass 2** — they decide what pass 2 can see. M9 *(surface roots are an inclusion list — see below)* · M10 *(secrets class is per-report)* · M5 *(`test:gate-plants` in no chain)* · M6 · M7 · M8. 🔴 **Plus, found at S1.5.2: PASS 1's COVERAGE CLAIMS WERE NEVER WRITTEN BACK** — `surface-coverage.s1.json` holds **zero** `s1p1` labels while auditor D alone opened 48 files, so [D69] would let pass 2 re-exempt its own repeats as first-look. ⛔ Write them **after** M9's root widening, so they are written once | every ratchet strict-equality or floored; `test:gate-plants` in a chain; **`s1p1` labels present and the unswept count fallen** |
+| ✅ | **S1.5.3 — B2 · B3 · B4, ONE SHAPE** | CLOSED 2026-08-26 · every fix a lifetime or an ownership change, no arithmetic touched. `intentRollback` invalidated as a **class** in the `set` wrapper *(which also closed `importStore` and `reset()`)* · `cycleTopUp` gains per-source **entries**, `amount` derived · `convertingExpenseId` moved into the sheet's own state. ⚡ **A fourth blocker found because a plant did NOT red** — `submit()`'s BNPL branch never consulted the convert flag, so a bill converted to a BNPL was reserved AND projected at once. **7 plants · 11 guards · `lint:rn` 26/26.** Detail → log |
+| ▶ | **S1.5.4 — M5–M10, the instruments.** ⛔ **Must land BEFORE pass 2** — they decide what pass 2 can see. M9 *(surface roots are an inclusion list — see below)* · M10 *(secrets class is per-report)* · M5 *(`test:gate-plants` in no chain)* · M6 · M7 · M8. 🔴 **Plus, found at S1.5.2: PASS 1's COVERAGE CLAIMS WERE NEVER WRITTEN BACK** — `surface-coverage.s1.json` holds **zero** `s1p1` labels while auditor D alone opened 48 files, so [D69] would let pass 2 re-exempt its own repeats as first-look. ⛔ Write them **after** M9's root widening, so they are written once | every ratchet strict-equality or floored; `test:gate-plants` in a chain; **`s1p1` labels present and the unswept count fallen** |
 | | **S1.5.5 — M1–M4, the app majors.** M1 uncategorised bill renders nowhere · M2 over-funded goal understates · M3 top-up suppresses the shortfall sentence · M4 `PlanHero` stops conserving | each plant-verified with a control |
 | | **S1.6 — gate + record.** ⚠️ `lint:gate-freshness` is RED now and stays red until this runs | `validate:release:rn` green **and recorded**, then **commit immediately** — a record on a dirty tree names bytes no commit held |
 | | **S1.7 — re-verify, pass 2**, fresh agents, pinned. Carries the standing S0 jobs ①/② again | 0 blockers / 0 majors, **twice consecutively** |
@@ -184,7 +185,7 @@ separately gated ([D46]). Full reasoning → log, *"THE ORDER TO SUBMISSION"*.
 | ✅ | **P6.8.1–.6** the matrix, the surface census, **13 lenses**, **6 refuters**, the synthesis file, the structural-gap list | DONE 2026-08-21 — ⚠️ **"226 frames" was WRONG and is corrected here**: 4 recipes had never produced a frame, so the lenses read 226 of an owed 230, with **no frame of the Log-a-payment sheet at all**. Re-shot complete at .9.1 (**232**) · 9 a11y trees. [`audits/2026-08-21-p6.8-finish/SYNTHESIS.md`](audits/2026-08-21-p6.8-finish/SYNTHESIS.md) is the decision document. ⛔ **33 of 34 observations survived; 11 of 34 mechanisms were wrong** |
 | ✅ | **P6.8.7 CLOSED 2026-08-24** — build everything except the refuted | All clusters **a–g** done, sequenced so the GUARDS landed first. Detail → log |
 | ✅ | **P6.8.8 DONE 2026-08-24** — the gate is green and pushed | Quoted from the record: **250 e2e · 10 embed · 663 source files**, zero `error-context.md`. CI run `32742084595` **success** |
-| **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS** — ▶ **this is what is being built; see [RIGHT NOW](#-right-now--s153--pass-1-blockers-b2--b3--b4) at the top** | Ran as `.9.1/.9.2`, then `.7.10`/`.11.9`/`.11.10`, then `.11.18`'s **per-surface convergence loop** — S0 ✅ converged, **S1 in flight**, S2–S4 + cross-surface to come. Still owed from `.9` itself: `.9.3` gated-class re-check · `.9.5` the filed queue · `.9.6` `lint:closure` clean **for a reason** — all three in *"OPEN, but NOT being built"* above |
+| **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS** — ▶ **this is what is being built; see [RIGHT NOW](#-right-now--s154--the-instruments-m5m10) at the top** | Ran as `.9.1/.9.2`, then `.7.10`/`.11.9`/`.11.10`, then `.11.18`'s **per-surface convergence loop** — S0 ✅ converged, **S1 in flight**, S2–S4 + cross-surface to come. Still owed from `.9` itself: `.9.3` gated-class re-check · `.9.5` the filed queue · `.9.6` `lint:closure` clean **for a reason** — all three in *"OPEN, but NOT being built"* above |
 
 ### P6.8.7 — the clusters
 
@@ -484,6 +485,15 @@ hotspot)* and Dynamic-Type device QA.
 
 ⛔ **Grouped by WHERE IT LANDS, because that is how it gets read.** The `(x.y)` tag is the item whose scan
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
+
+### → surfaced by S1.5.3's after-scan *(2026-08-26)*
+
+- **A fully-undone top-up still marks the cycle `disturbed`.** `guardianPredictionCore.ts:94` tests only
+  `cycleTopUp?.forCycle`, and a spent record survives with `amount: 0`, so a cycle where the user topped
+  up and then undid it is excluded from calibration as a "user intervention". ⚠️ **Pre-existing and
+  unchanged by [B3]** — the old negative-apply left `{forCycle, amount: 0}` too. ⛔ Whether an
+  applied-then-undone top-up should still disturb calibration is a **§2.9 semantics call**, not a bug to
+  fix in passing, and it moves a premium number. → **P6.10**
 
 ### → surfaced by S1.5.2's after-scan *(2026-08-26)* — neither is a pass-1 finding
 
