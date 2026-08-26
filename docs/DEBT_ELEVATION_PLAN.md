@@ -39,7 +39,8 @@ Phase 6's order, the device ledger, the backlog, the decisions. Detail for anyth
 | ✅ | **S1.5.5 — M1–M4, the app majors** | CLOSED 2026-08-26 · M1 `resolveBillCategory` partitions into the real `'other'` · M2 the funded branch prints what is SAVED · M3 a shortfall is `at-risk` by its own branch · M4 the paycheck split conserves. ⚡ **Three of the four after-scans found a SECOND door, each reachable only because of the fix or measured rather than reasoned** — and one of my own new assertions was **vacuous**, caught by a plant. **14 plants · 13 guards · `lint:rn` 27/27.** Detail → log |
 | ✅ | **S1.6 — gate + record** | CLOSED 2026-08-26 · `e2b6627` · **300 e2e** *(288 + the 12 new)* · 10 embed · 807 source files · fingerprint **`69c372a0`** · `lint:rn` 27/27, freshness green. ⚠️ Recorded on a dirty tree, then committed immediately — **quote the fingerprint, not the SHA** |
 | ✅ | **S1.7 — [D73] put the TEST TREE on a surface** | CLOSED 2026-08-26 · **S1 137 → 188 files** *(65 → **116** unswept)* · **S0 58 → 91** *(15 → **48**)* · 2 gate plants · `lint:rn` 27/27. ⚡ **The after-scan caught the hole being re-created while closing it** — `shots/` routed to a LIVE surface whose roots did not cover it, so ten files landed on nothing. Detail → log |
-| ▶ | **S1.8 — re-verify, pass 2**, fresh agents, pinned *(decomposed below)* | 0 blockers / 0 majors — and S1 exits only on **TWO consecutive clean passes**, so a clean pass 2 is half the exit, not the exit |
+| ✅ | **S1.8 — pass 2, four fresh auditors at `4b58d75`** | CLOSED 2026-08-26 · **3 blockers · 6 majors · 12 minors** → [`SUMMARY.md`](audits/2026-08-26-s1-money-pass2/SUMMARY.md). ⭐ **A issued 23 verdicts and 22 came back CLOSED** — pass 1's fifteen and S0's five all hold. ⛔ S1 does **not** converge; the consecutive count resets |
+| ▶ | **S1.9 — fix pass 2** *(decomposed below)* | every finding fixed and plant-verified, then `validate:release:rn` green **and recorded**, then commit immediately |
 
 **Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
 new instruments swept. ✅ **The instrument half is DONE** — pass 1 swept `check-finding-guards.ts`,
@@ -48,23 +49,25 @@ found in them. ⚡ Every one was the S0 shape: *an instrument reporting green wh
 claimed.*
 
 
-#### S1.8's sub-steps — pass 2, fresh agents ([D68])
+#### S1.9's sub-steps — fixing pass 2
 
-Brief drafted and every path in it verified: [`2026-08-26-s1-money-pass2/BRIEF.md`](audits/2026-08-26-s1-money-pass2/BRIEF.md).
+⚡ **The three blockers are ONE SHAPE and get ONE owner, not three patches** — B1's rule *never state a
+number about money the app could not read* was wired to a subset of **claim sites** and a subset of
+**fields**. Patching each site rebuilds the defect a fourth time.
 
 | # | sub-step |
 |---|---|
-| **S1.8.1** | **Commit S1.7 and pin.** ⛔ The brief's `<PIN-SHA>` is a placeholder — a pass audits a **commit**, and a pin naming a dirty tree is [D49]'s failure one level up |
-| **S1.8.2** | Re-read the brief against the **pinned** tree — every path, every id, every count. ⛔ **The dispatch is part of the audit** |
-| **S1.8.3** | Dispatch **4 fresh auditors** (A fixes · B guards+instruments · C money/goals/store · D plan cards/Guardian/`index.tsx`). ⛔ **No sub-agents; no source edits;** each writes one report |
-| **S1.8.4** | Record the result — `SUMMARY.md` counted **from the auditor files**, never from an auditor's own summary *(a prior round's summary said "9 open" where its files held 14)* |
-| **S1.8.5** | Apply [D69] **mechanically from the inventory** — which findings count as churn, which are coverage. ⛔ Exempt from the count is **not** exempt from the fix |
-| **S1.8.6** | Fix everything found, each plant-verified with a control, then **write the pass-2 coverage claims back** *(`s1p2`)* — ⛔ S1.5.4's lesson: pass 1's claims were never written back, and [D69] would have let pass 2 re-exempt its own repeats |
+| **S1.9.1** | **D2-2 first — it is the only REGRESSION.** `undoTightTopUp('affordability')` must reverse its own cover, not the source's whole accumulated entry. ⛔ Fix damage before discovery |
+| **S1.9.2** | **The trust class, one owner: C4 · C2 · C3 · C1.** Which FIELDS make a number untrustworthy *(`minimumPayment`, `apr`, expense `amount`, goal `currentAmount`)* and which CLAIM SITES must ask *(the finale is the unwired fourth)*. **C1's reset path last and carefully — the "record survives the ack" behaviour IS A-J2-1's fix**, so a reset must distinguish *"the user corrected this field"* from *"the user dismissed the card"* or it re-opens a closed blocker |
+| **S1.9.3** | **A1 — 🎯 chose: net the top-up against the shortfall ONCE; all three reads take the residual.** `residual = max(0, shortfall − appliedTopUp)`; band at-risk iff `residual > 0`; affordability `spendable + topUp − shortfall` floored at 0; `holdsLine` judged on the same residual. ⛔ **Honours M3 rather than reverting it** — M3's defect was a top-up lifting a PROXY while the shortfall went untouched. ⚠️ **Behaviour change**: a top-up that genuinely covers a small shortfall now clears the band |
+| **S1.9.4** | **B-1 — the seven fail-open guards**, and `test-gate-plants` covers none of the seven gates. ⛔ **Before pass 3**, per S1.5.4: an instrument fix decides what the next pass can see |
+| **S1.9.5** | **`packages/core/timeline` onto the S1 roots** + write-back. One line; it is where D2-1 lives |
+| **S1.9.6** | **D2-1** — the three producers. ⚠️ May be absorbed by S1.9.3's residual; **measure before building**, and if it is not absorbed it is a design call, not a patch |
+| **S1.9.7** | **D2-3 + the 12 minors**, triaged — including B-3 and N9, both stale claims in comments I wrote |
+| **S1.9.8** | `validate:release:rn` green **and recorded**, commit immediately. ⛔ **Push** — CI has not run since `78c6020`, so four e2e guards have never been executed by anything but a hand run |
 
-⚠️ **Expect first-look findings.** Pass 2 is the first pass to read **116 unswept S1 files, 51 of them the
-specs that guard the other findings** — and on the two occasions this measurement has been taken, the pass
-that swept never-swept ground out-found the pass that re-swept swept ground **5 majors to 0**, then
-**9 to 0**.
+⛔ **Every fix plant-verified with a control, and ⚠️ NOT on the member of the class where the remedies
+agree** — that is precisely how AS-3 shipped over-matched with three tests green.
 
 ### ⛔ The rules that are LIVE while S1 builds
 
@@ -499,6 +502,19 @@ hotspot)* and Dynamic-Type device QA.
 
 ⛔ **Grouped by WHERE IT LANDS, because that is how it gets read.** The `(x.y)` tag is the item whose scan
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
+
+### → surfaced while classifying pass 2 under [D69] *(2026-08-26)*
+
+- 🔴 **`packages/core/timeline` IS ON NO SURFACE — and it holds a producer of the ONE state machine.**
+  Measured: `grep -c "packages/core/timeline"` returns **0** against both claims files. S1's roots carry
+  `packages/core/engine` and `packages/core/guardian` and stop there. ⚡ **`buildMultiCycleTimeline.ts` is
+  the third `computeState` producer and the subject of pass 2's sharpest major (D2-1)** — the forecast the
+  card links to, disagreeing with the card. ⛔ **Third instance of one shape:** M9 (hand-named files in
+  `roots`), [D73] (the whole test tree), and now a sibling directory under a package whose neighbours are
+  roots. **An enumeration inside `roots` is still an enumeration, and this one was two directories from a
+  file the audit was actively reporting on.** Rec: fold into S1.9's fix range — it is a one-line root add
+  plus a write-back, and leaving it means pass 3 re-reads a surface that still omits the file pass 2's
+  biggest finding is about. → **S1.9**
 
 ### → surfaced by S1.5.5's whole-item after-scan *(2026-08-26)*
 
