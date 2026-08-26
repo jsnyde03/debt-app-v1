@@ -4,6 +4,340 @@
 
 ---
 
+## 📦 PLAN COMPACTION 2026-08-26 (second) — closed reference moved out of the lean driver
+
+🎯: *"There's sections like 6.8 — finish pass that don't even need to be there. The document should be the source of truth and concise."* The plan before this is archived verbatim at [`archive/DEBT_ELEVATION_PLAN_2026-08-26-precleanup2.md`](archive/DEBT_ELEVATION_PLAN_2026-08-26-precleanup2.md); every id it carried is checked against this file by `iddiff`.
+
+
+### ⤵ moved from the plan — P6.8 — the FINISH sweep and its clusters
+
+## ▶ P6.8 — the FINISH sweep
+
+| # | Step | State |
+|---|---|---|
+| ✅ | **P6.8.1–.6** the matrix, the surface census, **13 lenses**, **6 refuters**, the synthesis file, the structural-gap list | DONE 2026-08-21 — ⚠️ **"226 frames" was WRONG and is corrected here**: 4 recipes had never produced a frame, so the lenses read 226 of an owed 230, with **no frame of the Log-a-payment sheet at all**. Re-shot complete at .9.1 (**232**) · 9 a11y trees. [`audits/2026-08-21-p6.8-finish/SYNTHESIS.md`](audits/2026-08-21-p6.8-finish/SYNTHESIS.md) is the decision document. ⛔ **33 of 34 observations survived; 11 of 34 mechanisms were wrong** |
+| ✅ | **P6.8.7 CLOSED 2026-08-24** — build everything except the refuted | All clusters **a–g** done, sequenced so the GUARDS landed first. Detail → log |
+| ✅ | **P6.8.8 DONE 2026-08-24** — the gate is green and pushed | Quoted from the record: **250 e2e · 10 embed · 663 source files**, zero `error-context.md`. CI run `32742084595` **success** |
+| **P6.8.9** ▶ | 🔴 **[AUDIT GATE] THE VERIFICATION PASS** — ▶ **this is what is being built; see the plan's ACTIVE section** | Ran as `.9.1/.9.2`, then `.7.10`/`.11.9`/`.11.10`, then `.11.18`'s **per-surface convergence loop** — S0 ✅ converged, **S1 in flight**, S2–S4 + cross-surface to come. Still owed from `.9` itself: `.9.3` gated-class re-check · `.9.5` the filed queue · `.9.6` `lint:closure` clean **for a reason** — all three in *"OPEN, but NOT being built"* above |
+
+### P6.8.7 — the clusters
+
+| # | cluster | state |
+|---|---|---|
+| **a** | ⭐ **GATES FIRST** | ✅ DONE 2026-08-21 — all six mutation-verified, plus **[a-1]** `typecheck:scripts` *(the guards now have a compiler; third time this hole has been found)* |
+| **b** | **COPY** | ✅ DONE 2026-08-21 — A4/M1-9 · C6 · M1-8 · **L1-22 apostrophes 94 → 0, the gate is now absolute** · P1-10's copy half · A1/A2/A3 drafted. ⛔ Four premises were wrong |
+| **c** | **DATA INTEGRITY** | ✅ CLOSED 2026-08-22 — B1 · B4 · W1-6 · M3-20 |
+| **d** | **CLOUD / DESTRUCTIVE** | ✅ CLOSED 2026-08-22 — B3 · C9 · M3-5 |
+| **e** | **THE CORE LOOP** | ✅ CLOSED 2026-08-23 — B2 · C1 · C2 · C5. C4 verified + filed as a device row; C3 → 2.1 |
+| **f** | **VISUAL + A11Y** | ✅ CLOSED 2026-08-24 — B6/V1-2 · V1-5 · V2-1 · V2-6 · V3-1 · V3-5/6 · V4-8 · A1-2 · A1-7 · A1-8 · A1-9 · A1-10. ⭐ Added **`lint:contrast`** and **`lint:type-scale`**, both of which out-found the slice they served |
+| **g** | ✅ **NEW SURFACES — CLOSED 2026-08-24** | **C8** the parser rescue *(the audit's earliest deadline, met)* + the CSV import wired · **P1-3** the trajectory's x-domain · **C7** the strategy comparison *(**[D59]** — the ORDER, not a second curve)* · **`lint:icon-glyphs`** · pushed, CI green. **13 plants red by name.** Detail → log |
+
+⛔ **Two results from a–f govern g and P6.8.9.** *(1)* **A finding names the property that is WRONG; a fix
+must preserve every property that was RIGHT — and no lens enumerates those, so they are found only by
+building.** *(2)* **c, d and e closed LISTS; f gated CLASSES, and the difference is measurable** — all three
+of f's gates found something its slice had not. Detail → log.
+
+**Exit (P6.8):** every non-refuted finding carries a fix or a recorded reason, the structural-gap list has
+been **answered by 🎯** rather than silently absorbed, `validate:release:rn` green, and **P6.8.9 confirms it
+independently** rather than on my word.
+
+---
+
+
+### ⤵ moved from the plan — The 62 findings [D37] did not cover
+
+## The 62 findings [D37] did not cover
+
+⛔ **The complete list is [`audits/2026-08-17-v1.7-audit-gate/REMAINING.md`](audits/2026-08-17-v1.7-audit-gate/REMAINING.md)**,
+**generated** (`tsx scripts/check-audit-closure.ts --remaining`) — never hand-maintained. **41 minor · 21
+polish.** ✅ **All 62 judged at P6.4 ([D42]: a BAR, not a COUNT); 29 were not work.**
+
+⛔ **Why the generated list exists: 20 of the 62 were named in NO ledger at all**, because T9–T11 were
+*partial enumerations* and `lint:closure` only ever gated blocker+major. `lint:closure` now REPORTS the low
+tier every run — never gates it, because an untraced minor is the expected state here and a gate that reds on
+the expected state trains everyone to ignore it. ⚡ **Do NOT read it as 62 edits:** of the 61 cross-file copy
+duplicates, **24 are generic chrome** that repeat by design and **5 involve `LiveActivityQA.tsx`, which the
+`QA_TOOLS` flip deletes**. **L2-6 is the precedent for a "fix" that made five dead engine strings
+load-bearing.** ⭐ **T10's dead-code verdicts still owe a re-check against the ROOT tree** → P6.11.
+
+---
+
+
+### ⤵ moved from the plan — S1.1 – S1.8, the per-sub-step rows
+
+| ✅ | **S1.1** — the three findings S1 already carried | CLOSED 2026-08-26 · blocker #1 + M17a · M9 ×3 screens · two blocker-class folded in · 6 guards. Detail → log |
+| ✅ | **S1.2** — the brief, carrying no verdict; coverage instrument generalised first | CLOSED 2026-08-26 · `lint:s1-coverage`. Detail → log |
+| ✅ | **S1.3 + S1.4** — pass 1 run and recorded, four fresh auditors at `bc29dfe` | CLOSED 2026-08-26 · 5 blockers · 10 majors · **job ① passed, S0's only verification** → [`SUMMARY.md`](audits/2026-08-26-s1-money/SUMMARY.md) · [`VERIFICATION.md`](audits/2026-08-26-s1-money/VERIFICATION.md) |
+| ✅ | **S1.5.1 — B1**, the trust guard | CLOSED 2026-08-26 · `trustSelectors.ts` the one owner · 4 plants, each with a control. Detail → log |
+| ✅ | **S1.5.2 — B5**, and its two folded-in consequences | CLOSED 2026-08-26 · `countOutstandingRequired` is the one owner; `unfunded` is always the truth and `shortfallAdviceOwnedElsewhere` changes the wording. **5 plants, each with a control** · engine `targetId` added · a page-wide proxy assertion in `recovery.spec` rescoped and re-planted. **281 e2e · `lint:rn` 26/26 · 5 guards.** Detail → log |
+| ✅ | **S1.5.3 — B2 · B3 · B4, ONE SHAPE** | CLOSED 2026-08-26 · every fix a lifetime or an ownership change, no arithmetic touched. `intentRollback` invalidated as a **class** in the `set` wrapper *(which also closed `importStore` and `reset()`)* · `cycleTopUp` gains per-source **entries**, `amount` derived · `convertingExpenseId` moved into the sheet's own state. ⚡ **A fourth blocker found because a plant did NOT red** — `submit()`'s BNPL branch never consulted the convert flag, so a bill converted to a BNPL was reserved AND projected at once. **7 plants · 11 guards · `lint:rn` 26/26.** Detail → log |
+| ✅ | **S1.5.4 — M5–M10, the instruments** | CLOSED 2026-08-26 · **M9** roots widened to directories with routed, validated exclusions *(72 → **137 files**; `index.tsx`, where B5 is wired, was on no surface at all)* + claim vocabulary allow-listed · **M6** boundary decided per token END · **M7** a token must pin a **non-comment** line · **M8** both floors strict equality + duplicate-id check · **M5** `test:gate-plants` in the chain *(**27 gates**)* · **M10** `lint:secrets:authoring`. ⚡ **Pass 1's coverage was never recorded — 0 `s1p1` labels; written back for 62 S1 + 16 S0 files**, or [D69] would have let pass 2 re-exempt its own repeats. **5 plants · 8 guards.** Detail → log |
+| ✅ | **S1.5.5 — M1–M4, the app majors** | CLOSED 2026-08-26 · M1 `resolveBillCategory` partitions into the real `'other'` · M2 the funded branch prints what is SAVED · M3 a shortfall is `at-risk` by its own branch · M4 the paycheck split conserves. ⚡ **Three of the four after-scans found a SECOND door, each reachable only because of the fix or measured rather than reasoned** — and one of my own new assertions was **vacuous**, caught by a plant. **14 plants · 13 guards · `lint:rn` 27/27.** Detail → log |
+| ✅ | **S1.6 — gate + record** | CLOSED 2026-08-26 · `e2b6627` · **300 e2e** *(288 + the 12 new)* · 10 embed · 807 source files · fingerprint **`69c372a0`** · `lint:rn` 27/27, freshness green. ⚠️ Recorded on a dirty tree, then committed immediately — **quote the fingerprint, not the SHA** |
+| ✅ | **S1.7 — [D73] put the TEST TREE on a surface** | CLOSED 2026-08-26 · **S1 137 → 188 files** *(65 → **116** unswept)* · **S0 58 → 91** *(15 → **48**)* · 2 gate plants · `lint:rn` 27/27. ⚡ **The after-scan caught the hole being re-created while closing it** — `shots/` routed to a LIVE surface whose roots did not cover it, so ten files landed on nothing. Detail → log |
+| ✅ | **S1.8 — pass 2, four fresh auditors at `4b58d75`** | CLOSED 2026-08-26 · **3 blockers · 6 majors · 12 minors** → [`SUMMARY.md`](audits/2026-08-26-s1-money-pass2/SUMMARY.md). ⭐ **A issued 23 verdicts and 22 came back CLOSED** — pass 1's fifteen and S0's five all hold. ⛔ S1 does **not** converge; the consecutive count resets |
+
+
+---
+
+### ⤵ mirrored from the plan — the decisions ledger, verbatim
+
+⛔ The plan says the reasoning for every decision lives here, and for **[D29], [D56] and [D64]**
+that was false — they appeared nowhere in this file. Mirrored so the pointer is true. ⚠️ The plan
+remains the place a decision is READ; this is the copy that survives a compaction of that page.
+
+## Decisions
+
+⛔ **A ✅ here means the CALL is settled; it does **not** mean the work shipped.** [D44] sat in a queue row as
+built for a day and a half while the step did not exist — same glyph, different meaning. Full reasoning for
+every entry → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+**Phase 6 — launch**
+
+⛔ **[D61]–[D63] and [D65]–[D66] were MISSING from this section entirely** *(found in the 2026-08-26
+cleanup)*. [D61] and [D62] lived only under *"⏸ Waiting on Jason → Open decisions"*, marked ✅ — i.e. the
+answer was filed in the list of things still owed. **Answering a decision updates one place and leaves the
+other**, in both directions. Reasoning for each → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+- **[D73]** ✅ 2026-08-26 *(🎯: "We should have e2e coverage on audits. I agree with your reasoning")* —
+  **THE TEST TREE IS ON AN AUDIT SURFACE.** No e2e spec was on any surface: `grep -c "tests/e2e"` returned
+  **0** against both claims files, so the guards for most registered findings sat in files no auditor was
+  ever pointed at, while the standing rule requires every surface audit to re-verify the previous surfaces'
+  guards. ⛔ **`lint:finding-guards` cannot substitute** — it proves a token sits on a non-comment line,
+  never that the assertion behind it can fail; a **vacuous assertion measured in S1.5.5's own range** would
+  have counted as guarded indefinitely. ⚠️ **This raises the unswept counts and that is the honest number**,
+  exactly as M9's root-widening did *(72 → 137)*. Full reasoning → log, *"[D73]"*.
+- **[D72]** ✅ 2026-08-26 — **`lint:secrets` GETS A CONTENT-HASHED EXEMPTION LEDGER**, not a redacted
+  report and not a `docs/` carve-out. An exemption is keyed on a **hash of the flagged value**, so editing
+  or rotating the credential invalidates it; the count is downward-only and stale entries are reported.
+  ⛔ **Why not redact the report:** the gate's claim — *"4 credentials are in a PUBLIC repository"* — is
+  **false**, so editing the evidence to make it green is GAP-17's anti-pattern. ⛔ **Why not exempt
+  `docs/`:** that is where pasted terminal output actually lives, i.e. the gate's most likely real hit.
+  → **S1.1**.
+- **[D71]** ✅ 2026-08-26 — **`GoalSheet` DOES NOT OFFER A SECOND EMERGENCY FUND.** When a primary EF
+  exists and is not this goal, the Type control renders read-only as *"Savings"* with a one-line why;
+  ⛔ **stored `type` is never rewritten** *(normalising it would leave a store with NO emergency fund the
+  moment the primary is deleted, where today goal #2 inherits the role)*. Completes [D66] — the third of
+  the three screens. Reuses `paceGoverns`'s rule six lines above: **hidden entirely rather than disabled,
+  because a disabled control still says "this is a thing you could set."** → **S1.1**.
+- **[D67]** ✅ 2026-08-26 — **A CLOSED FINDING NEEDS A STANDING GUARD, OR IT IS NOT CLOSED** (🎯: *"I
+  agree"*). ⛔ **The gap it fixes:** each convergence pass verified only the **immediately prior** pass's
+  findings, so pass 3 never re-checked pass 1's seven — while S0.10 edited **nine gates**, exactly the
+  change that could regress one. ⚠️ Re-reading every prior finding each pass grows quadratically and rests
+  on an agent not tiring. ⭐ **So the durable protection is a permanent guard, not a re-read.** Some
+  findings already have one *(invariant ⑨ fires in the suite · `HOSTILE_FLOOR` gates · `selfCheck` reds on
+  a disarm · the caps ratchet)*; others have **nothing** *("`stripMarkdownCode` covers four spellings",
+  "each of the nine gates uses the right variant")* — verified by a plant that ran once and was deleted.
+  ⛔ **Every closed finding now needs (a) a test or gate that fails if it regresses, or (b) a written
+  reason it cannot have one.** Job 1 then shrinks to *"do the guards still exist and still fail"* —
+  mechanical and constant-cost. **A finding with neither is NOT converged.** Applies to S0–S4 and the
+  cross-surface pass. *(Same rule as `tested-helper-is-not-a-used-helper` and "a green plant is a result,
+  not a formality.")*
+- **[D66]** ✅ 2026-08-25 — **a second emergency fund is called "Savings"** on all three screens, the word
+  the Money row already uses and the only one of the three that stays true when a user has two. → **S1**.
+- **[D65]** ✅ 2026-08-25 — **a balance corrected DOWNWARD asks at the moment of the edit** *("did you pay
+  this down, or was the old figure wrong?")*. The app cannot tell a typo from a payment and only the user
+  knows; any silent rule is wrong half the time, on the field the Progress ring is computed from. → **S2**.
+- **[D63]** ✅ 2026-08-25 — **NO BNPL carve-out for the high-water mark.** ⛔ I recommended one, 🎯 agreed,
+  and the test's own precondition then **refuted the mechanism**: `bnplPaymentsTotal` is
+  `max(remaining, basis / scheduled)`, so a stamp can only RAISE the total, and an installment plan's
+  `balance` **is** `scheduled × remaining` — the total rises only when the plan itself gets longer.
+  ⚡ A stamp is neutral-to-better, never worse. *(A stated mechanism is a hypothesis even when it is hours
+  old and yours.)*
+- **[D62]** ✅ 2026-08-25 — **`originalBalance` becomes a HIGH-WATER MARK** (🎯: *"agree with your rec"*).
+  ⚡ **The deciding case is the CORRECTION, not the setback** — enter `$500` by mistake, fix it to `$5,000`,
+  and the ring read 0% for the next $4,500 of real repayment, permanently. ⛔ **The name will lie** — it
+  means *the most you ever owed*; kept for 2.0 because renaming a persisted field is a migration for no
+  user-visible gain. Built at `.11.15`. ⚠️ **The DOWNWARD direction was never reasoned** and became a
+  blocker at `.11.17` → [D65].
+- **[D61]** ✅ 2026-08-25 — **a SECOND `emergency` goal is FUNDED, through the savings rungs.** It matched
+  no rung at all, so it drew `$0` every paycheck under a live progress bar. ⚡ **v1.6 carries the identical
+  defect**, so migrating users can already be in this state — which is why refusing to create one in
+  `GoalSheet` lost: it prevents new cases and strands every existing one. Built at `.11.12.3`; one owner
+  (`@core/engine/emergencyFund`), three disagreeing consumers fixed.
+- **[D64]** ✅ 2026-08-25 — **THE MARKETING PAGE THAT HOLDS THE EMBED IS PART OF 2.0's ASC PREP**
+  (🎯). ⚡ **It closes a live loop:** the embed has been deployed and running since 3.5 with **no referrer
+  anywhere** — `site/` holds two files and no `iframe`, so a hosted demo nobody links to has been carrying a
+  build flag, a second export, three gate specs, a deploy workflow and a `guard` job. → **P6.21**.
+  - ⛔ **CROSS-REPO, AND THIS REPO CANNOT DO IT.** The pages App Review loads live in
+    **`jsnyde03/debt-planner-site`**; this repo's `site/` is **v1.5, stale, and deployed by nothing**
+    (`embed-pages.yml` publishes the embed only). ⚠️ That mismatch already cost **three findings filed
+    against `site/*.html` line numbers no reviewer ever sees**, two of which changed verdict once the live
+    page was fetched. **Read the live page, not `site/`** — [`DEBT_SITE_COPY_2.0.md`](DEBT_SITE_COPY_2.0.md).
+  - 🔴 **It promotes the URL question from backlog to LIVE.** An `iframe src` makes
+    `jsnyde03.github.io/debt-app-v1/` user-visible, so *"the embed's public URL names the repo"* becomes a
+    brand call **with a DNS dependency**, needed before submission rather than *"whenever the page exists"*.
+  - ⚠️ **Two separate Pages origins** — the page on `debt-planner-site`, the embed on `debt-app-v1`. Whether
+    that stays a cross-origin iframe or the embed moves is an unanswered structural question.
+  - ⭐ **What survives even if the embed were dropped**, so it is not re-litigated: `zero-egress.spec.ts` is
+    the machine proof behind [D41] and **P6.9 leans on it**, and the `scripted` demo is also **P6.20's
+    App-Preview vehicle** ([D23]).
+- **[D60]** ✅ 2026-08-25 — **THE OPEN DECISIONS, CLOSED AS A BATCH** (🎯: *"Let's fold it all in"*, on my
+  recommendations). Seven calls, and the two largest are both **do not build**:
+  - 🔴 **L1-20 eyebrows — DEFER the sweep, take the token.** ⛔ Its mechanism is **false on iOS**: RN
+    uppercases the `NSString`, so VoiceOver reads "PAYDAY GUARDIAN" either way. **23 edits + 32 test pins
+    for a change no user can perceive.** The single `eyebrow` token is the valuable slice and rides a later
+    visual pass.
+  - 🔴 **L4-13b `PressableScale` — NOWHERE, plus the token cleanup.** ⛔ The finding says two press
+    vocabularies; **there are three and the majority is the third** — of 69 tap targets **1 springs, 11 dim,
+    57 have none**. "App-wide" is a new design on ~45 targets inside a freeze, untested. **Build instead:**
+    the 7 live inline opacities, and the two Money cards that disagree with each other.
+  - ✅ **P1-4 and P1-5 — BUILD BOTH.** P1-4 is a 23-name run-on on the one screen that speaks to someone
+    **short this paycheck**, and the idiom already exists at `invariants.ts:100`. P1-5's **button hierarchy
+    is the sharper half**: `Done` is the filled primary while `Copy to clipboard` — the only action that
+    backs anything up — is secondary, so a user can press the most prominent button and back up nothing.
+  - ✅ **P1-1 — shoot the payoff finale and the band-milestone beat before P6.10.** Instrument work, and
+    P1-1's own bar is that a surface missing from the matrix is one four lenses are blind to at once.
+  - ✅ **D-2 the coach mark over the trajectory footer — ACCEPT.** Measured, not theorised. It does not
+    cover its subject, and `.11.5` left those controls operable; first-visit-only behind a dismissible hint.
+    **The price of not covering the subject.**
+  - ✅ **The goal pace becomes editable in `GoalSheet`.** Today `priorityPerPaycheck` is written **only at
+    creation**, so a user who chose "$200 a paycheck" can never revise or remove it — which is why
+    `.11.3`'s repair notice had to name a workaround instead of an action. One optional field closes the
+    product gap and the copy together.
+  - 🔴 **CSV `MM/DD/YYYY` — DEFER.** `.11.4` made the in-app caption honest, which is the floor. How much
+    of a real bank export the importer promises to read is a product call, not a 2.0 blocker.
+  - ⏭ **P1-10's Windfall tier gate → 2.1.** The copy half shipped and `selectors.ts:54` is pinned, so
+    nothing is wrong today; a future tier change is what would turn that line into a false statement about
+    the user's money with every test green. Monetisation inside a converging freeze.
+  - ⚠️ **The v1.6 silent loop stays with P6.14 to ANSWER, not to guess.** ⛔ `.11.10` sharpened it: if a
+    WebKit container can produce a **total** decode failure, `isConfirmedFreshInstall` consults neither
+    `droppedRows` nor `opened[].rows` — so the container is called terminal, the retry is consumed, and the
+    **entire v1.6 portfolio is stranded while the app says "fresh install."** The one thing most worth
+    measuring on device before ship.
+- **[D59]** ✅ 2026-08-24 — **C7 COMPARES THE CLEAR ORDER, NOT THE CURVE** (🎯, on my recommendation).
+  ⛔ **Measured before recommending, and it undercut the finding's own implied fix:** the two
+  total-balance curves separate by **≤2.8% of chart height and usually <0.1%**, and the debt-free date is
+  **identical in 5 of 6** portfolios — avalanche's best win was **2 months out of 53**. ⚡ **What differs
+  is which debt clears when, and it is large:** first cleared debt at **month 1 under snowball vs month 20
+  under avalanche** on the same portfolio, and a reshuffled order on another. So the side-by-side is built
+  from the **waypoints**, not a second line — which also keeps a 6th element off a card **P1-3 already
+  reports as unreadable**. ⚠️ **Total interest was NOT measured** and is avalanche's whole case; if the
+  comparison ever states a dollar advantage, that figure has to be measured first.
+  → [`evidence/2026-08-24-c7-strategy-divergence/`](evidence/2026-08-24-c7-strategy-divergence/).
+- **[D58]** ✅ 2026-08-24 — **P1-3 is in 2.0**, built at **g.4 BEFORE C7** (C7 draws into the same
+  x-domain). ⚠️ P1-1 · P1-2 · P1-4 · P1-5 are **not** decided by it → P6.8.9.
+- **[D57]** ✅ 2026-08-22 — **one surface for "could not read it"**: migration losses report through c.2's
+  `pendingDataRepairs` card, and **c.3/c.4 swap** because W1-6 *produces* the outcome M3-20 reports.
+- **[D56]** ✅ 2026-08-22 — the two silent data events each get a surface and **one of them blocks**: a
+  corrupt-store reset renders a **blocking screen before onboarding**; a repaired amount is held in a
+  persisted `pendingDataRepairs` until acknowledged. ⛔ Not a preference — `repairsAreNotRepeated` guarantees
+  the per-read list is empty next pass, so a live-only card would be the same silence the finding is about.
+- **[D55]** ✅ 2026-08-22 — **a money field READS separators, it does not refuse them.** `"1,200"` and
+  `"$1,200"` parse as 1200; anything not resolving to a finite positive number is refused. An OPTIONAL field
+  treats **blank and unreadable as different answers**. ⚠️ Safe only because US · CA · AU · NZ are all
+  period-decimal — a comma-decimal storefront **cannot be added without revisiting `store/amountField.ts`**.
+- **[D54]** ✅ 2026-08-21 — **R5 (the expense reserve in the plan) is a 2.0 feature.** Reverses 3.8's *"the
+  offer is NEVER required"* premise. ⛔ A new capability, so it **must clear P6.10**.
+- **[D53]** ✅ 2026-08-21 — **2.0 ships with NO free trial** (🎯: *"I already have a demo and
+  try-before-you-buy in the app"*). ⭐ **It retired MY argument, not his:** eligibility is consumed only by
+  TAKING the offer, so every decliner stays eligible indefinitely and 2.1 reaches exactly the cohort that
+  bounced. What is gained is a **clean conversion signal** from day one. ⚠️ If ever taken: **30 days floor,
+  annual only** — premium's value fires on PAYDAY, and Apple grants the offer once per Apple Account per
+  subscription **group**.
+- **[D52]** ✅ 2026-08-20 — **both lines move: feature lock → after P6.10, code freeze → after P6.18.**
+  ⛔ Lock moved because of a **contradiction**: with lock at P6.4 every structural gap P6.8 is chartered to
+  find auto-defaulted to 2.1, so the audit could not act on its own charter. ⛔ [D39]'s two-line structure
+  **survives** — P6.11 alone deletes an app surface after lock.
+- **[D51]** ✅ 2026-08-20 — **the splash ships a LIGHT and a DARK variant, both showing the MARK.** ⚡ Possible
+  because the icon has real SVG source, so the square-on-light problem was an **artwork** limitation, not a
+  design conclusion. ⛔ Supersedes the dark-only half of [D43]; **needs the NEXT build.**
+- **[D50]** ✅ 2026-08-20 — P6.6 + P6.5 run **before** P6.4, then the batched build; P6.4 runs while it is in
+  flight. Neither is a feature, so landing them before lock costs nothing.
+- **[D49]** ✅ 2026-08-20, **BUILT** 2026-08-21 — **a green gate is RECORDED BY THE GATE, never typed into a
+  document.** ⛔ A doc rule cannot fix this — a doc rule is what failed. ⚠️ Two corrections the building
+  forced: freshness turns on a **content fingerprint**, not a git diff; and `lint:gate-freshness` is **not**
+  in `lint:rn` — a freshness check inside the thing that establishes freshness is a **deadlock**.
+- **[D48]** ✅ — **ONE batched device build** carries P6.3 + P6.5 + P6.6. ⚠️ A signing failure then has three
+  suspects — mitigated by introspecting the entitlements before the build is spent.
+- **[D47]** ✅ — **iCloud backup is OPT-IN, default OFF, offered once in-line.** [D41]'s claim says
+  *"**Optional**"*, and P6.9 has to prove it. A fresh install still detects an existing blob and offers to
+  restore.
+- **[D46]** ✅ — **the QA door is resolved by ORDERING:** P6.13 → P6.14 → P6.17. The probe rows get **no**
+  non-QA path. ⚠️ Residual named: the shipping binary is not the device-passed binary.
+- **[D45]** ✅ — **the monorepo stays**; `apps/rn` is not promoted to root. → P6.11.2 closed.
+- **[D44]** ✅ decided · ✅ **BUILT** 2026-08-21 — a Pages deploy asserts its SHA has a green `web-e2e` run.
+- **[D43]** ✅ — the splash is the app icon on its own dark background, no wordmark. *(Dark half superseded by
+  [D51].)*
+- **[D42]** ✅ — **P6.4 commits to a BAR, not a COUNT.** All 62 judged; what gets fixed is every defect and
+  every finding on a shipping surface.
+- **[D41]** ✅ — the privacy claim is ***"Your data never goes to our servers. Optional iCloud backup keeps it
+  in your own Apple account."*** ⛔ **Never** *"end-to-end encrypted"* (false under [D40]) and never *"100%
+  private"* again.
+- **[D40]** ✅ — cloud backup uses the app's **private iCloud container, no passphrase**. A passphrase adds a
+  *permanent* unrecoverable-backup failure mode against a threat this product is not sold against.
+- **[D39]** ✅ 2026-08-19 — **FEATURE LOCK ≠ FREEZE.** The STRUCTURE stands; both positions superseded by
+  [D52]. ⚡ What it buys: the sweep's structural-gap charter gets a **default answer**.
+- **[D38]** ✅ 2026-08-19 — **ships as `2.0.0`, not `1.7.x`.** ⚡ The argument is about the FUTURE: the version
+  number is the baseline every later release is measured against, and a wrong baseline is permanent. The
+  internal name stays *"the v1.7 Elevation."*
+- **[D37]** ✅ 2026-08-18 — **every high+ finding is remediated this round**: all 55 of 117 blocker+major
+  closed or explicitly refuted, each traceable to its id, enforced by `lint:closure`. ⛔ Nothing is parked.
+- **[D36]** ✅ 2026-08-17 — the reserve ships to **BOTH TIERS**; the Guardian segment is **"Spoken for"**.
+- **[D35]** ✅ 2026-08-17 — **3.5's device pass FOLDS INTO Phase 6's.** One sitting, no row run twice.
+
+**Scope + revenue**
+
+- **Re-scope to "The Elevation"** ✅ 2026-07-20 — design-first, best-in-class. **v1.7 ships as ONE release.**
+- **No paywall on the basic core job** — free finishes the job; premium is the flywheel.
+- **Revenue spine** ✅ 2026-07-25 — Monthly $4.99 · Annual $29.99 · Lifetime $79.99. **NO free trial.** Reuses
+  the existing RevenueCat project — v1.6 subs must restore.
+- **Phase-3 scope** ✅ 2026-07-27 — pull EVERYTHING into v1.7 unless it genuinely can't ship. Analytics OUT of
+  the core (privacy moat); the 3.5 demo re-opened it → a privacy-first funnel seam.
+- **Executive "fix everything, no backlog"** ✅ 2026-07-29/30 · **Legacy gate RETIRED** ✅ 2026-07-24 ·
+  **3.8 is in v1.7** ✅ 2026-08-17.
+
+**The demo + the embed**
+
+- **[D21]** ✅ the demo SHIPS to users again, reversing [D19]. Demo = before you commit; walkthrough = after
+  onboarding, on your own money. It no longer rides `QA_TOOLS`.
+- **[D23]** ✅ the demo is **TWO runs** — `explore` ships; `scripted` is the App-Preview + embed vehicle.
+- **[D20]** ✅ capture pipeline — Maestro drives · `simctl` records · ffmpeg conforms.
+- **[D32]** ✅ 3.5.7 hosts on **GitHub Pages** and its privacy claim is a **GATE** — static-only *by
+  construction*. No analytics in the embed build (a **build flag**, not a toggle) · `sessionStorage` only ·
+  **zero network requests after asset load**, held by a spec that fails `validate:release:rn`. ⚠️ Every host
+  logs IPs, so *"financial data never leaves your device"* stays literally true while *"100% private"* would
+  overclaim.
+- **[D34]** ✅ 2026-08-17 — the embed CTA names the **destination**: *"Get it on the App Store."* App id
+  `6773201250`.
+
+**Product + engine**
+
+- **[D22]** ✅ the debt/expense split is CORRECT and stays (terminating vs perpetual); the defect is **naming
+  + entry**. [D22a] one chooser replaces the per-section Adds · [D22b] the detector runs retroactively ·
+  [D22c] it surfaces, never silently re-files · [D22d] "bills" vernacular → the wording gate.
+- **[D2]** ✅ `minimumPaidThisCycle` is the owner ("minimum covered"); `isPaidThisCycle` means paid in full.
+  ⚠️ Corrected by B.0: the fallback-less reader is `planSelectors.ts:156`.
+- **[D24]** ✅ the tight top-up prefers a **discretionary goal; the EF is the fallback**, and the copy names it
+  when it IS the EF. The dishonesty was drawing on it *silently and first*.
+- **[D25]** ✅ an applied purchase **keeps** its deferrable behaviour but gets an **explicit category**.
+- **[D3]** ✅ the calm-micro-viz hero language extends to Debts · **[D26]** ✅ the greeting's mechanism ships,
+  its **strings** belong to the wording gate · **[D27]** ✅ port the free on-plan streak only, **no flame** ·
+  **[D28]** ✅ B4's swipe ships as a pure accelerator · **[D29]** ✅ B1 CLOSED as refuted.
+- **[D4]** ✅ rename before the next device build — every App Shortcut phrase contains `\(.applicationName)`.
+- **[D1]** ✅ stays DEFERRED **on a NEW reason** — the original cost argument **expired**. It stays deferred
+  because **there is no control-SHAPED job**: this app's actions are multi-step or rare and dated, and a
+  glance is a widget's job, which already ships.
+
+**The lane**
+
+- **[D30]** ✅ the iPad lane is **three tiers in one directory**, not a second flow set. Forced by
+  `use-layout.ts`: on a wide iPad the debt sheet is **inline, not modal**, so flow 02 would pass while testing
+  nothing.
+- **[D31]** ✅ the audits change **METHOD, not just model** — scripted lenses where the question is
+  deterministic · a **generated artifact** as the agent's input, never the raw codebase · cheap tier extracts,
+  expensive tier judges a short list. ⚡ **Every finding that becomes a TEST is paid for once** — audit spend
+  as capital, not rent.
+- **[D33]** ✅ §11.16 PASSES on both edges; beat 5's landscape crop is **deliberate**.
+- **4.1.9** ✅ 2026-08-17 — **XCUITest, and NO Appium.** Appium buys 3 checks for a second driver, language and
+  server process.
+
+**Open:** none.
+
+---
+
+---
+
 ## S1.9.6 — [D2-1], the one state machine's three producers *(2026-08-26)*
 
 ⚠️ **The plan said this MAY be absorbed by S1.9.3's residual, and to measure before building.** Measured

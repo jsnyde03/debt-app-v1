@@ -629,3 +629,115 @@ Premium** → **"See it in action"**.
 ---
 
 _Companion to `DEBT_NATIVE_BLOCK_MANUAL_STEPS.md` (the portal/ASC steps — all done). Canonical plan: `DEBT_ELEVATION_PLAN.md` §3.5._
+
+---
+
+## §14 — the P6.14 ledger, moved here from the plan *(2026-08-26)*
+
+⛔ **These rows lived ONLY in `DEBT_ELEVATION_PLAN.md`, and its own header said so** — while the sentence above them told the reader to work from THIS file. A pointer that is wrong about where the content lives is worse than no pointer, because it is followed. ⚡ Measured then: `C4`, *"Payday Countdown"*, `wholeDaysBetween` and *"v1.6 backup FILE"* each appeared **0 times** here, so the row that decides whether a premium feature ships dead was reachable only from the plan.
+
+⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them.
+
+**🔴 Highest-value row — P6.8.7e.5 [C4], and it settles a premium feature:**
+- On a **premium** device with **Payday Countdown ON**, sit inside the last 3 days of a real pay cycle
+  **without re-saving the paycheck sheet**, and record whether the Live Activity ever appears.
+- ⛔ **Expected from source: it does not.** The gate is `wholeDaysBetween(paycheck.currentDate,
+  nextPaycheckDate) <= 3`, and `currentDate` is a **cycle anchor** that only moves at rollover — so it
+  measures the cycle's LENGTH (~14 or ~30) and never counts down as real days pass.
+- ⚠️ **Then the second run: re-save the paycheck sheet inside that window** (`paycheckForm` writes
+  `currentDate: todayLocalISO()`) and confirm it DOES appear. The feature is not dead, it is **contingent on
+  an unrelated user action** — which is why one row cannot be "does it work" but must be **both** runs.
+- ⭐ **If confirmed it is 2.0 by default** (🎯's standing call: you cannot sell a feature and ship it dead).
+
+**Owed from Phase 5** — fixed and unit-covered, never seen on a device:
+- Import a **v1.6 backup FILE** and confirm the restore does **not** land in onboarding.
+- The **document picker** — pick `v17-envelope.json` from **iCloud Drive**, not local *(local would not
+  exercise `copyToCacheDirectory`)*.
+- The **`v16-damaged` repair report** naming *Visa · balance* and *Electric · amount*.
+
+**Owed from 7d.1 [B3] — the clobber guard, none of it provable off-device:**
+- Flip **Back up to iCloud ON** where the container already holds a backup this install never restored. The
+  declined copy must still be there, and the sheet must offer **the fork** rather than *"Last backed up …"*.
+- Take **"Replace it with this device"**, then background **twice**: the second auto-backup must go through
+  *(it proves the write re-stamped `cloudBackupRemoteAt`; if not, the guard blocks forever)*.
+- **Restore** from iCloud, then background: same *(the blob's own copy of the stamp is always one stale)*.
+- ⚠️ **Kill the app immediately after backgrounding** — the stamp rides `flushPendingSave()`. Expected worst
+  case is a **false conflict**, never a loss.
+
+**Owed from 7d.2 [C9] — the delete, whose refusal branch web cannot reach:**
+- **Delete all data with a backup in iCloud** — the file must be **gone** and the next launch must not offer
+  a restore.
+- **Delete all data signed OUT of iCloud** — nothing may be deleted; the blocked message must render and
+  **"Delete on this device only"** must wipe locally and leave the remote alone.
+- **Delete all data with iCloud reachable but the unlink failing** (airplane mode mid-tap) — the `error`
+  wording, and **Try again** succeeding once connectivity returns.
+
+**Owed from g.2 [C8] — the CSV picker, which web cannot reach:**
+- **Choose a real `.csv` from the Files app** and confirm it imports. `CSV_FILE_SUPPORTED` is false on web,
+  so the picker ships on **source only**; everything after the bytes arrive is covered by the paste path.
+- **Pick a CSV from iCloud Drive, not local** — the one case `copyToCacheDirectory` exists for. Without it
+  the read fails *after* the user has already chosen, which reads to them as the app rejecting their file.
+- **Look at the `Import from CSV` row on iOS**: it is the one new glyph mapped to an SF Symbol
+  (`square.and.arrow.down`); confirm it does not read as *export*.
+
+**Owed from f, all three structural to react-native-web:**
+- **VoiceOver on, type an amount into Can-I-Afford-It** — confirm the verdict is **spoken**
+  (`announceForAccessibility` is an empty body on web, so the spoken half is unprovable in the harness).
+- 🔴 **VoiceOver on, visit the six BARE `announce()` sites and decide which owe a live region** *(.7.11)* —
+  `(tabs)/index.tsx` ×2 (ack + impact), `cushion-forecast.tsx`, `demo.tsx`, `schedule/[id].tsx`,
+  `TutorialOverlay.tsx`. All six speak on iOS and are **silent in every browser**. ⚠️ The two on Today are
+  verdict text and almost certainly want `useLiveAnnouncement`; the three route-title ones are a genuine
+  question — a screen title may want focus management instead, and that is not decidable off-device.
+  ⛔ **Baselined, not exempted**, in `check-native-a11y-props.ts`: the class reds for anything new, and this
+  row is what stops the six becoming permanent by silence.
+- **Read the Progress hero on a small device at a wide month** — September, November, December
+  (`adjustsFontSizeToFit` is a no-op on web; the 320 pt guarantee is an iOS-only claim).
+- **The dashed `AddRow` and every `Switch` OFF track sit at 1.41–1.90:1** on `border.strong`, left un-fixed
+  on purpose *(both are identifiable by other means, so 1.4.11 is not violated)*. ⛔ Recorded so the next
+  sweep **re-decides** it rather than re-discovering it — the felt severity of a hairline is a device
+  question and DPR 1 flatters it.
+- ⚠️ `insets.bottom` is 0 on web and ~34 pt on a device, which pushes **more** viewports into f.3's broken
+  branch. The device can only widen that finding, never narrow it.
+
+**Also owed:** a row for **R4** *(enter the demo as an onboarded user, edit a bill, exit, confirm the real
+plan is unchanged — write containment is proven on web only, and R4 was found on a device)* · which branch an
+induced **MMKV fault** produces · the `deleteBlocked` refusal path · **[T3.2]**'s storage-fault row ·
+**A0.4** · **A8.4** *(the Siri phrases, incl. the load-bearing `\(.applicationName)` check)* · **§3.1.2** SF
+Symbols on the min-iOS target · **§2.8** native scan · **§2.11** RevenueCat real purchases + restore ·
+**§3.3.1** the AHAP crescendo FEEL · **§VIS-2/B2** share rasterizes fully · **§3.4** `expo-blur` real
+material · **§3.5** Live Activity / Island / widgets / App Intents · **§3.6** iPad both orientations, Split
+View, Stage Manager, pointer/keyboard · **§VIS-6** sound + notification delivery. Highest-value single legacy
+row: **§11.15**, the iPad ring-origin invariant.
+
+⛔ **Five rows stay `[D]` for stated reasons, and they are forward guidance.** **§5.4 StandBy is PERMANENT**
+— *"put the phone on a charger"* is physical state a simulator has no concept of. **§5.1** · **§5.3** ·
+**§6a.2** *(needs a 15/16 Pro sim)* · **§10.3** each need their own probe first. The three `[A]` ⌘-key rows
+stay `[A]`.
+
+**⭐ [SUB-AUDIT] Premium-accessibility** — VoiceOver rotor + a full walk · Dynamic Type AX3/AX5 reflow ·
+reduce-motion · contrast both themes · focus order · touch targets. **WCAG 2.2 AA is the FLOOR.**
+- ⛔ **BOTH GUARDS COVER 2 OF THE 4 NATIVE-ONLY PROPS.** eslint and `check-native-a11y-props.ts` ban
+  `accessibilityElementsHidden|importantForAccessibility` but **not** `accessibilityValue` or
+  `accessibilityState` — yet react-native-web drops all four identically. ⚡ **The guard written for one
+  instance of the class does not cover the class.** ▶ Extend both; `accessibilityState` appears in **11 files**.
+- ⚠️ **`CheckCircle` reports no checked state on WEB** · **`ListRow`'s swipe-to-delete announces a hidden
+  Delete button on EVERY row.**
+
+**Owed from `.11.13.9` — the coach-mark callout's own FOOTPRINT, which only iOS can answer:**
+- With a coach mark up *(open a debt from Money on a fresh install)*, **tap the callout's sentence** — the
+  words, not the "Got it" button. ⛔ **The control underneath must take the tap.** `CoachMarkLayer`'s
+  opening paragraph promises *"nothing is fenced, and the control stays live underneath — if the user
+  ignores this entirely and taps the thing, that is a success"*, and a hint that eats taps is behaving as a
+  modal, which `coach-marks.spec.ts` says it must not.
+- ⚠️ **Web cannot answer it and the reason is not shared.** On web RNW emits
+  `selector > * { pointer-events: auto }`, which the spec covers with `elementFromPoint`; on iOS a plain
+  `View` is `userInteractionEnabled` and consumes the touch. **Same symptom, two mechanisms**, so the web
+  green says nothing about the device. `pointerEvents="none"` on the sentence wrapper is the fix under test.
+- Also confirm **"Got it" still dismisses** — it is the one child that must stay interactive, and the fix
+  is one prop away from disarming the callout's own exit.
+
+**⭐ [SUB-AUDIT] Performance-feel** — 120fps ProMotion · Skia redraw cost · cold-start TTI · list jank ·
+optimistic-UI feel. Includes the Today/cushion-forecast memoization check *(conditional on a real measured
+hotspot)* and Dynamic-Type device QA.
+
+---

@@ -23,6 +23,12 @@ being that cloud backup still ships, so the app is **not frozen**. ▶ **Phase 6
 decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submission. **This ships as
 `2.0.0`** ([D38]); the internal workstream keeps the name *"the v1.7 Elevation"*.
 
+⚠️ **The plan was compacted 2026-08-26 (1,434 → 641 lines).** Three registers moved OUT of it and are
+now the point of truth for their own content: **`docs/DEBT_ELEVATION_BACKLOG.md`** *(the 125 deferred
+items, grouped by where they land)* · **`DEBT_3.5_DEVICE_QA_CHECKLIST.md` §14** *(the device rows that
+lived only on the plan)* · the log *(P6.8's closed sweep, the 62 findings, the decisions mirror)*.
+⛔ The plan is the DRIVER; do not re-file a deferred item onto it.
+
 ⚠️ **Read the plan's numbering legend before quoting a step id.** `P6.n` is the sequence; **"6.C" (cloud
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
