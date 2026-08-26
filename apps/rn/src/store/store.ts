@@ -228,8 +228,12 @@ export interface DebtAppState {
   /** §2.10 tight-case (2.4.11.2) — hold this cycle's line by moving `amount` from a savings/EF goal to
    *  checking: reduce the goal + record the top-up for the current cycle. */
   applyTightTopUp(source: CycleTopUpEntry['source'], goalId: string, amount: number): void;
-  /** ⛔ S1.5.3 [B3] — reverse THIS source's own entry, read from the store. Never a negative apply. */
-  undoTightTopUp(source: CycleTopUpEntry['source']): void;
+  /** ⛔ S1.5.3 [B3] — reverse THIS source's own entry, read from the store. Never a negative apply.
+   *  ⛔ S1.9.1 [D2-2] — pass `draw` when the caller is showing ONE cover rather than the source's running
+   *  total: the entry accumulates, so the default (whole entry) hands back every draw this source made.
+   *  The Guardian card reads its number from the entry and wants the default; the affordability card
+   *  shows a single purchase's cover and must pass it, or its Undo returns more than it said it would. */
+  undoTightTopUp(source: CycleTopUpEntry['source'], draw?: { goalId: string; amount: number }): void;
   /** 3.8 — SET this cycle's expense-reserve contribution to `amount` (not add to it). Idempotent by
    *  design: the user acts on a single recommended "reserve $X" offer, and an accumulating action would
    *  silently double the hold on a double-tap. `0` clears it. Never required — the plan is correct at
@@ -835,7 +839,7 @@ export function createDebtStore(opts?: {
         };
       });
     },
-    undoTightTopUp(source) {
+    undoTightTopUp(source, draw) {
       // ⛔ S1.5.3 [B3] — REMOVE THIS SOURCE'S OWN ENTRY and return its money to the goal it came from.
       //
       // Both undos used to be spelled `applyTightTopUp(goalId, -amount)`, reading the goal and the amount
@@ -844,17 +848,35 @@ export function createDebtStore(opts?: {
       // Guardian having already reversed the draw, and a negative "apply" subtracted from a shared
       // accumulator rather than clearing anything. Reading the entry from the store makes a second undo a
       // no-op by construction.
+      //
+      // ⛔ S1.9.1 [D2-2] — AND ONE ENTRY IS NOT ONE DRAW. [B3] gave each SOURCE its own entry and, in the
+      // same move, made a source's second cover indistinguishable from its first: the entry accumulates
+      // (`applyTightTopUp` above, deliberately), so removing it whole reverses draws the caller never
+      // offered to reverse. The affordability card shows one purchase's cover and the store handed back
+      // the cycle's — $50 then $30 returned **$80**, silently un-covering the earlier purchase. The
+      // Guardian card reads its number FROM this entry (`selectAppliedTopUp`), so whole-entry is exactly
+      // right there and stays the default; a caller that shows ONE draw passes that draw and gets it back.
+      //
+      // ⚠️ The direction: the amount returned is `min(asked, held)`, never the caller's number alone —
+      // component state can outlive the entry, and [B3]'s no-op-on-repeat guarantee is what that protects.
       set((s) => {
         const forCycle = s.store.paycheck.nextPaycheckDate;
         const entries = topUpEntries(s.store);
-        const mine = entries.find((e) => e.source === source);
+        // A same-source re-tap against a DIFFERENT goal is its own entry, so a partial undo has to match
+        // the goal too — otherwise it returns this draw's dollars to the earlier draw's goal.
+        const mine = draw
+          ? entries.find((e) => e.source === source && e.goalId === draw.goalId)
+          : entries.find((e) => e.source === source);
         if (!mine) return {};
-        const rest = entries.filter((e) => e !== mine);
+        const returned = draw ? Math.round(Math.min(Math.max(0, draw.amount), mine.amount) * 100) / 100 : mine.amount;
+        if (!(returned > 0)) return {};
+        const remaining = Math.round((mine.amount - returned) * 100) / 100;
+        const rest = entries.flatMap((e) => (e !== mine ? [e] : remaining > 0 ? [{ ...e, amount: remaining }] : []));
         return {
           store: {
             ...s.store,
             goals: s.store.goals.map((g) =>
-              g.id === mine.goalId ? { ...g, currentAmount: Math.round((g.currentAmount + mine.amount) * 100) / 100 } : g,
+              g.id === mine.goalId ? { ...g, currentAmount: Math.round((g.currentAmount + returned) * 100) / 100 } : g,
             ),
             cycleTopUp: buildCycleTopUp(forCycle, rest),
           },

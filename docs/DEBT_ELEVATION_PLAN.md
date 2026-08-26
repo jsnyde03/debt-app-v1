@@ -57,7 +57,7 @@ number about money the app could not read* was wired to a subset of **claim site
 
 | # | sub-step |
 |---|---|
-| **S1.9.1** | **D2-2 first — it is the only REGRESSION.** `undoTightTopUp('affordability')` must reverse its own cover, not the source's whole accumulated entry. ⛔ Fix damage before discovery |
+| ✅ **S1.9.1** | **D2-2** — CLOSED 2026-08-26 · `undoTightTopUp(source, draw?)`: the Guardian keeps whole-entry *(it displays the entry)*, a caller showing ONE cover passes it and gets exactly it back, clamped to what the entry holds. The card now records what LEFT the goal, not what was asked for. **3 plants · 2 guards · `lint:rn` 27/27.** Detail → log |
 | **S1.9.2** | **The trust class, one owner: C4 · C2 · C3 · C1.** Which FIELDS make a number untrustworthy *(`minimumPayment`, `apr`, expense `amount`, goal `currentAmount`)* and which CLAIM SITES must ask *(the finale is the unwired fourth)*. **C1's reset path last and carefully — the "record survives the ack" behaviour IS A-J2-1's fix**, so a reset must distinguish *"the user corrected this field"* from *"the user dismissed the card"* or it re-opens a closed blocker |
 | **S1.9.3** | **A1 — 🎯 chose: net the top-up against the shortfall ONCE; all three reads take the residual.** `residual = max(0, shortfall − appliedTopUp)`; band at-risk iff `residual > 0`; affordability `spendable + topUp − shortfall` floored at 0; `holdsLine` judged on the same residual. ⛔ **Honours M3 rather than reverting it** — M3's defect was a top-up lifting a PROXY while the shortfall went untouched. ⚠️ **Behaviour change**: a top-up that genuinely covers a small shortfall now clears the band |
 | **S1.9.4** | **B-1 — the seven fail-open guards**, and `test-gate-plants` covers none of the seven gates. ⛔ **Before pass 3**, per S1.5.4: an instrument fix decides what the next pass can see |
@@ -504,6 +504,24 @@ hotspot)* and Dynamic-Type device QA.
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
 
 ### → surfaced while classifying pass 2 under [D69] *(2026-08-26)*
+
+### → surfaced by S1.9.1's after-scan *(2026-08-26)*
+
+- ⚠️ **THE SAFE SEED HELPER IS PRIVATE, THREE TIMES OVER, AND THE TRAPPING ONE IS THE EXPORTED ONE.**
+  `helpers/seed.ts` exports only `seedStore`, whose `addInitScript` re-runs on **every** navigation — so a
+  `page.reload()` restores the fixture over whatever the app just wrote, and a "survives a relaunch" test
+  proves nothing while passing. `celebration.spec.ts`, `data-recovery.spec.ts` and `payday-reopen.spec.ts`
+  each define their own local `seedOnce`; `coach-marks.spec.ts` carries a comment about it. ⚡ **Measured
+  live: S1.9.1's first e2e draft fell into it** — the reload showed *"Flexible $500"* with the applied
+  purchase gone. Rec: export `seedOnce` from `helpers/seed.ts` with the docstring the three copies already
+  carry, and point the three specs at it — deferred because it edits three specs currently under audit and
+  D2-2 did not need it. → **S2 or the tooling sweep**
+- **A COVER MADE IN A PREVIOUS SESSION HAS NO UNDO ANYWHERE.** The affordability card's control exists only
+  while its `applied` state does, and that is session-brief by construction; the Guardian's control reads
+  the store but only for `source === 'guardian'`. So after a relaunch an `affordability` entry is money the
+  user moved with no path back — pre-existing, not the regression, and arguably right *(an undo is a brief
+  offer, as `intentRollback` is)*. ⚠️ **Filed as a DESIGN question, not a defect**: it is the reason the
+  per-draw fix is bounded to the live card. → **2.1**
 
 - 🔴 **`packages/core/timeline` IS ON NO SURFACE — and it holds a producer of the ONE state machine.**
   Measured: `grep -c "packages/core/timeline"` returns **0** against both claims files. S1's roots carry

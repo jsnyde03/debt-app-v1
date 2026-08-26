@@ -191,6 +191,16 @@
     "file": "apps/rn/tests/e2e/intent-undo.spec.ts",
     "token": "logging a payment still offers the Undo on Today"
   },
+  "S1P2-D2-2-STORE": {
+    "what": "pass-2 D2-2, a REGRESSION [B3]'s own fix introduced — one entry per SOURCE accumulates, so undoTightTopUp(source) handed back every cover the source made this cycle; $50 then $30 returned $80 and silently un-covered the earlier purchase. Every prior undo case applied each source ONCE, the member of the class where whole-entry and per-draw agree",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "the Undo returns the LAMP"
+  },
+  "S1P2-D2-2-SEAM": {
+    "what": "pass-2 D2-2's other half — the store fix is invisible unless the CARD passes its draw, and a bare undoTightTopUp('affordability') typechecks perfectly while re-creating the defect; no test asserted that the amount the card DISPLAYS equals the amount its Undo returns",
+    "file": "apps/rn/tests/e2e/topup-sources.spec.ts",
+    "token": "the card’s Undo returns ITS OWN cover"
+  },
   "S1P1-B3-SOURCES": {
     "what": "pass-1 B3 variant A — two independent one-tap money moves shared ONE cycleTopUp record with ONE goalId, so the second overwrote the first's source: $70 out of S1 and $50 out of S2 became a single $120 Undo into S2, leaving S1 permanently short. The aggregate conserved, which is why nothing noticed. Entries are per-source now and each undo finds its own",
     "file": "apps/rn/src/store/storeActions.test.ts",

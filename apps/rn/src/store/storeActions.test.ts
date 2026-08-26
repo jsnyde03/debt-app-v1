@@ -258,6 +258,81 @@ function run() {
     }
   }
 
+  // ⛔ S1.9.1 [D2-2] — ONE ENTRY IS NOT ONE DRAW, and this is a REGRESSION [B3]'s own fix introduced.
+  //
+  // [B3] gave each SOURCE its own entry and made that entry accumulate (pinned above, deliberately), so
+  // `undoTightTopUp(source)` hands back every cover the source made this cycle. The affordability card
+  // describes ONE purchase's cover — from `useState`, cleared by any remount — while its Undo returned the
+  // cycle's: $50 for a couch, relaunch, $30 for a lamp, Undo → **$80** back, the couch still in the plan
+  // with its cover silently withdrawn. At `bc29dfe` the old negative-apply reversed exactly $30; the fix
+  // killed the cross-source teleport and took the per-draw granularity with it.
+  //
+  // ⚠️ Every existing undo case above applies each source ONCE — the member of the class where whole-entry
+  // and per-draw agree exactly.
+  {
+    const oneGoal = () =>
+      inst({ goals: [{ id: 'EF', name: 'Emergency Fund', type: 'emergency', currentAmount: 1000, targetAmount: 5000 }] as DebtStore['goals'] });
+    const bal = (s: ReturnType<typeof inst>, id: string) => s.getState().store.goals.find((g) => g.id === id)!.currentAmount;
+
+    // ── the defect as the auditor measured it: two covers from one source, undo the SECOND ──
+    {
+      const s = oneGoal();
+      s.getState().applyTightTopUp('affordability', 'EF', 50); // the couch
+      s.getState().applyTightTopUp('affordability', 'EF', 30); // the lamp, after a remount
+      eq(bal(s, 'EF'), 920, 'D2-2 — both covers left the goal');
+      s.getState().undoTightTopUp('affordability', { goalId: 'EF', amount: 30 });
+      eq(bal(s, 'EF'), 950, '⛔ D2-2 — the Undo returns the LAMP’s $30; it used to hand back the cycle’s $80');
+      eq(s.getState().store.cycleTopUp?.amount, 50, '…and the couch’s cover still stands — that is what silently vanished');
+    }
+
+    // ── ⚠️ THE CONTROL, and it must NOT move: the Guardian card shows the ENTRY, so it undoes the entry ──
+    // `selectAppliedTopUp` reads the amount out of the store, so the number it shows and the number it
+    // returns are one number. Making this path per-draw too would leave money on screen with no control
+    // able to reverse it — the opposite defect, from the same misreading.
+    {
+      const s = oneGoal();
+      s.getState().applyTightTopUp('guardian', 'EF', 50);
+      s.getState().applyTightTopUp('guardian', 'EF', 30);
+      eq(selectAppliedTopUp(s.getState().store)?.amount, 80, 'control — the Guardian card offers the accumulated $80');
+      s.getState().undoTightTopUp('guardian');
+      eq(bal(s, 'EF'), 1000, '⭐ control — …and its Undo still returns exactly that, all of it');
+    }
+
+    // ── a caller cannot invent money by asking for more than its entry holds ──
+    {
+      const s = oneGoal();
+      s.getState().applyTightTopUp('affordability', 'EF', 30);
+      s.getState().undoTightTopUp('affordability', { goalId: 'EF', amount: 80 }); // component state outliving the entry
+      eq(bal(s, 'EF'), 1000, '⛔ D2-2 — a stale draw returns only what the entry HOLDS, never the number asked for');
+      s.getState().undoTightTopUp('affordability', { goalId: 'EF', amount: 30 });
+      eq(bal(s, 'EF'), 1000, '…and the repeat is still a no-op — [B3]’s guarantee survives the partial path');
+    }
+
+    // ── a partial undo pays the goal the draw CAME FROM, never whichever entry the source wrote LAST ──
+    // A same-source re-tap against a different goal is two entries (`applyTightTopUp` keeps the earlier
+    // one), so matching on `source` alone would hand this draw's dollars to the other goal — exactly the
+    // teleport [B3] closed, re-opened by the fix to [B3]'s fix.
+    //
+    // ⚠️ **Undo the EARLIER goal's draw, deliberately.** `applyTightTopUp` writes the new entry ahead of
+    // the one it displaces, so a source-only `find` returns the NEWEST — and undoing that one is the member
+    // of the class where matching on source and matching on goal agree. Planted both ways: dropping the
+    // `goalId` clause leaves this case green if it undoes S2, and reds only here.
+    {
+      const s = inst({
+        goals: [
+          { id: 'S1', name: 'Savings 1', type: 'savings', currentAmount: 100, targetAmount: 1000 },
+          { id: 'S2', name: 'Savings 2', type: 'savings', currentAmount: 60, targetAmount: 1000 },
+        ] as DebtStore['goals'],
+      });
+      s.getState().applyTightTopUp('affordability', 'S1', 70);
+      s.getState().applyTightTopUp('affordability', 'S2', 50);
+      s.getState().undoTightTopUp('affordability', { goalId: 'S1', amount: 70 });
+      eq(bal(s, 'S1'), 100, '⛔ D2-2 — S1’s own draw comes home to S1, not to the entry written last');
+      eq(bal(s, 'S2'), 10, '…and S2’s draw is untouched (matching on source alone would have paid S2 $50 of it)');
+      eq(s.getState().store.cycleTopUp?.amount, 50, '…leaving exactly S2’s $50 on the record');
+    }
+  }
+
   // ── risk-notified (2.4.10) ──
   {
     const s = inst();

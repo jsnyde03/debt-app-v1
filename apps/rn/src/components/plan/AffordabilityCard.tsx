@@ -83,10 +83,20 @@ export function AffordabilityCard() {
     if (!r.coverFromSavings) return apply(r);
     const id = localId('purchase', store.paycheck.currentDate);
     const purchaseName = name.trim() || 'Purchase';
+    const { goalId, goalName, amount: asked, holdsLine } = r.coverFromSavings;
     store_.getState().addExpense({ id, name: purchaseName, amount: r.amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time', category: 'discretionary' });
-    store_.getState().applyTightTopUp('affordability', r.coverFromSavings.goalId, r.coverFromSavings.amount);
+    // ⛔ S1.9.1 [D2-2] — RECORD WHAT LEFT THE GOAL, not what the selector asked for. `asked` is already
+    // clamped to the goal's balance at the time the verdict was computed, but that read is memoized off a
+    // store snapshot; the goal can be smaller by the time the button is pressed, and `applyTightTopUp`
+    // clamps again (silently, and rightly). Measuring the goal across the call is the only figure that is
+    // true of BOTH the sentence below and the undo above — which is the whole defect this closes.
+    const held = (id_: string) => store_.getState().store.goals.find((g) => g.id === id_)?.currentAmount ?? 0;
+    const before = held(goalId);
+    store_.getState().applyTightTopUp('affordability', goalId, asked);
+    const drawn = Math.round((before - held(goalId)) * 100) / 100;
     haptics.success(); // 3.3.5.3
-    setApplied({ id, name: purchaseName, cover: { goalId: r.coverFromSavings.goalId, amount: r.coverFromSavings.amount, goalName: r.coverFromSavings.goalName, holdsLine: r.coverFromSavings.holdsLine } });
+    // …and a cover the goal could not fully supply does not hold the line, whichever read discovered it.
+    setApplied({ id, name: purchaseName, cover: { goalId, amount: drawn, goalName, holdsLine: holdsLine && drawn >= asked } });
   }
   function undo() {
     if (applied) {
@@ -96,7 +106,12 @@ export function AffordabilityCard() {
       // already reversed the same draw was invisible here: both fired, `cycleTopUp.amount` landed at −50,
       // and `appliedTopUp()`'s `Math.max(0, …)` swallowed it while the goal had gained $50 that never
       // existed. Removing this source's own entry makes a second undo a no-op by construction.
-      if (applied.cover) store_.getState().undoTightTopUp('affordability');
+      // ⛔ S1.9.1 [D2-2] — THIS COVER, not the source's running total. The store keeps one entry per
+      // SOURCE and accumulates into it, so a bare `undoTightTopUp('affordability')` returns every cover
+      // this cycle made — and this card only ever describes the last one, because `applied` is component
+      // state that a remount (relaunch, or the walkthrough swapping the tree) clears while the entry
+      // persists. $50 then $30 handed back $80 and left the first purchase covered by nothing.
+      if (applied.cover) store_.getState().undoTightTopUp('affordability', { goalId: applied.cover.goalId, amount: applied.cover.amount });
     }
     setApplied(null);
   }

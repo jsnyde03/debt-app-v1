@@ -4,6 +4,60 @@
 
 ---
 
+## S1.9.1 — [D2-2], the only regression in pass 2 *(2026-08-26)*
+
+**The finding.** `undoTightTopUp('affordability')` returned the source's whole accumulated entry, not the
+cover the card was describing. $50 for a couch → remount → $30 for a lamp → Undo returned **$80**, leaving
+the couch in the plan with its cover silently withdrawn. ⛔ **A regression [B3]'s own fix introduced**: at
+`bc29dfe` the old negative-apply reversed exactly $30. [B3] killed the cross-source teleport and took the
+per-draw granularity with it.
+
+**The direction the fix runs in, and why the opposite does not apply.** Two seams could close this, and
+only one is honest. Making the CARD display the entry's running total would put *"moved $80"* next to
+*"Added Lamp"* — a lamp that drew $30 — so the true sentence and the true undo are both the **draw**, not
+the entry. And the opposite change on the Guardian's side would be a second defect from the same
+misreading: `selectAppliedTopUp` reads its number **from** the entry, so whole-entry is exactly right
+there and stays the default. Hence `undoTightTopUp(source, draw?)` — the shape where each caller gets back
+what it said it moved.
+
+| | |
+|---|---|
+| `store.ts` | `undoTightTopUp(source, draw?)`. `draw` matches on **source AND goalId** *(a same-source re-tap against a different goal is its own entry, so matching on source alone pays this draw's dollars to the other goal — [B3]'s teleport, re-opened by the fix to [B3]'s fix)*. Returns `min(asked, held)`: component state can outlive the entry, and that clamp is what preserves [B3]'s no-op-on-repeat |
+| `AffordabilityCard.tsx` | records what **LEFT** the goal — the balance measured across the call — not `coverFromSavings.amount`, which is a memoized read that can be stale by the time the button is pressed. `holdsLine` is downgraded when the two differ. The undo passes that same figure, so the sentence and the reversal are one number by construction |
+
+⚡ **THE FIRST FIXTURE PICKED THE MEMBER OF THE CLASS WHERE THE REMEDIES AGREE, and the plant caught it.**
+The same-source-different-goal case undid the **newest** entry — which a source-only `find` also returns,
+because `applyTightTopUp` writes the new entry ahead of the one it displaces. Plant 1 stayed green over a
+sound-looking test. Re-pointed at the **earlier** goal's draw, it reds. ⚠️ This is the same shape as AS-3
+shipping over-matched with three green tests: *every* [B3] undo case applies each source **once**.
+
+**Verified — 3 plants, each landed and each re-run with the earlier assertion relaxed:**
+
+| plant | reds |
+|---|---|
+| the `goalId` clause dropped | `S1’s own draw comes home to S1` → got 30 · relaxed: S2 paid $50 of it · relaxed ×2: the record holds 70, not 50 |
+| `returned = mine.amount` *(the regression itself)* | `the Undo returns the LAMP’s $30` → got 1000 · relaxed: the couch's cover reads 0 |
+| the card omits `draw` *(the shipped defect — it typechecks perfectly)* | e2e: Trip returns to **400**, not 300 · relaxed: the record reads 0, not 100 |
+
+⚠️ **The drawn-vs-asked read has no reachable plant** — inside one render `asked` is already clamped to the
+goal, so they can only diverge on a mid-tap store change. Its guarantee is the store's `min(asked, held)`
+clamp, which **is** planted *(the stale-draw case)*. Stated rather than claimed as verified.
+
+⛔ **The e2e fixture is the SECOND LAUNCH, seeded directly, not two covers driven through one page.**
+`seedStore` re-injects on every navigation, so the first draft's `page.reload()` restored the pristine blob
+and the page came back reading *"Flexible $500"* with the applied purchase gone — a test that would have
+proved nothing while passing. Three specs already define a private `seedOnce` for exactly this; filed.
+
+**Guards.** `S1P2-D2-2-STORE` *(`storeActions.test.ts`)* · `S1P2-D2-2-SEAM` *(`topup-sources.spec.ts`)*.
+Both confirmed to red when their line is deleted. `MIN_ENTRIES` 73 → **75**; 59 of 75 guarded, cap 16
+unchanged. `npm run test:app` green · `topup-sources` 2/2 · `typecheck` 4/4 · **`lint:rn` 27/27**.
+
+**After-scan.** Two filed to the backlog: the private-`seedOnce` trap, and — surfaced only by building the
+fix — that an `affordability` cover made in a **previous session** has no undo control anywhere, the
+Guardian's being wired to its own source alone. Neither is version-blocking.
+
+---
+
 ## 📕 SESSION CLOSE 2026-08-26 (third) — S1's app majors fixed, the test tree surfaced, pass 2 run
 
 ### ▶ WHERE THE NEXT SESSION STARTS: **S1.9 — fix pass 2**
