@@ -68,6 +68,34 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
     return fundsAsSinkingFund(self, primaryEmergencyGoal(after));
   })();
 
+  /**
+   * ⛔ **WOULD PICKING "EMERGENCY FUND" ACTUALLY MAKE THIS ONE?** [P6.8.9.7.11.18 · S1.1 · M9 / D66 / D71]
+   *
+   * The app models **exactly one** emergency fund and the type permits many, so for a goal that is not
+   * first in store order the answer is no: it funds through the sinking-fund rungs whatever this control
+   * says, and Money labels it **Savings** (`money.tsx:1022`). Offering the choice produced three answers
+   * to *"what kind of goal is this?"* for one goal — the sheet said Emergency fund, Money said Savings,
+   * and the Guardian offered to move money *"from your emergency fund"*.
+   *
+   * ⚠️ **Read-only, not disabled** — the same rule `paceGoverns` states six lines below, and the same
+   * reason. ⛔ **And the stored `type` is NOT rewritten** [D71]: normalising a second EF to `savings` on
+   * save would leave a store with **no** emergency fund the moment the primary is deleted, where today
+   * goal #2 inherits the role and the starter-EF rung keeps funding it.
+   *
+   * ⚠️ Asked of the OWNER with the type pinned to `emergency` — the hypothetical, not the current state.
+   * Testing `live.some(g => g.type === 'emergency')` would be re-deriving `primaryEmergencyGoal`'s rule
+   * beside it, which is the divergence `.11.12.3` closed.
+   */
+  const canBeTheEmergencyFund = (() => {
+    const live = store_.getState().store.goals;
+    const draft = { id: '', type: 'emergency' as const };
+    const after = editing
+      ? live.map((g) => ({ id: g.id, type: g.id === editing.id ? ('emergency' as const) : g.type }))
+      : [...live.map((g) => ({ id: g.id, type: g.type })), draft];
+    const self = (editing ? after.find((g) => g.id === editing.id) : after[after.length - 1]) ?? draft;
+    return !fundsAsSinkingFund(self, primaryEmergencyGoal(after));
+  })();
+
   function submit() {
     if (!name.trim()) return setError(FORM_ERRORS.nameRequired);
     const targetN = parseAmountField(target);
@@ -133,12 +161,23 @@ export function GoalSheet({ editing, onClose }: { editing: Goal | null; onClose:
       <TextField label="Name" value={name} onChangeText={(t) => { setName(t); setError(''); }} placeholder="Emergency Fund, Vacation" />
       <TextField label="Target amount" value={target} onChangeText={(t) => { setTarget(t); setError(''); }} placeholder="e.g. 1000" keyboardType="decimal-pad" />
       <TextField label="Current amount saved" value={current} onChangeText={setCurrent} placeholder="e.g. 250" keyboardType="decimal-pad" />
-      <Select
-        label="Type"
-        value={type}
-        options={[{ value: 'emergency', label: 'Emergency fund' }, { value: 'savings', label: 'Savings' }]}
-        onChange={setType}
-      />
+      {canBeTheEmergencyFund ? (
+        <Select
+          label="Type"
+          value={type}
+          options={[{ value: 'emergency', label: 'Emergency fund' }, { value: 'savings', label: 'Savings' }]}
+          onChange={setType}
+        />
+      ) : (
+        <Select
+          label="Type"
+          value="savings"
+          options={[{ value: 'savings', label: 'Savings' }]}
+          onChange={() => {}}
+          readOnly
+          note="You already have an emergency fund. This one saves alongside it."
+        />
+      )}
       {/* ⚠️ Hidden entirely for THE emergency fund rather than disabled — see `paceGoverns`. A disabled
           control still says "this is a thing you could set", and for that goal it is not. */}
       {paceGoverns ? (

@@ -52,23 +52,69 @@ import { CURRENT_STORE_VERSION, type DataRepair, type DebtStore } from './models
  * ⚠️ **A recovered value is exactly right, not approximately right** — the string parses or it does not,
  * and a string that does not parse falls to the loss branch. So `recovered` means the number is correct
  * and only its FORMAT was wrong; nothing downstream should treat it as suspect data.
+ *
+ * ⛔ **AND THAT SENTENCE WAS FALSE FOR AN EMPTY STRING UNTIL [P6.8.9.7.11.18 · S1.1].** `Number('')` is
+ * `0`, not `NaN` — so `''`, `'   '` and `','` all "parsed", were stamped `recovered`, and carried a `0`
+ * that nothing downstream would question. `.11.12.1` had meanwhile narrowed Money's celebration guard to
+ * `r.kind !== 'recovered'` **on the strength of this docblock**, so a restore of a backup whose balances
+ * were blank rendered *"Every balance cleared"* over debts still owed, for the life of the install.
+ * ⚡ **The premise and the code failed together because the code was read from the comment.**
+ *
+ * ⚠️ **The direction this runs in:** a string holding no digits is not a number whose FORMAT was wrong —
+ * nothing was read, so `lost` is the truthful class, and it is also the conservative one *(it keeps the
+ * celebration suppressed and puts the field in front of the user)*. The opposite reading — *"blank means
+ * zero"* — cannot be had, because the app cannot tell *"I owe nothing"* from *"this field was empty"*.
+ * The costs are not symmetric: `lost` costs a user with a genuinely-zero balance one tap on the repairs
+ * card; `recovered` tells them their debts are gone and never asks again.
  */
 function readMoney(value: unknown): { value: number; repair: 'none' | 'recovered' | 'lost' } {
   if (typeof value === 'number' && Number.isFinite(value)) return { value, repair: 'none' };
   // Commas are stripped for the same reason v1.6's `parseDebtFormValues` tolerates them: "12,000" is a
   // real thing users type, and the JSON restore door hands this an arbitrary user-supplied file.
   if (typeof value === 'string') {
-    const parsed = Number(value.replace(/,/g, '').trim());
-    if (Number.isFinite(parsed)) return { value: parsed, repair: 'recovered' };
+    // ⚠️ Emptiness is tested AFTER the strip, not before: `','` and `', ,'` strip to nothing and would
+    // otherwise reach `Number()` as `''`. The condition is "no characters left to read", never a list of
+    // blank spellings. `parseDebtFormValues.ts:19-22` reached the same guard from the form side and
+    // wrote the same reason down; this path is the one that never got it.
+    const cleaned = value.replace(/,/g, '').trim();
+    if (cleaned !== '') {
+      const parsed = Number(cleaned);
+      if (Number.isFinite(parsed)) return { value: parsed, repair: 'recovered' };
+    }
   }
   return { value: 0, repair: 'lost' };
 }
 
 
+/**
+ * ⛔ **AN ABSENT REQUIRED MONEY FIELD IS A LOSS, NOT A SKIP.** [P6.8.9.7.11.18 · S1.1]
+ *
+ * This function used to `continue` past **any** `undefined` field, which is right for `originalBalance`,
+ * `scheduledPaymentAmount` and `priorityPerPaycheck` — all three are optional in the schema and their
+ * absence *means* something (`priorityPerPaycheck`'s own type doc: *"Absent → funds as fast as spare
+ * allows"*, so repairing it to `0` would invent a cap the user never set).
+ *
+ * ⚡ **It is wrong for the six fields the schema declares non-optional.** Measured on the fix for
+ * blocker #1: a debt row with no `balance` key survives migration as `balance: undefined`, **with no
+ * repair recorded** — so `debts.filter(d => d.balance <= 0)` puts it in neither the active list nor the
+ * paid-off list, and any total over the portfolio is **`NaN`**. A `$NaN` on the money screen is the
+ * loudest possible version of the quiet defect blocker #1 was.
+ *
+ * ⚠️ **The direction this runs in:** the schema says these fields are always present, so an absent one is
+ * a file that lost something — recording the loss repairs to `0` *and* puts the field in front of the
+ * user. The opposite reading, *"absent means the user hasn't set it yet"*, is available only for the
+ * three fields marked optional, and those keep the skip. ⛔ **The split is by SCHEMA optionality, not by
+ * a judgement per field**, so a new money field cannot land in the ambiguous middle.
+ *
+ * ⚠️ Both lists are passed explicitly rather than one list plus an exception set: a field omitted from
+ * both stops being repaired **silently**, and `migrations.test.ts` carries a per-field absent-case
+ * fixture for exactly that reason.
+ */
 function repairMoneyFields<T extends Record<string, unknown>>(
   rows: unknown,
   fallback: T[],
-  fields: readonly string[],
+  required: readonly string[],
+  optional: readonly string[],
   entity: DataRepair['entity'],
   repairs: DataRepair[],
 ): T[] {
@@ -110,8 +156,10 @@ function repairMoneyFields<T extends Record<string, unknown>>(
       return [];
     }
     const next = { ...(row as Record<string, unknown>) };
-    for (const field of fields) {
-      if (next[field] === undefined) continue;
+    for (const field of [...required, ...optional]) {
+      // An absent OPTIONAL field stays absent — see the docblock. An absent REQUIRED one falls through to
+      // `readMoney`, which classifies `undefined` as `lost` and repairs it to `0`.
+      if (next[field] === undefined && optional.includes(field)) continue;
       const { value, repair } = readMoney(next[field]);
       next[field] = value;
       if (repair !== 'none') {
@@ -177,7 +225,8 @@ export function runMigrations(raw: unknown): DebtStore {
   const debts = repairMoneyFields(
     r.debts,
     base.debts,
-    ['balance', 'minimumPayment', 'apr', 'originalBalance', 'scheduledPaymentAmount'],
+    ['balance', 'minimumPayment', 'apr'],
+    ['originalBalance', 'scheduledPaymentAmount'],
     'debt',
     repairs,
   ).map((debt) => {
@@ -196,8 +245,8 @@ export function runMigrations(raw: unknown): DebtStore {
     // the wrong question.
     return raiseOriginalBalance(normalizeBnplInstallment({ ...debt, lastVerifiedDate, balanceAsOfDate }));
   });
-  const requiredExpenses = repairMoneyFields(r.requiredExpenses, base.requiredExpenses, ['amount'], 'requiredExpense', repairs);
-  const livingExpenses = repairMoneyFields(r.livingExpenses, base.livingExpenses, ['amount'], 'livingExpense', repairs);
+  const requiredExpenses = repairMoneyFields(r.requiredExpenses, base.requiredExpenses, ['amount'], [], 'requiredExpense', repairs);
+  const livingExpenses = repairMoneyFields(r.livingExpenses, base.livingExpenses, ['amount'], [], 'livingExpense', repairs);
   /**
    * ⛔ **GOALS WERE NEVER REPAIRED — B1's other half, found by the P6.8.9.2 verification.** Debts, required
    * expenses and living expenses all ran through `repairMoneyFields`; goals fell through `...r` untouched,
@@ -214,7 +263,8 @@ export function runMigrations(raw: unknown): DebtStore {
   const goals = repairMoneyFields(
     r.goals,
     base.goals,
-    ['targetAmount', 'currentAmount', 'priorityPerPaycheck'],
+    ['targetAmount', 'currentAmount'],
+    ['priorityPerPaycheck'],
     'goal',
     repairs,
   );

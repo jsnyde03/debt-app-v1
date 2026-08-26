@@ -129,3 +129,44 @@ test('the controls are absent on THE emergency fund, and present on a second one
   await expect(page.getByText('Edit goal')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByLabel('Fund this ahead of my debt')).toBeVisible();
 });
+
+/**
+ * ⛔ **THE SHEET CALLS A SECOND EMERGENCY FUND WHAT EVERY OTHER SCREEN CALLS IT.**
+ * [P6.8.9.7.11.18 · S1.1 · M9 / D66 / D71]
+ *
+ * The fixture above is the **only** two-emergency-goal fixture in the repo, and it asserts the *controls*
+ * rather than the labels — so for a release the sheet said **Emergency fund** while Money's row said
+ * **Savings** and the Guardian offered to move money *"from your emergency fund"*: three answers to
+ * *"what kind of goal is this?"* for one goal, with nothing anywhere explaining the difference.
+ *
+ * ⚠️ **Asserts the NOTE, not the absence of a chevron.** A `toHaveCount(0)` on the old option would pass
+ * on a sheet that failed to render; the note is a positive string that only the read-only branch emits.
+ */
+test('a second emergency fund is called Savings in the sheet too, and says why', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      genuineCycleCount: 6,
+      prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
+      goals: [
+        { id: 'g0', name: 'Emergency fund', targetAmount: 2000, currentAmount: 500, type: 'emergency' },
+        { id: 'g1', name: 'Second cushion', targetAmount: 1000, currentAmount: 0, type: 'emergency' },
+      ],
+    }),
+  );
+  await page.goto('/money');
+  await page.getByText('Goals', { exact: true }).click({ timeout: 15_000 });
+
+  // THE emergency fund still gets the real choice — the control is not removed for everyone.
+  await page.getByText('Emergency fund', { exact: true }).first().click({ timeout: 15_000 });
+  await expect(page.getByText('Edit goal')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('You already have an emergency fund.', { exact: false })).toHaveCount(0);
+  await page.getByTestId('sheet-close').click();
+
+  await page.getByText('Second cushion', { exact: true }).first().click({ timeout: 15_000 });
+  await expect(page.getByText('Edit goal')).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByText('You already have an emergency fund. This one saves alongside it.'),
+    'the second pot is stated as Savings, with the reason',
+  ).toBeVisible();
+});

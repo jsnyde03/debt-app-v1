@@ -298,7 +298,20 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
   if (topUp <= 0) return null;
   return {
     gap, available: goal.currentAmount, topUp, goalId: goal.id, goalName: goal.name,
-    isEmergencyFund: goal.type === 'emergency',
+    /**
+     * ⛔ **THE one OWNER, NOT THE TYPE.** [P6.8.9.7.11.18 · S1.1 · M9 / D66] `type === 'emergency'` is true
+     * of a SECOND emergency-typed goal, and the app models exactly one emergency fund
+     * (`@core/engine/emergencyFund`). So the Guardian offered to *"Move $70 from your emergency fund"*
+     * over a pot that Money labels **Savings** one tab away and that the engine funds as a sinking fund —
+     * three answers to *"what kind of goal is this?"* for one goal.
+     *
+     * ⚠️ **Copy only.** The sole consumer is `PaydayGuardianCard.tsx:365`'s button label; the SELECTION is
+     * `pickTopUpGoal` above and is untouched by this, so no money moves anywhere it did not before.
+     * ⚠️ Compared by reference, which is what `primaryEmergencyGoal` documents — `goal` came out of
+     * `store.goals` and `primaryEmergencyGoal` is handed the same array, so identity holds and a hostile
+     * store carrying two rows with one `id` cannot spoof it.
+     */
+    isEmergencyFund: goal === primaryEmergencyGoal(store.goals),
     holdsLine: topUp >= gap,
     floor,
     cushionAfter: Math.round((cushion + topUp) * 100) / 100,

@@ -1,4 +1,34 @@
 {
+  "S1-BLOCKER-1": {
+    "what": "Number('') is 0, so a blank balance was stamped `recovered`; Money's narrowed guard then rendered \"Every balance cleared\" over debts still owed, permanently",
+    "file": "apps/rn/src/data/migrations.test.ts",
+    "token": "blocker #1 — Number(\"\") is 0, so this used to read as recovered"
+  },
+  "S1-BLOCKER-1-E2E": {
+    "what": "the user-facing half — every prior fixture seeded `balance: null`, the one member of the class that worked; measured: all 10 existing data-recovery tests stay GREEN with the blocker planted back",
+    "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
+    "token": "a BLANK balance is unread money too"
+  },
+  "S1-ABSENT-REQUIRED": {
+    "what": "repairMoneyFields skipped every undefined, so a row missing a REQUIRED money field reached the store as `undefined` with no repair recorded — in neither the active nor the paid-off list, and every total NaN",
+    "file": "apps/rn/src/data/migrations.test.ts",
+    "token": "REQUIRED_FLOOR"
+  },
+  "S1-M9-GUARDIAN": {
+    "what": "isEmergencyFund was `goal.type === 'emergency'`, so the Guardian called a SECOND emergency-typed pot \"your emergency fund\" while Money labelled the same goal Savings; no fixture in the repo carried two emergency goals on this path",
+    "file": "apps/rn/src/store/guardianSelectors.test.ts",
+    "token": "the larger of two emergency pots is the source"
+  },
+  "S1-M9-SHEET": {
+    "what": "GoalSheet's Type selector offered 'Emergency fund' for a goal that cannot be one, so the sheet, Money and the Guardian gave three answers for one goal; the repo's only two-EF fixture asserted the CONTROLS, not the labels",
+    "file": "apps/rn/tests/e2e/goal-pace-edit.spec.ts",
+    "token": "a second emergency fund is called Savings in the sheet too"
+  },
+  "S1-SECRETS-EXEMPT": {
+    "what": "[D72] lint:secrets fired 4 times on the audit report that documents its own plant, so lint:rn was red on every committed tree since the fix; exemptions are now keyed on a SHA-256 of the matched value, with a self-ratcheting cap and stale entries red",
+    "file": "scripts/check-committed-secrets.ts",
+    "token": "MAX_EXEMPT"
+  },
   "REVERIFY4-1": {
     "what": "the freshness record was fingerprinted at the END of validate:release:rn, so a mid-run edit was recorded as tested",
     "file": "scripts/write-gate-status.ts",

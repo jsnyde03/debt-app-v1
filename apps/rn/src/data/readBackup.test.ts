@@ -59,7 +59,13 @@ function realV16Backup(): Record<string, unknown> {
         recurrence: 'monthly',
       },
     ],
-    goals: [{ id: 'g1', name: 'Emergency fund', target: 1000 }],
+    // ⛔ `targetAmount` / `currentAmount`, NOT `target`. [P6.8.9.7.11.18 · S1.1] This fixture said `target`
+    // while its own docstring claimed it was field-for-field from v1.6 — measured against
+    // `origin/v1.6-dev`: `buildBackupData()` emits `goals` verbatim and v1.6's `Goal` is
+    // `targetAmount`/`currentAmount` (`components/GoalsSection.tsx:57`). So this door was being proved
+    // with a shape v1.6 never wrote, and the only goal assertion was `goals.length === 1`, which holds
+    // for either. Found when an absent required money field started being REPORTED.
+    goals: [{ id: 'g1', name: 'Emergency fund', targetAmount: 1000, currentAmount: 250, type: 'emergency' }],
     completedRecommendedActions: [],
     payoffStrategy: 'avalanche',
     lastSavedAt: '2026-05-23T14:00:00.000Z',
@@ -81,6 +87,13 @@ function realV16Backup(): Record<string, unknown> {
     eq(result.store.requiredExpenses?.length, 1, '  requiredExpenses land');
     eq(result.store.livingExpenses?.length, 1, '  ⭐ livingExpenses land — the field the e2e fixture omits');
     eq(result.store.goals?.length, 1, '  goals land');
+    // ⛔ **The MONEY, not just the row.** [S1.1] `length === 1` is the assertion that let this fixture
+    // carry a `target` key for months: a goal whose `targetAmount` is absent still counts as one goal,
+    // and still sums to `NaN` on Money. The file's own docstring warns against exactly this shape of
+    // assertion for `payCycle`; goals never got it.
+    eq(result.store.goals?.[0]?.targetAmount, 1000, '  ⭐ …carrying the target the file actually held');
+    eq(result.store.goals?.[0]?.currentAmount, 250, '  …and what was saved toward it');
+    eq(result.store.pendingDataRepairs.length, 0, '  ⛔ …and a healthy v1.6 file reports NO repairs');
     eq(result.store.storeVersion, CURRENT_STORE_VERSION, '  and the result is migrated to current');
   }
 }

@@ -145,6 +145,32 @@ test('Money does not celebrate a portfolio it failed to read', async ({ page }) 
   await expect(page.getByText('Every balance cleared')).toHaveCount(0);
 });
 
+test('…and a BLANK balance is unread money too, not a cleared debt', async ({ page }) => {
+  /**
+   * ⛔ **THE TEST ABOVE PICKED THE ONE MEMBER OF THE CLASS THAT WORKED.** [P6.8.9.7.11.18 · S1.1 —
+   * round-4 blocker #1] The class is *money the app could not read*; every fixture in the tree seeded
+   * `balance: null`, which is `lost` under the defect and under the fix. `''` was not — `Number('')` is
+   * `0`, not `NaN`, so `readMoney` stamped it **`recovered`**, `.11.12.1`'s narrowed guard
+   * (`r.kind !== 'recovered'`) read the repair as trustworthy, and Money congratulated the user over a
+   * debt they still owe. **For the life of the install: the repaired `0` is permanent.**
+   *
+   * ⚠️ A blank field is what a hand-edited or third-party export produces, and `readBackup.ts` hands an
+   * arbitrary user file straight to `runMigrations`. The unit half is `src/data/migrations.test.ts`; this
+   * is the half that says a human sees the right screen.
+   */
+  await seedStore(
+    page,
+    scenario({ debts: [{ id: 'd1', name: 'Chase card', balance: '', minimumPayment: 50, apr: 20, dueDate: '2026-07-01', type: 'debt', recurrence: 'monthly' }] }),
+  );
+  await page.goto('/money');
+  // ⛔ The positive assertion first — `toHaveCount(0)` is satisfied by a page that never rendered.
+  await expect(page.getByText('Chase card')).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByText('Every balance cleared'),
+    'a blank balance is money the app could not read, so the celebration stays suppressed',
+  ).toHaveCount(0);
+});
+
 test('the celebration guard SURVIVES the acknowledgement', async ({ page }) => {
   /**
    * ⛔ **THE ACK HID THE CARD AND DISARMED THE GUARD, AND THE REPAIRED ZEROS ARE PERMANENT.**

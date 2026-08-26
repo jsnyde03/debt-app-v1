@@ -172,6 +172,28 @@ function run() {
   // copy can name it instead of calling it "savings".
   eq(tu?.isEmergencyFund, true, 'A3.3 — EF-only → still offered, and flagged as the emergency fund');
 
+  /**
+   * ⛔ **A SECOND EMERGENCY-TYPED GOAL IS NOT *THE* EMERGENCY FUND.** [P6.8.9.7.11.18 · S1.1 · M9 / D66]
+   *
+   * `isEmergencyFund` was `goal.type === 'emergency'`, which is true of every emergency-typed pot — so the
+   * button read *"Move $50 from your emergency fund"* over a goal Money labels **Savings** and the engine
+   * funds as a sinking fund. ⚡ **No fixture anywhere in the repo carried two emergency goals on this
+   * path**, which is why three surfaces disagreed for a release: every assertion above pins a *lone* EF or
+   * an EF-vs-savings preference, and both are true under the defect and under the fix.
+   *
+   * ⚠️ The second pot is the LARGER one so `pickTopUpGoal`'s within-type rule selects it — otherwise this
+   * asserts the flag on the primary and reports nothing about the class.
+   */
+  const twoEfs = selectTightTopUp({
+    ...tuStore,
+    goals: [
+      { id: 'g0', name: 'Emergency Fund', type: 'emergency', currentAmount: 300, targetAmount: 5000 },
+      { id: 'g1', name: 'Car repair fund', type: 'emergency', currentAmount: 4000, targetAmount: 5000 },
+    ],
+  });
+  eq(twoEfs?.goalName, 'Car repair fund', 'the larger of two emergency pots is the source');
+  eq(twoEfs?.isEmergencyFund, false, '⛔ …and it is NOT called the emergency fund — Money calls it Savings');
+
   // ── selectRiskNotification (2.4.10) — premium, risk-only, off the band ──
   const now = createDefaultStore().paycheck.currentDate;
   const riskStore = store({ premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1870], floor: 200 }); // at-risk (discretionary ~30)

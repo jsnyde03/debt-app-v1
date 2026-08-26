@@ -178,7 +178,10 @@ async function run() {
       storeVersion: CURRENT_STORE_VERSION,
       debts: 'nope',
       paycheck: { amount: '2100' },
-      goals: [{ id: 'g1', name: 'Kept', target: 500 }],
+      // ⛔ A NATIVE store blob, so the goal carries the native shape. [S1.1] It said `target`, which is a
+      // key neither v1.6 nor v1.7 ever wrote — so `targetAmount` was absent, and the assertion below
+      // (`goals.length === 1`) held over a goal whose target would have summed to `NaN` on Money.
+      goals: [{ id: 'g1', name: 'Kept', targetAmount: 500, currentAmount: 0, type: 'savings' }],
     });
     const s = createDebtStore();
     await s.getState().hydrate(a);
@@ -272,7 +275,10 @@ async function run() {
     const raw = {
       storeVersion: CURRENT_STORE_VERSION,
       paycheck: { amount: '2100' },
-      debts: [{ id: 'd1', name: 'Chase card', balance: null, minimumPayment: 50 }],
+      // ⚠️ `apr` is carried so this block stays about the BALANCE. [S1.1] An absent required money field
+      // is now itself a reported loss, so a fixture that omits one raises a second repair and the
+      // assertions below stop being about their subject.
+      debts: [{ id: 'd1', name: 'Chase card', balance: null, minimumPayment: 50, apr: 20 }],
     };
     const a = new MockAdapter(raw);
     const s = createDebtStore();

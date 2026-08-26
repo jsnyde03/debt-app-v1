@@ -16,6 +16,7 @@
   "scripts/check-committed-secrets.ts": ["p4"],
   "scripts/check-finding-guards.ts": ["never"],
   "scripts/finding-guards.json": ["never"],
+  "scripts/secrets-exemptions.json": ["never"],
   "scripts/test-gate-plants.ts": ["never"],
   "scripts/check-contrast.ts": ["p4"],
   "scripts/check-copy-owners.ts": ["p3"],

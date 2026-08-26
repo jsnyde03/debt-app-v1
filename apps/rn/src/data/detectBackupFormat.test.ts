@@ -44,7 +44,8 @@ function realV16Backup(): Record<string, unknown> {
     requiredExpenses: [{ id: 'e1', name: 'Rent', amount: 1200 }],
     livingExpenses: [{ id: 'l1', name: 'Groceries', amount: 400 }],
     debts: [{ id: 'd1', name: 'Visa', balance: 1200, minimumPayment: 35 }],
-    goals: [{ id: 'g1', name: 'Emergency fund', target: 1000 }],
+    // ⛔ v1.6's real goal shape is `targetAmount`/`currentAmount` — see `readBackup.test.ts`. [S1.1]
+    goals: [{ id: 'g1', name: 'Emergency fund', targetAmount: 1000, currentAmount: 250, type: 'emergency' }],
     completedRecommendedActions: [],
     payoffStrategy: 'snowball',
     lastSavedAt: '2026-05-23T14:00:00.000Z',

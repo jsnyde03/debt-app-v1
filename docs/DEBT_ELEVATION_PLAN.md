@@ -56,23 +56,41 @@ will. ⛔ **Fresh agents** ([D68]): the brief is written here, the pass is never
 ⚠️ **The S0 close-out grew the instrument surface and left the new instruments UNSWEPT — 57 files, 19
 unswept.** `check-finding-guards.ts` · `test-gate-plants.ts` · `s0-surface-coverage.ts` · `begin-gate-run.ts`
 are the guards S0's convergence now rests on, **and nobody has audited them.** ⚡ **One already failed open
-on its own core case during construction.** S1.1 carries them.
+on its own core case during construction.** S1.2 carries them.
+
+⛔ **S1.1 IS NEW — the decomposition opened with *write the brief* and S1 has THREE FINDINGS ALREADY
+OPEN AGAINST IT.** The loop is **fix a surface → re-verify it pinned**, which is how S0 ran *(S0.1–S0.6
+fixed the six, then the passes)*. Auditing first would spend a fresh-agent pass re-finding known work and
+leave job ① with nothing to verify. **Measured at switch-in, 2026-08-26, against `74f2064`** — all three
+are live: `runMigrations` on two `""` balances returns two `kind: 'recovered'` repairs and `allCleared`
+computes **`true`**.
 
 | # | sub-step | exit line |
 |---|---|---|
-| **S1.1** | **Write the S1 brief.** Surface: money · goals · plan cards. **Three standing jobs beyond the sweep:** ① confirm S0's 5 fixes still hold · ② confirm every guard in `finding-guards.json` exists **and still fails** · ③ **sweep the 4 new S0 instruments**, which are unswept and load-bearing | a brief carrying no verdict, every path verified, the ratchet handed over |
-| **S1.2** | **Dispatch fresh auditors** ([D68]), pinned to the S1 SHA | reports on disk, written incrementally |
-| **S1.3** | **Record findings + severities**; apply [D69] via `lint:s0-coverage` — first-look is a **lookup** | every finding rated; exemptions justified mechanically |
-| **S1.4** | **Fix**, each plant-verified with the plant confirmed **landed** and a control | no fix accepted on a green alone |
-| **S1.5** | **Gate + record**, then register each fix's guard in `finding-guards.json` | `validate:release:rn` green **and recorded**; `MAX_UNGUARDED` unchanged or lower |
+| ✅ | **S1.1 — the three findings S1 already carried.** CLOSED 2026-08-26: blocker #1 + M17a · **M9 on all three screens** ([D66]/[D71]) · and **two blocker-class findings folded in** — an absent REQUIRED money field reaching the store `undefined` with totals `NaN`, and `lint:secrets` red on `HEAD` ([D72]). **6 guards registered · every fix plant-verified with a control · `lint:rn` 25/25.** Detail → log |
+| **S1.2** | **Write the S1 brief.** Surface: money · goals · plan cards. **Four standing jobs beyond the sweep:** ⓪ re-verify S1.1's three · ① confirm S0's 5 fixes still hold · ② confirm every guard in `finding-guards.json` exists **and still fails** · ③ **sweep the 4 new S0 instruments**, which are unswept and load-bearing | a brief carrying no verdict, every path verified, the ratchet handed over |
+| **S1.3** | **Dispatch fresh auditors** ([D68]), pinned to the S1 SHA | reports on disk, written incrementally |
+| **S1.4** | **Record findings + severities**; apply [D69] via `lint:s0-coverage` — first-look is a **lookup** | every finding rated; exemptions justified mechanically |
+| **S1.5** | **Fix**, each plant-verified with the plant confirmed **landed** and a control | no fix accepted on a green alone |
+| **S1.6** | **Gate + record**, then register each fix's guard in `finding-guards.json` | `validate:release:rn` green **and recorded**; `MAX_UNGUARDED` unchanged or lower |
+
+⚠️ **M9's site count is a floor.** A named three surfaces; `EMERGENCY_FUND_NOUN` has **four more**
+consumers — `WindfallSheet.tsx:25` · `planSelectors.ts:341` · `buildGuardianBrief.ts:378` ·
+`guardianSelectors.ts:605`. Each is about **the** rung, not a second pot; verify that, do not assume it.
+
+⚠️ **S1.2's brief must carry this: `lint:rn` was RED on every committed tree from `74f2064` until S1.1.**
+`lint:secrets` fired on the audit report describing its own plant — **third gate to fire on its own
+write-up** — so S0's `dirty: true` green never transferred to a commit. Closed by [D72]. **A recorded green
+on a dirty tree is a green for bytes no commit ever held.**
 
 **Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
 new instruments swept.
 
 | | the S0 residue, mechanically tracked — not a queue item |
 |---|---|
-| **16 unguarded findings** | `scripts/finding-guards.json`, capped by `MAX_UNGUARDED = 16`, **downward-only**. Drains as S1–S4 build guards; the gate reds if it rises |
-| **19 unswept surface files** | `lint:s0-coverage`, printed green every run. [D69] reads it |
+| **16 unguarded findings** | `scripts/finding-guards.json`, capped by `MAX_UNGUARDED = 16`, **downward-only**. Drains as S1–S4 build guards; the gate reds if it rises. **34 findings · 18 guarded** after S1.1's six |
+| **20 unswept surface files** | `lint:s0-coverage` — **58 files** after S1.1 added `secrets-exemptions.json`. Printed green every run; [D69] reads it |
+| **2 secrets exemptions** | `scripts/secrets-exemptions.json`, `MAX_EXEMPT = 2`, **self-ratcheting** — reds above *and* below. A stale entry reds |
 
 ⛔ **Every fix plant-verified, the plant confirmed to have LANDED, and re-run with the earlier assertion
 relaxed** — a plant that reds early never exercises the later ones. ⛔ **State the direction each fix's
@@ -509,6 +527,22 @@ hotspot)* and Dynamic-Type device QA.
 
 ⛔ **Grouped by WHERE IT LANDS, because that is how it gets read.** The `(x.y)` tag is the item whose scan
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
+
+### → S1.2's brief — attack points found at the S1 switch-in *(2026-08-26)*
+
+- **`pickTopUpGoal` ranks a SECOND emergency-typed goal as the safety net.** `guardianSelectors.ts:295`
+  passes `['savings','emergency']` and [D24] prefers savings so the EF is not raided — but the type test
+  is `goal.type`, not the one owner, so a second pot is protected as if it *were* the emergency fund.
+  ⚠️ **Behaviour, not naming — outside M9.** Hand it to the auditors as an attack point, not as a verdict.
+  *(S1.1 before-scan)*
+- **Which fixtures pick the EASY member of their class?** Blocker #1 measured it: **10 of 11
+  `data-recovery` tests stayed green with the blocker planted back**, because every fixture in the tree
+  seeded `balance: null`. ⚠️ **Not a list of files — a question to aim an auditor at**, and the answer for
+  the money surface is S1's. *(S1.1 after-scan)*
+- **Two independent empty-string money guards, no shared helper.** `parseDebtFormValues.ts:19-22` and
+  `migrations.ts:78-84` now hold the same rule, written twice, in two packages. The second was written
+  *because* the first was not reused. ⚠️ **Not urgent and not free** — a shared parser crosses the
+  `@core` / `apps/rn` seam. *(S1.1 after-scan)*
 
 ### → surfaced by the `.11.17` audit round *(2026-08-25)* — filed, NOT in the fix cluster
 
@@ -1035,6 +1069,19 @@ cleanup)*. [D61] and [D62] lived only under *"⏸ Waiting on Jason → Open deci
 answer was filed in the list of things still owed. **Answering a decision updates one place and leaves the
 other**, in both directions. Reasoning for each → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
+- **[D72]** ✅ 2026-08-26 — **`lint:secrets` GETS A CONTENT-HASHED EXEMPTION LEDGER**, not a redacted
+  report and not a `docs/` carve-out. An exemption is keyed on a **hash of the flagged value**, so editing
+  or rotating the credential invalidates it; the count is downward-only and stale entries are reported.
+  ⛔ **Why not redact the report:** the gate's claim — *"4 credentials are in a PUBLIC repository"* — is
+  **false**, so editing the evidence to make it green is GAP-17's anti-pattern. ⛔ **Why not exempt
+  `docs/`:** that is where pasted terminal output actually lives, i.e. the gate's most likely real hit.
+  → **S1.1**.
+- **[D71]** ✅ 2026-08-26 — **`GoalSheet` DOES NOT OFFER A SECOND EMERGENCY FUND.** When a primary EF
+  exists and is not this goal, the Type control renders read-only as *"Savings"* with a one-line why;
+  ⛔ **stored `type` is never rewritten** *(normalising it would leave a store with NO emergency fund the
+  moment the primary is deleted, where today goal #2 inherits the role)*. Completes [D66] — the third of
+  the three screens. Reuses `paceGoverns`'s rule six lines above: **hidden entirely rather than disabled,
+  because a disabled control still says "this is a thing you could set."** → **S1.1**.
 - **[D67]** ✅ 2026-08-26 — **A CLOSED FINDING NEEDS A STANDING GUARD, OR IT IS NOT CLOSED** (🎯: *"I
   agree"*). ⛔ **The gap it fixes:** each convergence pass verified only the **immediately prior** pass's
   findings, so pass 3 never re-checked pass 1's seven — while S0.10 edited **nine gates**, exactly the

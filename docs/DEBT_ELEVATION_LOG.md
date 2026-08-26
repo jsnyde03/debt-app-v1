@@ -4,6 +4,128 @@
 
 ---
 
+## 📕 P6.8.9.7.11.18 · S1.1 — the three findings S1 already carried *(2026-08-26)*
+
+**Pin at switch-in: `74f2064`.** ⛔ **The decomposition opened at *"write the brief"* while three findings
+stood open against the surface.** The loop is *fix → re-verify pinned*, which is how S0 ran; auditing first
+spends a fresh-agent pass re-finding known work and leaves job ① with nothing to verify. **S1.1 inserted,
+S1.2–S1.6 renumbered.**
+
+### The switch-in measurement — all three live at `74f2064`
+
+| premise | measured |
+|---|---|
+| the 4 new S0 instruments exist | ✅ all present; `lint:s0-coverage` **57 files · 19 unswept**, `lint:finding-guards` **28 · 12 · 16** — the plan's numbers exactly |
+| round-4 blocker #1 is open | ✅ `runMigrations` on two `""` balances → two `kind: 'recovered'`, `allCleared` computes **`true`** |
+| M17a is open | ✅ `migrations.ts:52-54`'s docblock still asserted *"the string parses or it does not"* |
+| M9 is open | ✅ all three sites unchanged — `money.tsx:1022` · `GoalSheet.tsx:139` · `guardianSelectors.ts:301` |
+
+### ⭐ What the fixes were, and what each plant proved
+
+**1 · Blocker #1 + M17a — `readMoney` classified an empty string as a RECOVERY.**
+`Number('')` is `0`, not `NaN`, so `''`, `'   '`, `','` and `', ,'` all "parsed". Emptiness is now tested
+**after** the comma strip. ⚡ **The repo had already written this exact guard once**:
+`parseDebtFormValues.ts:19-22` rejects empty/whitespace *"so an accidentally-cleared field is not silently
+saved as 0"* — the form side had it, the restore door never did. *(Second instance of the shape that
+produced blocker 2's `setMonth` clamp.)* M17a closes with it: the docblock was the **premise** `.11.12.1`
+narrowed Money's guard on, so the comment and the code failed together.
+
+**2 · An absent REQUIRED money field — found by building fix 1, folded in.**
+`repairMoneyFields` `continue`d past every `undefined`. Correct for the three schema-optional fields
+(`priorityPerPaycheck`'s own doc: *"Absent → funds as fast as spare allows"*), **wrong for the six
+non-optional ones**: measured, a debt row with no `balance` key reached the store as `undefined`, **no
+repair recorded**, in neither `active` nor `paidOff`, and the portfolio total **`NaN`**. Split by **schema
+optionality**, never by a per-field judgement.
+
+**3 · M9's Guardian half — [D66].** `isEmergencyFund` asks `primaryEmergencyGoal` instead of `goal.type`.
+⚠️ **Copy only** — `pickTopUpGoal` is untouched, so no money moves anywhere it did not before.
+
+### ⛔ The plants, and three of them measured something the green could not
+
+- **Blocker #1, relaxed run:** all **5** assertions fire *(`''`, `'   '`, `','`, `', ,'`, and the decisive
+  `allCleared`)* — and **no absent-field assertion fired**, so the two fixes are independently falsifiable.
+- ⚡ **THE E2E PLANT IS THE RESULT OF THE ITEM.** With blocker #1 planted back, **exactly one of the 11
+  `data-recovery` tests reds — the new one.** *"Money does not celebrate a portfolio it failed to read"*
+  and *"the celebration guard SURVIVES the acknowledgement"* both stay **green**. ⛔ **Every fixture in the
+  tree seeded `balance: null` — the one member of the class that works under the defect and under the
+  fix.** The corollary is now measured twice.
+- **The absent-field fix, both directions:** treating everything as optional reds all **7** required rows
+  and **0** optional ones; treating everything as required reds all **3** optional rows.
+- ⛔ **AND MY OWN OPTIONAL ROW WAS VACUOUS.** `priorityPerPaycheck` stayed silent under the plant: the
+  fixture's `priority: true` triggers the stand-down, which `delete`s the field before the assertion can
+  see it. Caught only by planting the *opposite* direction — the green, and the first plant, both reported
+  the row sound.
+
+### ⚠️ Four fixtures were feeding a goal shape v1.6 never wrote
+
+`readBackup.test.ts:62` said `target: 1000` under a docstring claiming it was **field-for-field from
+`origin/v1.6-dev`'s `buildBackupData()`**. Measured against the branch: `buildBackupData` emits `goals`
+verbatim and v1.6's `Goal` is `targetAmount`/`currentAmount` (`components/GoalsSection.tsx:57`). Same key in
+`detectBackupFormat.test.ts:47` · `mapLegacyStore.test.ts:60` · `persistenceLifecycle.test.ts:181`.
+⚡ **All four survived because the only goal assertion was `goals.length === 1`**, which holds over a goal
+whose target sums to `NaN`. Corrected, and `readBackup.test.ts` now asserts the **money**, not the row.
+⛔ **A carried premise in a docstring, decaying exactly like a carried number** — and this one was checkable
+against a branch that has been sitting in the repo the whole time.
+
+### The two decisions 🎯 answered mid-item, and what they became
+
+**[D71] — `GoalSheet` does not offer a second emergency fund.** The Type control renders read-only as
+*"Savings"* with *"You already have an emergency fund. This one saves alongside it."* whenever the owner
+says this goal cannot **be** the emergency fund. ⛔ **Stored `type` is never rewritten** — normalising it
+would leave a store with no emergency fund the moment the primary is deleted. `Select` gained a `readOnly`
+mode *(typed so `note` is required with it)* rather than a `disabled` one, on the rule stated six lines
+above `paceGoverns`: **a disabled control still says "this is a thing you could set."**
+⚠️ `canBeTheEmergencyFund` asks `primaryEmergencyGoal` with the type **pinned to `emergency`** — the
+hypothetical, not the current state. Testing `live.some(g => g.type === 'emergency')` would re-derive the
+owner's rule beside it, which is the divergence `.11.12.3` closed.
+
+⚡ **And the plant repeated the item's headline result:** with the read-only branch forced off, **exactly
+one of the 4 `goal-pace-edit` tests reds — the new one.** *"The controls are absent on THE emergency fund,
+and present on a second one"* — the repo's **only** two-EF fixture — stays green, because it asserts the
+**controls** and never the **labels**.
+
+**[D72] — `lint:secrets` gets a content-hashed exemption ledger.** `scripts/secrets-exemptions.json`,
+keyed on `sha256(matched value)` scoped to one file, `MAX_EXEMPT = 2`, **self-ratcheting** *(red above
+AND below, per GAP-6)*, stale entries red. ⛔ **Three plants, each with a control:**
+
+| plant | result |
+|---|---|
+| **one hex digit changed** in the exempted DSN, **staged** | the exemption stops applying → **exit 1 on `[index]`**, while the unchanged `HEAD` copy stays exempt. ⭐ **This is the whole claim of [D72]** |
+| a bogus entry matching nothing | **exit 1** — *"a standing permission that matches nothing is one nobody is checking"* |
+| `MAX_EXEMPT` raised to 3 against 2 entries | **exit 1** — *"the exemption count fell — set MAX_EXEMPT = 2 to lock it in"* |
+
+⛔ **`lint:secrets` is NOT in `test:gate-plants`, and the reason is written into the file.** That harness
+plants by **creating** a file so a crash cannot strand the tree; an untracked file is invisible to this
+gate **by design**, and making the harness `git add` its plants would trade that safety property away.
+
+### ⛔ Two self-inflicted defects while building the ledger, both caught by measuring
+
+1. ⛔ **THE SEPARATOR IN TWO TEMPLATE LITERALS WAS A RAW `NUL`, NOT A SPACE.** The scan key and the stale
+   key were therefore different strings: every exemption matched during the scan **and then read as
+   stale**, so the gate red while reporting the opposite of what happened. ⚡ **The file also became
+   *binary* to git** — `git diff` printed `Bin 8054 -> 13307` and `grep` refused it, which is **GAP-18's
+   exact class** *(a NUL makes the corpus ungreppable)* landing in a source file rather than a ledger.
+   ⭐ **Root cause is not the byte, it is the duplication:** the same `${file}<sep>${sha}` template was
+   written by hand at **three** sites. Collapsed to one `keyOf()`. **A key composed by hand at N sites
+   diverges at N−1 of them.**
+2. ⛔ **`sed -i` reported *"Binary file matches"* and `node -e` returned EMPTY output twice**, on probes
+   that looked like they had run. Both are on the standing list *(`shell-is-a-participant`,
+   `prefer-edit-tool-over-scripts`)* and both cost a diagnosis cycle anyway. The `.bak` was what proved the
+   NULs **pre-dated** `sed` and came from my own edits.
+
+### ⚡ The item's own after-scan
+
+- ⭐ **`lint:rn` is 25/25 for the first time on any committed tree since `74f2064`.** Two of the three
+  things that made it red were found by *building*, not by reading: the coverage gate caught
+  `secrets-exemptions.json` within minutes of its creation, exactly as it caught its own author at S0.13.
+- **Residue moved:** `finding-guards` **28 → 34 findings, 12 → 18 guarded**, `MAX_UNGUARDED` unchanged at
+  16. `s0-coverage` **57 → 58 files, 19 → 20 unswept** *(the new ledger, recorded `never`)*.
+- **Filed to the backlog:** *which fixtures pick the easy member of their class* — now measured twice in
+  one item, on two different suites — and the **two independent empty-string money guards** that now exist
+  with no shared helper.
+
+---
+
 ## 📕 Session close 2026-08-25 — the `setMonth` blocker and 8 of the 14 majors
 
 **Closed:** `.11.11` *(blocker)* · `.11.12.1` – `.11.12.8`. **Open:** `.11.12.9` – `.11.12.14`, then `.15`.

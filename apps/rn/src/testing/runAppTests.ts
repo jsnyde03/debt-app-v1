@@ -224,6 +224,11 @@ async function main() {
   // and dates now LAND; the pre-5.8 path blanked them while looking like it had worked.
   await import('../data/readBackup.test');
 
+  // P6.8.9.7.11.18 · S1.1 — `readMoney`'s classification table, through `runMigrations`. ⛔ Gates round-4
+  // blocker #1: `Number('')` is `0`, so a blank balance was stamped `recovered` and Money congratulated
+  // over debts still owed. Every prior test of this class picked `null`, the member that worked.
+  await (await import('../data/migrations.test')).default();
+
   // 5.10 — the adversarial migration audit. 482 generated cases × 2 real doors × 8 invariants, plus the
   // differential oracle. ⛔ Gates: a regression here is data loss on upgrade.
   await (await import('../data/migrationAudit/audit.test')).default();

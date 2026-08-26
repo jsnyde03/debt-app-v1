@@ -57,7 +57,8 @@ function fullLegacyStore(): Record<string, string> {
     'debtPlanner.debts': j([DEBT]),
     'debtPlanner.requiredExpenses': j([{ id: 'e1', name: 'Rent', amount: 1400 }]),
     'debtPlanner.livingExpenses': j([{ id: 'l1', name: 'Groceries', amount: 400 }]),
-    'debtPlanner.goals': j([{ id: 'g1', name: 'Trip', target: 1000 }]),
+    // ⛔ v1.6's real goal shape is `targetAmount`/`currentAmount` — see `readBackup.test.ts`. [S1.1]
+    'debtPlanner.goals': j([{ id: 'g1', name: 'Trip', targetAmount: 1000, currentAmount: 250, type: 'savings' }]),
     'debtPlanner.cycleHistory': j([]),
     'debtPlanner.completedRecommendedActions': j([]),
     'debtPlanner.payoffStrategy': j('avalanche'),

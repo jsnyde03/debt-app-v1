@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/s0-surface-coverage.ts`.
 
-**57 files on the S0 surface · 38 swept · 19 unswept.**
+**58 files on the S0 surface · 38 swept · 20 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r17` the earlier `.11.17` round · `never` / `unknown` unswept.
 
@@ -63,6 +63,7 @@
 | `scripts/preflight-xcuitest-target.ts` | ⛔ **never** |
 | `scripts/run-gates.ts` | p1 · p3 |
 | `scripts/s0-surface-coverage.ts` | ⛔ **never** |
+| `scripts/secrets-exemptions.json` | ⛔ **never** |
 | `scripts/stamp-coverage.ts` | p2 |
 | `scripts/strings-inventory.ts` | p4 · r17 |
 | `scripts/surface-inventory.ts` | ⛔ **never** |
@@ -89,6 +90,7 @@
 - `scripts/make-cutover-backups.ts`
 - `scripts/preflight-xcuitest-target.ts`
 - `scripts/s0-surface-coverage.ts`
+- `scripts/secrets-exemptions.json`
 - `scripts/surface-inventory.ts`
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-gate-plants.ts`
