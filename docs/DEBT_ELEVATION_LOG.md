@@ -4,6 +4,99 @@
 
 ---
 
+## S1.9.2 — the trust class, one owner: C4 · C2 · C3 · C1 *(2026-08-26)*
+
+⚡ **THE FINDING BEHIND ALL FOUR IS AUDITOR C'S SENTENCE:** B1's rule — *never state a number about money
+the app could not read* — **was wired to a subset of FIELDS and a subset of CLAIM SITES, and there are more
+of both.** Four separate defects, one cause. ⛔ Patching each site rebuilds it a fifth time; that is the
+pattern that produced M9, then B1, then this.
+
+**Measured first, against the current tree, before anything was built** — all four reproduced exactly as
+the auditor reported, including C1's *"WRONG, forever"* row through a reload.
+
+### The owner: a claim TABLE, and a gate that reds when the repair layer grows
+
+`trustSelectors.ts` now answers *"may the app state this class of number?"* per **claim**, not per field:
+`debt-balances` · `goal-amounts` · `required-plan` · `row-figures`, with `mayClaim(store, claim)` for the
+aggregate question and `rowFieldUnread(store, entity, id, …fields)` for the per-row one.
+
+⛔ **The list of fields is the part that decays, so it is gated.** `migrations.ts` now declares
+`REPAIRABLE_MONEY_FIELDS` once and its four `repairMoneyFields` calls read from it;
+`trustSelectors.test.ts` asserts **every repairable field is routed by some claim, and every routed field
+is still repairable** — both directions, because a stale route is a rule nobody has read since a rename.
+⚠️ My own hand count of that list was **9**; the assertion said **10**. The enumeration was wrong on the
+first attempt, exactly as `audit-site-lists-undercount` says it always is.
+
+| | the wiring, and the direction it runs in |
+|---|---|
+| **C4** | A **third zero state** on `RequiredActionsCard`, checked FIRST because both existing sentences are false while it holds. ⚠️ An unread `apr` deliberately does **not** gag this claim — it changes no obligation this cycle — which is the member of the class where gagging would be the over-match A1 was raised for |
+| **C2** | Per FIELD and per ROW. A remainder needs both numbers, so an unread `currentAmount` makes `left` exactly as unstatable as an unread target does; the row falls back to whichever figure the app *did* read and names the missing one. ⛔ **`totalSaved` is itself poisoned**, so the hero's VALUE stops being statable, not just its caption |
+| **C3** | `selectCelebration`, called for the **variable**, not at the JSX. ⚡ Gating the render alone would have been a second defect: `activeAck` ranks `data-repairs` above a celebration and returns `null` while one is pending, so a suppressed render off a truthy variable **hides the very card that tells the user what to fix.** ⛔ And the gate is on the READ, never on `detectPayoff` — detection is transition-based, so a crossing not stamped can never be detected again |
+| **C3, the beat** | Gated per ROW (`debtId` added to `PendingPayoff`, optional, no version bump). A beat names one debt and states that debt's figures; suppressing it over an unrelated repair would be A1's over-match on the moment the product is built toward |
+| **C1** | A **class rule in the `set` wrapper**, [B2]'s remedy — a list of actions is what left `importStore` and `reset()` as extra doors. Signals: the named field's value moved · the row is gone · (whole-row / `migration` losses) the ack, because for those no other answer exists |
+
+⛔ **C1's hard part is which signal counts, and getting it wrong re-opens A-J2-1** — the blocker where one
+*"Got it"* tap restored *"Every balance cleared"* over debts still owed. The signal is the user **supplying
+the number again**, never the acknowledgement.
+
+⚡ **AND ONE SIGNAL A CLASS RULE STRUCTURALLY CANNOT SEE.** Confirming a balance is the user answering, and
+the honest confirmed value may be the same `0` the repair wrote. The first cut read it off
+`lastVerifiedDate` and **measured green on a probe that could not discriminate**: `runMigrations` stamps
+that field to `paycheck.currentDate` and `confirmPayoff` passes the same date, so on the day that matters
+most nothing moves. `verifyDebtBalance` / `verifyDebtBalances` now call `answerBalanceRepairs` explicitly —
+one rule, two callers.
+
+⛔ **TWO DEFECTS I INTRODUCED, BOTH CAUGHT BY GUARDS RATHER THAN BY RE-READING THE DIFF** — the shape
+`feedback_the_fix_writes_the_next_defect` names:
+
+1. **`migration` records were dropped at bootstrap.** `findRow` returns nothing for an entity that owns no
+   list, so every v1.6 bridge loss read as *"the row is gone"*. `persistenceLifecycle.test.ts` redded.
+   ⚡ The remedy was already written down elsewhere: `dataRepairsCopy`'s own `actionable()` predicate
+   decides this exact question to choose between *"until you set it again"* and *"there is nothing to
+   reopen for it"*.
+2. **A fixture that picked the member of the class where the answers agree** — twice, in one sub-step. The
+   `migration` record I first used to test the unanswerable path **gags no claim at all**, so its assertion
+   was vacuous; and S1.9.1's same-goal fixture had the identical shape.
+
+### Verified — 13 plants, each confirmed to have LANDED
+
+**Seven at the selector layer**, each redding its own assertion: the `required-plan` route dropped · the
+row guard narrowed back to `targetAmount` · the finale read straight off `pendingPayoff` · no reset path ·
+**the ack emptying the list (A-J2-1's blocker, and a standing guard caught it, not a new one)** ·
+`verifyDebtBalance` no longer answering · and **the completeness gate planted BOTH ways** — a new
+repairable field nobody routed, and a route to a field that no longer exists.
+
+**Six at the render layer, which the selector tests structurally cannot see** — *a tested helper is not a
+used helper*: the card never told · the goal row's field guard · the goals hero's · Today reading
+`pendingPayoff` straight · the reset path removed, through the user's own path · and the debts hero.
+
+⚠️ **Plant F redded on a count assertion that fires first, so it was re-run with that assertion relaxed** —
+otherwise the routing check it exists to prove was never reached.
+
+### The after-scan — and it found C2's exact shape on the other list
+
+⚡ **THE DEBTS HERO STATES A TOTAL MISSING AN UNKNOWN ADDEND.** A balance repaired to `0` is not in
+`active`, so *both* figures — the sum and the count — exclude a debt the user still owes: *"$4,000
+remaining across 1 debt"* over two debts. **The guard for it was three hundred lines up in the same file,
+on `allCleared`, and it only ever covered the case where EVERY balance is unread.** Folded in with its own
+plant and control; it is the item's own spirit, and deferring it means pass 3 finds C2 again on the other
+list.
+
+Also closed in the same pass: `hasUnreadGoalAmounts` had **no consumer but its own test** after C2, and two
+ways to ask one question is what this module exists to prevent — deleted, its test re-pointed at
+`mayClaim`. And `migrations.ts`' *"Only an acknowledgement empties this one"* was **wrong twice over**
+(A-J2-1 made the ack mark; C1 added the answer that does empty it) — a carried premise, corrected in place.
+
+**Filed:** that a `migration` repair gags no claim is now a *decision* rather than an accident, pinned by an
+assertion, with the counter-case stated. → backlog.
+
+**Guards.** `S1P2-C1-RESET` · `S1P2-C1-ACK` · `S1P2-C2-FIELDS` · `S1P2-C2-DEBTS-HERO` · `S1P2-C3-FINALE` ·
+`S1P2-C4-PLAN` · `S1P2-CLAIM-TABLE`. All seven confirmed to red when their line is deleted. `MIN_ENTRIES`
+75 → **82**; 66 of 82 guarded, cap 16 unchanged. `typecheck` 4/4 · `lint:rn` **27/27** · `test:app`,
+`test:regression`, `test:scenarios` green · `data-recovery` **20/20**.
+
+---
+
 ## S1.9.1 — [D2-2], the only regression in pass 2 *(2026-08-26)*
 
 **The finding.** `undoTightTopUp('affordability')` returned the source's whole accumulated entry, not the

@@ -42,7 +42,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { useActiveStore } from '@/store/StoreContext';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
-import { hasUnreadDebtBalances, hasUnreadGoalAmounts } from '@/store/trustSelectors';
+import { hasUnreadDebtBalances, rowFieldUnread } from '@/store/trustSelectors';
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL, resolveBillCategory } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
@@ -375,6 +375,24 @@ function DebtsSection({
     <View style={styles.flex}>
       {allCleared ? (
         <MoneyHero value="Every balance cleared" sub={`${paidOff.length} ${paidOff.length === 1 ? 'debt' : 'debts'} paid off`} />
+      ) : unreadDebts ? (
+        /**
+         * ⛔ **S1.9.2 — FOUND BY [C2]'s AFTER-SCAN, ON THE OTHER LIST.** [C2] was that a total missing an
+         * unknown addend is not a total, and the goals hero was fixed for it. This hero has the identical
+         * shape and nobody looked: a balance repaired to `0` is not in `active`, so **both** figures here
+         * exclude a debt the user still owes — *"$4,000 remaining across 2 debts"* over three debts and an
+         * unknown amount. ⚡ The guard was three hundred lines up in this same file, on `allCleared`, and
+         * it only covered the case where EVERY balance is unread.
+         *
+         * ⚠️ Store-wide rather than per row, deliberately, and it is not the over-match A1 was raised for:
+         * the number being suppressed is a SUM over every debt, so one unread addend makes the whole
+         * figure unstatable. The rows below still say everything the app does know, per row.
+         */
+        <MoneyHero
+          valueTestID="money-hero-debts-value"
+          value="Some balances unread"
+          sub="set them again and your total comes back"
+        />
       ) : (
         <MoneyHero valueTestID="money-hero-debts-value" value={formatWhole(totalBal)} sub={`remaining across ${active.length} ${active.length === 1 ? 'debt' : 'debts'}`} />
       )}
@@ -969,7 +987,9 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   // badges it as Funded. Same rule the debts branch already applies via `unreadDebts`.
   // ⛔ [S1.5 · B1] The one owner again. ⚠️ It excludes a clean `recovered`, which the inline version did
   // not — a goal whose target was written `'5,000'` was read correctly and should still badge Funded.
-  const unreadGoals = useAppStore((s) => hasUnreadGoalAmounts(s.store));
+  // ⛔ S1.9.2 [C2] — the whole STORE, because the guard is now asked per goal and per FIELD (`rowFieldUnread`)
+  // rather than as one boolean this component narrowed for itself. See the hero's note below.
+  const store = useAppStore((s) => s.store);
   // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
   const store_ = useActiveStore();
   const [sheet, setSheet] = useState<{ editing: Goal | null } | null>(null);
@@ -1005,15 +1025,39 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
    * to bound — it is a number that must not be stated. The badge suppresses; so does this.
    */
   const overall = totalTarget > 0 ? totalSaved / totalTarget : 0;
-  const targetUnread = unreadGoals && goals.some((g) => g.targetAmount === 0);
+  /**
+   * ⛔ **S1.9.2 [C2] — ASKED PER FIELD OF THE ONE OWNER, not re-derived as `g.targetAmount === 0`.**
+   *
+   * This line and its twin on the row below were the whole of pass-2's C2. `trustSelectors`' own docblock
+   * had already written down that **both** sides of `currentAmount >= targetAmount` are money fields that
+   * repair to `0` — and both consumers here narrowed the guard to one of them. Measured: a goal whose
+   * SAVED amount could not be read rendered *"House Fund · Savings · $1,000.00 left"* with no caption at
+   * all, one inch under a hero saying *"$1,000 saved of $3,000 target · 33% funded"* — every figure wrong,
+   * about money the Today card was simultaneously reporting as unreadable.
+   *
+   * ⚡ Same shape as AS-2, whose comment three paragraphs down says *"the guard was on the badge and
+   * absent from the sentence beside it."* Here it was on one FIELD and absent from its twin.
+   *
+   * ⛔ **`totalSaved` is itself poisoned when a `currentAmount` is unread** — it sums a repaired `0` — so
+   * the hero's own VALUE stops being statable, not just its caption. That is a stricter suppression than
+   * the target case, and it is the honest one: a total missing an unknown addend is not a total.
+   */
+  const targetUnread = goals.some((g) => rowFieldUnread(store, 'goal', g.id, 'targetAmount'));
+  const savedUnread = goals.some((g) => rowFieldUnread(store, 'goal', g.id, 'currentAmount'));
 
   return (
     <>
       <MoneyHero
-        value={formatWhole(totalSaved)}
-        sub={targetUnread ? 'saved — one target could not be read' : `saved of ${formatWhole(totalTarget)} target`}
-        caption={targetUnread ? undefined : `${Math.round(overall * 100)}% funded`}
-        bar={targetUnread ? undefined : <HeroProgressBar pct={overall} />}
+        value={savedUnread ? 'Some amounts unread' : formatWhole(totalSaved)}
+        sub={
+          savedUnread
+            ? 'set them again and your total comes back'
+            : targetUnread
+              ? 'saved — one target could not be read'
+              : `saved of ${formatWhole(totalTarget)} target`
+        }
+        caption={targetUnread || savedUnread ? undefined : `${Math.round(overall * 100)}% funded`}
+        bar={targetUnread || savedUnread ? undefined : <HeroProgressBar pct={overall} />}
       />
       <View style={styles.goalsList}>
         {goals.map((g) => {
@@ -1045,8 +1089,10 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
            * ⚠️ The `pct` bar goes with it, for the hero's reason: a fill computed against a target that
            * could not be read is a second false signal, and it would draw 0% over money that exists.
            */
-          const targetUnreadable = unreadGoals && g.targetAmount === 0;
-          const funded = g.currentAmount >= g.targetAmount && !targetUnreadable;
+          // ⛔ S1.9.2 [C2] — see the hero's note. Per FIELD, per ROW, asked of the one owner.
+          const targetUnreadable = rowFieldUnread(store, 'goal', g.id, 'targetAmount');
+          const savedUnreadable = rowFieldUnread(store, 'goal', g.id, 'currentAmount');
+          const funded = g.currentAmount >= g.targetAmount && !targetUnreadable && !savedUnreadable;
           // ⚠️ Only THE emergency fund is labelled as one. [P6.8.9.7.11.12 · A-J2-4] A second
           // `emergency`-typed goal is funded through the savings rungs, and a row claiming "Emergency
           // fund" while behaving as savings is the misdescription the fix exists to end.
@@ -1070,17 +1116,37 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
                * construction. The `left` branch keeps `formatCurrency` — a remainder is the one place
                * cents are worth showing.
                */
+              /**
+               * ⛔ S1.9.2 [C2] — **A REMAINDER NEEDS BOTH NUMBERS, so an unread SAVED amount makes `left`
+               * exactly as unstatable as an unread target makes it.** It printed the entire target as the
+               * remainder. The row falls back to whichever figure the app did read, and says which one is
+               * missing; when neither was read there is no figure to fall back to and it says so.
+               */
               amount={
-                funded || targetUnreadable
-                  ? formatWhole(g.currentAmount)
-                  : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))
+                targetUnreadable && savedUnreadable
+                  ? '—'
+                  : savedUnreadable
+                    ? formatWhole(g.targetAmount)
+                    : funded || targetUnreadable
+                      ? formatWhole(g.currentAmount)
+                      : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))
               }
-              amountSuffix={funded || targetUnreadable ? ' saved' : ' left'}
+              amountSuffix={
+                targetUnreadable && savedUnreadable ? undefined : savedUnreadable ? ' target' : funded || targetUnreadable ? ' saved' : ' left'
+              }
               // ⛔ The honest state, SAID — not merely the false one withheld. The row states what the
               // user actually has and names why there is no remainder; the hero's wording, per row.
-              caption={targetUnreadable ? 'Target could not be read' : undefined}
+              caption={
+                targetUnreadable && savedUnreadable
+                  ? 'Neither amount could be read'
+                  : savedUnreadable
+                    ? 'Saved amount could not be read'
+                    : targetUnreadable
+                      ? 'Target could not be read'
+                      : undefined
+              }
               badges={funded ? [{ label: 'Funded', tone: 'paid' }] : undefined}
-              progress={targetUnreadable ? undefined : pct}
+              progress={targetUnreadable || savedUnreadable ? undefined : pct}
               onPress={() => setSheet({ editing: g })}
               onDelete={() => store_.getState().removeGoal(g.id)}
             />

@@ -191,6 +191,41 @@
     "file": "apps/rn/tests/e2e/intent-undo.spec.ts",
     "token": "logging a payment still offers the Undo on Today"
   },
+  "S1P2-C2-DEBTS-HERO": {
+    "what": "found by C2's after-scan, on the other list - a balance repaired to 0 is not in `active`, so the debts hero's total AND its count both excluded a debt the user still owes; the guard beside it (allCleared) only ever covered the case where EVERY balance is unread",
+    "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
+    "token": "the hero does not total a portfolio missing an addend"
+  },
+  "S1P2-C1-RESET": {
+    "what": "pass-2 C1 - nothing ever REMOVED a pendingDataRepairs entry, so retyping the balance the card asked for changed nothing and the graduation banner, Money's cleared hero and the Progress trophy were withheld for the life of the install; measured through a reload",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "retyping the number ANSWERS it"
+  },
+  "S1P2-C1-ACK": {
+    "what": "pass-2 C1's control, and the one that re-opens a blocker if it moves - A-J2-1 is the rule that the ack hides the CARD and does not un-repair the DATA, so the reset path must distinguish 'the user corrected this field' from 'the user dismissed the card'",
+    "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
+    "token": "the ACK still answers nothing"
+  },
+  "S1P2-C2-FIELDS": {
+    "what": "pass-2 C2 - both money.tsx goals consumers narrowed the guard to targetAmount while trustSelectors' own docblock said both sides of currentAmount >= targetAmount repair to 0; a goal whose SAVED amount was lost printed its entire target as a remainder with no caption, under a hero saying '33% funded'",
+    "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
+    "token": "Saved amount could not be read"
+  },
+  "S1P2-C3-FINALE": {
+    "what": "pass-2 C3 - the full-screen finale was gated on celebration?.kind and nothing else, so B1's owner reached three claim sites and not the fourth; measured on one store at one instant, the banner refused 'every balance is cleared' while the finale asserted '$12,400 paid off' three lines away",
+    "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
+    "token": "the full-screen finale does not fire over a balance nobody read"
+  },
+  "S1P2-C4-PLAN": {
+    "what": "pass-2 C4 - a minimumPayment repaired to 0 produces neither an allocation row nor an unfunded item, so the debt leaves the plan, countOutstandingRequired honestly returns 0 and Today rendered B5's exact sentence in success green over an unpaid $5,000 card",
+    "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
+    "token": "does NOT read as"
+  },
+  "S1P2-CLAIM-TABLE": {
+    "what": "pass-2 C2/C4's shared cause - the trust rule was wired to a SUBSET of repairable fields three separate ways in one round; migrations.ts now declares what it can repair, trustSelectors routes each one to a claim, and this asserts the two agree in BOTH directions",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "NO claim in trustSelectors routes it"
+  },
   "S1P2-D2-2-STORE": {
     "what": "pass-2 D2-2, a REGRESSION [B3]'s own fix introduced — one entry per SOURCE accumulates, so undoTightTopUp(source) handed back every cover the source made this cycle; $50 then $30 returned $80 and silently un-covered the earlier purchase. Every prior undo case applied each source ONCE, the member of the class where whole-entry and per-draw agree",
     "file": "apps/rn/src/store/storeActions.test.ts",

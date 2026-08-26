@@ -58,7 +58,7 @@ number about money the app could not read* was wired to a subset of **claim site
 | # | sub-step |
 |---|---|
 | ✅ **S1.9.1** | **D2-2** — CLOSED 2026-08-26 · `undoTightTopUp(source, draw?)`: the Guardian keeps whole-entry *(it displays the entry)*, a caller showing ONE cover passes it and gets exactly it back, clamped to what the entry holds. The card now records what LEFT the goal, not what was asked for. **3 plants · 2 guards · `lint:rn` 27/27.** Detail → log |
-| **S1.9.2** | **The trust class, one owner: C4 · C2 · C3 · C1.** Which FIELDS make a number untrustworthy *(`minimumPayment`, `apr`, expense `amount`, goal `currentAmount`)* and which CLAIM SITES must ask *(the finale is the unwired fourth)*. **C1's reset path last and carefully — the "record survives the ack" behaviour IS A-J2-1's fix**, so a reset must distinguish *"the user corrected this field"* from *"the user dismissed the card"* or it re-opens a closed blocker |
+| ✅ **S1.9.2** | **C4 · C2 · C3 · C1, one owner** — CLOSED 2026-08-26 · a **claim TABLE** in `trustSelectors` routes every repairable field to a claim, **gated both ways** against `migrations`' own `REPAIRABLE_MONEY_FIELDS` · C4 a third zero state · C2 per-field, per-row · C3 `selectCelebration` at the VARIABLE *(gating the JSX would have hidden the repairs card)* · C1 a reset path as a class in the `set` wrapper + an explicit confirm signal. ⚡ **The after-scan found C2's exact shape on the DEBTS hero.** **13 plants · 7 guards · `lint:rn` 27/27.** Detail → log |
 | **S1.9.3** | **A1 — 🎯 chose: net the top-up against the shortfall ONCE; all three reads take the residual.** `residual = max(0, shortfall − appliedTopUp)`; band at-risk iff `residual > 0`; affordability `spendable + topUp − shortfall` floored at 0; `holdsLine` judged on the same residual. ⛔ **Honours M3 rather than reverting it** — M3's defect was a top-up lifting a PROXY while the shortfall went untouched. ⚠️ **Behaviour change**: a top-up that genuinely covers a small shortfall now clears the band |
 | **S1.9.4** | **B-1 — the seven fail-open guards**, and `test-gate-plants` covers none of the seven gates. ⛔ **Before pass 3**, per S1.5.4: an instrument fix decides what the next pass can see |
 | **S1.9.5** | **`packages/core/timeline` onto the S1 roots** + write-back. One line; it is where D2-1 lives |
@@ -504,6 +504,16 @@ hotspot)* and Dynamic-Type device QA.
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
 
 ### → surfaced while classifying pass 2 under [D69] *(2026-08-26)*
+
+### → surfaced by S1.9.2's after-scan *(2026-08-26)*
+
+- ⚠️ **A `migration` REPAIR GAGS NO CLAIM, and that is a decision now rather than an accident.** Measured
+  while wiring the claim table: `hasUnreadDebtBalances` tested `r.entity === 'debt'`, so a v1.6 bridge loss
+  never suppressed anything, and `mayClaim` preserves that. ⛔ Defensible — those records report **keys the
+  bridge never understood** (`debtPlanner.rolloverCount`), which says nothing about a money field being
+  misread, and gagging on them would be the over-match A1 was raised for. ⚠️ But it is a *judgement*, and
+  the counter-case is real: an unmapped key **could** have been a debts list. Pinned by an assertion either
+  way, so a change of mind is a one-line edit and not a rediscovery. → **S4 discovery / a 🎯 call**
 
 ### → surfaced by S1.9.1's after-scan *(2026-08-26)*
 

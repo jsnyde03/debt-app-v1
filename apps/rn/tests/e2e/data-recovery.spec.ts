@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { day, scenario, seedStore } from './helpers/seed';
 
 /**
  * P6.8.7c.2 (audit B4 · M3-1 · M3-2) — the two silent data events now SAY something.
@@ -33,7 +33,12 @@ async function seedOnce(page: Page, store: Record<string, unknown>) {
 /** Wait until the app has actually PERSISTED the state under test — autosave is debounced. */
 // ⚠️ The element type is named rather than `unknown[]`: two callers read `r.acknowledged`, and under
 // `unknown` that is only legal because nothing typechecked this tree. [P6.8.9.7.11.13.3]
-async function waitForPersisted(page: Page, predicate: (store: { pendingDataRepairs?: { acknowledged?: boolean }[] }) => boolean) {
+async function waitForPersisted(
+  page: Page,
+  // ⚠️ Named rather than `unknown`, for [P6.8.9.7.11.13.3]'s reason. `pendingPayoff` joined it at S1.9.2
+  // [C3], where the assertion that the crossing IS stamped is as load-bearing as the one on the screen.
+  predicate: (store: { pendingDataRepairs?: { acknowledged?: boolean }[]; pendingPayoff?: { kind?: string } | null }) => boolean,
+) {
   await expect
     .poll(async () => {
       const raw = await page.evaluate((key) => window.localStorage.getItem(key), KEY);
@@ -352,4 +357,275 @@ test('a loss with nothing to reopen is not told to "set it again"', async ({ pag
   // ⛔ And the false instruction is ABSENT. ⚠️ Asserted only after the card is proven on screen — an
   // absence assertion is trivially true of a page that never rendered.
   await expect(page.getByText(/until you set it again/)).toHaveCount(0);
+});
+
+// ── S1.9.2 · pass-2 C1–C4: the same rule, wired to a subset of FIELDS and a subset of CLAIM SITES ──
+//
+// ⛔ **The unit half is `src/store/trustSelectors.test.ts`, and it cannot see any of this.** Every fix
+// below is a selector wired into a render, and pass 1's own lesson is that *a tested helper is not a used
+// helper*: `mayClaim`, `rowFieldUnread` and `selectCelebration` all typecheck perfectly at a call site
+// that never asks them. These are the assertions a human's screen can red.
+
+/**
+ * A plan with a bill the app knows about but that falls OUTSIDE this cycle, so `hasAnyBills` is true and
+ * `outstanding` is legitimately 0. ⚠️ Both C4 tests share it and differ in exactly one character of one
+ * field — the auditor's own single-variable method, and the only way the control means anything.
+ */
+const PLAN_WITH_NOTHING_DUE = (minimumPayment: unknown) =>
+  scenario({
+    paycheck: { amount: '2000', currentDate: day(0), nextPaycheckDate: day(14) },
+    requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 350, dueDate: day(60), recurrence: 'one-time', category: 'housing' }],
+    debts: [{ id: 'd1', name: 'Chase card', balance: 5000, minimumPayment, apr: 20, dueDate: day(4), type: 'debt', recurrence: 'monthly' }],
+  });
+
+test('C4 · a minimum the app could not read does NOT read as "caught up"', async ({ page }) => {
+  /**
+   * ⛔ **[B5]'S EXACT SENTENCE, THROUGH A DIFFERENT DOOR.** An unreadable `minimumPayment` repairs to
+   * `$0`; `allocatePaycheck` emits neither an allocation row nor an unfunded item for an obligation of
+   * `$0`, so the debt leaves the plan entirely, `countOutstandingRequired` honestly returns 0, and Today
+   * printed *"You're caught up for this paycheck."* in success green over an unpaid $5,000 card whose
+   * minimum is due in four days. ⚠️ [B5]'s remedy is intact — the count is right about the arrays it is
+   * handed. The arrays were wrong.
+   */
+  await seedStore(page, PLAN_WITH_NOTHING_DUE('n/a'));
+  await page.goto('/');
+  await expect(page.getByText('Required actions')).toBeVisible({ timeout: 15_000 });
+  // ⛔ The honest state SAID, asserted by name — not merely the false one withheld. Suppressing a false
+  // sentence can produce a different false one: [B1]'s first cut replaced "Every balance paid off" with
+  // "Add a debt", over debts the user still owed.
+  await expect(page.getByTestId('required-unread-inputs')).toBeVisible();
+  await expect(page.getByText('You’re caught up for this paycheck.')).toHaveCount(0);
+  // …and it is not the OTHER zero state either. This user has told the app about a bill.
+  await expect(page.getByTestId('required-no-bills')).toHaveCount(0);
+});
+
+test('C4 control · a minimum the app CAN read still reads as caught up', async ({ page }) => {
+  // ⭐ The fix must not buy its correctness by refusing to speak. ⚠️ `0` is the discriminating control: a
+  // minimum of literally zero is a real answer (a BNPL with nothing due), it produces no row for the same
+  // arithmetic reason as the repaired one, and the ONLY difference is the repair record.
+  await seedStore(page, PLAN_WITH_NOTHING_DUE(0));
+  await page.goto('/');
+  await expect(page.getByText('Required actions')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('required-unread-inputs')).toHaveCount(0);
+  await expect(page.getByText('You’re caught up for this paycheck.')).toBeVisible();
+});
+
+async function openGoals(page: Page) {
+  await page.goto('/money');
+  await page.getByText('Goals', { exact: true }).click();
+  await expect(page.getByRole('button', { name: /^Car,/ })).toBeVisible({ timeout: 15_000 });
+}
+
+test('C2 · a goal whose SAVED amount could not be read does not print a remainder', async ({ page }) => {
+  /**
+   * ⛔ **THE GUARD WAS ON ONE FIELD AND ABSENT FROM ITS TWIN.** `trustSelectors`' own docblock says both
+   * sides of `currentAmount >= targetAmount` are money fields that repair to `0`; both `money.tsx`
+   * consumers narrowed it to `targetAmount === 0`. Measured: *"House Fund · Savings · $1,000.00 left"*
+   * with an empty bar and **no caption**, one inch under a hero reading *"$1,000 saved of $3,000 target ·
+   * 33% funded"* — every figure wrong, while the Today card said the amount could not be read.
+   *
+   * ⚠️ The two goals carry DIFFERENT targets on purpose. With both at $1,000 the false remainder and the
+   * healthy neighbour's real one are the same string, and no absence assertion could tell them apart.
+   */
+  await seedStore(
+    page,
+    scenario({
+      goals: [
+        { id: 'g1', name: 'House Fund', type: 'savings', targetAmount: 1000, currentAmount: 'wat' },
+        { id: 'g2', name: 'Car', type: 'savings', targetAmount: 3000, currentAmount: 1000 },
+      ],
+    }),
+  );
+  await openGoals(page);
+
+  const row = page.getByRole('button', { name: /^House Fund,/ });
+  // ⛔ The honest state by NAME first. The row falls back to the figure the app DID read and says which
+  // one is missing — a row that merely dropped the falsehood would satisfy the absence assertion below.
+  await expect(row).toHaveAccessibleName(/Saved amount could not be read/);
+  await expect(row).toHaveAccessibleName(/\$1,000 target/);
+  // ⛔ The false figure: it printed the entire target as the remainder.
+  await expect(row).not.toHaveAccessibleName(/left/);
+  await expect(row).not.toHaveAccessibleName(/Funded/);
+  // The hero cannot state a total that is missing an unknown addend.
+  await expect(page.getByText('Some amounts unread')).toBeVisible();
+  await expect(page.getByText('33% funded')).toHaveCount(0);
+  // ⭐ PER ROW, NOT PER SCREEN: the healthy goal beside it still states its own number.
+  await expect(page.getByRole('button', { name: /^Car,/ })).toHaveAccessibleName(/\$2,000 left/);
+});
+
+test('C2 control · a goal whose amounts BOTH read still shows its remainder and its total', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      goals: [
+        { id: 'g1', name: 'House Fund', type: 'savings', targetAmount: 1000, currentAmount: 250 },
+        { id: 'g2', name: 'Car', type: 'savings', targetAmount: 3000, currentAmount: 1000 },
+      ],
+    }),
+  );
+  await openGoals(page);
+  await expect(page.getByRole('button', { name: /^House Fund,/ })).toHaveAccessibleName(/\$750 left/);
+  await expect(page.getByText('Some amounts unread')).toHaveCount(0);
+  // 1,250 saved of 4,000 target → 31% funded. The caption and the bar are back.
+  await expect(page.getByText('31% funded')).toBeVisible();
+});
+
+test('C3 · the full-screen finale does not fire over a balance nobody read', async ({ page }) => {
+  /**
+   * ⛔ **THE CLAIM SITE B1'S OWNER NEVER REACHED, and it is the loudest surface in the product.** Measured
+   * on one store at one instant: `selectPlanState` returned `debt-free-unverified` — Today's calm banner
+   * correctly refusing — while the finale printed *"$12,400 paid off · 2 debts"* over a $12,000 card the
+   * app could not read, three lines away. Dismissing it spends a once-ever moment.
+   *
+   * ⚠️ The crossing is still STAMPED; only the render waits. Gating `detectPayoff` would lose the finale
+   * for the life of the install, which `withPayoffCelebration`'s own docblock spells out — so the
+   * assertion on the stamped record is as load-bearing as the one on the screen.
+   */
+  await seedOnce(
+    page,
+    scenario({
+      requiredExpenses: [],
+      // ⚠️ Coach marks seeded as SEEN, and `celebration.spec.ts` carries the same note for the same click:
+      // the `payoff-schedule` mark renders over the debt sheet's footer and its "Got it" intercepts the
+      // pointer, so the test fails on the coach mark rather than on the thing it is testing. Measured
+      // here as `element is not stable` on `debt-log-payment`.
+      prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: true },
+      debts: [
+        { id: 'd0', name: 'Chase card', balance: 'n/a', originalBalance: 12000, minimumPayment: 300, apr: 22, dueDate: day(4), type: 'debt', recurrence: 'monthly' },
+        { id: 'd1', name: 'Visa', balance: 400, originalBalance: 400, minimumPayment: 40, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  // ⚠️ By LOGGING THE FINAL PAYMENT, not by editing the balance to 0 — `DebtSheet` refuses that with
+  // "Minimum payment can't exceed the balance", which is true of every debt at the moment it is cleared.
+  // `celebration.spec.ts` carries the same note; the first draft of this test hit exactly that wall.
+  await page.goto('/money');
+  await page.getByText('Visa', { exact: true }).first().click();
+  await expect(page.getByText('Edit debt')).toBeVisible({ timeout: 10_000 });
+  await page.getByTestId('debt-log-payment').click();
+  await page.getByLabel('Amount paid').fill('99999');
+  await page.getByRole('button', { name: 'Log payment' }).click();
+  await waitForPersisted(page, (s) => (s.pendingPayoff?.kind ?? null) === 'finale');
+
+  await page.goto('/');
+  // ⛔ The record IS stamped — asserted above — so this is the render refusing, not the moment being lost.
+  await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('You’re debt-free')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Continue' })).toHaveCount(0);
+});
+
+test('C1 · retyping the amount the card asked for CLEARS the suppression, and it stays cleared', async ({ page }) => {
+  /**
+   * ⛔ **A REPAIR IS A QUESTION AND NOTHING COULD ANSWER IT.** `pendingDataRepairs` only ever grew, so a
+   * person who imported a file with one unreadable balance, retyped it exactly as the card asked, and then
+   * genuinely paid off every debt was shown the broken-plan Money screen, lost the Progress trophy shelf
+   * and never saw the graduation banner — **for the life of the install.**
+   *
+   * ⛔ `seedOnce`, not `seedStore`: the whole finding is about what survives a relaunch, and `seedStore`'s
+   * `addInitScript` re-injects the fixture on every navigation.
+   */
+  await seedOnce(
+    page,
+    scenario({
+      requiredExpenses: [],
+      // ⚠️ Coach marks seen — see the C3 test's note; this one drives the same sheet control.
+      prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: true },
+      debts: [{ id: 'd1', name: 'Chase card', balance: '', originalBalance: 1200, minimumPayment: 50, apr: 20, dueDate: day(4), type: 'debt', recurrence: 'monthly' }],
+    }),
+  );
+  await page.goto('/money');
+  await expect(page.getByText('Chase card')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Every balance cleared')).toHaveCount(0);
+
+  // The user does exactly what the repairs card asks: they open the debt and set the amount again.
+  await page.getByText('Chase card', { exact: true }).first().click();
+  await expect(page.getByText('Edit debt')).toBeVisible({ timeout: 10_000 });
+  await page.getByLabel('Current balance').fill('1200');
+  await page.getByRole('button', { name: 'Save' }).click();
+  await waitForPersisted(page, (s) => (s.pendingDataRepairs?.length ?? 1) === 0);
+
+  // …and now paying it off is celebrated, which under C1 it never was.
+  await page.getByText('Chase card', { exact: true }).first().click();
+  await expect(page.getByText('Edit debt')).toBeVisible({ timeout: 10_000 });
+  await page.getByTestId('debt-log-payment').click();
+  await page.getByLabel('Amount paid').fill('99999');
+  await page.getByRole('button', { name: 'Log payment' }).click();
+  await expect(page.getByText('Every balance cleared')).toBeVisible({ timeout: 15_000 });
+
+  // ⛔ ACROSS A RELAUNCH — where C1 was measured. `runMigrations` re-merges the pending list on every
+  // load, so an answer that is not persisted is an answer that comes back as a question.
+  await page.reload();
+  await expect(page.getByText('Every balance cleared')).toBeVisible({ timeout: 15_000 });
+});
+
+test('C1 control · the ACK still answers nothing — A-J2-1 holds', async ({ page }) => {
+  /**
+   * ⭐ **THE CONTROL THAT MATTERS MOST.** A-J2-1 is the blocker where `acknowledgeDataRepairs` emptied the
+   * list and one *"Got it"* tap restored *"Every balance cleared"* over debts still owed. C1's reset path
+   * must distinguish *the user corrected this field* from *the user dismissed the card*, or it re-opens a
+   * closed blocker. ⚠️ The sibling test above cannot see this: it never taps "Got it".
+   */
+  await seedOnce(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [{ id: 'd1', name: 'Chase card', balance: '', originalBalance: 1200, minimumPayment: 50, apr: 20, dueDate: day(4), type: 'debt', recurrence: 'monthly' }],
+    }),
+  );
+  await page.goto('/');
+  await page.getByTestId('data-repairs-ack-button').click();
+  await waitForPersisted(page, (s) => (s.pendingDataRepairs ?? []).some((r) => r.acknowledged === true));
+  // The record SURVIVES the ack — the ack is about the card.
+  await waitForPersisted(page, (s) => (s.pendingDataRepairs?.length ?? 0) === 1);
+
+  await page.goto('/money');
+  await expect(page.getByText('Chase card')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Every balance cleared')).toHaveCount(0);
+});
+
+test('C2’s shape on the DEBTS list · the hero does not total a portfolio missing an addend', async ({ page }) => {
+  /**
+   * ⚡ **FOUND BY [C2]'s AFTER-SCAN, and only because [C2] was fixed first.** [C2] is that a total missing
+   * an unknown addend is not a total; the goals hero was corrected for it, and the debts hero — three
+   * hundred lines up in the same file — has the identical shape and nobody looked. A balance repaired to
+   * `0` is not in `active`, so **both** figures exclude a debt the user still owes.
+   *
+   * ⚠️ The existing guard beside it (`allCleared`) only ever covered the case where EVERY balance is
+   * unread. This fixture is the one it cannot see: one debt read, one not.
+   */
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'd0', name: 'Chase card', balance: null, originalBalance: 8000, minimumPayment: 100, apr: 20, dueDate: day(4), type: 'debt', recurrence: 'monthly' },
+        { id: 'd1', name: 'Visa', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/money');
+  await expect(page.getByText('Visa')).toBeVisible({ timeout: 15_000 });
+  const hero = page.getByTestId('money-hero-debts-value');
+  // ⛔ The false figure by name: $4,000 "remaining across 1 debt", over two debts and an unknown amount.
+  await expect(hero).not.toHaveText('$4,000');
+  await expect(hero).toHaveText('Some balances unread');
+  // …and it is not the CLEARED branch either — that would be a second false statement, which is exactly
+  // how [B1]'s first cut replaced "Every balance paid off" with "Add a debt" over debts still owed.
+  await expect(page.getByText('Every balance cleared')).toHaveCount(0);
+});
+
+test('C2’s debts-hero control · a portfolio the app fully read still states its total', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'd0', name: 'Chase card', balance: 8000, originalBalance: 8000, minimumPayment: 100, apr: 20, dueDate: day(4), type: 'debt', recurrence: 'monthly' },
+        { id: 'd1', name: 'Visa', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/money');
+  await expect(page.getByText('Visa')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('money-hero-debts-value')).toHaveText('$12,000');
 });

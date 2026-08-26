@@ -227,6 +227,13 @@ export type PendingPayoff =
   | {
       kind: 'beat';
       debtName: string;
+      /** ⛔ S1.9.2 [C3] — WHICH debt, so the trust guard can ask about THIS row's money rather than about
+       *  the portfolio. The beat states two repairable figures (`amount` from `originalBalance`, `freed`
+       *  from `minimumPayment`); gating it on a store-wide "any balance unread" would withhold a true
+       *  beat over an unrelated debt, which is the over-match A1 was raised for. ⚠️ Optional so a blob
+       *  stamped by an earlier build needs no version bump — absent means the guard cannot narrow, and it
+       *  falls back to the portfolio-wide question, which is the safe direction. */
+      debtId?: string;
       /** What the debt started at, when it was ever recorded. `null` renders the beat without a total. */
       amount: number | null;
       /** The minimum payment this payoff just freed up, every month, forever. */

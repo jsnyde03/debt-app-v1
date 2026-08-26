@@ -52,6 +52,7 @@ export function detectPayoff(
   return {
     kind: 'beat',
     debtName: subject.name,
+    debtId: subject.id,
     amount: subject.originalBalance ?? null,
     freed: subject.minimumPayment,
     nextDebtName: next?.name ?? null,

@@ -207,6 +207,26 @@ function inferOnboarding(
   return hasIncome && hasObligation;
 }
 
+/**
+ * ⛔ **EVERY MONEY FIELD THIS MODULE CAN REPAIR, DECLARED ONCE.** [S1.9.2 · pass-2 C2 · C4]
+ *
+ * The four `repairMoneyFields` calls below read their lists from here rather than spelling them inline,
+ * and `trustSelectors.ts` routes every one of them to a claim — with `trustSelectors.test.ts` asserting
+ * the two agree. ⚡ **Pass 2 found the trust rule wired to a SUBSET of these fields three separate ways**;
+ * a repairable field that no claim knows about is exactly how that happens, and it is invisible while the
+ * field list lives at the call site.
+ *
+ * ⚠️ Both halves matter and mean different things — `required` repairs an ABSENT field too, `optional`
+ * leaves an absent one absent. Both record a repair when the field is present and unreadable, so both
+ * belong to the inventory. See `repairMoneyFields`' docblock for why the split is by schema optionality.
+ */
+export const REPAIRABLE_MONEY_FIELDS = {
+  debt: { required: ['balance', 'minimumPayment', 'apr'], optional: ['originalBalance', 'scheduledPaymentAmount'] },
+  requiredExpense: { required: ['amount'], optional: [] },
+  livingExpense: { required: ['amount'], optional: [] },
+  goal: { required: ['targetAmount', 'currentAmount'], optional: ['priorityPerPaycheck'] },
+} as const satisfies Record<string, { required: readonly string[]; optional: readonly string[] }>;
+
 export function runMigrations(raw: unknown): DebtStore {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('runMigrations: persisted store is not an object');
@@ -225,8 +245,8 @@ export function runMigrations(raw: unknown): DebtStore {
   const debts = repairMoneyFields(
     r.debts,
     base.debts,
-    ['balance', 'minimumPayment', 'apr'],
-    ['originalBalance', 'scheduledPaymentAmount'],
+    REPAIRABLE_MONEY_FIELDS.debt.required,
+    REPAIRABLE_MONEY_FIELDS.debt.optional,
     'debt',
     repairs,
   ).map((debt) => {
@@ -245,8 +265,8 @@ export function runMigrations(raw: unknown): DebtStore {
     // the wrong question.
     return raiseOriginalBalance(normalizeBnplInstallment({ ...debt, lastVerifiedDate, balanceAsOfDate }));
   });
-  const requiredExpenses = repairMoneyFields(r.requiredExpenses, base.requiredExpenses, ['amount'], [], 'requiredExpense', repairs);
-  const livingExpenses = repairMoneyFields(r.livingExpenses, base.livingExpenses, ['amount'], [], 'livingExpense', repairs);
+  const requiredExpenses = repairMoneyFields(r.requiredExpenses, base.requiredExpenses, REPAIRABLE_MONEY_FIELDS.requiredExpense.required, REPAIRABLE_MONEY_FIELDS.requiredExpense.optional, 'requiredExpense', repairs);
+  const livingExpenses = repairMoneyFields(r.livingExpenses, base.livingExpenses, REPAIRABLE_MONEY_FIELDS.livingExpense.required, REPAIRABLE_MONEY_FIELDS.livingExpense.optional, 'livingExpense', repairs);
   /**
    * ⛔ **GOALS WERE NEVER REPAIRED — B1's other half, found by the P6.8.9.2 verification.** Debts, required
    * expenses and living expenses all ran through `repairMoneyFields`; goals fell through `...r` untouched,
@@ -263,8 +283,8 @@ export function runMigrations(raw: unknown): DebtStore {
   const goals = repairMoneyFields(
     r.goals,
     base.goals,
-    ['targetAmount', 'currentAmount'],
-    ['priorityPerPaycheck'],
+    REPAIRABLE_MONEY_FIELDS.goal.required,
+    REPAIRABLE_MONEY_FIELDS.goal.optional,
     'goal',
     repairs,
   );
@@ -410,7 +430,13 @@ export function runMigrations(raw: unknown): DebtStore {
     // ⛔ MERGED, which is the exact opposite rule to the line above, on purpose. `dataRepairs` answers
     // "what did this read fix"; this answers "what has the user not been told yet", and the second
     // question outlives the read that raised it — the list above is empty again as soon as anything
-    // saves. Only an acknowledgement empties this one.
+    // saves.
+    //
+    // ⚠️ **This sentence used to end "Only an acknowledgement empties this one", and it has been wrong
+    // twice.** A-J2-1 made the ack MARK rather than empty (emptying it restored "Every balance cleared"
+    // over debts still owed), and S1.9.2 [C1] added the answer that does empty it: the user supplying the
+    // number again, watched as a class in the store's `set` wrapper. A record with nothing to reopen is
+    // still settled by the ack, because for those there is no other answer. See `clearResuppliedRepairs`.
     //
     // ⚠️ Deduped by entity+id+field so a blob re-migrated before the user acknowledges cannot stack the
     // same repair twice. That is also what keeps a second pass identical to the first, which the

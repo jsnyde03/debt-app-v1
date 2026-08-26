@@ -25,6 +25,7 @@ import type { StorageAdapter } from '@/storage/adapter';
 import { reportError } from '@/utils/reportError';
 
 import { recordDriftBaseline } from './drift';
+import { answerBalanceRepairs, clearResuppliedRepairs } from './trustSelectors';
 import { buildCycleTopUp, topUpEntries } from './topUpSelectors';
 import { stampCyclePrediction } from './guardianPrediction';
 import { applyCapture, applyRollover, type PaydayActuals } from './payday';
@@ -343,6 +344,22 @@ export function createDebtStore(opts?: {
         if (patch && patch.store && patch.store !== state.store && state.intentRollback && !('intentRollback' in patch)) {
           patch = { ...patch, intentRollback: null };
         }
+        //
+        // ⛔ S1.9.2 [C1] — A REPAIR THE USER HAS ANSWERED STOPS BEING PENDING.
+        //
+        // `pendingDataRepairs` only ever grew: `mergeRepairs` unions and `acknowledgeDataRepairs` marks.
+        // So retyping the balance the card asked for changed nothing, and every trust guard stayed armed
+        // for the life of the install — measured through a reload. ⛔ The signal cannot be the ack (that
+        // is A-J2-1, and emptying the list on a tap is the blocker it closed); it is the user supplying
+        // the number again, which only a BEFORE/AFTER comparison can see.
+        //
+        // ⚠️ Here rather than inside the four update actions, for [B2]'s reason: a list of actions is what
+        // left `importStore` and `reset()` as extra doors. Same keying as above — a patch that returns the
+        // store unchanged by reference has moved nothing. Full rules in `clearResuppliedRepairs`.
+        if (patch && patch.store && patch.store !== state.store) {
+          const settled = clearResuppliedRepairs(state.store, patch.store);
+          if (settled !== patch.store) patch = { ...patch, store: settled };
+        }
         return patch;
       }, replace)) as typeof rawSet;
 
@@ -485,12 +502,15 @@ export function createDebtStore(opts?: {
       set((s) => ({
         store: withPayoffCelebration(
           s.store,
-          stampInputsFresh({
+          // ⛔ S1.9.2 [C1] — confirming a balance ANSWERS a repair on it, and it is the one answer the
+          // class rule in the `set` wrapper cannot see: the honest confirmed value may be the same `0` the
+          // repair wrote. See `answerBalanceRepairs`.
+          answerBalanceRepairs(stampInputsFresh({
             ...s.store,
             debts: s.store.debts.map((d) =>
               d.id === id ? raiseOriginalBalance({ ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate }) : d
             ),
-          }),
+          }), [id]),
         ),
       }));
     },
@@ -499,7 +519,10 @@ export function createDebtStore(opts?: {
       set((s) => ({
         store: withPayoffCelebration(
           s.store,
-          stampInputsFresh({
+          // ⛔ S1.9.2 [C1] — the batch confirms too, and it is the flow the app ASKS people to use. A
+          // single-debt path that answers the repair while the batch does not is precisely the
+          // "wired to a subset of sites" shape this whole sub-step exists to end.
+          answerBalanceRepairs(stampInputsFresh({
             ...s.store,
             // ⚠️ [D62] This is the batch `verifyDebtBalances`, and it is the flow the app ASKS people to
             // use — so the high-water raise matters most here, not least.
@@ -508,7 +531,7 @@ export function createDebtStore(opts?: {
                 ? raiseOriginalBalance({ ...d, balance: next.get(d.id)!, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate })
                 : d
             ),
-          }),
+          }), [...next.keys()]),
         ),
       }));
     },

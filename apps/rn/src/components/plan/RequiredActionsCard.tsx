@@ -50,6 +50,7 @@ export function RequiredActionsCard({
   hasAnyBills,
   onAddBill,
   shortfallAdviceOwnedElsewhere = false,
+  unreadPlanInputs = false,
 }: {
   rows: RequiredRow[];
   /** ⛔ S1.5.2 [B5] — THE ALLOCATION'S REAL ARRAY, ALWAYS. Never an emptied one to hide the list: this
@@ -63,6 +64,14 @@ export function RequiredActionsCard({
   hasAnyBills: boolean;
   /** Opens the add-bill sheet in place — the same one-tap treatment the no-debts prompt gets. */
   onAddBill?: () => void;
+  /** ⛔ S1.9.2 [C4] — could the app read every amount this cycle is obliged to cover? A `minimumPayment`
+   *  or bill `amount` it could not read repairs to **$0**, and an obligation of $0 produces neither an
+   *  allocation row nor an unfunded item — so it leaves the plan entirely, `outstanding` is honestly `0`
+   *  about arrays that are wrong, and this card said "You're caught up for this paycheck." in success
+   *  green over an unpaid $5,000 card. ⚠️ [B5] is the same SENTENCE through a different door and its
+   *  remedy is intact: the count is right about what it is given. Asked of the one owner
+   *  (`trustSelectors`' `mayClaim(store, 'required-plan')`), never re-derived here. */
+  unreadPlanInputs?: boolean;
   /** MF.6 (audit #7) — the premium Recovery Plan is on screen and IT owns the "what do I do about the
    *  shortfall" advice, so this card must not compete with a second plan of action. ⛔ It changes ONE
    *  SENTENCE. The obligations stay listed and stay counted: MF.6 was implemented by emptying `unfunded`
@@ -132,9 +141,19 @@ export function RequiredActionsCard({
           the most over-confident number they will ever see.
           ⚠️ `rows.length === 0` is NOT the signal — a plan can have bills with none falling in this cycle.
           The honest question is whether any required expense exists at all, so the caller passes it. */}
-      {outstanding === 0 ? (
+      {/* ⛔ S1.9.2 [C4] — a THIRD zero state, and it outranks both. An amount the app could not read is not
+          the same event as having no bills, and it is the opposite of being caught up: the list is
+          incomplete for a reason the app knows and the user can fix. ⚠️ It is checked FIRST because both
+          sentences below are false while it holds. */}
+      {outstanding === 0 || unreadPlanInputs ? (
         <View style={styles.pad}>
-          {hasAnyBills ? (
+          {unreadPlanInputs ? (
+            <Text testID="required-unread-inputs" style={[textStyles.subhead, { color: c.accent.warning }]}>
+              {outstanding === 0
+                ? 'An amount this paycheck has to cover could not be read, so this list is incomplete — set it again above and it comes back.'
+                : 'One more amount could not be read, so this list is short of at least one thing — set it again above and it comes back.'}
+            </Text>
+          ) : hasAnyBills ? (
             <Text style={[textStyles.subhead, { color: c.accent.success }]}>You’re caught up for this paycheck.</Text>
           ) : (
             <>

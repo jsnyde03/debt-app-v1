@@ -63,11 +63,12 @@ import {
   selectRequiredRows,
   type RequiredRow,
 } from '@/store/planSelectors';
-import { selectCelebrationStats } from '@/store/celebrationSelectors';
+import { selectCelebration, selectCelebrationStats } from '@/store/celebrationSelectors';
 import { selectAllocation } from '@/store/selectors';
 import { TutorialFence } from '@/components/plan/TutorialFence';
 import { stageBounds } from '@/components/plan/tutorialStage';
 import { displayCushion } from '@/store/guardianSubjects';
+import { mayClaim } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 // ⛔ [T6.9] Today built FOUR currency strings by hand — none of them in L4-2's list, in T1's surface
 // inventory, or in T6.4's body-grep. Two were the SAME sentence rendered twice (visual + spoken) and only
@@ -188,7 +189,14 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
   // ⛔ P6.8.7e.1 [B2] — READ, never set. The payload is stamped by the store action that moved the
   // balance, so it fires on every path a debt can be cleared (a confirmed provisional payoff, a balance
   // typed to zero, a batch re-verify, a final logged payment) rather than only on the premium invitation.
-  const celebration: Celebration | null = store.pendingPayoff;
+  //
+  // ⛔ S1.9.2 [C3] — READ THROUGH `selectCelebration`, not off `store.pendingPayoff`. The finale is a claim
+  // about money, and it was the one claim site B1's owner never reached: measured on one store at one
+  // instant, this screen refused "every balance is cleared" in the banner and asserted "$12,400 paid off"
+  // full-screen, three lines apart. ⚠️ Gated HERE rather than at the JSX because `activeAck` below ranks
+  // `data-repairs` above a celebration and returns `null` while one is pending — a suppressed render off a
+  // truthy variable would have hidden the very card that tells the user what to fix.
+  const celebration: Celebration | null = selectCelebration(store);
   function confirmPayoff(d: Debt) {
     // ⚠️ Nothing to capture here any more. `verifyDebtBalance` sees the before-state itself, which is what
     // lets the beat's figures — what was cleared, what is next — stay correct for every other caller too.
@@ -517,6 +525,8 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               onMark={(row, paid) => handleMark(store_, row, paid)}
               currentDate={store.paycheck.currentDate}
               hasAnyBills={store.requiredExpenses.length > 0}
+              /* ⛔ S1.9.2 [C4] — asked of the ONE owner, never re-derived here. */
+              unreadPlanInputs={!mayClaim(store, 'required-plan')}
               onAddBill={() => setAddBillOpen(true)}
             />
           </TutorialFence>
