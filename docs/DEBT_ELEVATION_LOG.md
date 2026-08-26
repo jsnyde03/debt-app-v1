@@ -4,6 +4,52 @@
 
 ---
 
+## 📕 SESSION CLOSE 2026-08-26 (second) — every S1 blocker closed, and the instruments with them
+
+### ▶ WHERE THE NEXT SESSION STARTS: **S1.5.5 — the four app majors**
+
+⛔ **Read the plan's ACTIVE section first.** M1 uncategorised bill renders nowhere · M2 over-funded goal
+understates · M3 an applied top-up suppresses the shortfall sentence · M4 `PlanHero` stops conserving.
+Then **S1.6** *(gate + record — `lint:gate-freshness` is red and stays red until it runs)* and **S1.7**
+*(pass 2, fresh agents, pinned)*.
+
+⚠️ **S1.5.5 is the last work before pass 2**, and pass 2 is the first pass that reads the widened surface:
+**137 files, 65 of them never examined.** Expect first-look findings — [D69] exempts them from the count,
+**not from the fix.**
+
+### What this session did
+
+| | |
+|---|---|
+| **Plan cleanup** | The page led with a CLOSED item and three places claimed to be current work. New shape: `RIGHT NOW` → the decomposition → live rules → residue → open-not-building. ⚡ Found the residue table already decayed *(34/18 stated, 36/20 actual)* — [D49]'s class one level down |
+| **S1.5.2 · B5** | Premium + shortfall rendered *"You're caught up"* over unpaid bills. `countOutstandingRequired` owns the count; suppressing ADVICE is not denying the debt exists |
+| **S1.5.3 · B2 B3 B4** | One shape — state correct for the flow it was written for, reused by a later one. Every fix a lifetime or an ownership change; no arithmetic touched. ⚡ **A fourth blocker found because a plant did NOT red** |
+| **S1.5.4 · M5–M10** | Six instrument majors, plus pass 1's coverage written back. The S1 surface went **72 → 137 files** once its roots stopped being an enumeration |
+
+### Verification standing at close
+
+| | |
+|---|---|
+| **HEAD** | `317d922` · branch `v1.7-dev` · working tree clean |
+| **`lint:rn`** | ✅ **27 of 27** *(`test:gate-plants` joined the chain at M5)* |
+| `typecheck` · `test:app` · `test:scenarios` · `test:regression` | ✅ green |
+| **full RN e2e** | ✅ **288 passed, 0 failed** at `bbbabb7`. ⚠️ **No app source has changed since** — S1.5.4 touched only `scripts/`, `docs/` and one npm script — so that run still describes this tree |
+| **`lint:gate-freshness`** | 🔴 **RED, and correctly so.** `gate:record` has not run since `613adf2`. ⛔ **S1.6 owns the real run — do not carry the individual greens forward as a pass** |
+| **coverage** | S1 **137 · 65 unswept** · S0 **58 · 15 unswept** |
+| **guards** | **60 findings · 44 guarded · 16 unguarded**, cap unmoved |
+
+### ⚠️ Three things to carry, because each cost time to find
+
+- ⛔ **A run whose clock is wrong is not a measurement.** The first full e2e reported two tests at **4.3 h** —
+  the machine slept mid-run. It was killed and re-run rather than read, after confirming `dist` was newer
+  than every source edit.
+- ⛔ **`node -e` file writes silently do nothing here**, twice this session. Both times the following gate
+  printed green and that green meant nothing. **Grep for the planted string before believing a plant.**
+- ⛔ **A `sed` aimed at one line matched two**, stripping a long-standing field from an unrelated push.
+  Every plant since is **diff-verified against the saved original before the run**.
+
+---
+
 ## ✅ S1.5.4 — the instruments: M5 · M6 · M7 · M8 · M9 · M10, and the claims nobody wrote back *(2026-08-26)*
 
 ⛔ **These had to land before pass 2 because they decide what pass 2 can SEE.** Every one is an instrument
