@@ -33,59 +33,55 @@ lived only on the plan)* · the log *(P6.8's closed sweep, the 62 findings, the 
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-26, third).** 🎯: standing authority to run the surface audits
-**to convergence**. **S0 CONVERGED · S1 pass 1 FIXED · S1 pass 2 RUN AND RECORDED.**
-HEAD `1113c57`, tree clean, **4 commits UNPUSHED**, `lint:rn` **27/27**.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-26, fourth).** 🎯: standing authority to run the surface audits
+**to convergence**. **S0 CONVERGED · S1 pass 1 FIXED · pass 2 RUN AND FULLY FIXED.**
+**S1.9 is CLOSED — all 7 sub-steps**, `validate:release:rn` green and recorded, tree clean.
 
-▶ **NEXT IS `S1.9`** — fix pass 2. **3 blockers · 6 majors · 12 minors**, ledger in
-[`docs/audits/2026-08-26-s1-money-pass2/SUMMARY.md`](docs/audits/2026-08-26-s1-money-pass2/SUMMARY.md),
-decomposed as **S1.9.1–S1.9.8** at the top of the plan.
-⛔ **The SUMMARY is the map; the four `{A,B,C,D}` files are the ledger.**
+▶ **NEXT IS `S1.10` — PASS 3, and it is a NEW SESSION's job** ([D68]: the driving session writes the brief
+and records the result; **it never performs the pass**). Decomposed as **S1.10.1–.7** at the top of the plan.
 
-⭐ **PASS 2's HEADLINE IS WHAT HELD.** Auditor A issued **23 verdicts — S0's five and pass 1's eighteen —
-and 22 came back `CLOSED`.** 🎯: *"Look at how much held… the system is definitely doing its job."*
-⛔ **S1 still does not converge** — [D65] exits on 0/0 **twice consecutively**, and pass 2 resets the count.
+⚠️ **THE SURFACE PASS 3 READS IS 2.5× THE ONE PASS 2 DID — 188 → 470 files, 116 → 331 unswept.** S1.9.5
+admitted **all of `packages/core`** *(18 directories, 102 files; `debt` alone is 53)* and **all of
+`apps/rn/src`** *(184 files that were under **no root at all**)*. ⛔ **A brief that reuses pass 2's routing
+hands four auditors the old surface.** ⚡ **`apps/rn/src/utils/format.ts` is the single highest-value file:
+every dollar figure in the app passes through it and no pass has ever been pointed at it.**
 
-⚡ **THE THREE BLOCKERS ARE ONE SHAPE, AND IT GETS ONE OWNER.** B1's rule — *never state a number about
-money the app could not read* — was wired to a **subset of claim sites** and a **subset of fields**.
-`minimumPayment` repairs to `0` and the debt vanishes from the plan, so Today prints **B5's exact
-sentence** over an unpaid card *(B5's remedy is intact; the arrays handed to it are wrong)*. Goal
-`currentAmount` is a second unguarded field. The full-screen finale is the **claim site nobody wired**,
-firing while the banner beside it correctly refuses. ⛔ **Patching each site rebuilds the defect a fourth
-time.**
+⚡ **`lint:surface-complete` now makes a sixth root correction impossible.** The roots were wrong five times
+— M9, [D73], `packages/core`, `apps/rn/src` — and every fix closed an instance while the class stayed open.
+The gate takes its file list from **`git ls-files`** and requires every tracked source file to be under some
+surface's root, cap **0**. ⛔ **It had to invert the enumeration:** a gate that LISTS the trees it audits is
+blind to a tree omitted from the list, and the deny-list version showed both failure modes on its first two
+runs *(`apps/rn/node_modules` walked straight through; then `apps/rn/core` — a **symlink** to
+`packages/core` — reported as 21 invisible directories)*.
 
-⚠️ **[D73] (🎯 2026-08-26) — THE TEST TREE IS ON AN AUDIT SURFACE.** No e2e spec was on any surface, so the
-guards for most registered findings sat in files no auditor was ever pointed at. **S1 137 → 188 files ·
-S0 58 → 91.** ⛔ **`lint:finding-guards` proves a token sits on a non-comment line, never that the assertion
-can still fail** — pass 2 measured **seven guards that stay green with the defect restored**, three of them
-the fixes to the gate that certifies all 57.
+⛔ **THREE TIMES IN S1.9 THE FIX I WROTE *WAS* THE DEFECT CLASS I WAS CLOSING, and none was visible by
+re-reading the diff** — `migration` repairs dropped at bootstrap · a fixture that gagged nothing testing a
+gag · **a routing self-check that proved the PREDICATE while `if (false && …)` at the call site stayed
+green**, which is `tested-helper-is-not-a-used-helper` written into the fix for a finding whose sharpest
+instance is that exact shape. ⚡ **Each was caught by a plant or a standing guard.** A plant is not a
+formality at the end of a fix; it is the only instrument that sees this class.
 
-⛔ **"SWEPT" MEANT 14 OF 72 FILES, AND THE ROOTS HAVE NOW BEEN WRONG THREE TIMES.** M9 (hand-named files
-inside `roots`), [D73] (the whole test tree), and **`packages/core/timeline`, still off-surface** — the
-forecast module pass 2's sharpest major is *about*. ⚡ **The variable is not the tree, it is where you
-point**, and every correction so far has come from widening a root while the pre-correction number looked
-healthier.
+⚡ **PLANT THE NAIVE OVER-FIX, NOT ONLY THE ORIGINAL DEFECT — one real hole in two attempts.** S1.9.3's
+(net everywhere) was caught by **three pre-existing M3 guards**, which is the strongest available proof the
+old protection is intact. S1.9.6's (leak the top-up into projected cycles) was caught by **nothing** — all
+three producers still agreed, because they agreed about cycle 0 and no assertion looked further out.
 
-⛔ **A FIX FOR A FALSE STATEMENT CAN BE A FALSE STATEMENT.** B1's first cut replaced *"Every balance paid
-off"* with *"Add a debt"*, over debts the user still owes. Caught only because the e2e asserts the honest
-state **by name**. ⚠️ **Assert what the screen SHOULD say, not only what it should not.**
+⛔ **A RED IS NOT EVIDENCE UNTIL YOU KNOW WHICH CLAIM PRODUCED IT.** `test:gate-plants` now requires the
+planted run to red **for the planted reason** — on the first un-fix it met, `lint:s1-coverage` still exited
+1 for a *different* reason and would have scored a perfect pass. And the first D2-1 probe reported
+*"THEY DISAGREE"* where all three producers agreed: `GuardianState` is `clear|tight|at-risk`,
+`CushionStatus` is `stable|tight|pressure`. **Compare through `toCushionStatus`.**
 
-⚠️ **[D71]** `GoalSheet` does not offer a second emergency fund *(read-only Type row; stored `type` never
-rewritten)*. **[D72]** `lint:secrets` has a **content-hashed** exemption ledger, self-ratcheting cap.
-⛔ **[D72] fixed the instance, not the class** — pass-1 M10: the ledger keys per **value**, the class is per
-**audit report**, and an auditor's own draft carried four credential-shaped strings while the gate printed
-green *(it is blind to untracked files by design)*.
+⚠️ **SEVEN SHORT ENUMERATIONS IN A ROW, then two enormous ones** *(1 directory → 18; 0 invisible files →
+184)*. Treat any count in a finding as a **lower bound**, and ask not *"is this list complete?"* but *"what
+would make completeness checkable?"*
 
-⛔ **THREE THINGS I BUILT LAST SESSION WERE THE DEFECT CLASS I WAS CLOSING, and none was visible by
-re-reading.** `.11.12.11`'s required `ready` **gated nothing** *(Playwright TRANSPILES — measured: a bare
-`const x: number = 'a string'` in a spec runs green, and `tests/` was excluded from `typecheck:rn`)* ·
-`.11.13.4`'s `paceN <= 0` was **unreachable** and its test stayed green when the clause was deleted ·
-`.11.13.6`'s first fixtures were **refused before the code under test ran**. ⚡ One needed a plant, one
-needed reading the SHAPE of a passing run (an assertion's line missing from the output), one needed running
-the tool instead of believing a sentence about it. ⭐ **A green plant is a RESULT, not a formality.**
-✅ **`npm run typecheck:tests` now exists** — 79 spec/shot files, previously typechecked by nothing.
-✅ **`lint:rn` runs all 22 gates and names every failure** (`scripts/run-gates.ts`); the `&&` chain had been
-reporting 21 unknowns as passes.
+⚠️ **[D65] convergence is 0/0 TWICE CONSECUTIVELY.** Pass 2 reset the count, so a clean pass 3 still owes a
+pass 4. ⚠️ With 331 unswept, **expect most of pass 3's findings to be first-look** — [D69] coverage results
+that do not restart the count. ⛔ **Exempt from the count is NOT exempt from the fix.**
+
+⛔ **WRITE THE `s1p3` CLAIMS BACK IN THE SAME STEP AS THE RECORD.** `s1p2` did not exist in the vocabulary
+until S1.9.5 — pass 2 swept and **none of it was recorded**, the second time this has happened.
 
 ⚡ **TWO RESULTS FROM THE DISCOVERY BLOCK, and both are about what a finding CARRIES:**
 1. ⛔ **A COMMENT IS A CARRIED PREMISE AND DECAYS LIKE A CARRIED NUMBER.** `.11.12.9`'s finding quoted a spec
@@ -104,11 +100,15 @@ hold **14**, and its own header did not reconcile. Closed now, but the habit sta
 ▶ `docs/audits/2026-08-25-p6.8.9.7.11.10-severity/{A,B,C,D}-*.md` — **the SUMMARY is the map, not the
 ledger.**
 
-⛔ **THE GATE IS STILL NOT RECORDED.** As of 2026-08-25 every component ran green individually —
-typecheck (4 projects) · `lint:rn` **22/22** · `test:stamp` · regression · app · scenarios · **272 e2e** ·
-the shot matrix **275, zero `⛔ UNREACHED`** — but `gate:record` was never reached and `test:e2e:embed`
-was not run, so `gate-status.json` describes an older tree and `lint:gate-freshness` exits 1. **`.11.16`
-owns the real run. Do not carry the individual greens forward as a pass.**
+⭐ **THE GATE IS GREEN AND RECORDED (2026-08-26).** `validate:release:rn` on a CLEAN tree at
+`818f934` — typecheck 4/4 · `lint:rn` **28/28** · `test:stamp` · regression · app · scenarios ·
+**310 e2e** · **10 embed**, with **zero failure signatures anywhere in the run** *(checked, not
+inferred from the exit code — this harness has reported 0 on a red gate nine times)*. Fingerprint
+**`d2743681`**, 807 source files, `dirty: false`. ⛔ **Quote the fingerprint, never the SHA**, and
+ask `npm run lint:gate-freshness` rather than trusting this paragraph.
+
+✅ **PUSHED — `78c6020..6f93846`.** CI had not run since `78c6020`; nine commits of guards had been
+executed only by hand runs on this machine, and now are not.
 
 ⚡ **THREE LESSONS THIS SESSION PAID FOR, in the order they cost most:**
 
