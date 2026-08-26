@@ -123,3 +123,48 @@ test('C-D — a premium estimate does not split the two heroes apart', async ({ 
   await page.goto('/progress');
   await expect(page.getByTestId('progress-hero-journey')).toHaveText(`${remaining} to go`, { timeout: 15_000 });
 });
+
+/**
+ * ⛔ **PROGRESS CELEBRATED A PORTFOLIO THE APP COULD NOT READ.** [P6.8.9.7.11.18 · S1.5 · pass-1 blocker B1]
+ *
+ * A restored backup whose debt balances are blank repairs every one to `0`, so `view.hasDebts` — which is
+ * `liveDebts.length > 0` (`payoffSelectors.ts:89`), the same `balance > 0` test Money guards — was false,
+ * and this screen rendered a **"DEBT-FREE / Every balance paid off"** hero with a trophy shelf under it.
+ * ⚡ **`progress.tsx` contained ZERO references to `pendingDataRepairs`.** The whole app had exactly two
+ * trust guards and both were inline in `money.tsx`.
+ *
+ * ⚠️ **Asserted on the RENDERED text, because that is the half a unit test cannot make.**
+ * `trustSelectors.test.ts` owns the predicate and the agreement between the three screens; this pins that
+ * *this screen* actually asks. `.11.11` shipped a defect whose helper was already written, already correct
+ * and already tested, because what was missing was the call.
+ */
+test('Progress does not hand out a trophy for balances it could not read', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      genuineCycleCount: 6,
+      debts: [
+        { id: 'd1', name: 'Chase card', balance: '', minimumPayment: 50, apr: 20, dueDate: day(3), type: 'debt', recurrence: 'monthly' },
+        { id: 'd2', name: 'Store card', balance: '   ', minimumPayment: 25, apr: 24, dueDate: day(5), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/progress');
+
+  // ⛔ The positive assertion FIRST — `toHaveCount(0)` is satisfied by a page that never rendered, which
+  // this repo has shipped green over a planted bug twice.
+  // ⚠️ It asserts the honest state by NAME rather than asserting a debt row, because the screen has no
+  // journey to draw: the point is that it says the true thing, not merely that it withholds the false one.
+  // My first cut of this fix dropped the user into "Add a debt" — over debts they have — and this
+  // assertion is what caught it.
+  await expect(page.getByText('Some balances couldn’t be read')).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByText('Every balance paid off'),
+    'a portfolio of unreadable balances is not a debt-free one',
+  ).toHaveCount(0);
+  await expect(page.getByText('DEBT-FREE', { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText('Your payoff journey starts here'),
+    'nor is it an empty one — the user has debts, the app just cannot read them',
+  ).toHaveCount(0);
+});

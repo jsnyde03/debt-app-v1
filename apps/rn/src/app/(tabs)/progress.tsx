@@ -25,6 +25,7 @@ import { selectJourneyTotals } from '@/store/journeySelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { selectOnPlanStreakLabel } from '@/store/planSelectors';
 import { effectivePaycheckBuffer } from '@/store/selectors';
+import { hasUnreadDebtBalances } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
@@ -161,7 +162,15 @@ export default function ProgressScreen() {
   if (!view.hasDebts) {
     // Debt-free WITH a history → the calm resting state (the finale already fired the spectacle) + the
     // archive. Only a truly-empty user (never any debt) gets the "add a debt" prompt.
-    if (paidOff.length > 0) {
+    //
+    // ⛔ **…UNLESS THE APP COULD NOT READ THE BALANCES.** [S1.5 · B1] `hasDebts` is `liveDebts.length > 0`
+    // (`payoffSelectors.ts:89`) — the same `balance > 0` test Money guards and this screen did not — so a
+    // restored backup whose balances were blank repaired every one to `0` and landed here, under a
+    // **"DEBT-FREE / Every balance paid off"** hero, permanently. This file contained **zero** references
+    // to `pendingDataRepairs` before now. ⚠️ Falling through to the ordinary payoff screen is the right
+    // failure: it shows the debts and their `$0` balances, which is what the repairs card asks the user to
+    // correct, rather than a trophy shelf for money nobody can account for.
+    if (paidOff.length > 0 && !hasUnreadDebtBalances(store)) {
       return (
         <Screen title="Progress" right={<MoreButton />}>
           <LinearGradient
@@ -174,6 +183,29 @@ export default function ProgressScreen() {
             <Text style={[textStyles.subhead, { color: c.surface.heroSub }]}>Your trophy shelf is below.</Text>
           </LinearGradient>
           <PaidOffArchive debts={paidOff} />
+        </Screen>
+      );
+    }
+    /**
+     * ⛔ **AN UNREADABLE PORTFOLIO IS NOT AN EMPTY ONE, AND SAYING SO WAS MY OWN FIRST FIX.**
+     * [S1.5 · B1] Suppressing the trophy alone dropped this user into *"Your payoff journey starts here ·
+     * Add a debt"* — over debts they have, entered, and still owe. ⚡ **That is the same class as the
+     * defect being fixed**, one screen later: a true statement withheld replaced by a false one, and the
+     * e2e caught it because it asserts the debt's NAME renders before asserting the trophy does not.
+     *
+     * ⚠️ It points at Today rather than Money because that is where the repairs card the user must answer
+     * actually lives (`index.tsx:237`).
+     */
+    if (store.debts.length > 0) {
+      return (
+        <Screen title="Progress" right={<MoreButton />}>
+          <EmptyState
+            icon="error-outline"
+            title="Some balances couldn’t be read"
+            body="Your payoff journey needs figures it can trust. Set the amounts again from the note on Today and this fills back in."
+            cta="Go to Today"
+            onCta={() => goToTab('index')}
+          />
         </Screen>
       );
     }

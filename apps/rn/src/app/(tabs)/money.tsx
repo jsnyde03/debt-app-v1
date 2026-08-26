@@ -42,6 +42,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { useActiveStore } from '@/store/StoreContext';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
+import { hasUnreadDebtBalances, hasUnreadGoalAmounts } from '@/store/trustSelectors';
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
@@ -357,7 +358,11 @@ function DebtsSection({
   // the life of the install — the same permanent, invisible falsehood `.11.8` closed, mirrored. The goals
   // guards below already self-correct: each conjoins an evidence check on the repaired VALUE, and a
   // recovered value is not `0`. This one had no such conjunct, so it reads the distinction directly.
-  const unreadDebts = store.pendingDataRepairs.some((r) => r.entity === 'debt' && r.kind !== 'recovered');
+  // ⛔ [S1.5 · B1] Asked of the ONE owner. This guard used to be re-derived inline here and nowhere else,
+  // so Today and Progress made the same claim with no guard at all. ⚠️ The owner is also FIELD-specific,
+  // which fixes a widening S1.1's own ⓪-3 introduced: an absent `apr` now records a repair and was
+  // suppressing this celebration, though it says nothing about whether the balances were read.
+  const unreadDebts = hasUnreadDebtBalances(store);
   const allCleared = active.length === 0 && paidOff.length > 0 && !unreadDebts;
 
   const list = (
@@ -952,7 +957,9 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
   const primaryEf = primaryEmergencyGoal(goals);
   // See the `funded` guard below — a goal whose target could not be read repairs to `0`, and `0 >= 0`
   // badges it as Funded. Same rule the debts branch already applies via `unreadDebts`.
-  const unreadGoals = useAppStore((s) => s.store.pendingDataRepairs.some((r) => r.entity === 'goal'));
+  // ⛔ [S1.5 · B1] The one owner again. ⚠️ It excludes a clean `recovered`, which the inline version did
+  // not — a goal whose target was written `'5,000'` was read correctly and should still badge Funded.
+  const unreadGoals = useAppStore((s) => hasUnreadGoalAmounts(s.store));
   // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
   const store_ = useActiveStore();
   const [sheet, setSheet] = useState<{ editing: Goal | null } | null>(null);

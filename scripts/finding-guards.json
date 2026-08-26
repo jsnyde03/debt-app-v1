@@ -1,4 +1,14 @@
 {
+  "S1P1-B1-OWNER": {
+    "what": "pass-1 B1 — the whole app had two trust guards, both inline in money.tsx, while selectPlanState and progress.tsx made the same 'every balance cleared' claim with none; measured on one store, Money refused while Today asserted",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "Today must NOT reach the debt-free celebration"
+  },
+  "S1P1-B1-PROGRESS": {
+    "what": "pass-1 B1's third screen — progress.tsx contained zero references to pendingDataRepairs and rendered a DEBT-FREE trophy shelf; the first fix then dropped the user into 'Add a debt', which was a second false statement",
+    "file": "apps/rn/tests/e2e/progress-hero-journey.spec.ts",
+    "token": "Progress does not hand out a trophy for balances it could not read"
+  },
   "S1-BLOCKER-1": {
     "what": "Number('') is 0, so a blank balance was stamped `recovered`; Money's narrowed guard then rendered \"Every balance cleared\" over debts still owed, permanently",
     "file": "apps/rn/src/data/migrations.test.ts",

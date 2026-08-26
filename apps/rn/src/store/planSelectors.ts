@@ -9,6 +9,7 @@ import { toCushionStatus } from '@core/timeline/buildMultiCycleTimeline';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import type { DebtStore } from '@/data/models';
+import { hasUnreadDebtBalances } from '@/store/trustSelectors';
 
 import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation, type Allocation } from './selectors';
 
@@ -293,13 +294,27 @@ export function selectRecommendedActions(store: DebtStore, allocation: Allocatio
   });
 }
 
-export type PlanState = 'no-paycheck' | 'no-debts' | 'debt-free' | 'normal';
+/**
+ * ⛔ **`'debt-free-unverified'` EXISTS SO A SCREEN CANNOT FORGET TO ASK.**
+ * [P6.8.9.7.11.18 · S1.5 · pass-1 blocker B1]
+ *
+ * Every debt whose balance the app could not read is repaired to `0`, which puts it in neither the active
+ * list nor anything a user can correct — so `liveDebts.length === 0` was true of a portfolio that is
+ * **entirely unread**, and Today rendered *"You're debt-free. Every balance is cleared."* over debts still
+ * owed, permanently. ⚠️ The alternative — asking `hasUnreadDebtBalances` at the render site — is the shape
+ * that produced M9 days earlier: a rule copied to each site that needed it, which then disagreed.
+ */
+export type PlanState = 'no-paycheck' | 'no-debts' | 'debt-free' | 'debt-free-unverified' | 'normal';
 
 /** Which top-level state the Plan screen is in (drives the hero variant). */
 export function selectPlanState(store: DebtStore, allocation: Allocation | null): PlanState {
   if (!allocation) return 'no-paycheck';
   const liveDebts = store.debts.filter((d) => d.balance > 0);
-  if (liveDebts.length === 0) return store.debts.length > 0 ? 'debt-free' : 'no-debts';
+  if (liveDebts.length === 0) {
+    if (store.debts.length === 0) return 'no-debts';
+    // ⚠️ Asked of the ONE owner (`trustSelectors`), never re-derived here — see the PlanState docblock.
+    return hasUnreadDebtBalances(store) ? 'debt-free-unverified' : 'debt-free';
+  }
   return 'normal';
 }
 

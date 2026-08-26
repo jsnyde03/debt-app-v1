@@ -229,6 +229,11 @@ async function main() {
   // over debts still owed. Every prior test of this class picked `null`, the member that worked.
   await (await import('../data/migrations.test')).default();
 
+  // P6.8.9.7.11.18 · S1.5 — the ONE owner of "may the app claim this money is cleared". ⛔ Gates pass-1
+  // blocker B1: the whole app had two trust guards, both in money.tsx, while Today and Progress made the
+  // same claim with none. Asserts the three screens AGREE on one store, in both directions.
+  await (await import('../store/trustSelectors.test')).default();
+
   // 5.10 — the adversarial migration audit. 482 generated cases × 2 real doors × 8 invariants, plus the
   // differential oracle. ⛔ Gates: a regression here is data loss on upgrade.
   await (await import('../data/migrationAudit/audit.test')).default();
