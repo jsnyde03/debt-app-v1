@@ -1,8 +1,27 @@
 {
+  "apps/rn/app.json": [
+    "never"
+  ],
+  "apps/rn/eslint.config.mjs": [
+    "never"
+  ],
+  "apps/rn/playwright.config.ts": [
+    "s1p2"
+  ],
+  "apps/rn/playwright.embed.config.ts": [
+    "never"
+  ],
+  "apps/rn/playwright.shots.config.ts": [
+    "never"
+  ],
+  "apps/rn/scripts/copy-canvaskit.mjs": [
+    "never"
+  ],
   "apps/rn/src/data/migrationAudit/audit.test.ts": [
     "p1",
     "p3",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/data/migrationAudit/corpus.ts": [
     "p1",
@@ -19,7 +38,8 @@
   "apps/rn/src/data/migrationAudit/hostile.test.ts": [
     "p1",
     "p3",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/data/migrationAudit/interruption.test.ts": [
     "never"
@@ -27,13 +47,14 @@
   "apps/rn/src/data/migrationAudit/invariants.ts": [
     "p1",
     "p3",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/data/migrationAudit/run.ts": [
     "never"
   ],
   "apps/rn/src/testing/runAppTests.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/testing/runScenarioTests.ts": [
     "never"
@@ -66,13 +87,13 @@
     "never"
   ],
   "apps/rn/tests/shots/p6.8-matrix.shot.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/shots/phase35-themes.shot.ts": [
     "never"
   ],
   "packages/core/testing/runRegressionTests.ts": [
-    "never"
+    "s1p2"
   ],
   "packages/core/testing/seedPlannerState.ts": [
     "never"
@@ -135,8 +156,8 @@
     "p4"
   ],
   "scripts/begin-gate-run.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/check-a11y-collapse.ts": [
     "p4"
@@ -148,14 +169,16 @@
     "p2",
     "p3",
     "p4",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/check-comment-convention.ts": [
     "r17"
   ],
   "scripts/check-committed-secrets.ts": [
     "p4",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/check-contrast.ts": [
     "p4"
@@ -168,8 +191,8 @@
     "p3"
   ],
   "scripts/check-finding-guards.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/check-gate-freshness.ts": [
     "p4"
@@ -212,7 +235,8 @@
   ],
   "scripts/check-type-scale.ts": [
     "p4",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/check-webkit-flex-controls.ts": [
     "r17"
@@ -233,7 +257,8 @@
     "p1"
   ],
   "scripts/duplicate-copy-baseline.json": [
-    "p4"
+    "p4",
+    "s1p2"
   ],
   "scripts/e2e-fresh-rn.cjs": [
     "never"
@@ -242,13 +267,14 @@
     "never"
   ],
   "scripts/finding-guards.json": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/gateSources.ts": [
     "p2",
     "p3",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/lib/stripCode.ts": [
     "p2",
@@ -262,7 +288,8 @@
   ],
   "scripts/preflight-native-lane.ts": [
     "p4",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/preflight-xcuitest-target.ts": [
     "never"
@@ -270,7 +297,8 @@
   "scripts/run-gates.ts": [
     "p1",
     "p3",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/secrets-exemptions.json": [
     "never"
@@ -281,11 +309,12 @@
   "scripts/strings-inventory.ts": [
     "p4",
     "r17",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/surface-coverage.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/surface-inventory.ts": [
     "never"
@@ -294,8 +323,8 @@
     "never"
   ],
   "scripts/test-gate-plants.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "scripts/test-stamp-coverage.ts": [
     "never"
@@ -305,6 +334,7 @@
   ],
   "scripts/write-gate-status.ts": [
     "p4",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ]
 }

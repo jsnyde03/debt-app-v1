@@ -164,8 +164,17 @@ const B1_SCENARIOS: Scenario[] = [
     // ⚠️ UNTRACKED, which is the whole point: the committed-tree gate is blind to it BY DESIGN, and
     // `--working-tree` exists so a report's author finds their own plant before committing it.
     at: 'docs/audits/__gate_plant_report__.md',
-    body: 'A transcript line: `SENTRY_DSN=https://0123456789abcdef0123456789abcdef@o1.ingest.sentry.io/1`\n',
-    expect: 'untracked',
+    /**
+     * ⛔ **ASSEMBLED AT RUNTIME, because a plant that is a LITERAL is a committed credential.**
+     * The first cut spelled the DSN out here and `lint:secrets` — correctly — reported this file as
+     * holding one, in the index and in HEAD, the moment it was committed. A fixture for a secrets gate
+     * cannot itself be the thing the gate exists to refuse.
+     *
+     * ⚠️ The planted FILE still carries a real credential-shaped string, which is what makes it a plant;
+     * what is missing is any single line of tracked source that matches the pattern.
+     */
+    body: `A transcript line: ${'SENTRY' + '_DSN=https://'}${'0123456789abcdef'.repeat(2)}${'@o1.ingest.' + 'sentry.io/1'}\n`,
+    expect: 'working tree',
     why: '`if (false && WORKING_TREE)` leaves the identifier in place and the authoring check doing nothing',
   },
 ];

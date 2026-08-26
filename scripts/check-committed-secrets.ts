@@ -206,17 +206,31 @@ const scanned = new Set<string>();
 const WORKING_TREE = process.argv.includes('--working-tree');
 
 if (WORKING_TREE) {
-  const untracked = (() => {
-    try {
-      return execFileSync('git', ['ls-files', '-z', '--others', '--exclude-standard'], { cwd: REPO_ROOT, encoding: 'utf8' })
-        .split('\0')
-        .filter(Boolean)
-        .filter((f) => f !== SELF);
-    } catch {
-      return [];
-    }
+  /**
+   * ⛔ **UNTRACKED *AND* MODIFIED-BUT-TRACKED, and the second half was a hole this gate fell into itself.**
+   * [S1.9.5 after-scan] The authoring mode was built for [M10] — an auditor writing a NEW report — so it
+   * read `--others` alone. ⚡ Measured the hard way: a credential-shaped fixture was added to
+   * `scripts/test-gate-plants.ts`, a TRACKED file; `lint:secrets:authoring` was run before the commit and
+   * passed, because the file is not untracked and the edit was not yet staged. The next run of
+   * `lint:secrets` — after the commit — reported it in the index and in HEAD.
+   *
+   * ⚠️ **Both halves of "before committing" matter**: a new file nobody has added yet, and an edit to a
+   * file that has been in the repo for months. The second is the more likely one, and it was the one
+   * missing.
+   */
+  const authoring = (() => {
+    const run = (args: string[]) => {
+      try {
+        return execFileSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8' }).split('\0').filter(Boolean);
+      } catch {
+        return [];
+      }
+    };
+    const untracked = run(['ls-files', '-z', '--others', '--exclude-standard']);
+    const modified = run(['diff', '-z', '--name-only', 'HEAD']);
+    return [...new Set([...untracked, ...modified])].filter((f) => f !== SELF);
   })();
-  for (const rel of untracked) {
+  for (const rel of authoring) {
     let text: string;
     try {
       text = readFileSync(join(REPO_ROOT, rel), 'utf8');
@@ -229,7 +243,7 @@ if (WORKING_TREE) {
         const m = re.exec(line);
         if (!m) return;
         if (exemptKeys.has(keyOf(rel, hashOf(m[0])))) return;
-        hits.push({ rev: 'untracked', file: rel, line: i + 1, name, note });
+        hits.push({ rev: 'working tree', file: rel, line: i + 1, name, note });
       });
     }
   }

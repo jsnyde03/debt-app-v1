@@ -58,7 +58,8 @@
  *
  * Usage: npm run lint:s0-coverage · npm run lint:s1-coverage   ·   `--report` prints the full table
  */
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -117,7 +118,7 @@ const KNOWN_SURFACES = new Set([
  * appears in neither claims file. Documented and enforced are now the same list, by construction.
  */
 const UNSWEPT_CLAIMS = ['never', 'unknown', 'partial'] as const;
-const SWEPT_CLAIMS = ['p1', 'p2', 'p3', 'p4', 'g4', 'r10', 'r17', 's1p1'] as const;
+const SWEPT_CLAIMS = ['p1', 'p2', 'p3', 'p4', 'g4', 'r10', 'r17', 's1p1', 's1p2'] as const;
 const VALID_CLAIMS = new Set<string>([...UNSWEPT_CLAIMS, ...SWEPT_CLAIMS]);
 
 const SOURCE_EXT = new Set(['.ts', '.tsx', '.mjs', '.cjs', '.json', '.sh']);
@@ -127,7 +128,11 @@ const SOURCE_EXT = new Set(['.ts', '.tsx', '.mjs', '.cjs', '.json', '.sh']);
  * DATA, and this gate's own claim files are its record rather than its subject.
  */
 const commonExcluded = (rel: string): Routing | null =>
-  rel.endsWith('tsconfig.json')
+  // ⚠️ S1.9.5 — the same statement `tsconfig.json` already carried, for the rest of the manifest family.
+  // A lockfile is generated and a manifest declares the tree; neither is a subject an auditor reads.
+  /(^|\/)(package\.json|package-lock\.json|tsconfig(\.[a-z]+)?\.json)$/.test(rel)
+    ? { to: 'none', why: 'configures a surface rather than sitting on one' }
+    : rel.endsWith('tsconfig.json')
     ? { to: 'none', why: 'configures a surface rather than sitting on one' }
     : rel.includes('__fixtures__')
       ? { to: 'none', why: 'fixtures are DATA, not surface' }
@@ -175,6 +180,22 @@ const SURFACES: Record<string, Surface> = {
       'packages/core/testing',
       'apps/rn/src/testing',
       'apps/rn/tests/shots',
+      /**
+       * ⛔ **S1.9.5 — THE APP-LEVEL INSTRUMENTS, found by the completeness gate on its first run.**
+       * `apps/rn/scripts` builds the web bundle's CanvasKit, and the three Playwright configs decide the
+       * viewport, the web server and the projects **every e2e assertion in the repo runs under**. Auditor
+       * A read `playwright.config.ts` in pass 2 and it was on no surface, so the sweep could not be
+       * recorded. ⚠️ A root may be a FILE — the walker already distinguishes the two.
+       */
+      'apps/rn/scripts',
+      // ⚠️ `preflight-native-lane.ts` already ASSERTS on `app.json` (the icon, its size, its lack of an
+      // alpha channel), so it is an audited subject that was on no surface — found by the gate, not by a
+      // reading. `eslint.config.mjs` is the lint instrument itself.
+      'apps/rn/app.json',
+      'apps/rn/eslint.config.mjs',
+      'apps/rn/playwright.config.ts',
+      'apps/rn/playwright.embed.config.ts',
+      'apps/rn/playwright.shots.config.ts',
     ],
     claims: 'scripts/surface-coverage.s0.json',
     inventory: 'docs/audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-SURFACE-INVENTORY.md',
@@ -201,13 +222,44 @@ const SURFACES: Record<string, Surface> = {
      * ⛔ **Do not re-add individual files here.** Widen a root and route what is not money below.
      */
     roots: [
-      'apps/rn/src/components/plan',
-      'apps/rn/src/components/entities',
-      'apps/rn/src/app/(tabs)',
-      'apps/rn/src/store',
-      'apps/rn/src/data',
-      'packages/core/engine',
-      'packages/core/guardian',
+      /**
+       * ⛔ **S1.9.5 — `apps/rn/src` ENTIRE, and this is the FIFTH time the roots have been widened.**
+       * 🎯 2026-08-26: *"We need to be sure that our audits are touching all surfaces."*
+       *
+       * ⚡ **Measured: 184 files were under NO root and on NO surface** — not routed to a future owner,
+       * simply invisible, so no auditor has ever been pointed at them and nothing recorded who should be.
+       * `apps/rn/src/utils` (18) holds `format.ts`, which **every dollar figure in the app passes
+       * through**; `premium` (10) is the monetisation surface; `storage` (9) is persistence; `hooks` (15),
+       * `liveActivity` (7), `widget` (6) and 73 files under `components/` outside the two named
+       * subdirectories were all unreachable by any pass.
+       *
+       * ⛔ **The previous four corrections each added a NARROWER root and each was followed by another
+       * gap**: M9 (files hand-named inside `roots`), [D73] (the whole test tree), S1.9.5's first cut
+       * (`packages/core`), and this. **The variable was never the tree — it is where you point.** So the
+       * root is the source tree, and `invisibleFiles` below makes a sixth recurrence impossible rather
+       * than merely unlikely.
+       *
+       * ⚠️ This surface therefore owns anything without a clear other owner, which is what the routing
+       * docblock below already states: *an exclusion list's whole virtue is that a file nobody thought
+       * about is still counted.*
+       */
+      'apps/rn/src',
+      /**
+       * ⛔ **S1.9.5 — A ROOT, AND THE FOURTH TIME THIS CORRECTION HAS BEEN MADE.** Pass 2 found
+       * `packages/core/timeline` on no surface — the forecast module its own sharpest major (D2-1) is
+       * ABOUT — because the roots named `engine` and `guardian` and stopped there.
+       *
+       * ⚡ **Measured before acting on it, and the plan's "one line" was wrong by a factor of eighteen:**
+       * 18 of the 21 directories under `packages/core` were on no surface, **102 files**, and `debt`
+       * alone is 53. `cashflow`, `forecast`, `income`, `insights`, `obligations`, `payCycle`, `recovery`
+       * and `history` are money by any reading.
+       *
+       * ⛔ **Adding `packages/core/timeline` would have been the fifth hand-named directory**, which is
+       * M9's defect verbatim — and M9's own remedy was stated as *a root, not a file list*. Every
+       * previous correction here came from widening a root while the pre-correction number looked
+       * healthier; the honest number is the one that goes up.
+       */
+      'packages/core',
       /**
        * ⛔ [D73] — **THE GUARDS WERE ON NO SURFACE.** `grep -c "tests/e2e"` returned **0** against both
        * claims files: co-located `*.test.ts` under `src/` were on-surface, and the whole of
@@ -244,6 +296,23 @@ const SURFACES: Record<string, Surface> = {
       const base = rel.split('/').pop() ?? '';
       if (S4_OWNED.has(base)) return { to: 's4', why: 'discovery / tutorial / demo, in components/plan for layout reasons' };
       if (/components\/plan\/AppStoreCta(\.web)?\.tsx$/.test(rel)) return { to: 's4', why: 'store listing CTA, not money' };
+      /**
+       * ⛔ **S1.9.5 — `packages/core` IS A ROOT NOW, so its non-money neighbours need owners.** ⚠️ Only
+       * three move, and each is the same statement a source routing above already makes. Everything else
+       * — `debt`, `cashflow`, `forecast`, `income`, `insights`, `obligations`, `payCycle`, `recovery`,
+       * `recurrence`, `history`, `storage`, `timeline`, `types`, `utils`, `constants`, `copy` — **stays
+       * on the money surface**, because an exclusion list only fails safe for as long as its entries are
+       * certainties and *when the owner is arguable the file stays*.
+       *
+       * ⚠️ `packages/core/testing` routes to a LIVE surface that already WALKS it as a root of its own —
+       * the [D73] trap is routing to a live surface whose roots do not cover the file, and this is
+       * checked, not assumed. `scan` / `imports` route to `s3`, which is not built yet; that records an
+       * owner for when it is, which the comment on the test-tree routings below already establishes.
+       */
+      if (rel.startsWith('apps/rn/src/testing/')) return { to: 's0', why: 'the app + scenario runners — an S0 root in its own right' };
+      if (rel.startsWith('packages/core/testing/')) return { to: 's0', why: 'the test runners — an S0 root in its own right' };
+      if (rel.startsWith('packages/core/scan/')) return { to: 's3', why: 'receipt / statement scanning — the import surface' };
+      if (rel.startsWith('packages/core/imports/')) return { to: 's3', why: 'the import parsers — the import surface' };
       // S0 already walks this directory as a root of its own — a file on two surfaces needs a reason,
       // and "the migration audit is an instrument" is S0's reason, not S1's.
       if (rel.startsWith('apps/rn/src/data/migrationAudit/')) return { to: 's0', why: 'an S0 root in its own right' };
@@ -283,6 +352,107 @@ const SURFACES: Record<string, Surface> = {
     },
   },
 };
+
+/**
+ * ⛔ **THE COMPLETENESS GATE — NO SOURCE FILE IS INVISIBLE TO EVERY SURFACE.**
+ * [S1.9.5 · 🎯 2026-08-26: *"We need to be sure that our audits are touching all surfaces."*]
+ *
+ * ⚡ **The roots have been wrong FIVE times, and every correction came from noticing one hole by hand:**
+ * M9 (files hand-named inside `roots`, 72 → 137) · [D73] (the whole test tree, 137 → 188) · S1.9.5's first
+ * cut (`packages/core`, 18 directories where the plan expected one, 188 → 286) · and `apps/rn/src` entire
+ * (184 files under no root at all, 286 → 470). Each fix closed an instance. **None closed the class**, and
+ * each time the pre-correction number looked healthier.
+ *
+ * ⛔ **THE FILE LIST COMES FROM `git ls-files`, NOT FROM A WALK.** A gate that enumerates the trees it
+ * audits is blind to a tree omitted from the list — the same defect it exists to catch, one level up. A
+ * deny-list inverts that but has its own decay, and it showed both failure modes on its first two runs:
+ * matching only top-level paths let `apps/rn/node_modules` straight through, and the walk then reported
+ * `apps/rn/core`, **a symlink to `packages/core`**, as 21 more invisible directories.
+ *
+ * ⚡ **Tracked-ness answers all of it with one rule that cannot go stale:** build output, dependencies,
+ * generated bundles and symlinks into the repo are not tracked, so none of them can appear here, and a new
+ * one cannot quietly widen what is skipped. What remains excluded is a short list of TRACKED trees that
+ * are genuinely not audit subjects, each with a reason — and one of those carries an expiry.
+ */
+const NOT_SOURCE: { dir: string; why: string }[] = [
+  { dir: 'docs', why: 'prose — the record, not the subject' },
+  { dir: 'assets', why: 'binary assets' },
+  { dir: 'public', why: 'static assets' },
+  { dir: 'site', why: 'the marketing site' },
+  { dir: '.github', why: 'CI workflow config — preflight-native-lane owns it, and asserts on it' },
+  { dir: '.claude', why: 'agent config' },
+  { dir: 'ios', why: 'the native shell — the native lane pre-flight owns it' },
+  { dir: 'apps/rn/modules', why: 'the native Expo modules — the native lane owns them' },
+  /**
+   * ⛔ **THE LEGACY NEXT / CAPACITOR SURFACE, WHICH P6.11 DELETES.** Excluded because it is scheduled for
+   * removal, not because anyone audited it. ⚠️ **The exclusion carries its own expiry**: when the directory
+   * is gone this gate reds, so the deletion cannot leave a permission standing behind it — the same
+   * self-ratcheting shape `MAX_EXEMPT` uses in `check-committed-secrets.ts`.
+   */
+  { dir: 'app', why: 'legacy Next surface — deleted at P6.11' },
+  { dir: 'components', why: 'legacy Next surface — deleted at P6.11' },
+  { dir: 'lib', why: 'legacy Next surface — deleted at P6.11' },
+  { dir: 'tests', why: 'legacy Next surface — deleted at P6.11' },
+];
+
+/** ⛔ Downward-only. Raising it to make a run pass is the defect this gate exists to catch. */
+const MAX_INVISIBLE = 0;
+
+function runCompleteness(): never {
+  const everyRoot = Object.values(SURFACES).flatMap((sf) => sf.roots);
+
+  // ⚠️ A skip naming a directory that no longer exists is a STALE permission — see the legacy note above.
+  // Checked first, so a deletion cannot quietly widen what is skipped.
+  const stale = NOT_SOURCE.filter((e) => !existsSync(join(REPO_ROOT, e.dir)));
+  if (stale.length) {
+    console.error('\n❌ surface-complete: the skip list names director(ies) that no longer exist.\n');
+    for (const e of stale) console.error(`  ${e.dir}  — "${e.why}"`);
+    console.error(
+      '\n  ⛔ Remove the entry. A skip for something that is gone is a standing permission for\n' +
+        '  whatever takes the name next.\n',
+    );
+    process.exit(1);
+  }
+
+  let tracked: string[];
+  try {
+    tracked = execFileSync('git', ['ls-files', '-z'], { cwd: REPO_ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      .split('\0')
+      .filter(Boolean);
+  } catch {
+    // ⛔ Not a soft failure. This gate's whole claim rests on the file list being authoritative, and a
+    // guess would report "everything is covered" over a list it never obtained.
+    console.error('\n❌ surface-complete: `git ls-files` failed, so the file list is unknown.\n');
+    process.exit(1);
+  }
+
+  const invisible = tracked.filter((rel) => {
+    if (!SOURCE_EXT.has(rel.slice(rel.lastIndexOf('.')))) return false;
+    if (NOT_SOURCE.some((e) => rel === e.dir || rel.startsWith(`${e.dir}/`))) return false;
+    if (commonExcluded(rel)) return false;
+    // A file at the repo root configures the repo rather than sitting on a surface.
+    if (!rel.includes('/')) return false;
+    return !everyRoot.some((r) => rel === r || rel.startsWith(`${r}/`));
+  });
+
+  if (invisible.length > MAX_INVISIBLE) {
+    console.error(`\n❌ surface-complete: ${invisible.length} tracked source file(s) are under NO surface's roots.\n`);
+    for (const f of invisible) console.error(`  INVISIBLE  ${f}`);
+    console.error(
+      '\n  ⛔ No audit pass can ever be pointed at these, and nothing records who should own them.\n' +
+        '  Add a root, or add a routing — but do NOT add the file to a claims list, which would record a\n' +
+        `  sweep of a file no surface walks. Cap is ${MAX_INVISIBLE} and only ever goes DOWN.\n`,
+    );
+    process.exit(1);
+  }
+  console.log(
+    `\n✅ surface-complete: every tracked source file is under a surface root ` +
+      `(${tracked.length} tracked, ${NOT_SOURCE.length} trees skipped by name).\n`,
+  );
+  process.exit(0);
+}
+
+if (process.argv.includes('--completeness')) runCompleteness();
 
 const requested = (process.argv.find((a) => a.startsWith('--surface='))?.split('=')[1] ?? 's0').toLowerCase();
 const SURFACE = SURFACES[requested];

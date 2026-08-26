@@ -4,6 +4,90 @@
 
 ---
 
+## S1.9.5 — the roots, and the gate that ends the class *(2026-08-26)*
+
+⛔ **THE PLAN SAID "ONE LINE". IT WAS WRONG BY A FACTOR OF EIGHTEEN, AND THEN BY 184 MORE.**
+
+The step was *"`packages/core/timeline` onto the S1 roots — one line; it is where D2-1 lives."* Measured
+before acting on it, as a pre-authored item must be:
+
+| | |
+|---|---|
+| `packages/core` | **18 of 21 directories on no surface — 102 files.** `debt` alone is 53; `cashflow`, `forecast`, `income`, `insights`, `obligations`, `payCycle`, `recovery` and `history` are money by any reading |
+| `apps/rn/src` | **184 files under NO root and on NO surface** — not routed to a future owner, invisible. `utils` (18) holds `format.ts`, which **every dollar figure in the app passes through**; `premium` (10) is monetisation; `storage` (9) is persistence; 73 files under `components/` outside the two named subdirectories |
+
+⛔ **Adding `packages/core/timeline` would have been the fifth hand-named directory** — M9's defect
+verbatim, whose own remedy was stated as *a root, not a file list.*
+
+🎯 **2026-08-26, on being shown the measurement:** *"I'll approve it. We need to be sure that our audits are
+touching all surfaces."*
+
+**S1's roots are now `apps/rn/src` · `apps/rn/tests` · `packages/core`**, with only certainties routed out
+(`apps/rn/src/testing` and `packages/core/testing` → S0, which walks both as roots of its own; `scan` and
+`imports` → S3). **S1: 188 → 470 files, 116 → 331 unswept.** ⚠️ The number looks far worse and is the first
+one that is true; every previous correction here looked healthier before it was made.
+
+### ⚡ THE GATE THAT ENDS THE CLASS — `lint:surface-complete`
+
+Four corrections closed four instances and none closed the class. This one asserts the property directly:
+**every tracked source file is under some surface's roots**, cap `0`, downward-only.
+
+⛔ **The enumeration had to run the other way.** A gate that LISTS the trees it audits is blind to a tree
+omitted from the list — the same defect one level up. The first cut used a deny-list and **showed both
+failure modes on its first two runs**: matching top-level paths only let `apps/rn/node_modules` straight
+through, and the walk then reported **`apps/rn/core` — a symlink to `packages/core`** — as 21 more
+invisible directories.
+
+⚡ **`git ls-files` answers all of it with one rule that cannot go stale.** Build output, dependencies,
+generated bundles and symlinks into the tree are not tracked, so none of them can appear, and a new one
+cannot quietly widen what is skipped. What remains is a short list of TRACKED trees that are genuinely not
+subjects — and the legacy Next surface's entry **carries its own expiry**: a skip naming a directory that
+no longer exists reds, so P6.11's deletion cannot leave a standing permission behind it. ⚠️ **That check
+caught three stale entries on its very first run.**
+
+**What the gate found that no reading had:** `apps/rn/scripts` · `apps/rn/app.json` *(which
+`preflight-native-lane` already ASSERTS on — an audited subject on no surface)* · `apps/rn/eslint.config.mjs`
+· and the three Playwright configs that decide the viewport, the web server and the projects **every e2e
+assertion in the repo runs under**. Auditor A read `playwright.config.ts` in pass 2 and the sweep could not
+be recorded, because the file was on nothing. All now S0 roots.
+
+### The write-back — and `s1p2` did not exist
+
+⛔ **Pass 2 swept and NONE of it was recorded.** `s1p2` was not in the vocabulary, exactly the recurrence
+the residue table warns about (*"write the claims back after every pass or coverage stops ratcheting"*) and
+exactly what S1.5.4 had to fix for pass 1. Added, and written back from the four auditor reports:
+**90 files on S1, 20 on S0.** ⚠️ Unresolved paths are PRINTED, never dropped — a swept file quietly missing
+from the write-back is a file the next pass re-exempts under [D69].
+
+**Verified — 4 plants.** The root narrowed back to the two hand-named directories → `lint:s1-coverage` reds
+with 98 STALE. `s1p2` dropped from the vocabulary → reds. A root removed → `lint:surface-complete` reds with
+280 INVISIBLE. A skip naming a deleted tree → reds on the expiry.
+
+### ⛔ AND THE AFTER-SCAN CAUGHT A CREDENTIAL I COMMITTED IN S1.9.4
+
+`lint:rn` went red on `lint:secrets`: **`scripts/test-gate-plants.ts` held a Sentry DSN literal** — the M10
+plant's own body. A fixture for a secrets gate cannot be the thing the gate exists to refuse. Now assembled
+at runtime, so the planted FILE still carries a credential-shaped string and no line of tracked source does.
+
+⚡ **The far more useful half is why it was not caught before the commit.** `lint:secrets:authoring` was run
+before committing S1.9.4 and passed — because `--working-tree` read `git ls-files --others` alone, i.e.
+**untracked files only**. The credential went into a file that has been in the repo for months, and the edit
+was not yet staged, so it was invisible to both passes: not untracked, not in the index.
+
+⛔ **[M10] built the authoring mode for the case it had in front of it — an auditor writing a NEW report —
+and the more likely case is an edit to an existing file.** The mode now reads `--others` **and**
+`git diff --name-only HEAD`. Measured: a credential appended to `docs/DEBT_SENTRY_SETUP.md` (tracked,
+modified, unstaged) now reds as `[working tree]`, where before it passed.
+
+⚠️ **No rotation is owed** — the value is a fixture, never a real DSN — and `lint:secrets` reads the
+**index and HEAD trees**, not the whole log, so a plain commit clears it. Recorded rather than rewritten.
+
+**Guards.** `S1P2-D2-1-ROOTS` · `S1P2-SURFACE-COMPLETE` · `S1P2-SKIP-EXPIRY`. `MIN_ENTRIES` 86 → **89**;
+73 of 89 guarded. **`lint:rn` is now 28 gates.** S0 **97 files · 50 unswept** · S1 **470 · 331** ·
+surface-complete **1205 tracked, 0 invisible**.
+
+---
+
 ## S1.9.4 — [B-1], the seven guards that could not see their own un-fix *(2026-08-26)*
 
 **The finding.** Seven registry entries were pinned by an identifier inside a *gate script's own logic*, and

@@ -1,15 +1,85 @@
 {
+  "apps/rn/src/analytics/funnel.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/analytics/funnel.ts": [
+    "never"
+  ],
   "apps/rn/src/app/(tabs)/_layout.tsx": [
     "never"
   ],
   "apps/rn/src/app/(tabs)/index.tsx": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/app/(tabs)/money.tsx": [
     "r10",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/app/(tabs)/progress.tsx": [
+    "s1p2"
+  ],
+  "apps/rn/src/app/+not-found.tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/_layout.tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/cushion-forecast.tsx": [
+    "s1p2"
+  ],
+  "apps/rn/src/app/demo.tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/history.tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/living-expenses.tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/more.tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/onboarding.tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/paywall.tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/schedule/[id].tsx": [
+    "never"
+  ],
+  "apps/rn/src/app/tutorial.tsx": [
+    "never"
+  ],
+  "apps/rn/src/appIntents/drainPendingActions.ts": [
+    "never"
+  ],
+  "apps/rn/src/appIntents/pendingActionBridge.native.ts": [
+    "never"
+  ],
+  "apps/rn/src/appIntents/pendingActionBridge.ts": [
+    "never"
+  ],
+  "apps/rn/src/appIntents/pendingActionBridge.types.ts": [
+    "never"
+  ],
+  "apps/rn/src/appIntents/pendingActions.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/appIntents/pendingActions.ts": [
+    "never"
+  ],
+  "apps/rn/src/components/AppLockGate.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/DataResetScreen.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/SaveFailedBanner.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/StorageErrorScreen.tsx": [
     "never"
   ],
   "apps/rn/src/components/entities/AddObligationSheet.tsx": [
@@ -21,16 +91,17 @@
     "s1p1"
   ],
   "apps/rn/src/components/entities/DebtSheet.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/entities/ExpenseSheet.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/entities/GoalSheet.tsx": [
     "r17",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/entities/ImportDebtsSheet.tsx": [
     "never",
@@ -44,13 +115,107 @@
     "never",
     "s1p1"
   ],
+  "apps/rn/src/components/money/AllocationBarCanvas.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/money/AllocationBarCanvas.web.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/money/AllocationBarChart.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/money/BillBreakdownSheet.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/money/BnplCalendarSection.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/more-button.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/more/BackupSheets.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/more/CloudBackupSheet.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/more/CoachMarkProbeReadout.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/more/LegacyBridgeProbeReadout.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/more/LiveActivityQA.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/more/ReduceMotionProbeReadout.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/more/SettingRow.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/onboarding/CompletionStep.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/onboarding/OnboardingLayout.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/onboarding/PaycheckStep.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/onboarding/WelcomeStep.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/payday/PaydayCaptureSheet.tsx": [
+    "s1p2"
+  ],
+  "apps/rn/src/components/payoff/StrategyCompare.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/TrajectoryCanvas.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/TrajectoryCanvas.web.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/TrajectoryChart.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/TrajectorySkiaChart.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/WhatIfControls.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/compareStrategies.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/compareStrategies.ts": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/monthLabels.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/monthLabels.ts": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/trajectoryDomain.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/trajectoryDomain.ts": [
+    "never"
+  ],
   "apps/rn/src/components/plan/AffordabilityCard.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/AffordabilityImpactBar.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/CaptureSlate.tsx": [
     "never",
@@ -65,8 +230,8 @@
     "s1p1"
   ],
   "apps/rn/src/components/plan/CashRunwayChart.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/CashRunwaySkiaChart.tsx": [
     "never",
@@ -90,7 +255,8 @@
   ],
   "apps/rn/src/components/plan/DataRepairsCard.tsx": [
     "r10",
-    "r17"
+    "r17",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/FloorImpactBar.tsx": [
     "never",
@@ -98,7 +264,8 @@
   ],
   "apps/rn/src/components/plan/GraduationCards.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/GuardianProofStrip.tsx": [
     "never",
@@ -106,11 +273,13 @@
   ],
   "apps/rn/src/components/plan/GuardianScorecard.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/LeanSuggestionCard.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/MeshGradientCanvas.tsx": [
     "never",
@@ -130,11 +299,12 @@
   ],
   "apps/rn/src/components/plan/PaidOffBeat.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/PaidOffFinale.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/PaycheckSheet.tsx": [
     "never",
@@ -142,7 +312,8 @@
   ],
   "apps/rn/src/components/plan/PaydayGuardianCard.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/PayoffInvitationCard.tsx": [
     "never",
@@ -150,84 +321,383 @@
   ],
   "apps/rn/src/components/plan/PlanHero.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/RecommendedActionsCard.tsx": [
     "never",
     "s1p1"
   ],
   "apps/rn/src/components/plan/RecoveryPlanSection.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/RequiredActionsCard.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/SaveForItSheet.tsx": [
     "r17"
   ],
   "apps/rn/src/components/plan/ShareCard.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/SpokenForSheet.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/WindfallSheet.tsx": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/dataRepairsCopy.test.ts": [
     "r17"
   ],
   "apps/rn/src/components/plan/dataRepairsCopy.ts": [
-    "r17"
+    "r17",
+    "s1p2"
   ],
   "apps/rn/src/components/plan/useCaptureAutoConfirm.ts": [
     "never",
     "s1p1"
   ],
-  "apps/rn/src/data/defaults.ts": [
+  "apps/rn/src/components/premium/PremiumInvite.tsx": [
     "never"
   ],
+  "apps/rn/src/components/progress/CashFlowSection.tsx": [
+    "s1p2"
+  ],
+  "apps/rn/src/components/progress/JourneyRingCanvas.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/progress/JourneyRingCanvas.web.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/progress/JourneyRingChart.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/progress/PaidOffArchive.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/progress/TimelineLedger.tsx": [
+    "s1p2"
+  ],
+  "apps/rn/src/components/screen.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/tab-bar-icon.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/AddRow.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/AnimatedSheet.tsx": [
+    "s1p2"
+  ],
+  "apps/rn/src/components/ui/AppIcon.ios.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/AppIcon.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/Button.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/Card.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/ChartSkeleton.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/CheckCircle.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/DateField.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/DateField.web.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/EmptyState.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/FormSheet.tsx": [
+    "s1p2"
+  ],
+  "apps/rn/src/components/ui/ListRow.tsx": [
+    "s1p2"
+  ],
+  "apps/rn/src/components/ui/MasterDetail.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/Pill.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/PressableScale.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/RadioGroup.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/RowContextMenu.ios.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/RowContextMenu.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/RowContextMenu.types.ts": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/SegmentedToggle.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/Select.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/SheetBackdrop.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/SheetScrim.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/Slider.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/SwitchRow.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/TextField.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/TwoColumn.tsx": [
+    "never"
+  ],
+  "apps/rn/src/components/ui/sheet-styles.ts": [
+    "never"
+  ],
+  "apps/rn/src/config/qa.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/defaults.ts": [
+    "s1p2"
+  ],
   "apps/rn/src/data/migrations.test.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/data/migrations.ts": [
-    "r10"
+    "r10",
+    "s1p2"
   ],
   "apps/rn/src/data/models.ts": [
     "r17"
   ],
-  "apps/rn/src/store/StoreContext.tsx": [
+  "apps/rn/src/hooks/spotlight.test.ts": [
     "never"
+  ],
+  "apps/rn/src/hooks/spotlightGeometry.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-app-colors.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-app-lock.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-cloud-backup.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-coach-mark.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-color-scheme.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-color-scheme.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-go-to-tab.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-inert.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-layout.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-notification-sync.ts": [
+    "s1p2"
+  ],
+  "apps/rn/src/hooks/use-payday-capture.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-sheet-presentation.ts": [
+    "never"
+  ],
+  "apps/rn/src/hooks/use-spotlight.ts": [
+    "never"
+  ],
+  "apps/rn/src/keyCommands/KeyCommandListener.ios.tsx": [
+    "never"
+  ],
+  "apps/rn/src/keyCommands/KeyCommandListener.tsx": [
+    "never"
+  ],
+  "apps/rn/src/keyCommands/keyCommandBus.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/keyCommands/keyCommandBus.ts": [
+    "never"
+  ],
+  "apps/rn/src/lib/app-lock.ts": [
+    "never"
+  ],
+  "apps/rn/src/lib/app-lock.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/lib/review.ts": [
+    "never"
+  ],
+  "apps/rn/src/lib/review.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/lib/scan.ts": [
+    "never"
+  ],
+  "apps/rn/src/lib/scan.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/liveActivity/liveActivityBridge.native.ts": [
+    "never"
+  ],
+  "apps/rn/src/liveActivity/liveActivityBridge.ts": [
+    "never"
+  ],
+  "apps/rn/src/liveActivity/liveActivityBridge.types.ts": [
+    "never"
+  ],
+  "apps/rn/src/liveActivity/liveActivityKeys.ts": [
+    "never"
+  ],
+  "apps/rn/src/liveActivity/liveActivitySync.ts": [
+    "never"
+  ],
+  "apps/rn/src/liveActivity/paydayActivityContent.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/liveActivity/paydayActivityContent.ts": [
+    "never"
+  ],
+  "apps/rn/src/motion/CountUp.tsx": [
+    "never"
+  ],
+  "apps/rn/src/motion/Motion.tsx": [
+    "never"
+  ],
+  "apps/rn/src/motion/haptics.ts": [
+    "never"
+  ],
+  "apps/rn/src/motion/hooks.ts": [
+    "never"
+  ],
+  "apps/rn/src/motion/index.ts": [
+    "never"
+  ],
+  "apps/rn/src/notifications/notificationCopy.ts": [
+    "never"
+  ],
+  "apps/rn/src/notifications/notifications.ts": [
+    "never"
+  ],
+  "apps/rn/src/notifications/notifications.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/config.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/introOffer.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/introOffer.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/legal.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/premiumKind.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/premiumKind.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/premiumSync.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/purchases.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/purchasesClient.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/purchasesClient.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/adapter.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ios.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/cloudBackup/index.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/cloudBackup/provider.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/cloudBackup/service.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/cloudBackup/service.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/createAdapter.ts": [
+    "never"
+  ],
+  "apps/rn/src/storage/createAdapter.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/store/StoreContext.tsx": [
+    "s1p2"
   ],
   "apps/rn/src/store/affordability.test.ts": [
     "never"
   ],
   "apps/rn/src/store/analysisSelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/appStore.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/balanceSelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/bnplCadence.test.ts": [
     "never"
   ],
   "apps/rn/src/store/boundedRun.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/celebrationSelectors.test.ts": [
     "never"
   ],
   "apps/rn/src/store/celebrationSelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/debtFreeBand.test.ts": [
     "never"
@@ -236,19 +706,19 @@
     "never"
   ],
   "apps/rn/src/store/debtIds.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/drift.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/expenseReserve.test.ts": [
     "never"
   ],
   "apps/rn/src/store/expenseReserveSelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/forecastCycles.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/glossary.test.ts": [
     "never"
@@ -257,36 +727,37 @@
     "never"
   ],
   "apps/rn/src/store/greeting.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/guardianPrediction.test.ts": [
     "never"
   ],
   "apps/rn/src/store/guardianPrediction.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/guardianPredictionCore.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/guardianSelectors.test.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/store/guardianSelectors.ts": [
     "r17",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/store/guardianSubjects.test.ts": [
     "never"
   ],
   "apps/rn/src/store/guardianSubjects.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/historySelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/incomeLearning.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/journeySelectors.test.ts": [
     "r17"
@@ -296,49 +767,49 @@
     "s1p1"
   ],
   "apps/rn/src/store/looksLikeDebt.test.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/looksLikeDebt.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/milestoneCross.test.ts": [
     "never"
   ],
   "apps/rn/src/store/obligationForm.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/onboardingFinish.test.ts": [
     "never"
   ],
   "apps/rn/src/store/onboardingFinish.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/paycheckForm.test.ts": [
     "never"
   ],
   "apps/rn/src/store/paycheckForm.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/payday.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/payoffCelebration.test.ts": [
     "never"
   ],
   "apps/rn/src/store/payoffCelebration.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/payoffSelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/paywallLead.test.ts": [
     "never"
   ],
   "apps/rn/src/store/paywallLead.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/persistence.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/persistenceLifecycle.test.ts": [
     "never"
@@ -347,14 +818,14 @@
     "never"
   ],
   "apps/rn/src/store/planSelectors.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/store/projectedIncome.test.ts": [
     "never"
   ],
   "apps/rn/src/store/projectedIncome.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/proofOfWork.test.ts": [
     "never"
@@ -363,26 +834,27 @@
     "never"
   ],
   "apps/rn/src/store/realWriteGuard.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/recoverySelectors.test.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/recoverySelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/selectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/steadyStateProjection.test.ts": [
     "never"
   ],
   "apps/rn/src/store/store.ts": [
     "partial",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "apps/rn/src/store/storeActions.test.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/storeContext.test.ts": [
     "never"
@@ -391,21 +863,117 @@
     "never"
   ],
   "apps/rn/src/store/substrateProducers.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/topUpSelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/trustSelectors.test.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/trustSelectors.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/useAppStore.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/src/store/windfallSplit.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/theme/colors.ts": [
+    "never"
+  ],
+  "apps/rn/src/theme/elevation.ts": [
+    "never"
+  ],
+  "apps/rn/src/theme/icons.ts": [
+    "never"
+  ],
+  "apps/rn/src/theme/index.ts": [
+    "never"
+  ],
+  "apps/rn/src/theme/motion.ts": [
+    "never"
+  ],
+  "apps/rn/src/theme/spacing.ts": [
+    "never"
+  ],
+  "apps/rn/src/theme/typography.ts": [
+    "never"
+  ],
+  "apps/rn/src/types/react-native-ios-context-menu.d.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/a11y.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/canvaskit.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/confirm.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/debtFreeSound.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/debtFreeSound.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/ecosystem.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/format.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/format.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/reportError.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/scrubBreadcrumb.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/scrubBreadcrumb.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/sentry.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/sentry.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/share-card.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/share-card.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/sizeClass.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/skia-ready.ts": [
+    "never"
+  ],
+  "apps/rn/src/utils/skia-ready.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/widget/snapshot.ts": [
+    "s1p2"
+  ],
+  "apps/rn/src/widget/widgetKeys.ts": [
+    "never"
+  ],
+  "apps/rn/src/widget/widgetStorage.native.ts": [
+    "never"
+  ],
+  "apps/rn/src/widget/widgetStorage.ts": [
+    "never"
+  ],
+  "apps/rn/src/widget/widgetSync.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/widget/widgetSync.ts": [
     "never"
   ],
   "apps/rn/tests/e2e/a11y-axe.spec.ts": [
@@ -421,7 +989,7 @@
     "never"
   ],
   "apps/rn/tests/e2e/affordability.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/amount-guards.spec.ts": [
     "never"
@@ -430,7 +998,7 @@
     "never"
   ],
   "apps/rn/tests/e2e/bill-category-partition.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/blur-glass.spec.ts": [
     "never"
@@ -442,7 +1010,7 @@
     "never"
   ],
   "apps/rn/tests/e2e/cushion-forecast.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/earlyjourney.spec.ts": [
     "never"
@@ -454,19 +1022,19 @@
     "never"
   ],
   "apps/rn/tests/e2e/goal-pace-edit.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/goal-row-saved.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/greeting.spec.ts": [
     "never"
   ],
   "apps/rn/tests/e2e/guardian-shortfall-topup.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/guardian.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/helpers/seed.ts": [
     "never"
@@ -475,19 +1043,19 @@
     "never"
   ],
   "apps/rn/tests/e2e/intent-undo.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/ipad-layouts.spec.ts": [
     "never"
   ],
   "apps/rn/tests/e2e/misfiled-expense.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/money-add-chooser.spec.ts": [
     "never"
   ],
   "apps/rn/tests/e2e/no-bills-branch.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/on-plan-streak.spec.ts": [
     "never"
@@ -502,22 +1070,22 @@
     "never"
   ],
   "apps/rn/tests/e2e/plan-hero-conserves.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/premium-entry.spec.ts": [
     "never"
   ],
   "apps/rn/tests/e2e/progress-hero-journey.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/proofofwork.spec.ts": [
     "never"
   ],
   "apps/rn/tests/e2e/recovery.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/route-smoke.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/saveforit-pace.spec.ts": [
     "never"
@@ -541,7 +1109,7 @@
     "never"
   ],
   "apps/rn/tests/e2e/topup-sources.spec.ts": [
-    "never"
+    "s1p2"
   ],
   "apps/rn/tests/e2e/trajectory-domain.spec.ts": [
     "never"
@@ -561,8 +1129,189 @@
   "apps/rn/tests/e2e/windfall.spec.ts": [
     "never"
   ],
+  "packages/core/cashflow/detectCrunches.ts": [
+    "never"
+  ],
+  "packages/core/cashflow/testDetectCrunches.ts": [
+    "never"
+  ],
+  "packages/core/cashflow/testWaterFill.ts": [
+    "never"
+  ],
+  "packages/core/cashflow/waterFill.ts": [
+    "never"
+  ],
+  "packages/core/constants/livingExpensePresets.ts": [
+    "never"
+  ],
+  "packages/core/constants/requiredExpensePresets.ts": [
+    "never"
+  ],
+  "packages/core/copy/vocabulary.ts": [
+    "s1p2"
+  ],
+  "packages/core/debt/applyDebtPaymentProjection.ts": [
+    "never"
+  ],
+  "packages/core/debt/applyPaydayCapture.ts": [
+    "never"
+  ],
+  "packages/core/debt/applyRolloverPayment.ts": [
+    "never"
+  ],
+  "packages/core/debt/bnplInstallment.ts": [
+    "never"
+  ],
+  "packages/core/debt/bnplPayoffPace.ts": [
+    "never"
+  ],
+  "packages/core/debt/bnplProviders.ts": [
+    "never"
+  ],
+  "packages/core/debt/bnplSchedule.ts": [
+    "never"
+  ],
+  "packages/core/debt/buildAmortizationSchedule.ts": [
+    "never"
+  ],
+  "packages/core/debt/buildPaydayCaptureItems.ts": [
+    "never"
+  ],
+  "packages/core/debt/buildPayoffTrajectory.ts": [
+    "never"
+  ],
+  "packages/core/debt/bulkMarkRequired.ts": [
+    "never"
+  ],
+  "packages/core/debt/calculateMonthlyInterest.ts": [
+    "never"
+  ],
+  "packages/core/debt/computeCycleDelta.ts": [
+    "never"
+  ],
+  "packages/core/debt/computeDrift.ts": [
+    "never"
+  ],
+  "packages/core/debt/computeInterestSaved.ts": [
+    "never"
+  ],
+  "packages/core/debt/computeMilestones.ts": [
+    "never"
+  ],
+  "packages/core/debt/computeStreak.ts": [
+    "never"
+  ],
+  "packages/core/debt/deriveRequiredActionView.ts": [
+    "never"
+  ],
+  "packages/core/debt/extraPaymentPlan.ts": [
+    "never"
+  ],
+  "packages/core/debt/getDebtsWithDisplayBalances.ts": [
+    "never"
+  ],
+  "packages/core/debt/mergeCompletedAction.ts": [
+    "never"
+  ],
+  "packages/core/debt/originalBalanceHighWater.ts": [
+    "never"
+  ],
+  "packages/core/debt/parseDebtFormValues.ts": [
+    "never"
+  ],
+  "packages/core/debt/projectCurrentBalance.ts": [
+    "never"
+  ],
+  "packages/core/debt/projectDebtPayoff.ts": [
+    "never"
+  ],
+  "packages/core/debt/reconcileAutopay.ts": [
+    "never"
+  ],
+  "packages/core/debt/reconcileGoalAmount.ts": [
+    "never"
+  ],
+  "packages/core/debt/selectActiveRecommendedActions.ts": [
+    "never"
+  ],
+  "packages/core/debt/shouldPromptPaydayCapture.ts": [
+    "never"
+  ],
+  "packages/core/debt/testAmortizationSchedule.ts": [
+    "never"
+  ],
+  "packages/core/debt/testApplyPaydayCapture.ts": [
+    "never"
+  ],
+  "packages/core/debt/testBnplInstallment.ts": [
+    "never"
+  ],
+  "packages/core/debt/testBnplSchedule.ts": [
+    "never"
+  ],
+  "packages/core/debt/testBuildPayoffTrajectory.ts": [
+    "never"
+  ],
+  "packages/core/debt/testBulkMarkRequired.ts": [
+    "never"
+  ],
+  "packages/core/debt/testComputeCycleDelta.ts": [
+    "never"
+  ],
+  "packages/core/debt/testComputeDrift.ts": [
+    "never"
+  ],
+  "packages/core/debt/testComputeInterestSaved.ts": [
+    "never"
+  ],
+  "packages/core/debt/testComputeMilestones.ts": [
+    "never"
+  ],
+  "packages/core/debt/testComputeStreak.ts": [
+    "never"
+  ],
+  "packages/core/debt/testDebtProjection.ts": [
+    "never"
+  ],
+  "packages/core/debt/testDeriveRequiredActionView.ts": [
+    "never"
+  ],
+  "packages/core/debt/testFreedMinimumRoll.ts": [
+    "never"
+  ],
+  "packages/core/debt/testGetDebtsWithDisplayBalances.ts": [
+    "never"
+  ],
+  "packages/core/debt/testGoalReconciliation.ts": [
+    "never"
+  ],
+  "packages/core/debt/testOriginalBalanceHighWater.ts": [
+    "never"
+  ],
+  "packages/core/debt/testParseDebtFormValues.ts": [
+    "never"
+  ],
+  "packages/core/debt/testPaydayCapture.ts": [
+    "never"
+  ],
+  "packages/core/debt/testProjectCurrentBalance.ts": [
+    "never"
+  ],
+  "packages/core/debt/testProjectionAccuracy.ts": [
+    "never"
+  ],
+  "packages/core/debt/testReconcileAutopay.ts": [
+    "never"
+  ],
+  "packages/core/debt/testSelectActiveRecommendedActions.ts": [
+    "never"
+  ],
+  "packages/core/debt/testShouldPromptPaydayCapture.ts": [
+    "never"
+  ],
   "packages/core/engine/allocatePaycheck.ts": [
-    "r17"
+    "r17",
+    "s1p2"
   ],
   "packages/core/engine/emergencyFund.ts": [
     "r17"
@@ -578,21 +1327,30 @@
     "never",
     "s1p1"
   ],
+  "packages/core/forecast/getForecastStatus.ts": [
+    "never"
+  ],
+  "packages/core/forecast/projectForecast.ts": [
+    "never"
+  ],
+  "packages/core/forecast/types.ts": [
+    "never"
+  ],
   "packages/core/guardian/affordability.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "packages/core/guardian/buildGuardianBrief.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "packages/core/guardian/calibrationScore.ts": [
     "never",
     "s1p1"
   ],
   "packages/core/guardian/computeState.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "packages/core/guardian/holdbackComposition.ts": [
     "never",
@@ -607,8 +1365,8 @@
     "s1p1"
   ],
   "packages/core/guardian/testBuildGuardianBrief.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p2"
   ],
   "packages/core/guardian/testCalibrationScore.ts": [
     "never",
@@ -625,5 +1383,110 @@
   "packages/core/guardian/testNotificationDecision.ts": [
     "never",
     "s1p1"
+  ],
+  "packages/core/history/buildCycleSnapshot.ts": [
+    "never"
+  ],
+  "packages/core/history/selectVisibleHistory.ts": [
+    "never"
+  ],
+  "packages/core/income/suggestLean.ts": [
+    "never"
+  ],
+  "packages/core/income/testSuggestLean.ts": [
+    "never"
+  ],
+  "packages/core/insights/buildSmartInsights.ts": [
+    "never"
+  ],
+  "packages/core/obligations/classifyDeferability.ts": [
+    "s1p2"
+  ],
+  "packages/core/obligations/effectiveObligationAmount.ts": [
+    "never"
+  ],
+  "packages/core/obligations/testClassifyDeferability.ts": [
+    "never"
+  ],
+  "packages/core/obligations/testEffectiveObligationAmount.ts": [
+    "never"
+  ],
+  "packages/core/payCycle/cyclesPerYear.ts": [
+    "never"
+  ],
+  "packages/core/payCycle/getNextPaycheckDate.ts": [
+    "never"
+  ],
+  "packages/core/payCycle/payCyclesPerMonth.ts": [
+    "never"
+  ],
+  "packages/core/payCycle/rollPaydayToFuture.ts": [
+    "never"
+  ],
+  "packages/core/payCycle/testPayCycle.ts": [
+    "never"
+  ],
+  "packages/core/payCycle/testPayCyclesPerMonth.ts": [
+    "never"
+  ],
+  "packages/core/payCycle/testRollPaydayToFuture.ts": [
+    "never"
+  ],
+  "packages/core/recovery/buildRecoveryPlan.ts": [
+    "never"
+  ],
+  "packages/core/recovery/testBuildRecoveryPlan.ts": [
+    "never"
+  ],
+  "packages/core/recurrence/rolloverPayCycle.ts": [
+    "never"
+  ],
+  "packages/core/recurrence/testRolloverDueDates.ts": [
+    "never"
+  ],
+  "packages/core/storage/debtPlannerStorage.ts": [
+    "never"
+  ],
+  "packages/core/timeline/buildMultiCycleTimeline.ts": [
+    "s1p2"
+  ],
+  "packages/core/timeline/buildTimelineItems.ts": [
+    "never"
+  ],
+  "packages/core/types/livingExpense.ts": [
+    "never"
+  ],
+  "packages/core/types/recurrence.ts": [
+    "never"
+  ],
+  "packages/core/utils/addMonths.ts": [
+    "never"
+  ],
+  "packages/core/utils/amountField.ts": [
+    "never"
+  ],
+  "packages/core/utils/dayBefore.ts": [
+    "never"
+  ],
+  "packages/core/utils/formatCurrency.ts": [
+    "never"
+  ],
+  "packages/core/utils/formatDisplayAmount.ts": [
+    "never"
+  ],
+  "packages/core/utils/localDate.ts": [
+    "never"
+  ],
+  "packages/core/utils/money.ts": [
+    "never"
+  ],
+  "packages/core/utils/testAddMonths.ts": [
+    "never"
+  ],
+  "packages/core/utils/testAmountField.ts": [
+    "never"
+  ],
+  "packages/core/utils/testLocalDate.ts": [
+    "never"
   ]
 }

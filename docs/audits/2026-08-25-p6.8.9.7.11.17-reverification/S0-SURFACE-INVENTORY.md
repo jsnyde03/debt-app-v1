@@ -8,21 +8,27 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**91 files on the S0 surface · 43 swept · 48 unswept.**
+**97 files on the S0 surface · 47 swept · 50 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
 | file | swept by |
 |---|---|
-| `apps/rn/src/data/migrationAudit/audit.test.ts` | p1 · p3 · s1p1 |
+| `apps/rn/app.json` | ⛔ **never** |
+| `apps/rn/eslint.config.mjs` | ⛔ **never** |
+| `apps/rn/playwright.config.ts` | s1p2 |
+| `apps/rn/playwright.embed.config.ts` | ⛔ **never** |
+| `apps/rn/playwright.shots.config.ts` | ⛔ **never** |
+| `apps/rn/scripts/copy-canvaskit.mjs` | ⛔ **never** |
+| `apps/rn/src/data/migrationAudit/audit.test.ts` | p1 · p3 · s1p1 · s1p2 |
 | `apps/rn/src/data/migrationAudit/corpus.ts` | p1 · p2 · p3 |
 | `apps/rn/src/data/migrationAudit/cutoverFiles.test.ts` | ⛔ **never** |
 | `apps/rn/src/data/migrationAudit/doors.ts` | p1 · p3 |
-| `apps/rn/src/data/migrationAudit/hostile.test.ts` | p1 · p3 · s1p1 |
+| `apps/rn/src/data/migrationAudit/hostile.test.ts` | p1 · p3 · s1p1 · s1p2 |
 | `apps/rn/src/data/migrationAudit/interruption.test.ts` | ⛔ **never** |
-| `apps/rn/src/data/migrationAudit/invariants.ts` | p1 · p3 · s1p1 |
+| `apps/rn/src/data/migrationAudit/invariants.ts` | p1 · p3 · s1p1 · s1p2 |
 | `apps/rn/src/data/migrationAudit/run.ts` | ⛔ **never** |
-| `apps/rn/src/testing/runAppTests.ts` | ⛔ **never** |
+| `apps/rn/src/testing/runAppTests.ts` | s1p2 |
 | `apps/rn/src/testing/runScenarioTests.ts` | ⛔ **never** |
 | `apps/rn/src/testing/scenarios/guardianColdStartLifecycle.scenario.ts` | ⛔ **never** |
 | `apps/rn/tests/shots/add-chooser.shot.ts` | ⛔ **never** |
@@ -33,9 +39,9 @@
 | `apps/rn/tests/shots/misfiled-hint.shot.ts` | ⛔ **never** |
 | `apps/rn/tests/shots/money-sections.shot.ts` | ⛔ **never** |
 | `apps/rn/tests/shots/p6.8-a11y.shot.ts` | ⛔ **never** |
-| `apps/rn/tests/shots/p6.8-matrix.shot.ts` | ⛔ **never** |
+| `apps/rn/tests/shots/p6.8-matrix.shot.ts` | s1p2 |
 | `apps/rn/tests/shots/phase35-themes.shot.ts` | ⛔ **never** |
-| `packages/core/testing/runRegressionTests.ts` | ⛔ **never** |
+| `packages/core/testing/runRegressionTests.ts` | s1p2 |
 | `packages/core/testing/seedPlannerState.ts` | ⛔ **never** |
 | `packages/core/testing/simSmokeSeed.ts` | ⛔ **never** |
 | `packages/core/testing/testAbuseScenarios.ts` | ⛔ **never** |
@@ -56,16 +62,16 @@
 | `packages/core/testing/testTimelineRegression.ts` | ⛔ **never** |
 | `packages/core/testing/testV11Regression.ts` | ⛔ **never** |
 | `scripts/apostrophe-baseline.json` | p4 |
-| `scripts/begin-gate-run.ts` | never · s1p1 |
+| `scripts/begin-gate-run.ts` | s1p1 · s1p2 |
 | `scripts/check-a11y-collapse.ts` | p4 |
 | `scripts/check-apostrophes.ts` | p3 |
-| `scripts/check-audit-closure.ts` | p2 · p3 · p4 · s1p1 |
+| `scripts/check-audit-closure.ts` | p2 · p3 · p4 · s1p1 · s1p2 |
 | `scripts/check-comment-convention.ts` | r17 |
-| `scripts/check-committed-secrets.ts` | p4 · s1p1 |
+| `scripts/check-committed-secrets.ts` | p4 · s1p1 · s1p2 |
 | `scripts/check-contrast.ts` | p4 |
 | `scripts/check-copy-owners.ts` | p3 |
 | `scripts/check-destructive-writes.ts` | p1 · p3 |
-| `scripts/check-finding-guards.ts` | never · s1p1 |
+| `scripts/check-finding-guards.ts` | s1p1 · s1p2 |
 | `scripts/check-gate-freshness.ts` | p4 |
 | `scripts/check-glossary.ts` | p3 |
 | `scripts/check-icon-glyphs.ts` | r17 |
@@ -77,41 +83,45 @@
 | `scripts/check-press-opacity.ts` | p3 · r17 |
 | `scripts/check-rn-style-divergence.ts` | r17 |
 | `scripts/check-sandbox-writes.ts` | p1 · p3 |
-| `scripts/check-type-scale.ts` | p4 · s1p1 |
+| `scripts/check-type-scale.ts` | p4 · s1p1 · s1p2 |
 | `scripts/check-webkit-flex-controls.ts` | r17 |
 | `scripts/collect-lane-diagnostics.mjs` | ⛔ **never** |
 | `scripts/compare-ios-screenshots.mjs` | ⛔ **never** |
 | `scripts/conform-app-preview.sh` | ⛔ **never** |
 | `scripts/coverage-model.ts` | p1 |
 | `scripts/coverage-split.ts` | p1 |
-| `scripts/duplicate-copy-baseline.json` | p4 |
+| `scripts/duplicate-copy-baseline.json` | p4 · s1p2 |
 | `scripts/e2e-fresh-rn.cjs` | ⛔ **never** |
 | `scripts/e2e-fresh.cjs` | ⛔ **never** |
-| `scripts/finding-guards.json` | never · s1p1 |
-| `scripts/gateSources.ts` | p2 · p3 · s1p1 |
+| `scripts/finding-guards.json` | s1p1 · s1p2 |
+| `scripts/gateSources.ts` | p2 · p3 · s1p1 · s1p2 |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
 | `scripts/maestro-results.mjs` | ⛔ **never** |
 | `scripts/make-cutover-backups.ts` | ⛔ **never** |
-| `scripts/preflight-native-lane.ts` | p4 · s1p1 |
+| `scripts/preflight-native-lane.ts` | p4 · s1p1 · s1p2 |
 | `scripts/preflight-xcuitest-target.ts` | ⛔ **never** |
-| `scripts/run-gates.ts` | p1 · p3 · s1p1 |
+| `scripts/run-gates.ts` | p1 · p3 · s1p1 · s1p2 |
 | `scripts/secrets-exemptions.json` | ⛔ **never** |
 | `scripts/stamp-coverage.ts` | p2 |
-| `scripts/strings-inventory.ts` | p4 · r17 · s1p1 |
-| `scripts/surface-coverage.ts` | never · s1p1 |
+| `scripts/strings-inventory.ts` | p4 · r17 · s1p1 · s1p2 |
+| `scripts/surface-coverage.ts` | s1p1 · s1p2 |
 | `scripts/surface-inventory.ts` | ⛔ **never** |
 | `scripts/test-conform-assertions.sh` | ⛔ **never** |
-| `scripts/test-gate-plants.ts` | never · s1p1 |
+| `scripts/test-gate-plants.ts` | s1p1 · s1p2 |
 | `scripts/test-stamp-coverage.ts` | ⛔ **never** |
 | `scripts/webkit-flex-controls-baseline.json` | p4 |
-| `scripts/write-gate-status.ts` | p4 · s1p1 |
+| `scripts/write-gate-status.ts` | p4 · s1p1 · s1p2 |
 
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
+- `apps/rn/app.json`
+- `apps/rn/eslint.config.mjs`
+- `apps/rn/playwright.embed.config.ts`
+- `apps/rn/playwright.shots.config.ts`
+- `apps/rn/scripts/copy-canvaskit.mjs`
 - `apps/rn/src/data/migrationAudit/cutoverFiles.test.ts`
 - `apps/rn/src/data/migrationAudit/interruption.test.ts`
 - `apps/rn/src/data/migrationAudit/run.ts`
-- `apps/rn/src/testing/runAppTests.ts`
 - `apps/rn/src/testing/runScenarioTests.ts`
 - `apps/rn/src/testing/scenarios/guardianColdStartLifecycle.scenario.ts`
 - `apps/rn/tests/shots/add-chooser.shot.ts`
@@ -122,9 +132,7 @@
 - `apps/rn/tests/shots/misfiled-hint.shot.ts`
 - `apps/rn/tests/shots/money-sections.shot.ts`
 - `apps/rn/tests/shots/p6.8-a11y.shot.ts`
-- `apps/rn/tests/shots/p6.8-matrix.shot.ts`
 - `apps/rn/tests/shots/phase35-themes.shot.ts`
-- `packages/core/testing/runRegressionTests.ts`
 - `packages/core/testing/seedPlannerState.ts`
 - `packages/core/testing/simSmokeSeed.ts`
 - `packages/core/testing/testAbuseScenarios.ts`

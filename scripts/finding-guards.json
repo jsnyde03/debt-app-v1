@@ -238,6 +238,21 @@
     "file": "apps/rn/tests/e2e/intent-undo.spec.ts",
     "token": "logging a payment still offers the Undo on Today"
   },
+  "S1P2-D2-1-ROOTS": {
+    "what": "pass-2's unclassifiable finding - packages/core/timeline was on NO surface, so the forecast module the pass's sharpest major (D2-1) is ABOUT was invisible to the pass reporting on it. The plan called it one line; measured, 18 of 21 packages/core directories were off-surface (102 files, `debt` alone 53), and apps/rn/src had 184 more under no root at all",
+    "file": "scripts/surface-coverage.ts",
+    "token": "'apps/rn/src',"
+  },
+  "S1P2-SURFACE-COMPLETE": {
+    "what": "the CLASS behind five root corrections - M9, [D73], packages/core and apps/rn/src each closed one instance and none closed the class. This gate sources its file list from `git ls-files` (a walk with a deny-list showed both failure modes on its first two runs: matching top-level paths only let apps/rn/node_modules through, then apps/rn/core, a symlink to packages/core, reported as 21 invisible directories) and requires every tracked source file to be under some surface's roots, cap 0 downward-only",
+    "file": "scripts/surface-coverage.ts",
+    "token": "const MAX_INVISIBLE = 0;"
+  },
+  "S1P2-SKIP-EXPIRY": {
+    "what": "the completeness gate's skip list excludes the legacy Next surface because P6.11 DELETES it, not because anyone audited it - so the exclusion carries its own expiry: a skip naming a directory that no longer exists reds, and the deletion cannot leave a standing permission behind it. Caught three stale entries on its first run",
+    "file": "scripts/surface-coverage.ts",
+    "token": "the skip list names director(ies) that no longer exist"
+  },
   "S1P2-B1-PLANTS": {
     "what": "pass-2 B-1 - seven registry entries were pinned by an identifier the un-fix leaves in place, and ALL SEVEN stayed green with the defect restored; three of them the fixes to check-finding-guards.ts itself, the gate that certifies the rest. test:gate-plants covered none of the seven gates. These six scenarios plant a real defect of each gate's own class",
     "file": "scripts/test-gate-plants.ts",

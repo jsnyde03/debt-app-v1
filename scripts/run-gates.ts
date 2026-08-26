@@ -51,6 +51,7 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // its coverage being recorded, which is what keeps "first look" a lookup rather than a claim.
     'lint:s0-coverage',
     'lint:s1-coverage',
+    'lint:surface-complete',
     // [D67] — finding → guard, the `check-copy-owners` pattern applied to findings. Reds when a guard's
     // assertion is removed even though its file survives.
     'lint:finding-guards',
