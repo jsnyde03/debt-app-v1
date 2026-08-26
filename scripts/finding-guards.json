@@ -80,9 +80,9 @@
     "token": "if (missing.length || stale.length)"
   },
   "GUARDED-1": {
-    "what": "the untokenised caps red on a prose rescue ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
+    "what": "the untokenised caps red on a prose rescue ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape. ⚡ S1.9.7 [B-2] then changed that very line from `>` to `!==` and this token REDDED, which is the re-pointing doing its job — a token on the bare identifier would have said nothing either way.",
     "file": "scripts/check-audit-closure.ts",
-    "token": "if (p68Untokenised.length > MAX_UNTOKENISED.p68)"
+    "token": "if (p68Untokenised.length !== MAX_UNTOKENISED.p68)"
   },
   "GUARDED-3": {
     "what": "selfCheck proves the invariants fire, the verdict throws, and that run() still CALLS it",
@@ -237,6 +237,26 @@
     "what": "pass-1 B2 — the Today Undo card had NO end-to-end coverage at all; the only test called logManualPayment and undoIntentAction with nothing in between. This is the property that must SURVIVE the fix: an over-eager invalidation would delete the card from the product and nothing else would notice. ⚠️ Navigation must be by TAB, never page.goto — intentRollback is transient by design, so a reload would find it missing and read as a break",
     "file": "apps/rn/tests/e2e/intent-undo.spec.ts",
     "token": "logging a payment still offers the Undo on Today"
+  },
+  "S1P2-D2-3-POSITIVE": {
+    "what": "pass-2 D2-3 - the only test of the no-paycheck Today was one bare toHaveCount(0) under a comment claiming 'the app still boots to Today' and 'no empty shell', both of which are exactly what an absence assertion is true of when nothing rendered. Measured: one hit in the whole test tree for this state, and it is another absence assertion",
+    "file": "apps/rn/tests/e2e/guardian.spec.ts",
+    "token": "Today prompts for a paycheck"
+  },
+  "S1P2-CM1-FIELDLABEL": {
+    "what": "pass-2 C-m1 - the repairs card printed raw SCHEMA KEYS ('Chase - minimumPayment') for five fields of six, while the mechanism for a human string already existed and had been applied to the sixth. The map fixes the instance; the test gates the CLASS against migrations.ts's own REPAIRABLE_MONEY_FIELDS, both directions",
+    "file": "apps/rn/src/components/plan/dataRepairsCopy.test.ts",
+    "token": "can be repaired and has no user-facing name"
+  },
+  "S1P2-B2-STRICT": {
+    "what": "pass-2 B-2 - check-audit-closure's two downward-only caps used `>`, which is the [M8] slack shape its sibling had fixed one file over in the same range. Zero slack today, so no instrument was blinded - it becomes a major the first time either count improves, because 55 -> 54 opens a permanent slot for a closure to stop tracing unseen",
+    "file": "scripts/check-audit-closure.ts",
+    "token": "if (d37Untokenised.length !== MAX_UNTOKENISED.d37)"
+  },
+  "S1P2-B3-FIGURE": {
+    "what": "pass-2 B-3 - plan-hero-conserves' docstring claimed 'the specific measured figures are asserted too, so a hero that renders no segments cannot satisfy 0 === 0'. True of the healthy test and FALSE of the shortfall one, which is the test carrying S1P1-M4-CONSERVES and asserted no figure at all",
+    "file": "apps/rn/tests/e2e/plan-hero-conserves.spec.ts",
+    "token": "Required names what the paycheck COVERED"
   },
   "S1P2-D2-1-AGREE": {
     "what": "pass-2 D2-1 - computeState's docblock requires the card, selectPlanSummary and the forecast to derive the band from one function 'so they can never disagree', and all three called it with DIFFERENT first arguments, differing by exactly appliedTopUp. On the designed path the card turned Clear after its own one-tap offer while its own 'See forecast' button opened cycle 0 on 'Tight - $50 under'. Asserted as an AGREEMENT, not three values",

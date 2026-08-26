@@ -1108,8 +1108,7 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
                * reported the SMALLER number and called it the amount saved: *"$1,000 saved"* over a pot
                * holding $5,000, one inch under a hero that totals `currentAmount` correctly and says
                * *"$5,500 · 183% funded"*. Nothing prevents over-funding — `GoalSheet.submit()` validates
-               * target and current independently and never compares them, and a negative `applyTightTopUp`
-               * (an undo) can push `currentAmount` past the target on its own.
+               * target and current independently and never compares them.
                *
                * ⚠️ `formatWhole`, matching the hero directly above rather than the `left` branch beside it:
                * the figure this row was caught DISAGREEING with is the hero's, so they now agree by

@@ -338,6 +338,65 @@ other**, in both directions. Reasoning for each → [`DEBT_ELEVATION_LOG.md`](DE
 
 ---
 
+## S1.9.7 — [D2-3] and the minors *(2026-08-26)*
+
+⚡ **THE BEFORE-SCAN FOUND FOUR OF THE TWELVE MINORS ALREADY CLOSED**, as side effects of S1.9.1–.6 rather
+than by anyone aiming at them:
+
+| minor | closed by |
+|---|---|
+| **A#2** — [B3]'s same-source/different-goal shape is untested | S1.9.1, whose fixture had to undo the EARLIER goal's draw |
+| **A#3** — AS-2's *"Target could not be read"* can fire on a goal that read fine | S1.9.2's per-ROW `rowFieldUnread` |
+| **C-m3** — `unreadGoals` is store-wide, so a repair on goal A captions goal B | S1.9.2, same fix |
+| **A#5** — `lint:secrets --working-tree` never reads a MODIFIED TRACKED file | S1.9.5's after-scan |
+
+⛔ **A#5 is the one that cost something.** The auditor had already filed it, and I rediscovered it the
+expensive way — by committing a credential-shaped fixture in S1.9.4 and then measuring why the pre-commit
+check had passed. **`the-codebase-already-said-it`, in a report I had read the summary of.**
+
+### D2-3 — the major
+
+The only test of the no-paycheck Today was one bare `toHaveCount(0)` under a comment claiming *"the app
+still boots to Today"* and *"no empty shell"* — ⛔ **both of which are exactly what an absence assertion is
+true of when nothing rendered at all.** If Today ever went blank for a user who finished onboarding without
+a paycheck, that user is stuck with no way to add one and every gate stays green.
+
+⚡ **Measured across the whole tree, not sampled:** one hit for this state anywhere, in
+`demo-containment.spec.ts`, and it is another absence assertion. `route-smoke.spec.ts` owns the blank-route
+class and asserts `innerText.length > 40` — but seeds the POPULATED plan.
+
+Now asserts the `PromptCard` by name, before the absence line. **Planted:** the `no-paycheck` branch made to
+render `null` reds the new assertion; the old one passed.
+
+### The minors fixed
+
+| | |
+|---|---|
+| **C-m1** | The repairs card printed **raw schema keys** — *"Chase — minimumPayment"* — for five fields of six, while the mechanism for a human string existed and had been applied to the sixth. `FIELD_LABEL` names them all. ⚡ **And the CLASS is gated**, the same way S1.9.2's claim table is: every field `migrations.ts` can repair must have words, and every label must name a field that can still be repaired. **Planted both directions.** |
+| **C-m2** | A fix's own docblock cited *"a negative `applyTightTopUp` (an undo) can push `currentAmount` past the target"* — a path [B3] deleted in the same commit range. Cut; M2 still stands on `GoalSheet.submit` |
+| **B-2** | `check-audit-closure`'s two downward-only caps used `>`, the [M8] slack shape its sibling had fixed one file over. Strict equality now. ⚠️ Zero slack today, which is why it was a minor — it becomes a major the first time either count improves, because 55 → 54 opens a permanent slot |
+| **B-3** | `plan-hero-conserves`' docstring claimed *"the specific measured figures are asserted too, so a hero that renders no segments cannot satisfy `0 === 0`"* — **true of the healthy test and false of the one carrying `S1P1-M4-CONSERVES`.** Both assert a figure now, and the docstring describes the file |
+| **N9 / A#4** | `PAYCHECK_SEGMENT.required`'s docstring said *"bills + minimums that must be paid"*; the number is what the paycheck **funded**, which differs in a shortfall by design ([M4] conservation) |
+| **A#7** | `--report` never printed the routings, so *"which surface owns this file and why"* was answerable only by reading the predicate — and after S1.9.5 that is 100+ files |
+
+**Recorded, no action:** A#1 *(the [B2] class also clears on the app's own bookkeeping writes — measured
+across all seven writers, the Undo card disappears WITH the snapshot, so the affordance is visibly lost
+rather than dead)* · A#6 *(`lint:gate-freshness` red and correct — S1.9.8 owns the real run)*.
+
+### ⚡ A RE-POINTED TOKEN CAUGHT MY OWN EDIT, WHICH IS THE POINT OF S1.9.4
+
+`GUARDED-1` was re-pointed in S1.9.4 from the bare identifier `MAX_UNTOKENISED` to the LINE
+`if (p68Untokenised.length > MAX_UNTOKENISED.p68)`. B-2 then changed that very line from `>` to `!==`, and
+`lint:finding-guards` **redded**. ⛔ **A token on the identifier would have said nothing in either
+direction** — not when the cap went slack, and not when it was fixed. Re-pointed again, and the entry now
+records that it has been exercised.
+
+**Guards.** `S1P2-D2-3-POSITIVE` · `S1P2-CM1-FIELDLABEL` · `S1P2-B2-STRICT` · `S1P2-B3-FIGURE`.
+`MIN_ENTRIES` 91 → **95**; 79 of 95 guarded. `typecheck` 4/4 · `lint:rn` **28/28** · `test:app`,
+`test:regression`, `test:scenarios` green.
+
+---
+
 ## S1.9.6 — [D2-1], the one state machine's three producers *(2026-08-26)*
 
 ⚠️ **The plan said this MAY be absorbed by S1.9.3's residual, and to measure before building.** Measured

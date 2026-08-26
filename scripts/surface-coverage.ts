@@ -620,6 +620,23 @@ const unswept = files.filter((f) => {
 
 if (REPORT) {
   for (const f of files) console.log(`  ${(claims[f] ?? ['unknown']).join(' · ').padEnd(18)} ${f}`);
+  /**
+   * ⛔ **S1.9.7 [pass-2 A#7] — THE ROUTINGS, which nothing printed.** `routed` was built and read only for
+   * `badRoutes`, so *"which surface owns this file, and why"* was answerable only by reading the predicate.
+   * ⚡ No instrument was blinded — the `KNOWN_SURFACES` check is the one that matters and it runs — but the
+   * files this surface hands to another were invisible to a reader of its own report, and after S1.9.5 that
+   * is a much larger set than it was when the finding was written.
+   */
+  const byTarget = new Map<string, string[]>();
+  for (const [f, r] of routed) {
+    if (!byTarget.has(r.to)) byTarget.set(r.to, []);
+    byTarget.get(r.to)!.push(`${f}  (${r.why})`);
+  }
+  for (const to of [...byTarget.keys()].sort()) {
+    console.log(`
+  → routed to ${to} (${byTarget.get(to)!.length}):`);
+    for (const line of byTarget.get(to)!.sort()) console.log(`      ${line}`);
+  }
 }
 
 // ── the inventory, regenerated so the doc can never disagree with the data ────────────────────────

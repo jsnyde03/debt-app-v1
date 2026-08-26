@@ -14,6 +14,11 @@ import { day, scenario, seedStore } from './helpers/seed';
  * conserve is not a partition"* — and that is what is checked here. The specific measured figures are
  * asserted too, so a hero that renders no segments at all cannot satisfy a sum of `0 === 0`.
  *
+ * ⛔ **That last sentence was TRUE of the healthy test and FALSE of the shortfall one — the test carrying
+ * `S1P1-M4-CONSERVES`** [S1.9.7 · pass-2 B-3]. Its protection was real and came from a different mechanism
+ * than this comment named: the `not.toBeNull()` guards red before the sum is compared. Both tests now
+ * assert a figure, so the sentence describes the file.
+ *
  * ⚠️ Read from the hero's accessibility label, which is composed at `PlanHero.tsx` as
  * `"This paycheck $X. Required $A, Spoken for $B, Flexible $C. … Short this paycheck"` — the one place
  * every segment and the headline appear together, which is exactly what conservation is about.
@@ -64,6 +69,25 @@ test('the paycheck split conserves in a SHORTFALL — the state the hero matters
 
   const sum = (p.required ?? 0) + (p.spokenFor ?? 0) + (p.flexible ?? 0);
   expect(sum, `segments must sum to the headline — got ${sum} of ${p.headline} in: ${p.label}`).toBe(p.headline);
+
+  /**
+   * ⛔ **S1.9.7 [pass-2 B-3] — THE MEASURED FIGURE, which this test claimed to have and did not.**
+   *
+   * The file's own docstring says *"the specific measured figures are asserted too, so a hero that renders
+   * no segments at all cannot satisfy a sum of `0 === 0`."* ⚡ **True of the healthy test below and FALSE
+   * of this one** — the test carrying `S1P1-M4-CONSERVES` asserted no specific figure at all. The
+   * protection was real but came from a different mechanism than the comment named: the `not.toBeNull()`
+   * guards above red before the sum is compared.
+   *
+   * ⚠️ **This is the exact class rule 1 is about** — a docblock added by a fix, asserting a measured
+   * property, that the next reader cites as proof.
+   *
+   * $1,000 in against $1,400 of bills: under the fix `Required` is what the paycheck FUNDED, so the three
+   * segments sum to the paycheck. Under the original it was `summary.requiredTotal` = **1,400**, so any
+   * non-negative pair of siblings gives ≥ 1,400 > 1,000 and the sum reds either way.
+   */
+  expect(p.headline, 'the headline is the paycheck, which is what the segments must sum to').toBe(1000);
+  expect(p.required, 'Required names what the paycheck COVERED, never the $1,400 owed').toBeLessThanOrEqual(1000);
 
   // …and the fixture really is the defect's shape, so the assertion above is not passing on a covered cycle.
   await expect(page.getByTestId('plan-hero')).toContainText(/Short this paycheck/);

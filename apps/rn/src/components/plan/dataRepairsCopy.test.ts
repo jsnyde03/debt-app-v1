@@ -1,6 +1,8 @@
 import type { DataRepair } from '@/data/models';
 
-import { describeRepair, repairBlocks, repairsA11yLabel } from './dataRepairsCopy';
+import { REPAIRABLE_MONEY_FIELDS } from '@/data/migrations';
+
+import { FIELD_LABEL, describeRepair, repairBlocks, repairsA11yLabel } from './dataRepairsCopy';
 
 /**
  * P6.8.9.7.11.12 (audit A-J2-2) — the repairs card's words.
@@ -51,7 +53,7 @@ export default function run() {
       'Your plan is using it — check the number looks right.',
       '⛔ …and it says the plan IS using the amount, because it is'
     );
-    eq(blocks[0].lines.join(''), 'Roof — targetAmount', '…naming the item, which is the only actionable part');
+    eq(blocks[0].lines.join(''), 'Roof — the target', '…naming the item, which is the only actionable part');
   }
 
   // ── a real loss keeps the loss language, unchanged ──────────────────────
@@ -82,8 +84,8 @@ export default function run() {
     eq(blocks.length, 2, 'a mixed list produces both blocks');
     eq(blocks[0].kind, 'lost', '⛔ losses come first — they are the ones with an action attached');
     eq(blocks[1].kind, 'recovered', '…and the recoveries follow');
-    eq(blocks[0].lines.join(''), 'Car — balance', 'the loss block holds only the loss');
-    eq(blocks[1].lines.join(''), 'Roof — targetAmount', 'the recovery block holds only the recovery');
+    eq(blocks[0].lines.join(''), 'Car — the balance', 'the loss block holds only the loss');
+    eq(blocks[1].lines.join(''), 'Roof — the target', 'the recovery block holds only the recovery');
   }
 
   // ── plurals are counted PER BLOCK, not across the card ─────────────────
@@ -130,7 +132,7 @@ export default function run() {
   );
   eq(
     describeRepair({ entity: 'requiredExpense', id: 'e', name: 'Rent', field: 'amount' }),
-    'Rent — amount',
+    'Rent — the amount',
     'a named repair reads as name and field'
   );
 
@@ -169,7 +171,7 @@ export default function run() {
     ]);
     eq(blocks.length, 2, 'a named loss and a nameless one are different claims and get different blocks');
     eq(blocks[0].kind, 'lost', 'the named one keeps the actionable sentence');
-    eq(blocks[0].lines.join(''), 'Car — balance', '…and holds only itself');
+    eq(blocks[0].lines.join(''), 'Car — the balance', '…and holds only itself');
     eq(blocks[1].kind, 'unrecoverable', '…while the nameless one is separated out');
   }
   {
@@ -178,6 +180,30 @@ export default function run() {
       { entity: 'goal', id: 'g0', name: 'Roof', field: 'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt', kind: 'lost' },
     ]);
     eq(blocks[0].kind, 'lost', '⛔ a stood-down pace IS actionable now — the promise became true rather than being dropped');
+  }
+
+  /**
+   * ⛔ **S1.9.7 [pass-2 C-m1] — EVERY REPAIRABLE FIELD IS NAMED FOR THE USER, or this reds.**
+   *
+   * The card printed raw schema keys — *"Chase — minimumPayment"*, *"House Fund — targetAmount"* — for five
+   * fields of six, while the mechanism for a human string already existed and had been applied to the
+   * sixth. ⚡ A map fixes the instance; **this fixes the class**, the same way `trustSelectors.test.ts`
+   * gates the claim table against the same declaration. A new money field added to `migrations.ts` without
+   * words for it fails here rather than reaching a person.
+   */
+  {
+    const repairable: string[] = [];
+    for (const lists of Object.values(REPAIRABLE_MONEY_FIELDS)) {
+      repairable.push(...lists.required, ...lists.optional);
+    }
+    eq(repairable.length, 10, 'the fixture knows how many repairable money fields there are (raise it WITH the field)');
+    for (const f of repairable) {
+      assert(!!FIELD_LABEL[f], `⛔ C-m1 — "${f}" can be repaired and has no user-facing name, so the card prints the schema key`);
+    }
+    // …and no stale entry: a label for a field that can no longer be repaired is a rule nobody has read.
+    for (const f of Object.keys(FIELD_LABEL)) {
+      assert(repairable.includes(f), `⛔ C-m1 — FIELD_LABEL names "${f}", which migrations.ts can no longer repair`);
+    }
   }
 
   eq(repairBlocks([]).length, 0, 'no repairs produces no blocks');

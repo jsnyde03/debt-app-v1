@@ -44,7 +44,11 @@
  * held bills reserve. One word per figure.
  */
 export const PAYCHECK_SEGMENT = {
-    /** Bills + minimums that must be paid this cycle. */
+    /** ⚠️ **What the paycheck FUNDED toward bills + minimums this cycle — not what is owed.** [S1.9.7 · N9]
+     *  The two differ in a shortfall: the legend reads **Required $1,000** while **$1,280** is due, because
+     *  this names a segment OF the paycheck and the paycheck did not cover it. That is [M4]'s conservation
+     *  invariant, deliberately — `PlanHero` prints *"Short this paycheck"* directly beneath and the Guardian
+     *  names the gap, so the segment is honest about what it is. */
     required: "Required",
     /** Accounted-for but not yet spent: everyday spending + money set aside for upcoming bills. */
     spokenFor: "Spoken for",

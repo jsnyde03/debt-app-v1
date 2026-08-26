@@ -308,9 +308,10 @@ export function runMigrations(raw: unknown): DebtStore {
    * and balance, and stops being funded ahead of debt until the person says otherwise — the safe direction,
    * because it leaves the money with the debt rather than taking it.
    *
-   * ⚠️ The repair's `field` becomes a SENTENCE here. Every other entry renders as `"Roof — targetAmount"`,
-   * and a camel-cased identifier is already poor copy; for this one the consequence is the part the reader
-   * needs, and it is not guessable from the field name.
+   * ⚠️ The repair's `field` becomes a SENTENCE here, and it is the one field for which that is right: the
+   * CONSEQUENCE is what the reader needs and it is not guessable from the name. Every other field is
+   * named for the user by `dataRepairsCopy`'s `FIELD_LABEL` — *"Roof — the target"* — which S1.9.7 [C-m1]
+   * added after measuring that this file's schema keys were reaching the card raw for five fields of six.
    */
   /**
    * ⛔ **MATCHED ON THE VALUE, NOT ON THE REPAIR RECORD — and the record is the wrong question twice.**

@@ -78,10 +78,30 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     await expect(page.getByText('Your floor is protected, starting today')).toHaveCount(0);
   });
 
-  test('no plan: the Guardian card does not appear', async ({ page }) => {
+  test('no plan: Today prompts for a paycheck, and the Guardian card does not appear', async ({ page }) => {
+    /**
+     * ⛔ **S1.9.7 [pass-2 D2-3] — THE COMMENT ASSERTED TWO THINGS AND THE CODE ASSERTED ONE.**
+     *
+     * The body used to be a single `toHaveCount(0)` under a comment claiming *"the app still boots to
+     * Today"* and *"no empty shell"* — **both of which are exactly what an absence assertion is true of
+     * when nothing rendered at all.** If Today ever went blank for a user who finished onboarding without
+     * a paycheck — the state `(tabs)/index.tsx` documents as reachable — that user is stuck on an empty
+     * screen with no way to add one, and every gate in the tree stays green.
+     *
+     * ⚡ **Measured across the whole test tree, not sampled:** `grep -rn "Set up your paycheck\|no-paycheck"
+     * apps/rn/tests/e2e/` returned **one** hit, in `demo-containment.spec.ts` — and it is another absence
+     * assertion. `route-smoke.spec.ts` owns the blank-route class and asserts `innerText.length > 40`, but
+     * it seeds the POPULATED plan, never `paycheck.amount: ''`. **Nothing anywhere asserted that this
+     * screen renders anything.**
+     *
+     * ⚠️ The absence line is kept and is still falsifiable — a Guardian card appearing reds it. What is
+     * added is the half that was unfalsifiable.
+     */
     await seedStore(page, scenario({ paycheck: { amount: '' }, debts: [] })); // no plan → selectPaydayGuardian null
     await page.goto('/');
-    // The app still boots to Today; the Guardian card is simply absent (no crash, no empty shell).
+    // ⛔ THE POSITIVE ASSERTION FIRST. `toHaveCount(0)` below is satisfied by a page that never rendered.
+    await expect(page.getByText('Set up your paycheck').first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('Add your paycheck to see exactly what to pay each cycle.')).toBeVisible();
     await expect(page.getByText('PAYDAY GUARDIAN')).toHaveCount(0);
   });
 

@@ -197,7 +197,7 @@ if (missing.length > 0) {
 console.log(`✅ [D37]: all ${highPlus.length} high+ findings trace to a closure or a recorded refutation.`);
 
 // ⛔ …and how much of that green is a COINCIDENCE. See the `[closes: …]` docstring above.
-if (d37Untokenised.length > MAX_UNTOKENISED.d37) {
+if (d37Untokenised.length !== MAX_UNTOKENISED.d37) {
   console.error(
     `\n❌ [D37] untokenised-closure cap: ${d37Untokenised.length} high+ findings trace ONLY by an unmarked mention ` +
       `(cap ${MAX_UNTOKENISED.d37}).\n`,
@@ -268,7 +268,7 @@ const p68Missing = p68HighPlus.filter((f) => !p68Recorded.has(f.id));
 
 // ⛔ Traced, but by prose that only DISCUSSES the finding. See the `[closes: …]` docstring above.
 const p68Untokenised = p68HighPlus.filter((f) => p68Recorded.has(f.id) && !explicit.has(f.id));
-if (p68Untokenised.length > MAX_UNTOKENISED.p68) {
+if (p68Untokenised.length !== MAX_UNTOKENISED.p68) {
   console.error(
     `\n❌ P6.8 untokenised-closure cap: ${p68Untokenised.length} high+ findings trace ONLY by an unmarked mention ` +
       `(cap ${MAX_UNTOKENISED.p68}).\n`,

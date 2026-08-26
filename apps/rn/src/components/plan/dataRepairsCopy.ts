@@ -27,14 +27,41 @@ const ENTITY_NOUN: Record<Exclude<DataRepair['entity'], 'migration'>, string> = 
   goal: 'savings goal',
 };
 
-/** "Chase card — balance", the whole-list case, or a migration loss, which is already a sentence. */
+/**
+ * ⛔ **S1.9.7 [pass-2 C-m1] — A SCHEMA KEY IS NOT A SENTENCE.** Measured output on a store with six
+ * repairs: *"Chase — minimumPayment"*, *"Chase — apr"*, *"Rent — amount"*, *"House Fund — targetAmount"*,
+ * *"House Fund — currentAmount"* — and, for the one field somebody had written words for, a full clause.
+ * ⚡ **The mechanism for a human string already existed and had been applied to one field of six.**
+ *
+ * ⚠️ **A map, and it is EXHAUSTIVE over what `migrations.ts` can repair** — the same compiler-as-gate move
+ * `ENTITY_NOUN` above earned at P6.8.9.7.2, where adding `goal` to the entity union failed the build right
+ * here rather than shipping *"Your item list"*. A new repairable field must be named for the user or it
+ * does not compile.
+ */
+export const FIELD_LABEL: Record<string, string> = {
+  balance: 'the balance',
+  minimumPayment: 'the minimum payment',
+  apr: 'the interest rate',
+  originalBalance: 'the starting balance',
+  scheduledPaymentAmount: 'the scheduled payment',
+  amount: 'the amount',
+  targetAmount: 'the target',
+  currentAmount: 'the amount saved',
+  priorityPerPaycheck: 'the per-paycheck amount',
+};
+
+/** "Chase card — the balance", the whole-list case, or a migration loss, which is already a sentence. */
 export function describeRepair(repair: DataRepair): string {
   // M3-20 — a migration entry carries no entity and no name: its `field` IS the sentence, because the
   // v1.6 key it came from ("debtPlanner.rolloverCount") means nothing to the person reading it.
   if (repair.entity === 'migration') return repair.field;
   const noun = ENTITY_NOUN[repair.entity] ?? 'item';
-  if (!repair.name) return `Your ${noun} list — ${repair.field}`;
-  return `${repair.name} — ${repair.field}`;
+  // ⚠️ Falls back to the raw field rather than to a generic word: an unmapped key is ugly and TRUE, and
+  // "an amount" over the wrong field would be neither. The `field` is also already a sentence for the
+  // synthetic losses ("(a row could not be read)") and for the pace, so an unmapped value is correct there.
+  const field = FIELD_LABEL[repair.field] ?? repair.field;
+  if (!repair.name) return `Your ${noun} list — ${field}`;
+  return `${repair.name} — ${field}`;
 }
 
 export interface RepairBlock {
