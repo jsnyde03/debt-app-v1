@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { generateV16Cases, type Case } from '@/data/migrationAudit/corpus';
 import { importDoor, webkitDoor } from '@/data/migrationAudit/doors';
-import { INVARIANTS, checkAll, type DoorOutcome } from '@/data/migrationAudit/invariants';
+import { INVARIANTS, checkAll, priorityGoalIsCapped, type DoorOutcome } from '@/data/migrationAudit/invariants';
 
 /**
  * 5.10 — the adversarial migration audit.
@@ -169,6 +169,60 @@ export function selfCheck(): void {
   }
   if (!threwOnDrift) {
     throw new Error('FAIL [self-check: verdict() ignored differential drift — the two-door oracle is unguarded]');
+  }
+
+  /**
+   * ⛔ **INVARIANT ⑨'S REACHABILITY FLOOR.** [S0.13 · GAP-1 — pass 4's guard inventory, and it rated this
+   * the highest-value gap on the surface *because it is the only one that reaches a user's money*.]
+   *
+   * ⚡ **The defect it guards against has already happened once.** [S0.6b · REVERIFY-1 finding 6] invariant
+   * ⑨ could not fire on any of 554 cases: `damageNested` always damages `goals[0]`, and `goals[0]` is the
+   * emergency fund the stand-down deliberately exempts — so every damaged pace landed on the one goal
+   * whose pace does not govern. **⑨ could be deleted, inverted or broken with the whole repo green.**
+   *
+   * ⚠️ **The fix was a ten-line loop in `corpus.ts` (`goals[1].priorityPerPaycheck`), and NOTHING GUARDED
+   * IT.** Pass 4 measured exactly that: delete those ten lines and the original defect returns, silently,
+   * with the suite passing. **A fix with no guard is not closed** — [D67].
+   *
+   * **Two links, because they break independently:**
+   *   ① the CORPUS still produces a case that damages the pace on a **governing** goal, and
+   *   ② invariant ⑨ still FIRES on such a case rather than being deleted or inverted.
+   *
+   * ⚠️ ② is checked directly against `priorityGoalIsCapped` rather than through `checkAll`, because
+   * `checkAll` returning *something* proves only that **some** invariant fired — which is precisely the
+   * vacuity link ① exists to rule out, one level down.
+   */
+  const paceCases = generateV16Cases().filter((c) => c.target === 'goals[1].priorityPerPaycheck');
+  if (paceCases.length === 0) {
+    throw new Error(
+      'FAIL [self-check: the corpus damages no pace on a GOVERNING goal — invariant ⑨ is unreachable, ' +
+        'so it could be deleted or inverted with this suite green. Restore the goals[1] loop in corpus.ts]',
+    );
+  }
+
+  const uncapped: DoorOutcome = {
+    door: 'self-check',
+    input: {},
+    inputBefore: '{}',
+    inputAfter: '{}',
+    store: {
+      // ⚠️ `priority`, not `isPriority`, and the pace must be PRESENT-but-non-positive: ⑨ returns early
+      // on `undefined`/`null` because the stand-down deletes the field on both its branches. A fixture
+      // that misses either detail passes ⑨ while looking like a poison — checked by reading
+      // `invariants.ts:214-229`, after a first guess at the shape did not fire.
+      goals: [
+        { id: 'g0', priority: false },
+        { id: 'g1', priority: true, priorityPerPaycheck: 'not-a-number' },
+      ],
+    } as unknown as DoorOutcome['store'],
+    refused: false,
+    threw: null,
+  };
+  if (priorityGoalIsCapped(uncapped) === null) {
+    throw new Error(
+      'FAIL [self-check: invariant ⑨ did not fire on a priority goal whose pace reads as UNCAPPED — ' +
+        'the branch that decides how fast a user pays a debt is unguarded]',
+    );
   }
 
   /**

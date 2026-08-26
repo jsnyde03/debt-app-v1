@@ -4,13 +4,14 @@
 > This is the **input** to the wording/voice gate, not its output. Findings belong in a dated
 > audit folder; this file is only ever the current state of the codebase.
 
-**823** copy · **405** unclassified · **68** excluded as machinery · **61** copy strings appearing in more than one file (of 85 repeated strings overall).
+**859** copy · **528** unclassified · **95** excluded as machinery · **50** copy strings appearing in more than one file (of 99 repeated strings overall).
 
 <details><summary>Excluded as machinery — the contexts, so the exclusions can be challenged</summary>
 
 - `key:category`
 - `key:fontFamily`
 - `key:id`
+- `key:kind`
 - `key:name`
 - `key:reason`
 - `key:value`
@@ -32,21 +33,24 @@ here is how a surface goes unreviewed while the count looks complete.
 - `call:Intl.NumberFormat`
 - `call:Keyboard.addListener`
 - `call:Math.floor`
-- `call:Math.max`
+- `call:String`
+- `call:addMonthsToDate`
 - `call:announce`
 - `call:anonymous`
+- `call:check`
 - `call:console.warn`
-- `call:d.toLocaleString`
 - `call:date.toLocaleString`
 - `call:db.getAllAsync`
 - `call:drivers.push`
-- `call:fullAmount.toLocaleString`
 - `call:import`
 - `call:key.startsWith`
 - `call:monthDate`
 - `call:name.endsWith`
 - `call:notify`
+- `call:parts.push`
 - `call:probeCoachMark`
+- `call:repairMoneyFields`
+- `call:repairs.find`
 - `call:reportError`
 - `call:require`
 - `call:requireNativeModule`
@@ -62,7 +66,6 @@ here is how a surface goes unreviewed while the count looks complete.
 - `call:useStore`
 - `call:useSuppressCoachMarks`
 - `call:validateDayOfTheMonth`
-- `call:value.toLocaleString`
 - `key:"annually"`
 - `key:"at-risk"`
 - `key:"biweekly"`
@@ -88,24 +91,34 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:'one-time'`
 - `key:'per-paycheck'`
 - `key:'quarterly'`
+- `key:'raw-v17'`
+- `key:'receipt-long'`
 - `key:'shopping-cart'`
 - `key:'tab-money'`
 - `key:'tab-progress'`
 - `key:'task-alt'`
 - `key:'trending-down'`
 - `key:'trending-up'`
+- `key:'upload-file'`
+- `key:'v16-file'`
 - `key:'verified-user'`
 - `key:'weekly'`
 - `key:afternoon`
 - `key:amountPositive`
 - `key:appLockEnabled`
+- `key:aprInvalid`
+- `key:aprPlaceholder`
 - `key:assignment`
+- `key:atEntry`
+- `key:balanceLabel`
+- `key:balancePlaceholder`
 - `key:balanceRequired`
 - `key:bills`
 - `key:biweekly`
 - `key:boxShadow`
 - `key:buttonTitle`
 - `key:cancel`
+- `key:candidates`
 - `key:celebration`
 - `key:clear`
 - `key:coach`
@@ -114,16 +127,20 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:cycle`
 - `key:cycleHistory`
 - `key:debts`
+- `key:dialogTitle`
 - `key:discretionary`
 - `key:display`
+- `key:envelope`
 - `key:error`
 - `key:errors`
-- `key:estimatedDebtFreeDate`
 - `key:evening`
 - `key:examples`
+- `key:exportedAt`
 - `key:fallbackLabel`
+- `key:field`
 - `key:flexible`
 - `key:free`
+- `key:goal`
 - `key:goals`
 - `key:hasCompletedOnboarding`
 - `key:hasConfiguredPaycheck`
@@ -133,6 +150,7 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:insurance`
 - `key:isDemoMode`
 - `key:lastHandledPaydayDate`
+- `key:lastSavedAt`
 - `key:leanAboveTypical`
 - `key:leanRequired`
 - `key:line`
@@ -141,7 +159,10 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:medical`
 - `key:milestoneMaxProgress`
 - `key:mimeType`
+- `key:minimumLabel`
+- `key:minimumPlaceholder`
 - `key:minimumRequired`
+- `key:minute`
 - `key:mockSubscription`
 - `key:mono`
 - `key:monthlyPayDay`
@@ -161,7 +182,6 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:placeholder`
 - `key:portfolioMaxProgress`
 - `key:premium`
-- `key:projectedDebtFreeDate`
 - `key:promptMessage`
 - `key:provider`
 - `key:recoveryTrend`
@@ -186,15 +206,19 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:subscriptions`
 - `key:subsystem`
 - `key:systemIcon`
+- `key:target`
 - `key:tight`
 - `key:type`
+- `key:unicode`
+- `key:unrecognised`
 - `key:update`
+- `key:utcMidnightDate`
 - `key:utilities`
+- `key:webkitRoot`
 - `key:why`
 - `other`
-- `prop:amount`
 - `prop:amountSuffix`
-- `prop:error`
+- `prop:badges`
 - `prop:getComponent`
 - `prop:onCta`
 - `prop:onManageEveryday`
@@ -208,41 +232,74 @@ here is how a surface goes unreviewed while the count looks complete.
 - `var:AMT`
 - `var:APP_STORE_URL`
 - `var:BACKUP_APP_NAME`
+- `var:BACKUP_PATH`
 - `var:BILL_CATEGORY_ORDER`
+- `var:CSV_TYPES`
 - `var:CUSHION_LABEL`
 - `var:CYCLE_HISTORY_STORAGE_KEY`
+- `var:DAMAGED`
+- `var:DEBT_FREE_DATE_UNPAYABLE`
 - `var:DEBT_RC_IOS_KEY`
 - `var:DEFERRABLE_CATEGORIES`
 - `var:EMERGENCY_FUND_NOUN`
 - `var:EVERYDAY_SPENDING_LABEL`
 - `var:EXAMPLE_MONEY`
+- `var:EXPORT_BACKUP_TITLE`
+- `var:FILE_UNREADABLE`
 - `var:FREEDOM_SCHEME_URL`
 - `var:FREEDOM_STORE_URL`
+- `var:GENERIC_FAILURE`
+- `var:GOALS_DESTINATION`
+- `var:GOAL_MONEY_FIELDS`
+- `var:IMPORT_BACKUP_TITLE`
+- `var:JSON_TYPES`
 - `var:KEY`
 - `var:LEGACY_KEY_PREFIX`
 - `var:LIFETIME_SUBNOTE`
 - `var:LIVE_ACTIVITY_APP_GROUP`
+- `var:LOG_PAYMENT_ENTRY`
 - `var:MALFORMED`
 - `var:MANAGE_SUBSCRIPTION_URL`
+- `var:MONEY_FIELDS`
 - `var:NOT_A_BACKUP`
+- `var:NOT_A_CLOUD_BACKUP`
 - `var:NOT_JSON`
+- `var:NO_BACKUP_YET`
+- `var:NO_CODEC`
+- `var:OVERDUE_LABEL`
+- `var:PAID_OFF_LABEL`
 - `var:PAYCHECK_LEAN_HELP`
 - `var:PAYDAY_ACTIVITY_DEEPLINK`
+- `var:PAYOFF_SCHEDULE_TITLE`
+- `var:PAY_CYCLE_HISTORY_TITLE`
+- `var:PLACEHOLDER`
+- `var:PRIVACY_POLICY_LABEL`
 - `var:PRIVACY_POLICY_URL`
 - `var:QUARANTINE_PREFIX`
+- `var:REDACTED`
+- `var:REMOTE_UNCLAIMED`
+- `var:REPLACE_DATA_ACTION`
+- `var:RESTORE_FROM_CLOUD_ACTION`
 - `var:SAFETY_NET_LABEL`
+- `var:SAVE_FAILED_SPOKEN`
+- `var:SEE_IT_IN_ACTION_CTA`
+- `var:SHARE_WIN_CTA`
+- `var:SIGN_IN_TO_ICLOUD`
 - `var:SUPPORT_URL`
 - `var:TERMS_OF_USE_URL`
 - `var:TOO_NEW`
 - `var:TUTORIAL_WRITABLE_PREFS`
+- `var:UNLOCK_PREMIUM_CTA`
+- `var:UNREADABLE`
+- `var:UNRECOGNISED`
+- `var:V16_DIRECT_KEYS`
+- `var:V16_PAYCHECK_KEYS`
 - `var:WIDGET_APP_GROUP`
 - `var:WIDGET_KIND`
 - `var:WIDGET_SNAPSHOT_KEY`
-- `var:actualUnpayable`
 - `var:appleTargets`
 - `var:attestLabel`
 - `var:beatA11y`
-- `var:canEstimate`
 - `var:caption`
 - `var:captionText`
 - `var:coverFromSavings`
@@ -259,8 +316,9 @@ here is how a surface goes unreviewed while the count looks complete.
 - `var:look`
 - `var:lowCushionDrivers`
 - `var:message`
-- `var:minUnpayable`
+- `var:meta`
 - `var:minimumsDateLabel`
+- `var:nested`
 - `var:provider`
 - `var:purchaseName`
 - `var:recalibration`
@@ -275,8 +333,8 @@ here is how a surface goes unreviewed while the count looks complete.
 
 ## Duplicated across files — copy only
 
-**61** of 85 cross-file duplicate strings carry copy.
-The other 24 are style tokens, icon names,
+**50** of 99 cross-file duplicate strings carry copy.
+The other 49 are style tokens, icon names,
 routes and enum ids — repeated by design, and nothing a wording pass judges. They are excluded
 here for the same reason the T2 gate and the T3 table exclude them: one classification, reused.
 
@@ -284,67 +342,56 @@ here for the same reason the T2 gate and the T3 table exclude them: one classifi
 non-copy literal elsewhere (`"at-risk"` is a Guardian state id and a QA label). Judge the copy
 instance; the others are coincidence, not divergence.
 
-- **"Add"** _(copy)_ — `apps/rn/src/app/(tabs)/money.tsx:307` · `apps/rn/src/app/(tabs)/money.tsx:374` · `apps/rn/src/app/(tabs)/money.tsx:637` · `apps/rn/src/app/(tabs)/money.tsx:750` · `apps/rn/src/app/(tabs)/money.tsx:900` · `apps/rn/src/app/(tabs)/money.tsx:940` · `apps/rn/src/components/plan/WindfallSheet.tsx:81`
-- **"Undo"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:562` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:242` · `apps/rn/src/components/plan/AffordabilityCard.tsx:125` · `apps/rn/src/components/plan/AffordabilityCard.tsx:146` · `apps/rn/src/components/plan/RecommendedActionsCard.tsx:70` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:234`
-- **"Autopay"** _(copy)_ — `apps/rn/src/app/(tabs)/money.tsx:461` · `apps/rn/src/app/(tabs)/money.tsx:734` · `apps/rn/src/components/entities/DebtSheet.tsx:352` · `apps/rn/src/components/entities/ExpenseSheet.tsx:107` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:275` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:275`
-- **"Paid off"** _(copy)_ — `apps/rn/src/components/plan/PaidOffBeat.tsx:116` · `apps/rn/src/components/plan/PaidOffBeat.tsx:126` · `apps/rn/src/components/plan/ShareCard.tsx:50` · `apps/rn/src/components/plan/ShareCard.tsx:51` · `apps/rn/src/components/progress/PaidOffArchive.tsx:60` · `apps/rn/src/components/progress/PaidOffArchive.tsx:65`
-- **"Got it"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:511` · `apps/rn/src/app/(tabs)/index.tsx:529` · `apps/rn/src/app/(tabs)/index.tsx:546` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:164` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:167`
-- **"/mo"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:471` · `apps/rn/src/app/(tabs)/money.tsx:471` · `apps/rn/src/components/entities/AmortizationView.tsx:79` · `apps/rn/src/components/payoff/WhatIfControls.tsx:83` · `packages/core/types/recurrence.ts:27`
-- **"Save"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:250` · `apps/rn/src/components/entities/ExpenseSheet.tsx:88` · `apps/rn/src/components/entities/GoalSheet.tsx:60` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:49` · `apps/rn/src/components/plan/CushionFloorSheet.tsx:48`
-- **"Looks clear this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:26` · `packages/core/guardian/buildGuardianBrief.ts:279` · `packages/core/guardian/buildGuardianBrief.ts:342` · `packages/core/guardian/buildGuardianBrief.ts:356` · `packages/core/guardian/buildGuardianBrief.ts:377`
+- **"Add"** _(copy)_ — `apps/rn/src/app/(tabs)/money.tsx:314` · `apps/rn/src/app/(tabs)/money.tsx:414` · `apps/rn/src/app/(tabs)/money.tsx:695` · `apps/rn/src/app/(tabs)/money.tsx:808` · `apps/rn/src/app/(tabs)/money.tsx:968` · `apps/rn/src/app/(tabs)/money.tsx:1038` · `apps/rn/src/components/plan/WindfallSheet.tsx:82`
+- **"Got it"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:572` · `apps/rn/src/app/(tabs)/index.tsx:590` · `apps/rn/src/app/(tabs)/index.tsx:607` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:386` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:389` · `apps/rn/src/components/plan/DataRepairsCard.tsx:84`
+- **"Undo"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:623` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:265` · `apps/rn/src/components/plan/AffordabilityCard.tsx:143` · `apps/rn/src/components/plan/AffordabilityCard.tsx:164` · `apps/rn/src/components/plan/RecommendedActionsCard.tsx:70` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:265`
+- **"Autopay"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:513` · `apps/rn/src/app/(tabs)/money.tsx:792` · `apps/rn/src/components/entities/DebtSheet.tsx:359` · `apps/rn/src/components/entities/ExpenseSheet.tsx:116` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:300` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:306`
+- **"/mo"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:524` · `apps/rn/src/app/(tabs)/money.tsx:524` · `apps/rn/src/components/entities/AmortizationView.tsx:85` · `apps/rn/src/components/payoff/WhatIfControls.tsx:84` · `packages/core/types/recurrence.ts:27`
+- **"Save"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:257` · `apps/rn/src/components/entities/ExpenseSheet.tsx:97` · `apps/rn/src/components/entities/GoalSheet.tsx:128` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:55` · `apps/rn/src/components/plan/CushionFloorSheet.tsx:49`
+- **"Looks clear this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:26` · `packages/core/guardian/buildGuardianBrief.ts:284` · `packages/core/guardian/buildGuardianBrief.ts:347` · `packages/core/guardian/buildGuardianBrief.ts:363` · `packages/core/guardian/buildGuardianBrief.ts:384`
+- **"Delete"** _(copy)_ — `apps/rn/src/components/ui/FormSheet.tsx:116` · `apps/rn/src/components/ui/FormSheet.tsx:182` · `apps/rn/src/components/ui/ListRow.tsx:165` · `apps/rn/src/components/ui/ListRow.tsx:260` · `apps/rn/src/utils/confirm.ts:18`
 - **"Today"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:82` · `apps/rn/src/components/more/LiveActivityQA.tsx:41` · `apps/rn/src/components/more/LiveActivityQA.tsx:45` · `apps/rn/src/liveActivity/paydayActivityContent.ts:53`
-- **"Progress"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:87` · `apps/rn/src/app/(tabs)/progress.tsx:95` · `apps/rn/src/app/(tabs)/progress.tsx:110` · `apps/rn/src/app/(tabs)/progress.tsx:158`
-- **"Add a debt"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:438` · `apps/rn/src/app/(tabs)/progress.tsx:115` · `apps/rn/src/components/entities/DebtSheet.tsx:240` · `apps/rn/src/components/entities/DebtSheet.tsx:240`
-- **"Not now"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:585` · `apps/rn/src/components/plan/LeanSuggestionCard.tsx:40` · `apps/rn/src/components/plan/TutorialInviteCard.tsx:44` · `apps/rn/src/utils/confirm.ts:46`
-- **"BNPL"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:461` · `apps/rn/src/store/guardianSelectors.ts:328` · `packages/core/debt/bnplSchedule.ts:42` · `packages/core/debt/bnplSchedule.ts:65`
-- **"Monthly"** _(copy+unclassified)_ — `apps/rn/src/app/paywall.tsx:75` · `apps/rn/src/app/paywall.tsx:92` · `apps/rn/src/store/obligationForm.ts:24` · `apps/rn/src/store/paycheckForm.ts:34`
-- **"Payoff schedule"** _(copy+unclassified)_ — `apps/rn/src/app/schedule/[id].tsx:25` · `apps/rn/src/app/schedule/[id].tsx:31` · `apps/rn/src/components/entities/AmortizationView.tsx:137` · `apps/rn/src/components/ui/ListRow.tsx:152`
-- **"Name"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:297` · `apps/rn/src/components/entities/ExpenseSheet.tsx:93` · `apps/rn/src/components/entities/GoalSheet.tsx:65` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:54`
-- **"Amount"** _(copy)_ — `apps/rn/src/components/entities/ExpenseSheet.tsx:94` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:180` · `apps/rn/src/components/plan/AffordabilityCard.tsx:161` · `apps/rn/src/components/plan/WindfallSheet.tsx:86`
-- **"/paycheck"** _(copy+unclassified)_ — `apps/rn/src/components/money/BillBreakdownSheet.tsx:84` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:102` · `apps/rn/src/components/plan/SaveForItSheet.tsx:123` · `packages/core/types/recurrence.ts:30`
-- **"paid off"** _(copy)_ — `apps/rn/src/components/plan/PaidOffFinale.tsx:119` · `apps/rn/src/components/plan/ShareCard.tsx:40` · `apps/rn/src/components/plan/ShareCard.tsx:61` · `apps/rn/src/components/plan/ShareCard.tsx:64`
-- **"Emergency fund"** _(copy+technical+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:929` · `apps/rn/src/components/entities/GoalSheet.tsx:71` · `apps/rn/src/store/sandboxScenarios.ts:161`
-- **"Premium"** _(copy)_ — `apps/rn/src/app/more.tsx:130` · `apps/rn/src/app/more.tsx:146` · `apps/rn/src/app/paywall.tsx:231`
-- **"Other"** _(copy+technical+unclassified)_ — `apps/rn/src/components/entities/DebtSheet.tsx:60` · `apps/rn/src/components/entities/DebtSheet.tsx:60` · `apps/rn/src/store/obligationForm.ts:61`
-- **"A little tight this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:37` · `packages/core/guardian/buildGuardianBrief.ts:279` · `packages/core/guardian/buildGuardianBrief.ts:294`
-- **"Paid"** _(copy)_ — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:282` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:419` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:234`
-- **"Close"** _(copy)_ — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:340` · `apps/rn/src/components/ui/AnimatedSheet.tsx:82` · `apps/rn/src/components/ui/FormSheet.tsx:157`
-- **"Cushion"** _(copy+unclassified)_ — `apps/rn/src/components/plan/FloorImpactBar.tsx:76` · `apps/rn/src/components/progress/CashFlowSection.tsx:65` · `packages/core/copy/vocabulary.ts:60`
-- **"Delete"** _(copy)_ — `apps/rn/src/components/ui/ListRow.tsx:144` · `apps/rn/src/components/ui/ListRow.tsx:154` · `apps/rn/src/utils/confirm.ts:18`
-- **"Money"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:92` · `apps/rn/src/app/(tabs)/money.tsx:103`
-- **"Savings"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:929` · `apps/rn/src/components/entities/GoalSheet.tsx:71`
-- **"More"** _(copy)_ — `apps/rn/src/app/more.tsx:115` · `apps/rn/src/components/more-button.tsx:45`
-- **"Unlock Premium"** _(copy)_ — `apps/rn/src/app/more.tsx:155` · `apps/rn/src/components/plan/DemoDock.tsx:120`
-- **"Export backup"** _(copy)_ — `apps/rn/src/app/more.tsx:203` · `apps/rn/src/components/more/BackupSheets.tsx:35`
-- **"Import backup"** _(copy)_ — `apps/rn/src/app/more.tsx:204` · `apps/rn/src/components/more/BackupSheets.tsx:77`
-- **"Your name"** _(copy)_ — `apps/rn/src/app/more.tsx:226` · `apps/rn/src/components/onboarding/CompletionStep.tsx:65`
-- **"About"** _(copy)_ — `apps/rn/src/app/more.tsx:306` · `apps/rn/src/components/plan/AffordabilityCard.tsx:199`
-- **"Privacy Policy"** _(copy)_ — `apps/rn/src/app/more.tsx:308` · `apps/rn/src/app/paywall.tsx:367`
-- **"Cancel"** _(copy)_ — `apps/rn/src/app/more.tsx:389` · `apps/rn/src/utils/confirm.ts:17`
-- **"See it in action"** _(copy)_ — `apps/rn/src/app/paywall.tsx:351` · `apps/rn/src/components/onboarding/WelcomeStep.tsx:42`
-- **"Log a payment"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:277` · `apps/rn/src/components/entities/LogPaymentSheet.tsx:34`
-- **"Type"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:299` · `apps/rn/src/components/entities/GoalSheet.tsx:69`
-- **"e.g. 100"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:309` · `apps/rn/src/components/plan/SaveForItSheet.tsx:149`
-- **"Current balance"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:321` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:149`
-- **"e.g. 2400"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:321` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:155`
-- **"Minimum payment"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:346` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:162`
-- **"e.g. 22.99"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:347` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:173`
-- **"Due date"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:348` · `apps/rn/src/components/entities/ExpenseSheet.tsx:96`
-- **"Recurrence"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:349` · `apps/rn/src/components/entities/ExpenseSheet.tsx:97`
-- **"Log payment"** _(copy)_ — `apps/rn/src/components/entities/LogPaymentSheet.tsx:46` · `apps/rn/src/components/ui/ListRow.tsx:151`
-- **"Done"** _(copy)_ — `apps/rn/src/components/more/BackupSheets.tsx:37` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:292`
+- **"Progress"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:87` · `apps/rn/src/app/(tabs)/progress.tsx:166` · `apps/rn/src/app/(tabs)/progress.tsx:181` · `apps/rn/src/app/(tabs)/progress.tsx:239`
+- **"Add a debt"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:486` · `apps/rn/src/app/(tabs)/progress.tsx:186` · `apps/rn/src/components/entities/DebtSheet.tsx:247` · `apps/rn/src/components/entities/DebtSheet.tsx:247`
+- **"Not now"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:651` · `apps/rn/src/components/plan/LeanSuggestionCard.tsx:40` · `apps/rn/src/components/plan/TutorialInviteCard.tsx:44` · `apps/rn/src/utils/confirm.ts:56`
+- **"BNPL"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:511` · `apps/rn/src/store/guardianSelectors.ts:329` · `packages/core/debt/bnplSchedule.ts:42` · `packages/core/debt/bnplSchedule.ts:65`
+- **"Monthly"** _(copy+unclassified)_ — `apps/rn/src/app/paywall.tsx:76` · `apps/rn/src/app/paywall.tsx:100` · `apps/rn/src/store/obligationForm.ts:24` · `apps/rn/src/store/paycheckForm.ts:34`
+- **"Name"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:304` · `apps/rn/src/components/entities/ExpenseSheet.tsx:102` · `apps/rn/src/components/entities/GoalSheet.tsx:133` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:60`
+- **"Amount"** _(copy)_ — `apps/rn/src/components/entities/ExpenseSheet.tsx:103` · `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:201` · `apps/rn/src/components/plan/AffordabilityCard.tsx:179` · `apps/rn/src/components/plan/WindfallSheet.tsx:87`
+- **"/paycheck"** _(copy+unclassified)_ — `apps/rn/src/components/money/BillBreakdownSheet.tsx:84` · `apps/rn/src/components/money/BillBreakdownSheet.tsx:102` · `apps/rn/src/components/plan/SaveForItSheet.tsx:135` · `packages/core/types/recurrence.ts:30`
+- **"paid off"** _(copy)_ — `apps/rn/src/components/plan/PaidOffFinale.tsx:120` · `apps/rn/src/components/plan/ShareCard.tsx:41` · `apps/rn/src/components/plan/ShareCard.tsx:62` · `apps/rn/src/components/plan/ShareCard.tsx:65`
+- **"Premium"** _(copy)_ — `apps/rn/src/app/more.tsx:176` · `apps/rn/src/app/more.tsx:192` · `apps/rn/src/app/paywall.tsx:239`
+- **"Cancel"** _(copy)_ — `apps/rn/src/app/more.tsx:494` · `apps/rn/src/app/more.tsx:517` · `apps/rn/src/utils/confirm.ts:17`
+- **"Other"** _(copy+technical+unclassified)_ — `apps/rn/src/components/entities/DebtSheet.tsx:63` · `apps/rn/src/components/entities/DebtSheet.tsx:63` · `apps/rn/src/store/obligationForm.ts:61`
+- **"e.g. 100"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:316` · `apps/rn/src/components/entities/GoalSheet.tsx:152` · `apps/rn/src/components/plan/SaveForItSheet.tsx:164`
+- **"Done"** _(copy)_ — `apps/rn/src/components/more/BackupSheets.tsx:81` · `apps/rn/src/components/more/CloudBackupSheet.tsx:53` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:317`
+- **"A little tight this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:37` · `packages/core/guardian/buildGuardianBrief.ts:284` · `packages/core/guardian/buildGuardianBrief.ts:299`
+- **"Paid"** _(copy)_ — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:307` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:447` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:265`
+- **"Close"** _(copy)_ — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:365` · `apps/rn/src/components/ui/AnimatedSheet.tsx:82` · `apps/rn/src/components/ui/FormSheet.tsx:165`
+- **"Cushion"** _(copy+unclassified)_ — `apps/rn/src/components/plan/FloorImpactBar.tsx:76` · `apps/rn/src/components/progress/CashFlowSection.tsx:76` · `packages/core/copy/vocabulary.ts:60`
+- **"Money"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:92` · `apps/rn/src/app/(tabs)/money.tsx:104`
+- **"Add a bill"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:473` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:134`
+- **"Snowball"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:378` · `apps/rn/src/components/payoff/StrategyCompare.tsx:58`
+- **"Avalanche"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:379` · `apps/rn/src/components/payoff/StrategyCompare.tsx:59`
+- **"More"** _(copy)_ — `apps/rn/src/app/more.tsx:158` · `apps/rn/src/components/more-button.tsx:45`
+- **"iCloud backup"** _(copy)_ — `apps/rn/src/app/more.tsx:263` · `apps/rn/src/components/more/CloudBackupSheet.tsx:51`
+- **"Your name"** _(copy)_ — `apps/rn/src/app/more.tsx:290` · `apps/rn/src/components/onboarding/CompletionStep.tsx:69`
+- **"About"** _(copy)_ — `apps/rn/src/app/more.tsx:366` · `apps/rn/src/components/plan/AffordabilityCard.tsx:215`
+- **"Try again"** _(copy)_ — `apps/rn/src/app/more.tsx:497` · `apps/rn/src/components/StorageErrorScreen.tsx:46`
+- **"Type"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:306` · `apps/rn/src/components/entities/GoalSheet.tsx:137`
+- **"Due date"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:355` · `apps/rn/src/components/entities/ExpenseSheet.tsx:105`
+- **"Recurrence"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:356` · `apps/rn/src/components/entities/ExpenseSheet.tsx:106`
+- **"Choose a file"** _(copy)_ — `apps/rn/src/components/entities/ImportDebtsSheet.tsx:116` · `apps/rn/src/components/more/BackupSheets.tsx:194`
 - **"Tomorrow"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:37` · `apps/rn/src/liveActivity/paydayActivityContent.ts:54`
-- **"Very tight this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:41` · `packages/core/guardian/buildGuardianBrief.ts:294`
-- **"e.g. 1200"** _(copy+unclassified)_ — `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:186` · `apps/rn/src/store/paycheckForm.ts:41`
-- **"Continue"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:78` · `apps/rn/src/components/plan/PaidOffFinale.tsx:128`
-- **"Keep going"** _(copy)_ — `apps/rn/src/components/plan/MilestoneAckCard.tsx:45` · `apps/rn/src/components/plan/PaidOffBeat.tsx:138`
-- **"Share your win"** _(copy+unclassified)_ — `apps/rn/src/components/plan/PaidOffBeat.tsx:89` · `apps/rn/src/components/plan/PaidOffFinale.tsx:127`
-- **"Share"** _(copy)_ — `apps/rn/src/components/plan/PaidOffBeat.tsx:137` · `apps/rn/src/components/progress/PaidOffArchive.tsx:73`
-- **"Overdue"** _(copy)_ — `apps/rn/src/components/plan/RequiredActionsCard.tsx:295` · `apps/rn/src/store/planSelectors.ts:271`
+- **"Very tight this paycheck"** _(copy)_ — `apps/rn/src/components/more/LiveActivityQA.tsx:41` · `packages/core/guardian/buildGuardianBrief.ts:299`
+- **"e.g. 1200"** _(copy+unclassified)_ — `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:207` · `apps/rn/src/store/paycheckForm.ts:41`
+- **"Continue"** _(copy)_ — `apps/rn/src/components/onboarding/PaycheckStep.tsx:85` · `apps/rn/src/components/plan/PaidOffFinale.tsx:129`
+- **"It’s payday"** _(copy+unclassified)_ — `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:359` · `apps/rn/src/notifications/notifications.ts:137`
+- **"Keep going"** _(copy)_ — `apps/rn/src/components/plan/MilestoneAckCard.tsx:45` · `apps/rn/src/components/plan/PaidOffBeat.tsx:139`
+- **"Share"** _(copy)_ — `apps/rn/src/components/plan/PaidOffBeat.tsx:138` · `apps/rn/src/components/progress/PaidOffArchive.tsx:74`
 - **"Back"** _(copy)_ — `apps/rn/src/components/plan/TutorialOverlay.tsx:453` · `apps/rn/src/components/screen.tsx:67`
 - **"Weekly"** _(copy+unclassified)_ — `apps/rn/src/store/obligationForm.ts:25` · `apps/rn/src/store/paycheckForm.ts:31`
-- **"to your goals"** _(copy)_ — `apps/rn/src/store/planSelectors.ts:341` · `packages/core/guardian/buildGuardianBrief.ts:346`
-- **"Safety net"** _(copy+unclassified)_ — `packages/core/copy/vocabulary.ts:67` · `packages/core/engine/allocatePaycheck.ts:593`
+- **"Safety net"** _(copy+unclassified)_ — `packages/core/copy/vocabulary.ts:67` · `packages/core/engine/allocatePaycheck.ts:594`
 
 ## Copy gated on a condition — is the gate the thing the copy claims?
 
@@ -357,60 +404,81 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | file | condition | when true | when false |
 |---|---|---|---|
-| `apps/rn/src/app/(tabs)/index.tsx:556` | `intentRollback.kind === 'log-payment'` | "Payment logged — I updated your balance." | "Payday landed — I rolled your plan forward to this paycheck." |
-| `apps/rn/src/app/(tabs)/money.tsx:344` | `strategy === 'snowball'` | "Smallest balance first — quick wins. Your debts are listed in payoff order." | "Highest APR first — least interest. Your debts are listed in payoff order." |
-| `apps/rn/src/app/(tabs)/money.tsx:471` | `isBnpl` | "/mo" | "/mo" |
-| `apps/rn/src/app/(tabs)/money.tsx:732` | `item.expenseType === 'variable'` | "· Variable" | — |
-| `apps/rn/src/app/(tabs)/money.tsx:860` | `empty` | "Everyday spending reserve, nothing set up yet. Opens management." | — |
-| `apps/rn/src/app/(tabs)/money.tsx:870` | `empty` | "Not set up" | — |
-| `apps/rn/src/app/(tabs)/money.tsx:876` | `empty` | "Groceries, gas, fun money — reserve it each paycheck" | "Reserved each paycheck · tap to manage" |
-| `apps/rn/src/app/(tabs)/money.tsx:878` | `shortHeld` | — | "Reserved each paycheck · tap to manage" |
-| `apps/rn/src/app/(tabs)/money.tsx:929` | `g.type === 'emergency'` | "Emergency fund" | "Savings" |
-| `apps/rn/src/app/(tabs)/money.tsx:930` | `funded` | "Funded" | — |
-| `apps/rn/src/app/(tabs)/progress.tsx:150` | `reached.length` | — | "no milestones reached yet" |
-| `apps/rn/src/app/(tabs)/progress.tsx:151` | `nextT` | — | "all milestones reached" |
-| `apps/rn/src/app/(tabs)/progress.tsx:151` | `nextT === 100` | "debt-free" | — |
-| `apps/rn/src/app/living-expenses.tsx:65` | `item.enabled` | "Counts toward reserve" | "Not counted" |
-| `apps/rn/src/app/more.tsx:192` | `tipsReset` | "Tips will appear again as you go." | "Re-offer the one-line hints on hidden features." |
-| `apps/rn/src/app/paywall.tsx:277` | `kind === 'lifetime'` | "You’re on Premium — Lifetime. Thanks for the support." | "You’re on Premium — thanks for the support." |
-| `apps/rn/src/app/paywall.tsx:356` | `restoring` | "Restoring…" | "Restore purchases" |
+| `apps/rn/src/app/(tabs)/index.tsx:617` | `intentRollback.kind === 'log-payment'` | "Payment logged — I updated your balance." | "Payday landed — I rolled your plan forward to this paycheck." |
+| `apps/rn/src/app/(tabs)/index.tsx:957` | `selectReserveWalkback(s.store)` | "A surprise bill came up — I’ve restored your safety net for now." | — |
+| `apps/rn/src/app/(tabs)/money.tsx:383` | `strategy === 'snowball'` | "Smallest balance first — quick wins. Your debts are listed in payoff order." | "Highest APR first — least interest. Your debts are listed in payoff order." |
+| `apps/rn/src/app/(tabs)/money.tsx:509` | `focus` | "Focus" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:510` | `isBnpl` | "BNPL" | "Autopay" |
+| `apps/rn/src/app/(tabs)/money.tsx:512` | `debt.isAutopay` | "Autopay" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:524` | `isBnpl` | "/mo" | "/mo" |
+| `apps/rn/src/app/(tabs)/money.tsx:790` | `item.expenseType === 'variable'` | "· Variable" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:792` | `item.isAutopay` | "Autopay" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:918` | `empty` | "Everyday spending reserve, nothing set up yet. Opens management." | — |
+| `apps/rn/src/app/(tabs)/money.tsx:931` | `empty` | "Not set up" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:937` | `empty` | "Groceries, gas, fun money — reserve it each paycheck" | "Reserved each paycheck · tap to manage" |
+| `apps/rn/src/app/(tabs)/money.tsx:939` | `shortHeld` | — | "Reserved each paycheck · tap to manage" |
+| `apps/rn/src/app/(tabs)/progress.tsx:228` | `reached.length` | — | "no milestones reached yet" |
+| `apps/rn/src/app/(tabs)/progress.tsx:229` | `nextT` | — | "all milestones reached" |
+| `apps/rn/src/app/(tabs)/progress.tsx:229` | `nextT === 100` | "debt-free" | — |
+| `apps/rn/src/app/living-expenses.tsx:68` | `item.enabled` | "Counts toward reserve" | "Not counted" |
+| `apps/rn/src/app/more.tsx:245` | `tipsReset` | "Tips will appear again as you go." | "Short tips that point out what each screen can do." |
+| `apps/rn/src/app/more.tsx:488` | `blocked === 'unavailable'` | "Nothing was deleted. Sign in to iCloud on this device so the backup there can be erased too — or delete on this device only." | "Nothing was deleted. iCloud couldn’t be reached, so the backup there would have survived — try again, or delete on this device only." |
+| `apps/rn/src/app/paywall.tsx:285` | `kind === 'lifetime'` | "You’re on Premium — Lifetime. Thanks for the support." | "You’re on Premium — thanks for the support." |
+| `apps/rn/src/app/paywall.tsx:371` | `restoring` | "Restoring…" | "Restore purchases" |
 | `apps/rn/src/components/AppLockGate.tsx:37` | `authing` | "Unlocking…" | "Unlock" |
-| `apps/rn/src/components/entities/AmortizationView.tsx:80` | `amort.monthlyExtra > 0` | "— minimum + your extra" | "— the minimum" |
-| `apps/rn/src/components/entities/DebtSheet.tsx:240` | `isEdit` | "Edit debt" | "Add a debt" |
-| `apps/rn/src/components/entities/DebtSheet.tsx:240` | `convertingExpenseId` | "Add a debt" | "Add from scan" · "Add a debt" |
-| `apps/rn/src/components/entities/DebtSheet.tsx:240` | `prefill` | "Add from scan" | "Add a debt" |
-| `apps/rn/src/components/entities/DebtSheet.tsx:242` | `isEdit` | — | "Moving this from Expenses. Add the balance so it counts toward your debt-free date." |
-| `apps/rn/src/components/entities/DebtSheet.tsx:244` | `convertingExpenseId` | "Moving this from Expenses. Add the balance so it counts toward your debt-free date." | "Review the scanned details, then add." · "A loan, credit card, or BNPL balance." |
-| `apps/rn/src/components/entities/DebtSheet.tsx:246` | `prefill` | "Review the scanned details, then add." | "A loan, credit card, or BNPL balance." |
-| `apps/rn/src/components/entities/DebtSheet.tsx:250` | `isEdit` | "Save" | "Add debt" |
-| `apps/rn/src/components/entities/DebtSheet.tsx:297` | `type === 'bnpl'` | "Affirm — Sofa" | "Visa, Car Loan" |
-| `apps/rn/src/components/entities/ExpenseSheet.tsx:86` | `isEdit` | "Edit expense" | "Add an expense" |
-| `apps/rn/src/components/entities/ExpenseSheet.tsx:88` | `isEdit` | "Save" | "Add expense" |
-| `apps/rn/src/components/entities/ExpenseSheet.tsx:94` | `trial` | "Amount now (0 for a free trial)" | "Amount" |
-| `apps/rn/src/components/entities/ExpenseSheet.tsx:94` | `trial` | "e.g. 0" | "e.g. 850" |
-| `apps/rn/src/components/entities/GoalSheet.tsx:58` | `isEdit` | "Edit goal" | "Add a goal" |
-| `apps/rn/src/components/entities/GoalSheet.tsx:60` | `isEdit` | "Save" | "Add goal" |
-| `apps/rn/src/components/entities/LivingExpenseSheet.tsx:47` | `isEdit` | "Edit spending item" | "Add a spending item" |
-| `apps/rn/src/components/entities/LivingExpenseSheet.tsx:49` | `isEdit` | "Save" | "Add item" |
-| `apps/rn/src/components/money/BnplCalendarSection.tsx:94` | `moreCount === 1` | — | "installments" |
-| `apps/rn/src/components/more/BackupSheets.tsx:40` | `copied` | "Copied ✓" | "Copy to clipboard" |
+| `apps/rn/src/components/entities/AmortizationView.tsx:86` | `amort.monthlyExtra > 0` | "— minimum + your extra" | "— the minimum" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:247` | `isEdit` | "Edit debt" | "Add a debt" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:247` | `convertingExpenseId` | "Add a debt" | "Add from scan" · "Add a debt" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:247` | `prefill` | "Add from scan" | "Add a debt" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:249` | `isEdit` | — | "Moving this from Expenses. Add the balance so it counts toward your debt-free date." |
+| `apps/rn/src/components/entities/DebtSheet.tsx:251` | `convertingExpenseId` | "Moving this from Expenses. Add the balance so it counts toward your debt-free date." | "Review the scanned details, then add." · "A loan, credit card, or BNPL balance." |
+| `apps/rn/src/components/entities/DebtSheet.tsx:253` | `prefill` | "Review the scanned details, then add." | "A loan, credit card, or BNPL balance." |
+| `apps/rn/src/components/entities/DebtSheet.tsx:257` | `isEdit` | "Save" | "Add debt" |
+| `apps/rn/src/components/entities/DebtSheet.tsx:304` | `type === 'bnpl'` | "Affirm — Sofa" | "Visa, Car Loan" |
+| `apps/rn/src/components/entities/ExpenseSheet.tsx:95` | `isEdit` | "Edit expense" | "Add an expense" |
+| `apps/rn/src/components/entities/ExpenseSheet.tsx:97` | `isEdit` | "Save" | "Add expense" |
+| `apps/rn/src/components/entities/ExpenseSheet.tsx:103` | `trial` | "Amount now (0 for a free trial)" | "Amount" |
+| `apps/rn/src/components/entities/ExpenseSheet.tsx:103` | `trial` | "e.g. 0" | "e.g. 850" |
+| `apps/rn/src/components/entities/GoalSheet.tsx:126` | `isEdit` | "Edit goal" | "Add a goal" |
+| `apps/rn/src/components/entities/GoalSheet.tsx:128` | `isEdit` | "Save" | "Add goal" |
+| `apps/rn/src/components/entities/LivingExpenseSheet.tsx:53` | `isEdit` | "Edit spending item" | "Add a spending item" |
+| `apps/rn/src/components/entities/LivingExpenseSheet.tsx:55` | `isEdit` | "Save" | "Add item" |
+| `apps/rn/src/components/entities/LogPaymentSheet.tsx:55` | `over` | "More than the balance — this will clear it to $0." | — |
+| `apps/rn/src/components/money/BnplCalendarSection.tsx:92` | `moreCount === 1` | — | "installments" |
+| `apps/rn/src/components/more/BackupSheets.tsx:69` | `BACKUP_FILE_SUPPORTED` | "Save as a file" | — |
+| `apps/rn/src/components/more/BackupSheets.tsx:71` | `copied` | "Copied ✓" | "Copy to clipboard" |
+| `apps/rn/src/components/more/BackupSheets.tsx:92` | `copied` | "Copied ✓" | "Copy to clipboard" |
+| `apps/rn/src/components/more/BackupSheets.tsx:102` | `showRaw` | "Hide the raw backup data" | "Show the raw backup data" |
+| `apps/rn/src/components/more/BackupSheets.tsx:104` | `showRaw` | "Hide the raw data" | "Show the raw data" |
+| `apps/rn/src/components/more/CloudBackupSheet.tsx:80` | `status === 'loading'` | "Checking iCloud…" | — |
+| `apps/rn/src/components/more/CloudBackupSheet.tsx:86` | `unclaimedRemoteAt` | — | "Not backed up yet" |
+| `apps/rn/src/components/more/CloudBackupSheet.tsx:88` | `lastBackupAt` | — | "Not backed up yet" |
 | `apps/rn/src/components/more/CoachMarkProbeReadout.tsx:40` | `entries.length` | — | "EMPTY" |
 | `apps/rn/src/components/more/LiveActivityQA.tsx:56` | `enabled` | "Start a state, then check the Lock Screen / Dynamic Island. (iOS only.)" | "Live Activities are OFF in device Settings, or unsupported here (web / <iOS 16.2)." |
-| `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:129` | `type === 'debt'` | "Something with a balance you’re paying down — a card, a loan, a mortgage. It ends." | "An ongoing cost that doesn’t end — rent, phone, a subscription." |
-| `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:136` | `type === 'debt'` | "Debt name" | "Expense name" |
-| `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:142` | `type === 'debt'` | "e.g. Visa Card" | "e.g. Rent" |
-| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:242` | `preMarkAllPaid` | "Undo" | "Mark all paid" |
-| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:272` | `row.view.isAutopay` | "Autopay · should have run" · "Autopay" | — |
-| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:273` | `row.view.presumedPaid` | "Autopay · should have run" | "Autopay" |
-| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:282` | `paid` | "Paid" | "Didn't pay" |
-| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:366` | `staleBalances.length === 1` | "1 balance hasn't been checked in a while" | — |
-| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:399` | `external` | "From savings ✓" | "From savings" |
-| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:419` | `skipped` | "Skipped" | "Paid" |
-| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:437` | `hasAdjustedRequired \|\| extrasAdjusted` | "Confirm what you paid" | "You followed the plan" |
-| `apps/rn/src/components/payoff/TrajectoryChart.tsx:288` | `debtFreeDate` | — | "projected balance over time" |
-| `apps/rn/src/components/payoff/TrajectoryChart.tsx:289` | `showMinimums` | "your plan clears faster than minimum payments" | — |
-| `apps/rn/src/components/plan/AffordabilityCard.tsx:219` | `result.verdict === 'tight'` | "Apply anyway" | "Apply to this paycheck" |
-| `apps/rn/src/components/plan/CashRunwayChart.tsx:199` | `sel === 0` | "This paycheck" | — |
+| `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:150` | `type === 'debt'` | "Something with a balance you’re paying down — a card, a loan, a mortgage. It ends." | "An ongoing cost that doesn’t end — rent, phone, a subscription." |
+| `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:157` | `type === 'debt'` | "Debt name" | "Expense name" |
+| `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx:163` | `type === 'debt'` | "e.g. Visa Card" | "e.g. Rent" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:265` | `preMarkAllPaid` | "Undo" | "Mark all paid" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:297` | `row.view.isAutopay` | "Autopay · should have run" · "Autopay" | — |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:298` | `row.view.presumedPaid` | "Autopay · should have run" | "Autopay" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:307` | `paid` | "Paid" | "Didn’t pay" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:391` | `staleBalances.length === 1` | "1 balance hasn’t been checked in a while" | — |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:427` | `external` | "From savings ✓" | "From savings" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:447` | `skipped` | "Skipped" | "Paid" |
+| `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:486` | `hasAdjustedRequired \|\| extrasAdjusted` | "Confirm what you paid" | "You followed the plan" |
+| `apps/rn/src/components/payoff/StrategyCompare.tsx:86` | `active` | "· yours" | — |
+| `apps/rn/src/components/payoff/StrategyCompare.tsx:89` | `summary.debtFreeMonth == null` | "No payoff date" | — |
+| `apps/rn/src/components/payoff/StrategyCompare.tsx:96` | `i === 0` | "1st ·" | — |
+| `apps/rn/src/components/payoff/TrajectoryChart.tsx:394` | `debtFreeDate` | — | "projected balance over time" |
+| `apps/rn/src/components/payoff/TrajectoryChart.tsx:395` | `showMinimums` | "your plan clears faster than minimum payments" | — |
+| `apps/rn/src/components/plan/AffordabilityCard.tsx:235` | `result.verdict === 'tight'` | "Apply anyway" | "Apply to this paycheck" |
+| `apps/rn/src/components/plan/CashRunwayChart.tsx:202` | `sel === 0` | "This paycheck" | — |
+| `apps/rn/src/components/plan/dataRepairsCopy.ts:90` | `one` | "An amount could not be read" | — |
+| `apps/rn/src/components/plan/dataRepairsCopy.ts:91` | `one` | "Your plan is running without it until you set it again." | "Your plan is running without them until you set each one again." |
+| `apps/rn/src/components/plan/dataRepairsCopy.ts:111` | `one` | "There is nothing to reopen for it — check this against your old app and add anything missing." | "There is nothing to reopen for them — check these against your old app and add anything missing." |
+| `apps/rn/src/components/plan/dataRepairsCopy.ts:122` | `one` | "An amount was written in a different format" | — |
+| `apps/rn/src/components/plan/dataRepairsCopy.ts:125` | `one` | "Your plan is using it — check the number looks right." | "Your plan is using them — check the numbers look right." |
+| `apps/rn/src/components/plan/ExampleCanvasMarker.tsx:105` | `hasRealPlan` | "Back to my plan" | "Start my real plan" |
 | `apps/rn/src/components/plan/LeanSuggestionCard.tsx:31` | `up` | "Raise your income floor" | "Adjust your income floor" |
 | `apps/rn/src/components/plan/PaydayGuardianCard.tsx:189` | `isExample` | "Example" | — |
 | `apps/rn/src/components/plan/PaydayGuardianCard.tsx:209` | `brief.debtFree` | "To savings" | "To debt" |
@@ -420,33 +488,29 @@ the moment a second producer was added. Two audit passes and three green web spe
 | `apps/rn/src/components/plan/PlanHero.tsx:230` | `windfall > 0` | — | "Add extra income" |
 | `apps/rn/src/components/plan/PlanHero.tsx:234` | `windfall > 0` | — | "Add extra income" |
 | `apps/rn/src/components/plan/RecommendedActionsCard.tsx:67` | `a.paymentSource === 'external'` | "Completed with outside money" | "Completed this paycheck" |
-| `apps/rn/src/components/plan/RequiredActionsCard.tsx:171` | `bucketHasReserve` | "from this paycheck" | — |
-| `apps/rn/src/components/plan/RequiredActionsCard.tsx:191` | `bucketHasReserve` | "from this paycheck" | — |
-| `apps/rn/src/components/plan/RequiredActionsCard.tsx:231` | `paid` | "Undo, mark unpaid" | "Mark paid" |
-| `apps/rn/src/components/plan/RequiredActionsCard.tsx:234` | `paid` | "Undo" | "Paid" |
-| `apps/rn/src/components/plan/SaveForItSheet.tsx:126` | `o.readyBy != null && o.paychecks != null` | — | "Saved after debt · no firm date" |
-| `apps/rn/src/components/plan/ShareCard.tsx:51` | `data.amount != null` | — | "Paid off" |
-| `apps/rn/src/components/plan/SpokenForSheet.tsx:67` | `shortHeld` | — | "Groceries, gas, fun money — reserved every paycheck." |
+| `apps/rn/src/components/plan/RecoveryPlanSection.tsx:93` | `coverExpanded` | "Show fewer" | — |
+| `apps/rn/src/components/plan/RequiredActionsCard.tsx:202` | `bucketHasReserve` | "from this paycheck" | — |
+| `apps/rn/src/components/plan/RequiredActionsCard.tsx:222` | `bucketHasReserve` | "from this paycheck" | — |
+| `apps/rn/src/components/plan/RequiredActionsCard.tsx:262` | `paid` | "Undo, mark unpaid" | "Mark paid" |
+| `apps/rn/src/components/plan/RequiredActionsCard.tsx:265` | `paid` | "Undo" | "Paid" |
+| `apps/rn/src/components/plan/SaveForItSheet.tsx:138` | `o.readyBy != null && o.paychecks != null` | — | "Saved after debt · no firm date" |
+| `apps/rn/src/components/plan/SpokenForSheet.tsx:66` | `shortHeld` | — | "Groceries, gas, fun money — reserved every paycheck." |
 | `apps/rn/src/components/plan/TutorialOverlay.tsx:452` | `isLast` | "Finish" | "Next" |
-| `apps/rn/src/components/plan/WindfallSheet.tsx:81` | `isPremium && hasSplit` | "Confirm" | "Add" |
-| `apps/rn/src/components/progress/PaidOffArchive.tsx:60` | `d.amount != null` | — | "Paid off" |
-| `apps/rn/src/components/progress/PaidOffArchive.tsx:65` | `d.amount != null` | — | "Paid off" |
+| `apps/rn/src/components/plan/WindfallSheet.tsx:82` | `isPremium && hasSplit` | "Confirm" | "Add" |
 | `apps/rn/src/components/ui/DateField.tsx:93` | `value` | — | "Select a date" |
-| `apps/rn/src/components/ui/ListRow.tsx:76` | `onPress` | "Opens the editor" | — |
-| `apps/rn/src/components/ui/ListRow.tsx:151` | `onLogPayment` | "Log payment" · "dollarsign.circle" | — |
-| `apps/rn/src/components/ui/ListRow.tsx:152` | `onViewSchedule` | "Payoff schedule" | — |
-| `apps/rn/src/components/ui/ListRow.tsx:153` | `onPress` | "Edit" | — |
-| `apps/rn/src/utils/confirm.ts:45` | `action` | "Not now" | — |
-| `packages/core/guardian/buildGuardianBrief.ts:231` | `isPremium` | "Update your numbers and I'll plan from where you actually are." | — |
-| `packages/core/guardian/buildGuardianBrief.ts:262` | `debtFree` | — | "expenses and minimums" |
-| `packages/core/guardian/buildGuardianBrief.ts:263` | `isPremium` | "— this one needs a plan." | — |
-| `packages/core/guardian/buildGuardianBrief.ts:279` | `state === "clear"` | "Looks clear this paycheck" | "A little tight this paycheck" · "Tight this paycheck" |
-| `packages/core/guardian/buildGuardianBrief.ts:279` | `state === "tight"` | "A little tight this paycheck" | "Tight this paycheck" |
-| `packages/core/guardian/buildGuardianBrief.ts:280` | `state === "clear"` | — | "— a bit tight this one, so keep an eye on the essentials." |
-| `packages/core/guardian/buildGuardianBrief.ts:294` | `state === "at-risk"` | "Very tight this paycheck" | "A little tight this paycheck" |
-| `packages/core/guardian/buildGuardianBrief.ts:299` | `state === "at-risk"` | — | "a little under" |
-| `packages/core/guardian/buildGuardianBrief.ts:346` | `debtFree` | "to your goals" | "to debt" |
-| `packages/core/guardian/buildGuardianBrief.ts:358` | `debtFree` | "your goals" | — |
+| `apps/rn/src/components/ui/ListRow.tsx:95` | `onPress` | "Opens the editor" | — |
+| `apps/rn/src/components/ui/ListRow.tsx:164` | `onPress` | "Edit" | — |
+| `apps/rn/src/utils/confirm.ts:55` | `action` | "Not now" | — |
+| `packages/core/guardian/buildGuardianBrief.ts:236` | `isPremium` | "Update your numbers and I’ll plan from where you actually are." | — |
+| `packages/core/guardian/buildGuardianBrief.ts:267` | `debtFree` | — | "expenses and minimums" |
+| `packages/core/guardian/buildGuardianBrief.ts:268` | `isPremium` | "— this one needs a plan." | — |
+| `packages/core/guardian/buildGuardianBrief.ts:284` | `state === "clear"` | "Looks clear this paycheck" | "A little tight this paycheck" · "Tight this paycheck" |
+| `packages/core/guardian/buildGuardianBrief.ts:284` | `state === "tight"` | "A little tight this paycheck" | "Tight this paycheck" |
+| `packages/core/guardian/buildGuardianBrief.ts:285` | `state === "clear"` | — | "— a bit tight this one, so keep an eye on the essentials." |
+| `packages/core/guardian/buildGuardianBrief.ts:299` | `state === "at-risk"` | "Very tight this paycheck" | "A little tight this paycheck" |
+| `packages/core/guardian/buildGuardianBrief.ts:304` | `state === "at-risk"` | — | "a little under" |
+| `packages/core/guardian/buildGuardianBrief.ts:353` | `debtFree` | — | "to debt" |
+| `packages/core/guardian/buildGuardianBrief.ts:365` | `debtFree` | "your goals" | — |
 | `packages/core/insights/buildSmartInsights.ts:57` | `amountToHold > 0` | — | "Run minimum-only until the next paycheck if any new expenses appear." |
 | `packages/core/insights/buildSmartInsights.ts:95` | `projectedBuffer < 200` | "Focus on restoring cushion first, then target this payoff opportunity once cash pressure improves." | "Make this payment after handling required bills and minimums to immediately free up that monthly minimum." |
 | `packages/core/insights/buildSmartInsights.ts:97` | `canFullyCover` | "Make this payment after handling required bills and minimums to immediately free up that monthly minimum." | — |
@@ -459,9 +523,12 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 211 | other ⚠️ | (tabs) |
-| 217 | other ⚠️ | schedule/[id] |
-| 235 | other ⚠️ | +not-found |
+| 219 | call:notify ⚠️ | Restore from iCloud? |
+| 220 | call:notify ⚠️ | There is a backup of your plan in your iCloud account. Restore it to this device? |
+| 222 | key:label | Restore |
+| 311 | other ⚠️ | (tabs) |
+| 317 | other ⚠️ | schedule/[id] |
+| 335 | other ⚠️ | +not-found |
 
 ### `apps/rn/src/app/(tabs)/_layout.tsx`
 
@@ -475,117 +542,123 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 263 | call:useSuppressCoachMarks ⚠️ | today:celebration |
-| 263 | call:useSuppressCoachMarks ⚠️ | today:invite |
-| 272 | prop:title | Set up your paycheck |
-| 273 | prop:body | Add your paycheck to see exactly what to pay each cycle. |
-| 274 | prop:cta | Set up your paycheck |
-| 436 | prop:title | Add your first debt |
-| 437 | prop:body | Your plan is running. Add a debt and it will show you a debt-free date too. |
-| 438 | prop:cta | Add a debt |
-| 509 | jsx-text | Good news — this paycheck looks clear after all. |
-| 511 | prop:label | Got it |
-| 529 | prop:label | Got it |
-| 543 | jsx-text | A surprise bill came up — I&apos;ve restored your safety net for now. |
-| 546 | prop:label | Got it |
-| 557 | jsx-expr | Payment logged — I updated your balance. |
-| 558 | jsx-expr | Payday landed — I rolled your plan forward to this paycheck. |
-| 562 | prop:label | Undo |
-| 563 | prop:label | Keep |
-| 573 | jsx-text | Your |
-| 573 | jsx-text | trial has ended — it&apos;s now $ |
-| 573 | call:fullAmount.toLocaleString ⚠️ | en-US |
-| 574 | jsx-text | . Keeping it? |
-| 581 | prop:label | Keep it |
-| 584 | prop:label | Cancelled it |
-| 585 | prop:label | Not now |
-| 609 | jsx-text | Payday logged. Start your next pay cycle to apply this cycle&apos;s payments and get your next plan. |
-| 611 | prop:label | Start Next Pay Cycle |
-| 618 | jsx-text | Private · on your device |
-| 660 | prop:onManageEveryday ⚠️ | /living-expenses |
-| 849 | call:useStore ⚠️ | A surprise bill came up — I’ve restored your safety net for now. |
+| 284 | call:useSuppressCoachMarks ⚠️ | today:celebration |
+| 284 | call:useSuppressCoachMarks ⚠️ | today:invite |
+| 293 | prop:title | Set up your paycheck |
+| 294 | prop:body | Add your paycheck to see exactly what to pay each cycle. |
+| 295 | prop:cta | Set up your paycheck |
+| 471 | prop:title | Add your bills |
+| 472 | prop:body | Rent, utilities, subscriptions. Until they are here, this plan counts that money as free to spend. |
+| 473 | prop:cta | Add a bill |
+| 484 | prop:title | Add your first debt |
+| 485 | prop:body | Your plan is running. Add a debt and it will show you a debt-free date too. |
+| 486 | prop:cta | Add a debt |
+| 570 | jsx-text | Good news — this paycheck looks clear after all. |
+| 572 | prop:label | Got it |
+| 590 | prop:label | Got it |
+| 604 | jsx-text | A surprise bill came up — I’ve restored your safety net for now. |
+| 607 | prop:label | Got it |
+| 618 | jsx-expr | Payment logged — I updated your balance. |
+| 619 | jsx-expr | Payday landed — I rolled your plan forward to this paycheck. |
+| 623 | prop:label | Undo |
+| 624 | prop:label | Keep |
+| 639 | jsx-text | Your |
+| 639 | jsx-text | trial has ended — it’s now |
+| 640 | jsx-text | . Keeping it? |
+| 647 | prop:label | Keep it |
+| 650 | prop:label | Cancelled it |
+| 651 | prop:label | Not now |
+| 679 | jsx-text | Ready for your next pay cycle. Starting it applies this cycle’s payments and builds your next plan. |
+| 681 | prop:label | Start next pay cycle |
+| 694 | prop:label | Review this payday first |
+| 705 | jsx-text | Private · on your device |
+| 759 | prop:onManageEveryday ⚠️ | /living-expenses |
+| 957 | call:useStore ⚠️ | A surprise bill came up — I’ve restored your safety net for now. |
 
 ### `apps/rn/src/app/(tabs)/money.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 74 | key:debts ⚠️ | Balances you’re paying down. These have an end date, and they set your debt-free date. |
-| 75 | key:bills ⚠️ | Ongoing costs that don’t end. Reserved from every paycheck before anything goes to debt. |
-| 76 | key:goals ⚠️ | Money you’re setting aside — saved for, not owed. |
-| 103 | prop:title | Money |
-| 108 | prop:options ⚠️ | Debts |
-| 109 | prop:options ⚠️ | Expenses |
-| 110 | prop:options ⚠️ | Goals |
-| 164 | jsx-text | Is this a debt you&apos;re paying down? Debts count toward your debt-free date — expenses don&apos;t. |
-| 168 | jsx-text | Move to Debts |
-| 178 | jsx-text | Not a debt |
-| 305 | prop:title | Start your debt-free plan |
-| 306 | prop:body | Add a loan, credit card, or BNPL balance to see your debt-free date. |
-| 307 | prop:cta | Add |
-| 311 | prop:label | Scan a statement |
-| 326 | key:title | PAID OFF |
-| 339 | prop:options ⚠️ | Snowball |
-| 340 | prop:options ⚠️ | Avalanche |
-| 345 | jsx-expr | Smallest balance first — quick wins. Your debts are listed in payoff order. |
-| 346 | jsx-expr | Highest APR first — least interest. Your debts are listed in payoff order. |
-| 374 | prop:label | Add |
-| 376 | prop:label | Scan a statement |
-| 402 | jsx-text | Select a debt to edit, or add one. |
-| 444 | var:captionText ⚠️ | estimated · tap to verify |
-| 460 | prop:label | Focus |
-| 461 | prop:label | BNPL |
-| 461 | prop:label | Autopay |
-| 471 | prop:amountSuffix ⚠️ | /mo |
-| 471 | prop:amountSuffix ⚠️ | /mo |
-| 635 | prop:title | Build your paycheck plan |
-| 636 | prop:body | Add an ongoing cost — rent, utilities, a subscription — so your plan knows what’s due. |
-| 637 | prop:cta | Add |
-| 677 | key:sub ⚠️ | reserved for upcoming expenses |
-| 732 | prop:meta | · Variable |
-| 734 | prop:label | Autopay |
-| 745 | jsx-text | No expenses match “ |
-| 750 | prop:label | Add |
-| 788 | prop:placeholder | Search expenses |
-| 795 | prop:accessibilityLabel | Clear search |
-| 861 | prop:accessibilityLabel | Everyday spending reserve, nothing set up yet. Opens management. |
-| 867 | jsx-text | Everyday spending reserve |
-| 870 | jsx-expr | Not set up |
-| 877 | jsx-expr | Groceries, gas, fun money — reserve it each paycheck |
-| 880 | jsx-expr | Reserved each paycheck · tap to manage |
-| 898 | prop:title | Start a savings goal |
-| 899 | prop:body | Add an emergency fund or savings goal to start tracking progress. |
-| 900 | prop:cta | Add |
-| 929 | prop:meta | Emergency fund |
-| 929 | prop:meta | Savings |
-| 930 | prop:amount ⚠️ | Funded |
-| 932 | prop:label | Funded |
-| 940 | prop:label | Add |
+| 75 | key:debts ⚠️ | Balances you’re paying down. These have an end date, and they set your debt-free date. |
+| 76 | key:bills ⚠️ | Ongoing costs that don’t end. Reserved from every paycheck before anything goes to debt. |
+| 77 | key:goals ⚠️ | Money you’re setting aside — saved for, not owed. |
+| 104 | prop:title | Money |
+| 109 | prop:options ⚠️ | Debts |
+| 110 | prop:options ⚠️ | Expenses |
+| 111 | prop:options ⚠️ | Goals |
+| 167 | jsx-text | Is this a debt you’re paying down? Debts count toward your debt-free date — expenses don’t. |
+| 171 | jsx-text | Move to Debts |
+| 181 | jsx-text | Not a debt |
+| 312 | prop:title | Start your debt-free plan |
+| 313 | prop:body | Add a loan, credit card, or BNPL balance to see your debt-free date. |
+| 314 | prop:cta | Add |
+| 318 | prop:label | Scan a statement |
+| 321 | prop:label | Import from CSV |
+| 337 | key:title | PAID OFF |
+| 366 | prop:value | Every balance cleared |
+| 378 | prop:options ⚠️ | Snowball |
+| 379 | prop:options ⚠️ | Avalanche |
+| 384 | jsx-expr | Smallest balance first — quick wins. Your debts are listed in payoff order. |
+| 385 | jsx-expr | Highest APR first — least interest. Your debts are listed in payoff order. |
+| 414 | prop:label | Add |
+| 416 | prop:label | Scan a statement |
+| 419 | prop:label | Import from CSV |
+| 445 | jsx-text | Select a debt to edit, or add one. |
+| 490 | var:captionText ⚠️ | estimated · tap to verify |
+| 509 | key:label | Focus |
+| 511 | key:label | BNPL |
+| 513 | key:label | Autopay |
+| 524 | prop:amountSuffix ⚠️ | /mo |
+| 524 | prop:amountSuffix ⚠️ | /mo |
+| 693 | prop:title | Build your paycheck plan |
+| 694 | prop:body | Add an ongoing cost — rent, utilities, a subscription — so your plan knows what’s due. |
+| 695 | prop:cta | Add |
+| 735 | key:sub ⚠️ | reserved for upcoming expenses |
+| 790 | prop:meta | · Variable |
+| 792 | prop:badges ⚠️ | Autopay |
+| 803 | jsx-text | No expenses match “ |
+| 808 | prop:label | Add |
+| 846 | prop:placeholder | Search expenses |
+| 853 | prop:accessibilityLabel | Clear search |
+| 919 | prop:accessibilityLabel | Everyday spending reserve, nothing set up yet. Opens management. |
+| 928 | jsx-text | Everyday spending reserve |
+| 931 | jsx-expr | Not set up |
+| 938 | jsx-expr | Groceries, gas, fun money — reserve it each paycheck |
+| 941 | jsx-expr | Reserved each paycheck · tap to manage |
+| 966 | prop:title | Start a savings goal |
+| 967 | prop:body | Add an emergency fund or savings goal to start tracking progress. |
+| 968 | prop:cta | Add |
+| 997 | prop:sub ⚠️ | saved — one target could not be read |
+| 1022 | var:meta ⚠️ | Emergency fund |
+| 1022 | var:meta ⚠️ | Savings |
+| 1030 | prop:badges ⚠️ | Funded |
+| 1038 | prop:label | Add |
 
 ### `apps/rn/src/app/(tabs)/progress.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 95 | prop:title | Progress |
-| 101 | jsx-text | DEBT-FREE |
-| 102 | jsx-text | Every balance paid off |
-| 103 | jsx-text | Your trophy shelf is below. |
-| 110 | prop:title | Progress |
-| 113 | prop:title | Your payoff journey starts here |
-| 114 | prop:body | Add a debt to see your payoff order, timeline, and interest saved. |
-| 115 | prop:cta | Add a debt |
-| 150 | call:groupLabel | no milestones reached yet |
-| 151 | call:groupLabel | debt-free |
-| 151 | call:groupLabel | all milestones reached |
-| 158 | prop:title | Progress |
-| 176 | jsx-text | DEBT-FREE |
+| 166 | prop:title | Progress |
+| 172 | jsx-text | DEBT-FREE |
+| 173 | jsx-text | Every balance paid off |
+| 174 | jsx-text | Your trophy shelf is below. |
+| 181 | prop:title | Progress |
+| 184 | prop:title | Your payoff journey starts here |
+| 185 | prop:body | Add a debt to see your payoff order, timeline, and interest saved. |
+| 186 | prop:cta | Add a debt |
+| 228 | call:groupLabel | no milestones reached yet |
+| 229 | call:groupLabel | debt-free |
+| 229 | call:groupLabel | all milestones reached |
+| 239 | prop:title | Progress |
+| 267 | jsx-text | DEBT-FREE |
 
 ### `apps/rn/src/app/+not-found.tsx`
 
 | line | origin | string |
 |---|---|---|
 | 12 | prop:options ⚠️ | Not found |
-| 14 | jsx-text | This screen doesn&apos;t exist. |
-| 16 | jsx-text | Go to Plan |
+| 14 | jsx-text | This screen doesn’t exist. |
+| 21 | jsx-text | Go to Today |
 
 ### `apps/rn/src/app/cushion-forecast.tsx`
 
@@ -602,175 +675,164 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 39 | prop:title | Pay Cycle History |
-| 44 | jsx-text | paid down across |
-| 49 | jsx-text | See how far you&apos;ve come, one cycle at a time. |
-| 66 | jsx-text | No finished cycles yet. When you start your next pay cycle, that completed cycle shows up here. |
+| 45 | jsx-text | paid down across |
+| 50 | jsx-text | See how far you’ve come, one cycle at a time. |
+| 67 | jsx-text | No finished cycles yet. When you start your next pay cycle, that completed cycle shows up here. |
 
 ### `apps/rn/src/app/living-expenses.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 38 | jsx-text | Everyday spending reserved each paycheck, before debt and goals. |
-| 44 | prop:title | No spending items yet |
-| 45 | prop:body | Add groceries, gas, or fun money to reserve for everyday spending each paycheck. |
-| 46 | prop:cta | Add your first item |
-| 52 | jsx-text | Reserve per paycheck |
-| 65 | prop:meta | Counts toward reserve |
-| 65 | prop:meta | Not counted |
-| 67 | prop:label | Off |
-| 73 | prop:label | Add spending item |
+| 41 | jsx-text | Everyday spending reserved each paycheck, before debt and goals. |
+| 47 | prop:title | No spending items yet |
+| 48 | prop:body | Add groceries, gas, or fun money to reserve for everyday spending each paycheck. |
+| 49 | prop:cta | Add your first item |
+| 55 | jsx-text | Reserve per paycheck |
+| 68 | prop:meta | Counts toward reserve |
+| 68 | prop:meta | Not counted |
+| 70 | prop:badges ⚠️ | Off |
+| 80 | prop:label | Add spending item |
 
 ### `apps/rn/src/app/more.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 89 | call:notify ⚠️ | Notifications are off for Debt Planner |
-| 90 | call:notify ⚠️ | iOS only asks once. You can turn them back on in Settings. |
-| 91 | key:label | Open Settings |
-| 96 | call:notify ⚠️ | Notifications stay off |
-| 96 | call:notify ⚠️ | You can turn them on here whenever you want a nudge before a bill is due. |
-| 99 | call:notify ⚠️ | Not available here |
-| 99 | call:notify ⚠️ | Reminders are a feature of the iPhone app. |
-| 115 | prop:title | More |
-| 130 | prop:label | Premium |
-| 131 | prop:subtitle | Active — thanks for the support. |
-| 139 | prop:label | Premium — Lifetime |
-| 140 | prop:subtitle | Active — a one-time purchase, yours forever. Thanks for the support. |
-| 146 | prop:label | Premium |
-| 147 | prop:subtitle | Active — thanks for the support. Tap to manage your subscription. |
-| 155 | prop:label | Unlock Premium |
-| 156 | prop:subtitle | Payday Guardian, Can I Afford It & more. |
-| 168 | prop:label | Pay cycle history |
-| 169 | prop:subtitle | Look back at your finished pay cycles. |
-| 177 | prop:label | How your Guardian works |
-| 178 | prop:subtitle | Replay the short walkthrough. |
-| 191 | prop:label | Show feature tips again |
-| 192 | prop:subtitle | Tips will appear again as you go. |
-| 192 | prop:subtitle | Re-offer the one-line hints on hidden features. |
-| 201 | prop:title | Data |
-| 203 | prop:label | Export backup |
-| 203 | prop:subtitle | Save a copy of your data. |
-| 204 | prop:label | Import backup |
-| 204 | prop:subtitle | Restore from a saved backup. |
-| 207 | prop:label | iCloud backup |
-| 208 | prop:subtitle | Automatic cloud backup — coming soon. |
-| 209 | jsx-text | Soon |
-| 214 | prop:label | Delete all data |
-| 219 | prop:title | Preferences |
-| 226 | prop:label | Your name |
-| 230 | prop:placeholder | Used to greet you on Today |
-| 236 | jsx-text | Appearance |
-| 241 | prop:options ⚠️ | Auto |
-| 242 | prop:options ⚠️ | Light |
-| 243 | prop:options ⚠️ | Dark |
-| 251 | prop:label | Notifications |
-| 252 | prop:subtitle | Paycheck-eve reminder and due-date alerts. |
-| 253 | prop:accessibilityLabel | Notifications |
-| 257 | prop:label | App Lock |
-| 258 | prop:subtitle | Require Face ID / passcode to open. |
-| 259 | prop:accessibilityLabel | App Lock |
-| 268 | prop:label | Share anonymous usage |
-| 269 | prop:subtitle | Which screens get used — never your balances, debts, or amounts. |
-| 272 | prop:accessibilityLabel | Share anonymous usage |
-| 281 | prop:label | Savings elsewhere |
-| 282 | prop:subtitle | Skip building a starter emergency fund — put more toward debt first. |
-| 283 | prop:accessibilityLabel | Savings elsewhere |
-| 290 | prop:label | Payday countdown |
-| 291 | prop:subtitle | Show a Live Activity in the ~3 days before payday. |
-| 292 | prop:accessibilityLabel | Payday countdown |
-| 298 | prop:label | Debt-free sound |
-| 299 | prop:subtitle | Play a chime when you clear your last debt. |
-| 300 | prop:accessibilityLabel | Debt-free sound |
-| 302 | prop:subtitle | What you reserve for day-to-day spending each paycheck. |
-| 306 | prop:title | About |
-| 308 | prop:label | Privacy Policy |
-| 309 | prop:label | Terms of Use |
-| 310 | prop:label | Support |
-| 315 | prop:label | Manage Subscription |
-| 317 | prop:label | Version |
-| 325 | prop:title | Developer / QA |
-| 329 | prop:label | Simulate Premium |
-| 330 | prop:subtitle | Unlock premium features for testing (dev / TestFlight QA). |
-| 333 | prop:accessibilityLabel | Simulate Premium |
-| 385 | jsx-text | All debts, expenses, goals, and settings will be permanently erased. This cannot be undone. |
-| 389 | prop:label | Cancel |
-| 392 | prop:label | Delete Everything |
+| 96 | call:notify ⚠️ | Notifications are off for Debt Planner |
+| 97 | call:notify ⚠️ | iOS only asks once. You can turn them back on in Settings. |
+| 98 | key:label | Open Settings |
+| 103 | call:notify ⚠️ | Notifications stay off |
+| 103 | call:notify ⚠️ | You can turn them on here whenever you want a nudge before a bill is due. |
+| 106 | call:notify ⚠️ | Not available here |
+| 106 | call:notify ⚠️ | Reminders are a feature of the iPhone app. |
+| 158 | prop:title | More |
+| 176 | prop:label | Premium |
+| 177 | prop:subtitle | Active — thanks for the support. |
+| 185 | prop:label | Premium — Lifetime |
+| 186 | prop:subtitle | Active — a one-time purchase, yours forever. Thanks for the support. |
+| 192 | prop:label | Premium |
+| 193 | prop:subtitle | Active — thanks for the support. Tap to manage your subscription. |
+| 202 | prop:subtitle | Payday Guardian, Can I Afford It & more. |
+| 215 | prop:subtitle | Look back at your finished pay cycles. |
+| 223 | prop:label | How your Guardian works |
+| 224 | prop:subtitle | Replay the short walkthrough. |
+| 237 | prop:label | Show feature tips again |
+| 245 | prop:subtitle | Tips will appear again as you go. |
+| 245 | prop:subtitle | Short tips that point out what each screen can do. |
+| 254 | prop:title | Data |
+| 256 | prop:subtitle | Save a copy of your data. |
+| 257 | prop:subtitle | Restore from a saved backup. |
+| 263 | prop:label | iCloud backup |
+| 264 | prop:subtitle | Keep a copy in your own iCloud account. |
+| 278 | prop:label | Delete all data |
+| 283 | prop:title | Preferences |
+| 290 | prop:label | Your name |
+| 294 | prop:placeholder | Used to greet you on Today |
+| 300 | jsx-text | Appearance |
+| 305 | prop:options ⚠️ | Auto |
+| 306 | prop:options ⚠️ | Light |
+| 307 | prop:options ⚠️ | Dark |
+| 315 | prop:label | Notifications |
+| 316 | prop:subtitle | Paycheck-eve reminder and due-date alerts. |
+| 317 | prop:accessibilityLabel | Notifications |
+| 321 | prop:label | App Lock |
+| 322 | prop:subtitle | Require Face ID / passcode to open. |
+| 323 | prop:accessibilityLabel | App Lock |
+| 341 | prop:label | Savings elsewhere |
+| 342 | prop:subtitle | Skip building a starter emergency fund — put more toward debt first. |
+| 343 | prop:accessibilityLabel | Savings elsewhere |
+| 350 | prop:label | Payday countdown |
+| 351 | prop:subtitle | Show a Live Activity in the ~3 days before payday. |
+| 352 | prop:accessibilityLabel | Payday countdown |
+| 358 | prop:label | Debt-free sound |
+| 359 | prop:subtitle | Play a chime when you clear your last debt. |
+| 360 | prop:accessibilityLabel | Debt-free sound |
+| 362 | prop:subtitle | What you reserve for day-to-day spending each paycheck. |
+| 366 | prop:title | About |
+| 369 | prop:label | Terms of Use |
+| 370 | prop:label | Support |
+| 375 | prop:label | Manage Subscription |
+| 377 | prop:label | Version |
+| 385 | prop:title | Developer / QA |
+| 389 | prop:label | Simulate Premium |
+| 390 | prop:subtitle | Unlock premium features for testing (dev / TestFlight QA). |
+| 393 | prop:accessibilityLabel | Simulate Premium |
+| 413 | prop:label | Send a test error to Sentry |
+| 414 | prop:subtitle | QA only — check the issue’s breadcrumbs carry no amounts. |
+| 416 | prop:onPress ⚠️ | QA test event — Debt Planner device pass |
+| 420 | prop:onPress ⚠️ | Check sentry.io → debt-planner → Issues, then read the breadcrumbs. |
+| 489 | jsx-expr | Nothing was deleted. Sign in to iCloud on this device so the backup there can be erased too — or delete on this device only. |
+| 490 | jsx-expr | Nothing was deleted. iCloud couldn’t be reached, so the backup there would have survived — try again, or delete on this device only. |
+| 494 | prop:label | Cancel |
+| 497 | prop:label | Try again |
+| 501 | prop:label | Delete on this device only |
+| 512 | jsx-text | All debts, expenses, goals, and settings will be permanently erased — on this device and in your         iCloud backup. This cannot be undone. |
+| 517 | prop:label | Cancel |
+| 520 | prop:label | Delete everything |
 
 ### `apps/rn/src/app/paywall.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 31 | key:text | Payday Guardian — works out how much to keep back each payday to protect your cushion, and reshapes the plan around it. |
-| 32 | key:text | Can I Afford It? — apply any purchase to your plan in one tap, or build a plan to save for it. |
-| 33 | key:text | Recovery Plan — a guided catch-up when a cycle comes up short. |
-| 39 | key:text | Balances that keep themselves roughly right — projected forward between statements, or re-scanned in seconds. No monthly retyping. |
-| 45 | var:AUTO_RENEW_DISCLOSURE | Payment will be charged to your Apple Account at confirmation of purchase. Subscriptions |
-| 46 | var:AUTO_RENEW_DISCLOSURE | automatically renew unless canceled at least 24 hours before the end of the current period. Your |
-| 47 | var:AUTO_RENEW_DISCLOSURE | account is charged for renewal within 24 hours prior to the end of the current period. Manage or |
-| 48 | var:AUTO_RENEW_DISCLOSURE | cancel anytime in your App Store account settings. Lifetime is a one-time purchase (not a |
-| 49 | var:AUTO_RENEW_DISCLOSURE | subscription) that covers all current Premium features; any future add-on tiers, like bank |
-| 50 | var:AUTO_RENEW_DISCLOSURE | connection or an AI coach, are sold separately. |
-| 66 | var:LIFETIME_SUBNOTE ⚠️ | Pay once — all today’s Premium, forever |
-| 73 | key:title | Annual |
-| 73 | key:periodLabel | per year |
-| 73 | key:subnote | Billed yearly · just $2.50/mo |
-| 73 | key:badge | Best value |
-| 74 | key:title | Lifetime |
-| 74 | key:periodLabel | one time |
-| 74 | key:badge | Pay once |
-| 75 | key:title | Monthly |
-| 75 | key:periodLabel | per month |
-| 75 | key:subnote | Billed monthly |
-| 82 | other ⚠️ | ANNUAL |
-| 87 | key:title | Annual |
-| 87 | key:periodLabel | per year |
-| 87 | key:badge | Best value |
-| 89 | other ⚠️ | LIFETIME |
-| 90 | key:title | Lifetime |
-| 90 | key:periodLabel | one time |
-| 90 | key:badge | Pay once |
-| 91 | other ⚠️ | MONTHLY |
-| 92 | key:title | Monthly |
-| 92 | key:periodLabel | per month |
-| 92 | key:subnote | Billed monthly |
-| 174 | call:notify ⚠️ | Not available here |
-| 174 | call:notify ⚠️ | In-app purchases aren’t available in this preview — try it on your device. |
-| 183 | call:notify ⚠️ | You’re Premium 🎉 |
-| 183 | call:notify ⚠️ | Your premium tools are unlocked. |
-| 188 | call:notify ⚠️ | Almost there |
-| 188 | call:notify ⚠️ | Your purchase went through, but Premium couldn’t be confirmed yet. Tap Restore, or contact support if it persists. |
-| 191 | call:notify ⚠️ | Purchase didn’t complete |
-| 191 | call:notify ⚠️ | Something went wrong. Please try again. |
-| 199 | call:notify ⚠️ | Not available here |
-| 199 | call:notify ⚠️ | Restoring purchases isn’t available in this preview. |
-| 207 | call:notify ⚠️ | Purchases restored |
-| 207 | call:notify ⚠️ | Your premium access is back. |
-| 210 | call:notify ⚠️ | Nothing to restore |
-| 210 | call:notify ⚠️ | No active purchase was found for this Apple Account. |
-| 213 | call:notify ⚠️ | Restore didn’t complete |
-| 213 | call:notify ⚠️ | Something went wrong. Please try again. |
-| 220 | var:ctaLabel ⚠️ | Starting… |
-| 231 | prop:title | Premium |
-| 234 | jsx-text | Every payday, worked out for you |
-| 240 | jsx-text | The app does the arithmetic — the money moves stay yours. |
-| 277 | jsx-expr | You’re on Premium — Lifetime. Thanks for the support. |
-| 277 | jsx-expr | You’re on Premium — thanks for the support. |
-| 283 | prop:label | Manage subscription |
-| 292 | jsx-text | Plans couldn’t load right now. Check your connection and try again. |
-| 294 | prop:label | Retry |
-| 351 | jsx-text | See it in action |
-| 356 | jsx-expr | Restoring… |
-| 356 | jsx-expr | Restore purchases |
-| 363 | jsx-text | Terms of Use (EULA) |
-| 367 | jsx-text | Privacy Policy |
-
-### `apps/rn/src/app/schedule/[id].tsx`
-
-| line | origin | string |
-|---|---|---|
-| 25 | call:announce ⚠️ | Payoff schedule |
-| 31 | prop:title | Payoff schedule |
+| 32 | key:text | Payday Guardian — works out how much to keep back each payday to protect your cushion, and reshapes the plan around it. |
+| 33 | key:text | Can I Afford It? — apply any purchase to your plan in one tap, or build a plan to save for it. |
+| 34 | key:text | Recovery Plan — a guided catch-up when a cycle comes up short. |
+| 40 | key:text | Balances that keep themselves roughly right — projected forward between statements, or re-scanned in seconds. No monthly retyping. |
+| 46 | var:AUTO_RENEW_DISCLOSURE | Payment will be charged to your Apple Account at confirmation of purchase. Subscriptions |
+| 47 | var:AUTO_RENEW_DISCLOSURE | automatically renew unless canceled at least 24 hours before the end of the current period. Your |
+| 48 | var:AUTO_RENEW_DISCLOSURE | account is charged for renewal within 24 hours prior to the end of the current period. Manage or |
+| 49 | var:AUTO_RENEW_DISCLOSURE | cancel anytime in your App Store account settings. Lifetime is a one-time purchase (not a |
+| 50 | var:AUTO_RENEW_DISCLOSURE | subscription) that covers all current Premium features; any future add-on tiers, like bank |
+| 51 | var:AUTO_RENEW_DISCLOSURE | connection or an AI coach, are sold separately. |
+| 67 | var:LIFETIME_SUBNOTE ⚠️ | Pay once — all today’s Premium, forever |
+| 74 | key:title | Annual |
+| 74 | key:periodLabel | per year |
+| 74 | key:subnote | Billed yearly · $2.50/mo |
+| 74 | key:badge | Best value |
+| 75 | key:title | Lifetime |
+| 75 | key:periodLabel | one time |
+| 75 | key:badge | Pay once |
+| 76 | key:title | Monthly |
+| 76 | key:periodLabel | per month |
+| 76 | key:subnote | Billed monthly |
+| 89 | other ⚠️ | ANNUAL |
+| 94 | key:title | Annual |
+| 94 | key:periodLabel | per year |
+| 94 | key:badge | Best value |
+| 96 | other ⚠️ | LIFETIME |
+| 98 | key:title | Lifetime |
+| 98 | key:periodLabel | one time |
+| 98 | key:badge | Pay once |
+| 99 | other ⚠️ | MONTHLY |
+| 100 | key:title | Monthly |
+| 100 | key:periodLabel | per month |
+| 182 | call:notify ⚠️ | Not available here |
+| 182 | call:notify ⚠️ | In-app purchases aren’t available in this preview — try it on your device. |
+| 191 | call:notify ⚠️ | You’re on Premium |
+| 191 | call:notify ⚠️ | Your premium tools are unlocked. |
+| 196 | call:notify ⚠️ | Almost there |
+| 196 | call:notify ⚠️ | Your purchase went through, but Premium couldn’t be confirmed yet. Tap Restore, or contact support if it persists. |
+| 199 | call:notify ⚠️ | Purchase didn’t complete |
+| 199 | call:notify ⚠️ | Something went wrong. Please try again. |
+| 207 | call:notify ⚠️ | Not available here |
+| 207 | call:notify ⚠️ | Restoring purchases isn’t available in this preview. |
+| 215 | call:notify ⚠️ | Purchases restored |
+| 215 | call:notify ⚠️ | Your premium access is back. |
+| 218 | call:notify ⚠️ | Nothing to restore |
+| 218 | call:notify ⚠️ | No active purchase was found for this Apple Account. |
+| 221 | call:notify ⚠️ | Restore didn’t complete |
+| 221 | call:notify ⚠️ | Something went wrong. Please try again. |
+| 228 | var:ctaLabel ⚠️ | Starting… |
+| 239 | prop:title | Premium |
+| 242 | jsx-text | Every payday, worked out for you |
+| 248 | jsx-text | The app does the arithmetic — the money moves stay yours. |
+| 285 | jsx-expr | You’re on Premium — Lifetime. Thanks for the support. |
+| 285 | jsx-expr | You’re on Premium — thanks for the support. |
+| 291 | prop:label | Manage subscription |
+| 300 | jsx-text | Plans couldn’t load right now. Check your connection and try again. |
+| 302 | prop:label | Retry |
+| 371 | jsx-expr | Restoring… |
+| 371 | jsx-expr | Restore purchases |
+| 378 | jsx-text | Terms of Use (EULA) |
 
 ### `apps/rn/src/appIntents/pendingActionBridge.native.ts`
 
@@ -787,13 +849,22 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 37 | prop:label | Unlocking… |
 | 37 | prop:label | Unlock |
 
+### `apps/rn/src/components/DataResetScreen.tsx`
+
+| line | origin | string |
+|---|---|---|
+| 77 | jsx-text | We couldn’t open your saved plan |
+| 80 | jsx-text | Something was wrong with the file, so the app started fresh. Nothing was deleted — your old             data is still set aside on this device, and any iCloud backup is untouched. |
+| 101 | prop:label | Import a backup file |
+| 107 | prop:label | Start fresh |
+
 ### `apps/rn/src/components/entities/AddObligationSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 37 | key:debts ⚠️ | Something with a balance you're paying down. It ends. |
-| 38 | key:bills ⚠️ | An ongoing cost that doesn't end. |
-| 39 | key:goals ⚠️ | Money you're setting aside for something. |
+| 37 | key:debts ⚠️ | Something with a balance you’re paying down. It ends. |
+| 38 | key:bills ⚠️ | An ongoing cost that doesn’t end. |
+| 39 | key:goals ⚠️ | Money you’re setting aside for something. |
 | 45 | key:title | A debt |
 | 47 | key:examples ⚠️ | Credit card · Car loan · Mortgage · Buy-now-pay-later |
 | 52 | key:title | An expense |
@@ -801,147 +872,160 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 59 | key:title | A savings goal |
 | 63 | key:examples ⚠️ | Emergency fund · A trip · A new laptop |
 | 77 | prop:title | What are you adding? |
-| 81 | prop:subtitle | It'll go in the right place. |
+| 81 | prop:subtitle | It’ll go in the right place. |
 
 ### `apps/rn/src/components/entities/AmortizationView.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 19 | call:d.toLocaleString ⚠️ | en-US |
-| 50 | jsx-text | No schedule to show. |
-| 62 | jsx-text | At |
-| 62 | jsx-text | /mo the interest outpaces the balance, so this debt never gets           paid off. Increasing the payment fixes it. |
-| 70 | jsx-text | debt-free · |
-| 79 | jsx-text | Paying |
-| 79 | jsx-text | /mo |
-| 80 | jsx-expr | — minimum + your extra |
-| 80 | jsx-expr | — the minimum |
-| 84 | jsx-text | MONTH |
-| 85 | jsx-text | BALANCE |
-| 101 | jsx-text | interest · |
-| 115 | jsx-text | Show all |
-| 137 | jsx-text | Payoff schedule |
+| 22 | call:addMonthsToDate ⚠️ | en-US |
+| 56 | jsx-text | No schedule to show. |
+| 68 | jsx-text | At |
+| 68 | jsx-text | /mo the interest outpaces the balance, so this debt never gets           paid off. Increasing the payment fixes it. |
+| 76 | jsx-text | debt-free · |
+| 85 | jsx-text | Paying |
+| 85 | jsx-text | /mo |
+| 86 | jsx-expr | — minimum + your extra |
+| 86 | jsx-expr | — the minimum |
+| 90 | jsx-text | MONTH |
+| 91 | jsx-text | BALANCE |
+| 107 | jsx-text | interest · |
+| 121 | jsx-text | Show all |
 
 ### `apps/rn/src/components/entities/DebtSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 47 | key:label | Every 3 months |
-| 58 | key:label | Not specified |
-| 60 | key:label | Other |
-| 164 | call:setError | Enter the payment amount. |
-| 165 | call:setError | Enter how many payments are left. |
-| 188 | call:setError | Minimum payment can’t exceed the balance. |
-| 240 | prop:title | Edit debt |
-| 240 | prop:title | Add a debt |
-| 240 | prop:title | Add from scan |
-| 240 | prop:title | Add a debt |
-| 245 | prop:subtitle | Moving this from Expenses. Add the balance so it counts toward your debt-free date. |
-| 247 | prop:subtitle | Review the scanned details, then add. |
-| 248 | prop:subtitle | A loan, credit card, or BNPL balance. |
-| 250 | prop:submitLabel | Save |
-| 250 | prop:submitLabel | Add debt |
-| 277 | jsx-text | Log a payment |
-| 289 | jsx-text | View payoff schedule |
-| 297 | prop:label | Name |
-| 297 | prop:placeholder | Affirm — Sofa |
-| 297 | prop:placeholder | Visa, Car Loan |
-| 299 | prop:label | Type |
-| 301 | prop:options ⚠️ | Debt / loan |
-| 301 | prop:options ⚠️ | BNPL (buy now, pay later) |
-| 308 | prop:label | Provider |
-| 309 | prop:label | Payment amount |
-| 309 | prop:placeholder | e.g. 100 |
-| 310 | prop:label | Payments remaining |
-| 310 | prop:placeholder | e.g. 4 |
-| 311 | prop:label | How often |
-| 312 | prop:label | Next payment |
-| 315 | jsx-text | left · interest-free |
-| 321 | prop:label | Current balance |
-| 321 | prop:placeholder | e.g. 2400 |
-| 324 | prop:accessibilityLabel | Re-scan a statement to update this balance |
-| 325 | jsx-text | Re-scan to update → |
-| 338 | jsx-text | Estimated |
-| 341 | jsx-text | Apply Estimate to Plan |
-| 344 | jsx-text | Updated |
-| 346 | prop:label | Minimum payment |
-| 346 | prop:placeholder | e.g. 65 |
-| 347 | prop:label | APR % |
-| 347 | prop:placeholder | e.g. 22.99 |
-| 348 | prop:label | Due date |
-| 349 | prop:label | Recurrence |
-| 352 | prop:label | Autopay |
+| 50 | key:label | Every 3 months |
+| 61 | key:label | Not specified |
+| 63 | key:label | Other |
+| 167 | call:setError | Enter the payment amount. |
+| 168 | call:setError | Enter how many payments are left. |
+| 195 | call:setError | Minimum payment can’t exceed the balance. |
+| 247 | prop:title | Edit debt |
+| 247 | prop:title | Add a debt |
+| 247 | prop:title | Add from scan |
+| 247 | prop:title | Add a debt |
+| 252 | prop:subtitle | Moving this from Expenses. Add the balance so it counts toward your debt-free date. |
+| 254 | prop:subtitle | Review the scanned details, then add. |
+| 255 | prop:subtitle | A loan, credit card, or BNPL balance. |
+| 257 | prop:submitLabel | Save |
+| 257 | prop:submitLabel | Add debt |
+| 296 | jsx-text | View payoff schedule |
+| 304 | prop:label | Name |
+| 304 | prop:placeholder | Affirm — Sofa |
+| 304 | prop:placeholder | Visa, Car Loan |
+| 306 | prop:label | Type |
+| 308 | prop:options ⚠️ | Debt / loan |
+| 308 | prop:options ⚠️ | BNPL (buy now, pay later) |
+| 315 | prop:label | Provider |
+| 316 | prop:label | Payment amount |
+| 316 | prop:placeholder | e.g. 100 |
+| 317 | prop:label | Payments remaining |
+| 317 | prop:placeholder | e.g. 4 |
+| 318 | prop:label | How often |
+| 319 | prop:label | Next payment |
+| 322 | jsx-text | left · interest-free |
+| 331 | prop:accessibilityLabel | Re-scan a statement to update this balance |
+| 332 | jsx-text | Re-scan to update → |
+| 345 | jsx-text | Estimated |
+| 348 | jsx-text | Apply estimate to plan |
+| 351 | jsx-text | Updated |
+| 354 | prop:label | APR % |
+| 355 | prop:label | Due date |
+| 356 | prop:label | Recurrence |
+| 359 | prop:label | Autopay |
 
 ### `apps/rn/src/components/entities/ExpenseSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 47 | call:setError | Enter the amount you pay now (0 for a free trial). |
-| 48 | call:setError | Enter the full price after the trial. |
-| 50 | call:setError | Enter when the full price starts (YYYY-MM-DD). |
-| 86 | prop:title | Edit expense |
-| 86 | prop:title | Add an expense |
-| 88 | prop:submitLabel | Save |
-| 88 | prop:submitLabel | Add expense |
-| 93 | prop:label | Name |
-| 93 | prop:placeholder | Rent, phone, utilities |
-| 94 | prop:label | Amount now (0 for a free trial) |
-| 94 | prop:label | Amount |
-| 94 | prop:placeholder | e.g. 0 |
-| 94 | prop:placeholder | e.g. 850 |
-| 96 | prop:label | Due date |
-| 97 | prop:label | Recurrence |
-| 98 | prop:label | Category |
-| 99 | prop:label | Variable amount (estimate) |
-| 100 | prop:label | Free trial or intro price |
-| 103 | prop:label | Full price after the trial |
-| 103 | prop:placeholder | e.g. 15.99 |
-| 104 | prop:label | Full price starts |
-| 107 | prop:label | Autopay |
+| 56 | call:setError | Enter the amount you pay now (0 for a free trial). |
+| 57 | call:setError | Enter the full price after the trial. |
+| 59 | call:setError | Enter when the full price starts (YYYY-MM-DD). |
+| 95 | prop:title | Edit expense |
+| 95 | prop:title | Add an expense |
+| 97 | prop:submitLabel | Save |
+| 97 | prop:submitLabel | Add expense |
+| 102 | prop:label | Name |
+| 102 | prop:placeholder | Rent, phone, utilities |
+| 103 | prop:label | Amount now (0 for a free trial) |
+| 103 | prop:label | Amount |
+| 103 | prop:placeholder | e.g. 0 |
+| 103 | prop:placeholder | e.g. 850 |
+| 105 | prop:label | Due date |
+| 106 | prop:label | Recurrence |
+| 107 | prop:label | Category |
+| 108 | prop:label | Variable amount (estimate) |
+| 109 | prop:label | Free trial or intro price |
+| 112 | prop:label | Full price after the trial |
+| 112 | prop:placeholder | e.g. 15.99 |
+| 113 | prop:label | Full price starts |
+| 116 | prop:label | Autopay |
 
 ### `apps/rn/src/components/entities/GoalSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 30 | call:setError | Enter a target amount. |
-| 58 | prop:title | Edit goal |
-| 58 | prop:title | Add a goal |
-| 59 | prop:subtitle | A savings or emergency-fund target. |
-| 60 | prop:submitLabel | Save |
-| 60 | prop:submitLabel | Add goal |
-| 65 | prop:label | Name |
-| 65 | prop:placeholder | Emergency Fund, Vacation |
-| 66 | prop:label | Target amount |
-| 66 | prop:placeholder | e.g. 1000 |
-| 67 | prop:label | Current amount saved |
-| 67 | prop:placeholder | e.g. 250 |
-| 69 | prop:label | Type |
-| 71 | prop:options ⚠️ | Emergency fund |
-| 71 | prop:options ⚠️ | Savings |
+| 75 | call:setError | Enter a target amount. |
+| 76 | call:setError | Enter what you have saved so far, or leave it blank. |
+| 102 | call:setError | Enter how much to put toward this each paycheck. |
+| 126 | prop:title | Edit goal |
+| 126 | prop:title | Add a goal |
+| 127 | prop:subtitle | A savings or emergency-fund target. |
+| 128 | prop:submitLabel | Save |
+| 128 | prop:submitLabel | Add goal |
+| 133 | prop:label | Name |
+| 133 | prop:placeholder | Emergency Fund, Vacation |
+| 134 | prop:label | Target amount |
+| 134 | prop:placeholder | e.g. 1000 |
+| 135 | prop:label | Current amount saved |
+| 135 | prop:placeholder | e.g. 250 |
+| 137 | prop:label | Type |
+| 139 | prop:options ⚠️ | Emergency fund |
+| 139 | prop:options ⚠️ | Savings |
+| 146 | prop:label | Fund this ahead of my debt |
+| 149 | prop:label | Cap per paycheck |
+| 152 | prop:placeholder | e.g. 100 |
+
+### `apps/rn/src/components/entities/ImportDebtsSheet.tsx`
+
+| line | origin | string |
+|---|---|---|
+| 36 | var:PLACEHOLDER ⚠️ | name,balance,minimumPayment,apr,dueDate Visa,2400,75,19.99,2026-09-01 |
+| 50 | call:setError | Paste your CSV first. |
+| 55 | call:setError | No debts found in that file. |
+| 89 | prop:title | Import these debts? |
+| 90 | prop:subtitle | They’re added to your plan. Nothing else changes. |
+| 102 | prop:label | Choose a different file |
+| 110 | prop:title | Import debts from CSV |
+| 111 | prop:subtitle | One row per debt, with a header. You’ll see what’s in it before anything is added. |
+| 112 | prop:submitLabel | Check file |
+| 116 | prop:label | Choose a file |
+| 129 | jsx-text | Columns: name, balance, minimumPayment, apr, dueDate. Dates must be written as YYYY-MM-DD, for         example 2026-09-01. APR can be left blank for 0%. |
 
 ### `apps/rn/src/components/entities/LivingExpenseSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 47 | prop:title | Edit spending item |
-| 47 | prop:title | Add a spending item |
-| 48 | prop:subtitle | Everyday spending you reserve each paycheck (groceries, gas, fun). |
-| 49 | prop:submitLabel | Save |
-| 49 | prop:submitLabel | Add item |
-| 54 | prop:label | Name |
-| 54 | prop:placeholder | Groceries, gas, fun |
-| 56 | prop:label | Amount per paycheck |
-| 59 | prop:placeholder | e.g. 300 |
-| 63 | prop:label | Count toward your reserve |
+| 53 | prop:title | Edit spending item |
+| 53 | prop:title | Add a spending item |
+| 54 | prop:subtitle | Everyday spending you reserve each paycheck (groceries, gas, fun). |
+| 55 | prop:submitLabel | Save |
+| 55 | prop:submitLabel | Add item |
+| 60 | prop:label | Name |
+| 60 | prop:placeholder | Groceries, gas, fun |
+| 62 | prop:label | Amount per paycheck |
+| 65 | prop:placeholder | e.g. 300 |
+| 69 | prop:label | Count toward your reserve |
 
 ### `apps/rn/src/components/entities/LogPaymentSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 34 | prop:title | Log a payment |
-| 39 | prop:label | Amount paid |
-| 44 | prop:error ⚠️ | More than the balance — this will clear it to $0. |
-| 46 | prop:label | Log payment |
+| 47 | prop:label | Amount paid |
+| 55 | prop:note | More than the balance — this will clear it to $0. |
+| 57 | prop:label | Log payment |
 
 ### `apps/rn/src/components/money/AllocationBarCanvas.web.tsx`
 
@@ -968,8 +1052,8 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 69 | jsx-text | UPCOMING BNPL INSTALLMENTS |
-| 94 | jsx-expr | installments |
+| 67 | jsx-text | UPCOMING BNPL INSTALLMENTS |
+| 92 | jsx-expr | installments |
 
 ### `apps/rn/src/components/more-button.tsx`
 
@@ -981,18 +1065,49 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 35 | prop:title | Export backup |
-| 36 | prop:subtitle | Copy this and save it somewhere safe. Paste it into Import to restore. |
-| 37 | prop:submitLabel | Done |
-| 40 | prop:label | Copied ✓ |
-| 40 | prop:label | Copy to clipboard |
-| 59 | call:setError | Paste your backup first. |
-| 64 | call:setError | That doesn't look like a valid backup. |
-| 70 | call:setError | That backup couldn't be read. |
-| 77 | prop:title | Import backup |
-| 78 | prop:subtitle | Paste a backup you exported before. This replaces your current data. |
-| 79 | prop:submitLabel | Restore backup |
-| 85 | prop:placeholder | Paste your backup JSON here |
+| 53 | call:notify ⚠️ | Couldn’t save |
+| 53 | call:notify ⚠️ | Saving the file failed. You can still copy the text below. |
+| 70 | key:label | Save as a file |
+| 71 | key:label | Copied ✓ |
+| 71 | key:label | Copy to clipboard |
+| 77 | prop:subtitle | Save this somewhere safe. You can bring it back any time from Import. |
+| 81 | prop:label | Done |
+| 92 | prop:label | Copied ✓ |
+| 92 | prop:label | Copy to clipboard |
+| 102 | prop:accessibilityLabel | Hide the raw backup data |
+| 102 | prop:accessibilityLabel | Show the raw backup data |
+| 104 | jsx-expr | Hide the raw data |
+| 104 | jsx-expr | Show the raw data |
+| 143 | call:setError | Paste your backup first. |
+| 172 | prop:title | Replace your data? |
+| 173 | prop:subtitle | This overwrites everything currently in the app. It can’t be undone. |
+| 180 | prop:label | Choose a different backup |
+| 189 | prop:subtitle | Paste a backup you saved before. You’ll see what’s in it before anything changes. |
+| 190 | prop:submitLabel | Check backup |
+| 194 | prop:label | Choose a file |
+| 200 | prop:placeholder | Paste your backup here |
+
+### `apps/rn/src/components/more/CloudBackupSheet.tsx`
+
+| line | origin | string |
+|---|---|---|
+| 51 | prop:title | iCloud backup |
+| 52 | prop:subtitle | Keep a copy of your plan in your own iCloud account. It never goes to our servers. |
+| 53 | prop:submitLabel | Done |
+| 60 | jsx-text | Sign in to iCloud on this device to back up your plan. |
+| 65 | jsx-text | Back up to iCloud |
+| 68 | prop:accessibilityLabel | Back up to iCloud |
+| 81 | jsx-expr | Checking iCloud… |
+| 90 | jsx-expr | Not backed up yet |
+| 98 | jsx-text | This device hasn’t restored that backup, so it may be from another device or from before you                 reinstalled. Backing up replaces it, and that can’t be undone. |
+| 102 | prop:label | Use the iCloud copy |
+| 112 | prop:label | Replace it with this device |
+| 120 | prop:onPress ⚠️ | Backed up. |
+| 127 | prop:label | Back up now |
+| 133 | prop:onPress ⚠️ | Backed up. |
+| 142 | jsx-text | Restoring replaces everything on this device with the copy in iCloud. This can’t be undone. |
+| 151 | prop:onPress ⚠️ | Restored from iCloud. |
+| 155 | prop:label | Keep what’s on this device |
 
 ### `apps/rn/src/components/more/CoachMarkProbeReadout.tsx`
 
@@ -1049,105 +1164,126 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 20 | key:body | update amounts any time. |
 | 23 | key:label | Free to use |
 | 23 | key:body | your plan, your debt-free date and your payday walkthrough never require a subscription. |
-| 44 | prop:label | See your plan  → |
-| 62 | prop:label | What should the app call you? (optional) |
-| 65 | prop:placeholder | Your name |
+| 48 | prop:label | See your plan → |
+| 66 | prop:label | What should the app call you? (optional) |
+| 69 | prop:placeholder | Your name |
 
 ### `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 52 | call:setError | Enter the amount. |
-| 92 | prop:label | Add & Continue |
-| 93 | prop:label | Skip, I'll add later |
-| 97 | jsx-text | Add your first debt or expense |
-| 99 | jsx-text | See your plan come to life right away. You can add more any time. |
-| 110 | prop:options ⚠️ | Debt |
-| 111 | prop:options ⚠️ | Expense |
-| 130 | jsx-expr | Something with a balance you’re paying down — a card, a loan, a mortgage. It ends. |
-| 131 | jsx-expr | An ongoing cost that doesn’t end — rent, phone, a subscription. |
-| 136 | prop:label | Debt name |
-| 136 | prop:label | Expense name |
-| 142 | prop:placeholder | e.g. Visa Card |
-| 142 | prop:placeholder | e.g. Rent |
-| 149 | prop:label | Current balance |
-| 155 | prop:placeholder | e.g. 2400 |
-| 162 | prop:label | Minimum payment |
-| 168 | prop:placeholder | e.g. 35 |
-| 173 | prop:label | APR % (optional) |
-| 173 | prop:placeholder | e.g. 22.99 |
-| 180 | prop:label | Amount |
-| 186 | prop:placeholder | e.g. 1200 |
+| 85 | call:setError | Enter the amount. |
+| 109 | prop:label | Add & Continue |
+| 110 | prop:label | Skip, I’ll add later |
+| 114 | jsx-text | Add your first debt or expense |
+| 116 | jsx-text | See your plan come to life right away. You can add more any time. |
+| 131 | prop:options ⚠️ | Debt |
+| 132 | prop:options ⚠️ | Expense |
+| 151 | jsx-expr | Something with a balance you’re paying down — a card, a loan, a mortgage. It ends. |
+| 152 | jsx-expr | An ongoing cost that doesn’t end — rent, phone, a subscription. |
+| 157 | prop:label | Debt name |
+| 157 | prop:label | Expense name |
+| 163 | prop:placeholder | e.g. Visa Card |
+| 163 | prop:placeholder | e.g. Rent |
+| 194 | prop:label | APR % (optional) |
+| 201 | prop:label | Amount |
+| 207 | prop:placeholder | e.g. 1200 |
 
 ### `apps/rn/src/components/onboarding/PaycheckStep.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 40 | call:setError | Enter your paycheck amount to continue. |
-| 78 | prop:label | Continue |
-| 79 | prop:label | Skip for now |
-| 83 | jsx-text | When do you get paid? |
-| 85 | jsx-text | This sets up your pay cycle so your plan knows which expenses are due next. |
+| 43 | call:setError | Enter your paycheck amount to continue. |
+| 85 | prop:label | Continue |
+| 86 | prop:label | Skip for now |
+| 90 | jsx-text | When do you get paid? |
+| 92 | jsx-text | This sets up your pay cycle so your plan knows which expenses are due next. |
 
 ### `apps/rn/src/components/onboarding/WelcomeStep.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 16 | key:title | A guardian for every payday |
-| 16 | key:body | Know what's safe to spend and what to pay down — your cushion comes first. |
-| 17 | key:title | A real debt-free date |
-| 17 | key:body | Snowball or avalanche — see exactly when your last debt disappears. |
-| 18 | key:title | Spend without the guilt |
-| 18 | key:body | Check any purchase against your plan before you buy. |
-| 29 | prop:label | Get Started |
-| 42 | prop:label | See it in action |
-| 49 | jsx-text | Will you make it to payday? |
-| 54 | jsx-text | Debt Planner watches your cushion every paycheck — so you know what&apos;s safe to spend and what to pay down. |
+| 17 | key:title | A guardian for every payday |
+| 17 | key:body | Know what’s safe to spend and what to pay down — your cushion comes first. |
+| 18 | key:title | A real debt-free date |
+| 18 | key:body | Snowball or avalanche — see exactly when your last debt disappears. |
+| 43 | prop:label | Get started |
+| 63 | jsx-text | Will you make it to payday? |
+| 68 | jsx-text | Debt Planner watches your cushion every paycheck — so you know what’s safe to spend and what to pay down. |
 
 ### `apps/rn/src/components/payday/PaydayCaptureSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 36 | return | a while ago |
-| 205 | var:requiredSub ⚠️ | All confirmed paid |
-| 234 | jsx-text | ‹ Back |
-| 236 | jsx-text | Which expenses got paid? |
-| 238 | jsx-text | Tap to mark what you actually paid — anything left carries to next cycle. |
-| 242 | jsx-expr | Undo |
-| 242 | jsx-expr | Mark all paid |
-| 274 | jsx-expr | Autopay · should have run |
-| 275 | jsx-expr | Autopay |
-| 282 | prop:label | Paid |
-| 282 | prop:label | Didn't pay |
-| 288 | jsx-text | carries to next cycle |
-| 292 | prop:label | Done |
-| 299 | jsx-text | ‹ Back |
-| 301 | jsx-text | Check your balances |
-| 303 | jsx-text | Confirm each estimate, or type the real balance from your statement. |
-| 315 | jsx-text | estimated ~ |
-| 315 | jsx-text | · verified |
-| 328 | prop:label | Confirm balances |
-| 334 | jsx-text | It&apos;s payday |
-| 336 | jsx-text | Here&apos;s the plan you set for this paycheck. Confirm what you actually paid. |
-| 340 | jsx-text | Close |
-| 349 | jsx-text | Required expenses & minimums |
-| 354 | prop:label | Adjust |
-| 364 | jsx-text | Estimated balances |
-| 367 | jsx-expr | 1 balance hasn't been checked in a while |
-| 371 | prop:label | Update |
-| 373 | prop:label | These look right |
-| 378 | jsx-text | Balances confirmed |
-| 383 | jsx-text | EXTRA PAYMENTS |
-| 399 | jsx-expr | From savings ✓ |
-| 399 | jsx-expr | From savings |
-| 419 | prop:label | Skipped |
-| 419 | prop:label | Paid |
-| 430 | jsx-text | You paid |
-| 437 | prop:label | Confirm what you paid |
-| 437 | prop:label | You followed the plan |
-| 438 | prop:label | Skip this payday |
-| 478 | jsx-text | Payday captured |
-| 484 | jsx-text | confirmed · your plan&apos;s up to date |
+| 37 | return | a while ago |
+| 228 | var:requiredSub ⚠️ | All confirmed paid |
+| 257 | jsx-text | ‹ Back |
+| 259 | jsx-text | Which expenses got paid? |
+| 261 | jsx-text | Tap to mark what you actually paid — anything left carries to next cycle. |
+| 265 | jsx-expr | Undo |
+| 265 | jsx-expr | Mark all paid |
+| 299 | jsx-expr | Autopay · should have run |
+| 300 | jsx-expr | Autopay |
+| 307 | prop:label | Paid |
+| 307 | prop:label | Didn’t pay |
+| 313 | jsx-text | carries to next cycle |
+| 317 | prop:label | Done |
+| 324 | jsx-text | ‹ Back |
+| 326 | jsx-text | Check your balances |
+| 328 | jsx-text | Confirm each estimate, or type the real balance from your statement. |
+| 340 | jsx-text | estimated ~ |
+| 340 | jsx-text | · verified |
+| 353 | prop:label | Confirm balances |
+| 359 | jsx-text | It’s payday |
+| 361 | jsx-text | Here’s the plan you set for this paycheck. Confirm what you actually paid. |
+| 365 | jsx-text | Close |
+| 374 | jsx-text | Required expenses & minimums |
+| 379 | prop:label | Adjust |
+| 389 | jsx-text | Estimated balances |
+| 392 | jsx-expr | 1 balance hasn’t been checked in a while |
+| 396 | prop:label | Update |
+| 398 | prop:label | These look right |
+| 403 | jsx-text | Balances confirmed |
+| 408 | jsx-text | EXTRA PAYMENTS |
+| 427 | jsx-expr | From savings ✓ |
+| 427 | jsx-expr | From savings |
+| 447 | prop:label | Skipped |
+| 447 | prop:label | Paid |
+| 458 | jsx-text | You paid |
+| 472 | jsx-text | Anything unexpected come out? |
+| 480 | prop:accessibilityLabel | Amount of an unexpected expense this cycle |
+| 486 | prop:label | Confirm what you paid |
+| 486 | prop:label | You followed the plan |
+| 487 | prop:label | Skip this payday |
+| 527 | jsx-text | Payday captured |
+| 534 | jsx-text | confirmed · your plan’s up to date |
+
+### `apps/rn/src/components/payoff/compareStrategies.ts`
+
+| line | origin | string |
+|---|---|---|
+| 89 | return | On your debts, these two produce exactly the same plan. |
+| 111 | call:parts.push ⚠️ | Same debt-free date |
+| 119 | call:parts.push ⚠️ | and the order they clear in changes |
+| 130 | return | These two clear your debts in a different order. |
+
+### `apps/rn/src/components/payoff/monthLabels.ts`
+
+| line | origin | string |
+|---|---|---|
+| 21 | call:monthDate ⚠️ | en-US |
+| 26 | call:monthDate ⚠️ | en-US |
+
+### `apps/rn/src/components/payoff/StrategyCompare.tsx`
+
+| line | origin | string |
+|---|---|---|
+| 50 | jsx-text | Add a debt to see how the two payoff orders compare. |
+| 58 | prop:label | Snowball |
+| 59 | prop:label | Avalanche |
+| 86 | jsx-expr | · yours |
+| 89 | jsx-expr | No payoff date |
+| 96 | jsx-expr | 1st · |
 
 ### `apps/rn/src/components/payoff/TrajectoryCanvas.web.tsx`
 
@@ -1159,59 +1295,58 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 228 | call:monthDate ⚠️ | en-US |
-| 229 | var:minimumsDateLabel ⚠️ | Never |
-| 279 | jsx-text | PAYOFF TRAJECTORY |
-| 280 | jsx-text | Balance over time |
-| 287 | call:groupLabel | Payoff trajectory chart |
-| 288 | call:groupLabel | projected balance over time |
-| 289 | call:groupLabel | your plan clears faster than minimum payments |
-| 387 | call:monthDate ⚠️ | en-US |
-| 400 | jsx-text | Now |
-| 412 | jsx-text | Minimum payments |
-| 423 | jsx-text | Your plan |
-| 440 | jsx-text | Safe-floor |
-| 452 | jsx-text | With extra |
-| 469 | prop:accessibilityLabel | What if you paid extra? |
-| 472 | jsx-text | What if you paid extra? |
+| 62 | call:import ⚠️ | ./TrajectorySkiaChart |
+| 308 | var:minimumsDateLabel ⚠️ | Not with minimums |
+| 361 | jsx-text | PAYOFF TRAJECTORY |
+| 362 | jsx-text | Balance over time |
+| 393 | call:groupLabel | Payoff trajectory chart |
+| 394 | call:groupLabel | projected balance over time |
+| 395 | call:groupLabel | your plan clears faster than minimum payments |
+| 523 | jsx-text | Now |
+| 536 | jsx-text | Minimum payments |
+| 547 | jsx-text | Your plan |
+| 564 | jsx-text | Safe-floor |
+| 576 | jsx-text | With extra |
+| 593 | prop:accessibilityLabel | What if you paid extra? |
+| 596 | jsx-text | What if you paid extra? |
+| 609 | prop:accessibilityLabel | Compare snowball and avalanche |
+| 613 | jsx-text | Snowball or avalanche? |
 
 ### `apps/rn/src/components/payoff/WhatIfControls.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 76 | prop:accessibilityLabel | Extra monthly payment amount |
-| 83 | jsx-text | /mo |
-| 92 | prop:accessibilityLabel | Extra monthly payment |
-| 98 | jsx-text | Drag or type an amount to see how much faster you&apos;d be debt-free. |
-| 102 | jsx-text | Can&apos;t estimate a payoff date with the current plan. |
+| 77 | prop:accessibilityLabel | Extra monthly payment amount |
+| 84 | jsx-text | /mo |
+| 93 | prop:accessibilityLabel | Extra monthly payment |
+| 99 | jsx-text | Drag or type an amount to see how much faster you’d be debt-free. |
+| 103 | jsx-text | Can’t estimate a payoff date with the current plan. |
 
 ### `apps/rn/src/components/plan/AffordabilityCard.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 52 | var:effName ⚠️ | Savings goal |
-| 69 | var:purchaseName ⚠️ | Purchase |
-| 83 | var:purchaseName ⚠️ | Purchase |
-| 112 | jsx-text | CAN I AFFORD IT? |
-| 125 | prop:label | Undo |
-| 136 | jsx-text | CAN I AFFORD IT? |
-| 146 | prop:label | Undo |
-| 155 | jsx-text | CAN I AFFORD IT? |
-| 158 | jsx-text | Thinking about a purchase? |
-| 161 | prop:label | Amount |
-| 161 | prop:placeholder | e.g. 400 |
-| 162 | prop:label | What is it? (optional) |
-| 162 | prop:placeholder | e.g. New couch |
-| 166 | jsx-text | Enter an amount to see if it fits this paycheck. |
-| 169 | jsx-text | You have about |
-| 169 | jsx-text | spare this paycheck. |
-| 178 | jsx-text | Not this paycheck — you&apos;d come up about |
-| 178 | jsx-text | short. |
-| 182 | prop:label | Save for it → |
-| 199 | jsx-text | About |
-| 199 | jsx-text | less goes to debt this paycheck. |
-| 219 | prop:label | Apply anyway |
-| 219 | prop:label | Apply to this paycheck |
+| 54 | var:effName ⚠️ | Savings goal |
+| 71 | var:purchaseName ⚠️ | Purchase |
+| 85 | var:purchaseName ⚠️ | Purchase |
+| 130 | jsx-text | CAN I AFFORD IT? |
+| 143 | prop:label | Undo |
+| 154 | jsx-text | CAN I AFFORD IT? |
+| 164 | prop:label | Undo |
+| 173 | jsx-text | CAN I AFFORD IT? |
+| 176 | jsx-text | Thinking about a purchase? |
+| 179 | prop:label | Amount |
+| 179 | prop:placeholder | e.g. 400 |
+| 180 | prop:label | What is it? (optional) |
+| 180 | prop:placeholder | e.g. New couch |
+| 188 | jsx-text | Enter an amount to see if it fits this paycheck. |
+| 191 | jsx-text | You have about |
+| 191 | jsx-text | spare this paycheck. |
+| 202 | prop:label | Save for it → |
+| 215 | jsx-text | About |
+| 215 | jsx-text | less goes to debt this paycheck. |
+| 235 | prop:label | Apply anyway |
+| 235 | prop:label | Apply to this paycheck |
 
 ### `apps/rn/src/components/plan/AppStoreCta.web.tsx`
 
@@ -1231,24 +1366,23 @@ the moment a second producer was added. Two audit passes and three green web spe
 | line | origin | string |
 |---|---|---|
 | 136 | jsx-text | CUSHION BY PAYCHECK |
-| 183 | jsx-text | your $ |
-| 191 | jsx-text | I&apos;m setting aside |
-| 191 | jsx-text | from this paycheck for a tight cycle ahead. |
-| 199 | jsx-expr | This paycheck |
-| 204 | prop:label | Income |
-| 205 | prop:label | Expenses & essentials |
-| 208 | prop:label | Left after essentials |
+| 194 | jsx-text | I’m setting aside |
+| 194 | jsx-text | from this paycheck for a tight cycle ahead. |
+| 202 | jsx-expr | This paycheck |
+| 207 | prop:label | Income |
+| 208 | prop:label | Expenses & essentials |
+| 211 | prop:label | Left after essentials |
 
 ### `apps/rn/src/components/plan/CoachMarkLayer.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 72 | call:probeCoachMark ⚠️ | NULL |
-| 72 | call:probeCoachMark ⚠️ | (cancelled) |
-| 86 | var:verdict ⚠️ | DREW |
-| 91 | call:useEffect ⚠️ | DREW |
-| 164 | prop:accessibilityLabel | Got it |
-| 167 | jsx-text | Got it |
+| 92 | call:probeCoachMark ⚠️ | NULL |
+| 92 | call:probeCoachMark ⚠️ | (cancelled) |
+| 185 | var:verdict ⚠️ | DREW |
+| 190 | call:useEffect ⚠️ | DREW |
+| 386 | prop:accessibilityLabel | Got it |
+| 389 | jsx-text | Got it |
 
 ### `apps/rn/src/components/plan/CushionBarCanvas.web.tsx`
 
@@ -1260,11 +1394,32 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 46 | prop:title | Your cushion line |
-| 47 | prop:subtitle | The cash I keep each paycheck before any extra debt payoff. |
-| 48 | prop:submitLabel | Save |
-| 65 | call:value.toLocaleString ⚠️ | en-US |
-| 66 | prop:accessibilityLabel | Cushion line amount |
+| 47 | prop:title | Your cushion line |
+| 48 | prop:subtitle | The cash I keep each paycheck before any extra debt payoff. |
+| 49 | prop:submitLabel | Save |
+| 71 | prop:accessibilityLabel | Cushion line amount |
+
+### `apps/rn/src/components/plan/DataRepairsCard.tsx`
+
+| line | origin | string |
+|---|---|---|
+| 84 | prop:label | Got it |
+
+### `apps/rn/src/components/plan/dataRepairsCopy.ts`
+
+| line | origin | string |
+|---|---|---|
+| 27 | key:goal ⚠️ | savings goal |
+| 55 | other ⚠️ | unrecoverable |
+| 90 | key:heading | An amount could not be read |
+| 92 | key:detail | Your plan is running without it until you set it again. |
+| 93 | key:detail | Your plan is running without them until you set each one again. |
+| 110 | key:heading | Some of your old data did not come across |
+| 112 | key:detail | There is nothing to reopen for it — check this against your old app and add anything missing. |
+| 113 | key:detail | There is nothing to reopen for them — check these against your old app and add anything missing. |
+| 123 | key:heading | An amount was written in a different format |
+| 126 | key:detail | Your plan is using it — check the number looks right. |
+| 127 | key:detail | Your plan is using them — check the numbers look right. |
 
 ### `apps/rn/src/components/plan/DemoAutoEntry.tsx`
 
@@ -1288,14 +1443,14 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 80 | jsx-text | This is what your Guardian does with a paycheck. |
 | 102 | prop:label | Get it on the App Store |
 | 114 | prop:label | Start your real plan |
-| 120 | jsx-text | Unlock Premium |
 
 ### `apps/rn/src/components/plan/ExampleCanvasMarker.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 14 | var:EXAMPLE_MONEY ⚠️ | Example money |
-| 73 | jsx-text | Start my real plan |
+| 16 | var:EXAMPLE_MONEY ⚠️ | Example money |
+| 105 | prop:label | Back to my plan |
+| 105 | prop:label | Start my real plan |
 
 ### `apps/rn/src/components/plan/FloorImpactBar.tsx`
 
@@ -1307,7 +1462,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 28 | jsx-text | You&apos;re debt-free |
+| 28 | jsx-text | You’re debt-free |
 | 30 | jsx-text | Every balance is cleared. Your paycheck now builds your future instead of paying down the past. |
 | 46 | jsx-text | YOUR NEXT CHAPTER |
 | 49 | jsx-text | Ready to build wealth? |
@@ -1320,16 +1475,16 @@ the moment a second producer was added. Two audit passes and three green web spe
 |---|---|---|
 | 33 | jsx-text | GUARDIAN ACCURACY |
 | 45 | jsx-text | Reserved since day one |
-| 48 | jsx-text | I&apos;ve set your line aside on every paycheck since the first one. I&apos;m still learning your           patterns — I&apos;ll show my track record once I&apos;ve seen a few more paychecks. |
-| 59 | var:recalibration ⚠️ | I've under-warned a few times — I've tightened my read. |
-| 61 | var:recalibration ⚠️ | I've been over-cautious a few times — I'm recalibrating. |
+| 48 | jsx-text | I’ve set your line aside on every paycheck since the first one. I’m still learning your           patterns — I’ll show my track record once I’ve seen a few more paychecks. |
+| 59 | var:recalibration ⚠️ | I’ve under-warned a few times — I’ve tightened my read. |
+| 61 | var:recalibration ⚠️ | I’ve been over-cautious a few times — I’m recalibrating. |
 | 66 | jsx-text | GUARDIAN ACCURACY |
 | 68 | jsx-text | reads matched |
-| 71 | jsx-text | How often my read of whether you&apos;d hold your cushion matched what you actually confirmed. |
+| 71 | jsx-text | How often my read of whether you’d hold your cushion matched what you actually confirmed. |
 | 78 | prop:label | Under-warned |
-| 78 | prop:sub ⚠️ | said you'd hold, you dipped below |
+| 78 | prop:sub ⚠️ | said you’d hold, you dipped below |
 | 79 | prop:label | Over-cautious |
-| 79 | prop:sub ⚠️ | flagged a risk that didn't land |
+| 79 | prop:sub ⚠️ | flagged a risk that didn’t land |
 
 ### `apps/rn/src/components/plan/LeanSuggestionCard.tsx`
 
@@ -1352,9 +1507,9 @@ the moment a second producer was added. Two audit passes and three green web spe
 | line | origin | string |
 |---|---|---|
 | 20 | key:title | A quarter paid off |
-| 20 | key:body | You've paid off 25% of your debt. Keep the momentum going. |
+| 20 | key:body | You’ve paid off 25% of your debt. Keep the momentum going. |
 | 21 | key:title | Halfway to debt-free |
-| 21 | key:body | 50% paid off — you're over the hump. |
+| 21 | key:body | 50% paid off — you’re over the hump. |
 | 22 | key:title | Three-quarters done |
 | 22 | key:body | 75% paid off. The finish line is in sight. |
 | 45 | prop:label | Keep going |
@@ -1363,41 +1518,37 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 89 | call:shareDebtCard ⚠️ | Share your win |
-| 98 | var:beatA11y ⚠️ | — paid off |
-| 116 | jsx-text | Paid off |
-| 126 | jsx-text | Paid off |
-| 131 | jsx-text | Freed |
-| 131 | jsx-text | /mo now flows to |
-| 137 | prop:label | Share |
-| 138 | prop:label | Keep going |
+| 99 | var:beatA11y ⚠️ | — paid off |
+| 132 | jsx-text | Freed |
+| 132 | jsx-text | /mo now flows to |
+| 138 | prop:label | Share |
+| 139 | prop:label | Keep going |
 
 ### `apps/rn/src/components/plan/PaidOffFinale.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 107 | prop:accessibilityLabel | $0 balance |
-| 116 | jsx-text | You&rsquo;re debt-free |
-| 119 | prop:label | paid off |
-| 127 | prop:label | Share your win |
-| 128 | prop:label | Continue |
+| 108 | prop:accessibilityLabel | $0 balance |
+| 117 | jsx-text | You&rsquo;re debt-free |
+| 120 | prop:label | paid off |
+| 129 | prop:label | Continue |
 
 ### `apps/rn/src/components/plan/PaycheckSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 50 | call:setError | Enter your paycheck amount. |
-| 82 | prop:title | Paycheck & pay cycle |
-| 83 | prop:subtitle | Your income and when it lands — the foundation of every plan. |
-| 84 | prop:submitLabel | Save paycheck |
-| 154 | prop:label | This paycheck didn't arrive |
+| 52 | call:setError | Enter your paycheck amount. |
+| 87 | prop:title | Paycheck & pay cycle |
+| 88 | prop:subtitle | Your income and when it lands — the foundation of every plan. |
+| 89 | prop:submitLabel | Save paycheck |
+| 159 | prop:label | This paycheck didn’t arrive |
 
 ### `apps/rn/src/components/plan/PaydayGuardianCard.tsx`
 
 | line | origin | string |
 |---|---|---|
 | 166 | var:attestLabel ⚠️ | Expenses confirmed — holding a smaller safety net. Undo |
-| 167 | var:attestLabel ⚠️ | All your regular expenses entered? I'll hold a smaller safety net. |
+| 167 | var:attestLabel ⚠️ | All your regular expenses entered? I’ll hold a smaller safety net. |
 | 173 | var:freeInvite ⚠️ | Premium builds you a catch-up plan — what to cover first, and what (if anything) can safely wait. |
 | 176 | var:freeInvite ⚠️ | Premium works out how much to keep back each payday to protect your cushion, all on your device — no deciding each paycheck. |
 | 189 | call:groupLabel | Example |
@@ -1428,9 +1579,9 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 37 | jsx-text | Looks like you crushed |
-| 40 | jsx-text | Your estimate reached $0. Confirm it&apos;s paid off and it&apos;s official. |
-| 42 | prop:label | Confirm — it's paid off |
+| 37 | jsx-text | Looks like you paid off |
+| 40 | jsx-text | Your estimate reached $0. Confirm it’s paid off and it’s official. |
+| 42 | prop:label | Confirm — it’s paid off |
 | 44 | jsx-text | Not yet — update the balance |
 
 ### `apps/rn/src/components/plan/PlanHero.tsx`
@@ -1463,76 +1614,77 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 60 | jsx-text | COVER NOW |
-| 76 | jsx-text | CAN WAIT IN YOUR PLAN |
-| 78 | jsx-text | Moving these buys room in your plan — the biller still needs handling. |
-| 101 | jsx-text | Keep essential |
-| 133 | jsx-text | This reschedules the payment in your plan — remember to handle it with the biller (pay it late, or cancel it). |
+| 65 | jsx-text | COVER NOW |
+| 93 | jsx-expr | Show fewer |
+| 110 | jsx-text | CAN WAIT IN YOUR PLAN |
+| 112 | jsx-text | Moving these buys room in your plan — the biller still needs handling. |
+| 135 | jsx-text | Keep essential |
+| 167 | jsx-text | This reschedules the payment in your plan — remember to handle it with the biller (pay it late, or cancel it). |
 
 ### `apps/rn/src/components/plan/RequiredActionsCard.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 27 | other ⚠️ | unfundedRequiredItems |
-| 96 | jsx-text | Required Actions |
-| 98 | jsx-text | Bills and minimums due this paycheck. |
-| 105 | jsx-text | You&apos;re caught up for this paycheck. |
-| 124 | jsx-text | Short this paycheck — cover these from savings or your next paycheck. |
-| 171 | prop:accessibilityLabel | from this paycheck |
-| 191 | jsx-expr | from this paycheck |
-| 231 | prop:accessibilityLabel | Undo, mark unpaid |
-| 231 | prop:accessibilityLabel | Mark paid |
-| 234 | jsx-expr | Undo |
-| 234 | jsx-expr | Paid |
-| 273 | prop:label | Auto-paid |
-| 275 | prop:label | Autopay |
-| 295 | prop:label | Overdue |
-| 296 | jsx-text | Due |
-| 302 | jsx-text | this cycle |
-| 311 | jsx-text | from your reserve |
+| 29 | other ⚠️ | unfundedRequiredItems |
+| 105 | jsx-text | Required actions |
+| 107 | jsx-text | Bills and minimums due this paycheck. |
+| 124 | jsx-text | You’re caught up for this paycheck. |
+| 128 | jsx-text | You haven’t added any bills yet. |
+| 131 | jsx-text | Rent, utilities, subscriptions — anything that comes out every cycle. Until they are here,                 this plan treats all of it as spendable. |
+| 134 | prop:label | Add a bill |
+| 155 | jsx-text | Short this paycheck — cover these from savings or your next paycheck. |
+| 202 | prop:accessibilityLabel | from this paycheck |
+| 222 | jsx-expr | from this paycheck |
+| 262 | prop:accessibilityLabel | Undo, mark unpaid |
+| 262 | prop:accessibilityLabel | Mark paid |
+| 265 | jsx-expr | Undo |
+| 265 | jsx-expr | Paid |
+| 304 | prop:label | Auto-paid |
+| 306 | prop:label | Autopay |
+| 327 | jsx-text | Due |
+| 333 | jsx-text | this cycle |
+| 342 | jsx-text | from your reserve |
 
 ### `apps/rn/src/components/plan/SaveForItSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 64 | var:goalLabel ⚠️ | this purchase |
-| 106 | prop:title | Save for it |
-| 108 | prop:submitLabel | Start saving |
-| 123 | jsx-text | /paycheck |
-| 128 | jsx-expr | Saved after debt · no firm date |
-| 145 | jsx-text | Set your own |
-| 149 | prop:label | Per paycheck |
-| 149 | prop:placeholder | e.g. 100 |
-| 152 | jsx-text | · ready by |
-| 157 | jsx-text | Save what you want each paycheck — funds before debt at your pace. |
+| 65 | var:goalLabel ⚠️ | this purchase |
+| 118 | prop:title | Save for it |
+| 120 | prop:submitLabel | Start saving |
+| 135 | jsx-text | /paycheck |
+| 140 | jsx-expr | Saved after debt · no firm date |
+| 157 | jsx-text | Set your own |
+| 164 | prop:label | Per paycheck |
+| 164 | prop:placeholder | e.g. 100 |
+| 167 | jsx-text | · ready by |
+| 172 | jsx-text | Save what you want each paycheck — funds before debt at your pace. |
 
 ### `apps/rn/src/components/plan/ShareCard.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 38 | jsx-text | I&rsquo;m debt-free |
-| 40 | prop:label | paid off |
-| 50 | jsx-text | Paid off |
-| 51 | jsx-expr | Paid off |
-| 54 | jsx-text | /mo freed toward the next one |
-| 61 | jsx-text | paid off |
-| 64 | jsx-text | paid off |
-| 66 | jsx-text | on my way to debt-free |
-| 73 | jsx-text | Debt Planner &middot; your payday debt-payoff app |
+| 39 | jsx-text | I&rsquo;m debt-free |
+| 41 | prop:label | paid off |
+| 55 | jsx-text | /mo freed toward the next one |
+| 62 | jsx-text | paid off |
+| 65 | jsx-text | paid off |
+| 67 | jsx-text | on my way to debt-free |
+| 74 | jsx-text | Debt Planner &middot; your payday debt-payoff app |
 
 ### `apps/rn/src/components/plan/SpokenForSheet.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 61 | jsx-text | of this paycheck is already accounted for |
-| 69 | prop:hint | Groceries, gas, fun money — reserved every paycheck. |
-| 73 | prop:actionLabel | Manage everyday spending |
-| 76 | prop:label | Upcoming expenses |
-| 77 | prop:hint | Money you've set by for expenses that land in a later cycle. |
-| 101 | jsx-text | Set by |
-| 104 | jsx-text | Optional — your plan works either way. |
-| 112 | prop:accessibilityLabel | Undo this paycheck's expense reserve |
-| 114 | jsx-text | Undo this paycheck’s reserve |
+| 60 | jsx-text | of this paycheck is already accounted for |
+| 68 | prop:hint | Groceries, gas, fun money — reserved every paycheck. |
+| 72 | prop:actionLabel | Manage everyday spending |
+| 75 | prop:label | Upcoming expenses |
+| 76 | prop:hint | Money you’ve set by for expenses that land in a later cycle. |
+| 100 | jsx-text | Set by |
+| 103 | jsx-text | Optional — your plan works either way. |
+| 111 | prop:accessibilityLabel | Undo this paycheck’s expense reserve |
+| 113 | jsx-text | Undo this paycheck’s reserve |
 
 ### `apps/rn/src/components/plan/TutorialInviteCard.tsx`
 
@@ -1541,7 +1693,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 27 | call:groupLabel | See how your Guardian works |
 | 28 | call:groupLabel | A short walkthrough on example numbers, not your real plan. |
 | 35 | jsx-text | See how your Guardian works |
-| 39 | jsx-text | A short walkthrough on example numbers — your plan isn&apos;t touched. |
+| 39 | jsx-text | A short walkthrough on example numbers — your plan isn’t touched. |
 | 43 | prop:label | Show me |
 | 44 | prop:label | Not now |
 
@@ -1558,33 +1710,33 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 22 | key:label | Covers your expenses & essentials first |
-| 23 | key:label | Extra to your debt |
-| 25 | key:label | Toward your goals |
-| 26 | key:label | Held as your safety net |
-| 27 | key:label | Left as spare cash |
-| 79 | prop:title | Extra income |
-| 80 | prop:subtitle | A bonus, refund, or side gig — added to this paycheck only. |
-| 81 | prop:submitLabel | Confirm |
-| 81 | prop:submitLabel | Add |
-| 86 | prop:label | Amount |
-| 92 | prop:placeholder | e.g. 500 |
-| 101 | jsx-text | HERE&apos;S HOW THE APP WILL ROUTE |
-| 112 | jsx-text | Confirm to route it this way — your whole plan updates. Your call. |
+| 23 | key:label | Covers your expenses & essentials first |
+| 24 | key:label | Extra to your debt |
+| 26 | key:label | Toward your goals |
+| 27 | key:label | Held as your safety net |
+| 28 | key:label | Left as spare cash |
+| 80 | prop:title | Extra income |
+| 81 | prop:subtitle | A bonus, refund, or side gig — added to this paycheck only. |
+| 82 | prop:submitLabel | Confirm |
+| 82 | prop:submitLabel | Add |
+| 87 | prop:label | Amount |
+| 93 | prop:placeholder | e.g. 500 |
+| 102 | jsx-text | HERE’S HOW THE APP WILL ROUTE |
+| 113 | jsx-text | Confirm to route it this way — your whole plan updates. Your call. |
 
 ### `apps/rn/src/components/progress/CashFlowSection.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 19 | other ⚠️ | cushionStatus |
-| 59 | jsx-text | CASH FLOW · NEXT |
-| 59 | jsx-text | PAY CYCLES |
-| 65 | prop:options ⚠️ | Cushion |
-| 66 | prop:options ⚠️ | Timeline |
-| 88 | var:caption ⚠️ | A cycle runs short ahead — plan for it. |
-| 90 | var:caption ⚠️ | Cushion gets tight in an upcoming cycle. |
-| 91 | var:caption ⚠️ | Comfortable across the next few paychecks. |
-| 111 | jsx-text | line · room after each paycheck |
+| 21 | other ⚠️ | cushionStatus |
+| 70 | jsx-text | CASH FLOW · NEXT |
+| 70 | jsx-text | PAY CYCLES |
+| 76 | prop:options ⚠️ | Cushion |
+| 77 | prop:options ⚠️ | Timeline |
+| 99 | var:caption ⚠️ | A cycle runs short ahead — plan for it. |
+| 101 | var:caption ⚠️ | Cushion gets tight in an upcoming cycle. |
+| 102 | var:caption ⚠️ | Comfortable across the next few paychecks. |
+| 122 | jsx-text | line · room after each paycheck |
 
 ### `apps/rn/src/components/progress/JourneyRingCanvas.web.tsx`
 
@@ -1596,11 +1748,9 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 38 | call:shareDebtCard ⚠️ | Share your progress |
-| 47 | jsx-text | DEBTS PAID OFF · |
-| 60 | call:groupLabel | Paid off |
-| 65 | jsx-expr | Paid off |
-| 73 | prop:label | Share |
+| 39 | call:shareDebtCard ⚠️ | Share your progress |
+| 48 | jsx-text | DEBTS PAID OFF · |
+| 74 | prop:label | Share |
 
 ### `apps/rn/src/components/progress/TimelineLedger.tsx`
 
@@ -1615,7 +1765,8 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 35 | jsx-text | Couldn&rsquo;t save your last change to this device. It&rsquo;s still here — we&rsquo;ll keep         trying. |
+| 27 | var:SAVE_FAILED_SPOKEN ⚠️ | Couldn’t save your last change to this device. It’s still here — we’ll keep trying. |
+| 54 | jsx-text | Couldn&rsquo;t save your last change to this device. It&rsquo;s still here — we&rsquo;ll keep         trying. |
 
 ### `apps/rn/src/components/screen.tsx`
 
@@ -1647,21 +1798,19 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 108 | jsx-text | Remove |
-| 157 | prop:accessibilityLabel | Close |
-| 174 | jsx-text | Remove |
+| 116 | jsx-text | Delete |
+| 165 | prop:accessibilityLabel | Close |
+| 182 | jsx-text | Delete |
 
 ### `apps/rn/src/components/ui/ListRow.tsx`
 
 | line | origin | string |
 |---|---|---|
-| 76 | prop:accessibilityHint | Opens the editor |
-| 144 | jsx-text | Delete |
-| 151 | key:title | Log payment |
-| 151 | key:systemIcon ⚠️ | dollarsign.circle |
-| 152 | key:title | Payoff schedule |
-| 153 | key:title | Edit |
-| 154 | key:title | Delete |
+| 95 | prop:accessibilityHint | Opens the editor |
+| 162 | key:systemIcon ⚠️ | dollarsign.circle |
+| 164 | key:title | Edit |
+| 165 | key:title | Delete |
+| 260 | jsx-text | Delete |
 
 ### `apps/rn/src/components/ui/RowContextMenu.ios.tsx`
 
@@ -1679,11 +1828,71 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 51 | var:BACKUP_APP_NAME ⚠️ | Debt Planner |
-| 90 | var:NOT_JSON ⚠️ | That file isn't readable as a backup. |
-| 91 | var:NOT_A_BACKUP ⚠️ | That isn't a Debt Planner backup. |
-| 92 | var:TOO_NEW ⚠️ | That backup was made by a newer version of Debt Planner. Update the app, then try again. |
-| 93 | var:MALFORMED ⚠️ | That backup is incomplete and can't be restored. |
+| 53 | var:BACKUP_APP_NAME ⚠️ | Debt Planner |
+| 130 | var:NOT_JSON ⚠️ | That file isn’t readable as a backup. |
+| 131 | var:NOT_A_BACKUP ⚠️ | That isn’t a Debt Planner backup. |
+| 132 | var:TOO_NEW ⚠️ | That backup was made by a newer version of Debt Planner. Update the app, then try again. |
+| 133 | var:MALFORMED ⚠️ | That backup is incomplete and can’t be restored. |
+
+### `apps/rn/src/data/backupFile.ts`
+
+| line | origin | string |
+|---|---|---|
+| 26 | var:JSON_TYPES ⚠️ | application/json |
+| 26 | var:JSON_TYPES ⚠️ | public.json |
+| 53 | key:mimeType ⚠️ | application/json |
+| 53 | key:dialogTitle ⚠️ | Save your backup |
+
+### `apps/rn/src/data/cloudBackup.ts`
+
+| line | origin | string |
+|---|---|---|
+| 90 | var:NOT_A_CLOUD_BACKUP ⚠️ | That iCloud file isn’t a Debt Planner backup. |
+| 91 | var:NO_CODEC ⚠️ | That backup was made by a newer version of Debt Planner. Update the app, then try again. |
+| 96 | var:DAMAGED ⚠️ | That iCloud backup is damaged and can’t be read. |
+
+### `apps/rn/src/data/cloudBackupMessages.ts`
+
+| line | origin | string |
+|---|---|---|
+| 33 | var:GENERIC_FAILURE ⚠️ | That didn’t work. Your data on this device is unchanged. |
+| 34 | var:NO_BACKUP_YET ⚠️ | There is no backup in iCloud yet. |
+| 35 | var:SIGN_IN_TO_ICLOUD ⚠️ | Sign in to iCloud on this device to use backup. |
+| 36 | var:REMOTE_UNCLAIMED ⚠️ | iCloud already has a backup that this device hasn’t seen. Choose which copy to keep. |
+
+### `apps/rn/src/data/csvImportFile.ts`
+
+| line | origin | string |
+|---|---|---|
+| 28 | var:CSV_TYPES ⚠️ | text/csv |
+| 28 | var:CSV_TYPES ⚠️ | text/comma-separated-values |
+| 28 | var:CSV_TYPES ⚠️ | public.comma-separated-values-text |
+| 28 | var:CSV_TYPES ⚠️ | text/plain |
+
+### `apps/rn/src/data/detectBackupFormat.ts`
+
+| line | origin | string |
+|---|---|---|
+| 26 | other ⚠️ | unrecognised |
+| 48 | other ⚠️ | storeVersion |
+| 65 | key:detail | not a JSON object |
+| 68 | key:detail | a Debt Planner backup file |
+| 71 | key:detail | a backup from an older version of Debt Planner |
+| 74 | key:detail | an unwrapped Debt Planner backup |
+| 76 | key:detail | no recognised backup format |
+| 84 | key:detail | not readable as JSON |
+
+### `apps/rn/src/data/formatBackupTime.ts`
+
+| line | origin | string |
+|---|---|---|
+| 17 | key:minute ⚠️ | 2-digit |
+
+### `apps/rn/src/data/legacyBridge/decodeCandidates.ts`
+
+| line | origin | string |
+|---|---|---|
+| 36 | other ⚠️ | droppedRowsOtherCandidates |
 
 ### `apps/rn/src/data/legacyBridge/mapLegacyStore.ts`
 
@@ -1719,26 +1928,28 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 65 | call:import ⚠️ | ./readLegacyStores |
-| 76 | call:skipped ⚠️ | no container to read (web) |
-| 85 | call:skipped ⚠️ | the search was cut short — treating as UNKNOWN, not as "no legacy data" |
-| 86 | call:skipped ⚠️ | no v1.6 store in this container (a fresh install) |
+| 113 | call:import ⚠️ | ./readLegacyStores |
+| 125 | call:skipped ⚠️ | no container to read (web) |
+| 133 | call:skipped ⚠️ | no v1.6 store in this container (a fresh install) |
+| 139 | call:skipped ⚠️ | the search was cut short — treating as UNKNOWN, not as "no legacy data" |
+| 142 | call:skipped ⚠️ | the search did not establish that there is nothing here — treating as UNKNOWN |
+| 182 | call:skipped ⚠️ | the v1.6 data could not be MIGRATED — deliberately not reported as "no legacy data" |
 
 ### `apps/rn/src/data/legacyBridge/readLegacyStores.ts`
 
 | line | origin | string |
 |---|---|---|
-| 58 | key:error ⚠️ | source vanished |
-| 73 | other ⚠️ | -wal |
-| 73 | other ⚠️ | -shm |
-| 84 | call:db.getAllAsync ⚠️ | SELECT key, value FROM ItemTable |
-| 160 | key:path ⚠️ | (walk) |
+| 59 | key:error ⚠️ | source vanished |
+| 74 | other ⚠️ | -wal |
+| 74 | other ⚠️ | -shm |
+| 85 | call:db.getAllAsync ⚠️ | SELECT key, value FROM ItemTable |
+| 157 | key:path ⚠️ | (walk) |
 
 ### `apps/rn/src/data/legacyBridge/report.ts`
 
 | line | origin | string |
 |---|---|---|
-| 42 | return | legacy-read: unsupported |
+| 64 | return | legacy-read: unsupported |
 
 ### `apps/rn/src/data/legacyBridge/webkitLocalStorage.ts`
 
@@ -1748,11 +1959,99 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 184 | call:name.endsWith ⚠️ | .localstorage |
 | 184 | other ⚠️ | localstorage.sqlite3 |
 
+### `apps/rn/src/data/migrationAudit/corpus.ts`
+
+| line | origin | string |
+|---|---|---|
+| 21 | var:V16_DIRECT_KEYS ⚠️ | requiredExpenses |
+| 22 | var:V16_DIRECT_KEYS ⚠️ | livingExpenses |
+| 24 | var:V16_DIRECT_KEYS ⚠️ | cycleHistory |
+| 25 | var:V16_DIRECT_KEYS ⚠️ | completedRecommendedActions |
+| 26 | var:V16_DIRECT_KEYS ⚠️ | payoffStrategy |
+| 27 | var:V16_DIRECT_KEYS ⚠️ | milestoneMaxProgress |
+| 28 | var:V16_DIRECT_KEYS ⚠️ | lastHandledPaydayDate |
+| 36 | var:V16_PAYCHECK_KEYS ⚠️ | nextPaycheckDate |
+| 37 | var:V16_PAYCHECK_KEYS ⚠️ | semiMonthlyFirstDay |
+| 38 | var:V16_PAYCHECK_KEYS ⚠️ | semiMonthlySecondDay |
+| 39 | var:V16_PAYCHECK_KEYS ⚠️ | monthlyPayDay |
+| 46 | key:exportedAt ⚠️ | 2026-05-23T14:02:11.000Z |
+| 84 | key:lastSavedAt ⚠️ | 2026-05-23T14:00:00.000Z |
+| 123 | key:unicode ⚠️ | 🧾💸 � ünïcødé |
+| 126 | key:utcMidnightDate ⚠️ | 2026-03-01T00:00:00.000Z |
+| 188 | var:nested ⚠️ | minimumPayment |
+| 192 | var:nested ⚠️ | requiredExpenses |
+| 193 | var:nested ⚠️ | requiredExpenses |
+| 197 | var:nested ⚠️ | targetAmount |
+| 198 | var:nested ⚠️ | currentAmount |
+| 212 | key:target ⚠️ | goals[1].priorityPerPaycheck |
+
+### `apps/rn/src/data/migrationAudit/doors.ts`
+
+| line | origin | string |
+|---|---|---|
+| 35 | key:webkitRoot ⚠️ | /x/Library/WebKit |
+| 38 | key:candidates ⚠️ | /x/db.sqlite3 |
+| 39 | key:path ⚠️ | /x/db.sqlite3 |
+| 40 | key:path ⚠️ | /x/db.sqlite3 |
+
+### `apps/rn/src/data/migrationAudit/invariants.ts`
+
+| line | origin | string |
+|---|---|---|
+| 76 | var:MONEY_FIELDS ⚠️ | minimumPayment |
+| 100 | var:GOAL_MONEY_FIELDS ⚠️ | targetAmount |
+| 100 | var:GOAL_MONEY_FIELDS ⚠️ | currentAmount |
+| 100 | var:GOAL_MONEY_FIELDS ⚠️ | priorityPerPaycheck |
+| 118 | call:check ⚠️ | requiredExpenses |
+| 119 | call:check ⚠️ | livingExpenses |
+
 ### `apps/rn/src/data/migrations.ts`
 
 | line | origin | string |
 |---|---|---|
-| 33 | other ⚠️ | runMigrations: persisted store is not an object |
+| 83 | key:field ⚠️ | (whole list unreadable) |
+| 109 | key:field ⚠️ | (a row could not be read) |
+| 164 | other ⚠️ | runMigrations: persisted store is not an object |
+| 180 | call:repairMoneyFields ⚠️ | minimumPayment |
+| 180 | call:repairMoneyFields ⚠️ | originalBalance |
+| 180 | call:repairMoneyFields ⚠️ | scheduledPaymentAmount |
+| 199 | call:repairMoneyFields ⚠️ | requiredExpense |
+| 200 | call:repairMoneyFields ⚠️ | livingExpense |
+| 217 | call:repairMoneyFields ⚠️ | targetAmount |
+| 217 | call:repairMoneyFields ⚠️ | currentAmount |
+| 217 | call:repairMoneyFields ⚠️ | priorityPerPaycheck |
+| 294 | call:repairs.find ⚠️ | priorityPerPaycheck |
+| 322 | key:field ⚠️ | the per-paycheck amount could not be read, so it is no longer funded ahead of your debt |
+| 323 | key:field ⚠️ | the per-paycheck amount could not be read |
+| 329 | other ⚠️ | the per-paycheck amount could not be read, so it is no longer funded ahead of your debt |
+| 330 | other ⚠️ | the per-paycheck amount could not be read |
+
+### `apps/rn/src/data/models.ts`
+
+| line | origin | string |
+|---|---|---|
+| 255 | other ⚠️ | requiredExpense |
+| 255 | other ⚠️ | livingExpense |
+
+### `apps/rn/src/data/readBackup.ts`
+
+| line | origin | string |
+|---|---|---|
+| 25 | other ⚠️ | unrecognised |
+| 59 | var:NOT_JSON ⚠️ | That file isn’t readable as a backup. |
+| 60 | var:UNRECOGNISED ⚠️ | That isn’t a Debt Planner backup. |
+| 61 | var:UNREADABLE ⚠️ | That backup couldn’t be read. |
+| 126 | key:envelope ⚠️ | This backup |
+| 127 | key:'raw-v17' ⚠️ | This backup |
+| 128 | key:'v16-file' ⚠️ | This backup, from an older version of Debt Planner, |
+| 129 | key:unrecognised ⚠️ | This backup |
+
+### `apps/rn/src/hooks/use-cloud-backup.ts`
+
+| line | origin | string |
+|---|---|---|
+| 113 | call:reportError ⚠️ | cloud backup attempted on a SANDBOX store — refusing |
+| 144 | call:reportError ⚠️ | cloud restore attempted on a SANDBOX store — refusing |
 
 ### `apps/rn/src/hooks/use-sheet-presentation.ts`
 
@@ -1829,27 +2128,25 @@ the moment a second producer was added. Two audit passes and three green web spe
 |---|---|---|
 | 21 | call:requireNativeModule ⚠️ | FinaleHaptics |
 
+### `apps/rn/src/notifications/notificationCopy.ts`
+
+| line | origin | string |
+|---|---|---|
+| 30 | key:title | Before this paycheck lands |
+| 31 | key:body | I’d give your plan a quick look before payday. |
+
 ### `apps/rn/src/notifications/notifications.ts`
 
 | line | origin | string |
 |---|---|---|
-| 33 | key:buttonTitle ⚠️ | Run your plan |
-| 34 | key:buttonTitle ⚠️ | Review your plan |
-| 35 | key:buttonTitle ⚠️ | Check your plan |
-| 70 | key:title | Before this paycheck lands |
-| 71 | key:body | I'd give your plan a quick look before payday. |
-| 135 | call:schedule ⚠️ | Paycheck tomorrow |
-| 135 | call:schedule ⚠️ | Your paycheck arrives tomorrow — open Debt Planner to run your plan. |
-| 142 | call:schedule ⚠️ | It's payday |
-| 142 | call:schedule ⚠️ | Open Debt Planner to confirm your plan for this paycheck. |
-| 158 | var:title ⚠️ | Upcoming expense |
-
-### `apps/rn/src/notifications/notifications.web.ts`
-
-| line | origin | string |
-|---|---|---|
-| 10 | key:title | Time to check this paycheck |
-| 11 | key:body | Take a quick look at your plan before this one lands. |
+| 39 | key:buttonTitle ⚠️ | Run your plan |
+| 40 | key:buttonTitle ⚠️ | Review your plan |
+| 41 | key:buttonTitle ⚠️ | Check your plan |
+| 130 | call:schedule ⚠️ | Paycheck tomorrow |
+| 130 | call:schedule ⚠️ | Your paycheck arrives tomorrow — open Debt Planner to run your plan. |
+| 137 | call:schedule ⚠️ | It’s payday |
+| 137 | call:schedule ⚠️ | Open Debt Planner to confirm your plan for this paycheck. |
+| 153 | var:title ⚠️ | Upcoming expense |
 
 ### `apps/rn/src/premium/legal.ts`
 
@@ -1881,6 +2178,12 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 21 | other ⚠️ | Storage is locked |
 | 23 | other ⚠️ | StorageLockedError |
 
+### `apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ios.ts`
+
+| line | origin | string |
+|---|---|---|
+| 25 | var:BACKUP_PATH ⚠️ | /debt-planner-cloud-backup.json |
+
 ### `apps/rn/src/storage/createAdapter.ts`
 
 | line | origin | string |
@@ -1894,18 +2197,11 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 8 | var:KEY ⚠️ | debtPlanner.rnStore |
 | 9 | var:QUARANTINE_PREFIX ⚠️ | debtPlanner.rnStore.__quarantine__ |
 
-### `apps/rn/src/store/analysisSelectors.ts`
-
-| line | origin | string |
-|---|---|---|
-| 110 | var:canEstimate ⚠️ | Unable to estimate |
-| 111 | var:canEstimate ⚠️ | Unable to estimate |
-
 ### `apps/rn/src/store/balanceSelectors.ts`
 
 | line | origin | string |
 |---|---|---|
-| 82 | key:text | estimated · verify soon |
+| 90 | key:text | estimated · verify soon |
 
 ### `apps/rn/src/store/coachMarkCopy.ts`
 
@@ -1922,11 +2218,11 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 8 | other ⚠️ | /onboarding |
-| 8 | other ⚠️ | /paywall |
-| 38 | call:router.replace ⚠️ | /onboarding |
-| 39 | other ⚠️ | /paywall |
-| 39 | call:router.push ⚠️ | /paywall |
+| 15 | other ⚠️ | /onboarding |
+| 15 | other ⚠️ | /paywall |
+| 57 | call:router.replace ⚠️ | /onboarding |
+| 58 | other ⚠️ | /paywall |
+| 58 | call:router.push ⚠️ | /paywall |
 
 ### `apps/rn/src/store/demoRun.ts`
 
@@ -1941,12 +2237,6 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 95 | key:screen ⚠️ | /progress |
 | 95 | key:beat | The payoff: the ring, the curve, the debt-free date. |
 | 101 | key:beat | The triumph: a debt one tap from zero. The capture driver confirms it, and the celebration is real. |
-
-### `apps/rn/src/store/drift.ts`
-
-| line | origin | string |
-|---|---|---|
-| 62 | key:projectedDebtFreeDate ⚠️ | Unable to estimate |
 
 ### `apps/rn/src/store/greeting.ts`
 
@@ -1966,17 +2256,23 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 139 | var:targetName ⚠️ | your savings |
-| 139 | var:targetName ⚠️ | your debt |
-| 328 | key:provider ⚠️ | BNPL |
-| 364 | var:AFFORD_PREVIEW_ID ⚠️ | __afford_preview__ |
-| 396 | var:coverFromSavings ⚠️ | coverFromSavings |
-| 564 | key:title | Save fast |
-| 564 | key:detail | Funds before debt — pauses most of your extra debt payoff while you save. |
-| 570 | key:title | Balanced |
-| 570 | key:detail | A lighter set-aside — eases off your debt payoff a little, takes longer. |
-| 575 | key:title | Keep debt first |
-| 575 | key:detail | Save whatever’s spare after debt — no hit to your debt-free date, but no firm date. |
+| 140 | var:targetName ⚠️ | your savings |
+| 140 | var:targetName ⚠️ | your debt |
+| 329 | key:provider ⚠️ | BNPL |
+| 365 | var:AFFORD_PREVIEW_ID ⚠️ | __afford_preview__ |
+| 397 | var:coverFromSavings ⚠️ | coverFromSavings |
+| 565 | key:title | Save fast |
+| 565 | key:detail | Funds before debt — pauses most of your extra debt payoff while you save. |
+| 571 | key:title | Balanced |
+| 571 | key:detail | A lighter set-aside — eases off your debt payoff a little, takes longer. |
+| 576 | key:title | Keep debt first |
+| 576 | key:detail | Save whatever’s spare after debt — no hit to your debt-free date, but no firm date. |
+
+### `apps/rn/src/store/journeySelectors.ts`
+
+| line | origin | string |
+|---|---|---|
+| 55 | other ⚠️ | originalBalance |
 
 ### `apps/rn/src/store/looksLikeDebt.ts`
 
@@ -2008,13 +2304,14 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 78 | key:amountPositive ⚠️ | Enter an amount greater than 0. |
 | 79 | key:balanceRequired ⚠️ | Enter the current balance. |
 | 80 | key:minimumRequired ⚠️ | Enter the minimum payment. |
+| 84 | key:aprInvalid ⚠️ | Enter the APR as a number, or leave it blank. |
 
 ### `apps/rn/src/store/onboardingFinish.ts`
 
 | line | origin | string |
 |---|---|---|
-| 23 | key:body | That's your target — stay the course. Tap below to see exactly what to do with your next paycheck. |
-| 29 | key:body | Here's what it has to cover, and what's left after. Add a debt any time and you'll get a debt-free date too. |
+| 23 | key:body | That’s your target — stay the course. Tap below to see exactly what to do with your next paycheck. |
+| 29 | key:body | Here’s what it has to cover, and what’s left after. Add a debt any time and you’ll get a debt-free date too. |
 | 33 | key:title | Your plan is ready |
 | 34 | key:body | Add your paycheck and what you owe, and this becomes a plan for every payday. |
 
@@ -2062,22 +2359,35 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 30 | call:reportError ⚠️ | bootstrapPersistence called with a SANDBOX store — refusing |
+| 33 | other ⚠️ | @/data/legacyBridge/report |
+| 39 | call:reportError ⚠️ | bootstrapPersistence called with a SANDBOX store — refusing |
+| 173 | other ⚠️ | @/data/legacyBridge/report |
+| 189 | call:String ⚠️ | n/a |
+| 190 | call:String ⚠️ | n/a |
+| 191 | call:String ⚠️ | n/a |
+| 192 | call:String ⚠️ | n/a |
 
 ### `apps/rn/src/store/planSelectors.ts`
 
 | line | origin | string |
 |---|---|---|
-| 120 | other ⚠️ | Unable to estimate |
-| 271 | key:title | Overdue |
-| 272 | key:title | Due this week |
-| 273 | key:title | Due next week |
-| 274 | key:title | Later this cycle |
-| 275 | key:title | Handled |
-| 337 | key:label | to debt this paycheck |
-| 341 | key:label | to your goals |
-| 342 | key:label | cushion this paycheck |
-| 354 | var:cushionStatus ⚠️ | cushionStatus |
+| 274 | key:title | Due this week |
+| 275 | key:title | Due next week |
+| 276 | key:title | Later this cycle |
+| 277 | key:title | Handled |
+| 339 | key:label | to debt this paycheck |
+| 344 | key:label | cushion this paycheck |
+| 356 | var:cushionStatus ⚠️ | cushionStatus |
+
+### `apps/rn/src/store/realWriteGuard.ts`
+
+| line | origin | string |
+|---|---|---|
+| 32 | var:TUTORIAL_WRITABLE_PREFS ⚠️ | tutorialStep |
+| 32 | var:TUTORIAL_WRITABLE_PREFS ⚠️ | tutorialSeen |
+| 140 | call:reportError ⚠️ | Real-store write REFUSED while a sandbox subtree was mounted |
+| 141 | key:seam ⚠️ | realWriteGuard |
+| 142 | key:hint | a component inside the subtree is writing via appStore instead of useActiveStore(); the write was dropped |
 
 ### `apps/rn/src/store/sandboxScenarios.ts`
 
@@ -2097,11 +2407,9 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 32 | var:TUTORIAL_WRITABLE_PREFS ⚠️ | tutorialStep |
-| 32 | var:TUTORIAL_WRITABLE_PREFS ⚠️ | tutorialSeen |
-| 143 | call:reportError ⚠️ | Real store mutated while a sandbox subtree was mounted |
-| 144 | key:seam ⚠️ | StoreProvider |
-| 145 | key:hint | a component inside the subtree is still writing via appStore instead of useActiveStore() |
+| 93 | call:reportError ⚠️ | Real store mutated while a sandbox subtree was mounted |
+| 94 | key:seam ⚠️ | StoreProvider |
+| 95 | key:hint | a write bypassed the appStore action veto (api.setState?) while a sandbox was mounted |
 
 ### `apps/rn/src/store/tutorialPath.ts`
 
@@ -2116,7 +2424,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 123 | key:coach ⚠️ | Drag the line, then Save — your plan re-solves around it. |
 | 130 | key:title | A little extra, at first |
 | 139 | key:body | While I am still learning your expenses I hold a bit more back. Tell me your expenses are all in and I hold less — and if a surprise proves otherwise, I put the net straight back. |
-| 149 | key:title | When it won't stretch |
+| 149 | key:title | When it won’t stretch |
 | 149 | key:body | Some paychecks come up short. Your Guardian works out what has to be covered now, and what can safely wait. |
 | 155 | key:title | Always your call |
 | 155 | key:body | I suggest — I never move your money. Every number here stays yours to overrule, once this tour is done. |
@@ -2157,17 +2465,19 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 54 | key:'trending-down' ⚠️ | chart.line.downtrend.xyaxis |
 | 55 | key:'auto-graph' ⚠️ | chart.xyaxis.line |
 | 56 | key:assignment ⚠️ | doc.text.fill |
-| 57 | key:history ⚠️ | clock.arrow.circlepath |
-| 64 | key:'gpp-good' ⚠️ | checkmark.shield.fill |
-| 65 | key:'gpp-bad' ⚠️ | xmark.shield.fill |
-| 66 | key:'gpp-maybe' ⚠️ | exclamationmark.shield.fill |
-| 67 | key:shield ⚠️ | shield.fill |
-| 68 | key:'verified-user' ⚠️ | checkmark.seal.fill |
-| 69 | key:lock ⚠️ | lock.fill |
-| 70 | key:'error-outline' ⚠️ | exclamationmark.triangle |
-| 71 | key:healing ⚠️ | bandage.fill |
-| 74 | key:star ⚠️ | star.fill |
-| 75 | key:celebration ⚠️ | party.popper.fill |
+| 61 | key:'receipt-long' ⚠️ | doc.plaintext |
+| 65 | key:'upload-file' ⚠️ | square.and.arrow.down |
+| 66 | key:history ⚠️ | clock.arrow.circlepath |
+| 73 | key:'gpp-good' ⚠️ | checkmark.shield.fill |
+| 74 | key:'gpp-bad' ⚠️ | xmark.shield.fill |
+| 75 | key:'gpp-maybe' ⚠️ | exclamationmark.shield.fill |
+| 76 | key:shield ⚠️ | shield.fill |
+| 77 | key:'verified-user' ⚠️ | checkmark.seal.fill |
+| 78 | key:lock ⚠️ | lock.fill |
+| 79 | key:'error-outline' ⚠️ | exclamationmark.triangle |
+| 80 | key:healing ⚠️ | bandage.fill |
+| 83 | key:star ⚠️ | star.fill |
+| 84 | key:celebration ⚠️ | party.popper.fill |
 
 ### `apps/rn/src/theme/typography.ts`
 
@@ -2184,11 +2494,11 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 16 | alert | Delete? |
 | 17 | alert | Cancel |
 | 18 | alert | Delete |
-| 46 | alert | Not now |
-| 52 | var:message ⚠️ | Discard your changes? |
-| 57 | alert | Discard changes? |
-| 58 | alert | Keep editing |
-| 59 | alert | Discard |
+| 56 | alert | Not now |
+| 62 | var:message ⚠️ | Discard changes? |
+| 67 | alert | Discard changes? |
+| 68 | alert | Keep editing |
+| 69 | alert | Discard |
 
 ### `apps/rn/src/utils/debtFreeSound.ts`
 
@@ -2217,6 +2527,12 @@ the moment a second producer was added. Two audit passes and three green web spe
 |---|---|---|
 | 18 | call:console.warn ⚠️ | [reportError] |
 
+### `apps/rn/src/utils/scrubBreadcrumb.ts`
+
+| line | origin | string |
+|---|---|---|
+| 24 | var:REDACTED ⚠️ | $[redacted] |
+
 ### `apps/rn/src/utils/share-card.ts`
 
 | line | origin | string |
@@ -2229,7 +2545,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 | line | origin | string |
 |---|---|---|
 | 59 | return | This paycheck looks clear — your cushion holds. |
-| 81 | var:debtFreeDate ⚠️ | Debt-free! |
+| 81 | var:debtFreeDate ⚠️ | Debt-free |
 
 ### `apps/rn/src/widget/widgetKeys.ts`
 
@@ -2268,9 +2584,30 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 113 | key:body | your financial data stays on this device |
 | 115 | key:noSelling ⚠️ | you’ll never be sold more debt |
 | 117 | key:short ⚠️ | Your money stays on your device. |
-| 121 | key:clear ⚠️ | Clear |
-| 122 | key:tight ⚠️ | Tight |
-| 123 | key:"at-risk" ⚠️ | Very tight |
+| 135 | key:atEntry ⚠️ | No account needed — your numbers never go to our servers. |
+| 148 | var:REPLACE_DATA_ACTION ⚠️ | Replace my data |
+| 151 | key:clear ⚠️ | Clear |
+| 152 | key:tight ⚠️ | Tight |
+| 153 | key:"at-risk" ⚠️ | Very tight |
+| 168 | var:UNLOCK_PREMIUM_CTA ⚠️ | Unlock Premium |
+| 179 | var:LOG_PAYMENT_ENTRY ⚠️ | Log a payment |
+| 184 | var:PAYOFF_SCHEDULE_TITLE ⚠️ | Payoff schedule |
+| 189 | var:OVERDUE_LABEL ⚠️ | Overdue |
+| 194 | var:PRIVACY_POLICY_LABEL ⚠️ | Privacy Policy |
+| 198 | var:SEE_IT_IN_ACTION_CTA ⚠️ | See it in action |
+| 208 | var:PAY_CYCLE_HISTORY_TITLE ⚠️ | Pay cycle history |
+| 209 | var:EXPORT_BACKUP_TITLE ⚠️ | Export backup |
+| 210 | var:IMPORT_BACKUP_TITLE ⚠️ | Import backup |
+| 223 | var:FILE_UNREADABLE ⚠️ | That file couldn’t be opened. |
+| 231 | var:RESTORE_FROM_CLOUD_ACTION ⚠️ | Restore from iCloud |
+| 249 | key:balanceLabel ⚠️ | Current balance |
+| 250 | key:balancePlaceholder ⚠️ | e.g. 2400 |
+| 251 | key:minimumLabel ⚠️ | Minimum payment |
+| 252 | key:minimumPlaceholder ⚠️ | e.g. 65 |
+| 253 | key:aprPlaceholder ⚠️ | e.g. 22.99 |
+| 261 | var:PAID_OFF_LABEL ⚠️ | Paid off |
+| 262 | var:SHARE_WIN_CTA ⚠️ | Share your win |
+| 267 | var:GOALS_DESTINATION ⚠️ | to your goals |
 
 ### `packages/core/debt/bnplProviders.ts`
 
@@ -2296,88 +2633,84 @@ the moment a second producer was added. Two audit passes and three green web spe
 |---|---|---|
 | 15 | other ⚠️ | totalDebtBalance |
 
-### `packages/core/debt/computeInterestSaved.ts`
-
-| line | origin | string |
-|---|---|---|
-| 47 | var:minUnpayable ⚠️ | Unable to estimate |
-| 48 | var:actualUnpayable ⚠️ | Unable to estimate |
-
 ### `packages/core/debt/mergeCompletedAction.ts`
 
 | line | origin | string |
 |---|---|---|
 | 20 | other ⚠️ | paymentSource |
 
+### `packages/core/debt/originalBalanceHighWater.ts`
+
+| line | origin | string |
+|---|---|---|
+| 40 | other ⚠️ | originalBalance |
+
 ### `packages/core/debt/projectDebtPayoff.ts`
 
 | line | origin | string |
 |---|---|---|
-| 34 | call:date.toLocaleString ⚠️ | en-US |
-| 122 | key:estimatedDebtFreeDate ⚠️ | Unable to estimate |
-| 214 | key:estimatedDebtFreeDate ⚠️ | Unable to estimate |
+| 26 | var:DEBT_FREE_DATE_UNPAYABLE ⚠️ | Unable to estimate |
+| 57 | call:date.toLocaleString ⚠️ | en-US |
 
 ### `packages/core/engine/allocatePaycheck.ts`
 
 | line | origin | string |
 |---|---|---|
-| 520 | key:label | Keep cash buffer |
-| 540 | key:label | Reserved for upcoming bills |
-| 586 | key:label | Held for an upcoming tight cycle |
-| 593 | key:label | Safety net |
-| 723 | key:label | Leftover cash |
+| 521 | key:label | Keep cash buffer |
+| 541 | key:label | Reserved for upcoming bills |
+| 587 | key:label | Held for an upcoming tight cycle |
+| 594 | key:label | Safety net |
+| 726 | key:label | Leftover cash |
 
 ### `packages/core/forecast/projectForecast.ts`
 
 | line | origin | string |
 |---|---|---|
-| 63 | key:recoveryTrend ⚠️ | Recovery is not currently projected within the visible forecast window. |
-| 64 | key:recoveryTrend ⚠️ | Cash pressure is projected to gradually improve across upcoming cycles. |
-| 65 | key:recoveryTrend ⚠️ | Projected cushion remains within a healthier range. |
-| 80 | var:lowCushionDrivers ⚠️ | Projected cushion remains below target |
-| 81 | var:lowCushionDrivers ⚠️ | Available cushion stays under the recommended safety threshold |
-| 82 | var:lowCushionDrivers ⚠️ | Cash reserve remains tighter than recommended |
-| 93 | call:drivers.push ⚠️ | Debt minimum obligations remain elevated |
-| 101 | return | Pause aggressive payoff and protect required payments first. |
-| 112 | return | Current payoff pace appears sustainable. |
-| 120 | call:Intl.NumberFormat ⚠️ | en-US |
-| 122 | key:currency ⚠️ | USD |
+| 65 | key:recoveryTrend ⚠️ | Recovery is not currently projected within the visible forecast window. |
+| 66 | key:recoveryTrend ⚠️ | Cash pressure is projected to gradually improve across upcoming cycles. |
+| 67 | key:recoveryTrend ⚠️ | Projected cushion remains within a healthier range. |
+| 82 | var:lowCushionDrivers ⚠️ | Projected cushion remains below target |
+| 83 | var:lowCushionDrivers ⚠️ | Available cushion stays under the recommended safety threshold |
+| 84 | var:lowCushionDrivers ⚠️ | Cash reserve remains tighter than recommended |
+| 95 | call:drivers.push ⚠️ | Debt minimum obligations remain elevated |
+| 103 | return | Pause aggressive payoff and protect required payments first. |
+| 114 | return | Current payoff pace appears sustainable. |
+| 122 | call:Intl.NumberFormat ⚠️ | en-US |
+| 124 | key:currency ⚠️ | USD |
 
 ### `packages/core/guardian/buildGuardianBrief.ts`
 
 | line | origin | string |
 |---|---|---|
-| 141 | call:Math.max ⚠️ | en-US |
-| 153 | return | These figures are from a little while ago — a quick refresh keeps this exact. |
-| 155 | return | I'm planning from the low side while I learn what your paychecks reliably clear. |
-| 156 | return | I'm holding a small safety net while I get to know your expenses. |
-| 196 | var:look ⚠️ | a little tight |
-| 208 | key:title | A paycheck didn't land |
-| 228 | key:title | Let's refresh your numbers |
-| 230 | key:detail | Your paycheck, expenses, or balances are more than a few weeks old, so I can't tell you if you'll make it this paycheck with confidence. |
-| 231 | key:safeMove | Update your numbers and I'll plan from where you actually are. |
-| 246 | var:dest ⚠️ | toward your savings |
-| 248 | var:dest ⚠️ | toward debt |
-| 260 | key:title | This paycheck won't cover everything |
-| 262 | key:detail | expenses and minimums |
-| 263 | key:detail | — this one needs a plan. |
-| 279 | key:title | Looks clear this paycheck |
-| 279 | key:title | A little tight this paycheck |
-| 279 | key:title | Tight this paycheck |
-| 280 | key:detail | — a bit tight this one, so keep an eye on the essentials. |
-| 294 | key:title | Very tight this paycheck |
-| 294 | key:title | A little tight this paycheck |
-| 299 | key:detail | at-risk |
-| 299 | key:detail | a little under |
-| 313 | key:title | Your line's held |
-| 338 | var:target ⚠️ | your savings |
-| 342 | key:title | Looks clear this paycheck |
-| 346 | key:safeMove | to your goals |
-| 346 | key:safeMove | to debt |
-| 356 | key:title | Looks clear this paycheck |
-| 358 | key:safeMove | your goals |
-| 370 | var:safeMove ⚠️ | your debts |
-| 377 | key:title | Looks clear this paycheck |
+| 158 | return | These figures are from a little while ago — a quick refresh keeps this exact. |
+| 160 | return | I’m planning from the low side while I learn what your paychecks reliably clear. |
+| 161 | return | I’m holding a small safety net while I get to know your expenses. |
+| 201 | var:look ⚠️ | a little tight |
+| 213 | key:title | A paycheck didn’t land |
+| 233 | key:title | Let’s refresh your numbers |
+| 235 | key:detail | Your paycheck, expenses, or balances are more than a few weeks old, so I can’t tell you if you’ll make it this paycheck with confidence. |
+| 236 | key:safeMove | Update your numbers and I’ll plan from where you actually are. |
+| 251 | var:dest ⚠️ | toward your savings |
+| 253 | var:dest ⚠️ | toward debt |
+| 265 | key:title | This paycheck won’t cover everything |
+| 267 | key:detail | expenses and minimums |
+| 268 | key:detail | — this one needs a plan. |
+| 284 | key:title | Looks clear this paycheck |
+| 284 | key:title | A little tight this paycheck |
+| 284 | key:title | Tight this paycheck |
+| 285 | key:detail | — a bit tight this one, so keep an eye on the essentials. |
+| 299 | key:title | Very tight this paycheck |
+| 299 | key:title | A little tight this paycheck |
+| 304 | key:detail | at-risk |
+| 304 | key:detail | a little under |
+| 318 | key:title | Your line’s held |
+| 343 | var:target ⚠️ | your savings |
+| 347 | key:title | Looks clear this paycheck |
+| 353 | key:safeMove | to debt |
+| 363 | key:title | Looks clear this paycheck |
+| 365 | key:safeMove | your goals |
+| 377 | var:safeMove ⚠️ | your debts |
+| 384 | key:title | Looks clear this paycheck |
 
 ### `packages/core/guardian/calibrationScore.ts`
 
@@ -2389,7 +2722,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 
 | line | origin | string |
 |---|---|---|
-| 73 | key:errors ⚠️ | CSV must include a header row and at least one debt row. |
+| 154 | key:errors ⚠️ | CSV must include a header row and at least one debt row. |
 
 ### `packages/core/insights/buildSmartInsights.ts`
 
@@ -2465,7 +2798,7 @@ the moment a second producer was added. Two audit passes and three green web spe
 |---|---|---|
 | 7 | other ⚠️ | subscriptions |
 | 11 | other ⚠️ | discretionary |
-| 226 | var:CYCLE_HISTORY_STORAGE_KEY ⚠️ | debtPlanner.cycleHistory |
+| 238 | var:CYCLE_HISTORY_STORAGE_KEY ⚠️ | debtPlanner.cycleHistory |
 
 ### `packages/core/timeline/buildTimelineItems.ts`
 

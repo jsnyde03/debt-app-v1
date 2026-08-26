@@ -64,6 +64,11 @@ console.log(
     `(${status.sha.slice(0, 7)} · ${status.at}${days > 0 ? ` · ${days}d ago` : ''} · ${fileCount} source files).`,
 );
 if (status.dirty) {
+  // ⛔ [S0.13 · REVERIFY-4 finding 1] The fingerprint is taken at RECORD time, so it identifies the tree
+  // as it stood when the record was written — NOT what the suites ran against. Those are the same tree
+  // only because `gate:record` refuses to record when they differ, which is a property of that check
+  // rather than of the fingerprint. Say what the reader may actually rely on, and why.
   console.log('   ⚠️  That pass ran on a DIRTY tree, so its SHA does not identify what was tested.');
-  console.log('       The fingerprint does, and it matches — but do not quote the SHA as if it did.');
+  console.log('       The fingerprint identifies the tree at RECORD time, and `gate:record` refuses to');
+  console.log('       record when source moved mid-run — so they agree. Quote the fingerprint, not the SHA.');
 }

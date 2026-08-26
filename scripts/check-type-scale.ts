@@ -94,6 +94,50 @@ function referencedStyleKeys(attr: ts.JsxAttribute): string[] {
   return names;
 }
 
+/**
+ * Does this attribute actually CAP the scale — judged on its VALUE, not on its presence.
+ *
+ * ⛔ **[S0.13 · REVERIFY-4 finding 4, `major`] This used to be `clamped = true` for either prop, whatever
+ * it was set to.** So `allowFontScaling={true}` — which is *no ceiling at all*, the exact condition this
+ * gate exists to catch — was printed `ok`, and a bare `allowFontScaling` means `={true}` in JSX, so the
+ * shortest possible spelling was also the most wrong one.
+ *
+ * ⚠️ **The docstring's "WHAT IT CANNOT SEE" list does NOT excuse this**, and the distinction matters:
+ * it disclaims *"whether the clamp VALUE is right for the container… it asks that a ceiling exists, not
+ * that it fits."* `allowFontScaling={true}` is not an ill-fitting ceiling. It is the absence of one.
+ *
+ * ⚠️ **THE TWO PROPS GET OPPOSITE TREATMENT FOR AN UNRESOLVABLE VALUE, and that is measured rather than
+ * chosen.** Every live spelling was counted first — **`allowFontScaling={false}` ×11 ·
+ * `maxFontSizeMultiplier={1.3}` ×15 · `{1.4}` ×7 · `{1.2}` ×1 · `{LABEL_SCALE_MAX}` ×5**:
+ *   • `allowFontScaling` — only a literal `false` caps. **Every live site is `={false}`**, so an
+ *     unresolvable value is treated as NO cap, which is the noisy-and-safe direction.
+ *   • `maxFontSizeMultiplier` — a **named constant is a cap**. ⛔ **Five live sites pass
+ *     `{LABEL_SCALE_MAX}`, so a numeric-literal-only rule would red-gate five correctly-clamped sites** —
+ *     an over-matching fix, which is the defect shape that beat three consecutive rounds here. Only an
+ *     explicit `undefined` / `null` fails to cap.
+ *
+ * ⚠️ **The first draft of this function got exactly that wrong**, and its docstring asserted *"0 live sites
+ * use a non-literal"* — false, and caught only by counting the spellings instead of trusting the sentence.
+ */
+function isClamp(prop: ts.JsxAttribute): boolean {
+  const name = prop.name.getText();
+  const init = prop.initializer;
+
+  if (name === 'allowFontScaling') {
+    // Bare `allowFontScaling` is `={true}` — scaling ON, no cap. Only an explicit `false` caps anything.
+    if (!init) return false;
+    if (!ts.isJsxExpression(init) || !init.expression) return false;
+    return init.expression.kind === ts.SyntaxKind.FalseKeyword;
+  }
+
+  // maxFontSizeMultiplier: any real value caps — a literal OR a named constant. Only an explicit
+  // `undefined` / `null`, or no value at all, fails to cap. See the docstring for why this is not
+  // symmetrical with `allowFontScaling`: five live sites pass `LABEL_SCALE_MAX`.
+  if (!init || !ts.isJsxExpression(init) || !init.expression) return false;
+  const text = init.expression.getText();
+  return text !== 'undefined' && text !== 'null';
+}
+
 const files = walk(SRC_DIR);
 const failures: string[] = [];
 const rows: string[] = [];
@@ -112,7 +156,10 @@ for (const file of files) {
         for (const prop of opening.attributes.properties) {
           if (!ts.isJsxAttribute(prop)) continue;
           const name = prop.name.getText();
-          if (name === 'maxFontSizeMultiplier' || name === 'allowFontScaling') clamped = true;
+          // ⚠️ `||=`, not `=`. An element may carry BOTH props, and either one alone is a real cap —
+          // assigning would let a later `allowFontScaling` overwrite an earlier valid
+          // `maxFontSizeMultiplier` with `false`. Attribute order is not a property of the layout.
+          if (name === 'maxFontSizeMultiplier' || name === 'allowFontScaling') clamped ||= isClamp(prop);
           if (name === 'style') large = referencedStyleKeys(prop).find((k) => local.has(k) || SHARED_LARGE.has(k));
         }
         if (large) {

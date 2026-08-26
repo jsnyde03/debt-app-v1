@@ -185,6 +185,9 @@ for (const [label, raw] of [['native-e2e.yml', wfRaw], ['app-preview.yml', previ
   );
 }
 
+// ⛔ Third instance of the fail-open shape [S0.13 · REVERIFY-4 finding 5]: if `native-e2e.yml` fails to
+// parse or loses its `jobs:` key, EVERY assertion in this block disappears and the gate still exits 0.
+check('native-e2e.yml parsed and has a `jobs:` map', !!wf?.jobs, 'without it every check below is skipped');
 if (wf?.jobs) {
   const jobs = wf.jobs;
   for (const j of ['build', 'iphone', 'ipad']) {
@@ -256,6 +259,13 @@ if (wf?.jobs) {
   const iphoneSteps = steps(jobs.iphone);
   const idxOf = (re: RegExp) => iphoneSteps.findIndex((s) => re.test(String(s?.name ?? '')));
   const terminalIdx = idxOf(/terminal flow/i);
+  // ⛔ Same fail-open shape as the ordering block above [S0.13 · REVERIFY-4 finding 5]: rename the step
+  // and `terminalIdx` goes to -1, taking both assertions with it in silence. The precondition is a check.
+  check(
+    'the iphone job has a `terminal flow` step (the two rules below depend on finding it)',
+    terminalIdx !== -1,
+    'no step name matches /terminal flow/i — a rename would silently retire both checks below',
+  );
   if (terminalIdx !== -1) {
     for (const [label, re] of [
       ['the XCUITest probe', /XCUITest probe/i],
@@ -329,12 +339,33 @@ const iphoneList = steps(wf?.jobs?.iphone)
   .flatMap((s) => [...String(s.run).matchAll(/\.maestro\/([\w-]+\.yaml)/g)].map((m) => m[1]))
   .filter((f) => /^\d\d-/.test(f));
 const at = (prefix: string) => iphoneList.findIndex((f) => f.startsWith(prefix));
-if (iphoneList.length) {
-  check('flow 01 runs first (it seeds)', at('01') === 0, `order: ${iphoneList.join(' → ')}`);
-  check('flow 07 precedes 08 (07 clears the state 08 needs)', at('07') < at('08'), `order: ${iphoneList.join(' → ')}`);
-  check('flow 10 precedes 09', at('10') < at('09'), `order: ${iphoneList.join(' → ')}`);
-  check('flow 09 runs last (it is terminal — it clears state)', at('09') === iphoneList.length - 1, `order: ${iphoneList.join(' → ')}`);
+
+/**
+ * ⛔ **THIS BLOCK USED TO FAIL OPEN.** [S0.13 · REVERIFY-4 finding 5, `major`]
+ *
+ * The four ordering assertions sat inside `if (iphoneList.length)`, and `iphoneList` is built by matching
+ * `.maestro/<name>.yaml` **out of the step's shell text**. ⚡ **So a refactor of how the paths are spelled
+ * emptied the list, and the four checks silently did not run** — measured on an archived tree: the same
+ * defect exited **1** with the paths intact and **0** after a path-spelling change, with the total dropping
+ * **87 → 83** and nothing reporting the difference.
+ *
+ * ⛔ **An empty list is now the LOUDEST possible state, not the quietest.** The precondition is asserted
+ * before it is used, and each flow the rules name is asserted present — otherwise `at()` returns `-1` and
+ * `at('07') < at('08')` is **true when 07 is missing entirely**, which passes by absence.
+ */
+check(
+  'the iphone job runs maestro flows (the ordering rules below depend on it)',
+  iphoneList.length > 0,
+  'no `.maestro/NN-*.yaml` found in the iphone job — either the job stopped running flows or the path ' +
+    'spelling changed and these four ordering checks would have gone silent',
+);
+for (const f of ['01', '07', '08', '09', '10']) {
+  check(`flow ${f} is in the iphone job (an ordering rule names it)`, at(f) !== -1, `order: ${iphoneList.join(' → ')}`);
 }
+check('flow 01 runs first (it seeds)', at('01') === 0, `order: ${iphoneList.join(' → ')}`);
+check('flow 07 precedes 08 (07 clears the state 08 needs)', at('07') !== -1 && at('07') < at('08'), `order: ${iphoneList.join(' → ')}`);
+check('flow 10 precedes 09', at('10') !== -1 && at('10') < at('09'), `order: ${iphoneList.join(' → ')}`);
+check('flow 09 runs last (it is terminal — it clears state)', at('09') === iphoneList.length - 1, `order: ${iphoneList.join(' → ')}`);
 
 // ⚠️ Maestro writes the view hierarchy under `maestro-debug/.maestro/…`, a HIDDEN path. upload-artifact
 // v4 skips hidden files by default, and this lane once shipped an artifact with none of the evidence it
@@ -526,6 +557,21 @@ function evalGhExpr(src: string, inputs: Record<string, string>): boolean | unde
   }
 }
 
+/**
+ * ⛔ **THE FLOOR — how many assertions this file is expected to make.** [S0.13 · REVERIFY-4 finding 5]
+ *
+ * ⚡ **Closing the three fail-open guards above is not enough, and the reason is the whole point:** each
+ * fix closes a shape *somebody already found*. This catches the shape nobody has found yet — **any future
+ * precondition that quietly removes assertions**, whatever its form. The measured failure was `87 → 83`
+ * with a green exit; a count that cannot fall is the only guard that would have caught it without knowing
+ * in advance which `if` was going to swallow the checks.
+ *
+ * ⛔ **RAISING this to match a drop is the defect this exists to catch — the number only goes UP, and only
+ * when assertions are deliberately added.** Same rule as `MAX_UNTOKENISED`'s "downward only", pointed the
+ * other way, and unlike that one it is enforced rather than described: see the `>` below.
+ */
+const MIN_CHECKS = 95;
+
 for (const line of ok) console.log(`  ✅ ${line}`);
 if (problems.length) {
   console.error(`\n⛔ native-lane pre-flight — ${problems.length} problem${problems.length > 1 ? 's' : ''}:`);
@@ -533,5 +579,16 @@ if (problems.length) {
   console.error('');
   process.exit(1);
 }
+
+const total = ok.length + problems.length;
+if (total < MIN_CHECKS) {
+  console.error(`\n⛔ native-lane pre-flight — only ${total} assertions ran; ${MIN_CHECKS} are expected.\n`);
+  console.error('   Every assertion passed, which is exactly why this is a failure: assertions went');
+  console.error('   MISSING rather than red. A precondition somewhere above evaluated false and took its');
+  console.error('   checks with it in silence — the 87 → 83 shape this floor exists to catch.\n');
+  console.error(`   ⛔ Do NOT lower ${MIN_CHECKS} to make this pass. Find the guard that stopped running.\n`);
+  process.exit(1);
+}
+
 console.log(`\n✅ native-lane pre-flight: ${ok.length} structural checks pass.`);
 console.log('   Remaining unknown, and only the macOS runner can answer it: whether the split actually runs.');

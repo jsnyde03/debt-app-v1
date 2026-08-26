@@ -1,0 +1,78 @@
+{
+  "REVERIFY4-1": {
+    "what": "the freshness record was fingerprinted at the END of validate:release:rn, so a mid-run edit was recorded as tested",
+    "file": "scripts/write-gate-status.ts",
+    "token": "SOURCE MOVED WHILE THE SUITES WERE RUNNING"
+  },
+  "REVERIFY4-2": {
+    "what": "lint:secrets took the file list from git and the content from the working tree, so it passed over a HEAD holding a credential",
+    "file": "scripts/check-committed-secrets.ts",
+    "token": "cat-file"
+  },
+  "REVERIFY4-3": {
+    "what": "13 stale duplicate-copy baseline entries were standing permissions to re-duplicate",
+    "file": "scripts/strings-inventory.ts",
+    "token": "no longer duplicate"
+  },
+  "REVERIFY4-4": {
+    "what": "check-type-scale treated any allowFontScaling as a clamp, including ={true}",
+    "file": "scripts/check-type-scale.ts",
+    "token": "function isClamp"
+  },
+  "REVERIFY4-5": {
+    "what": "preflight-native-lane's four flow-ordering assertions sat inside a fail-open if (iphoneList.length)",
+    "file": "scripts/preflight-native-lane.ts",
+    "token": "MIN_CHECKS"
+  },
+  "GAP-1": {
+    "what": "invariant 9's reachability — deleting the goals[1] loop in corpus.ts restored the original defect with the repo green",
+    "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
+    "token": "invariant ⑨ is unreachable"
+  },
+  "GAP-16": {
+    "what": "no planted-input harness proved any gate fails CLOSED — all 15 of S0's majors were gates failing open",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "MIN_SCENARIOS"
+  },
+  "D69-INVENTORY": {
+    "what": "\"first look\" was the auditor's own claim; [D69] needs it to be a lookup",
+    "file": "scripts/s0-surface-coverage.ts",
+    "token": "UNCLASSIFIED"
+  },
+  "GUARDED-1": {
+    "what": "the untokenised caps red on a prose rescue",
+    "file": "scripts/check-audit-closure.ts",
+    "token": "MAX_UNTOKENISED"
+  },
+  "GUARDED-3": {
+    "what": "selfCheck proves the invariants fire, the verdict throws, and that run() still CALLS it",
+    "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
+    "token": "export function selfCheck"
+  },
+  "GUARDED-4": {
+    "what": "HOSTILE_FLOOR asserts the hostile corpus still reaches the migration logic",
+    "file": "apps/rn/src/data/migrationAudit/hostile.test.ts",
+    "token": "HOSTILE_FLOOR"
+  },
+  "GUARDED-5": {
+    "what": "the branch invariant 9 judges — a priority goal's pace reading as uncapped",
+    "file": "apps/rn/src/data/migrationAudit/invariants.ts",
+    "token": "priorityGoalIsCapped"
+  },
+  "GAP-2": { "what": "deleting any invariant from INVARIANTS is silent; INVARIANTS.length is printed and asserted nowhere", "unguarded": "S0.13 remaining — one poisoned outcome per invariant, plus an INVARIANTS.length floor. See S0-GUARDS-4.md" },
+  "GAP-3": { "what": "moneyKeepsItsType's GOAL_MONEY_FIELDS catch nothing on the live corpus, so deleting them is silent", "unguarded": "S0.13 remaining — folds into GAP-2's harness. See S0-GUARDS-4.md" },
+  "GAP-4": { "what": "removing stripMarkdownCode mints 4 fabricated closure ids and lint:closure stays green", "unguarded": "S0.13 remaining — a fixture carrying the token in every markdown spelling, plus a downward-only assertion on explicit.size. See S0-GUARDS-4.md" },
+  "GAP-5": { "what": "nothing reads the closure gate's own stderr, so the pass-4 indent fix can be reverted unobserved", "unguarded": "S0.13 remaining — run both remediation strings through stripMarkdownCode and assert both blank. See S0-GUARDS-4.md" },
+  "GAP-6": { "what": "MAX_UNTOKENISED's downward-only rule is stated in a docstring and enforced by nothing", "unguarded": "S0.13 remaining — fail when the count is BELOW the cap, making it self-ratcheting. See S0-GUARDS-4.md" },
+  "GAP-7": { "what": "HOSTILE_FLOOR can be LOWERED to absorb a fixture that stopped opening", "unguarded": "S0.13 remaining — assert HOSTILE_FLOOR === CASES.length. See S0-GUARDS-4.md" },
+  "GAP-8": { "what": "seven of ten strip-using gates report green while reading nothing when the stripper is blinded", "unguarded": "S0.13 remaining — a per-gate hit floor, downward-only, as check-destructive-writes already does. See S0-GUARDS-4.md" },
+  "GAP-9": { "what": "scripts/lib/stripCode.ts has no test at all", "unguarded": "S0.13 remaining — partly covered by GAP-16's harness; a direct unit test over the modelled constructs is still owed. See S0-GUARDS-4.md" },
+  "GAP-10": { "what": "check-month-arithmetic's five banned spellings and constructorOverflow have no test", "unguarded": "S0.13 remaining — GAP-16 now plants one spelling; the other four and the exempt idioms are owed. See S0-GUARDS-4.md" },
+  "GAP-11": { "what": "reverting check-destructive-writes' CALL to the pre-M11 call shape leaves the gate green", "unguarded": "S0.13 remaining — fixtures for the four importStore spellings its docstring tabulates. See S0-GUARDS-4.md" },
+  "GAP-12": { "what": "the CRLF sweep is invisible to an LF-only ubuntu-latest CI", "unguarded": "S0.13 remaining — a CRLF fixture committed with .gitattributes -text. See S0-GUARDS-4.md" },
+  "GAP-13": { "what": "gateSources ROOTS can lose a root without anything noticing", "unguarded": "S0.13 remaining — a file-count floor on the fingerprint. See S0-GUARDS-4.md" },
+  "GAP-14": { "what": "lint:gate-freshness is in no chain — not run-gates.ts, not validate:release:rn, not CI", "unguarded": "S0.13 remaining — deliberate per its own docstring (a freshness check inside the thing that establishes freshness deadlocks); the open question is whether a POST-run check belongs in CI. See S0-GUARDS-4.md" },
+  "GAP-15": { "what": "strings-inventory's origin-label self-check has no test of its own", "unguarded": "S0.13 remaining — subsumed by GAP-16's harness once a scenario is added. See S0-GUARDS-4.md" },
+  "GAP-17": { "what": "the apostrophe and webkit-flex baselines can be regenerated WIDER to make a red gate green", "unguarded": "S0.13 remaining — duplicate-copy is fixed (REVERIFY4-3); the other two need the same stale-drift report. See S0-GUARDS-4.md" },
+  "GAP-18": { "what": "a raw NUL in the ledger makes it a binary file to rg, so the closure gate's corpus stops being greppable", "unguarded": "S0.13 remaining — assert the two SOURCES contain no NUL. See S0-GUARDS-4.md" }
+}

@@ -17,6 +17,21 @@
 ⛔ **CONVERGENCE = 0 blockers / 0 majors. NO DEFERRALS** (🎯 2026-08-25). A major exits by being **fixed**,
 or by being **measured** never to have been one — a re-rating is not a proof.
 
+⛔ **[D68] EVERY AUDIT PASS IS RUN BY FRESH AGENTS — HARD RULE** *(🎯 2026-08-25: "we specifically make
+sure new eyes are on these audits… make that a hard rule")*. The driving session writes the brief and
+records the result; **it never performs the pass itself.** The incumbent re-reads its own premises instead
+of the code — the measured class *"the fixer's own write-up is inside the corpus the fixer is measuring."*
+⛔ **Do not put your verdict in the brief**: hand over the finding text, the fix range, the ratchet and the
+attack points, never the answer. ⛔ **The dispatch is part of the audit and gets the audit's rules** — every
+path and id in a brief is verified before it is handed over.
+
+⛔ **[D69] A FIRST-LOOK FINDING DOES NOT RESTART THE COUNT** *(🎯 2026-08-25)*. A blocker/major against a
+file **no prior pass actually examined** is a **coverage** result, not a churn result — and the two-clean-pass
+count only ever measured churn: *are our repairs still producing bugs?* It **carries into the next surface
+run's standing re-check** instead of holding the surface open. ⛔ **Exempt from the count is NOT exempt from
+the fix** — [D65]'s no-deferrals rule is untouched. ⚠️ **The exemption is mechanical, never the auditor's
+judgement**: it applies only to a file the **surface inventory** marks unswept *(see S0.12a)*.
+
 ⛔ **Fix a surface → re-verify it in the background against a PINNED SHA → repeat until TWO CONSECUTIVE
 CLEAN PASSES.** Order **S0 instruments → S1 money → S2 dates → S3 import → S4 discovery → cross-surface**.
 S0 is first because a surface verified by a blind instrument is not verified. ⛔ **Per-surface convergence
@@ -28,9 +43,36 @@ The four ways "0 on a surface" lies, and the two 🎯 decisions [D65]/[D66], are
 | ✅ | **.11.1 – .11.17** | CLOSED 2026-08-24/25 — both blockers, all 14 majors, the `.11.9` tail, [D60]'s five, [D62]/[D63]'s high-water mark, and the **fourth audit round** *(5 auditors: 2 blockers · 17 majors)*. Detail → log |
 | ✅ | **S0.1 – S0.10** | CLOSED 2026-08-25/26 — the 6 instrument findings, then **pass 1's 7** and **pass 2's 3**. ⚡ **10 of the 16 were introduced by the fixing.** Detail → log |
 | ✅ | **S0.11 — gate + re-verify pass 3** | Gate green at `1782769` *(274 e2e · 10 embed · 789 files · 23/23)*. **Pass 3: 0 blockers · 0 majors · 6 minors — THE FIRST CLEAN PASS.** Decisive test: every gate's hit set computed twice, pre- and post-diff strippers — **0 lost, 0 gained across all ten**. Scanner **3.5× less blind, 13× less noisy**. [`S0-REVERIFY-3.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-3.md) |
-| **S0.12** ▶ | **Pass 4 — the SECOND consecutive clean pass, now with [D67]'s job ③** | ⛔ **Three jobs: verify · sweep · INVENTORY THE GUARDS.** ✅ **Job-③ gaps + minors ⇒ S0 CONVERGED** (🎯 2026-08-26); only a job-①/② blocker or major restarts the count |
-| **S0.13** | **BUILD the missing guards + `lint:finding-guards`** *(from pass 4's job-③ inventory)* | Not an audit gate — a build item. ⛔ **Do it before S1 gets deep**: S0's guards are what stop S1–S4 from silently regressing S0. Tests for the scanner's modelled constructs and the per-gate variant choice, **plus a gate that pins finding → guard** *(the `check-copy-owners` pattern applied to findings — registry only grows; a finding with no guard needs a written reason)*. 🎯 2026-08-26: *"I'm sure that we can make a test or something to ensure that everywhere is covered"* |
+| ✅ | **S0.12 — pass 4, two fresh auditors** *(closed 2026-08-25, pin `613adf2`)* | **A: 0 blockers · 5 majors**, all first-look, job ① `CLOSED`-unpinned → [`S0-REVERIFY-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-4.md). **B: 37 findings · 11 guarded · 18 gaps · 8 n/a** → [`S0-GUARDS-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-GUARDS-4.md). ⛔ **20 findings, 0 that count** — which is what retired the count ([D70]). Detail → log |
+| ✅ | **S0.12a + S0.13 — the S0 close-out** *(closed 2026-08-25)* | **9 of 9, each plant-verified with a control.** 3 new gates + `gate:begin`; **25 gates** on `lint:rn`. ✅ **`validate:release:rn` GREEN and RECORDED** — `274 e2e · 10 embed · 795 files · 25/25`, `sourceHash 314e383…`. Detail → log |
+| ✅ | 🎯 **S0 — CONVERGED 2026-08-25** | [D70]'s exit met: inventory built, pass 4's 5 majors fixed, guards built, gate green and recorded. ⛔ **Verified by S1 pass 1, not by an S0 pass.** |
 | **.11.19** | 🔴 **THE CLOSURE LEDGER — drive both `MAX_UNTOKENISED` caps to 0, then flip `lint:closure` to gating** | ⚠️ **Scope re-measured at S0.1: not "the 51" but 142** — `[D37]` 55/55 + P6.8 48/48 untokenised, plus 39 in no ledger at all. ⛔ A cap only ever goes **DOWN** |
+
+### 🔨 THE ACTIVE BUILD — **S1 · MONEY · GOALS · PLAN CARDS** *(the ONLY decomposed section on this doc)*
+
+⛔ **S1's FIRST PASS IS LOAD-BEARING FOR S0** ([D70]) — it is the pass that verifies S0, and no S0 pass
+will. ⛔ **Fresh agents** ([D68]): the brief is written here, the pass is never run here.
+
+⚠️ **The S0 close-out grew the instrument surface and left the new instruments UNSWEPT — 57 files, 19
+unswept.** `check-finding-guards.ts` · `test-gate-plants.ts` · `s0-surface-coverage.ts` · `begin-gate-run.ts`
+are the guards S0's convergence now rests on, **and nobody has audited them.** ⚡ **One already failed open
+on its own core case during construction.** S1.1 carries them.
+
+| # | sub-step | exit line |
+|---|---|---|
+| **S1.1** | **Write the S1 brief.** Surface: money · goals · plan cards. **Three standing jobs beyond the sweep:** ① confirm S0's 5 fixes still hold · ② confirm every guard in `finding-guards.json` exists **and still fails** · ③ **sweep the 4 new S0 instruments**, which are unswept and load-bearing | a brief carrying no verdict, every path verified, the ratchet handed over |
+| **S1.2** | **Dispatch fresh auditors** ([D68]), pinned to the S1 SHA | reports on disk, written incrementally |
+| **S1.3** | **Record findings + severities**; apply [D69] via `lint:s0-coverage` — first-look is a **lookup** | every finding rated; exemptions justified mechanically |
+| **S1.4** | **Fix**, each plant-verified with the plant confirmed **landed** and a control | no fix accepted on a green alone |
+| **S1.5** | **Gate + record**, then register each fix's guard in `finding-guards.json` | `validate:release:rn` green **and recorded**; `MAX_UNGUARDED` unchanged or lower |
+
+**Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
+new instruments swept.
+
+| | the S0 residue, mechanically tracked — not a queue item |
+|---|---|
+| **16 unguarded findings** | `scripts/finding-guards.json`, capped by `MAX_UNGUARDED = 16`, **downward-only**. Drains as S1–S4 build guards; the gate reds if it rises |
+| **19 unswept surface files** | `lint:s0-coverage`, printed green every run. [D69] reads it |
 
 ⛔ **Every fix plant-verified, the plant confirmed to have LANDED, and re-run with the earlier assertion
 relaxed** — a plant that reds early never exercises the later ones. ⛔ **State the direction each fix's
@@ -38,7 +80,18 @@ justification runs in and why the opposite does not apply**; both blockers came 
 ⛔ **A metric moving the right way is not evidence until you check it measures the DEFECT, not the FIX** —
 the same stripper was mis-measured three times, by 40× in both directions.
 
-**Exit (S0):** two consecutive clean passes at the blocker/major bar on **jobs ① and ②**.
+**Exit (S0) — ⛔ REWRITTEN BY [D70], 🎯 2026-08-25.** ⛔ **NOT "two consecutive clean passes" any more, and
+there is no pass 5.** **S0 converges when S0.12a + S0.13 LAND** — the surface inventory built, pass 4's two
+majors fixed, and the guards built. ⛔ **The VERIFICATION of all of it is the FIRST PASS OF S1**, which is
+therefore a **fresh-agent S1 pass carrying a standing S0 job**, not an S0 pass.
+
+⚡ **Why the count was retired rather than satisfied:** pass 4 returned **20 findings and 0 that count** —
+A's two majors exempt under [D69], B's 18 gaps exempt under [D67]. **A pass that cannot fail is not a
+measurement.** ⛔ **And S0 exists for one reason** — *"a surface verified by a blind instrument is not
+verified"* — so its exit belongs on **instruments-sound**, not on two quiet passes. Pass 4 measured the
+freshness gate minting a green over untested code, the secrets gate reporting clean over a live credential
+in `HEAD`, and **seven of ten strip-using gates green while reading nothing.** Opening S1 against those
+would verify S1 with the instruments S0 just failed.
 
 ⚠️ **Three jobs, and job ③ is new:** ① verify the fixes · ② sweep for major+ · ③ **inventory the guards**
 ([D67]). ⛔ **Coverage ratchets forward; FINDINGS did not** — a pass only ever re-checked the pass before
@@ -46,13 +99,19 @@ it, which is the hole [D67] closes.
 
 ⭐ **EVERY SURFACE AUDIT VERIFIES THE PREVIOUS SURFACES' GUARDS** *(🎯 2026-08-26: "add a stipulation to
 the next surface audit to verify against S0 that the guards are there")*. ⛔ **This is what makes findings
-ratchet the way coverage already does.** S1's brief carries a standing job: *confirm every guard S0 left
+ratchet the way coverage already does.** ⛔ **[D70] makes S1's first pass load-bearing rather than merely
+standing: it is the pass that VERIFIES S0** — the S0.12a inventory is accurate and complete, pass 4's two
+majors are closed, and S0.13's guards exist and fail on their originals. **S0 is not re-verified by another
+S0 pass; there is no pass 5.** S1's brief carries a standing job: *confirm every guard S0 left
 behind still exists and still fails* — cheap, because a guard is a named test or gate, so the check is
 mechanical rather than a re-read. S2 verifies S0+S1, and so on. ⚡ **A guard that is never re-checked is a
 guard nobody has confirmed exists**, which is the same shape as the once-deleted plant it replaced.
 
-⛔ **JOB ③'s OUTPUT DOES NOT BLOCK CONVERGENCE** *(🎯 2026-08-26)*. **If pass 4's only findings are job-③
-gaps plus minors, S0 is CONVERGED and S1 opens.** ⚡ **Why that is not a loophole:** a job-③ finding is not
+⛔ **SUPERSEDED IN PART BY [D70]** — the trigger below is retired *(S0 no longer converges on a pass; it
+converges when S0.12a + S0.13 land)*, but the **reasoning** stands and is why [D69] followed it.
+
+⛔ **JOB ③'s OUTPUT DOES NOT BLOCK CONVERGENCE** *(🎯 2026-08-26)*. ~~**If pass 4's only findings are job-③
+gaps plus minors, S0 is CONVERGED and S1 opens.**~~ ⚡ **Why that is not a loophole:** a job-③ finding is not
 a defect — pass 3 measured the code *correct*; the gap is that nothing would catch it regressing. Applying
 a new bar for the first time always yields a backlog, and that backlog is not evidence the surface is still
 producing bugs, which is the only thing the two-clean-pass rule ever measured.

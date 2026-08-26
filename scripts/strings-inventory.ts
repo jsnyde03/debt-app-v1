@@ -531,7 +531,32 @@ if (process.argv.includes('--update-baseline')) {
     );
     process.exit(1);
   }
-  console.log(`✅ duplicate copy: no new cross-file phrases (${baseline.size} baselined).`);
+  /**
+   * ⛔ **STALE BASELINE ENTRIES ARE REPORTED.** [S0.13 · REVERIFY-4 finding 3, `major`]
+   *
+   * ⚡ **Every baselined phrase that no longer duplicates is a STANDING PERMISSION to re-duplicate it**, and
+   * nothing said so. Measured at `613adf2`: **16 entries, 3 live, 13 stale.** Plant and control — re-typing
+   * `"Private by design"` into a second file exited **0** against the real baseline and **1** with that one
+   * phrase removed. The gate was quietly pre-authorising 13 duplications nobody had agreed to.
+   *
+   * ⚠️ **Reported, not red — the direction is deliberate and copied from `check-apostrophes.ts:296-301`**,
+   * which already had this exactly right: *"removing copy is exactly what the sweep will do, and a gate
+   * that reds on progress is a gate that gets reverted."* ⛔ **But an unreported drift means the baseline
+   * silently stops describing the tree**, which is the T8.4 failure — a baseline 12 too high left a +1
+   * detector unable to detect +1. **Two sibling gates, one class, and only one of them was carrying it.**
+   */
+  const stale = [...baseline].filter((b) => !gateFindings.some((f) => f.text === b));
+  if (stale.length) {
+    console.log(`   ⚠️  ${stale.length} baselined phrase(s) no longer duplicate — each is a standing`);
+    console.log('       permission to re-duplicate it. Re-record with `--update-baseline` to drop them:');
+    // Every stale entry, not a sample: a truncated list has under-reported a site count on five
+    // consecutive items here, and the omitted line is the permission nobody knows they still hold.
+    for (const s of stale) console.log(`         ${JSON.stringify(s)}`);
+  }
+  console.log(
+    `✅ duplicate copy: no new cross-file phrases (${baseline.size} baselined` +
+      `${stale.length ? `, ${stale.length} stale` : ''}).`,
+  );
   // ⚠️ Gate mode writes NOTHING. A lint step that regenerates two committed artifacts would leave CI
   // with a dirty tree of its own making, and every local gate run would churn a diff nobody asked for.
   process.exit(0);

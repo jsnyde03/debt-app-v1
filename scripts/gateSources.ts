@@ -37,6 +37,7 @@
  */
 import { createHash } from 'node:crypto';
 import { lstatSync, readdirSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { extname, join, relative, sep } from 'node:path';
 
 export const REPO_ROOT = join(import.meta.dirname, '..');
@@ -150,19 +151,57 @@ export function sourceFiles(): string[] {
  * in CI, and the check would red permanently for a reason having nothing to do with the code.
  */
 export function fingerprintSources(): { hash: string; fileCount: number } {
-  const files = sourceFiles();
+  const { hash, fileCount } = fingerprintDetail();
+  return { hash, fileCount };
+}
+
+/**
+ * The same fingerprint, plus a per-file digest — so a drift can be **named**, not just detected.
+ *
+ * ⛔ **`fingerprintSources` DELEGATES to this rather than duplicating the loop.** [S0.13 · REVERIFY-4 · 1]
+ * This file's own header says why: *"two copies of this definition is how a freshness check starts passing
+ * because it out-waited nothing."* The aggregate hash is byte-identical to the pre-S0.13 one — it must be,
+ * or every committed record would invalidate at once — and that was verified by computing it before and
+ * after the refactor.
+ */
+export function fingerprintDetail(): { hash: string; fileCount: number; files: Record<string, string> } {
+  const list = sourceFiles();
   const h = createHash('sha256');
-  for (const f of files) {
+  const files: Record<string, string> = {};
+  for (const f of list) {
     h.update(f);
     h.update('\0');
+    let content: string;
     try {
-      h.update(readFileSync(join(REPO_ROOT, f), 'utf8').replace(/\r\n/g, '\n'));
+      content = readFileSync(join(REPO_ROOT, f), 'utf8').replace(/\r\n/g, '\n');
     } catch {
-      h.update('<unreadable>');
+      content = '<unreadable>';
     }
+    h.update(content);
     h.update('\0');
+    files[f] = createHash('sha256').update(content).digest('hex').slice(0, 16);
   }
-  return { hash: h.digest('hex'), fileCount: files.length };
+  return { hash: h.digest('hex'), fileCount: list.length, files };
+}
+
+/**
+ * Where the START-of-run fingerprint lives, for the drift check `write-gate-status.ts` makes.
+ *
+ * ⚠️ **In `tmpdir()`, deliberately, and NOT in the repo.** `write-gate-status.ts:53` derives `dirty` from
+ * `git status --porcelain` over the whole tree, untracked included — so a scratch file written into the
+ * repo would make **every** recorded run report `dirty: true`. Keyed by a hash of `REPO_ROOT` so two
+ * checkouts or worktrees cannot read each other's run.
+ */
+export const GATE_RUN_FILE = join(
+  tmpdir(),
+  `debt-gate-run-${createHash('sha256').update(REPO_ROOT).digest('hex').slice(0, 12)}.json`,
+);
+
+export interface GateRunStart {
+  at: string;
+  sourceHash: string;
+  fileCount: number;
+  files: Record<string, string>;
 }
 
 export interface GateStatus {

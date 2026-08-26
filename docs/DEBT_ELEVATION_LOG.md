@@ -801,6 +801,394 @@ guards.** ⚠️ Expect real work: invariant ⑨, `HOSTILE_FLOOR`, `selfCheck` a
 **none** — they were proven by a plant that ran once and was deleted. **S0 is further from converged than
 the finding count suggests, which is better known now than at pass 6.**
 
+### ⛔ [D68] — every audit pass is run by FRESH AGENTS, and it is a hard rule *(2026-08-25)*
+
+Caught in flight at the head of pass 4: the driving session had begun **performing** the pass rather than
+dispatching it. 🎯: *"You aren't doing the audit yourself are you? We specifically make sure new eyes are on
+these audits"* → *"We need to make that a hard rule for audits. Always fresh agents."*
+
+**[D68]: the driving session writes the brief and records the result; it never performs the pass.**
+
+⚡ **Why it is a rule and not a preference — this cluster measured the mechanism three times.** *"The
+fixer's own write-up is inside the corpus the fixer is measuring"*: the `[closes: …]` docs minted four
+fabricated closures, the gate's remediation text printed a live token, and a self-referential grep matched
+its own docblock. A session that wrote the fix, or wrote the brief, cannot un-know the conclusion it
+already reached — so its pass is a **re-read**, not a verification, and it reds on nothing its own premises
+share.
+
+**The three steps, in order, and the middle one is not optional:** write the brief → dispatch fresh
+agent(s) → record what they found.
+
+- ⛔ **The brief carries no verdict.** Finding text, fix range, ratchet lists and attack points — never the
+  answer. A brief that states the conclusion has re-created the incumbent.
+- ⛔ **The dispatch is part of the audit and gets the audit's rules** — `.11.17` handed an auditor
+  `apps/rn/src/imports/debtCsv.ts`, a directory that does not exist.
+- ⚠️ **"Fresh agents" is about who RUNS the pass, not fan-out inside it** — the auditor still may not spawn
+  its own sub-agents.
+
+### ⛔ [D69] — a FIRST-LOOK finding does not restart the two-clean-pass count *(2026-08-25)*
+
+Called mid-pass, on pass 4's first two majors. 🎯: *"I don't think this should count against convergence.
+If the findings are for the unscanned items we should check them in the next surface run as well. Not stay
+on S0."* Confirmed a second time when finding 2 landed: *"same as filing 2 for `lint:secrets`."*
+
+**[D69]: a blocker/major against a file no prior pass actually examined does not restart the count.** It
+**carries into the next surface run's standing re-check** instead of holding the surface open.
+
+⚡ **The reason, and it is not the obvious one.** The count measures **churn** — *are our repairs still
+producing bugs?* That is the only question two-consecutive-clean ever answered. A first-look finding in
+old, untouched code is a **coverage** result. Holding S0 open for it means paying the churn tax for a
+coverage win. **Same logic 🎯 already applied to job ③ one level over** ([D67]): *applying a new bar for
+the first time always yields a backlog, and that backlog is not evidence the surface is still producing
+bugs.*
+
+⛔ **Exempt from the count is NOT exempt from the fix.** [D65]'s no-deferrals rule is untouched, and both
+majors are load-bearing: every *"gate green"* claim in this project rests on the freshness record.
+
+### ⚠️ And the fact that changes the REASON rather than the answer
+
+**These were not new surface. They were holes inside a surface all three passes claimed.** Measured while
+recording the decision:
+
+> **All three S0 passes declared their surface as `scripts/check-*.ts`** *(plus the stripper, `gateSources`,
+> `run-gates`, `migrationAudit`)*. There are **21** `check-*.ts` files. **9 were never swept by any S0
+> pass:** `a11y-collapse` · `comment-convention` · `committed-secrets` · `contrast` · `gate-freshness` ·
+> `icon-glyphs` · `rn-style-divergence` · `type-scale` · `webkit-flex-controls`.
+
+⛔ **So three "swept and found clean" lists over-claimed** — this cluster's own signature defect, one level
+up: *an instrument that under-reports is worse than none, because it is believed.* The ratchet was trusted
+as coverage and was not coverage.
+
+⚠️ **This is why [D69] needs a mechanical test for "first look" and cannot use the auditor's judgement.**
+Filed as **S0.12a — the S0 surface inventory** *(every file, which pass swept it)*, ⚙️ proposed, awaiting
+🎯. **Without it, "first look" is self-declared and the count never bites again.**
+
+## 📕 SESSION CLOSE 2026-08-25 — 🎯 **S0 IS CONVERGED.** Pass 4, three decisions, and the close-out built
+
+### ▶ WHERE THE NEXT SESSION STARTS: **S1 — money · goals · plan cards**
+
+⛔ **Read the plan's ACTIVE section first.** S1.1 is *write the brief*; ⛔ **[D68] — the pass itself is run
+by FRESH AGENTS and never by the driving session.**
+
+⚠️ **S1's first pass is load-bearing for S0** ([D70]): it verifies S0's five fixes and its guards, because
+**no fifth S0 pass will.** And it carries a third job — **sweep the four new S0 instruments**
+(`check-finding-guards.ts` · `test-gate-plants.ts` · `s0-surface-coverage.ts` · `begin-gate-run.ts`).
+⚡ **S0's convergence now rests on guards nobody has audited, and one of them failed open on its own core
+case while being built.**
+
+### Verification standing at close
+
+✅ **`validate:release:rn` GREEN and RECORDED on this tree** — `274 e2e · 10 embed · 795 source files ·
+25/25 gates`, `sha 613adf2 · 2026-08-26T02:34:52Z · sourceHash 314e383…`, `dirty: true` *(the work is
+uncommitted at the moment of recording; the fingerprint is what identifies it)*. `lint:gate-freshness`
+green. ⚠️ **No CI run yet** — the question for the next session is *"is there a green CI run for the tree
+that ships?"*, never a run id.
+
+### What this session did
+
+| | |
+|---|---|
+| **S0.12 — pass 4** | Two fresh auditors. **A: 0 blockers · 5 majors** (all first-look) · **B: 37 findings · 11 guarded · 18 gaps** |
+| **[D68]** | Every audit pass is run by **fresh agents** — caught mid-pass, made a hard rule |
+| **[D69]** | A **first-look** finding does not restart the convergence count |
+| **[D70]** | S0 exits on **instruments-sound**, not on a pass count. **There is no pass 5** |
+| **S0.12a + S0.13** | The close-out: 5 majors fixed, 4 instruments built, 9 of 9 plant-verified |
+
+### ⭐ The four things this session measured that outlive it
+
+1. ⛔ **A pass that cannot fail is not a measurement.** Pass 4 returned **20 findings and 0 that counted** —
+   and the dispatch caused part of that: the brief aimed the auditor at six never-swept files, and [D69]
+   then exempted findings on never-swept files. **Check what your own targeting makes unfalsifiable.**
+2. ⛔ **All FIFTEEN of S0's majors were gates failing OPEN. Not one was a false red.** Nothing in the tree
+   asserted a gate ever fails **closed** — now `test:gate-plants` does.
+3. ⛔ **"Swept clean" is a claim about a SUBJECT; coverage is a property of a FILE.** *"The freshness
+   instrument"* read as covered for three passes while `check-gate-freshness.ts` had never been opened.
+4. ⛔ **A prose heuristic dressed as a measurement is the defect this surface exists to stop** — including
+   when I write it. The first coverage inventory inferred sweeps by parsing reports and was scrapped after
+   being measured wrong.
+
+### ⚠️ The after-scan on the close-out itself
+
+- **The instrument surface GREW and the growth is unswept** — 54 → 57 files, 16 → 19 unswept. Routed to
+  **S1.1 job ③** rather than left implicit.
+- ⛔ **The first `validate:release:rn` failed on THREE gates, all of them my own work, none caught by
+  review**: `lint:comments` *(two docstrings annotated a false comment instead of deleting it; one counted
+  code members)*, `lint:closure` *(quoting an auditor's measurement **named a real finding id**, minting a
+  phantom mention — the id set is read from RAW text, so backticks would not have helped)*, and
+  `lint:s0-coverage` *(the gate built at sub-step 6 caught the three files created at sub-step 9, within the
+  hour)*. ⚡ **The instruments this session built began working on their author immediately.**
+- **`GAP-14` is a live question, not a gap to close blindly:** `lint:gate-freshness` is in no chain, and
+  its own docstring argues a freshness check *inside* the thing that establishes freshness deadlocks. **The
+  open question is whether a POST-run check belongs in CI.** Recorded in `finding-guards.json`.
+- **The record was written on a dirty tree** — correct and stated, but it means **the commit must follow
+  immediately** or the SHA in `gate-status.json` will point at a tree that never held these bytes.
+
+## 📕 P6.8.9.7.11.18 · S0.12a + S0.13 — THE S0 CLOSE-OUT, BUILT *(2026-08-25)*
+
+**9 of 9 sub-steps, each plant-verified with a control.** 🎯 authorised the full build after the audit
+phase closed. ⛔ **No fix was accepted on a green alone** — every one was planted, the plant confirmed to
+have **landed**, and a control run proved the gate was not redding unconditionally.
+
+### The five majors
+
+| # | fix | plant → control |
+|---|---|---|
+| **1** | `gate:begin` captures the tree at the **START** of `validate:release:rn`; `gate:record` refuses on drift and **names every drifted path**; the start-record is consumed so it cannot be replayed | mid-run edit → **exit 1**, naming `check-type-scale.ts` · missing start-record → **exit 1** · clean run → **exit 0** |
+| **2** | `check-committed-secrets` reads **index + `HEAD` blobs** via one batched `git cat-file`, never the working tree | secret in `HEAD` with the redaction **staged** → **exit 1** as `[HEAD]` · staged secret → **exit 1** as `[index]` · clean history → **exit 0** |
+| **3** | 13 stale `duplicate-copy-baseline` entries pruned (16 → 3); stale drift now reported, copying `check-apostrophes.ts:296-301` | re-typing `"Private by design"` → **exit 1** *(was exit 0)* · control → **exit 0** |
+| **4** | `check-type-scale` judges the clamp **VALUE** | `allowFontScaling={true}` → **exit 1** · bare `allowFontScaling` → **exit 1** · `{LABEL_SCALE_MAX}` → **exit 0** |
+| **5** | 3 fail-open guards closed + **`MIN_CHECKS = 95`**, a floor on the assertion count | path-spelling refactor → **exit 1** with 9 problems *(was exit 0 at 87→83)* · a deleted assertion → **exit 1 from the floor**, every check green |
+
+### The four instruments
+
+- **S0.12a — `lint:s0-coverage`** *(54 surface files · 16 unswept)*. ⛔ **The first cut PARSED the pass
+  reports and was scrapped after being measured wrong:** pass 3 computed `check-glossary`'s full hit set
+  but writes it *"glossary 30→0"*, so the scan called it never-swept. Widening the match is **spelling
+  enumeration, which has failed six times here.** ⚡ **The split that replaced it: the FILE LIST is walked
+  from disk (mechanical, cannot undercount); the COVERAGE CLAIM is written down** in
+  `s0-surface-coverage.json`. Judgement recorded as judgement instead of inferred from prose.
+- **GAP-16 — `test:gate-plants`**, 5 gates proven to fail **closed** on a real planted defect, each with a
+  control. Meta-verified: blinding `check-glossary`'s `RETIRED` list makes the harness red with *"the gate
+  FAILED OPEN: it passed with the defect present."*
+- **GAP-1 — invariant ⑨'s reachability floor** in `selfCheck()`. Two links: the corpus still damages a
+  pace on a **governing** goal, and ⑨ still fires on one. Planted with the **true original defect**
+  (`goals[1]` → `goals[0]`) → the suite reds; that same mutation used to leave the repo green.
+- **[D67] — `lint:finding-guards`**, the `check-copy-owners` pattern applied to findings. **28 findings ·
+  12 guarded · 16 unguarded**, both floors one-way.
+
+### ⛔ Three defects in MY OWN work, caught by the discipline rather than by review
+
+1. ⚡ **`lint:finding-guards` FAILED OPEN ON ITS OWN CORE CASE.** The first cut matched the guard token with
+   `includes()`. Planted by renaming `MIN_SCENARIOS` → `MIN_SCENARIOS_RENAMED`: **the guard was gone and
+   the gate passed**, because the old name is a substring of the new one. **The fix for the fail-open class
+   carried the fail-open class** — the standing *"expect the fixer's own work to carry the defect it was
+   closing"*, observed a fourth time and the first time in mine. Now word-boundary matched.
+2. ⚡ **An over-matching fix, caught by counting instead of by trusting my own sentence.** My first clamp
+   check accepted only numeric literals and its docstring asserted *"0 live sites use a non-literal."*
+   **False — 5 live sites pass `maxFontSizeMultiplier={LABEL_SCALE_MAX}`**, so it would have red-gated five
+   correctly-clamped sites. ⚠️ A docstring I had just written was already a carried premise.
+3. **Attribute order decided the verdict.** With both clamp props present, plain assignment let a later
+   `allowFontScaling` overwrite a valid `maxFontSizeMultiplier`. `||=` now.
+
+### ⚠️ And TWO plants that silently did not apply
+
+Both looked exactly like a passing gate. **A `sed` whose pattern missed the indentation** (`grep -c` → 0,
+gate green, result meaningless), and **a `node -e` deletion that printed nothing and changed nothing** —
+`shell-is-a-participant` and `verify-the-plant-applied`, in the same session, an hour apart. ⚠️ A third
+plant *did* apply and red the suite **for the wrong reason**: a crude text deletion left invalid TypeScript,
+so it died in `esbuild` and never reached the assertion under test — *a plant that reds early never
+exercises the later ones*, in its purest form. Replaced with a semantically-valid mutation.
+
+### ⭐ THE WHOLE-PHASE AFTER-SCAN — S0, all four passes viewed together *(2026-08-25)*
+
+Run at the close of S0's audit phase, across passes 1–4 rather than the last item. **Three results that no
+per-pass scan could reach.**
+
+#### ⚡ 1. All FIFTEEN majors across the whole phase are the SAME SHAPE: the gate FAILS OPEN
+
+Every major S0 produced — pass 1's seven, pass 2's three, pass 4's five *(pass 3 found none)* — is an
+instrument **reporting green while doing less than it claims**. ⛔ **Not one is a false red.** Classified
+from the finding titles, all four reports:
+
+> a stripper that made a gate 45× blinder · a `\r` site printing *"all 0 high+ findings trace"* and exiting
+> 0 · `//`-inside-a-string truncating three gates · `selfCheck` proving a throw but not a **call** ·
+> invariant ⑨ unable to fire on any of 554 cases · `PENDING_DELETION` leaving freshness calling a stale pass
+> fresh · `[closes: …]` **minting** closures · the freshness record written at the end of the chain ·
+> `lint:secrets` reading the working tree · 13 baseline entries that are standing permissions · a clamp
+> tested for presence not value · four assertions inside a fail-open `if`.
+
+⛔ **And the corollary is the actionable half: nothing in this tree asserts that any gate ever fails
+CLOSED.** ⚡ **This is auditor B's GAP-16 arrived at from the opposite direction** — B reasoned from missing
+guards, the phase scan reasoned from realised defects, and both land on *a planted-input harness per gate*.
+**Two independent derivations of the same build item is the strongest signal this phase produced.**
+*(B's GAP-8 measures the same thing a third time: seven of ten strip-using gates go silently green when
+blinded.)*
+
+#### ⚠️ 2. Pass 3's "first clean pass" has to be re-read — it was clean because of WHERE it looked
+
+**Pass 3: 0 majors. Pass 4: 5 majors. Same surface, days apart, and the code barely moved between them**
+*(one hunk in one file)*. **The variable was not the tree — it was where the auditor pointed.** Pass 3 swept
+deeply over files passes 1–2 had already worked; pass 4 opened files nobody had opened.
+
+⛔ **So "the first clean pass" measured re-swept ground, and the ratchet it inherited told it that ground
+was the surface.** This does not diminish pass 3's work — its hit-set diff across ten gates is still the
+best measurement in the cluster — but **it retires "clean pass" as evidence of a converged surface** unless
+coverage is tracked per file. **This is S0.12a's whole justification, arrived at retroactively**, and it is
+the phase-level scan doing exactly what it exists for.
+
+#### ⚡ 3. The instruments found the defects; reading found almost none
+
+Across the phase the majors were caught by **plants with controls, hit-set diffs computed under two
+strippers, and comparison against a TypeScript-parser ground truth.** ⛔ **Review, unaided, caught close to
+none of them** — and four of pass 4's five majors came from a plant plus a control. **Third independent
+confirmation** *(.11.17 measured 3 of 6 sub-steps reproducing the class they closed, all three caught by an
+instrument and none by review)*. **The standing consequence: on an instrument surface, budget for building
+a probe rather than for reading harder.**
+
+### 📕 Pass 4 · AUDITOR A — jobs ① and ② *(2026-08-25)* → [`S0-REVERIFY-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-4.md)
+
+**0 blockers · 5 majors.** ⛔ **All five are first-look under [D69], so none reopens anything — and under
+[D70], decided while A was still running, there is no count to reopen.** **All five fold into S0.13's fix
+list.** ⚠️ **Nothing on passes 1–3's ratchet moved.**
+
+⚠️ **A's "all five on surfaces no pass had ever swept" was TESTED, not accepted** — two of them cite files
+prior passes mention. Both survive: `write-gate-status.ts` appears in pass 1 **only inside a grep hit-list**
+(`S0-REVERIFY-1.md:257`, as a site referencing `check-audit-closure`), and `strings-inventory.ts` in passes
+2–3 **only as stripper-corpus data** (a regex literal at `:167`); `duplicate-copy-baseline.json` has **zero**
+prior mentions. **A mention in a hit-list is not an examination.**
+
+**Job ① — `CLOSED`, unpinned.** A forced the P6.8 branch to print by running a scratch copy at
+`MAX_UNTOKENISED = {d37: 99999, p68: 0}`, captured the bytes via `cat -A`, and ran them **and the pre-fix
+bytes** through `stripMarkdownCode`/`CLOSES` lifted live from the file: **pre-fix registers `THE-ID-HERE`,
+shipped does not, under LF and CRLF.** It edits a template literal, not a matcher, so it cannot over-match.
+⚠️ **Nothing would catch it un-fixing** — no test, and `lint:closure` never executes the branch on a green
+run *(the count sits exactly on the cap, `48 of 48`)*. ⚡ **Filed as a job-③ gap — and auditor B reached the
+same gap independently as GAP-5.** Two auditors, blind to each other, same conclusion: corroboration.
+
+#### The five majors
+
+| # | the instrument | the mechanism, as measured |
+|---|---|---|
+| **1** | `write-gate-status.ts` · `check-gate-freshness.ts` | **`gate-status.json` is fingerprinted at the END of `validate:release:rn`** — `:59`, the ninth `&&` link; **2 call sites of `fingerprintSources` in the tree, neither at the start.** A mid-run source edit is recorded as tested, and `check-gate-freshness.ts:67-68` then prints *"The fingerprint does [identify what was tested]"*, false in exactly that case. ⛔ **Closed today by a documentation rule** (`DEBT_ELEVATION_PLAN.md:76-79`) — **in a class `write-gate-status.ts:12-14` itself says a documentation rule cannot close** |
+| **2** | `check-committed-secrets.ts` | **File LIST from git, file CONTENT from the working tree.** Measured in a scratch repo: `git show HEAD:dsn.ts` holds a live Sentry DSN, working copy redacted, gate prints `✅ committed secrets: none`, **exit 0** — ⚡ **the exact state its own remediation text (`:95-97`) tells you to create.** No pre-commit hook exists, so the only automatic run is *after* the push that publishes the credential |
+| **3** | `duplicate-copy-baseline.json` · `strings-inventory.ts` | **16 baseline entries, 3 live — 13 are standing permissions to re-duplicate.** Plant + control: re-typing `"Private by design"` in a second file → **exit 0** with the real baseline, **exit 1** with that phrase removed. ⚠️ **Its sibling `check-apostrophes.ts:296-301` names this exact failure and reports stale drift; `strings-inventory` reports none** |
+| **4** | `check-type-scale.ts` | **Any `allowFontScaling` counts as a clamp** — `:115` tests **presence, not value**, so a 34pt style with `allowFontScaling={true}` prints `ok`. Two further shapes never reach the verdict, **one of which `:65-66`'s docstring claims to cover.** ⚠️ **Latent: 0 live instances** (all 11 sites `={false}`), and A states that plainly rather than burying it |
+| **5** | `preflight-native-lane.ts` | **Four flow-ordering assertions sit inside `if (iphoneList.length)`** — fail-open. Plant + control on an archived tree: same defect, **exit 1** with paths intact → **exit 0** after a path-spelling refactor, **87 → 83 checks, and no floor on the count.** ⚠️ **Two more guards in the same file (`:259`, `:188`) have the identical shape** |
+
+⭐ **Four of the five were caught by a PLANT with a CONTROL** — plant the defect, confirm the gate reds, then
+change the one thing under test and watch it go green. **The 0-live-instance case (4) is the exception and
+is labelled as such.** This is the method the cluster's own rule prescribes — *measure the consumer's
+verdict, never the instrument's intermediate output* — applied five times without being told to.
+
+**Recorded as measured-and-NOT-a-defect** *(so a later pass does not re-open them)*: the `lint:gate-freshness`
+RED is **correct**, cause reproduced to exactly one file — A rebuilt the `045a310…` fingerprint at `1782769`
+and matched the live tree to `613adf2` with `check-audit-closure.ts` as the sole diff. Also `lint:a11y-collapse`
+*(16 plants, the 11/5 split all correct)* · `lint:contrast` *(0 alpha dropped across 21 token paths)* ·
+`lint:secrets`' pre-filter and 8 MB skip · the other two baselines · and **`QA_TOOLS`/`__DEV__` reaching no
+gate's control flow.**
+
+**Could not determine:** how often a mid-run edit actually happens *(the one run A could reconstruct did not
+drift)* · whether `lint:secrets` was ever green over a `HEAD` carrying a credential *(needs a history scan)* ·
+whether the 13 stale phrases were removed deliberately · react-native-web's runtime handling of
+`accessible`/`maxFontSizeMultiplier`, **which no static gate here models.**
+
+### ⛔ [D70] — S0 exits on INSTRUMENTS-SOUND, not on a pass count. There is no pass 5. *(2026-08-25)*
+
+🎯: *"We'll build S0.12a but the verification goes into the first pass of the S1. After those fixes, S0 is
+converged."*
+
+**The new exit:** S0 converges when **S0.12a** *(the surface inventory)* and **S0.13** *(pass 4's two majors
++ the guards)* **land**. ⛔ **The verification of all of it is the FIRST PASS OF S1** — a fresh-agent S1 pass
+carrying a standing S0 job. **No fifth S0 pass is run.**
+
+#### ⚡ What forced it: pass 4 returned 20 findings and 0 that count
+
+A's two majors are exempt under **[D69]** *(first-look)*; B's 18 gaps under **[D67]** *(a gap is not a
+defect)*. **A pass that cannot fail is not a measurement.**
+
+⛔ **And part of that was the dispatch's own doing, which is recorded rather than tidied away.** The brief
+told auditor A *"job ① is thin by construction — job ② is the pass"* and aimed it at **six never-swept
+files**; [D69] then exempted findings on never-swept files. **The pass was aimed at the one surface whose
+findings could not count.** ⚠️ *The dispatch is part of the audit and gets the audit's rules* — a third
+instance, and the first where the flaw was in the **targeting** rather than in a path or an id.
+
+⚠️ **Note the asymmetry in how the two exemptions were made.** [D67] was decided **before** pass 4, against
+findings nobody had seen. **[D69] was decided mid-pass, in response to the finding it exempts.** The
+reasoning is sound and it stands — but that is the shape a moving goalpost takes even when it is right, and
+it is why the exit moved off the count rather than the count being declared satisfied.
+
+#### The reason the exit belongs on instruments-sound
+
+S0's charter is one sentence: *"a surface verified by a blind instrument is not verified."* **Pass 4
+measured, on this tree:** the freshness gate minting a green over code the suites never ran · the secrets
+gate reporting clean over a credential live in `HEAD` · **seven of ten strip-using gates green while reading
+nothing** · a fabricated closure token buying headroom against the guard that would catch it. **Opening S1
+against those would verify S1 with the instruments S0 had just failed** — the count satisfied, the purpose
+not.
+
+⚠️ **Auditor A was still running when this was decided.** Anything it returns at the blocker/major bar on a
+**swept** file is a real S0 defect and folds into S0.13's fix list; it does not reopen the pass count,
+because there is no longer a count.
+
+### 📕 Pass 4 · AUDITOR B — the guard inventory, job ③ *(2026-08-25)* → [`S0-GUARDS-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-GUARDS-4.md)
+
+**37 findings · 11 guarded · 18 gaps · 8 n/a.** ⛔ **Not defects** — [D67] gaps are *"nothing would catch
+this regressing"*, and per the plan they do not gate convergence. **This is S0.13's build list.**
+
+⚡ **The enumeration was budgeted, not listed** *(the standing answer to `audit-site-lists-undercount`,
+holding for a sixth item)*: 41 raw closure-asserting rows across six source files → **33** after 8 named
+dedupes → **+4 rows no source file files as findings at all** (the two cap constants' downward-only rules,
+the total absence of any test over `scripts/`, and `lint:gate-freshness` being in no chain).
+
+#### [D67]'s two expected gaps — one confirmed and WORSE, one part-refuted. Both measured.
+
+- **`stripMarkdownCode`'s four spellings — worse than named.** Reverting to the one-spelling first cut mints
+  **0** tokens today, so the regression is **silent**. **Removing the stripper entirely mints 4 fabricated
+  closure ids and `lint:closure` stays GREEN** — because a fabricated closure *lowers* the untokenised count
+  and the caps are **upper** bounds.
+- ⚡ **"each of the nine gates uses the right variant" — THREE GATES REFUTE IT.** Blinded to a stripper that
+  blanks the whole file, `check-sandbox-writes` (24 STALE), `check-destructive-writes` (6 ALLOWED drift) and
+  `check-copy-owners` (4 closures unwired) all **exit 1**. ⛔ **The other seven go silently green**, and
+  **three print a number that is false as printed** — `local dates: 0/41 … not rising` · `press opacity: 377
+  files, every control state on a token` · `month arithmetic: 628 files, no setMonth/…`.
+
+#### ⭐ The new mechanism, not previously recorded anywhere
+
+**Each fabricated `[closes: …]` token buys one unit of cap headroom against the guard that would have caught
+it.** The cap *does* red on a prose rescue — measured, one line naming a real high+ id → exit 1 — but one plain-text
+`[closes: M2-1]` takes the P6.8 count 48 → 47, and **with it in place the same rescue passes** (`48 ≤ 48`,
+exit 0). The guard and the thing it guards against draw on the same number, in opposite directions.
+
+#### [D67]'s four expected GUARDEDs, verified rather than inherited
+
+`HOSTILE_FLOOR` and `selfCheck` hold as stated *(`selfCheck` is the strongest guard on the surface — three
+assertions, one reading the file's own source for a missing **call** — with one named residual: nothing
+asserts `run()` still calls it)*. ⚠️ **Invariant ⑨ splits three ways** (the branch it judges is guarded; its
+own **reachability** and its own **deletion** are not) and ⚠️ **the caps split two ways** (the rescue
+direction reds; the fabrication direction does not).
+
+#### The gaps, ordered by what they protect
+
+| what it protects | gaps |
+|---|---|
+| **the user's money at the v1.6→v1.7 boundary** | **GAP-1** ⑨'s reachability — ⚡ **the highest-value gap and NOT on [D67]'s list**: deleting the 10-line loop at `corpus.ts:206-215` restores the original defect **with the repo green** · **GAP-2** any invariant's deletion (`INVARIANTS.length` printed at `audit.test.ts:61`/`hostile.test.ts:81`, asserted nowhere; `selfCheck` covers **1 of 9**) · **GAP-3** the goal money fields |
+| **the closure ledger — P6.8.9's exit criterion** | GAP-4 · GAP-5 *(the pass-4 fix itself)* · GAP-6 |
+| **the hostile corpus** | GAP-7 |
+| **the ten strip-using gates' classes** | GAP-8 · **GAP-9** *(`stripCode.ts` has no test at all)* · GAP-10 · **GAP-11** *(measured: reverting `CALL` to the pre-M11 shape leaves `✅ 7/7`)* · GAP-12 *(the `\r` sweep is invisible to an `ubuntu-latest` CI)* |
+| **whether any recorded green describes the tree** | GAP-13 · **GAP-14** — `lint:gate-freshness` is in `run-gates.ts`, `validate:release:rn` and CI: **none of them** |
+| **the gates' own source** | GAP-16 · GAP-15 · GAP-17 |
+| **ledger readability** | GAP-18 |
+
+⭐ **S0.13's build order, as recommended: GAP-16 first** — a planted-input harness per gate, copying
+`scripts/test-stamp-coverage.ts` *(the pattern already exists in-repo, is registered, and reports
+`plant-applied=YES|NO`)*. **It subsumes GAP-9, -10, -11 and -15.** Then **GAP-1**, a ten-line reachability
+floor in front of the only branch on this surface that reaches a user's money.
+
+### Pass 4 as dispatched *(2026-08-25, pin `613adf2`)*
+
+**Two auditors, split along [D67]'s seam**, because pass 4 is the pass convergence turns on and job ③ is a
+large mechanical enumeration that would otherwise crowd out the sweep. **A** — jobs ①+②, the blind
+convergence pass → `S0-REVERIFY-4.md`. **B** — job ③, the guard inventory → `S0-GUARDS-4.md`. Brief:
+`audits/2026-08-25-p6.8.9.7.11.17-reverification/BRIEF-PASS-4.md`.
+
+⚡ **The fix range is one hunk in one file** (`check-audit-closure.ts`, in `b2a8aac`), so **job ① is thin by
+construction and the brief says so out loud** — A's time is directed at job ②, and the brief hands over
+**six S0 files no pass has ever swept**, established by grepping all three pass reports plus
+`E-gates-instruments.md` for each filename rather than by reading a summary:
+`check-gate-freshness.ts` *(69 lines — the instrument that decides whether every other instrument's green
+describes this tree, and it has never been audited)* · `check-contrast.ts` · `check-type-scale.ts` ·
+`preflight-native-lane.ts` · `check-a11y-collapse.ts` · `check-committed-secrets.ts`. Plus one **class**:
+the three `*-baseline.json` files are caps, and `MAX_UNTOKENISED` is the only cap in the tree carrying a
+written *"downward only"* rule.
+
+⚠️ **The brief carries the reading as a reading, not as a verdict:** `lint:gate-freshness` was measured RED
+at the pin — that one hunk landed after the `1782769` record — and A is asked to decide whether that is
+correct behaviour or a defect, rather than being told.
+
+⚠️ **Two shell traps were hit while writing the brief and are now in it**, because both fail *silently*:
+`git log -- <relative pathspec>` from a drifted cwd returns **empty**, which is indistinguishable from
+"this file has no history"; and `sed -i` with an escaped pattern **no-ops** while reporting success.
+
 ---
 
 ## 🔎 P6.8.9.7.11.17 — the SWITCH-IN before-scan, and the handoff's own premises measured *(2026-08-25)*

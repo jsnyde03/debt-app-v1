@@ -16,9 +16,16 @@
  * Usage: npm run gate:record   ·   the tail of `validate:release:rn`
  */
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 
-import { fingerprintSources, GATE_STATUS_FILE, REPO_ROOT, type GateStatus } from './gateSources';
+import {
+  fingerprintDetail,
+  GATE_RUN_FILE,
+  GATE_STATUS_FILE,
+  REPO_ROOT,
+  type GateRunStart,
+  type GateStatus,
+} from './gateSources';
 
 // ⛔ [D49] says the record is "written BY the gate, NEVER typed into a document" — and a script anyone can
 // run by hand is a document with extra steps. `validate:release:rn` passes `--from-gate`; nothing else
@@ -56,7 +63,54 @@ try {
   // freshness turns on, so record what we have rather than refusing to record anything.
 }
 
-const { hash, fileCount } = fingerprintSources();
+/**
+ * ⛔ **THE MID-RUN DRIFT CHECK** — [S0.13 · REVERIFY-4 finding 1]. See `begin-gate-run.ts` for the full
+ * finding; in one line: **this file runs LAST, so fingerprinting here records the tree as it is now, not
+ * the tree the suites actually ran against.**
+ *
+ * ⚠️ **A missing start-record REFUSES rather than records.** Recording anyway would restore exactly the
+ * behaviour being removed, and it is also the anti-forge direction: `gate:record --from-gate` run by hand,
+ * without the chain that writes the start-record, now has nothing to compare against and stops.
+ */
+const { hash, fileCount, files } = fingerprintDetail();
+
+let start: GateRunStart;
+try {
+  start = JSON.parse(readFileSync(GATE_RUN_FILE, 'utf8')) as GateRunStart;
+} catch {
+  console.error('\n❌ gate:record — no start-of-run record, so what the suites ran against is unknown.\n');
+  console.error('   `npm run gate:begin` writes it as the FIRST link of `validate:release:rn`, and this');
+  console.error('   step compares against it to prove no source moved while the suites were running.');
+  console.error('   Without it there is nothing to compare, and a record nobody can check is the claim');
+  console.error('   [D49] exists to make impossible.\n');
+  console.error('   Run `npm run validate:release:rn` — it calls both, in order.\n');
+  process.exit(1);
+}
+
+if (start.sourceHash !== hash) {
+  const now = new Set(Object.keys(files));
+  const then = new Set(Object.keys(start.files));
+  const added = [...now].filter((f) => !then.has(f));
+  const removed = [...then].filter((f) => !now.has(f));
+  const changed = [...now].filter((f) => then.has(f) && start.files[f] !== files[f]);
+
+  console.error('\n❌ gate:record — SOURCE MOVED WHILE THE SUITES WERE RUNNING. Refusing to record.\n');
+  console.error(`   run started: ${start.at} · ${start.fileCount} files · ${start.sourceHash.slice(0, 7)}…`);
+  console.error(`   now:         ${new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')} · ${fileCount} files · ${hash.slice(0, 7)}…\n`);
+  // ⚠️ Every drifted path is printed, not a sample. A truncated list has under-reported a site count on
+  // five consecutive items in this project, and here the omitted line is the one that was not tested.
+  for (const [label, list] of [
+    ['CHANGED', changed],
+    ['ADDED', added],
+    ['REMOVED', removed],
+  ] as const) {
+    for (const f of list) console.error(`     ${label.padEnd(7)} ${f}`);
+  }
+  console.error(`\n   ${changed.length} changed · ${added.length} added · ${removed.length} removed\n`);
+  console.error('   ⛔ The suites did not run against this tree, so a record would be false. Re-run');
+  console.error('      `npm run validate:release:rn` with the tree held still.\n');
+  process.exit(1);
+}
 
 const status: GateStatus = {
   sha,
@@ -69,6 +123,11 @@ const status: GateStatus = {
 // ⚠️ Trailing newline, stable key order, 2-space indent — this file is COMMITTED, and a record that
 // reformats itself on every run turns every gate run into a spurious diff.
 writeFileSync(GATE_STATUS_FILE, `${JSON.stringify(status, null, 2)}\n`, 'utf8');
+
+// ⛔ The start-record is CONSUMED, so it cannot be replayed. Without this, one `gate:begin` would license
+// any number of later hand-run `gate:record --from-gate` calls over trees the suites never saw — which is
+// the forgery path this step was added to close, left open by the step that closes it.
+rmSync(GATE_RUN_FILE, { force: true });
 
 console.log(`✅ gate-status.json written — ${sha.slice(0, 7)} · ${status.at} · ${fileCount} source files${dirty ? ' · TREE WAS DIRTY' : ''}`);
 if (dirty) {
