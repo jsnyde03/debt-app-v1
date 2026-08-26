@@ -22,6 +22,7 @@
  *
  * Usage: tsx scripts/check-month-arithmetic.ts
  */
+import { stripCommentsAndStrings } from './lib/stripCode';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -155,73 +156,11 @@ function walk(dir: string, out: string[] = []): string[] {
  * numbers are preserved so a real hit still points at the right line.
  */
 /**
- * ⛔ **ONE PASS WITH STATE, because BOTH regex orderings are wrong.** [S0.2, corrected at S0.2b · REVERIFY-1]
- *
- * | order | what it gets wrong |
- * |---|---|
- * | comments first *(original)* | a `//` **inside a string** blanks the rest of the line, taking a real call with it — `const s = 'a // b'; d.setMonth(…)` stripped to `const s = 'a` and the ban did not match |
- * | strings first *(my S0.2 fix)* | a **lone backtick in a comment** opens a template literal that runs to the next backtick **anywhere in the file**, blanking the code between |
- *
- * ⚡ **Neither ordering can win, because which construct opens first is a property of the TEXT, not of the
- * pass order** — and that is what a scanner is for. This walks once and tracks what it is inside, so a
- * quote inside a comment is comment text and a `//` inside a string is string text, by construction.
- *
- * ⚠️ **The backtick runaway hid ZERO live sites when measured** (0 `setMonth`-family lines, and the one
- * `new Date(` it hid was this file's own output string, correctly). It needs an *odd* number of backticks
- * in one comment, and this repo's comments almost always pair them. **Fixed as a latent hazard, and the
- * measurement is recorded so the severity is not re-inflated later.**
- *
- * Line numbers are preserved throughout — a real hit still points at the right line. Comments are blanked
- * rather than matched because the files that explain this trap have to be able to NAME the banned form.
+ * ⛔ **THE SCANNER IS SHARED — this file used to hold a hand-written COPY.** [S0.8b · REVERIFY-2
+ * finding 2] A duplicate cannot receive a fix to the original: the regex-literal handling added to
+ * `lib/stripCode.ts` would not have reached this gate, which is the one the whole class was found on.
+ * Comments are blanked rather than matched because this file has to be able to NAME the banned form.
  */
-function stripComments(src: string): string {
-  const out = src.split('');
-  const blank = (i: number) => {
-    if (out[i] !== '\n') out[i] = ' ';
-  };
-  let i = 0;
-  while (i < src.length) {
-    const c = src[i];
-    const next = src[i + 1];
-    // ── line comment ──
-    if (c === '/' && next === '/') {
-      while (i < src.length && src[i] !== '\n') blank(i++);
-      continue;
-    }
-    // ── block comment ──
-    if (c === '/' && next === '*') {
-      blank(i++);
-      blank(i++);
-      while (i < src.length && !(src[i] === '*' && src[i + 1] === '/')) blank(i++);
-      if (i < src.length) {
-        blank(i++);
-        blank(i++);
-      }
-      continue;
-    }
-    // ── string literal: contents blanked, so a `//` or a quote inside cannot start anything ──
-    if (c === "'" || c === '"' || c === '`') {
-      const quote = c;
-      i++; // the opening delimiter stays, so the line still reads as code
-      while (i < src.length) {
-        if (src[i] === '\\') {
-          blank(i++);
-          if (i < src.length) blank(i++);
-          continue;
-        }
-        if (src[i] === quote) break;
-        // ⛔ `'` and `"` do not span lines. A newline ends them — otherwise one unbalanced apostrophe
-        // in `it's` inside code would swallow the rest of the file.
-        if (src[i] === '\n' && quote !== '`') break;
-        blank(i++);
-      }
-      if (i < src.length && src[i] === quote) i++;
-      continue;
-    }
-    i++;
-  }
-  return out.join('');
-}
 
 function scan(roots: string[], out: string[]): number {
   let n = 0;
@@ -233,7 +172,7 @@ function scan(roots: string[], out: string[]): number {
       n++;
       const raw = readFileSync(file, 'utf8');
       const lines = raw.split(/\r?\n/);
-      stripComments(raw)
+      stripCommentsAndStrings(raw)
         .split(/\r?\n/)
         .forEach((line, i) => {
           if (BANNED.test(line) || constructorOverflow(line)) {

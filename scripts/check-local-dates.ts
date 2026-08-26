@@ -17,6 +17,7 @@
  *
  * Usage: tsx scripts/check-local-dates.ts
  */
+import { stripCommentsOnly } from './lib/stripCode';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -50,14 +51,15 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 /**
- * Comments are blanked, not matched — the files that explain this trap have to be able to NAME the
- * banned form, and a guard that reds on its own documentation gets deleted rather than obeyed. Line
- * numbers are preserved so a real hit still points at the right line.
+ * ⛔ **DELEGATES TO THE SHARED SCANNER.** [S0.8b · REVERIFY-2 finding 2] This file used to carry the
+ * `(^|[^:])//` pair, whose `[^:]` lookbehind is a patch for `https://` and nothing else: a `//` inside
+ * ANY other string still truncated the line and took real code with it. Six gates carried that pair
+ * after the "fix" that named it — the fifth short enumeration in this cluster.
+ *
+ * ⚠️ `stripCommentsOnly`, not `stripCommentsAndStrings`: this gate reads what is INSIDE the strings.
  */
 function stripComments(src: string): string {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1: string) => p1 + ' '.repeat(m.length - p1.length));
+  return stripCommentsOnly(src);
 }
 
 /**

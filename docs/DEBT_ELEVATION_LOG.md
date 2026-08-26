@@ -577,7 +577,7 @@ still means the legitimate *"fund it fully"* state.
   arriving through a gate added to close a different one. The four roots are now fingerprinted.
 - **`corpus.ts` held a raw NUL byte**, so grep/ripgrep reported *"Binary file matches"* and showed nothing
   — **which is why two rounds reasoned about that file from its comments.** It was inside a deliberately
-  hostile unicode string; escaped as ` `, identical at runtime, file is text again.
+  hostile unicode string; escaped as `\u0000`, identical at runtime, file is text again.
 
 ### ⚠️ And I measured the stripper regression WRONG before measuring it right
 
@@ -592,6 +592,86 @@ behaviour of that fix, so a large delta is the feature. The question is whether 
 count in one comment, and this repo's comments almost always pair them. Fixed as a hazard, with the
 measurement recorded so the severity is not re-inflated by the next reader. **A metric that moves in the
 right direction is not evidence until you check it is measuring the defect and not the fix.**
+
+---
+
+## 📕 P6.8.9.7.11.18 · S0.10 — pass 2's three, and they were all the same mistake *(2026-08-26)*
+
+**Pass 2, pinned to `b03e0d3`: 0 blockers, 3 majors.** All closed. `lint:rn` **23/23**, `typecheck:scripts`
+clean, 3 plants red with a silent control.
+
+⛔ **All three were one shape, and it is the shape this cluster keeps paying for: a class declared closed
+once the spellings that had ACTUALLY OCCURRED were fixed.** Not one of them was a wrong mechanism — each
+was a correct fix with an enumeration that stopped early.
+
+### 1 — the scanner did not model REGEX LITERALS, so the runaway it was written to kill was still live
+
+A backtick, a quote or a `//` **inside a regex** still opened a template literal, a string or a comment.
+Printed: `check-audit-closure.ts:118`'s own regex blanked lines **118–197**; `surface-inventory.ts:143`
+blanked **143–213**. ⚡ **The S0.2b fix halved pass 1's regression and left it at 2× the baseline it had
+regressed from** — while the docstring claimed the class was closed *"by construction."*
+
+Regex literals are now modelled, with the classic *"can a `/` start a regex here"* heuristic (last
+significant token, plus the keyword set), `[...]` class tracking, and a newline treated as a mis-guess
+rather than a runaway. ⛔ **And the docstring now ENUMERATES what it models and what it does not** — JSX
+text, HTML comments in `.tsx`, and `({a:1}/x/g)` — because *"by construction"* was the overclaim that let
+the gap sit.
+
+⚠️ **The ambiguity rule is written down because every ambiguous call needs one:** blanking real code makes
+a gate **blind**; exposing a comment makes it **noisy**. **Blind is worse**, so every ambiguity resolves
+toward *leave the text alone*.
+
+### 2 — the remedy reached 3 of 9 strippers, and one gate held a hand-COPY of the scanner
+
+⛔ **`check-month-arithmetic` — the gate the whole class was discovered on — carried its own duplicate
+`stripComments` (68 lines) rather than importing the shared module**, so the regex-literal fix could not
+have reached it. Six other gates still carried the `(^|[^:])//` pair, whose `[^:]` lookbehind spares
+`https://` **and nothing else**.
+
+All nine now delegate to `lib/stripCode.ts`, each with the right variant — `stripCommentsAndStrings` where
+the gate matches code, `stripCommentsOnly` where the gate reads what is *inside* the strings
+(`check-apostrophes` scans copy; `check-sandbox-writes` matches an import PATH; `check-money-format`,
+`check-glossary`, `check-copy-owners`, `check-local-dates`, `check-press-opacity`, `check-native-a11y-props`).
+
+### 3 — `stripMarkdownCode` knew ONE of four code spellings, and the GATE'S OWN OUTPUT was the trigger
+
+`~~~` fences, four-space-indented blocks and double-backtick spans all still minted closures. ⚡ **And the
+trigger was mechanical rather than hypothetical: the gate printed the first untokenised id inside a LIVE
+token, six-space-indented — and this project pastes gate output into the log, which IS a closure SOURCE.
+Pasting the error would have closed the finding it named.** ⛔ **M12's shape a FIFTH time, produced by the
+instrument's own remediation text.** The gate now prints a placeholder.
+
+⚠️ **The indented-block rule is safe because the directions are asymmetric:** hiding a real record inflates
+the count and **reds** the cap — visible; admitting a fake one deflates it and signs off a finding nobody
+read. So an ambiguous line is blanked. Plant: all four quoted spellings ignored, the one plain-text record
+counted.
+
+### ⚠️ THE MEASUREMENT MISTAKE, MADE FOR THE THIRD TIME — and it is now a rule
+
+Pass 1 called the stripper *"45× blinder (11,694 chars)."* My first check said **478,413**. My check of the
+FIX said **8,807**. ⛔ **All three measured intended behaviour** — blanking string contents, and now regex
+bodies, is what these functions are *for*.
+
+**The only question that has ever mattered:** *does a gate's own pattern lose a line it used to match?*
+
+| gate class | hidden | newly exposed |
+|---|---|---|
+| `setMonth` family | **0** | 0 |
+| `new Date(` | 1 — the gate's own output STRING | 0 |
+| `importStore` | 5 — output strings + the gate's own REGEX literal | 0 |
+| `appStore` import path | **0** | 0 |
+
+⭐ **The rule, earned three times: a metric that moves in the right direction is not evidence until you
+check it measures the DEFECT and not the FIX.** Measure the gate's verdict, never the stripper's output.
+
+### ⚠️ And two self-inflicted ironies, both recorded rather than tidied away
+
+- ⛔ **`b03e0d3` — the commit that removed the raw NUL from `corpus.ts` — introduced one into
+  `DEBT_ELEVATION_LOG.md:580`, in the sentence describing that removal.** `rg` reported *"binary file
+  matches"* for the 22,859-line ledger. Escaped; the log is greppable again.
+- ⛔ **My verification that the six gates had been converted matched MY OWN DOCBLOCK**, which quotes the
+  pattern it was searching for, and reported all six unconverted. The code check was clean. **A
+  self-referential grep over a file you just documented will find your documentation.**
 
 ---
 

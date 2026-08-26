@@ -112,10 +112,27 @@ const CLOSES = /\[closes:\s*([^\]]+)\]/g;
  * **plain text**; anything inside markdown code — a fenced block or an inline span — is quoted, so it is
  * an example and does not count. Blanking both before the scan is what makes documenting the token safe.
  */
+/**
+ * ⛔ **FOUR SPELLINGS OF "MARKDOWN CODE", and the first cut enumerated ONE.** [S0.8b · REVERIFY-2 finding 3]
+ * ` ``` ` fences · `~~~` fences · four-space-indented blocks · inline spans of **any** backtick run length.
+ * Missing three of them meant a token written in any of those still minted a closure.
+ *
+ * ⚠️ **Direction check, and it is what makes the indented-block rule safe:** hiding a REAL record inflates
+ * the untokenised count, which reds the cap — noisy, and visible. Admitting a FAKE one deflates it, which
+ * signs off a finding nobody examined. **The failures are not symmetric, so an ambiguous line is blanked.**
+ */
 function stripMarkdownCode(md: string): string {
-  return md
-    .replace(/```[\s\S]*?```/g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/`[^`\n]*`/g, (m) => m.replace(/[^\n]/g, ' '));
+  const blank = (m: string) => m.replace(/[^\n]/g, ' ');
+  return (
+    md
+      // fenced blocks, both fence characters
+      .replace(/^[ \t]*```[\s\S]*?^[ \t]*```/gm, blank)
+      .replace(/^[ \t]*~~~[\s\S]*?^[ \t]*~~~/gm, blank)
+      // four-space-indented code blocks — one line at a time; a token here is quoted output, not a record
+      .replace(/^ {4,}\S[^\n]*$/gm, blank)
+      // inline spans: a run of N backticks closes on a run of N. `` `x` `` and ``` ``x`` ``` both count.
+      .replace(/(`+)(?:[^`\n]|(?!\1)`)*\1/g, blank)
+  );
 }
 
 const explicit = new Set<string>();
@@ -188,7 +205,11 @@ if (d37Untokenised.length > MAX_UNTOKENISED.d37) {
   d37Untokenised.forEach((id) => console.error(`  ${id}`));
   console.error(
     `\n  A mention is not a closure. Record it where the closure IS, with the explicit token:\n` +
-      `      [closes: ${d37Untokenised[0]}]\n` +
+      // ⛔ **A PLACEHOLDER, NOT A REAL ID.** [S0.8b · REVERIFY-2 finding 3] This line used to print the
+      // first untokenised id inside a live token — and this project pastes gate output into the log,
+      // which IS a closure SOURCE. Pasting the error would have closed the very finding it named.
+      // **M12's shape a fifth time, produced by the instrument's own remediation text.**
+      `      [closes: THE-ID-HERE]   (e.g. ${d37Untokenised[0]})\n` +
       `  ⛔ Do NOT raise the cap — it only ever goes down.\n`,
   );
   process.exit(1);
@@ -254,7 +275,8 @@ if (p68Untokenised.length > MAX_UNTOKENISED.p68) {
   );
   p68Untokenised.forEach((f) => console.error(`  ${f.id.padEnd(8)} ${f.lens}`));
   console.error(
-    `\n  Record it where the closure IS: [closes: ${p68Untokenised[0]?.id}]\n` +
+    // ⛔ Placeholder, not a real id — see the note on the [D37] branch above.
+    `\n  Record it where the closure IS: [closes: THE-ID-HERE]   (e.g. ${p68Untokenised[0]?.id})\n` +
       `  ⛔ Do NOT raise the cap — it only ever goes down.\n`,
   );
   process.exit(1);

@@ -1,3 +1,4 @@
+import { stripCommentsOnly } from './lib/stripCode';
 import { readFileSync, existsSync } from 'fs';
 import { join, relative } from 'path';
 
@@ -70,11 +71,11 @@ const PAIRINGS: readonly Pairing[] = [
 ];
 
 /**
- * Line structure is irrelevant here — only presence is — so this blanks rather than preserves. The
- * `[^:]` guard keeps a `https://` inside a string from being read as the start of a comment.
+ * ⛔ **DELEGATES TO THE SHARED SCANNER.** [S0.8b · REVERIFY-2 finding 2] The pair this replaces used a
+ * `[^:]` lookbehind that spares `https://` and nothing else — a `//` inside any other string still
+ * truncated the line. ⚠️ `stripCommentsOnly`, because this gate reads copy INSIDE the strings.
  */
-const stripComments = (src: string): string =>
-  src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, (_m, p1: string) => p1);
+const stripComments = (src: string): string => stripCommentsOnly(src);
 
 const failures: string[] = [];
 

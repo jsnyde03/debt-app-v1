@@ -16,6 +16,7 @@
  *
  * Usage: tsx scripts/check-money-format.ts
  */
+import { stripCommentsOnly } from './lib/stripCode';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -80,14 +81,15 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 /**
- * Strip comments — this file's own header quotes `$${Math.round(…)}` to explain what it bans, and so do
- * the fix comments left at the collapsed sites. Over-stripping can only cause a MISS, never a false
- * alarm, and a false alarm is what gets a checker disabled.
+ * ⛔ **DELEGATES TO THE SHARED SCANNER.** [S0.8b · REVERIFY-2 finding 2] This file used to carry the
+ * `(^|[^:])//` pair, whose `[^:]` lookbehind is a patch for `https://` and nothing else: a `//` inside
+ * ANY other string still truncated the line and took real code with it. Six gates carried that pair
+ * after the "fix" that named it — the fifth short enumeration in this cluster.
+ *
+ * ⚠️ `stripCommentsOnly`, not `stripCommentsAndStrings`: this gate reads what is INSIDE the strings.
  */
 function stripComments(src: string): string {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1) => p1 + ' '.repeat(m.length - p1.length));
+  return stripCommentsOnly(src);
 }
 
 /**
