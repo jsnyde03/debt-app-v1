@@ -27,27 +27,38 @@ decomposed as **P6.1–P6.21** at the top of the plan, and it ends at ASC submis
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-26).** 🎯: **"Continue through S until you need my input"** —
-standing authority to run the surface audits **to convergence**, every surface on S0's criteria.
-**S0 is CONVERGED. S1 is OPEN and audited.** HEAD `805095e`, tree clean, **`lint:rn` 26/26**.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-26, third).** 🎯: standing authority to run the surface audits
+**to convergence**. **S0 CONVERGED · S1 pass 1 FIXED · S1 pass 2 RUN AND RECORDED.**
+HEAD `1113c57`, tree clean, **4 commits UNPUSHED**, `lint:rn` **27/27**.
 
-▶ **NEXT IS `S1.5.2`** — pass-1 blocker **B5**, decomposed on the plan as **S1.5.1–S1.5.5 → S1.6 → S1.7**.
-**14 findings remain: 4 blockers · 10 majors**, ledger in
-[`docs/audits/2026-08-26-s1-money/SUMMARY.md`](docs/audits/2026-08-26-s1-money/SUMMARY.md).
+▶ **NEXT IS `S1.9`** — fix pass 2. **3 blockers · 6 majors · 12 minors**, ledger in
+[`docs/audits/2026-08-26-s1-money-pass2/SUMMARY.md`](docs/audits/2026-08-26-s1-money-pass2/SUMMARY.md),
+decomposed as **S1.9.1–S1.9.8** at the top of the plan.
 ⛔ **The SUMMARY is the map; the four `{A,B,C,D}` files are the ledger.**
 
-⚠️ **S1.5.4 (the instruments) must land BEFORE pass 2** — M9 and M10 decide what pass 2 can *see* and
-whether its tree can be committed green. ⚠️ **`lint:gate-freshness` is RED and correctly so**; S1.6 owns
-the real `validate:release:rn` run, and **the full e2e suite has not run this session.**
+⭐ **PASS 2's HEADLINE IS WHAT HELD.** Auditor A issued **23 verdicts — S0's five and pass 1's eighteen —
+and 22 came back `CLOSED`.** 🎯: *"Look at how much held… the system is definitely doing its job."*
+⛔ **S1 still does not converge** — [D65] exits on 0/0 **twice consecutively**, and pass 2 resets the count.
 
-⭐ **S0's fixes were verified and HOLD** — `REVERIFY4-1…-5` all `CLOSED`. [D70] left no fifth S0 pass, so
-S1's pass 1 was the only chance to catch S0's close-out coming undone.
+⚡ **THE THREE BLOCKERS ARE ONE SHAPE, AND IT GETS ONE OWNER.** B1's rule — *never state a number about
+money the app could not read* — was wired to a **subset of claim sites** and a **subset of fields**.
+`minimumPayment` repairs to `0` and the debt vanishes from the plan, so Today prints **B5's exact
+sentence** over an unpaid card *(B5's remedy is intact; the arrays handed to it are wrong)*. Goal
+`currentAmount` is a second unguarded field. The full-screen finale is the **claim site nobody wired**,
+firing while the banner beside it correctly refuses. ⛔ **Patching each site rebuilds the defect a fourth
+time.**
 
-⛔ **"SWEPT" MEANT 14 OF 72 FILES.** The money surface had been audited twice and **80% had never been
-opened**. **5 blockers and 4 app-majors came out of the unswept 58**; the two prior rounds, sweeping the
-swept 14, found none of them. ⚡ **The variable is not the tree, it is where you point** — and
-`lint:s1-coverage` is what makes that answerable. ⛔ **It currently under-counts** (pass-1 M9): its roots
-are a hand-written **inclusion list**, so `index.tsx` — the file blocker B5 is *wired* in — is off-surface.
+⚠️ **[D73] (🎯 2026-08-26) — THE TEST TREE IS ON AN AUDIT SURFACE.** No e2e spec was on any surface, so the
+guards for most registered findings sat in files no auditor was ever pointed at. **S1 137 → 188 files ·
+S0 58 → 91.** ⛔ **`lint:finding-guards` proves a token sits on a non-comment line, never that the assertion
+can still fail** — pass 2 measured **seven guards that stay green with the defect restored**, three of them
+the fixes to the gate that certifies all 57.
+
+⛔ **"SWEPT" MEANT 14 OF 72 FILES, AND THE ROOTS HAVE NOW BEEN WRONG THREE TIMES.** M9 (hand-named files
+inside `roots`), [D73] (the whole test tree), and **`packages/core/timeline`, still off-surface** — the
+forecast module pass 2's sharpest major is *about*. ⚡ **The variable is not the tree, it is where you
+point**, and every correction so far has come from widening a root while the pre-correction number looked
+healthier.
 
 ⛔ **A FIX FOR A FALSE STATEMENT CAN BE A FALSE STATEMENT.** B1's first cut replaced *"Every balance paid
 off"* with *"Add a debt"*, over debts the user still owes. Caught only because the e2e asserts the honest

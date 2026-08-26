@@ -4,6 +4,66 @@
 
 ---
 
+## 📕 SESSION CLOSE 2026-08-26 (third) — S1's app majors fixed, the test tree surfaced, pass 2 run
+
+### ▶ WHERE THE NEXT SESSION STARTS: **S1.9 — fix pass 2**
+
+⛔ **Read the plan's ACTIVE section first.** **3 blockers · 6 majors · 12 minors**, decomposed as
+S1.9.1–S1.9.8. ⚠️ **The order is deliberate: D2-2 first because it is the only REGRESSION** — fix damage
+before discovery — then the trust class under one owner, then A1, then the instruments before pass 3.
+
+### 🔴 UNPUSHED — 4 commits, and CI has not run since `78c6020`
+
+`e2b6627` · `4b58d75` · `22b4909` · `1113c57`. ⛔ **Four e2e guards have never been executed by CI** —
+auditor B ran them by hand *(12 passed)* after noticing this. ⚠️ **`lint:gate-freshness` is RED and
+correctly so**: the recorded pass describes the tree at `69c372a0`, and S1.7 moved `scripts/` after it.
+**S1.9.8 owns the real run.**
+
+### What this session did
+
+| | |
+|---|---|
+| **S1.5.5** | M1–M4, the four app majors. ⚡ **Three of the four after-scans found a SECOND defect**, and a before-only scan was structurally incapable of finding any of them — M1's second site **did not exist** until the fix created it. 14 plants · 13 guards |
+| **S1.6** | `validate:release:rn` green **and recorded** — 300 e2e *(288 + the 12 new)*, 10 embed, 807 files, fingerprint `69c372a0` |
+| **S1.7** | **[D73]** — the test tree onto the audit surfaces. S1 137 → 188, S0 58 → 91 |
+| **S1.8** | Pass 2: four fresh auditors at `4b58d75`, recorded in [`SUMMARY.md`](audits/2026-08-26-s1-money-pass2/SUMMARY.md) |
+
+### Verification standing at close
+
+| | |
+|---|---|
+| **HEAD** | `1113c57` · branch `v1.7-dev` · working tree clean · 🔴 **NOT pushed** |
+| **`lint:rn`** | ✅ **27 of 27**, last run after S1.7 |
+| `typecheck` · `test:app` · `test:regression` · `test:scenarios` | ✅ green |
+| **full RN e2e** | ✅ **300 passed** at the S1.6 gate. ⚠️ **`scripts/` has moved since**; no app source has, so the suite still describes the app — but **the gate record does not**, and that is what S1.9.8 must re-establish |
+| **`lint:gate-freshness`** | 🔴 **RED, correctly.** ⛔ Do not carry the S1.6 result forward |
+| **coverage** | S1 **188 · 116 unswept** · S0 **91 · 48 unswept** |
+| **guards** | **73 findings · 57 guarded · 16 unguarded**, cap unmoved — ⚠️ **and 7 of the 57 are measured to fail open** (B-1) |
+
+### ⚠️ Four things to carry, because each cost real time
+
+- ⛔ **A `node -e` file write or read silently no-ops here — FOURTH instance this session.** Every time, the
+  following check printed green over work that never happened. **Use a script FILE.** Once, the only thing
+  that caught it was noticing there was **no output at all**.
+- ⛔ **The plant is what finds a vacuous assertion; no gate can.** M3's e2e asserted a card contained
+  `$400` — and the **defective** card contained `$400`, from a neighbouring section. It passed with the
+  defect present and survived only because an earlier assertion red first.
+- ⛔ **Do not pin a fix on the member of the class where the competing remedies agree.** AS-3 shipped
+  over-matched with three green tests, all of them `topUp 200` against `shortfall 400` — the one row where
+  blanket-zero and netting give the same answer. **This is the brief's own rule 2, in a brief I wrote.**
+- ⚠️ **`lint:comments` ([D17]) rejected a fix's own comment** for annotating a false comment instead of
+  deleting it. Rationale about the **code's** past is fine; commentary about the comment is not.
+
+### 🎯's framing, and it corrected mine
+
+I reported *"five of eight blocker/majors are in already-swept code"* as a concern. 🎯: *"Fixes often do
+surface new issues on already swept fields. This is the system doing its job."* ⛔ **Right, and the project's
+own design says so** — P6.8 → P6.15 → P6.16 is a **loop** because fixes are changes and changes are
+unaudited. **A swept FILE is not an audited CHANGE.** Damage is *a regression against pre-fix behaviour* —
+**1 of 8 here (D2-2)** — not *"the file had been swept before."*
+
+---
+
 ## 📕 SESSION CLOSE 2026-08-26 (second) — every S1 blocker closed, and the instruments with them
 
 ### 🔴 CI: run `32970802274` (`web-e2e`, push of `85ee923`)
