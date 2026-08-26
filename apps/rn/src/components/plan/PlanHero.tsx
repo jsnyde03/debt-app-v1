@@ -62,7 +62,25 @@ export function PlanHero({
   const s = c.surface;
 
   const paycheck = summary.requiredTotal + summary.remainingAfterRequired;
-  const required = Math.max(0, summary.requiredTotal);
+  /**
+   * ⛔ **MINUS THE SHORTFALL — the segment is what this paycheck FUNDED, not what is OWED.**
+   * [S1 · pass 1 · M4] `requiredTotal` is the request. In a shortfall it exceeds the headline, which is
+   * exactly `paycheckAmount`, so the parts summed to more than the whole and the bar — drawn with
+   * `flexGrow`, which normalises whatever it is given to the full track — gave no sign of it. Measured:
+   *
+   *     healthy                        hero 2000 · Required  1000 · Spoken for 400 · Flexible 600 → 2000 ✓
+   *     short ($1,000 · bills 1,330)   hero 1000 · Required  1330                                 → 1330 ⛔
+   *     short + everyday reserve       hero 1000 · Required  1450 · Spoken for 300                → 1750 ⛔
+   *
+   * `requiredTotal − shortfall` conserves in all three, and `shortfall` is 0 on every covered cycle, so
+   * **no on-track hero can move.** ⚠️ Same shape and same remedy as T6.3 · L4-1 below — take the HELD
+   * figure, never the REQUEST — which closed the living-expense route into non-conservation and left the
+   * shortfall route open. Two doors, one invariant.
+   *
+   * ⚠️ The gap itself is not this bar's job and is stated elsewhere on the screen: `statusLabel` renders
+   * *"Short this paycheck"* directly beneath, and the Guardian card names the amount.
+   */
+  const required = Math.max(0, summary.requiredTotal - summary.shortfall);
   // 3.8 [D36] — "Everyday" became "Spoken for": the segment now carries everyday spending AND the money set
   // aside for upcoming bills. Both are accounted-for-but-not-yet-spent, which is what the translucent green
   // has always meant. ⛔ Named "Spoken for" and not "Set aside" — that is the gig app's brand term, which

@@ -19,8 +19,8 @@
 
 ## ▶ RIGHT NOW — **S1.5.5 · the app majors (M1–M4)**
 
-**Surface S1 · money · goals · plan cards.** Pass 1 is in; **every blocker is closed**, the six instrument
-majors are closed, and **4 app majors remain** — then S1.6's gate and S1.7's pass 2.
+**Surface S1 · money · goals · plan cards.** Pass 1 is in; **every blocker and every major is closed** —
+5 blockers, 6 instrument majors, 4 app majors. What remains is **S1.6's gate + record** and **S1.7's pass 2**.
 S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block on this page is **reference, not queue** —
 Phase 6's order, the device ledger, the backlog, the decisions. Detail for anything closed →
 [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
@@ -36,9 +36,10 @@ Phase 6's order, the device ledger, the backlog, the decisions. Detail for anyth
 | ✅ | **S1.5.2 — B5**, and its two folded-in consequences | CLOSED 2026-08-26 · `countOutstandingRequired` is the one owner; `unfunded` is always the truth and `shortfallAdviceOwnedElsewhere` changes the wording. **5 plants, each with a control** · engine `targetId` added · a page-wide proxy assertion in `recovery.spec` rescoped and re-planted. **281 e2e · `lint:rn` 26/26 · 5 guards.** Detail → log |
 | ✅ | **S1.5.3 — B2 · B3 · B4, ONE SHAPE** | CLOSED 2026-08-26 · every fix a lifetime or an ownership change, no arithmetic touched. `intentRollback` invalidated as a **class** in the `set` wrapper *(which also closed `importStore` and `reset()`)* · `cycleTopUp` gains per-source **entries**, `amount` derived · `convertingExpenseId` moved into the sheet's own state. ⚡ **A fourth blocker found because a plant did NOT red** — `submit()`'s BNPL branch never consulted the convert flag, so a bill converted to a BNPL was reserved AND projected at once. **7 plants · 11 guards · `lint:rn` 26/26.** Detail → log |
 | ✅ | **S1.5.4 — M5–M10, the instruments** | CLOSED 2026-08-26 · **M9** roots widened to directories with routed, validated exclusions *(72 → **137 files**; `index.tsx`, where B5 is wired, was on no surface at all)* + claim vocabulary allow-listed · **M6** boundary decided per token END · **M7** a token must pin a **non-comment** line · **M8** both floors strict equality + duplicate-id check · **M5** `test:gate-plants` in the chain *(**27 gates**)* · **M10** `lint:secrets:authoring`. ⚡ **Pass 1's coverage was never recorded — 0 `s1p1` labels; written back for 62 S1 + 16 S0 files**, or [D69] would have let pass 2 re-exempt its own repeats. **5 plants · 8 guards.** Detail → log |
-| ▶ | **S1.5.5 — M1–M4, the app majors.** M1 uncategorised bill renders nowhere · M2 over-funded goal understates · M3 top-up suppresses the shortfall sentence · M4 `PlanHero` stops conserving | each plant-verified with a control |
-| | **S1.6 — gate + record.** ⚠️ `lint:gate-freshness` is RED now and stays red until this runs | `validate:release:rn` green **and recorded**, then **commit immediately** — a record on a dirty tree names bytes no commit held |
-| | **S1.7 — re-verify, pass 2**, fresh agents, pinned. Carries the standing S0 jobs ①/② again | 0 blockers / 0 majors, **twice consecutively** |
+| ✅ | **S1.5.5 — M1–M4, the app majors** | CLOSED 2026-08-26 · M1 `resolveBillCategory` partitions into the real `'other'` · M2 the funded branch prints what is SAVED · M3 a shortfall is `at-risk` by its own branch · M4 the paycheck split conserves. ⚡ **Three of the four after-scans found a SECOND door, each reachable only because of the fix or measured rather than reasoned** — and one of my own new assertions was **vacuous**, caught by a plant. **14 plants · 13 guards · `lint:rn` 27/27.** Detail → log |
+| ▶ | **S1.6 — gate + record.** ⚠️ `lint:gate-freshness` is RED now and stays red until this runs | `validate:release:rn` green **and recorded**, then **commit immediately** — a record on a dirty tree names bytes no commit held |
+| | **S1.7 — [D73] put the TEST TREE on a surface.** Measured scope: **99 off-surface files** — `apps/rn/tests` **76** *(62 e2e + helpers + embed + shots)* · `packages/core/testing` **20** · `apps/rn/src/testing` **3**. Roots widen; owners route; **anything arguable stays, per the instrument's own fail-safe.** Decomposed at switch-in | both coverage gates green on the widened roots, the new unswept counts **written back**, and `lint:rn` still 27/27 |
+| | **S1.8 — re-verify, pass 2**, fresh agents, pinned. Carries the standing S0 jobs ①/② again. Brief drafted at [`2026-08-26-s1-money-pass2/BRIEF.md`](audits/2026-08-26-s1-money-pass2/BRIEF.md) — ⚠️ **needs the pin SHA and a re-write of its job ② once S1.7 lands**, because the guard files it currently names by hand will be on the surface instead | 0 blockers / 0 majors, **twice consecutively** |
 
 **Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
 new instruments swept. ✅ **The instrument half is DONE** — pass 1 swept `check-finding-guards.ts`,
@@ -77,7 +78,7 @@ claimed.*
 
 | ledger | where it lives | command | 2026-08-26 *(after S1.5.4)* |
 |---|---|---|---|
-| unguarded findings, **both floors now strict equality** *(M8)* | `scripts/finding-guards.json` | `npm run lint:finding-guards` | 60 findings · **44 guarded · 16 unguarded** (cap 16). ⚠️ Adding a guard is now a two-line edit — the entry **and** `MIN_ENTRIES` |
+| unguarded findings, **both floors now strict equality** *(M8)* | `scripts/finding-guards.json` | `npm run lint:finding-guards` | 73 findings · **57 guarded · 16 unguarded** (cap 16) *(after S1.5.5)*. ⚠️ Adding a guard is now a two-line edit — the entry **and** `MIN_ENTRIES` |
 | S0 files never swept | `scripts/surface-coverage.s0.json` | `npm run lint:s0-coverage` | 58 files · **15 unswept** *(20 before pass 1's sweep was written back)* |
 | S1 files never swept | `scripts/surface-coverage.s1.json` | `npm run lint:s1-coverage` | **137 files · 65 unswept.** ⚡ The surface was 72 files and read **0 unswept** — a perfect score for a list missing `index.tsx`. **M9 widened the roots; 65 is the honest number.** ⛔ Write the claims back after **every** pass or coverage stops ratcheting |
 | secrets exemptions, `MAX_EXEMPT` **self-ratcheting** *(reds above AND below — a stale entry reds)* | `scripts/secrets-exemptions.json` | `npm run lint:secrets` | 2 of cap 2. ⚠️ Writing an audit report? Run **`npm run lint:secrets:authoring`** before committing it *(M10)* |
@@ -480,6 +481,42 @@ hotspot)* and Dynamic-Type device QA.
 
 ⛔ **Grouped by WHERE IT LANDS, because that is how it gets read.** The `(x.y)` tag is the item whose scan
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
+
+### → surfaced by S1.5.5's whole-item after-scan *(2026-08-26)*
+
+- 🔴 **NO e2e SPEC IS ON ANY AUDIT SURFACE.** Measured: `grep -c "tests/e2e"` returns **0** against both
+  `surface-coverage.s0.json` and `surface-coverage.s1.json`. Co-located `*.test.ts` files under `src/` are
+  on-surface; the whole of `apps/rn/tests/` is not. ⚡ **This is M9's shape one directory over**, and it
+  bites the standing rule directly: *"every surface audit re-verifies the previous surfaces' guards"* — but
+  the guards for most registered findings live in files no auditor is ever pointed at.
+  ⛔ **`lint:finding-guards` cannot cover this**: it checks a token string still exists on a non-comment
+  line, never that the assertion is sound. ⚡ **Measured this session:** S1.5.5's own `/\$400/` assertion
+  was **vacuous** — the defective card contained `$400` via `RecoveryPlanSection` — and the registry would
+  have reported that finding guarded forever. **Caught by a plant, which is not an instrument.**
+  ⚠️ **Whether `apps/rn/tests/` BELONGS to the money surface is a scope call, not a bug** — adding ~59
+  specs takes S1 from 65 unswept to ~124 and changes what convergence means, days before pass 2. Deciding
+  it by judgement is the exact move M9 punished. ✅ **ANSWERED — [D73], 🎯 2026-08-26. Promoted to the
+  queue as S1.7**, ahead of pass 2, which is now S1.8. This row stays as the measurement that produced it.
+- **`PlanHero`'s `Required` label and its number now diverge in a shortfall.** M4 made the segment what the
+  paycheck FUNDED, which is what a partition of the paycheck must contain; `PAYCHECK_SEGMENT.required`'s
+  own docstring still defines it as *"Bills + minimums that must be paid this cycle."* Both readings are
+  defensible and the screen states the gap elsewhere *(the status line, and the Guardian card names the
+  amount)*, so this is a wording question, not a false statement. **Rec: defer** — relabelling a segment
+  is a vocabulary change with three consumers. → **P6.10** *(the money lens, at real size)*
+- **`appliedTopUp` is still a manual opt-in, and M3 added a SECOND thing every reader must remember.** The
+  plan already carries the first *("every cushion reader must remember it")*. M3 measured that two of its
+  three readers also had to net the shortfall, and fixed both; `selectTightTopUp` is safe only because it
+  returns `null` while `shortfall > 0`. **A fourth reader would have to rediscover both rules.** → **P6.10**
+
+### → surfaced by S1.5.5's before-scan *(2026-08-26)*
+
+- **The enumerate-vs-partition class has no gate.** M1's shape — build a rendered list by `ORDER.map()`
+  over a constant instead of partitioning the input — is what the audit calls the failure mode "this
+  project has already paid for six times", and M1's fix closes the **two sites in `money.tsx`, not the
+  class.** A gate would have to tell a *menu* enumeration (`billCategoryOptions()`, correct by
+  definition) from a *render* one, which is the scope question, not a line of code. **Rec: defer** —
+  a gate whose rule is undecided is [D65]'s "re-rating is not a proof" wearing a lint script's clothes.
+  → **.9.3** *(where the gated-classes re-check lives)*
 
 ### → surfaced by S1.5.3's after-scan *(2026-08-26)*
 
@@ -1051,6 +1088,14 @@ cleanup)*. [D61] and [D62] lived only under *"⏸ Waiting on Jason → Open deci
 answer was filed in the list of things still owed. **Answering a decision updates one place and leaves the
 other**, in both directions. Reasoning for each → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
+- **[D73]** ✅ 2026-08-26 *(🎯: "We should have e2e coverage on audits. I agree with your reasoning")* —
+  **THE TEST TREE IS ON AN AUDIT SURFACE.** No e2e spec was on any surface: `grep -c "tests/e2e"` returned
+  **0** against both claims files, so the guards for most registered findings sat in files no auditor was
+  ever pointed at, while the standing rule requires every surface audit to re-verify the previous surfaces'
+  guards. ⛔ **`lint:finding-guards` cannot substitute** — it proves a token sits on a non-comment line,
+  never that the assertion behind it can fail; a **vacuous assertion measured in S1.5.5's own range** would
+  have counted as guarded indefinitely. ⚠️ **This raises the unswept counts and that is the honest number**,
+  exactly as M9's root-widening did *(72 → 137)*. Full reasoning → log, *"[D73]"*.
 - **[D72]** ✅ 2026-08-26 — **`lint:secrets` GETS A CONTENT-HASHED EXEMPTION LEDGER**, not a redacted
   report and not a `docs/` carve-out. An exemption is keyed on a **hash of the flagged value**, so editing
   or rotating the credential invalidates it; the count is downward-only and stale entries are reported.

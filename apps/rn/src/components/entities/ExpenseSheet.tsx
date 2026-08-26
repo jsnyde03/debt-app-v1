@@ -10,7 +10,7 @@ import { TextField } from '@/components/ui/TextField';
 import { todayLocalISO } from '@/data/defaults';
 import type { RequiredExpense, RequiredExpenseCategory } from '@/data/models';
 import { parseAmountField, parseOptionalAmount } from '@core/utils/amountField';
-import { billCategoryOptions, FORM_ERRORS, recurrenceOptions } from '@/store/obligationForm';
+import { billCategoryOptions, FORM_ERRORS, recurrenceOptions, resolveBillCategory } from '@/store/obligationForm';
 import { useActiveStore } from '@/store/StoreContext';
 import { confirmDelete } from '@/utils/confirm';
 // [T8 · L2-5] the definition of an expense has ONE owner — the chooser that teaches it.
@@ -33,7 +33,13 @@ export function ExpenseSheet({ editing, onClose }: { editing: RequiredExpense | 
   const [amount, setAmount] = useState(editing ? String(editing.amount) : '');
   const [dueDate, setDueDate] = useState(editing?.dueDate ?? todayLocalISO());
   const [recurrence, setRecurrence] = useState<Recurrence>(editing?.recurrence ?? 'monthly');
-  const [category, setCategory] = useState<RequiredExpenseCategory>(editing?.category ?? 'other');
+  // ⛔ `resolveBillCategory`, not `?? 'other'`. [S1 · M1, third site — found by M1's after-scan] The
+  // nullish coalesce catches an ABSENT category and not an UNRECOGNISED one, so a bill imported with
+  // `category: 'groceries'` opened this form on a `Select` whose value matches none of its options — and
+  // saving without touching the picker wrote the unreadable value straight back. Reachable only since
+  // M1: before it, such a bill rendered nowhere, so there was no row to tap. ⚠️ Same one-line shape as
+  // the two lists — the menu was enumerated here too.
+  const [category, setCategory] = useState<RequiredExpenseCategory>(resolveBillCategory(editing ?? {}));
   const [autopay, setAutopay] = useState(editing?.isAutopay ?? false);
   const [variable, setVariable] = useState(editing?.expenseType === 'variable');
   // §2.5 trial / intro price: bills `amount` now (often $0 free trial), jumps to `fullAmount` on `fullChargeDate`.

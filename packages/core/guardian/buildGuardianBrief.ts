@@ -188,10 +188,34 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   // sending money to debt is a choice, not a risk. Same for free and premium (the split differs, the
   // headroom doesn't). at-risk (red): can't cover obligations, or critically little left. tight (amber):
   // covered, but under your line. clear (slate): covered with your full cushion intact.
-  // The ONE state machine (2.4.6.1.2): floor-relative headroom + hysteresis via the prior band. A
-  // shortfall drives `discretionary` to 0 → at-risk, so it needs no separate branch here (the copy
-  // below still keys off `shortfall` for its wording).
-  const state: GuardianState = computeState(discretionary, floor, input.priorBand);
+  // The ONE state machine (2.4.6.1.2): floor-relative headroom + hysteresis via the prior band.
+  //
+  // ⛔ **A SHORTFALL IS `at-risk`, AND IT NEEDS ITS OWN BRANCH TO SAY SO.** [S1 · pass 1 · M3] The band
+  // used to be derived from `computeState(discretionary, …)` alone, on the reasoning that a shortfall
+  // drives `discretionary` to 0 and therefore reaches `at-risk` on its own. `selectDiscretionary` is
+  // indeed 0 on any shortfall — but `guardianSelectors` passes `selectDiscretionary(allocation) +
+  // appliedTopUp(store)`, and the top-up term is not. **A contingent fact about one caller's arithmetic
+  // does not survive as a law.** Measured, $2,000 paycheck · $1,900 rent · $400 surprise · $200 from a goal:
+  //
+  //     cycleTopUp PRESENT  → shortfall 300 · state CLEAR   · detail rendered? false
+  //     cycleTopUp ABSENT   → shortfall 300 · state AT-RISK · detail rendered? true
+  //
+  // The recorded top-up is the only variable. With the band no longer `at-risk`, `PaydayGuardianCard`
+  // drops `brief.detail` — the only place the dollar figure appears in the card's own copy — and draws
+  // the `clear` tone's good-standing shield under a title that says the paycheck will not cover
+  // everything. ⚠️ **Worst case is FREE**, which renders no `RecoveryPlanSection`, so no shortfall figure
+  // survives anywhere on the card.
+  //
+  // ⚡ So the branch is written, rather than the proxy repaired: **a shortfall IS at-risk, by the band's
+  // own definition** ("can't cover obligations"), and saying so directly cannot go stale the way an
+  // observation about one caller's arithmetic did. ⛔ Gated on `shortfall > 0`, so it is incapable of
+  // moving any covered cycle — the only direction it can push a band is DOWN, which is the safe one and
+  // matches the hysteresis rule that worsening is always immediate.
+  //
+  // ⚠️ This does not diverge from F4's one-state-machine rule: `selectPlanSummary` passes a bare
+  // `selectDiscretionary`, which is already 0 in this case, so the two producers now AGREE where they
+  // previously did not. `appliedTopUp`'s other two readers were checked and neither feeds a band.
+  const state: GuardianState = shortfall > 0 ? "at-risk" : computeState(discretionary, floor, input.priorBand);
   const reachedFloor = kept >= floor - 1;
 
   const look =

@@ -231,6 +231,71 @@
     "file": "apps/rn/tests/e2e/misfiled-expense.spec.ts",
     "token": "converting a QUARTERLY bill keeps its cadence"
   },
+  "S1P1-M1-CALL": {
+    "what": "pass-1 M1 — the grouped Expenses list and the 'where it goes' receipt both ENUMERATED BILL_CATEGORY_ORDER and filtered `e.category === category`, so a bill with an absent or unrecognised category matched no bucket and rendered nowhere while still being reserved from every paycheck. The fix is a CALL, not a helper: `resolveBillCategory` partitions into the real 'other' member, and a correct unused resolver is exactly what the defect already was",
+    "file": "apps/rn/src/app/(tabs)/money.tsx",
+    "token": "resolveBillCategory"
+  },
+  "S1P1-M1-LIST": {
+    "what": "pass-1 M1's user-facing half — the uncategorised bill renders under Other AND a known bill keeps its own heading. Both classes are asserted: the original `e.category ===` plant reds the first, an 'everything resolves to Other' plant reds the second, and either assertion alone leaves the other direction unfalsifiable. The helper waits on a ROW so the heading assertions are reached under both plants",
+    "file": "apps/rn/tests/e2e/bill-category-partition.spec.ts",
+    "token": "a bill the app cannot categorise still renders"
+  },
+  "S1P1-M1-RECEIPT": {
+    "what": "pass-1 M1's second site — `categoryBreakdown` fed the breakdown sheet through the same enumeration, so 'where it goes' was short by the same bill. Scoped to the dialog: unscoped, every row assertion is also satisfied by the list behind the sheet, so the receipt could render empty and pass",
+    "file": "apps/rn/tests/e2e/bill-category-partition.spec.ts",
+    "token": "receipt accounts for it"
+  },
+  "S1P1-M1-SHEET": {
+    "what": "pass-1 M1's third site, found by M1's own after-scan — `ExpenseSheet` seeded its picker from `editing?.category ?? 'other'`, which catches an ABSENT category and not an UNRECOGNISED one, so `Select` fell to its `?? 'Select'` fallback and saving an untouched form round-tripped the unreadable value back into the store. Reachable ONLY once M1 gave the bill a row to tap",
+    "file": "apps/rn/tests/e2e/bill-category-partition.spec.ts",
+    "token": "does not write the unreadable value back"
+  },
+  "S1P1-M2-SAVED": {
+    "what": "pass-1 M2 — the funded branch of a goal row printed `targetAmount` under the label `saved`, so an over-funded goal reported the SMALLER number: '$1,000 saved' over a pot holding $5,000, one inch under a hero that totals `currentAmount` correctly. The two are equal only exactly at the target, and nothing prevents over-funding (GoalSheet never compares the fields; a negative applyTightTopUp can do it alone)",
+    "file": "apps/rn/tests/e2e/goal-row-saved.spec.ts",
+    "token": "reports what is actually saved"
+  },
+  "S1P1-M2-BRANCHES": {
+    "what": "pass-1 M2's other class — exactly-at-target and short-of-target rows must not move. The at-target row is where the old code was accidentally right, so it proves the fix is a correction and not a substitution; the short row still reads a REMAINDER labelled `left`, and is the only assertion a widened `funded` reds (measured: 'Vacation, Funded, Savings, $500 saved')",
+    "file": "apps/rn/tests/e2e/goal-row-saved.spec.ts",
+    "token": "the two branches the fix must NOT move"
+  },
+  "S1P1-M2-UNREADTARGET": {
+    "what": "found by M2's after-scan and MEASURED before it was believed — .11.4 stopped a goal with an unreadable target from wearing a Funded pill and then let the row fall to the `left` branch, where Math.max(0, 0 - currentAmount) is $0: 'House Fund, Savings, $0 left' over $500 saved. The guard was on the badge and absent from the sentence beside it, the same shape as this pass's B1 and B5. Also the FIRST e2e over .11.4's own badge guard, which had none on this row",
+    "file": "apps/rn/tests/e2e/goal-row-saved.spec.ts",
+    "token": "not that $0 is left"
+  },
+  "S1P1-M3-BAND": {
+    "what": "pass-1 M3 — buildGuardianBrief derived the band from computeState(discretionary) on the recorded premise that 'a shortfall drives discretionary to 0 -> at-risk, so it needs no separate branch here'. The seam passes selectDiscretionary + appliedTopUp and the top-up term is not 0, so a shortfall with a top-up on record read CLEAR. The branch the comment called unnecessary is now written",
+    "file": "packages/core/guardian/testBuildGuardianBrief.ts",
+    "token": "a shortfall is at-risk even with headroom on the input"
+  },
+  "S1P1-M3-SELECTOR": {
+    "what": "pass-1 M3 at the seam that produces it, plus the counter-fixtures. This file had ZERO cycleTopUp cases before (grep -c returned 0), so the one input that falsifies the band's premise was untestable here. Carries the covered-and-tight rows too: `state = at-risk` unconditionally passes the shortfall assertions and only those reds it",
+    "file": "apps/rn/src/store/guardianSelectors.test.ts",
+    "token": "a shortfall is at-risk even with a top-up on record"
+  },
+  "S1P1-M3-RENDER": {
+    "what": "pass-1 M3's user-facing half, and the ONLY place it can be pinned — the copy branch sets `detail` from shortfall > 0 regardless of the band, so the selector cannot see this. PaydayGuardianCard's gate (stale || pausedDeploy || state === 'at-risk') had no test of any kind. Asserts the Guardian's own sentence: measured, the defective card still contained '$400' via RecoveryPlanSection, so a bare /\\$400/ assertion passed with the defect present",
+    "file": "apps/rn/tests/e2e/guardian-shortfall-topup.spec.ts",
+    "token": "states its amount on the card even with a top-up on record"
+  },
+  "S1P1-M3-AFFORD": {
+    "what": "found by M3's after-scan and MEASURED — the same mechanism one door over. selectSpendable is 0 on any shortfall, so `+ appliedTopUp` was the whole figure and selectAffordability told a user who could not cover their bills that a $150 purchase was 'tight' (cushionAfter $50) instead of 'short' (shortBy $150). Fixed as a blanket 0 rather than netting, so the two cards cannot sit on one screen disagreeing about the same cushion — the class that seam's own comment records",
+    "file": "apps/rn/src/store/guardianSelectors.test.ts",
+    "token": "a purchase during a shortfall is SHORT"
+  },
+  "S1P1-M4-CONSERVES": {
+    "what": "pass-1 M4 — PlanHero's `required` was `summary.requiredTotal`, what is OWED, while the headline is exactly `paycheckAmount`; in a shortfall the parts exceeded the whole and `flexGrow` normalised the bar to the full track, so 'Required $1,400 · Spoken for $300' sat under a $1,000 headline looking ordinary. Asserts the INVARIANT (segments sum to the headline) rather than a row of figures, with a parse guard because nulls make 0===0 read as conserving",
+    "file": "apps/rn/tests/e2e/plan-hero-conserves.spec.ts",
+    "token": "the paycheck split conserves in a SHORTFALL"
+  },
+  "S1P1-M4-NOTZERO": {
+    "what": "pass-1 M4's other class — a healthy cycle must be untouched AND the Required segment must still carry its real value. `required = 0` conserves trivially whenever the whole paycheck lands in Flexible, so the sum assertion alone cannot falsify a fix that simply zeroed the segment; measured under that plant, both tests red on the parse guard",
+    "file": "apps/rn/tests/e2e/plan-hero-conserves.spec.ts",
+    "token": "the branch the fix must not move"
+  },
   "S1P1-B5-PROXY": {
     "what": "pass-1 B5's fallout — recovery.spec's P1-4 test asserted page-wide that \"Essential 11\" appeared nowhere, a PROXY for the cover-now line that held only while nothing else on Today named the bills. Restoring the obligations reddened it without `summariseNames` changing. Rescoped to `recovery-cover-now-names` and plant-verified against P1-4's original run-on",
     "file": "apps/rn/tests/e2e/recovery.spec.ts",

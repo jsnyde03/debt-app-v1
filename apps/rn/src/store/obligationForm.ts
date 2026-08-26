@@ -67,6 +67,28 @@ export function billCategoryOptions(): { value: RequiredExpenseCategory; label: 
 }
 
 /**
+ * ⛔ **THE category a bill is RENDERED under — every list that groups `requiredExpenses` goes through
+ * this.** [S1 · pass 1 · M1] Money's grouped list and its "where it goes" receipt were both built by
+ * `BILL_CATEGORY_ORDER.map()` + `filter(e => e.category === category)`, which ENUMERATES a menu instead
+ * of PARTITIONING the input: a bill whose `category` is absent or unrecognised matched no bucket and
+ * rendered nowhere — uneditable, undeletable, invisible to search — **while still being reserved from
+ * every paycheck**, so the hero read "$436 recommended" over rows summing to $386.
+ *
+ * `category` is schema-optional (`debtPlannerStorage.ts`) and **no migration backfills it**; the import
+ * doors (`readBackup.ts` — `raw-v17` hands arbitrary JSON straight to `runMigrations`, `v16-file` maps
+ * `requiredExpenses` as a straight key copy) do no field-level validation, so both the absent and the
+ * unknown-string cases reach the store intact. v1.6's own list item rendered `category ?? "other"`.
+ *
+ * ⚡ `'other'` is a REAL member of `BILL_CATEGORY_ORDER`, so resolving into it **partitions by
+ * construction** — a trailing "everything not matched above" group would be a second bucket meaning the
+ * same thing. ⛔ Not for `billCategoryOptions()`: a PICKER is an enumeration by definition, and that is
+ * the distinction any future gate for this class has to make.
+ */
+export function resolveBillCategory(e: { category?: RequiredExpenseCategory }): RequiredExpenseCategory {
+  return e.category != null && BILL_CATEGORY_ORDER.includes(e.category) ? e.category : 'other';
+}
+
+/**
  * Validation messages the entity sheets share.
  *
  * Five sheets each wrote their own *"Enter a name."*, and the onboarding first-debt step wrote a third

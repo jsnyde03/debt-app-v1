@@ -402,7 +402,23 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   // ("You have about $X spare this paycheck"), and `selectDiscretionary` is the partition TOTAL, which
   // still contains 3.8's reserve for upcoming bills. It read $850 while `PlanHero` showed "Flexible $675"
   // ON THE SAME SCREEN. The band selectors keep `selectDiscretionary` deliberately — see the note there.
-  const discretionaryNow = selectSpendable(base) + appliedTopUp(store);
+  //
+  // ⛔ **AND THE SHORTFALL IS NETTED FIRST — the same defect as M3, one door over.** [S1 · found by M3's
+  // after-scan · measured, not reasoned] `selectSpendable` is 0 on any shortfall, so `+ appliedTopUp` was
+  // the whole figure, and this card told a user who could not cover their bills that a purchase was fine:
+  //
+  //     $2,000 in · $2,400 of bills · $200 moved from a goal · a $150 purchase
+  //       with the record → shortfall 400 · verdict TIGHT       · cushionAfter 50 · shortBy 0
+  //       without it      → shortfall 400 · verdict SHORT       ·  cushionAfter 0 · shortBy 150
+  //
+  // ⚡ **A blanket 0, not `spendable + topUp − shortfall`**, and the reason is this comment's own history:
+  // netting would leave a small spare whenever the top-up exceeded the shortfall, and the Guardian's band
+  // is `at-risk` for the whole of that range — so the two cards would sit on ONE screen disagreeing about
+  // the same cushion again, which is the exact class the paragraph above exists to record. One rule,
+  // stated once, at both seams: **while the cycle is short there is no spare.**
+  //
+  // ⚠️ The control is unmoved by construction: with no top-up on record the figure was already 0 here.
+  const discretionaryNow = base.shortfall > 0 ? 0 : selectSpendable(base) + appliedTopUp(store);
   const floor = store.cushionFloor ?? 200;
   const { verdict, cushionAfter, shortBy } = computeAffordability(discretionaryNow, amount, floor);
 

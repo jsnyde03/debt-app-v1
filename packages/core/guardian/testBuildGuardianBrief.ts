@@ -56,6 +56,20 @@ function runGuardianTests() {
   // ── Acute shortfall → at-risk, extra paused (obligations never cut) ──
   const short = buildGuardianBrief(input({ shortfall: 180, discretionary: 0 }));
   assertEqual(short.state, "at-risk", "a shortfall → at-risk");
+
+  /**
+   * ⛔ **[S1 · pass 1 · M3] THE ROW ABOVE IS A TRUE ASSERTION ABOUT A MEMBER, NOT ABOUT THE CLASS.** It
+   * hands the function `discretionary: 0` — the one input shape the band's now-retired premise assumed
+   * every shortfall produces. `guardianSelectors` passes `selectDiscretionary(allocation) +
+   * appliedTopUp(store)`, and the top-up term survives a shortfall, so the real caller reaches this
+   * function with `shortfall > 0` AND `discretionary > 0` — and `computeState` called that `clear`.
+   *
+   * ⚠️ `discretionary` here comfortably clears the floor: the point is that the band must NOT be derived
+   * from it while the paycheck cannot cover its obligations. This is the row that fails if the branch is
+   * ever removed as redundant, which is precisely how it went missing the first time.
+   */
+  const shortWithHeadroom = buildGuardianBrief(input({ shortfall: 180, discretionary: 400, kept: 400, floor: 200 }));
+  assertEqual(shortWithHeadroom.state, "at-risk", "M3 — a shortfall is at-risk even with headroom on the input");
   assertTrue(/paused/i.test(short.safeMove ?? ""), "shortfall → paused extra payoff (never cuts an obligation)");
   assertEqual(short.shortfall, 180, "the brief carries the shortfall amount");
 

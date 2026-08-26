@@ -43,7 +43,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { useActiveStore } from '@/store/StoreContext';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
 import { hasUnreadDebtBalances, hasUnreadGoalAmounts } from '@/store/trustSelectors';
-import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL } from '@/store/obligationForm';
+import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL, resolveBillCategory } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
 import { selectAllocation } from '@/store/selectors';
@@ -603,7 +603,9 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
   // Per-category smoothed contributions (recurring only) — feeds both the hero allocation bar and
   // the "where it goes" receipt. Sorted largest → smallest for the bar's tonal ramp.
   const categoryBreakdown = BILL_CATEGORY_ORDER.map((category) => {
-      const catBills = recurring.filter((e) => e.category === category);
+      // ⛔ `resolveBillCategory`, never `e.category` — see its docblock. [S1 · M1] This receipt dropped
+      // the same uncategorised bill the grouped list below did, so "where it goes" was short by it too.
+      const catBills = recurring.filter((e) => resolveBillCategory(e) === category);
       return {
         key: category,
         label: BILL_CATEGORY_LABEL[category],
@@ -651,7 +653,8 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
     const once = expenses.filter((e) => e.recurrence === 'one-time');
 
     const groups: BillGroup[] = BILL_CATEGORY_ORDER.map((category) => {
-      const items = recur.filter((e) => e.category === category);
+      // ⛔ `resolveBillCategory`, never `e.category` — see its docblock. [S1 · M1]
+      const items = recur.filter((e) => resolveBillCategory(e) === category);
       const shown = items.filter(match);
       // Count + subtotal track matches while searching, else the full group (so a collapsed header
       // still shows its true count + per-paycheck overview). Search overrides collapse.
@@ -754,6 +757,7 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
   return (
     <View style={styles.flex}>
       <MoneyHero
+        valueTestID="money-hero-expenses-value"
         value={hero.value}
         sub={hero.sub}
         caption={hero.caption}
@@ -1028,7 +1032,21 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
            * while OTHER repairs are pending. The suppression is about *this* number being unreadable, not
            * about the store being generally suspect.
            */
-          const funded = g.currentAmount >= g.targetAmount && !(unreadGoals && g.targetAmount === 0);
+          /**
+           * ⛔ **SUPPRESSING THE BADGE WAS HALF THE FIX, AND THE OTHER HALF STATED SOMETHING FALSE.**
+           * [S1 · found by M2's after-scan · measured, not reasoned] `.11.4` stopped a goal with an
+           * unreadable target from wearing a **Funded** pill — and then let the row fall through to the
+           * `left` branch, where `Math.max(0, 0 - currentAmount)` is **`$0`**. Measured on the real
+           * screen: `"House Fund, Savings, $0 left"` over $500 saved and a target the app could not read,
+           * one inch under a hero that says *"one target could not be read"* and correctly drops its own
+           * progress bar. **The guard was on the badge and absent from the sentence beside it** — the
+           * same shape as this pass's B1 and B5.
+           *
+           * ⚠️ The `pct` bar goes with it, for the hero's reason: a fill computed against a target that
+           * could not be read is a second false signal, and it would draw 0% over money that exists.
+           */
+          const targetUnreadable = unreadGoals && g.targetAmount === 0;
+          const funded = g.currentAmount >= g.targetAmount && !targetUnreadable;
           // ⚠️ Only THE emergency fund is labelled as one. [P6.8.9.7.11.12 · A-J2-4] A second
           // `emergency`-typed goal is funded through the savings rungs, and a row claiming "Emergency
           // fund" while behaving as savings is the misdescription the fix exists to end.
@@ -1038,10 +1056,31 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
               key={g.id}
               title={g.name}
               meta={meta}
-              amount={funded ? formatWhole(g.targetAmount) : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))}
-              amountSuffix={funded ? ' saved' : ' left'}
+              /**
+               * ⛔ **`currentAmount` under the label `saved` — the two are equal ONLY at the target.**
+               * [S1 · pass 1 · M2] The funded branch printed `targetAmount`, so a goal past its target
+               * reported the SMALLER number and called it the amount saved: *"$1,000 saved"* over a pot
+               * holding $5,000, one inch under a hero that totals `currentAmount` correctly and says
+               * *"$5,500 · 183% funded"*. Nothing prevents over-funding — `GoalSheet.submit()` validates
+               * target and current independently and never compares them, and a negative `applyTightTopUp`
+               * (an undo) can push `currentAmount` past the target on its own.
+               *
+               * ⚠️ `formatWhole`, matching the hero directly above rather than the `left` branch beside it:
+               * the figure this row was caught DISAGREEING with is the hero's, so they now agree by
+               * construction. The `left` branch keeps `formatCurrency` — a remainder is the one place
+               * cents are worth showing.
+               */
+              amount={
+                funded || targetUnreadable
+                  ? formatWhole(g.currentAmount)
+                  : formatCurrency(Math.max(0, g.targetAmount - g.currentAmount))
+              }
+              amountSuffix={funded || targetUnreadable ? ' saved' : ' left'}
+              // ⛔ The honest state, SAID — not merely the false one withheld. The row states what the
+              // user actually has and names why there is no remainder; the hero's wording, per row.
+              caption={targetUnreadable ? 'Target could not be read' : undefined}
               badges={funded ? [{ label: 'Funded', tone: 'paid' }] : undefined}
-              progress={pct}
+              progress={targetUnreadable ? undefined : pct}
               onPress={() => setSheet({ editing: g })}
               onDelete={() => store_.getState().removeGoal(g.id)}
             />

@@ -1,6 +1,6 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
-import { selectCalibrationScore, selectPaydayGuardian, selectRiskNotification, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
+import { selectAffordability, selectCalibrationScore, selectPaydayGuardian, selectRiskNotification, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 
 /**
  * RS.2 — comprehensive break-it coverage for the Guardian SELECTORS (the newest, least-covered
@@ -27,6 +27,12 @@ function store(o: {
   bills?: number[];
   living?: number;
   goals?: { type: 'emergency' | 'savings'; current: number; target?: number }[];
+  /**
+   * §2.10 cash already moved from a goal to checking THIS cycle. [S1 · pass 1 · M3] Added because this
+   * file had **zero** `cycleTopUp` cases — `grep -c` returned 0 — so the one input that falsifies the
+   * band's own premise was untestable here.
+   */
+  topUp?: number;
 } = {}): DebtStore {
   const s = createDefaultStore();
   const today = s.paycheck.currentDate;
@@ -47,6 +53,17 @@ function store(o: {
       type: g.type, currentAmount: g.current, targetAmount: g.target ?? 5000,
     })),
     prefs: { ...s.prefs, onboardingComplete: true },
+    // Keyed to the cycle, exactly as `applyTightTopUp` writes it — `appliedTopUp` returns 0 for any other
+    // `forCycle`, so a record keyed to the wrong date would silently test nothing.
+    ...(o.topUp
+      ? {
+          cycleTopUp: {
+            forCycle: s.paycheck.nextPaycheckDate,
+            amount: o.topUp,
+            entries: [{ source: 'guardian' as const, goalId: 'g0', amount: o.topUp }],
+          },
+        }
+      : {}),
   };
 }
 
@@ -261,6 +278,68 @@ function run() {
     eq(noRung?.state, 'clear', 'discretionary exactly at the floor → clear (not tight)');
     eq(noRung?.deployedToDebt, 0, '…with no pre-debt rung and no spare to debt');
     assert(!!noRung?.detail.includes('keeps all of it as your cushion'), '…still says so, because this time it is true');
+  }
+
+  // ── [S1 · pass 1 · M3] An APPLIED top-up must not talk the band out of a shortfall ──
+  //
+  // `buildGuardianBrief` used to derive the band from `computeState(discretionary, …)` alone, on the
+  // recorded premise that *"a shortfall drives `discretionary` to 0 → at-risk, so it needs no separate
+  // branch"*. `selectDiscretionary` is 0 on any shortfall — but this seam passes
+  // `selectDiscretionary(allocation) + appliedTopUp(store)`, and the top-up term is not. With the band no
+  // longer `at-risk`, `PaydayGuardianCard` drops `brief.detail`, which is the only place the dollar
+  // figure appears in the card's own copy, and draws the `clear` tone's good-standing shield under a
+  // title saying the paycheck will not cover everything.
+  //
+  // ⚠️ `selectTightTopUp` refuses to OFFER a top-up while `allocation.shortfall > 0`, so this state is
+  // reached by going short AFTER the move — which is the ordinary case, not an exotic one.
+  {
+    const shortWithTopUp = store({ premium: true, amount: '2000', bills: [2400], floor: 200, topUp: 200, goals: [{ type: 'savings', current: 1000 }] });
+    const brief = selectPaydayGuardian(shortWithTopUp);
+    assert((brief?.shortfall ?? 0) > 0, 'M3 fixture really is short (the assertion below is vacuous otherwise)');
+    eq(brief?.state, 'at-risk', 'M3 — a shortfall is at-risk even with a top-up on record');
+    // ⚠️ A PRECONDITION, NOT A GUARD — and labelled as one because no mutation of the band can red it.
+    // The copy branch keys off `shortfall > 0` independently of `state`, so the sentence exists either
+    // way; what the defect changed was whether the CARD renders it. Measured under the plant: `state`
+    // came back `clear` with `detail` still set to the shortfall sentence. The render gate is pinned in
+    // `guardian-shortfall-topup.spec.ts`, which is the only place it can be.
+    assert(!!brief?.detail && /short/.test(brief.detail), 'M3 precondition — the shortfall sentence exists to be rendered');
+
+    // The control, same store minus the record. Without it the fixture proves nothing about the top-up.
+    const shortNoTopUp = store({ premium: true, amount: '2000', bills: [2400], floor: 200, goals: [{ type: 'savings', current: 1000 }] });
+    eq(selectPaydayGuardian(shortNoTopUp)?.state, 'at-risk', 'M3 control — still at-risk without the record');
+
+    // ⛔ THE OTHER DIRECTION, and it is what makes the fix a branch rather than a blunt override: a
+    // COVERED cycle with a top-up on record must be completely unmoved. Without this row, `state =
+    // "at-risk"` unconditionally would pass every assertion above.
+    const coveredWithTopUp = store({ premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], floor: 200, topUp: 200, goals: [{ type: 'savings', current: 1000 }] });
+    // ⚠️ `?? 0` — `GuardianBrief.shortfall` is optional and set only on the shortfall branch, so a covered
+    // read carries `undefined`, not `0`. Comparing against `0` directly fails on the very case it exists
+    // to describe.
+    eq(selectPaydayGuardian(coveredWithTopUp)?.shortfall ?? 0, 0, 'M3 counter-fixture really is covered');
+    eq(selectPaydayGuardian(coveredWithTopUp)?.state, 'clear', 'M3 — a COVERED cycle with a top-up is untouched');
+
+    // And the tight band still exists between them: the fix must not have collapsed three bands into two.
+    const tightWithTopUp = store({ premium: true, amount: '2000', debts: [{ balance: 5000, min: 100 }], bills: [1750], floor: 200, topUp: 20, goals: [{ type: 'savings', current: 1000 }] });
+    eq(selectPaydayGuardian(tightWithTopUp)?.shortfall ?? 0, 0, 'M3 tight-fixture is covered, just under the line');
+    eq(selectPaydayGuardian(tightWithTopUp)?.state, 'tight', 'M3 — `tight` survives; the fix touches only the shortfall case');
+
+    // ── M3's second door, found by its after-scan and MEASURED before it was believed ──
+    //
+    // `selectAffordability` adds `appliedTopUp` for the reason its own comment records — cash moved from
+    // savings really is in checking, and without it the two cards disagreed about the same cushion. But
+    // `selectSpendable` is 0 on any shortfall, so the top-up was the WHOLE figure: with a $400 shortfall
+    // and $200 on record, a $150 purchase came back `tight` (cushionAfter $50) instead of `short`
+    // (shortBy $150). The app told a user who could not cover their bills that the purchase was fine.
+    const affordShort = selectAffordability(shortWithTopUp, 150);
+    eq(affordShort?.verdict, 'short', 'M3b — a purchase during a shortfall is SHORT, top-up on record or not');
+    eq(affordShort?.shortBy, 150, '…and short by the whole amount, matching the no-top-up control');
+    eq(selectAffordability(shortNoTopUp, 150)?.verdict, 'short', 'M3b control — the no-record store already behaved');
+
+    // The other direction: a covered cycle must still SEE the top-up, which is what 3.7.A3.6 added it for.
+    // A blanket `0` everywhere would pass every assertion above and silently undo that fix.
+    const affordCovered = selectAffordability(coveredWithTopUp, 150);
+    eq(affordCovered?.verdict, 'comfortable', 'M3b — a covered cycle is unmoved');
+    assert((affordCovered?.cushionAfter ?? 0) > 0, '…and still counts the moved cash, per 3.7.A3.6');
   }
 
   console.log(`✅ Guardian selector (RS.2) tests passed (${passed} asserts).`);

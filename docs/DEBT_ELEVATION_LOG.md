@@ -58,6 +58,346 @@ Then **S1.6** *(gate + record — `lint:gate-freshness` is red and stays red unt
 
 ---
 
+## ✅ S1.5.5a — M1: the list ENUMERATED a menu where it should have PARTITIONED its input *(2026-08-26)*
+
+### The switch-in check first — all four premises still live
+
+S1.5.5 was authored against `bc29dfe` and four fix rounds have landed since, so every cited line was
+re-read at HEAD before touching anything. **All four hold**; only the line numbers moved. Two things
+were measured rather than assumed, and both narrowed the work:
+
+- **M1 has exactly two render sites**, both in `money.tsx` (`categoryBreakdown:605`, `groups:653`).
+  `billCategoryOptions()` is the third `BILL_CATEGORY_ORDER` consumer and is **correct** — a picker is an
+  enumeration by definition, and that distinction is the whole reason a lint gate for this class is hard.
+- **M3's `+ appliedTopUp` hole is one seam, not three.** `planSelectors.ts:403` and
+  `buildMultiCycleTimeline.ts:131/206` also derive bands from `computeState`, and **neither adds the
+  top-up** — so the fix does not have to reason about them.
+
+### The fix: `resolveBillCategory`, and it is a CALL that was missing, not a helper
+
+`'other'` is a real member of `BILL_CATEGORY_ORDER`, so resolving into it **partitions by construction**.
+A trailing "everything not matched above" group — the obvious move — would have been a second bucket
+meaning the same thing as an existing one. The resolver also catches the case `?? 'other'` cannot: a
+category string the app does not recognise, which is what the import doors actually produce
+(`readBackup.ts` `raw-v17` hands arbitrary JSON to `runMigrations`; `v16-file` is a straight key copy).
+
+### ⚡ The after-scan found a THIRD site, and it was reachable only because of the fix
+
+`ExpenseSheet.tsx:36` seeded its picker from `editing?.category ?? 'other'` — which catches an **absent**
+category and not an **unrecognised** one. So `Select` fell through to its `?? 'Select'` fallback and showed
+an existing bill as though its category had never been set; saving the untouched form wrote `'groceries'`
+straight back. **Before M1 there was no row to tap**, so this was unreachable — the fix created the door
+and the after-scan is the only pass that could have found it. Fixed in the same range ([D65]).
+
+### Plants — three directions, because the fix sorts bills into two classes
+
+| plant | applied? | result |
+|---|---|---|
+| **A** — restore `e.category === category` at both sites | diff-verified YES | all 3 specs red on the uncategorised rows |
+| **A, relaxed** — same plant, the `'Other'` heading assertion commented out | diff-verified YES | red on `'Storage unit'` — the assertion **behind** the first one is load-bearing too |
+| **B** — `resolveBillCategory` returns `'other'` unconditionally | diff-verified YES | tests 1 + 3 red on the **`Housing` heading**, which is the only assertion that can falsify this direction |
+| **C** — restore `editing?.category ?? 'other'` in the sheet | diff-verified YES | red on the picker; **relaxed, red on the store with `Received: "groceries"`** |
+
+⚠️ **Test 2 (search) stays GREEN under plant B, correctly.** Search is category-independent, so the
+mutation does not perturb what that test claims — the second failure mode from `verify-the-plant-applied`,
+answered rather than assumed. Plant A already proved it load-bearing.
+
+⛔ **Two assertions were rewritten because the plants exposed them as unfalsifiable, not because they
+failed.** The `openExpenses` helper waited on the `Housing` **heading**, which would have red the helper
+first under plant B and left every in-test heading assertion unreached — the plant would have looked sound
+while proving only that the helper works. And the receipt test's "known-category half" asserted the **row**
+`Rent`, which is true under plant B too; it now asserts the **heading**. Both are
+`plant-that-reds-early-hides-assertions` caught at authoring time.
+
+### Verification
+
+`apps/rn/tests/e2e/bill-category-partition.spec.ts` — **4 tests, all green** · `lint:rn` **27 of 27** ·
+`typecheck` green (core · rn · scripts · tests). **4 guards registered**, `MIN_ENTRIES` 60 → 64 in the same
+edit: `S1P1-M1-CALL` *(the call site, because a correct unused resolver is exactly what the defect already
+was)* · `S1P1-M1-LIST` · `S1P1-M1-RECEIPT` · `S1P1-M1-SHEET`. Registry now **48 of 64 guarded, 16 unguarded,
+cap unmoved.**
+
+⚠️ **One incidental addition:** the Expenses hero had no `valueTestID`, so the receipt sheet was
+unreachable from a spec. Added `money-hero-expenses-value`, per that component's own per-caller rule.
+
+---
+
+## ✅ S1.5.5b — M2: the funded branch printed the TARGET under the label `saved` *(2026-08-26)*
+
+A one-line correction — `formatWhole(g.currentAmount)` where it read `g.targetAmount`. The two are equal
+only exactly at the target, so above it the row reported the **smaller** number and called it what was
+saved. `formatWhole` and not `formatCurrency`, deliberately: the figure this row was caught disagreeing
+with is the **hero's**, which is `formatWhole(totalSaved)`, so they now agree by construction. The `left`
+branch keeps `formatCurrency` — a remainder is the one place cents are worth showing.
+
+**Direction, stated:** the `funded` branch fires only when `currentAmount >= targetAmount`, so the change
+can only ever **raise** the printed figure. There is no input on which it under-reports, which is why the
+opposite direction does not need a separate remedy.
+
+### ⚡ The after-scan found a second falsehood in the same row — and this one was MEASURED, not reasoned
+
+`.11.4` stopped a goal whose target could not be read from wearing a **Funded** pill. It then let that row
+fall through to the `left` branch, where `Math.max(0, 0 - currentAmount)` is **`$0`**. Probed on the real
+screen rather than argued from the source:
+
+```
+ROWS: ["House Fund, Savings, $0 left",     ← $500 saved, target unreadable
+       "Vacation, Savings, $1,500 left"]
+HERO: "$1,000  saved — one target could not be read"
+```
+
+**The hero carries the honest disclosure and drops its progress bar; the row one inch below states the
+goal needs $0 more.** ⛔ **The guard was on the BADGE and absent from the SENTENCE beside it** — which is
+this pass's **B1 and B5 for a third time**, on a screen both of those already visited.
+
+Fixed by giving the case its own branch: the amount states what **is** saved, a caption says *"Target
+could not be read"* in the hero's own words, the **Funded** pill stays suppressed, and the progress bar
+goes too *(a fill computed against a target that could not be read would draw 0% over money that exists —
+the hero's reason, applied one level down)*. ⚠️ **The positive assertion is written first and is the
+load-bearing one**: *"`$0 left` is absent"* is equally true of a row that never rendered, and of a fix
+that swaps one falsehood for a quieter one — which is precisely what the badge-only fix did.
+
+### Plants — four, and one of them re-verifies a SHIPPED guard
+
+| plant | applied? | result |
+|---|---|---|
+| **1** — restore `formatWhole(g.targetAmount)` | diff-verified YES | test 1 red: `"Emergency Fund, Funded, Emergency fund, $1,000 saved"` — the defect verbatim |
+| **1, relaxed** | Edit-verified YES | the hero assertion is **reached and passes** — evaluated, not skipped, and correctly insensitive to the row's defect |
+| **2** — `const funded = true` | grep-verified YES | test 2 red: `"Vacation, Funded, Savings, $500 saved"`. The short-of-target row is the only assertion that can falsify a widened branch |
+| **3** — restore the badge-only fix | grep-verified YES | test 3 red: `"House Fund, Savings, $0 left"`; **relaxed**, red on the caption |
+| **4** — drop `&& !targetUnreadable` from `funded` | grep-verified YES | red: `"House Fund, Funded, Savings, $500 saved"` — **`.11.4`'s guard now has an e2e for the first time**; it had none on this row |
+
+⛔ **A `node -e` file write silently did nothing again** — third logged instance in this cluster. It was
+caught only because the plant loop greps for the planted string before running; the run would otherwise
+have reported the suite sound. Every plant here after that point was made with the Edit tool.
+
+⚠️ **A `sed`-based relax reported `relax-applied=NO` and was believed** — the escaping did not match. That
+is the check working, and it is the reason `relax-applied` is printed rather than assumed.
+
+### Verification
+
+`apps/rn/tests/e2e/goal-row-saved.spec.ts` — **3 tests green** · `lint:rn` **27 of 27** · `typecheck` green.
+**3 guards registered**, `MIN_ENTRIES` 64 → 67: `S1P1-M2-SAVED` · `S1P1-M2-BRANCHES` ·
+`S1P1-M2-UNREADTARGET`. Registry **51 of 67 guarded, 16 unguarded, cap unmoved.**
+
+---
+
+## ✅ S1.5.5c — M3: a contingent fact about one caller, written down as a law *(2026-08-26)*
+
+`buildGuardianBrief` derived the band from `computeState(discretionary, …)` alone, on a recorded premise:
+*"A shortfall drives `discretionary` to 0 → at-risk, so it needs no separate branch here."* True of
+`selectDiscretionary`. Not true of what the seam actually passes —
+`selectDiscretionary(allocation) + appliedTopUp(store)`. **Reproduced at HEAD before touching anything**,
+because the audit's probe predated four fix rounds:
+
+```
+cycleTopUp PRESENT ($200)   shortfall 300 · state CLEAR   · detail rendered? false
+cycleTopUp ABSENT (control) shortfall 300 · state AT-RISK · detail rendered? true
+```
+
+**The branch is written rather than the proxy repaired.** A shortfall *is* at-risk by the band's own
+definition — *"can't cover obligations"* — and stating that directly cannot go stale the way an
+observation about one caller's arithmetic did. ⛔ **Gated on `shortfall > 0`, so it can only ever push a
+band DOWN**, which is the safe direction and matches the hysteresis rule that worsening is immediate.
+⚠️ **Not a divergence from F4's one-state-machine rule:** `selectPlanSummary` passes a bare
+`selectDiscretionary`, already 0 in this case, so the two producers now **agree** where they did not.
+
+### ⚡ The after-scan found the same mechanism one door over, and MEASURED it
+
+`selectAffordability` adds `appliedTopUp` for a good recorded reason — cash moved from savings is really
+in checking, and without it two cards on one screen disagreed about the same cushion. But `selectSpendable`
+is also 0 on a shortfall, so the top-up was the **whole figure**:
+
+```
+$2,000 in · $2,400 of bills · $200 moved from a goal · a $150 purchase
+  with the record → shortfall 400 · verdict TIGHT · cushionAfter  50 · shortBy   0
+  without it      → shortfall 400 · verdict SHORT · cushionAfter   0 · shortBy 150
+```
+
+**The app told a user who could not cover their bills that the purchase was fine.** Fixed as a **blanket
+0, not `spendable + topUp − shortfall`** — netting would leave a spare whenever the top-up exceeded the
+shortfall, and the band is `at-risk` across that whole range, so the two cards would sit on one screen
+disagreeing about the same cushion again. **One rule at both seams: while the cycle is short there is no
+spare.**
+
+### ⛔ The plant caught a VACUOUS assertion in my own new spec
+
+The first cut of the e2e asserted `toContainText(/\$400/)`. Under the plant the defective card **still
+contained `$400`** — `RecoveryPlanSection` prints *"cover the $400 gap from savings"* — so that assertion
+**passed with the defect present.** It survived only because `/short/` red first and hid it. ⚡ The
+surviving figure is exactly why this finding is a `major` and not a `blocker`, and it is the same fact
+that made the loose assertion worthless. Rewritten to the Guardian's own sentence, `/about \$400 short/`.
+
+**The covered-cycle test had the mirror problem**: `not.toContainText(/short of the/)` is true of a clear
+cycle whether the band is right or forced, so it could falsify nothing. The card was **dumped and read**
+rather than guessed at — it says *"Your line's held"* — and that is now the positive assertion.
+
+### Plants — five, all diff- or grep-verified
+
+| plant | result |
+|---|---|
+| revert the branch → selector | red: `expected "at-risk", got "clear"` |
+| revert the branch → **core** | red: `expected "at-risk", got "clear"` on the new `discretionary: 400` row |
+| revert the branch → **e2e** | red on `/about \$400 short/`; control + covered stay green, correctly |
+| `state = "at-risk"` unconditionally | red on the covered row (`"high headroom → clear"`) **and** on the e2e's *"Your line's held"* |
+| revert / blanket-zero `selectAffordability` | red both ways: `got "tight"` forward, `got "short"` on the covered counter-fixture |
+
+⛔ **`testBuildGuardianBrief.ts` pinned the shortfall case as `input({ shortfall: 180, discretionary: 0 })`**
+— it handed the function the one input shape the retired premise assumed. That is a true assertion about a
+**member**, not the class, and it is why nothing red when the class broke. A `discretionary: 400` row now
+sits beside it.
+
+⚠️ **`lint:comments` ([D17]) rejected the first version of the fix's own comment** — it opened *"the branch
+this comment used to say was unnecessary"*, and correcting a false comment means **deleting** it, not
+annotating it. Rationale about the **code's** past is permitted; commentary about the comment is not.
+
+### Verification
+
+`lint:rn` **27 of 27** · `typecheck` green · `test:app` · `test:regression` · `test:scenarios` all green ·
+`guardian-shortfall-topup.spec.ts` **3 green**. **4 guards registered**, `MIN_ENTRIES` 67 → 71:
+`S1P1-M3-BAND` · `S1P1-M3-SELECTOR` · `S1P1-M3-RENDER` · `S1P1-M3-AFFORD`. Registry **55 of 71 guarded, 16
+unguarded, cap unmoved.** ⚠️ `guardianSelectors.test.ts` had **zero** `cycleTopUp` cases before this; the
+helper gained a `topUp` option keyed to `nextPaycheckDate`, because a record keyed to any other date makes
+`appliedTopUp` return 0 and the fixture test nothing.
+
+---
+
+## 📋 [D73] — the test tree goes on a surface. S1.7's decomposition, authored ahead of switch-in
+
+🎯 2026-08-26: *"We should have e2e coverage on audits. I agree with your reasoning."* Answers the
+`[DECISION]` S1.5.5's whole-item after-scan filed. **Held until S1.6's gate record is committed** —
+`scripts/` is inside the release gate's fingerprint, so editing the instrument while
+`validate:release:rn` is in flight records a green over code the suites never saw, which is [D49]'s own
+failure mode wearing a new face.
+
+### The measured scope — 99 files on no surface at all
+
+| tree | files | what it is |
+|---|---|---|
+| `apps/rn/tests/e2e` | **62 specs + 1 helper** | where most registered finding-guards live |
+| `apps/rn/tests/shots` | 10 | screenshot recipes — they produce the audit rounds' own evidence |
+| `apps/rn/tests/embed` | 3 | the marketing-embed harness, with its own gate |
+| `packages/core/testing` | 20 | the regression runner and its suites |
+| `apps/rn/src/testing` | 3 | the app + scenario runners |
+
+### The design is already settled by the instrument's own rules — three of them
+
+1. ⛔ **WIDEN A ROOT, ROUTE WHAT IS NOT MONEY.** `surface-coverage.ts` says it in those words. M9 was
+   caused by hand-named files in `roots`; the fix must not re-create that by hand-naming 62 specs.
+2. ⛔ **AN EXCLUSION NAMES THE SURFACE THAT OWNS THE FILE**, validated against `KNOWN_SURFACES`.
+3. ⛔ **WHEN THE OWNER IS ARGUABLE, THE FILE STAYS** — *"an exclusion list only fails safe for as long as
+   its entries are certainties."* ⚠️ This is the rule that decides the awkward cases, and there are many:
+   `a11y-axe`, `blur-glass`, `ipad-layouts`, `sheet-polish`, `route-smoke` are visual/a11y specs and
+   **visual/a11y is not one of S0–S4.** They stay, and S1's count absorbs them. That is the design working,
+   not a mis-routing.
+
+⚠️ **The runners are INSTRUMENTS, so their owner is S0**, by the same reasoning that made
+`apps/rn/src/data/migrationAudit` an S0 root. ⛔ **This adds files to S0 after it converged** — and that is
+the honest consequence, not a reason to skip it. [D70] closed S0 on *instruments-sound*, and a runner
+nobody ever audited is exactly an unaudited instrument.
+
+### The steps
+
+| # | step |
+|---|---|
+| **S1.7.1** | Add `apps/rn/tests` to S1's roots and `packages/core/testing` + `apps/rn/src/testing` to S0's. **No hand-named files.** |
+| **S1.7.2** | Route the certainties out, each naming its owner: backup/restore/CSV/scan → `s3` · coach-marks/tutorial/demo/probe-mark → `s4` · the date specs → `s2` · `shots/` → `s0` *(they are instruments)* · `embed/` → `s4`, on the `AppStoreCta` precedent. ⛔ Nothing arguable moves. |
+| **S1.7.3** | Run both gates and **read the `--report`** — the routing is settled against the instrument's own output, never from this table. |
+| **S1.7.4** | Write the claims back for every newly-admitted file as `never`. ⛔ **Not `unknown`** — nobody has looked, and `never` is what that means. |
+| **S1.7.5** | Re-generate both `S*-SURFACE-INVENTORY.md` files, and **quote the new counts into the plan's residue table from the gate**, never typed. |
+| **S1.7.6** | Plant both gates: a spec deleted must red, and a routing to a non-existent surface must red. ⛔ `test:gate-plants` is the chain that proves fail-closed. |
+| **S1.7.7** | Rewrite **S1.8's brief job ②** — it currently hands the auditors thirteen guard files by hand, which was the workaround for exactly this gap. |
+
+⚠️ **Exit is NOT "the numbers went up."** It is: both coverage gates green on widened roots · every routing
+naming a real surface · the new counts written back and quoted from the instrument · `lint:rn` still 27/27.
+
+---
+
+## ✅ S1.5.5d — M4: `requiredTotal` is the REQUEST, and the bar partitions the PAYCHECK *(2026-08-26)*
+
+`required` was `summary.requiredTotal` — what is **owed** — while the headline is exactly
+`paycheckAmount`. In a shortfall the parts exceeded the whole, and the bar is drawn with `flexGrow`, which
+normalises whatever it is given to the full track, so nothing looked wrong. Measured before choosing a fix:
+
+```
+healthy                       hero 2000 · Required 1000 · Spoken for 400 · Flexible 600 → 2000 ✓
+short ($1,000 · bills 1,330)  hero 1000 · Required 1330                                → 1330 ⛔
+short + everyday reserve      hero 1000 · Required 1450 · Spoken for 300               → 1750 ⛔
+```
+
+`requiredTotal − shortfall` conserves in **all three**, and `shortfall` is 0 on every covered cycle, so no
+on-track hero can move. ⚡ **Same shape and same remedy as T6.3 · L4-1**, whose comment sits four lines
+below: *take the HELD figure, never the REQUEST.* That fix closed the living-expense route into
+non-conservation and left the shortfall route open — **two doors, one invariant**, which is the pattern
+this whole surface keeps producing.
+
+⛔ **The test asserts the INVARIANT, not the figures** — segments must sum to the headline, read off the
+hero's own accessibility label, which is the one place every segment and the headline appear together.
+⚠️ **With a parse guard, and it earned itself immediately:** under the `required = 0` plant the Required
+segment is filtered out of the legend entirely, so the parse yields `null` and a bare sum assertion would
+have read `0 === 0` as a conserving partition. Both tests red on the guard instead.
+
+**Plants:** revert → red with the audit's own numbers (`got 1700 of 1000 in: This paycheck $1,000. Required
+$1,400, Spoken for $300. Short this paycheck`) · `required = 0` → both tests red, which is what stops a
+trivially-conserving "fix" from passing. **2 guards** (`S1P1-M4-CONSERVES`, `S1P1-M4-NOTZERO`),
+`MIN_ENTRIES` 71 → 73.
+
+---
+
+## 📊 S1.5.5 — the whole-item after-scan
+
+### ⚡ Three of the four after-scans found a SECOND defect. That is the headline result.
+
+| item | the finding as written | what the after-scan added |
+|---|---|---|
+| **M1** | two list sites enumerate instead of partition | **`ExpenseSheet` round-tripped the unreadable value back** — reachable ONLY once the fix gave the bill a row to tap |
+| **M2** | the funded branch prints the target | **`"$0 left"` over a target the app could not read** — B1/B5's shape a third time, *measured on the screen* |
+| **M3** | the band ignores a shortfall | **`selectAffordability` called a $150 purchase `tight` during a $400 shortfall** — the same mechanism, one door over |
+| **M4** | the paycheck split stops conserving | nothing new — and it is the one item whose finding already named its own invariant |
+
+⛔ **A before-only scan is structurally incapable of finding any of the three.** M1's second door **did not
+exist** until the fix created it. M2's and M3's were found by *running the code and reading the output*,
+not by reading the source — and in both cases the source **looked fine**, because both sites carry long,
+correct-sounding comments explaining why they add what they add.
+
+### ⛔ One of my own new assertions was vacuous, and only a plant found it
+
+The first cut of M3's e2e asserted `toContainText(/\$400/)`. Under the plant the **defective** card still
+contained `$400` — `RecoveryPlanSection` prints *"cover the $400 gap from savings"* — so the assertion
+**passed with the defect present.** It survived only because a preceding assertion red first and hid it.
+⚡ The surviving figure is exactly why the auditor rated this a `major` and not a `blocker`; the same fact
+made the loose assertion worthless. **The severity rating contained the reason the obvious test would not
+work, and I wrote the obvious test anyway.**
+
+### 🔴 And that exposes an instrument gap the whole cluster shares
+
+**No e2e spec is on any audit surface.** `grep -c "tests/e2e"` returns **0** against both
+`surface-coverage.s0.json` and `surface-coverage.s1.json`. Co-located `*.test.ts` files under `src/` are
+on-surface; the whole of `apps/rn/tests/` is not. The standing rule says *"every surface audit re-verifies
+the previous surfaces' guards"* — and the guards for most registered findings sit in files no auditor is
+ever pointed at. ⛔ **`lint:finding-guards` cannot close this**: it proves a token still sits on a
+non-comment line, never that the assertion behind it can fail. The vacuous `/\$400/` assertion would have
+counted as *guarded* indefinitely.
+
+⚠️ **Whether `apps/rn/tests/` belongs to the money surface is a scope call and is filed as a `[DECISION]`,
+not decided here** — adding ~59 specs takes S1 from 65 unswept to ~124 and changes what convergence means
+days before pass 2, and settling that by judgement is precisely the move M9 punished. **Folded in instead:
+S1.7's brief hands the auditors the guard files by name.**
+
+### What this item cost and produced
+
+**4 findings fixed · 3 more found and fixed by the after-scans · 14 plants, every one diff- or
+grep-verified before its run · 13 guards registered** (`MIN_ENTRIES` 60 → 73, registry 57 of 73 guarded,
+unguarded cap **unmoved at 16**). Four surfaces got their **first test of any kind**: the grouped Expenses
+list, the goal row, `PaydayGuardianCard`'s render gate, and `PlanHero`.
+
+⚠️ **Three failure modes from the memory file all fired again, and all three were caught by the check
+rather than by luck:** a `node -e` write silently did nothing · a `sed`-based relax reported
+`relax-applied=NO` · `lint:comments` ([D17]) rejected the fix's own comment for annotating a false comment
+instead of deleting it.
+
+---
+
 ## ✅ S1.5.4 — the instruments: M5 · M6 · M7 · M8 · M9 · M10, and the claims nobody wrote back *(2026-08-26)*
 
 ⛔ **These had to land before pass 2 because they decide what pass 2 can SEE.** Every one is an instrument
