@@ -72,7 +72,22 @@ export function buildMultiCycleTimeline({
     startingBalance,
     priorBand,
     projectedPaycheckAmount,
+    appliedTopUpSurplus = 0,
 }: {
+    /**
+     * ⛔ **S1.9.6 [pass-2 D2-1] — CASH MOVED FROM SAVINGS INTO CHECKING THIS CYCLE, net of any shortfall.**
+     *
+     * `computeState`'s docblock requires the card, `selectPlanSummary` and this to derive the band from
+     * one function *"so they can never disagree"* — and the three passed it different first arguments,
+     * differing by exactly this. Measured on the designed path: the card turned **Clear** after its own
+     * one-tap offer, and its *"See forecast"* button opened this timeline on cycle 0 reading **Tight ·
+     * $50 under**.
+     *
+     * ⚠️ **CYCLE 0 ONLY, and that is the whole point of the parameter.** The money is in checking *this*
+     * cycle; next cycle the waterfall refills the goal it came from, so adding it to a projected cycle
+     * would forecast a cushion nobody will have. The projected cycles below deliberately do not see it.
+     */
+    appliedTopUpSurplus?: number;
     result: AllocationResult;
     requiredExpenses: RequiredExpense[];
     debts: Debt[];
@@ -126,7 +141,9 @@ export function buildMultiCycleTimeline({
     });
 
     const cycle0Balance = getEndingBalance(cycle0Items, result.paycheckAmount);
-    const cycle0Net = cycleNet(result);
+    // ⛔ S1.9.6 [D2-1] — the top-up is real cash in checking, so it joins BOTH the band's headroom and the
+    // running balance. Cycle 0 only; see the parameter's note.
+    const cycle0Net = cycleNet(result) + Math.max(0, appliedTopUpSurplus);
     carriedBalance += cycle0Net;
     const cycle0State = computeState(Math.max(0, cycle0Net), paycheckBuffer, band);
     band = cycle0State;

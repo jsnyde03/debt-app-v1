@@ -4,6 +4,7 @@ import { buildMultiCycleTimeline, type TimelineCycle } from '@core/timeline/buil
 import type { DebtStore } from '@/data/models';
 
 import { projectedIncome } from './projectedIncome';
+import { nettedTopUp } from './topUpSelectors';
 
 /**
  * The shared multi-cycle forecast builder — the single place that maps a store + a cycle-0 allocation
@@ -18,6 +19,8 @@ export function buildForecastCycles(
   maxCycles: number,
 ): TimelineCycle[] {
   return buildMultiCycleTimeline({
+    // ⛔ S1.9.6 [D2-1] — asked of the ONE owner, so this producer's band and the card's cannot come apart.
+    appliedTopUpSurplus: nettedTopUp(store, result.shortfall).surplus,
     result,
     requiredExpenses: store.requiredExpenses,
     debts: store.debts,

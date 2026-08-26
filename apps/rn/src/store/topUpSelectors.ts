@@ -47,3 +47,51 @@ export function buildCycleTopUp(forCycle: string, entries: CycleTopUpEntry[]): D
   const amount = Math.round(live.reduce((sum, e) => sum + e.amount, 0) * 100) / 100;
   return live.length === 1 ? { forCycle, amount, goalId: live[0].goalId, entries: live } : { forCycle, amount, entries: live };
 }
+
+/** The top-up already applied for the CURRENT cycle (cycle-keyed → a stale one self-corrects). */
+export function appliedTopUp(store: DebtStore): number {
+  return store.cycleTopUp?.forCycle === store.paycheck.nextPaycheckDate ? Math.max(0, store.cycleTopUp.amount) : 0;
+}
+
+/**
+ * ⛔ **S1.9.3 [pass-2 A1] — THE TOP-UP IS NETTED AGAINST THE SHORTFALL EXACTLY ONCE, AND EVERY READ TAKES
+ * THE RESULT.** 🎯 2026-08-26 chose this rule.
+ *
+ * ⚡ **Three reads of the same money, and the fix range before this moved two of them.** M3 made the band
+ * net the shortfall; AS-3 made the affordability figure a blanket `0` while short; `holdsLine` was left on
+ * the old expression. Measured: a premium user **$1 short** after moving $200 at the Guardian's own
+ * suggestion was told a $20 purchase would leave them *"$20 short"*, in the same card saying the $200
+ * *"holds your line"*, with **$199 unspent**.
+ *
+ * ⛔ **Every existing test passed under BOTH implementations** — the whole tree fixed `topUp 200` against
+ * `shortfall 400`, the one member of the class where a blanket `0` and netting agree exactly.
+ *
+ * The two quantities are complements: a dollar of top-up is spent on the shortfall or it is cushion,
+ * never both.
+ *
+ *  - **`residual`** — what the paycheck still cannot cover. ⛔ This **HONOURS M3 rather than reverting it**:
+ *    M3's defect was a top-up lifting a *proxy* while the shortfall itself went untouched, and here the
+ *    money is applied to the shortfall first, so `shortfall > 0 → at-risk` stays the band's rule verbatim.
+ *  - **`surplus`** — what is left over, and the only part that can be cushion.
+ *
+ * ⚠️ **A real behaviour change, stated rather than discovered:** a top-up that genuinely covers a small
+ * shortfall now clears the band. AS-3's docblock rejected netting for fear of leaving a small spare beside
+ * an `at-risk` band; under this rule the band is not `at-risk` in that range, so the case cannot arise.
+ *
+ * ⛔ **HERE, and not in `guardianSelectors`, because THREE producers need it** [S1.9.6 · pass-2 D2-1] —
+ * the card, `selectPlanSummary` and the forecast. `computeState`'s own docblock requires them to derive
+ * the band from one function *"so they can never disagree"*, and they were passing it three different
+ * first arguments. This module already exists to be the one owner a `guardianSelectors → store` import
+ * cycle would otherwise prevent.
+ */
+export function nettedTopUp(store: DebtStore, cycleShortfall: number | undefined): { residual: number; surplus: number } {
+  const topUp = appliedTopUp(store);
+  // ⚠️ A plain number, not an `Allocation`: `forecastCycles` is deliberately free of a `selectors` import
+  // to avoid a cycle, and it holds an `AllocationResult` rather than an `Allocation`. The shortfall is
+  // the only field this needs, so asking for it directly lets all THREE producers share one owner.
+  const shortfall = Math.max(0, cycleShortfall ?? 0);
+  return {
+    residual: Math.round(Math.max(0, shortfall - topUp) * 100) / 100,
+    surplus: Math.round(Math.max(0, topUp - shortfall) * 100) / 100,
+  };
+}

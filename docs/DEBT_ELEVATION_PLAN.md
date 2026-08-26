@@ -62,7 +62,7 @@ number about money the app could not read* was wired to a subset of **claim site
 | ✅ **S1.9.3** | **A1** — CLOSED 2026-08-26 · netted ONCE into `residual` + `surplus`; ⚠️ **the plan named three seams and there are six** *(`selectTightTopUp` was refusing on the raw shortfall, so the band's new `tight` range had no control)*. ⚡ The shortfall sentence now names what is **still** short — $200, not $400. **6 plants** incl. **the naive over-fix, caught by three pre-existing M3 guards.** `lint:rn` 27/27. Detail → log |
 | ✅ **S1.9.4** | **B-1** — CLOSED 2026-08-26 · 6 new `test-gate-plants` scenarios *(5 → **11**)* + a routing **self-check** + **all 7 tokens re-pointed**; the auditor's table inverted, all seven un-fixes now red. ⚡ **`expect` (red for the RIGHT reason) caught one that still exited 1**, and **my own self-check was the defect it was closing.** ⛔ **The enumeration was short by SIX.** Detail → log |
 | ✅ **S1.9.5** | **the roots** — CLOSED 2026-08-26 · ⛔ **"one line" was wrong by 18, then by 184 more.** Roots are now `apps/rn/src` · `apps/rn/tests` · `packages/core`; **S1 188 → 470 files, 116 → 331 unswept**. ⚡ **`lint:surface-complete` ends the class** — every *tracked* source file must be under some surface's roots, cap 0. `s1p2` written back *(90 S1 · 20 S0)*. 4 plants · 3 guards · **28 gates**. Detail → log |
-| **S1.9.6** | **D2-1** — the three producers. ⚠️ May be absorbed by S1.9.3's residual; **measure before building**, and if it is not absorbed it is a design call, not a patch |
+| ✅ **S1.9.6** | **D2-1** — CLOSED 2026-08-26 · ⚠️ **measured: NOT absorbed by A1** *(its case has no shortfall, so `surplus == topUp`)*. 🎯 chose: **the band reads spendable cash in all three producers**, the forecast on **cycle 0 only**; `PlanHero`'s partition legend deliberately unmoved *(conservation, [M4])*. ⚡ **The over-fix plant stayed GREEN** — nothing guarded *cycle 0 only*. 5 plants · 2 guards. Detail → log |
 | **S1.9.7** | **D2-3 + the 12 minors**, triaged — including B-3 and N9, both stale claims in comments I wrote |
 | **S1.9.8** | `validate:release:rn` green **and recorded**, commit immediately. ⛔ **Push** — CI has not run since `78c6020`, so four e2e guards have never been executed by anything but a hand run |
 
@@ -505,6 +505,16 @@ hotspot)* and Dynamic-Type device QA.
 surfaced it — its full reasoning is in [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md) under that item.
 
 ### → surfaced while classifying pass 2 under [D69] *(2026-08-26)*
+
+### → surfaced by S1.9.6's after-scan *(2026-08-26)*
+
+- ⚠️ **TWO VOCABULARIES FOR ONE BAND, AND A COMPARISON ACROSS THEM READS AS A DEFECT.** `GuardianState` is
+  `clear|tight|at-risk`; `CushionStatus` is `stable|tight|pressure`; `toCushionStatus` maps one to the
+  other. ⚡ The first probe for D2-1 reported *"THEY DISAGREE"* on a tree where all three producers already
+  agreed — a **false negative that would have justified more work.** Not a defect: both names are load-bearing
+  *(`clear` is the Guardian's word to the user, `stable` is the forecast's)*. ⛔ But **any future comparison
+  of two producers must go through the mapping**, and nothing says so at either declaration. Rec: a comment
+  at both type declarations pointing at `toCushionStatus`, or a shared comparator. → **the tooling sweep**
 
 ### → surfaced by S1.9.4's after-scan *(2026-08-26)*
 

@@ -9,6 +9,7 @@ import { toCushionStatus } from '@core/timeline/buildMultiCycleTimeline';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import type { DebtStore } from '@/data/models';
+import { nettedTopUp } from '@/store/topUpSelectors';
 import { hasUnreadDebtBalances } from '@/store/trustSelectors';
 
 import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation, type Allocation } from './selectors';
@@ -399,8 +400,31 @@ export function selectPlanSummary(store: DebtStore, allocation: Allocation, requ
   const remainingAfterRequired = allocation.paycheckAmount - allocation.totalRequired;
   // Unified state (2.4.6.1.2): the SAME floor-relative `computeState` the card + forecast use — off
   // discretionary (after living too), NOT `remainingAfterRequired` vs a `paycheck × 0.1` threshold.
+  /**
+   * ⛔ **S1.9.6 [pass-2 D2-1] — THE SAME FIRST ARGUMENT AS THE OTHER TWO PRODUCERS.**
+   *
+   * `computeState`'s own docblock states the invariant: *"Every producer — the card, the forecast and
+   * `selectPlanSummary` — must derive its band from THIS function so they can never disagree."* All three
+   * did call it, **with different first arguments**, and the difference was exactly `appliedTopUp`.
+   *
+   * ⚡ Measured on the app's DESIGNED PATH: premium, $2,000, rent $1,850. The Guardian card offers its own
+   * *"Move $50 from your emergency fund"*, sized to exactly `floor − cushion`; after the tap the card turns
+   * **Clear** and its own *"See forecast"* button opens the cushion forecast on **cycle 0** reading
+   * *"Tight · $50 under"* — the gap they were just told they had closed, and paid $50 of emergency fund to
+   * close. `CashRunwayChart` defaults its selection to the first cycle under the line, which is cycle 0.
+   *
+   * 🎯 2026-08-26 chose the rule: **the band reads spendable cash.** The money is in checking and the
+   * bills can be paid, so the band — whose own definition is *"can I cover what is coming"* — must see it.
+   * ⚠️ `PlanHero`'s *"Flexible"* legend deliberately does NOT: that is a PARTITION of the paycheck, and
+   * folding cash from savings into it would break the conservation invariant [M4] pins. The two are
+   * different quantities and stay different.
+   */
   const cushionStatus: PlanSummary['cushionStatus'] = toCushionStatus(
-    computeState(selectDiscretionary(allocation), effectivePaycheckBuffer(store), store.priorGuardianBand),
+    computeState(
+      selectDiscretionary(allocation) + nettedTopUp(store, allocation.shortfall).surplus,
+      effectivePaycheckBuffer(store),
+      store.priorGuardianBand,
+    ),
   );
   return {
     heroValue: hero.value,

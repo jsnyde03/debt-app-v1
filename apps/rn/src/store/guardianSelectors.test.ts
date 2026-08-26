@@ -1,5 +1,9 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
+import { toCushionStatus } from '@core/timeline/buildMultiCycleTimeline';
+import { selectAllocation } from '@/store/selectors';
+import { selectPlanSummary, selectRequiredRows } from '@/store/planSelectors';
+import { selectCashTimeline } from '@/store/payoffSelectors';
 import { selectAffordability, selectAppliedTopUp, selectCalibrationScore, selectPaydayGuardian, selectRiskNotification, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 
 /**
@@ -437,6 +441,82 @@ function run() {
       // ⭐ …and it still refuses where the shortfall genuinely stands.
       eq(selectTightTopUp(cycle(400, 200)), null, '⭐ A1 control — a real shortfall still refuses the offer');
     }
+  }
+
+
+  /**
+   * ⛔ **S1.9.6 [pass-2 D2-1] — THE THREE PRODUCERS OF THE ONE BAND, ON THE APP'S OWN DESIGNED PATH.**
+   *
+   * `computeState`'s docblock states the invariant: *"Every producer — the card (`buildGuardianBrief`),
+   * the forecast (`buildMultiCycleTimeline`) and `selectPlanSummary` — must derive its band from THIS
+   * function so they can never disagree (the card said 'clear' while its own lookahead said 'tight' — the
+   * exact contradiction F4 kills)."* ⚡ **All three did call it, with three different first arguments**,
+   * and the difference was exactly `appliedTopUp`.
+   *
+   * Measured: a premium user taps the Guardian card's own *"Move $50 from your emergency fund"*, the card
+   * turns **Clear**, and the *"See forecast"* button on that same card opens the cushion forecast on
+   * **cycle 0** reading **Tight · $50 under** — the gap they just paid $50 of emergency fund to close.
+   * `selectTightTopUp` sizes the offer to exactly `floor − cushion`, so **the designed happy path is the
+   * one that broke the invariant.**
+   *
+   * ⛔ **Asserted as an AGREEMENT, never as three expected values** — the same shape `trustSelectors.test.ts`
+   * uses for B1. A test that pins three bands goes green again the moment a fourth reader of this money is
+   * added without asking; the invariant is that no producer disagrees.
+   *
+   * ⚠️ **Compared THROUGH `toCushionStatus`.** `GuardianState` is `clear|tight|at-risk` and `CushionStatus`
+   * is `stable|tight|pressure`, so comparing the raw words reports a disagreement that is a vocabulary and
+   * not a defect.
+   */
+  {
+    const bands = (st: DebtStore) => {
+      const a = selectAllocation(st)!;
+      return {
+        card: toCushionStatus(selectPaydayGuardian(st)!.state),
+        summary: selectPlanSummary(st, a, selectRequiredRows(st, a)).cushionStatus,
+        forecast: selectCashTimeline(st)[0]?.cushionStatus,
+      };
+    };
+    const agree = (b: ReturnType<typeof bands>) => new Set([b.card, b.summary, b.forecast]).size === 1;
+
+    // Auditor D's own fixture: premium, $2,000 in, $1,850 of rent, a $200 line, $1,000 in the EF.
+    const before = store({ premium: true, amount: '2000', bills: [1850], floor: 200, goals: [{ type: 'emergency', current: 1000 }] });
+    const b0 = bands(before);
+    assert(agree(b0), `⭐ D2-1 control — the three producers agree BEFORE the move (${JSON.stringify(b0)})`);
+    eq(b0.card, 'tight', '…and the cycle really is under the line, or the assertion below is vacuous');
+
+    // The card's OWN offer, sized by the app, not by me.
+    const offer = selectTightTopUp(before);
+    assert(offer !== null, 'the card offers its one-tap move on this fixture');
+    eq(offer?.topUp, 50, '…of exactly the gap — floor − cushion');
+
+    const after = store({
+      premium: true, amount: '2000', bills: [1850], floor: 200,
+      goals: [{ type: 'emergency', current: 1000 }], topUp: offer!.topUp,
+    });
+    const b1 = bands(after);
+    // ⛔ THE FINDING. Before this, `card` was `stable` while `summary` and `forecast` were `tight`.
+    assert(agree(b1), `⛔ D2-1 — the three producers agree AFTER the card's own offer (${JSON.stringify(b1)})`);
+    eq(b1.card, 'stable', '…and the move genuinely cleared the line, which is why the card said so');
+
+    /**
+     * ⛔ **CYCLE 0 ONLY — and nothing asserted it until a plant of the OVER-FIX stayed green.**
+     *
+     * The money is in checking *this* cycle; next cycle the §2.5 waterfall refills the goal it came from,
+     * so a projected cycle that counts it forecasts a cushion nobody will ever have. ⚡ Applying the
+     * surplus to every projected cycle passed every other assertion in this block — the three producers
+     * still agreed, because they agreed about cycle 0 and nothing looked further out.
+     *
+     * ⚠️ Compared against the SAME store without the record, so this measures the top-up's reach rather
+     * than any particular projected value.
+     */
+    const laterWith = selectCashTimeline(after).slice(1).map((c) => c.cushionStatus);
+    const laterWithout = selectCashTimeline(before).slice(1).map((c) => c.cushionStatus);
+    assert(laterWith.length > 0, 'the fixture projects past cycle 0, or the assertion below is vacuous');
+    eq(
+      JSON.stringify(laterWith),
+      JSON.stringify(laterWithout),
+      '⛔ D2-1 — the top-up reaches cycle 0 and NO projected cycle; the waterfall refills the goal',
+    );
   }
 
   console.log(`✅ Guardian selector (RS.2) tests passed (${passed} asserts).`);

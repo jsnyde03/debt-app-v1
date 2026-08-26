@@ -4,6 +4,76 @@
 
 ---
 
+## S1.9.6 — [D2-1], the one state machine's three producers *(2026-08-26)*
+
+⚠️ **The plan said this MAY be absorbed by S1.9.3's residual, and to measure before building.** Measured
+against the tree with A1 in: **it is not.** A1 nets the top-up against a *shortfall*, and D2-1's case has
+no shortfall — so `surplus == topUp` and the three producers still differed by exactly the top-up.
+
+`computeState`'s own docblock states the invariant: *"Every producer — the card (`buildGuardianBrief`), the
+forecast (`buildMultiCycleTimeline`), and `selectPlanSummary` — must derive its band from THIS function so
+they can never disagree."* ⚡ **All three did call it, with three different first arguments.**
+
+| producer | first argument | band |
+|---|---|---|
+| the card | `selectDiscretionary + appliedTopUp` | **clear** |
+| `selectPlanSummary` | `selectDiscretionary` | tight |
+| the forecast | `cycleNet(result)` | tight |
+
+⛔ **The DESIGNED HAPPY PATH is the one that broke it.** `selectTightTopUp` sizes its offer to exactly
+`floor − cushion` — the amount that crosses the boundary — so tapping the Guardian card's own *"Move $50
+from your emergency fund"* turned the card **Clear**, and the *"See forecast"* button on that same card
+opened the cushion forecast on **cycle 0** reading *"Tight · $50 under"*: the gap they had just paid $50 of
+emergency fund to close. `CashRunwayChart` defaults its selection to the first cycle under the line, which
+is cycle 0.
+
+### 🎯's rule, and the quantity that deliberately does NOT move
+
+🎯 2026-08-26: **the band reads spendable cash, in all three producers.** The money is in checking and the
+bills can be paid, and the band's own definition is *"can I cover what is coming"*.
+
+⛔ **`PlanHero`'s *"Flexible"* legend stays where it is**, and that is the half worth stating: it is a
+**partition of the paycheck**, and folding cash from savings into it would break the conservation invariant
+[M4] pins. *"Flexible $150"* and *"spare $200"* are genuinely different quantities that the app renders a
+tap apart — the fix makes the BAND agree, it does not make the two figures one.
+
+⚡ **`nettedTopUp` moved to `topUpSelectors` and now takes a plain `shortfall: number`.** That module exists
+to be the shared owner an import cycle would otherwise prevent, and three producers need it — including
+`forecastCycles`, whose docblock says it is deliberately free of a `selectors` import. Taking the number
+rather than an `Allocation` is what lets all three ask the same owner.
+
+The forecast's `appliedTopUpSurplus` is **cycle 0 only**: next cycle the §2.5 waterfall refills the goal the
+money came from, so a projected cycle that counted it would forecast a cushion nobody will have.
+
+### ⛔ THE OVER-FIX PLANT STAYED GREEN, AND THAT IS THE RESULT WORTH KEEPING
+
+Four plants of the fix each red with the disagreement **named in the failure message** — `selectPlanSummary`
+back on the bare discretionary, the forecast blind to the surplus, and the caller no longer threading it
+(the wiring, distinct from the arithmetic).
+
+⚡ **The fifth — applying the surplus to EVERY projected cycle — passed everything.** All three producers
+still agreed, because they agreed about **cycle 0** and no assertion looked further out. The "cycle 0 only"
+property was in my docblock and in nothing executable. It is now asserted against the same store without
+the record, so it measures the top-up's *reach* rather than any projected value; the over-fix reds with
+`["stable","stable","stable","stable"]` where the truth is `["stable","tight","stable","tight"]`.
+
+⚠️ **The agreement is asserted as an AGREEMENT, never as three expected values** — the shape
+`trustSelectors.test.ts` uses for B1. Pinning three bands goes green again the moment a fourth reader is
+added without asking.
+
+⚠️ **The first probe reported a false disagreement** — `GuardianState` is `clear|tight|at-risk` and
+`CushionStatus` is `stable|tight|pressure`, so comparing the raw words reports a vocabulary as a defect.
+Compared through `toCushionStatus` now. **A red is not evidence until you know which claim produced it** —
+the same lesson `expect` bought in S1.9.4, one file over.
+
+⛔ **`lint:comments` caught a second [D17] slip in my own work this session** — rationale about a COMMENT's
+past rather than the code's.
+
+**Guards.** `S1P2-D2-1-AGREE` · `S1P2-D2-1-CYCLE0`. `MIN_ENTRIES` 89 → **91**. `typecheck` 4/4 ·
+`lint:rn` **28/28** · `test:app`, `test:regression`, `test:scenarios` green.
+
+---
+
 ## S1.9.5 — the roots, and the gate that ends the class *(2026-08-26)*
 
 ⛔ **THE PLAN SAID "ONE LINE". IT WAS WRONG BY A FACTOR OF EIGHTEEN, AND THEN BY 184 MORE.**
