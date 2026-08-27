@@ -74,7 +74,16 @@ test.describe('BNPL — first-class row display', () => {
     await expect(page.getByText('UPCOMING BNPL INSTALLMENTS')).toBeVisible();
     // Affirm's next installment is #3 of 4 (2 paid); the calendar names the position.
     await expect(page.getByText(/payment 3 of 4/)).toBeVisible();
-    // A month subtotal line renders ("$X · N payments").
-    await expect(page.getByText(/payments/).first()).toBeVisible();
+    // ⛔ **THE MONEY HALF IS ASSERTED.** [S1.10.6.7.1 · pass-3 D3-8] The old assertion was
+    // `getByText(/payments/).first()`, which pinned the WORD and not the NUMBER — the half of the line
+    // that is about money was the half not asserted. `/payments/` also matches `DebtSheet.tsx`, so
+    // `.first()` could resolve to a different element entirely.
+    //
+    // ⚠️ **The finding's own proposed regex was `/\$\d[\d,.]* · \d+ payments/`, and it does not hold.**
+    // Two of the three failure modes it names are impossible — `formatCurrency` is defensive and can
+    // return neither `""` nor `"$NaN"` (`packages/core/utils/formatCurrency.ts:42`) — while the one that
+    // IS reachable, a subtotal of `$0.00`, matches `\$\d[\d,.]*` and would have passed. Hence `[1-9]`:
+    // the amount must be present AND non-zero. `payments?` because the line is singular at one payment.
+    await expect(page.getByText(/\$[1-9][\d,]*(\.\d{2})? · \d+ payments?/)).toBeVisible();
   });
 });

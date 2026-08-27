@@ -697,5 +697,25 @@
     "what": "⛔ NOT AN AUDIT FINDING - surfaced at .6.5.8.3 while measuring GAP-14. web-e2e.yml's header claims it runs every link of validate:release:rn; embed-pages.yml's [D44] guard refuses to deploy any SHA without a green web-e2e, so that claim is what the marketing embed deploy TRUSTS - and it has already been FALSE once ([W1-3]: test:stamp, test:e2e:embed and the packages/core half of the typecheck were all missing, so the guard gated the embed on a run that never exercised the embed). The header's own remedy was a sentence - 'it must be added here in the same commit, or the claim silently rots again' - and a documentation rule is exactly what failed the first time. Now a gate. Reads `run:` lines only, never the whole file, because the header DISCUSSES most of these names in prose and a bare includes() would find every link in the comment explaining the drift. gate:begin and gate:record are named omissions with reasons, not a pattern. Plant-verified 5 ways incl. both [W1-3] drifts verbatim and the prose trap",
     "file": "scripts/check-ci-chain.ts",
     "token": "problems.push("
+  },
+  "S1P3-M1": {
+    "what": "pass-3 m1 — CLOSED S1.10.6.7.1. `assert(endPillWidth(null, 1, S) > 0)` was VACUOUS and the auditor proved it with a plant: the expression is `(20 + chars * 6.5) * scale`, so the constant 20 term holds it above zero whatever `chars` is — including the 0 that reserves nothing for the label. Re-measured here before fixing: planting `: 8` → `: 0` left the old assertion green. ⚡ Pinned against `at1` rather than a fresh literal, because the fallback's whole meaning is `reserve an 8-character label's worth` and 'Oct 2026' is exactly 8 chars, already pinned to `20 + 8 * 6.5` six lines above — so it states the intent AND stays anchored to a number, instead of restating the formula, which is D3-7's defect in the same round. Plant-verified: the null→0 plant now reds `expected 72, got 20`",
+    "file": "apps/rn/src/components/payoff/trajectoryDomain.test.ts",
+    "token": "eq(endPillWidth(null, 1, S), at1,"
+  },
+  "S1P3-D3-5": {
+    "what": "pass-3 D3-5 — CLOSED S1.10.6.7.1. Two absence-only tests in on-plan-streak.spec.ts passed over a Progress screen that rendered NOTHING: `toHaveCount(0)` is satisfied by a page that has not rendered yet. ⚠ The FILE was not vacuous — test 1 is a positive in the same spec — which is why the auditor rated it minor rather than matching pass-2's D2-3, and that rating was a measurement, not a re-rating. Fix is one positive per test on `progress-hero-journey`, which renders in BOTH branches. ⛔ NOT a second absence assertion. Plant-verified with the auditor's own plant (`if (true) return null` in the Progress screen): before the fix only test 1 redded; after it, all 3 red",
+    "file": "apps/rn/tests/e2e/on-plan-streak.spec.ts",
+    "token": "await expect(page.getByTestId('progress-hero-journey')).toBeVisible();"
+  },
+  "S1P3-D3-7": {
+    "what": "pass-3 D3-7 — CLOSED S1.10.6.7.1. `eq(snap.remaining, formatWhole(8000))` computed its expectation with the function under test, so it pinned `the snapshot used the formatter` and never `the string is $8,000`. ⛔ The counterfactual was MEASURED, not argued: with `formatWhole` planted to return 'PLANTED', the old form reads `expected \"PLANTED\", got \"PLANTED\"` and the suite reports 32 assertions passed; the literal form reds. ⚠ The plant also reds an EARLIER test (journeySelectors), so the widget assertion had to be exercised in isolation — a plant that reds early never reaches the later ones. The now-unused `formatWhole` import was removed with the fix",
+    "file": "apps/rn/src/widget/widgetSync.test.ts",
+    "token": "eq(snap.remaining, '$8,000',"
+  },
+  "S1P3-D3-8": {
+    "what": "pass-3 D3-8 — CLOSED S1.10.6.7.1, and the finding's OWN PROPOSED FIX did not hold. The old assertion `getByText(/payments/).first()` pinned the word and not the number, and `/payments/` also matches DebtSheet.tsx so `.first()` could resolve elsewhere. ⚠ The finding names three failure modes and TWO ARE IMPOSSIBLE: formatCurrency is defensive and can return neither '' nor '$NaN'. The one that IS reachable, a `$0.00` subtotal, matches the finding's proposed `\\$\\d[\\d,.]*` and would have passed. ⛔ Measured, not reasoned: with the subtotal planted to `formatCurrency(0)`, the finding's regex PASSES (2 passed, exit 0) and the `[1-9]` form reds. `payments?` because the line is singular at one payment",
+    "file": "apps/rn/tests/e2e/bnpl.spec.ts",
+    "token": "\\$[1-9][\\d,]*(\\.\\d{2})? · \\d+ payments?"
   }
 }

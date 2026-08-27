@@ -26695,6 +26695,62 @@ the one real finding from the two artefacts.
 a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
 restored, and verified by grepping the line back. **Mutation runs go in the background from here.**
 
+## S1.10.6.7.1 — the assertions that cannot fail, and one fix's own remedy did not hold (2026-08-27)
+
+Four minors, one class: **an assertion that cannot fail.** All four premises verified against the current
+tree before building — all four held — but **one of the four stated REMEDIES did not**, which is the
+misdescribed half that a before-scan structurally cannot catch.
+
+### `D3-8` — the finding's own proposed regex would have passed over the defect
+
+The old assertion `getByText(/payments/).first()` pinned the **word** and not the **number**, and
+`/payments/` also matches `DebtSheet.tsx`, so `.first()` could resolve to a different element entirely.
+The observation is sound. ⛔ **The remedy is not.**
+
+The finding names three failure modes — a subtotal that came out `""`, `"$NaN"` or `"$0"`. **Two are
+impossible:** `formatCurrency` is defensive and returns `$0.00` for any non-finite input, so it can
+produce neither an empty string nor `$NaN`. ⚡ **And the one that IS reachable — `$0.00` — matches
+the finding's own proposed `/\$\d[\d,.]* · \d+ payments/`**, because `\d` matches `0` and
+`[\d,.]*` matches `.00`.
+
+⛔ **Measured rather than argued.** With the subtotal planted to `formatCurrency(0)`: the finding's regex
+**passes** (`2 passed`, exit 0); the `[1-9]`-anchored form reds. ⚠️ Also `payments?` — the line is
+singular at one payment, which the proposed regex would have missed.
+
+### `D3-7` — the counterfactual, measured
+
+`eq(snap.remaining, formatWhole(8000))` computed its expectation with the function under test. Planting
+`formatWhole` to return `'PLANTED'`: the old form reads **`expected "PLANTED", got "PLANTED"`** and the
+suite reports **32 assertions passed**. ⚠️ **The plant also reds an EARLIER test** (`journeySelectors`),
+so the widget assertion had to be exercised in isolation — *a plant that reds early never reaches the
+later ones.* The now-unused `formatWhole` import went with the fix.
+
+### `m1` — pinned to a value, and deliberately not to a formula
+
+`assert(endPillWidth(null, 1, S) > 0)` could not distinguish its two states: the expression is
+`(20 + chars * 6.5) * scale`, so the constant `20` holds it above zero **whatever `chars` is**. Re-measured
+before fixing — planting `: 8` → `: 0` left it green.
+
+⚡ Pinned against `at1` rather than a fresh literal: the fallback's meaning is *"reserve an 8-character
+label's worth"*, `'Oct 2026'` is exactly 8 characters, and `at1` is already pinned to `20 + 8 * 6.5` six
+lines above. So it states the intent **and** stays anchored to a number — rather than restating the
+formula, which is `D3-7`'s defect in the same round.
+
+### `D3-5` — the file was not vacuous, and that is why it was minor
+
+Two absence-only tests passed over a Progress screen rendering nothing. ⚠️ The auditor's `minor` rating was
+a **measurement** — test 1 in the same spec is a positive, so a blank screen cannot pass the file — not a
+re-rating of pass-2's `D2-3`. Fixed with one positive per test on `progress-hero-journey`, which renders in
+both branches. ⛔ **Not** a second absence assertion.
+
+Plant-verified with the auditor's own plant (`if (true) return null`): **before the fix only test 1 redded;
+after it, all three do.**
+
+### Close-out
+
+`MIN_ENTRIES` 140 → **144**; **143 of 144** guarded. `tsc` clean, `lint:rn` **36 gates** green, app /
+regression / scenario suites green, and the two e2e specs green in isolation.
+
 ## S1.10.6.5.8.6 / .8.7 — the stragglers, and the cheapest row was the most expensive (2026-08-27)
 
 ⚡ **`S1.10.6.5.8` CLOSES HERE. `MAX_UNGUARDED` 16 → 1**, and the one remaining row (`GAP-14`) exits by

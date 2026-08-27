@@ -122,7 +122,17 @@ function run() {
 
     // ⚠️ The null case is the pre-date state, and it must still reserve room: `null` is "no debt-free date
     // yet", not "no pill". Estimating 0 would let the clamp put it off the edge.
-    assert(endPillWidth(null, 1, S) > 0, 'a missing date still reserves a sensible width');
+    // ⛔ **PINNED TO A VALUE, NOT TO `> 0`.** [S1.10.6.7.1 · pass-3 m1] The old assertion was
+    // `endPillWidth(null, 1, S) > 0`, and the auditor proved it vacuous with a plant: the expression is
+    // `(20 + chars * 6.5) * scale`, so the constant `20` term holds it above zero **whatever `chars` is**
+    // — including the `0` that would reserve nothing at all for the label. It could not distinguish the
+    // two states it existed to separate.
+    //
+    // ⚡ Compared against `at1` rather than a fresh literal because the fallback's whole meaning is
+    // *"reserve an 8-character label's worth"*, and `at1` is `'Oct 2026'` — exactly 8 characters, and
+    // already pinned to `20 + 8 * 6.5` six lines above. So this states the intent AND stays anchored to a
+    // number, instead of restating the formula (which is `D3-7`'s defect in the same round).
+    eq(endPillWidth(null, 1, S), at1, 'a missing date reserves an 8-character label\'s worth — the same as "Oct 2026"');
     assert(
       endPillWidth('September 2026', 1, S) > endPillWidth('Oct 2026', 1, S),
       'a longer label estimates wider — the month NAME is what moves this, not the year',

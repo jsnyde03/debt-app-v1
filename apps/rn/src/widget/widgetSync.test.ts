@@ -2,7 +2,6 @@ import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
 import type { Debt, DebtStore } from '@/data/models';
 import { createDebtStore } from '@/store/store';
-import { formatWhole } from '@/utils/format';
 
 import { buildWidgetSnapshot, type WidgetSnapshot } from './snapshot';
 import { startWidgetSync } from './widgetSync';
@@ -50,7 +49,11 @@ console.log('\n▶ widget snapshot + sync (3.5.1)');
   eq(snap.hasData, true, 'debts → hasData true');
   eq(snap.pctLabel, '20%', 'paid 2000 of 10000 → 20% label'); // (8000-6000)+(2000-2000)=2000
   assert(snap.pctPaid > 0.19 && snap.pctPaid < 0.21, 'pctPaid ~0.2');
-  eq(snap.remaining, formatWhole(8000), 'remaining = current total balance');
+  // ⛔ **THE LITERAL, NOT `formatWhole(8000)`.** [S1.10.6.7.1 · pass-3 D3-7] Both sides used to call the
+  // same formatter, so the assertion pinned *"the snapshot used the formatter"* and never *"the string is
+  // $8,000"* — a formatter that returned the empty string for every input would have satisfied it. The
+  // sibling assertions in this block already do it correctly (`eq(snap.pctLabel, '20%')`).
+  eq(snap.remaining, '$8,000', 'remaining = current total balance, as a STRING the test does not compute');
 }
 
 // All debts cleared → "Debt-free!" (bypasses the projected-date lookup).

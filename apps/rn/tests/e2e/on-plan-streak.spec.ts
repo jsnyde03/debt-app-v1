@@ -24,6 +24,12 @@ test('one cycle is below the floor — the app makes no claim at all', async ({ 
   await seedStore(page, scenario({ cycleHistory: cycles([true]) }));
   await page.goto('/progress');
 
+  // ⛔ **THE POSITIVE FIRES FIRST.** [S1.10.6.7.1 · pass-3 D3-5] `toHaveCount(0)` is satisfied by a page
+  // that has not rendered yet, so on its own this test passed over a Progress screen returning `null` —
+  // the auditor measured exactly that with a `if (true) return null` plant. The hero renders in BOTH
+  // branches, so waiting for it makes the absence assertion mean something.
+  // ⚠️ Do NOT "fix" this class by adding a second absence assertion.
+  await expect(page.getByTestId('progress-hero-journey')).toBeVisible();
   await expect(page.getByText('paychecks on plan')).toHaveCount(0);
 });
 
@@ -32,5 +38,7 @@ test('a broken run ends the streak rather than shrinking it', async ({ page }) =
   await seedStore(page, scenario({ cycleHistory: cycles([true, true, true, false]) }));
   await page.goto('/progress');
 
+  // The same positive-first rule as the test above — see the note there.
+  await expect(page.getByTestId('progress-hero-journey')).toBeVisible();
   await expect(page.getByText('paychecks on plan')).toHaveCount(0);
 });
