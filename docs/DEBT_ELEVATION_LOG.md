@@ -26383,3 +26383,45 @@ by making the gates' own imports unchecked — which is precisely the hole `[P6.
 discovered `scripts/**` had no compiler behind it at all. ⛔ **This is the cluster's own defect class — an
 instrument reporting less than it claims — living in the chain the fixes are VERIFIED with.** Three passes
 running, three auditors have found it in the gates; this one was in the compiler.
+
+## S1.10.6.9.4 — guards, registry, and what the plants found (2026-08-27)
+
+`guardianTrust.test.ts` — **30 asserts, every case a PAIR**: the damaged store against a truth control,
+because a repaired `0` and a real `0` are the same number and only the store separates them. Registry
+**116 → 124**. ⭐ **`MAX_OPEN` → 0 and the trust ledger's `OPEN` list is EMPTY** — and both removals were
+**forced**: the gate red on the stale rows the moment the fixes landed, which is what an
+exact-in-both-directions ledger buys over a list somebody has to remember to prune.
+
+### The plants — 12 of 12, each red for the assertion it NAMED
+
+Six originals and six naive over-fixes, one at a time, restored from a byte backup rather than
+`git checkout` *(the fix was committed first; a plant loop's last action is the restore, so nothing
+normally verifies it — this harness re-runs green on the restored tree and asserts `git status` clean)*.
+⛔ **A verdict counted only if the red carried the expected LABEL** — a plant that trips an earlier
+assertion never exercises the one it was aimed at.
+
+⚡ **Two of the twelve came back wrong on the first run, and both were the harness working.**
+
+- **`G-1`'s naive over-fix — *"suppress the score whenever the store carries ANY repair"* — stayed
+  GREEN.** A real hole in my own suite: the `recovered` control asked `debtLiveness`, not the scorecard,
+  so nothing asserted that a repair *unrelated to liveness* leaves the record alone. Two controls added —
+  an unread `apr` and a `recovered` balance must both still grade — and it reds now. ⚠️ Either one
+  silencing the record would be a second false statement, told by omission.
+- **`G-6`'s original plant red for a DIFFERENT reason.** Removing `baseUrl` alone produces `TS5090`
+  (*"non-relative paths are not allowed when baseUrl is not set"*), not the `TS2307` the defect actually
+  was. The honest plant removes the whole alias block. ⛔ An exit-code-only loop would have scored that a
+  pass.
+
+### ⛔ And the over-fix `typecheck` structurally cannot catch
+
+`G-6` can also be made green by **narrowing `scripts/tsconfig.json`'s `include`** until the app source
+stops being reachable — which buys the green by leaving the gates' own imports unchecked, the exact hole
+`[P6.8.7a-1]` closed. **A typecheck-based plant cannot catch it, because the over-fix makes typecheck
+PASS.** So the registry tokens the config's **reach** (`"include": ["**/*.ts"]`) separately from its
+**aliases** (`"baseUrl": ".."`), and `lint:finding-guards` is the catcher. Planted and confirmed.
+
+### The ledger gate, planted in all three directions
+
+A one-sided plant would have proved half of an exact check: **a new re-derivation in an unledgered file**
+· **one added to a ledgered file** (count drifts up) · **a ledgered site fixed with its row left behind**
+(count drifts down). All three red, each on its own message; restored tree green.

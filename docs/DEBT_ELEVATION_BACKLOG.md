@@ -671,3 +671,23 @@ grouping is by destination. Each bullet keeps its own `→` where it had one.
 - ⛔ **Ask of every gate in this repo whether it PREVENTS or merely DESCRIBES.** The matrix printed four
   `⛔ UNREACHED` lines every run for the whole audit and nothing read them; `lint:closure` counts ledger
   mentions and cannot see an unpinned fix. **Both were reported as evidence of completeness.** *(.9.1)*
+- 🔴 **THE 13 LIVENESS RE-DERIVATIONS — measure them, one control each** *(S1.10.6.9 after-scan)*.
+  ⛔ **This is `G-1`…`G-5`'s class in files nobody has looked at.** `debtLiveness` is now the owner and
+  `lint:trust-claims` caps the sites at **13 across 10 files**, exact in both directions and downward-only,
+  so the class **cannot grow silently** — but a row is *"this site re-derives liveness and nobody has
+  measured whether it matters"*, not a verdict. ⚠️ **7 of the 10 files never mention the trust module at
+  any line.** Run the command for the live list; the shape of each measurement is the pair this cluster
+  already uses (truth · repaired · genuinely-zero). ⚡ Two are very likely non-defects and should be
+  *measured* into `EXEMPT` rather than assumed — `demoRun.ts` and `sandboxScenarios.ts` build synthetic
+  stores that carry no repairs at all.
+- ⚠️ **`AffordabilityCard`'s free-tier line and its verdict share one gate, and only the verdict was
+  argued** *(S1.10.6.9 after-scan)*. `G-4` replaced both on `!mayClaim(store, 'required-plan')`, which is
+  right for the verdict — one word the user acts on, wrong in a known direction. For the free tier it
+  removes the *only* number that tier gets, and the alternative (a caption under an honestly-hedged figure)
+  was not measured against it. **Not a defect; an unexamined trade.**
+- ⚠️ **`selectAffordability` still returns the inflated `discretionaryNow`** *(S1.10.6.9 after-scan)*. The
+  guard is at the render sites, so the selector remains a loaded gun for a future caller — the shape
+  `C-4` fixed the other way (`selectPaidOffDebts` nulls the figure and *"every render downstream then does
+  the right thing for free"*). ⛔ Deliberately not taken now: the inflation comes from the ALLOCATION, so
+  sanitising it means teaching the engine about repairs, which is a much larger change than this cluster's
+  scope and would be unaudited work landing on the money engine.

@@ -145,6 +145,23 @@ function run() {
   const calFree = selectCalibrationScore(base({ debts: [visaLost], history: mixedHistory }));
   eq(calFree.matches, 4, '⭐ G-1 control — a GENUINELY debt-free user still gets their debt-free record graded');
 
+  /**
+   * ⛔ **THE OVER-FIX CONTROL, AND THE PLANT THAT DEMANDED IT.** *"Suppress the score whenever the store
+   * carries ANY repair"* is the lazy repair here, and it shipped past the first cut of this suite: the
+   * `recovered` case above asks `debtLiveness`, not the scorecard, so nothing asserted that a repair
+   * unrelated to liveness leaves the record alone. ⚠️ An unread APR says nothing about which regime the
+   * user is in, and a `recovered` balance is exactly right — either one silencing the record would be a
+   * second false statement, told by omission.
+   */
+  const calAprRepair = selectCalibrationScore(
+    base({ debts: [visa], repairs: [lost('debt', 'd0', 'Visa', 'apr')], history: mixedHistory }),
+  );
+  eq(calAprRepair.falseClears, 4, '⭐ G-1 over-fix control — an unread APR is not a liveness question; the record still grades');
+  const calRecovered = selectCalibrationScore(
+    base({ debts: [visa], repairs: [{ ...balanceRepair, kind: 'recovered' }], history: mixedHistory }),
+  );
+  eq(calRecovered.falseClears, 4, '⭐ G-1 over-fix control — a RECOVERED balance was read correctly; suppressing over it says something false too');
+
   // ── G-2 · the reserve release destination ─────────────────────────────────────────────────────
   eq(
     selectReserveRelease(base({ debts: [visa], reserveRelease: true }))?.targetName,

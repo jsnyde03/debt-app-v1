@@ -597,5 +597,10 @@
     "what": "S1.10.6.9 — the durable half. A blanket ban on `balance > 0` was written, measured and thrown away: git grep returns 40+ occurrences and most are packages/core amortization loops that hold no store and are right to treat a 0 balance as paid, so the rule would have been unsatisfiable — B1's own failure mode. The gate is scoped to apps/rn/src, where DebtStore and therefore pendingDataRepairs are in reach, and is a self-ratcheting LEDGER: 13 sites across 10 files, counts exact in BOTH directions (a fixed site reds until its row goes, a new one reds on arrival), cap downward-only, and every file printed by name on the GREEN line. Seven of the ten never mention the trust module at any line",
     "file": "scripts/check-trust-claims.ts",
     "token": "MAX_LIVENESS_SITES"
+  },
+  "S1P3-G6-SCRIPTSREACH": {
+    "what": "S1.10.6.9 G-6's naive over-fix, found by planting it: `npm run typecheck` can also be made green by NARROWING scripts/tsconfig.json's include until the app source stops being reachable — which buys the green by leaving the gates' own imports unchecked, the exact hole [P6.8.7a-1] closed when it found scripts/** had no compiler behind it at all. ⛔ A typecheck-based plant structurally CANNOT catch this one: the over-fix makes typecheck PASS. The token is the config's REACH rather than its aliases, so the two halves of G-6 are guarded separately — S1P3-G6-SCRIPTSTYPES pins the aliases, this pins the surface they apply to",
+    "file": "scripts/tsconfig.json",
+    "token": "\"include\": [\"**/*.ts\"]"
   }
 }

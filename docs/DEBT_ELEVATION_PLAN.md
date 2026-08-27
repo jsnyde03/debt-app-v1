@@ -31,7 +31,9 @@
 **Surface S1 · money · goals · plan cards.** Passes 1 and 2 are **run and fully fixed**. ⛔ **S1 does NOT
 converge yet** — [D65] exits on 0/0 **twice consecutively**, pass 2 reset the count, and **pass 3 is not a
 clean pass**, so a clean pass 4 still owes a pass 5. **Pass 3 is RUN and recorded** *(pinned `96d1f11`, four
-fresh auditors, [D68])* and is now being **fixed**: **19 of 20** blocker+majors closed. S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not queue**.
+fresh auditors, [D68])* and is now being **fixed**: **19 of 20** blocker+majors closed, plus **`G-1`…`G-6`
+from `.6.9`'s own enumeration** — ⚡ five in one file the plan's row said held two, and a **RED release
+gate** nobody had run. S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not queue**.
 Detail for anything closed → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 ⛔ **THERE IS NO CURRENT GATE RECORD** ([D74]). `lint:gate-freshness` is **RED**: the record is real
@@ -71,7 +73,7 @@ the coverage number will not move.
 | ✅ | **S1.10.2 — the dispatch verified** ([D68]): 8 links · 4 explicit paths · **17 bare filenames each resolving to exactly one tracked file** · 5 SHAs. ⚡ **It caught one wrong number in my own brief** — *"8 of 9"* counted from memory where pass 2's [D69] table says **5**; corrected in place, with the miss left on the page |
 | ✅ | **S1.10.3 — RUN.** Four fresh auditors at `96d1f11` → **11 blockers · 9 majors · 14 minors** ([`pass3/SUMMARY.md`](audits/2026-08-26-s1-money-pass3/SUMMARY.md)). ⛔ **No auditor edited source** — `git diff 96d1f11 -- apps packages scripts` is empty. D ran every plant in an isolated worktree at the pin |
 | ✅ | **S1.10.4 – S1.10.5 — recorded and classified**, claims written back in the same step. **9 of 20 blocker+majors COUNT · 11 are first-look.** Coverage **331 → 113 unswept**; `s1p3` had to be registered in `SWEPT_CLAIMS` first, exactly as `s1p2` did. ⚡ **D's own reconciliation said 48/61 and the truth is 46/63** — braced tokens are two files each, so the write-back was computed from the manifests and *reconciled against* each auditor's number, not taken from it |
-| ▶ | **S1.10.6 — FIX** *(decomposed below)*. 20 blocker+majors. ⛔ **By CLASS, not by id** — eight separate ids are one rule wired to a subset |
+| ▶ | **S1.10.6 — FIX** *(decomposed below)*. 20 blocker+majors. ⛔ **By CLASS, not by id** — eight separate ids are one rule wired to a subset. ▶ **`.6.5`, the instruments, is the last code class** |
 | **S1.10.7** | ⛔ **[D74]: a round ends with the NET, not the record.** Full e2e + embed green, commit, **push** — and `gate:record` only if pass 3 CONVERGES. ⚠️ It does not; the hand-off states *no current record* and names `818f934` |
 
 **Exit (S1.10):** 0 blockers / 0 majors on the widened surface, the `s1p3` claims written back ✅, and the
@@ -90,69 +92,44 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 | **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | ✅ **CLOSED 2026-08-27** — ⭐ **`lint:trust-claims`** is the durable half: a claim route with no caller now reds |
 | **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ✅ **CLOSED 2026-08-27** — ⛔ and the day-old gate's two caps were **vacuous**, found by re-reading it |
 | **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, both restore doors | `B3` `B4` `C-7` `C-7b` | ✅ **CLOSED 2026-08-27** — ⚡ the finding's **own stated remedy would have been the defect** |
-| **S1.10.6.5** | ⛔ **The instruments** — five gates that report green while doing less than they claim. ⚠️ **Fix LAST of the code classes**: these are the gates the other fixes are verified *with*, so a mid-flight change to them invalidates the verification already done — `test:gate-plants` and `lint:finding-guards` ran after every sub-step, and **21 registry entries** went in through the latter. ⛔ **AND THE DEFERRAL IS NOT FREE: it OWES A RE-CHECK OF `.6.1`–`.6.6`.** `B1` is `lint:money` being *unsatisfiable*, and it was green over every line of new money-rendering code this cluster shipped — so fixing the gate is step one and sweeping what it then finds is step two | `B1` `A3` `D3-3` `D3-4` | not started — ⚠️ **the last code class**, after `.6.9` |
+| **S1.10.6.5** ▶ | ⛔ **The instruments** — four gates that report green while doing less than they claim | `B1` `A3` `D3-3` `D3-4` | ▶ **ACTIVE** *(decomposed below)* — ⛔ **the last code class**, and it **OWES a sweep of `.6.1`–`.6.9`** |
 | **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | ✅ **CLOSED 2026-08-27** — ⚡ both were **already asserted somewhere**, and both assertions were green over the gap |
 | **S1.10.6.10** | ⭐ **MATERIALISE S2/S3/S4's INVENTORIES BEFORE S2 OPENS** *(🎯's question, 2026-08-27: do the later surfaces bloat the way S1 did?)*. ⛔ **The S1 class cannot recur** — `lint:surface-complete` asserts all **1,220** tracked source files have an owner. ⚠️ **But their SIZES are unmeasured**: no `surface-coverage.s2.json` exists and the script answers *"unknown surface. Known: s0, s1."* ⚡ **And they cannot be measured cheaply, because the routing decisions live inside S1's own `excluded` function rather than in a shared router** — extracting it IS the fix. Three `never`-filled claim files + a `--surface=` that accepts them turns "unknown" into three numbers before switch-in. ⚠️ Completeness proves every file has *a* home, **not the right one** — `C-7` already hit that seam *(`readBackup.ts` is S3, its render site is S1)* | — | not started — ⭐ **do this BEFORE S2** |
 | **S1.10.6.7** | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | not started |
-| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **19 of 20 done** — `.6.1`–`.6.4` + `.6.6`, registered with each fix rather than batched. Registry **95 → 116 entries** *(two of them defects in this cluster's OWN gates)*, unguarded cap **unchanged at 16** |
-| **S1.10.6.9** ▶ | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — the two claim sites still on `lint:trust-claims`' `OPEN` ledger | — | ▶ **ACTIVE** *(decomposed below)* |
+| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **19 of 20** — registered with each fix rather than batched. Registry **95 → 124**; ⚠️ read the count from `lint:finding-guards`, never from here |
+| **S1.10.6.9** | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — the claim sites still on `lint:trust-claims`' `OPEN` ledger | `G-1`…`G-6` | ✅ **CLOSED 2026-08-27** — ⛔ **the row named two sites and the file held five**, one of them **blocker `B1` unfixed**; a sixth (`G-6`) was **a RED release gate** found while verifying. `MAX_OPEN` → **0** |
 
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
 `lint:rn` + the unit suites green.
 
-#### S1.10.6.9's sub-steps — the two claim sites no auditor found *(ACTIVE)*
+#### S1.10.6.5's sub-steps — THE INSTRUMENTS, the last code class *(ACTIVE)*
 
-⚠️ **Located by `.6.2`'s enumeration, then MEASURED — and both reproduce.** ⛔ **The enumeration named two
-sites and the file holds five**, the seventh instance of the undercount class; `guardianSelectors` alone
-carries `G-1`…`G-5`, one of them **blocker `B1` unfixed in the Guardian**. ⚠️ The measurements ran with a
-control on every case *(truth · repaired · genuinely-zero)*, because a repair is only a defect where the app
-can tell the two zeroes apart and does not.
+⚠️ **Switch-in before-scan: all four premises re-verified against the CURRENT tree, and all four are
+live.** ⛔ **Fixed LAST of the code classes on purpose** — these are the gates the other fixes were
+verified *with*, so a mid-flight change to them invalidates verification already done. `test:gate-plants`
+and `lint:finding-guards` ran after every sub-step of `.6.1`–`.6.9`, and **24 registry entries** went in
+through the latter.
 
-| # | sub-step |
-|---|---|
-| ✅ | **.6.9.1 — `guardianSelectors` MEASURED.** ⛔ **All five reproduce, and the step's own enumeration named two.** ⚡ **`G-1` is the loudest thing this cluster has found: one unread balance turns the Guardian scorecard from *"0 of 4 reads matched · Under-warned 4"* into *"4 of 4 · Under-warned 0"* and suppresses the apology line** — a regime re-grade, in the flattering direction. `G-3` is **blocker `B1` itself**, unfixed in `selectPaydayGuardian`, three years of copy downstream of one `debtFree`. `G-2` says *"your savings"* over a live Visa · `G-4` flips a spending verdict `short → tight` · `G-5` names the wrong pot and a wrong figure (*"$25 from Coffee Fund — doesn't hold your line"* over a true $100 from Vacation). Detail → log |
-| ✅ | **.6.9.2 — `AffordabilityCard` MEASURED: RELOCATED, not refuted.** Its own two `.goals` reads are honest *(a name check; a measured delta across the call)*; every false figure it prints comes from `selectAffordability` — so the fix is `G-4`'s, and the card owes only the **render-site** guard on the `coverFromSavings` figure it restates |
-| ✅ | **.6.9.3 — FIXED, by CLASS** *(decomposition below)*. The class: *"is this debt live?"* was re-derived from a repairable field at every site and only `selectPlanState` asked the owner — the M9/B1 shape the codebase already names, in the file that never got the remedy. **+`G-6`**, a red release gate nobody had run |
-| ▶ | **.6.9.4 — GUARDS + REGISTRY.** ✅ `guardianTrust.test.ts` — **28 asserts, every case a PAIR** *(damaged vs a truth control, because a repaired `0` and a real `0` are the same number)* · ✅ registry **116 → 123**, `MIN_ENTRIES` raised in the same edit · ⭐ **`MAX_OPEN` → 0 and the `OPEN` ledger is EMPTY** — and ⛔ **both removals were FORCED by the gate**, which red on the stale rows the moment the fixes landed. ▶ **Remaining: plant-verify all six** — original defect + naive over-fix, ⚠️ fix **committed first** *(a plant loop never verifies its own restore)* |
-
-##### .6.9.3's sub-steps — one owner, then the five sites *(ACTIVE)*
-
-⚠️ **Before-scan: the remedy already exists and was applied to exactly one caller.** `selectPlanState`
-returns `'debt-free-unverified'` so a screen *cannot* forget to ask; `guardianSelectors` re-derives
-`debts.filter((d) => d.balance > 0)` **three times** and `currentAmount > 0` twice, and asks nothing.
-⛔ **Patching five call sites is what this cluster's own header forbids** — hence an owner plus a gate.
-
-⚡ **`G-4` RE-MEASURED MID-BUILD AND IT IS NOT AN AFFORDABILITY BUG — IT IS A HOLE IN THE CLAIM TABLE.** The
-owner fix does not reach it: with a live Visa beside a lost Store Card, `debtLiveness` is `has-debt` in both
-worlds, and the app still went from *"tight — you'd dip to $0, below your $200 line"* to **"Yes — you'd
-still hold about $300"**, spare **$250 → $550**. ⛔ **The engine skips a zero-balance debt, so an unread
-`balance` removes a real obligation from the plan exactly as pass-2's `C-4` unread `minimumPayment` did —
-and `'required-plan'` routes `minimumPayment` and not `balance`.** ⚠️ One table row reaches all four of its
-consumers; patching the card would have fixed the smallest of them.
+⛔ **AND THE DEFERRAL IS NOT FREE — IT OWES A RE-CHECK OF `.6.1`–`.6.9`, WHICH JUST GOT BIGGER.** `B1` is
+`lint:money` being **unsatisfiable**, and it was green over every line of money-rendering code this whole
+cluster shipped — **including `.6.9`'s own new strings** on `AffordabilityCard` and `PaydayGuardianCard`.
+So fixing the gate is step one and sweeping what it then finds is step two, over a range that now runs to
+the end of `.6.9`.
 
 | # | sub-step |
 |---|---|
-| ✅ | **.6.9.3.1 — the owner.** `debtLiveness` (three states, not a boolean) + `liveDebts`, in `trustSelectors`; `selectPlanState` refactored onto it so the expression exists **once** |
-| ✅ | **.6.9.3.2 — `G-1` `selectCalibrationScore`** — the regime asks the owner; unverified grades an empty history, so the scorecard falls back to the day-one state it already renders |
-| ✅ | **.6.9.3.3 — `G-3` `selectPaydayGuardian`** — `debtFree` asks the owner; unverified resolves to *has debt*, because a debt row exists and only its balance is unknown |
-| ✅ | **.6.9.3.4 — `G-2` `selectReserveRelease`** — unverified takes the **existing** `'your debt'` fallback; a fourth phrasing would be a new claim to get wrong |
-| ✅ | **.6.9.3.5 — `G-4` the routing gap** — `debt.balance` routed under `'required-plan'`, reaching all **5** consumers; `AffordabilityCard` asks the claim and **REPLACES** the verdict rather than captioning it *(one word the user acts on, wrong in a known direction)* |
-| ✅ | **.6.9.3.6 — `G-5` the savings-pot pool** — `unreadSavings` on `TightTopUp` + `coverFromSavings`, captioned on both cards. ⛔ Captioned, not suppressed — the offer is still the best one the app can see |
-| ✅ | **.6.9.3.7 — THE GATE.** ⚡ **A blanket ban was written, MEASURED and thrown away** — `git grep` returns **40+**, most of them `packages/core` amortization loops that hold no store and are *right* to treat a `0` balance as paid, so the rule would have been **unsatisfiable, which is `B1`'s own failure mode**. Scoped to `apps/rn/src` where `DebtStore` is in reach, and shaped as a self-ratcheting **ledger**: **13 sites · 10 files**, counts exact **both** directions, cap downward-only, every file named on the GREEN line. ⛔ **7 of the 10 never mention the trust module at any line** |
+| **.6.5.1** | **`B1` — `lint:money`'s two `Intl` patterns.** ⚡ **Confirmed unsatisfiable in the tree:** `new Intl\.NumberFormat\([^)]*\)[\s\S]{0,120}?style:…` — `[^)]*\)` runs to the call's own closing paren, so the pattern demands `style: 'currency'` **after** the call has closed. ⚠️ **Measure BOTH patterns**; the finding names two and only one has the closing-paren shape |
+| **.6.5.2** | ⛔ **THE SWEEP `B1` OWES** — re-run the repaired gate over `.6.1`–`.6.9`'s whole range and fix what it finds. ⚠️ **This is the step that pays for the deferral**, and skipping it makes the deferral a silent hole |
+| **.6.5.3** | **`A3` — `test:gate-plants` → `lint:secrets`** plants an **untracked** file, so the modified-tracked half *added in that very fix range* stays green when un-fixed. Fix the scenario to plant both, 2×2 with a control |
+| **.6.5.4** | **`D3-3` — `S1P2-B1-REASON`** is green with its own fix's defect restored: the token names the line that **computes** the check, not the line that **uses** it. ⛔ **Sweep the whole registry for that shape**, do not repair one entry |
+| **.6.5.5** | **`D3-4` — `REVERIFY4-2` unpinned.** The un-fix leaves `lint:secrets`, `lint:finding-guards` **and** `test:gate-plants` green, and the green sentence still says *"index+HEAD"* |
+| **.6.5.6** | **Guards + registry + plants** — original **and** naive over-fix for each. ⚠️ `.6.9` measured the cost of skipping this: **2 of 12 plants came back wrong**, one a genuine hole in the new suite |
+| **.6.5.7** | ⛔ **RE-VERIFY `.6.1`–`.6.9`'s guards against the REPAIRED instruments.** Every one of them was confirmed by gates this step has just changed |
 
-⚡ **`G-6`, found while VERIFYING and by no auditor: `npm run typecheck` was RED on the committed tree.**
-`check-trust-claims.ts` imports `trustSelectors.ts`, dragging the app's graph into `scripts/tsconfig.json`
-where `@/` and `@core/` do not exist — **18 errors, none real**. ⛔ `typecheck` is `core && rn && scripts &&
-tests`, so it took **`typecheck:tests` with it (never ran at all)**, and `validate:release:rn` OPENS with it:
-**the release gate could not have passed.** ⚠️ Every per-fix *"typecheck green"* since `C-1` was
-`typecheck:rn` alone. Fixed with aliases, **not an exclusion** — excluding the app restores the green by
-making the gates' own imports unchecked, the hole `[P6.8.7a-1]` closed.
+**Exit (S1.10.6.5):** the four instruments fixed and plant-verified, the `B1` sweep run over the whole
+cluster's range with its findings closed, and `.6.1`–`.6.9`'s guards re-confirmed under the repaired
+gates. ⛔ **That closes the 20 and makes pass 3 a candidate for `.6.7`'s minors, not before.**
 
-**Exit (.6.9.3):** ✅ five sites at the one owner · `'required-plan'` routing `balance` · the ledger gate on
-`lint:rn` · `typecheck` **whole** + the unit suites green.
-
-**Exit (S1.10.6.9):** both sites either fixed with a guard measured red on its own defect, or refuted by
-measurement and recorded as refuted; `MAX_OPEN` at 0; `lint:rn` + the unit suites green.
 
 ⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
 green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one
