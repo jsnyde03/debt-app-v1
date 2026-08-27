@@ -69,7 +69,7 @@ export default function MoreScreen() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   // P6.8.7d.2 — why the remote could not be erased, or null. Set only on a REFUSED delete, and it is what
   // keeps the local wipe from proceeding behind a promise the app cannot keep.
-  const [deleteBlocked, setDeleteBlocked] = useState<'unavailable' | 'error' | null>(null);
+  const [deleteBlocked, setDeleteBlocked] = useState<'unavailable' | 'error' | 'quarantine' | null>(null);
   // 3.5.5.3 — the reset is instantaneous and invisible (the next mark appears on some other screen,
   // later), so the row confirms in place. Without it the tap reads as a no-op and gets repeated.
   const [tipsReset, setTipsReset] = useState(false);
@@ -120,7 +120,7 @@ export default function MoreScreen() {
    * ⚠️ A user who needs the device clear right now — the phone-being-handed-on case — is not held
    * hostage by an unreachable iCloud: `deviceOnly` is that escape, and it is offered by name.
    */
-  async function handleDeleteAll(opts?: { deviceOnly?: boolean }) {
+  async function handleDeleteAll(opts?: { deviceOnly?: boolean; keepQuarantine?: boolean }) {
     // ⚠️ `CLOUD_BACKUP_SUPPORTED`, not `isAvailable()`. On web and Android there is no container and never
     // was, so there is nothing to fail to erase; blocking there would be refusing to delete on behalf of a
     // copy that does not exist. On iOS the check below runs and a signed-out device DOES block.
@@ -130,6 +130,26 @@ export default function MoreScreen() {
         // ⚠️ `unavailable` is not a bug — it is web, Android, or a signed-out device. It still cannot be
         // reported as success, because on a signed-out iPhone the backup is very much still there.
         setDeleteBlocked(cloud.reason);
+        return;
+      }
+    }
+    // ⛔ **THE QUARANTINED COPY IS ERASED BEFORE ANYTHING IS DESTROYED, for the same reason the remote is.**
+    // [S1.10.6.7.3 · pass-3 m7] This ran fire-and-forget *after* `reset()` and *after* the screen popped,
+    // so a failure had no surface left to admit itself on — while the confirm copy promises, without
+    // qualification, that everything "will be permanently erased". The blob is a FULL copy of the
+    // portfolio; that nothing reads it does not make it not the user's financial data.
+    //
+    // ⚠️ **Blocking here needed its own escape, and reusing the iCloud one would have been wrong twice
+    // over:** its copy says iCloud could not be reached, which is false for a local fault, and the exit it
+    // offers — "delete on this device only" — re-runs the path that just failed. So the reason is
+    // distinct and the escape is `keepQuarantine`, which proceeds knowingly. A user is never held hostage
+    // by a blob nothing reads.
+    if (!opts?.keepQuarantine) {
+      try {
+        await clearQuarantinedData();
+      } catch (error: unknown) {
+        reportError(error, { seam: 'persistence', op: 'reset' });
+        setDeleteBlocked('quarantine');
         return;
       }
     }
@@ -144,10 +164,6 @@ export default function MoreScreen() {
     else router.replace('/');
     InteractionManager.runAfterInteractions(() => {
       appStore.getState().reset();
-      // ⛔ The quarantined blob is a FULL copy of the portfolio, set aside by the corrupt-store path and
-      // read by nothing. `adapter.ts` claimed this call already existed; it did not. Fire-and-forget, but
-      // reported — a silent failure here is the same lie in a third place.
-      void clearQuarantinedData().catch((error: unknown) => reportError(error, { seam: 'persistence', op: 'reset' }));
     });
   }
 
@@ -273,6 +289,7 @@ export default function MoreScreen() {
               }}
               onConfirm={() => void handleDeleteAll()}
               onConfirmDeviceOnly={() => void handleDeleteAll({ deviceOnly: true })}
+              onConfirmKeepQuarantine={() => void handleDeleteAll({ keepQuarantine: true })}
             />
           ) : (
             <SettingRow icon="delete-outline" label="Delete all data" danger onPress={() => setConfirmingDelete(true)} last />
@@ -474,11 +491,13 @@ function DeleteConfirm({
   onCancel,
   onConfirm,
   onConfirmDeviceOnly,
+  onConfirmKeepQuarantine,
 }: {
-  blocked: 'unavailable' | 'error' | null;
+  blocked: 'unavailable' | 'error' | 'quarantine' | null;
   onCancel: () => void;
   onConfirm: () => void;
   onConfirmDeviceOnly: () => void;
+  onConfirmKeepQuarantine: () => void;
 }) {
   const c = useAppColors();
   if (blocked) {
@@ -487,7 +506,11 @@ function DeleteConfirm({
         <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
           {blocked === 'unavailable'
             ? 'Nothing was deleted. Sign in to iCloud on this device so the backup there can be erased too — or delete on this device only.'
-            : 'Nothing was deleted. iCloud couldn’t be reached, so the backup there would have survived — try again, or delete on this device only.'}
+            : blocked === 'quarantine'
+              ? // ⛔ A LOCAL fault, so neither of the iCloud lines is true here and neither escape helps —
+                // "this device only" re-runs the step that just failed. [S1.10.6.7.3 · pass-3 m7]
+                'Nothing was deleted. A set-aside copy of your data on this device couldn’t be removed, so erasing now would leave it behind — try again, or delete the rest anyway.'
+              : 'Nothing was deleted. iCloud couldn’t be reached, so the backup there would have survived — try again, or delete on this device only.'}
         </Text>
         <View style={styles.confirmActions}>
           <View style={styles.confirmBtn}>
@@ -497,12 +520,24 @@ function DeleteConfirm({
             <Button label="Try again" variant="secondary" testID="delete-all-retry" onPress={onConfirm} />
           </View>
         </View>
-        <Button
-          label="Delete on this device only"
-          variant="danger"
-          testID="delete-all-device-only"
-          onPress={onConfirmDeviceOnly}
-        />
+        {/* ⚠️ The escape has to match what actually failed. A local set-aside copy is not helped by
+            "this device only" — that path re-runs the step that just failed — so this state offers the
+            one exit that works: proceed knowingly. [S1.10.6.7.3 · pass-3 m7] */}
+        {blocked === 'quarantine' ? (
+          <Button
+            label="Delete the rest anyway"
+            variant="danger"
+            testID="delete-all-keep-quarantine"
+            onPress={onConfirmKeepQuarantine}
+          />
+        ) : (
+          <Button
+            label="Delete on this device only"
+            variant="danger"
+            testID="delete-all-device-only"
+            onPress={onConfirmDeviceOnly}
+          />
+        )}
       </View>
     );
   }

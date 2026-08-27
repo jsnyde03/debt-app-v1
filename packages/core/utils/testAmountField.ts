@@ -1,4 +1,4 @@
-import { parseAmountField, parseNonNegativeAmount, parseOptionalAmount } from './amountField';
+import { parseAmountField, sanitizeAmountInput, parseNonNegativeAmount, parseOptionalAmount } from './amountField';
 
 /**
  * P6.8.7c.1 (audit B1) — the money-field parser.
@@ -80,6 +80,26 @@ function run() {
     const n = parseAmountField(raw);
     assert(n != null && JSON.parse(JSON.stringify({ n })).n === n, `${raw} survives JSON round-trip intact`);
   }
+
+  // ── sanitizeAmountInput — the DISPLAY string, not the parsed value [S1.10.6.7.3 · pass-3 m4] ──
+  // ⛔ The site this replaced stripped with `[^0-9]`, which deletes the SEPARATOR and keeps the digits:
+  // a hundredfold overstatement feeding a payoff projection. Each row below is an input the old strip
+  // got wrong, with the number its caller's `Number(clean) || 0` would have produced.
+  for (const [raw, want] of [
+    ['12.50', '12.50'],   // was '1250'  → 1250
+    ['0.75', '0.75'],     // was '075'   → 75
+    ['$45.99', '45.99'],  // was '4599'  → 4599
+    ['1,200', '1200'],    // grouping still goes — same number to the person typing
+    ['12..5', '12.5'],    // ⚠ only the FIRST point survives: '12..5' is NaN, which `|| 0` reads as ZERO
+    ['abc', ''],
+    ['100', '100'],
+    ['12.', '12.'],       // ⛔ a half-typed state a parser would reject and a controlled input must keep
+  ] as [string, string][]) {
+    assert(sanitizeAmountInput(raw) === want, `sanitize ${JSON.stringify(raw)} → ${JSON.stringify(want)}`);
+  }
+  // The property behind every row: what survives must never parse to something the user did not type.
+  assert(Number(sanitizeAmountInput('12.50')) === 12.5, 'a typed decimal keeps its value, not 100× it');
+  assert(!Number.isNaN(Number(sanitizeAmountInput('12..5'))), 'no surviving string parses to NaN');
 
   console.log(`\n✅ money-field parser: ${passed} assertions passed\n`);
 }

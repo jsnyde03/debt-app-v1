@@ -71,3 +71,24 @@ export function parseNonNegativeAmount(raw: string): number | null {
   const n = Number(cleaned);
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
+
+/**
+ * What a money field may CONTAIN as the user types — the display string, not the parsed number.
+ *
+ * ⛔ **The parsers above answer "what is this worth". This answers "what may stay in the box", and the
+ * two are different jobs.** A controlled input echoes this back on every keystroke, so it has to tolerate
+ * half-typed states (`"12."`) that no parser would accept.
+ *
+ * ⚡ **Shared because the one hand-rolled copy was wrong by a factor of 100.** `WhatIfControls` stripped
+ * with `[^0-9]`, which deletes the separator instead of the digits around it: `"12.50"` became `1250` and
+ * `"0.75"` became `75`, feeding a payoff projection from an amount the user never typed — on a field whose
+ * `keyboardType="numeric"` offers a decimal key on iOS. [S1.10.6.7.3 · pass-3 m4]
+ *
+ * ⚠️ **Only the FIRST point survives.** Keeping every point lets `"12..5"` through, and `Number("12..5")`
+ * is `NaN`, which callers' `|| 0` then read as **zero** — silently worse than the hundredfold error.
+ * Grouping separators and the currency symbol are dropped rather than kept, matching `normalize` above:
+ * `"1,200"` reads back as `"1200"`, which is the same number to the person typing it.
+ */
+export function sanitizeAmountInput(raw: string): string {
+  return raw.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+}

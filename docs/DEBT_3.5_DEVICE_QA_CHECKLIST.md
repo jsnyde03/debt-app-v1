@@ -638,6 +638,11 @@ _Companion to `DEBT_NATIVE_BLOCK_MANUAL_STEPS.md` (the portal/ASC steps — all 
 
 ⚠️ Read figures from [`audits/coverage-split.md`](audits/coverage-split.md), never from a doc quoting them.
 
+**⚠️ NEW row — the “Delete everything” quarantine block (S1.10.6.7.3 · pass-3 m7), and NO automated test can reach it:**
+- `clearQuarantinedData()` is now **awaited before anything is destroyed**, and a failure blocks the wipe with its own copy plus a **“Delete the rest anyway”** escape.
+- ⛔ **The blocked branch is unreachable off-device BY CONSTRUCTION** — the web adapter's `clearQuarantine` swallows every error, so no e2e can enter it. It needs an **MMKV fault on iOS**, on top of a prior corrupt-store quarantine. The ordering is guarded by a token; the SCREEN is not proven by anything.
+- **What to check:** the happy path still deletes cleanly on a real device (the common case now runs an extra awaited call before the pop, so a regression here shows up as *“Delete everything” does nothing*), and if the blocked state can be induced at all, that its copy names a **local** copy and not iCloud.
+
 **🔴 Highest-value row — P6.8.7e.5 [C4], and it settles a premium feature:**
 - On a **premium** device with **Payday Countdown ON**, sit inside the last 3 days of a real pay cycle
   **without re-saving the paycheck sheet**, and record whether the Live Activity ever appears.

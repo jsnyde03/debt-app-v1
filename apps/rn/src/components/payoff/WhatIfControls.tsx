@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { sanitizeAmountInput } from '@core/utils/amountField';
+
 import { Slider } from '@/components/ui/Slider';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { WhatIfResult } from '@/store/analysisSelectors';
@@ -55,7 +57,11 @@ export function WhatIfControls({
   }, [result.sliderMax]);
 
   const onType = (text: string) => {
-    const clean = text.replace(/[^0-9]/g, '');
+    // ⛔ **THE SHARED OWNER.** [S1.10.6.7.3 · pass-3 m4] This was a local `[^0-9]` strip, which
+    // deleted the separator instead of the digits around it: `"12.50"` became `1250`. The rule now
+    // lives beside the parsers in `amountField`, where the next money input finds it instead of
+    // re-deriving it — which is how the same defect reached six files elsewhere in this repo.
+    const clean = sanitizeAmountInput(text);
     onExtraChange(clean);
     const v = Number(clean) || 0;
     if (v > sliderMax) setSliderMax(niceCeil(v));
@@ -67,7 +73,11 @@ export function WhatIfControls({
       <View style={styles.readoutRow}>
         <Text maxFontSizeMultiplier={1.3} style={[styles.readout, { color: simulating ? c.text.primary : c.text.tertiary }]}>+$</Text>
         <TextInput
-          value={value ? String(value) : ''}
+          // ⛔ **THE RAW STRING, NOT `String(Number(extra))`.** [S1.10.6.7.3 · pass-3 m4] Round-tripping
+          // the display through `Number` discards a trailing point, so `"12."` re-rendered as `"12"` and
+          // the decimal key could never be used at all — the sanitiser alone does not fix m4, because the
+          // character it now preserves was being erased one line later.
+          value={extra}
           onChangeText={onType}
           keyboardType="numeric"
           placeholder="0"
@@ -86,7 +96,9 @@ export function WhatIfControls({
 
       <Slider
         value={value}
-        onChange={(v) => onExtraChange(String(v))}
+        // ⚠️ `''` at zero, not `'0'` — the field shows `extra` verbatim now, and a literal "0" sitting
+        // in the box where the placeholder belongs reads as a value the user chose.
+        onChange={(v) => onExtraChange(v ? String(v) : '')}
         min={0}
         max={sliderMax}
         step={STEP}

@@ -26695,6 +26695,56 @@ the one real finding from the two artefacts.
 a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
 restored, and verified by grepping the line back. **Mutation runs go in the background from here.**
 
+## S1.10.6.7.3 — behaviour, and both fixes had a half the finding did not name (2026-08-27)
+
+Two minors. Both premises held exactly; **both remedies were incomplete**, and in each case the missing
+half was the one that decided whether the fix worked at all.
+
+### `m4` — the sanitiser alone fixes nothing
+
+`WhatIfControls` stripped typed money with `[^0-9]`, which deletes the **separator** and keeps the digits:
+`"12.50"` → `1250`, `"0.75"` → `75`. A hundredfold overstatement feeding a payoff projection, on a field
+whose `keyboardType="numeric"` offers a decimal key. Re-measured: it was the **only** digits-only strip in
+the app.
+
+⚡ **The half the finding did not name:** the input rendered `String(Number(extra) || 0)`, so `"12."`
+round-tripped straight back to `"12"` — **the decimal key could never be used at all.** Fixing the strip
+alone would have preserved a character that was erased one line later, and the bug would have survived a
+green diff. Display now shows the raw sanitised string, and the slider writes `''` rather than `'0'` so
+the placeholder still appears at the floor.
+
+⚠️ **Also added `.replace(/(\..*)\./g, '$1')`**, which the finding did not ask for: keeping every point
+lets `"12..5"` through, and `Number("12..5")` is `NaN`, which the caller's `|| 0` reads as **zero extra** —
+silently worse than the defect being fixed.
+
+⭐ The rule moved to `packages/core/utils/amountField.ts`, beside the parsers, so the next money input
+finds an owner instead of re-deriving one. Guarded in `testAmountField` (already on `test:regression`);
+plant-verified — restoring `[^0-9]` reds `sanitize "12.50"`.
+
+### `m7` — the promise was unconditional and the delete was not
+
+`clearQuarantinedData()` ran fire-and-forget **after** `reset()` and after the screen popped, so a failure
+had no surface left to admit itself on, while the confirm copy promises everything *"will be permanently
+erased"*. Now awaited **before anything is destroyed** — the same doctrine the file already states for the
+iCloud copy.
+
+⛔ **Reusing the existing blocked state would have been wrong twice over**, and only reading the copy
+showed it: `'error'` renders *"iCloud couldn't be reached"*, which is false for a local fault, and the
+escape it offers — *"Delete on this device only"* — **re-runs the step that just failed**. So the reason is
+distinct and the escape is *"Delete the rest anyway"*, which proceeds knowingly. A user is never held
+hostage by a blob nothing reads.
+
+⚠️ **The blocked branch is unreachable off-device, and that is stated rather than papered over.** The web
+adapter's `clearQuarantine` swallows every error by construction, so no e2e can enter it; it needs an MMKV
+fault on iOS on top of a prior corrupt-store quarantine. **Filed as a P6.14 device row** — including that
+the happy path now runs an extra awaited call before the pop, so a regression reads as *"Delete everything
+does nothing"*. The standing guard is the **ordering**, which is what regresses if fire-and-forget returns.
+
+### Close-out
+
+`MIN_ENTRIES` 147 → **149**; **148 of 149** guarded. `lint:rn` **36 gates** green, `tsc` clean, unit suites
+green, and `delete-all-data.spec.ts` green — including the case that asserts the quarantined copy is erased.
+
 ## S1.10.6.7.2 — engine + analytics, and a remedy refused by measurement (2026-08-27)
 
 Three minors. **All three premises held; two of the three REMEDIES did not.** That is now the second
