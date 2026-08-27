@@ -26,21 +26,38 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.10 · pass 3**
+## ▶ RIGHT NOW — **S1.10.6.5.8 · the guard backlog**
 
-**Surface S1 · money · goals · plan cards.** Passes 1 and 2 are **run and fully fixed**. ⛔ **S1 does NOT
-converge yet** — [D65] exits on 0/0 **twice consecutively**, pass 2 reset the count, and **pass 3 is not a
-clean pass**, so a clean pass 4 still owes a pass 5. **Pass 3 is RUN and recorded** *(pinned `96d1f11`, four
-fresh auditors, [D68])* and is now being **fixed**: **19 of 20** blocker+majors closed, plus **`G-1`…`G-6`
-from `.6.9`'s own enumeration** — ⚡ five in one file the plan's row said held two, and a **RED release
-gate** nobody had run. S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not queue**.
-Detail for anything closed → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+**Surface S1 · money · goals · plan cards.** Passes 1 and 2 run and fully fixed; **pass 3 run at `96d1f11`
+and FIXED — 20 of 20 blocker+majors closed**, plus **`G-1`…`G-6`** from `.6.9`'s own enumeration and
+**`GAP-2` `GAP-3` `GAP-6` `GAP-14`** from the guard inventory. ⛔ **S1 does NOT converge yet** — [D65] exits
+on 0/0 **twice consecutively**, and pass 3 was not clean, so **pass 4 is the next first-candidate and a
+clean pass 4 still owes a pass 5.** S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is
+**reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
-⛔ **THERE IS NO CURRENT GATE RECORD** ([D74]). `lint:gate-freshness` is **RED**: the record is real
-*(`818f934` · `d2743681` · 807 files)* but **`96d1f11` moved source after it**, so it no longer describes
-this tree. The last full pass is **`818f934`**. ⚠️ **A recorded fingerprint decays without anyone editing
-it** — this block was accurate when written and stopped being so one commit later. That is the whole reason
-[D49] says quote `lint:gate-freshness`, never a fingerprint typed onto this page.
+⛔ **THERE IS NO CURRENT GATE RECORD, AND MID-AUDIT THAT IS THE EXPECTED STATE** ([D74]). The last full
+pass is **`818f934`**. ⚠️ **Do not type the fingerprint or the file count here** — this block has now
+carried a decayed one twice, which is the whole reason [D49] says quote `npm run lint:gate-freshness` and
+read `gate-status.json`. ⛔ **The harness reports exit 0 over a RED gate** — read the gate's own summary
+line, never the pipeline's status.
+
+### ⏭ WHAT THE NEXT SESSION PICKS UP
+
+▶ **`S1.10.6.5.8`, sub-steps `.8.4`–`.8.7`** — decomposed below, **13 rows left** in the unguarded ledger
+*(`MAX_UNGUARDED` moved **16 → 13** for the first time this session)*.
+
+⚠️ **Verify each GAP's premise before building it.** Two of the four taken so far did **not** survive
+contact: `GAP-6` was already closed by `M8`'s strict-equality sweep *(its `>` premise is stale)*, and
+`GAP-14`'s CI step is **refuted** — `gate:record` is deliberately not in CI, a post-record check is
+tautological, the record is stale mid-audit by design, and nothing in CI consumes it. ⚡ **They were written
+against `b03e0d3` and the tree has moved a great deal since**, so expect more of the remaining 11 to refute
+than the list implies. A refutation is a real exit ([D65]) — record it with the measurement and a token.
+
+⛔ **Then, and only then: pass 4.** It reads roughly **2,000 lines of code written this session across the
+instruments**, and this session alone put **five defects into its own gates and harnesses** — the `\b`
+mangled to a backspace byte, the edit pre-flight that never landed, and three verifier errors that each
+produced a confident verdict about nothing. **Report pass 4 split by origin**, or a flat total hides both
+halves moving.
 
 ### 🔨 THE ACTIVE DECOMPOSITION — S1 *(the ONLY decomposed section on this doc)*
 
@@ -93,11 +110,11 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 | **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ✅ **CLOSED 2026-08-27** — ⛔ and the day-old gate's two caps were **vacuous**, found by re-reading it |
 | **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, both restore doors | `B3` `B4` `C-7` `C-7b` | ✅ **CLOSED 2026-08-27** — ⚡ the finding's **own stated remedy would have been the defect** |
 | **S1.10.6.5** | ⛔ **The instruments** — four gates reporting green while doing less than they claim | `B1` `A3` `D3-3` `D3-4` | ✅ **CLOSED 2026-08-27** — ⚡ **every one had MORE than the finding said**: `B1` two blind spots · `A3` a plant covering one half · `D3-3` a sweep of **13** · `D3-4` pinnable only by a plant whose input is the git REVISION. Detail → log |
-| **S1.10.6.5.8** ▶ | ⭐ **THE GUARD BACKLOG** — `GAP-2`…`GAP-18`, the 16 `unguarded` rows | — | ▶ **ACTIVE** *(decomposed below)*. ⛔ **Not open defects — fixes with no standing guard.** The cap has not moved all session because nothing owned it |
+| **S1.10.6.5.8** ▶ | ⭐ **THE GUARD BACKLOG** — the `unguarded` rows of the guard inventory | `GAP-*` | ▶ **ACTIVE** *(decomposed below)*. ⛔ **Not open defects — fixes with no standing guard.** ⚡ **The cap MOVED for the first time (16 → 13)**; ⚠️ read the live number from `lint:finding-guards`, and **verify each premise before building — 2 of the first 4 refuted** |
 | **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | ✅ **CLOSED 2026-08-27** — ⚡ both were **already asserted somewhere**, and both assertions were green over the gap |
 | **S1.10.6.10** | ⭐ **MATERIALISE S2/S3/S4's INVENTORIES BEFORE S2 OPENS** *(🎯's question, 2026-08-27: do the later surfaces bloat the way S1 did?)*. ⛔ **The S1 class cannot recur** — `lint:surface-complete` asserts all **1,220** tracked source files have an owner. ⚠️ **But their SIZES are unmeasured**: no `surface-coverage.s2.json` exists and the script answers *"unknown surface. Known: s0, s1."* ⚡ **And they cannot be measured cheaply, because the routing decisions live inside S1's own `excluded` function rather than in a shared router** — extracting it IS the fix. Three `never`-filled claim files + a `--surface=` that accepts them turns "unknown" into three numbers before switch-in. ⚠️ Completeness proves every file has *a* home, **not the right one** — `C-7` already hit that seam *(`readBackup.ts` is S3, its render site is S1)* | — | not started — ⭐ **do this BEFORE S2** |
 | **S1.10.6.7** | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | not started |
-| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **19 of 20** — registered with each fix rather than batched. Registry **95 → 124**; ⚠️ read the count from `lint:finding-guards`, never from here |
+| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — a two-line edit each (the entry **and** `MIN_ENTRIES`) | all 20 | ✅ **CLOSED 2026-08-27** — registered with each fix rather than batched. ⛔ **Read the count from `lint:finding-guards`, never from here**; `D3-3` then swept the whole registry because a token naming a DECLARATION outlives its use |
 | **S1.10.6.9** | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — the claim sites still on `lint:trust-claims`' `OPEN` ledger | `G-1`…`G-6` | ✅ **CLOSED 2026-08-27** — ⛔ **the row named two sites and the file held five**, one of them **blocker `B1` unfixed**; a sixth (`G-6`) was **a RED release gate** found while verifying. `MAX_OPEN` → **0** |
 
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
