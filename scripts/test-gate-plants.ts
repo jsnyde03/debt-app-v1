@@ -293,6 +293,26 @@ const SCENARIOS: Scenario[] = [
       'export const P = () => <Text style={styles.hero} allowFontScaling={true}>1</Text>;\n',
     why: 'a 40pt figure with scaling explicitly ON — the S0.13 finding-4 shape',
   },
+  {
+    /**
+     * ⛔ **S1.10.6.5.8.5 [GAP-11] — THE IDENTIFIER WIDENING WAS SILENTLY REVERTIBLE, AND THAT WAS
+     * MEASURED, NOT INFERRED.** `CALL` was widened by `M11` from the call shape
+     * `/(?<![\w$])importStore\s*\(/` to the bare identifier. Reverting it and running the gate returns
+     * **`✅ 7/7 importStore sites sanctioned across 6 files`, exit 0** — the whole widening could be
+     * undone with nothing objecting.
+     *
+     * ⚡ **The four spellings below are the discriminator**, and they are the ones this gate's own
+     * docstring tabulates: none of them is `importStore(`, so the pre-M11 regex scores **zero** on this
+     * file while the current one scores four. `importStore` replaces the ENTIRE store and cannot be
+     * undone; an alias or a `.call` reaches it just as completely as a direct call does.
+     */
+    gate: 'lint:destructive',
+    script: 'check-destructive-writes.ts',
+    at: 'apps/rn/src/__gate_plant__.ts',
+    body:
+      "import { importStore } from '@/store/persistence';\n\n// four spellings the M11 IDENTIFIER match covers and the pre-M11 call shape does not.\nexport const a = () => importStore?.({} as never);\nexport const alias = importStore;\nexport const c = (obj: Record<string, () => void>) => obj['importStore']();\nexport const d = () => importStore.call(null, {} as never);\n",
+    why: 'four non-call spellings of importStore — each reaches the same irreversible whole-store overwrite',
+  },
   ...B1_SCENARIOS,
   /**
    * ⛔ **S1.10.6.5 [pass-3 B1] — MULTI-LINE ON PURPOSE, BECAUSE THE GATE HAD TWO INDEPENDENT BLIND SPOTS
@@ -350,7 +370,7 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 15;
+const MIN_SCENARIOS = 16;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 
