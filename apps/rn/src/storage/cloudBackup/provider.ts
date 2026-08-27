@@ -16,6 +16,31 @@ export interface CloudBackupMetadata {
   modifiedAt: string;
 }
 
+/**
+ * ⛔ **A FILE'S IDENTITY, OR A THROW — NEVER A GUESS.** [S1.10.6.4 · pass-3 blocker B3, second half]
+ *
+ * ⚡ Measured rather than reasoned: `new Date(undefined)` and `new Date(NaN)` **throw** `RangeError` on
+ * `.toISOString()`, while **`new Date(null)` and `new Date(0)` do not — they become
+ * `1970-01-01T00:00:00.000Z`**, which `inspectRemote` then compares as a real file identity. Both
+ * directions of an absent `mtimeMs` were unhandled, and the silent 1970 is the worse one: it never reaches
+ * a guard at all.
+ *
+ * ⛔ **It throws, and returning `null` would have been the clobber wearing the fix's clothes.** The
+ * finding's own remedy said *"return `null` rather than an epoch date or a throw"* — and `null` is exactly
+ * the value `inspectRemote` reads as **`none`**, *"there is no copy to lose"*, which the guard **permits**.
+ * A file that exists and cannot be identified is the one case that must never be permitted. A throw becomes
+ * `unknown`, which `backupToCloudGuarded` refuses.
+ *
+ * ⚠️ Lives here, in the pure module, because the iOS provider imports a TurboModule and cannot be loaded by
+ * the test runner at all — which is why this rule had no test and no owner.
+ */
+export function metadataFromMtime(mtimeMs: unknown): CloudBackupMetadata {
+  if (typeof mtimeMs !== 'number' || !Number.isFinite(mtimeMs) || mtimeMs <= 0) {
+    throw new Error(`cloud-backup: the file exists but its mtimeMs is unusable (${String(mtimeMs)})`);
+  }
+  return { modifiedAt: new Date(mtimeMs).toISOString() };
+}
+
 export interface CloudBackupProvider {
   /** True only when an iCloud account is signed in AND this app's container is reachable. */
   isAvailable(): Promise<boolean>;

@@ -7,6 +7,7 @@ import { FormSheet } from '@/components/ui/FormSheet';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { cloudBackupMessage } from '@/data/cloudBackupMessages';
 import { formatBackupTime } from '@/data/formatBackupTime';
+import { describeRestorePreview } from '@/data/readBackup';
 import { useCloudBackup, type CloudBackupAction } from '@/hooks/use-cloud-backup';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -27,10 +28,30 @@ import { textStyles } from '@/theme/typography';
  */
 export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();
-  const { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, setEnabled, backupNow, restoreNow } =
+  const { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, setEnabled, backupNow, previewRestore, restoreNow } =
     useCloudBackup();
   const [message, setMessage] = useState('');
   const [confirmingRestore, setConfirmingRestore] = useState(false);
+  /**
+   * ⛔ **S1.10.6.4 [C-7b] — WHAT IS IN THE FILE, BEFORE THE IRREVERSIBLE TAP.**
+   *
+   * ⚡ `BackupSheets.tsx:122` states the rule this door did not follow — *"Import: read a backup, **SHOW
+   * what is in it**, and only then replace."* The file importer holds the bytes before it confirms; this
+   * sheet confirmed first and fetched afterwards, so it rendered one unconditional sentence and nothing
+   * about the copy it was about to overwrite the user's portfolio with.
+   *
+   * ⚠️ `null` while the read is in flight or when it fails — the confirm still stands on its own warning,
+   * so a slow or unavailable iCloud never blocks a restore the user has asked for. Only the description is
+   * conditional; the danger sentence is not.
+   */
+  const [preview, setPreview] = useState<string | null>(null);
+
+  function openRestoreConfirm() {
+    setMessage('');
+    setPreview(null);
+    setConfirmingRestore(true);
+    void previewRestore().then((store) => setPreview(store ? describeRestorePreview(store) : null));
+  }
 
   /**
    * ⛔ P6.8.7d.3 [M3-5] — the mapping itself lives in `@/data/cloudBackupMessages`, not here.
@@ -103,10 +124,7 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
                 variant="secondary"
                 testID="cloud-backup-conflict-restore"
                 disabled={busy !== null}
-                onPress={() => {
-                  setMessage('');
-                  setConfirmingRestore(true);
-                }}
+                onPress={openRestoreConfirm}
               />
               <Button
                 label="Replace it with this device"
@@ -138,6 +156,13 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
             <View style={styles.confirm}>
               {/* ⚠️ The warning names what is LOST, not what is gained. A restore is destructive in one
                   direction only, and the user is the only one who knows which copy is the good one. */}
+              {/* ⛔ [C-7b] What is in the file, ABOVE the danger sentence — the file door's own rule
+                  ("SHOW what is in it, and only then replace"), applied to the door that skipped it. */}
+              {preview ? (
+                <Text testID="cloud-restore-preview" style={[textStyles.body, { color: c.text.primary }]}>
+                  {preview}
+                </Text>
+              ) : null}
               <Text testID="cloud-restore-warning" style={[textStyles.body, { color: c.text.primary }]}>
                 Restoring replaces everything on this device with the copy in iCloud. This can’t be undone.
               </Text>
@@ -164,10 +189,7 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
               variant="secondary"
               testID="cloud-restore"
               disabled={busy !== null || status !== 'ready'}
-              onPress={() => {
-                setMessage('');
-                setConfirmingRestore(true);
-              }}
+              onPress={openRestoreConfirm}
             />
           )}
         </>

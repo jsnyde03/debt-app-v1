@@ -51,13 +51,38 @@ async function waitForPersisted(
     .toBe(true);
 }
 
-/** Put bytes in localStorage that `runMigrations` will refuse — the corrupt-store path. */
+/**
+ * Put bytes in localStorage that `runMigrations` will refuse — the corrupt-store path.
+ *
+ * ⚠️ **`JSON.stringify('this is not a store')` is VALID JSON**, and that was measured rather than noticed:
+ * `JSON.parse` succeeds, returns the string, and `runMigrations` refuses it. It is a real case and it stays
+ * — but it is the one member of the class on which the web adapter and the native adapter AGREED, and the
+ * whole suite rested on it while a truncated write read as *"nothing is stored"*. See `seedTruncated`.
+ */
 async function seedCorrupt(page: Page) {
   await page.addInitScript(
     (arg) => {
       window.localStorage.setItem(arg.key, arg.blob);
     },
     { key: KEY, blob: JSON.stringify('this is not a store') },
+  );
+}
+
+/**
+ * ⛔ **S1.10.6.4 [pass-3 B4] — THE MEMBER OF THE CLASS NOTHING TESTED.** Bytes that are not valid JSON at
+ * all: a write truncated by a killed tab or a quota error, which is the ordinary way a blob goes bad. The
+ * web adapter read these as `null`, so the app onboarded silently, `persistence.ts` ran the v1.6 legacy
+ * import over a device that already had a v1.7 store, and the first autosave overwrote the last copy.
+ *
+ * ⚠️ Added BESIDE `seedCorrupt`, never in place of it — replacing the fixture would trade one uncovered
+ * member of the class for another.
+ */
+async function seedTruncated(page: Page) {
+  await page.addInitScript(
+    (arg) => {
+      window.localStorage.setItem(arg.key, arg.blob);
+    },
+    { key: KEY, blob: '{"debts":[{"id":"d1","name":"Chase","balance":12' },
   );
 }
 
@@ -75,6 +100,23 @@ test('a corrupt store does NOT drop the user into silent onboarding', async ({ p
 
   // A way out is offered, not just an explanation.
   await expect(page.getByTestId('data-reset-import')).toBeVisible();
+});
+
+test('B4 · TRUNCATED bytes are quarantined too, not read as a first launch', async ({ page }) => {
+  /**
+   * ⛔ **The two implementations of one `StorageAdapter` contract disagreed on these exact bytes.**
+   * `createAdapter.ts` hands corrupt bytes back as a raw string so the blob is quarantined; the web adapter
+   * caught `getItem` and `JSON.parse` in one `catch { return null }` and reported *"nothing is stored"*.
+     * ⚠️ The assertions are the same as the valid-JSON case above **by design**: unreadable bytes must reach
+   * the same quarantine whatever shape they are in, so identical assertions ARE the guard.
+   */
+  await seedTruncated(page);
+  await page.goto('/');
+  await expect(page.getByTestId('data-reset')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('We couldn’t open your saved plan')).toBeVisible();
+  await expect(page.getByText(/Nothing was deleted/)).toBeVisible();
+  // ⛔ The defect by name: silent onboarding over a store the user still had.
+  await expect(page.getByText('Will you make it to payday?')).toHaveCount(0);
 });
 
 test('the reset screen blocks onboarding until the user answers it', async ({ page }) => {

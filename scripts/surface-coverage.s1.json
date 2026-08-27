@@ -666,6 +666,9 @@
   "apps/rn/src/storage/cloudBackup/service.ts": [
     "s1p3"
   ],
+  "apps/rn/src/storage/createAdapter.test.ts": [
+    "never"
+  ],
   "apps/rn/src/storage/createAdapter.ts": [
     "s1p3"
   ],

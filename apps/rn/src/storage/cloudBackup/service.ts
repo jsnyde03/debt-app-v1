@@ -131,8 +131,28 @@ export async function inspectRemote(
  * error; it is the guard working, and the caller's job is to put the choice in front of the user rather
  * than to retry.
  *
- * ⚠️ An `unknown` remote (iCloud unreachable) is allowed through to `backupToCloud`, which refuses it at
- * the availability check and returns `unavailable`. It must NOT be treated as `none`.
+ * ⛔ **AN `unknown` REMOTE IS REFUSED HERE, AND NOT DOWNSTREAM.** [S1.10.6.4 · pass-3 blocker B3]
+ *
+ * ⚡ `inspectRemote` produces `unknown` two ways, and only one of them is refused by `backupToCloud`'s
+ * availability check: `isAvailable() === false`, yes — and its own `catch`, which is reached when iCloud is
+ * **up** and `stat()` throws. On that second path `backupToCloud` re-checks `isAvailable()`, gets `true`,
+ * **and writes.** Measured against the real module with a fake provider: `writes=1`, the other device's file
+ * gone, the sheet reporting *"Backed up"*.
+ *
+ * ⛔ **And the install then bricks its own backup.** With no `stat` to read, `backupToCloud` falls back to
+ * `now.toISOString()`, so the ledger records **our clock** as the file's identity — `inspectRemote` compares
+ * `===` against the real mtime forever after, and every later automatic backup is refused as a foreign
+ * clobber. That is the regression `service.test.ts` names, reached by a path it does not take.
+ *
+ * ⚠️ **"available but un-stat-able" is reachable by construction, not by accident**: `isAvailable()` on iOS
+ * swallows and returns `false`, so it cannot throw, while `stat()` is two native calls plus a `new Date()`
+ * that throws on a non-finite `mtimeMs`.
+ *
+ * ⛔ **Refused HERE and not in `backupToCloud`**, deliberately: that function is the unguarded, *informed*
+ * path the *"I read the date and chose to replace it"* flow uses, and hardening it would break the branch
+ * `use-cloud-backup.ts` reaches after the user answers. This is the only caller that can tell `unknown`
+ * from `ours`. ⚠️ The refusal direction is the safe one — a refused backup is recoverable on the next
+ * background; an overwritten remote is not.
  */
 export async function backupToCloudGuarded(
   store: DebtStore,
@@ -142,6 +162,7 @@ export async function backupToCloudGuarded(
 ): Promise<GuardedBackupOutcome> {
   const claim = await inspectRemote(provider, store.prefs?.cloudBackupRemoteAt);
   if (claim.state === 'unclaimed') return { ok: false, reason: 'remote-unclaimed', remoteAt: claim.at };
+  if (claim.state === 'unknown') return { ok: false, reason: 'unavailable' };
   return backupToCloud(store, provider, codec, opts);
 }
 

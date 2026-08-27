@@ -29,12 +29,37 @@ const backing = (): Storage | undefined =>
 
 export function createStorageAdapter(): StorageAdapter {
   return {
+    /**
+     * ⛔ **TWO DIFFERENT QUESTIONS WERE SHARING ONE `catch`, AND THEY HAVE DIFFERENT ANSWERS.**
+     * [S1.10.6.4 · pass-3 B4]
+     *
+     * ⚡ *"Storage is unavailable"* (private mode, a disabled backing store) is a genuine `null` — the
+     * degradation this file's header is about. *"There are bytes and they will not parse"* is **not**: it is
+     * a truncated write from a killed tab or a quota error, and `adapter.ts` states the contract for it —
+     * *"never lose the user's bytes"* — while `createAdapter.ts` implements it, handing the raw string back
+     * so `runMigrations` refuses and the blob is **quarantined**.
+     *
+     * ⛔ **Two implementations of one interface disagreed on the same bytes.** Measured: a truncated blob
+     * read as `null` here, so `persistence.ts` treated it as *"RN storage is genuinely empty"*, ran the v1.6
+     * legacy import over a device that already had a v1.7 store, dropped the user into onboarding with no
+     * warning, and let the first autosave overwrite the last copy of their plan.
+     *
+     * ⚠️ **The `getItem` catch stays exactly where it was.** That half of the old behaviour is correct and
+     * is the reason this file survives disabled storage at all; only the `JSON.parse` half moves.
+     */
     async read() {
+      let raw: string | null;
       try {
-        const raw = backing()?.getItem(KEY);
-        return raw ? JSON.parse(raw) : null;
+        raw = backing()?.getItem(KEY) ?? null;
       } catch {
-        return null;
+        return null; // storage unavailable — the private-mode degradation, unchanged
+      }
+      if (raw === null || raw === '') return null; // genuinely empty
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // Corrupt bytes: hand the raw string back so hydrate → runMigrations throws → quarantined.
+        return raw;
       }
     },
     async write(store) {

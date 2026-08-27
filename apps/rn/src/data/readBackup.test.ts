@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { serializeBackup } from '@/data/backup';
 import { createDefaultStore } from '@/data/defaults';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
-import { describeBackup, readBackup, v16FileToLegacyItems } from '@/data/readBackup';
+import { describeBackup, describeRestorePreview, readBackup, v16FileToLegacyItems } from '@/data/readBackup';
 
 /**
  * 5.8.3 — the import router + the v1.6 file adapter.
@@ -367,6 +367,72 @@ console.log(`✅ readBackup router tests passed (${passed} asserts).`);
   assert(result.ok, 'an EMPTY v1.6 backup still imports');
   if (result.ok) {
     assert(result.store.prefs.onboardingComplete === false, '…and still onboards — nothing to show yet');
+  }
+}
+
+/**
+ * ── S1.10.6.4 [pass-3 C-7]: the confirm SAYS what could not be read, at the point of no return ─────
+ *
+ * ⛔ **The sentence was BYTE-IDENTICAL for an intact backup and one this reader had just recorded three
+ * losses on.** A user read *"This backup has 2 debts, 1 expense and 1 goal. Saved …"*, tapped **Replace my
+ * data** under *"It can't be undone"*, and learned about the losses only on Today, after their live
+ * portfolio was gone. ⚡ The answer was not merely available — it was **already inside the object being
+ * described** (`result.store.pendingDataRepairs`).
+ *
+ * ⚠️ **Every fixture in this file's seven `describeBackup` assertions is a healthy file.** Not one asserted
+ * the sentence DIFFERS between an intact and a damaged backup, which is the whole claim — reading rule 2:
+ * the tests picked the member of the class that works.
+ */
+{
+  const healthy = createDefaultStore();
+  healthy.debts = [
+    { id: 'd1', name: 'Chase', balance: 5000, originalBalance: 5000, minimumPayment: 100, apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' },
+  ] as DebtStore['debts'];
+  const intact = readBackup(serializeBackup(healthy, { now: AT }));
+  assert(intact.ok, 'read an intact backup');
+
+  // The same file with one balance blanked — the loss `runMigrations` records on THIS file, not later.
+  const damagedBlob = JSON.parse(serializeBackup(healthy, { now: AT })) as { store: { debts: unknown[] } };
+  (damagedBlob.store.debts[0] as { balance: unknown }).balance = 'n/a';
+  const damaged = readBackup(JSON.stringify(damagedBlob));
+  assert(damaged.ok, 'read the damaged backup — it is still a readable file, which is the point');
+
+  if (intact.ok && damaged.ok) {
+    const intactText = describeBackup(intact);
+    const damagedText = describeBackup(damaged);
+    assert(damaged.store.pendingDataRepairs.length > 0, '⭐ the fixture really did record a loss (or it proves nothing)');
+    // ⛔ THE HONEST STATE BY NAME. A test asserting only that the two differ would pass on any change.
+    assert(damagedText.includes('could not be read'), `⛔ C-7 — the damaged confirm names the loss — "${damagedText}"`);
+    assert(damagedText.includes('1 amount'), '⛔ C-7 — …and counts it, so "one" is distinguishable from "nine"');
+    assert(intactText !== damagedText, '⛔ C-7 — the two sentences are no longer byte-identical');
+    // ⭐ CONTROL — an intact file gains no warning, or the clause is noise on every restore.
+    assert(!intactText.includes('could not be read'), `⭐ control — an intact backup carries no warning — "${intactText}"`);
+    // …and the counts both files still agree on survive: the clause is an ADDITION, not a replacement.
+    assert(intactText.includes('1 debt') && damagedText.includes('1 debt'), '⭐ control — the counts are untouched');
+  }
+}
+
+/**
+ * ── S1.10.6.4 [pass-3 C-7b]: the iCloud door reads from the SAME owner ────────────────────────────
+ *
+ * ⛔ The cloud restore confirm described nothing at all — no counts, no losses — because it confirms
+ * BEFORE it fetches. The remedy is a pre-read, and this pins that both doors compose one sentence from one
+ * function rather than growing a second copy of the wording to drift against.
+ */
+{
+  const store = createDefaultStore();
+  store.debts = [
+    { id: 'd1', name: 'Chase', balance: 5000, originalBalance: 5000, minimumPayment: 100, apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' },
+  ] as DebtStore['debts'];
+  assert(describeRestorePreview(store).includes('1 debt'), 'C-7b — the cloud confirm states what is in the file');
+  assert(!describeRestorePreview(store).includes('could not be read'), '⭐ control — and warns about nothing when there is nothing');
+
+  const damagedBlob = JSON.parse(serializeBackup(store, { now: AT })) as { store: { debts: unknown[] } };
+  (damagedBlob.store.debts[0] as { balance: unknown }).balance = 'n/a';
+  const damaged = readBackup(JSON.stringify(damagedBlob));
+  assert(damaged.ok, 'read the damaged file for the cloud preview');
+  if (damaged.ok) {
+    assert(describeRestorePreview(damaged.store).includes('could not be read'), '⛔ C-7b — and it names the loss, exactly as the file door does');
   }
 }
 

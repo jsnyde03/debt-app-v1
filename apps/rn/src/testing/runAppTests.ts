@@ -213,6 +213,8 @@ async function main() {
   // automatic backup that fires on a not-yet-onboarded or just-reset store overwrites the good remote
   // with nothing, and the user finds out on the day they needed it.
   await (await import('../storage/cloudBackup/service.test')).default();
+  // ⛔ S1.10.6.4 [B4] — the first unit test either storage adapter has ever had.
+  await (await import('../storage/createAdapter.test')).default();
 
   // P6.8.7d.3 [M3-5] — what the iCloud sheet SAYS about each outcome. ⛔ The sheet's `ready` branch is
   // unreachable to Playwright (the web provider is the unavailable stub), so this pure mapping is the only

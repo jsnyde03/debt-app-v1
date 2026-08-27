@@ -68,6 +68,21 @@ const PAIRINGS: readonly Pairing[] = [
     owner: 'PRIVACY_CLAIM.noSelling',
     why: 'the second half of bullet 3 — the "never sold more debt" promise, on the same line as the headline',
   },
+  {
+    /**
+     * ⛔ **S1.10.6.4 [pass-3 C-7b] — AND THIS ONE IS HERE BECAUSE NO TEST CAN REACH THE SCREEN.**
+     * `CloudBackupSheet`'s own docblock records it: *"this screen's `ready` branch is unreachable to every
+     * automated test in the repo (on web the provider is the unavailable stub by construction), and a
+     * defect as simple as 'the computed diagnosis is dropped at the last layer' survived thirteen lenses
+     * because of it."* ⚡ That is exactly what happened again — the confirm described nothing at all while
+     * the file door beside it described everything. The words are unit-tested at their owner; what only a
+     * structural check can hold is that this screen still ASKS.
+     */
+    id: 'C-7b / S1.10.6.4',
+    file: 'apps/rn/src/components/more/CloudBackupSheet.tsx',
+    owner: 'describeRestorePreview',
+    why: 'the iCloud restore confirm must SHOW what is in the file before an irreversible replace — the rule `BackupSheets.tsx` states and this door did not follow',
+  },
 ];
 
 /**

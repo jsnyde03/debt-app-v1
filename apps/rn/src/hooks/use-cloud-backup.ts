@@ -9,6 +9,7 @@ import {
   inspectRemote,
   restoreFromCloud,
 } from '@/storage/cloudBackup/service';
+import type { DebtStore } from '@/data/models';
 import { isSandboxStore } from '@/store/sandboxStore';
 import { useActiveStore } from '@/store/StoreContext';
 import { useAppStore } from '@/store/useAppStore';
@@ -69,6 +70,8 @@ export interface UseCloudBackup {
    * Nothing may pass it on the user's behalf — that is the whole defect this parameter exists to prevent.
    */
   backupNow(opts?: { replaceUnclaimed?: boolean }): Promise<CloudBackupAction>;
+  /** ⛔ [C-7b] Read the remote WITHOUT committing it, so the confirm can say what is in the file. */
+  previewRestore(): Promise<DebtStore | null>;
   restoreNow(): Promise<CloudBackupAction>;
 }
 
@@ -139,6 +142,31 @@ export function useCloudBackup(): UseCloudBackup {
     [refresh, store],
   );
 
+  /**
+   * ⛔ **THE CLOUD DOOR CONFIRMED BEFORE IT FETCHED, SO IT HAD NOTHING TO DESCRIBE.**
+   * [S1.10.6.4 · pass-3 C-7b]
+   *
+   * ⚡ `BackupSheets.tsx`'s own docblock states the rule this door did not follow — *"Import: read a backup,
+   * **SHOW what is in it**, and only then replace."* The file importer has the bytes in hand before it
+   * confirms; this one called `restoreNow()` *after* the tap. ⛔ **So the remedy is a PRE-READ, not a
+   * wording change** — a fix that only edited the sentence could not have worked, which is why the finding
+   * says so explicitly.
+   *
+   * ⚠️ Nothing is committed. `restoreFromCloud` returns the MIGRATED store without writing it — the same
+   * separation that lets the file door confirm at all — and `DataResetScreen` already reads it up front for
+   * exactly this reason. A failure returns `null` and the sheet falls back to its unconditional warning
+   * rather than blocking the restore on a description.
+   */
+  const previewRestore = useCallback(async (): Promise<DebtStore | null> => {
+    if (isSandboxStore(store)) return null;
+    try {
+      const result = await restoreFromCloud(getCloudBackupProvider());
+      return result.ok ? result.store : null;
+    } catch {
+      return null;
+    }
+  }, [store]);
+
   const restoreNow = useCallback(async (): Promise<CloudBackupAction> => {
     if (isSandboxStore(store)) {
       reportError(new Error('cloud restore attempted on a SANDBOX store — refusing'), { seam: 'cloud-backup' });
@@ -185,5 +213,5 @@ export function useCloudBackup(): UseCloudBackup {
     [status, backupNow, store],
   );
 
-  return { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, setEnabled, backupNow, restoreNow };
+  return { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, setEnabled, backupNow, previewRestore, restoreNow };
 }

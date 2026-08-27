@@ -26107,3 +26107,75 @@ the later ones are exercised. ⚠️ **One assertion nearly passed for the wrong
 the trust guard. Caught by adding the control that asserts a *readable* plan does **not** end the activity.
 
 Three registry entries (**105 → 108**). `lint:rn` 29 gates green.
+
+---
+
+## S1.10.6.4 — storage & backup. `B3` · `B4` · `C-7` · `C-7b`, and a remedy that would have been the defect.
+
+**Closed 2026-08-27.** One blocker and three majors across the two doors that replace a user's whole
+portfolio and the one path that writes over another device's copy.
+
+### ⚡ The finding's own stated remedy would have made `B3` worse
+
+`B3`'s second half is an absent `mtimeMs`, and the write-up said: *"harden `ios.ts:90` against a non-finite
+`mtimeMs` (return `null` rather than an epoch date or a throw)."* ⛔ **`null` is exactly the value
+`inspectRemote` reads as `none` — *"there is no copy to lose"* — which the guard PERMITS.** A file that
+exists and cannot be identified is the one case that must never be permitted. It **throws**, which becomes
+`unknown`, which the guard now refuses; and the plant proving it is *the finding's remedy restored*.
+
+⚠️ That is `measure-agent-mechanisms` again: the finding was right, the direction it named was not. It was
+caught by asking what the returned value does downstream rather than by reading the line.
+
+### `B3` — the guard's docblock was right about one of two paths
+
+`inspectRemote` produces `unknown` two ways. `isAvailable() === false` really is refused downstream, which
+is what the docblock claimed of **both**. The other is its own `catch`, reached when iCloud is **up** and
+`stat()` throws — and there `backupToCloud` re-checks `isAvailable()`, gets `true`, and writes.
+
+⛔ **Measured: `writes=1`, the other device's file gone, the sheet reporting "Backed up"** — and then the
+install records *its own clock* as the file's identity, so every later automatic backup is refused as a
+foreign clobber forever. ⚠️ **"available but un-stat-able" is reachable by construction**: `isAvailable()`
+swallows and returns `false`, so it cannot throw, while `stat()` is two native calls plus a `new Date()`.
+
+⚡ **The existing test stopped one layer short.** It asserted `inspectRemote` contains a throwing stat as
+`unknown` — correct — and **no assertion in the file ever called `backupToCloudGuarded` with one**, while
+both `writeCount` assertions were on the `unclaimed` provider. The suite was green with the defect present.
+
+⛔ Refused in `backupToCloudGuarded` and **not** in `backupToCloud`: that one is deliberately the unguarded,
+*informed* path the *"I read the date and chose to replace it"* flow uses.
+
+### `B4` — one contract, two implementations, opposite answers
+
+`createAdapter.ts` states the doctrine and implements it; `createAdapter.web.ts` wrapped `getItem` **and**
+`JSON.parse` in one `catch { return null }`. A truncated write therefore read as *"nothing is stored"*, so
+`persistence.ts` ran the v1.6 legacy import over a device that already held a v1.7 store and the first
+autosave overwrote the last copy of the plan.
+
+⚡ **Neither adapter had a unit test, and no store test parses a persisted blob at all** —
+`MemoryStorageAdapter` has no parse step. The one corrupt-bytes e2e seeds `JSON.stringify('this is not a
+store')`, which is **valid JSON**: the single member of the class both adapters agreed on, and ten green
+tests rested on it. The truncated member is added **beside** it, never in place of it.
+
+### `C-7` / `C-7b` — the two restore doors, and only one of them followed the rule
+
+`BackupSheets.tsx`'s own docblock states it: *"Import: read a backup, **SHOW what is in it**, and only then
+replace."* The file door showed counts and a date and **not the losses this very reader had just recorded**
+— the answer was already inside the object being described. The iCloud door showed *nothing at all*.
+
+⛔ **The cloud fix is a PRE-READ, not a wording change**, and the finding says so explicitly because a
+sentence-only fix could not work: that sheet confirms *before* it fetches. Both doors now compose one
+sentence from one owner. ⚠️ It is also paired in `check-copy-owners`, because that screen's `ready` branch
+is unreachable to every automated test in the repo — its own docblock records a defect surviving thirteen
+lenses for exactly that reason.
+
+### Guards
+
+Five plants, all caught, including the finding's-own-remedy plant and two re-runs with an earlier assertion
+relaxed. ⚠️ **One plant read MISSED and was not a miss** — it red on an earlier assertion in the same block,
+so the one it targeted never ran; relaxing that assertion is what turned it into a result. A second read
+MISSED because the plant itself was unfaithful (`return null` on *every* call rather than on an unusable
+mtime) and crashed the control instead — a plant testing the plant.
+
+Six registry entries (**108 → 114**). `lint:rn` 29 gates green. ⚠️ Two mechanical gate corrections on the
+way: `lint:comments` refused a docblock that *annotated* its own past falsehood instead of deleting it, and
+the new adapter test had to be classified on the S1 surface.

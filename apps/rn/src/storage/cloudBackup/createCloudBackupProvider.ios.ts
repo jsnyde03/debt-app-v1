@@ -2,7 +2,7 @@ import { CloudStorage, CloudStorageProvider, CloudStorageScope } from 'react-nat
 
 import { reportError } from '@/utils/reportError';
 
-import { unavailableCloudBackupProvider, type CloudBackupMetadata, type CloudBackupProvider } from './provider';
+import { metadataFromMtime, unavailableCloudBackupProvider, type CloudBackupMetadata, type CloudBackupProvider } from './provider';
 
 /**
  * P6.3.3.3, iOS — one file in the app's PRIVATE iCloud ubiquity container, via
@@ -84,10 +84,30 @@ export function createCloudBackupProvider(): CloudBackupProvider {
     read() {
       return readWithDownload();
     },
+    /**
+     * ⛔ **BOTH DIRECTIONS OF AN ABSENT `mtimeMs` WERE UNHANDLED, AND THEY FAIL DIFFERENTLY.**
+     * [S1.10.6.4 · pass-3 blocker B3, second half]
+     *
+     * ⚡ Measured, not reasoned: `new Date(undefined).toISOString()` and `new Date(NaN).toISOString()` both
+     * **throw** `RangeError: Invalid time value` — which is the `unknown` the guard above now refuses. But
+     * `new Date(null)` and `new Date(0)` do **not** throw; they become **`1970-01-01T00:00:00.000Z`**, and
+     * `inspectRemote` then compares that epoch date as a real file identity. A silent 1970 is the worse of
+     * the two: it never reaches a guard at all.
+     *
+     * ⛔ **IT THROWS, AND `null` WOULD HAVE BEEN THE CLOBBER WEARING THE FIX'S CLOTHES.** The finding's own
+     * remedy said *"return `null` rather than an epoch date or a throw"* — and `null` is precisely the value
+     * `inspectRemote` reads as **`none`**, *"there is no copy to lose"*, which the guard **permits**. A file
+     * that exists and cannot be identified is the one case that must never be permitted. A throw is caught
+     * by `inspectRemote` and becomes `unknown`, which the guard now refuses. ⚠️ The stat-after-write path
+     * catches it too and falls back to our clock — the documented behaviour, and the safe direction: the
+     * next inspect reads `unclaimed` and **asks** rather than destroying.
+     */
     async stat(): Promise<CloudBackupMetadata | null> {
       if (!(await CloudStorage.exists(BACKUP_PATH, SCOPE))) return null;
       const s = await CloudStorage.stat(BACKUP_PATH, SCOPE);
-      return { modifiedAt: new Date(s.mtimeMs).toISOString() };
+      // ⛔ The rule lives in `provider.ts` because this file imports a TurboModule and no test runner can
+      // load it — which is precisely why the rule had neither an owner nor a test.
+      return metadataFromMtime(s?.mtimeMs);
     },
     /**
      * P6.8.7d.2 [C9] — erase the container's one file.

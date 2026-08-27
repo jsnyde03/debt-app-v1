@@ -148,7 +148,48 @@ export function describeBackup(result: ReadBackupSuccess): string {
    * `ReadBackupSuccess.exportedAt`.
    */
   const saved = result.exportedAt ? ` Saved ${formatBackupTime(result.exportedAt)}.` : '';
-  return `${SOURCE[result.kind]} has ${contents}.${saved}${skipped}`;
+  return `${SOURCE[result.kind]} has ${contents}.${saved}${skipped}${describeLosses(result.store)}`;
+}
+
+/**
+ * ⛔ **WHAT COULD NOT BE READ, AT THE POINT OF NO RETURN.** [S1.10.6.4 · pass-3 C-7]
+ *
+ * ⚡ **The sentence was byte-identical for an intact backup and one this very reader had just recorded
+ * three losses on** — a balance, a whole debt row and a goal's saved amount — and the user learned about
+ * them only on Today, *after* their live portfolio was gone. ⛔ This is `B-J2-2`'s own finding one field
+ * further on, and the answer was not merely available: **it is already inside the object being described**
+ * (`result.store.pendingDataRepairs`). `skipped`, three lines up, covers the one loss class that is benign.
+ *
+ * ⚠️ **One clause, not the raw repair list.** `dataRepairsCopy` already turns repairs into human sentences
+ * and pass-2 `m1` recorded that even that path still printed schema keys; naming a count is what this
+ * screen needs, and the card that follows the restore names the fields.
+ *
+ * ⚠️ **A `recovered` repair is excluded**, for the reason `trustSelectors` gives in both directions: its
+ * value is exactly right and only its format was wrong, so counting it here would warn about money the
+ * restore will carry across perfectly.
+ */
+/**
+ * ⛔ **THE SAME SENTENCE FOR THE OTHER RESTORE DOOR.** [S1.10.6.4 · pass-3 C-7b]
+ *
+ * The iCloud sheet has no file envelope — no `exportedAt`, no legacy `dropped` list — so it cannot call
+ * `describeBackup`. It has the migrated store, which is where the two parts that matter come from. ⚠️ One
+ * owner rather than a second copy of the wording: the two doors are the finding's own *"do not fix one
+ * without the other"*, and a second implementation is how they would drift apart again.
+ */
+export function describeRestorePreview(store: DebtStore): string {
+  return `This backup has ${describeStoreContents(store)}.${describeLosses(store)}`;
+}
+
+export function describeLosses(store: DebtStore): string {
+  const lost = store.pendingDataRepairs.filter((r) => r.kind !== 'recovered');
+  if (lost.length === 0) return '';
+  const rows = lost.filter((r) => r.field.startsWith('(')).length;
+  const fields = lost.length - rows;
+  const parts = [
+    fields > 0 ? plural(fields, 'amount', 'amounts') : '',
+    rows > 0 ? plural(rows, 'whole row', 'whole rows') : '',
+  ].filter(Boolean);
+  return ` ⚠️ ${parts.join(' and ')} in this backup could not be read.`;
 }
 
 /**

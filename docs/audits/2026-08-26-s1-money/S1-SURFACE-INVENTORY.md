@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**471 files on the S1 surface · 348 swept · 123 unswept.**
+**472 files on the S1 surface · 348 swept · 124 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -217,6 +217,7 @@
 | `apps/rn/src/storage/cloudBackup/provider.ts` | s1p3 |
 | `apps/rn/src/storage/cloudBackup/service.test.ts` | s1p3 |
 | `apps/rn/src/storage/cloudBackup/service.ts` | s1p3 |
+| `apps/rn/src/storage/createAdapter.test.ts` | ⛔ **never** |
 | `apps/rn/src/storage/createAdapter.ts` | s1p3 |
 | `apps/rn/src/storage/createAdapter.web.ts` | s1p3 |
 | `apps/rn/src/store/StoreContext.tsx` | s1p2 |
@@ -535,6 +536,7 @@
 - `apps/rn/src/motion/haptics.ts`
 - `apps/rn/src/motion/hooks.ts`
 - `apps/rn/src/motion/index.ts`
+- `apps/rn/src/storage/createAdapter.test.ts`
 - `apps/rn/src/store/affordability.test.ts`
 - `apps/rn/src/store/bnplCadence.test.ts`
 - `apps/rn/src/store/celebrationSelectors.test.ts`

@@ -11,7 +11,7 @@ import {
   restoreFromCloud,
   shouldAutoBackup,
 } from '@/storage/cloudBackup/service';
-import type { CloudBackupMetadata, CloudBackupProvider } from '@/storage/cloudBackup/provider';
+import { metadataFromMtime, type CloudBackupMetadata, type CloudBackupProvider } from '@/storage/cloudBackup/provider';
 
 /**
  * P6.3.3.4 — the cloud service's orchestration.
@@ -306,6 +306,66 @@ export default async function run() {
       },
     };
     eq((await inspectRemote(throwing, undefined)).state, 'unknown', 'a throwing stat is contained as `unknown`');
+
+    /**
+     * ⛔ **S1.10.6.4 [pass-3 blocker B3] — THE ASSERTION THAT STOPPED AT `inspectRemote`.**
+     *
+     * ⚡ The line above is the whole of this file's coverage of a throwing `stat`, and it stops one layer
+     * short: **no assertion anywhere called `backupToCloudGuarded` with one, and neither `writeCount`
+     * assertion in this file is on an `unknown` claim** — both are on the `unclaimed` provider. Measured
+     * against the real module: `writes=1`, the other device's file **gone**, the sheet reporting *"Backed
+     * up"*, and this suite green.
+     *
+     * ⚠️ `isAvailable()` stays **true** here, and that is the fixture's whole point. `unknown` is produced
+     * two ways; the `isAvailable() === false` one really is refused downstream, which is what the guard's
+     * docblock used to claim of both. This is the other one.
+     */
+    const guardedOverUnknown = await backupToCloudGuarded(
+      onboardedStore({ cloudBackupEnabled: true }),
+      { ...held.provider, async stat() { throw new Error('iCloud stat failed'); } },
+    );
+    assert(!guardedOverUnknown.ok, '⛔ B3 — a guarded backup over an UNKNOWN remote does not succeed');
+    if (!guardedOverUnknown.ok) {
+      eq(guardedOverUnknown.reason, 'unavailable', '…and says the question was unanswered, not that it wrote');
+    }
+    eq(held.state.writeCount, 0, '⛔ B3 — ZERO writes: the other device’s copy is still in the container');
+
+    /**
+     * ⛔ **B3's SECOND HALF — the file that exists and cannot be identified.** `metadataFromMtime` is the
+     * rule, extracted into the pure module because the iOS provider imports a TurboModule that no test
+     * runner can load — which is exactly why this rule had neither an owner nor a test.
+     *
+     * ⚠️ **`null` and `0` are the members that mattered and the ones nobody pictured**: measured, they do
+     * NOT throw from `new Date(...)`, they become `1970-01-01T00:00:00.000Z`, and `inspectRemote` compares
+     * that epoch stamp as a real identity. The throwing pair at least reached a guard.
+     */
+    for (const bad of [undefined, null, NaN, 0, -1, '123', {}]) {
+      let threw = false;
+      try {
+        metadataFromMtime(bad);
+      } catch {
+        threw = true;
+      }
+      assert(threw, `⛔ B3 — an unusable mtimeMs (${String(bad)}) throws rather than inventing a file identity`);
+    }
+    // ⭐ CONTROL — a real mtime still produces the identity the whole guard compares on.
+    eq(metadataFromMtime(1772150400000).modifiedAt, new Date(1772150400000).toISOString(), '⭐ control — a usable mtime still becomes the file’s identity');
+
+    /**
+     * ⛔ **AND THE DIRECTION THAT MAKES THE THROW CORRECT.** Returning `null` was the finding's own stated
+     * remedy and it is the clobber: `inspectRemote` reads `null` as **`none`**, which the guard PERMITS.
+     */
+    const unidentifiable: CloudBackupProvider = {
+      ...held.provider,
+      async stat() {
+        return metadataFromMtime(undefined);
+      },
+    };
+    eq(
+      (await inspectRemote(unidentifiable, undefined)).state,
+      'unknown',
+      '⛔ B3 — a file with no usable mtime is `unknown` (which is refused), never `none` (which is permitted)',
+    );
   }
 
   {

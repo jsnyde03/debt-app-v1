@@ -522,5 +522,35 @@
     "what": "S1.10.6.3's own after-scan — check-trust-claims.ts shipped with MAX_EXEMPT/MAX_OPEN computed as Object.keys(X).length, so both downward-only caps were VACUOUS: a cap derived from the list it caps can never be exceeded. Found by re-reading the gate while removing D3-1's row, not by any suite. Now literals, and plant-verified by adding a row above the cap",
     "file": "scripts/check-trust-claims.ts",
     "token": "This cap only goes DOWN."
+  },
+  "S1P3-B3-UNKNOWN": {
+    "what": "pass-3 blocker B3 — backupToCloudGuarded branched on `unclaimed` alone, so an `unknown` remote (iCloud UP and stat() throwing) went through to backupToCloud, which re-checked isAvailable(), got true, and WROTE OVER another device's backup; the install then recorded its own clock as the file's identity and refused every later backup forever. The guard's own docblock claimed `unknown` was already refused downstream — true of one of the two ways it is produced, false of the other. This file's only coverage stopped at inspectRemote, and neither writeCount assertion was on an `unknown` claim. The token names the WRITE-COUNT assertion, proven independently load-bearing by relaxing the two before it",
+    "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
+    "token": "ZERO writes: the other device’s copy is still in the container"
+  },
+  "S1P3-B3-MTIME": {
+    "what": "pass-3 B3's second half — new Date(undefined|NaN).toISOString() THROWS while new Date(null|0) silently becomes 1970-01-01, which inspectRemote then compares as a real file identity; both directions were unhandled. ⛔ The finding's own remedy (`return null`) would have been the clobber: inspectRemote reads null as `none`, which the guard PERMITS. metadataFromMtime throws instead, which becomes `unknown` and is refused — and the rule lives in the pure provider module because the iOS provider imports a TurboModule no runner can load, which is why it had neither owner nor test. Both the throw and the none-vs-unknown direction are plant-verified",
+    "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
+    "token": "a file with no usable mtime is `unknown`"
+  },
+  "S1P3-B4-ADAPTER": {
+    "what": "pass-3 B4 — createAdapter.web.ts wrapped getItem AND JSON.parse in one catch{return null}, so a truncated write read as 'nothing is stored': persistence.ts ran the v1.6 legacy import over a device that already had a v1.7 store and the first autosave overwrote the last copy. NEITHER adapter had a unit test and no store test parses a blob (MemoryStorageAdapter has no parse step); the one corrupt-bytes e2e seeds JSON.stringify('this is not a store'), which is VALID JSON and the single member of the class both adapters agreed on. This is the first unit test either adapter has had",
+    "file": "apps/rn/src/storage/createAdapter.test.ts",
+    "token": "corrupt bytes come back as the RAW STRING"
+  },
+  "S1P3-B4-E2E": {
+    "what": "pass-3 B4's user-facing half — the truncated-bytes member added BESIDE the existing valid-JSON fixture, never in place of it, so one uncovered member is not traded for another. Asserts the same outcome as the valid-JSON case by design: the whole finding is that two members of one class behaved differently",
+    "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
+    "token": "seedTruncated"
+  },
+  "S1P3-C7-LOSSES": {
+    "what": "pass-3 C-7 — describeBackup was byte-identical for an intact backup and one the reader had just recorded three losses on, and the user learned about them only after the irreversible replace. The answer was already inside the object being described (result.store.pendingDataRepairs). All seven existing describeBackup assertions used healthy fixtures. The token names the COUNT assertion rather than the naming one, proven load-bearing by relaxing the naming assertion under the same plant",
+    "file": "apps/rn/src/data/readBackup.test.ts",
+    "token": "…and counts it, so \"one\" is distinguishable from \"nine\""
+  },
+  "S1P3-C7B-CLOUDDOOR": {
+    "what": "pass-3 C-7b — the iCloud restore confirm described NOTHING: no counts, no losses, because it confirms before it fetches. The remedy is a PRE-READ (previewRestore), not a wording change, which the finding says explicitly because a sentence-only fix could not work. Both doors compose from one owner (describeRestorePreview) so they cannot drift. ⛔ Paired structurally in check-copy-owners as well, because this screen's `ready` branch is unreachable to every automated test in the repo — its own docblock records a defect surviving thirteen lenses for that reason",
+    "file": "apps/rn/src/data/readBackup.test.ts",
+    "token": "C-7b — and it names the loss, exactly as the file door does"
   }
 }
