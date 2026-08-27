@@ -617,5 +617,20 @@
     "what": "pass-3 B1's SWEEP - the deferral's debt. The repaired gate red over the two live hand-rolled formatters the dead pattern had been green over: projectForecast.ts and buildSmartInsights.ts, each rendering a THIRD cents convention ($100.00 where the rest of the app reads $100, because Intl defaults USD to a minimum of two fraction digits). Both now call the sanctioned formatCurrency. The Math.max(0, ...) clamps were dropped and both are dead by construction - projectForecast's callers pass literals and a minimumPayment, and buildSmartInsights branches every negative case through Math.abs before formatting. B1's own text names that clamp as part of the defect: it renders $0.00 over a negative figure, which is a false statement rather than a safe default",
     "file": "packages/core/insights/buildSmartInsights.ts",
     "token": "return formatCurrency(amount);"
+  },
+  "S1P3-A3-TRACKEDHALF": {
+    "what": "pass-3 A3 - lint:secrets --working-tree reads untracked files AND edits to tracked ones; the tracked half was added inside the same fix range as the harness, and the only scenario proving the authoring mode still refuses a credential plants an UNTRACKED file. So the un-fixed script reds for the OTHER half and the scenario scores a pass either way. Re-measured through the harness itself with the tracked half un-fixed: the untracked scenario stayed GREEN and the new one reported 'the gate FAILED OPEN'. The token names the line that would have to change, per the finding's own remedy - NOT `if (WORKING_TREE) {`, which is present in both columns and is exactly the substitution S1.9.4 already made once for this entry",
+    "file": "scripts/check-committed-secrets.ts",
+    "token": "run(['diff', '-z', '--name-only', 'HEAD'])"
+  },
+  "S1P3-A3-EDITPLANT": {
+    "what": "pass-3 A3's behavioural half - a scenario whose plant EDITS a tracked file. `at`/`also` create then DELETE, so pointing one at a real file would delete it; `edit` saves the bytes, appends, and restores. The target is a committed inert fixture, and the run refuses if it is missing or already modified because a dirty target makes the restore ambiguous. MIN_SCENARIOS counts scenarios and cannot tell WHICH one went, so this token names this scenario",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "A3-modified-tracked"
+  },
+  "S1P3-A3-RESTOREASSERT": {
+    "what": "S1.10.6.9's lesson, built into the harness at A3: a plant loop's LAST action is the restore, so nothing runs after it and the verdict it printed is true about the plant and silent about the tree it leaves behind. For a create-plant a stranded file is noisy; for an edit-plant it is a credential-shaped string sitting in a TRACKED file - the exact outcome the scenario exists to prevent. The post-flight now asserts `git status` is clean for every edit target",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "was NOT restored after its edit-plant"
   }
 }

@@ -35,7 +35,7 @@
  * Usage: npm run test:gate-plants
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -58,6 +58,24 @@ interface Scenario {
    * deleted exactly like `at`.
    */
   also?: { at: string; body: string }[];
+  /**
+   * ⛔ **S1.10.6.5 [pass-3 A3] — A PLANT THAT *EDITS* A TRACKED FILE, BECAUSE `at`/`also` CANNOT.**
+   *
+   * ⚡ `lint:secrets --working-tree` reads two populations — files nobody has added yet, and **edits to
+   * files that have been in the repo for months**. The second is the more likely one, it was added
+   * inside this very fix range, and the scenario that proves the authoring mode still refuses a
+   * credential plants an **UNTRACKED** file. So the un-fixed script reds for the *other* half and the
+   * scenario scores a pass either way. Measured 2×2: un-fixed script + modified-tracked plant is the
+   * only combination that goes green, and nothing ever ran it.
+   *
+   * ⛔ **`at` would DELETE the file on cleanup**, which is why this is a separate mechanism rather than a
+   * path. The bytes are saved, appended to, and restored — and the restore is **asserted**, because a
+   * plant loop's last action is the restore and nothing normally checks it.
+   *
+   * ⚠️ The target must be tracked, present, and **unmodified vs HEAD**: a dirty target makes the restore
+   * ambiguous, and the run refuses rather than guessing.
+   */
+  edit?: { at: string; append: string }[];
   /** Flags the planted run passes — how a gate is pointed at the planted input (`--registry=…`). */
   args?: string[];
   /**
@@ -244,11 +262,37 @@ const SCENARIOS: Scenario[] = [
     expect: 'an inline Intl currency formatter',
     why: 'a tenth hand-rolled formatter written just like the two sanctioned ones — green under BOTH of the B1 blind spots',
   },
+  /**
+   * ⛔ **S1.10.6.5 [pass-3 A3] — THE HALF THE UNTRACKED PLANT CANNOT SEE.**
+   *
+   * ⚡ `--working-tree` reads untracked files **and** edits to tracked ones. The tracked half was added
+   * inside the same fix range as this harness, and the scenario beside it plants an UNTRACKED file — so
+   * the un-fixed script still reds, for the other half, and the scenario scores a pass either way.
+   * Measured 2x2: un-fixed script + modified-tracked plant is the ONLY combination that goes green.
+   *
+   * ⚠️ The body is assembled at runtime for the reason the scenario above it gives: a plant that is a
+   * LITERAL is a committed credential, and this one lands in a file that is already tracked.
+   */
+  {
+    gate: 'lint:secrets [A3-modified-tracked]',
+    script: 'check-committed-secrets.ts',
+    args: ['--working-tree'],
+    at: 'docs/audits/__gate_plant_unused__.md',
+    body: 'This scenario plants by EDITING; the created file is inert and exists only because `at` is required.\n',
+    edit: [
+      {
+        at: 'scripts/__fixtures__/authoring-plant-target.md',
+        append: `\nA transcript line: ${'SENTRY' + '_DSN=https://'}${'0123456789abcdef'.repeat(2)}${'@o1.ingest.' + 'sentry.io/1'}\n`,
+      },
+    ],
+    expect: 'authoring-plant-target.md',
+    why: 'a credential typed into a file that has been in the repo for months — the more likely half, and the one no scenario covered',
+  },
 ];
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 12;
+const MIN_SCENARIOS = 13;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 
@@ -284,18 +328,26 @@ console.log(`\n  gate plants — ${SCENARIOS.length} scenarios, each proving its
 
 for (const s of SCENARIOS) {
   const files = [{ at: s.at, body: s.body }, ...(s.also ?? [])];
+  const edits = s.edit ?? [];
+  // Read BEFORE anything is written, so the restore holds the real original even if the run throws.
+  const originals = new Map(edits.map((f) => [f.at, readFileSync(abs(f.at))]));
+  const restoreEdits = () => {
+    for (const [rel, bytes] of originals) writeFileSync(abs(rel), bytes);
+  };
   let planted = false;
   try {
     for (const f of files) {
       mkdirSync(dirname(abs(f.at)), { recursive: true });
       writeFileSync(abs(f.at), f.body, 'utf8');
     }
-    planted = files.every((f) => existsSync(abs(f.at)));
+    for (const f of edits) writeFileSync(abs(f.at), originals.get(f.at)!.toString('utf8') + f.append, 'utf8');
+    // An edit "applied" means the bytes MOVED — a no-op append would otherwise score as a live plant.
+    planted =
+      files.every((f) => existsSync(abs(f.at))) &&
+      edits.every((f) => !readFileSync(abs(f.at)).equals(originals.get(f.at)!));
     const withPlant = runGate(s.script, s.args ?? []);
     for (const f of files) rmSync(abs(f.at), { force: true });
-    // ⚠️ The control runs with the same args unless the scenario names its own — see `controlArgs`, and
-    // note that defaulting to `s.args` is what makes a source-tree scenario's control a single-variable
-    // comparison.
+    restoreEdits();
     const withoutPlant = runGate(s.script, s.controlArgs ?? s.args ?? []);
 
     // ⛔ S1.9.4 — the planted run must red FOR THE PLANTED REASON. Without this a scenario passes on a
@@ -318,6 +370,7 @@ for (const s of SCENARIOS) {
   } finally {
     // ⛔ `finally`, so a throw anywhere above cannot strand a planted file in the tree.
     for (const f of files) rmSync(abs(f.at), { force: true });
+    restoreEdits();
   }
 }
 
@@ -325,6 +378,19 @@ for (const s of SCENARIOS) {
   for (const rel of [s.at, ...(s.also ?? []).map((f) => f.at)]) {
     if (existsSync(abs(rel))) {
       console.error(`\n❌ test:gate-plants — failed to clean up ${rel}. Remove it before committing.\n`);
+      failures++;
+    }
+  }
+  /**
+   * ⛔ **THE RESTORE IS ASSERTED, NOT ASSUMED.** A plant loop's last action is the restore, so nothing
+   * runs after it: the verdict it printed is true about the plant and silent about the tree it left
+   * behind. An edit-plant that failed to restore leaves a credential-shaped string in a TRACKED file —
+   * the exact outcome this scenario exists to prevent.
+   */
+  for (const f of s.edit ?? []) {
+    const dirty = execFileSync('git', ['status', '--porcelain', '--', f.at], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+    if (dirty) {
+      console.error(`\n❌ test:gate-plants — ${f.at} was NOT restored after its edit-plant: ${dirty}\n`);
       failures++;
     }
   }

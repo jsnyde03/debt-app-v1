@@ -26484,3 +26484,49 @@ plant in `apps/rn/src` would exercise one of the two blind spots and sit in a tr
 ⚡ While adding it I deleted the `...B1_SCENARIOS` spread by accident, and `MIN_SCENARIOS` red immediately
 with *"scenarios were REMOVED rather than red"* — the downward-only floor doing precisely its job on its
 own author. **12 scenarios.** Registry **124 → 127**.
+
+## S1.10.6.5.3 — `A3`: the plant covered one half of the gate it was pinning (2026-08-27)
+
+⛔ **The gate was never wrong; the instrument proving it was.** `lint:secrets --working-tree` reads two
+populations — files nobody has `git add`-ed yet, and **edits to files that have been in the repo for
+months.** The second was added *inside this same fix range*, and the only scenario proving the authoring
+mode still refuses a credential plants an **untracked** file. So the un-fixed script still reds, for the
+other half, and the scenario scores a pass either way.
+
+⚡ **Re-measured through the harness itself rather than in a scratch repo**, with
+`const modified = run(['diff', …])` replaced by `const modified: string[] = []`:
+
+```
+✅ lint:secrets [M10-authoring]        planted=exit 1 · control=exit 0 · reason=MATCHED   ← the pass that means nothing
+❌ lint:secrets [A3-modified-tracked]  planted=exit 0 · control=exit 0 · reason=WRONG     ← "the gate FAILED OPEN"
+```
+
+### The mechanism the harness did not have
+
+⛔ **`at` and `also` CREATE a file and then DELETE it**, so pointing one at a tracked file would delete
+that file on cleanup. `edit` is therefore a separate mechanism, not a path: it reads the bytes **before
+anything is written**, appends, and restores from that copy in `finally`.
+
+Three safety properties, each because of a way this could quietly go wrong:
+
+- **The target must exist and be clean vs `HEAD`.** A dirty target makes the restore ambiguous, so the
+  run refuses rather than guessing.
+- **"Applied" means the bytes MOVED**, not that a write happened — a no-op append would otherwise score
+  as a live plant.
+- ⛔ **The restore is ASSERTED in the post-flight.** This is `S1.10.6.9`'s lesson wired into the harness:
+  a plant loop's last action is the restore, so nothing runs after it and the verdict it printed is true
+  about the plant and silent about the tree it leaves behind. For a create-plant a stranded file is
+  merely noisy; for an edit-plant it is **a credential-shaped string in a tracked file** — precisely the
+  outcome this scenario exists to prevent.
+
+The target is a committed inert fixture (`scripts/__fixtures__/authoring-plant-target.md`) whose own text
+says it exists to be edited and must not be filled in — committed **first**, in its own commit, so the
+harness had an unmodified file to work against.
+
+⚠️ **A timeout mid-probe left the un-fix on disk for as long as it took to check** — and the check is the
+point: `git status` and a grep for the un-fix line both confirmed the `finally` had restored it before the
+kill. That verification is not optional; it is `verify-the-restore-not-just-the-plant` in its live form.
+
+⚠️ **`S1P1-M10-AUTHORING`'s own token is still `"if (WORKING_TREE) {"`, present in BOTH columns** — the
+`D3-3` shape, and it is left for `.6.5.4`'s registry-wide sweep rather than repaired one entry at a time.
+Registry **127 → 130**; scenarios **12 → 13**.
