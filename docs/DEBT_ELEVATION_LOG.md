@@ -26630,3 +26630,67 @@ not implement.** Nothing gates prose against code, which is exactly why `[M7]` e
 `S1P3-EDIT-PREFLIGHT`, and the `.6.5.3` log entry is corrected **in place** rather than left standing.
 
 Scenarios **14 → 15** · registry **132 → 135**.
+
+## S1.10.6.5.6 – .6.5.7 — the over-fixes, and re-verifying the guards I had just changed (2026-08-27)
+
+### `.6.5.6` — the over-fix I had ARGUED rather than measured
+
+At `.6.5.5` I rejected a blob-counter for `lint:secrets` on the reasoning that *"the header loop keeps
+running under the revert, so the count would rise either way."* ⛔ **That was an argument, and this
+cluster's own law says a stated mechanism is a hypothesis.** Planted:
+
+```
+over-fix only (counter added, gate CORRECT)   ✅ … in index+HEAD, 2442 blobs decoded
+over-fix + the D3-4 REVERT                    ✅ … in index+HEAD, 2442 blobs decoded
+```
+
+**Identical.** The proxy is completely blind to the thing it was proposed to detect. The claim holds, and
+now it is measured rather than reasoned.
+
+`B1`'s lazy repair — `formatCurrency(Math.max(0, amount))`, which satisfies `lint:money` while keeping the
+`$0.00`-over-a-negative — **is** caught, by `S1P3-B1-SWEEP`'s token.
+
+⚠️ **And one over-fix is honestly harmless today.** Dropping the option-key terminator from the money
+pattern finds nothing extra on this tree, so a plant against the live repo cannot show it matters. A
+synthetic control can: with the terminator gone, a plain `toLocaleString` followed within 200 characters by
+an unrelated `const currency` fires. **Defensive, not currently load-bearing** — stated rather than dressed
+up as a catch.
+
+### `.6.5.7` — the 13 re-pointed tokens were new guards nobody had verified
+
+Re-pointing a token **is a change to a guard**, and `.6.5.4` made thirteen of them. Each token line was
+deleted and its verifier run. Eleven were load-bearing. One was not:
+
+⛔ **`GUARDED-3` — deleting `selfCheck();` from `run()` is caught by NOTHING.** Not the suite, not
+`typecheck:rn`, not `lint:rn`. The 542-case two-door migration audit then runs **with no proof it can
+detect anything**, and its output is identical minus one reassuring line. That is the exact shape
+`selfCheck` exists to refuse, one level up.
+
+⚡ **The fix was already written, in that same function, for a different call.** `selfCheck` reads its own
+source to prove `run()` calls `verdict(...)`, and its docblock names the residual it could not cover — its
+own call — because *a check inside a function nobody calls never runs*. The same idiom moved to **module
+scope**, where import alone fires it. Plant-verified twice: the one-line deletion, and the naive over-fix
+that leaves a **commented-out** call in place.
+
+### ⚠️ Four of my own verifiers were wrong before a single verdict was real
+
+This is the part worth keeping. The first harness returned three confident-looking verdicts —
+`GUARDED-3 NOT LOAD-BEARING`, `GUARDED-4 NOT LOAD-BEARING`, `A3 NOT LOAD-BEARING` — and **every one was my
+instrument, not the code**:
+
+| what I ran | what was wrong |
+|---|---|
+| `npx tsx audit.test.ts` from the repo root | `@/` does not resolve there — the run died before reaching anything |
+| a wrapper using top-level `await` | `TransformError`; the `1 → 1` I read as *"fails either way"* was the wrapper |
+| `check-committed-secrets.ts` with no flag | the authoring block it was testing only runs under `--working-tree` |
+| `tsc -p tsconfig.tests.json` | covers `apps/rn/tests/**` only; these files are covered by `typecheck:rn` |
+
+⛔ **`GUARDED-4` was a false finding until a control was run.** Its condition-line deletion *is* caught —
+`TS2554: Expected 2 arguments, but got 1` — which only appeared once the checker being used could be shown
+to see the file at all. **A "not caught" over a file the checker never reads says nothing**, and it looks
+exactly like a real finding. Control first, every time; the deliberate-type-error probe is what separated
+the one real finding from the two artefacts.
+
+⚠️ **A tool timeout SIGKILLed a mutation run for the second time this session and `finally` does not run on
+a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
+restored, and verified by grepping the line back. **Mutation runs go in the background from here.**

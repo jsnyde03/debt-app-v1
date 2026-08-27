@@ -657,5 +657,10 @@
     "what": "⛔ NOT AN AUDIT FINDING - a defect in MY OWN work at .6.5.3, found at .6.5.5 by grepping for the code while adding stageIndex. The edit-plant's pre-flight (refuse a missing or already-dirty target, because a dirty target makes the restore ambiguous) was described in the log AND the plan and NEVER LANDED: an aborted write took it, the redo covered only the plant body, the finally restore and the post-flight assertion. That is this cluster's own defect class inside its own harness - a claim in prose the code does not implement - and no gate caught it because nothing gates prose against code",
     "file": "scripts/test-gate-plants.ts",
     "token": "an edit-plant has nothing to edit."
+  },
+  "S1P3-SELFCHECK-CALL": {
+    "what": "⛔ NOT AN AUDIT FINDING - surfaced by .6.5.7's re-verification of the 13 tokens .6.5.4 re-pointed. Measured: delete `selfCheck();` from run() and NOTHING notices - not the suite, not typecheck:rn, not lint:rn. The 542-case two-door migration audit then runs with no proof it can detect anything, and its output is identical minus one reassuring line - the exact shape selfCheck exists to refuse, one level up. selfCheck already reads its own source to prove run() calls verdict(...), and its docblock names the residual it could not cover: its own call, because a check inside a function nobody calls never runs. The same idiom moved to MODULE SCOPE, where import alone fires it. Plant-verified both ways - the one-line deletion, and the naive over-fix that leaves a COMMENTED call in place",
+    "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
+    "token": "if (!/\\n\\s*selfCheck\\(\\);/.test(auditSource)) {"
   }
 }

@@ -92,7 +92,8 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 | **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | ✅ **CLOSED 2026-08-27** — ⭐ **`lint:trust-claims`** is the durable half: a claim route with no caller now reds |
 | **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ✅ **CLOSED 2026-08-27** — ⛔ and the day-old gate's two caps were **vacuous**, found by re-reading it |
 | **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, both restore doors | `B3` `B4` `C-7` `C-7b` | ✅ **CLOSED 2026-08-27** — ⚡ the finding's **own stated remedy would have been the defect** |
-| **S1.10.6.5** ▶ | ⛔ **The instruments** — four gates that report green while doing less than they claim | `B1` `A3` `D3-3` `D3-4` | ▶ **ACTIVE** *(decomposed below)* — ⛔ **the last code class**, and it **OWES a sweep of `.6.1`–`.6.9`** |
+| **S1.10.6.5** | ⛔ **The instruments** — four gates reporting green while doing less than they claim | `B1` `A3` `D3-3` `D3-4` | ✅ **CLOSED 2026-08-27** — ⚡ **every one had MORE than the finding said**: `B1` two blind spots · `A3` a plant covering one half · `D3-3` a sweep of **13** · `D3-4` pinnable only by a plant whose input is the git REVISION. Detail → log |
+| **S1.10.6.5.8** ▶ | ⭐ **THE GUARD BACKLOG** — `GAP-2`…`GAP-18`, the 16 `unguarded` rows | — | ▶ **ACTIVE** *(decomposed below)*. ⛔ **Not open defects — fixes with no standing guard.** The cap has not moved all session because nothing owned it |
 | **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | ✅ **CLOSED 2026-08-27** — ⚡ both were **already asserted somewhere**, and both assertions were green over the gap |
 | **S1.10.6.10** | ⭐ **MATERIALISE S2/S3/S4's INVENTORIES BEFORE S2 OPENS** *(🎯's question, 2026-08-27: do the later surfaces bloat the way S1 did?)*. ⛔ **The S1 class cannot recur** — `lint:surface-complete` asserts all **1,220** tracked source files have an owner. ⚠️ **But their SIZES are unmeasured**: no `surface-coverage.s2.json` exists and the script answers *"unknown surface. Known: s0, s1."* ⚡ **And they cannot be measured cheaply, because the routing decisions live inside S1's own `excluded` function rather than in a shared router** — extracting it IS the fix. Three `never`-filled claim files + a `--surface=` that accepts them turns "unknown" into three numbers before switch-in. ⚠️ Completeness proves every file has *a* home, **not the right one** — `C-7` already hit that seam *(`readBackup.ts` is S3, its render site is S1)* | — | not started — ⭐ **do this BEFORE S2** |
 | **S1.10.6.7** | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | not started |
@@ -102,34 +103,32 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
 `lint:rn` + the unit suites green.
 
-#### S1.10.6.5's sub-steps — THE INSTRUMENTS, the last code class *(ACTIVE)*
+#### S1.10.6.5.8's sub-steps — THE GUARD BACKLOG, `GAP-2`…`GAP-18` *(ACTIVE)*
 
-⚠️ **Switch-in before-scan: all four premises re-verified against the CURRENT tree, and all four are
-live.** ⛔ **Fixed LAST of the code classes on purpose** — these are the gates the other fixes were
-verified *with*, so a mid-flight change to them invalidates verification already done. `test:gate-plants`
-and `lint:finding-guards` ran after every sub-step of `.6.1`–`.6.9`, and **24 registry entries** went in
-through the latter.
+⚠️ **Switch-in before-scan.** ⛔ **These are not open defects — every underlying finding is FIXED.** What is
+missing is the standing guard, so each is a fix that could be silently reverted. `MAX_UNGUARDED` has sat at
+**16 all session while the registry went 95 → 136** — the guarded half climbing fast, the backlog not
+moving, because **no item owned it**. 🎯 agreed 2026-08-27 to take it here rather than defer: `GAP-6` and
+`GAP-14` are both *"a cap that is self-described rather than self-enforcing"*, which is the class `.6.5`
+just spent five sub-steps on, and re-entering later costs the context.
 
-⛔ **AND THE DEFERRAL IS NOT FREE — IT OWES A RE-CHECK OF `.6.1`–`.6.9`, WHICH JUST GOT BIGGER.** `B1` is
-`lint:money` being **unsatisfiable**, and it was green over every line of money-rendering code this whole
-cluster shipped — **including `.6.9`'s own new strings** on `AffordabilityCard` and `PaydayGuardianCard`.
-So fixing the gate is step one and sweeping what it then finds is step two, over a range that now runs to
-the end of `.6.9`.
+⛔ **Read the live list from `npm run lint:finding-guards`, never from this page.** Detail per gap →
+[`S0-GUARDS-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-GUARDS-4.md).
 
 | # | sub-step |
 |---|---|
-| ✅ | **.6.5.1 — `B1`, and MEASURING IT CORRECTED THE FINDING.** ⚡ The auditor said **both** `Intl` patterns were unsatisfiable; measured against seven real shapes, **only the paren-counted one was dead** — and the other had a hole the finding did **not** name *(one nested call in the options puts a `)` before `currency`)*. ⛔ **And repairing the regex alone left the gate GREEN over both live sites**: the scan was per LINE. Both halves **proven independently load-bearing** — un-fixing either alone returns the gate to exit 0 over the plant. 7/7 real shapes caught, 0/5 controls |
-| ✅ | **.6.5.2 — THE SWEEP THE DEFERRAL OWED.** The repaired gate red over exactly the two the auditor named: `projectForecast.ts` and `buildSmartInsights.ts`, each rendering a **third cents convention** *(`$100.00` where the app reads `$100`)*. Both now call the sanctioned `formatCurrency`; ⚠️ their `Math.max(0, …)` clamps dropped as **dead by construction**, and `B1`'s own text names that clamp as part of the defect — `$0.00` over a negative figure is a false statement, not a safe default |
-| ✅ | **.6.5.3 — `A3` FIXED, and re-measured THROUGH the harness.** With the tracked half un-fixed, the old untracked scenario stayed **GREEN** and the new one reported *"the gate FAILED OPEN"* — the finding's 2×2, now run by the instrument instead of in a scratch repo. ⚠️ **`at`/`also` create then DELETE, so a tracked-file plant needed a new mechanism**: `edit` saves the bytes, appends, restores — and ⛔ **the restore is ASSERTED**, because for an edit-plant a failed restore leaves a credential in a tracked file. Target is a committed inert fixture; the run refuses if it is missing or already dirty |
-| ✅ | **.6.5.4 — `D3-3` SWEPT AND GATED.** ⚡ **The sweep returned THIRTEEN**, not one — and **two were written the same day as the check**: the liveness cap from `.6.9` and `A3`'s guard three sub-steps earlier. ⛔ **[M7] is blind to this** — the token IS on a line of code, just not the line that would have to change. The rule is mechanical and exact *(a token line that DECLARES an identifier used on another code line outlives every use)*, ⛔ **with no cap and no ledger — zero**, because unlike a coverage backlog there is no legitimately mis-pointed token. ⚡ **My first re-point landed on `const ok = …`, the same shape one level up, and the new check red on it immediately** |
-| ✅ | **.6.5.5 — `D3-4` PINNED BEHAVIOURALLY.** ⛔ **No plant that WRITES A FILE can tell a blob-reading gate from a filesystem-reading one** — a file on disk is readable either way, which is why this class survived a re-point and two rounds. The input is now the **revision**: staged into a **throwaway index** *(`GIT_INDEX_FILE`, so the developer's own index is never touched)* then **deleted from the working tree**. Re-measured with the revert in place: `lint:secrets` **exit 0**, still printing *"index+HEAD"*, while the new scenario reported *the gate FAILED OPEN*. ⚡ **`.6.5.4`'s re-point had already closed the token half** — `lint:finding-guards` reds too now |
-| ⚠️ | **.6.5.5b — A DEFECT IN MY OWN `.6.5.3`, and no auditor could have found it.** The edit-plant's pre-flight *(refuse a missing or already-dirty target)* was written into **the log and the plan** and **never landed** — an aborted write took it and the redo covered only the plant body, the `finally` restore and the post-flight assertion. ⛔ **This cluster's own defect class, inside its own harness: a claim in prose the code does not implement.** Found by grepping for the code, not by any gate; now landed, registered, and the `.6.5.3` record corrected in place |
-| **.6.5.6** | **Guards + registry + plants** — original **and** naive over-fix for each. ⚠️ `.6.9` measured the cost of skipping this: **2 of 12 plants came back wrong**, one a genuine hole in the new suite |
-| **.6.5.7** | ⛔ **RE-VERIFY `.6.1`–`.6.9`'s guards against the REPAIRED instruments.** Every one of them was confirmed by gates this step has just changed |
+| **.6.5.8.1** | ⭐ **`GAP-2` — the one with real substance.** `selfCheck` covers **1 of 9 invariants**: its poisoned outcome carries `store: null`, so 8 short-circuit. And `INVARIANTS.length` is **printed** in two places and **asserted nowhere** — delete an invariant and nothing reds. One purpose-built poisoned outcome per invariant + a downward-only length floor. ⚠️ `GAP-3` folds into this harness |
+| **.6.5.8.2** | **`GAP-6` — `MAX_UNTOKENISED` is "downward only" in a DOCSTRING and nowhere else.** The comparison is `>`, so a cap raised by hand is indistinguishable from one that was always that size. ⛔ Same one-line self-ratchet this cluster has now built four times |
+| **.6.5.8.3** | **[DECISION] `GAP-14` — `lint:gate-freshness` runs in NO automated chain.** Absent from `run-gates.ts`, from `validate:release:rn`, and from CI. ⚠️ **Its own docstring rules it out of `lint:rn`** *(a freshness check inside the thing that establishes freshness deadlocks)* — **that argument does not rule it out of CI.** 🎯's call: a post-`gate:record` CI step, or leave it manual and say so |
+| **.6.5.8.4** | **The floors — `GAP-7` `GAP-8` `GAP-13`.** One downward-only assertion each. ⚠️ `GAP-13` compounds `GAP-14`: removing a root reds freshness **once**, then the next `gate:record` blesses it forever |
+| **.6.5.8.5** | **The fixtures — `GAP-4` `GAP-5` `GAP-11` `GAP-12` `GAP-17`.** Mechanical; `GAP-12` needs a CRLF fixture committed with `.gitattributes -text` |
+| **.6.5.8.6** | **The stragglers — `GAP-9` `GAP-10` `GAP-15` `GAP-18`.** Three fold into `GAP-16`'s harness; `GAP-18` is a one-line no-raw-NUL gate and the cheapest thing on the list |
+| **.6.5.8.7** | **Drive `MAX_UNGUARDED` down as each lands**, and ⛔ **make it self-ratcheting** — red BELOW the cap as well as above, so the backlog cannot quietly stop draining |
 
-**Exit (S1.10.6.5):** the four instruments fixed and plant-verified, the `B1` sweep run over the whole
-cluster's range with its findings closed, and `.6.1`–`.6.9`'s guards re-confirmed under the repaired
-gates. ⛔ **That closes the 20 and makes pass 3 a candidate for `.6.7`'s minors, not before.**
+**Exit (S1.10.6.5.8):** `MAX_UNGUARDED` at its true floor with every remaining row carrying a written
+reason 🎯 has seen, each new guard **plant-verified to red on its own original defect**, and the cap
+self-ratcheting. ⛔ **`GAP-14` exits by a DECISION, not by a build.**
+
 
 
 ⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports

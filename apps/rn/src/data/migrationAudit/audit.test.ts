@@ -36,6 +36,29 @@ function record(caseId: string, target: string, outcome: DoorOutcome) {
 const cases: Case[] = generateV16Cases();
 if (cases.length < 100) throw new Error(`FAIL [the generator produced only ${cases.length} cases — it is not generating]`);
 
+/**
+ * ⛔ **AND THAT `run()` STILL CALLS `selfCheck()` — MODULE SCOPE, BECAUSE THE CHECK CANNOT LIVE INSIDE
+ * THE THING WHOSE CALL IT VERIFIES.** [S1.10.6.5.7]
+ *
+ * ⚡ **Measured: delete `selfCheck();` from `run()` and NOTHING notices** — not the suite, not `typecheck`,
+ * not `lint:rn`. The 542-case, two-door audit then runs with no proof it can fail at all, and its output
+ * is identical minus one reassuring line. That is the exact shape `selfCheck` exists to refuse, one level
+ * up: **a harness that cannot be shown to detect anything.**
+ *
+ * ⚠️ **`selfCheck` already reads its own source to prove `run()` calls `verdict(...)`, and its docblock
+ * names the residual it could not cover — its own call.** It could not, because a check inside a function
+ * nobody calls never runs. So the same idiom moves out here, where import alone is enough to fire it.
+ *
+ * ⚠️ Residual, named as that block names its own: this assertion can be deleted too. It is a deliberate
+ * edit to a block that says what it is for, not a one-line deletion nobody would notice.
+ */
+const auditSource = readFileSync(__filename, 'utf8');
+if (!/\n\s*selfCheck\(\);/.test(auditSource)) {
+  throw new Error(
+    'FAIL [audit: run() no longer calls selfCheck() — the migration audit runs with no proof it can detect anything]',
+  );
+}
+
 export default async function run() {
   // ⛔ FIRST, and deliberately: prove this harness can fail before trusting it to say nothing is wrong.
   selfCheck();
