@@ -224,6 +224,10 @@ export function DebtSheet({
     if (balanceN == null) return setError(FORM_ERRORS.balanceRequired);
     if (minimumN == null) return setError(FORM_ERRORS.minimumRequired);
     if (aprN == null) return setError(FORM_ERRORS.aprInvalid);
+    // ⛔ [S1.10.6.6 · B2] The bound the CSV import, the scanner and the v1.6 form all enforce, on the path
+    // that enforced nothing. ⚠️ Placed in `submit`, not `commit`: `commit`'s `isEdit` early return happens
+    // AFTER validation, so this covers the edit path — which the finding warned it might not.
+    if (aprN > 100) return setError(FORM_ERRORS.aprOutOfRange);
     if (minimumN > balanceN) return setError('Minimum payment can’t exceed the balance.');
     const fields = {
       name: name.trim(),

@@ -65,6 +65,12 @@ export function FirstDebtOrBillStep({ onNext, onSkip }: { onNext: () => void; on
         setError(FORM_ERRORS.aprInvalid);
         return;
       }
+      // ⛔ [S1.10.6.6 · B2] The second hand-entry path, and it is a user's FIRST debt — the figure this one
+      // takes is the one every projection on their first screen is built from.
+      if (aprN > 100) {
+        setError(FORM_ERRORS.aprOutOfRange);
+        return;
+      }
       setError('');
       appStore.getState().addDebt({
         id: `debt-${Date.now()}`,

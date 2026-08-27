@@ -33,19 +33,57 @@ lived only on the plan)* · the log *(P6.8's closed sweep, the 62 findings, the 
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-27).** 🎯: standing authority to run the surface audits **to
-convergence**. **S0 CONVERGED · S1 passes 1 and 2 FIXED · PASS 3 IS RUN, RECORDED AND CLASSIFIED.**
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-27, second session).** 🎯: standing authority to run the surface
+audits **to convergence**. **S0 CONVERGED · S1 passes 1 and 2 FIXED · PASS 3 IS RUN, RECORDED, CLASSIFIED
+AND 19-of-20 FIXED.**
 
 🔴 **PASS 3 RETURNED 11 BLOCKERS · 9 MAJORS · 14 MINORS** — the largest round yet, on the widened surface.
 [`docs/audits/2026-08-26-s1-money-pass3/SUMMARY.md`](docs/audits/2026-08-26-s1-money-pass3/SUMMARY.md) is
-the map. ⛔ **S1 does NOT converge**; 9 of the 20 restart [D65]'s count.
+the map. ⛔ **S1 does NOT converge**; 9 of the 20 restart [D65]'s count, and **pass 3 is not a clean pass**,
+so a clean pass 4 still owes a pass 5.
 
-▶ **ACTIVE: `S1.10.6` — the FIX, decomposed BY CLASS as `.6.1–.6.8` at the top of the plan.**
-✅ **`.6.1` (the payoff engine — `A1` `A2` `A4`) is CLOSED.** ▶ **`.6.2` is next: the six-finding trust-rule
-class inside the app.** ⛔ **`.6.5`, the five blind instruments, is sequenced LAST of the code classes** —
-those gates are what the other fixes are verified *with*.
+▶ **ACTIVE: `S1.10.6` — the FIX, by CLASS, at the top of the plan.** ✅ **`.6.1` `.6.2` `.6.3` `.6.4` `.6.6`
+are CLOSED — 19 of 20 blocker+majors, every guard measured RED on its own restored defect.**
+▶ **`.6.9` is next** *(two claim sites `.6.2`'s enumeration found that no auditor did — **located, not
+reproduced**, so it opens with a measurement)*, then ⛔ **`.6.5`, the five blind instruments, LAST of the
+code classes** — those gates are what the other fixes are verified *with* — then `.6.7`'s 14 minors.
+
+⚠️ **AND `.6.5`'s DEFERRAL IS NOT FREE — it OWES A RE-CHECK OF `.6.1`–`.6.6`.** `B1` is `lint:money` being
+**unsatisfiable**, and it ran green over every line of new money-rendering code this cluster shipped
+(`money.tsx`, `BillBreakdownSheet`, `PaidOffArchive`, the widget). Fixing the gate is step one; sweeping
+what it then finds in work already shipped is step two, and it is not optional.
+
+⭐ **BEFORE S2 OPENS — `S1.10.6.10`.** 🎯 asked whether the later surfaces will bloat the way S1 did.
+⛔ **The S1 class cannot recur**: `lint:surface-complete` asserts all **1,220** tracked source files have an
+owner, and it was built *because* 184 files of `apps/rn/src` were under no root at all. ⚠️ **But S2/S3/S4's
+sizes are UNMEASURED** — no claims file exists and the script answers *"unknown surface. Known: s0, s1."*
+⚡ **And they resist cheap measurement because the routing lives inside S1's own `excluded` function rather
+than in a shared router.** Extracting it is the fix. ⚠️ Completeness proves every file has *a* home, not the
+RIGHT one — `C-7` already hit that seam.
+
+### ⚡ What the fixing itself taught, and it is not in any auditor's report
+
+⛔ **A GATE I SHIPPED HAD A CHECK THAT COULD NOT FAIL, ONE COMMIT AFTER WRITING ITS DOCBLOCK ABOUT EXACTLY
+THAT.** `lint:trust-claims`' `MAX_EXEMPT`/`MAX_OPEN` were `Object.keys(X).length` — caps derived from the
+lists they cap, so both "downward-only ratchets" were no-ops. Found by re-reading the gate while removing a
+row, **not by any suite**. Now literals, plant-verified.
+
+⛔ **A FINDING'S STATED REMEDY WOULD HAVE BEEN THE DEFECT.** `B3` said `stat()` should *"return `null`
+rather than an epoch date or a throw"* — and `null` is exactly what `inspectRemote` reads as `none`,
+*"there is no copy to lose"*, which the guard **permits**. It throws instead. ⚡ Caught by asking what the
+returned value does **downstream**, not by reading the line. `measure-agent-mechanisms`, again.
+
+⚠️ **A PLANT THAT READS `MISSED` IS USUALLY NOT A MISS.** Four times this session a plant red on an
+*earlier* assertion in the same block, so the one it targeted never ran — and once the plant itself was
+unfaithful and crashed a control instead. **Relax the earlier assertion and re-run before believing the
+verdict**; `plant-applied=YES` says the edit landed, not that it reached what you were measuring.
+
+⚠️ **THE `| tail` TRAP, INSTANCE TEN.** A full e2e run piped to `tail` reported **exit 0 over two failed
+specs**. Redirect to a file and read the command's own `$?`. *(Those two were sleep-induced timeouts — the
+machine slept mid-run, 5.1 h wall clock — and both pass on re-run; but the exit code lied either way.)*
 
 ### ⚡ The two results to carry into the fix
+
 
 ⛔ **THREE OF FOUR AUDITORS INDEPENDENTLY FOUND A GATE REPORTING GREEN WHILE DOING LESS THAN IT CLAIMS**,
 and **one of the five was created by pass 2's own fix.** `lint:money`'s two `Intl` patterns are

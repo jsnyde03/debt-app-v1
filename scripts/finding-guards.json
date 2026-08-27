@@ -552,5 +552,15 @@
     "what": "pass-3 C-7b — the iCloud restore confirm described NOTHING: no counts, no losses, because it confirms before it fetches. The remedy is a PRE-READ (previewRestore), not a wording change, which the finding says explicitly because a sentence-only fix could not work. Both doors compose from one owner (describeRestorePreview) so they cannot drift. ⛔ Paired structurally in check-copy-owners as well, because this screen's `ready` branch is unreachable to every automated test in the repo — its own docblock records a defect surviving thirteen lenses for that reason",
     "file": "apps/rn/src/data/readBackup.test.ts",
     "token": "C-7b — and it names the loss, exactly as the file door does"
+  },
+  "S1P3-B2-APRBOUND": {
+    "what": "pass-3 B2 — the two RN hand-entry paths were the ONLY APR paths with no 0-100 bound, so `2599` (a missing decimal in 25.99 on a decimal-pad field labelled 'APR %') was saved and planned against as 2599%: $10,829.17/mo of interest on a $5,000 card, ranked first under avalanche, with a debt-free date computed from it. ⚡ A unit test asserted the bound and PASSED, because parseDebtFormValues' only live consumer is the legacy root tree — the guard travelled with v1.6 and never crossed to RN, while RN kept the error STRING for the same field and narrowed what triggers it to 'unparseable'. Asserts what LANDED in the store, not that an error appeared; the control pins 25.99 and the exact-100 boundary. Plant-verified: removing the bound reds the refusal test and leaves both controls green",
+    "file": "apps/rn/tests/e2e/amount-guards.spec.ts",
+    "token": "Enter an APR between 0 and 100."
+  },
+  "S1P3-B7-BREADCRUMB": {
+    "what": "pass-3 B7 — the Sentry breadcrumb scrub redacted the amounts and passed the CREDITOR NAMES: 'Visa, Focus, $[redacted] · 22.99% APR, estimated verified Jun 3' left the device on a build with a live DSN. ⛔ The remedy is not a wider regex — a name cannot be pattern-matched — so touch categories are dropped whole, the way console already is. ⚡ Rated major because of the TEST: its fixture was a user-authored bill name asserted as correctly untouched, pinning the leak green. Four plants: the drop removed, only one of the two SDK spellings listed, the over-fix that drops navigation too (which turns the diagnostic feature off), and the money rule itself",
+    "file": "apps/rn/src/utils/scrubBreadcrumb.test.ts",
+    "token": "a touch breadcrumb carrying a creditor name is DROPPED"
   }
 }

@@ -29,9 +29,9 @@
 ## ▶ RIGHT NOW — **S1.10 · pass 3**
 
 **Surface S1 · money · goals · plan cards.** Passes 1 and 2 are **run and fully fixed**. ⛔ **S1 does NOT
-converge yet** — [D65] exits on 0/0 **twice consecutively**, and pass 2 reset the count. **Pass 3 is RUN and
-recorded** *(pinned `96d1f11`, four fresh auditors, [D68])* and is now being **fixed**: **9 of 20** blocker+
-majors closed. S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not queue**.
+converge yet** — [D65] exits on 0/0 **twice consecutively**, pass 2 reset the count, and **pass 3 is not a
+clean pass**, so a clean pass 4 still owes a pass 5. **Pass 3 is RUN and recorded** *(pinned `96d1f11`, four
+fresh auditors, [D68])* and is now being **fixed**: **19 of 20** blocker+majors closed. S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not queue**.
 Detail for anything closed → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 ⛔ **THERE IS NO CURRENT GATE RECORD** ([D74]). `lint:gate-freshness` is **RED**: the record is real
@@ -86,57 +86,36 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 
 | # | class | ids | state |
 |---|---|---|---|
-| **S1.10.6.1** | **The payoff engine** — three blockers in `packages/core/{debt,history}`, all first-look | `A1` `A2` `A4` | ✅ **CLOSED** *(see below)* |
-| **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | ✅ **CLOSED** *(see below)* |
-| **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ✅ **CLOSED** *(see below)* |
-| **S1.10.6.4** ▶ | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, the two restore doors | `B3` `B4` `C-7` | ▶ **ACTIVE** *(decomposed below)* |
-| **S1.10.6.5** | ⛔ **The instruments** — five gates that report green while doing less than they claim. ⚠️ **Fix LAST of the code classes**: these are the gates the other fixes are verified *with*, so a mid-flight change to them invalidates the verification already done | `B1` `A3` `D3-3` `D3-4` | not started |
-| **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | not started |
+| **S1.10.6.1** | **The payoff engine** — three blockers, all first-look | `A1` `A2` `A4` | ✅ **CLOSED 2026-08-27** — one shape: two producers of one fact, disagreeing |
+| **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | ✅ **CLOSED 2026-08-27** — ⭐ **`lint:trust-claims`** is the durable half: a claim route with no caller now reds |
+| **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ✅ **CLOSED 2026-08-27** — ⛔ and the day-old gate's two caps were **vacuous**, found by re-reading it |
+| **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, both restore doors | `B3` `B4` `C-7` `C-7b` | ✅ **CLOSED 2026-08-27** — ⚡ the finding's **own stated remedy would have been the defect** |
+| **S1.10.6.5** | ⛔ **The instruments** — five gates that report green while doing less than they claim. ⚠️ **Fix LAST of the code classes**: these are the gates the other fixes are verified *with*, so a mid-flight change to them invalidates the verification already done — `test:gate-plants` and `lint:finding-guards` ran after every sub-step, and **21 registry entries** went in through the latter. ⛔ **AND THE DEFERRAL IS NOT FREE: it OWES A RE-CHECK OF `.6.1`–`.6.6`.** `B1` is `lint:money` being *unsatisfiable*, and it was green over every line of new money-rendering code this cluster shipped — so fixing the gate is step one and sweeping what it then finds is step two | `B1` `A3` `D3-3` `D3-4` | not started — ⚠️ **the last code class**, after `.6.9` |
+| **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | ✅ **CLOSED 2026-08-27** — ⚡ both were **already asserted somewhere**, and both assertions were green over the gap |
+| **S1.10.6.10** | ⭐ **MATERIALISE S2/S3/S4's INVENTORIES BEFORE S2 OPENS** *(🎯's question, 2026-08-27: do the later surfaces bloat the way S1 did?)*. ⛔ **The S1 class cannot recur** — `lint:surface-complete` asserts all **1,220** tracked source files have an owner. ⚠️ **But their SIZES are unmeasured**: no `surface-coverage.s2.json` exists and the script answers *"unknown surface. Known: s0, s1."* ⚡ **And they cannot be measured cheaply, because the routing decisions live inside S1's own `excluded` function rather than in a shared router** — extracting it IS the fix. Three `never`-filled claim files + a `--surface=` that accepts them turns "unknown" into three numbers before switch-in. ⚠️ Completeness proves every file has *a* home, **not the right one** — `C-7` already hit that seam *(`readBackup.ts` is S3, its render site is S1)* | — | not started — ⭐ **do this BEFORE S2** |
 | **S1.10.6.7** | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | not started |
-| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **11 of 20 done** — `.6.1`–`.6.3`, registered with each fix rather than batched. Registry **95 → 108 entries** *(one of the three guards a defect in `.6.2`'s own gate)*, unguarded cap **unchanged at 16** |
-| **S1.10.6.9** | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — two claim sites that read the entity lists and print money with no guard: `guardianSelectors` *(the regime split and "your savings" both test `balance > 0`)* and `AffordabilityCard` *(cover-from-savings reads `goal.currentAmount`)*. ⛔ **Located, not reproduced.** Tracked mechanically by `lint:trust-claims`' `OPEN` ledger, cap downward-only | — | not started |
+| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **19 of 20 done** — `.6.1`–`.6.4` + `.6.6`, registered with each fix rather than batched. Registry **95 → 116 entries** *(two of them defects in this cluster's OWN gates)*, unguarded cap **unchanged at 16** |
+| **S1.10.6.9** ▶ | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — the two claim sites still on `lint:trust-claims`' `OPEN` ledger | — | ▶ **ACTIVE** *(decomposed below)* |
 
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
 `lint:rn` + the unit suites green.
 
-✅ **S1.10.6.1 CLOSED 2026-08-27** — `A1` `A2` `A4`, each guard verified RED on its own restored defect.
-⚡ **All three were ONE SHAPE: two producers of one fact, disagreeing**, and each fix collapses the pair to a
-single producer. ⚠️ **Three plants lied here in three different ways**, and I orphaned a docblock inside the
-fix for a carried-premise defect. Detail → log.
+#### S1.10.6.9's sub-steps — the two claim sites no auditor found *(ACTIVE)*
 
-✅ **S1.10.6.2 CLOSED 2026-08-27** — `C-1`–`C-6`, 12 new e2e guards, each **measured RED on its own restored
-defect twice**: once normally, once with the honest-state assertion relaxed so the absence assertions are
-proven independently load-bearing. ⭐ **`lint:trust-claims` is the durable half** — every `MoneyClaim` must
-have a production consumer, every asked field must be routed, and the unguarded sites are a **named,
-downward-only** ledger rather than silence. `lint:rn` **29 gates**, e2e **322 passed**. Detail → log.
-
-⚡ **One self-inflicted defect, caught by the new guard on its first run**: a selector returning a fresh
-array blanked the whole Money tab (React #185) — the warning `money.tsx:614` already carries verbatim.
-
-✅ **S1.10.6.3 CLOSED 2026-08-27** — `D3-1` `D3-2`. **Six plants, all caught**, including the partial-fix
-over-fix *(repairing only the date leaves "100% · $0")* and both guards re-run with their leading assertion
-relaxed. ⛔ **And `lint:trust-claims`, one commit old, had `MAX_EXEMPT`/`MAX_OPEN` computed from the lists
-they cap — both ratchets were VACUOUS.** Now literals, plant-verified. ⚠️ `snapshot.ts` was claimed `s1p2`
-on one function read, so S1's unswept went **121 → 123** when the claim was made truer. Detail → log.
-
-#### S1.10.6.4's sub-steps — storage & backup *(ACTIVE)*
-
-⚠️ **Before-scan: premises verified against the CURRENT tree.** `backupToCloudGuarded` still branches on
-`unclaimed` alone; `createAdapter.web.ts` still wraps `getItem` **and** `JSON.parse` in one `catch`. ⛔ **The
-docblock above the guard states the opposite of what the code does** and is right about only one of the two
-ways `unknown` is produced — the carried-premise class, at the site of the blocker.
+⚠️ **Before-scan: LOCATED, NOT REPRODUCED.** `.6.2`'s enumeration found them by asking which files read the
+user's entity lists **and** print money; both do, and neither asks the trust module. ⛔ **That is a location,
+not a defect** — the first two sub-steps are measurements, and a finding that does not reproduce is
+**refuted and recorded as refuted**, never quietly fixed.
 
 | # | sub-step |
 |---|---|
-| **.6.4.1** | **`B3` the iCloud clobber** — refuse `unknown` in `backupToCloudGuarded` *(the one caller that can tell it from `ours`)*, and correct the docblock that says it is already refused. ⛔ **NOT in `backupToCloud`** — that is deliberately the unguarded, informed path the "replace it, I read the date" flow uses |
-| **.6.4.2** | **`B3`'s second half** — `ios.ts:90` returns `null` for a non-finite `mtimeMs` rather than throwing **or** silently becoming `1970-01-01`; ⚠️ both directions of that field are unhandled today |
-| **.6.4.3** | **`B4` the web adapter** — split the two catches: storage-unavailable → `null`, corrupt bytes → hand the raw string back so the blob is **quarantined**, matching the native adapter and `adapter.ts`'s own stated contract |
-| **.6.4.4** | **`C-7` the file restore door** — `describeBackup` gains a fourth clause from `result.store.pendingDataRepairs`. ⚠️ The mechanism file is **S3's surface, not S1's**; the render site is S1's |
-| **.6.4.5** | **`C-7b` the iCloud restore door** — ⛔ **a pre-read, not a wording change**: it confirms *before* it fetches, so it has nothing to describe. `DataResetScreen.tsx:60-70` already shows the shape |
-| **.6.4.6** | **Guards + registry** — ⚠️ **neither storage adapter has a unit test and no store test parses a persisted blob**; the one corrupt-bytes e2e seeds *valid* JSON, the single member of the class both adapters agree on. Add the missing member **beside** it, never in place of it |
+| **.6.9.1** | **Measure `guardianSelectors`** — `selectCalibrationScore` splits the accuracy regime on `balance > 0` and `selectReserveRelease` names *"your savings"* off the same test, so a repaired balance would reclassify both. ⚠️ Run it with a control before writing anything down |
+| **.6.9.2** | **Measure `AffordabilityCard`** — the cover-from-savings flow reads `goal.currentAmount` directly and prices a purchase against it |
+| **.6.9.3** | **Fix what reproduces**, at the one owner. ⛔ Neither is a user-facing *figure*, so the honest remedy may be a sentence rather than a suppression — decide from the measurement |
+| **.6.9.4** | **Guards + registry**, then both rows off `lint:trust-claims`' `OPEN` ledger with **`MAX_OPEN` → 0** — the cap only goes down, and zero is what closes the class |
 
-**Exit (S1.10.6.4):** `B3` `B4` `C-7` `C-7b` fixed, each guard measured red on its own defect, and
-`lint:rn` + the unit suites + the touched e2e green.
+**Exit (S1.10.6.9):** both sites either fixed with a guard measured red on its own defect, or refuted by
+measurement and recorded as refuted; `MAX_OPEN` at 0; `lint:rn` + the unit suites green.
 
 ⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
 green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one

@@ -104,4 +104,25 @@ export const FORM_ERRORS = {
   // "left blank" and "unreadable" as the same answer and planned an interest-free payoff on a card that
   // charges, so the two are separated and only the second one stops the form.
   aprInvalid: 'Enter the APR as a number, or leave it blank.',
+  /**
+   * ⛔ **THE ONLY APR PATH THAT ENFORCED NOTHING, UP TO 999999%.** [S1.10.6.6 · pass-3 B2]
+   *
+   * ⚡ Four ways an APR reaches the store. The CSV import (`debtCsv.ts:287`), the statement scanner
+   * (`parseStatementText.ts:113`) and the v1.6 form (`parseDebtFormValues.ts:47`) all bound it to `0–100`.
+   * The two RN hand-entry paths tested only *"did it parse"*. So `2599` — the commonest slip on a
+   * `decimal-pad` field labelled *"APR %"*, a missing decimal point in `25.99` — was saved and planned
+   * against as **2599%**: a $5,000 card accruing **$10,829.17 of interest a month**, ranked first under
+   * avalanche, with a debt-free date and an *"interest saved"* figure computed from it.
+   *
+   * ⚡ **A test asserted this bound and passed**, because `parseDebtFormValues`' only live consumer is the
+   * LEGACY root tree. The guard and its green test travelled with v1.6 and never crossed to RN — while RN
+   * kept the error string for the same field and narrowed what triggers it to *"unparseable"*.
+   *
+   * ⚠️ **The bound belongs where the rate is ENTERED, never in `parseOptionalAmount`** — that parser serves
+   * every money field in the app and must not learn about percentages, which is the argument `debtCsv.ts`
+   * already makes for itself. ⚠️ And a comma slip (`"5,5"` → `55`) lands *inside* a plausible range and is
+   * the decided answer, pinned by name in `testAmountField.ts` — which is what makes this bound load-bearing
+   * rather than optional: nothing downstream questions 55%.
+   */
+  aprOutOfRange: 'Enter an APR between 0 and 100.',
 } as const;

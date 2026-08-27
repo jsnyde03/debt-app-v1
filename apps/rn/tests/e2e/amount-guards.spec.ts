@@ -91,3 +91,61 @@ test('no debt in the store can carry a null balance after a form write', async (
     expect(typeof d.balance).toBe('number');
   }
 });
+
+/**
+ * ⛔ **S1.10.6.6 [pass-3 B2] — THE ONLY APR PATH THAT ENFORCED NOTHING.**
+ *
+ * ⚡ The CSV import, the statement scanner and the v1.6 form all bound the rate to `0–100`; the two RN
+ * hand-entry paths tested only *"did it parse"*. So `2599` — a missing decimal point in `25.99`, the
+ * commonest slip on a `decimal-pad` field labelled *"APR %"* — was saved and planned against as **2599%**:
+ * a $5,000 card accruing **$10,829.17 of interest a month**, ranked first under avalanche, with a debt-free
+ * date computed from it.
+ *
+ * ⚠️ **A unit test asserted this bound and passed**, because `parseDebtFormValues`' only live consumer is
+ * the legacy root tree. The guard travelled with v1.6 and never crossed. These assert what LANDED, for the
+ * reason this file's header already gives.
+ */
+test('B2 · an APR above 100 is REFUSED — nothing is written', async ({ page }) => {
+  await seedStore(page, scenario());
+  await openAddDebt(page);
+
+  const before = (await readStore(page)).debts?.length ?? 0;
+
+  await page.getByTestId('field-debt-name').fill('Slipped card');
+  await page.getByTestId('field-debt-balance').fill('5000');
+  await page.getByTestId('field-debt-minimum').fill('150');
+  await page.getByTestId('field-debt-apr').fill('2599');
+  await page.getByRole('button', { name: 'Add debt' }).click();
+
+  // ⛔ The honest state by name: the sheet stays open on an error that names the range.
+  await expect(page.getByText('Enter an APR between 0 and 100.')).toBeVisible();
+  const after = await readStore(page);
+  expect(after.debts?.length ?? 0).toBe(before);
+  expect(after.debts?.some((d: { name: string }) => d.name === 'Slipped card')).toBeFalsy();
+});
+
+test('B2 control · a real APR still goes in, and 100 is still allowed', async ({ page }) => {
+  await seedStore(page, scenario());
+  await openAddDebt(page);
+
+  await page.getByTestId('field-debt-name').fill('Real card');
+  await page.getByTestId('field-debt-balance').fill('5000');
+  await page.getByTestId('field-debt-minimum').fill('150');
+  await page.getByTestId('field-debt-apr').fill('25.99');
+  await page.getByRole('button', { name: 'Add debt' }).click();
+
+  await expect
+    .poll(async () => (await readStore(page)).debts?.find((d: { name: string }) => d.name === 'Real card')?.apr)
+    .toBe(25.99);
+  // ⚠️ The boundary itself, because "greater than 100" and "100 or more" are one keystroke apart and the
+  // three paths that already enforce this all accept exactly 100.
+  await openAddDebt(page);
+  await page.getByTestId('field-debt-name').fill('Edge card');
+  await page.getByTestId('field-debt-balance').fill('5000');
+  await page.getByTestId('field-debt-minimum').fill('150');
+  await page.getByTestId('field-debt-apr').fill('100');
+  await page.getByRole('button', { name: 'Add debt' }).click();
+  await expect
+    .poll(async () => (await readStore(page)).debts?.find((d: { name: string }) => d.name === 'Edge card')?.apr)
+    .toBe(100);
+});

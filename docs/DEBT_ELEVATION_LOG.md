@@ -26179,3 +26179,85 @@ mtime) and crashed the control instead — a plant testing the plant.
 Six registry entries (**108 → 114**). `lint:rn` 29 gates green. ⚠️ Two mechanical gate corrections on the
 way: `lint:comments` refused a docblock that *annotated* its own past falsehood instead of deleting it, and
 the new adapter test had to be classified on the S1 surface.
+
+---
+
+## S1.10.6.6 — input bounds & privacy. `B2` · `B7`, and two guards that were green over their own gap.
+
+**Closed 2026-08-27.** Two majors, and both were **already asserted somewhere** — which is the whole shape.
+
+### `B2` — the guard travelled with v1.6 and never crossed to RN
+
+Four ways an APR reaches the store. The CSV import, the statement scanner and the v1.6 form all bound it to
+`0–100`. **The two RN hand-entry paths tested only *"did it parse"*.** So `2599` — a missing decimal point
+in `25.99`, on a `decimal-pad` field labelled *"APR %"* — was saved and planned against as **2599%**: a
+$5,000 card accruing **$10,829.17 of interest a month**, ranked first under avalanche, with a debt-free date
+and an *"interest saved"* figure computed from it.
+
+⚡ **A unit test asserts this bound and passes.** `parseDebtFormValues`' only live consumer is the **legacy
+root tree** — so the guard and its green test travelled with v1.6 and did not cross, while RN kept the
+*error string* for the same field and narrowed what triggers it to *"unparseable"*. `trustSelectors`'
+own docblock had already written down the intended parity: *"the import path doing what
+`FORM_ERRORS.aprInvalid` exists to refuse on the form path."*
+
+⚠️ **One premise of the finding was wrong and it mattered.** It warned that `DebtSheet.tsx:180`'s `isEdit`
+early return would leave an edit uncovered by a guard placed after it — but that return is inside `commit`,
+which runs **after** validation. The guard sits in `submit` and covers both paths. Checked before building,
+not after.
+
+⚠️ The bound goes where the rate is *entered*, never into `parseOptionalAmount`: that parser serves every
+money field and must not learn about percentages, which is the argument `debtCsv.ts` already makes for
+itself. And a comma slip (`"5,5"` → `55`) is the *decided* answer, pinned by name — which is what makes the
+bound load-bearing rather than optional, because nothing downstream questions 55%.
+
+### `B7` — the test was the reason this was a major
+
+The scrub took the amounts and left the names: *"Visa, Focus, **$[redacted]** · 22.99% APR, estimated
+verified Jun 3, **$[redacted]**/mo"* — **who they owe, at what rate, and when they last checked**, leaving
+the device on a build where the DSN is live.
+
+⛔ **`scrubBreadcrumb.test.ts` asserted the passthrough as correct, and its fixture was itself a
+user-authored bill name** (`'Mark Pay Rent paid'`, filed under *"a plain label is untouched"*). So the gap
+was **pinned green**: any future widening would red the file and show a reader an assertion saying the
+current behaviour was intended.
+
+⛔ **The remedy is not a wider regex — a name cannot be pattern-matched.** Touch categories are dropped
+whole, the way `console` already is. ⚠️ `navigation` and `http` are kept deliberately, and the over-fix that
+drops them too is its own plant: routes, counts and step indices are the trail the feature exists for, and
+dropping them is how a diagnostic tool gets turned off entirely.
+
+⚠️ **The premise it was decided under had changed and nobody re-read it.** The docblock's cost/benefit was
+written while the Sentry scaffold was inert; the DSN arrived 2026-08-20.
+
+### Guards
+
+`B2` asserts what **landed in the store**, not that an error appeared — this file's own header explains why
+— with a control on `25.99` and on the exact-`100` boundary the other three paths accept. `B7` has four
+plants: the drop removed, only one of the two SDK spellings listed *(the enumeration-is-short shape)*, the
+navigation over-fix, and the money rule itself.
+
+⚠️ **One plant read MISSED and was not a miss** — it red on an earlier assertion in the same file, so the
+one I had named never ran. Two entries (**114 → 116**). `lint:rn` 29 gates green.
+
+### ⛔ And a self-inflicted defect that every gate was green over
+
+`B2`'s bound was fixed, plant-verified, and then undone with `git checkout -- DebtSheet.tsx` — **the fix was
+uncommitted, so `checkout` restored HEAD and threw the fix away with the plant.** ⚡ `tsc` clean, `lint:rn`
+**29/29**, `test:app` green, and the guard's own error string nowhere in the build. **The only thing that
+caught it was the full e2e**, one failure among 325.
+
+⚠️ **A plant loop verifies the plant and structurally never verifies the RESTORE** — the restore is its last
+action, so nothing runs after it, and the `CAUGHT` verdict it prints is true about the plant and says nothing
+about the tree it leaves behind. ⛔ Commit the fix *before* planting against it, back the file up rather than
+reaching for `git checkout`, and **re-run the guard once on the restored tree**. Filed as
+`verify-the-restore-not-just-the-plant`.
+
+### ⚠️ What this says about pass 4, before anyone hopes otherwise
+
+**The coverage half should shrink and the churn half probably will not.** 11 of pass 3's 20 were first-look
+on ground `S1.9.5`'s root widening had just admitted, and pass 4 adds no new roots — but **123 S1 files are
+still unswept**, including `app/_layout.tsx` *(376 lines, the app's whole bootstrap, grepped rather than
+read)*, and pass 4 reads **~2,000 lines of code written this session across ~30 files**. ⛔ `P6.8 → P6.15 →
+P6.16` is a loop precisely because fixes are unaudited changes, and **two of this round's own findings were
+defects in gates written hours earlier**. Report pass 4 **split by origin**, or a flat total will hide both
+halves moving.

@@ -23,6 +23,14 @@ const MONEY = /\$\s?\d[\d,]*(?:\.\d+)?/g;
 /** What a redacted amount becomes. Recognisable as a redaction, not as a rendering bug. */
 export const REDACTED = '$[redacted]';
 
+/**
+ * ⛔ **Categories whose content is the USER'S OWN WORDS.** [S1.10.6.6 · pass-3 B7] Sentry's touch
+ * integration records the pressed element's accessibility label, and this app builds those out of debt,
+ * expense and goal names the user typed. ⚠️ Both spellings are listed because the SDK has used both, and a
+ * set that names one of them is the enumeration-is-short class this project keeps measuring.
+ */
+const USER_AUTHORED_CATEGORIES = new Set(['touch', 'ui.click']);
+
 export function redactMoney(value: string): string {
   return value.replace(MONEY, REDACTED);
 }
@@ -45,6 +53,26 @@ export interface ScrubbableBreadcrumb {
 export function scrubBreadcrumb(breadcrumb: ScrubbableBreadcrumb | null): ScrubbableBreadcrumb | null {
   if (!breadcrumb) return null;
   if (breadcrumb.category === 'console') return null;
+  /**
+   * ⛔ **THE SCRUB TOOK THE AMOUNTS AND LEFT THE CREDITOR NAMES.** [S1.10.6.6 · pass-3 B7]
+   *
+   * ⚡ Measured through the real scrub on the label `ListRow` actually builds:
+   * *"Visa, Focus, $2,400 · 22.99% APR, estimated verified Jun 3, $65.00/mo"* → *"Visa, Focus,
+   * $[redacted] · 22.99% APR, estimated verified Jun 3, $[redacted]/mo"*. **The dollar figures go; who they
+   * owe, at what rate, and when they last checked stay** — and every one of those `title` props is
+   * user-authored (`debt.name`, `item.name`, `g.name`). On a build where the DSN is live.
+   *
+   * ⛔ **The remedy is not a wider regex — a NAME cannot be pattern-matched.** So the touch categories are
+   * dropped whole, the way `console` already is: a row's *identity* is the part that is never diagnostic,
+   * and a category whose content we cannot bound is a category we do not send. ⚠️ `navigation` and `http`
+   * are kept deliberately — routes, counts and step indices are the trail this feature exists for, and
+   * dropping them is how a diagnostic tool gets turned off entirely.
+   *
+   * ⚠️ **The premise this was originally decided under has changed.** The cost/benefit above was written
+   * while the Sentry scaffold was inert; the DSN arrived 2026-08-20 and `sentry.ts` only hard-returns when
+   * it is unset. Nothing re-read the decision when it stopped being hypothetical.
+   */
+  if (breadcrumb.category != null && USER_AUTHORED_CATEGORIES.has(breadcrumb.category)) return null;
 
   const scrubbed: ScrubbableBreadcrumb = { ...breadcrumb };
   if (typeof scrubbed.message === 'string') scrubbed.message = redactMoney(scrubbed.message);
