@@ -26425,3 +26425,62 @@ PASS.** So the registry tokens the config's **reach** (`"include": ["**/*.ts"]`)
 A one-sided plant would have proved half of an exact check: **a new re-derivation in an unledgered file**
 · **one added to a ledgered file** (count drifts up) · **a ledgered site fixed with its row left behind**
 (count drifts down). All three red, each on its own message; restored tree green.
+
+## S1.10.6.5.1 – .6.5.2 — `B1`, and what measuring it corrected (2026-08-27)
+
+⚡ **The finding's recommendation was sound and half its mechanism was wrong** — the fifth time in this
+cluster (`measure-agent-mechanisms`). It said *both* `Intl` patterns were unsatisfiable. Measured against
+seven real shapes:
+
+| shape | old A `toLocaleString` | old B `new Intl.NumberFormat` |
+|---|---|---|
+| `toLocaleString`, inline / multi-line | ✅ caught | — |
+| `toLocaleString` with a **nested call before `currency`** | ⛔ **MISSED** — a hole the finding did not name | — |
+| `new Intl.NumberFormat`, every form incl. one-line | — | ⛔ **0 of 4** |
+
+`[^)]*\)` runs to the call's own closing paren, so pattern B demanded `style: 'currency'` **after** the
+call closed. Pattern A had no closing paren and worked — until one nested call in the options
+(`minimumFractionDigits: Math.min(2, 2)`) put a `)` before `currency` and silenced it.
+
+**Neither pattern counts parens now.** One pattern, anchored on the entry point, a bounded window that
+crosses newlines, and a real option **key** as the terminator — a window alone would fire on an unrelated
+`const currency` sixty lines below. ⛔ `new` is gone from the anchor because `Intl.NumberFormat(…)` is
+valid without it, which the old pattern required and would have missed on its own terms. Measured both
+directions: **7 of 7** real currency shapes caught, **0 of 5** controls (a date format, a plain number
+format, a percent formatter, a far-away `currency` identifier, a prose mention).
+
+### ⛔ And repairing the regex alone left the gate green over both live sites
+
+The scan was **line by line** while the defect is not. *"Both facts must be fixed, not one"* is the
+finding's own sentence, and a green run after fixing one of them is exactly what would have been called
+done. **Proven, not assumed:** with the multi-line plant in place, un-fixing either half **alone** returns
+the gate to exit 0.
+
+⚠️ **A stray byte cost a full diagnostic cycle, and it is the shell lesson again.** The repaired pattern
+was written through a heredoc that turned its leading `\b` into a literal **backspace character**
+(`0x08`), so the regex could never match — while `grep` rendered it as if it were fine. Found by dumping
+the line with `repr()`; then the whole tracked tree was swept for injected control bytes, and no other
+text file carried one.
+
+### The sweep — the two live sites
+
+Both rendered a **third cents convention**: `Intl` defaults USD to a *minimum* of two fraction digits, so
+they printed `$100.00` on screens whose rows go through `formatCurrency` and read `$100`. That convention
+is settled in `formatCurrency`'s own docblock — found on the App Preview's opening frame and fixed at its
+root rather than per call site — and these two files sat outside it because a dead regex meant nothing
+objected.
+
+⚠️ **Both `Math.max(0, …)` clamps dropped, as dead by construction rather than as a preference.**
+`projectForecast`'s callers pass the literals `100`/`200` and a debt's `minimumPayment`;
+`buildSmartInsights` branches **every** negative case through `Math.abs` before formatting
+(`projectedBuffer < 0` takes the Recovery branch). ⛔ And `B1`'s own text names the clamp as part of the
+defect it describes: `$0.00` over a negative figure is a false statement, not a safe default —
+`formatCurrency` guards non-finite values instead.
+
+### The guard, and the floor that caught my own slip
+
+The plant is **multi-line on purpose** and lives in `packages/core`, where the blindness was — a one-line
+plant in `apps/rn/src` would exercise one of the two blind spots and sit in a tree already covered.
+⚡ While adding it I deleted the `...B1_SCENARIOS` spread by accident, and `MIN_SCENARIOS` red immediately
+with *"scenarios were REMOVED rather than red"* — the downward-only floor doing precisely its job on its
+own author. **12 scenarios.** Registry **124 → 127**.

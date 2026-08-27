@@ -602,5 +602,20 @@
     "what": "S1.10.6.9 G-6's naive over-fix, found by planting it: `npm run typecheck` can also be made green by NARROWING scripts/tsconfig.json's include until the app source stops being reachable — which buys the green by leaving the gates' own imports unchecked, the exact hole [P6.8.7a-1] closed when it found scripts/** had no compiler behind it at all. ⛔ A typecheck-based plant structurally CANNOT catch this one: the over-fix makes typecheck PASS. The token is the config's REACH rather than its aliases, so the two halves of G-6 are guarded separately — S1P3-G6-SCRIPTSTYPES pins the aliases, this pins the surface they apply to",
     "file": "scripts/tsconfig.json",
     "token": "\"include\": [\"**/*.ts\"]"
+  },
+  "S1P3-B1-INTLPATTERN": {
+    "what": "pass-3 B1, half one - lint:money's Intl pattern was paren-counted: `[^)]*\\)` runs to the call's own closing paren, so it demanded `style: 'currency'` AFTER the call closed, and matched nothing. Re-measured at the fix: the auditor said BOTH Intl patterns were unsatisfiable and only one was - the `toLocaleString` one worked on ordinary forms, and had a hole the finding did not name (one nested call in the options, e.g. `minimumFractionDigits: Math.min(2, 2)`, puts a `)` before `currency` and silences it). Neither pattern counts parens now: anchored on the entry point, a bounded window, and a real option KEY as terminator so a far-away `const currency` cannot fire it. `new` dropped from the anchor because `Intl.NumberFormat(...)` is valid without it. Measured 7/7 real shapes caught, 0/5 controls",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "B1-multiline-intl"
+  },
+  "S1P3-B1-CROSSLINE": {
+    "what": "pass-3 B1, half two - the scan was line-by-line while the defect is not, and repairing ONLY the regex left the gate green over both live sites. Proven independently load-bearing: with the plant in place, un-fixing either half alone returns the gate to exit 0. `wholeFile` patterns are matched against the stripped source with the line number derived from the match offset, with the `g` flag so a file holding two hand-rolled formatters cannot hide the second behind the first. 'Both facts must be fixed, not one' is the finding's own sentence",
+    "file": "scripts/check-money-format.ts",
+    "token": "if (!wholeFile) continue;"
+  },
+  "S1P3-B1-SWEEP": {
+    "what": "pass-3 B1's SWEEP - the deferral's debt. The repaired gate red over the two live hand-rolled formatters the dead pattern had been green over: projectForecast.ts and buildSmartInsights.ts, each rendering a THIRD cents convention ($100.00 where the rest of the app reads $100, because Intl defaults USD to a minimum of two fraction digits). Both now call the sanctioned formatCurrency. The Math.max(0, ...) clamps were dropped and both are dead by construction - projectForecast's callers pass literals and a minimumPayment, and buildSmartInsights branches every negative case through Math.abs before formatting. B1's own text names that clamp as part of the defect: it renders $0.00 over a negative figure, which is a false statement rather than a safe default",
+    "file": "packages/core/insights/buildSmartInsights.ts",
+    "token": "return formatCurrency(amount);"
   }
 }

@@ -1,4 +1,5 @@
 import { addMonthsToDate } from "@core/utils/addMonths";
+import { formatCurrency } from "@core/utils/formatCurrency";
 
 import { getForecastStatus } from "./getForecastStatus";
 import type { ForecastMonth, ForecastStatus } from "./types";
@@ -118,9 +119,20 @@ function roundMoney(amount: number) {
     return Math.round(amount * 100) / 100;
 }
 
+/**
+ * ⛔ **S1.10.6.5 [pass-3 B1] — ONE OF THE TWO LIVE HAND-ROLLED FORMATTERS THE MONEY GATE COULD NOT SEE.**
+ *
+ * ⚡ It rendered a THIRD cents convention: `Intl` defaults USD to a minimum of two fraction digits, so
+ * this printed *"$100.00"* on a screen whose rows go through `formatCurrency` and read *"$100"*. That
+ * convention is settled in `formatCurrency`'s own docblock — found on the App Preview's opening frame,
+ * fixed at its root rather than per call site — and this file was outside it because a dead regex meant
+ * nothing objected.
+ *
+ * ⚠️ **The `Math.max(0, …)` clamp is dropped, and it is provably dead here rather than merely unwanted:**
+ * the callers pass the literals `100` and `200` and a debt's `minimumPayment`. ⛔ The clamp is also named
+ * in `B1`'s own text as part of the defect it describes — it renders `$0.00` over a negative figure,
+ * which is a false statement, not a safe default. `formatCurrency` guards non-finite values instead.
+ */
 function formatForecastCurrency(amount: number) {
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-    }).format(Math.max(0, roundMoney(amount)));
+    return formatCurrency(roundMoney(amount));
 }

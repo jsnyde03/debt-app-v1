@@ -1,4 +1,5 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
+import { formatCurrency } from "@core/utils/formatCurrency";
 
 export type SmartInsightSeverity = "good" | "warning" | "risk";
 
@@ -140,9 +141,15 @@ export function buildSmartInsights({ safeExtraPayment, projectedBuffer, snowball
     return insights;
 }
 
+/**
+ * ⛔ **S1.10.6.5 [pass-3 B1] — the second of the two.** Same third cents convention as
+ * `projectForecast`'s, on strings the user reads as advice (*"projected to run short by …"*).
+ *
+ * ⚠️ **The clamp is dead by CONSTRUCTION here, which is why dropping it needs no behavioural argument:**
+ * every negative case is branched and `Math.abs`-ed before it reaches this function — `projectedBuffer < 0`
+ * takes the Recovery branch, and the other two run on a non-negative cushion. `formatCurrency` rounds to at
+ * most two fraction digits, so the explicit round is redundant too.
+ */
 function formatInsightCurrency(amount: number) {
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-    }).format(Math.max(0, Math.round(amount * 100 ) / 100 ));
+    return formatCurrency(amount);
 }

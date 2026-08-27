@@ -51,7 +51,19 @@ const isTestHarness = (file: string) =>
   /[\\/]testing[\\/]/.test(file);
 
 /** A currency string being built by hand rather than by a formatter. */
-const HAND_ROLLED: { pattern: RegExp; why: string }[] = [
+/**
+ * ⛔ **`wholeFile` EXISTS BECAUSE THE SCAN IS PER LINE AND THE DEFECT IS NOT.** [S1.10.6.5 · pass-3 B1]
+ *
+ * ⚡ **B1 named TWO independent reasons the Intl patterns could not fire, and repairing only the regex
+ * left the gate green over both live sites.** Measured: with the pattern fixed and the scan still
+ * line-by-line, `projectForecast.ts` and `buildSmartInsights.ts` — each a real `new Intl.NumberFormat`
+ * with `style: "currency"` on the FOLLOWING line — stayed GREEN. ⚠️ *"Both facts must be fixed, not one"*
+ * is the finding's own sentence, and fixing one of them is what a green run would have called done.
+ *
+ * A `wholeFile` pattern is matched against the stripped source with the line number derived from the
+ * match offset, so it reads across newlines and still reports where.
+ */
+const HAND_ROLLED: { pattern: RegExp; why: string; wholeFile?: true }[] = [
   // `$${...}` inside a template literal — the shape every one of the nine used.
   //
   // ⚠️ **P6.4.2 — this was ANCHORED ON A LIST OF FOUR ROUNDING CALLS and that is why it was green over
@@ -65,9 +77,29 @@ const HAND_ROLLED: { pattern: RegExp; why: string }[] = [
   { pattern: /\.replace\(\s*['"]\$['"]/, why: "a formatter's currency symbol stripped and re-added by hand" },
   // `'$' + n` concatenation.
   { pattern: /['"]\$['"]\s*\+/, why: "a '$' string concatenated onto a number" },
-  // toLocaleString doing currency work outside the two owners.
-  { pattern: /toLocaleString\([^)]*currency/i, why: 'an inline Intl currency call' },
-  { pattern: /new Intl\.NumberFormat\([^)]*\)[\s\S]{0,120}?style:\s*['"]currency['"]/, why: 'an inline Intl currency formatter' },
+  // Intl doing currency work outside the two owners.
+  //
+  // ⛔ **S1.10.6.5 [pass-3 B1] — THE PAREN-COUNTED PATTERN WAS DEAD, AND MEASURING IT CORRECTED THE
+  // FINDING THAT REPORTED IT.** The auditor said *both* Intl patterns were unsatisfiable. Measured
+  // against seven real shapes: `new Intl\.NumberFormat\([^)]*\)…style:` matched **nothing** — `[^)]*\)`
+  // runs to the call's own closing paren, so the pattern demanded `style: 'currency'` AFTER the call had
+  // closed — while the `toLocaleString` one worked on the ordinary forms. ⚡ **And it had a hole the
+  // finding did not name:** one nested call inside the options (`minimumFractionDigits: Math.min(2, 2)`)
+  // puts a `)` before `currency`, and `[^)]*` cannot cross it, so the gate went quiet on a real site.
+  //
+  // ⚠️ **So neither pattern counts parens any more.** Anchored on the ENTRY POINT, a bounded window that
+  // crosses parens and newlines, and a real option KEY as the terminator rather than the bare word
+  // *"currency"* — a window alone would fire on an unrelated `const currency` sixty lines below.
+  // ⛔ `new` is gone from the anchor because `Intl.NumberFormat(…)` is valid without it, which the old
+  // pattern required and would have missed on its own terms.
+  //
+  // Measured both directions: 7 of 7 real currency shapes caught, and 0 of 5 controls — a date format, a
+  // plain number format, a percent formatter, a far-away `currency` identifier, and a prose mention.
+  {
+    pattern: /\b(?:toLocaleString|Intl\.NumberFormat)\s*\([\s\S]{0,200}?(?:style\s*:\s*['"]currency['"]|currency\s*:\s*['"])/,
+    why: 'an inline Intl currency formatter',
+    wholeFile: true,
+  },
 ];
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -130,13 +162,24 @@ for (const root of ROOTS) {
     if (isTestHarness(file)) continue;
     const rel = relative(REPO_ROOT, file);
     const stripped = stripComments(readFileSync(file, 'utf8'));
-    stripped.split(/\r?\n/).forEach((line, i) => {
-      for (const { pattern, why } of HAND_ROLLED) {
-        if (pattern.test(line)) {
+    const lines = stripped.split(/\r?\n/);
+    lines.forEach((line, i) => {
+      for (const { pattern, why, wholeFile } of HAND_ROLLED) {
+        if (!wholeFile && pattern.test(line)) {
           problems.push(`  ${rel}:${i + 1}  ${why}\n      ${line.trim().slice(0, 100)}`);
         }
       }
     });
+    // The cross-line half — see `wholeFile` above. `g` so EVERY occurrence in a file is reported: a file
+    // holding two hand-rolled formatters would otherwise hide the second behind the first.
+    for (const { pattern, why, wholeFile } of HAND_ROLLED) {
+      if (!wholeFile) continue;
+      const re = new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g');
+      for (const m of stripped.matchAll(re)) {
+        const line = stripped.slice(0, m.index).split(/\r?\n/).length;
+        problems.push(`  ${rel}:${line}  ${why}\n      ${(lines[line - 1] ?? '').trim().slice(0, 100)}`);
+      }
+    }
     if (extname(file) === '.tsx') {
       for (const hit of jsxDollarSites(file, stripped)) {
         problems.push(`  ${rel}:${hit.line}  a literal $ in JSX text before an expression\n      \${${hit.text}`);

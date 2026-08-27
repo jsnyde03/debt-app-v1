@@ -218,11 +218,37 @@ const SCENARIOS: Scenario[] = [
     why: 'a 40pt figure with scaling explicitly ON — the S0.13 finding-4 shape',
   },
   ...B1_SCENARIOS,
+  /**
+   * ⛔ **S1.10.6.5 [pass-3 B1] — MULTI-LINE ON PURPOSE, BECAUSE THE GATE HAD TWO INDEPENDENT BLIND SPOTS
+   * AND A ONE-LINE PLANT ONLY EXERCISES ONE.**
+   *
+   * The `Intl` pattern was paren-counted (`[^)]*\)` ran to the call's own closing paren, so it demanded
+   * `style: 'currency'` AFTER the call closed) **and** the scan was line-by-line. Repairing either alone
+   * still left the gate green over both live sites. ⚡ This plant is written the way the two sanctioned
+   * formatters are — options on their own lines — so it fails under either regression.
+   *
+   * ⚠️ `packages/core`, not `apps/rn/src`: the two live sites were in core, and a plant in the tree that
+   * was already covered would not have been where the blindness was.
+   */
+  {
+    gate: 'lint:money [B1-multiline-intl]',
+    script: 'check-money-format.ts',
+    at: 'packages/core/__gate_plant__.ts',
+    body:
+      'export function money(n: number) {\n' +
+      '  return new Intl.NumberFormat("en-US", {\n' +
+      '    style: "currency",\n' +
+      '    currency: "USD",\n' +
+      '  }).format(n);\n' +
+      '}\n',
+    expect: 'an inline Intl currency formatter',
+    why: 'a tenth hand-rolled formatter written just like the two sanctioned ones — green under BOTH of the B1 blind spots',
+  },
 ];
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 11;
+const MIN_SCENARIOS = 12;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 
