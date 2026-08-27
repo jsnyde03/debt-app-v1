@@ -1,7 +1,0 @@
-{
-  "PLANT-COMMENT-ONLY": {
-    "what": "a guard whose token appears ONLY in a comment - the [M7] defect, verbatim",
-    "file": "scripts/__gate_plant_guard__.ts",
-    "token": "the assertion that would have to change"
-  }
-}

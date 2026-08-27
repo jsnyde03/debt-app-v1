@@ -56,3 +56,7 @@ apps/rn/expo-env.d.ts
 # ./core is an auto-created link to ../../packages/core (see apps/rn/metro.config.js) — never commit it
 apps/rn/core
 apps/rn/dist-embed/
+
+# ⛔ test:gate-plants writes these INTO scripts/ while it runs and removes them after (S1.10.6.1).
+# A `git add -A` that races the gate commits them. They are transient by construction — never tracked.
+scripts/__gate_plant_*
