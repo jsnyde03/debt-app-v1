@@ -114,7 +114,7 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 
 | # | sub-step |
 |---|---|
-| **S1.10.7.1** | **The net** — full `test:e2e:rn` + `test:e2e:embed`, on the whole tree rather than the specs touched. ⚠ **Not yet run for this round**: every fix so far was verified against its own surface in isolation, which is the per-fix cadence, not the per-round one. ⛔ **No `gate:record`** |
+| ✅ | **S1.10.7.1 — THE NET IS GREEN.** Full `test:e2e:rn` **325 passed** + `test:e2e:embed` **10 passed**, read from each suite's own summary line rather than the pipeline's exit code. ⛔ **No `gate:record`** — [D74] writes it at convergence, and pass 3 did not converge |
 | **S1.10.7.2** | **Push**, and state the hand-off honestly — *no current record; last full pass was `818f934`; the tree has moved N commits.* Quote `npm run lint:gate-freshness`, never a typed figure |
 | **S1.10.7.3** | **[DECISION] the pass-4 brief's ROUTING** — pass 3 read 470 files across four auditors. ⚠ The surface has since gained the six gates and three test modules built this session, so a brief reusing pass 3's manifests hands four auditors a stale surface. Regenerate `ROUTING-{A,B,C,D}.txt` and assert routed / unrouted / duplicated / missing before hand-over |
 | **S1.10.7.4** | **Write the pass-4 brief** — ⛔ **[D68]: no verdict in it, and this session does NOT run the pass.** ⚡ It reads ~2,000 lines of instrument code written this session, and **five defects went into the instruments themselves** — four of them found only by planting. **Report pass 4 split by origin**, or a flat total hides both halves moving |
