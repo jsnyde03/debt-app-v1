@@ -25961,3 +25961,87 @@ reporting *"no source touched"* — while **`npx tsc -p apps/rn` was exit 2** on
 auditor had written into a **gitignored** directory. `validate:release:rn` runs `tsc`, so this was queued to
 surface later as a mystery red with nothing in `git status` to explain it. ⛔ **Found only because
 `| tail` masked the real exit code and I re-measured** — the nine-instance trap, again. Filed for `.6.5`.
+
+---
+
+## S1.10.6.2 — the trust rule INSIDE the app. `C-1`…`C-6`, and the enumeration that outran all six.
+
+**Closed 2026-08-27.** Six pass-3 findings — five blockers and a major — plus the gate that stops the class
+regrowing. `lint:rn` **29 gates** (was 28), full RN e2e **322 passed** (was 310), `test:app` and
+`test:regression` green.
+
+### The finding under all six: a rule widened in one direction and missed in another, three passes running
+
+⚡ **Pass 2 closed *"the trust rule is wired to a SUBSET of claim sites and a SUBSET of fields"* by adding a
+claim TABLE — and pass 3 measured that table's `'row-figures'` route at ZERO production consumers.** Three
+grep hits, all the declaration or its own test. **The FIELDS were widened; the CLAIM SITES were
+re-declared.** So Money went on printing *"0% APR"* on a card charging 22% and *"$0/mo"* on one demanding
+$150 — the two strings that route's own docblock names as its reason for existing.
+
+⛔ **`trustSelectors.test.ts` gated the table's INPUTS and nothing gated its OUTPUTS.** That asymmetry is the
+whole finding, and it is why this sub-step ends in a gate rather than in six fixes.
+
+### What each fix was
+
+| | |
+|---|---|
+| **`C-1`** | `rowFieldUnread` now takes the CLAIM, so a row's fields are **routed** rather than remembered. Wired to the debt row (`balance` · `apr` · `minimumPayment` · `originalBalance` for the bar) and both expense rows, each suppressing only its own figure and captioning by name through `FIELD_LABEL` — the same map the repairs card reads, so a field is never called one thing on Today and another on Money |
+| **`C-2`** | A new sum-level twin, `anyRowFieldUnread`, scoped to the entity the sum is over — `mayClaim` is store-wide across four entities and would gag a bills total over an unread goal. Wired to Everyday Spending's headline, `LivingReserve` (**both** mount points, because it is one component), the Expenses hero **and its recommendation caption and bar**, the bill-group subtotals, and every figure in the "Where it goes" receipt. ⚠️ **The direction is the finding**: a dropped addend makes a RECOMMENDATION *smaller*, so the failure runs toward the user under-reserving |
+| **`C-3`** | **Debt reduction and money paid are different quantities**, and History printed the first under the second's name. ⚡ `guardianSelectors`' `totalToDebt` was **already** the correct expression — the same two-producers shape as all three of `.6.1`'s blockers. Both now read `sumPaidToDebt`. ⚠️ The remedy was checked separately from the premise: keeping the subtraction and renaming it *"less debt than when you started"* is literally true and **still credits a deletion to the user's effort**, so the quantity moved rather than the word |
+| **`C-4`** | `selectPaidOffDebts` maps an unread `originalBalance` to the `null` its contract already means. ⛔ Fixed at the SELECTOR, not by widening `hasUnreadDebtBalances` — that guard is correctly narrow for the graduation banner and `money.tsx:371`, and widening it would withhold a true statement. ⚡ Fixing the selector also closes **`progress.tsx:346`**, a second mount of the same shelf with no trust check at all, reachable **without being debt-free** |
+| **`C-5`** | `mayStatePlanFigures` is a **required parameter** of `paywallLead`, not an internal check — the next consumer cannot be added without answering the question, and the compiler asks |
+| **`C-6`** | The BNPL calendar drops an unread plan's degraded single row and **names the plan** instead of listing a short schedule under a subtotal that reads as the month's whole load |
+
+### ⭐ `lint:trust-claims` — the gate, and what its first cut got wrong
+
+Three checks: **every `MoneyClaim` has a production consumer** *(reds on `C-1` exactly)* · **every
+`(claim, entity, field)` a call site asks is actually ROUTED** *(the helpers intersect, so an unrouted field
+silently reads "readable" — the safe-looking direction)* · **the claim-site ledger**, split into `EXEMPT`
+(states nothing) and **`OPEN`** (known-unguarded, named on the green line), both caps downward-only.
+
+⛔ **The ledger's first signal was *"prints money AND mentions a repairable field name"* and it was measured
+and thrown away: 16 files, most matching on the word "balance" in JSX prose or a local named `amount`.** A
+ledger whose rows mostly say *"false positive"* reads as coverage and is noise — `a-pass-that-cannot-fail`
+wearing a green tick. ⚡ The narrowed signal — **reads an entity list AND prints money** — returns **7**, and
+the narrowing is architectural rather than a convenience: the file that reads the raw list is the one that
+must ask, because a component handed sanitised props is downstream of a guard. That is precisely how `C-4`
+was fixed.
+
+**All three checks plant-verified**, and the third plant's first cut was a multi-line regex that matched
+nothing — `plant-applied=NO`, which reads exactly like a clean run.
+
+### The guards, and both directions proven
+
+`apps/rn/tests/e2e/trust-claims.spec.ts` — 12 tests, six defect/control pairs — plus `C-5`'s unit
+assertions. Every one **planted and measured**:
+
+- **Run A**: all six original defects restored → the six defect tests RED, five of six controls green.
+  ⚡ **`C-3`'s CONTROL red too, and that is the point**: the pre-fix expression computes a different number
+  ($200 of balance movement vs $350 actually paid), so the control pins the quantity, not just the wording.
+- **Run B**: the same plants with each test's **honest-state assertion relaxed** → all six still RED, so the
+  absence assertions are independently load-bearing. `C-5`'s cushion assertion proved the same way.
+
+Six entries into `finding-guards.json` (**98 → 105**, unguarded cap unchanged at 16); each token names the
+line that USES the check, per `D3-3`.
+
+### ⛔ One self-inflicted defect, and the guard caught it on its first run
+
+`BnplCalendarSection`'s first cut was `useAppStore((s) => debts.filter(…))` — **a selector returning a fresh
+ARRAY**, so `useSyncExternalStore` re-rendered forever and **the whole Money tab rendered blank** (React
+#185). ⚡ `money.tsx:614` carries that exact warning verbatim, about a different selector, in the same
+folder. Knowing the rule did not prevent it; the e2e did, in one run, and the diagnosis came from a probe
+printing `pageerror` rather than from re-reading the code.
+
+### Three more things the work surfaced
+
+1. ⚡ **`C-1`'s own write-up quoted a string the app does not render.** It said *"$0.00/mo"*; `formatCurrency`
+   emits cents only when there are cents, so the screen says **"$0/mo"**. The auditor's probe format string,
+   not the app's — measured, and the guard asserts the real one.
+2. **`lint:copy` buckets every `jsx-expr` string literal as user-facing COPY**, so an entity key inside a JSX
+   attribute reds the duplicate-copy gate against `models.ts` and `migrations.ts`. Both new row sites hoist
+   the call above the JSX, which is also how the goal rows already read.
+3. ⛔ **Three claim sites remain unguarded and are declared `OPEN` in the gate rather than left silent** —
+   `widget/snapshot.ts` (**that is `D3-1`**, S1.10.6.3), and two the enumeration found that no auditor did:
+   `guardianSelectors` (`selectCalibrationScore` splits the regime on `balance > 0`; `selectReserveRelease`
+   names *"your savings"* off the same test) and `AffordabilityCard` (the cover-from-savings flow reads
+   `goal.currentAmount` directly). **Located, not reproduced** — filed as `S1.10.6.9`.

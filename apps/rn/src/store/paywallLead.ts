@@ -38,13 +38,29 @@ export interface PaywallLead {
  *
  * Returns `null` when there is no live plan — the route is deliberately open pre-onboarding, and a
  * viewer with no numbers must see today's paywall rather than an invented one.
+ *
+ * ⛔ **AND THE SAME `null` COVERS "THE APP COULD NOT READ THE PLAN'S INPUTS."** [S1.10.6.2 · pass-3 C-5]
+ *
+ * ⚡ Measured: a user whose imported file lost one card's $400 minimum was told **"This paycheck comes up
+ * $100 short."** on a cycle that is **$500** short — and then sold a Recovery Plan sized against a number
+ * wrong by 4×, on the one surface where the app asks for their money. Both branches print a figure derived
+ * from allocation arrays that a repaired `$0` obligation silently leaves, which is exactly what
+ * `'required-plan'` exists to gate. ⚠️ The milder reading understates it: the `cushion` branch runs on the
+ * non-shortfall path too, so the same store can promise a cushion while the plan is missing an obligation.
+ *
+ * ⛔ **`mayStatePlanFigures` is a REQUIRED parameter, not an internal check, and that is the fix.** The
+ * pass-2 remedy wired `mayClaim(store,'required-plan')` to precisely one consumer (`index.tsx:529`) and
+ * this file was the second claim site of the same class on the same store. A required argument means the
+ * next consumer cannot be added without answering the question — the compiler asks, rather than a person
+ * remembering. This module deliberately takes no store: it is pure, and `paywallLead.test.ts` pins that.
  */
 export function paywallLead(
   summary: PlanSummary | null,
   freeBuffer: number,
+  mayStatePlanFigures: boolean,
   from?: string | null,
 ): PaywallLead | null {
-  if (!summary) return null;
+  if (!summary || !mayStatePlanFigures) return null;
 
   // The most urgent true thing first: a cycle that does not cover itself outranks everything else.
   if (summary.shortfall > 0) {

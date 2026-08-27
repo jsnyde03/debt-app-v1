@@ -221,13 +221,13 @@ export default function run(): void {
    */
   {
     const store = goalsWith({ targetAmount: 1000, currentAmount: 'wat' });
-    eq(rowFieldUnread(store, 'goal', 'g1', 'targetAmount'), false, 'the TARGET was read — the old guard’s only question');
-    eq(rowFieldUnread(store, 'goal', 'g1', 'currentAmount'), true, '⛔ C2 — …and the SAVED amount was not, which nothing asked');
+    eq(rowFieldUnread(store, 'goal-amounts', 'goal', 'g1', 'targetAmount'), false, 'the TARGET was read — the old guard’s only question');
+    eq(rowFieldUnread(store, 'goal-amounts', 'goal', 'g1', 'currentAmount'), true, '⛔ C2 — …and the SAVED amount was not, which nothing asked');
     // The other goal on the same store is untouched — the suppression is per ROW, never per screen.
-    eq(rowFieldUnread(store, 'goal', 'g2', 'currentAmount'), false, '⭐ control — a healthy goal beside it still states its number');
+    eq(rowFieldUnread(store, 'goal-amounts', 'goal', 'g2', 'currentAmount'), false, '⭐ control — a healthy goal beside it still states its number');
     const recovered = goalsWith({ targetAmount: 1000, currentAmount: '1,500' });
     eq(recovered.goals[0]!.currentAmount, 1500, "'1,500' is read correctly");
-    eq(rowFieldUnread(recovered, 'goal', 'g1', 'currentAmount'), false, '⭐ control — a RECOVERED amount is not an unread one');
+    eq(rowFieldUnread(recovered, 'goal-amounts', 'goal', 'g1', 'currentAmount'), false, '⭐ control — a RECOVERED amount is not an unread one');
   }
 
   /**

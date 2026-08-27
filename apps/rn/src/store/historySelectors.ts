@@ -13,19 +13,45 @@ export interface HistoryRow {
   debtDelta: number;
 }
 
-/** The progress-anchor stat for the History header — total debt paid down across all recorded cycles. */
+/** The progress-anchor stat for the History header — total money put toward debt across all cycles. */
 export interface HistorySummary {
-  /** Debt reduction from the oldest recorded cycle to the newest (0 if <2 cycles or debt grew net). */
+  /** Money the user actually paid toward debt, summed across every recorded cycle. */
   paidDown: number;
   cycleCount: number;
 }
 
-/** Total "how far you've come" across the whole (uncapped) history. */
+/**
+ * ⛔ **THE ONE OWNER OF "MONEY PUT TOWARD DEBT ACROSS THE HISTORY."** [S1.10.6.2 · pass-3 C-3]
+ *
+ * ⚡ **`guardianSelectors`' `totalToDebt` was already this expression**, and History had a second, different
+ * one under the same word — the two-producers shape all three of `S1.10.6.1`'s blockers turned out to be.
+ * Both callers now read this, so they cannot disagree.
+ */
+export function sumPaidToDebt(history: readonly PayCycleSnapshot[]): number {
+  return Math.round(history.reduce((sum, s) => sum + Math.max(0, s.totalPaidThisCycle), 0) * 100) / 100;
+}
+
+/**
+ * Total "how far you've come" across the whole (uncapped) history.
+ *
+ * ⛔ **DEBT REDUCTION AND MONEY PAID ARE DIFFERENT QUANTITIES, and this printed the first under the second
+ * one's name.** [S1.10.6.2 · pass-3 C-3] It was `max(0, oldest.totalDebtBalance − newest.totalDebtBalance)`
+ * — its own docstring said *"debt reduction"* — rendered by `history.tsx` as *"$2,923 **paid down** across
+ * 3 cycles"* in success green. ⚡ **Measured end to end on a real store: delete a debt (a duplicated CSV
+ * row, a card transferred away) and the app congratulates the user for $2,923 they never paid, three
+ * inches above its own per-row *"$0 paid"*.** It diverges on every path that moves a balance without a
+ * payment — `removeDebt` inflates it, `addDebt` zeroes it through the `max(0, …)` and hides real progress.
+ *
+ * ⚠️ **The remedy was checked separately from the premise, and the two candidates are not equivalent.**
+ * Summing `totalPaidThisCycle` is *payments recorded*, so it excludes interest and can read LOWER than the
+ * balance drop beside it; keeping the subtraction and renaming it *"less debt than when you started"* is
+ * literally true and still credits a deletion to the user's effort on a screen whose job is congratulating
+ * them. ⛔ The quantity that matches what the sentence MEANS is the money they paid, and it is immune to
+ * both `addDebt` and `removeDebt` — so the subtraction goes, rather than the word.
+ */
 export function selectHistorySummary(store: DebtStore): HistorySummary {
   const h = store.cycleHistory; // chronological (oldest first)
-  const cycleCount = h.length;
-  const paidDown = cycleCount >= 2 ? Math.max(0, h[0].totalDebtBalance - h[cycleCount - 1].totalDebtBalance) : 0;
-  return { paidDown, cycleCount };
+  return { paidDown: sumPaidToDebt(h), cycleCount: h.length };
 }
 
 /**

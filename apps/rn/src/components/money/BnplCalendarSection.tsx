@@ -6,6 +6,8 @@ import { formatCurrency } from '@core/utils/formatCurrency';
 
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { rowFieldUnread } from '@/store/trustSelectors';
+import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -18,6 +20,11 @@ const addMonths = addMonthsISO;
 
 function dayLabel(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/** ⛔ [C-6] The provider, matching how the debt row names a BNPL plan; the debt name is the fallback. */
+function planName(d: Debt): string {
+  return d.bnplProvider || d.name;
 }
 
 function monthLabel(iso: string): string {
@@ -54,12 +61,37 @@ function groupByMonth(entries: BnplInstallmentEntry[]): MonthGroup[] {
  */
 export function BnplCalendarSection({ debts, currentDate }: { debts: Debt[]; currentDate: string }) {
   const c = useAppColors();
+  /**
+   * ⛔ **A SHORT LIST PRESENTED AS A WHOLE ONE.** [S1.10.6.2 · pass-3 C-6]
+   *
+   * ⚡ A repaired `scheduledPaymentAmount` is `0`, which makes `isInstallmentNative` false, which takes the
+   * plan out of `buildBnplSchedule`'s installment expansion — it degrades to a single next-due-date row.
+   * Measured: *"January · **$78.86 · 1 payment**"* for a plan charging **$315.44 across four dates** inside
+   * the same horizon, with no *"+ N more"* line and no caption. ⛔ **Nothing here is arithmetically false;
+   * the COMPLETENESS is**, which is why this was rated a major and still cannot be left standing.
+   *
+   * ⚠️ `money.tsx`'s debt row degrades gracefully on the identical input — it drops to *"$315.44 ·
+   * interest-free"* because `bnplPaymentsTotal` returns `null`. This surface substituted a confident,
+   * complete-looking schedule instead. It now names the plans it could not read and lists the rest.
+   */
+  // ⛔ **SUBSCRIBE TO THE STORE, THEN DERIVE — never derive INSIDE the selector.** The first cut of this
+  // line was `useAppStore((s) => debts.filter(…))`, which returns a fresh ARRAY on every call, so
+  // `useSyncExternalStore` re-rendered forever and **the whole Money tab rendered blank** (React #185).
+  // `money.tsx:614` already carries this warning verbatim about `selectRecurringSmoothed`; I wrote the
+  // defect it describes, in the same folder, and the e2e caught it on the first run.
+  const store = useAppStore((s) => s.store);
+  const unreadPlans = debts.filter((d) => rowFieldUnread(store, 'row-figures', 'debt', d.id, 'scheduledPaymentAmount'));
   const schedule = buildBnplSchedule(debts, currentDate);
-  if (schedule.length === 0) return null;
+  if (schedule.length === 0 && unreadPlans.length === 0) return null;
 
   const cutoff = addMonths(currentDate, HORIZON_MONTHS);
-  const within = schedule.filter((e) => e.date < cutoff);
-  const moreCount = schedule.length - within.length;
+  // ⛔ [C-6] An unread plan's ONE degraded row is dropped rather than listed. Leaving it in is what made
+  // the month subtotal read as the month's whole BNPL load while missing three quarters of the money —
+  // and the row itself carries no honest way to say "three more of these exist".
+  const unreadIds = new Set(unreadPlans.map((d) => d.id));
+  const listed = schedule.filter((e) => !unreadIds.has(e.debtId));
+  const within = listed.filter((e) => e.date < cutoff);
+  const moreCount = listed.length - within.length;
   const groups = groupByMonth(within);
 
   return (
@@ -90,6 +122,15 @@ export function BnplCalendarSection({ debts, currentDate }: { debts: Debt[]; cur
       {moreCount > 0 ? (
         <Text style={[textStyles.caption, styles.more, { color: c.text.tertiary }]}>
           + {moreCount} more {moreCount === 1 ? 'installment' : 'installments'} beyond {HORIZON_MONTHS} months
+        </Text>
+      ) : null}
+      {/* ⛔ [C-6] The honest state, said by NAME — the list is short and the user is told which plan is
+          missing from it, rather than the shortfall being invisible. */}
+      {unreadPlans.length > 0 ? (
+        <Text style={[textStyles.caption, styles.more, { color: c.accent.warning }]}>
+          {unreadPlans.length === 1
+            ? `${planName(unreadPlans[0])} — the payment amount could not be read, so its installments are not listed. Set it again to see them.`
+            : `${unreadPlans.map(planName).join(', ')} — the payment amounts could not be read, so those installments are not listed. Set them again to see them.`}
         </Text>
       ) : null}
     </View>

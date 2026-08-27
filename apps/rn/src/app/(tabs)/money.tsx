@@ -28,6 +28,7 @@ import { BnplCalendarSection } from '@/components/money/BnplCalendarSection';
 import { isScanAvailable, scanStatement } from '@/lib/scan';
 import type { AllocationSegment } from '@/components/money/AllocationBarChart';
 import { BillBreakdownSheet, type BillBreakdownData } from '@/components/money/BillBreakdownSheet';
+import { UNREAD_FIGURE, unreadRowCaption } from '@/components/plan/dataRepairsCopy';
 import { MoreButton } from '@/components/more-button';
 import { Screen } from '@/components/screen';
 import { AddRow } from '@/components/ui/AddRow';
@@ -42,7 +43,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { useActiveStore } from '@/store/StoreContext';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
-import { hasUnreadDebtBalances, rowFieldUnread } from '@/store/trustSelectors';
+import { anyRowFieldUnread, hasUnreadDebtBalances, rowFieldUnread, unreadFieldsFor } from '@/store/trustSelectors';
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL, resolveBillCategory } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
@@ -511,26 +512,69 @@ function DebtRow({
   const c = useAppColors();
   // [R4] the store this subtree resolves to — sandbox under a demo, real singleton otherwise.
   const store_ = useActiveStore();
+  // ⛔ S1.10.6.2 [C-1] — the row's own money, asked per FIELD of the one owner. `useAppStore` reads
+  // through `StoreContext`, so this resolves to the same store the rows above came from.
+  const store = useAppStore((s) => s.store);
   const view = selectDebtBalanceView(debt, currentDate, isPremium);
   const est = buildEstimateCaption(view, isPremium, shortDate);
   // A stale premium estimate becomes a one-tap in-place verify: tap → accept the estimate as the
   // verified balance (re-anchors both dates to today). Blue = interactive (not the amber warning).
   const canVerify = isPremium && view.isEstimate && view.confidence.staleness === 'stale';
-  const captionText = canVerify ? 'estimated · tap to verify' : est.text || undefined;
-  const captionColor = canVerify ? c.accent.primary : est.attention ? c.accent.warning : undefined;
+  /**
+   * ⛔ **S1.10.6.2 [C-1] — THE ROW RESTATES ITS OWN MONEY, so it asks per field before printing any of it.**
+   *
+   * ⚡ Pass 3 measured this row printing **"Chase · $5,000.00 · 0% APR"** and **"$0.00/mo"** for a card
+   * charging 22% and demanding $150 — four figures the app had *already recorded in `pendingDataRepairs`
+   * that it could not read*. The claim table routed those fields to `'row-figures'` at pass 2 and **nothing
+   * ever called it**; the fields were widened and the claim sites were only re-declared.
+   *
+   * ⚠️ **Per FIELD, not per row** — the goals rows below have carried that shape since [C2], and it is the
+   * difference between telling the user less than the app knows and telling them something false. A card
+   * whose APR was lost still states its balance and its minimum.
+   */
+  const balanceUnread = rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'balance');
+  const aprUnread = rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'apr');
+  const minimumUnread = rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'minimumPayment');
+  const originalUnread = rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'originalBalance');
+  // ⛔ The honest state SAID, and it outranks the premium staleness caption: "estimated · tap to verify"
+  // over a balance the app never read invites the user to confirm a number nobody supplied.
+  const unreadCaption = unreadRowCaption(unreadFieldsFor(store, 'debt', debt.id));
+  const captionText = unreadCaption ?? (canVerify ? 'estimated · tap to verify' : est.text || undefined);
+  const captionColor = unreadCaption
+    ? c.accent.warning
+    : canVerify
+      ? c.accent.primary
+      : est.attention
+        ? c.accent.warning
+        : undefined;
   // Progress off the (projected) current balance so the bar tracks what the row shows.
-  const progress = debt.originalBalance && debt.originalBalance > 0 ? 1 - view.currentBalance / debt.originalBalance : undefined;
+  // ⚠️ Both ends of the fraction are repairable, so either one being unread makes the fill a second false
+  // signal — the same reason the goals row drops its `pct` bar.
+  const progress =
+    !balanceUnread && !originalUnread && debt.originalBalance && debt.originalBalance > 0
+      ? 1 - view.currentBalance / debt.originalBalance
+      : undefined;
   // Installment-native BNPL reads as its plan ("2 of 4 · interest-free"), not a meaningless APR;
   // the per-payment suffix follows the plan's cadence, and the pill names the provider (2.7.3).
   const bnplRemaining = isInstallmentNative(debt) ? bnplPaymentsRemaining(debt) : null;
   const bnplTotal = isInstallmentNative(debt) ? bnplPaymentsTotal(debt) : null;
   const isBnpl = debt.type === 'bnpl';
-  const balanceText = view.isEstimate ? `~${formatWhole(view.currentBalance)}` : formatCurrency(view.currentBalance);
+  // ⛔ [C-1] `UNREAD_FIGURE` rather than a formatted `0`: a repaired balance IS `0`, so printing it is the
+  // whole defect. An em dash states that there is no figure, which is true.
+  const balanceText = balanceUnread
+    ? UNREAD_FIGURE
+    : view.isEstimate
+      ? `~${formatWhole(view.currentBalance)}`
+      : formatCurrency(view.currentBalance);
   const meta = bnplRemaining != null && bnplTotal != null
     ? `${balanceText} · ${bnplTotal - bnplRemaining} of ${bnplTotal} paid · interest-free`
     : isBnpl
       ? `${balanceText} · interest-free`
-      : `${balanceText} · ${debt.apr}% APR`;
+      // ⛔ [C-1] The APR clause is DROPPED rather than printed as `0% APR` — the exact string the
+      // `'row-figures'` route's own docblock exists to stop.
+      : aprUnread
+        ? balanceText
+        : `${balanceText} · ${debt.apr}% APR`;
   // ⛔ The provider chip is not decoration — `meta` above never names the provider, because the pill was
   // designed to (2.7.3). While these were rendered nodes the row spoke the meta and dropped the pill, so a
   // VoiceOver user heard "2 of 4 paid, interest-free" about a debt whose name they were never told.
@@ -548,9 +592,15 @@ function DebtRow({
       meta={meta}
       caption={captionText}
       captionColor={captionColor}
-      onCaptionPress={canVerify ? () => store_.getState().verifyDebtBalance(debt.id, view.currentBalance, currentDate) : undefined}
-      amount={formatCurrency(debt.minimumPayment)}
-      amountSuffix={isBnpl ? (CADENCE_SUFFIX[debt.recurrence] || '/mo') : '/mo'}
+      // ⛔ [C-1] Not offerable while the balance is unread — "tap to verify" would accept the repaired `0`
+      // as the user's confirmed balance, which is the app asking them to sign for a number it invented.
+      onCaptionPress={
+        canVerify && !unreadCaption
+          ? () => store_.getState().verifyDebtBalance(debt.id, view.currentBalance, currentDate)
+          : undefined
+      }
+      amount={minimumUnread ? UNREAD_FIGURE : formatCurrency(debt.minimumPayment)}
+      amountSuffix={minimumUnread ? undefined : isBnpl ? (CADENCE_SUFFIX[debt.recurrence] || '/mo') : '/mo'}
       badges={chips.length ? chips : undefined}
       progress={progress}
       progressColor={focus ? c.accent.primary : undefined}
@@ -614,6 +664,18 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
   // ⛔ Called on an already-subscribed store, never handed to `useAppStore` — it returns a fresh OBJECT,
   // and a store selector that does so re-renders forever and blanks the screen (see Today's `reserveOffer`).
   const billsStore = useAppStore((s) => s.store);
+  /**
+   * ⛔ **S1.10.6.2 [C-2] — AND THIS ONE RUNS TOWARD THE USER UNDER-RESERVING.** An unreadable bill amount
+   * repairs to `0` and drops out of `perPaycheckTotal`, so a household whose rent alone is $1,400/mo was
+   * captioned *"of $55 recommended each paycheck · ≈ $120/mo"*. ⚡ **It is not merely a wrong readout — it
+   * is a smaller RECOMMENDATION**, on the screen whose job is telling the user what to hold back.
+   *
+   * ⚠️ Store-wide over THIS entity, not per row: every figure below except a bill's own typed amount is a
+   * sum over `amount`, and a total missing an unknown addend is not a total. What is NOT suppressed is
+   * `reservedNow` — the pot is what the app actually holds, a fact about its own ledger rather than a
+   * claim about a bill it could not read.
+   */
+  const expensesUnread = anyRowFieldUnread(billsStore, 'row-figures', 'requiredExpense', 'amount');
   const { monthlyTotal, perPaycheckTotal } = selectRecurringSmoothed(billsStore);
   const oneTimeTotal = oneTime.reduce((s, e) => s + e.amount, 0);
   const monthlyRedundant = formatWhole(perPaycheckTotal) === formatWhole(monthlyTotal); // paid monthly → ≈/mo caption is noise
@@ -634,6 +696,9 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
           recurrence: e.recurrence,
           amount: e.amount,
           perPaycheck: monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth) / perCycle,
+          // ⛔ S1.10.6.2 [C-2] — the receipt's whole job is "shows its work", so a bill the app could not
+          // read has to appear AS unread rather than as a confident `$0.00` addend of a total.
+          unread: rowFieldUnread(billsStore, 'row-figures', 'requiredExpense', e.id, 'amount'),
         })),
       };
     })
@@ -650,6 +715,8 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
     categories: categoryBreakdown,
     oneTimeTotal,
     oneTimeCount: oneTime.length,
+    // ⛔ [C-2] Every figure in this sheet except a bill's own typed amount is a SUM over the same field.
+    unread: expensesUnread,
   };
 
   const grouped = expenses.length >= BILL_GROUPING_THRESHOLD;
@@ -660,6 +727,10 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
     const match = (e: RequiredExpense) => !q || e.name.toLowerCase().includes(q);
     const perCheck = (bills: RequiredExpense[]) =>
       bills.reduce((s, e) => s + monthlyEquivalent(e.amount, e.recurrence, cyclesPerMonth), 0) / perCycle;
+    // ⛔ S1.10.6.2 [C-2] — a group subtotal is a sum too, and it is asked PER GROUP rather than store-wide:
+    // a category with nothing unread in it still states its own true total.
+    const groupUnread = (bills: RequiredExpense[]) =>
+      bills.some((e) => rowFieldUnread(billsStore, 'row-figures', 'requiredExpense', e.id, 'amount'));
 
     if (!grouped) {
       // Short list: a flat list reads fine (the adaptive hero already tells the recurring/one-time story).
@@ -678,13 +749,14 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
       // still shows its true count + per-paycheck overview). Search overrides collapse.
       const summ = searching ? shown : items;
       const amt = perCheck(summ);
+      const unread = groupUnread(summ);
       const open = searching ? shown.length > 0 : !collapsed.has(category);
       return {
         key: category,
         title: BILL_CATEGORY_LABEL[category],
         count: summ.length,
-        subtotal: `${formatWhole(amt)}/paycheck`,
-        subtotalA11y: `${formatWhole(amt)} per paycheck`,
+        subtotal: unread ? UNREAD_FIGURE : `${formatWhole(amt)}/paycheck`,
+        subtotalA11y: unread ? 'an amount here could not be read' : `${formatWhole(amt)} per paycheck`,
         data: open ? shown : [],
       };
     }).filter((g) => (searching ? g.data.length > 0 : g.count > 0));
@@ -694,13 +766,14 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
       if (!searching || shown.length > 0) {
         const summ = searching ? shown : once;
         const amt = summ.reduce((s, e) => s + e.amount, 0);
+        const unread = groupUnread(summ);
         const open = searching ? true : !collapsed.has('one-time');
         groups.push({
           key: 'one-time',
           title: RECURRENCE_LABEL['one-time'],
           count: summ.length,
-          subtotal: `${formatWhole(amt)} one-time`,
-          subtotalA11y: `${formatWhole(amt)} in one-time expenses`,
+          subtotal: unread ? UNREAD_FIGURE : `${formatWhole(amt)} one-time`,
+          subtotalA11y: unread ? 'an amount here could not be read' : `${formatWhole(amt)} in one-time expenses`,
           data: open ? shown : [],
         });
       }
@@ -758,18 +831,28 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
     { fraction: barFraction, opacity: 1 },
     { fraction: Math.max(0, 1 - barFraction), opacity: 0.18 },
   ].filter((s) => s.fraction > 0);
+  // ⚠️ The one-time branch is gated by the same `expensesUnread` question and for the same reason:
+  // `oneTimeTotal` sums the identical field. Declared beside `billsStore` above — `breakdownData` needs it.
   const hero =
     recurring.length === 0
       ? // no recurring load at all — anchor honestly on the one-time sum, never "$0 per month"
-        { value: formatWhole(oneTimeTotal), sub: `${oneTime.length} one-time ${expenseWord(oneTime.length)}`, caption: undefined as string | undefined }
+        {
+          value: expensesUnread ? UNREAD_FIGURE : formatWhole(oneTimeTotal),
+          sub: expensesUnread
+            ? 'set them again and your total comes back'
+            : `${oneTime.length} one-time ${expenseWord(oneTime.length)}`,
+          caption: undefined as string | undefined,
+        }
       : {
           value: formatWhole(reservedNow),
           sub: 'reserved for upcoming expenses',
           // The recommendation, named as a recommendation. Still shows the ≈/mo load unless the user is
           // paid monthly (per-paycheck == per-month → redundant).
-          caption: monthlyRedundant
-            ? `of ${formatWhole(perPaycheckTotal)} recommended each paycheck`
-            : `of ${formatWhole(perPaycheckTotal)} recommended each paycheck · ≈ ${formatWhole(monthlyTotal)}/mo`,
+          caption: expensesUnread
+            ? 'A bill amount could not be read, so there is no recommendation yet'
+            : monthlyRedundant
+              ? `of ${formatWhole(perPaycheckTotal)} recommended each paycheck`
+              : `of ${formatWhole(perPaycheckTotal)} recommended each paycheck · ≈ ${formatWhole(monthlyTotal)}/mo`,
         };
 
   return (
@@ -779,7 +862,9 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
         value={hero.value}
         sub={hero.sub}
         caption={hero.caption}
-        bar={hasBar ? <AllocationBar segments={heroSegments} /> : undefined}
+        // ⛔ [C-2] The bar fills toward `perPaycheckTotal`, so a poisoned recommendation draws a fill
+        // that says the user is further along than they are — the goals hero's rule, on the other list.
+        bar={hasBar && !expensesUnread ? <AllocationBar segments={heroSegments} /> : undefined}
         onPress={recurring.length > 0 ? () => setBreakdownOpen(true) : undefined}
       />
       {/* T3.6 (audit L5-5) — `|| searching`, and that half is the fix. The field used to render on
@@ -816,12 +901,21 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
             : undefined
         }
         renderSectionFooter={grouped ? () => <View style={styles.rowGap} /> : undefined}
-        renderItem={({ item }) => (
+        renderItem={({ item }) => {
+          // ⛔ S1.10.6.2 [C-1] — a bill whose amount could not be read printed `$0` as its own figure.
+          // Same per-field question the debt row above and the goal rows below ask.
+          // ⚠️ Hoisted out of the JSX attribute deliberately: `lint:copy` buckets every `jsx-expr` string
+          // literal as user-facing COPY, so an entity key inside an attribute reds the duplicate-copy gate
+          // against `models.ts` and `migrations.ts`. It also matches how the goal rows already read.
+          const amountUnread = rowFieldUnread(billsStore, 'row-figures', 'requiredExpense', item.id, 'amount');
+          const caption = unreadRowCaption(unreadFieldsFor(billsStore, 'requiredExpense', item.id));
+          return (
           <>
             <ListRow
               title={item.name}
               meta={`Due ${shortDate(item.dueDate)} · ${item.recurrence}${item.expenseType === 'variable' ? ' · Variable' : ''}${item.isTrial && item.fullChargeDate ? ` · Trial → ${formatCurrency(item.fullAmount ?? 0)} ${shortDate(item.fullChargeDate)}` : ''}`}
-              amount={formatCurrency(item.amount)}
+              amount={amountUnread ? UNREAD_FIGURE : formatCurrency(item.amount)}
+              caption={caption}
               badges={item.isAutopay ? [{ label: 'Autopay', tone: 'autopay' }] : undefined}
               onPress={() => setSheet({ editing: item })}
               onDelete={() => store_.getState().removeExpense(item.id)}
@@ -830,7 +924,8 @@ function BillsSection({ autoOpen, onAutoOpened, onAdd, onConvert }: SectionProps
               <MisfiledHint expense={item} onConvert={() => onConvert(item)} />
             ) : null}
           </>
-        )}
+          );
+        }}
         ListEmptyComponent={
           searching ? (
             <Text style={[textStyles.subhead, styles.noResults, { color: c.text.tertiary }]}>No expenses match “{query.trim()}”.</Text>
@@ -934,6 +1029,9 @@ function BillGroupHeader({
 /** The everyday-spending reserve — tappable straight to its management screen (also in More). */
 function LivingReserve({ total }: { total: number }) {
   const c = useAppColors();
+  // ⛔ S1.10.6.2 [C-2] — the same sum as Everyday Spending's headline, on the tab that links to it. Both
+  // mount points of this card get it, because it is one component.
+  const unread = useAppStore((s) => anyRowFieldUnread(s.store, 'row-figures', 'livingExpense', 'amount'));
   // ⛔ [L3-6] `total` is what the user CONFIGURED, and this card is the door to configuring it, so the
   // figure stays the configured one. The caption is the part that made a claim about outcome — and the
   // engine clamps an over-sized reserve to what the paycheck holds (`Math.max(0, …)`), absorbing the
@@ -950,7 +1048,9 @@ function LivingReserve({ total }: { total: number }) {
       accessibilityLabel={
         empty
           ? 'Everyday spending reserve, nothing set up yet. Opens management.'
-          : `Everyday spending reserve, ${formatCurrency(total)}. Opens management.`
+          : unread
+            ? 'Everyday spending reserve, some amounts could not be read. Opens management.'
+            : `Everyday spending reserve, ${formatCurrency(total)}. Opens management.`
       }
       style={({ pressed }) => [{ opacity: pressed ? pressedOpacity : 1 }]}>
       {/* ⛔ [P6.8.9.7.11.14.4 · L4-13b] THIS CARD AND THE HERO BELOW ARE THE FINDING, BY NAME: two
@@ -960,8 +1060,8 @@ function LivingReserve({ total }: { total: number }) {
         <View style={styles.livingRow}>
           <Text style={[textStyles.subhead, { color: c.text.secondary }]}>Everyday spending reserve</Text>
           <View style={styles.livingRight}>
-            <Text style={[textStyles.numericBody, { color: empty ? c.text.tertiary : c.text.primary }]}>
-              {empty ? 'Not set up' : formatCurrency(total)}
+            <Text style={[textStyles.numericBody, { color: empty || unread ? c.text.tertiary : c.text.primary }]}>
+              {empty ? 'Not set up' : unread ? UNREAD_FIGURE : formatCurrency(total)}
             </Text>
             <AppIcon name="chevron-right" size={20} color={c.text.tertiary} />
           </View>
@@ -969,9 +1069,13 @@ function LivingReserve({ total }: { total: number }) {
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
           {empty
             ? 'Groceries, gas, fun money — reserve it each paycheck'
-            : shortHeld
-              ? `This paycheck holds ${formatCurrency(held)} of it · tap to manage`
-              : 'Reserved each paycheck · tap to manage'}
+            : /* ⛔ [C-2] `held` is derived from the same poisoned sum, so it goes with the total rather
+                 than standing beside an em dash as if it were the one figure that survived. */
+              unread
+              ? 'Some amounts could not be read · tap to set them again'
+              : shortHeld
+                ? `This paycheck holds ${formatCurrency(held)} of it · tap to manage`
+                : 'Reserved each paycheck · tap to manage'}
         </Text>
       </Card>
     </Pressable>
@@ -1042,8 +1146,8 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
    * the hero's own VALUE stops being statable, not just its caption. That is a stricter suppression than
    * the target case, and it is the honest one: a total missing an unknown addend is not a total.
    */
-  const targetUnread = goals.some((g) => rowFieldUnread(store, 'goal', g.id, 'targetAmount'));
-  const savedUnread = goals.some((g) => rowFieldUnread(store, 'goal', g.id, 'currentAmount'));
+  const targetUnread = goals.some((g) => rowFieldUnread(store, 'goal-amounts', 'goal', g.id, 'targetAmount'));
+  const savedUnread = goals.some((g) => rowFieldUnread(store, 'goal-amounts', 'goal', g.id, 'currentAmount'));
 
   return (
     <>
@@ -1090,8 +1194,8 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
            * could not be read is a second false signal, and it would draw 0% over money that exists.
            */
           // ⛔ S1.9.2 [C2] — see the hero's note. Per FIELD, per ROW, asked of the one owner.
-          const targetUnreadable = rowFieldUnread(store, 'goal', g.id, 'targetAmount');
-          const savedUnreadable = rowFieldUnread(store, 'goal', g.id, 'currentAmount');
+          const targetUnreadable = rowFieldUnread(store, 'goal-amounts', 'goal', g.id, 'targetAmount');
+          const savedUnreadable = rowFieldUnread(store, 'goal-amounts', 'goal', g.id, 'currentAmount');
           const funded = g.currentAmount >= g.targetAmount && !targetUnreadable && !savedUnreadable;
           // ⚠️ Only THE emergency fund is labelled as one. [P6.8.9.7.11.12 · A-J2-4] A second
           // `emergency`-typed goal is funded through the savings rungs, and a row claiming "Emergency

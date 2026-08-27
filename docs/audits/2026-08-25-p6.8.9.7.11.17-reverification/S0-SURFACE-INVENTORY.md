@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**97 files on the S0 surface · 47 swept · 50 unswept.**
+**98 files on the S0 surface · 47 swept · 51 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -83,6 +83,7 @@
 | `scripts/check-press-opacity.ts` | p3 · r17 |
 | `scripts/check-rn-style-divergence.ts` | r17 |
 | `scripts/check-sandbox-writes.ts` | p1 · p3 |
+| `scripts/check-trust-claims.ts` | ⛔ **never** |
 | `scripts/check-type-scale.ts` | p4 · s1p1 · s1p2 |
 | `scripts/check-webkit-flex-controls.ts` | r17 |
 | `scripts/collect-lane-diagnostics.mjs` | ⛔ **never** |
@@ -152,6 +153,7 @@
 - `packages/core/testing/testSubscriptionGating.ts`
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
+- `scripts/check-trust-claims.ts`
 - `scripts/collect-lane-diagnostics.mjs`
 - `scripts/compare-ios-screenshots.mjs`
 - `scripts/conform-app-preview.sh`

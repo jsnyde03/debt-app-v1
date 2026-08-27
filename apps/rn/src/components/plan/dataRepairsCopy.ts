@@ -50,6 +50,41 @@ export const FIELD_LABEL: Record<string, string> = {
   priorityPerPaycheck: 'the per-paycheck amount',
 };
 
+/**
+ * ⛔ **WHAT A ROW PRINTS WHERE A FIGURE WOULD GO WHEN IT COULD NOT READ ONE.** [S1.10.6.2 · pass-3 C-1]
+ *
+ * ⚠️ **Not a formatted zero, and that distinction IS the finding.** A repaired money field *is* `0`, so
+ * `formatCurrency` of it renders **"$0.00/mo"** — a specific, false, confident figure. An em dash says
+ * there is no figure, which is the true thing.
+ */
+export const UNREAD_FIGURE = '—';
+
+/**
+ * ⛔ **THE HONEST STATE, SAID — not merely the false one withheld.** [S1.10.6.2 · pass-3 C-1]
+ *
+ * ⚡ Suppressing a figure without naming why is how [B1]'s first fix dropped a user into *"Your payoff
+ * journey starts here"* over debts they still owed. The row keeps every figure the app *did* read and
+ * says, by name, which one is missing — the shape the goals rows have carried since pass-2 [C2].
+ *
+ * ⚠️ **The words come from `FIELD_LABEL`, the same map the repairs card reads**, so a field is never
+ * called one thing on Today and another on Money. Pass `unreadFieldsFor(store, entity, id)` straight in.
+ */
+export function unreadRowCaption(unreadFields: readonly string[]): string | undefined {
+  if (unreadFields.length === 0) return undefined;
+  // A parenthesised field names no field because there was nothing left to read — see `isWholeRowLoss`.
+  // ⛔ It outranks any named field on the same row: "the balance could not be read" understates a row
+  // that could not be read at all.
+  if (unreadFields.some((f) => f.startsWith('('))) return 'This row could not be read';
+  const labels = [...new Set(unreadFields.map((f) => FIELD_LABEL[f] ?? f))];
+  const list =
+    labels.length === 1
+      ? labels[0]
+      : `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
+  // Sentence case: `FIELD_LABEL` entries start with a lowercase article ("the balance").
+  const sentence = `${list} could not be read`;
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+}
+
 /** "Chase card — the balance", the whole-list case, or a migration loss, which is already a sentence. */
 export function describeRepair(repair: DataRepair): string {
   // M3-20 — a migration entry carries no entity and no name: its `field` IS the sentence, because the

@@ -29,9 +29,10 @@
 ## ▶ RIGHT NOW — **S1.10 · pass 3**
 
 **Surface S1 · money · goals · plan cards.** Passes 1 and 2 are **run and fully fixed**. ⛔ **S1 does NOT
-converge yet** — [D65] exits on 0/0 **twice consecutively**, and pass 2 reset the count. **Pass 3 is
-running** at pin `96d1f11`, four fresh auditors ([D68]). S0 converged 2026-08-25. ⛔ Everything below the
-ACTIVE block is **reference, not queue**. Detail for anything closed → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+converge yet** — [D65] exits on 0/0 **twice consecutively**, and pass 2 reset the count. **Pass 3 is RUN and
+recorded** *(pinned `96d1f11`, four fresh auditors, [D68])* and is now being **fixed**: **9 of 20** blocker+
+majors closed. S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not queue**.
+Detail for anything closed → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 ⛔ **THERE IS NO CURRENT GATE RECORD** ([D74]). `lint:gate-freshness` is **RED**: the record is real
 *(`818f934` · `d2743681` · 807 files)* but **`96d1f11` moved source after it**, so it no longer describes
@@ -86,41 +87,49 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 | # | class | ids | state |
 |---|---|---|---|
 | **S1.10.6.1** | **The payoff engine** — three blockers in `packages/core/{debt,history}`, all first-look | `A1` `A2` `A4` | ✅ **CLOSED** *(see below)* |
-| **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** — wire the claim table's `'row-figures'` route to its consumers and reach the three claim sites the table never covered | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | not started |
-| **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — the direction nobody had looked: Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | not started |
+| **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | ✅ **CLOSED** *(see below)* |
+| **S1.10.6.3** ▶ | ⭐ **The trust rule, OUTSIDE the app** — the direction nobody had looked: Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ▶ **ACTIVE** *(decomposed below)* |
 | **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, the two restore doors | `B3` `B4` `C-7` | not started |
 | **S1.10.6.5** | ⛔ **The instruments** — five gates that report green while doing less than they claim. ⚠️ **Fix LAST of the code classes**: these are the gates the other fixes are verified *with*, so a mid-flight change to them invalidates the verification already done | `B1` `A3` `D3-3` `D3-4` | not started |
 | **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | not started |
 | **S1.10.6.7** | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | not started |
-| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **3 of 20 done** — `.6.1`'s, registered with the fix rather than batched. Registry **95 → 98 entries**, unguarded cap **unchanged at 16** |
+| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **9 of 20 done** — `.6.1`'s and `.6.2`'s, registered with each fix rather than batched. Registry **95 → 105 entries**, unguarded cap **unchanged at 16** |
+| **S1.10.6.9** | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — two claim sites that read the entity lists and print money with no guard: `guardianSelectors` *(the regime split and "your savings" both test `balance > 0`)* and `AffordabilityCard` *(cover-from-savings reads `goal.currentAmount`)*. ⛔ **Located, not reproduced.** Tracked mechanically by `lint:trust-claims`' `OPEN` ledger, cap downward-only | — | not started |
 
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
 `lint:rn` + the unit suites green.
 
-✅ **S1.10.6.1 CLOSED — all three engine blockers, each guard verified to RED on its own restored defect.**
-Detail → log. ⚡ **All three were ONE SHAPE: two producers of one fact, disagreeing.** `A1` the guard vs the
-budget the loop spends · `A2` the snapshot vs the rollover · `A4` the payoff engines vs the reserve. Each
-fix collapses the pair to a **single producer** rather than correcting the losing copy.
+✅ **S1.10.6.1 CLOSED 2026-08-27** — `A1` `A2` `A4`, each guard verified RED on its own restored defect.
+⚡ **All three were ONE SHAPE: two producers of one fact, disagreeing**, and each fix collapses the pair to a
+single producer. ⚠️ **Three plants lied here in three different ways**, and I orphaned a docblock inside the
+fix for a carried-premise defect. Detail → log.
 
-- **`A1`** — `cannotAmortize` now compares against `monthlyBudget`. *"Unable to estimate" at month 5* →
-  **July 2028 / 30 months / $4,019.18**, matching the chart and an independent hand-simulation.
-- **`A2`** — `effectiveMinimumInWindow` extracted; the snapshot and the rollover now call the same
-  function. History reported **$100** for a cycle that paid **$200**.
-- **`A4`** — 🎯's call: **the reserve moves to the cadence**, not the date to the reserve. A fallback BNPL
-  now reserves *and* pays down $200/cycle instead of $100. ⚠️ **The cost is named, not hidden**: the app
-  reserves against a cadence it cannot verify from installment data. **This also closes §2.7.4's
-  under-reserve for that shape.**
+✅ **S1.10.6.2 CLOSED 2026-08-27** — `C-1`–`C-6`, 12 new e2e guards, each **measured RED on its own restored
+defect twice**: once normally, once with the honest-state assertion relaxed so the absence assertions are
+proven independently load-bearing. ⭐ **`lint:trust-claims` is the durable half** — every `MoneyClaim` must
+have a production consumer, every asked field must be routed, and the unguarded sites are a **named,
+downward-only** ledger rather than silence. `lint:rn` **29 gates**, e2e **322 passed**. Detail → log.
 
-⚡ **Three plants lied in this sub-step, in three different ways, and each is a rule already on the books.**
-① A1's naive over-fix looked harmless until I found my own fixture keyed `bnplInstallmentsTotal` where the
-code keys `recurrence === 'one-time'` — **applied, never reached the guard.** ② A4's first draft invented a
-`one-time` exclusion nobody measured, and a shipped test caught it. ③ A4's guard **red on its first
-assertion only** — relaxing each in turn proved all three are independently load-bearing *(reading rule 6,
-on my own test)*.
+⚡ **One self-inflicted defect, caught by the new guard on its first run**: a selector returning a fresh
+array blanked the whole Money tab (React #185) — the warning `money.tsx:614` already carries verbatim.
 
-⛔ **And I orphaned a docblock onto the wrong function while fixing A2** — `scaleBnplMinimumForWindow`'s
-documentation ended up describing the helper I inserted above it. **The exact "carried premise" defect this
-pass keeps finding, committed by me, inside the fix for it.** Caught and re-attached.
+#### S1.10.6.3's sub-steps — the trust rule OUTSIDE the app *(ACTIVE)*
+
+⚠️ **Before-scan: both findings re-verified against the CURRENT tree** — `snapshot.ts:71-95` and
+`buildGuardianSpoken` read exactly as quoted, and `grep pendingDataRepairs apps/rn/src/{widget,liveActivity}`
+is still **0**. ⛔ **The native side does no calc and no guard**, so JS is the only place a guard can live —
+and Siri already routes `''` to its upsell, so the remedy lands on a path Swift handles.
+
+| # | sub-step |
+|---|---|
+| **.6.3.1** | **`D3-1` the widget payload** — `buildWidgetSnapshot` asks `mayClaim(store, 'debt-balances')`, and ⛔ **`pctLabel`/`pctPaid` and `remaining` degrade WITH `cleared`**: fixing only the date leaves *"100% · $0"*, the same false statement without the word |
+| **.6.3.2** | **`D3-2` Siri + the Live Activity** — `buildGuardianSpoken` → `''` and `buildPaydayActivityContent` → `null` when `!mayClaim(store, 'required-plan')`. ⚠️ Both nothing-to-say returns already exist and their callers already handle them; what is missing is the call |
+| **.6.3.3** | ⛔ **The coverage claim that hid it** — `widget/snapshot.ts` is claimed `s1p2` while pass 2 read **one function** of it, so it was on no pass-3 routing manifest. Re-claim it honestly |
+| **.6.3.4** | **Guards + registry** — no fixture in the repo puts a repair through either module; each defect planted, confirmed RED, re-run with the leading assertion relaxed, then registered |
+| **.6.3.5** | **Both files off `lint:trust-claims`' `OPEN` ledger**, `MAX_OPEN` dropped — the cap only goes down |
+
+**Exit (S1.10.6.3):** `D3-1` and `D3-2` fixed at the one owner, both guards measured red on their own
+defects, the `OPEN` ledger down to the two `.6.9` sites, and `lint:rn` + the unit suites green.
 
 ⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
 green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one

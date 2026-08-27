@@ -1,9 +1,9 @@
 {
   "generated": "npm run audit:strings",
   "counts": {
-    "copy": 859,
-    "unclassified": 528,
-    "duplicates": 99
+    "copy": 880,
+    "unclassified": 568,
+    "duplicates": 102
   },
   "entries": [
     {
@@ -72,707 +72,910 @@
     {
       "text": "today:celebration",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 284,
+      "line": 292,
       "origin": "call:useSuppressCoachMarks",
       "bucket": "unclassified"
     },
     {
       "text": "today:invite",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 284,
+      "line": 292,
       "origin": "call:useSuppressCoachMarks",
       "bucket": "unclassified"
     },
     {
       "text": "Set up your paycheck",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 293,
+      "line": 301,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add your paycheck to see exactly what to pay each cycle.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 294,
+      "line": 302,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Set up your paycheck",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 295,
+      "line": 303,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "/cushion-forecast",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 352,
+      "line": 360,
       "origin": "prop:onSeeForecast",
       "bucket": "technical"
     },
     {
       "text": "Add your bills",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 471,
+      "line": 483,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Rent, utilities, subscriptions. Until they are here, this plan counts that money as free to spend.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 472,
+      "line": 484,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add a bill",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 473,
+      "line": 485,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "Add your first debt",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 484,
+      "line": 496,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Your plan is running. Add a debt and it will show you a debt-free date too.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 485,
+      "line": 497,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add a debt",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 486,
+      "line": 498,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "Good news — this paycheck looks clear after all.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 570,
+      "line": 590,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Got it",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 572,
+      "line": 592,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Got it",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 590,
+      "line": 610,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "A surprise bill came up — I’ve restored your safety net for now.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 604,
+      "line": 624,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Got it",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 607,
+      "line": 627,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Payment logged — I updated your balance.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 618,
+      "line": 638,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Payday landed — I rolled your plan forward to this paycheck.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 619,
+      "line": 639,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Undo",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 623,
+      "line": 643,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Keep",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 624,
+      "line": 644,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Your",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 639,
+      "line": 659,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "trial has ended — it’s now",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 639,
+      "line": 659,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": ". Keeping it?",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 640,
+      "line": 660,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Keep it",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 647,
+      "line": 667,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Cancelled it",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 650,
+      "line": 670,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Not now",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 651,
+      "line": 671,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Ready for your next pay cycle. Starting it applies this cycle’s payments and builds your next plan.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 679,
+      "line": 699,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Start next pay cycle",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 681,
+      "line": 701,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Review this payday first",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 694,
+      "line": 714,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Private · on your device",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 705,
+      "line": 725,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "/living-expenses",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 759,
+      "line": 779,
       "origin": "prop:onManageEveryday",
       "bucket": "unclassified"
     },
     {
       "text": "A surprise bill came up — I’ve restored your safety net for now.",
       "file": "apps/rn/src/app/(tabs)/index.tsx",
-      "line": 957,
+      "line": 977,
       "origin": "call:useStore",
       "bucket": "unclassified"
     },
     {
       "text": "Balances you’re paying down. These have an end date, and they set your debt-free date.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 75,
+      "line": 77,
       "origin": "key:debts",
       "bucket": "unclassified"
     },
     {
       "text": "Ongoing costs that don’t end. Reserved from every paycheck before anything goes to debt.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 76,
+      "line": 78,
       "origin": "key:bills",
       "bucket": "unclassified"
     },
     {
       "text": "Money you’re setting aside — saved for, not owed.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 77,
+      "line": 79,
       "origin": "key:goals",
       "bucket": "unclassified"
     },
     {
       "text": "Money",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 104,
+      "line": 106,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Debts",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 109,
+      "line": 111,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Expenses",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 110,
+      "line": 112,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Goals",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 111,
+      "line": 113,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Is this a debt you’re paying down? Debts count toward your debt-free date — expenses don’t.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 167,
+      "line": 169,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Move to Debts",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 171,
+      "line": 173,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Not a debt",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 181,
+      "line": 183,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Start your debt-free plan",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 312,
+      "line": 320,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add a loan, credit card, or BNPL balance to see your debt-free date.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 313,
+      "line": 321,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 314,
+      "line": 322,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "Scan a statement",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 318,
+      "line": 326,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Import from CSV",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 321,
+      "line": 329,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "PAID OFF",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 337,
+      "line": 345,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Every balance cleared",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 366,
+      "line": 378,
       "origin": "prop:value",
       "bucket": "copy"
     },
     {
+      "text": "Some balances unread",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 394,
+      "origin": "prop:value",
+      "bucket": "copy"
+    },
+    {
+      "text": "set them again and your total comes back",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 395,
+      "origin": "prop:sub",
+      "bucket": "unclassified"
+    },
+    {
       "text": "Snowball",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 378,
+      "line": 408,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Avalanche",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 379,
+      "line": 409,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Smallest balance first — quick wins. Your debts are listed in payoff order.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 384,
+      "line": 414,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Highest APR first — least interest. Your debts are listed in payoff order.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 385,
+      "line": 415,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 414,
+      "line": 444,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Scan a statement",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 416,
+      "line": 446,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Import from CSV",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 419,
+      "line": 449,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Select a debt to edit, or add one.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 445,
+      "line": 475,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
+      "text": "minimumPayment",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 537,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "originalBalance",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 538,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
       "text": "estimated · tap to verify",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 490,
+      "line": 542,
       "origin": "var:captionText",
       "bucket": "unclassified"
     },
     {
       "text": "Focus",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 509,
+      "line": 582,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "BNPL",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 511,
+      "line": 584,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "Autopay",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 513,
+      "line": 586,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "/mo",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 524,
+      "line": 603,
       "origin": "prop:amountSuffix",
       "bucket": "unclassified"
     },
     {
       "text": "/mo",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 524,
+      "line": 603,
       "origin": "prop:amountSuffix",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "requiredExpense",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 678,
+      "origin": "call:anyRowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "requiredExpense",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 701,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "requiredExpense",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 733,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "an amount here could not be read",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 759,
+      "origin": "key:subtotalA11y",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "an amount here could not be read",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 776,
+      "origin": "key:subtotalA11y",
       "bucket": "unclassified"
     },
     {
       "text": "Build your paycheck plan",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 693,
+      "line": 798,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add an ongoing cost — rent, utilities, a subscription — so your plan knows what’s due.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 694,
+      "line": 799,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 695,
+      "line": 800,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
-      "text": "reserved for upcoming expenses",
+      "text": "set them again and your total comes back",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 735,
+      "line": 842,
       "origin": "key:sub",
       "bucket": "unclassified"
     },
     {
+      "text": "reserved for upcoming expenses",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 848,
+      "origin": "key:sub",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "A bill amount could not be read, so there is no recommendation yet",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 852,
+      "origin": "key:caption",
+      "bucket": "copy"
+    },
+    {
       "text": "· Variable",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 790,
+      "line": 908,
       "origin": "prop:meta",
+      "bucket": "copy"
+    },
+    {
+      "text": "requiredExpense",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 912,
+      "origin": "prop:amount",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "requiredExpense",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 916,
+      "origin": "prop:caption",
       "bucket": "copy"
     },
     {
       "text": "Autopay",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 792,
+      "line": 917,
       "origin": "prop:badges",
       "bucket": "unclassified"
     },
     {
       "text": "No expenses match “",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 803,
+      "line": 928,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 808,
+      "line": 933,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Search expenses",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 846,
+      "line": 971,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Clear search",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 853,
+      "line": 978,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
+      "text": "livingExpense",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1031,
+      "origin": "call:anyRowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
       "text": "/living-expenses",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 915,
+      "line": 1043,
       "origin": "prop:onPress",
       "bucket": "technical"
     },
     {
       "text": "Everyday spending reserve, nothing set up yet. Opens management.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 919,
+      "line": 1047,
+      "origin": "prop:accessibilityLabel",
+      "bucket": "copy"
+    },
+    {
+      "text": "Everyday spending reserve, some amounts could not be read. Opens management.",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1049,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Everyday spending reserve",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 928,
+      "line": 1058,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Not set up",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 931,
+      "line": 1061,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Groceries, gas, fun money — reserve it each paycheck",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 938,
+      "line": 1068,
+      "origin": "jsx-expr",
+      "bucket": "copy"
+    },
+    {
+      "text": "Some amounts could not be read · tap to set them again",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1072,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Reserved each paycheck · tap to manage",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 941,
+      "line": 1075,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Start a savings goal",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 966,
+      "line": 1104,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add an emergency fund or savings goal to start tracking progress.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 967,
+      "line": 1105,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 968,
+      "line": 1106,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
+      "text": "targetAmount",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1146,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "currentAmount",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1147,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Some amounts unread",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1152,
+      "origin": "prop:value",
+      "bucket": "copy"
+    },
+    {
+      "text": "set them again and your total comes back",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1155,
+      "origin": "prop:sub",
+      "bucket": "unclassified"
+    },
+    {
       "text": "saved — one target could not be read",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 997,
+      "line": 1157,
       "origin": "prop:sub",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "targetAmount",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1194,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "currentAmount",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1195,
+      "origin": "call:rowFieldUnread",
       "bucket": "unclassified"
     },
     {
       "text": "Emergency fund",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1022,
+      "line": 1200,
       "origin": "var:meta",
       "bucket": "unclassified"
     },
     {
       "text": "Savings",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1022,
+      "line": 1200,
       "origin": "var:meta",
       "bucket": "unclassified"
     },
     {
+      "text": "Neither amount could be read",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1241,
+      "origin": "prop:caption",
+      "bucket": "copy"
+    },
+    {
+      "text": "Saved amount could not be read",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1243,
+      "origin": "prop:caption",
+      "bucket": "copy"
+    },
+    {
+      "text": "Target could not be read",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 1245,
+      "origin": "prop:caption",
+      "bucket": "copy"
+    },
+    {
       "text": "Funded",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1030,
+      "line": 1248,
       "origin": "prop:badges",
       "bucket": "unclassified"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1038,
+      "line": 1256,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Progress",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 166,
+      "line": 175,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "DEBT-FREE",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 172,
+      "line": 181,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Every balance paid off",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 173,
+      "line": 182,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Your trophy shelf is below.",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 174,
+      "line": 183,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Progress",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 181,
+      "line": 201,
+      "origin": "prop:title",
+      "bucket": "copy"
+    },
+    {
+      "text": "Some balances couldn’t be read",
+      "file": "apps/rn/src/app/(tabs)/progress.tsx",
+      "line": 204,
+      "origin": "prop:title",
+      "bucket": "copy"
+    },
+    {
+      "text": "Your payoff journey needs figures it can trust. Set the amounts again from the note on Today and this fills back in.",
+      "file": "apps/rn/src/app/(tabs)/progress.tsx",
+      "line": 205,
+      "origin": "prop:body",
+      "bucket": "copy"
+    },
+    {
+      "text": "Go to Today",
+      "file": "apps/rn/src/app/(tabs)/progress.tsx",
+      "line": 206,
+      "origin": "prop:cta",
+      "bucket": "copy"
+    },
+    {
+      "text": "Progress",
+      "file": "apps/rn/src/app/(tabs)/progress.tsx",
+      "line": 213,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Your payoff journey starts here",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 184,
+      "line": 216,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add a debt to see your payoff order, timeline, and interest saved.",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 185,
+      "line": 217,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add a debt",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 186,
+      "line": 218,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "no milestones reached yet",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 228,
+      "line": 260,
       "origin": "call:groupLabel",
       "bucket": "copy"
     },
     {
       "text": "debt-free",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 229,
+      "line": 261,
       "origin": "call:groupLabel",
       "bucket": "copy"
     },
     {
       "text": "all milestones reached",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 229,
+      "line": 261,
       "origin": "call:groupLabel",
       "bucket": "copy"
     },
     {
       "text": "Progress",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 239,
+      "line": 271,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "DEBT-FREE",
       "file": "apps/rn/src/app/(tabs)/progress.tsx",
-      "line": 267,
+      "line": 299,
       "origin": "jsx-text",
       "bucket": "copy"
     },
@@ -861,65 +1064,93 @@
       "bucket": "copy"
     },
     {
-      "text": "Everyday spending reserved each paycheck, before debt and goals.",
+      "text": "livingExpense",
       "file": "apps/rn/src/app/living-expenses.tsx",
       "line": 41,
+      "origin": "call:anyRowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "Everyday spending reserved each paycheck, before debt and goals.",
+      "file": "apps/rn/src/app/living-expenses.tsx",
+      "line": 46,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "No spending items yet",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 47,
+      "line": 52,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add groceries, gas, or fun money to reserve for everyday spending each paycheck.",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 48,
+      "line": 53,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add your first item",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 49,
+      "line": 54,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "Reserve per paycheck",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 55,
+      "line": 60,
+      "origin": "jsx-text",
+      "bucket": "copy"
+    },
+    {
+      "text": "Some amounts could not be read — set them again and your total comes back.",
+      "file": "apps/rn/src/app/living-expenses.tsx",
+      "line": 79,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Counts toward reserve",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 68,
+      "line": 87,
       "origin": "prop:meta",
       "bucket": "copy"
     },
     {
       "text": "Not counted",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 68,
+      "line": 87,
       "origin": "prop:meta",
+      "bucket": "copy"
+    },
+    {
+      "text": "livingExpense",
+      "file": "apps/rn/src/app/living-expenses.tsx",
+      "line": 91,
+      "origin": "prop:amount",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "livingExpense",
+      "file": "apps/rn/src/app/living-expenses.tsx",
+      "line": 95,
+      "origin": "prop:caption",
       "bucket": "copy"
     },
     {
       "text": "Off",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 70,
+      "line": 96,
       "origin": "prop:badges",
       "bucket": "unclassified"
     },
     {
       "text": "Add spending item",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 80,
+      "line": 106,
       "origin": "prop:label",
       "bucket": "copy"
     },
@@ -1458,434 +1689,434 @@
     {
       "text": "Payday Guardian — works out how much to keep back each payday to protect your cushion, and reshapes the plan around it.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 32,
+      "line": 33,
       "origin": "key:text",
       "bucket": "copy"
     },
     {
       "text": "Can I Afford It? — apply any purchase to your plan in one tap, or build a plan to save for it.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 33,
+      "line": 34,
       "origin": "key:text",
       "bucket": "copy"
     },
     {
       "text": "Recovery Plan — a guided catch-up when a cycle comes up short.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 34,
+      "line": 35,
       "origin": "key:text",
       "bucket": "copy"
     },
     {
       "text": "Balances that keep themselves roughly right — projected forward between statements, or re-scanned in seconds. No monthly retyping.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 40,
+      "line": 41,
       "origin": "key:text",
       "bucket": "copy"
     },
     {
       "text": "Payment will be charged to your Apple Account at confirmation of purchase. Subscriptions",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 46,
+      "line": 47,
       "origin": "var:AUTO_RENEW_DISCLOSURE",
       "bucket": "copy"
     },
     {
       "text": "automatically renew unless canceled at least 24 hours before the end of the current period. Your",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 47,
+      "line": 48,
       "origin": "var:AUTO_RENEW_DISCLOSURE",
       "bucket": "copy"
     },
     {
       "text": "account is charged for renewal within 24 hours prior to the end of the current period. Manage or",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 48,
+      "line": 49,
       "origin": "var:AUTO_RENEW_DISCLOSURE",
       "bucket": "copy"
     },
     {
       "text": "cancel anytime in your App Store account settings. Lifetime is a one-time purchase (not a",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 49,
+      "line": 50,
       "origin": "var:AUTO_RENEW_DISCLOSURE",
       "bucket": "copy"
     },
     {
       "text": "subscription) that covers all current Premium features; any future add-on tiers, like bank",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 50,
+      "line": 51,
       "origin": "var:AUTO_RENEW_DISCLOSURE",
       "bucket": "copy"
     },
     {
       "text": "connection or an AI coach, are sold separately.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 51,
+      "line": 52,
       "origin": "var:AUTO_RENEW_DISCLOSURE",
       "bucket": "copy"
     },
     {
       "text": "Pay once — all today’s Premium, forever",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 67,
+      "line": 68,
       "origin": "var:LIFETIME_SUBNOTE",
       "bucket": "unclassified"
     },
     {
       "text": "Annual",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 74,
+      "line": 75,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "per year",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 74,
+      "line": 75,
       "origin": "key:periodLabel",
       "bucket": "copy"
     },
     {
       "text": "Billed yearly · $2.50/mo",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 74,
+      "line": 75,
       "origin": "key:subnote",
       "bucket": "copy"
     },
     {
       "text": "Best value",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 74,
+      "line": 75,
       "origin": "key:badge",
       "bucket": "copy"
     },
     {
       "text": "Lifetime",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 75,
+      "line": 76,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "one time",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 75,
+      "line": 76,
       "origin": "key:periodLabel",
       "bucket": "copy"
     },
     {
       "text": "Pay once",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 75,
+      "line": 76,
       "origin": "key:badge",
       "bucket": "copy"
     },
     {
       "text": "Monthly",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 76,
+      "line": 77,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "per month",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 76,
+      "line": 77,
       "origin": "key:periodLabel",
       "bucket": "copy"
     },
     {
       "text": "Billed monthly",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 76,
+      "line": 77,
       "origin": "key:subnote",
       "bucket": "copy"
     },
     {
       "text": "ANNUAL",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 89,
+      "line": 90,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Annual",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 94,
+      "line": 95,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "per year",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 94,
+      "line": 95,
       "origin": "key:periodLabel",
       "bucket": "copy"
     },
     {
       "text": "Best value",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 94,
+      "line": 95,
       "origin": "key:badge",
       "bucket": "copy"
     },
     {
       "text": "LIFETIME",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 96,
+      "line": 97,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Lifetime",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 98,
+      "line": 99,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "one time",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 98,
+      "line": 99,
       "origin": "key:periodLabel",
       "bucket": "copy"
     },
     {
       "text": "Pay once",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 98,
+      "line": 99,
       "origin": "key:badge",
       "bucket": "copy"
     },
     {
       "text": "MONTHLY",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 99,
+      "line": 100,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Monthly",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 100,
+      "line": 101,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "per month",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 100,
+      "line": 101,
       "origin": "key:periodLabel",
       "bucket": "copy"
     },
     {
       "text": "Not available here",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 182,
+      "line": 186,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "In-app purchases aren’t available in this preview — try it on your device.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 182,
+      "line": 186,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "You’re on Premium",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 191,
+      "line": 195,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Your premium tools are unlocked.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 191,
+      "line": 195,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Almost there",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 196,
+      "line": 200,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Your purchase went through, but Premium couldn’t be confirmed yet. Tap Restore, or contact support if it persists.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 196,
+      "line": 200,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Purchase didn’t complete",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 199,
+      "line": 203,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Something went wrong. Please try again.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 199,
+      "line": 203,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Not available here",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 207,
+      "line": 211,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Restoring purchases isn’t available in this preview.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 207,
+      "line": 211,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Purchases restored",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 215,
+      "line": 219,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Your premium access is back.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 215,
+      "line": 219,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Nothing to restore",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 218,
+      "line": 222,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "No active purchase was found for this Apple Account.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 218,
+      "line": 222,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Restore didn’t complete",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 221,
+      "line": 225,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Something went wrong. Please try again.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 221,
+      "line": 225,
       "origin": "call:notify",
       "bucket": "unclassified"
     },
     {
       "text": "Starting…",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 228,
+      "line": 232,
       "origin": "var:ctaLabel",
       "bucket": "unclassified"
     },
     {
       "text": "Premium",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 239,
+      "line": 243,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "/onboarding",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 239,
+      "line": 243,
       "origin": "prop:onBack",
       "bucket": "technical"
     },
     {
       "text": "Every payday, worked out for you",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 242,
+      "line": 246,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "The app does the arithmetic — the money moves stay yours.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 248,
+      "line": 252,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "You’re on Premium — Lifetime. Thanks for the support.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 285,
+      "line": 289,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "You’re on Premium — thanks for the support.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 285,
+      "line": 289,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Manage subscription",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 291,
+      "line": 295,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Plans couldn’t load right now. Check your connection and try again.",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 300,
+      "line": 304,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Retry",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 302,
+      "line": 306,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "/demo?from=paywall",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 362,
+      "line": 366,
       "origin": "prop:onPress",
       "bucket": "technical"
     },
     {
       "text": "Restoring…",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 371,
+      "line": 375,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Restore purchases",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 371,
+      "line": 375,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Terms of Use (EULA)",
       "file": "apps/rn/src/app/paywall.tsx",
-      "line": 378,
+      "line": 382,
       "origin": "jsx-text",
       "bucket": "copy"
     },
@@ -2158,546 +2389,567 @@
     {
       "text": "Enter the payment amount.",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 167,
+      "line": 200,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Enter how many payments are left.",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 168,
+      "line": 201,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Minimum payment can’t exceed the balance.",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 195,
+      "line": 227,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Edit debt",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 247,
+      "line": 278,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add a debt",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 247,
+      "line": 278,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add from scan",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 247,
+      "line": 278,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add a debt",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 247,
+      "line": 278,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Moving this from Expenses. Add the balance so it counts toward your debt-free date.",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 252,
+      "line": 283,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Review the scanned details, then add.",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 254,
+      "line": 285,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "A loan, credit card, or BNPL balance.",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 255,
+      "line": 286,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Save",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 257,
+      "line": 288,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Add debt",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 257,
+      "line": 288,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "View payoff schedule",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 296,
+      "line": 327,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Name",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 304,
+      "line": 335,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Affirm — Sofa",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 304,
+      "line": 335,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Visa, Car Loan",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 304,
+      "line": 335,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Type",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 306,
+      "line": 337,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Debt / loan",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 308,
+      "line": 339,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "BNPL (buy now, pay later)",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 308,
+      "line": 339,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Provider",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 315,
+      "line": 346,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Payment amount",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 316,
+      "line": 347,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 100",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 316,
+      "line": 347,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Payments remaining",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 317,
+      "line": 348,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 4",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 317,
+      "line": 348,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "How often",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 318,
+      "line": 349,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Next payment",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 319,
+      "line": 350,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "left · interest-free",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 322,
+      "line": 353,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Re-scan a statement to update this balance",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 331,
+      "line": 362,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Re-scan to update →",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 332,
+      "line": 363,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Estimated",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 345,
+      "line": 376,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Apply estimate to plan",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 348,
+      "line": 379,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Updated",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 351,
+      "line": 382,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "APR %",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 354,
+      "line": 385,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Due date",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 355,
+      "line": 386,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Recurrence",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 356,
+      "line": 387,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Autopay",
       "file": "apps/rn/src/components/entities/DebtSheet.tsx",
-      "line": 359,
+      "line": 390,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Enter the amount you pay now (0 for a free trial).",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 56,
+      "line": 62,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Enter the full price after the trial.",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 57,
+      "line": 63,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Enter when the full price starts (YYYY-MM-DD).",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 59,
+      "line": 65,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Edit expense",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 95,
+      "line": 101,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add an expense",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 95,
+      "line": 101,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Save",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 97,
+      "line": 103,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Add expense",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 97,
+      "line": 103,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Name",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 102,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Rent, phone, utilities",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 102,
-      "origin": "prop:placeholder",
-      "bucket": "copy"
-    },
-    {
-      "text": "Amount now (0 for a free trial)",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 103,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Amount",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 103,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "e.g. 0",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 103,
-      "origin": "prop:placeholder",
-      "bucket": "copy"
-    },
-    {
-      "text": "e.g. 850",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 103,
-      "origin": "prop:placeholder",
-      "bucket": "copy"
-    },
-    {
-      "text": "Due date",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 105,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Recurrence",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 106,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Category",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 107,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "Variable amount (estimate)",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
       "line": 108,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
-      "text": "Free trial or intro price",
+      "text": "Rent, phone, utilities",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 108,
+      "origin": "prop:placeholder",
+      "bucket": "copy"
+    },
+    {
+      "text": "Amount now (0 for a free trial)",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
       "line": 109,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
-      "text": "Full price after the trial",
+      "text": "Amount",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 109,
+      "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "e.g. 0",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 109,
+      "origin": "prop:placeholder",
+      "bucket": "copy"
+    },
+    {
+      "text": "e.g. 850",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 109,
+      "origin": "prop:placeholder",
+      "bucket": "copy"
+    },
+    {
+      "text": "Due date",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 111,
+      "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Recurrence",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
       "line": 112,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
-      "text": "e.g. 15.99",
-      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 112,
-      "origin": "prop:placeholder",
-      "bucket": "copy"
-    },
-    {
-      "text": "Full price starts",
+      "text": "Category",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
       "line": 113,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
+      "text": "Variable amount (estimate)",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 114,
+      "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Free trial or intro price",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 115,
+      "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Full price after the trial",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 118,
+      "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "e.g. 15.99",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 118,
+      "origin": "prop:placeholder",
+      "bucket": "copy"
+    },
+    {
+      "text": "Full price starts",
+      "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
+      "line": 119,
+      "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
       "text": "Autopay",
       "file": "apps/rn/src/components/entities/ExpenseSheet.tsx",
-      "line": 116,
+      "line": 122,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Enter a target amount.",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 75,
+      "line": 103,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Enter what you have saved so far, or leave it blank.",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 76,
+      "line": 104,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Enter how much to put toward this each paycheck.",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 102,
+      "line": 130,
       "origin": "call:setError",
       "bucket": "copy"
     },
     {
       "text": "Edit goal",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 126,
+      "line": 154,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add a goal",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 126,
+      "line": 154,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "A savings or emergency-fund target.",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 127,
+      "line": 155,
       "origin": "prop:subtitle",
       "bucket": "copy"
     },
     {
       "text": "Save",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 128,
+      "line": 156,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Add goal",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 128,
+      "line": 156,
       "origin": "prop:submitLabel",
       "bucket": "copy"
     },
     {
       "text": "Name",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 133,
+      "line": 161,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Emergency Fund, Vacation",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 133,
+      "line": 161,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Target amount",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 134,
+      "line": 162,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 1000",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 134,
+      "line": 162,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Current amount saved",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 135,
+      "line": 163,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 250",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 135,
+      "line": 163,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Type",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 137,
+      "line": 166,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Emergency fund",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 139,
+      "line": 168,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
       "text": "Savings",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 139,
+      "line": 168,
       "origin": "prop:options",
       "bucket": "unclassified"
     },
     {
+      "text": "Type",
+      "file": "apps/rn/src/components/entities/GoalSheet.tsx",
+      "line": 173,
+      "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Savings",
+      "file": "apps/rn/src/components/entities/GoalSheet.tsx",
+      "line": 175,
+      "origin": "prop:options",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "You already have an emergency fund. This one saves alongside it.",
+      "file": "apps/rn/src/components/entities/GoalSheet.tsx",
+      "line": 178,
+      "origin": "prop:note",
+      "bucket": "copy"
+    },
+    {
       "text": "Fund this ahead of my debt",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 146,
+      "line": 185,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Cap per paycheck",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 149,
+      "line": 188,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 100",
       "file": "apps/rn/src/components/entities/GoalSheet.tsx",
-      "line": 152,
+      "line": 191,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
@@ -2886,84 +3138,91 @@
     {
       "text": "every 2 weeks",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 38,
+      "line": 47,
       "origin": "key:biweekly",
       "bucket": "unclassified"
     },
     {
       "text": "every paycheck",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 39,
+      "line": 48,
       "origin": "key:'per-paycheck'",
       "bucket": "unclassified"
     },
     {
       "text": "Where it goes",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 53,
+      "line": 62,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
-      "text": "recommended per paycheck",
+      "text": "set the unread amounts again and your recommendation comes back",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 60,
-      "origin": "jsx-text",
+      "line": 75,
+      "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Every bill spread evenly across your paychecks — so the lumpy ones are far less likely to land as a surprise.",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 67,
+      "line": 83,
       "origin": "jsx-text",
+      "bucket": "copy"
+    },
+    {
+      "text": "amount could not be read",
+      "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
+      "line": 112,
+      "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "/paycheck",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 84,
-      "origin": "jsx-text",
-      "bucket": "copy"
-    },
-    {
-      "text": "/paycheck",
-      "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 102,
+      "line": 125,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Plus",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 115,
+      "line": 142,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "one-time",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 115,
+      "line": 142,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "— not part of your ongoing reserve.",
       "file": "apps/rn/src/components/money/BillBreakdownSheet.tsx",
-      "line": 115,
+      "line": 142,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
+      "text": "scheduledPaymentAmount",
+      "file": "apps/rn/src/components/money/BnplCalendarSection.tsx",
+      "line": 83,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
       "text": "UPCOMING BNPL INSTALLMENTS",
       "file": "apps/rn/src/components/money/BnplCalendarSection.tsx",
-      "line": 67,
+      "line": 99,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "installments",
       "file": "apps/rn/src/components/money/BnplCalendarSection.tsx",
-      "line": 92,
+      "line": 124,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
@@ -4272,35 +4531,35 @@
     {
       "text": "discretionary",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 86,
+      "line": 87,
       "origin": "key:category",
       "bucket": "technical"
     },
     {
+      "text": "affordability",
+      "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
+      "line": 95,
+      "origin": "call:store_.getState",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "affordability",
+      "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
+      "line": 114,
+      "origin": "call:store_.getState",
+      "bucket": "unclassified"
+    },
+    {
       "text": "CAN I AFFORD IT?",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 130,
+      "line": 149,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Undo",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 143,
-      "origin": "prop:label",
-      "bucket": "copy"
-    },
-    {
-      "text": "CAN I AFFORD IT?",
-      "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 154,
-      "origin": "jsx-text",
-      "bucket": "copy"
-    },
-    {
-      "text": "Undo",
-      "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 164,
+      "line": 162,
       "origin": "prop:label",
       "bucket": "copy"
     },
@@ -4312,93 +4571,107 @@
       "bucket": "copy"
     },
     {
+      "text": "Undo",
+      "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
+      "line": 183,
+      "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "CAN I AFFORD IT?",
+      "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
+      "line": 192,
+      "origin": "jsx-text",
+      "bucket": "copy"
+    },
+    {
       "text": "Thinking about a purchase?",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 176,
+      "line": 195,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Amount",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 179,
+      "line": 198,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. 400",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 179,
+      "line": 198,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "What is it? (optional)",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 180,
+      "line": 199,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "e.g. New couch",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 180,
+      "line": 199,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Enter an amount to see if it fits this paycheck.",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 188,
+      "line": 207,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "You have about",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 191,
+      "line": 210,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "spare this paycheck.",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 191,
+      "line": 210,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Save for it →",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 202,
+      "line": 221,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "About",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 215,
+      "line": 234,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "less goes to debt this paycheck.",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 215,
+      "line": 234,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Apply anyway",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 235,
+      "line": 254,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Apply to this paycheck",
       "file": "apps/rn/src/components/plan/AffordabilityCard.tsx",
-      "line": 235,
+      "line": 254,
       "origin": "prop:label",
       "bucket": "copy"
     },
@@ -4564,79 +4837,149 @@
       "bucket": "unclassified"
     },
     {
+      "text": "the balance",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 42,
+      "origin": "key:balance",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the minimum payment",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 43,
+      "origin": "key:minimumPayment",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the interest rate",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 44,
+      "origin": "key:apr",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the starting balance",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 45,
+      "origin": "key:originalBalance",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the scheduled payment",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 46,
+      "origin": "key:scheduledPaymentAmount",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the amount",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 47,
+      "origin": "key:amount",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the target",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 48,
+      "origin": "key:targetAmount",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the amount saved",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 49,
+      "origin": "key:currentAmount",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "the per-paycheck amount",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 50,
+      "origin": "key:priorityPerPaycheck",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "This row could not be read",
+      "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "line": 77,
+      "origin": "return",
+      "bucket": "copy"
+    },
+    {
       "text": "unrecoverable",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 55,
+      "line": 117,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "An amount could not be read",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 90,
+      "line": 152,
       "origin": "key:heading",
       "bucket": "copy"
     },
     {
       "text": "Your plan is running without it until you set it again.",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 92,
+      "line": 154,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "Your plan is running without them until you set each one again.",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 93,
+      "line": 155,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "unrecoverable",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 107,
+      "line": 169,
       "origin": "key:kind",
       "bucket": "technical"
     },
     {
       "text": "Some of your old data did not come across",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 110,
+      "line": 172,
       "origin": "key:heading",
       "bucket": "copy"
     },
     {
       "text": "There is nothing to reopen for it — check this against your old app and add anything missing.",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 112,
+      "line": 174,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "There is nothing to reopen for them — check these against your old app and add anything missing.",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 113,
+      "line": 175,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "An amount was written in a different format",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 123,
+      "line": 185,
       "origin": "key:heading",
       "bucket": "copy"
     },
     {
       "text": "Your plan is using it — check the number looks right.",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 126,
+      "line": 188,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "Your plan is using them — check the numbers look right.",
       "file": "apps/rn/src/components/plan/dataRepairsCopy.ts",
-      "line": 127,
+      "line": 189,
       "origin": "key:detail",
       "bucket": "copy"
     },
@@ -5280,56 +5623,56 @@
     {
       "text": "Overdue payments need attention",
       "file": "apps/rn/src/components/plan/PlanHero.tsx",
-      "line": 114,
+      "line": 132,
       "origin": "var:statusLabel",
       "bucket": "unclassified"
     },
     {
       "text": "Short this paycheck",
       "file": "apps/rn/src/components/plan/PlanHero.tsx",
-      "line": 116,
+      "line": 134,
       "origin": "var:statusLabel",
       "bucket": "unclassified"
     },
     {
       "text": "On track",
       "file": "apps/rn/src/components/plan/PlanHero.tsx",
-      "line": 117,
+      "line": 135,
       "origin": "var:statusLabel",
       "bucket": "unclassified"
     },
     {
       "text": "Edit paycheck",
       "file": "apps/rn/src/components/plan/PlanHero.tsx",
-      "line": 140,
+      "line": 158,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "THIS PAYCHECK ·",
       "file": "apps/rn/src/components/plan/PlanHero.tsx",
-      "line": 143,
+      "line": 161,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Suggested ·",
       "file": "apps/rn/src/components/plan/PlanHero.tsx",
-      "line": 171,
+      "line": 189,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Add extra income",
       "file": "apps/rn/src/components/plan/PlanHero.tsx",
-      "line": 230,
+      "line": 248,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Add extra income",
       "file": "apps/rn/src/components/plan/PlanHero.tsx",
-      "line": 234,
+      "line": 252,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
@@ -5399,35 +5742,35 @@
     {
       "text": "Show fewer",
       "file": "apps/rn/src/components/plan/RecoveryPlanSection.tsx",
-      "line": 93,
+      "line": 97,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "CAN WAIT IN YOUR PLAN",
       "file": "apps/rn/src/components/plan/RecoveryPlanSection.tsx",
-      "line": 110,
+      "line": 114,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Moving these buys room in your plan — the biller still needs handling.",
       "file": "apps/rn/src/components/plan/RecoveryPlanSection.tsx",
-      "line": 112,
+      "line": 116,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Keep essential",
       "file": "apps/rn/src/components/plan/RecoveryPlanSection.tsx",
-      "line": 135,
+      "line": 139,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "This reschedules the payment in your plan — remember to handle it with the biller (pay it late, or cancel it).",
       "file": "apps/rn/src/components/plan/RecoveryPlanSection.tsx",
-      "line": 167,
+      "line": 171,
       "origin": "jsx-text",
       "bucket": "copy"
     },
@@ -5441,126 +5784,147 @@
     {
       "text": "Required actions",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 105,
+      "line": 128,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Bills and minimums due this paycheck.",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 107,
+      "line": 130,
       "origin": "jsx-text",
+      "bucket": "copy"
+    },
+    {
+      "text": "An amount this paycheck has to cover could not be read, so this list is incomplete — set it again above and it comes back.",
+      "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
+      "line": 153,
+      "origin": "jsx-expr",
+      "bucket": "copy"
+    },
+    {
+      "text": "One more amount could not be read, so this list is short of at least one thing — set it again above and it comes back.",
+      "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
+      "line": 154,
+      "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "You’re caught up for this paycheck.",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 124,
+      "line": 157,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "You haven’t added any bills yet.",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 128,
+      "line": 161,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Rent, utilities, subscriptions — anything that comes out every cycle. Until they are here,\n                this plan treats all of it as spendable.",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 131,
+      "line": 164,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Add a bill",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 134,
+      "line": 167,
       "origin": "prop:label",
+      "bucket": "copy"
+    },
+    {
+      "text": "Not covered by this paycheck — your recovery plan below works through these.",
+      "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
+      "line": 192,
+      "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Short this paycheck — cover these from savings or your next paycheck.",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 155,
-      "origin": "jsx-text",
+      "line": 193,
+      "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "from this paycheck",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 202,
+      "line": 240,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "from this paycheck",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 222,
+      "line": 260,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Undo, mark unpaid",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 262,
+      "line": 300,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Mark paid",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 262,
+      "line": 300,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Undo",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 265,
+      "line": 303,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Paid",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 265,
+      "line": 303,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Auto-paid",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 304,
+      "line": 342,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Autopay",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 306,
+      "line": 344,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Due",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 327,
+      "line": 365,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "this cycle",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 333,
+      "line": 371,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "from your reserve",
       "file": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
-      "line": 342,
+      "line": 380,
       "origin": "jsx-text",
       "bucket": "copy"
     },
@@ -5651,28 +6015,21 @@
     {
       "text": "I&rsquo;m debt-free",
       "file": "apps/rn/src/components/plan/ShareCard.tsx",
-      "line": 39,
+      "line": 42,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "paid off",
       "file": "apps/rn/src/components/plan/ShareCard.tsx",
-      "line": 41,
+      "line": 44,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "/mo freed toward the next one",
       "file": "apps/rn/src/components/plan/ShareCard.tsx",
-      "line": 55,
-      "origin": "jsx-text",
-      "bucket": "copy"
-    },
-    {
-      "text": "paid off",
-      "file": "apps/rn/src/components/plan/ShareCard.tsx",
-      "line": 62,
+      "line": 58,
       "origin": "jsx-text",
       "bucket": "copy"
     },
@@ -5684,16 +6041,23 @@
       "bucket": "copy"
     },
     {
+      "text": "paid off",
+      "file": "apps/rn/src/components/plan/ShareCard.tsx",
+      "line": 68,
+      "origin": "jsx-text",
+      "bucket": "copy"
+    },
+    {
       "text": "on my way to debt-free",
       "file": "apps/rn/src/components/plan/ShareCard.tsx",
-      "line": 67,
+      "line": 70,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Debt Planner &middot; your payday debt-payoff app",
       "file": "apps/rn/src/components/plan/ShareCard.tsx",
-      "line": 74,
+      "line": 77,
       "origin": "jsx-text",
       "bucket": "copy"
     },
@@ -6008,21 +6372,21 @@
     {
       "text": "Share your progress",
       "file": "apps/rn/src/components/progress/PaidOffArchive.tsx",
-      "line": 39,
+      "line": 48,
       "origin": "call:shareDebtCard",
       "bucket": "unclassified"
     },
     {
       "text": "DEBTS PAID OFF ·",
       "file": "apps/rn/src/components/progress/PaidOffArchive.tsx",
-      "line": 48,
+      "line": 57,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Share",
       "file": "apps/rn/src/components/progress/PaidOffArchive.tsx",
-      "line": 74,
+      "line": 83,
       "origin": "prop:label",
       "bucket": "copy"
     },
@@ -6183,7 +6547,7 @@
     {
       "text": "Select",
       "file": "apps/rn/src/components/ui/Select.tsx",
-      "line": 31,
+      "line": 53,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
@@ -7037,126 +7401,133 @@
     {
       "text": "(whole list unreadable)",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 83,
+      "line": 129,
       "origin": "key:field",
       "bucket": "unclassified"
     },
     {
       "text": "(a row could not be read)",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 109,
+      "line": 155,
       "origin": "key:field",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "runMigrations: persisted store is not an object",
-      "file": "apps/rn/src/data/migrations.ts",
-      "line": 164,
-      "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "minimumPayment",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 180,
-      "origin": "call:repairMoneyFields",
+      "line": 224,
+      "origin": "key:required",
       "bucket": "unclassified"
     },
     {
       "text": "originalBalance",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 180,
-      "origin": "call:repairMoneyFields",
+      "line": 224,
+      "origin": "key:optional",
       "bucket": "unclassified"
     },
     {
       "text": "scheduledPaymentAmount",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 180,
-      "origin": "call:repairMoneyFields",
+      "line": 224,
+      "origin": "key:optional",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "targetAmount",
+      "file": "apps/rn/src/data/migrations.ts",
+      "line": 227,
+      "origin": "key:required",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "currentAmount",
+      "file": "apps/rn/src/data/migrations.ts",
+      "line": 227,
+      "origin": "key:required",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "priorityPerPaycheck",
+      "file": "apps/rn/src/data/migrations.ts",
+      "line": 227,
+      "origin": "key:optional",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "runMigrations: persisted store is not an object",
+      "file": "apps/rn/src/data/migrations.ts",
+      "line": 232,
+      "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "requiredExpense",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 199,
+      "line": 268,
       "origin": "call:repairMoneyFields",
       "bucket": "unclassified"
     },
     {
       "text": "livingExpense",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 200,
-      "origin": "call:repairMoneyFields",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "targetAmount",
-      "file": "apps/rn/src/data/migrations.ts",
-      "line": 217,
-      "origin": "call:repairMoneyFields",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "currentAmount",
-      "file": "apps/rn/src/data/migrations.ts",
-      "line": 217,
+      "line": 269,
       "origin": "call:repairMoneyFields",
       "bucket": "unclassified"
     },
     {
       "text": "priorityPerPaycheck",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 217,
-      "origin": "call:repairMoneyFields",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "priorityPerPaycheck",
-      "file": "apps/rn/src/data/migrations.ts",
-      "line": 294,
+      "line": 365,
       "origin": "call:repairs.find",
       "bucket": "unclassified"
     },
     {
       "text": "the per-paycheck amount could not be read, so it is no longer funded ahead of your debt",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 322,
+      "line": 393,
       "origin": "key:field",
       "bucket": "unclassified"
     },
     {
       "text": "the per-paycheck amount could not be read",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 323,
+      "line": 394,
       "origin": "key:field",
       "bucket": "unclassified"
     },
     {
       "text": "the per-paycheck amount could not be read, so it is no longer funded ahead of your debt",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 329,
+      "line": 400,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "the per-paycheck amount could not be read",
       "file": "apps/rn/src/data/migrations.ts",
-      "line": 330,
+      "line": 401,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "requiredExpense",
       "file": "apps/rn/src/data/models.ts",
-      "line": 255,
+      "line": 262,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "livingExpense",
       "file": "apps/rn/src/data/models.ts",
-      "line": 255,
+      "line": 262,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "affordability",
+      "file": "apps/rn/src/data/models.ts",
+      "line": 306,
       "origin": "other",
       "bucket": "unclassified"
     },
@@ -7602,6 +7973,27 @@
       "bucket": "copy"
     },
     {
+      "text": "originalBalance",
+      "file": "apps/rn/src/store/celebrationSelectors.ts",
+      "line": 53,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "originalBalance",
+      "file": "apps/rn/src/store/celebrationSelectors.ts",
+      "line": 140,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "minimumPayment",
+      "file": "apps/rn/src/store/celebrationSelectors.ts",
+      "line": 140,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
       "text": "See the whole payoff",
       "file": "apps/rn/src/store/coachMarkCopy.ts",
       "line": 29,
@@ -7779,84 +8171,84 @@
     {
       "text": "your savings",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 140,
+      "line": 144,
       "origin": "var:targetName",
       "bucket": "unclassified"
     },
     {
       "text": "your debt",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 140,
+      "line": 144,
       "origin": "var:targetName",
       "bucket": "unclassified"
     },
     {
       "text": "BNPL",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 329,
+      "line": 357,
       "origin": "key:provider",
       "bucket": "unclassified"
     },
     {
       "text": "__afford_preview__",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 365,
+      "line": 393,
       "origin": "var:AFFORD_PREVIEW_ID",
       "bucket": "unclassified"
     },
     {
       "text": "Purchase",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 391,
+      "line": 439,
       "origin": "key:name",
       "bucket": "technical"
     },
     {
       "text": "coverFromSavings",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 397,
+      "line": 445,
       "origin": "var:coverFromSavings",
       "bucket": "unclassified"
     },
     {
       "text": "Save fast",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 565,
+      "line": 613,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Funds before debt — pauses most of your extra debt payoff while you save.",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 565,
+      "line": 613,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "Balanced",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 571,
+      "line": 619,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "A lighter set-aside — eases off your debt payoff a little, takes longer.",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 571,
+      "line": 619,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "Keep debt first",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 576,
+      "line": 624,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Save whatever’s spare after debt — no hit to your debt-free date, but no firm date.",
       "file": "apps/rn/src/store/guardianSelectors.ts",
-      "line": 576,
+      "line": 624,
       "origin": "key:detail",
       "bucket": "copy"
     },
@@ -7989,35 +8381,35 @@
     {
       "text": "Enter a name.",
       "file": "apps/rn/src/store/obligationForm.ts",
-      "line": 77,
+      "line": 99,
       "origin": "key:nameRequired",
       "bucket": "unclassified"
     },
     {
       "text": "Enter an amount greater than 0.",
       "file": "apps/rn/src/store/obligationForm.ts",
-      "line": 78,
+      "line": 100,
       "origin": "key:amountPositive",
       "bucket": "unclassified"
     },
     {
       "text": "Enter the current balance.",
       "file": "apps/rn/src/store/obligationForm.ts",
-      "line": 79,
+      "line": 101,
       "origin": "key:balanceRequired",
       "bucket": "unclassified"
     },
     {
       "text": "Enter the minimum payment.",
       "file": "apps/rn/src/store/obligationForm.ts",
-      "line": 80,
+      "line": 102,
       "origin": "key:minimumRequired",
       "bucket": "unclassified"
     },
     {
       "text": "Enter the APR as a number, or leave it blank.",
       "file": "apps/rn/src/store/obligationForm.ts",
-      "line": 84,
+      "line": 106,
       "origin": "key:aprInvalid",
       "bucket": "unclassified"
     },
@@ -8199,42 +8591,42 @@
     {
       "text": "__portfolio__",
       "file": "apps/rn/src/store/payday.ts",
-      "line": 125,
+      "line": 129,
       "origin": "key:id",
       "bucket": "technical"
     },
     {
       "text": "Portfolio",
       "file": "apps/rn/src/store/payday.ts",
-      "line": 125,
+      "line": 129,
       "origin": "key:name",
       "bucket": "technical"
     },
     {
       "text": "__portfolio__",
       "file": "apps/rn/src/store/payday.ts",
-      "line": 161,
+      "line": 165,
       "origin": "key:portfolioMaxProgress",
       "bucket": "unclassified"
     },
     {
       "text": "expenseReserve",
       "file": "apps/rn/src/store/payday.ts",
-      "line": 205,
+      "line": 209,
       "origin": "other",
       "bucket": "unclassified"
     },
     {
       "text": "Recovery Plan is the guided catch-up for a cycle like this one.",
       "file": "apps/rn/src/store/paywallLead.ts",
-      "line": 53,
+      "line": 69,
       "origin": "key:offer",
       "bucket": "unclassified"
     },
     {
       "text": "Premium plots it across your next six paydays, and marks where it dips below your line.",
       "file": "apps/rn/src/store/paywallLead.ts",
-      "line": 63,
+      "line": 79,
       "origin": "key:offer",
       "bucket": "unclassified"
     },
@@ -8290,49 +8682,49 @@
     {
       "text": "Due this week",
       "file": "apps/rn/src/store/planSelectors.ts",
-      "line": 274,
+      "line": 307,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Due next week",
       "file": "apps/rn/src/store/planSelectors.ts",
-      "line": 275,
+      "line": 308,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Later this cycle",
       "file": "apps/rn/src/store/planSelectors.ts",
-      "line": 276,
+      "line": 309,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Handled",
       "file": "apps/rn/src/store/planSelectors.ts",
-      "line": 277,
+      "line": 310,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "to debt this paycheck",
       "file": "apps/rn/src/store/planSelectors.ts",
-      "line": 339,
+      "line": 386,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "cushion this paycheck",
       "file": "apps/rn/src/store/planSelectors.ts",
-      "line": 344,
+      "line": 391,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "cushionStatus",
       "file": "apps/rn/src/store/planSelectors.ts",
-      "line": 356,
+      "line": 422,
       "origin": "var:cushionStatus",
       "bucket": "unclassified"
     },
@@ -8484,6 +8876,13 @@
       "bucket": "unclassified"
     },
     {
+      "text": "intentRollback",
+      "file": "apps/rn/src/store/store.ts",
+      "line": 344,
+      "origin": "other",
+      "bucket": "unclassified"
+    },
+    {
       "text": "Real store mutated while a sandbox subtree was mounted",
       "file": "apps/rn/src/store/StoreContext.tsx",
       "line": 93,
@@ -8503,6 +8902,34 @@
       "line": 95,
       "origin": "key:hint",
       "bucket": "copy"
+    },
+    {
+      "text": "originalBalance",
+      "file": "apps/rn/src/store/trustSelectors.ts",
+      "line": 85,
+      "origin": "key:debt",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "minimumPayment",
+      "file": "apps/rn/src/store/trustSelectors.ts",
+      "line": 97,
+      "origin": "key:debt",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "requiredExpense",
+      "file": "apps/rn/src/store/trustSelectors.ts",
+      "line": 296,
+      "origin": "var:list",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "livingExpense",
+      "file": "apps/rn/src/store/trustSelectors.ts",
+      "line": 298,
+      "origin": "var:list",
+      "bucket": "unclassified"
     },
     {
       "text": "Money set aside first",
@@ -9242,245 +9669,245 @@
     {
       "text": "Required",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 48,
+      "line": 52,
       "origin": "key:required",
       "bucket": "unclassified"
     },
     {
       "text": "Spoken for",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 50,
+      "line": 54,
       "origin": "key:spokenFor",
       "bucket": "unclassified"
     },
     {
       "text": "Flexible",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 52,
+      "line": 56,
       "origin": "key:flexible",
       "bucket": "unclassified"
     },
     {
       "text": "Cushion",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 60,
+      "line": 64,
       "origin": "var:CUSHION_LABEL",
       "bucket": "unclassified"
     },
     {
       "text": "Safety net",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 67,
+      "line": 71,
       "origin": "var:SAFETY_NET_LABEL",
       "bucket": "unclassified"
     },
     {
       "text": "your emergency fund",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 75,
+      "line": 79,
       "origin": "var:EMERGENCY_FUND_NOUN",
       "bucket": "unclassified"
     },
     {
       "text": "Everyday spending",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 83,
+      "line": 87,
       "origin": "var:EVERYDAY_SPENDING_LABEL",
       "bucket": "unclassified"
     },
     {
       "text": "Private by design",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 111,
+      "line": 115,
       "origin": "key:headline",
       "bucket": "copy"
     },
     {
       "text": "your financial data stays on this device",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 113,
+      "line": 117,
       "origin": "key:body",
       "bucket": "copy"
     },
     {
       "text": "you’ll never be sold more debt",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 115,
+      "line": 119,
       "origin": "key:noSelling",
       "bucket": "unclassified"
     },
     {
       "text": "Your money stays on your device.",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 117,
+      "line": 121,
       "origin": "key:short",
       "bucket": "unclassified"
     },
     {
       "text": "No account needed — your numbers never go to our servers.",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 135,
+      "line": 139,
       "origin": "key:atEntry",
       "bucket": "unclassified"
     },
     {
       "text": "Replace my data",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 148,
+      "line": 152,
       "origin": "var:REPLACE_DATA_ACTION",
       "bucket": "unclassified"
     },
     {
       "text": "Clear",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 151,
+      "line": 155,
       "origin": "key:clear",
       "bucket": "unclassified"
     },
     {
       "text": "Tight",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 152,
+      "line": 156,
       "origin": "key:tight",
       "bucket": "unclassified"
     },
     {
       "text": "Very tight",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 153,
+      "line": 157,
       "origin": "key:\"at-risk\"",
       "bucket": "unclassified"
     },
     {
       "text": "Unlock Premium",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 168,
+      "line": 172,
       "origin": "var:UNLOCK_PREMIUM_CTA",
       "bucket": "unclassified"
     },
     {
       "text": "Log a payment",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 179,
+      "line": 183,
       "origin": "var:LOG_PAYMENT_ENTRY",
       "bucket": "unclassified"
     },
     {
       "text": "Payoff schedule",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 184,
+      "line": 188,
       "origin": "var:PAYOFF_SCHEDULE_TITLE",
       "bucket": "unclassified"
     },
     {
       "text": "Overdue",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 189,
+      "line": 193,
       "origin": "var:OVERDUE_LABEL",
       "bucket": "unclassified"
     },
     {
       "text": "Privacy Policy",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 194,
+      "line": 198,
       "origin": "var:PRIVACY_POLICY_LABEL",
       "bucket": "unclassified"
     },
     {
       "text": "See it in action",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 198,
+      "line": 202,
       "origin": "var:SEE_IT_IN_ACTION_CTA",
       "bucket": "unclassified"
     },
     {
       "text": "Pay cycle history",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 208,
+      "line": 212,
       "origin": "var:PAY_CYCLE_HISTORY_TITLE",
       "bucket": "unclassified"
     },
     {
       "text": "Export backup",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 209,
+      "line": 213,
       "origin": "var:EXPORT_BACKUP_TITLE",
       "bucket": "unclassified"
     },
     {
       "text": "Import backup",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 210,
+      "line": 214,
       "origin": "var:IMPORT_BACKUP_TITLE",
       "bucket": "unclassified"
     },
     {
       "text": "That file couldn’t be opened.",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 223,
+      "line": 227,
       "origin": "var:FILE_UNREADABLE",
       "bucket": "unclassified"
     },
     {
       "text": "Restore from iCloud",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 231,
+      "line": 235,
       "origin": "var:RESTORE_FROM_CLOUD_ACTION",
       "bucket": "unclassified"
     },
     {
       "text": "Current balance",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 249,
+      "line": 253,
       "origin": "key:balanceLabel",
       "bucket": "unclassified"
     },
     {
       "text": "e.g. 2400",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 250,
+      "line": 254,
       "origin": "key:balancePlaceholder",
       "bucket": "unclassified"
     },
     {
       "text": "Minimum payment",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 251,
+      "line": 255,
       "origin": "key:minimumLabel",
       "bucket": "unclassified"
     },
     {
       "text": "e.g. 65",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 252,
+      "line": 256,
       "origin": "key:minimumPlaceholder",
       "bucket": "unclassified"
     },
     {
       "text": "e.g. 22.99",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 253,
+      "line": 257,
       "origin": "key:aprPlaceholder",
       "bucket": "unclassified"
     },
     {
       "text": "Paid off",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 261,
+      "line": 265,
       "origin": "var:PAID_OFF_LABEL",
       "bucket": "unclassified"
     },
     {
       "text": "Share your win",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 262,
+      "line": 266,
       "origin": "var:SHARE_WIN_CTA",
       "bucket": "unclassified"
     },
     {
       "text": "to your goals",
       "file": "packages/core/copy/vocabulary.ts",
-      "line": 267,
+      "line": 271,
       "origin": "var:GOALS_DESTINATION",
       "bucket": "unclassified"
     },
@@ -9620,35 +10047,35 @@
     {
       "text": "Keep cash buffer",
       "file": "packages/core/engine/allocatePaycheck.ts",
-      "line": 521,
+      "line": 529,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "Reserved for upcoming bills",
       "file": "packages/core/engine/allocatePaycheck.ts",
-      "line": 541,
+      "line": 549,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "Held for an upcoming tight cycle",
       "file": "packages/core/engine/allocatePaycheck.ts",
-      "line": 587,
+      "line": 595,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "Safety net",
       "file": "packages/core/engine/allocatePaycheck.ts",
-      "line": 594,
+      "line": 602,
       "origin": "key:label",
       "bucket": "copy"
     },
     {
       "text": "Leftover cash",
       "file": "packages/core/engine/allocatePaycheck.ts",
-      "line": 726,
+      "line": 734,
       "origin": "key:label",
       "bucket": "copy"
     },
@@ -9753,182 +10180,182 @@
     {
       "text": "a little tight",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 201,
+      "line": 225,
       "origin": "var:look",
       "bucket": "unclassified"
     },
     {
       "text": "A paycheck didn’t land",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 213,
+      "line": 237,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Let’s refresh your numbers",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 233,
+      "line": 257,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Your paycheck, expenses, or balances are more than a few weeks old, so I can’t tell you if you’ll make it this paycheck with confidence.",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 235,
+      "line": 259,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "Update your numbers and I’ll plan from where you actually are.",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 236,
+      "line": 260,
       "origin": "key:safeMove",
       "bucket": "copy"
     },
     {
       "text": "toward your savings",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 251,
+      "line": 275,
       "origin": "var:dest",
       "bucket": "unclassified"
     },
     {
       "text": "toward debt",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 253,
+      "line": 277,
       "origin": "var:dest",
       "bucket": "unclassified"
     },
     {
       "text": "This paycheck won’t cover everything",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 265,
+      "line": 289,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "expenses and minimums",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 267,
+      "line": 291,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "— this one needs a plan.",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 268,
+      "line": 292,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "Looks clear this paycheck",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 284,
+      "line": 308,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "A little tight this paycheck",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 284,
+      "line": 308,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "Tight this paycheck",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 284,
+      "line": 308,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "— a bit tight this one, so keep an eye on the essentials.",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 285,
+      "line": 309,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "Very tight this paycheck",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 299,
+      "line": 323,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "A little tight this paycheck",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 299,
+      "line": 323,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "at-risk",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 304,
+      "line": 328,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "a little under",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 304,
+      "line": 328,
       "origin": "key:detail",
       "bucket": "copy"
     },
     {
       "text": "Your line’s held",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 318,
+      "line": 342,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "your savings",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 343,
+      "line": 367,
       "origin": "var:target",
       "bucket": "unclassified"
     },
     {
       "text": "Looks clear this paycheck",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 347,
+      "line": 371,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "to debt",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 353,
+      "line": 377,
       "origin": "key:safeMove",
       "bucket": "copy"
     },
     {
       "text": "Looks clear this paycheck",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 363,
+      "line": 387,
       "origin": "key:title",
       "bucket": "copy"
     },
     {
       "text": "your goals",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 365,
+      "line": 389,
       "origin": "key:safeMove",
       "bucket": "copy"
     },
     {
       "text": "your debts",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 377,
+      "line": 401,
       "origin": "var:safeMove",
       "bucket": "unclassified"
     },
     {
       "text": "Looks clear this paycheck",
       "file": "packages/core/guardian/buildGuardianBrief.ts",
-      "line": 384,
+      "line": 408,
       "origin": "key:title",
       "bucket": "copy"
     },

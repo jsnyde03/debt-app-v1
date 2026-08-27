@@ -24,7 +24,10 @@ const W = 360;
 export type ShareCardData =
   | { kind: 'finale'; totalPaid: number; debtsCleared: number; monthsToFreedom: number | null }
   | { kind: 'debt'; debtName: string; amount: number | null; freedPerMonth: number }
-  | { kind: 'progress'; debtsCleared: number; totalPaid: number };
+  /** ⛔ S1.10.6.2 [C-4] — `totalPaid` is `null` when any cleared debt's starting balance could not be
+   *  read, the same "never captured; don't fabricate" contract `kind: 'debt'`'s `amount` already carries.
+   *  The count still renders: it is a fact about the list, not a claim about money. */
+  | { kind: 'progress'; debtsCleared: number; totalPaid: number | null };
 
 export function ShareCard({ data }: { data: ShareCardData }) {
   const surf = useAppColors().surface;
@@ -61,7 +64,7 @@ export function ShareCard({ data }: { data: ShareCardData }) {
           <Text style={[styles.headline, { color: surf.heroText }]} allowFontScaling={false}>
             {data.debtsCleared} {data.debtsCleared === 1 ? 'debt' : 'debts'} paid off
           </Text>
-          {data.totalPaid > 0 ? (
+          {data.totalPaid != null && data.totalPaid > 0 ? (
             <Text style={[styles.amount, { color: surf.goldPill }]} allowFontScaling={false}>{formatWhole(data.totalPaid)} paid off</Text>
           ) : null}
           <Text style={[textStyles.subhead, styles.sub, { color: surf.heroSub }]} allowFontScaling={false}>on my way to debt-free</Text>

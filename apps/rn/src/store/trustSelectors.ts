@@ -124,7 +124,12 @@ function poisons(r: DataRepair, claim: MoneyClaim): boolean {
 
 /** A repair that names no field: the row, or the whole list, could not be read at all. */
 function isWholeRowLoss(r: DataRepair): boolean {
-  return r.field.startsWith('(');
+  return isWholeRowLossField(r.field);
+}
+
+/** ⚠️ The same question asked of a bare field name — `unreadFieldsFor` returns strings, not records. */
+function isWholeRowLossField(field: string): boolean {
+  return field.startsWith('(');
 }
 
 /**
@@ -153,9 +158,59 @@ export function unreadFieldsFor(store: DebtStore, entity: DataRepair['entity'], 
     .map((r) => r.field);
 }
 
-/** Does THIS row carry a repair on any of `fields`? The row-level twin of `mayClaim`. */
-export function rowFieldUnread(store: DebtStore, entity: DataRepair['entity'], id: string, ...fields: string[]): boolean {
-  return unreadFieldsFor(store, entity, id).some((f) => fields.includes(f) || f.startsWith('('));
+/**
+ * ⛔ **THE CLAIM IS A PARAMETER BECAUSE A ROUTE WITH NO CALLER IS DECORATION.** [S1.10.6.2 · pass-3 C-1]
+ *
+ * ⚡ Pass 2 added `'row-figures'` — the route for *"a single row restating its own money"* — and pass 3
+ * measured its production consumers at **zero**: three grep hits, all the declaration or its own test.
+ * The table's fields were widened and its **claim sites** were only re-declared, so Money still printed
+ * *"0% APR"* on a card charging 22% and *"$0.00/mo"* on one demanding $150 — the two strings the route's
+ * own docblock names as the reason it exists.
+ *
+ * ⚠️ **So the row asks the TABLE which fields it may speak, rather than remembering a list.** The answer
+ * is the intersection of what this site asked for and what the claim routes; a field the claim does not
+ * route contributes nothing and **`lint:trust-claims` reds on the mismatch** rather than leaving it to be
+ * noticed. ⛔ That gate is the durable half — the enumeration is what has been short every single time.
+ */
+export function rowFieldUnread(
+  store: DebtStore,
+  claim: MoneyClaim,
+  entity: DataRepair['entity'],
+  id: string,
+  ...fields: string[]
+): boolean {
+  const asked = routedSubset(claim, entity, fields);
+  return unreadFieldsFor(store, entity, id).some((f) => asked.includes(f) || isWholeRowLossField(f));
+}
+
+/**
+ * ⛔ **THE SUM-LEVEL TWIN — a total missing an unknown addend is not a total.** [S1.10.6.2 · pass-3 C-2]
+ *
+ * `rowFieldUnread` is the right question for a row and the **wrong** question for a headline: captioning
+ * the Groceries row still leaves *"Reserve per paycheck: $120"* standing over a true figure of at least
+ * $520. And `mayClaim` is too wide for the same headline — it is store-wide across all four entities, so
+ * an unread goal target would gag a bills total it says nothing about.
+ *
+ * ⚠️ **Scoped to the entity whose rows the sum is over**, which is the narrowing `money.tsx:377`'s debts
+ * hero already applies by hand. The rows below the headline still say everything the app does know.
+ */
+export function anyRowFieldUnread(
+  store: DebtStore,
+  claim: MoneyClaim,
+  entity: DataRepair['entity'],
+  ...fields: string[]
+): boolean {
+  const asked = routedSubset(claim, entity, fields);
+  return store.pendingDataRepairs.some(
+    (r) => r.entity === entity && r.kind !== 'recovered' && (isWholeRowLoss(r) || asked.includes(r.field)),
+  );
+}
+
+/** What this claim actually routes for this entity, intersected with what the call site asked for. */
+function routedSubset(claim: MoneyClaim, entity: DataRepair['entity'], fields: string[]): string[] {
+  const routed = CLAIM_FIELDS[claim][entity];
+  if (!routed) return [];
+  return routed === 'any' ? fields : fields.filter((f) => routed.includes(f));
 }
 
 /**

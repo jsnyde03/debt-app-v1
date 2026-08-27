@@ -61,6 +61,10 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     'lint:press-opacity',
     'lint:icon-glyphs',
     'lint:copy-owners',
+    // ⛔ S1.10.6.2 [C-1] — the trust rule's own gate. `trustSelectors.test.ts` proves every repairable
+    // field is ROUTED to a claim; this proves every claim is ASKED by production, which is the half that
+    // was missing when `'row-figures'` shipped with three grep hits and no callers.
+    'lint:trust-claims',
     'lint:lane',
     // ⛔ S1.5.4 [M5] — THE ONLY THING IN THE TREE ASSERTING A GATE FAILS **CLOSED**, and it was in no
     // chain at all: not here, not `validate:release:rn`, not CI. A repo-wide search for `gate-plants`

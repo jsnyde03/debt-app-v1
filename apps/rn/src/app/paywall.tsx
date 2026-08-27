@@ -7,6 +7,7 @@ import { notify } from '@/utils/confirm';
 import { paywallLead } from '@/store/paywallLead';
 import { selectPlanSummary, selectRequiredRows } from '@/store/planSelectors';
 import { effectivePaycheckBuffer, selectAllocation } from '@/store/selectors';
+import { mayClaim } from '@/store/trustSelectors';
 
 import { AppIcon, type IconGlyph } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
@@ -125,7 +126,10 @@ export default function PaywallScreen() {
   const store = useAppStore((s) => s.store);
   const allocation = selectAllocation(store);
   const summary = allocation ? selectPlanSummary(store, allocation, selectRequiredRows(store, allocation)) : null;
-  const lead = paywallLead(summary, effectivePaycheckBuffer(store), from);
+  // ⛔ S1.10.6.2 [C-5] — the lead states a personalised dollar fact about this user's money, so it asks
+  // the same owner Today's plan card asks. An obligation the app could not read leaves the allocation
+  // arrays entirely, and every figure derived from them is short by it.
+  const lead = paywallLead(summary, effectivePaycheckBuffer(store), mayClaim(store, 'required-plan'), from);
 
   const [plans, setPlans] = useState<PlanView[]>(STATIC_PLANS);
   const [selectedKey, setSelectedKey] = useState<PlanKey>('annual');

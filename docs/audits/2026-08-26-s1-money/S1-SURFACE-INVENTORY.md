@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**470 files on the S1 surface · 349 swept · 121 unswept.**
+**471 files on the S1 surface · 349 swept · 122 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -366,6 +366,7 @@
 | `apps/rn/tests/e2e/trajectory-domain.spec.ts` | ⛔ **never** |
 | `apps/rn/tests/e2e/trajectory-interactivity.spec.ts` | ⛔ **never** |
 | `apps/rn/tests/e2e/trials.spec.ts` | s1p3 |
+| `apps/rn/tests/e2e/trust-claims.spec.ts` | ⛔ **never** |
 | `apps/rn/tests/e2e/variable-income.spec.ts` | ⛔ **never** |
 | `apps/rn/tests/e2e/vis5-cone.spec.ts` | ⛔ **never** |
 | `apps/rn/tests/e2e/windfall.spec.ts` | s1p3 |
@@ -589,6 +590,7 @@
 - `apps/rn/tests/e2e/swipe-delete.spec.ts`
 - `apps/rn/tests/e2e/trajectory-domain.spec.ts`
 - `apps/rn/tests/e2e/trajectory-interactivity.spec.ts`
+- `apps/rn/tests/e2e/trust-claims.spec.ts`
 - `apps/rn/tests/e2e/variable-income.spec.ts`
 - `apps/rn/tests/e2e/vis5-cone.spec.ts`
 - `packages/core/debt/testApplyPaydayCapture.ts`

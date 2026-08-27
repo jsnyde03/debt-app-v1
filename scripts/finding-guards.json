@@ -472,5 +472,40 @@
     "what": "pass-3 A4 — the in-window seams were gated on isInstallmentNative, so a fallback BNPL (type bnpl + recurrence + dueDate, no installment fields; reachable via CSV import and pre-2.7.2 backups) was reserved and paid down at 1x while the chart and date rated it by cadence. Jason chose the reserve moves to the cadence. The token names the PAYDOWN assertion, not the count — proven independently load-bearing by relaxing the two assertions before it (D3-3's lesson: name the line that USES the check)",
     "file": "packages/core/debt/testBnplInstallment.ts",
     "token": "PAID DOWN by the same amount, so reserve and paydown stay in lockstep (S1P3-A4)"
+  },
+  "S1P3-C1-ROWFIGURES": {
+    "what": "pass-3 C-1 — the claim table's 'row-figures' route had ZERO production consumers (3 grep hits, all the declaration or its own test), so Money printed \"0% APR\" on a card charging 22% and \"$0/mo\" on one demanding $150. The token names the ABSENCE assertion rather than the honest-state one: verified red under the plant twice, once normally and once with the honest-state assertions relaxed, so both halves are independently load-bearing",
+    "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
+    "token": "await expect(row).not.toHaveAccessibleName(/0% APR/);"
+  },
+  "S1P3-C1-GATE": {
+    "what": "pass-3 C-1's structural half — trustSelectors.test.ts gates the table's INPUTS (every repairable field is routed) and nothing gated its OUTPUTS, which is how a route shipped with no callers. lint:trust-claims reds when any MoneyClaim has no production consumer, when a call site asks a field its claim does not route (the intersection silently reads \"readable\"), and when the unguarded-claim-site ledger goes stale. All three plant-verified",
+    "file": "scripts/check-trust-claims.ts",
+    "token": "is declared in ${TRUST_MODULE} and asked by NO production file"
+  },
+  "S1P3-C2-SUMS": {
+    "what": "pass-3 C-2 — the sums on both expense screens had no guard, so Everyday Spending headlined $120 over a true figure of at least $520 and Money captioned \"of $55 recommended each paycheck\" against $1,400 of rent. ⚠️ The direction is the finding: a dropped addend makes a RECOMMENDATION smaller, so the failure runs toward the user under-reserving. The token names the headline's own testID, which exists because \"$120\" is also the Gas row's amount and a page-wide assertion could not tell them apart",
+    "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
+    "token": "living-reserve-headline"
+  },
+  "S1P3-C3-QUANTITY": {
+    "what": "pass-3 C-3 — selectHistorySummary computed balance REDUCTION and history.tsx printed it as money \"paid down\", in success green; deleting a duplicated import credited the user with $2,923 they never paid. Fixed by making the quantity match the sentence (sum totalPaidThisCycle), with guardianSelectors' identical expression collapsed onto the same owner. The CONTROL is the load-bearing half — it reds under the plant too, because the pre-fix quantity is a different number",
+    "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
+    "token": "History still anchors on money that WAS paid"
+  },
+  "S1P3-C4-ARCHIVE": {
+    "what": "pass-3 C-4 — the trophy shelf gated on hasUnreadDebtBalances (balance only) while the claim table routed originalBalance to 'debt-balances', so a cleared $12,000 card was filed \"$0 paid off\" and shared that way. Fixed in selectPaidOffDebts so BOTH mount points inherit it — progress.tsx:346 carries no trust check at all and needs no debt-free state to render. NOT fixed by widening hasUnreadDebtBalances: that would gag the graduation banner over balances read perfectly",
+    "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
+    "token": "await expect(page.getByText('$0 paid off')).toHaveCount(0);"
+  },
+  "S1P3-C5-PAYWALL": {
+    "what": "pass-3 C-5 — the paywall named a $100 shortfall on a cycle $500 short and sold a Recovery Plan sized against it. mayStatePlanFigures is a REQUIRED parameter rather than an internal check, so the next consumer cannot be added without answering the question. The cushion assertion is the token, not the shortfall one: it covers the NON-shortfall branch, and it was proven independently load-bearing by relaxing the shortfall assertion under the same plant",
+    "file": "apps/rn/src/store/paywallLead.test.ts",
+    "token": "…and neither is the cushion, which is the branch that runs when the cycle looks fine"
+  },
+  "S1P3-C6-CALENDAR": {
+    "what": "pass-3 C-6 — a BNPL plan whose scheduledPaymentAmount could not be read left the installment expansion and was listed as ONE payment of four, with no \"+ N more\" and a month subtotal reading as the month's whole BNPL load. The unread plan's degraded row is now dropped and the plan named. The token is the absence assertion on the short list, verified red with the honest-state assertion relaxed",
+    "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
+    "token": "await expect(page.getByText(/1 payment/)).toHaveCount(0);"
   }
 }

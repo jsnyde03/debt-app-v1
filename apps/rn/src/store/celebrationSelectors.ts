@@ -24,14 +24,35 @@ export interface PaidOffDebt {
   isBnpl: boolean;
 }
 
-/** The archive: every debt confirmed to $0, most-recently-cleared first. */
+/**
+ * The archive: every debt confirmed to $0, most-recently-cleared first.
+ *
+ * ⛔ **AN UNREADABLE `originalBalance` IS EXACTLY THE `null` THIS CONTRACT ALREADY MEANS.**
+ * [S1.10.6.2 · pass-3 C-4] A repaired one is `0`, not absent, so `?? null` never fired and the shelf filed
+ * a $12,000 card as **"Chase · $0 paid off"** — on the permanent trophy shelf, and in a Share string
+ * reading *"I paid off 2 debts ($400) on my way to debt-free 🎉"*. ⚡ **The pass-2 fix had already routed
+ * `originalBalance` to `'debt-balances'` and written down why** — *"the finale states '$12,400 paid off',
+ * which `selectCelebrationStats` sums from exactly that field"* — while `progress.tsx:173` gated the shelf
+ * on `hasUnreadDebtBalances`, which asks only about `balance`. Two owners for one claim, disagreeing on
+ * precisely the field the fix added.
+ *
+ * ⚠️ **Fixed HERE rather than by widening `hasUnreadDebtBalances`**, and the direction matters: that guard
+ * is correctly narrow for its other two consumers — the graduation banner and `money.tsx:371`'s "Every
+ * balance cleared" are claims purely about balances, and widening it would gag them over a store whose
+ * balances were all read perfectly. That is a true statement withheld, the failure `progress.tsx:186-196`
+ * records having made once already. ⛔ **And it fixes BOTH mount points**: `progress.tsx:346` renders this
+ * same shelf on the ordinary payoff screen with no trust check of any kind, so a user who has cleared one
+ * card and still owes another was reading "$0 paid off" without needing to be debt-free at all.
+ */
 export function selectPaidOffDebts(store: DebtStore): PaidOffDebt[] {
   return store.debts
     .filter((d) => d.balance <= 0)
     .map((d) => ({
       id: d.id,
       name: d.name,
-      amount: d.originalBalance ?? null,
+      amount: rowFieldUnread(store, 'debt-balances', 'debt', d.id, 'originalBalance')
+        ? null
+        : (d.originalBalance ?? null),
       clearedDate: d.lastVerifiedDate ?? d.balanceAsOfDate ?? null,
       isBnpl: d.type === 'bnpl',
     }))
@@ -116,7 +137,7 @@ export function selectCelebration(store: DebtStore): PendingPayoff | null {
   // A beat with no `debtId` was stamped by an earlier build; the portfolio-wide question is the safe
   // fallback — see the field's own note.
   const unread = pending.debtId
-    ? rowFieldUnread(store, 'debt', pending.debtId, 'balance', 'originalBalance', 'minimumPayment')
+    ? rowFieldUnread(store, 'row-figures', 'debt', pending.debtId, 'balance', 'originalBalance', 'minimumPayment')
     : !mayClaim(store, 'debt-balances');
   return unread ? null : pending;
 }

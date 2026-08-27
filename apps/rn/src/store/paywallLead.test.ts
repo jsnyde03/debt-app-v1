@@ -33,28 +33,54 @@ function run() {
   console.log('Running paywall-lead (T3B/L5-12) tests...');
 
   // ── No plan → no invented numbers. The route is deliberately open pre-onboarding. ──
-  assert(paywallLead(null, BASE_PAYCHECK_BUFFER) === null, 'no live summary → null (the pre-onboarding viewer sees today’s paywall)');
+  assert(paywallLead(null, BASE_PAYCHECK_BUFFER, true) === null, 'no live summary → null (the pre-onboarding viewer sees today’s paywall)');
+
+  /**
+   * ⛔ **S1.10.6.2 [pass-3 C-5] — A PLAN THE APP COULD NOT READ STATES NOTHING.**
+   *
+   * ⚡ Measured on the real chain: a user whose imported file lost one card's $400 minimum was told
+   * *"This paycheck comes up $100 short."* on a cycle that is $500 short, and then sold a Recovery Plan
+   * sized against a number wrong by 4×. ⛔ The `cushion` branch is asserted too, because it runs on the
+   * NON-shortfall path — the same store can otherwise promise a cushion over a missing obligation.
+   */
+  assert(
+    paywallLead(summary({ shortfall: 180 }), BASE_PAYCHECK_BUFFER, false) === null,
+    '⛔ C-5 — a shortfall derived from arrays missing an unread obligation is not stated',
+  );
+  assert(
+    paywallLead(summary(), BASE_PAYCHECK_BUFFER, false) === null,
+    '⛔ C-5 — …and neither is the cushion, which is the branch that runs when the cycle looks fine',
+  );
+  assert(
+    paywallLead(summary(), BASE_PAYCHECK_BUFFER, false, 'cushion-forecast') === null,
+    '⛔ C-5 — …including the `from` branch, which is a third exit this function has',
+  );
+  // ⭐ THE CONTROL, and it is the whole point: a plan the app fully read still leads with the fact.
+  assert(
+    paywallLead(summary(), BASE_PAYCHECK_BUFFER, true) !== null,
+    '⭐ control — a readable plan still states its fact, or the fix bought correctness by going silent',
+  );
 
   // ── A shortfall outranks everything: it is the most urgent true thing about this cycle. ──
-  const short = paywallLead(summary({ shortfall: 180 }), BASE_PAYCHECK_BUFFER);
+  const short = paywallLead(summary({ shortfall: 180 }), BASE_PAYCHECK_BUFFER, true);
   assert(short!.fact.includes('$180'), 'a short cycle leads with the shortfall, in their number');
   assert(/Recovery Plan/.test(short!.offer), '…and points at the feature built for it');
 
   // ── Otherwise: their cushion, and the real tier difference. ──
-  const normal = paywallLead(summary(), BASE_PAYCHECK_BUFFER);
+  const normal = paywallLead(summary(), BASE_PAYCHECK_BUFFER, true);
   assert(normal!.fact.includes('$412'), 'no shortfall → leads with their cushion');
   assert(normal!.offer.includes(`$${BASE_PAYCHECK_BUFFER}`), '…and names the flat amount the free tier actually protects');
 
   // ── `from` answers the thing they went looking for. ──
-  const fromForecast = paywallLead(summary(), BASE_PAYCHECK_BUFFER, 'cushion-forecast');
+  const fromForecast = paywallLead(summary(), BASE_PAYCHECK_BUFFER, true, 'cushion-forecast');
   assert(/six paydays/.test(fromForecast!.offer), 'arriving from the forecast → the offer answers the forecast');
   assert(fromForecast!.offer !== normal!.offer, '…and is not the generic offer');
 
   // ── ⛔ THE RETIRED CLAIMS. Neither may reappear in any branch. ──
   const every = [
-    paywallLead(summary({ shortfall: 180 }), BASE_PAYCHECK_BUFFER),
-    paywallLead(summary(), BASE_PAYCHECK_BUFFER),
-    paywallLead(summary(), BASE_PAYCHECK_BUFFER, 'cushion-forecast'),
+    paywallLead(summary({ shortfall: 180 }), BASE_PAYCHECK_BUFFER, true),
+    paywallLead(summary(), BASE_PAYCHECK_BUFFER, true),
+    paywallLead(summary(), BASE_PAYCHECK_BUFFER, true, 'cushion-forecast'),
   ].filter(Boolean) as { fact: string; offer: string }[];
   for (const l of every) {
     const text = `${l.fact} ${l.offer}`.toLowerCase();

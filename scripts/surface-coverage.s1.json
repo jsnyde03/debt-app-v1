@@ -1120,6 +1120,9 @@
   "apps/rn/tests/e2e/trials.spec.ts": [
     "s1p3"
   ],
+  "apps/rn/tests/e2e/trust-claims.spec.ts": [
+    "never"
+  ],
   "apps/rn/tests/e2e/variable-income.spec.ts": [
     "never"
   ],

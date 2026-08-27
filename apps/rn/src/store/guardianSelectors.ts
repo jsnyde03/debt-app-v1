@@ -11,6 +11,7 @@ import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
 import type { DebtStore } from '@/data/models';
 
 import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
+import { sumPaidToDebt } from './historySelectors';
 import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectExtraToDebt, selectHeldReserve, selectLiquidCushion, selectDeployedBeforeDebt, selectDeployedBeforeDebtGoalId } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
@@ -85,7 +86,9 @@ export function selectGuardianProofOfWork(store: DebtStore): GuardianProofOfWork
     heldStreak++;
   }
 
-  const totalToDebt = Math.round(history.reduce((sum, s) => sum + Math.max(0, s.totalPaidThisCycle), 0) * 100) / 100;
+  // ⛔ S1.10.6.2 [C-3] — one owner. This expression lived here and History carried a DIFFERENT one under
+  // the same word ("paid down"), which is how a deleted debt became money the user was told they paid.
+  const totalToDebt = sumPaidToDebt(history);
   return { heldStreak, totalToDebt, cyclesRun: history.length, score: selectCalibrationScore(store) };
 }
 

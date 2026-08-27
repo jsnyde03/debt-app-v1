@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { Recurrence } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
+import { UNREAD_FIGURE } from '@/components/plan/dataRepairsCopy';
 import { AnimatedSheet } from '@/components/ui/AnimatedSheet';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
@@ -15,6 +16,8 @@ export interface BreakdownBill {
   recurrence: Recurrence;
   amount: number;
   perPaycheck: number;
+  /** ⛔ S1.10.6.2 [C-2] — this bill's amount could not be read, so neither figure on its row is real. */
+  unread: boolean;
 }
 export interface BreakdownCategory {
   key: string;
@@ -29,6 +32,12 @@ export interface BillBreakdownData {
   categories: BreakdownCategory[]; // recurring only, sorted largest → smallest
   oneTimeTotal: number;
   oneTimeCount: number;
+  /**
+   * ⛔ **S1.10.6.2 [C-2] — a bill amount somewhere could not be read.** Every total in this sheet is a sum
+   * over that one field, so all of them stop being statable together; the per-bill rows still show what
+   * the app did read. ⚠️ Required, not optional — a new caller must decide, and the compiler asks.
+   */
+  unread: boolean;
 }
 
 const CADENCE: Record<Recurrence, string> = {
@@ -52,12 +61,19 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
   return (
     <AnimatedSheet visible={visible} onClose={onClose} title="Where it goes">
       <View style={styles.echo}>
-        <Text maxFontSizeMultiplier={1.3} style={[styles.echoNum, { color: c.text.primary }]}>{formatWhole(data.perPaycheckTotal)}</Text>
+        {/* ⛔ S1.10.6.2 [C-2] — the headline is a sum over the one field a repair can blank, so it is
+            suppressed rather than stated short. The itemised rows below still show every bill the app
+            did read, which is the point of a receipt. */}
+        <Text maxFontSizeMultiplier={1.3} style={[styles.echoNum, { color: c.text.primary }]}>
+          {data.unread ? UNREAD_FIGURE : formatWhole(data.perPaycheckTotal)}
+        </Text>
         {/* 3.8.4 — "recommended", not "reserved". This sheet's headline is the SMOOTHED LOAD, which is the
             right source here (the receipt explains the advice), but it carried the same false verb as the
             hero: nothing reserved it. The hero now shows what actually is reserved; this states the advice. */}
         <Text style={[textStyles.subhead, { color: c.text.tertiary }]}>
-          recommended per paycheck{data.perCycleEqualsMonth ? '' : ` · ≈ ${formatWhole(data.monthlyTotal)}/mo`}
+          {data.unread
+            ? 'set the unread amounts again and your recommendation comes back'
+            : `recommended per paycheck${data.perCycleEqualsMonth ? '' : ` · ≈ ${formatWhole(data.monthlyTotal)}/mo`}`}
         </Text>
       </View>
       <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
@@ -81,7 +97,10 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
                   ⚠️ This does NOT make the column sum exactly — rounded addends can differ from the
                   rounded total by up to $0.50 each. That residual is L4-10's class, which the audit
                   itself closed as "no fix needed"; what is fixed here is one tier reading two ways. */}
-              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>{formatWhole(cat.perPaycheck)}/paycheck</Text>
+              {/* ⛔ [C-2] A category subtotal is an addend of the headline and a sum in its own right. */}
+              <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
+                {cat.bills.some((b) => b.unread) ? UNREAD_FIGURE : `${formatWhole(cat.perPaycheck)}/paycheck`}
+              </Text>
             </View>
             {cat.bills.map((b) => {
               const lumpy = b.recurrence !== 'monthly' && b.recurrence !== 'per-paycheck';
@@ -90,7 +109,7 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
                   <View style={styles.flex}>
                     <Text style={[textStyles.body, { color: c.text.primary }]} numberOfLines={1}>{b.name}</Text>
                     <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-                      {formatCurrency(b.amount)} · {CADENCE[b.recurrence]}
+                      {b.unread ? 'amount could not be read' : formatCurrency(b.amount)} · {CADENCE[b.recurrence]}
                     </Text>
                   </View>
                   {/* [T6.5 · L4-3] The per-bill smoothed share is an addend of the same headline, so it
@@ -98,8 +117,14 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
                       deliberately — that is the real bill the user typed and the biller charges, a
                       different quantity from its smoothed per-paycheck share. */}
                   <Text style={[textStyles.numericBody, { color: lumpy ? c.accent.primary : c.text.secondary }]}>
-                    {formatWhole(b.perPaycheck)}
-                    <Text style={[textStyles.caption, { color: c.text.tertiary }]}>/paycheck</Text>
+                    {b.unread ? (
+                      UNREAD_FIGURE
+                    ) : (
+                      <>
+                        {formatWhole(b.perPaycheck)}
+                        <Text style={[textStyles.caption, { color: c.text.tertiary }]}>/paycheck</Text>
+                      </>
+                    )}
                   </Text>
                 </View>
               );
@@ -112,7 +137,9 @@ export function BillBreakdownSheet({ visible, onClose, data }: { visible: boolea
             <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
               {/* [T6.5 · L4-5] `formatWhole` — a summary sentence, not a ledger row, and `money.tsx`
                   renders this same `oneTimeTotal` variable as `formatWhole` in two places one tap away. */}
-              Plus {formatWhole(data.oneTimeTotal)} in {data.oneTimeCount} one-time {data.oneTimeCount === 1 ? 'expense' : 'expenses'} — not part of your ongoing reserve.
+              {/* ⛔ [C-2] `oneTimeTotal` sums the same field. The COUNT survives — it is a fact about the
+                  list, not a claim about money. */}
+              Plus {data.unread ? UNREAD_FIGURE : formatWhole(data.oneTimeTotal)} in {data.oneTimeCount} one-time {data.oneTimeCount === 1 ? 'expense' : 'expenses'} — not part of your ongoing reserve.
             </Text>
           </View>
         ) : null}

@@ -29,12 +29,21 @@ export function PaidOffArchive({ debts }: { debts: PaidOffDebt[] }) {
   const shareRef = useRef<View>(null);
   if (debts.length === 0) return null;
 
-  const total = debts.reduce((sum, d) => sum + (d.amount ?? 0), 0);
+  /**
+   * ⛔ **A SUM OVER A `null` ADDEND IS NOT A SUM, AND THIS ONE LEAVES THE DEVICE.** [S1.10.6.2 · pass-3 C-4]
+   *
+   * `?? 0` treated *"we never captured this"* as *"this was zero"*, so a shelf holding a $12,000 card the
+   * app could not read produced **"I paid off 2 debts ($400)"** — $12,000 of the user's own repayment
+   * erased from the one artefact in the product designed to outlast the moment and be sent to other
+   * people. ⚠️ The COUNT survives, because it is a fact about the list rather than a claim about money.
+   */
+  const anyUnknown = debts.some((d) => d.amount == null);
+  const total = anyUnknown ? null : debts.reduce((sum, d) => sum + (d.amount ?? 0), 0);
 
   // B2 — share the branded trophy-shelf card (image on native; the text is the web/Share-API fallback).
   const onShare = async () => {
     const lines = debts.map((d) => `• ${d.name}${d.amount != null ? ` — ${formatWhole(d.amount)}` : ''}`).join('\n');
-    const headline = `I paid off ${debts.length} debt${debts.length === 1 ? '' : 's'}${total > 0 ? ` (${formatWhole(total)})` : ''} on my way to debt-free 🎉`;
+    const headline = `I paid off ${debts.length} debt${debts.length === 1 ? '' : 's'}${total != null && total > 0 ? ` (${formatWhole(total)})` : ''} on my way to debt-free 🎉`;
     try {
       await shareDebtCard(shareRef, `${headline}\n\n${lines}`, 'Share your progress');
     } catch (e) {
