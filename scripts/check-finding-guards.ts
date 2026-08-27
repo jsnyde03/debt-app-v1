@@ -110,7 +110,7 @@ const ids = Object.keys(registry);
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
 const MIN_ENTRIES = 140;
-const MAX_UNGUARDED = 9;
+const MAX_UNGUARDED = 8;
 
 /**
  * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.

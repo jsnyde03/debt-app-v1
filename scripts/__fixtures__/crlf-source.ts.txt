@@ -1,0 +1,8 @@
+// a line comment, and it must survive CRLF
+const kept = 'a string with // not a comment';
+/* a block comment
+   spanning lines */
+const re = /a\/b/; // a regex whose slash is not a comment
+const tpl = `a template with ${'nested'} parts`;
+
+const trailing = 1; // trailing comment

@@ -40,6 +40,7 @@
     "lint:finding-guards": "tsx scripts/check-finding-guards.ts",
     "lint:gate-sources": "tsx scripts/check-gate-sources.ts",
     "lint:scan-floors": "tsx scripts/check-scan-floors.ts",
+    "lint:line-endings": "tsx scripts/test-line-endings.ts",
     "gate:begin": "tsx scripts/begin-gate-run.ts",
     "gate:record": "tsx scripts/write-gate-status.ts",
     "lint:secrets": "tsx scripts/check-committed-secrets.ts",

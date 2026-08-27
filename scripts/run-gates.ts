@@ -60,6 +60,9 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // ⛔ S1.10.6.5.8.4 [GAP-8] — seven gates reported ✅ while reading nothing. This closes the CLASS:
     // every script importing lib/stripCode carries a scan floor, or is exempt for a MEASURED reason.
     'lint:scan-floors',
+    // ⛔ S1.10.6.5.8.5 [GAP-12] — CI is ubuntu-latest and CANNOT see the CRLF class even in principle.
+    // A committed fixture of real CRLF bytes, asserting lib/stripCode is ending-faithful for all 11 gates.
+    'lint:line-endings',
     // [D67] — finding → guard, the `check-copy-owners` pattern applied to findings. Reds when a guard's
     // assertion is removed even though its file survives.
     'lint:finding-guards',

@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**103 files on the S0 surface · 47 swept · 56 unswept.**
+**104 files on the S0 surface · 47 swept · 57 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -114,6 +114,7 @@
 | `scripts/surface-inventory.ts` | ⛔ **never** |
 | `scripts/test-conform-assertions.sh` | ⛔ **never** |
 | `scripts/test-gate-plants.ts` | s1p1 · s1p2 |
+| `scripts/test-line-endings.ts` | ⛔ **never** |
 | `scripts/test-stamp-coverage.ts` | ⛔ **never** |
 | `scripts/webkit-flex-controls-baseline.json` | p4 |
 | `scripts/write-gate-status.ts` | p4 · s1p1 · s1p2 |
@@ -175,5 +176,6 @@
 - `scripts/secrets-exemptions.json`
 - `scripts/surface-inventory.ts`
 - `scripts/test-conform-assertions.sh`
+- `scripts/test-line-endings.ts`
 - `scripts/test-stamp-coverage.ts`
 
