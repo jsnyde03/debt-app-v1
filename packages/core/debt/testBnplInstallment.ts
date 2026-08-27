@@ -6,6 +6,7 @@ import {
 	bnplPaymentsTotal,
 	bnplInstallmentsInWindow,
 	scaleBnplMinimumForWindow,
+	effectiveMinimumInWindow,
 } from "./bnplInstallment";
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
@@ -104,6 +105,30 @@ function runBnplInstallmentTests() {
 	assertTrue(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-15") === biweeklyBnpl, "aligned window (1 charge) → no-op, same reference");
 	assertEqual(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-12-01").minimumPayment, 400, "a long window's scaled minimum is capped at the balance (never over-pays)");
 	assertTrue(scaleBnplMinimumForWindow(plain, "2026-08-01", "2026-09-01") === plain, "a plain debt is never scaled");
+
+	// ── S1P3-A4 — A FALLBACK BNPL IS RESERVED AT ITS CADENCE, NOT AT ONE INSTALLMENT (🎯 2026-08-26) ──
+	// `type: 'bnpl'` + `recurrence` + `dueDate` but NO installment fields. Reachable in the shipping app:
+	// the CSV importer writes `scheduledPaymentAmount`/`remainingPayments` only when the columns are
+	// present, while still accepting `type: bnpl` and `recurrence: biweekly`; a restored pre-2.7.2 backup
+	// is the second door. The in-window seams used to be gated on `isInstallmentNative`, so this shape
+	// reserved and paid down $100/cycle while the chart and the debt-free date rated it $216.67/month —
+	// one debt, two screens, 2× apart.
+	// ⚠️ 🎯 chose to move the RESERVE to the cadence, not the date to the reserve: under-reserving tells a
+	// user they have money they have already committed.
+	const fallbackBiweekly = debt({ type: "bnpl", balance: 1200, minimumPayment: 100, dueDate: "2026-08-01", recurrence: "biweekly" });
+	assertEqual(bnplInstallmentsInWindow(fallbackBiweekly, "2026-08-01", "2026-09-01"), 3, "a fallback BNPL counts its in-window charges (S1P3-A4)");
+	assertEqual(scaleBnplMinimumForWindow(fallbackBiweekly, "2026-08-01", "2026-08-28").minimumPayment, 200, "a fallback BNPL is RESERVED at 2 × its installment in a 2-charge window (S1P3-A4)");
+	assertEqual(effectiveMinimumInWindow(fallbackBiweekly, "2026-08-01", "2026-08-28"), 200, "…and PAID DOWN by the same amount, so reserve and paydown stay in lockstep (S1P3-A4)");
+
+	// ⛔ AN UNKNOWN remainingPayments IS AN UNKNOWN CAP — Infinity, not 0. Reading it as 0 is what made
+	// the loop return 0 and the whole seam a silent no-op for this shape.
+	assertEqual(bnplInstallmentsInWindow(fallbackBiweekly, "2026-08-01", "2026-11-01"), 7, "an absent remaining-count caps at nothing, not at zero (S1P3-A4)");
+
+	// ⚠️ CONTROLS, both directions. The scaling must be CADENCE-specific, not a blanket BNPL bump — and
+	// it must not reach a plain debt at all.
+	const fallbackMonthly = debt({ type: "bnpl", balance: 400, minimumPayment: 100, dueDate: "2026-08-01", recurrence: "monthly" });
+	assertTrue(scaleBnplMinimumForWindow(fallbackMonthly, "2026-08-01", "2026-09-01") === fallbackMonthly, "a MONTHLY fallback BNPL is not scaled (control)");
+	assertEqual(effectiveMinimumInWindow(plain, "2026-08-01", "2026-09-01"), plain.minimumPayment, "a plain debt's in-window minimum is its stored minimum (control)");
 
 	console.log("✅ BNPL installment-native model (2.7.2/2.7.4) tests passed.");
 }

@@ -84,10 +84,57 @@ export function bnplPaymentsTotal(debt: Debt): number | null {
  * non-installment-native debt or when nothing is due before `end`. In the aligned case (a biweekly
  * BNPL for a biweekly-paid user) the window holds exactly one charge → 1, so nothing changes.
  */
+/**
+ * ⛔ THE PER-INSTALLMENT AMOUNT, for an installment-native BNPL **or a fallback one** (S1P3-A4).
+ *
+ * An installment-native BNPL carries `scheduledPaymentAmount`. A FALLBACK BNPL — `type: 'bnpl'` with
+ * `recurrence` + `dueDate` but no installment fields, which the CSV importer and a pre-2.7.2 backup
+ * both produce — carries the same number in `minimumPayment`. Both are "what this plan charges once".
+ */
+function bnplInstallmentAmount(debt: Debt): number {
+	return typeof debt.scheduledPaymentAmount === "number" && debt.scheduledPaymentAmount > 0
+		? debt.scheduledPaymentAmount
+		: debt.minimumPayment;
+}
+
+/**
+ * ⛔ A BNPL WHOSE CADENCE IS KNOWN — the gate the in-window seams use (S1P3-A4, 🎯 2026-08-26).
+ *
+ * Wider than `isInstallmentNative` **on purpose**. A biweekly plan charges 26 times a year; that is a
+ * fact about the plan, not about whether we happen to hold its installment columns. Gating the RESERVE
+ * on installment data meant a CSV-imported biweekly BNPL was reserved and paid down at $100/cycle while
+ * the chart and the debt-free date rated it at $216.67/month — **one debt, two screens, 2× apart.**
+ *
+ * 🎯 chose to move the RESERVE to the cadence rather than move the date to the reserve: under-reserving
+ * tells a user they have money they have already committed, which is the dangerous direction for a debt
+ * app. ⚠️ The cost is named rather than hidden — the app now holds back against a cadence it cannot
+ * verify from installment data, so a CSV that says `biweekly` wrongly reserves too much. That is the
+ * conservative error.
+ *
+ * ⚠️ One-time plans are NOT excluded here, and an earlier draft of this predicate excluded them —
+ * which red `testBnplInstallment.ts:98` ("a one-time BNPL charges exactly once"). The loop already
+ * handles them: `advanceDueDateOnce` returns the same date, so it counts exactly one occurrence and
+ * breaks. ⛔ That exclusion was a rule I invented rather than measured; the test caught it.
+ */
+export function hasKnownBnplCadence(debt: Debt): boolean {
+	return (
+		debt.type === "bnpl" &&
+		typeof debt.dueDate === "string" &&
+		debt.dueDate.length > 0 &&
+		bnplInstallmentAmount(debt) > 0
+	);
+}
+
 export function bnplInstallmentsInWindow(debt: Debt, windowStartISO: string, windowEndISO: string): number {
-	if (!isInstallmentNative(debt)) return 0;
+	// ⛔ S1P3-A4 — gated on CADENCE, not on installment data. See `hasKnownBnplCadence`.
+	if (!hasKnownBnplCadence(debt)) return 0;
 	const end = new Date(`${windowEndISO}T00:00:00`).getTime();
-	const cap = debt.remainingPayments as number;
+	// ⚠️ An unknown remaining-count is an UNKNOWN CAP, which is `Infinity` — not `0`. Reading a missing
+	// `remainingPayments` as a cap of 0 is what made the loop return 0 and the whole seam a no-op.
+	const cap =
+		typeof debt.remainingPayments === "number" && debt.remainingPayments > 0
+			? debt.remainingPayments
+			: Number.POSITIVE_INFINITY;
 	let count = 0;
 	let due = debt.dueDate;
 	while (count < cap && new Date(`${due}T00:00:00`).getTime() < end) {
@@ -99,14 +146,6 @@ export function bnplInstallmentsInWindow(debt: Debt, windowStartISO: string, win
 	return count;
 }
 
-/**
- * Reflect a BNPL's FULL in-window outflow by scaling its effective per-cycle minimum to
- * (installments in the window) × the installment (2.7.4), capped at its balance so it never over-pays.
- * A no-op when the window holds ≤1 charge (the common aligned case) and for every non-BNPL debt — so
- * it's safe to apply blanket at an engine boundary. This is a per-cycle VIEW: it changes what the
- * allocator/forecast reserve for the BNPL this cycle, not the stored installment (the row still shows
- * the true per-installment amount) and not the paid-flag/rollover machinery.
- */
 /**
  * ⛔ THE MINIMUM ACTUALLY DUE INSIDE A PAY-CYCLE WINDOW — the ONE producer of this number (S1P3-A2).
  *
@@ -129,12 +168,12 @@ export function effectiveMinimumInWindow(
 	windowStartISO?: string,
 	windowEndISO?: string
 ): number {
-	if (isInstallmentNative(debt) && windowStartISO && windowEndISO) {
+	if (hasKnownBnplCadence(debt) && windowStartISO && windowEndISO) {
 		// Capped at the balance, or a final SHORT installment over-reports.
 		return roundMoney(
 			Math.min(
 				Math.max(1, bnplInstallmentsInWindow(debt, windowStartISO, windowEndISO)) *
-					(debt.scheduledPaymentAmount as number),
+					bnplInstallmentAmount(debt),
 				debt.balance
 			)
 		);
@@ -142,11 +181,19 @@ export function effectiveMinimumInWindow(
 	return debt.minimumPayment;
 }
 
+/**
+ * Reflect a BNPL's FULL in-window outflow by scaling its effective per-cycle minimum to
+ * (installments in the window) × the installment (2.7.4), capped at its balance so it never over-pays.
+ * A no-op when the window holds ≤1 charge (the common aligned case) and for every non-BNPL debt — so
+ * it's safe to apply blanket at an engine boundary. This is a per-cycle VIEW: it changes what the
+ * allocator/forecast reserve for the BNPL this cycle, not the stored installment (the row still shows
+ * the true per-installment amount) and not the paid-flag/rollover machinery.
+ */
 export function scaleBnplMinimumForWindow(debt: Debt, windowStartISO: string, windowEndISO: string): Debt {
-	if (!isInstallmentNative(debt)) return debt;
+	if (!hasKnownBnplCadence(debt)) return debt;
 	const n = bnplInstallmentsInWindow(debt, windowStartISO, windowEndISO);
 	if (n <= 1) return debt;
-	const scaled = roundMoney(Math.min(n * (debt.scheduledPaymentAmount as number), debt.balance));
+	const scaled = roundMoney(Math.min(n * bnplInstallmentAmount(debt), debt.balance));
 	return scaled === debt.minimumPayment ? debt : { ...debt, minimumPayment: scaled };
 }
 

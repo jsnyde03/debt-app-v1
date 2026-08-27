@@ -25840,3 +25840,71 @@ one fact was established.
 ⚡ **The full RN e2e suite had never been executed by any prior pass.** D ran it: **310 passed, 8.3 min.**
 `test:app` all passed · `lint:rn` **28** gates · `test-gate-plants` 11/11 fail closed. ⛔ **All eleven
 blockers survive that suite** — each reproduced live in the same tree while it was green.
+
+
+---
+
+## S1.10.6.1 — the payoff engine's three blockers. **All three were the same shape.**
+
+**2026-08-26/27.** `A1` `A2` `A4`, all first-look findings on ground S1.9.5's root widening admitted.
+
+### The shape: two producers of one fact, disagreeing
+
+| # | producer A | producer B | what the user saw |
+|---|---|---|---|
+| **A1** | `cannotAmortize`, re-summing the minimums of the debts still LIVE | the loop, spending the CONSTANT `monthlyBudget` | Progress hero printed `—` over its own chart, which drew the same plan clearing at month 30 |
+| **A2** | `buildCycleSnapshot`, summing the raw per-installment `minimumPayment` | `applyRolloverPayment`, deducting the window-scaled minimum | History said *"$100 paid"* for a cycle that paid **$200** |
+| **A4** | the payoff engines, scaling by cadence for any `type: 'bnpl'` | the reserve/paydown seams, gated on `isInstallmentNative` | one debt rated **2× apart** on two screens |
+
+⚡ **Each fix collapses the pair to a SINGLE producer rather than correcting the losing copy.** A1 points the
+guard at `monthlyBudget`; A2 extracts `effectiveMinimumInWindow` and both callers use it; A4 introduces
+`hasKnownBnplCadence` and all three in-window seams share it. ⛔ **Correcting the losing copy would have
+left two producers and bought the next round's recurrence** — which is exactly how `D3-3` came out of
+pass 2's `B-1` fix.
+
+### A4 was a product call, and the evidence for that was a shipped test
+
+My first A4 fix — gate `bnplMonthlyEquivalentMinimum` on `isInstallmentNative`, the auditor's own "cheaper
+and safer half" — **red `testDebtProjection.ts:335`**, a deliberate test whose fixture is a *fallback* BNPL
+asserting it **is** cadence-scaled. ⚡ **That test encodes §2.7.4's position**: a biweekly pay-in-4 really
+does cost ~2.17× its installment per month. So the two halves of the app were not merely inconsistent —
+each had a shipped rationale. Reverted, tree left green, and put to 🎯.
+
+🎯 chose **the reserve honours cadence**: `bnplInstallmentsInWindow` now gates on `hasKnownBnplCadence`
+(type + `dueDate` + a positive installment amount) rather than on installment data, and an absent
+`remainingPayments` is an **unknown cap = `Infinity`, not `0`** — reading it as 0 is what made the seam a
+silent no-op. A fallback biweekly BNPL now reserves and pays down **$200/cycle instead of $100**.
+⚠️ **The cost is stated in the code, not hidden**: the app reserves against a cadence it cannot verify, so
+a CSV that says `biweekly` wrongly holds back too much — the conservative error. **This also closes
+§2.7.4's under-reserve for the fallback shape**, which the auditor's cheaper half would have left open.
+
+### Three plants lied, in three different ways
+
+⛔ **Every one is a rule already on the books, and I broke all three inside a step whose whole job was
+plant-verification.**
+
+1. **Applied but never reached.** A1's naive over-fix (dropping `monthlyBudget > 0`) looked harmless — the
+   probe was unmoved. My own fixture keyed `bnplInstallmentsTotal` where the code keys
+   `recurrence === 'one-time'`, so the case never reached the guard. With a correct fixture it reds, and
+   `testDebtProjection.ts:360` already caught that half. ⚡ *A plant that turns nothing red is not evidence
+   until you check it reached the thing you aimed at.*
+2. **A rule invented rather than measured.** A4's first draft of `hasKnownBnplCadence` excluded
+   `recurrence === 'one-time'` — my addition, not the auditor's, and not measured. `testBnplInstallment.ts:98`
+   red immediately: the loop already handles one-time correctly because `advanceDueDateOnce` returns the
+   same date and it counts exactly one occurrence.
+3. **Red on the first assertion only.** A4's guard has three assertions; the defect red the first, so the
+   other two never executed. Relaxing each in turn proved all three independently load-bearing —
+   **reading rule 6, applied to my own test.**
+
+### And I committed the pass's own headline defect while fixing it
+
+Inserting `effectiveMinimumInWindow` above `scaleBnplMinimumForWindow` put my function **between that
+function's docblock and its definition**, so the documentation for the scaler now described my helper.
+⛔ **A carried premise pointing at the wrong code — the exact class three of four auditors reported —
+introduced inside the fix for it.** Caught on re-read and re-attached.
+
+### Verification
+
+Per fix: `tsc` on both projects · `test:regression` · `test:app` · the guard **planted against its own
+original defect and measured to red**. ⚠️ **`npm run … | tail` reports tail's status** — every exit code
+here was taken from a bare run, not a piped one.

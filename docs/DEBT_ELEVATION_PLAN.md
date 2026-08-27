@@ -85,7 +85,7 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 
 | # | class | ids | state |
 |---|---|---|---|
-| **S1.10.6.1** | **The payoff engine** — three blockers in `packages/core/{debt,history}`, all first-look | `A1` `A2` `A4` | ▶ **A1 DONE** *(see below)* · A2, A4 next |
+| **S1.10.6.1** | **The payoff engine** — three blockers in `packages/core/{debt,history}`, all first-look | `A1` `A2` `A4` | ✅ **CLOSED** *(see below)* |
 | **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** — wire the claim table's `'row-figures'` route to its consumers and reach the three claim sites the table never covered | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | not started |
 | **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — the direction nobody had looked: Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | not started |
 | **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, the two restore doors | `B3` `B4` `C-7` | not started |
@@ -97,15 +97,30 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
 `lint:rn` + the unit suites green.
 
-✅ **S1.10.6.1 · `A1` CLOSED.** `cannotAmortize` now compares against `monthlyBudget` — the constant the
-loop actually spends — instead of the shrinking active-minimum sum. Control: the car-loan + Visa plan went
-*"Unable to estimate" at month 5* → **July 2028, 30 months, $4,019.18**, matching both the chart and an
-independent hand-simulation. ⚡ **Three plants, and the middle one lied first:** the naive over-fix
-*(dropping `monthlyBudget > 0`)* appeared harmless until I found my own fixture keyed
-`bnplInstallmentsTotal` where the code keys `recurrence === 'one-time'` — **the plant had applied and never
-reached the guard.** With a fixture that reaches it, the over-fix reds, and the existing
-`testDebtProjection.ts:360` already catches it. A new guard pins A1 itself, **verified to red on the
-restored defect**, and pins the DATE to the CHART so the two producers cannot diverge again.
+✅ **S1.10.6.1 CLOSED — all three engine blockers, each guard verified to RED on its own restored defect.**
+Detail → log. ⚡ **All three were ONE SHAPE: two producers of one fact, disagreeing.** `A1` the guard vs the
+budget the loop spends · `A2` the snapshot vs the rollover · `A4` the payoff engines vs the reserve. Each
+fix collapses the pair to a **single producer** rather than correcting the losing copy.
+
+- **`A1`** — `cannotAmortize` now compares against `monthlyBudget`. *"Unable to estimate" at month 5* →
+  **July 2028 / 30 months / $4,019.18**, matching the chart and an independent hand-simulation.
+- **`A2`** — `effectiveMinimumInWindow` extracted; the snapshot and the rollover now call the same
+  function. History reported **$100** for a cycle that paid **$200**.
+- **`A4`** — 🎯's call: **the reserve moves to the cadence**, not the date to the reserve. A fallback BNPL
+  now reserves *and* pays down $200/cycle instead of $100. ⚠️ **The cost is named, not hidden**: the app
+  reserves against a cadence it cannot verify from installment data. **This also closes §2.7.4's
+  under-reserve for that shape.**
+
+⚡ **Three plants lied in this sub-step, in three different ways, and each is a rule already on the books.**
+① A1's naive over-fix looked harmless until I found my own fixture keyed `bnplInstallmentsTotal` where the
+code keys `recurrence === 'one-time'` — **applied, never reached the guard.** ② A4's first draft invented a
+`one-time` exclusion nobody measured, and a shipped test caught it. ③ A4's guard **red on its first
+assertion only** — relaxing each in turn proved all three are independently load-bearing *(reading rule 6,
+on my own test)*.
+
+⛔ **And I orphaned a docblock onto the wrong function while fixing A2** — `scaleBnplMinimumForWindow`'s
+documentation ended up describing the helper I inserted above it. **The exact "carried premise" defect this
+pass keeps finding, committed by me, inside the fix for it.** Caught and re-attached.
 
 ⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
 green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one
