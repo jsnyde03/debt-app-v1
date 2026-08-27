@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**471 files on the S1 surface · 349 swept · 122 unswept.**
+**471 files on the S1 surface · 348 swept · 123 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -312,7 +312,7 @@
 | `apps/rn/src/utils/sizeClass.ts` | s1p3 |
 | `apps/rn/src/utils/skia-ready.ts` | s1p3 |
 | `apps/rn/src/utils/skia-ready.web.ts` | ⛔ **never** |
-| `apps/rn/src/widget/snapshot.ts` | s1p2 |
+| `apps/rn/src/widget/snapshot.ts` | ⛔ **partial** |
 | `apps/rn/src/widget/widgetKeys.ts` | s1p3 |
 | `apps/rn/src/widget/widgetStorage.native.ts` | s1p3 |
 | `apps/rn/src/widget/widgetStorage.ts` | s1p3 |
@@ -565,6 +565,7 @@
 - `apps/rn/src/types/react-native-ios-context-menu.d.ts`
 - `apps/rn/src/utils/scrubBreadcrumb.test.ts`
 - `apps/rn/src/utils/skia-ready.web.ts`
+- `apps/rn/src/widget/snapshot.ts`
 - `apps/rn/tests/e2e/a11y-axe.spec.ts`
 - `apps/rn/tests/e2e/a11y-row-labels.spec.ts`
 - `apps/rn/tests/e2e/absorb-entry.spec.ts`

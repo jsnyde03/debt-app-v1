@@ -163,15 +163,22 @@ const EXEMPT: Record<string, string> = {
  * whole cluster exists to end. A row leaves by being fixed; the cap only goes DOWN.
  */
 const OPEN: Record<string, string> = {
-  'apps/rn/src/widget/snapshot.ts':
-    'pass-3 blocker D3-1 — the Home/Lock Screen widget says "Debt-free · 100% · $0" over balances the app returns `debt-free-unverified` about. FIXED AT S1.10.6.3',
+  // ⚡ `apps/rn/src/widget/snapshot.ts` was here for pass-3 blocker `D3-1` and left the list by being FIXED
+  // at S1.10.6.3 — the ledger reds on a stale row, so the removal was forced rather than remembered.
   'apps/rn/src/store/guardianSelectors.ts':
     'S1.10.6.2 after-scan — `selectCalibrationScore` splits the regime on `balance > 0` and `selectReserveRelease` names "your savings" off the same test, so a repaired balance reclassifies both. Filed, not yet reproduced',
   'apps/rn/src/components/plan/AffordabilityCard.tsx':
     'S1.10.6.2 after-scan — the cover-from-savings flow reads `goal.currentAmount` directly and prices a purchase against it. Filed, not yet reproduced',
 };
-const MAX_EXEMPT = Object.keys(EXEMPT).length;
-const MAX_OPEN = Object.keys(OPEN).length;
+/**
+ * ⛔ **LITERALS, and the first cut of this file had them as `Object.keys(X).length` — which made both caps
+ * VACUOUS.** A cap derived from the list it caps can never be exceeded; the check read as a ratchet and was
+ * a no-op. ⚡ Found by re-reading the gate while removing `D3-1`'s row from `OPEN`, not by any suite: it is
+ * the same *"an instrument reporting green while doing less than it claims"* shape this whole cluster
+ * exists to end, written into the instrument built to end it. ⚠️ Both numbers only ever go DOWN.
+ */
+const MAX_EXEMPT = 1;
+const MAX_OPEN = 2;
 
 const unguarded: string[] = [];
 for (const rel of files) {

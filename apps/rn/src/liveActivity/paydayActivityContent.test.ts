@@ -1,6 +1,7 @@
 import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
 
 import { createDefaultStore } from '@/data/defaults';
+import { runMigrations } from '@/data/migrations';
 import type { DebtStore } from '@/data/models';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaydayGuardian } from '@/store/guardianSelectors';
@@ -125,6 +126,43 @@ assert(buildPaydayActivityContent(store({ premium: true, daysToPayday: 10 })) !=
 
   // not running + should-not-run → none (nothing to do)
   eq(decideLiveActivityAction(store({ premium: false }), false, null).kind, 'none', 'not running + free → none');
+}
+
+/**
+ * ⛔ **S1.10.6.3 [pass-3 blocker D3-2] — THE LOCK SCREEN CARRIED THE FIGURE FOR THREE DAYS.**
+ *
+ * ⚡ Measured with a control one variable apart: with a real minimum the line names **$180**; with the same
+ * debt's `minimumPayment` unreadable it names **$1,080**, and the sentence around it does not change. ⚠️ No
+ * fixture in this file had ever carried a `pendingDataRepairs` entry (0 grep hits), which is why the
+ * defect survived a suite that covers the premium gate, the toggle, the window and the passthrough.
+ */
+{
+  const withMinimum = (minimumPayment: unknown): DebtStore =>
+    runMigrations({
+      version: 8,
+      subscriptionPlan: 'premium',
+      genuineCycleCount: 6,
+      paycheck: { amount: '2000', currentDate: '2026-03-02', nextPaycheckDate: '2026-03-04' },
+      debts: [{ id: 'a', name: 'Visa', balance: 5000, originalBalance: 8000, minimumPayment, apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' }],
+      prefs: { onboardingComplete: true, paydayLiveActivityEnabled: true },
+    });
+
+  const unread = withMinimum('n/a');
+  assert(unread.pendingDataRepairs.some((r) => r.field === 'minimumPayment'), '⭐ the fixture really did lose the minimum');
+  eq(buildPaydayActivityContent(unread), null, '⛔ D3-2 — the Lock Screen shows nothing rather than naming money free over an obligation nobody read');
+  // ⛔ …and the lifecycle already handles that `null`: an in-flight activity must END rather than freeze
+  // on the last false payload. This is the assertion that makes the fix reach the screen.
+  eq(decideLiveActivityAction(unread, true, 'k1').kind, 'end', '⛔ D3-2 — …and a running activity is ENDED, not left showing the last figure');
+
+  // ⭐ CONTROL — the same debt with a readable minimum still produces a payload, or the fix bought
+  // its correctness by refusing to speak at all.
+  const read = withMinimum(1500);
+  eq(read.pendingDataRepairs.length, 0, 'control — a readable minimum records no repair');
+  assert(buildPaydayActivityContent(read) !== null, '⭐ control — a plan the app read still drives the countdown');
+  // ⛔ THE CONTROL THAT MAKES THE `end` ABOVE MEAN ANYTHING. The same fixture, same window, same toggle —
+  // so an `end` on both would have proven only that the activity was out of window or switched off, which
+  // is what an earlier draft of this block accidentally asserted (its `prefs` key was misspelled).
+  assert(decideLiveActivityAction(read, true, 'k1').kind !== 'end', '⭐ control — a readable plan does NOT end the running activity');
 }
 
 console.log(`\n  paydayActivityContent: ${passed} assertions passed\n`);

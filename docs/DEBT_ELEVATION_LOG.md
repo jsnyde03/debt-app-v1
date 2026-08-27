@@ -26045,3 +26045,65 @@ printing `pageerror` rather than from re-reading the code.
    `guardianSelectors` (`selectCalibrationScore` splits the regime on `balance > 0`; `selectReserveRelease`
    names *"your savings"* off the same test) and `AffordabilityCard` (the cover-from-savings flow reads
    `goal.currentAmount` directly). **Located, not reproduced** — filed as `S1.10.6.9`.
+
+---
+
+## S1.10.6.3 — the trust rule OUTSIDE the app. `D3-1` · `D3-2`, and a vacuous cap in the gate I had just built.
+
+**Closed 2026-08-27.** Two pass-3 blockers on the two loudest surfaces the product has, plus a defect in
+`S1.10.6.2`'s own instrument found while closing them.
+
+### The finding is `B1` again, with the Home Screen standing where Today used to
+
+⚡ **`grep -rn "pendingDataRepairs" apps/rn/src/widget apps/rn/src/liveActivity` returned 0.** Every trust
+guard the project has built lives inside the app; the widget, the Lock Screen, Siri and the Live Activity
+read the same store and had none.
+
+- **`D3-1`** — measured on one store at one instant: `mayClaim(store, 'debt-balances')` **false** and
+  `selectPlanState` returning `debt-free-unverified` — the banner correctly refusing — while the Home Screen
+  carried **"Debt-free"**, a **100%** ring and **"$0"** remaining, permanently, over $12,400 still owed.
+- **`D3-2`** — a control one variable apart: with a real $1,500 minimum Siri says **$180** free; with the
+  same debt's `minimumPayment` unreadable it says **$1,080**, *and the sentence around it does not change*.
+
+⛔ **Both fixes are one condition each, because both nothing-to-say paths already existed** — `''` already
+routes Siri to its upsell (`SiriQueryIntents.swift:75-78`) and `decideLiveActivityAction` already maps
+`null` → `end`. `tested-helper-is-not-a-used-helper`, twice, on one finding.
+
+### Two choices that took measuring rather than reasoning
+
+1. ⛔ **`hasData: false` is the tempting lever and it is wrong.** Swift renders *"Add debts in app"* for it —
+   the exact false replacement `progress.tsx:186-196` records having shipped once. So the payload keeps
+   `hasData: true` and the DATE slot carries **"Balances unread"**, which every family already renders
+   beneath a static *"DEBT-FREE DATE"* label, so it reads as *"we cannot give you a date"* rather than as a
+   claim. ⚠️ Read out of `DebtViews.swift` rather than assumed: the native side does no calc and no guard.
+2. ⚠️ **All four figures degrade together.** The finding's own warning is that repairing only the date leaves
+   *"100% · $0"* — the same false statement without the word — so that partial fix is its **own planted
+   scenario**, and it reds on the percent assertion.
+
+### ⛔ And the gate I shipped one commit earlier had a check that could not fail
+
+`check-trust-claims.ts` declared `MAX_EXEMPT` and `MAX_OPEN` as `Object.keys(X).length` — **a cap derived
+from the list it caps, which can never be exceeded.** Both "downward-only" ratchets were no-ops. ⚡ Found by
+re-reading the gate while removing `D3-1`'s row from `OPEN`, not by any suite — *an instrument reporting
+green while doing less than it claims*, written into the instrument built to end that class, by me, one
+commit after writing its docblock about exactly this. Now literals, plant-verified by adding a row above
+the cap.
+
+⭐ **The ledger's self-ratchet did work as designed**: removing `snapshot.ts`'s row was *forced* by the gate
+reddening on a stale entry, not remembered.
+
+### The coverage claim that hid `D3-1`
+
+`apps/rn/src/widget/snapshot.ts` was claimed **`s1p2`** while pass 2 had read exactly **one function** of it
+(`buildGuardianSpoken`, and only for immunity to `[M3]`). A swept claim put it on no pass-3 routing manifest
+at all. Re-claimed **`partial`**, which counts as unswept — so S1's unswept count went **121 → 123** and the
+number got *worse* because the claim got *truer*.
+
+### Six plants, all caught
+
+The two defects, the partial-fix over-fix, and both guards re-run with their leading assertion relaxed so
+the later ones are exercised. ⚠️ **One assertion nearly passed for the wrong reason**: the Live Activity's
+`end` check used a misspelled `prefs` key, so it would have reddened on the toggle being off rather than on
+the trust guard. Caught by adding the control that asserts a *readable* plan does **not** end the activity.
+
+Three registry entries (**105 → 108**). `lint:rn` 29 gates green.

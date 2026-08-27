@@ -959,7 +959,7 @@
     "never"
   ],
   "apps/rn/src/widget/snapshot.ts": [
-    "s1p2"
+    "partial"
   ],
   "apps/rn/src/widget/widgetKeys.ts": [
     "s1p3"

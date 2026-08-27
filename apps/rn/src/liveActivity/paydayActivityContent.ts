@@ -3,6 +3,7 @@ import type { PayCycle } from '@core/payCycle/getNextPaycheckDate';
 import type { DebtStore } from '@/data/models';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaydayGuardian, type GuardianState } from '@/store/guardianSelectors';
+import { mayClaim } from '@/store/trustSelectors';
 import { formatWhole } from '@/utils/format';
 
 import { PAYDAY_ACTIVITY_WINDOW_DAYS } from './liveActivityKeys';
@@ -64,6 +65,21 @@ function countdownLabel(days: number): string {
  */
 export function buildPaydayActivityContent(store: DebtStore): PaydayActivityContent | null {
   if (store.subscriptionPlan !== 'premium') return null;
+  /**
+   * ⛔ **THE LOCK SCREEN CARRIED *"Looks clear · $1,080 free to deploy"* FOR THREE DAYS OVER AN OBLIGATION
+   * THE APP COULD NOT READ.** [S1.10.6.3 · pass-3 blocker D3-2]
+   *
+   * ⚡ Same store, same instant, same sentence as Siri's — measured against a control that moves the figure
+   * $180 → $1,080 on the single variable of whether the minimum was readable. The brief is honest about the
+   * arrays it was handed; a `minimumPayment` repaired to `$0` produces neither an allocation row nor an
+   * unfunded item, so the obligation leaves the plan entirely.
+   *
+   * ⚠️ `null` is the return this function already documents for *"nothing to show"*, and
+   * `decideLiveActivityAction` already maps it to `end`/`none` — so the whole path existed and the CALL was
+   * what was missing. That is `tested-helper-is-not-a-used-helper` in its usual shape, which is why the
+   * remedy is one condition rather than a new mechanism.
+   */
+  if (!mayClaim(store, 'required-plan')) return null;
   const brief = selectPaydayGuardian(withProjectedBalances(store, true));
   if (!brief) return null;
 

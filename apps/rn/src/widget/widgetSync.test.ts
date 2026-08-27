@@ -1,5 +1,6 @@
 import { createDefaultStore } from '@/data/defaults';
-import type { Debt } from '@/data/models';
+import { runMigrations } from '@/data/migrations';
+import type { Debt, DebtStore } from '@/data/models';
 import { createDebtStore } from '@/store/store';
 import { formatWhole } from '@/utils/format';
 
@@ -94,6 +95,85 @@ console.log('\n▶ widget snapshot + sync (3.5.1)');
   eq(writes[0].updatedAt, 111, 'initial mirror uses the injected clock');
   startWidgetSync(store, (w) => writes.push(w), () => 222);
   eq(writes.length, 1, 'a second startWidgetSync on the same store is a no-op (idempotent)');
+}
+
+/**
+ * ⛔ **S1.10.6.3 [pass-3 blockers D3-1 · D3-2] — THE WIDGET AND THE APP MADE THE SAME CLAIM AND DISAGREED.**
+ *
+ * ⚡ **No fixture in the repo had ever put a `pendingDataRepairs` entry through `buildWidgetSnapshot`** —
+ * measured, `grep -rn "pendingDataRepairs" apps/rn/src/widget apps/rn/src/liveActivity` returned **0**. The
+ * all-cleared case above pins the HONEST one (a genuinely paid-off store) and is why these are additions
+ * rather than edits: the fix must not touch it.
+ *
+ * ⚠️ Built through the real `runMigrations` rather than by setting `pendingDataRepairs` by hand, so the
+ * repair records are the ones the import path actually writes.
+ */
+function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
+  return runMigrations({
+    version: 8,
+    subscriptionPlan: premium ? 'premium' : 'free',
+    genuineCycleCount: 6,
+    paycheck: { amount: '2000', currentDate: '2026-03-02', nextPaycheckDate: '2026-03-16' },
+    debts,
+    prefs: { onboardingComplete: true },
+  });
+}
+
+// D3-1 — a cleared card beside one whose balance could not be read.
+{
+  const unread = migratedWidgetStore([
+    { id: 'a', name: 'Chase', balance: 'n/a', originalBalance: 12000, minimumPayment: 100, apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' },
+    { id: 'b', name: 'Visa', balance: 0, originalBalance: 400, minimumPayment: 25, apr: 19, dueDate: '2026-03-12', type: 'debt', recurrence: 'monthly' },
+  ]);
+  assert(unread.pendingDataRepairs.length > 0, '⭐ the fixture really did record a repair (or it proves nothing)');
+  const snap = buildWidgetSnapshot(unread, 500);
+  // ⛔ THE HONEST STATE BY NAME FIRST — a payload that merely dropped the word would satisfy the three below.
+  eq(snap.debtFreeDate, 'Balances unread', '⛔ D3-1 — the Home Screen does not say "Debt-free" over balances the app refused to claim');
+  eq(snap.pctLabel, '—', '⛔ D3-1 — …and the ring does not say 100%, which is the same falsehood without the word');
+  eq(snap.remaining, '—', '⛔ D3-1 — …and it does not say $0 remaining over $12,400 still owed');
+  // ⛔ NOT the empty state: Swift renders "Add debts in app" for `hasData: false`, which is the false
+  // replacement `progress.tsx` records having shipped once — a true statement withheld, a new one invented.
+  eq(snap.hasData, true, '⛔ D3-1 — the widget still points at the app rather than claiming there is no data');
+}
+
+// D3-1's other direction — the guard is not only about the cleared branch.
+{
+  const unread = migratedWidgetStore([
+    { id: 'a', name: 'Chase', balance: 'n/a', originalBalance: 12000, minimumPayment: 100, apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' },
+    { id: 'b', name: 'Visa', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19, dueDate: '2026-03-12', type: 'debt', recurrence: 'monthly' },
+  ]);
+  const snap = buildWidgetSnapshot(unread, 500);
+  eq(snap.remaining, '—', '⛔ D3-1 — a STILL-PAYING portfolio missing an addend has no total either');
+  eq(snap.pctLabel, '—', '…and no percentage');
+}
+
+// ⭐ D3-1 CONTROL — the same shape with every balance read still celebrates.
+{
+  const read = migratedWidgetStore([
+    { id: 'a', name: 'Chase', balance: 0, originalBalance: 12000, minimumPayment: 100, apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' },
+    { id: 'b', name: 'Visa', balance: 0, originalBalance: 400, minimumPayment: 25, apr: 19, dueDate: '2026-03-12', type: 'debt', recurrence: 'monthly' },
+  ]);
+  eq(read.pendingDataRepairs.length, 0, 'control — a readable portfolio records no repair');
+  const snap = buildWidgetSnapshot(read, 500);
+  eq(snap.debtFreeDate, 'Debt-free', '⭐ control — a portfolio the app fully read still says Debt-free');
+  eq(snap.pctLabel, '100%', '⭐ control — …with its real percentage');
+}
+
+// D3-2 — Siri's spoken read, on the pass-2 C4 class: a minimum the app could not read.
+{
+  const unread = migratedWidgetStore(
+    [{ id: 'a', name: 'Visa', balance: 6000, originalBalance: 8000, minimumPayment: 'n/a', apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' }],
+    true,
+  );
+  assert(unread.pendingDataRepairs.some((r) => r.field === 'minimumPayment'), '⭐ the fixture really did lose the minimum');
+  eq(buildWidgetSnapshot(unread, 600).guardianSpoken, '', '⛔ D3-2 — Siri says nothing rather than naming money free over an obligation nobody read');
+
+  // ⭐ CONTROL — the same debt with a real minimum still speaks, or the fix bought silence.
+  const read = migratedWidgetStore(
+    [{ id: 'a', name: 'Visa', balance: 6000, originalBalance: 8000, minimumPayment: 100, apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' }],
+    true,
+  );
+  assert(buildWidgetSnapshot(read, 600).guardianSpoken.length > 0, '⭐ control — a plan the app read is still spoken');
 }
 
 console.log(`✅ widget snapshot + sync — ${passed} assertions passed\n`);

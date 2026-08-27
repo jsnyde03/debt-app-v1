@@ -88,12 +88,12 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 |---|---|---|---|
 | **S1.10.6.1** | **The payoff engine** — three blockers in `packages/core/{debt,history}`, all first-look | `A1` `A2` `A4` | ✅ **CLOSED** *(see below)* |
 | **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | ✅ **CLOSED** *(see below)* |
-| **S1.10.6.3** ▶ | ⭐ **The trust rule, OUTSIDE the app** — the direction nobody had looked: Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ▶ **ACTIVE** *(decomposed below)* |
-| **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, the two restore doors | `B3` `B4` `C-7` | not started |
+| **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ✅ **CLOSED** *(see below)* |
+| **S1.10.6.4** ▶ | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, the two restore doors | `B3` `B4` `C-7` | ▶ **ACTIVE** *(decomposed below)* |
 | **S1.10.6.5** | ⛔ **The instruments** — five gates that report green while doing less than they claim. ⚠️ **Fix LAST of the code classes**: these are the gates the other fixes are verified *with*, so a mid-flight change to them invalidates the verification already done | `B1` `A3` `D3-3` `D3-4` | not started |
 | **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | not started |
 | **S1.10.6.7** | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | not started |
-| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **9 of 20 done** — `.6.1`'s and `.6.2`'s, registered with each fix rather than batched. Registry **95 → 105 entries**, unguarded cap **unchanged at 16** |
+| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — ⚠️ a two-line edit each (the entry **and** `MIN_ENTRIES`), and ⛔ **`D3-3` proves the token must name the line that USES the check, not the line that computes it** | all 20 | ▶ **11 of 20 done** — `.6.1`–`.6.3`, registered with each fix rather than batched. Registry **95 → 108 entries** *(one of the three guards a defect in `.6.2`'s own gate)*, unguarded cap **unchanged at 16** |
 | **S1.10.6.9** | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — two claim sites that read the entity lists and print money with no guard: `guardianSelectors` *(the regime split and "your savings" both test `balance > 0`)* and `AffordabilityCard` *(cover-from-savings reads `goal.currentAmount`)*. ⛔ **Located, not reproduced.** Tracked mechanically by `lint:trust-claims`' `OPEN` ledger, cap downward-only | — | not started |
 
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
@@ -113,23 +113,30 @@ downward-only** ledger rather than silence. `lint:rn` **29 gates**, e2e **322 pa
 ⚡ **One self-inflicted defect, caught by the new guard on its first run**: a selector returning a fresh
 array blanked the whole Money tab (React #185) — the warning `money.tsx:614` already carries verbatim.
 
-#### S1.10.6.3's sub-steps — the trust rule OUTSIDE the app *(ACTIVE)*
+✅ **S1.10.6.3 CLOSED 2026-08-27** — `D3-1` `D3-2`. **Six plants, all caught**, including the partial-fix
+over-fix *(repairing only the date leaves "100% · $0")* and both guards re-run with their leading assertion
+relaxed. ⛔ **And `lint:trust-claims`, one commit old, had `MAX_EXEMPT`/`MAX_OPEN` computed from the lists
+they cap — both ratchets were VACUOUS.** Now literals, plant-verified. ⚠️ `snapshot.ts` was claimed `s1p2`
+on one function read, so S1's unswept went **121 → 123** when the claim was made truer. Detail → log.
 
-⚠️ **Before-scan: both findings re-verified against the CURRENT tree** — `snapshot.ts:71-95` and
-`buildGuardianSpoken` read exactly as quoted, and `grep pendingDataRepairs apps/rn/src/{widget,liveActivity}`
-is still **0**. ⛔ **The native side does no calc and no guard**, so JS is the only place a guard can live —
-and Siri already routes `''` to its upsell, so the remedy lands on a path Swift handles.
+#### S1.10.6.4's sub-steps — storage & backup *(ACTIVE)*
+
+⚠️ **Before-scan: premises verified against the CURRENT tree.** `backupToCloudGuarded` still branches on
+`unclaimed` alone; `createAdapter.web.ts` still wraps `getItem` **and** `JSON.parse` in one `catch`. ⛔ **The
+docblock above the guard states the opposite of what the code does** and is right about only one of the two
+ways `unknown` is produced — the carried-premise class, at the site of the blocker.
 
 | # | sub-step |
 |---|---|
-| **.6.3.1** | **`D3-1` the widget payload** — `buildWidgetSnapshot` asks `mayClaim(store, 'debt-balances')`, and ⛔ **`pctLabel`/`pctPaid` and `remaining` degrade WITH `cleared`**: fixing only the date leaves *"100% · $0"*, the same false statement without the word |
-| **.6.3.2** | **`D3-2` Siri + the Live Activity** — `buildGuardianSpoken` → `''` and `buildPaydayActivityContent` → `null` when `!mayClaim(store, 'required-plan')`. ⚠️ Both nothing-to-say returns already exist and their callers already handle them; what is missing is the call |
-| **.6.3.3** | ⛔ **The coverage claim that hid it** — `widget/snapshot.ts` is claimed `s1p2` while pass 2 read **one function** of it, so it was on no pass-3 routing manifest. Re-claim it honestly |
-| **.6.3.4** | **Guards + registry** — no fixture in the repo puts a repair through either module; each defect planted, confirmed RED, re-run with the leading assertion relaxed, then registered |
-| **.6.3.5** | **Both files off `lint:trust-claims`' `OPEN` ledger**, `MAX_OPEN` dropped — the cap only goes down |
+| **.6.4.1** | **`B3` the iCloud clobber** — refuse `unknown` in `backupToCloudGuarded` *(the one caller that can tell it from `ours`)*, and correct the docblock that says it is already refused. ⛔ **NOT in `backupToCloud`** — that is deliberately the unguarded, informed path the "replace it, I read the date" flow uses |
+| **.6.4.2** | **`B3`'s second half** — `ios.ts:90` returns `null` for a non-finite `mtimeMs` rather than throwing **or** silently becoming `1970-01-01`; ⚠️ both directions of that field are unhandled today |
+| **.6.4.3** | **`B4` the web adapter** — split the two catches: storage-unavailable → `null`, corrupt bytes → hand the raw string back so the blob is **quarantined**, matching the native adapter and `adapter.ts`'s own stated contract |
+| **.6.4.4** | **`C-7` the file restore door** — `describeBackup` gains a fourth clause from `result.store.pendingDataRepairs`. ⚠️ The mechanism file is **S3's surface, not S1's**; the render site is S1's |
+| **.6.4.5** | **`C-7b` the iCloud restore door** — ⛔ **a pre-read, not a wording change**: it confirms *before* it fetches, so it has nothing to describe. `DataResetScreen.tsx:60-70` already shows the shape |
+| **.6.4.6** | **Guards + registry** — ⚠️ **neither storage adapter has a unit test and no store test parses a persisted blob**; the one corrupt-bytes e2e seeds *valid* JSON, the single member of the class both adapters agree on. Add the missing member **beside** it, never in place of it |
 
-**Exit (S1.10.6.3):** `D3-1` and `D3-2` fixed at the one owner, both guards measured red on their own
-defects, the `OPEN` ledger down to the two `.6.9` sites, and `lint:rn` + the unit suites green.
+**Exit (S1.10.6.4):** `B3` `B4` `C-7` `C-7b` fixed, each guard measured red on its own defect, and
+`lint:rn` + the unit suites + the touched e2e green.
 
 ⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
 green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one

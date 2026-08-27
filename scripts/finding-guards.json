@@ -507,5 +507,20 @@
     "what": "pass-3 C-6 — a BNPL plan whose scheduledPaymentAmount could not be read left the installment expansion and was listed as ONE payment of four, with no \"+ N more\" and a month subtotal reading as the month's whole BNPL load. The unread plan's degraded row is now dropped and the plan named. The token is the absence assertion on the short list, verified red with the honest-state assertion relaxed",
     "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
     "token": "await expect(page.getByText(/1 payment/)).toHaveCount(0);"
+  },
+  "S1P3-D3-1-WIDGET": {
+    "what": "pass-3 D3-1 — the Home/Lock Screen said \"Debt-free · 100% · $0\" over balances mayClaim('debt-balances') was refusing at the same instant: B1's finding verbatim with the widget standing where Today used to. No fixture in the repo had ever put a pendingDataRepairs entry through buildWidgetSnapshot. The token names the PERCENT assertion, not the date one, because the finding's own warning is that repairing only the date leaves \"100% · $0\" — the same falsehood without the word; plant-verified as its own scenario",
+    "file": "apps/rn/src/widget/widgetSync.test.ts",
+    "token": "…and the ring does not say 100%, which is the same falsehood without the word"
+  },
+  "S1P3-D3-2-SPOKEN": {
+    "what": "pass-3 D3-2 — Siri and the Lock-Screen Live Activity said \"$1,080 free to put toward debt\" when the obligation netted out was one the app could not read; measured against a control that moves the figure $180 -> $1,080 on that single variable. Both nothing-to-say returns already existed and their callers already handled them, so the whole path was there and the CALL was missing. The Live Activity token names the LIFECYCLE assertion — a null payload must END a running activity, not freeze it on the last false figure — and its control pins that the end comes from the trust guard rather than from the window or the toggle",
+    "file": "apps/rn/src/liveActivity/paydayActivityContent.test.ts",
+    "token": "…and a running activity is ENDED, not left showing the last figure"
+  },
+  "S1P3-D3-CAPS": {
+    "what": "S1.10.6.3's own after-scan — check-trust-claims.ts shipped with MAX_EXEMPT/MAX_OPEN computed as Object.keys(X).length, so both downward-only caps were VACUOUS: a cap derived from the list it caps can never be exceeded. Found by re-reading the gate while removing D3-1's row, not by any suite. Now literals, and plant-verified by adding a row above the cap",
+    "file": "scripts/check-trust-claims.ts",
+    "token": "This cap only goes DOWN."
   }
 }
