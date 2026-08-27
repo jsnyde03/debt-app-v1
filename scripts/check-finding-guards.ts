@@ -109,7 +109,7 @@ const ids = Object.keys(registry);
  * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
-const MIN_ENTRIES = 130;
+const MIN_ENTRIES = 132;
 const MAX_UNGUARDED = 16;
 
 /**
@@ -136,6 +136,8 @@ const MAX_UNGUARDED = 16;
  * block are comments. That misses a token trailing real code on the same line as a comment — but it errs
  * toward calling a line CODE, so the check never reds a genuine guard.
  */
+const isCommentLine = (l: string) => /^\s*(?:\/\/|\*|\/\*)/.test(l);
+
 function presentInCode(text: string, token: string): boolean {
   let inBlock = false;
   for (const raw of text.split('\n')) {
@@ -185,6 +187,40 @@ for (const [id, e] of Object.entries(registry)) {
         '        the file survived; the assertion inside it did not, which is the shape this gate exists for',
     );
     continue;
+  }
+  /**
+   * ⛔ **S1.10.6.5.4 [pass-3 D3-3] — A TOKEN THAT *DECLARES* A VALUE SURVIVES THE LINE THAT *USES* IT.**
+   *
+   * ⚡ `S1P2-B1-REASON` guarded `B-1`'s own fix and was **green with that fix's defect restored**: its token
+   * named `const rightReason = …`, and the un-fix is deleting `&& rightReason` from the line below, which
+   * leaves the declaration untouched. ⛔ **[M7] cannot see this** — the token IS on a line of code, just
+   * not the line that would have to change.
+   *
+   * ⚠️ **Swept registry-wide rather than repaired one entry at a time — the finding's own instruction —
+   * and the sweep returned THIRTEEN**, two of them written the same day as this check: the liveness cap in
+   * `check-trust-claims.ts`, and the guard for `A3` three sub-steps earlier.
+   *
+   * The rule is mechanical and exact: if the token line declares an identifier that appears on any other
+   * code line in the same file, the declaration can outlive every use. ⛔ **No cap and no ledger — this
+   * one is simply zero**, because unlike a coverage backlog there is no such thing as a legitimately
+   * mis-pointed token.
+   */
+  const declLine =
+    text.split(/\r?\n/).find((l) => present(l, e.token!) && !isCommentLine(l)) ?? '';
+  const decl = /^\s*(?:export\s+)?(?:const|let|var|(?:async\s+)?function)\s+([A-Za-z_$][\w$]*)/.exec(declLine);
+  if (decl) {
+    const name = decl[1];
+    const usedElsewhere = text
+      .split(/\r?\n/)
+      .some((l) => !present(l, e.token!) && !isCommentLine(l) && new RegExp(`\\b${name}\\b`).test(l));
+    if (usedElsewhere) {
+      problems.push(
+        `${id} — the token DECLARES ${JSON.stringify(name)} and another line USES it: ${JSON.stringify(e.token)}\n` +
+        '        a declaration outlives its use, so an un-fix that deletes the USE leaves this token in place.\n' +
+        '        Point it at the line that would have to change — the comparison, the call, the assertion.',
+      );
+      continue;
+    }
   }
   // ⛔ S1.5.4 [M7] — present, but only in prose. See `presentInCode`.
   if (!presentInCode(text, e.token)) {

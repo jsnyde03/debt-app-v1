@@ -26530,3 +26530,49 @@ kill. That verification is not optional; it is `verify-the-restore-not-just-the-
 ⚠️ **`S1P1-M10-AUTHORING`'s own token is still `"if (WORKING_TREE) {"`, present in BOTH columns** — the
 `D3-3` shape, and it is left for `.6.5.4`'s registry-wide sweep rather than repaired one entry at a time.
 Registry **127 → 130**; scenarios **12 → 13**.
+
+## S1.10.6.5.4 — `D3-3`: the token named the line that COMPUTES the check (2026-08-27)
+
+`S1P2-B1-REASON` guards `B-1`'s own fix and was **green with that fix's defect restored**. Its token named
+`const rightReason = …`; the un-fix deletes `&& rightReason` from the line below and leaves the declaration
+untouched. ⛔ **`[M7]` cannot see this** — the token *is* on a line of code, just not the line that would
+have to change.
+
+### The sweep returned thirteen, and two were written the same day
+
+The finding said *sweep the registry, do not repair one entry*, and the sweep is why that instruction was
+right. The rule is mechanical and exact: **if the token line declares an identifier that appears on any
+other code line in the same file, the declaration outlives every use.** Zero false positives on 132
+entries — every one of the thirteen was genuinely the shape.
+
+⚡ **Two of the thirteen were mine, from earlier in this same session:** `S1P3-G-LIVENESSLEDGER`'s token
+was `const MAX_LIVENESS_SITES = 13;` and `S1P3-A3-TRACKEDHALF`'s was `const modified = run([…]);`. The
+first is a plain instance — delete `if (livenessTotal > MAX_LIVENESS_SITES)` and the cap declaration sits
+there guarding nothing. **A rule written three sub-steps earlier, broken twice by its own author before it
+existed.**
+
+⚠️ **The first re-point of `S1P2-B1-REASON` landed on `const ok = planted && … && rightReason;` — the same
+shape one level up — and the new check red on it immediately.** It now names `if (!ok) failures++;`, the
+line that consumes it.
+
+### Why this one has no cap and no ledger
+
+Every other instrument in this cluster carries a downward-only cap over a backlog that drains. This one is
+**zero**, and the asymmetry is the argument: a coverage ledger has rows that are legitimately open until
+somebody measures them, and there is no such thing as a **legitimately mis-pointed token**. A row here
+would be a defect parked rather than a defect fixed.
+
+### Proven to refuse, not to print
+
+Three plants before the scenario was written — the original defect, a cap pointed at its declaration, a
+helper pointed at its signature — all three red with the right message, and the registry restored to exit 0.
+One of them is now a standing `test:gate-plants` scenario (**13 → 14**), because a token proves an
+identifier is present and only a plant proves the gate still refuses anything.
+
+⚠️ **A 2-minute tool timeout SIGKILLed a harness run mid-plant, and `finally` does not run on a kill.** The
+harness's own pre-flight refused the next run — *"a previous run left `docs/audits/__gate_plant_unused__.md`
+behind"* — and the edit-plant's target was left modified. Both cleaned, and the fixture verified to carry no
+credential afterwards. ⛔ **The restore assertion added at `.6.5.3` covers a throw and cannot cover a kill;**
+the pre-flight is what covers the kill, and this is the first time it has had to.
+
+Registry **130 → 132**.

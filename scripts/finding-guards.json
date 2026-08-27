@@ -20,9 +20,9 @@
     "token": "a BLANK balance is unread money too"
   },
   "S1-ABSENT-REQUIRED": {
-    "what": "repairMoneyFields skipped every undefined, so a row missing a REQUIRED money field reached the store as `undefined` with no repair recorded — in neither the active nor the paid-off list, and every total NaN",
+    "what": "repairMoneyFields skipped every undefined, so a row missing a REQUIRED money field reached the store as `undefined` with no repair recorded — in neither the active nor the paid-off list, and every total NaN ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "apps/rn/src/data/migrations.test.ts",
-    "token": "REQUIRED_FLOOR"
+    "token": "if (REQUIRED.length < REQUIRED_FLOOR || OPTIONAL.length < OPTIONAL_FLOOR) {"
   },
   "S1-M9-GUARDIAN": {
     "what": "isEmergencyFund was `goal.type === 'emergency'`, so the Guardian called a SECOND emergency-typed pot \"your emergency fund\" while Money labelled the same goal Savings; no fixture in the repo carried two emergency goals on this path",
@@ -45,9 +45,9 @@
     "token": "SOURCE MOVED WHILE THE SUITES WERE RUNNING"
   },
   "REVERIFY4-2": {
-    "what": "lint:secrets took the file list from git and the content from the working tree, so it passed over a HEAD holding a credential",
+    "what": "lint:secrets took the file list from git and the content from the working tree, so it passed over a HEAD holding a credential ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "scripts/check-committed-secrets.ts",
-    "token": "cat-file"
+    "token": "if (size <= 8 * 1024 * 1024) visit(specs[i], buf.toString("
   },
   "REVERIFY4-3": {
     "what": "13 stale duplicate-copy baseline entries were standing permissions to re-duplicate",
@@ -55,9 +55,9 @@
     "token": "no longer duplicate"
   },
   "REVERIFY4-4": {
-    "what": "check-type-scale treated any allowFontScaling as a clamp, including ={true}",
+    "what": "check-type-scale treated any allowFontScaling as a clamp, including ={true} ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "scripts/check-type-scale.ts",
-    "token": "function isClamp"
+    "token": "if (name === 'maxFontSizeMultiplier' || name === 'allowFontScaling') clamped ||= isClamp(prop);"
   },
   "REVERIFY4-5": {
     "what": "preflight-native-lane's four flow-ordering assertions sat inside a fail-open if (iphoneList.length) ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
@@ -85,14 +85,14 @@
     "token": "if (p68Untokenised.length !== MAX_UNTOKENISED.p68)"
   },
   "GUARDED-3": {
-    "what": "selfCheck proves the invariants fire, the verdict throws, and that run() still CALLS it",
+    "what": "selfCheck proves the invariants fire, the verdict throws, and that run() still CALLS it ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
-    "token": "export function selfCheck"
+    "token": "selfCheck();"
   },
   "GUARDED-4": {
-    "what": "HOSTILE_FLOOR asserts the hostile corpus still reaches the migration logic",
+    "what": "HOSTILE_FLOOR asserts the hostile corpus still reaches the migration logic ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "apps/rn/src/data/migrationAudit/hostile.test.ts",
-    "token": "HOSTILE_FLOOR"
+    "token": "openedFile >= HOSTILE_FLOOR && openedKeys >= HOSTILE_FLOOR,"
   },
   "GUARDED-5": {
     "what": "the branch invariant 9 judges — a priority goal's pace reading as uncapped ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
@@ -189,9 +189,9 @@
     "token": "test:gate-plants"
   },
   "S1P1-M6-BOUNDARY": {
-    "what": "pass-1 M6 — present()'s word-boundary branch was reached only when the WHOLE token was identifier-shaped, so an identifier-PREFIXED token (`function isClamp`) fell back to text.includes and survived the rename it exists to catch. Measured: 3 of 18 tokens failed open on exactly that class. The boundary is now decided per END, with `-` in the name charset so a kebab name cannot grow past it either ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
+    "what": "pass-1 M6 — present()'s word-boundary branch was reached only when the WHOLE token was identifier-shaped, so an identifier-PREFIXED token (`function isClamp`) fell back to text.includes and survived the rename it exists to catch. Measured: 3 of 18 tokens failed open on exactly that class. The boundary is now decided per END, with `-` in the name charset so a kebab name cannot grow past it either ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check. ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "scripts/check-finding-guards.ts",
-    "token": "const lead = startsWithName"
+    "token": "return new RegExp(`${lead}${token.replace("
   },
   "S1P1-M7-CODELINE": {
     "what": "pass-1 M7 — 5 of 18 tokens survived on a DOCSTRING line alone, so deleting the assertion left the gate green; GUARDED-5 composed with GAP-2 into a fully silent removal of an invariant. A token must now appear on a non-comment line. Mechanism A fixed separately: S1-M9-GUARDIAN's token sat on the PRECONDITION line, so the finding's own assertion could be deleted with the gate green ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
@@ -274,9 +274,9 @@
     "token": "'apps/rn/src',"
   },
   "S1P2-SURFACE-COMPLETE": {
-    "what": "the CLASS behind five root corrections - M9, [D73], packages/core and apps/rn/src each closed one instance and none closed the class. This gate sources its file list from `git ls-files` (a walk with a deny-list showed both failure modes on its first two runs: matching top-level paths only let apps/rn/node_modules through, then apps/rn/core, a symlink to packages/core, reported as 21 invisible directories) and requires every tracked source file to be under some surface's roots, cap 0 downward-only",
+    "what": "the CLASS behind five root corrections - M9, [D73], packages/core and apps/rn/src each closed one instance and none closed the class. This gate sources its file list from `git ls-files` (a walk with a deny-list showed both failure modes on its first two runs: matching top-level paths only let apps/rn/node_modules through, then apps/rn/core, a symlink to packages/core, reported as 21 invisible directories) and requires every tracked source file to be under some surface's roots, cap 0 downward-only ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "scripts/surface-coverage.ts",
-    "token": "const MAX_INVISIBLE = 0;"
+    "token": "if (invisible.length > MAX_INVISIBLE) {"
   },
   "S1P2-SKIP-EXPIRY": {
     "what": "the completeness gate's skip list excludes the legacy Next surface because P6.11 DELETES it, not because anyone audited it - so the exclusion carries its own expiry: a skip naming a directory that no longer exists reds, and the deletion cannot leave a standing permission behind it. Caught three stale entries on its first run",
@@ -289,9 +289,9 @@
     "token": "...B1_SCENARIOS,"
   },
   "S1P2-B1-REASON": {
-    "what": "pass-2 B-1's harness half - an exit-code-only check scores a pass when a gate reds for a DIFFERENT reason than the planted defect; measured on the M9-vocab un-fix, where the gate still exited 1 for the inventory reason and the scenario would have counted as sound",
+    "what": "pass-2 B-1's harness half - an exit-code-only check scores a pass when a gate reds for a DIFFERENT reason than the planted defect; measured on the M9-vocab un-fix, where the gate still exited 1 for the inventory reason and the scenario would have counted as sound ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated. ⚠️ The FIRST re-point landed on `const ok = …`, which is the very same shape one level up, and the new check red on it immediately — the rule catching its own author on the entry it was written for. It now names the line that CONSUMES `ok`.",
     "file": "scripts/test-gate-plants.ts",
-    "token": "const rightReason = !s.expect || withPlant.out.includes(s.expect)"
+    "token": "if (!ok) failures++;"
   },
   "S1P2-B1-SELFCHECK": {
     "what": "pass-2 B-1's un-plantable seventh - the routing check reads a predicate in surface-coverage.ts rather than a file, so no scenario can hand it a defect; the first self-check asserted the PREDICATE and stayed green with `if (false && ...)` planted at the call site, which is tested-helper-is-not-a-used-helper written into the fix for it",
@@ -389,9 +389,9 @@
     "token": "converting a QUARTERLY bill keeps its cadence"
   },
   "S1P1-M1-CALL": {
-    "what": "pass-1 M1 - the grouped Expenses list and the 'where it goes' receipt ENUMERATED categories instead of partitioning, so a bill the app could not categorise vanished from both. ⚠️ S1.9.4 after-scan: this token was the bare identifier `resolveBillCategory` and is now the CALL expression - but `money.tsx` holds TWO identical call sites, and a token cannot count occurrences, so a SINGLE-site revert leaves it green. Measured, and the behavioural guards do catch it: reverting the second site alone reds 3 of the 4 tests in bill-category-partition.spec.ts. This entry guards a both-sites removal; S1P1-M1-LIST / -RECEIPT / -SHEET are what guard the behaviour.",
+    "what": "pass-1 M1 - the grouped Expenses list and the 'where it goes' receipt ENUMERATED categories instead of partitioning, so a bill the app could not categorise vanished from both. ⚠️ S1.9.4 after-scan: this token was the bare identifier `resolveBillCategory` and is now the CALL expression - but `money.tsx` holds TWO identical call sites, and a token cannot count occurrences, so a SINGLE-site revert leaves it green. Measured, and the behavioural guards do catch it: reverting the second site alone reds 3 of the 4 tests in bill-category-partition.spec.ts. This entry guards a both-sites removal; S1P1-M1-LIST / -RECEIPT / -SHEET are what guard the behaviour. ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "apps/rn/src/app/(tabs)/money.tsx",
-    "token": "resolveBillCategory(e) === category"
+    "token": "perPaycheck: catBills.reduce("
   },
   "S1P1-M1-LIST": {
     "what": "pass-1 M1's user-facing half — the uncategorised bill renders under Other AND a known bill keeps its own heading. Both classes are asserted: the original `e.category ===` plant reds the first, an 'everything resolves to Other' plant reds the second, and either assertion alone leaves the other direction unfalsifiable. The helper waits on a ROW so the heading assertions are reached under both plants",
@@ -454,9 +454,9 @@
     "token": "the branch the fix must not move"
   },
   "S1P1-B5-PROXY": {
-    "what": "pass-1 B5's fallout — recovery.spec's P1-4 test asserted page-wide that \"Essential 11\" appeared nowhere, a PROXY for the cover-now line that held only while nothing else on Today named the bills. Restoring the obligations reddened it without `summariseNames` changing. Rescoped to `recovery-cover-now-names` and plant-verified against P1-4's original run-on",
+    "what": "pass-1 B5's fallout — recovery.spec's P1-4 test asserted page-wide that \"Essential 11\" appeared nowhere, a PROXY for the cover-now line that held only while nothing else on Today named the bills. Restoring the obligations reddened it without `summariseNames` changing. Rescoped to `recovery-cover-now-names` and plant-verified against P1-4's original run-on ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "apps/rn/tests/e2e/recovery.spec.ts",
-    "token": "recovery-cover-now-names"
+    "token": "await expect(coverNames).not.toContainText('Essential 11');"
   },
   "S1P3-A1-BUDGET": {
     "what": "pass-3 A1 — cannotAmortize compared remaining interest against the SHRINKING active-minimum sum, not the constant monthlyBudget the loop spends, so it bailed out of a plan that amortizes the instant the first debt cleared. The guard asserts the UNPAYABLE sentinel is absent AND pins the debt-free DATE to the payoff CHART's zero-crossing — the two producers that disagreed. Verified to red on the restored defect; the `monthlyBudget > 0` half is separately covered by the one-time-BNPL test",
@@ -539,9 +539,9 @@
     "token": "corrupt bytes come back as the RAW STRING"
   },
   "S1P3-B4-E2E": {
-    "what": "pass-3 B4's user-facing half — the truncated-bytes member added BESIDE the existing valid-JSON fixture, never in place of it, so one uncovered member is not traded for another. Asserts the same outcome as the valid-JSON case by design: the whole finding is that two members of one class behaved differently",
+    "what": "pass-3 B4's user-facing half — the truncated-bytes member added BESIDE the existing valid-JSON fixture, never in place of it, so one uncovered member is not traded for another. Asserts the same outcome as the valid-JSON case by design: the whole finding is that two members of one class behaved differently ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
-    "token": "seedTruncated"
+    "token": "await seedTruncated(page);"
   },
   "S1P3-C7-LOSSES": {
     "what": "pass-3 C-7 — describeBackup was byte-identical for an intact backup and one the reader had just recorded three losses on, and the user learned about them only after the irreversible replace. The answer was already inside the object being described (result.store.pendingDataRepairs). All seven existing describeBackup assertions used healthy fixtures. The token names the COUNT assertion rather than the naming one, proven load-bearing by relaxing the naming assertion under the same plant",
@@ -594,9 +594,9 @@
     "token": "\"baseUrl\": \"..\""
   },
   "S1P3-G-LIVENESSLEDGER": {
-    "what": "S1.10.6.9 — the durable half. A blanket ban on `balance > 0` was written, measured and thrown away: git grep returns 40+ occurrences and most are packages/core amortization loops that hold no store and are right to treat a 0 balance as paid, so the rule would have been unsatisfiable — B1's own failure mode. The gate is scoped to apps/rn/src, where DebtStore and therefore pendingDataRepairs are in reach, and is a self-ratcheting LEDGER: 13 sites across 10 files, counts exact in BOTH directions (a fixed site reds until its row goes, a new one reds on arrival), cap downward-only, and every file printed by name on the GREEN line. Seven of the ten never mention the trust module at any line",
+    "what": "S1.10.6.9 — the durable half. A blanket ban on `balance > 0` was written, measured and thrown away: git grep returns 40+ occurrences and most are packages/core amortization loops that hold no store and are right to treat a 0 balance as paid, so the rule would have been unsatisfiable — B1's own failure mode. The gate is scoped to apps/rn/src, where DebtStore and therefore pendingDataRepairs are in reach, and is a self-ratcheting LEDGER: 13 sites across 10 files, counts exact in BOTH directions (a fixed site reds until its row goes, a new one reds on arrival), cap downward-only, and every file printed by name on the GREEN line. Seven of the ten never mention the trust module at any line ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "scripts/check-trust-claims.ts",
-    "token": "MAX_LIVENESS_SITES"
+    "token": "if (livenessTotal > MAX_LIVENESS_SITES) {"
   },
   "S1P3-G6-SCRIPTSREACH": {
     "what": "S1.10.6.9 G-6's naive over-fix, found by planting it: `npm run typecheck` can also be made green by NARROWING scripts/tsconfig.json's include until the app source stops being reachable — which buys the green by leaving the gates' own imports unchecked, the exact hole [P6.8.7a-1] closed when it found scripts/** had no compiler behind it at all. ⛔ A typecheck-based plant structurally CANNOT catch this one: the over-fix makes typecheck PASS. The token is the config's REACH rather than its aliases, so the two halves of G-6 are guarded separately — S1P3-G6-SCRIPTSTYPES pins the aliases, this pins the surface they apply to",
@@ -619,9 +619,9 @@
     "token": "return formatCurrency(amount);"
   },
   "S1P3-A3-TRACKEDHALF": {
-    "what": "pass-3 A3 - lint:secrets --working-tree reads untracked files AND edits to tracked ones; the tracked half was added inside the same fix range as the harness, and the only scenario proving the authoring mode still refuses a credential plants an UNTRACKED file. So the un-fixed script reds for the OTHER half and the scenario scores a pass either way. Re-measured through the harness itself with the tracked half un-fixed: the untracked scenario stayed GREEN and the new one reported 'the gate FAILED OPEN'. The token names the line that would have to change, per the finding's own remedy - NOT `if (WORKING_TREE) {`, which is present in both columns and is exactly the substitution S1.9.4 already made once for this entry",
+    "what": "pass-3 A3 - lint:secrets --working-tree reads untracked files AND edits to tracked ones; the tracked half was added inside the same fix range as the harness, and the only scenario proving the authoring mode still refuses a credential plants an UNTRACKED file. So the un-fixed script reds for the OTHER half and the scenario scores a pass either way. Re-measured through the harness itself with the tracked half un-fixed: the untracked scenario stayed GREEN and the new one reported 'the gate FAILED OPEN'. The token names the line that would have to change, per the finding's own remedy - NOT `if (WORKING_TREE) {`, which is present in both columns and is exactly the substitution S1.9.4 already made once for this entry ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "scripts/check-committed-secrets.ts",
-    "token": "run(['diff', '-z', '--name-only', 'HEAD'])"
+    "token": "return [...new Set([...untracked, ...modified])].filter("
   },
   "S1P3-A3-EDITPLANT": {
     "what": "pass-3 A3's behavioural half - a scenario whose plant EDITS a tracked file. `at`/`also` create then DELETE, so pointing one at a real file would delete it; `edit` saves the bytes, appends, and restores. The target is a committed inert fixture, and the run refuses if it is missing or already modified because a dirty target makes the restore ambiguous. MIN_SCENARIOS counts scenarios and cannot tell WHICH one went, so this token names this scenario",
@@ -632,5 +632,15 @@
     "what": "S1.10.6.9's lesson, built into the harness at A3: a plant loop's LAST action is the restore, so nothing runs after it and the verdict it printed is true about the plant and silent about the tree it leaves behind. For a create-plant a stranded file is noisy; for an edit-plant it is a credential-shaped string sitting in a TRACKED file - the exact outcome the scenario exists to prevent. The post-flight now asserts `git status` is clean for every edit target",
     "file": "scripts/test-gate-plants.ts",
     "token": "was NOT restored after its edit-plant"
+  },
+  "S1P3-D3-3-DECLTOKEN": {
+    "what": "pass-3 D3-3 - S1P2-B1-REASON guarded B-1's own fix and was GREEN with that fix's defect restored: the token named `const rightReason = ...` and the un-fix deletes `&& rightReason` from the line below, leaving the declaration untouched. [M7] cannot see it - the token IS on a line of code, just not the line that would have to change. Swept registry-wide per the finding's own instruction and the sweep returned THIRTEEN, two of them written the same day as this check (the liveness cap in check-trust-claims, and A3's guard three sub-steps earlier). The rule is exact: a token line that declares an identifier appearing on any other code line can outlive every use. No cap and no ledger - zero, because unlike a coverage backlog there is no legitimately mis-pointed token. The first re-point of B1-REASON landed on `const ok = ...`, the same shape one level up, and this check red on it immediately",
+    "file": "scripts/check-finding-guards.ts",
+    "token": "if (usedElsewhere) {"
+  },
+  "S1P3-D3-3-PLANT": {
+    "what": "D3-3's behavioural half - the check must REFUSE, not print. The plant is the finding verbatim: a floor declared on one line and compared on the next, with the token naming the declaration. Proven three ways before the scenario was written (the original defect, a cap pointed at its declaration, a helper pointed at its signature); the scenario keeps one of them running on every push",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "gate: 'lint:finding-guards [D3-3]',"
   }
 }

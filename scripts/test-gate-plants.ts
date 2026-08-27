@@ -113,6 +113,23 @@ interface Scenario {
  * ⛔ **A token proves an identifier is present. Only a plant proves the gate still refuses anything.**
  */
 const B1_SCENARIOS: Scenario[] = [
+  /**
+   * ⛔ **S1.10.6.5.4 [pass-3 D3-3] — the DECLARATION-vs-USE check, proven to refuse rather than to print.**
+   *
+   * The plant is the finding verbatim: a floor declared on one line and compared on the next, with the
+   * token naming the declaration. Deleting the comparison leaves the token, the file and the green.
+   */
+  {
+    gate: 'lint:finding-guards [D3-3]',
+    script: 'check-finding-guards.ts',
+    args: ['--registry=scripts/__gate_plant_registry__.json'],
+    controlArgs: [],
+    at: 'scripts/__gate_plant_guard__.ts',
+    body: 'export const plantedFloor = 7;\nif (rows.length < plantedFloor) throw new Error("short");\n',
+    also: [{ at: 'scripts/__gate_plant_registry__.json', body: "{\n  \"PLANT-DECL-TOKEN\": {\n    \"what\": \"a guard whose token names the DECLARATION while another line uses it - the [D3-3] defect, verbatim\",\n    \"file\": \"scripts/__gate_plant_guard__.ts\",\n    \"token\": \"const plantedFloor = 7;\"\n  }\n}\n" }],
+    expect: 'DECLARES',
+    why: 'a declaration outlives every use of it, so the un-fix that deletes the use leaves the token in place',
+  },
   {
     gate: 'lint:finding-guards [M7]',
     script: 'check-finding-guards.ts',
@@ -292,7 +309,7 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 13;
+const MIN_SCENARIOS = 14;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 
