@@ -27127,6 +27127,86 @@ with `CALL` reverted the scenario reports `planted=exit 0` and the harness reds 
 immediately caught the 12th strip-using consumer arriving** — `test-line-endings.ts`, my own new file —
 and its exemption was **measured** (blanked stripper → exit 1) rather than asserted.
 
+## SESSION CLOSE 2026-08-27 (second) — the guard backlog drained, the minors closed, and a number worth carrying
+
+**Closed this session:** `S1.10.6.5.8` *(the whole `GAP-*` guard backlog, `.8.4`–`.8.7`)* and
+`S1.10.6.7` *(all 14 minors)*. `S1.10.6` is now complete except `.6.10`, which its own row holds for
+just-before-S2.
+
+### ⚡ The number this session exists to hand forward
+
+**Of 26 pre-authored rows worked, 15 were wrong about their own scope or remedy** — while the premises
+were **almost always right**:
+
+| | GAP rows | minors |
+|---|---|---|
+| worked | 12 | 14 |
+| **remedy wrong / incomplete / unnecessary** | **9** | **6** |
+
+⛔ **The ledger is reliable about WHERE and unreliable about WHAT TO DO.** Three remedies would have
+*introduced* the defect they described: `GAP-7`'s equality assertion is forbidden by the code six lines
+below it; `A5`'s `??` makes a debt paid IN FULL display its full balance; `D3-8`'s regex accepts the
+`$0.00` it was written to catch. ⚠️ **This is the standing instruction for pass 4's fix phase** — verify a
+finding's remedy, not just its location.
+
+⚡ **Three rows had already been closed by `M8`'s strict-equality sweep and nobody had noticed.** A sweep
+that lands quietly leaves a backlog describing a tree that no longer exists.
+
+### ⛔ Eleven instrument defects across two sessions, and every one was found by planting
+
+The stack gained **six gates and three test modules**: `lint:gate-sources` · `lint:scan-floors` ·
+`lint:line-endings` · `lint:closure-stripper` · `lint:control-chars` · `lint:strip-code`, plus five plant
+scenarios (16 → 21). `lint:rn` is **36 gates**.
+
+**This session put six defects into its own instruments** — an exemption ledger keyed so it could never
+excuse the case it existed for · a CRLF guard that normalised away the thing under test · a scope check
+that could not tell a MENTION from a USE and red on its own write-up · a NUL gate blind to untracked files
+· a consumer detector blind to the `.ts` import spelling · an escaping fix that wrote a raw NUL into the
+file doing the fixing. ⭐ **Not one was visible by reading.** The closing act of the session was the same
+shape: writing *"a `\b` mangled to a backspace byte"* into the plan put a **real backspace byte** there,
+and `lint:control-chars` — built four hours earlier — caught it.
+
+### What left the round rather than being absorbed
+
+| | |
+|---|---|
+| **P6.10** | which record wins when `minimumPaidThisCycle` and `isPaidThisCycle` **contradict** — both readings defensible, a money-semantics call on data Phase 5 migrates |
+| **P6.11** | `lint:webkit` is **RED right now and in no live chain** — reachable only from the retired `validate:release:legacy`, failing unseen on `app/page.tsx:1653` |
+| **P6.14** | `m7`'s new blocked state is **unreachable off-device** — the web adapter swallows every error, so no e2e can enter it |
+| **P6.10 / P6.14** | the WebKit flex-control class is **unmeasured on the RN app** — the gate reads CSS classes, which RN source does not have |
+| **INTERNATIONAL** | the paywall's per-month anchor is spelled US-style — out of 2.0's four storefronts, all `$`-prefixed |
+| **S3** | `webkitDoor` bypasses `pickLegacyStore`, so the harness can build a state production cannot |
+
+### ⛔ One self-inflicted incident, recorded because it destroyed data
+
+A Python `open(p,'w')` **truncates before it writes**, and an emoji outside the BMP raised
+`UnicodeEncodeError` mid-write — leaving `DEBT_ELEVATION_BACKLOG.md` at **0 lines**. Caught by `wc -l`,
+restored from git intact, nothing lost. The write pattern is now encode-to-bytes-first, and the portfolio
+memory carries it. ⚠️ The exception looked like *"nothing happened"* and was not.
+
+### Cadence correction, from 🎯 mid-session
+
+**Running the full `lint:rn` chain three times to read one summary line.** The summary is ANSI-coded and
+sits at the very end, so successive greps kept missing it. ⛔ **Capture the run to a file once and query
+the file.** It also produced a false signal: two overlapping runs reported *"2 of 36 failed"* because
+`test:gate-plants` **mutates the working tree**, so concurrent runs clobber each other's plant files.
+
+⚠️ **And the per-fix cadence was narrowed with 🎯's agreement:** [D74]'s *"`lint:rn` per fix"* was written
+for **app-code** fixes, where the chain is a regression net. When the thing being changed **is** the
+chain, the per-sub-step run is the *touched* gates + `test:gate-plants` + `lint:finding-guards`, and the
+full chain runs at the item boundary.
+
+### State at close
+
+**150 of 151 findings guarded**; the one unguarded row (`GAP-14`) exits by a DECISION. `MIN_ENTRIES`
+140 → 151, `MAX_UNGUARDED` 16 → **1**. `lint:rn` **36 gates** green, `tsc` clean, all unit suites green.
+⛔ **No gate record, by [D74] design** — quote `npm run lint:gate-freshness`; the last full pass is
+`818f934` and the tree has moved well past it.
+
+▶ **Next: `S1.10.7`** — the round's net (full e2e + embed, **no `gate:record`**), push, regenerate the
+four routing manifests *(the surface has gained nine files since pass 3)*, then write pass 4's brief.
+⛔ **[D68]: a NEW SESSION runs the pass.**
+
 ## S1.10.6.5.8.4 — the floors, and all three proposed remedies were wrong or weak (2026-08-27)
 
 ⚡ **The headline: not one of `GAP-7` / `GAP-8` / `GAP-13` was built as written, and the corrections came

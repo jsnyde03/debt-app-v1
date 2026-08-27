@@ -42,16 +42,14 @@ AND 19-of-20 FIXED.**
 the map. ⛔ **S1 does NOT converge**; 9 of the 20 restart [D65]'s count, and **pass 3 is not a clean pass**,
 so a clean pass 4 still owes a pass 5.
 
-▶ **ACTIVE: `S1.10.6` — the FIX, by CLASS, at the top of the plan.** ✅ **`.6.1` `.6.2` `.6.3` `.6.4` `.6.6`
-are CLOSED — 19 of 20 blocker+majors, every guard measured RED on its own restored defect.**
-▶ **`.6.9` is next** *(two claim sites `.6.2`'s enumeration found that no auditor did — **located, not
-reproduced**, so it opens with a measurement)*, then ⛔ **`.6.5`, the five blind instruments, LAST of the
-code classes** — those gates are what the other fixes are verified *with* — then `.6.7`'s 14 minors.
+▶ **ACTIVE: `S1.10.7` — the round's NET, then pass 4.** Decomposed at the top of the plan.
+✅ **`S1.10.6` is CLOSED except `.6.10`** *(held for just-before-S2, see below)*: all **20** blocker+majors, the `G-1`…`G-6` enumeration, the whole `GAP-*` guard backlog and all **14** minors — every guard measured RED on its own restored defect.
 
-⚠️ **AND `.6.5`'s DEFERRAL IS NOT FREE — it OWES A RE-CHECK OF `.6.1`–`.6.6`.** `B1` is `lint:money` being
-**unsatisfiable**, and it ran green over every line of new money-rendering code this cluster shipped
-(`money.tsx`, `BillBreakdownSheet`, `PaidOffArchive`, the widget). Fixing the gate is step one; sweeping
-what it then finds in work already shipped is step two, and it is not optional.
+⚡ **THE NUMBER TO CARRY INTO PASS 4'S FIX PHASE.** Of **26** pre-authored rows worked across the last two sub-steps, **15 were wrong about their own scope or REMEDY** — while the premises were almost always right. ⛔ **The ledger is reliable about WHERE and unreliable about WHAT TO DO.** Three remedies would have *introduced* the defect they described: `GAP-7`'s equality assertion is forbidden by the code six lines below it, `A5`'s `??` makes a debt paid IN FULL display its full balance, and `D3-8`'s regex accepts the `$0.00` it was written to catch. **Verify what a finding says to DO, not just where it points.**
+
+⚠️ **Three rows had already been closed by `M8`'s strict-equality sweep and nobody had noticed** — a sweep that lands quietly leaves a backlog describing a tree that no longer exists.
+
+⛔ **THE INSTRUMENTS ARE NOW A LARGE PART OF WHAT PASS 4 READS.** The stack gained **six gates and three test modules** in two sessions — `lint:gate-sources` · `lint:scan-floors` · `lint:line-endings` · `lint:closure-stripper` · `lint:control-chars` · `lint:strip-code`, and `lint:rn` is **36 gates**. ⚡ **Eleven defects went INTO those instruments across the two sessions, and not one was visible by reading** — every one was found by planting. **Report pass 4 split by origin**, or a flat total hides both halves moving.
 
 ⭐ **BEFORE S2 OPENS — `S1.10.6.10`.** 🎯 asked whether the later surfaces will bloat the way S1 did.
 ⛔ **The S1 class cannot recur**: `lint:surface-complete` asserts all **1,220** tracked source files have an

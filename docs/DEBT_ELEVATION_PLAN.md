@@ -26,38 +26,26 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.10.6.5.8 · the guard backlog**
+## ▶ RIGHT NOW — **S1.10.7 · the round's NET, then pass 4**
 
-**Surface S1 · money · goals · plan cards.** Passes 1 and 2 run and fully fixed; **pass 3 run at `96d1f11`
-and FIXED — 20 of 20 blocker+majors closed**, plus **`G-1`…`G-6`** from `.6.9`'s own enumeration and
-**`GAP-2` `GAP-3` `GAP-6` `GAP-14`** from the guard inventory. ⛔ **S1 does NOT converge yet** — [D65] exits
-on 0/0 **twice consecutively**, and pass 3 was not clean, so **pass 4 is the next first-candidate and a
-clean pass 4 still owes a pass 5.** S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is
-**reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+**Surface S1 · money · goals · plan cards.** Passes 1 and 2 run and fully fixed. **Pass 3 run at `96d1f11` and FIXED — 20 of 20 blocker+majors, then all 14 minors**, plus `G-1`…`G-6` and the whole `GAP-*` guard backlog. ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively** and pass 3 was not clean, so **pass 4 is the next first-candidate and a clean pass 4 still owes a pass 5.** S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
-⛔ **THERE IS NO CURRENT GATE RECORD, AND MID-AUDIT THAT IS THE EXPECTED STATE** ([D74]). The last full
-pass is **`818f934`**. ⚠️ **Do not type the fingerprint or the file count here** — this block has now
-carried a decayed one twice, which is the whole reason [D49] says quote `npm run lint:gate-freshness` and
-read `gate-status.json`. ⛔ **The harness reports exit 0 over a RED gate** — read the gate's own summary
-line, never the pipeline's status.
+⚡ **What the last two sub-steps measured, and it governs how pass 4 is read.** Of the 12 `GAP-*` rows, **9 were wrong about their own scope or remedy**; of the 14 minors, **6 had a remedy that was wrong, incomplete or unnecessary** — while the premises were almost always right. ⛔ **The ledger is reliable about WHERE and unreliable about WHAT TO DO**: verify a finding's remedy, not just its location. Three remedies would have introduced the defect they described.
+
+⛔ **THERE IS NO CURRENT GATE RECORD, AND MID-AUDIT THAT IS THE EXPECTED STATE** ([D74]). ⚠️ **Do not type the fingerprint or the file count here** — this block has carried a decayed one twice, which is why [D49] says quote `npm run lint:gate-freshness` and read `gate-status.json`. ⛔ **The harness reports exit 0 over a RED gate** — read the gate's own summary line, never the pipeline's status.
 
 ### ⏭ WHAT THE NEXT SESSION PICKS UP
 
 ▶ **`S1.10.6` is CLOSED except `.6.10`, which is deliberately held for just-before-S2.** All 20 blocker+majors and all 14 minors are closed. ⛔ **Read the guard count from `npm run lint:finding-guards`, never from here.** ⚡ **Across the minors, 6 of 14 remedies were wrong, incomplete or unnecessary while the premises were almost always right** — verify what a finding says to DO, not just where it points.
 ▶ **Next: `S1.10.7` — the NET (full e2e + embed, no `gate:record`), push, then regenerate the routing and write pass 4's brief.** ⛔ [D68]: a NEW SESSION runs the pass.
 
-⚠️ **Verify each GAP's premise before building it.** Two of the four taken so far did **not** survive
-contact: `GAP-6` was already closed by `M8`'s strict-equality sweep *(its `>` premise is stale)*, and
-`GAP-14`'s CI step is **refuted** — `gate:record` is deliberately not in CI, a post-record check is
-tautological, the record is stale mid-audit by design, and nothing in CI consumes it. ⚡ **They were written
-against `b03e0d3` and the tree has moved a great deal since**, so expect more of the remaining 11 to refute
-than the list implies. A refutation is a real exit ([D65]) — record it with the measurement and a token.
+⚠️ **The GAP backlog is CLOSED — `MAX_UNGUARDED` 16 → 1**, and the one row left (`GAP-14`) exits by a DECISION, not a build. ⛔ **What carries forward is the LESSON, not the list:** those rows were authored against `b03e0d3` and the tree has moved a great deal, so **9 of 12 did not survive contact** — three had already been closed by `M8`'s strict-equality sweep without anyone noticing, one proposed remedy would have been the defect, and one was rejected because it would have shipped 12 exemptions against 1 rule. **A refutation is a real exit ([D65]) — record it with the measurement and a token.**
 
-⛔ **Then, and only then: pass 4.** It reads roughly **2,000 lines of code written this session across the
-instruments**, and this session alone put **five defects into its own gates and harnesses** — the `\b`
-mangled to a backspace byte, the edit pre-flight that never landed, and three verifier errors that each
-produced a confident verdict about nothing. **Report pass 4 split by origin**, or a flat total hides both
-halves moving.
+⛔ **Then, and only then: pass 4 — and its subject is largely CODE WRITTEN DURING THE FIXING.** The instrument stack gained **six gates and three test modules** in the last two sessions *(`lint:gate-sources` · `lint:scan-floors` · `lint:line-endings` · `lint:closure-stripper` · `lint:control-chars` · `lint:strip-code`, plus 21 plant scenarios)*.
+
+⚡ **Across those two sessions ELEVEN defects went into the instruments themselves**, and the split is the point: the previous session put five in *(a word-boundary regex escape mangled into a literal backspace byte, an edit pre-flight that never landed, three verifier errors that each produced a confident verdict about nothing)*, and this one put six in — **an exemption ledger keyed so it could never excuse the case it existed for · a CRLF guard that normalised away the thing under test · a scope check that could not tell a MENTION from a USE and red on its own write-up · a NUL gate blind to untracked files · a consumer detector blind to the `.ts` import spelling · an escaping fix that wrote a raw NUL into the file doing the fixing.**
+
+⛔ **Every one was found by PLANTING, none by reading** — which is what the brief must ask for. **Report pass 4 split by origin**, or a flat total hides both halves moving.
 
 ### 🔨 THE ACTIVE DECOMPOSITION — S1 *(the ONLY decomposed section on this doc)*
 
