@@ -1,8 +1,8 @@
 {
   "generated": "npm run audit:strings",
   "counts": {
-    "copy": 880,
-    "unclassified": 568,
+    "copy": 878,
+    "unclassified": 570,
     "duplicates": 102
   },
   "entries": [
@@ -623,240 +623,240 @@
       "bucket": "copy"
     },
     {
-      "text": "· Variable",
-      "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 908,
-      "origin": "prop:meta",
-      "bucket": "copy"
-    },
-    {
       "text": "requiredExpense",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 912,
-      "origin": "prop:amount",
+      "line": 910,
+      "origin": "prop:renderItem",
       "bucket": "unclassified"
     },
     {
       "text": "requiredExpense",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
+      "line": 911,
+      "origin": "prop:renderItem",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "· Variable",
+      "file": "apps/rn/src/app/(tabs)/money.tsx",
       "line": 916,
-      "origin": "prop:caption",
+      "origin": "prop:meta",
       "bucket": "copy"
     },
     {
       "text": "Autopay",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 917,
+      "line": 919,
       "origin": "prop:badges",
       "bucket": "unclassified"
     },
     {
       "text": "No expenses match “",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 928,
+      "line": 931,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 933,
+      "line": 936,
       "origin": "prop:label",
       "bucket": "copy"
     },
     {
       "text": "Search expenses",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 971,
+      "line": 974,
       "origin": "prop:placeholder",
       "bucket": "copy"
     },
     {
       "text": "Clear search",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 978,
+      "line": 981,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "livingExpense",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1031,
+      "line": 1034,
       "origin": "call:anyRowFieldUnread",
       "bucket": "unclassified"
     },
     {
       "text": "/living-expenses",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1043,
+      "line": 1046,
       "origin": "prop:onPress",
       "bucket": "technical"
     },
     {
       "text": "Everyday spending reserve, nothing set up yet. Opens management.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1047,
+      "line": 1050,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Everyday spending reserve, some amounts could not be read. Opens management.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1049,
+      "line": 1052,
       "origin": "prop:accessibilityLabel",
       "bucket": "copy"
     },
     {
       "text": "Everyday spending reserve",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1058,
+      "line": 1061,
       "origin": "jsx-text",
       "bucket": "copy"
     },
     {
       "text": "Not set up",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1061,
+      "line": 1064,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Groceries, gas, fun money — reserve it each paycheck",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1068,
+      "line": 1071,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Some amounts could not be read · tap to set them again",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1072,
+      "line": 1075,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Reserved each paycheck · tap to manage",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1075,
+      "line": 1078,
       "origin": "jsx-expr",
       "bucket": "copy"
     },
     {
       "text": "Start a savings goal",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1104,
+      "line": 1107,
       "origin": "prop:title",
       "bucket": "copy"
     },
     {
       "text": "Add an emergency fund or savings goal to start tracking progress.",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1105,
+      "line": 1108,
       "origin": "prop:body",
       "bucket": "copy"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1106,
+      "line": 1109,
       "origin": "prop:cta",
       "bucket": "copy"
     },
     {
       "text": "targetAmount",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1146,
+      "line": 1149,
       "origin": "call:rowFieldUnread",
       "bucket": "unclassified"
     },
     {
       "text": "currentAmount",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1147,
+      "line": 1150,
       "origin": "call:rowFieldUnread",
       "bucket": "unclassified"
     },
     {
       "text": "Some amounts unread",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1152,
+      "line": 1155,
       "origin": "prop:value",
       "bucket": "copy"
     },
     {
       "text": "set them again and your total comes back",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1155,
+      "line": 1158,
       "origin": "prop:sub",
       "bucket": "unclassified"
     },
     {
       "text": "saved — one target could not be read",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1157,
+      "line": 1160,
       "origin": "prop:sub",
       "bucket": "unclassified"
     },
     {
       "text": "targetAmount",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1194,
+      "line": 1197,
       "origin": "call:rowFieldUnread",
       "bucket": "unclassified"
     },
     {
       "text": "currentAmount",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1195,
+      "line": 1198,
       "origin": "call:rowFieldUnread",
       "bucket": "unclassified"
     },
     {
       "text": "Emergency fund",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1200,
+      "line": 1203,
       "origin": "var:meta",
       "bucket": "unclassified"
     },
     {
       "text": "Savings",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1200,
+      "line": 1203,
       "origin": "var:meta",
       "bucket": "unclassified"
     },
     {
       "text": "Neither amount could be read",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1241,
+      "line": 1244,
       "origin": "prop:caption",
       "bucket": "copy"
     },
     {
       "text": "Saved amount could not be read",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1243,
+      "line": 1246,
       "origin": "prop:caption",
       "bucket": "copy"
     },
     {
       "text": "Target could not be read",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1245,
+      "line": 1248,
       "origin": "prop:caption",
       "bucket": "copy"
     },
     {
       "text": "Funded",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1248,
+      "line": 1251,
       "origin": "prop:badges",
       "bucket": "unclassified"
     },
     {
       "text": "Add",
       "file": "apps/rn/src/app/(tabs)/money.tsx",
-      "line": 1256,
+      "line": 1259,
       "origin": "prop:label",
       "bucket": "copy"
     },
@@ -1113,44 +1113,44 @@
       "bucket": "copy"
     },
     {
+      "text": "livingExpense",
+      "file": "apps/rn/src/app/living-expenses.tsx",
+      "line": 88,
+      "origin": "call:rowFieldUnread",
+      "bucket": "unclassified"
+    },
+    {
+      "text": "livingExpense",
+      "file": "apps/rn/src/app/living-expenses.tsx",
+      "line": 89,
+      "origin": "call:unreadFieldsFor",
+      "bucket": "unclassified"
+    },
+    {
       "text": "Counts toward reserve",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 87,
+      "line": 94,
       "origin": "prop:meta",
       "bucket": "copy"
     },
     {
       "text": "Not counted",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 87,
+      "line": 94,
       "origin": "prop:meta",
-      "bucket": "copy"
-    },
-    {
-      "text": "livingExpense",
-      "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 91,
-      "origin": "prop:amount",
-      "bucket": "unclassified"
-    },
-    {
-      "text": "livingExpense",
-      "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 95,
-      "origin": "prop:caption",
       "bucket": "copy"
     },
     {
       "text": "Off",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 96,
+      "line": 97,
       "origin": "prop:badges",
       "bucket": "unclassified"
     },
     {
       "text": "Add spending item",
       "file": "apps/rn/src/app/living-expenses.tsx",
-      "line": 106,
+      "line": 108,
       "origin": "prop:label",
       "bucket": "copy"
     },

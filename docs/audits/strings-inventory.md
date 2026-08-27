@@ -4,7 +4,7 @@
 > This is the **input** to the wording/voice gate, not its output. Findings belong in a dated
 > audit folder; this file is only ever the current state of the codebase.
 
-**880** copy · **568** unclassified · **95** excluded as machinery · **53** copy strings appearing in more than one file (of 102 repeated strings overall).
+**878** copy · **570** unclassified · **95** excluded as machinery · **51** copy strings appearing in more than one file (of 102 repeated strings overall).
 
 <details><summary>Excluded as machinery — the contexts, so the exclusions can be challenged</summary>
 
@@ -64,6 +64,7 @@ here is how a surface goes unreviewed while the count looks complete.
 - `call:shareDebtCard`
 - `call:skipped`
 - `call:store_.getState`
+- `call:unreadFieldsFor`
 - `call:useEffect`
 - `call:useState`
 - `call:useStore`
@@ -232,7 +233,6 @@ here is how a surface goes unreviewed while the count looks complete.
 - `key:webkitRoot`
 - `key:why`
 - `other`
-- `prop:amount`
 - `prop:amountSuffix`
 - `prop:badges`
 - `prop:getComponent`
@@ -241,6 +241,7 @@ here is how a surface goes unreviewed while the count looks complete.
 - `prop:onPress`
 - `prop:options`
 - `prop:rel`
+- `prop:renderItem`
 - `prop:sub`
 - `prop:target`
 - `var:AFFORD_PREVIEW_ID`
@@ -350,8 +351,8 @@ here is how a surface goes unreviewed while the count looks complete.
 
 ## Duplicated across files — copy only
 
-**53** of 102 cross-file duplicate strings carry copy.
-The other 49 are style tokens, icon names,
+**51** of 102 cross-file duplicate strings carry copy.
+The other 51 are style tokens, icon names,
 routes and enum ids — repeated by design, and nothing a wording pass judges. They are excluded
 here for the same reason the T2 gate and the T3 table exclude them: one classification, reused.
 
@@ -359,12 +360,10 @@ here for the same reason the T2 gate and the T3 table exclude them: one classifi
 non-copy literal elsewhere (`"at-risk"` is a Guardian state id and a QA label). Judge the copy
 instance; the others are coincidence, not divergence.
 
-- **"requiredExpense"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:678` · `apps/rn/src/app/(tabs)/money.tsx:701` · `apps/rn/src/app/(tabs)/money.tsx:733` · `apps/rn/src/app/(tabs)/money.tsx:912` · `apps/rn/src/app/(tabs)/money.tsx:916` · `apps/rn/src/data/migrations.ts:268` · `apps/rn/src/data/models.ts:262` · `apps/rn/src/store/trustSelectors.ts:296`
-- **"Add"** _(copy)_ — `apps/rn/src/app/(tabs)/money.tsx:322` · `apps/rn/src/app/(tabs)/money.tsx:444` · `apps/rn/src/app/(tabs)/money.tsx:800` · `apps/rn/src/app/(tabs)/money.tsx:933` · `apps/rn/src/app/(tabs)/money.tsx:1106` · `apps/rn/src/app/(tabs)/money.tsx:1256` · `apps/rn/src/components/plan/WindfallSheet.tsx:82`
-- **"livingExpense"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:1031` · `apps/rn/src/app/living-expenses.tsx:41` · `apps/rn/src/app/living-expenses.tsx:91` · `apps/rn/src/app/living-expenses.tsx:95` · `apps/rn/src/data/migrations.ts:269` · `apps/rn/src/data/models.ts:262` · `apps/rn/src/store/trustSelectors.ts:298`
+- **"Add"** _(copy)_ — `apps/rn/src/app/(tabs)/money.tsx:322` · `apps/rn/src/app/(tabs)/money.tsx:444` · `apps/rn/src/app/(tabs)/money.tsx:800` · `apps/rn/src/app/(tabs)/money.tsx:936` · `apps/rn/src/app/(tabs)/money.tsx:1109` · `apps/rn/src/app/(tabs)/money.tsx:1259` · `apps/rn/src/components/plan/WindfallSheet.tsx:82`
 - **"Got it"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:592` · `apps/rn/src/app/(tabs)/index.tsx:610` · `apps/rn/src/app/(tabs)/index.tsx:627` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:386` · `apps/rn/src/components/plan/CoachMarkLayer.tsx:389` · `apps/rn/src/components/plan/DataRepairsCard.tsx:84`
 - **"Undo"** _(copy)_ — `apps/rn/src/app/(tabs)/index.tsx:643` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:265` · `apps/rn/src/components/plan/AffordabilityCard.tsx:162` · `apps/rn/src/components/plan/AffordabilityCard.tsx:183` · `apps/rn/src/components/plan/RecommendedActionsCard.tsx:70` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:303`
-- **"Autopay"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:586` · `apps/rn/src/app/(tabs)/money.tsx:917` · `apps/rn/src/components/entities/DebtSheet.tsx:390` · `apps/rn/src/components/entities/ExpenseSheet.tsx:122` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:300` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:344`
+- **"Autopay"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:586` · `apps/rn/src/app/(tabs)/money.tsx:919` · `apps/rn/src/components/entities/DebtSheet.tsx:390` · `apps/rn/src/components/entities/ExpenseSheet.tsx:122` · `apps/rn/src/components/payday/PaydayCaptureSheet.tsx:300` · `apps/rn/src/components/plan/RequiredActionsCard.tsx:344`
 - **"Progress"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/_layout.tsx:87` · `apps/rn/src/app/(tabs)/progress.tsx:175` · `apps/rn/src/app/(tabs)/progress.tsx:201` · `apps/rn/src/app/(tabs)/progress.tsx:213` · `apps/rn/src/app/(tabs)/progress.tsx:271`
 - **"/mo"** _(copy+unclassified)_ — `apps/rn/src/app/(tabs)/money.tsx:603` · `apps/rn/src/app/(tabs)/money.tsx:603` · `apps/rn/src/components/entities/AmortizationView.tsx:85` · `apps/rn/src/components/payoff/WhatIfControls.tsx:84` · `packages/core/types/recurrence.ts:27`
 - **"Save"** _(copy)_ — `apps/rn/src/components/entities/DebtSheet.tsx:288` · `apps/rn/src/components/entities/ExpenseSheet.tsx:103` · `apps/rn/src/components/entities/GoalSheet.tsx:156` · `apps/rn/src/components/entities/LivingExpenseSheet.tsx:55` · `apps/rn/src/components/plan/CushionFloorSheet.tsx:49`
@@ -433,22 +432,22 @@ the moment a second producer was added. Two audit passes and three green web spe
 | `apps/rn/src/app/(tabs)/money.tsx:603` | `minimumUnread` | — | "/mo" · "/mo" |
 | `apps/rn/src/app/(tabs)/money.tsx:603` | `isBnpl` | "/mo" | "/mo" |
 | `apps/rn/src/app/(tabs)/money.tsx:851` | `expensesUnread` | "A bill amount could not be read, so there is no recommendation yet" | — |
-| `apps/rn/src/app/(tabs)/money.tsx:908` | `item.expenseType === 'variable'` | "· Variable" | — |
-| `apps/rn/src/app/(tabs)/money.tsx:917` | `item.isAutopay` | "Autopay" | — |
-| `apps/rn/src/app/(tabs)/money.tsx:1046` | `empty` | "Everyday spending reserve, nothing set up yet. Opens management." | "Everyday spending reserve, some amounts could not be read. Opens management." |
-| `apps/rn/src/app/(tabs)/money.tsx:1048` | `unread` | "Everyday spending reserve, some amounts could not be read. Opens management." | — |
-| `apps/rn/src/app/(tabs)/money.tsx:1061` | `empty` | "Not set up" | — |
-| `apps/rn/src/app/(tabs)/money.tsx:1067` | `empty` | "Groceries, gas, fun money — reserve it each paycheck" | "Some amounts could not be read · tap to set them again" |
-| `apps/rn/src/app/(tabs)/money.tsx:1071` | `unread` | "Some amounts could not be read · tap to set them again" | "Reserved each paycheck · tap to manage" |
-| `apps/rn/src/app/(tabs)/money.tsx:1073` | `shortHeld` | — | "Reserved each paycheck · tap to manage" |
-| `apps/rn/src/app/(tabs)/money.tsx:1152` | `savedUnread` | "Some amounts unread" | — |
-| `apps/rn/src/app/(tabs)/money.tsx:1240` | `targetUnreadable && savedUnreadable` | "Neither amount could be read" | "Saved amount could not be read" |
-| `apps/rn/src/app/(tabs)/money.tsx:1242` | `savedUnreadable` | "Saved amount could not be read" | "Target could not be read" |
-| `apps/rn/src/app/(tabs)/money.tsx:1244` | `targetUnreadable` | "Target could not be read" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:916` | `item.expenseType === 'variable'` | "· Variable" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:919` | `item.isAutopay` | "Autopay" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:1049` | `empty` | "Everyday spending reserve, nothing set up yet. Opens management." | "Everyday spending reserve, some amounts could not be read. Opens management." |
+| `apps/rn/src/app/(tabs)/money.tsx:1051` | `unread` | "Everyday spending reserve, some amounts could not be read. Opens management." | — |
+| `apps/rn/src/app/(tabs)/money.tsx:1064` | `empty` | "Not set up" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:1070` | `empty` | "Groceries, gas, fun money — reserve it each paycheck" | "Some amounts could not be read · tap to set them again" |
+| `apps/rn/src/app/(tabs)/money.tsx:1074` | `unread` | "Some amounts could not be read · tap to set them again" | "Reserved each paycheck · tap to manage" |
+| `apps/rn/src/app/(tabs)/money.tsx:1076` | `shortHeld` | — | "Reserved each paycheck · tap to manage" |
+| `apps/rn/src/app/(tabs)/money.tsx:1155` | `savedUnread` | "Some amounts unread" | — |
+| `apps/rn/src/app/(tabs)/money.tsx:1243` | `targetUnreadable && savedUnreadable` | "Neither amount could be read" | "Saved amount could not be read" |
+| `apps/rn/src/app/(tabs)/money.tsx:1245` | `savedUnreadable` | "Saved amount could not be read" | "Target could not be read" |
+| `apps/rn/src/app/(tabs)/money.tsx:1247` | `targetUnreadable` | "Target could not be read" | — |
 | `apps/rn/src/app/(tabs)/progress.tsx:260` | `reached.length` | — | "no milestones reached yet" |
 | `apps/rn/src/app/(tabs)/progress.tsx:261` | `nextT` | — | "all milestones reached" |
 | `apps/rn/src/app/(tabs)/progress.tsx:261` | `nextT === 100` | "debt-free" | — |
-| `apps/rn/src/app/living-expenses.tsx:87` | `item.enabled` | "Counts toward reserve" | "Not counted" |
+| `apps/rn/src/app/living-expenses.tsx:94` | `item.enabled` | "Counts toward reserve" | "Not counted" |
 | `apps/rn/src/app/more.tsx:245` | `tipsReset` | "Tips will appear again as you go." | "Short tips that point out what each screen can do." |
 | `apps/rn/src/app/more.tsx:488` | `blocked === 'unavailable'` | "Nothing was deleted. Sign in to iCloud on this device so the backup there can be erased too — or delete on this device only." | "Nothing was deleted. iCloud couldn’t be reached, so the backup there would have survived — try again, or delete on this device only." |
 | `apps/rn/src/app/paywall.tsx:289` | `kind === 'lifetime'` | "You’re on Premium — Lifetime. Thanks for the support." | "You’re on Premium — thanks for the support." |
@@ -532,8 +531,6 @@ the moment a second producer was added. Two audit passes and three green web spe
 | `apps/rn/src/components/ui/DateField.tsx:93` | `value` | — | "Select a date" |
 | `apps/rn/src/components/ui/ListRow.tsx:95` | `onPress` | "Opens the editor" | — |
 | `apps/rn/src/components/ui/ListRow.tsx:164` | `onPress` | "Edit" | — |
-| `apps/rn/src/store/trustSelectors.ts:294` | `r.entity === 'debt'` | — | "requiredExpense" |
-| `apps/rn/src/store/trustSelectors.ts:296` | `r.entity === 'requiredExpense'` | — | "livingExpense" |
 | `apps/rn/src/utils/confirm.ts:55` | `action` | "Not now" | — |
 | `packages/core/guardian/buildGuardianBrief.ts:260` | `isPremium` | "Update your numbers and I’ll plan from where you actually are." | — |
 | `packages/core/guardian/buildGuardianBrief.ts:291` | `debtFree` | — | "expenses and minimums" |
@@ -659,39 +656,39 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 842 | key:sub ⚠️ | set them again and your total comes back |
 | 848 | key:sub ⚠️ | reserved for upcoming expenses |
 | 852 | key:caption | A bill amount could not be read, so there is no recommendation yet |
-| 908 | prop:meta | · Variable |
-| 912 | prop:amount ⚠️ | requiredExpense |
-| 916 | prop:caption | requiredExpense |
-| 917 | prop:badges ⚠️ | Autopay |
-| 928 | jsx-text | No expenses match “ |
-| 933 | prop:label | Add |
-| 971 | prop:placeholder | Search expenses |
-| 978 | prop:accessibilityLabel | Clear search |
-| 1031 | call:anyRowFieldUnread ⚠️ | livingExpense |
-| 1047 | prop:accessibilityLabel | Everyday spending reserve, nothing set up yet. Opens management. |
-| 1049 | prop:accessibilityLabel | Everyday spending reserve, some amounts could not be read. Opens management. |
-| 1058 | jsx-text | Everyday spending reserve |
-| 1061 | jsx-expr | Not set up |
-| 1068 | jsx-expr | Groceries, gas, fun money — reserve it each paycheck |
-| 1072 | jsx-expr | Some amounts could not be read · tap to set them again |
-| 1075 | jsx-expr | Reserved each paycheck · tap to manage |
-| 1104 | prop:title | Start a savings goal |
-| 1105 | prop:body | Add an emergency fund or savings goal to start tracking progress. |
-| 1106 | prop:cta | Add |
-| 1146 | call:rowFieldUnread ⚠️ | targetAmount |
-| 1147 | call:rowFieldUnread ⚠️ | currentAmount |
-| 1152 | prop:value | Some amounts unread |
-| 1155 | prop:sub ⚠️ | set them again and your total comes back |
-| 1157 | prop:sub ⚠️ | saved — one target could not be read |
-| 1194 | call:rowFieldUnread ⚠️ | targetAmount |
-| 1195 | call:rowFieldUnread ⚠️ | currentAmount |
-| 1200 | var:meta ⚠️ | Emergency fund |
-| 1200 | var:meta ⚠️ | Savings |
-| 1241 | prop:caption | Neither amount could be read |
-| 1243 | prop:caption | Saved amount could not be read |
-| 1245 | prop:caption | Target could not be read |
-| 1248 | prop:badges ⚠️ | Funded |
-| 1256 | prop:label | Add |
+| 910 | prop:renderItem ⚠️ | requiredExpense |
+| 911 | prop:renderItem ⚠️ | requiredExpense |
+| 916 | prop:meta | · Variable |
+| 919 | prop:badges ⚠️ | Autopay |
+| 931 | jsx-text | No expenses match “ |
+| 936 | prop:label | Add |
+| 974 | prop:placeholder | Search expenses |
+| 981 | prop:accessibilityLabel | Clear search |
+| 1034 | call:anyRowFieldUnread ⚠️ | livingExpense |
+| 1050 | prop:accessibilityLabel | Everyday spending reserve, nothing set up yet. Opens management. |
+| 1052 | prop:accessibilityLabel | Everyday spending reserve, some amounts could not be read. Opens management. |
+| 1061 | jsx-text | Everyday spending reserve |
+| 1064 | jsx-expr | Not set up |
+| 1071 | jsx-expr | Groceries, gas, fun money — reserve it each paycheck |
+| 1075 | jsx-expr | Some amounts could not be read · tap to set them again |
+| 1078 | jsx-expr | Reserved each paycheck · tap to manage |
+| 1107 | prop:title | Start a savings goal |
+| 1108 | prop:body | Add an emergency fund or savings goal to start tracking progress. |
+| 1109 | prop:cta | Add |
+| 1149 | call:rowFieldUnread ⚠️ | targetAmount |
+| 1150 | call:rowFieldUnread ⚠️ | currentAmount |
+| 1155 | prop:value | Some amounts unread |
+| 1158 | prop:sub ⚠️ | set them again and your total comes back |
+| 1160 | prop:sub ⚠️ | saved — one target could not be read |
+| 1197 | call:rowFieldUnread ⚠️ | targetAmount |
+| 1198 | call:rowFieldUnread ⚠️ | currentAmount |
+| 1203 | var:meta ⚠️ | Emergency fund |
+| 1203 | var:meta ⚠️ | Savings |
+| 1244 | prop:caption | Neither amount could be read |
+| 1246 | prop:caption | Saved amount could not be read |
+| 1248 | prop:caption | Target could not be read |
+| 1251 | prop:badges ⚠️ | Funded |
+| 1259 | prop:label | Add |
 
 ### `apps/rn/src/app/(tabs)/progress.tsx`
 
@@ -753,12 +750,12 @@ the moment a second producer was added. Two audit passes and three green web spe
 | 54 | prop:cta | Add your first item |
 | 60 | jsx-text | Reserve per paycheck |
 | 79 | jsx-text | Some amounts could not be read — set them again and your total comes back. |
-| 87 | prop:meta | Counts toward reserve |
-| 87 | prop:meta | Not counted |
-| 91 | prop:amount ⚠️ | livingExpense |
-| 95 | prop:caption | livingExpense |
-| 96 | prop:badges ⚠️ | Off |
-| 106 | prop:label | Add spending item |
+| 88 | call:rowFieldUnread ⚠️ | livingExpense |
+| 89 | call:unreadFieldsFor ⚠️ | livingExpense |
+| 94 | prop:meta | Counts toward reserve |
+| 94 | prop:meta | Not counted |
+| 97 | prop:badges ⚠️ | Off |
+| 108 | prop:label | Add spending item |
 
 ### `apps/rn/src/app/more.tsx`
 
