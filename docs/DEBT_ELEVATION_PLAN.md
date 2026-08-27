@@ -102,17 +102,54 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 
 #### S1.10.6.9's sub-steps — the two claim sites no auditor found *(ACTIVE)*
 
-⚠️ **Before-scan: LOCATED, NOT REPRODUCED.** `.6.2`'s enumeration found them by asking which files read the
-user's entity lists **and** print money; both do, and neither asks the trust module. ⛔ **That is a location,
-not a defect** — the first two sub-steps are measurements, and a finding that does not reproduce is
-**refuted and recorded as refuted**, never quietly fixed.
+⚠️ **Located by `.6.2`'s enumeration, then MEASURED — and both reproduce.** ⛔ **The enumeration named two
+sites and the file holds five**, the seventh instance of the undercount class; `guardianSelectors` alone
+carries `G-1`…`G-5`, one of them **blocker `B1` unfixed in the Guardian**. ⚠️ The measurements ran with a
+control on every case *(truth · repaired · genuinely-zero)*, because a repair is only a defect where the app
+can tell the two zeroes apart and does not.
 
 | # | sub-step |
 |---|---|
-| **.6.9.1** | **Measure `guardianSelectors`** — `selectCalibrationScore` splits the accuracy regime on `balance > 0` and `selectReserveRelease` names *"your savings"* off the same test, so a repaired balance would reclassify both. ⚠️ Run it with a control before writing anything down |
-| **.6.9.2** | **Measure `AffordabilityCard`** — the cover-from-savings flow reads `goal.currentAmount` directly and prices a purchase against it |
-| **.6.9.3** | **Fix what reproduces**, at the one owner. ⛔ Neither is a user-facing *figure*, so the honest remedy may be a sentence rather than a suppression — decide from the measurement |
-| **.6.9.4** | **Guards + registry**, then both rows off `lint:trust-claims`' `OPEN` ledger with **`MAX_OPEN` → 0** — the cap only goes down, and zero is what closes the class |
+| ✅ | **.6.9.1 — `guardianSelectors` MEASURED.** ⛔ **All five reproduce, and the step's own enumeration named two.** ⚡ **`G-1` is the loudest thing this cluster has found: one unread balance turns the Guardian scorecard from *"0 of 4 reads matched · Under-warned 4"* into *"4 of 4 · Under-warned 0"* and suppresses the apology line** — a regime re-grade, in the flattering direction. `G-3` is **blocker `B1` itself**, unfixed in `selectPaydayGuardian`, three years of copy downstream of one `debtFree`. `G-2` says *"your savings"* over a live Visa · `G-4` flips a spending verdict `short → tight` · `G-5` names the wrong pot and a wrong figure (*"$25 from Coffee Fund — doesn't hold your line"* over a true $100 from Vacation). Detail → log |
+| ✅ | **.6.9.2 — `AffordabilityCard` MEASURED: RELOCATED, not refuted.** Its own two `.goals` reads are honest *(a name check; a measured delta across the call)*; every false figure it prints comes from `selectAffordability` — so the fix is `G-4`'s, and the card owes only the **render-site** guard on the `coverFromSavings` figure it restates |
+| ✅ | **.6.9.3 — FIXED, by CLASS** *(decomposition below)*. The class: *"is this debt live?"* was re-derived from a repairable field at every site and only `selectPlanState` asked the owner — the M9/B1 shape the codebase already names, in the file that never got the remedy. **+`G-6`**, a red release gate nobody had run |
+| ▶ | **.6.9.4 — GUARDS + REGISTRY.** ✅ `guardianTrust.test.ts` — **28 asserts, every case a PAIR** *(damaged vs a truth control, because a repaired `0` and a real `0` are the same number)* · ✅ registry **116 → 123**, `MIN_ENTRIES` raised in the same edit · ⭐ **`MAX_OPEN` → 0 and the `OPEN` ledger is EMPTY** — and ⛔ **both removals were FORCED by the gate**, which red on the stale rows the moment the fixes landed. ▶ **Remaining: plant-verify all six** — original defect + naive over-fix, ⚠️ fix **committed first** *(a plant loop never verifies its own restore)* |
+
+##### .6.9.3's sub-steps — one owner, then the five sites *(ACTIVE)*
+
+⚠️ **Before-scan: the remedy already exists and was applied to exactly one caller.** `selectPlanState`
+returns `'debt-free-unverified'` so a screen *cannot* forget to ask; `guardianSelectors` re-derives
+`debts.filter((d) => d.balance > 0)` **three times** and `currentAmount > 0` twice, and asks nothing.
+⛔ **Patching five call sites is what this cluster's own header forbids** — hence an owner plus a gate.
+
+⚡ **`G-4` RE-MEASURED MID-BUILD AND IT IS NOT AN AFFORDABILITY BUG — IT IS A HOLE IN THE CLAIM TABLE.** The
+owner fix does not reach it: with a live Visa beside a lost Store Card, `debtLiveness` is `has-debt` in both
+worlds, and the app still went from *"tight — you'd dip to $0, below your $200 line"* to **"Yes — you'd
+still hold about $300"**, spare **$250 → $550**. ⛔ **The engine skips a zero-balance debt, so an unread
+`balance` removes a real obligation from the plan exactly as pass-2's `C-4` unread `minimumPayment` did —
+and `'required-plan'` routes `minimumPayment` and not `balance`.** ⚠️ One table row reaches all four of its
+consumers; patching the card would have fixed the smallest of them.
+
+| # | sub-step |
+|---|---|
+| ✅ | **.6.9.3.1 — the owner.** `debtLiveness` (three states, not a boolean) + `liveDebts`, in `trustSelectors`; `selectPlanState` refactored onto it so the expression exists **once** |
+| ✅ | **.6.9.3.2 — `G-1` `selectCalibrationScore`** — the regime asks the owner; unverified grades an empty history, so the scorecard falls back to the day-one state it already renders |
+| ✅ | **.6.9.3.3 — `G-3` `selectPaydayGuardian`** — `debtFree` asks the owner; unverified resolves to *has debt*, because a debt row exists and only its balance is unknown |
+| ✅ | **.6.9.3.4 — `G-2` `selectReserveRelease`** — unverified takes the **existing** `'your debt'` fallback; a fourth phrasing would be a new claim to get wrong |
+| ✅ | **.6.9.3.5 — `G-4` the routing gap** — `debt.balance` routed under `'required-plan'`, reaching all **5** consumers; `AffordabilityCard` asks the claim and **REPLACES** the verdict rather than captioning it *(one word the user acts on, wrong in a known direction)* |
+| ✅ | **.6.9.3.6 — `G-5` the savings-pot pool** — `unreadSavings` on `TightTopUp` + `coverFromSavings`, captioned on both cards. ⛔ Captioned, not suppressed — the offer is still the best one the app can see |
+| ✅ | **.6.9.3.7 — THE GATE.** ⚡ **A blanket ban was written, MEASURED and thrown away** — `git grep` returns **40+**, most of them `packages/core` amortization loops that hold no store and are *right* to treat a `0` balance as paid, so the rule would have been **unsatisfiable, which is `B1`'s own failure mode**. Scoped to `apps/rn/src` where `DebtStore` is in reach, and shaped as a self-ratcheting **ledger**: **13 sites · 10 files**, counts exact **both** directions, cap downward-only, every file named on the GREEN line. ⛔ **7 of the 10 never mention the trust module at any line** |
+
+⚡ **`G-6`, found while VERIFYING and by no auditor: `npm run typecheck` was RED on the committed tree.**
+`check-trust-claims.ts` imports `trustSelectors.ts`, dragging the app's graph into `scripts/tsconfig.json`
+where `@/` and `@core/` do not exist — **18 errors, none real**. ⛔ `typecheck` is `core && rn && scripts &&
+tests`, so it took **`typecheck:tests` with it (never ran at all)**, and `validate:release:rn` OPENS with it:
+**the release gate could not have passed.** ⚠️ Every per-fix *"typecheck green"* since `C-1` was
+`typecheck:rn` alone. Fixed with aliases, **not an exclusion** — excluding the app restores the green by
+making the gates' own imports unchecked, the hole `[P6.8.7a-1]` closed.
+
+**Exit (.6.9.3):** ✅ five sites at the one owner · `'required-plan'` routing `balance` · the ledger gate on
+`lint:rn` · `typecheck` **whole** + the unit suites green.
 
 **Exit (S1.10.6.9):** both sites either fixed with a guard measured red on its own defect, or refuted by
 measurement and recorded as refuted; `MAX_OPEN` at 0; `lint:rn` + the unit suites green.

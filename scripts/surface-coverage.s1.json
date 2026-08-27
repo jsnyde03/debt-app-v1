@@ -756,6 +756,9 @@
   "apps/rn/src/store/guardianSubjects.ts": [
     "s1p2"
   ],
+  "apps/rn/src/store/guardianTrust.test.ts": [
+    "never"
+  ],
   "apps/rn/src/store/historySelectors.ts": [
     "s1p2"
   ],

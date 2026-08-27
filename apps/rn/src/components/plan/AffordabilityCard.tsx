@@ -12,6 +12,7 @@ import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectAffordability, type Affordability } from '@/store/guardianSelectors';
+import { mayClaim } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
@@ -132,8 +133,28 @@ export function AffordabilityCard() {
    * VoiceOver user typed an amount and got silence. Deriving the sentence here rather than announcing a
    * paraphrase of it means the spoken answer and the drawn answer cannot come apart.
    */
+  /**
+   * ⛔ **S1.10.6.9 [`G-4`] — THE APP TOLD A USER THEY HAD $550 SPARE WHEN THEY HAD $250.**
+   *
+   * ⚡ The allocation engine skips a debt with no balance left to pay, so a debt whose BALANCE the import
+   * path could not read drops its minimum out of the plan — the same obligation-vanishes defect pass 2
+   * closed for an unread `minimumPayment` (`C-4`), arriving by the other door. Measured on one store with a
+   * live Visa beside a lost Store Card: *"Yes, but tight — you'd dip to about $0, below your $200 line"*
+   * became **"Yes — you'd still hold about $300"**, and a $250 purchase went from `tight` to `comfortable`.
+   *
+   * ⛔ **THE VERDICT IS REPLACED, NOT CAPTIONED, AND THAT IS A DEPARTURE FROM `C-4`'s RULE ON PURPOSE.**
+   * A caption is right where the figure is merely incomplete and the rows below still say what the app
+   * does know. Here the answer is a single word the user acts on, it is wrong in a **known direction** —
+   * a lost balance repairs to `0`, never to a number, so the spare can only ever read HIGH — and the
+   * action it offers spends money. A *"Yes"* with an asterisk is still a yes.
+   *
+   * ⚠️ **The free-tier line is gated by the same flag**, because `discretionaryNow` is the identical
+   * inflated figure with the verdict stripped off, and it is the one number the free tier gets.
+   */
+  const unreadPlanInputs = !mayClaim(store, 'required-plan');
+
   const verdictLine =
-    result && isPremium
+    result && isPremium && !unreadPlanInputs
       ? result.verdict === 'short'
         ? `Not this paycheck — you’d come up about ${formatWhole(result.shortBy)} short.`
         : result.verdict === 'comfortable'
@@ -205,6 +226,13 @@ export function AffordabilityCard() {
       <View {...liveProps}>
       {!result ? (
         <Text style={[textStyles.caption, styles.hint, { color: c.text.tertiary }]}>Enter an amount to see if it fits this paycheck.</Text>
+      ) : unreadPlanInputs ? (
+        // ⛔ [`G-4`] — see the `unreadPlanInputs` docblock. Same voice as `RequiredActionsCard`'s unread
+        // state, and it points at the same fix: the amount is re-suppliable, and setting it clears this.
+        <Text testID="afford-unread-inputs" style={[textStyles.subhead, styles.hint, { color: c.accent.warning }]}>
+          An amount this paycheck has to cover could not be read, so I’d be answering off a plan that’s
+          missing something — set it again above and I can tell you.
+        </Text>
       ) : !isPremium ? (
         <View style={styles.read}>
           <Text style={[textStyles.subhead, { color: c.text.primary }]}>You have about {formatWhole(result.discretionaryNow)} spare this paycheck.</Text>
@@ -249,6 +277,15 @@ export function AffordabilityCard() {
               onPress={() => coverAndApply(result)}
               style={styles.action}
             />
+          ) : null}
+          {/* ⛔ S1.10.6.9 [`G-5`] — same defect as the Guardian's own top-up: a pot whose balance could not
+              be read repairs to $0, leaves `pickTopUpGoal`'s running silently, and this button then names
+              the best of what is LEFT. Captioned, not suppressed — the offer is still the best one the app
+              can see, and a smaller cover still narrows the dip. */}
+          {result.verdict === 'tight' && result.coverFromSavings?.unreadSavings ? (
+            <Text testID="afford-unread-savings" style={[textStyles.caption, { color: c.accent.warning }]}>
+              One of your savings amounts couldn’t be read, so there may be a better pot than this one.
+            </Text>
           ) : null}
           <Button
             label={result.verdict === 'tight' ? 'Apply anyway' : 'Apply to this paycheck'}

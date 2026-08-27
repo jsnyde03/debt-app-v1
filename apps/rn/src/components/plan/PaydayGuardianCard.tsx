@@ -358,6 +358,17 @@ export function PaydayGuardianCard({
               ? `You have ${formatWhole(topUp.available)} in ${topUp.goalName} — moving ${formatWhole(topUp.topUp)} over holds your line this paycheck.`
               : `${topUp.goalName} has ${formatWhole(topUp.available)} — moving all of it over gets you to ${formatWhole(topUp.cushionAfter)} of your ${formatWhole(topUp.floor)} line. It won’t close the gap, but it narrows it.`}
           </Text>
+          {/* ⛔ S1.10.6.9 [`G-5`] — a pot whose balance could not be read repairs to $0, so `pickTopUpGoal`
+              never sees it and this card names the best of what is LEFT as if it were the best there is.
+              Measured: a lost $800 Vacation handed the offer to a $25 Coffee Fund and turned "holds your
+              line" into "it won't close the gap" — a false negative about their own money. ⚠️ Captioned
+              rather than suppressed (`C-4`'s rule): the offer is still the best one the app can see. */}
+          {topUp.unreadSavings ? (
+            <Text testID="topup-unread-savings" style={[textStyles.caption, { color: c.accent.warning }]}>
+              One of your savings amounts couldn’t be read, so there may be a better pot than this one —
+              set it again in Goals and I’ll re-check.
+            </Text>
+          ) : null}
           {/* 3.7.A3.3 [D24] — the label said "from savings" unconditionally, including when the source
               was the EMERGENCY fund. A control that calls the safety net "savings" while spending it is
               the dishonest half of this affordance; the selector now flags which pot it picked. */}

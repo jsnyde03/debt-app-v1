@@ -1,4 +1,4 @@
-import type { DataRepair, DebtStore } from '@/data/models';
+import type { DataRepair, Debt, DebtStore } from '@/data/models';
 
 /**
  * ⛔ **THE ONE OWNER OF *"MAY THE APP MAKE A CLAIM ABOUT THIS MONEY?"***
@@ -42,6 +42,50 @@ export function hasUnreadDebtBalances(store: DebtStore): boolean {
   return store.pendingDataRepairs.some(
     (r) => r.entity === 'debt' && r.field === 'balance' && r.kind !== 'recovered',
   );
+}
+
+/**
+ * ⛔ **THE ONE OWNER OF *"IS THIS DEBT LIVE?"* — AND ITS ABSENCE COST FIVE FINDINGS IN ONE FILE.**
+ * [S1.10.6.9 · `G-1`…`G-5`]
+ *
+ * ⚡ `store.debts.filter((d) => d.balance > 0)` reads the **one field the import path repairs to `0`**, so
+ * every site that spells it out asks *"is this debt live?"* and gets back *"is this debt live, or did we
+ * fail to read it?"* — one question wearing the answer to another. `selectPlanState` was given the remedy
+ * at pass-1 blocker `B1` and **nothing else was**: `guardianSelectors` spelled the expression out three
+ * more times, and measurement found all three wrong in the same direction, because a lost balance repairs
+ * to `0` and never to a number.
+ *
+ * ⛔ **The loudest was the Guardian's own honesty instrument.** `selectCalibrationScore` grades ONE debt
+ * regime at a time (2.4.8, never blend), and picks the regime off this expression — so one unreadable
+ * balance re-graded the scorecard against the debt-free cycles and turned *"0 of 4 reads matched ·
+ * Under-warned 4"* into *"4 of 4 · Under-warned 0"*, with the recalibration apology gone. The component
+ * that renders it says in its own docblock that the false-clear direction is the one it never softens.
+ *
+ * ⚠️ **THREE STATES, NOT A BOOLEAN, and that is the whole point.** A boolean forces every caller to pick
+ * a side for the unreadable case silently; a third state is one a caller must handle or fail to compile.
+ * It is the same move `selectPlanState` makes with `'debt-free-unverified'`, hoisted to where the other
+ * callers can find it. ⛔ `'debt-free'` here means *"no live debt, and we could read every balance"* — it
+ * does **not** distinguish "never had a debt", which is `selectPlanState`'s own `'no-debts'` and stays
+ * there, because only the Plan hero cares.
+ */
+export type DebtLiveness = 'has-debt' | 'debt-free' | 'debt-free-unverified';
+
+export function debtLiveness(store: DebtStore): DebtLiveness {
+  if (liveDebts(store).length > 0) return 'has-debt';
+  return hasUnreadDebtBalances(store) ? 'debt-free-unverified' : 'debt-free';
+}
+
+/**
+ * The debts with money still on them. ⛔ **THE ONLY PLACE THIS EXPRESSION IS WRITTEN.** Every other site
+ * asks the owner, and `lint:trust-claims` reds on a re-derivation — it prints the live count of what is
+ * still outstanding, which is the number to read rather than one typed here.
+ *
+ * ⚠️ **A caller that needs the ARRAY still owes the liveness question.** This returns rows, and rows are
+ * silent about what could not be read — a portfolio that is entirely unread returns `[]` here exactly as a
+ * paid-off one does. Rank, sum and name from this; branch copy from `debtLiveness`.
+ */
+export function liveDebts(store: DebtStore): Debt[] {
+  return store.debts.filter((d) => d.balance > 0);
 }
 
 
@@ -94,7 +138,16 @@ const CLAIM_FIELDS: Record<MoneyClaim, ClaimRoute> = {
   // What the plan is OBLIGED to cover this cycle. An unreadable one repairs to $0, and an obligation of
   // $0 produces neither an allocation row nor an unfunded item — so it leaves the plan entirely and the
   // count is honestly zero about arrays that are wrong.
-  'required-plan': { debt: ['minimumPayment'], requiredExpense: ['amount'], livingExpense: ['amount'] },
+  //
+  // ⛔ **`balance` JOINS IT AT S1.10.6.9 [`G-4`], AND THE OMISSION WAS THE SAME DEFECT `C-4` CLOSED.** The
+  // allocation engine skips a debt with **no balance left to pay**, so a debt whose BALANCE was lost drops
+  // its minimum out of the plan exactly as a debt whose MINIMUM was lost does — the obligation is gone by a
+  // second door, and only the first was routed. ⚡ Measured on one store with a live Visa beside a lost
+  // Store Card: *"tight — you'd dip to $0, below your $200 line"* became **"Yes — you'd still hold about
+  // $300"**, with the spare reading **$550** against a true $250, because a $300 minimum stopped being
+  // owed. ⚠️ `debtLiveness` cannot catch this one — both worlds are `has-debt`, so the store-level
+  // question is the wrong question and the FIELD routing is the right one.
+  'required-plan': { debt: ['minimumPayment', 'balance'], requiredExpense: ['amount'], livingExpense: ['amount'] },
   // Any repaired money field a row prints back to the user. ⚠️ This is where `apr` is routed and the only
   // place: it changes no obligation this cycle, but the row states it ("22% APR") and a repaired `0`
   // states 0% — the import path doing what `FORM_ERRORS.aprInvalid` exists to refuse on the form path.

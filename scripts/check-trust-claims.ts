@@ -165,10 +165,12 @@ const EXEMPT: Record<string, string> = {
 const OPEN: Record<string, string> = {
   // ⚡ `apps/rn/src/widget/snapshot.ts` was here for pass-3 blocker `D3-1` and left the list by being FIXED
   // at S1.10.6.3 — the ledger reds on a stale row, so the removal was forced rather than remembered.
-  'apps/rn/src/store/guardianSelectors.ts':
-    'S1.10.6.2 after-scan — `selectCalibrationScore` splits the regime on `balance > 0` and `selectReserveRelease` names "your savings" off the same test, so a repaired balance reclassifies both. Filed, not yet reproduced',
-  'apps/rn/src/components/plan/AffordabilityCard.tsx':
-    'S1.10.6.2 after-scan — the cover-from-savings flow reads `goal.currentAmount` directly and prices a purchase against it. Filed, not yet reproduced',
+  // ⭐ **AND AT S1.10.6.9 THE LAST TWO LEFT AND THE LIST IS EMPTY.** `guardianSelectors.ts` carried
+  // `G-1`…`G-5` and now asks `debtLiveness`; `AffordabilityCard.tsx` carried `G-4`'s render and now asks
+  // `mayClaim(store, 'required-plan')`. ⛔ **Both removals were FORCED by this check, not remembered** — it
+  // red on the stale rows the moment the fixes landed, which is the whole reason the ledger is exact in
+  // both directions. ⚠️ An empty `OPEN` with `MAX_OPEN = 0` means a new unguarded claim site cannot be
+  // parked here; it has to be fixed or argued into `EXEMPT`, whose own cap is also downward-only.
 };
 /**
  * ⛔ **LITERALS, and the first cut of this file had them as `Object.keys(X).length` — which made both caps
@@ -178,7 +180,7 @@ const OPEN: Record<string, string> = {
  * exists to end, written into the instrument built to end it. ⚠️ Both numbers only ever go DOWN.
  */
 const MAX_EXEMPT = 1;
-const MAX_OPEN = 2;
+const MAX_OPEN = 0;
 
 const unguarded: string[] = [];
 for (const rel of files) {
@@ -212,6 +214,76 @@ if (Object.keys(OPEN).length > MAX_OPEN) {
   failures.push(`[ledger] MAX_OPEN is ${MAX_OPEN} and OPEN holds ${Object.keys(OPEN).length}. This cap only goes DOWN.`);
 }
 
+// ── 4 · the LIVENESS ledger ──────────────────────────────────────────────────────────────────────
+/**
+ * ⛔ **S1.10.6.9 [`G-1`…`G-5`] — `balance > 0` IS *"IS THIS DEBT LIVE?"* ASKED OF THE ONE FIELD THE IMPORT
+ * PATH REPAIRS TO `0`, AND FIVE SITES IN ONE FILE GOT IT WRONG IN THE SAME DIRECTION.**
+ *
+ * ⚡ `trustSelectors.debtLiveness` is now the owner, and the obvious gate — *ban the expression* — was
+ * written, measured and thrown away: `git grep` returns **40+ occurrences**, and most are `packages/core`
+ * amortization loops that are handed arrays, have no store, and are right to treat a `0` balance as paid.
+ * ⛔ **An unsatisfiable rule is `B1` all over again**, which is the finding on this very page that says a
+ * gate nobody can satisfy gets worked around rather than obeyed.
+ *
+ * ⚠️ **So the scope is where the question is even ASKABLE: `apps/rn/src`, where `DebtStore` and therefore
+ * `pendingDataRepairs` are in reach.** `packages/core` is deliberately out — not overlooked. And the shape
+ * is the same LEDGER as check 3 above rather than a ban: every site is named, the counts are exact in
+ * **both** directions (a fixed site reds until its row goes, a new one reds on arrival), and the total only
+ * ever goes DOWN.
+ *
+ * ⚠️ **A row here is NOT a verdict of "defect".** It is *"this site re-derives liveness and nobody has
+ * measured whether it matters."* Seven of these ten files never mention the trust module at any line. What
+ * this check buys is that the number is now on a screen instead of nowhere — when this class was last
+ * counted by hand, the count was **two**, and the file the hand-count named held five.
+ */
+const LIVENESS_RE = /\bbalance\s*>\s*0\b/;
+const livenessCounts = new Map<string, number>();
+for (const rel of files) {
+  if (isTest(rel) || rel === TRUST_MODULE || !rel.startsWith('apps/rn/src/')) continue;
+  const n = (read.get(rel) ?? '').split('\n').filter((l) => LIVENESS_RE.test(l)).length;
+  if (n > 0) livenessCounts.set(rel, n);
+}
+
+/** file → how many re-derivations it holds, and what is known about them. ⛔ Counts are EXACT. */
+const LIVENESS_OPEN: Record<string, { sites: number; why: string }> = {
+  'apps/rn/src/store/analysisSelectors.ts': { sites: 1, why: 'the analysis debt basis; never mentions the trust module' },
+  'apps/rn/src/store/balanceSelectors.ts': { sites: 2, why: 'the stale-estimate filters; never mentions the trust module' },
+  'apps/rn/src/store/celebrationSelectors.ts': { sites: 1, why: 'asks the module elsewhere in the file — whether THIS site is covered is unmeasured' },
+  'apps/rn/src/store/demoRun.ts': { sites: 1, why: 'the demo script; a seeded store carries no repairs, so this is very likely a non-defect — unmeasured' },
+  'apps/rn/src/store/drift.ts': { sites: 1, why: '"has a plan" gate; never mentions the trust module' },
+  'apps/rn/src/store/payoffCelebration.ts': { sites: 2, why: 'before/after arrays around a payoff; never mentions the trust module' },
+  'apps/rn/src/store/payoffSelectors.ts': { sites: 1, why: 'the ranking basis; never mentions the trust module' },
+  'apps/rn/src/store/planSelectors.ts': { sites: 2, why: 'asks the module at `selectPlanState`; these two sites are separate and unmeasured' },
+  'apps/rn/src/store/sandboxScenarios.ts': { sites: 1, why: 'the tutorial sandbox; a synthetic store carries no repairs — unmeasured' },
+  'apps/rn/src/widget/snapshot.ts': { sites: 1, why: 'asks the module at the payload gate (`D3-1`); whether THIS site is covered is unmeasured' },
+};
+/** ⛔ Downward-only, and a LITERAL — check 3's caps were once derived from their own lists and vacuous. */
+const MAX_LIVENESS_SITES = 13;
+
+for (const [rel, n] of livenessCounts) {
+  const row = LIVENESS_OPEN[rel];
+  if (!row) {
+    failures.push(
+      `[liveness] ${rel} re-derives \`balance > 0\` (${n} site(s)) and is not on the liveness ledger. ` +
+        `Ask \`trustSelectors.debtLiveness\` / \`liveDebts\`, or add the row with what is known about it.`,
+    );
+  } else if (row.sites !== n) {
+    failures.push(
+      `[liveness] ${rel} is ledgered at ${row.sites} site(s) and holds ${n}. ⛔ Exact in BOTH directions — ` +
+        `update the row (and ${row.sites > n ? 'lower' : 'do NOT raise'} MAX_LIVENESS_SITES).`,
+    );
+  }
+}
+for (const rel of Object.keys(LIVENESS_OPEN)) {
+  if (!livenessCounts.has(rel)) {
+    failures.push(`[liveness] ${rel} is ledgered and re-derives nothing any more. ⛔ Remove the row and lower MAX_LIVENESS_SITES.`);
+  }
+}
+const livenessTotal = Object.values(LIVENESS_OPEN).reduce((s, r) => s + r.sites, 0);
+if (livenessTotal > MAX_LIVENESS_SITES) {
+  failures.push(`[liveness] MAX_LIVENESS_SITES is ${MAX_LIVENESS_SITES} and the ledger holds ${livenessTotal}. This cap only goes DOWN.`);
+}
+
 if (failures.length > 0) {
   console.error(`\n❌ trust claims: ${failures.length} problem(s)\n`);
   failures.forEach((f) => console.error(`  ✗ ${f}`));
@@ -224,6 +296,18 @@ const consumerCount = claims.map((c) => `${c}→${consumers.get(c)!.length}`).jo
 console.log(
   `✅ trust claims: ${claims.length} claims all consumed in production (${consumerCount}); every asked field routed.`,
 );
+/**
+ * ⛔ **THE SUCCESS LINE STATES WHAT IS STILL OPEN, BY NAME.** A gate whose green sentence hides its own
+ * open list is the class this cluster exists to end — and `assert-the-honest-state-by-name` is the other
+ * half: suppressing the "2 sites open" sentence at zero would leave the reader with no statement at all,
+ * so zero is said out loud rather than skipped.
+ */
 console.log(
-  `   ⚠️ ${Object.keys(OPEN).length} claim site(s) still UNGUARDED and declared open — ${Object.keys(OPEN).join(', ')}`,
+  Object.keys(OPEN).length === 0
+    ? `   ⭐ 0 claim sites open — every money surface that reads the user's entities asks the guard.`
+    : `   ⚠️ ${Object.keys(OPEN).length} claim site(s) still UNGUARDED and declared open — ${Object.keys(OPEN).join(', ')}`,
+);
+console.log(
+  `   ⚠️ ${livenessTotal} liveness re-derivation(s) of \`balance > 0\` across ${Object.keys(LIVENESS_OPEN).length} file(s), ` +
+    `cap ${MAX_LIVENESS_SITES} — none measured against a repaired balance yet: ${Object.keys(LIVENESS_OPEN).join(', ')}`,
 );

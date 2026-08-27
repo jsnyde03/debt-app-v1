@@ -26261,3 +26261,125 @@ read)*, and pass 4 reads **~2,000 lines of code written this session across ~30 
 P6.16` is a loop precisely because fixes are unaudited changes, and **two of this round's own findings were
 defects in gates written hours earlier**. Report pass 4 **split by origin**, or a flat total will hide both
 halves moving.
+
+---
+
+## S1.10.6.9.1 – .6.9.2 — the two claim sites no auditor found, measured (2026-08-27)
+
+⛔ **THE STEP'S OWN ENUMERATION NAMED TWO SITES AND `guardianSelectors.ts` HOLDS FIVE.** That is the seventh
+instance of the undercount class in this cluster, and it was found the same way as the sixth: by grepping
+the file for the *expression* rather than reading the list. `grep -n 'balance > 0\|currentAmount'` returns
+**seven lines**; the plan's row named the two that had been noticed by eye.
+
+### What was measured, and against what
+
+Three controls per case, because a repair is only a defect where the app can tell two zeroes apart and does
+not: **TRUTH** (the real balance, no repair) · **DAMAGED** (the same store after the balance was lost and
+repaired to `0`, with the `DataRepair` record present) · **GENUINE** (a real `0`, no repair). A finding
+counts only where DAMAGED reads identically to GENUINE while the store carries the record that separates
+them.
+
+| id | site | TRUTH | DAMAGED | what the user is told |
+|---|---|---|---|---|
+| **G-1** | `selectCalibrationScore:48` | `n=4 matches=0 falseClears=4 matchRate=0%` | `n=4 matches=4 falseClears=0 matchRate=100%` | ⚡ *"0 of 4 reads matched · Under-warned 4"* becomes *"4 of 4 reads matched · Under-warned 0"*, and `WARN_MATCH_RATE` stops firing so **the recalibration apology disappears** |
+| **G-2** | `selectReserveRelease:142` | `targetName = "your Visa"` | `targetName = "your savings"` | the freed reserve is said to go to savings over a live $4,200 card |
+| **G-3** | `selectPaydayGuardian:640` | `debtFree=false` | `debtFree=true` | ⛔ **blocker `B1` itself, unfixed here.** `buildGuardianBrief` branches on it eight times — *"Extra savings resumes"* for *"Extra payoff"*, the destination noun, the deploy target, and `deployTradeoff` silently off |
+| **G-4** | `selectAffordability:452` | `verdict=short`, no offer | `verdict=tight`, *"Cover $100 from Vacation & apply"* | a spending verdict, and a one-tap move, priced against a debt the app could not read |
+| **G-5** | `selectTightTopUp:312` + `pickTopUpGoal:567` | *"Move $100 from Vacation"* · `holdsLine=true` | *"Move $25 from Coffee Fund — it narrows the dip but doesn't hold your line"* · `available=25` | ⚠️ **a false NEGATIVE about their own money** — the pot that could hold the line was blanked, so the offer named the wrong pot, a wrong figure, and refused a line that would have held |
+
+⚡ **`G-1` is the loudest result this cluster has produced.** Every other trust finding suppressed something
+the app should not have said. This one **inverts the app's own honesty instrument**: the scorecard exists
+because an audit round flagged a faked accuracy record as net-negative, its docblock says the false-clear
+direction is *"the one we never soften"* — and one unreadable balance re-grades it into the wrong regime,
+prints a perfect record, and removes the apology. The direction is not symmetric: the flip is always toward
+`debtFree=true`, because a lost balance repairs to `0` and never to a number.
+
+### `.6.9.2` — relocated, not refuted
+
+`AffordabilityCard` qualifies for the ledger on two `store.goals` reads, and **neither is a claim**: line 55
+is a name-uniqueness check that prints no money, and line 93's `held()` is `S1.9.1 [D2-2]`'s deliberate
+*measured delta across the call* — the figure it prints is what actually left the goal, which is true
+whatever the balance was. Every false figure on that card arrives from `selectAffordability`. So the fix is
+`G-4`'s, at the selector, and the card owes only the render-site guard on the `coverFromSavings` amount it
+restates.
+
+⚠️ **It still cannot leave the `OPEN` ledger by being fixed elsewhere.** The ledger matches per FILE, so a
+card that reads `.goals` and prints money keeps qualifying however clean the selector becomes — and
+`MAX_EXEMPT` is downward-only, so it cannot be declared exempt. The render-site guard is therefore not
+optional dressing; it is the only move that takes the row off the list without weakening the instrument.
+
+### The class, and why it is not five patches
+
+*"Is this debt live?"* and *"has this goal money?"* are re-derived from a repairable field at every site.
+The remedy already exists and was applied to exactly one caller: `selectPlanState` returns
+`'debt-free-unverified'` **so a screen cannot forget to ask**, and its own docblock says the alternative —
+asking at each render site — *"is the shape that produced M9 days earlier."* `guardianSelectors` never got
+it. So: one owner, five callers, and a gate that reds on a sixth re-derivation, because the enumeration has
+now been short seven times.
+
+## S1.10.6.9.3 — the fix, by class (2026-08-27)
+
+### The owner, and the one that could not use it
+
+`trustSelectors` gained **`debtLiveness`** — `'has-debt' | 'debt-free' | 'debt-free-unverified'` — and
+**`liveDebts`**, the only place `debts.filter((d) => d.balance > 0)` is written. ⚠️ **Three states, not a
+boolean, and that is the point:** a boolean makes every caller pick a side for the unreadable case
+silently; a third state is one a caller must handle or fail to compile. `selectPlanState` was refactored
+onto it — it was already correct, and spelling half the rule out there is what let four sibling selectors
+spell the other half out wrong.
+
+| id | the fix | the direction, stated |
+|---|---|---|
+| `G-1` | the regime asks the owner; unverified grades an **empty history** — the same path the cold-start state already takes, so a new field on `CalibrationScore` cannot leave the branch describing a shape that no longer exists | ⛔ **suppress, do not caption.** The figure is a claim about the app's own accuracy, so having no number is honest; where the figure is the user's money the rule is the opposite (`C-4`) |
+| `G-2` | unverified takes the **existing** `'your debt'` fallback | a fourth phrasing would be a new claim to get wrong; there IS a debt row, only its name is unavailable |
+| `G-3` | `debtFree` asks the owner; unverified → **has debt** | a debt exists, so the debt framing is the true one. It costs a genuinely debt-free user the savings framing until they answer the card — which is what the card is for; the reverse costs a user with debt a permanent unearned graduation |
+| `G-4` | ⛔ **the CLAIM TABLE, not a call site** | see below |
+| `G-5` | `unreadSavings` on `TightTopUp` + `coverFromSavings`, captioned on both cards | ⛔ caption, not suppress — the offer is still the best one the app can see, and a smaller cover still narrows the dip |
+
+### ⚡ `G-4` was re-measured mid-build and it is not what the plan said it was
+
+The owner fix does not reach it. With a live Visa beside a lost Store Card, **`debtLiveness` is `has-debt`
+in both worlds** — so the store-level question is the wrong question. The allocation engine skips a debt
+with **no balance left to pay**, so an unread `balance` drops its minimum out of the plan *exactly as*
+pass-2 `C-4`'s unread `minimumPayment` did: the obligation gone by a second door, with only the first
+routed. Measured: *"tight — you'd dip to $0, below your $200 line"* → **"Yes — you'd still hold about
+$300"**, spare **$250 → $550**, verdict `tight` → `comfortable`, on a $250 purchase.
+
+⛔ **`'required-plan'` now routes `debt.balance`, and one table row reached all five consumers.** Patching
+the card would have fixed the smallest of them. ⚠️ The card **replaces** its verdict rather than captioning
+it — a departure from `C-4`'s rule, argued rather than assumed: the answer is one word the user acts on, it
+is wrong in a **known direction** (a lost balance repairs to `0`, never to a number, so the spare can only
+read HIGH), and the action it offers spends money. *A "Yes" with an asterisk is still a yes.* The free-tier
+line is gated by the same flag — it is the identical inflated figure with the verdict stripped off.
+
+### The gate: a ban was written, measured, and thrown away
+
+⛔ **The obvious rule — ban `balance > 0` — is unsatisfiable.** `git grep` returns **40+** occurrences and
+most are `packages/core` amortization loops that are handed arrays, hold no store, and are *right* to treat
+a `0` balance as paid. ⚡ **An unsatisfiable gate is `B1`'s own failure mode**, which is a finding on this
+very cluster's page.
+
+So the scope is where the question is even **askable** — `apps/rn/src`, where `DebtStore` and therefore
+`pendingDataRepairs` are in reach — and the shape is check 3's **ledger**, not a ban: **13 sites across 10
+files**, counts exact in **both** directions (a fixed site reds until its row goes; a new one reds on
+arrival), cap downward-only, and every file printed **by name on the green line**. ⚠️ **A row is not a
+verdict of "defect"** — it is *"this site re-derives liveness and nobody has measured whether it matters."*
+**7 of the 10 never mention the trust module at any line.** When this class was last counted by hand the
+count was **two**, and the file the hand-count named held **five**.
+
+### ⛔ `G-6` — the release gate was RED on the committed tree and nothing said so
+
+Found while verifying the five, by no auditor. `check-trust-claims.ts` — the gate written the day before
+for `C-1` — imports `trustSelectors.ts`, which drags the app's whole reachable graph into
+`scripts/tsconfig.json`, where the `@/` and `@core/` aliases do not exist: **18 errors, none of them real.**
+
+⚡ **The blast radius is the verification chain, not the code.** `typecheck` is `core && rn && scripts &&
+tests`, so the failure **took `typecheck:tests` with it — that suite had not run at all** — and
+`validate:release:rn` OPENS with `npm run typecheck`, so **the release gate could not have passed.** Every
+per-fix *"typecheck green"* recorded since `C-1` was `typecheck:rn` alone.
+
+⚠️ **Fixed with path aliases, not an exclusion.** Telling the config to skip the app would restore the green
+by making the gates' own imports unchecked — which is precisely the hole `[P6.8.7a-1]` closed when it
+discovered `scripts/**` had no compiler behind it at all. ⛔ **This is the cluster's own defect class — an
+instrument reporting less than it claims — living in the chain the fixes are VERIFIED with.** Three passes
+running, three auditors have found it in the gates; this one was in the compiler.

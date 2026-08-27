@@ -16,6 +16,7 @@ import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectEx
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
 import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
 import { appliedTopUp, nettedTopUp, topUpEntries } from './topUpSelectors';
+import { debtLiveness, liveDebts, rowFieldUnread } from './trustSelectors';
 import type { AllocationCategory } from '@core/engine/allocatePaycheck';
 import { cadenceSuffix } from '@core/types/recurrence';
 import { formatWhole } from '@/utils/format';
@@ -45,12 +46,34 @@ export type { CalibrationScore };
  * surface (2.4.9.6) applies the tier gate.
  */
 export function selectCalibrationScore(store: DebtStore): CalibrationScore {
-  const debtFree = store.debts.filter((d) => d.balance > 0).length === 0;
-  return scoreCalibration(store.cycleHistory, {
+  const liveness = debtLiveness(store);
+  const opts = {
     incomeVaries: store.paycheck.incomeVaries === true,
-    debtFree,
+    debtFree: liveness === 'debt-free',
     missedCycleEndDates: store.missedArrivals,
-  });
+  };
+  /**
+   * ⛔ **S1.10.6.9 [`G-1`] — AN UNREADABLE BALANCE RE-GRADED THE HONESTY INSTRUMENT INTO A PERFECT RECORD.**
+   *
+   * ⚡ `scoreCalibration` grades ONE debt regime at a time and never blends them (2.4.8), and the regime
+   * came from `debts.filter((d) => d.balance > 0)` — the one field the import path repairs to `0`. Measured
+   * on one store with one lost balance: **`0 of 4 reads matched · Under-warned 4` became `4 of 4 ·
+   * Under-warned 0`**, and `WARN_MATCH_RATE` stopped firing, so the recalibration line the component calls
+   * *"the direction we never soften"* disappeared with it. The flip is one-directional — a lost balance
+   * repairs to `0` and never to a number — so it can only ever grade the user into the wrong regime and
+   * only ever flatter.
+   *
+   * ⚠️ **The empty score comes from the OWNER, not from a literal.** Handing `scoreCalibration` an empty
+   * history is the same code path the cold-start state already takes, so a new field on `CalibrationScore`
+   * cannot leave this branch describing a shape that no longer exists.
+   *
+   * ⛔ **Suppression is right here and it is NOT right everywhere** — this figure is a claim about the
+   * app's own accuracy, so having no number is honest and having the wrong one is not. Where the figure is
+   * the user's money the remedy is a caption, because refusing to show it tells them less than the app
+   * knows (`C-4`'s rule).
+   */
+  if (liveness === 'debt-free-unverified') return scoreCalibration([], opts);
+  return scoreCalibration(store.cycleHistory, opts);
 }
 
 export interface GuardianProofOfWork {
@@ -139,9 +162,20 @@ export function selectReserveRelease(store: DebtStore): ReserveRelease | null {
   if (store.subscriptionPlan !== 'premium') return null;
   const pending = store.pendingReserveRelease;
   if (!pending) return null;
-  const liveDebts = store.debts.filter((d) => d.balance > 0);
-  const focus = liveDebts.length > 0 ? rankDebts(liveDebts, store.payoffStrategy)[0]?.name : undefined;
-  const targetName = liveDebts.length === 0 ? 'your savings' : focus ? `your ${focus}` : 'your debt';
+  /**
+   * ⛔ **S1.10.6.9 [`G-2`] — IT SAID *"your savings"* OVER A LIVE $4,200 CARD.** The destination was picked
+   * off `debts.filter((d) => d.balance > 0)`, so a balance the import path could not read left the list and
+   * the freed reserve was declared to be going somewhere it is not.
+   *
+   * ⚠️ **Unverified takes the EXISTING fallback rather than a new string.** `'your debt'` is already what
+   * this line says when there is a live debt it cannot rank, and it is true in the unverified case for the
+   * same reason: there IS a debt row — its balance is what could not be read — so the reserve is still
+   * going to debt, and only the NAME is unknown. A fourth phrasing would be a new claim to get wrong.
+   */
+  const live = liveDebts(store);
+  const focus = live.length > 0 ? rankDebts(live, store.payoffStrategy)[0]?.name : undefined;
+  const targetName =
+    debtLiveness(store) === 'debt-free' ? 'your savings' : focus ? `your ${focus}` : 'your debt';
   return { tapped: pending.tapped, covered: pending.covered, targetName };
 }
 
@@ -237,6 +271,9 @@ export interface TightTopUp {
    *  truth ("gets you to $X of your $Y line") instead of claiming the line is held. */
   floor: number;
   cushionAfter: number;
+  /** ⛔ S1.10.6.9 [`G-5`] — at least one eligible pot's balance could not be read, so this may not be the
+   *  best pot available and a `holdsLine: false` verdict may be wrong. See `savingsPoolIncomplete`. */
+  unreadSavings: boolean;
 }
 
 /**
@@ -307,7 +344,8 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
   const cushion = selectDiscretionary(allocation) + surplus;
   const gap = Math.round((floor - cushion) * 100) / 100;
   if (gap <= 0) return null; // at or above the line already
-  const goal = pickTopUpGoal(store.goals, gap, ['savings', 'emergency']);
+  const preference = ['savings', 'emergency'] as const;
+  const goal = pickTopUpGoal(store.goals, gap, preference);
   if (!goal) return null;
   const topUp = Math.round(Math.min(gap, goal.currentAmount) * 100) / 100;
   if (topUp <= 0) return null;
@@ -330,6 +368,7 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
     holdsLine: topUp >= gap,
     floor,
     cushionAfter: Math.round((cushion + topUp) * 100) / 100,
+    unreadSavings: savingsPoolIncomplete(store, preference),
   };
 }
 
@@ -386,7 +425,15 @@ export interface Affordability {
    *  ⚠️ 3.7.A3.6 — this gap is measured against the cushion INCLUDING any top-up already taken this
    *  cycle, so it covers the whole remaining dip (today's + the purchase's) and can never re-offer money
    *  that has already been moved. `holdsLine` is false when the goal's balance caps the draw short. */
-  coverFromSavings: { goalId: string; goalName: string; amount: number; holdsLine: boolean } | null;
+  coverFromSavings: {
+    goalId: string;
+    goalName: string;
+    amount: number;
+    holdsLine: boolean;
+    /** ⛔ S1.10.6.9 [`G-5`] — a savings pot's balance could not be read, so this may not be the best pot
+     *  and a `holdsLine: false` may be wrong. See `savingsPoolIncomplete`. */
+    unreadSavings: boolean;
+  } | null;
 }
 
 /** The ephemeral one-off used to re-solve the plan WITH the purchase (never persisted — the preview). */
@@ -450,7 +497,13 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
     const goal = pickTopUpGoal(store.goals, gap, ['savings']);
     if (gap > 0 && goal) {
       const amount = Math.min(gap, Math.round(goal.currentAmount * 100) / 100);
-      coverFromSavings = { goalId: goal.id, goalName: goal.name, amount, holdsLine: amount >= gap };
+      coverFromSavings = {
+        goalId: goal.id,
+        goalName: goal.name,
+        amount,
+        holdsLine: amount >= gap,
+        unreadSavings: savingsPoolIncomplete(store, ['savings']),
+      };
     }
   }
 
@@ -562,6 +615,31 @@ export function selectWindfallSplit(store: DebtStore, amount: number): WindfallS
  * fall back to the largest available. The draw is capped at the gap either way, so this changes WHICH
  * pot is used and whether the line holds — never how much is taken.
  */
+/**
+ * ⛔ **S1.10.6.9 [`G-5`] — A BLANKED POT LEAVES THE RUNNING SILENTLY, AND THE CARD THEN STATES A DEFINITE
+ * NEGATIVE ABOUT THE USER'S OWN MONEY.**
+ *
+ * ⚡ `pickTopUpGoal` below filters on `currentAmount > 0`, and an unreadable amount repairs to `0` — so the
+ * pot simply is not there, with nothing anywhere saying so. Measured with a $800 Vacation beside a $25
+ * Coffee Fund and a $100 gap: *"You have $800 in Vacation — moving $100 over holds your line this
+ * paycheck"* became **"Coffee Fund has $25 — moving all of it over gets you to $125 of your $200 line. It
+ * won't close the gap, but it narrows it."** ⚠️ **A false NEGATIVE**, which is the direction this class had
+ * not produced before: the wrong pot, a wrong figure, and a line refused that would have held.
+ *
+ * ⛔ **CAPTION, DO NOT SUPPRESS** — `C-4`'s rule, and it applies here where it did not apply to `G-4`. The
+ * offer is still the best one the app can see and taking it still helps; what was missing is that the app
+ * knew its own list was short and said nothing.
+ *
+ * ⚠️ **The per-row loop is sufficient and the whole-list case is not a gap.** `unreadFieldsFor` attaches a
+ * whole-row *or* whole-list loss to every row of its entity, so any existing pot is covered; a whole-list
+ * loss with no goal rows at all leaves nothing to pick, no offer, and therefore no claim.
+ */
+function savingsPoolIncomplete(store: DebtStore, preference: readonly Goal['type'][]): boolean {
+  return store.goals.some(
+    (g) => preference.includes(g.type) && rowFieldUnread(store, 'row-figures', 'goal', g.id, 'currentAmount'),
+  );
+}
+
 function pickTopUpGoal(goals: Goal[], gap: number, preference: readonly Goal['type'][]): Goal | null {
   for (const type of preference) {
     const funded = goals.filter((g) => g.type === type && g.currentAmount > 0);
@@ -637,9 +715,24 @@ export function selectSaveForItOptions(store: DebtStore, amount: number): SaveOp
 export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   const allocation = selectAllocation(store);
   if (!allocation) return null;
-  const liveDebts = store.debts.filter((d) => d.balance > 0);
-  // 2.4.8 — the Guardian no longer nulls at debt-free; it re-targets the spare to savings/wealth.
-  const debtFree = liveDebts.length === 0;
+  const live = liveDebts(store);
+  /**
+   * 2.4.8 — the Guardian no longer nulls at debt-free; it re-targets the spare to savings/wealth.
+   *
+   * ⛔ **S1.10.6.9 [`G-3`] — THIS IS PASS-1 BLOCKER `B1`, UNFIXED, IN THE SELECTOR BESIDE THE ONE THAT GOT
+   * THE REMEDY.** `selectPlanState` returns `'debt-free-unverified'` so a screen *cannot* forget to ask;
+   * this line re-derived the same conjunct and asked nothing, and `buildGuardianBrief` branches on the
+   * result eight times — *"Extra savings resumes"* for *"Extra payoff"*, the destination noun, the deploy
+   * target, and `deployTradeoff` silently off. One unreadable balance graduated the whole Today headline.
+   *
+   * ⚠️ **Unverified resolves to `false` — KEEP TALKING ABOUT DEBT — and the direction is the argument.**
+   * The unverified case is *"there is a debt row whose balance we could not read"*: a debt exists, so the
+   * debt framing is the true one and the celebration framing is the false one. The opposite reading —
+   * treat unknown as graduated — is the exact defect `B1` was raised for. ⛔ It costs a genuinely
+   * debt-free user the savings framing only until they answer the repair card, which is what the card is
+   * for; the reverse costs a user with debt a permanent, unearned graduation.
+   */
+  const debtFree = debtLiveness(store) === 'debt-free';
 
   const cycles = selectCashTimeline(store, 3);
   if (cycles.length === 0) return null;
@@ -658,7 +751,7 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   const focusDebtName = debtFree
     ? undefined
     : (snowballItems[0] && store.debts.find((d) => d.id === (snowballItems[0].debtId ?? snowballItems[0].targetId))?.name) ||
-      rankDebts(liveDebts, store.payoffStrategy)[0]?.name;
+      rankDebts(live, store.payoffStrategy)[0]?.name;
   const deployTargetName = debtFree
     ? (savingsItems[0] && store.goals.find((g) => g.id === savingsItems[0].goalId)?.name) || undefined
     : undefined;

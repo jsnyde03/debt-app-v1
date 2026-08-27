@@ -29,7 +29,27 @@
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    // ⛔ **S1.10.6.9 — `npm run typecheck` WAS RED ON THE COMMITTED TREE AND NOTHING SAID SO.** [`G-6`]
+    //
+    // ⚡ A gate that imports app source drags that source into THIS program, where the app's path aliases
+    // do not exist — so `check-trust-claims.ts`'s import of `trustSelectors.ts` (added the day before, by
+    // the fix for `C-1`) turned every `@/…` and `@core/…` in the reachable graph into `TS2307`, and every
+    // implicitly-typed parameter behind them into `TS7006`: **18 errors, none of them real.**
+    //
+    // ⛔ **`typecheck` is `core && rn && scripts && tests`, so the failure took `typecheck:tests` with it**
+    // — the suite never ran at all — and `validate:release:rn` starts with `npm run typecheck`, which means
+    // the release gate could not have passed. ⚠️ Every per-fix *"typecheck green"* recorded since was
+    // `typecheck:rn` alone. That is this cluster's own defect class — an instrument reporting less than it
+    // claims — living in the chain the fixes are VERIFIED with rather than in the code being fixed.
+    //
+    // ⚠️ Aliases, not an exclusion. Telling this config to skip the app would restore the green by making
+    // the gates' own imports unchecked, which is the hole `[P6.8.7a-1]` above closed.
+    "baseUrl": "..",
+    "paths": {
+      "@core/*": ["packages/core/*"],
+      "@/*": ["apps/rn/src/*"]
+    }
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules"]

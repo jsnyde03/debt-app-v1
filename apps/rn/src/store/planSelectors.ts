@@ -10,7 +10,7 @@ import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 
 import type { DebtStore } from '@/data/models';
 import { nettedTopUp } from '@/store/topUpSelectors';
-import { hasUnreadDebtBalances } from '@/store/trustSelectors';
+import { debtLiveness } from '@/store/trustSelectors';
 
 import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation, type Allocation } from './selectors';
 
@@ -341,13 +341,14 @@ export type PlanState = 'no-paycheck' | 'no-debts' | 'debt-free' | 'debt-free-un
 /** Which top-level state the Plan screen is in (drives the hero variant). */
 export function selectPlanState(store: DebtStore, allocation: Allocation | null): PlanState {
   if (!allocation) return 'no-paycheck';
-  const liveDebts = store.debts.filter((d) => d.balance > 0);
-  if (liveDebts.length === 0) {
-    if (store.debts.length === 0) return 'no-debts';
-    // ⚠️ Asked of the ONE owner (`trustSelectors`), never re-derived here — see the PlanState docblock.
-    return hasUnreadDebtBalances(store) ? 'debt-free-unverified' : 'debt-free';
-  }
-  return 'normal';
+  // ⛔ S1.10.6.9 — the LIVENESS question now comes from the owner whole, not from the conjunct re-derived
+  // here beside a call to `hasUnreadDebtBalances`. This site was already correct; it was the only one, and
+  // spelling half the rule out here is what let four sibling selectors spell out the other half wrong.
+  const liveness = debtLiveness(store);
+  if (liveness === 'has-debt') return 'normal';
+  // ⚠️ Stays here: "never had a debt" is a PLAN-hero distinction and no other caller of the owner wants it.
+  if (store.debts.length === 0) return 'no-debts';
+  return liveness === 'debt-free-unverified' ? 'debt-free-unverified' : 'debt-free';
 }
 
 export type PlanStatus = 'on-track' | 'overdue' | 'short';

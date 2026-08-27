@@ -114,6 +114,12 @@ async function main() {
   // §3.3.3 — the premium Guardian proof-of-work read (held streak · cumulative-to-debt · gating).
   await import('../store/proofOfWork.test');
 
+  // S1.10.6.9 [G-1…G-5] — the Guardian's five reads of a repairable balance. Every case is a PAIR: the
+  // damaged store against a truth control, because a repaired `0` and a real `0` are the same number and
+  // the store carries the only thing that separates them. G-1 is the one that inverted the app's own
+  // honesty scorecard from its worst record to a perfect one.
+  await import('../store/guardianTrust.test');
+
   // 3.7.A5 — which KIND of premium is active, incl. the "RevenueCat hasn't answered" third state that
   // four surfaces used to render as "subscription". Nothing covered the Lifetime row before this.
   await import('../premium/premiumKind.test');
