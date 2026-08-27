@@ -120,6 +120,15 @@ const SELF = 'scripts/check-committed-secrets.ts';
  * ⚠️ **A quoted docblock is a carried premise, not a measurement** — the gap survived review because the
  * file described the behaviour it was supposed to have rather than the one it had.
  *
+ * ⛔ **AND THE GREEN SENTENCE CANNOT SELF-VERIFY ITS OWN SOURCE — `test:gate-plants [D3-4-blob]` IS WHAT
+ * PROVES IT.** [S1.10.6.5.5 · pass-3 D3-4] `rev` below is the LOOP VARIABLE, not a fact about where the
+ * bytes came from, so a gate reverted to `readFileSync` goes on printing *"none across N tracked files in
+ * index+HEAD"* and even labels a working-tree hit `[index]`. ⚠️ **A counter here would be a proxy for the
+ * subject and not the subject** — the header loop keeps running under the revert — which is why the proof
+ * is a plant whose input is the REVISION: a fixture staged into a throwaway index and then **deleted from
+ * the working tree**, so a filesystem read finds nothing at all. Measured with the revert in place:
+ * `lint:secrets` exit 0 and this sentence unchanged, while that scenario reported *the gate FAILED OPEN*.
+ *
  * **Two revisions are scanned, and both are necessary:**
  * - **the index (`:path`)** — what the next commit will publish. Catches a secret staged but not yet
  *   committed, which is the last moment it is still cheap to fix.

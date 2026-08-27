@@ -45,7 +45,7 @@
     "token": "SOURCE MOVED WHILE THE SUITES WERE RUNNING"
   },
   "REVERIFY4-2": {
-    "what": "lint:secrets took the file list from git and the content from the working tree, so it passed over a HEAD holding a credential ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
+    "what": "lint:secrets took the file list from git and the content from the working tree, so it passed over a HEAD holding a credential ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated. ⛔ S1.10.6.5.5 [pass-3 D3-4] — PINNED BEHAVIOURALLY at last. The finding measured all three instruments green over the un-fix; after .6.5.4's registry-wide re-point, lint:finding-guards now reds too (the token names the visit(...) line the un-fix removes), so the token half was already closed by that sweep. The behavioural half is test:gate-plants [D3-4-blob], whose input is the git REVISION rather than a file: a fixture staged into a THROWAWAY index (GIT_INDEX_FILE, so the developer's own index is never touched) and then DELETED from the working tree, which a filesystem read cannot see at all. Re-measured with the revert in place: lint:secrets exit 0 printing 'none across 1221 tracked files in index+HEAD', and that scenario reporting 'the gate FAILED OPEN'",
     "file": "scripts/check-committed-secrets.ts",
     "token": "if (size <= 8 * 1024 * 1024) visit(specs[i], buf.toString("
   },
@@ -642,5 +642,20 @@
     "what": "D3-3's behavioural half - the check must REFUSE, not print. The plant is the finding verbatim: a floor declared on one line and compared on the next, with the token naming the declaration. Proven three ways before the scenario was written (the original defect, a cap pointed at its declaration, a helper pointed at its signature); the scenario keeps one of them running on every push",
     "file": "scripts/test-gate-plants.ts",
     "token": "gate: 'lint:finding-guards [D3-3]',"
+  },
+  "S1P3-D3-4-BLOBPLANT": {
+    "what": "pass-3 D3-4's behavioural half - no plant that WRITES A FILE can distinguish a gate reading git blobs from one reading the filesystem, because a file on disk is readable either way; that is why this class survived a re-point and two audit rounds with lint:secrets, lint:finding-guards and test:gate-plants all green. The plant's input is the revision: staged into a throwaway index, then deleted from the working tree. Also note the label lies independently - `rev` is the loop variable, so the reverted gate prints a working-tree hit as `[index]` - and a counter would be a proxy for the subject rather than the subject, since the header loop keeps running under the revert",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "gate: 'lint:secrets [D3-4-blob]',"
+  },
+  "S1P3-D3-4-STAGEMECH": {
+    "what": "the mechanism D3-4 needed and the harness lacked. `at`/`also` create then delete; `edit` modifies a tracked file; neither can put bytes in a git REVISION. `stageIndex` copies .git/index to a throwaway, sets GIT_INDEX_FILE for both the git calls and the gate process, stages the fixture there and removes the working copy - so nothing the developer has staged is touched and a run inside validate:release:rn cannot disturb a release",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "git(['add', '--', f.at]);"
+  },
+  "S1P3-EDIT-PREFLIGHT": {
+    "what": "⛔ NOT AN AUDIT FINDING - a defect in MY OWN work at .6.5.3, found at .6.5.5 by grepping for the code while adding stageIndex. The edit-plant's pre-flight (refuse a missing or already-dirty target, because a dirty target makes the restore ambiguous) was described in the log AND the plan and NEVER LANDED: an aborted write took it, the redo covered only the plant body, the finally restore and the post-flight assertion. That is this cluster's own defect class inside its own harness - a claim in prose the code does not implement - and no gate caught it because nothing gates prose against code",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "an edit-plant has nothing to edit."
   }
 }

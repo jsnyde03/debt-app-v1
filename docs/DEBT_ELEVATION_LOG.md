@@ -26510,7 +26510,9 @@ anything is written**, appends, and restores from that copy in `finally`.
 Three safety properties, each because of a way this could quietly go wrong:
 
 - **The target must exist and be clean vs `HEAD`.** A dirty target makes the restore ambiguous, so the
-  run refuses rather than guessing.
+  run refuses rather than guessing. ⛔ **CORRECTED at `.6.5.5`: this paragraph was true of the design and
+  FALSE of the shipped code for two sub-steps.** The block was lost to an aborted write; the redo covered
+  the plant body, the `finally` restore and the post-flight assertion, and not this. It has now landed.
 - **"Applied" means the bytes MOVED**, not that a write happened — a no-op append would otherwise score
   as a live plant.
 - ⛔ **The restore is ASSERTED in the post-flight.** This is `S1.10.6.9`'s lesson wired into the harness:
@@ -26576,3 +26578,55 @@ credential afterwards. ⛔ **The restore assertion added at `.6.5.3` covers a th
 the pre-flight is what covers the kill, and this is the first time it has had to.
 
 Registry **130 → 132**.
+
+## S1.10.6.5.5 — `D3-4`: no file-writing plant could ever have pinned this (2026-08-27)
+
+⛔ **The reason `REVERIFY4-2` survived a re-point and two audit rounds is structural, not an oversight.**
+`lint:secrets` reads the file **list** from git and the file **content** from git blobs, and only the
+second half is the finding. **A plant that writes a file cannot distinguish the two**, because a file on
+disk is readable either way — so every plant anyone could think to add scored a pass under both.
+
+The input therefore had to be the **revision**. `stageIndex` copies `.git/index` to a throwaway, sets
+`GIT_INDEX_FILE` for both the git calls and the gate process, stages the fixture there, and then **deletes
+the working copy**. A gate reading the filesystem now sees nothing at all.
+
+⚠️ **The throwaway index is the point, not a nicety.** `test:gate-plants` runs inside `lint:rn`, which runs
+inside `validate:release:rn`. A plant that `git add`-ed into the real index would disturb a developer's
+staged work mid-release, and refusing to run when the index is dirty would make a legitimate release run
+red. Neither happens: the real index is never written to.
+
+### Re-measured with the revert in place
+
+```
+lint:secrets            exit 0   ✅ committed secrets: none across 1221 tracked files in index+HEAD
+lint:finding-guards     exit 1   ⚡ NEW — .6.5.4's re-point already closed the token half
+test:gate-plants        exit 1   ❌ lint:secrets [D3-4-blob]  planted=exit 0 → "the gate FAILED OPEN"
+                                 ✅ lint:secrets [M10-authoring] — the blind one, passing as always
+```
+
+⚡ **The finding said all three instruments stay green, and after `.6.5.4` that is no longer true of two of
+them.** The registry-wide re-point pointed `REVERIFY4-2` at the `visit(specs[i], buf.toString(…))` line the
+revert removes — so the token half closed as a side effect of the `D3-3` sweep, before this step began.
+`lint:secrets` itself still prints its green sentence, and that is the residual.
+
+### The sentence cannot self-verify, and a counter would be a proxy
+
+`rev` is the **loop variable**, not a fact about where the bytes came from — which is why the reverted gate
+even labels a working-tree hit `[index]`. ⛔ A blob counter was considered and rejected: the header loop
+keeps running under the revert, so the count would rise either way. **A proxy for the subject is not the
+subject.** The docblock now says outright that `test:gate-plants [D3-4-blob]` is what the sentence rests
+on, rather than implying the sentence proves itself.
+
+### ⛔ And a defect in my own `.6.5.3`, which no auditor could have found
+
+While adding `stageIndex` I grepped for the edit-plant's pre-flight and **it was not there.** The block
+that refuses a missing or already-dirty edit target was written into the log **and** the plan at `.6.5.3`
+and never landed — an aborted write took it, and the redo covered the plant body, the `finally` restore and
+the post-flight assertion. For two sub-steps the record described a safety property the code did not have.
+
+⚡ **That is this cluster's own defect class living inside its own harness: a claim in prose the code does
+not implement.** Nothing gates prose against code, which is exactly why `[M7]` exists for tokens and why
+`lint:trust-claims` had to become a checker rather than a sentence. It is now landed, registered as
+`S1P3-EDIT-PREFLIGHT`, and the `.6.5.3` log entry is corrected **in place** rather than left standing.
+
+Scenarios **14 → 15** · registry **132 → 135**.

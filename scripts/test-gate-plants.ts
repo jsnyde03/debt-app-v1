@@ -35,7 +35,8 @@
  * Usage: npm run test:gate-plants
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -76,6 +77,20 @@ interface Scenario {
    * ambiguous, and the run refuses rather than guessing.
    */
   edit?: { at: string; append: string }[];
+  /**
+   * ⛔ **S1.10.6.5.5 [pass-3 D3-4] — A PLANT WHOSE INPUT IS THE GIT REVISION, NOT A FILE.**
+   *
+   * ⚡ `lint:secrets` reads the file LIST from git and the file CONTENT from git blobs, and the whole
+   * point is the second half: reverted to `readFileSync` it reports clean over a `HEAD` that publishes a
+   * live credential, **with every instrument green** — measured, including this harness. ⛔ No plant that
+   * writes a file can tell the two apart, because a file on disk is readable either way.
+   *
+   * So the plant is: stage the fixture, then **DELETE THE WORKING COPY.** Only a gate that reads the git
+   * object can still see it. ⚠️ And the staging goes into a **throwaway index** (`GIT_INDEX_FILE`),
+   * copied from the real one and handed to the gate process — so the developer's own index is never
+   * touched, and a run during `validate:release:rn` cannot disturb staged work.
+   */
+  stageIndex?: { at: string; body: string }[];
   /** Flags the planted run passes — how a gate is pointed at the planted input (`--registry=…`). */
   args?: string[];
   /**
@@ -113,6 +128,32 @@ interface Scenario {
  * ⛔ **A token proves an identifier is present. Only a plant proves the gate still refuses anything.**
  */
 const B1_SCENARIOS: Scenario[] = [
+  /**
+   * ⛔ **S1.10.6.5.5 [pass-3 D3-4] — `REVERIFY4-2`, PINNED AT LAST.**
+   *
+   * ⚡ The gate reads the file LIST from git and the file CONTENT from **git blobs**, and only the second
+   * half matters: reverted to `readFileSync` it reports *"none across N tracked files in index+HEAD"* over
+   * a `HEAD` that publishes a live credential — measured with `lint:secrets`, `lint:finding-guards` AND
+   * this harness all green. ⛔ **No file-writing plant can tell the two apart**, because a file on disk is
+   * readable either way; that is why the class survived a re-point and two audit rounds.
+   *
+   * So the input is the **revision**: stage the fixture, then delete it from the working tree. A gate
+   * reading the filesystem now sees nothing at all.
+   */
+  {
+    gate: 'lint:secrets [D3-4-blob]',
+    script: 'check-committed-secrets.ts',
+    at: 'docs/audits/__gate_plant_unused_d34__.md',
+    body: 'This scenario plants into the INDEX; the created file is inert and exists only because `at` is required.\n',
+    stageIndex: [
+      {
+        at: 'packages/core/__gate_plant_staged__.ts',
+        body: `export const dsn = '${'SENTRY' + '_DSN=https://'}${'0123456789abcdef'.repeat(2)}${'@o1.ingest.' + 'sentry.io/1'}';\n`,
+      },
+    ],
+    expect: '__gate_plant_staged__',
+    why: 'content read from the filesystem instead of the git object reports clean over a HEAD that publishes a credential',
+  },
   /**
    * ⛔ **S1.10.6.5.4 [pass-3 D3-3] — the DECLARATION-vs-USE check, proven to refuse rather than to print.**
    *
@@ -309,7 +350,7 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 14;
+const MIN_SCENARIOS = 15;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 
@@ -322,17 +363,47 @@ for (const s of SCENARIOS) {
       process.exit(1);
     }
   }
+  /**
+   * ⛔ **S1.10.6.5.5 — THIS PRE-FLIGHT WAS DOCUMENTED AT `.6.5.3` AND NEVER LANDED.** The edit run wrote
+   * its plant body, its `finally` restore and its post-flight assertion, and the block that refuses a
+   * missing or already-dirty target was lost to an aborted write — while the log and the plan both said
+   * it existed. ⚠️ That is this cluster's own defect class, in its own harness: **a claim in prose the
+   * code does not implement.** Found by grepping for it while adding `stageIndex`, not by any gate.
+   *
+   * `edit` targets are the mirror image of `at`: they MUST exist, and must be clean vs `HEAD` — a dirty
+   * target makes the restore ambiguous, so the run refuses rather than guessing.
+   */
+  for (const f of s.edit ?? []) {
+    if (!existsSync(abs(f.at))) {
+      console.error(`\n❌ test:gate-plants — ${f.at} is missing; an edit-plant has nothing to edit.\n`);
+      process.exit(1);
+    }
+    const dirty = execFileSync('git', ['status', '--porcelain', '--', f.at], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+    if (dirty) {
+      console.error(
+        `\n❌ test:gate-plants — ${f.at} is already modified; the restore would be ambiguous. Commit or revert it first.\n`,
+      );
+      process.exit(1);
+    }
+  }
+  // A `stageIndex` target is created like `at`, so the same stale-plant refusal applies to it.
+  for (const f of s.stageIndex ?? []) {
+    if (existsSync(abs(f.at))) {
+      console.error(`\n❌ test:gate-plants — a previous run left ${f.at} behind. Delete it and re-run.\n`);
+      process.exit(1);
+    }
+  }
 }
 
 /**
  * Exit code AND output of a gate, run the way a human runs it. Never throws: a non-zero exit is the signal.
  * ⚠️ The output is captured because an exit code alone cannot say WHY a gate redded — see `Scenario.expect`.
  */
-function runGate(script: string, args: string[] = []): { status: number; out: string } {
+function runGate(script: string, args: string[] = [], env?: NodeJS.ProcessEnv): { status: number; out: string } {
   const grab = (e: unknown) =>
     `${(e as { stdout?: Buffer }).stdout?.toString() ?? ''}${(e as { stderr?: Buffer }).stderr?.toString() ?? ''}`;
   try {
-    const out = execFileSync('npx', ['tsx', join('scripts', script), ...args], { cwd: REPO_ROOT, stdio: 'pipe', shell: true });
+    const out = execFileSync('npx', ['tsx', join('scripts', script), ...args], { cwd: REPO_ROOT, stdio: 'pipe', shell: true, env: env ?? process.env });
     return { status: 0, out: out.toString() };
   } catch (e) {
     const status = typeof (e as { status?: number }).status === 'number' ? (e as { status: number }).status : 1;
@@ -351,6 +422,16 @@ for (const s of SCENARIOS) {
   const restoreEdits = () => {
     for (const [rel, bytes] of originals) writeFileSync(abs(rel), bytes);
   };
+  const staged = s.stageIndex ?? [];
+  /**
+   * ⛔ **A THROWAWAY INDEX, copied from the real one.** `git add` writes only here and the gate process
+   * inherits it, so nothing the developer has staged is touched and a run inside `validate:release:rn`
+   * cannot disturb a release. Removed in `finally` whatever happens.
+   */
+  const tmpIndex = staged.length ? join(tmpdir(), `gate-plant-index-${process.pid}`) : '';
+  const stagedEnv = () => ({ ...process.env, GIT_INDEX_FILE: tmpIndex });
+  const git = (args: string[]) =>
+    execFileSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8', env: stagedEnv() });
   let planted = false;
   try {
     for (const f of files) {
@@ -362,7 +443,19 @@ for (const s of SCENARIOS) {
     planted =
       files.every((f) => existsSync(abs(f.at))) &&
       edits.every((f) => !readFileSync(abs(f.at)).equals(originals.get(f.at)!));
-    const withPlant = runGate(s.script, s.args ?? []);
+    if (staged.length) {
+      copyFileSync(join(REPO_ROOT, '.git', 'index'), tmpIndex);
+      for (const f of staged) {
+        mkdirSync(dirname(abs(f.at)), { recursive: true });
+        writeFileSync(abs(f.at), f.body, 'utf8');
+        git(['add', '--', f.at]);
+        // ⛔ THE DISCRIMINATOR. Staged and gone from disk: only a gate reading the git OBJECT can see it,
+        // which is the one thing a plant that writes a file can never establish.
+        rmSync(abs(f.at), { force: true });
+      }
+      planted = staged.every((f) => !existsSync(abs(f.at)) && git(['ls-files', '--', f.at]).trim() !== '');
+    }
+    const withPlant = runGate(s.script, s.args ?? [], staged.length ? stagedEnv() : undefined);
     for (const f of files) rmSync(abs(f.at), { force: true });
     restoreEdits();
     const withoutPlant = runGate(s.script, s.controlArgs ?? s.args ?? []);
@@ -388,6 +481,9 @@ for (const s of SCENARIOS) {
     // ⛔ `finally`, so a throw anywhere above cannot strand a planted file in the tree.
     for (const f of files) rmSync(abs(f.at), { force: true });
     restoreEdits();
+    // The throwaway index and any staged fixture left on disk. The REAL index was never written to.
+    for (const f of staged) rmSync(abs(f.at), { force: true });
+    if (tmpIndex) rmSync(tmpIndex, { force: true });
   }
 }
 
