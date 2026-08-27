@@ -488,15 +488,48 @@ const unclassifiedProps = [...new Set(unclassified.map((e) => e.origin))].sort()
 const DUP_MIN_LEN = 14;
 const BASELINE_PATH = join(REPO_ROOT, 'scripts', 'duplicate-copy-baseline.json');
 
+/**
+ * ⛔ **[S1.10.6.5.8.5 · GAP-17] THE BASELINE'S SIZE IS A RATCHET.**
+ *
+ * ⚠️ **The guard registry recorded this one as already fixed by `REVERIFY4-3`, and that is a DIFFERENT
+ * defect.** REVERIFY4-3 fixed the exit-code override below (`process.exit(0)` discarding the self-check's
+ * verdict). The hole GAP-17 names — `--update-baseline` re-recording **whatever it finds**, so a run on a
+ * regressed tree writes the regression in as the new normal and a red gate turns green — was untouched
+ * and is closed here. Measured, not inferred: all three JSON baselines in this repo carried the identical
+ * unconditional write.
+ *
+ * The size may fall freely; raising it is a deliberate edit here.
+ */
+const MAX_DUP_BASELINED = 3; // measured 2026-08-27
+
 const gateFindings = duplicates
   .filter(([text, es]) => text.length >= DUP_MIN_LEN && es.some((e) => e.bucket === 'copy'))
   .map(([text, es]) => ({ text, files: [...new Set(es.map((e) => e.file))].sort() }));
 
 if (process.argv.includes('--update-baseline')) {
+  // ⛔ [GAP-17] Shrinking is free; growing needs the cap raised first, or this command is a one-liner
+  // for blessing a regression.
+  if (gateFindings.length > MAX_DUP_BASELINED) {
+    console.error(
+      `\n❌ duplicate copy: refusing to record ${gateFindings.length} phrase(s), over the cap of ${MAX_DUP_BASELINED}.\n`,
+    );
+    console.error('  Extract the shared copy to one authority, or raise MAX_DUP_BASELINED in');
+    console.error('  scripts/strings-inventory.ts deliberately and say why.\n');
+    process.exit(1);
+  }
   writeFileSync(BASELINE_PATH, JSON.stringify(gateFindings.map((f) => f.text).sort(), null, 2) + '\n');
   console.log(`duplicate-copy baseline updated: ${gateFindings.length} accepted`);
 } else if (process.argv.includes('--gate')) {
   const baseline = new Set<string>(existsSync(BASELINE_PATH) ? JSON.parse(readFileSync(BASELINE_PATH, 'utf8')) : []);
+  // ⛔ [GAP-17] The same cap on the RECORDED file — a hand edit or a merge never passes the check above.
+  if (baseline.size > MAX_DUP_BASELINED) {
+    console.error(
+      `\n❌ duplicate copy: the RECORDED baseline holds ${baseline.size} phrase(s), above the cap of ${MAX_DUP_BASELINED}.\n`,
+    );
+    console.error('  A wider baseline turns a red gate green. Extract the shared copy, or raise');
+    console.error('  MAX_DUP_BASELINED in scripts/strings-inventory.ts deliberately and say why.\n');
+    process.exit(1);
+  }
   const fresh = gateFindings.filter((f) => !baseline.has(f.text));
   if (fresh.length) {
     console.error(`\n❌ duplicate copy: ${fresh.length} phrase(s) of ${DUP_MIN_LEN}+ chars now live in more than one file.\n`);

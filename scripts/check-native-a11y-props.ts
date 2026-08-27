@@ -151,6 +151,9 @@ const OWNED = [
  * a NEW file, or a NEW call in a baselined one, reds — and the sweep is filed at §12.8 as a device row.
  * (P6.8.9.7.10 · A-5 residual.)
  */
+/** [GAP-17] Per file, what this run actually counted — the fall check below compares against it. */
+const observedAnnounce = new Map<string, number>();
+
 const BARE_ANNOUNCE_BASELINE: Record<string, number> = {
   'apps/rn/src/app/(tabs)/index.tsx': 2,
   'apps/rn/src/app/cushion-forecast.tsx': 1,
@@ -195,6 +198,10 @@ for (const root of ROOTS) {
       // made the gate blind to the exact spelling this repo writes. [P6.8.9.7.11.10 · D-J2-1]
       const calls = stripped.match(/\b(announce|announceForAccessibility)\s*\??\.?\s*\(/g)?.length ?? 0;
       const baselined = BARE_ANNOUNCE_BASELINE[rel] ?? 0;
+      // ⛔ [S1.10.6.5.8.5 · GAP-17] Record what we SAW, so the fall can be judged after the loop. A
+      // rise-only check leaves ground gained silently re-spendable: fix two calls in a 3-baselined file
+      // and the entry still reads 3, holding two units of headroom open with the gate green.
+      observedAnnounce.set(rel, calls);
       if (calls > baselined) {
         announceHits.push(
           `${rel}: ${calls} bare announce() call(s), baseline ${baselined} — ` +
@@ -247,6 +254,45 @@ if (failed) process.exit(1);
 // ⚠️ Counts BOTH lists. It said `BANNED.length` when `OWNED` was added, which undercounts what the gate
 // actually guards — and a completeness figure that omits part of its own coverage is precisely the defect
 // P6.8.9.1 found in the shot matrix ("226 frames", four of which never existed).
+/**
+ * ⛔ **[S1.10.6.5.8.5 · GAP-17] THE BASELINE FAILS ON THE FALL, AND ON A STALE ENTRY.**
+ *
+ * The check inside the loop is rise-only, so every call this repo removed stayed **spendable**: a file
+ * baselined at 3 whose calls drop to 1 still authorises 3, and nothing ever says so. ⚡ Same shape as a
+ * fabricated closure buying cap headroom in `check-audit-closure` — an upper bound that only ever moves
+ * one way stops describing the tree the moment the tree improves.
+ *
+ * ⚠️ **Two failures, not one.** A baselined file whose count FELL is ground to record; a baselined file
+ * this run never saw at all is an entry that outlived its subject — deleted, renamed, or moved out of the
+ * scanned set — and that one also hides a real regression, because a file the gate stopped reading
+ * reports zero calls forever.
+ */
+const baselineDrift: string[] = [];
+for (const [rel, baselined] of Object.entries(BARE_ANNOUNCE_BASELINE)) {
+  if (!observedAnnounce.has(rel)) {
+    baselineDrift.push(
+      `${rel}: baselined at ${baselined} but this run never scanned it — the file is gone, renamed, or ` +
+        'no longer in the scanned set. Delete the entry, or find out why the gate stopped reading it.',
+    );
+  } else if (observedAnnounce.get(rel)! < baselined) {
+    baselineDrift.push(
+      `${rel}: ${observedAnnounce.get(rel)} bare announce() call(s), baseline ${baselined} — DOWN. ` +
+        'Lower the entry to what is actually there, or the difference stays available to spend later.',
+    );
+  }
+}
+if (baselineDrift.length > 0) {
+  console.error(
+    `\n❌ native a11y props: ${baselineDrift.length} BARE_ANNOUNCE_BASELINE entr(y/ies) no longer describe the tree.\n`,
+  );
+  for (const d of baselineDrift) console.error(`  ${d}`);
+  console.error(
+    '\n  A baseline that only ever moves up stops being a ratchet and becomes a permission slip.\n' +
+      '  Lowering one is the correct response and is a one-line edit.\n',
+  );
+  process.exit(1);
+}
+
 // ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
 const observedScan = assertScanFloor(SCAN_GATE);
 console.log(

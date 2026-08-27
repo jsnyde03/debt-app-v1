@@ -162,8 +162,24 @@
     "unguarded": "S0.13 remaining — subsumed by GAP-16's harness once a scenario is added. See S0-GUARDS-4.md"
   },
   "GAP-17": {
-    "what": "the apostrophe and webkit-flex baselines can be regenerated WIDER to make a red gate green",
-    "unguarded": "S0.13 remaining — duplicate-copy is fixed (REVERIFY4-3); the other two need the same stale-drift report. See S0-GUARDS-4.md"
+    "what": "S0.13 GAP-17 — CLOSED S1.10.6.5.8.5, and BOTH source rows undercounted it. The audit doc names HAND_PARSE_BASELINE / BARE_ANNOUNCE_BASELINE / apostrophe-baseline; the registry named apostrophe + webkit-flex and called duplicate-copy already fixed. ⚠ The union is FIVE baselines and the two lists overlap in one. ⛔ And `duplicate-copy is fixed (REVERIFY4-3)` was WRONG — REVERIFY4-3 fixed that file's exit-code override, a different defect; its --update-baseline path still re-recorded unconditionally. Measured: all three JSON baselines carried the identical unconditional write. ⚡ GAP-17's stated remedy (`fail on the fall`) is also wrong for check-apostrophes, whose own comment answers it: `a gate that reds on progress is a gate that gets reverted`. So the fall-check went to the two COUNT baselines and a downward-only SIZE cap went to the JSON ones, on BOTH the re-record path and the read path (a hand edit or a merge never passes the re-record check). ⚠ webkit-flex exits by MEASUREMENT, not by a guard: lint:webkit is reachable only from `npm run lint`, which appears only in the RETIRED validate:release:legacy — it is in no live chain, it is RED right now, and P6.11 deletes its whole subject. This entry pins the apostrophe half",
+    "file": "scripts/check-apostrophes.ts",
+    "token": "if (baseline.size > MAX_BASELINED) {"
+  },
+  "GAP-17b": {
+    "what": "S0.13 GAP-17, the HAND_PARSE_BASELINE half — CLOSED S1.10.6.5.8.5. `if (handParseCount > HAND_PARSE_BASELINE)` is rise-only, so ground gained was silently re-spendable: burn 41 down to 38 and the baseline still authorises 41, holding three units of headroom open with the gate green. Same shape as a fabricated closure buying cap headroom in check-audit-closure. Now reds on the FALL too, naming the number to lower it to. Plant-verified: baseline raised to 44 against 41 live sites → reds `DOWN from the baseline 44`",
+    "file": "scripts/check-local-dates.ts",
+    "token": "if (handParseCount < HAND_PARSE_BASELINE) {"
+  },
+  "GAP-17c": {
+    "what": "S0.13 GAP-17, the BARE_ANNOUNCE_BASELINE half — CLOSED S1.10.6.5.8.5. Per-file and rise-only (`if (calls > baselined)`), so a file baselined at 3 whose calls drop to 1 still authorised 3. ⚡ TWO failures, not one: a count that FELL is ground to record, and a baselined file this run never SCANNED is an entry that outlived its subject — and that second one hides a real regression, because a file the gate stopped reading reports zero calls forever. Plant-verified both: entry raised above the live count → reds DOWN; entry naming an unscanned file → reds `never scanned it`",
+    "file": "scripts/check-native-a11y-props.ts",
+    "token": "if (!observedAnnounce.has(rel)) {"
+  },
+  "GAP-17d": {
+    "what": "S0.13 GAP-17, the duplicate-copy half — CLOSED S1.10.6.5.8.5. ⛔ The registry recorded this one as ALREADY FIXED by REVERIFY4-3 and it was not: REVERIFY4-3 fixed the exit-code override (process.exit(0) discarding the self-check's verdict), while --update-baseline still wrote whatever it found. A run on a regressed tree writes the regression in as the new normal. Now a downward-only size cap on both the re-record path and the read path. Plant-verified: cap lowered below the live baseline → reds `the RECORDED baseline holds 3 phrase(s), above the cap of 2`",
+    "file": "scripts/strings-inventory.ts",
+    "token": "if (baseline.size > MAX_DUP_BASELINED) {"
   },
   "GAP-18": {
     "what": "a raw NUL in the ledger makes it a binary file to rg, so the closure gate's corpus stops being greppable",

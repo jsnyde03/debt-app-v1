@@ -108,6 +108,17 @@
 
 ## → P6.10 — feature lock + the money lens *(last gate that can FIND a structural gap)*
 
+- ⚠️ **THE WEBKIT FLEX-CONTROL CLASS IS UNMEASURED ON THE RN APP, and no instrument can currently see it.**
+  *(2026-08-27 · S1.10.6.5.8.5 GAP-17 after-scan)*. `check-webkit-flex-controls` finds its subject by
+  reading **CSS classes** and matching `<button>`/`<fieldset>` — RN source has neither, so pointing it at
+  `apps/rn/src` returns `no NEW flex/grid controls` **because it structurally cannot see anything there**,
+  not because the app is clean. ⚡ The class is real and device-only: iOS WKWebView mis-sizes a flex/grid
+  native control whose content wraps, it bit v1.6's payday reconcile rows, and **Chromium and
+  Playwright-WebKit both render it fine** — so the whole e2e suite is blind to it by construction.
+  ⚠️ Whether react-native-web's DOM output reproduces the exposure is **unanswered**; the embed is the
+  surface at risk, since that is where RN becomes real DOM. Worth one look at the exported embed's markup
+  for `<button>` with flex, then a device row if it appears. → **P6.10 / P6.14**
+
 - 🔴 **[DECISION] `actualIncome` capture for variable-income users — DEFERRED BY 🎯, not dropped.**
   `substrateProducers.ts:60` returns the store unchanged when `incomeVaries` and no `actualIncome` is
   supplied, so **`incomeActualsLog` never grows for exactly the users it exists for**. Consequences that ship
@@ -183,6 +194,15 @@
   toggle makes false. ⛔ **P6.3 must not SHIP without it landing here.**
 
 ## → P6.11 — delete with the tree
+
+- 🔴 **`lint:webkit` IS RED RIGHT NOW AND IN NO LIVE CHAIN — delete it with the tree, or wire it.**
+  *(2026-08-27 · S1.10.6.5.8.5 GAP-17 after-scan · measured)*. It is reachable only from root
+  `npm run lint`, which appears only in **`validate:release:legacy` — retired**. `validate:release:rn`
+  does not run it; CI runs `lint:rn`, which does not include it. ⚠️ It has been **failing unseen** on
+  `app/page.tsx:1653` (`<button>` using flex/grid class `.premium-pill`). ⚡ Its `DEFAULT_SRC_DIRS` are
+  `components` and `app` — the legacy tree only — so P6.11 deletes its entire subject and the honest close
+  is to delete the gate with it. ⛔ **Do not simply wire it into `lint:rn`**: it would red on day one over
+  code being deleted. → **P6.11**
 
 - 🔴 **`site/` IS DEAD AND ACTIVELY MISLEADING — delete it with the tree.** Two files at **v1.5**, last
   touched `34c7c89` (2026-07-05), and **no workflow deploys them**; the pages App Review loads live in

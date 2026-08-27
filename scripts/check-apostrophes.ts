@@ -36,6 +36,23 @@ import ts from 'typescript';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 const BASELINE = join(REPO_ROOT, 'scripts', 'apostrophe-baseline.json');
+
+/**
+ * ⛔ **[S1.10.6.5.8.5 · GAP-17] THE BASELINE'S OWN SIZE IS CAPPED, DOWNWARD-ONLY.**
+ *
+ * ⚠️ **GAP-17 proposed "fail on the fall" and that is WRONG for this gate** — the comment above the stale
+ * count already answers it: *"a gate that reds on progress is a gate that gets reverted."* Sweeping copy
+ * is exactly what P6.8 does, and redding on a sweep would earn this gate a deletion, not a fix.
+ *
+ * ⚡ **The real hole is GAP-17's OTHER half, and it is live:** `--baseline` re-records whatever it finds,
+ * unconditionally. A regeneration run on a tree that has REGRESSED writes the regression in as the new
+ * normal, and **a red gate turns green with nothing objecting** — the T8.4 failure the stale comment
+ * names, arriving through the re-record path rather than through drift.
+ *
+ * So the SIZE is a ratchet: it may fall freely, and it may not rise without a deliberate edit here.
+ * ⚠️ Declared up here rather than beside the baseline read because `--baseline` exits long before that.
+ */
+const MAX_BASELINED = 0; // measured 2026-08-27: the sweep is complete, the baseline is empty
 /** Both live trees. The legacy Next surface at the repo root dies at P6.11 and is out of scope. */
 const ROOTS = [join(REPO_ROOT, 'packages', 'core'), join(REPO_ROOT, 'apps', 'rn', 'src')];
 
@@ -170,6 +187,16 @@ for (const root of ROOTS) for (const f of walk(root)) if (!isTest(f)) sitesIn(f)
 const sorted = [...current].sort();
 
 if (process.argv.includes('--baseline')) {
+  // ⛔ [GAP-17] A re-record may SHRINK the baseline freely; growing it needs the cap raised first.
+  // Without this, `--baseline` is a one-command way to bless a regression.
+  if (sorted.length > MAX_BASELINED) {
+    console.error(
+      `\n❌ apostrophes: refusing to record ${sorted.length} site(s), over the cap of ${MAX_BASELINED}.\n`,
+    );
+    console.error('  Re-recording here would write a regression in as the new normal. Sweep the copy, or');
+    console.error('  raise MAX_BASELINED in scripts/check-apostrophes.ts deliberately and say why.\n');
+    process.exit(1);
+  }
   writeFileSync(BASELINE, `${JSON.stringify(sorted, null, 2)}\n`, 'utf8');
   console.log(`→ wrote apostrophe-baseline.json (${sorted.length} sites)`);
   process.exit(0);
@@ -264,6 +291,16 @@ if (!existsSync(BASELINE)) {
 }
 
 const baseline = new Set<string>(JSON.parse(readFileSync(BASELINE, 'utf8')) as string[]);
+// ⛔ [GAP-17] The same cap on the RECORDED file — `--baseline` is not the only way it can grow. A
+// hand-edited or merge-resolved baseline reaches this line without passing the check above.
+if (baseline.size > MAX_BASELINED) {
+  console.error(
+    `\n❌ apostrophes: the RECORDED baseline holds ${baseline.size} site(s), above the cap of ${MAX_BASELINED}.\n`,
+  );
+  console.error('  A wider baseline turns a red gate green by writing the regression in as the new');
+  console.error('  normal. Sweep the copy, or raise MAX_BASELINED deliberately and say why.\n');
+  process.exit(1);
+}
 const fresh = sorted.filter((s) => !baseline.has(s));
 
 /**

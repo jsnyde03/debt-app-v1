@@ -118,10 +118,30 @@ if (handParseCount > HAND_PARSE_BASELINE) {
   console.error('   while T10/Phase 6 burns it down. Do not raise the baseline to make this pass.)\n');
   process.exit(1);
 }
+/**
+ * ⛔ **[S1.10.6.5.8.5 · GAP-17] AND IT FAILS ON THE FALL TOO.** The check above is rise-only, so ground
+ * gained here was silently **re-spendable**: burn three hand-parses down to 38, and the baseline still
+ * reads 41 — leaving three units of headroom for someone to spend later with the gate green and nothing
+ * objecting. ⚡ That is the same shape as a fabricated closure buying cap headroom in `check-audit-closure`.
+ *
+ * ⚠️ **Direction, stated because the rules require it:** the red here says *you improved this, record it*.
+ * The opposite direction (the count rising) is the check above and means something entirely different.
+ * Lowering the baseline is a **one-line deliberate edit** and is the correct response; there is no
+ * response that leaves the number stale.
+ */
+if (handParseCount < HAND_PARSE_BASELINE) {
+  console.error(
+    `\n❌ local dates: ${handParseCount} hand-written \`T00:00:00\` parses — DOWN from the baseline ${HAND_PARSE_BASELINE}.\n`,
+  );
+  console.error('  This is good news the gate refuses to forget. Lower HAND_PARSE_BASELINE to');
+  console.error(`  ${handParseCount} in scripts/check-local-dates.ts, or the ground you just gained stays`);
+  console.error('  available for someone to spend later with this gate green.\n');
+  process.exit(1);
+}
 // ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
 const observedScan = assertScanFloor(SCAN_GATE);
 console.log(
   `✅ local dates: no UTC round-trips outside ${EXEMPT.join(', ')}` +
-    ` · ${handParseCount}/${HAND_PARSE_BASELINE} hand-written local parses (not rising).` +
+    ` · ${handParseCount}/${HAND_PARSE_BASELINE} hand-written local parses (pinned, both directions).` +
     scanNote(SCAN_GATE, observedScan),
 );

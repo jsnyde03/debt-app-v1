@@ -119,6 +119,23 @@ function scanFile(file: string, flexClasses: Set<string>): Finding[] {
 
 const BASELINE_PATH = join(REPO_ROOT, "scripts", "webkit-flex-controls-baseline.json");
 
+/**
+ * ⛔ **[S1.10.6.5.8.5 · GAP-17] THE BASELINE'S SIZE IS A RATCHET.** `--update-baseline` re-records
+ * whatever it finds, unconditionally — so running it on a REGRESSED tree writes the regression in as the
+ * new normal and a red gate turns green with nothing objecting. The size may fall freely; raising it is a
+ * deliberate edit here.
+ *
+ * ⛔ **AND THIS CAP IS NOT A STANDING GUARD, BECAUSE THIS GATE IS IN NO LIVE CHAIN.** Measured
+ * 2026-08-27: `lint:webkit` is reachable only from root `npm run lint`, which appears only in
+ * `validate:release:legacy` — a **retired** chain. `validate:release:rn` does not run it and CI does not
+ * run it. ⚠️ **The gate is RED right now** (`app/page.tsx:1653`, `.premium-pill`) and has been, unseen.
+ * ⚡ Its `DEFAULT_SRC_DIRS` are `components` and `app` — the LEGACY tree only — and its mechanism reads
+ * CSS classes, which RN source does not have, so it structurally cannot cover `apps/rn`. P6.11 deletes
+ * its entire subject. The cap is kept because it is correct and free, **not** because anything runs it;
+ * GAP-17's webkit half is recorded as exiting by measurement rather than by a guard.
+ */
+const MAX_BASELINED = 19; // measured 2026-08-27
+
 function relPath(file: string): string {
     return file.replace(REPO_ROOT + "\\", "").replace(REPO_ROOT + "/", "").replace(/\\/g, "/");
 }
@@ -153,12 +170,30 @@ function main() {
 
     if (update) {
         const keys = [...new Set(findings.map(key))].sort();
+        // ⛔ [GAP-17] Shrinking is free; growing needs the cap raised first.
+        if (keys.length > MAX_BASELINED) {
+            console.error(
+                `\n❌ webkit flex: refusing to record ${keys.length} control(s), over the cap of ${MAX_BASELINED}.\n`
+            );
+            console.error("  Re-recording would write the regression in as the new normal. Fix the");
+            console.error("  controls, or raise MAX_BASELINED in check-webkit-flex-controls.ts and say why.");
+            process.exit(1);
+        }
         writeFileSync(BASELINE_PATH, JSON.stringify(keys, null, 2) + "\n");
         console.log(`✓ Baseline updated: ${keys.length} accepted flex/grid control(s) → ${relPath(BASELINE_PATH)}`);
         return;
     }
 
     const baseline = loadBaseline();
+    // ⛔ [GAP-17] The same cap on the RECORDED file — a hand edit or merge never passes the check above.
+    if (baseline.size > MAX_BASELINED) {
+        console.error(
+            `\n❌ webkit flex: the RECORDED baseline holds ${baseline.size} control(s), above the cap of ${MAX_BASELINED}.\n`
+        );
+        console.error("  A wider baseline turns a red gate green. Fix the controls, or raise");
+        console.error("  MAX_BASELINED in scripts/check-webkit-flex-controls.ts and say why.");
+        process.exit(1);
+    }
     const fresh = findings.filter((f) => !baseline.has(key(f)));
 
     if (fresh.length === 0) {
