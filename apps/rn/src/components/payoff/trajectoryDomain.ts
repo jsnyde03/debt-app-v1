@@ -94,3 +94,21 @@ export function truncateToDomain(traj: TrajectoryPoint[], maxMonth: number): Tra
   const cut = traj.findIndex((p) => p.month > maxMonth);
   return cut === -1 ? traj : traj.slice(0, cut + 1);
 }
+
+/**
+ * "22 months" / "2 years" — the savings figure in the payoff legend.
+ *
+ * ⛔ **`floor`, NOT `round`, and it lives here so it can be TESTED.** [S1.10.6.7.4 · pass-3 m2] This is a
+ * BENEFIT CLAIM and may not round in its own favour: `Math.round(30 / 12)` is `3`, so "30 months saved"
+ * was stated as **"3 years"** against a true 2.5 — half a year of payoff the plan does not deliver, on the
+ * line a user reads to decide whether the extra payment is worth making.
+ *
+ * ⚠️ Flooring understates by up to eleven months, and that is the safe direction for a claim about someone
+ * else's money: the shortfall is a smaller number than promised, never a promise that does not land.
+ * ⚡ Extracted from `TrajectoryChart.tsx` for the same reason `endPillWidth` was — a `.tsx` component is
+ * not reachable from the node test runner, so the instrument had to change before the claim could be pinned.
+ */
+export function formatMonths(months: number): string {
+  if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;
+  return `${Math.floor(months / 12)} years`;
+}

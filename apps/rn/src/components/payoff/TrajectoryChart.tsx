@@ -21,7 +21,7 @@ import { TutorialTarget } from '@/store/tutorialTargets';
 import { monthDate, monthShortLabel, monthYearLabel } from './monthLabels';
 import { TrajectoryCanvas } from './TrajectoryCanvas';
 import { StrategyCompare } from './StrategyCompare';
-import { endPillWidth, trajectoryDomain, truncateToDomain } from './trajectoryDomain';
+import { endPillWidth, formatMonths, trajectoryDomain, truncateToDomain } from './trajectoryDomain';
 import { WhatIfControls } from './WhatIfControls';
 
 const H = 200;
@@ -60,11 +60,6 @@ const SCRUB_READOUT_MAX_W = 172;
  * ⚠️ Never called on native: `skia-ready.ts` ignores it, which is what keeps the chunk lazy on web only.
  */
 const TRAJECTORY_SKIA_CHUNK = () => import('./TrajectorySkiaChart');
-
-function formatMonths(months: number): string {
-  if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;
-  return `${Math.round(months / 12)} years`;
-}
 
 /** The savings suffix shared by both legend rows: " · $1,666, 22 months saved" / " · $309, 7 months sooner". */
 function deltaSuffix(interestSaved: number, monthsSaved: number, word: string): string {

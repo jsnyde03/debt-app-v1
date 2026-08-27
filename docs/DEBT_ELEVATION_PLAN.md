@@ -43,7 +43,8 @@ line, never the pipeline's status.
 
 ### ⏭ WHAT THE NEXT SESSION PICKS UP
 
-▶ **`S1.10.6.5.8` is CLOSED — the guard backlog has drained.** ⛔ **Read the live count from `npm run lint:finding-guards`, never from here** *(`MAX_UNGUARDED` **16 → 1** across two sessions; the single remaining row is `GAP-14`, which exits by DECISION, not by a build)*. ▶ **Next: `S1.10.6.7`, the 14 minors — then pass 4.**
+▶ **`S1.10.6` is CLOSED except `.6.10`, which is deliberately held for just-before-S2.** All 20 blocker+majors and all 14 minors are closed. ⛔ **Read the guard count from `npm run lint:finding-guards`, never from here.** ⚡ **Across the minors, 6 of 14 remedies were wrong, incomplete or unnecessary while the premises were almost always right** — verify what a finding says to DO, not just where it points.
+▶ **Next: `S1.10.7` — the NET (full e2e + embed, no `gate:record`), push, then regenerate the routing and write pass 4's brief.** ⛔ [D68]: a NEW SESSION runs the pass.
 
 ⚠️ **Verify each GAP's premise before building it.** Two of the four taken so far did **not** survive
 contact: `GAP-6` was already closed by `M8`'s strict-equality sweep *(its `>` premise is stale)*, and
@@ -112,25 +113,26 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 | **S1.10.6.5.8** | ⭐ **THE GUARD BACKLOG** — the `unguarded` rows of the guard inventory | `GAP-*` | ✅ **CLOSED 2026-08-27** — `MAX_UNGUARDED` **16 → 1**, and the one row left (`GAP-14`) exits by DECISION. ⚡ **9 of 12 rows were wrong about their own scope or remedy**; three were already closed by `M8`'s strict-equality sweep, and one proposed remedy would have been the defect. Detail → log |
 | **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | ✅ **CLOSED 2026-08-27** — ⚡ both were **already asserted somewhere**, and both assertions were green over the gap |
 | **S1.10.6.10** | ⭐ **MATERIALISE S2/S3/S4's INVENTORIES BEFORE S2 OPENS** *(🎯's question, 2026-08-27: do the later surfaces bloat the way S1 did?)*. ⛔ **The S1 class cannot recur** — `lint:surface-complete` asserts all **1,220** tracked source files have an owner. ⚠️ **But their SIZES are unmeasured**: no `surface-coverage.s2.json` exists and the script answers *"unknown surface. Known: s0, s1."* ⚡ **And they cannot be measured cheaply, because the routing decisions live inside S1's own `excluded` function rather than in a shared router** — extracting it IS the fix. Three `never`-filled claim files + a `--surface=` that accepts them turns "unknown" into three numbers before switch-in. ⚠️ Completeness proves every file has *a* home, **not the right one** — `C-7` already hit that seam *(`readBackup.ts` is S3, its render site is S1)* | — | not started — ⭐ **do this BEFORE S2** |
-| **S1.10.6.7** ▶ | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | ▶ **ACTIVE** *(decomposed below)* |
+| **S1.10.6.7** | **The 14 minors** | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | ✅ **CLOSED 2026-08-27** — ⚡ **6 of 14 had a remedy that was wrong, incomplete or unnecessary** while the premises were almost always right: one accepted the defect it existed to catch, one reds a real test, one narrowed nothing, two had an unnamed second half. `m5` refuted by `C-3`; `m3` deferred (out of 2.0's storefronts). Detail → log |
 | **S1.10.6.8** | **Register every fix in `finding-guards.json`** — a two-line edit each (the entry **and** `MIN_ENTRIES`) | all 20 | ✅ **CLOSED 2026-08-27** — registered with each fix rather than batched. ⛔ **Read the count from `lint:finding-guards`, never from here**; `D3-3` then swept the whole registry because a token naming a DECLARATION outlives its use |
 | **S1.10.6.9** | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — the claim sites still on `lint:trust-claims`' `OPEN` ledger | `G-1`…`G-6` | ✅ **CLOSED 2026-08-27** — ⛔ **the row named two sites and the file held five**, one of them **blocker `B1` unfixed**; a sixth (`G-6`) was **a RED release gate** found while verifying. `MAX_OPEN` → **0** |
 
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
 `lint:rn` and the unit suites green.
 
-#### S1.10.6.7's sub-steps — THE 14 MINORS *(ACTIVE)*
+#### S1.10.7's sub-steps — THE NET, THEN PASS 4 *(ACTIVE)*
 
-⚠️ **Switch-in before-scan.** ⛔ **Verify each finding against the CURRENT tree before building it** — `.8` measured **9 of 12** of its rows wrong about their own scope or remedy, and these were written in the same pass. ⚡ **Grouped by CLASS, not by auditor**, because four of the fourteen are one class: *an assertion that cannot fail*. Ordered by value, not by id.
+⚠️ **Switch-in before-scan.** ⛔ **`S1.10.6` is complete except `.6.10`**, which is deliberately held: its own row says *do this BEFORE S2*, and S2 is two steps away — running it now would measure surfaces that pass 4's fixes are about to move. ⛔ **[D74]: a round ends with the NET, not the record** — `gate:record` runs only at [D65] convergence, and pass 3 did not converge.
 
 | # | sub-step |
 |---|---|
-| ✅ | **.6.7.1 — the assertions that cannot fail. `D3-8`'s OWN PROPOSED FIX did not hold.** Two of its three named failure modes are **impossible** *(`formatCurrency` is defensive)*, and the one that is reachable — a `$0.00` subtotal — **matches the finding's own regex**; measured, not argued: the planted `$0.00` PASSES under it. `D3-7`'s counterfactual measured too *(old form reads `expected "PLANTED", got "PLANTED"`)*. All 4 plant-verified, all 4 registered |
-| ✅ | **.6.7.2 — `A5`'s REMEDY REFUSED BY MEASUREMENT.** Its observation holds *(one `||` against thirty)*; its inference does not — the thirty are a **migration fallback**, this one is a **domain OR**, and applying the remedy reds an existing test with *"expected 950, received 1000"*: a debt paid **in full** showing its full balance. ✅ Its docblock half WAS fixed. ⚠ The contradiction case → **P6.10**. `B6`'s proposed narrowing also failed *(it resolves back to `string`)* — the union had to go on the id. `B5`: first `scripts/` import under `apps/rn/src`, bundle-checked |
-| ✅ | **.6.7.3 — both fixes had a HALF THE FINDING DID NOT NAME.** `m4`: the sanitiser alone changes nothing, because the input rendered `String(Number(extra))` and erased the decimal one line later — the key was unusable, not just lossy; rule moved to `amountField`'s shared owner. `m7`: reusing the existing blocked state would have been wrong twice *(iCloud copy for a LOCAL fault, and an escape that re-runs the failed step)*. ⚠ `m7`'s blocked branch is **unreachable off-device** → P6.14 row filed |
-| **.6.7.4** | **Figures + copy honesty** — `m2` `m3` `m5` `m6`. `m2` rounds months-saved **up** into years, in the flattering direction; `m3` formats the per-month anchor US-style whatever the store's locale is ⚠ which [D55] says is safe only while every storefront is period-decimal; `m5` counts cycles under a figure counting intervals |
+| **S1.10.7.1** | **The net** — full `test:e2e:rn` + `test:e2e:embed`, on the whole tree rather than the specs touched. ⚠ **Not yet run for this round**: every fix so far was verified against its own surface in isolation, which is the per-fix cadence, not the per-round one. ⛔ **No `gate:record`** |
+| **S1.10.7.2** | **Push**, and state the hand-off honestly — *no current record; last full pass was `818f934`; the tree has moved N commits.* Quote `npm run lint:gate-freshness`, never a typed figure |
+| **S1.10.7.3** | **[DECISION] the pass-4 brief's ROUTING** — pass 3 read 470 files across four auditors. ⚠ The surface has since gained the six gates and three test modules built this session, so a brief reusing pass 3's manifests hands four auditors a stale surface. Regenerate `ROUTING-{A,B,C,D}.txt` and assert routed / unrouted / duplicated / missing before hand-over |
+| **S1.10.7.4** | **Write the pass-4 brief** — ⛔ **[D68]: no verdict in it, and this session does NOT run the pass.** ⚡ It reads ~2,000 lines of instrument code written this session, and **five defects went into the instruments themselves** — four of them found only by planting. **Report pass 4 split by origin**, or a flat total hides both halves moving |
+| **S1.10.7.5** | **RUN pass 4** — fresh agents, pinned SHA ([D68]) |
 
-**Exit (S1.10.6.7):** all 14 closed or measured never to have been findings, each fix carrying a standing guard per [D67], and `lint:rn` + the unit suites green. ⛔ **Then, and only then: pass 4.**
+**Exit (S1.10.7):** the net green and pushed, the hand-off naming the last full pass rather than quoting a stale record, and pass 4 dispatched against a **regenerated** route. ⛔ A clean pass 4 still owes a pass 5 — [D65] exits on 0/0 **twice consecutively**.
 
 ---
 

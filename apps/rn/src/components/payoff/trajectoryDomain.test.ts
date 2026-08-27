@@ -1,6 +1,6 @@
 import type { TrajectoryPoint } from '@/store/payoffSelectors';
 
-import { endPillWidth, MIN_DOMAIN_MONTHS, trajectoryDomain, truncateToDomain } from './trajectoryDomain';
+import { endPillWidth, formatMonths, MIN_DOMAIN_MONTHS, trajectoryDomain, truncateToDomain } from './trajectoryDomain';
 
 /**
  * P6.8.7g.4 (audit P1-3 / [D58]) — the payoff chart's x-domain.
@@ -137,6 +137,27 @@ function run() {
       endPillWidth('September 2026', 1, S) > endPillWidth('Oct 2026', 1, S),
       'a longer label estimates wider — the month NAME is what moves this, not the year',
     );
+  }
+
+  // ── formatMonths — a BENEFIT CLAIM, which may not round in its own favour [pass-3 m2] ──
+  {
+    // ⛔ Every row is a value `Math.round` overstated. 30/12 is exactly 2.5, and rounding took it to
+    // "3 years" — half a year of payoff the plan does not deliver, on the line that sells the extra payment.
+    eq(formatMonths(30), '2 years', '30 months is 2.5 years and must not be sold as 3');
+    eq(formatMonths(42), '3 years', '42 months is 3.5 years and must not be sold as 4');
+    // ⚠️ The already-correct direction, kept so a "fix" cannot swap the error to the other side.
+    eq(formatMonths(29), '2 years', 'and 29 months still reads 2, not 3');
+    eq(formatMonths(41), '3 years', 'and 41 months still reads 3, not 4');
+    eq(formatMonths(24), '2 years', 'the boundary into years');
+    // Under two years it counts months, and the singular is not "1 months".
+    eq(formatMonths(23), '23 months', 'under 24 stays in months');
+    eq(formatMonths(1), '1 month', 'one month is singular');
+
+    // The property behind the rows: the stated years may never exceed the true figure.
+    for (let m = 24; m <= 200; m++) {
+      const stated = Number(formatMonths(m).split(' ')[0]);
+      assert(stated <= m / 12, `formatMonths(${m}) states ${stated}y, never more than the true ${(m / 12).toFixed(2)}y`);
+    }
   }
 
   console.log(`\n✅ payoff trajectory domain: ${passed} assertions passed\n`);

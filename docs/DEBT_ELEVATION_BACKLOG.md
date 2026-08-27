@@ -335,6 +335,22 @@
 
 ## → INTERNATIONAL — a workstream, not a line item *(scoped 2026-08-20)*
 
+- ⚠️ **THE PAYWALL'S PER-MONTH ANCHOR IS SPELLED US-STYLE WHATEVER THE STORE'S LOCALE IS.**
+  *(2026-08-27 · S1.10.6.7.4 · pass-3 `m3` — DEFERRED, with the measurement)*. `paywall.tsx` derives the
+  currency symbol by stripping digits and separators out of `priceString`, then emits the per-month
+  figure US-style. Measured by the auditor: a JPY price renders with **two minor units JPY does not have**,
+  and a comma-decimal euro price renders with the symbol on the wrong side and a period separator.
+  ⛔ **NOT reachable in 2.0, which is why this is filed rather than fixed.** Availability is
+  **US / CA / AU / NZ** *(settled 2026-08-20)* — USD, CAD, AUD and NZD are all symbol-first,
+  period-decimal, two minor units, so the derived symbol resolves to `$` and `.toFixed(2)` is correct in
+  every storefront the app can be bought in. ⚡ **The AMOUNT is right in every row the auditor printed;
+  only the spelling is wrong** — and it is a DERIVED anchor, not the billed price Apple's 3.1.2 governs,
+  which comes straight from `priceString`. ⚠ **The fix is one line (`Intl.NumberFormat` with the
+  package's currency code) but it puts an ICU dependency on the REVENUE surface inside a code freeze**,
+  and Hermes without full-icu formats currencies poorly. It belongs with the storefront that makes it
+  reachable. → **INTERNATIONAL**
+
+
 
 ## → Tooling / hygiene
 

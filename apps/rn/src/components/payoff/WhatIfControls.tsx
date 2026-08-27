@@ -23,6 +23,12 @@ function whereText(result: WhatIfResult): string | null {
   if (paid.length === 0) return null;
   const [first, second] = paid;
   if (first.isPaidOff && second) return `Pays off your ${first.debtName}, then hits ${second.debtName}`;
+  // ⛔ **THE CASE THIS CONTROL EXISTS FOR.** [S1.10.6.7.4 · pass-3 m6] When the extra clears the first debt
+  // and there is no second, `second` is `undefined`, so the branch above was skipped and the fall-through
+  // said *"Goes straight to your Chase"* about money that in fact **pays Chase off** — the strongest thing
+  // the simulator can tell someone, described as if it merely made a dent. No number was wrong; the better
+  // sentence was simply unavailable to the previous shape.
+  if (first.isPaidOff) return `Pays off your ${first.debtName}`;
   return `Goes straight to your ${first.debtName}`;
 }
 

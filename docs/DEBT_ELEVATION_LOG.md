@@ -26695,6 +26695,87 @@ the one real finding from the two artefacts.
 a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
 restored, and verified by grepping the line back. **Mutation runs go in the background from here.**
 
+## S1.10.6.7.4 + S1.10.6.7 CLOSE-OUT — the figures, and the tally on fourteen minors (2026-08-27)
+
+Four findings, and **only one was built as written**. `m5` is refuted, `m3` is deferred with the
+measurement that puts it out of scope, `m2` needed an extraction before it could be pinned at all, and
+`m6` was the one clean row.
+
+### `m5` — REFUTED. Its own subject no longer exists.
+
+The finding reads *"History's subtitle counts cycles, the figure above it counts intervals"*, citing
+`historySelectors.ts:27` as *"subtracts the FIRST snapshot from the LAST"*. ⛔ **That expression was
+replaced by `C-3` in this same round** — `S1.10.6.2` made `sumPaidToDebt` the one owner of *"money put
+toward debt across the history"*, and it sums `totalPaidThisCycle` across **all** `h.length` snapshots.
+
+⚡ So *"paid down across N cycles"* is now **exactly correct**: N cycles contributed, N per-cycle totals
+summed. The finding anticipated this — *"subsumed by `C-3` if that finding's remedy re-words the line"* —
+but `C-3` did something better than reword it: **it changed the FIGURE, and the sentence became true.**
+Exits by measurement, not by an edit.
+
+### `m3` — DEFERRED, and the deferral is the measured answer
+
+The paywall's per-month anchor is spelled US-style whatever the store's locale is; the auditor printed a
+JPY price rendering with two minor units JPY does not have. ⛔ **Not reachable in 2.0.** Availability is
+**US / CA / AU / NZ**, and USD, CAD, AUD and NZD are all symbol-first, period-decimal, two minor units —
+so the derived symbol resolves to `$` and `.toFixed(2)` is correct in every storefront the app can be
+bought in. ⚡ **The amount is right in every row printed; only the spelling is wrong**, and it is a derived
+anchor rather than the billed price Apple's 3.1.2 governs.
+
+⚠️ The one-line fix puts an **ICU dependency on the revenue surface inside a code freeze**, and Hermes
+without full-icu formats currencies poorly. Filed to **INTERNATIONAL**, with the storefront reasoning, so
+it lands with the thing that makes it reachable.
+
+### `m2` — a benefit claim that rounded in its own favour
+
+`Math.round(months / 12)`: **"30 months saved" was stated as "3 years"** against a true 2.5 — half a year
+of payoff the plan does not deliver, on the line a user reads to decide whether the extra payment is worth
+making. Now `floor`, which understates by up to eleven months; that is the safe direction for a claim about
+someone else's money.
+
+⚡ **`formatMonths` had to be EXTRACTED to `trajectoryDomain.ts` before it could be pinned** — the same
+move `endPillWidth` needed, for the same reason: a `.tsx` component is unreachable from the node runner, so
+the instrument changes before the claim can be tested. Guarded by the exact rows `round` overstated **plus
+the property behind them** — for every month 24–200 the stated years never exceed the true figure.
+Plant-verified: restoring `Math.round` reds *"expected 2 years, got 3 years"*.
+
+### `m6` — the one row built as written
+
+`whereText` branched on `first.isPaidOff && second`, so clearing the first debt with no second fell through
+to *"Goes straight to your Chase"* about money that **pays Chase off** — the strongest thing the simulator
+can say, described as a dent. One branch. ⚠️ Guarded by **token, with the reason written**: extracting a
+module to pin a one-line copy branch is out of proportion to a minor inside a freeze.
+
+---
+
+## S1.10.6.7 — the tally on fourteen minors
+
+⚡ **Six of the fourteen had a remedy that was wrong, incomplete, or unnecessary** — and the premises were
+almost always right. The ledger is reliable about **where**, unreliable about **what to do**:
+
+| | |
+|---|---|
+| **Own remedy would have passed over the defect** | `D3-8` — its regex accepts the `$0.00` it exists to catch |
+| **Own remedy reds a real test** | `A5` — a debt paid IN FULL would display its full balance |
+| **Own remedy narrows nothing** | `B6` — the indexed access resolves back to `string` |
+| **Fix had a second half unnamed** | `m4` — the display erased the decimal one line later; `m7` — reusing the blocked state was wrong twice |
+| **Refuted / deferred** | `m5` closed by `C-3`; `m3` out of 2.0's storefronts |
+
+⛔ **Three fixes needed an instrument change before they could be guarded at all** (`m1`'s pin, `m2`'s
+extraction, `B5`'s owner) — the recurring shape from S0 onward: *the instrument changes, not the test.*
+
+⚠️ **Two things left the round rather than being absorbed:** the `minimumPaidThisCycle` /
+`isPaidThisCycle` contradiction → **P6.10**, and `m7`'s blocked branch, which **no automated test can
+reach** because the web adapter swallows every error → **P6.14 device row**.
+
+⛔ **One self-inflicted incident, recorded because it destroyed data:** a Python `open(p,'w')` truncates
+before it writes, and an emoji outside the BMP raised `UnicodeEncodeError` mid-write, leaving
+`DEBT_ELEVATION_BACKLOG.md` at **0 lines**. Recovered from git, intact. The write pattern is now
+encode-to-bytes first, and the portfolio memory carries it.
+
+`MIN_ENTRIES` 140 → **151**; **150 of 151** guarded. `lint:rn` **36 gates** green, `tsc` clean, all unit
+suites green, and every e2e spec whose surface changed run green in isolation.
+
 ## S1.10.6.7.3 — behaviour, and both fixes had a half the finding did not name (2026-08-27)
 
 Two minors. Both premises held exactly; **both remedies were incomplete**, and in each case the missing
