@@ -4,6 +4,10 @@ import { join, relative } from 'node:path';
 import { setFunnelSink, track, type FunnelEvent } from '@/analytics/funnel';
 import { appStore } from '@/store/appStore';
 
+// ⚠️ Reaches OUT of `apps/rn` deliberately — see the note above the caller walk below. Test-only: this
+// module is imported by `src/testing/runAppTests.ts`, never by the app entry.
+import { stripCommentsOnly } from '../../../../scripts/lib/stripCode';
+
 /**
  * 3.5.4.9 [D-A] — the seam's two promises.
  *
@@ -63,8 +67,30 @@ function run() {
   // `funnel.ts` declares the function, and `more.tsx` names it in the note explaining why the row is
   // gone — so a bare text scan called the fix its own violation. Same reason `check-native-a11y-props`
   // strips comments: a guard whose documentation trips it gets deleted rather than obeyed.
-  const stripComments = (src: string) =>
-    src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  // ⛔ **THE SHARED OWNER, NOT A RE-DERIVATION.** [S1.10.6.7.2 · pass-3 B5]
+  //
+  // This line used to be `src.replace(/(^|[^:])\/\/[^\n]*/g, '$1 ')` — the last LIVE copy of the pattern
+  // S0 replaced across the gates. Its `[^:]` is a patch for `https://` and nothing else, so a `//` inside
+  // a string EARLIER on the same line blanks the rest of the line, taking a real `setFunnelSink(...)` call
+  // with it.
+  //
+  // ⚠️ **The reachability is NARROWER than the finding states, and the first plant proved it by failing
+  // to discriminate.** A caller written the ordinary way also names the symbol on its `import` line, and
+  // THAT line has no `//` on it — so the guard catches it regardless of whether the call line survives
+  // stripping. The weakness is only reachable through a **namespace import**, where `setFunnelSink`
+  // appears nowhere but the tricky line. Measured with exactly that shape:
+  //
+  //     import * as funnel from '@/analytics/funnel';
+  //     const p = 'assets//x'; funnel.setFunnelSink(() => { void p; });
+  //
+  // old regex → `✅ funnel seam: 5 assertions passed` over a real sink installer; shared owner → reds.
+  //
+  // ⚠️ **This is the first import from `scripts/` anywhere under `apps/rn/src`, and that was checked, not
+  // assumed.** It is safe here specifically because this file is reachable only from
+  // `src/testing/runAppTests.ts` (run under `tsx`) and never from the app entry, so Metro never walks it —
+  // verified by building the web export after the change. ⛔ A COPY was the alternative and is how this
+  // pattern reached six files in the first place; `stripCommentsOnly` is a real scanner, is the owner ten
+  // gates already share, and is itself pinned by `lint:strip-code`.
   const srcDir = join(import.meta.dirname, '..');
   const DEFINES = join(srcDir, 'analytics', 'funnel.ts');
   const callers: string[] = [];
@@ -74,7 +100,7 @@ function run() {
       if (statSync(p).isDirectory()) { if (entry !== 'node_modules') walk(p); continue; }
       if (!/\.tsx?$/.test(p) || /\.test\.tsx?$/.test(p) || p === DEFINES) continue;
       if (/(^|[\\/])(testing|__fixtures__)[\\/]/.test(p)) continue;
-      if (stripComments(readFileSync(p, 'utf8')).includes('setFunnelSink')) callers.push(relative(srcDir, p));
+      if (stripCommentsOnly(readFileSync(p, 'utf8')).includes('setFunnelSink')) callers.push(relative(srcDir, p));
     }
   };
   walk(srcDir);

@@ -8,9 +8,16 @@
  * So the shape is deliberate on three counts:
  *
  * 1. **No financial data — by CONSTRUCTION, not by review.** Every event's payload is a closed union of
- *    literals below. There is no `Record<string, unknown>`, no free-form string, and no number anywhere in
- *    this file's types, so a balance, a paycheck, a debt name or a date cannot be passed even by mistake.
- *    A reviewer-enforced rule would have held until the first hurried call site.
+ *    literals below. There is no `Record<string, unknown>` and no free-form string, so a balance, a
+ *    paycheck, a debt name or a date cannot be passed even by mistake. A reviewer-enforced rule would
+ *    have held until the first hurried call site.
+ *
+ *    ⛔ **The one number in this union is `tutorial_skipped.beat`, and it is a STEP INDEX** — the ordinal
+ *    of the tutorial beat the user skipped from. It is never an amount, a balance or a date. ⚠️ **A new
+ *    numeric field must answer that same question in writing right here**, because this docblock is the
+ *    stated review surface for a privacy claim and the Phase-6 privacy audit reads exactly it. A number
+ *    nobody has justified in this paragraph is the point at which claim 1 stops being checkable.
+ *    [S1.10.6.7.2 · pass-3 B6]
  *
  * 2. **It sends nothing.** There is no network call and no vendor SDK here — `track` forwards to a sink
  *    that is null until something installs one, and nothing does yet. [D-A] asked for the SEAM, and the
@@ -22,6 +29,9 @@
  *    never gets to ask.
  */
 import { appStore } from '@/store/appStore';
+// ⚠️ A TYPE-ONLY import, so this adds no runtime dependency to a file whose whole point is that it sends
+// nothing. It is what makes claim 1 below true of `demo_stage` BY CONSTRUCTION rather than by review.
+import type { DemoStageId } from '@/store/demoRun';
 
 /** Where a run was entered from. Not a user identifier — a button. */
 type Source = 'welcome' | 'paywall' | 'direct';
@@ -37,7 +47,7 @@ type ExitReason = 'start_real_plan' | 'unlock_premium' | 'dismissed' | 'back_to_
  */
 export type FunnelEvent =
   | { name: 'demo_started'; source: Source }
-  | { name: 'demo_stage'; stage: string }
+  | { name: 'demo_stage'; stage: DemoStageId }
   | { name: 'demo_completed' }
   | { name: 'demo_exited'; reason: ExitReason }
   | { name: 'tutorial_started'; audience: 'free' | 'premium' }

@@ -26695,6 +26695,82 @@ the one real finding from the two artefacts.
 a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
 restored, and verified by grepping the line back. **Mutation runs go in the background from here.**
 
+## S1.10.6.7.2 — engine + analytics, and a remedy refused by measurement (2026-08-27)
+
+Three minors. **All three premises held; two of the three REMEDIES did not.** That is now the second
+consecutive sub-step where the finding was right about *where* and wrong about *what to do*.
+
+### `A5` — the observation is right, the inference is wrong, and the remedy reds a real test
+
+⛔ **Refused, with the measurement.** The finding is correct that `getDebtsWithDisplayBalances.ts:26` is
+the tree's **only** `||` on the `minimumPaidThisCycle` / `isPaidThisCycle` pair — re-measured repo-wide,
+**one site against thirty**, and the outlier is starker than the finding stated.
+
+⚡ **But the thirty are not doing the same job.** The `??` sites are a **migration fallback**: read the
+[D2] owner, fall back to the legacy field only when the owner is **absent** — a pre-[D2] persisted store.
+This site is a **domain OR**: subtract the minimum when the minimum was paid *or the whole debt was paid*.
+The test beside it says so outright — *"isPaidThisCycle also triggers the minimum subtraction (either flag
+counts)"* — and its `debt()` helper defaults `minimumPaidThisCycle: false`, so that fixture **is** the
+disagreeing input.
+
+Applying the remedy reds `testGetDebtsWithDisplayBalances` with **"expected 950, received 1000"**: a debt
+paid **in full** displaying its **full balance**, because a debt paid in full has necessarily covered its
+minimum. ⚠️ **The suite caught this, not review** — the change typechecked and looked uniform.
+
+✅ **The finding's SECOND half was real and is fixed.** `bulkMarkRequired.ts` asserted, as a *measurement*,
+that no reader in *"either tree"* keys on the field alone. That over-reaches by exactly this site.
+Corrected in place rather than deleted — a plan item was authored off that sentence once already.
+
+⚠️ **Filed to P6.10:** which record wins when the two flags **contradict** (`false` beside `true`, which
+`markDebtMinimumPaid(id, false)` produces). Both readings are defensible, it is a money-semantics call on
+data Phase 5 migrates, and `bulkMarkRequired.ts`'s own header already routes this class to that gate.
+⛔ Nothing ships on the answer today — the `||` module is legacy-only — **but the same contradiction is
+reachable in the thirty `??` readers, which are not legacy.**
+
+### `B6` — the proposed narrowing would have narrowed nothing
+
+`funnel.ts` claims *"no free-form string, and no number anywhere in this file's types"* **by
+construction**, and two of its eight events contradicted it. Swept the union independently: **exactly
+those two**, so the enumeration is complete.
+
+⛔ **Fixed here rather than routed to P6.9, and that reverses my own plan row.** The docblock is the
+*stated review surface* for a privacy claim — P6.9 reads exactly it — so deferring would have left the
+privacy audit reading a false sentence. It is P6.9's *input*, not P6.9's work.
+
+⚡ **The finding's remedy — `stage: (typeof DEMO_STAGES)[number]['id']` — resolves straight back to
+`string`**, because `DEMO_STAGES` is annotated `DemoStage[]` and `DemoStage.id` was `string`. The union had
+to be declared on the id itself (`DemoStageId`), imported **type-only** so the seam gains no runtime
+dependency. `beat` is a genuine step **index** and cannot be narrowed, so the claim now states what is
+true and names the number.
+
+⚠️ **`lint:comments` then refused the first wording** — it flagged the *"this paragraph used to claim"*
+annotation as meta-commentary, because correcting a false comment means rewriting it, not narrating it.
+That does **not** conflict with the finding's *"do not delete the sentence"*: the invariant stays, the
+changelog about it goes.
+
+### `B5` — the last live copy, and a plant that did not discriminate
+
+`funnel.test.ts` carried the last **live** copy of the `(^|[^:])//` stripper S0 replaced; the other five
+hits are the docblock *about* the fix, and the `scripts`-scoped sweep never walked `apps/rn/src`. Replaced
+with the shared owner rather than a corrected copy — a copy is how the pattern reached six files.
+
+⚠️ **First import from `scripts/` anywhere under `apps/rn/src`.** Checked rather than assumed: the module
+is reachable only from `src/testing/runAppTests.ts`, and a **web export built after the change** contains
+neither the test marker nor `stripCommentsAndStrings`, so Metro never walks it.
+
+⛔ **THE FIRST PLANT DID NOT DISCRIMINATE, AND IT REFINED THE FINDING.** A caller written the ordinary way
+also names the symbol on its **import** line, which carries no `//` — so the guard catches it either way.
+The weakness is reachable **only through a namespace import**. Measured with that shape: the old regex
+reports **"5 assertions passed"** over a real sink installer; the shared owner reds.
+
+⚠️ The one-line `stripComments` alias was then removed entirely — `lint:finding-guards` correctly refused a
+token that *declares* rather than *uses*, and calling the owner directly at the walk is cleaner anyway.
+
+### Close-out
+
+`MIN_ENTRIES` 144 → **147**; **146 of 147** guarded. `lint:rn` **36 gates** green, `tsc` clean, app /
+regression / scenario suites green.
+
 ## S1.10.6.7.1 — the assertions that cannot fail, and one fix's own remedy did not hold (2026-08-27)
 
 Four minors, one class: **an assertion that cannot fail.** All four premises verified against the current

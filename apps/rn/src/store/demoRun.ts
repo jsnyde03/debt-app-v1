@@ -18,8 +18,20 @@ import { seedSandbox, type SandboxScenario, type SandboxStoreInstance } from './
  * (`at-risk`). That last stage is the free-tier contrast: Recovery is the thing a free user does not get,
  * shown rather than described.
  */
+/**
+ * ⛔ **A CLOSED UNION, because `funnel.ts` MAKES A PRIVACY CLAIM ABOUT IT.** [S1.10.6.7.2 · pass-3 B6]
+ *
+ * `funnel.ts`'s header states *"no free-form string … anywhere in this file's types, so a balance, a
+ * paycheck, a debt name or a date cannot be passed even by mistake"* — and then typed `demo_stage`'s
+ * payload as `string`, which is the exact construction it says does not exist. ⚡ The finding's proposed
+ * narrowing (`stage: (typeof DEMO_STAGES)[number]['id']`) would have narrowed **nothing**: `DEMO_STAGES`
+ * is annotated `DemoStage[]`, so that indexed access resolves straight back to `string`. The union has to
+ * live here, on the id itself.
+ */
+export type DemoStageId = 'debts' | 'held' | 'absorbed' | 'trajectory' | 'payoff';
+
 export interface DemoStage {
-  id: string;
+  id: DemoStageId;
   state: SandboxState;
   /** Which tab this beat plays on. The script navigates; the viewer still cannot. */
   screen: '/money' | '/' | '/progress';

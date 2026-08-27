@@ -18,6 +18,17 @@ import type { Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
  * reader in either tree keys on `isPaidThisCycle` alone, they all fall back
  * (`minimumPaidThisCycle ?? isPaidThisCycle`) — so this is a false assertion in persisted
  * data rather than a live defect, and it is pinned by `testMarksDebtMinimumsBothFlags`.
+ * ⚠️ **THAT "either tree" MEASUREMENT IS TOO STRONG, and this note is the correction.**
+ * [S1.10.6.7.2 · pass-3 A5] `getDebtsWithDisplayBalances.ts` does NOT fall back with `??` —
+ * it uses `||`, the one such site against thirty, and the two disagree at exactly the input
+ * this paragraph is about: `minimumPaidThisCycle: false` beside `isPaidThisCycle: true`.
+ * ⛔ **The `||` was NOT "fixed" to `??`, deliberately** — that site is a domain OR ("either
+ * flag counts", per its own test), not a migration fallback, and `??` there makes a debt paid
+ * IN FULL display its full balance. ⚡ So the inertness claim above holds for the readers it
+ * describes, but "no reader in either tree" over-reaches by one site whose semantics differ.
+ * Which record wins when the two flags CONTRADICT is filed to the Phase-6 gate this header
+ * already names. ⛔ The claim is corrected rather than deleted: a plan item was authored off
+ * it once already.
  * Reconciling it is an engine-semantics change on data Phase 5 migrates → the Phase-6
  * financial-correctness audit gate. `bulkMarkRequiredPaid` is legacy-only and dies at 5.5.1;
  * `applyRequiredReconciliation` is the one the RN app still calls.

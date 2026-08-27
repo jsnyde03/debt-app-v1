@@ -108,6 +108,20 @@
 
 ## → P6.10 — feature lock + the money lens *(last gate that can FIND a structural gap)*
 
+- ⚠️ **WHICH RECORD WINS WHEN `minimumPaidThisCycle` AND `isPaidThisCycle` CONTRADICT.**
+  *(2026-08-27 · S1.10.6.7.2 · pass-3 A5, remedy refused by measurement)*. `markDebtMinimumPaid(id, false)`
+  writes `minimumPaidThisCycle: false` **only**, so a debt the payday checkpoint marked with both flags can
+  end up `false` beside `isPaidThisCycle: true` — the user saying *“the minimum is not paid”* over a record
+  saying *“paid in full”*. ⚡ **The two readers disagree at exactly that input and BOTH are defensible:**
+  `getDebtsWithDisplayBalances`' `||` subtracts the minimum *(a debt paid in full has covered its minimum)*;
+  the thirty `??` readers take the owner *(an explicit `false` is the user's correction and should win)*.
+  ⛔ **A5 proposed making them uniform and that was refused** — it reds
+  `testGetDebtsWithDisplayBalances` with *“expected 950, received 1000”*, i.e. a debt paid in full showing
+  its full balance. ⚠ **This is a money-semantics call on data Phase 5 migrates**, and
+  `bulkMarkRequired.ts`'s own header already routes this class here. ✅ Nothing ships on the answer today:
+  the `||` module is legacy-only and P6.11 deletes it — but the same contradiction is reachable in the
+  thirty `??` readers, which are **not** legacy. → **P6.10**
+
 - ⚠️ **THE WEBKIT FLEX-CONTROL CLASS IS UNMEASURED ON THE RN APP, and no instrument can currently see it.**
   *(2026-08-27 · S1.10.6.5.8.5 GAP-17 after-scan)*. `check-webkit-flex-controls` finds its subject by
   reading **CSS classes** and matching `<button>`/`<fieldset>` — RN source has neither, so pointing it at
