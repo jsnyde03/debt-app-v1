@@ -41,6 +41,7 @@
     "lint:gate-sources": "tsx scripts/check-gate-sources.ts",
     "lint:scan-floors": "tsx scripts/check-scan-floors.ts",
     "lint:line-endings": "tsx scripts/test-line-endings.ts",
+    "lint:closure-stripper": "tsx scripts/test-closure-stripper.ts",
     "gate:begin": "tsx scripts/begin-gate-run.ts",
     "gate:record": "tsx scripts/write-gate-status.ts",
     "lint:secrets": "tsx scripts/check-committed-secrets.ts",

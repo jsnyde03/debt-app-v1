@@ -33,6 +33,8 @@ const EXEMPT: Record<string, string> = {
     'Same shape — a stale allow-list entry reds. Verified red under a blanked stripper 2026-08-27 (24 stale entries reported).',
   'check-trust-claims.ts':
     'Every claim route must have a caller; reading nothing removes every caller. Verified red under a blanked stripper 2026-08-27 (15 problems).',
+  'test-line-endings.ts':
+    'Not a scanning gate — it feeds ONE committed fixture through the stripper and asserts the CRLF bytes survive, so a stripper reading nothing fails its own non-vacuity controls rather than passing quietly. Verified red under a blanked stripper 2026-08-27 (exit 1).',
   'check-copy-owners.ts':
     'Every closure must stay wired to its owner; reading nothing unwires all of them. Verified red under a blanked stripper 2026-08-27 (5 closures).',
 };

@@ -93,6 +93,8 @@ const SOURCES = [
  * without a token reds immediately; the backlog is retired by `.11.19`, which lowers each cap as it writes
  * tokens. ⛔ **When a cap reaches 0, delete it and require the token outright.**
  */
+import { CLOSURE_REMEDIATION_LINE, stripMarkdownCode } from './lib/stripMarkdown';
+
 const CLOSES = /\[closes:\s*([^\]]+)\]/g;
 
 /**
@@ -112,29 +114,6 @@ const CLOSES = /\[closes:\s*([^\]]+)\]/g;
  * **plain text**; anything inside markdown code — a fenced block or an inline span — is quoted, so it is
  * an example and does not count. Blanking both before the scan is what makes documenting the token safe.
  */
-/**
- * ⛔ **FOUR SPELLINGS OF "MARKDOWN CODE", and the first cut enumerated ONE.** [S0.8b · REVERIFY-2 finding 3]
- * ` ``` ` fences · `~~~` fences · four-space-indented blocks · inline spans of **any** backtick run length.
- * Missing three of them meant a token written in any of those still minted a closure.
- *
- * ⚠️ **Direction check, and it is what makes the indented-block rule safe:** hiding a REAL record inflates
- * the untokenised count, which reds the cap — noisy, and visible. Admitting a FAKE one deflates it, which
- * signs off a finding nobody examined. **The failures are not symmetric, so an ambiguous line is blanked.**
- */
-function stripMarkdownCode(md: string): string {
-  const blank = (m: string) => m.replace(/[^\n]/g, ' ');
-  return (
-    md
-      // fenced blocks, both fence characters
-      .replace(/^[ \t]*```[\s\S]*?^[ \t]*```/gm, blank)
-      .replace(/^[ \t]*~~~[\s\S]*?^[ \t]*~~~/gm, blank)
-      // four-space-indented code blocks — one line at a time; a token here is quoted output, not a record
-      .replace(/^ {4,}\S[^\n]*$/gm, blank)
-      // inline spans: a run of N backticks closes on a run of N. `` `x` `` and ``` ``x`` ``` both count.
-      .replace(/(`+)(?:[^`\n]|(?!\1)`)*\1/g, blank)
-  );
-}
-
 const explicit = new Set<string>();
 for (const src of SOURCES) {
   for (const m of stripMarkdownCode(readFileSync(src, 'utf8')).matchAll(CLOSES)) {
@@ -209,7 +188,7 @@ if (d37Untokenised.length !== MAX_UNTOKENISED.d37) {
       // first untokenised id inside a live token — and this project pastes gate output into the log,
       // which IS a closure SOURCE. Pasting the error would have closed the very finding it named.
       // **M12's shape a fifth time, produced by the instrument's own remediation text.**
-      `      [closes: THE-ID-HERE]   (e.g. ${d37Untokenised[0]})\n` +
+      `${CLOSURE_REMEDIATION_LINE}   (e.g. ${d37Untokenised[0]})\n` +
       `  ⛔ Do NOT raise the cap — it only ever goes down.\n`,
   );
   process.exit(1);
@@ -280,7 +259,7 @@ if (p68Untokenised.length !== MAX_UNTOKENISED.p68) {
     // not inside a markdown code block, so pasting it into the log registers `THE-ID-HERE` in `explicit`.
     // Inert — `explicit` is only read via `.has(realId)` — but it inflates the printed `explicit.size`,
     // and *"inert today"* is how the live version of this got here.
-    `\n  Record it where the closure IS:\n      [closes: THE-ID-HERE]   (e.g. ${p68Untokenised[0]?.id})\n` +
+    `\n  Record it where the closure IS:\n${CLOSURE_REMEDIATION_LINE}   (e.g. ${p68Untokenised[0]?.id})\n` +
       `  ⛔ Do NOT raise the cap — it only ever goes down.\n`,
   );
   process.exit(1);

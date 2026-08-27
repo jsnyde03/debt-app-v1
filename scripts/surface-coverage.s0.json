@@ -298,6 +298,9 @@
     "p2",
     "p3"
   ],
+  "scripts/lib/stripMarkdown.ts": [
+    "never"
+  ],
   "scripts/maestro-results.mjs": [
     "never"
   ],
@@ -335,6 +338,9 @@
     "s1p2"
   ],
   "scripts/surface-inventory.ts": [
+    "never"
+  ],
+  "scripts/test-closure-stripper.ts": [
     "never"
   ],
   "scripts/test-conform-assertions.sh": [

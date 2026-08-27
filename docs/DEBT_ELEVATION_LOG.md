@@ -26695,6 +26695,94 @@ the one real finding from the two artefacts.
 a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
 restored, and verified by grepping the line back. **Mutation runs go in the background from here.**
 
+## S1.10.6.5.8.5 — the fixtures, and "mechanical" was wrong about four of five (2026-08-27)
+
+⚡ **The plan called this sub-step mechanical. Four of its five rows were wrong about their own scope or
+their own remedy**, which takes the running tally to **9 of 12** GAP rows that did not survive contact.
+They were authored against `b03e0d3`; the tree has moved a long way.
+
+### `GAP-17` — the two sources name DIFFERENT baselines, and one "already fixed" was a different defect
+
+`S0-GUARDS-4.md` names `HAND_PARSE_BASELINE` · `BARE_ANNOUNCE_BASELINE` · `apostrophe-baseline`. The live
+registry names **apostrophe + webkit-flex** and records duplicate-copy as fixed by `REVERIFY4-3`.
+⚠️ **The union is FIVE baselines and the lists overlap in one.**
+
+⛔ **And "duplicate-copy is fixed" was false.** `REVERIFY4-3` fixed that file's **exit-code override** — a
+different defect entirely. Its `--update-baseline` path still re-recorded unconditionally. **Measured: all
+three JSON baselines carried the identical unconditional write**, so a regeneration run on a regressed
+tree writes the regression in as the new normal and a red gate turns green with nothing objecting.
+
+⚠️ **`GAP-17`'s stated remedy — *"fail on the fall"* — is WRONG for `check-apostrophes`**, whose own
+comment answers it: *"a gate that reds on progress is a gate that gets reverted."* Sweeping copy is
+exactly what P6.8 does. So the remedy was split by baseline TYPE: **fall-checks** on the two COUNT
+baselines, **downward-only size caps** on the three JSON ones — on the **re-record path and the read
+path**, because a hand edit or a merge resolution never passes through `--update-baseline`.
+
+⚡ **`BARE_ANNOUNCE_BASELINE` needed a second failure nobody had named:** a baselined file this run never
+**scanned**. That one hides a real regression, because a file the gate stopped reading reports zero calls
+forever.
+
+⛔ **`webkit-flex` exits by MEASUREMENT, not by a guard, and this is the honest half.** `lint:webkit` is
+reachable only from root `npm run lint`, which appears only in the **retired** `validate:release:legacy`.
+`validate:release:rn` does not run it; CI does not run it. **It is RED right now** on `app/page.tsx:1653`
+and has been, unseen. Its `DEFAULT_SRC_DIRS` are the legacy tree only, and its mechanism reads CSS
+classes, which RN source does not have — so it structurally cannot cover `apps/rn`. The cap is kept
+because it is correct and free; it is **not** registered as a guard, because nothing runs it. Filed → P6.11.
+
+### `GAP-12` — the ban was measured and rejected, and my own guard was vacuous
+
+⛔ CI is `ubuntu-latest`, an LF-only checkout, so this class **cannot red there even in principle**.
+`S0-GUARDS-4.md` proposed banning `split('
+')`. **Measured and rejected:** the repo holds **12** such
+sites and **every one is benign** — five split an in-process `Error.message`, one an `ariaSnapshot`,
+three split `git ls-files` output *(LF-terminated regardless of `core.autocrlf`)*, and the rest `.trim()`
+each line or match with an anchor-free regex. **12 exemptions against 1 rule**, and nobody believes a
+gate that is mostly exemption. ⚡ **The registry carried the better remedy** — a CRLF fixture pinned with
+`.gitattributes -text` — and that is what was built.
+
+⛔ **THE FIRST VERSION OF THAT GUARD WAS VACUOUS AND ONLY A PLANT FOUND IT.** It compared
+`strip(crlf).replace(CRLF, LF)` against `strip(lf)` — **normalising away the very thing under test** — so
+a stripper rewritten to delete every `` passed it unchanged. The load-bearing assertion is that the
+endings **survive**. ⚠️ **Third instrument this session to carry the defect class it was built to catch**,
+and the third caught only by planting. ✅ `.gitattributes -text` was then proven by deleting the fixture
+and re-checking it out: 8 CRLF pairs, 0 bare LF.
+
+### `GAP-4` / `GAP-5` — two of three claims refuted, and the survivor is the interesting one
+
+⛔ **Refuted:** *"removing `stripMarkdownCode` mints 4 fabricated ids and `lint:closure` stays green,
+because the caps are upper bounds."* The caps are **not** upper bounds — `M8`'s strict-equality sweep made
+both `!==`. Measured: removing the function prints `53 … (cap 55)` and **exits 1**. The third claim (each
+fabricated token buys a unit of headroom) dies to the same cause. ⚡ **Third GAP row killed by that one
+sweep**, after `GAP-6`.
+
+⚠️ **What survives is live and is the whole point:** reverting the stripper to its first cut mints **zero**
+tokens against today's corpus and `lint:closure` stays **green, exit 0** — three of four spelling rules
+deletable in silence. Now pinned per spelling, with a non-vacuity control asserting all ten tokens exist
+*before* stripping.
+
+⚠️ **`GAP-4`'s fixture list names `<code>`, `<pre>` and HTML comments; the stripper handles none of them,
+by design.** Measured across all three closure SOURCES: **zero** occurrences. Rather than widen it
+speculatively, the last assertion **reds the day one appears** — which is when four spellings stop being
+enough.
+
+⛔ **`GAP-5`'s guard consumes the EXPORTED constant the gate prints, not a copy.** A test with its own copy
+keeps passing while the real line is un-indented — the two-producers-of-one-fact defect `S1.10.6.1` spent
+three blockers on. Both remediation sites now render from that one constant.
+
+### `GAP-11` — the only row that held as written
+
+Re-measured: reverting `CALL` to the pre-M11 call shape returns `✅ 7/7 sites sanctioned`, exit 0. Built as
+a **`test-gate-plants` scenario**, because that harness already reports `plant-applied=YES/NO` and a plant
+that never landed reads exactly like a blind gate. ⛔ **Verified on the REVERSION, not just the plant:**
+with `CALL` reverted the scenario reports `planted=exit 0` and the harness reds 1 of 16.
+
+### Close-out
+
+`MAX_UNGUARDED` **13 → 5** across `.8.4`+`.8.5`; **135 of 140** guarded. `lint:rn` **34 gates**, green.
+`tsc` clean; app, regression and scenario suites green; `test:gate-plants` 16/16. ⚡ **The GAP-8 class gate
+immediately caught the 12th strip-using consumer arriving** — `test-line-endings.ts`, my own new file —
+and its exemption was **measured** (blanked stripper → exit 1) rather than asserted.
+
 ## S1.10.6.5.8.4 — the floors, and all three proposed remedies were wrong or weak (2026-08-27)
 
 ⚡ **The headline: not one of `GAP-7` / `GAP-8` / `GAP-13` was built as written, and the corrections came

@@ -63,6 +63,10 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // ⛔ S1.10.6.5.8.5 [GAP-12] — CI is ubuntu-latest and CANNOT see the CRLF class even in principle.
     // A committed fixture of real CRLF bytes, asserting lib/stripCode is ending-faithful for all 11 gates.
     'lint:line-endings',
+    // ⛔ S1.10.6.5.8.5 [GAP-4 · GAP-5] — three of stripMarkdownCode's four spelling rules could be
+    // DELETED with lint:closure green (measured, exit 0). A closure that was never examined is a
+    // finding signed off by nobody, and this is M12's shape for the fifth time.
+    'lint:closure-stripper',
     // [D67] — finding → guard, the `check-copy-owners` pattern applied to findings. Reds when a guard's
     // assertion is removed even though its file survives.
     'lint:finding-guards',
