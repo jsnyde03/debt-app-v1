@@ -1,6 +1,6 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
 import { calculateCycleInterest } from "./calculateMonthlyInterest";
-import { bnplInstallmentsInWindow, isInstallmentNative } from "./bnplInstallment";
+import { effectiveMinimumInWindow, isInstallmentNative } from "./bnplInstallment";
 import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 
 function roundMoney(amount: number) {
@@ -45,16 +45,10 @@ export function applyRolloverPayment(
     // already RESERVES that full in-window amount (scaleBnplMinimumsForWindow), so the balance must pay
     // down by the same or it drifts high forever (after-scan AS.2). `minimumPayment` (the per-installment)
     // stays untouched — this is only how much the balance drops. No window → 1 installment (unchanged).
-    const effectiveMinimum =
-        isInstallmentNative(debt) && windowStartISO && windowEndISO
-            ? roundMoney(
-                  Math.min(
-                      Math.max(1, bnplInstallmentsInWindow(debt, windowStartISO, windowEndISO)) *
-                          (debt.scheduledPaymentAmount as number),
-                      debt.balance
-                  )
-              )
-            : debt.minimumPayment;
+    // ⛔ ONE PRODUCER (S1P3-A2). This expression used to live here and nowhere else, and
+    // `buildCycleSnapshot` re-derived the cycle's paid total from the raw per-installment
+    // `minimumPayment` instead — so History reported half of what the balance actually paid down.
+    const effectiveMinimum = effectiveMinimumInWindow(debt, windowStartISO, windowEndISO);
 
     // Honor the DISPLAYED payoff. The app recommends and shows interest-free
     // balances (getDebtsWithDisplayBalances), so a debt paid down to a $0 display

@@ -89,6 +89,10 @@ export function applyRollover(store: DebtStore): DebtStore {
       completedRecommendedActions: store.completedRecommendedActions,
       payoffStrategy: store.payoffStrategy,
       allRequiredMet,
+      // ⛔ The SAME window passed to applyRolloverPayment below (S1P3-A2). Without it the snapshot
+      // reports one installment for a cross-cadence BNPL while the rollover pays down two.
+      windowStartISO: store.paycheck.currentDate,
+      windowEndISO: nextPaycheckDate,
     }),
   );
 

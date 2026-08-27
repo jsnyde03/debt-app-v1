@@ -107,6 +107,41 @@ export function bnplInstallmentsInWindow(debt: Debt, windowStartISO: string, win
  * allocator/forecast reserve for the BNPL this cycle, not the stored installment (the row still shows
  * the true per-installment amount) and not the paid-flag/rollover machinery.
  */
+/**
+ * ⛔ THE MINIMUM ACTUALLY DUE INSIDE A PAY-CYCLE WINDOW — the ONE producer of this number (S1P3-A2).
+ *
+ * For an installment-native BNPL more than one installment can fall inside a pay-cycle window (a
+ * biweekly plan for a monthly earner charges ~2×). The allocator RESERVES that full in-window amount
+ * (`scaleBnplMinimumsForWindow`) and `applyRolloverPayment` pays the balance down by the same, or the
+ * balance drifts high forever (after-scan AS.2). ⚠️ `minimumPayment` — the stored PER-INSTALLMENT
+ * amount — is untouched; this is only how much is due in this window.
+ *
+ * ⚡ **Extracted because it had two producers and one of them never got the memo.** The allocator, the
+ * forecast, the recovery plan and the rollover all scaled; `buildCycleSnapshot` summed the raw
+ * `minimumPayment`, so History told a user who paid $200 that they paid $100 (S1P3-A2). ⛔ **Do not
+ * re-derive this expression at a third site — call this.** Two producers of one fact is the shape that
+ * produced both A1 and A2 in the same pass.
+ *
+ * No window (or not installment-native) → the stored minimum, unchanged.
+ */
+export function effectiveMinimumInWindow(
+	debt: Debt,
+	windowStartISO?: string,
+	windowEndISO?: string
+): number {
+	if (isInstallmentNative(debt) && windowStartISO && windowEndISO) {
+		// Capped at the balance, or a final SHORT installment over-reports.
+		return roundMoney(
+			Math.min(
+				Math.max(1, bnplInstallmentsInWindow(debt, windowStartISO, windowEndISO)) *
+					(debt.scheduledPaymentAmount as number),
+				debt.balance
+			)
+		);
+	}
+	return debt.minimumPayment;
+}
+
 export function scaleBnplMinimumForWindow(debt: Debt, windowStartISO: string, windowEndISO: string): Debt {
 	if (!isInstallmentNative(debt)) return debt;
 	const n = bnplInstallmentsInWindow(debt, windowStartISO, windowEndISO);

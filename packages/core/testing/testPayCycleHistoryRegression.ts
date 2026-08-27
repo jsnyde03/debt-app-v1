@@ -1,3 +1,4 @@
+import { applyRolloverPayment } from "@core/debt/applyRolloverPayment";
 import { buildCycleSnapshot } from "@core/history/buildCycleSnapshot";
 import {
     selectVisibleHistory,
@@ -88,6 +89,76 @@ function testBuildSnapshot_paidTowardDebtExcludesSavings() {
     assertEqual(result.allRequiredMet, false, "carries allRequiredMet=false when an affordable required item was skipped");
 }
 
+function testBuildSnapshot_crossCadenceBnplUsesTheInWindowMinimum() {
+    // ⛔ S1P3-A2 — THE SNAPSHOT MUST REPORT THE SAME MONEY THE ROLLOVER DEDUCTS.
+    // A biweekly BNPL under a monthly paycheck charges TWICE in one window. The allocator reserves the
+    // full in-window amount and `applyRolloverPayment` pays the balance down by it — this function
+    // summed the raw per-installment `minimumPayment` instead, so a user whose plan asked for $200, and
+    // whose balance fell by exactly $200, was told on History that they paid $100.
+    // ⚠️ Every prior fixture in this file is `type: "debt", recurrence: "monthly"` — the one member of
+    // the class where scaled and unscaled agree exactly, which is why nothing red (reading rule 2).
+    const bnpl: Debt = {
+        id: "klarna",
+        name: "Klarna sofa",
+        balance: 400,
+        minimumPayment: 100,
+        dueDate: "2026-01-05",
+        apr: 0,
+        type: "bnpl",
+        recurrence: "biweekly",
+        scheduledPaymentAmount: 100,
+        remainingPayments: 4,
+        minimumPaidThisCycle: true,
+    };
+    const WINDOW_START = "2026-01-01";
+    const WINDOW_END = "2026-02-01";
+
+    const withWindow = buildCycleSnapshot({
+        cycleEndDate: WINDOW_END,
+        debts: [bnpl],
+        completedRecommendedActions: [],
+        payoffStrategy: "snowball",
+        allRequiredMet: true,
+        windowStartISO: WINDOW_START,
+        windowEndISO: WINDOW_END,
+    });
+
+    // ⛔ Pinned to what the ROLLOVER actually does, not to a literal — the two must not drift apart
+    // again. A literal 200 would pass if both sides broke together.
+    const afterRollover = applyRolloverPayment(
+        bnpl,
+        0,
+        "monthly",
+        WINDOW_START,
+        WINDOW_END
+    );
+    const actuallyPaidDown = roundTo2(bnpl.balance - afterRollover.balance);
+
+    assertEqual(actuallyPaidDown, 200, "two biweekly installments fall in a monthly window (control)");
+    assertEqual(
+        withWindow.totalPaidThisCycle,
+        actuallyPaidDown,
+        "History reports the money the rollover actually deducted (S1P3-A2)"
+    );
+
+    // ⚠️ The non-BNPL path must be untouched by the scaling — the control for the opposite direction.
+    const monthly: Debt = { ...debt("card", 1000), minimumPaidThisCycle: true, minimumPayment: 100 };
+    const monthlySnapshot = buildCycleSnapshot({
+        cycleEndDate: WINDOW_END,
+        debts: [monthly],
+        completedRecommendedActions: [],
+        payoffStrategy: "snowball",
+        allRequiredMet: true,
+        windowStartISO: WINDOW_START,
+        windowEndISO: WINDOW_END,
+    });
+    assertEqual(monthlySnapshot.totalPaidThisCycle, 100, "a monthly debt is unchanged by in-window scaling");
+}
+
+function roundTo2(n: number) {
+    return Math.round(n * 100) / 100;
+}
+
 function testBuildSnapshot_emptyState() {
     const result = buildCycleSnapshot({
         cycleEndDate: "2026-06-15",
@@ -139,6 +210,7 @@ export function runPayCycleHistoryRegressionTests() {
 
     testBuildSnapshot_correctTotals();
     testBuildSnapshot_paidTowardDebtExcludesSavings();
+    testBuildSnapshot_crossCadenceBnplUsesTheInWindowMinimum();
     testBuildSnapshot_emptyState();
     testVisibleHistory_premiumCapsAtSix();
     testVisibleHistory_premiumPlusUncapped();
