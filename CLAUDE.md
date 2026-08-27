@@ -33,18 +33,37 @@ lived only on the plan)* · the log *(P6.8's closed sweep, the 62 findings, the 
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-26, fourth).** 🎯: standing authority to run the surface audits
-**to convergence**. **S0 CONVERGED · S1 pass 1 FIXED · pass 2 RUN AND FULLY FIXED.**
-**S1.9 is CLOSED — all 7 sub-steps**, `validate:release:rn` green and recorded, tree clean.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-27).** 🎯: standing authority to run the surface audits **to
+convergence**. **S0 CONVERGED · S1 passes 1 and 2 FIXED · PASS 3 IS RUN, RECORDED AND CLASSIFIED.**
 
-▶ **NEXT IS `S1.10` — PASS 3, and it is a NEW SESSION's job** ([D68]: the driving session writes the brief
-and records the result; **it never performs the pass**). Decomposed as **S1.10.1–.7** at the top of the plan.
+🔴 **PASS 3 RETURNED 11 BLOCKERS · 9 MAJORS · 14 MINORS** — the largest round yet, on the widened surface.
+[`docs/audits/2026-08-26-s1-money-pass3/SUMMARY.md`](docs/audits/2026-08-26-s1-money-pass3/SUMMARY.md) is
+the map. ⛔ **S1 does NOT converge**; 9 of the 20 restart [D65]'s count.
 
-⚠️ **THE SURFACE PASS 3 READS IS 2.5× THE ONE PASS 2 DID — 188 → 470 files, 116 → 331 unswept.** S1.9.5
-admitted **all of `packages/core`** *(18 directories, 102 files; `debt` alone is 53)* and **all of
-`apps/rn/src`** *(184 files that were under **no root at all**)*. ⛔ **A brief that reuses pass 2's routing
-hands four auditors the old surface.** ⚡ **`apps/rn/src/utils/format.ts` is the single highest-value file:
-every dollar figure in the app passes through it and no pass has ever been pointed at it.**
+▶ **ACTIVE: `S1.10.6` — the FIX, decomposed BY CLASS as `.6.1–.6.8` at the top of the plan.**
+✅ **`.6.1` (the payoff engine — `A1` `A2` `A4`) is CLOSED.** ▶ **`.6.2` is next: the six-finding trust-rule
+class inside the app.** ⛔ **`.6.5`, the five blind instruments, is sequenced LAST of the code classes** —
+those gates are what the other fixes are verified *with*.
+
+### ⚡ The two results to carry into the fix
+
+⛔ **THREE OF FOUR AUDITORS INDEPENDENTLY FOUND A GATE REPORTING GREEN WHILE DOING LESS THAN IT CLAIMS**,
+and **one of the five was created by pass 2's own fix.** `lint:money`'s two `Intl` patterns are
+**unsatisfiable** *(`[^)]*\)` consumes through the formatter's own closing paren)* · `test:gate-plants`'
+secrets scenario plants an **untracked** file · pass 2's trust table declares a `'row-figures'` route with
+**zero production consumers** · `S1P2-B1-REASON`'s token names the line that *computes* the check, not the
+line that *uses* it. **Third consecutive pass in which an instrument was the finding.**
+
+⛔ **`B1`'s RULE HAS BEEN WIDENED TWICE AND MISSED A THIRD DIRECTION EACH TIME.** Pass 1→2 widened the claim
+sites and missed the fields; pass 2→3 widened the fields and missed the table's own wiring. ⚡ **This round's
+direction is every claim site OUTSIDE the app** — the **Home Screen widget**, the **Lock Screen**, **Siri**
+and the **Live Activity** say *"Debt-free · 100% · $0"* over balances the app itself refuses to claim.
+**Ask what else is downstream of a rule before calling it wired.**
+
+⚡ **And the shape `.6.1` kept hitting: TWO PRODUCERS OF ONE FACT.** All three engine blockers were a pair
+of functions computing the same number differently. **Every fix collapsed the pair to a single producer
+rather than correcting the losing copy** — correcting the loser leaves two producers and buys the next
+round's recurrence, which is literally how `D3-3` came out of pass 2's `B-1` fix.
 
 ⚡ **`lint:surface-complete` now makes a sixth root correction impossible.** The roots were wrong five times
 — M9, [D73], `packages/core`, `apps/rn/src` — and every fix closed an instance while the class stayed open.

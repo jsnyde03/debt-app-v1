@@ -457,5 +457,20 @@
     "what": "pass-1 B5's fallout — recovery.spec's P1-4 test asserted page-wide that \"Essential 11\" appeared nowhere, a PROXY for the cover-now line that held only while nothing else on Today named the bills. Restoring the obligations reddened it without `summariseNames` changing. Rescoped to `recovery-cover-now-names` and plant-verified against P1-4's original run-on",
     "file": "apps/rn/tests/e2e/recovery.spec.ts",
     "token": "recovery-cover-now-names"
+  },
+  "S1P3-A1-BUDGET": {
+    "what": "pass-3 A1 — cannotAmortize compared remaining interest against the SHRINKING active-minimum sum, not the constant monthlyBudget the loop spends, so it bailed out of a plan that amortizes the instant the first debt cleared. The guard asserts the UNPAYABLE sentinel is absent AND pins the debt-free DATE to the payoff CHART's zero-crossing — the two producers that disagreed. Verified to red on the restored defect; the `monthlyBudget > 0` half is separately covered by the one-time-BNPL test",
+    "file": "packages/core/debt/testDebtProjection.ts",
+    "token": "the debt-free DATE and the payoff CHART agree on the same plan (S1P3-A1)"
+  },
+  "S1P3-A2-INWINDOW": {
+    "what": "pass-3 A2 — buildCycleSnapshot summed the raw per-installment minimumPayment while the rollover deducted the window-scaled one, so History reported $100 for a cycle that paid $200. The guard pins the snapshot to what applyRolloverPayment ACTUALLY deducts rather than to a literal, so the two cannot drift together, and carries a non-BNPL control. Every prior fixture in that file was monthly — the one member of the class where scaled and unscaled agree",
+    "file": "packages/core/testing/testPayCycleHistoryRegression.ts",
+    "token": "History reports the money the rollover actually deducted (S1P3-A2)"
+  },
+  "S1P3-A4-CADENCE": {
+    "what": "pass-3 A4 — the in-window seams were gated on isInstallmentNative, so a fallback BNPL (type bnpl + recurrence + dueDate, no installment fields; reachable via CSV import and pre-2.7.2 backups) was reserved and paid down at 1x while the chart and date rated it by cadence. Jason chose the reserve moves to the cadence. The token names the PAYDOWN assertion, not the count — proven independently load-bearing by relaxing the two assertions before it (D3-3's lesson: name the line that USES the check)",
+    "file": "packages/core/debt/testBnplInstallment.ts",
+    "token": "PAID DOWN by the same amount, so reserve and paydown stay in lockstep (S1P3-A4)"
   }
 }

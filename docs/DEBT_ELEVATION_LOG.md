@@ -25908,3 +25908,56 @@ introduced inside the fix for it.** Caught on re-read and re-attached.
 Per fix: `tsc` on both projects · `test:regression` · `test:app` · the guard **planted against its own
 original defect and measured to red**. ⚠️ **`npm run … | tail` reports tail's status** — every exit code
 here was taken from a bare run, not a piped one.
+
+
+---
+
+## Session close 2026-08-27 — pass 3 run and recorded, the engine class fixed
+
+**Delivered:** the pass-3 brief and dispatch (`S1.10.1–.2`), the pass itself (`S1.10.3`), the record and
+mechanical [D69] classification (`S1.10.4–.5`), and **`S1.10.6.1` — all three payoff-engine blockers**
+fixed, guarded and registered.
+
+**State at close:** `tsc` both projects · `test:regression` · `test:app` · `lint:rn` **all 28 gates** ·
+`lint:surface-complete` · `lint:secrets` — **green**. ⛔ **`lint:gate-freshness` is RED and that is
+CORRECT** ([D74]): a record is written at convergence, not per round. **The last full pass is `818f934`.**
+Coverage **470 files · 121 unswept** *(was 331)*. Guards **82 of 98**, unguarded cap unchanged at **16**.
+
+**Open, and the next session's first move:** `S1.10.6.2` — the six-finding trust-rule class inside the app
+(`C-1`…`C-6`). ⛔ **`S1.10.6.5`, the five blind instruments, is sequenced LAST of the code classes**: those
+gates are what every other fix is verified *with*, so moving them mid-flight invalidates verification
+already done. That is not a preference — it is the mechanism that turned pass 2's `B-1` fix into `D3-3`.
+
+### Three self-inflicted defects this session, all of them classes this very pass is about
+
+⛔ **Recording them because the pattern is the point: I committed three instances of the defect classes the
+auditors reported, inside the work of fixing them.**
+
+1. **A carried premise pointing at the wrong code.** Inserting `effectiveMinimumInWindow` above
+   `scaleBnplMinimumForWindow` put it between that function's docblock and its definition — the scaler's
+   documentation then described my helper. Caught on re-read.
+2. **A number typed instead of quoted.** The brief claimed *"8 of pass 2's 9 blockers and majors were
+   against `never` files"*; pass 2's own [D69] table says **5**. Counted from memory. Caught by the
+   dispatch verification, which was written to check paths and caught prose instead.
+3. **A rule invented rather than measured.** `hasKnownBnplCadence`'s first draft excluded one-time plans —
+   my addition, not the auditor's, not measured. A shipped test red immediately.
+
+### And three plants lied, in three distinct ways
+
+⚡ **Each is already a rule on the books, and knowing the rule did not prevent any of them.**
+
+- **Applied but never reached** — A1's over-fix plant left the probe unmoved because my fixture keyed
+  `bnplInstallmentsTotal` where the code keys `recurrence === 'one-time'`.
+- **Red on the first assertion only** — A4's three-assertion guard never exercised assertions 2 and 3 until
+  each earlier one was relaxed in turn. All three turned out independently load-bearing.
+- **The gate wrote into the repo mid-commit** — `test:gate-plants` creates
+  `scripts/__gate_plant_*` while it runs, and a `git add -A` racing a still-running `lint:rn` committed
+  both. Untracked and `.gitignore`d so timing cannot matter again.
+
+### Two instruments, two answers — and the clean one is the one everybody read
+
+⚠️ **The pass ended with `git status` clean and the diff against the pin EMPTY**, every auditor correctly
+reporting *"no source touched"* — while **`npx tsc -p apps/rn` was exit 2** on 14 stray probe files an
+auditor had written into a **gitignored** directory. `validate:release:rn` runs `tsc`, so this was queued to
+surface later as a mystery red with nothing in `git status` to explain it. ⛔ **Found only because
+`| tail` masked the real exit code and I re-measured** — the nine-instance trap, again. Filed for `.6.5`.
