@@ -109,8 +109,8 @@ const ids = Object.keys(registry);
  * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
-const MIN_ENTRIES = 136;
-const MAX_UNGUARDED = 16;
+const MIN_ENTRIES = 137;
+const MAX_UNGUARDED = 13;
 
 /**
  * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.

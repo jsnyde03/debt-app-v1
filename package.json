@@ -29,6 +29,7 @@
     "lint:apostrophes": "tsx scripts/check-apostrophes.ts",
     "lint:copy-owners": "tsx scripts/check-copy-owners.ts",
     "lint:trust-claims": "tsx scripts/check-trust-claims.ts",
+    "lint:ci-chain": "tsx scripts/check-ci-chain.ts",
     "lint:destructive": "tsx scripts/check-destructive-writes.ts",
     "lint:sandbox": "tsx scripts/check-sandbox-writes.ts",
     "lint:gate-freshness": "tsx scripts/check-gate-freshness.ts",

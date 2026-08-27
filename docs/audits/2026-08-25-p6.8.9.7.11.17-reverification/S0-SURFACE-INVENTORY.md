@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**98 files on the S0 surface · 47 swept · 51 unswept.**
+**99 files on the S0 surface · 47 swept · 52 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -66,6 +66,7 @@
 | `scripts/check-a11y-collapse.ts` | p4 |
 | `scripts/check-apostrophes.ts` | p3 |
 | `scripts/check-audit-closure.ts` | p2 · p3 · p4 · s1p1 · s1p2 |
+| `scripts/check-ci-chain.ts` | ⛔ **never** |
 | `scripts/check-comment-convention.ts` | r17 |
 | `scripts/check-committed-secrets.ts` | p4 · s1p1 · s1p2 |
 | `scripts/check-contrast.ts` | p4 |
@@ -153,6 +154,7 @@
 - `packages/core/testing/testSubscriptionGating.ts`
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
+- `scripts/check-ci-chain.ts`
 - `scripts/check-trust-claims.ts`
 - `scripts/collect-lane-diagnostics.mjs`
 - `scripts/compare-ios-screenshots.mjs`

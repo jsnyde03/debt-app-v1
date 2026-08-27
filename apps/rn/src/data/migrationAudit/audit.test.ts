@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { generateV16Cases, type Case } from '@/data/migrationAudit/corpus';
 import { importDoor, webkitDoor } from '@/data/migrationAudit/doors';
 import { INVARIANTS, checkAll, priorityGoalIsCapped, type DoorOutcome } from '@/data/migrationAudit/invariants';
+import { createDefaultStore } from '@/data/defaults';
+import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
 
 /**
  * 5.10 — the adversarial migration audit.
@@ -159,6 +161,162 @@ export function verdict(rows: Row[], drift: string[], causes: number): void {
  * ⚠️ Deleting the throw at `verdict` now reds link ②. Deleting this block is no longer *"four lines"* —
  * it is removing a guard that says in its own name what it is for.
  */
+/**
+ * ⛔ **ONE POISON PER INVARIANT — because the original self-check covered ONE OF NINE.** [S0.13 · GAP-2]
+ *
+ * ⚡ `selfCheck`'s poisoned outcome carries `store: null`, and **eight of the nine invariants return early
+ * on a null store**, so the line it printed — *"the invariants fire (1 on a poisoned outcome)"* — was
+ * literally true and covered 1/9. The other eight could be **deleted, inverted or broken with this suite
+ * green**, and `INVARIANTS.length` was printed in two places and asserted nowhere, so removing one from
+ * the array was silent too.
+ *
+ * ⚠️ **KEYED OFF `INVARIANTS` ITSELF, IN BOTH DIRECTIONS, and that is what stops the list decaying:**
+ * every invariant in the array must have a poison here *(add one without a poison and this reds)*, and
+ * every poison must name an invariant that still exists *(rename or delete one and this reds)*. A list
+ * checked in one direction only is how every enumeration in this cluster went short.
+ *
+ * ⛔ **Each poison is checked against ITS OWN invariant function, never through `checkAll`** — `checkAll`
+ * returning *something* proves only that **some** invariant fired, which is the vacuity this exists to
+ * rule out. That is the same reasoning the `priorityGoalIsCapped` block below already applies to itself.
+ */
+function poisonedStore(patch: Partial<DebtStore> = {}): DebtStore {
+  return { ...createDefaultStore(), ...patch };
+}
+
+const CLEAN_STORE = poisonedStore();
+
+/** A base outcome that fires NOTHING — so a poison's own field is the only variable. */
+const cleanOutcome = (): DoorOutcome => ({
+  door: 'self-check',
+  input: {},
+  inputBefore: '{}',
+  inputAfter: '{}',
+  store: CLEAN_STORE,
+  refused: false,
+  threw: null,
+  second: CLEAN_STORE,
+});
+
+const POISONS: { invariant: string; why: string; outcome: DoorOutcome }[] = [
+  {
+    invariant: 'neverThrows',
+    why: 'a door that threw',
+    outcome: { ...cleanOutcome(), threw: new Error('deliberate') },
+  },
+  {
+    invariant: 'nothingSilentlyDropped',
+    why: 'source keys unaccounted for',
+    outcome: {
+      ...cleanOutcome(),
+      accounting: { mapped: [], dropped: [], unknown: [], unparseable: [], total: 3 },
+    },
+  },
+  {
+    invariant: 'moneyKeepsItsType',
+    why: 'a debt balance arriving as a string',
+    outcome: {
+      ...cleanOutcome(),
+      store: poisonedStore({ debts: [{ id: 'd0', name: 'X', balance: 'nope' } as never] }),
+    },
+  },
+  {
+    // ⛔ GAP-3, folded in here rather than tracked apart: `GOAL_MONEY_FIELDS` and the goals `check(...)`
+    // call catch nothing on the live corpus, so deleting the field list is silent — and both real
+    // goal-money defects lived behind exactly that list.
+    invariant: 'moneyKeepsItsType',
+    why: 'GAP-3 — a GOAL targetAmount arriving as a string, the field list nothing on the corpus reaches',
+    outcome: {
+      ...cleanOutcome(),
+      store: poisonedStore({ goals: [{ id: 'g0', name: 'G', targetAmount: 'nope' } as never] }),
+    },
+  },
+  {
+    invariant: 'alwaysCurrentVersion',
+    why: 'a store left on an older version',
+    outcome: { ...cleanOutcome(), store: poisonedStore({ storeVersion: CURRENT_STORE_VERSION - 1 }) },
+  },
+  {
+    invariant: 'sourceNotMutated',
+    why: 'the input changed across the call',
+    outcome: { ...cleanOutcome(), inputAfter: '{"mutated":true}' },
+  },
+  {
+    invariant: 'refusalIsTotal',
+    why: 'a door that refused and produced a store anyway',
+    outcome: { ...cleanOutcome(), refused: true },
+  },
+  {
+    invariant: 'idempotent',
+    why: 'a second pass that changed the data',
+    outcome: { ...cleanOutcome(), second: poisonedStore({ payoffStrategy: 'avalanche' }) },
+  },
+  {
+    invariant: 'repairsAreNotRepeated',
+    why: 'repairs re-reported on a clean second pass',
+    outcome: {
+      ...cleanOutcome(),
+      second: poisonedStore({
+        dataRepairs: [{ entity: 'debt', id: 'd0', name: 'X', field: 'balance', kind: 'lost' }],
+      }),
+    },
+  },
+  {
+    invariant: 'priorityGoalIsCapped',
+    why: 'a priority goal whose pace reads as uncapped',
+    outcome: {
+      ...cleanOutcome(),
+      store: poisonedStore({
+        goals: [
+          { id: 'g0', priority: false } as never,
+          { id: 'g1', priority: true, priorityPerPaycheck: 'not-a-number' } as never,
+        ],
+      }),
+    },
+  },
+];
+
+function checkEveryInvariantFires(): number {
+  const byName = new Map(INVARIANTS.map((f) => [f.name, f]));
+
+  // ⛔ A downward-only floor, so removing an invariant from the array is not silent.
+  if (INVARIANTS.length < 9) {
+    throw new Error(
+      `FAIL [self-check: INVARIANTS holds ${INVARIANTS.length}, floor is 9 — one was removed]`,
+    );
+  }
+
+  // Direction 1 — every poison names an invariant that still exists, and that invariant FIRES on it.
+  for (const { invariant, why, outcome } of POISONS) {
+    const fn = byName.get(invariant);
+    if (!fn) {
+      throw new Error(
+        `FAIL [self-check: no invariant named ${invariant} — it was renamed or deleted, and its poison now checks nothing]`,
+      );
+    }
+    if (fn(outcome) === null) {
+      throw new Error(
+        `FAIL [self-check: ${invariant} did NOT fire on ${why} — it can be deleted, inverted or broken with this suite green]`,
+      );
+    }
+    // ⚠️ The clean base must fire nothing, or a poison proves only that SOMETHING is wrong with it.
+    if (fn(cleanOutcome()) !== null) {
+      throw new Error(
+        `FAIL [self-check: ${invariant} fires on the CLEAN control — its poison proves nothing]`,
+      );
+    }
+  }
+
+  // Direction 2 — every invariant has a poison. A new one landing unpoisoned is the short enumeration.
+  const poisoned = new Set(POISONS.map((x) => x.invariant));
+  const unpoisoned = [...byName.keys()].filter((n) => !poisoned.has(n));
+  if (unpoisoned.length > 0) {
+    throw new Error(
+      `FAIL [self-check: ${unpoisoned.join(', ')} is in INVARIANTS with no poison here — nothing proves it can fire]`,
+    );
+  }
+  return POISONS.length;
+}
+
 export function selfCheck(): void {
   const poisoned: DoorOutcome = {
     door: 'self-check',
@@ -169,6 +327,7 @@ export function selfCheck(): void {
     refused: false,
     threw: new Error('deliberate: the self-check poisons invariant ①'),
   };
+  const perInvariant = checkEveryInvariantFires();
   const fired = checkAll(poisoned);
   if (fired.length === 0) {
     throw new Error('FAIL [self-check: the invariants did not fire on a deliberately corrupt outcome — this harness cannot detect anything]');
@@ -268,5 +427,8 @@ export function selfCheck(): void {
     );
   }
 
-  console.log(`  ✓ self-check: the invariants fire (${fired.length} on a poisoned outcome), the verdict throws, and run() still calls it`);
+  console.log(
+    `  ✓ self-check: all ${INVARIANTS.length} invariants fire (${perInvariant} poisons, one per invariant), ` +
+      `the verdict throws, and run() still calls it`,
+  );
 }

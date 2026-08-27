@@ -100,12 +100,14 @@
     "token": "  priorityGoalIsCapped,"
   },
   "GAP-2": {
-    "what": "deleting any invariant from INVARIANTS is silent; INVARIANTS.length is printed and asserted nowhere",
-    "unguarded": "S0.13 remaining — one poisoned outcome per invariant, plus an INVARIANTS.length floor. See S0-GUARDS-4.md"
+    "what": "S0.13 GAP-2 — CLOSED S1.10.6.5.8.1. selfCheck's poisoned outcome carried `store: null` and EIGHT OF THE NINE invariants return early on a null store, so its own line — 'the invariants fire (1 on a poisoned outcome)' — was literally true and covered 1/9; the other eight could be deleted, inverted or broken with the suite green. And INVARIANTS.length was printed in two places and asserted nowhere, so removing one was silent too. Now one purpose-built poison PER invariant, each checked against its OWN function rather than through checkAll (checkAll returning something proves only that SOMETHING fired — the vacuity this exists to rule out), plus a clean-control assertion per poison, a downward-only length floor, and BOTH list directions. Plant-verified 11/11: each invariant neutered in turn while keeping its name, each red naming itself; plus an unpoisoned invariant added, and one removed",
+    "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
+    "token": "if (fn(outcome) === null) {"
   },
   "GAP-3": {
-    "what": "moneyKeepsItsType's GOAL_MONEY_FIELDS catch nothing on the live corpus, so deleting them is silent",
-    "unguarded": "S0.13 remaining — folds into GAP-2's harness. See S0-GUARDS-4.md"
+    "what": "S0.13 GAP-3 — CLOSED S1.10.6.5.8.1, folded into GAP-2's harness as its remedy prescribed. GOAL_MONEY_FIELDS and the goals check(...) call catch nothing on the live corpus, so deleting them was silent — and both real goal-money defects lived behind exactly that field list. The poison is the probe C-import-bridge-backup ran once by hand: a goal whose targetAmount arrives as a string. Tracked apart from GAP-2 because it is a different link — GAP-2 proves moneyKeepsItsType fires at all, this proves it reaches GOALS",
+    "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
+    "token": "why: 'GAP-3 — a GOAL targetAmount arriving as a string, the field list nothing on the corpus reaches',"
   },
   "GAP-4": {
     "what": "removing stripMarkdownCode mints 4 fabricated closure ids and lint:closure stays green",
@@ -116,8 +118,9 @@
     "unguarded": "S0.13 remaining — run both remediation strings through stripMarkdownCode and assert both blank. See S0-GUARDS-4.md"
   },
   "GAP-6": {
-    "what": "MAX_UNTOKENISED's downward-only rule is stated in a docstring and enforced by nothing",
-    "unguarded": "S0.13 remaining — fail when the count is BELOW the cap, making it self-ratcheting. See S0-GUARDS-4.md"
+    "what": "S0.13 GAP-6 — CLOSED S1.10.6.5.8.2 by MEASUREMENT, not by a build: the finding's premise is STALE. It was written against b03e0d3 where the comparison was `>`, so a cap raised by hand was indistinguishable from one that was always that size; the current tree uses `!==` on both caps, which M8's strict-equality sweep put there. Re-measured rather than assumed, both directions and both caps: d37 55->56 reds, 55->54 reds, p68 48->49 reds. The rule its docstring states — 'raising either number to make a gate pass is the defect this gate exists to catch' — is now enforced by the comparison rather than described beside it",
+    "file": "scripts/check-audit-closure.ts",
+    "token": "if (d37Untokenised.length !== MAX_UNTOKENISED.d37) {"
   },
   "GAP-7": {
     "what": "HOSTILE_FLOOR can be LOWERED to absorb a fixture that stopped opening",
@@ -149,7 +152,7 @@
   },
   "GAP-14": {
     "what": "lint:gate-freshness is in no chain — not run-gates.ts, not validate:release:rn, not CI",
-    "unguarded": "S0.13 remaining — deliberate per its own docstring (a freshness check inside the thing that establishes freshness deadlocks); the open question is whether a POST-run check belongs in CI. See S0-GUARDS-4.md"
+    "unguarded": "S0.13 GAP-14 — the open question is now ANSWERED, and the answer is a deliberate non-fix (S1.10.6.5.8.3). Measured rather than assumed: (1) lint:gate-freshness legitimately reds MID-AUDIT by [D74]'s own design, so gating every push would red the lane for weeks - and web-e2e.yml's header documents that exact failure killing the previous lane ('a permanently-red gate is worse than no gate - it trains you to ignore the one signal that is supposed to mean something'); (2) gate:record is deliberately NOT in CI, so there is no post-record moment to hook; (3) a freshness check run straight after gate:record is tautological - the record was just written from that tree; (4) nothing in CI CONSUMES gate-status.json, so there is no reader to protect. ⛔ What the measurement DID surface is a real unguarded claim in the same workflow, now closed by lint:ci-chain (S1P3-CI-CHAIN). Re-open this only with a named CI consumer of the record"
   },
   "GAP-15": {
     "what": "strings-inventory's origin-label self-check has no test of its own",
@@ -662,5 +665,10 @@
     "what": "⛔ NOT AN AUDIT FINDING - surfaced by .6.5.7's re-verification of the 13 tokens .6.5.4 re-pointed. Measured: delete `selfCheck();` from run() and NOTHING notices - not the suite, not typecheck:rn, not lint:rn. The 542-case two-door migration audit then runs with no proof it can detect anything, and its output is identical minus one reassuring line - the exact shape selfCheck exists to refuse, one level up. selfCheck already reads its own source to prove run() calls verdict(...), and its docblock names the residual it could not cover: its own call, because a check inside a function nobody calls never runs. The same idiom moved to MODULE SCOPE, where import alone fires it. Plant-verified both ways - the one-line deletion, and the naive over-fix that leaves a COMMENTED call in place",
     "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
     "token": "if (!/\\n\\s*selfCheck\\(\\);/.test(auditSource)) {"
+  },
+  "S1P3-CI-CHAIN": {
+    "what": "⛔ NOT AN AUDIT FINDING - surfaced at .6.5.8.3 while measuring GAP-14. web-e2e.yml's header claims it runs every link of validate:release:rn; embed-pages.yml's [D44] guard refuses to deploy any SHA without a green web-e2e, so that claim is what the marketing embed deploy TRUSTS - and it has already been FALSE once ([W1-3]: test:stamp, test:e2e:embed and the packages/core half of the typecheck were all missing, so the guard gated the embed on a run that never exercised the embed). The header's own remedy was a sentence - 'it must be added here in the same commit, or the claim silently rots again' - and a documentation rule is exactly what failed the first time. Now a gate. Reads `run:` lines only, never the whole file, because the header DISCUSSES most of these names in prose and a bare includes() would find every link in the comment explaining the drift. gate:begin and gate:record are named omissions with reasons, not a pattern. Plant-verified 5 ways incl. both [W1-3] drifts verbatim and the prose trap",
+    "file": "scripts/check-ci-chain.ts",
+    "token": "problems.push("
   }
 }

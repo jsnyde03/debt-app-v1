@@ -26694,3 +26694,84 @@ the one real finding from the two artefacts.
 ⚠️ **A tool timeout SIGKILLed a mutation run for the second time this session and `finally` does not run on
 a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
 restored, and verified by grepping the line back. **Mutation runs go in the background from here.**
+
+## S1.10.6.5.8.1 – .8.3 — the guard backlog opens, and one recommendation dies on contact (2026-08-27)
+
+### `.8.1` — `GAP-2` + `GAP-3`: one of nine became nine of nine
+
+⚡ **`selfCheck`'s own success line was literally true and almost entirely empty.** Its poisoned outcome
+carried `store: null`, and **eight of the nine invariants return early on a null store** — so *"the
+invariants fire (1 on a poisoned outcome)"* reported a 1/9 harness as a working one. The other eight could
+be deleted, inverted or broken with the suite green, and `INVARIANTS.length` was printed in two places and
+asserted nowhere, so removing one from the array was silent too.
+
+The remedy is one purpose-built poison per invariant, with four properties that each close a different way
+this could have been vacuous:
+
+- **Checked against its OWN invariant function, never through `checkAll`** — `checkAll` returning
+  *something* proves only that **some** invariant fired, which is the exact vacuity being ruled out. The
+  file already applied this reasoning to `priorityGoalIsCapped`; it now applies to all nine.
+- **A clean control per poison** — the base outcome must fire *nothing*, or a poison proves only that
+  something is wrong with the fixture.
+- **A downward-only length floor**, so removing an invariant from the array is not silent.
+- ⛔ **Both list directions.** Every invariant must have a poison *(add one unpoisoned → red)* and every
+  poison must name an invariant that still exists *(rename or delete → red)*. **A list checked in one
+  direction only is how every enumeration in this cluster went short.**
+
+`GAP-3` folds in as its remedy prescribed — a goal whose `targetAmount` arrives as a string, the exact
+probe `C-import-bridge-backup` ran once by hand, and the field list both real goal-money defects lived
+behind. Tracked apart because it is a different link: `GAP-2` proves `moneyKeepsItsType` fires at all,
+`GAP-3` proves it reaches **goals**.
+
+**Plant-verified 11/11**, each invariant neutered in turn while keeping its name — the version the 1-of-9
+check was blind to — and each red naming itself.
+
+### `.8.2` — `GAP-6` was already closed, and the honest exit is a measurement
+
+⛔ **The finding's premise is stale.** It was written against `b03e0d3`, where the comparison was `>` and a
+hand-raised cap was indistinguishable from one that was always that size. The current tree uses `!==`,
+which `M8`'s strict-equality sweep put there. Re-measured rather than assumed: `d37 55→56` reds, `55→54`
+reds, `p68 48→49` reds. The docstring's rule is now enforced by the comparison instead of described beside
+it. [D65]'s second exit — *measured never to have been one* — with a token so it stays closed.
+
+### `.8.3` — the recommendation I gave, and why I did not build it
+
+I recommended a CI step running `lint:gate-freshness` after `gate:record`. 🎯 approved it. **It does not
+survive contact with the code, and four separate measurements say so:**
+
+1. **`gate:record` is a deliberate CI omission** — it writes `gate-status.json`, a local record of a pass
+   on a specific tree, and *"a runner writing it into a throwaway checkout records nothing anyone reads."*
+   There is no post-record moment in CI to hook.
+2. **A freshness check straight after `gate:record` is tautological** — the record was just written from
+   that tree.
+3. **Mid-audit the record is stale by design** ([D74]), so a gating check would red the lane for weeks.
+   ⛔ And `web-e2e.yml`'s own header records that exact pattern killing the previous lane: *"a permanently-
+   red gate is worse than no gate — it trains you to ignore the one signal that is supposed to mean
+   something."*
+4. **Nothing in CI consumes the record**, so there is no reader to protect.
+
+`GAP-14`'s row asked *"whether a POST-run check belongs in CI."* The answer is no, and it is now recorded
+as a decided non-fix carrying the measurement, rather than left implying work is owed. ⚠️ Re-open it only
+with a **named CI consumer** of the record.
+
+### ⚡ …and what looking for it found instead
+
+`web-e2e.yml`'s header claims it runs **every link** of `validate:release:rn`. **`embed-pages.yml`'s [D44]
+guard refuses to deploy any SHA without a green `web-e2e`** — so that claim is what the marketing embed
+deploy trusts. It has already been **false once**: at `[W1-3]` the list was missing `test:stamp`,
+`test:e2e:embed` and the `packages/core` half of the typecheck, so the guard was gating the embed on a run
+that never exercised the embed.
+
+The header's own remedy was a sentence — *"it must be added here in the same commit, or the claim silently
+rots again"* — and **a documentation rule is exactly what failed the first time.** Now `lint:ci-chain`.
+
+⚠️ **It reads `run:` lines only, never the whole file**, because the header *discusses* most of these names
+in prose: a bare `includes()` would find every link inside the comment that explains the drift and report
+the drift fixed. `gate:begin` and `gate:record` are **named** omissions carrying their reasons, so a new
+omission is a two-line edit with a justification rather than a widened regex.
+
+Plant-verified five ways: both `[W1-3]` drifts **verbatim**, a new link added to the chain and not to CI,
+a stale omission row, and the prose trap — a step replaced by `echo skipped` with the real command left
+commented above it.
+
+`MAX_UNGUARDED` **16 → 13**, the first time it has moved. Registry **136 → 137**.
