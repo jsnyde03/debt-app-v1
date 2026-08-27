@@ -18,6 +18,10 @@
  * Usage: tsx scripts/check-glossary.ts
  */
 import { stripCommentsOnly } from './lib/stripCode';
+import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
+
+/** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
+const SCAN_GATE = 'glossary';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative, basename } from 'node:path';
 
@@ -67,7 +71,8 @@ function walk(dir: string, out: string[] = []): string[] {
  * ⚠️ `stripCommentsOnly`, not `stripCommentsAndStrings`: this gate reads what is INSIDE the strings.
  */
 function stripComments(src: string): string {
-  return stripCommentsOnly(src);
+  // ⛔ GAP-8 — count what actually survived the strip; a gate that reads nothing must not pass.
+  return scanned(SCAN_GATE, stripCommentsOnly(src));
 }
 
 /** Quoted literals + JSX text nodes — the places a user can actually read a word. */
@@ -110,4 +115,6 @@ if (problems.length > 0) {
   console.error('  move it out of a string literal or add the file to EXEMPT with a reason.\n');
   process.exit(1);
 }
-console.log(`✅ glossary: no retired words in copy (${RETIRED.length + 1} banned).`);
+// ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
+const observedScan = assertScanFloor(SCAN_GATE);
+console.log(`✅ glossary: no retired words in copy (${RETIRED.length + 1} banned).${scanNote(SCAN_GATE, observedScan)}`);

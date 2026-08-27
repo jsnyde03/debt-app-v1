@@ -25,11 +25,39 @@ import { INVARIANTS, checkAll } from '@/data/migrationAudit/invariants';
  */
 
 /**
- * ⛔ **DOWNWARD-ONLY, like every other floor in this cluster.** Set to the measured count at S0.5. A case
- * that stops opening is a real change to what this corpus tests, and it must be SEEN rather than absorbed:
- * if a fixture is legitimately retired, lower this deliberately. **Never raise it to make a run pass.**
+ * ⛔ **THE CASES ALLOWED NOT TO OPEN, BY NAME — there are none today.** [S1.10.6.5.8.4 · GAP-7]
+ *
+ * ⚡ **A COUNT FLOOR COULD BE LOWERED WITH ONE KEYSTROKE AND LEFT NO RECORD OF WHICH CASE IT ABSORBED.**
+ * That was `HOSTILE_FLOOR = 32`'s actual failure mode: its own docstring said *"never raise it to make a
+ * run pass"* while the danger ran the other way — **lowering** it to swallow a fixture that stopped
+ * reaching the migration logic. `32` → `31` is a digit; naming a case is a sentence someone has to write.
+ *
+ * ⛔ **GAP-7 PROPOSED `HOSTILE_FLOOR === CASES.length` AND THAT WOULD HAVE BEEN THE DEFECT.** The
+ * non-vacuity control below says it outright: *"deliberately NOT 'all 32 must open' — a hostile blob that
+ * a door safely REFUSES is a correct outcome and one of the things this corpus exists to produce."*
+ * Hard-wiring equality would force a legitimately-refused case to be DELETED to get green, throwing away
+ * the coverage it was written for. The floor is therefore **derived** from the corpus minus what is named
+ * here, so slack cannot accumulate and a refusal cannot be absorbed silently.
+ *
+ * ⚠ **SELF-RATCHETING, like `MAX_EXEMPT`:** an id here that does not exist in the corpus reds, and an id
+ * here that actually DOES open reds. A stale exemption is a hole with a comment in front of it.
  */
-const HOSTILE_FLOOR = 32; // measured S0.5: 32/32 through both doors
+const EXPECTED_REFUSED: Record<string, string> = {};
+
+/**
+ * ⛔ **KEYED ON "DID NOT OPEN IN BOTH DOORS", NOT ON "REFUSED BY BOTH" — and a PLANT is why.**
+ * [S1.10.6.5.8.4]
+ *
+ * ⚡ The first version of this ledger keyed on `refusedBoth`, and neutering a fixture proved that
+ * incoherent: the plant was refused by the FILE door and opened by the WEBKIT one, so it tripped the floor
+ * while never entering `refusedBoth` — **the exemption could never have excused the case it existed for,
+ * and naming it would have red the stale-entry check instead.** A ledger whose entries cannot silence the
+ * assertion they are written against is a ledger nobody can use.
+ *
+ * ⚠️ The webkit door opens a blob carrying **no legacy keys at all**, so "refused by both" is close to
+ * unreachable from fixture content — which would have left the whole ledger vacuous. Measured, not assumed.
+ */
+const notReaching = (o: { file: boolean; webkit: boolean }) => !o.file || !o.webkit;
 
 let passed = 0;
 function assert(cond: boolean, label: string) {
@@ -59,6 +87,8 @@ export default async function run() {
   let openedFile = 0;
   let openedKeys = 0;
   const refusedBoth: string[] = [];
+  /** Per case, per door — the ledger above is keyed on this, not on the both-refused subset. */
+  const reached = new Map<string, { file: boolean; webkit: boolean }>();
 
   for (const testCase of CASES) {
     assert(!!testCase.blob && typeof testCase.blob === 'object', `${testCase.id}: has a blob`);
@@ -66,6 +96,7 @@ export default async function run() {
     const viaKeys = await webkitDoor(testCase.blob);
     if (viaFile.store) openedFile++;
     if (viaKeys.store) openedKeys++;
+    reached.set(testCase.id, { file: !!viaFile.store, webkit: !!viaKeys.store });
     if (!viaFile.store && !viaKeys.store) refusedBoth.push(testCase.id);
 
     for (const violation of [...checkAll(viaFile), ...checkAll(viaKeys)]) {
@@ -103,9 +134,32 @@ export default async function run() {
    */
   console.log(`  doors opened: ${openedFile}/${CASES.length} file · ${openedKeys}/${CASES.length} webkit · ${refusedBoth.length} refused by both`);
   if (refusedBoth.length) console.log(`     refused by both: ${refusedBoth.slice(0, 8).join(', ')}`);
+  // ⛔ The exemption ledger is checked BEFORE it is spent — a stale entry must red, not quietly widen the
+  // net. Both directions: an id that is not in the corpus, and an id that reaches both doors after all.
+  const corpusIds = new Set(CASES.map((c) => c.id));
+  const notReachingIds = CASES.map((c) => c.id).filter((id) => notReaching(reached.get(id)!));
+  const notReachingSet = new Set(notReachingIds);
+  for (const id of Object.keys(EXPECTED_REFUSED)) {
+    assert(corpusIds.has(id), `EXPECTED_REFUSED names \`${id}\`, which is not in the corpus — delete the entry`);
+    assert(
+      notReachingSet.has(id),
+      `EXPECTED_REFUSED excuses \`${id}\` but BOTH doors now open it — the exemption is stale, delete it`,
+    );
+  }
+
+  // ⚠️ NAMED, NOT COUNTED. This is GAP-7's whole point: `32` → `31` is a keystroke that records nothing,
+  // while excusing a case costs an id and a written reason in EXPECTED_REFUSED.
+  const unexcused = notReachingIds.filter((id) => !(id in EXPECTED_REFUSED));
   assert(
-    openedFile >= HOSTILE_FLOOR && openedKeys >= HOSTILE_FLOOR,
-    `the hostile corpus still REACHES the migration logic — file ${openedFile}, webkit ${openedKeys}, floor ${HOSTILE_FLOOR} (a corpus refused at the door satisfies every invariant vacuously)`,
+    unexcused.length === 0,
+    `every hostile case still REACHES the migration logic through BOTH doors — ${unexcused.length} unexcused: ${unexcused.join(', ')} (a case refused at the door satisfies every invariant vacuously). If a refusal is correct, name it in EXPECTED_REFUSED with the reason`,
+  );
+
+  // The aggregate stays as a second net, derived rather than typed, so slack cannot accumulate silently.
+  const floor = CASES.length - Object.keys(EXPECTED_REFUSED).length;
+  assert(
+    openedFile >= floor && openedKeys >= floor,
+    `both doors still reach the corpus — file ${openedFile}, webkit ${openedKeys}, derived floor ${floor} of ${CASES.length} cases`,
   );
 
   assert(violations.length === 0, `no invariant violations across the hostile corpus (${violations.length})`);

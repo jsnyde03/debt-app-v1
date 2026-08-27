@@ -52,6 +52,14 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     'lint:s0-coverage',
     'lint:s1-coverage',
     'lint:surface-complete',
+    // ⛔ S1.10.6.5.8.4 [GAP-13] — the same completeness argument, applied to what [D49] FINGERPRINTS.
+    // `gateSources.ts`'s header argues that scope must be an exclusion list because an inclusion list
+    // fails silent — and then defines `ROOTS` as an inclusion list of directories. Removing one reds
+    // `lint:gate-freshness` exactly ONCE, and the next `gate:record` blesses the narrower set forever.
+    'lint:gate-sources',
+    // ⛔ S1.10.6.5.8.4 [GAP-8] — seven gates reported ✅ while reading nothing. This closes the CLASS:
+    // every script importing lib/stripCode carries a scan floor, or is exempt for a MEASURED reason.
+    'lint:scan-floors',
     // [D67] — finding → guard, the `check-copy-owners` pattern applied to findings. Reds when a guard's
     // assertion is removed even though its file survives.
     'lint:finding-guards',

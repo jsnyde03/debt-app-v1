@@ -18,6 +18,10 @@
  * Usage: tsx scripts/check-local-dates.ts
  */
 import { stripCommentsOnly } from './lib/stripCode';
+import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
+
+/** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
+const SCAN_GATE = 'local-dates';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -59,7 +63,8 @@ function walk(dir: string, out: string[] = []): string[] {
  * ⚠️ `stripCommentsOnly`, not `stripCommentsAndStrings`: this gate reads what is INSIDE the strings.
  */
 function stripComments(src: string): string {
-  return stripCommentsOnly(src);
+  // ⛔ GAP-8 — count what actually survived the strip; a gate that reads nothing must not pass.
+  return scanned(SCAN_GATE, stripCommentsOnly(src));
 }
 
 /**
@@ -113,7 +118,10 @@ if (handParseCount > HAND_PARSE_BASELINE) {
   console.error('   while T10/Phase 6 burns it down. Do not raise the baseline to make this pass.)\n');
   process.exit(1);
 }
+// ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
+const observedScan = assertScanFloor(SCAN_GATE);
 console.log(
   `✅ local dates: no UTC round-trips outside ${EXEMPT.join(', ')}` +
-    ` · ${handParseCount}/${HAND_PARSE_BASELINE} hand-written local parses (not rising).`,
+    ` · ${handParseCount}/${HAND_PARSE_BASELINE} hand-written local parses (not rising).` +
+    scanNote(SCAN_GATE, observedScan),
 );

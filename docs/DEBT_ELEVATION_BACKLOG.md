@@ -304,6 +304,20 @@
 
 ## → Tooling / hygiene
 
+- ⚠️ **`webkitDoor` BYPASSES `pickLegacyStore`, so the audit harness can construct a state production
+  cannot.** *(2026-08-27 · S1.10.6.5.8.4 GAP-7 after-scan — surfaced by a plant, then measured)*.
+  `doors.ts`'s `reportWith()` fabricates `store: { path, items }` directly, so a hostile blob carrying
+  **zero legacy keys** reaches `mapLegacyStore` and comes back `migrated: true` with an empty store —
+  the exact shape `doors.ts`'s own header calls the distinction that matters (*"a bridge that declines to
+  migrate and a bridge that migrates nothing look identical in the resulting app"*). ⛔ **NOT a product
+  defect, and this was measured rather than reasoned from the comment:** `pickLegacyStore` picks on
+  `count > bestCount` starting at `0`, so a container whose stores hold no legacy keys returns `null` and
+  production takes the `report.store === null` / `isConfirmedFreshInstall` branch instead. ⚡ **What it
+  costs is harness FIDELITY**, against that file's own doctrine that *"a harness that rebuilds the thing it
+  audits is measuring its own reconstruction"* — the webkit door is the one door that does not run the
+  real picker. Fix is one line (route `reportWith` through `pickLegacyStore`); the risk is that it changes
+  what the existing 32-case corpus measures, so it wants its own control. → **S3 / import surface**
+
 - ⭐ **`lint:plan-figures` — gate the CLASS "the plan states a number its own instrument contradicts."**
   *(2026-08-26 plan-cleanup after-scan)*. [D49] stopped the **gate** result being typed into the plan;
   nothing stops the **ledger** results being typed, and the residue table was found reading *"34 findings ·

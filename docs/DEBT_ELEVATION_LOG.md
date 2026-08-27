@@ -26695,6 +26695,99 @@ the one real finding from the two artefacts.
 a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
 restored, and verified by grepping the line back. **Mutation runs go in the background from here.**
 
+## S1.10.6.5.8.4 — the floors, and all three proposed remedies were wrong or weak (2026-08-27)
+
+⚡ **The headline: not one of `GAP-7` / `GAP-8` / `GAP-13` was built as written, and the corrections came
+from measuring, not from reading.** That is now **5 of 7** GAP rows that did not survive contact with the
+tree — they were authored against `b03e0d3` and the tree has moved a great deal since.
+
+### `GAP-7` — its own remedy would have been the defect
+
+`HOSTILE_FLOOR = 32` sat beside `CASES.length === 32` with nothing comparing them, so absorbing a fixture
+that stopped reaching the migration logic cost **one keystroke** (`32`→`31`) and left no record of *which*
+case. The premise held. ⛔ **The proposed fix — assert `HOSTILE_FLOOR === CASES.length` — did not.** The
+non-vacuity control six lines below says outright that a hostile blob a door safely **refuses** is a correct
+outcome the corpus exists to produce; hard-wiring equality would force a legitimately-refused case to be
+**deleted** to get green, throwing away the coverage it was written for.
+
+Built instead as the alternative `GAP-7` itself offers: **`EXPECTED_REFUSED`, a named ledger**, with the
+floor **derived** from the corpus minus it. Excusing a case costs an id and a written reason; a number
+edit is no longer available.
+
+⚡ **A PLANT CORRECTED THE KEYING, and this is the reusable lesson.** The first version keyed on
+`refusedBoth`. Neutering a fixture proved that incoherent: the plant was refused by the **file** door while
+the **webkit** door opened it, so it tripped the floor without ever entering `refusedBoth` — **the
+exemption could never have excused the case it existed for**, and naming it would have red the
+stale-entry check instead. Re-keyed onto *did not open in BOTH doors*. ⚠️ Also measured: the webkit door
+opens a blob carrying **no legacy keys at all**, so *"refused by both"* is near-unreachable from fixture
+content and the original keying would have been **vacuous as well as unusable**.
+
+**Plant-verified 5 ways:** case stops reaching → reds naming it · excused → green · exemption over a
+healthy case → reds · exemption naming a non-existent id → reds · the derived per-door floor → reds.
+
+**After-scan → backlog:** `webkitDoor` bypasses `pickLegacyStore`, so the harness can construct a state
+production cannot. ⛔ **Measured rather than reasoned from the comment:** `pickLegacyStore` picks on
+`count > bestCount` from `0`, so production takes the `isConfirmedFreshInstall` branch — **not a product
+defect**, a harness-fidelity gap. Filed → S3.
+
+### `GAP-8` — measured at 7 of **11**, not 7 of 10, and the class was closed rather than the instances
+
+Re-measured before building, by blanking both exports of `lib/stripCode.ts` and running **every**
+consumer: seven report ✅ and exit 0 while reading nothing *(glossary · money-format · local-dates ·
+press-opacity · a11y-props · apostrophes · month-arithmetic)*; four **red**, because each compares against
+a declared-count ledger. ⚠️ **`check-audit-closure` was briefly miscounted as an eighth** — it has its own
+`stripMarkdownCode`, so the plant never reached it and its green was expected. Checking that is what kept
+the number honest.
+
+⛔ **Built as ONE uniform quantity, not seven bespoke hit counts.** `GAP-8` proposed a per-gate semantic
+hit floor. A semantic count is richer but it is **seven designs with seven chances to be subtly vacuous**,
+and a vacuous assertion counting as guarded is this cluster's most repeated defect (pass 2 measured seven
+green registry entries that survived their own un-fix). The quantity built is the one `GAP-8`'s own
+sentence names — **how much did this gate actually read** — which collapses to zero under exactly the
+failure guarded and cannot be vacuous. Floors at 95% of measured; ⚠️ **the margin is a decision, not an
+omission** — these counts run 1k–70k lines and move every commit, so an exact floor would red permanently
+and train people to raise the number without reading it, which `web-e2e.yml`'s header records killing the
+previous lane.
+
+⭐ **`lint:scan-floors` closes the CLASS**: every script importing `lib/stripCode` carries a floor or is
+`EXEMPT` with a **measured** reason, so the eighth such gate cannot inherit the hole.
+
+⚡ **That gate's own detector had the defect it exists to catch.** `check-trust-claims` imports
+`'./lib/stripCode.ts'` **with the extension**, and a quote-terminated substring match skipped it — the
+undercount class, arriving inside the instrument written to close it. **Caught by the gate's own
+stale-exemption half**, which reported an EXEMPT entry naming a file the detector could not see.
+
+### `GAP-13` — the proposed floor is the weaker half and cannot see the direction that matters
+
+`gateSources.ts` decides what [D49] fingerprints, and decides it with `ROOTS` — an **inclusion** list.
+Removing a root reds `lint:gate-freshness` exactly **once**, and the next `gate:record` blesses the
+narrower set forever. ⚡ **The file's own header argues for the fix and then does not perform it:** *"scope
+is an exclusion list, not an inclusion list — an inclusion list fails silent."* That doctrine is applied
+**inside** the roots by `skipDir`; it is not applied to the roots themselves.
+
+⛔ **`fileCount >= 789` was NOT built.** It cannot name which root vanished, it carried 23 files of slack
+against a live 812, and — the direction that matters — **it cannot see a new tree arriving outside `ROOTS`
+at all**, because adding unfingerprinted files makes no count go down. Built as `GAP-13`'s own better
+alternative: `lint:gate-sources` asserts **every tracked source file is fingerprinted or excused by a
+named entry with a reason** — 9 entries covering 19 files, each saying why it cannot change what
+`validate:release:rn` decides. ⚠️ Each exclusion was **checked**, not assumed: the root
+`playwright.config.ts` is the legacy one; the gate runs `apps/rn/playwright.config.ts`, which is inside a
+root and **is** fingerprinted.
+
+**Plant-verified 4 ways:** root removed → reds naming 53 files · tracked file outside `ROOTS` → reds
+naming it · exemption matching nothing → reds · exemption over an already-fingerprinted file → reds.
+
+### Close-out
+
+`MAX_UNGUARDED` **13 → 10**; registry 124 → **127 of 137 guarded**. Two new gates on `lint:rn`
+(**32 gates**). `lint:rn` green end-to-end, `tsc` clean, and `test:gate-plants` re-planted into five of
+the seven edited gates and all five still fail closed — the one risk this sub-step carried.
+
+⚠️ **Cadence, agreed with 🎯 mid-step:** [D74]'s *"`lint:rn` per fix"* was written for **app-code** fixes,
+where the chain is a regression net. Here the thing being changed **is** the chain, so per sub-step the
+run is the *touched* gates + `test:gate-plants` + `lint:finding-guards`, and the full chain runs at the
+`.8` exit.
+
 ## S1.10.6.5.8.1 – .8.3 — the guard backlog opens, and one recommendation dies on contact (2026-08-27)
 
 ### `.8.1` — `GAP-2` + `GAP-3`: one of nine became nine of nine

@@ -1,0 +1,45 @@
+{
+  "_README": "⛔ GAP-8 — the scan floors. Each entry is the non-blank line count the gate READ after stripping. A gate reading less than its floor has gone blind and reds; see scripts/lib/scanFloor.ts. ⚠ WHY A 5% MARGIN AND NOT THE EXACT MEASUREMENT: these counts are 1k–70k lines and move with every ordinary commit, so an exact floor would red permanently and train people to raise the number without reading it — the failure web-e2e.yml's header records killing the previous lane. The margin still catches the failure being guarded: total blinding drops the count to ~0, and losing a root or an extension drops it by far more than 5%. ⛔ The floor is DOWNWARD-ONLY: lowering it needs a stated reason, exactly like HOSTILE_FLOOR.",
+  "glossary": {
+    "floor": 24467,
+    "measured": "2026-08-27",
+    "measuredCount": 25755,
+    "why": "Measured 2026-08-27 at S1.10.6.5.8.4 by blanking both exports of lib/stripCode.ts: this gate reported ✅ and exited 0 while reading nothing. Floor is 95% of the measured count — see the note in the ledger header for why a margin and not the exact figure."
+  },
+  "money-format": {
+    "floor": 23983,
+    "measured": "2026-08-27",
+    "measuredCount": 25246,
+    "why": "Measured 2026-08-27 at S1.10.6.5.8.4 by blanking both exports of lib/stripCode.ts: this gate reported ✅ and exited 0 while reading nothing. Floor is 95% of the measured count — see the note in the ledger header for why a margin and not the exact figure."
+  },
+  "local-dates": {
+    "floor": 46223,
+    "measured": "2026-08-27",
+    "measuredCount": 48656,
+    "why": "Measured 2026-08-27 at S1.10.6.5.8.4 by blanking both exports of lib/stripCode.ts: this gate reported ✅ and exited 0 while reading nothing. Floor is 95% of the measured count — see the note in the ledger header for why a margin and not the exact figure."
+  },
+  "press-opacity": {
+    "floor": 28179,
+    "measured": "2026-08-27",
+    "measuredCount": 29663,
+    "why": "Measured 2026-08-27 at S1.10.6.5.8.4 by blanking both exports of lib/stripCode.ts: this gate reported ✅ and exited 0 while reading nothing. Floor is 95% of the measured count — see the note in the ledger header for why a margin and not the exact figure."
+  },
+  "a11y-props": {
+    "floor": 66961,
+    "measured": "2026-08-27",
+    "measuredCount": 70486,
+    "why": "Measured 2026-08-27 at S1.10.6.5.8.4 by blanking both exports of lib/stripCode.ts: this gate reported ✅ and exited 0 while reading nothing. Floor is 95% of the measured count — see the note in the ledger header for why a margin and not the exact figure."
+  },
+  "apostrophes": {
+    "floor": 981,
+    "measured": "2026-08-27",
+    "measuredCount": 1033,
+    "why": "Measured 2026-08-27 at S1.10.6.5.8.4 by blanking both exports of lib/stripCode.ts: this gate reported ✅ and exited 0 while reading nothing. Floor is 95% of the measured count — see the note in the ledger header for why a margin and not the exact figure."
+  },
+  "month-arithmetic": {
+    "floor": 63669,
+    "measured": "2026-08-27",
+    "measuredCount": 67021,
+    "why": "Measured 2026-08-27 at S1.10.6.5.8.4 by blanking both exports of lib/stripCode.ts: this gate reported ✅ and exited 0 while reading nothing. Floor is 95% of the measured count — see the note in the ledger header for why a margin and not the exact figure."
+  }
+}

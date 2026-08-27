@@ -92,7 +92,7 @@
   "GUARDED-4": {
     "what": "HOSTILE_FLOOR asserts the hostile corpus still reaches the migration logic ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "apps/rn/src/data/migrationAudit/hostile.test.ts",
-    "token": "openedFile >= HOSTILE_FLOOR && openedKeys >= HOSTILE_FLOOR,"
+    "token": "openedFile >= floor && openedKeys >= floor,"
   },
   "GUARDED-5": {
     "what": "the branch invariant 9 judges — a priority goal's pace reading as uncapped ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
@@ -123,12 +123,14 @@
     "token": "if (d37Untokenised.length !== MAX_UNTOKENISED.d37) {"
   },
   "GAP-7": {
-    "what": "HOSTILE_FLOOR can be LOWERED to absorb a fixture that stopped opening",
-    "unguarded": "S0.13 remaining — assert HOSTILE_FLOOR === CASES.length. See S0-GUARDS-4.md"
+    "what": "S0.13 GAP-7 — CLOSED S1.10.6.5.8.4. `HOSTILE_FLOOR = 32` sat beside `CASES.length === 32` with nothing comparing them, so absorbing a fixture that stopped reaching the migration logic cost ONE KEYSTROKE (32→31) and left no record of WHICH case. ⛔ GAP-7's own proposed remedy — assert HOSTILE_FLOOR === CASES.length — WOULD HAVE BEEN THE DEFECT: the non-vacuity control six lines below says outright that a hostile blob a door safely REFUSES is a correct outcome the corpus exists to produce, so hard-wiring equality would force a legitimately-refused case to be DELETED to get green. Replaced by a NAMED ledger: EXPECTED_REFUSED keyed on `did not open in BOTH doors`, the floor DERIVED from the corpus minus it, and both stale directions red (an id not in the corpus, an id that opens after all). ⚡ Keying was corrected BY A PLANT — the first version keyed on `refused by both`, and a neutered fixture was refused by the file door while the webkit door opened it, so the exemption could never have excused the case it existed for. Plant-verified 5 ways: case stops reaching → reds naming it; excused → green; exemption over a healthy case → reds; exemption naming a non-existent id → reds",
+    "file": "apps/rn/src/data/migrationAudit/hostile.test.ts",
+    "token": "unexcused.length === 0,"
   },
   "GAP-8": {
-    "what": "seven of ten strip-using gates report green while reading nothing when the stripper is blinded",
-    "unguarded": "S0.13 remaining — a per-gate hit floor, downward-only, as check-destructive-writes already does. See S0-GUARDS-4.md"
+    "what": "S0.13 GAP-8 — CLOSED S1.10.6.5.8.4. RE-MEASURED before building rather than taken from the finding: blanking both exports of lib/stripCode.ts and running all ELEVEN consumers, seven report ✅ and exit 0 while reading nothing (glossary, money-format, local-dates, press-opacity, a11y-props, apostrophes, month-arithmetic) and four RED because they compare against a declared-count ledger. ⚠ The finding's `gates 4-10 of 10` framing was one consumer short of the live set. ⚡ Built as ONE uniform quantity rather than seven bespoke hit counts: a semantic count per gate is seven designs with seven chances to be subtly vacuous, and a vacuous assertion counting as guarded is this cluster's most repeated defect. The quantity is the one GAP-8's own sentence names — how much did this gate actually READ — which collapses to zero under exactly the failure guarded and cannot be vacuous. ⛔ AND THE CLASS IS CLOSED, NOT THE SEVEN INSTANCES: lint:scan-floors asserts every script importing lib/stripCode either carries a floor or is EXEMPT with a measured reason, so the eighth such gate cannot inherit the hole. ⚡ That gate's own detector had the SAME undercount defect it exists to catch — check-trust-claims imports './lib/stripCode.ts' WITH the extension and a quote-terminated match skipped it, caught by the gate's own stale-exemption half. Plant-verified: blanked stripper reds all 7 (all were green before); assertion removed → reds; a new strip-using gate → reds; stale ledger entry → reds",
+    "file": "scripts/lib/scanFloor.ts",
+    "token": "if (observed < entry.floor) {"
   },
   "GAP-9": {
     "what": "scripts/lib/stripCode.ts has no test at all",
@@ -147,8 +149,9 @@
     "unguarded": "S0.13 remaining — a CRLF fixture committed with .gitattributes -text. See S0-GUARDS-4.md"
   },
   "GAP-13": {
-    "what": "gateSources ROOTS can lose a root without anything noticing",
-    "unguarded": "S0.13 remaining — a file-count floor on the fingerprint. See S0-GUARDS-4.md"
+    "what": "S0.13 GAP-13 — CLOSED S1.10.6.5.8.4. `gateSources.ts` decides what [D49] fingerprints, and it decides it with ROOTS — an INCLUSION list of directories. Removing a root reds lint:gate-freshness exactly ONCE, and the next gate:record writes the narrower fingerprint and is green forever after, over a tree whose gate inputs nobody watches. ⚡ The file's own header argues for the fix and then does not perform it: `SCOPE IS AN EXCLUSION LIST, NOT AN INCLUSION LIST — an inclusion list fails silent`. That doctrine is applied INSIDE the roots by skipDir; it is not applied to the roots themselves. ⛔ GAP-13's proposed `fileCount >= 789` floor is the WEAKER half and was not built: it cannot name which root vanished, it carried 23 files of slack against a live 812, and it CANNOT SEE A NEW TREE ARRIVING outside ROOTS at all, because adding unfingerprinted files makes no count go down. Built instead as GAP-13's own better alternative — every tracked source file is fingerprinted or excused by a named entry with a reason (9 entries, 19 files). Plant-verified 4 ways: root removed → reds naming 53 files; tracked file outside ROOTS → reds naming it; exemption matching nothing → reds; exemption over an already-fingerprinted file → reds",
+    "file": "scripts/check-gate-sources.ts",
+    "token": "if (orphans.length > 0) {"
   },
   "GAP-14": {
     "what": "lint:gate-freshness is in no chain — not run-gates.ts, not validate:release:rn, not CI",

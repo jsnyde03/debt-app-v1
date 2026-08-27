@@ -16,6 +16,10 @@
  * Usage: tsx scripts/check-native-a11y-props.ts
  */
 import { stripCommentsOnly } from './lib/stripCode';
+import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
+
+/** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
+const SCAN_GATE = 'a11y-props';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative, sep } from 'node:path';
 
@@ -85,7 +89,8 @@ function walk(dir: string, out: string[] = []): string[] {
  * ⚠️ `stripCommentsOnly`, not `stripCommentsAndStrings`: this gate reads what is INSIDE the strings.
  */
 function stripComments(src: string): string {
-  return stripCommentsOnly(src);
+  // ⛔ GAP-8 — count what actually survived the strip; a gate that reads nothing must not pass.
+  return scanned(SCAN_GATE, stripCommentsOnly(src));
 }
 
 const hits: string[] = [];
@@ -242,8 +247,11 @@ if (failed) process.exit(1);
 // ⚠️ Counts BOTH lists. It said `BANNED.length` when `OWNED` was added, which undercounts what the gate
 // actually guards — and a completeness figure that omits part of its own coverage is precisely the defect
 // P6.8.9.1 found in the shot matrix ("226 frames", four of which never existed).
+// ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
+const observedScan = assertScanFloor(SCAN_GATE);
 console.log(
   `✅ native a11y props: ${BANNED.length} dropped-by-RNW + ${OWNED.length} owned-by-a-helper + ` +
     `bare announce() across ${Object.keys(BARE_ANNOUNCE_BASELINE).length} baselined file(s) guarded, ` +
-    'none outside the declared exemptions.',
+    'none outside the declared exemptions.' +
+    scanNote(SCAN_GATE, observedScan),
 );

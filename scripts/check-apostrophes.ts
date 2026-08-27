@@ -25,6 +25,10 @@
  *        tsx scripts/check-apostrophes.ts --baseline # re-record (only after a deliberate sweep)
  */
 import { stripCommentsOnly } from './lib/stripCode';
+import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
+
+/** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
+const SCAN_GATE = 'apostrophes';
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -216,7 +220,7 @@ for (const root of SWIFT_ROOTS) {
     const source = readFileSync(file, 'utf8');
     const lines = source.split(/\r?\n/);
     /** Comments blanked, string CONTENTS kept — this gate's subject lives inside the strings. */
-    const codeLines = stripCommentsOnly(source).split(/\r?\n/);
+    const codeLines = scanned(SCAN_GATE, stripCommentsOnly(source)).split(/\r?\n/);
     let inPhrases = false;
     lines.forEach((line, i) => {
       // ⛔ **COMMENTS ARE STRIPPED FIRST, AND THAT ORDER IS THE FIX.** `///` doc comments quote the very
@@ -298,6 +302,9 @@ if (failed) process.exit(1);
 // silently stops describing the tree — the T8.4 failure, where a baseline 12 too high left a +1 detector
 // unable to detect +1.
 const stale = [...baseline].filter((s) => !current.has(s)).length;
+// ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
+const observedScan = assertScanFloor(SCAN_GATE);
 console.log(
-  `✅ apostrophes: no new straight-apostrophe copy (${sorted.length} baselined${stale ? `, ${stale} stale — re-record after a sweep` : ''}).`,
+  `✅ apostrophes: no new straight-apostrophe copy (${sorted.length} baselined${stale ? `, ${stale} stale — re-record after a sweep` : ''}).` +
+    scanNote(SCAN_GATE, observedScan),
 );

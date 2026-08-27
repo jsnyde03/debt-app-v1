@@ -23,6 +23,11 @@
  * Usage: tsx scripts/check-month-arithmetic.ts
  */
 import { stripCommentsAndStrings } from './lib/stripCode';
+// ⚠️ ALIASED — this gate already has a local `scanned` holding a FILE count; the import counts LINES.
+import { assertScanFloor, scanNote, scanned as scanLines } from './lib/scanFloor';
+
+/** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
+const SCAN_GATE = 'month-arithmetic';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -172,7 +177,7 @@ function scan(roots: string[], out: string[]): number {
       n++;
       const raw = readFileSync(file, 'utf8');
       const lines = raw.split(/\r?\n/);
-      stripCommentsAndStrings(raw)
+      scanLines(SCAN_GATE, stripCommentsAndStrings(raw))
         .split(/\r?\n/)
         .forEach((line, i) => {
           if (BANNED.test(line) || constructorOverflow(line)) {
@@ -213,7 +218,10 @@ if (legacyHits.length > 0) {
   legacyHits.forEach((h) => console.log(`   ${h}`));
 }
 
+// ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
+const observedScan = assertScanFloor(SCAN_GATE);
 console.log(
   `✅ month arithmetic: ${scanned} files, no setMonth/setUTCMonth/setFullYear/setUTCFullYear and no ` +
-    `overflowing \`new Date(y, m±n, day)\` outside ${EXEMPT.join(', ')}.`,
+    `overflowing \`new Date(y, m±n, day)\` outside ${EXEMPT.join(', ')}.` +
+    scanNote(SCAN_GATE, observedScan),
 );

@@ -23,6 +23,11 @@
  * Usage: tsx scripts/check-press-opacity.ts
  */
 import { stripCommentsOnly } from './lib/stripCode';
+// ⚠️ ALIASED — this gate already has a local `scanned` holding a FILE count; the import counts LINES.
+import { assertScanFloor, scanNote, scanned as scanLines } from './lib/scanFloor';
+
+/** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
+const SCAN_GATE = 'press-opacity';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -63,7 +68,8 @@ function walk(dir: string, out: string[] = []): string[] {
  * ⚠️ `stripCommentsOnly`, not `stripCommentsAndStrings`: this gate reads what is INSIDE the strings.
  */
 function stripComments(src: string): string {
-  return stripCommentsOnly(src);
+  // ⛔ GAP-8 — count what actually survived the strip; a gate that reads nothing must not pass.
+  return scanLines(SCAN_GATE, stripCommentsOnly(src));
 }
 
 const hits: string[] = [];
@@ -92,4 +98,6 @@ if (hits.length > 0) {
   process.exit(1);
 }
 
-console.log(`✅ press opacity: ${scanned} files, every control state on a token.`);
+// ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
+const observedScan = assertScanFloor(SCAN_GATE);
+console.log(`✅ press opacity: ${scanned} files, every control state on a token.${scanNote(SCAN_GATE, observedScan)}`);

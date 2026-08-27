@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**99 files on the S0 surface · 47 swept · 52 unswept.**
+**103 files on the S0 surface · 47 swept · 56 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -74,6 +74,7 @@
 | `scripts/check-destructive-writes.ts` | p1 · p3 |
 | `scripts/check-finding-guards.ts` | s1p1 · s1p2 |
 | `scripts/check-gate-freshness.ts` | p4 |
+| `scripts/check-gate-sources.ts` | ⛔ **never** |
 | `scripts/check-glossary.ts` | p3 |
 | `scripts/check-icon-glyphs.ts` | r17 |
 | `scripts/check-local-dates.ts` | p3 · r17 |
@@ -84,6 +85,7 @@
 | `scripts/check-press-opacity.ts` | p3 · r17 |
 | `scripts/check-rn-style-divergence.ts` | r17 |
 | `scripts/check-sandbox-writes.ts` | p1 · p3 |
+| `scripts/check-scan-floors.ts` | ⛔ **never** |
 | `scripts/check-trust-claims.ts` | ⛔ **never** |
 | `scripts/check-type-scale.ts` | p4 · s1p1 · s1p2 |
 | `scripts/check-webkit-flex-controls.ts` | r17 |
@@ -96,7 +98,9 @@
 | `scripts/e2e-fresh-rn.cjs` | ⛔ **never** |
 | `scripts/e2e-fresh.cjs` | ⛔ **never** |
 | `scripts/finding-guards.json` | s1p1 · s1p2 |
+| `scripts/gate-scan-floors.json` | ⛔ **never** |
 | `scripts/gateSources.ts` | p2 · p3 · s1p1 · s1p2 |
+| `scripts/lib/scanFloor.ts` | ⛔ **never** |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
 | `scripts/maestro-results.mjs` | ⛔ **never** |
 | `scripts/make-cutover-backups.ts` | ⛔ **never** |
@@ -155,12 +159,16 @@
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
 - `scripts/check-ci-chain.ts`
+- `scripts/check-gate-sources.ts`
+- `scripts/check-scan-floors.ts`
 - `scripts/check-trust-claims.ts`
 - `scripts/collect-lane-diagnostics.mjs`
 - `scripts/compare-ios-screenshots.mjs`
 - `scripts/conform-app-preview.sh`
 - `scripts/e2e-fresh-rn.cjs`
 - `scripts/e2e-fresh.cjs`
+- `scripts/gate-scan-floors.json`
+- `scripts/lib/scanFloor.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/make-cutover-backups.ts`
 - `scripts/preflight-xcuitest-target.ts`

@@ -17,6 +17,10 @@
  * Usage: tsx scripts/check-money-format.ts
  */
 import { stripCommentsOnly } from './lib/stripCode';
+import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
+
+/** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
+const SCAN_GATE = 'money-format';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
@@ -121,7 +125,8 @@ function walk(dir: string, out: string[] = []): string[] {
  * ⚠️ `stripCommentsOnly`, not `stripCommentsAndStrings`: this gate reads what is INSIDE the strings.
  */
 function stripComments(src: string): string {
-  return stripCommentsOnly(src);
+  // ⛔ GAP-8 — count what actually survived the strip; a gate that reads nothing must not pass.
+  return scanned(SCAN_GATE, stripCommentsOnly(src));
 }
 
 /**
@@ -196,4 +201,6 @@ if (problems.length > 0) {
   console.error('  A genuinely different job (e.g. abbreviated axis ticks) goes in EXEMPT, with a reason.\n');
   process.exit(1);
 }
-console.log(`✅ money-format: no hand-rolled currency formatters (${HAND_ROLLED.length} shapes checked).`);
+// ⛔ GAP-8 — assert the gate actually READ something before it is allowed to report a pass.
+const observedScan = assertScanFloor(SCAN_GATE);
+console.log(`✅ money-format: no hand-rolled currency formatters (${HAND_ROLLED.length} shapes checked).${scanNote(SCAN_GATE, observedScan)}`);
