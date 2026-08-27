@@ -26695,6 +26695,87 @@ the one real finding from the two artefacts.
 a kill** — `hostile.test.ts` was left with its assertion deleted. Caught by `git status` immediately after,
 restored, and verified by grepping the line back. **Mutation runs go in the background from here.**
 
+## S1.10.6.5.8.6 / .8.7 — the stragglers, and the cheapest row was the most expensive (2026-08-27)
+
+⚡ **`S1.10.6.5.8` CLOSES HERE. `MAX_UNGUARDED` 16 → 1**, and the one remaining row (`GAP-14`) exits by
+DECISION rather than by a build. **139 of 140 findings carry a standing guard.**
+
+### `GAP-18` — rated "lowest value on this list and the cheapest to build". It was neither.
+
+⛔ **Its premise measured `0 raw NULs` over FOUR NAMED FILES.** Scanning all **1,030** tracked
+`.ts`/`.tsx`/`.md`/`.json` found a **live one**: `docs/audits/strings-inventory.md` carried a raw `U+0000`,
+written straight through from the `key:unicode` torture fixture because the generator escaped `|` and
+newlines and nothing else. ⚡ **The undercount class again** — a four-file list against a repo — and the
+reason the new gate scans `git ls-files` rather than any enumeration.
+
+Fixed by **escaping in the generator**, the `corpus.ts` precedent: this file's job is to report what a
+string IS, so dropping the byte would make it lie about its own subject.
+
+⛔ **AND THE FIRST CUT OF THAT FIX REINTRODUCED THE DEFECT.** Escaping via a regex class of *literal
+control bytes* put a real NUL into `strings-inventory.ts` itself — which is precisely the recurrence this
+row records (*"the commit that removed one introduced another"*), arriving inside its own fix. It is now a
+code-point test. ⚠️ `run-gates.ts` also held **8 raw ESC bytes** as ANSI colour codes; converted to escape
+sequences, output verified byte-identical.
+
+⛔ **THE GATE'S OWN FIRST CUT WAS BLIND, AND A CONTROL RUN IS THE ONLY REASON I KNOW.** `git ls-files`
+lists only **tracked** files, so a NUL planted into the new gate file read **green** — and the likeliest
+moment for a control byte to appear is the commit that **creates** the file. Now
+`--cached --others --exclude-standard`.
+
+### `GAP-9` — eleven gates read through `lib/stripCode` and nothing tested it
+
+⛔ **Re-measured, and the exposure is exactly as stated:** neutering `regexMayFollow` to `return false`
+leaves **all eleven** consumer gates at **exit 0** — reproducing pass 3's *"0 LOST / 0 GAINED"*. The
+hardest code in the instrument stack is the code nothing would notice losing.
+
+⚡ **Written as a CHARACTERIZATION test, deliberately.** Two of the constructs `GAP-9` names are
+**misparsed today** and are pinned as behaviour rather than endorsed: a regex after `return` is not
+recognised, and a shebang's `/usr/` **is** read as a regex so `usr` gets blanked. Neither is a live defect
+— no gate's verdict depends on either, which is why both went unnoticed — but writing them down is the
+only thing that makes a future scanner change **visible** instead of silent.
+
+⭐ **The load-bearing invariant is length and line-count preservation, asserted per line.** Every consumer
+maps a match back to `file:line`, so a stripper that shortened a line would move every reported position in
+eleven gates at once. ⚠️ First draft of the test caught the neutered branch on **one** assertion; adding
+the two cases where the regex branch earns its keep — a quote inside a regex body, a `/` inside a character
+class — took it to three.
+
+### `GAP-10` — one scenario per spelling, not one plant for five
+
+`BANNED` names four setters and `constructorOverflow` covers a fifth shape, but pass 1 measured **zero live
+sites** for the three `M10` added, so reverting to the two-spelling form changed no verdict. ⛔ **A single
+plant carrying all five would red on whichever is caught first and say nothing about the rest** — *a plant
+that reds early never exercises the later ones.* ⚡ **The discrimination is exact:** narrowing `BANNED` to
+the pre-`M10` form leaves the gate itself at **exit 0** while precisely the two removed spellings report
+`planted=exit 0` and the two retained ones stay green.
+
+### `GAP-15` — verified on the deletion
+
+`strings-inventory --gate` re-tests `badOrigins` because an earlier `process.exitCode = 1` was overridden
+by a later `process.exit(0)`. But `badOrigins` is **empty** against the real corpus, so the re-test could
+be deleted with no verdict moving. The plant mints a bad origin the only way real input can — a property
+name long enough that `key:<name>` exceeds 48 chars. ⛔ With the re-test disabled, `lint:copy` stays
+**exit 0** on the real corpus while the scenario reports `planted=exit 0`.
+
+### `.8.7` — already done, and measured rather than read
+
+⛔ **`M8`'s strict-equality sweep had already made it self-ratcheting.** Both caps are `!==`, so
+`MAX_UNGUARDED` reds **below** as well as above. Plant-verified: a cap of `2` against `1` unguarded reds
+*"lower it to 1."* ⚡ **The fourth row that one sweep silently closed**, after `GAP-6`, `GAP-4` ② and ③.
+
+### Close-out, and one process correction
+
+`lint:rn` **36 gates**, green. `tsc` clean; app, regression and scenario suites green;
+`test:gate-plants` **21/21**. The `GAP-8` class gate caught **two** further strip-using consumers arriving
+(`test-line-endings.ts`, `test-strip-code.ts`) — both mine, both exempted with a **measured** reason
+rather than an asserted one.
+
+⚠️ **Process, corrected mid-step by 🎯: I ran the full `lint:rn` chain three times to read one summary
+line**, because the summary is ANSI-coded and sits at the very end, so successive greps kept missing it.
+⛔ **Capture the run to a file once and query the file.** ⚡ It also cost a false signal — two overlapping
+`lint:rn` runs reported *"2 of 36 failed"* because `test:gate-plants` **mutates the working tree**, so
+concurrent runs clobber each other's plant files.
+
 ## S1.10.6.5.8.5 — the fixtures, and "mechanical" was wrong about four of five (2026-08-27)
 
 ⚡ **The plan called this sub-step mechanical. Four of its five rows were wrong about their own scope or

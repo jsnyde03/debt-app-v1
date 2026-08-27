@@ -677,7 +677,25 @@ for (const e of entries.filter((x) => x.bucket !== "technical")) {
     md.push('| line | origin | string |');
     md.push('|---|---|---|');
   }
-  const safe = e.text.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  // ⛔ **CONTROL CHARACTERS ARE ESCAPED, NOT PASSED THROUGH.** [S1.10.6.5.8.6 · GAP-18]
+  // A source string carrying a raw NUL wrote that NUL straight into this committed markdown — measured
+  // 2026-08-27 at the `key:unicode` torture fixture, which holds one. A raw U+0000 in a committed text
+  // file breaks greps, editors and parsers, and this class has now recurred twice.
+  // ⚡ Closed by ESCAPING rather than by dropping the byte, exactly as `corpus.ts` was: this file's job
+  // is to report what the string IS, so deleting the character would make it lie about its own subject.
+  // ⚠️ Written as a CODE-POINT test, not a regex class of literal control bytes. The first cut of this
+  // line embedded the raw characters — putting a real NUL into this very file, i.e. reintroducing the
+  // defect inside its own fix. That is exactly the recurrence GAP-18 records ("the commit that removed
+  // one introduced another"), and `lint:no-control-chars` now catches it.
+  const isControl = (ch: string) => {
+    const c = ch.charCodeAt(0);
+    return (c < 0x20 && c !== 0x09 && c !== 0x0a) || c === 0x7f;
+  };
+  const safe = [...e.text]
+    .map((ch) => (isControl(ch) ? '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0') : ch))
+    .join('')
+    .replace(/\|/g, '\\|')
+    .replace(/\n/g, ' ');
   md.push(`| ${e.line} | ${e.origin}${e.bucket === 'unclassified' ? ' ⚠️' : ''} | ${safe} |`);
 }
 

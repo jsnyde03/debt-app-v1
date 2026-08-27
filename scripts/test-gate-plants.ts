@@ -313,6 +313,74 @@ const SCENARIOS: Scenario[] = [
       "import { importStore } from '@/store/persistence';\n\n// four spellings the M11 IDENTIFIER match covers and the pre-M11 call shape does not.\nexport const a = () => importStore?.({} as never);\nexport const alias = importStore;\nexport const c = (obj: Record<string, () => void>) => obj['importStore']();\nexport const d = () => importStore.call(null, {} as never);\n",
     why: 'four non-call spellings of importStore — each reaches the same irreversible whole-store overwrite',
   },
+  {
+    // ⛔ S1.10.6.5.8.6 [GAP-10] — one scenario PER SPELLING. `BANNED` names four setters and
+    // `constructorOverflow` covers a fifth shape; pass 1 measured ZERO live sites for the three M10
+    // added, so reverting to the two-spelling form changed no verdict and no test existed over any
+    // of it. ⚡ A single plant carrying all five would red on whichever is caught first and say
+    // nothing about the rest — a plant that reds early never exercises the later ones.
+    gate: 'lint:month-arithmetic [setUTCMonth]',
+    script: 'check-month-arithmetic.ts',
+    at: 'apps/rn/src/__gate_plant__.ts',
+    body: 'export function bump(d: Date): Date {\n  d.setUTCMonth(d.getUTCMonth() + 1);\n  return d;\n}\n',
+    why: 'setUTCMonth overflows identically to setMonth; M10 added it and pass 1 measured ZERO live sites, so reverting BANNED to the two-spelling form changed no verdict and nothing objected',
+  },
+  {
+    // ⛔ S1.10.6.5.8.6 [GAP-10] — one scenario PER SPELLING. `BANNED` names four setters and
+    // `constructorOverflow` covers a fifth shape; pass 1 measured ZERO live sites for the three M10
+    // added, so reverting to the two-spelling form changed no verdict and no test existed over any
+    // of it. ⚡ A single plant carrying all five would red on whichever is caught first and say
+    // nothing about the rest — a plant that reds early never exercises the later ones.
+    gate: 'lint:month-arithmetic [setFullYear]',
+    script: 'check-month-arithmetic.ts',
+    at: 'apps/rn/src/__gate_plant__.ts',
+    body: 'export function nextYear(d: Date): Date {\n  d.setFullYear(d.getFullYear() + 1);\n  return d;\n}\n',
+    why: 'setFullYear overflows on Feb 29 — 2024-02-29 + 1 year lands on 2025-03-01, not 2025-02-28',
+  },
+  {
+    // ⛔ S1.10.6.5.8.6 [GAP-10] — one scenario PER SPELLING. `BANNED` names four setters and
+    // `constructorOverflow` covers a fifth shape; pass 1 measured ZERO live sites for the three M10
+    // added, so reverting to the two-spelling form changed no verdict and no test existed over any
+    // of it. ⚡ A single plant carrying all five would red on whichever is caught first and say
+    // nothing about the rest — a plant that reds early never exercises the later ones.
+    gate: 'lint:month-arithmetic [setUTCFullYear]',
+    script: 'check-month-arithmetic.ts',
+    at: 'apps/rn/src/__gate_plant__.ts',
+    body: 'export function nextYearUtc(d: Date): Date {\n  d.setUTCFullYear(d.getUTCFullYear() + 1);\n  return d;\n}\n',
+    why: 'the UTC twin of the leap-day overflow, and the spelling most likely to be copied from the other',
+  },
+  {
+    // ⛔ S1.10.6.5.8.6 [GAP-10] — one scenario PER SPELLING. `BANNED` names four setters and
+    // `constructorOverflow` covers a fifth shape; pass 1 measured ZERO live sites for the three M10
+    // added, so reverting to the two-spelling form changed no verdict and no test existed over any
+    // of it. ⚡ A single plant carrying all five would red on whichever is caught first and say
+    // nothing about the rest — a plant that reds early never exercises the later ones.
+    gate: 'lint:month-arithmetic [constructorOverflow]',
+    script: 'check-month-arithmetic.ts',
+    at: 'apps/rn/src/__gate_plant__.ts',
+    body: 'export const shift = (d: Date, n: number): Date =>\n  new Date(d.getFullYear(), d.getMonth() + n, d.getDate());\n',
+    why: 'an UNCLAMPED source day carried into an offset month slot — the constructor form of the same overflow, and the one BANNED cannot see because there is no setter call at all',
+  },
+  {
+    /**
+     * ⛔ **S1.10.6.5.8.6 [GAP-15] — THE GATE DISCARDING ITS OWN SELF-CHECK.** `strings-inventory`
+     * re-tests `badOrigins` inside the `--gate` branch and exits 1 there, because an earlier
+     * `process.exitCode = 1` was being overridden by a later `process.exit(0)` — an explicit exit
+     * code wins. ⚡ But `badOrigins` is EMPTY against the real corpus, so the whole re-test could be
+     * deleted and no verdict would move. Nothing observed it.
+     *
+     * The plant mints one bad origin the only way the label can go wrong on real input: a property
+     * name long enough that `key:<name>` exceeds 48 chars. ⚠ That matters beyond tidiness — a label
+     * is an IDENTITY, and one that varies with source formatting silently mints a fresh
+     * `unclassified` bucket every time somebody reformats a file.
+     */
+    gate: 'lint:copy [GAP-15-self-check]',
+    script: 'strings-inventory.ts',
+    args: ['--gate'],
+    at: 'apps/rn/src/__gate_plant__.ts',
+    body: 'export const conf = {\n  aVeryLongPropertyNameThatExceedsFortyEightCharsTotal: \'Some user-facing copy here.\',\n};\n',
+    why: 'an origin label over 48 chars — the gate must refuse to vouch for a corpus it has just said it could not classify',
+  },
   ...B1_SCENARIOS,
   /**
    * ⛔ **S1.10.6.5 [pass-3 B1] — MULTI-LINE ON PURPOSE, BECAUSE THE GATE HAD TWO INDEPENDENT BLIND SPOTS
@@ -370,7 +438,7 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 16;
+const MIN_SCENARIOS = 21;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 

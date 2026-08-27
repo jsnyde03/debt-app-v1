@@ -33,6 +33,8 @@ const EXEMPT: Record<string, string> = {
     'Same shape — a stale allow-list entry reds. Verified red under a blanked stripper 2026-08-27 (24 stale entries reported).',
   'check-trust-claims.ts':
     'Every claim route must have a caller; reading nothing removes every caller. Verified red under a blanked stripper 2026-08-27 (15 problems).',
+  'test-strip-code.ts':
+    'Not a scanning gate — it is the unit test OVER the stripper (GAP-9), asserting exact output per construct plus length and line-count preservation, so a stripper reading nothing fails its own equality assertions. Verified red under a blanked stripper 2026-08-27 (exit 1).',
   'test-line-endings.ts':
     'Not a scanning gate — it feeds ONE committed fixture through the stripper and asserts the CRLF bytes survive, so a stripper reading nothing fails its own non-vacuity controls rather than passing quietly. Verified red under a blanked stripper 2026-08-27 (exit 1).',
   'check-copy-owners.ts':

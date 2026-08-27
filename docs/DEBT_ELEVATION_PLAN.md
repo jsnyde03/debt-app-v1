@@ -43,7 +43,7 @@ line, never the pipeline's status.
 
 ### ⏭ WHAT THE NEXT SESSION PICKS UP
 
-▶ **`S1.10.6.5.8`, sub-steps `.8.6`–`.8.7`** — decomposed below. ⛔ **Read the live count from `npm run lint:finding-guards`, never from here** *(`MAX_UNGUARDED` has moved **16 → 13 → 10** across this session and the last)*.
+▶ **`S1.10.6.5.8` is CLOSED — the guard backlog has drained.** ⛔ **Read the live count from `npm run lint:finding-guards`, never from here** *(`MAX_UNGUARDED` **16 → 1** across two sessions; the single remaining row is `GAP-14`, which exits by DECISION, not by a build)*. ▶ **Next: `S1.10.6.7`, the 14 minors — then pass 4.**
 
 ⚠️ **Verify each GAP's premise before building it.** Two of the four taken so far did **not** survive
 contact: `GAP-6` was already closed by `M8`'s strict-equality sweep *(its `>` premise is stale)*, and
@@ -109,43 +109,30 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 | **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ✅ **CLOSED 2026-08-27** — ⛔ and the day-old gate's two caps were **vacuous**, found by re-reading it |
 | **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, both restore doors | `B3` `B4` `C-7` `C-7b` | ✅ **CLOSED 2026-08-27** — ⚡ the finding's **own stated remedy would have been the defect** |
 | **S1.10.6.5** | ⛔ **The instruments** — four gates reporting green while doing less than they claim | `B1` `A3` `D3-3` `D3-4` | ✅ **CLOSED 2026-08-27** — ⚡ **every one had MORE than the finding said**: `B1` two blind spots · `A3` a plant covering one half · `D3-3` a sweep of **13** · `D3-4` pinnable only by a plant whose input is the git REVISION. Detail → log |
-| **S1.10.6.5.8** ▶ | ⭐ **THE GUARD BACKLOG** — the `unguarded` rows of the guard inventory | `GAP-*` | ▶ **ACTIVE** *(decomposed below)*. ⛔ **Not open defects — fixes with no standing guard.** ⚡ **The cap MOVED for the first time (16 → 13)**; ⚠️ read the live number from `lint:finding-guards`, and **verify each premise before building — 2 of the first 4 refuted** |
+| **S1.10.6.5.8** | ⭐ **THE GUARD BACKLOG** — the `unguarded` rows of the guard inventory | `GAP-*` | ✅ **CLOSED 2026-08-27** — `MAX_UNGUARDED` **16 → 1**, and the one row left (`GAP-14`) exits by DECISION. ⚡ **9 of 12 rows were wrong about their own scope or remedy**; three were already closed by `M8`'s strict-equality sweep, and one proposed remedy would have been the defect. Detail → log |
 | **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | ✅ **CLOSED 2026-08-27** — ⚡ both were **already asserted somewhere**, and both assertions were green over the gap |
 | **S1.10.6.10** | ⭐ **MATERIALISE S2/S3/S4's INVENTORIES BEFORE S2 OPENS** *(🎯's question, 2026-08-27: do the later surfaces bloat the way S1 did?)*. ⛔ **The S1 class cannot recur** — `lint:surface-complete` asserts all **1,220** tracked source files have an owner. ⚠️ **But their SIZES are unmeasured**: no `surface-coverage.s2.json` exists and the script answers *"unknown surface. Known: s0, s1."* ⚡ **And they cannot be measured cheaply, because the routing decisions live inside S1's own `excluded` function rather than in a shared router** — extracting it IS the fix. Three `never`-filled claim files + a `--surface=` that accepts them turns "unknown" into three numbers before switch-in. ⚠️ Completeness proves every file has *a* home, **not the right one** — `C-7` already hit that seam *(`readBackup.ts` is S3, its render site is S1)* | — | not started — ⭐ **do this BEFORE S2** |
-| **S1.10.6.7** | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | not started |
+| **S1.10.6.7** ▶ | **The 14 minors** — ⛔ [D65] has no deferrals, but minors do not gate the count; taken after the 20 | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | ▶ **ACTIVE** *(decomposed below)* |
 | **S1.10.6.8** | **Register every fix in `finding-guards.json`** — a two-line edit each (the entry **and** `MIN_ENTRIES`) | all 20 | ✅ **CLOSED 2026-08-27** — registered with each fix rather than batched. ⛔ **Read the count from `lint:finding-guards`, never from here**; `D3-3` then swept the whole registry because a token naming a DECLARATION outlives its use |
 | **S1.10.6.9** | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — the claim sites still on `lint:trust-claims`' `OPEN` ledger | `G-1`…`G-6` | ✅ **CLOSED 2026-08-27** — ⛔ **the row named two sites and the file held five**, one of them **blocker `B1` unfixed**; a sixth (`G-6`) was **a RED release gate** found while verifying. `MAX_OPEN` → **0** |
 
 **Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
-`lint:rn` + the unit suites green.
+`lint:rn` and the unit suites green.
 
-#### S1.10.6.5.8's sub-steps — THE GUARD BACKLOG, `GAP-2`…`GAP-18` *(ACTIVE)*
+#### S1.10.6.7's sub-steps — THE 14 MINORS *(ACTIVE)*
 
-⚠️ **Switch-in before-scan.** ⛔ **These are not open defects — every underlying finding is FIXED.** What is
-missing is the standing guard, so each is a fix that could be silently reverted. `MAX_UNGUARDED` has sat at
-**16 all session while the registry went 95 → 136** — the guarded half climbing fast, the backlog not
-moving, because **no item owned it**. 🎯 agreed 2026-08-27 to take it here rather than defer: `GAP-6` and
-`GAP-14` are both *"a cap that is self-described rather than self-enforcing"*, which is the class `.6.5`
-just spent five sub-steps on, and re-entering later costs the context.
-
-⛔ **Read the live list from `npm run lint:finding-guards`, never from this page.** Detail per gap →
-[`S0-GUARDS-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-GUARDS-4.md).
+⚠️ **Switch-in before-scan.** ⛔ **Verify each finding against the CURRENT tree before building it** — `.8` measured **9 of 12** of its rows wrong about their own scope or remedy, and these were written in the same pass. ⚡ **Grouped by CLASS, not by auditor**, because four of the fourteen are one class: *an assertion that cannot fail*. Ordered by value, not by id.
 
 | # | sub-step |
 |---|---|
-| ✅ | **.8.1 — `GAP-2` + `GAP-3` CLOSED.** ⚡ **1 of 9 → 9 of 9.** `selfCheck`'s poison carried `store: null` and **eight invariants return early on a null store**, so its own line *("the invariants fire")* was literally true and covered one; the rest were deletable with the suite green. One poison per invariant, each checked against **its own function** not `checkAll`, each with a clean control, a downward-only length floor, and **both** list directions. Plant-verified **11/11** — every invariant neutered in turn red naming itself, plus one added unpoisoned and one removed |
-| ✅ | **.8.2 — `GAP-6` REFUTED BY MEASUREMENT, not built.** ⛔ **The premise is stale**: written against `b03e0d3` where the comparison was `>`; the tree now uses `!==`, put there by `M8`'s strict-equality sweep. Re-measured both caps both directions — `55→56` reds, `55→54` reds, `48→49` reds. Exits by *measured never to have been one* ([D65]), with a token so it stays closed |
-| ✅ | **.8.3 — MY OWN RECOMMENDATION DID NOT SURVIVE THE MEASUREMENT, and what it surfaced is better.** ⛔ A CI freshness gate is **refuted**: `lint:gate-freshness` legitimately reds mid-audit ([D74]), and this workflow's own header records a permanently-red lane *killing* the previous gate; `gate:record` is deliberately not in CI, a post-record check is tautological, and **nothing in CI reads the record**. ⚡ **Found instead: the header claims it runs every link of `validate:release:rn`, the embed deploy's [D44] guard is built on that claim, it has ALREADY been false once — and *nothing compared the two lists*.** Now `lint:ci-chain`, on `lint:rn`, plant-verified 5 ways |
-| ✅ | **.8.4 — the floors, and ALL THREE PROPOSED REMEDIES WERE WRONG OR WEAK.** `GAP-7`'s own remedy would have been the defect *(the code six lines below forbids it)*; `GAP-8` was measured at 7 of **11** consumers, not 7 of 10; `GAP-13`'s file-count floor **cannot see a new tree arriving** at all. Built instead: a **named** refusal ledger, a **uniform read-floor + the CLASS gate** `lint:scan-floors`, and `lint:gate-sources`. ⚡ **Two of my own instruments carried the defect they were built to catch** — one keyed so its exemption could never be used, one blind to an import spelling. `MAX_UNGUARDED` **13 → 10** |
-| ✅ | **.8.5 — the fixtures. ⛔ NOT mechanical: 4 of the 5 rows were wrong about their own scope or remedy.** `GAP-4`'s two headline claims are **refuted by `M8`'s strict-equality sweep** *(the third GAP that sweep has killed)*; `GAP-17`'s two sources name **different** baselines and the union is **five**, one of them recorded as *"already fixed"* of a **different defect**; `GAP-12`'s ban was measured and rejected *(12 sites, all benign — 12 exemptions against 1 rule)*; only `GAP-11` held as written. ⚡ **A plant caught my CRLF guard normalising away the thing it tested** — vacuous, and green over its own defect. Built: `lint:line-endings` *(CRLF fixture, `.gitattributes -text`, proven across a real checkout)* · `lint:closure-stripper` · a 16th plant scenario · fall-checks + size caps on 5 baselines. `MAX_UNGUARDED` **13 → 5** |
-| **.6.5.8.6** | **The stragglers — `GAP-9` `GAP-10` `GAP-15` `GAP-18`.** Three fold into `GAP-16`'s harness; `GAP-18` is a one-line no-raw-NUL gate and the cheapest thing on the list |
-| **.6.5.8.7** | **Drive `MAX_UNGUARDED` down as each lands**, and ⛔ **make it self-ratcheting** — red BELOW the cap as well as above, so the backlog cannot quietly stop draining |
+| **.6.7.1** | ⭐ **THE ASSERTIONS THAT CANNOT FAIL** — `m1` `D3-5` `D3-7` `D3-8`. `m1` is vacuous and the auditor **proved it with a plant**; `D3-5` is two absence-only tests over a Progress screen that renders nothing; `D3-7` computes its expectation with the function under test; `D3-8` pins the word and not the number. ⚡ **The same class this whole cluster has been about** — take it first |
+| **.6.7.2** | **Engine + analytics** — `A5` `B5` `B6`. ⚠ `B6` is a **privacy invariant a file states about itself that is not true of its own types** — check whether it belongs to **P6.9** before fixing it here; `B5` is the last live copy of the comment-stripper S0 replaced |
+| **.6.7.3** | **Behaviour** — `m4` `m7`. `m4` silently multiplies a typed decimal by 100; `m7` *“Delete everything”* blocks on the iCloud copy and **not** on the quarantined one — verify the quarantine premise against P6.3's shipped code |
+| **.6.7.4** | **Figures + copy honesty** — `m2` `m3` `m5` `m6`. `m2` rounds months-saved **up** into years, in the flattering direction; `m3` formats the per-month anchor US-style whatever the store's locale is ⚠ which [D55] says is safe only while every storefront is period-decimal; `m5` counts cycles under a figure counting intervals |
 
-**Exit (S1.10.6.5.8):** `MAX_UNGUARDED` at its true floor with every remaining row carrying a written
-reason 🎯 has seen, each new guard **plant-verified to red on its own original defect**, and the cap
-self-ratcheting. ⛔ **`GAP-14` exits by a DECISION, not by a build.**
+**Exit (S1.10.6.7):** all 14 closed or measured never to have been findings, each fix carrying a standing guard per [D67], and `lint:rn` + the unit suites green. ⛔ **Then, and only then: pass 4.**
 
-
+---
 
 ⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
 green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one

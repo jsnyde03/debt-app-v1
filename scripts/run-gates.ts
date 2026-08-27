@@ -67,6 +67,14 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // DELETED with lint:closure green (measured, exit 0). A closure that was never examined is a
     // finding signed off by nobody, and this is M12's shape for the fifth time.
     'lint:closure-stripper',
+    // ⛔ S1.10.6.5.8.6 [GAP-18] — the class has recurred THREE times, most recently a raw NUL written
+    // straight into the generated strings inventory. A file tooling silently declines to read is the
+    // same failure as a gate that silently reads nothing.
+    'lint:control-chars',
+    // ⛔ S1.10.6.5.8.6 [GAP-9] — eleven gates read through lib/stripCode and NOTHING tested it.
+    // Measured: neutering its regex branch leaves all eleven at exit 0, so reverting it is silent
+    // by construction. This is the only thing that notices.
+    'lint:strip-code',
     // [D67] — finding → guard, the `check-copy-owners` pattern applied to findings. Reds when a guard's
     // assertion is removed even though its file survives.
     'lint:finding-guards',
@@ -100,7 +108,7 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
 const failed: string[] = [];
 
 for (const gate of GATES) {
-  console.log(`\n[1m── ${gate.name} ${'─'.repeat(Math.max(0, 70 - gate.name.length))}[0m`);
+  console.log(`\n\u001b[1m── ${gate.name} ${'─'.repeat(Math.max(0, 70 - gate.name.length))}\u001b[0m`);
   // `shell: true` on Windows — `npm` is `npm.cmd`, and spawnSync without a shell cannot resolve it.
   const res = spawnSync(gate.cmd, gate.args, { stdio: 'inherit', shell: true });
   // ⚠️ A signal death has a null status and is NOT a pass. `status !== 0` would read `null !== 0` as true,
@@ -109,13 +117,13 @@ for (const gate of GATES) {
   if (!ok) failed.push(gate.name);
 }
 
-console.log(`\n[1m${'═'.repeat(72)}[0m`);
+console.log(`\n\u001b[1m${'═'.repeat(72)}\u001b[0m`);
 if (failed.length === 0) {
-  console.log(`[32m✅ lint:rn — all ${GATES.length} gates pass.[0m`);
+  console.log(`\u001b[32m✅ lint:rn — all ${GATES.length} gates pass.\u001b[0m`);
   process.exit(0);
 }
 
-console.error(`[31m❌ lint:rn — ${failed.length} of ${GATES.length} gates FAILED:[0m\n`);
+console.error(`\u001b[31m❌ lint:rn — ${failed.length} of ${GATES.length} gates FAILED:\u001b[0m\n`);
 for (const name of failed) console.error(`  ❌ ${name}`);
 console.error(
   `\n  Every gate ran; the output for each is above, in order. Re-run one on its own with\n` +

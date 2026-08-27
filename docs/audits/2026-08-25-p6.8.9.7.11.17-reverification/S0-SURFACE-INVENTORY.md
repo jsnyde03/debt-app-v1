@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**106 files on the S0 surface · 47 swept · 59 unswept.**
+**108 files on the S0 surface · 47 swept · 61 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -70,6 +70,7 @@
 | `scripts/check-comment-convention.ts` | r17 |
 | `scripts/check-committed-secrets.ts` | p4 · s1p1 · s1p2 |
 | `scripts/check-contrast.ts` | p4 |
+| `scripts/check-control-chars.ts` | ⛔ **never** |
 | `scripts/check-copy-owners.ts` | p3 |
 | `scripts/check-destructive-writes.ts` | p1 · p3 |
 | `scripts/check-finding-guards.ts` | s1p1 · s1p2 |
@@ -118,6 +119,7 @@
 | `scripts/test-gate-plants.ts` | s1p1 · s1p2 |
 | `scripts/test-line-endings.ts` | ⛔ **never** |
 | `scripts/test-stamp-coverage.ts` | ⛔ **never** |
+| `scripts/test-strip-code.ts` | ⛔ **never** |
 | `scripts/webkit-flex-controls-baseline.json` | p4 |
 | `scripts/write-gate-status.ts` | p4 · s1p1 · s1p2 |
 
@@ -162,6 +164,7 @@
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
 - `scripts/check-ci-chain.ts`
+- `scripts/check-control-chars.ts`
 - `scripts/check-gate-sources.ts`
 - `scripts/check-scan-floors.ts`
 - `scripts/check-trust-claims.ts`
@@ -182,4 +185,5 @@
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-line-endings.ts`
 - `scripts/test-stamp-coverage.ts`
+- `scripts/test-strip-code.ts`
 

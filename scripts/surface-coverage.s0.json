@@ -186,6 +186,9 @@
   "scripts/check-contrast.ts": [
     "p4"
   ],
+  "scripts/check-control-chars.ts": [
+    "never"
+  ],
   "scripts/check-copy-owners.ts": [
     "p3"
   ],
@@ -354,6 +357,9 @@
     "never"
   ],
   "scripts/test-stamp-coverage.ts": [
+    "never"
+  ],
+  "scripts/test-strip-code.ts": [
     "never"
   ],
   "scripts/webkit-flex-controls-baseline.json": [
