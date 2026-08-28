@@ -1312,5 +1312,21 @@
       "run": "test:app",
       "expect": "an unusable mtimeMs (0) throws"
     }
+  },
+  "S1P4-F-B4-CLASS": {
+    "what": "pass-4 F-B4 (blocker) - hasUnreadDebtBalances matched r.field === 'balance' exactly while poisons(), twenty lines below in the same file, handled the parenthesised whole-row and whole-list losses through isWholeRowLoss. Two producers of one fact: the LOUDEST loss read 'debt-free' and the quietest read 'debt-free-unverified', so G-1 printed '4 of 4 matched - Under-warned 0 - proven', G-2 sent the freed reserve to 'your savings' and G-3 graduated the headline - the three sentences those findings closed, recurring on the louder member of their own class. Fixed by adding the whole-row test to the predicate; guardianTrust.test.ts now ITERATES the three members rather than asserting the quietest, plus the empty-list shape. ⛔ NOT !mayClaim('debt-balances') - that route also carries originalBalance, which is the trophy shelf's question (C-4) and not a liveness one; the over-fix controls in the same file refuse it.",
+    "file": "apps/rn/src/store/guardianTrust.test.ts",
+    "token": "field: '(whole list unreadable)'",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/trustSelectors.ts",
+          "find": "(r.field === 'balance' || isWholeRowLoss(r))",
+          "replace": "r.field === 'balance'"
+        }
+      ],
+      "run": "test:app",
+      "expect": "owner · a whole ROW unreadable"
+    }
   }
 }

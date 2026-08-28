@@ -38,9 +38,27 @@ import type { DataRepair, Debt, DebtStore } from '@/data/models';
  * made blocker ⓪-1 possible** — `Number('')` was `0` and classified `recovered` — which is why the
  * classification itself is pinned by `migrations.test.ts`'s table rather than trusted here.
  */
+/**
+ * ⛔ **S1.11.4.1 [pass-4 `F-B4`] — THE LOUDEST LOSS WAS THE ONE IT COULD NOT SEE, AND THE OTHER PRODUCER
+ * OF THIS FACT IS TWENTY LINES BELOW.**
+ *
+ * ⚡ This matched `r.field === 'balance'` exactly, while `poisons()` — in this same file — handles the
+ * parenthesised losses through `isWholeRowLoss`, because *"a repair whose field is parenthesised names no
+ * field because there was nothing left to name"*. So a lost `balance` FIELD read `debt-free-unverified`
+ * and a **whole unreadable `debts` LIST** — strictly more data lost — read plain **`debt-free`**.
+ * Measured: `G-1` printed `4 of 4 matched · Under-warned 0 · proven`, `G-2` sent the freed reserve to
+ * *"your savings"*, and `G-3` graduated the headline — the exact three sentences those findings closed,
+ * recurring on the louder member of their own class.
+ *
+ * ⚠️ **`!mayClaim(store, 'debt-balances')` was the finding's first suggestion and is NOT what this uses.**
+ * That route also carries `originalBalance`, and an unread *original* balance says nothing about whether
+ * the CURRENT balances are trustworthy — it is the trophy shelf's question (`C-4`), not this one. Widening
+ * to it would suppress the Guardian's framing over a figure that has no bearing on liveness, which is the
+ * over-fix the controls in `guardianTrust.test.ts` exist to refuse.
+ */
 export function hasUnreadDebtBalances(store: DebtStore): boolean {
   return store.pendingDataRepairs.some(
-    (r) => r.entity === 'debt' && r.field === 'balance' && r.kind !== 'recovered',
+    (r) => r.entity === 'debt' && (r.field === 'balance' || isWholeRowLoss(r)) && r.kind !== 'recovered',
   );
 }
 

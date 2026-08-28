@@ -105,12 +105,40 @@ function run() {
   const visaLost = { ...visa, balance: 0 };
   const balanceRepair = lost('debt', 'd0', 'Visa', 'balance');
 
+  /**
+   * ⛔ **S1.11.4.1 [pass-4 `F-B4`] — THE CLASS HAS THREE MEMBERS AND THIS SUITE TESTED ONE.**
+   *
+   * ⚡ Every fixture below used to be built from `balanceRepair`, so `G-1`…`G-3` were asserted against the
+   * QUIETEST member of the class while the two loudest — a row the reader could not parse, and a whole
+   * `debts` list it could not read at all — went straight through `hasUnreadDebtBalances` and printed the
+   * three sentences those findings closed. ⚠️ **The rows are iterated rather than repeated**: a list is
+   * what someone has to remember to extend, and nobody does — which is the defect this is fixing.
+   *
+   * The two synthetic fields are the ones `migrations.ts` actually emits (`:129`, `:155`), quoted rather
+   * than re-spelled, so a change to either producer's wording reds here instead of drifting.
+   */
+  const DEBT_LOSSES: { label: string; repair: DataRepair }[] = [
+    { label: 'a lost balance FIELD', repair: balanceRepair },
+    { label: 'a whole ROW unreadable', repair: { entity: 'debt', id: '', name: '', field: '(a row could not be read)', kind: 'lost' } },
+    { label: 'the whole LIST unreadable', repair: { entity: 'debt', id: '', name: '', field: '(whole list unreadable)', kind: 'lost' } },
+  ];
+
   eq(debtLiveness(base({ debts: [visa] })), 'has-debt', 'owner — a live balance is has-debt');
   eq(debtLiveness(base({ debts: [visaLost] })), 'debt-free', 'owner — a real zero, no repair, is debt-free');
+  for (const { label, repair } of DEBT_LOSSES) {
+    eq(
+      debtLiveness(base({ debts: [visaLost], repairs: [repair] })),
+      'debt-free-unverified',
+      `⛔ owner · ${label} — the SAME zero with a repair record is unverified, and that distinction is the whole module`,
+    );
+  }
+  // ⛔ [F-B4] A whole-list loss usually arrives with the list EMPTY — `migrations.ts:129` records it when
+  // the stored value is not an array at all — so the zero-row shape is asserted as well as the one that
+  // keeps a row. Both must be unverified; only one of them was reachable by the old fixture.
   eq(
-    debtLiveness(base({ debts: [visaLost], repairs: [balanceRepair] })),
+    debtLiveness(base({ debts: [], repairs: [DEBT_LOSSES[2].repair] })),
     'debt-free-unverified',
-    '⛔ owner — the SAME zero with a repair record is unverified, and that distinction is the whole module',
+    '⛔ owner · an EMPTY debts list with a whole-list loss — no rows to read, and nothing to celebrate',
   );
   eq(
     debtLiveness(base({ debts: [visaLost], repairs: [{ ...balanceRepair, kind: 'recovered' }] })),
@@ -133,14 +161,16 @@ function run() {
   eq(calTruth.matches, 0, 'G-1 control — with the balance readable, the DEBT regime is graded: 0 of 4 matched');
   eq(calTruth.falseClears, 4, 'G-1 control — …and all four are under-warns, the direction the copy never softens');
 
-  const calDamaged = selectCalibrationScore(base({ debts: [visaLost], repairs: [balanceRepair], history: mixedHistory }));
-  eq(calDamaged.n, 0, '⛔ G-1 — an unread balance grades NOTHING rather than the wrong regime');
-  eq(calDamaged.proven, false, '⛔ G-1 — …so the scorecard falls back to the day-one state');
-  eq(calDamaged.matchRate, null, '⛔ G-1 — …and there is no percentage to print');
-  assert(
-    !(calDamaged.matches === 4 && calDamaged.falseClears === 0),
-    '⛔ G-1 — the exact inversion that shipped ("4 of 4 · Under-warned 0") cannot recur',
-  );
+  for (const { label, repair } of DEBT_LOSSES) {
+    const calDamaged = selectCalibrationScore(base({ debts: [visaLost], repairs: [repair], history: mixedHistory }));
+    eq(calDamaged.n, 0, `⛔ G-1 · ${label} — an unread balance grades NOTHING rather than the wrong regime`);
+    eq(calDamaged.proven, false, `⛔ G-1 · ${label} — …so the scorecard falls back to the day-one state`);
+    eq(calDamaged.matchRate, null, `⛔ G-1 · ${label} — …and there is no percentage to print`);
+    assert(
+      !(calDamaged.matches === 4 && calDamaged.falseClears === 0),
+      `⛔ G-1 · ${label} — the exact inversion that shipped ("4 of 4 · Under-warned 0") cannot recur`,
+    );
+  }
 
   const calFree = selectCalibrationScore(base({ debts: [visaLost], history: mixedHistory }));
   eq(calFree.matches, 4, '⭐ G-1 control — a GENUINELY debt-free user still gets their debt-free record graded');
@@ -173,23 +203,28 @@ function run() {
     'your savings',
     'G-2 control — a genuine payoff really does send it to savings',
   );
-  eq(
-    selectReserveRelease(base({ debts: [visaLost], repairs: [balanceRepair], reserveRelease: true }))?.targetName,
-    'your debt',
-    '⛔ G-2 — an unread balance takes the existing "your debt" fallback, never "your savings"',
-  );
+  for (const { label, repair } of DEBT_LOSSES) {
+    eq(
+      selectReserveRelease(base({ debts: [visaLost], repairs: [repair], reserveRelease: true }))?.targetName,
+      'your debt',
+      `⛔ G-2 · ${label} — an unread balance takes the existing "your debt" fallback, never "your savings"`,
+    );
+  }
 
   // ── G-3 · the Guardian headline's regime (pass-1 blocker B1, in the sibling selector) ──────────
   const gTruth = selectPaydayGuardian(base({ debts: [visa], bills: 1500 }));
   const gFree = selectPaydayGuardian(base({ debts: [visaLost], bills: 1500 }));
-  const gDamaged = selectPaydayGuardian(base({ debts: [visaLost], repairs: [balanceRepair], bills: 1500 }));
+
   eq(gTruth?.debtFree, false, 'G-3 control — a live balance keeps the Guardian on the debt framing');
   eq(gFree?.debtFree, true, 'G-3 control — a genuine payoff graduates it, which is 2.4.8 and must keep working');
-  eq(
-    gDamaged?.debtFree,
-    false,
-    '⛔ G-3 — an unread balance does NOT graduate the headline; a debt row exists and only its number is unknown',
-  );
+  for (const { label, repair } of DEBT_LOSSES) {
+    const gDamaged = selectPaydayGuardian(base({ debts: [visaLost], repairs: [repair], bills: 1500 }));
+    eq(
+      gDamaged?.debtFree,
+      false,
+      `⛔ G-3 · ${label} — an unread balance does NOT graduate the headline; a debt row exists and only its number is unknown`,
+    );
+  }
 
   // ── G-4 · the routing gap: an unread BALANCE removes an obligation, exactly as an unread minimum does ──
   /**
