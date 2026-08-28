@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
 
 /**
  * ⛔ **`web-e2e.yml`'s HEADER CLAIMS IT RUNS EVERY LINK OF `validate:release:rn`, AND NOTHING COMPARED THE
@@ -53,17 +54,77 @@ if (links.length === 0) {
 }
 
 const workflow = readFileSync(join(REPO_ROOT, WORKFLOW), 'utf8');
+
 /**
- * ⚠️ Read off `run:` lines only, never the whole file — the header DISCUSSES most of these names in
- * prose, so a bare `includes()` would find every link in the comment that explains the drift and report
- * the drift fixed.
+ * ⛔ **S1.11.2 [pass-4 D4-5] — PRESENCE WAS NEVER THE PROPERTY THAT FAILED.**
+ *
+ * This read `run:` lines with a regex and asked *"does the string `npm run <link>` appear?"*. Measured on
+ * four plants against the embed step: deleting the step **reds**, commenting the `run:` line **reds** —
+ * but adding **`if: false`** or **`continue-on-error: true`** both leave it **green**, printing *"all 8
+ * gating links run in web-e2e.yml"* over a step that never gates. ⚡ The green sentence is then a false
+ * statement, and `embed-pages.yml`'s `[D44]` guard trusts exactly that sentence.
+ *
+ * ⛔ **This file's own docblock diagnosed the class and then rebuilt it:** *"the header's own remedy was a
+ * sentence … and a documentation rule is exactly what failed the first time."* The rewrite replaced the
+ * sentence with a check on **presence** — and `[W1-3]` was three links **absent**, so absence is the one
+ * spelling of *"does not run"* it could see.
+ *
+ * ⚠️ **A line regex over YAML cannot express "this step executes"; a parser can.** So the workflow is
+ * parsed with the `yaml` dependency the repo already carries, and a link counts only if some step runs it
+ * **unconditionally** — no step `if:`, no step `continue-on-error: true`, and the same for the job that
+ * owns it. ⚡ The parse also fixes the multi-line `run: |` block the regex handled only by accident.
  */
-const ciRuns = new Set(
-  workflow
-    .split(/\r?\n/)
-    .filter((l) => /^\s*run:\s/.test(l) || /^\s{8,}npm run /.test(l))
-    .flatMap((l) => [...l.matchAll(/npm run ([\w:-]+)/g)].map((m) => m[1])),
-);
+const isGating = (job: Record<string, unknown>, step: Record<string, unknown>): boolean => {
+  const truthy = (v: unknown) => v === true || v === 'true';
+  if ('if' in step || 'if' in job) return false; // a conditional step/job is not a gating one
+  if (truthy(step['continue-on-error']) || truthy(job['continue-on-error'])) return false;
+  return true;
+};
+
+const doc = parseYaml(workflow) as { jobs?: Record<string, { steps?: unknown[] } & Record<string, unknown>> };
+const jobs = Object.values(doc?.jobs ?? {});
+const ciRuns = new Set<string>();
+let stepsSeen = 0;
+for (const job of jobs) {
+  for (const step of (job.steps ?? []) as Record<string, unknown>[]) {
+    stepsSeen++;
+    if (!isGating(job as Record<string, unknown>, step)) continue;
+    const run = typeof step.run === 'string' ? step.run : '';
+    for (const m of run.matchAll(/npm run ([\w:-]+)/g)) ciRuns.add(m[1]);
+  }
+}
+
+/**
+ * ⛔ **NON-VACUITY, in the shape this file already uses for `links`.** A parse that silently yields no
+ * steps would report every link missing — noisy but safe — while a parse that yields steps and no `run`
+ * strings would report the chain broken for the wrong reason. Both are parser failures, not chain
+ * failures, and they must say so.
+ */
+if (stepsSeen === 0 || ciRuns.size === 0) {
+  console.error(
+    `\n❌ ci-chain: parsed ${stepsSeen} step(s) and ${ciRuns.size} \`npm run\` invocation(s) out of ${WORKFLOW}.\n` +
+      `   ⛔ The PARSER is broken, not the chain. Fix this before reading any verdict below it.\n`,
+  );
+  process.exit(1);
+}
+
+/** ⛔ Module scope — the gating predicate asserted on the two spellings `D4-5` measured as invisible. */
+{
+  const CASES: readonly (readonly [Record<string, unknown>, Record<string, unknown>, boolean, string])[] = [
+    [{}, { run: 'npm run x' }, true, 'a plain step gates'],
+    [{}, { run: 'npm run x', if: 'false' }, false, '⛔ D4-5 — a step with if: does not gate'],
+    [{}, { run: 'npm run x', 'continue-on-error': true }, false, '⛔ D4-5 — continue-on-error: true does not gate'],
+    [{}, { run: 'npm run x', 'continue-on-error': 'true' }, false, 'the string spelling of the same thing'],
+    [{ if: 'github.ref == 1' }, { run: 'npm run x' }, false, 'a step inside a conditional JOB does not gate'],
+    [{ 'continue-on-error': true }, { run: 'npm run x' }, false, 'nor one inside a continue-on-error job'],
+  ];
+  for (const [job, step, want, why] of CASES) {
+    if (isGating(job, step) !== want) {
+      console.error(`\n❌ ci-chain — its own isGating() is wrong: ${why}\n   got ${isGating(job, step)}, expected ${want}\n`);
+      process.exit(1);
+    }
+  }
+}
 
 const problems: string[] = [];
 for (const link of links) {
