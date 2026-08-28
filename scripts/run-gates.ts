@@ -78,6 +78,12 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // [D67] — finding → guard, the `check-copy-owners` pattern applied to findings. Reds when a guard's
     // assertion is removed even though its file survives.
     'lint:finding-guards',
+    // ⛔ S1.11.3.1 — `lint:finding-guards` proves a TOKEN is present; `prove:guards` proves the guard
+    // still REDS. Pass 4 ran the first beside every un-fix it performed and it exited 0 every time. This
+    // link is the second one's own 2×2 — a guard that holds reads ✅, a plant that lands and changes
+    // nothing the check reads is called `failed-open` — because an instrument in no chain is unexecuted
+    // ([M5]), which is how `test:gate-plants` itself sat unrun while fifteen gates were reporting green.
+    'prove:guards:selftest',
     'lint:a11y-collapse',
     'lint:contrast',
     'lint:type-scale',

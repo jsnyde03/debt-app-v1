@@ -90,6 +90,22 @@ reds FOR THE PLANTED REASON** → **plant the naive over-fix** → register the 
 | ✅ **S1.11.7** | **[DECISION] S0's convergence stands — [D76], 2026-08-28.** ⚠️ `D4-7` said 49; the measured number is **62** *(`lint:s0-coverage`: 109 classified · 62 unswept)*. ⛔ The gate printing them on the **green** path is deliberate and documented — **nearly filed as a defect and it is not one**; what is real is that `audit-route.ts` can never route them | CLOSED — the routing half moves to `S1.11.6` |
 | **S1.11.8** | **THE NET** — full e2e + embed, read from each suite's own summary line, commit, push. ⛔ **No `gate:record`** — [D74] writes it at convergence and pass 4 did not converge | green and pushed; the hand-off names the last full pass |
 
+##### S1.11.3's sub-steps — the ledger, PROVEN
+
+⛔ **Verified at switch-in: the scope is 40 entries, not 43** — three of the eight proven-dead
+(`S1P3-B6` `S1P3-M7` `S1P3-B3-MTIME`) sit *inside* the 35. ⚠️ **And 106 entries outside `S1P3-*` have never
+been proven by anyone either** *(39 `S1P1` · 22 `S1P2` · 21 `GAP` · 5 `REVERIFY4` · the rest)* — the
+mechanism records them as a **draining ledger**, never as silence.
+
+| # | sub-step | exit line |
+|---|---|---|
+| **S1.11.3.1** | **THE PROOF HARNESS** — `scripts/prove-guards.ts`, plus a `proof` block per entry *(un-fix · command · the reason it must red for)*. ⛔ Reuses `verdict()`, extracted to `scripts/lib/verdict.ts` so there stays **one producer** | control green → un-fix **applied** → planted RED **for the named reason** → restore → **bytes-identical** → re-run green; a harness fault classified as neither pass nor fail |
+| **S1.11.3.2** | ⛔ **`lint:finding-guards` STOPS CALLING A TOKEN A CLOSURE** — each entry carries a `proof` or a written `GUARD-ONLY`; `MAX_UNPROVEN` downward-only; a proof whose un-fix anchor is gone is **void**, not green | both checks planted: raising the cap reds, and moving the anchored line reds |
+| **S1.11.3.3** | **THE 8 PROVEN-DEAD** — re-measure at the current tree, repair or re-point, prove | each `PROVEN`, or `GUARD-ONLY` with the measurement beside it |
+| **S1.11.3.4** | **THE 32 NEVER-TESTED** in lanes A/B/C, in batches | same verdict per entry; every dead one **repaired**, not merely recorded |
+| **S1.11.3.5** | **RE-RATE** every prior `CLOSED` resting on a dead guard; register the residual unproven ledger | the record distinguishes *proven* from *present* |
+| **S1.11.3.6** | **THE NET for the sub-step** — `typecheck` · `lint:rn` · the unit suites · commit | green and pushed; plan + log written in the same edit |
+
 **Exit (S1.11):** 0 blockers / 0 majors on pass 4's findings, every guard in the registry **proven to red on
 its own defect**, and the route regenerated so pass 5 reads the surface pass 4 could not see. ⛔ **Pass 4
 did not converge** — [D65] exits on 0/0 **twice consecutively**, so pass 5 is the next first-candidate and a

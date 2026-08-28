@@ -320,12 +320,12 @@
   },
   "S1P2-B1-REASON": {
     "what": "pass-2 B-1's harness half - an exit-code-only check scores a pass when a gate reds for a DIFFERENT reason than the planted defect. RE-POINTED S1.11.2 [pass-4 D4-1 + D4-6]. The old token was `if (!ok) failures++;`, and D4-1 measured it GUARD-ONLY: the un-fix deletes `&& rightReason` from the line ABOVE, so the counted line never moves and the registry stayed green. D4-6 then measured what that deletion switched off - the harness printed `reason=WRONG` beside a green tick and announced 'all 21 gates fail closed', exit 0, contradicting itself on one line. S1.11.2 made the contradiction unrepresentable rather than detectable: verdict() returns the tick AND the printed line together, so there is nothing left at the call site to get wrong. This token now pins the MODULE-SCOPE self-check's invariant assertion - a line carrying a tick may never say reason=WRONG - because deleting that self-check is the one un-fix the plants cannot catch, the plants BEING that self-check. Plant-verified BOTH ways: deleting the wrong-reason push -> exit 1 'a WRONG reason is a failure'; and the naive over-fix `ok = failed.filter(f => f !== 'wrong-reason').length === 0` -> exit 1 on this very invariant, which is the residual that a failure-list-only return would have left open",
-    "file": "scripts/test-gate-plants.ts",
+    "file": "scripts/lib/verdict.ts",
     "token": "printed a ✅ beside reason=WRONG"
   },
   "S1P4-D4-6-VERDICT": {
     "what": "pass-4 D4-6 - ONE PRODUCER OF THE VERDICT. The tick and the printed reason were two independent expressions over the same inputs, so deleting two words made `ok` true while `reason=WRONG` kept printing. verdict() now returns { ok, line, failed } - the caller prints `line` and counts `ok`, so every un-fix has to happen inside the function the module-scope self-check reads. Pinning the RETURN rather than the function name: renaming verdict() reds typecheck, but changing what it returns is the silent edit. See S1P2-B1-REASON for the self-check that proves it still discriminates",
-    "file": "scripts/test-gate-plants.ts",
+    "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
   "S1P4-C4-10-NAMEDONLY": {
@@ -536,7 +536,18 @@
   "S1P3-A2-INWINDOW": {
     "what": "pass-3 A2 — buildCycleSnapshot summed the raw per-installment minimumPayment while the rollover deducted the window-scaled one, so History reported $100 for a cycle that paid $200. The guard pins the snapshot to what applyRolloverPayment ACTUALLY deducts rather than to a literal, so the two cannot drift together, and carries a non-BNPL control. Every prior fixture in that file was monthly — the one member of the class where scaled and unscaled agree",
     "file": "packages/core/testing/testPayCycleHistoryRegression.ts",
-    "token": "History reports the money the rollover actually deducted (S1P3-A2)"
+    "token": "History reports the money the rollover actually deducted (S1P3-A2)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/history/buildCycleSnapshot.ts",
+          "find": "effectiveMinimumInWindow(debt, windowStartISO, windowEndISO),",
+          "replace": "debt.minimumPayment,"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "History reports the money the rollover actually deducted (S1P3-A2)"
+    }
   },
   "S1P3-A4-CADENCE": {
     "what": "pass-3 A4 — the in-window seams were gated on isInstallmentNative, so a fallback BNPL (type bnpl + recurrence + dueDate, no installment fields; reachable via CSV import and pre-2.7.2 backups) was reserved and paid down at 1x while the chart and date rated it by cadence. Jason chose the reserve moves to the cadence. The token names the PAYDOWN assertion, not the count — proven independently load-bearing by relaxing the two assertions before it (D3-3's lesson: name the line that USES the check)",
