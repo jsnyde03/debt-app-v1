@@ -33,26 +33,55 @@ lived only on the plan)* · the log *(P6.8's closed sweep, the 62 findings, the 
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-27, second session).** 🎯: standing authority to run the surface
-audits **to convergence**. **S0 CONVERGED · S1 passes 1 and 2 FIXED · PASS 3 IS RUN, RECORDED, CLASSIFIED
-AND 19-of-20 FIXED.**
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-28).** 🎯: standing authority to run the surface audits **to
+convergence**, including triaging and fixing what they find. **S0 CONVERGED · S1 passes 1, 2 and 3 all RUN
+AND FULLY FIXED · PASS 4 IS DISPATCHED** — four fresh auditors at pin `e65f9c7`.
 
 🔴 **PASS 3 RETURNED 11 BLOCKERS · 9 MAJORS · 14 MINORS** — the largest round yet, on the widened surface.
 [`docs/audits/2026-08-26-s1-money-pass3/SUMMARY.md`](docs/audits/2026-08-26-s1-money-pass3/SUMMARY.md) is
 the map. ⛔ **S1 does NOT converge**; 9 of the 20 restart [D65]'s count, and **pass 3 is not a clean pass**,
 so a clean pass 4 still owes a pass 5.
 
-▶ **ACTIVE: `S1.10.7` — the round's NET, then pass 4.** Decomposed at the top of the plan.
+▶ **ACTIVE: `S1.10.7.5` — pass 4 is RUNNING.** `.7.1`–`.7.4` closed 2026-08-28: the net green, pushed, the
+route generated, the brief written and its dispatch verified. Decomposed at the top of the plan.
 ✅ **`S1.10.6` is CLOSED except `.6.10`** *(held for just-before-S2, see below)*: all **20** blocker+majors, the `G-1`…`G-6` enumeration, the whole `GAP-*` guard backlog and all **14** minors — every guard measured RED on its own restored defect.
+
+⭐ **[D75] — THE AUDIT ROUTE IS A GENERATED SET DIFFERENCE**, `scripts/audit-route.ts`, never a typed list.
+Four origins: **first-look** *(never swept)* · **fix-churn** *(swept, then changed — the pass read bytes that
+are gone)* · **instrument** *(on S0 and changed)* · **off-surface** *(changed, on NO inventory)*. Pass 4:
+**217 routed · 0 unrouted · 0 duplicated · 0 missing**, split **125 · 48 · 33 · 11**.
+
+⚡ **The two buckets nothing had a name for, and both are the same shape — a sweep is recorded against a
+PATH, not against BYTES.** `fix-churn`: **48 files pass 3 read and the fixing then rewrote**, still counted
+swept by `lint:s1-coverage`. `off-surface`: **`lint:surface-complete` proves a file is under a ROOT, not
+that any inventory CONTAINS it** — S2/S3/S4 have no claims file, and **S1's own fixing edited three S3
+files** (`readBackup.ts`, its test, `data-recovery.spec.ts`) that nothing was going to read.
+
+⭐ **PASS 4 HAS A SECOND DELIVERABLE** *(🎯 2026-08-28: "verify if the fixes implemented are closed")* — a
+per-id verdict on all **34** pass-3 findings and all **53** `S1P3-*` guard entries. ⛔ `lint:finding-guards`
+is not that answer: green proves a token sits on a non-comment line, and **7 green entries once survived
+their own un-fix**.
 
 ⚡ **THE NUMBER TO CARRY INTO PASS 4'S FIX PHASE.** Of **26** pre-authored rows worked across the last two sub-steps, **15 were wrong about their own scope or REMEDY** — while the premises were almost always right. ⛔ **The ledger is reliable about WHERE and unreliable about WHAT TO DO.** Three remedies would have *introduced* the defect they described: `GAP-7`'s equality assertion is forbidden by the code six lines below it, `A5`'s `??` makes a debt paid IN FULL display its full balance, and `D3-8`'s regex accepts the `$0.00` it was written to catch. **Verify what a finding says to DO, not just where it points.**
 
 ⚠️ **Three rows had already been closed by `M8`'s strict-equality sweep and nobody had noticed** — a sweep that lands quietly leaves a backlog describing a tree that no longer exists.
 
-⛔ **THE INSTRUMENTS ARE NOW A LARGE PART OF WHAT PASS 4 READS.** The stack gained **six gates and three test modules** in two sessions — `lint:gate-sources` · `lint:scan-floors` · `lint:line-endings` · `lint:closure-stripper` · `lint:control-chars` · `lint:strip-code`, and `lint:rn` is **36 gates**. ⚡ **Eleven defects went INTO those instruments across the two sessions, and not one was visible by reading** — every one was found by planting. **Report pass 4 split by origin**, or a flat total hides both halves moving.
+⛔ **THE INSTRUMENTS ARE THE LARGEST SINGLE THING PASS 4 READS.** ⚠️ **The count here said SIX and it is
+EIGHT** *(corrected 2026-08-28 from `git diff`, not from a list — the seventh instance of the undercount
+class, inside the sentence warning about it)*: the enumeration omitted **`lint:trust-claims`**, the 313-line
+gate that is `.6.2`'s durable half, and **`lint:ci-chain`**. **13 new files · 20 modified · +2,654 / −332**
+in `scripts/`. ⚡ **Eleven defects went INTO those instruments across the two sessions, and not one was
+visible by reading** — every one was found by planting. **Report pass 4 split by origin**, or a flat total
+hides both halves moving.
+
+⛔ **AND THE CLASS ABOVE ALL OF THEM: A CHECK THAT CANNOT FAIL.** `lint:trust-claims`' two caps were
+`Object.keys(X).length` — derived from the lists they cap, so both "ratchets" were no-ops. **It happened
+again in `audit-route.ts` on the day it was written**: a duplicate-bucket `die()` that precedence had made
+unreachable, which went **green** under a plant while quietly misrouting a money file. **Reading has never
+once found this class. Planting has found it every time.**
 
 ⭐ **BEFORE S2 OPENS — `S1.10.6.10`.** 🎯 asked whether the later surfaces will bloat the way S1 did.
-⛔ **The S1 class cannot recur**: `lint:surface-complete` asserts all **1,220** tracked source files have an
+⛔ **The S1 class cannot recur**: `lint:surface-complete` asserts that *every* tracked source file has an
 owner, and it was built *because* 184 files of `apps/rn/src` were under no root at all. ⚠️ **But S2/S3/S4's
 sizes are UNMEASURED** — no claims file exists and the script answers *"unknown surface. Known: s0, s1."*
 ⚡ **And they resist cheap measurement because the routing lives inside S1's own `excluded` function rather

@@ -27229,6 +27229,36 @@ copy, not by git** — the file is untracked, and `git checkout --` would have d
 ⚠️ **One before-scan suspicion was refuted:** `check-comment-convention.ts` looked like an unwired gate. It
 is wired, as `lint:comments`, and is in `run-gates.ts`. Measured before filing.
 
+## S1.10.6.10 — the detail, held out of the plan's queue row (2026-08-28)
+
+⭐ **Materialise S2/S3/S4's inventories before S2 opens.** 🎯 2026-08-27 asked whether the later surfaces
+will bloat the way S1 did — S1's roots were corrected **five times**, 72 → 137 → 188 → 286 → 470.
+
+⛔ **The S1 class itself cannot recur.** `lint:surface-complete` asserts every tracked source file has an
+owner, cap **0**, sourced from `git ls-files`. It was built precisely because 184 files of `apps/rn/src`
+were under no root at all. ⛔ **Read the count from the command** — the figure in the plan said *1,220*
+against a gate saying **1,242**, four weeks after the residue table stopped carrying numbers for exactly
+this reason.
+
+⚠️ **But S2/S3/S4's SIZES are unmeasured.** No `surface-coverage.s2.json` exists and
+`scripts/surface-coverage.ts` answers *"unknown surface. Known: s0, s1."* ⚡ **They resist cheap measurement
+because the routing decisions live inside S1's own `excluded` function rather than in a shared router.**
+Extracting it IS the fix. Three `never`-filled claim files plus a `--surface=` that accepts them turns
+"unknown" into three numbers before switch-in.
+
+### ⛔ Sharpened 2026-08-28 — and this is the part that makes the row load-bearing
+
+**Completeness proves a file is under a ROOT. It does not prove any inventory CONTAINS it**, and those are
+very different claims. `excluded` routes files onward to S2, S3 and S4; **those surfaces have no claims
+file**; so their files are green on `lint:surface-complete` and on **nobody's list**.
+
+⚡ **Measured by `audit-route.ts` on its first run: S1's own fixing edited three S3 files** —
+`apps/rn/src/data/readBackup.ts`, its test, and `apps/rn/tests/e2e/data-recovery.spec.ts`, the `C-7`/`C-7b`
+restore doors — **and nothing was going to read them.** The plan's existing caveat said *"completeness
+proves every file has a home, not the RIGHT one"* (`C-7` hit that seam). This is the sharper form: **a home
+can be a surface that does not yet exist.** [D75]'s `off-surface` bucket routes them to pass 4 as a
+stop-gap; the standing fix is this row.
+
 ## S1.10.7.4 — the brief, and the deliverable Jason added (2026-08-28)
 
 **Pinned `e65f9c7`.** [`audits/2026-08-28-s1-money-pass4/BRIEF.md`](audits/2026-08-28-s1-money-pass4/BRIEF.md).
