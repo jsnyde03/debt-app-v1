@@ -798,3 +798,14 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   owner** *(export it from `migrations.ts` beside `REPAIRABLE_MONEY_FIELDS` and have both tests read it)*.
   ⚠️ Not folded into `S1.11.2`: it is a change to two passing guards on a route pass 4 already swept, and
   `S1.11.4` is where two-producer collapses are being done as a class.
+
+- **→ P6.10.** ⭐ **Surfaced by building `D4-8`'s fix — a residual I did NOT close.** `check-trust-claims.ts`
+  check 1 still decides *"is this claim consumed in production?"* with
+  `(read.get(rel) ?? '').includes("'debt-balances'")` — a **mention of the claim literal**, not a call.
+  `D4-8`'s fix made check **3**'s ledger membership call-based and floored the per-claim counts, and the
+  floor does cover the measured regression *(removing the call removed the literal, the count dropped, it
+  reds)*. ⚠️ **What it does not cover** is a file that loses the call while keeping the literal in some
+  other position — a label, a map key, a union of strings — where the count holds steady and the claim
+  reads as consumed. **Same mention-vs-use defect, one check up.** Deferred rather than folded in: it is a
+  behaviour change to a passing gate needing its own 2×2, and `S1.11.2` was already at seven fixes.
+  ▶ Fix with the `CALL` regex that already lives in this file and extracts the claim argument.

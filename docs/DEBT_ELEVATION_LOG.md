@@ -27676,3 +27676,58 @@ the new guard REDS** → plant the **naive over-fix** → register the guard.
 
 
 </details>
+
+
+---
+
+## S1.11.1 – S1.11.2 — CLOSED 2026-08-28. Pass 4 recorded, and all seven instruments repaired.
+
+### S1.11.1 — recorded and classified
+
+`s1p4` registered in `SWEPT_CLAIMS` *(it was absent — the trap that nearly bit on `s1p2` and `s1p3`)*.
+Claims written back **in the same step as the record**, to **both** files: the route spans two surfaces —
+173 files on S1, 33 on S0, and **11 off-surface that no claims file can hold**. Coverage **S1 125→63**
+unswept, **S0 62→50**. ⚠️ The route is **217**, not the 216 the plan carried; both sources agree, 0 disjoint.
+
+⛔ **Coverage was not credited by route membership.** Each routed file was classified against its own
+lane's §6: **130 evidenced-swept, 87 named not-reached.** Three matching errors were caught by *reading*
+the matches — an unbounded §6 extraction that swallowed the restore logs, `Card.tsx` matching inside
+`AffordabilityCard.tsx`, and two files named in a not-reached section **as exceptions to it**. One
+correction ran the other way: C disclaims three *directories* wholesale, which a per-file matcher cannot
+see, so 30 more files moved to `partial`.
+
+⚡ **[D69]: 29 of 34 COUNT, and all eight blockers count** — pass 3 counted 9 of 20 because 11 were
+first-look. Full table → [`CLASSIFICATION.md`](audits/2026-08-28-s1-money-pass4/CLASSIFICATION.md).
+
+### S1.11.2 — the instruments, 7 of 7
+
+| id | what was wrong | proof |
+|---|---|---|
+| `D4-6` | the tick and the printed reason were two producers; deleting two words printed `✅ … reason=WRONG` and announced *"all 21 gates fail closed"* | 4 plants · 2 tokens red on their own un-fix |
+| `C4-10` | `row-figures: 'any'` put `debt *` in `routed`, so the completeness loop **could not fail** | 2×2: new RED naming the id, old GREEN |
+| `D4-3` | `isTest` knew one of two conventions; **64** `test*.ts` under `packages/core` counted as production | 2×2 + the ledger-shrink warning measured and refuted |
+| `D4-9` | strip detector single-quote-only and non-recursive | 2×2 with the *"eighth gate"* planted in both missed spellings |
+| `D4-5` | `lint:ci-chain` checked presence; `if: false` and `continue-on-error` both stayed green | 4 plants vs the **real pin file**, not a reconstruction |
+| `D4-8` | ledger membership turned on a *mention*; the consumer count was printed and never floored | 2 plants, both green on the pin gate |
+| `D4-2` | `.git` assumed to be a directory; ENOENT in the worktree the protocol mandates | control 11-then-crash vs fixed **21/21** in a real linked worktree |
+
+Registry **151 → 159 entries**, 158 guarded, cap 1. Two stale tokens re-pointed: `S1P2-B1-REASON`
+*(its old token still existed in the new code — a guard that passes while proving nothing)* and
+`S1P3-CI-CHAIN` *(`"problems.push("` occurs **5×** and pinned the printer, not the check)*.
+`S1P2-CLAIM-TABLE` redded mid-fix because rewording a message removed its token — **the gate catching me**,
+which is the assertion-deleted-file-survived shape it exists for.
+
+### ⛔ Two self-inflicted defects, and what caught them
+
+1. **My `D4-8` floor block was placed AFTER the `failures` report and its `process.exit(1)`** — it pushed
+   into a list nobody read. The check existed and did nothing: *the exact class the file is fixing, written
+   by me, inside the fix for it.* ⚡ Caught **only** because the realistic plant stayed **GREEN** and that
+   was treated as something to explain rather than accept.
+2. **A plant script crashed on a cp1252 decode of the harness's emoji output and left a source file
+   planted** — no `finally`. Caught on the next `git status`; restored from backup and all four markers
+   re-verified.
+
+⚠️ **And four verifier faults on `C4-10` alone**, each of which would have banked a false close on exit
+code: `npx tsx` cannot resolve the `@/` alias so both cells died at startup · a grep for `failed` matched
+**passing** lines · two duplicate count assertions and `C-m1`'s label check redded before the assertion
+under test was reached. **A red is not evidence until you know which claim produced it.**
