@@ -348,6 +348,16 @@
     "file": "scripts/check-ci-chain.ts",
     "token": "if (!isGating(job as Record<string, unknown>, step)) continue;"
   },
+  "S1P4-D4-8-CALLNOTMENTION": {
+    "what": "pass-4 D4-8 - ledger membership turned on a MENTION. The line was if (src.includes('trustSelectors') || src.includes('dataRepairsCopy')) continue; so a file that merely NAMED the module left the population entirely and nothing asked whether the money it prints is behind a call. Measured on widget/snapshot.ts (D3-1's own file): delete BOTH mayClaim calls and leave only the import, and the gate exits 0 - tested-helper-is-not-a-used-helper. Membership now turns on an actual CALL (mayClaim|rowFieldUnread|anyRowFieldUnread|describeRepair|repairBlocks|repairsA11yLabel), with a module-scope self-check asserting an import and a comment are NOT uses. Plant-verified: both-calls-deleted -> RED [ledger]; pin gate -> GREEN. ⚠️ The file-level limit the docblock already declares still stands - a file that calls the guard can still ask the wrong question - but 'called at all' is checkable and 'mentioned' was never the property anyone meant",
+    "file": "scripts/check-trust-claims.ts",
+    "token": "if (ASKS_GUARD.test(src)) continue;"
+  },
+  "S1P4-D4-8-FLOOR": {
+    "what": "pass-4 D4-8, the half that catches the REALISTIC regression - the per-claim consumer count was printed and never floored. snapshot.ts holds TWO mayClaim calls; commenting out ONE moved the green line from debt-balances→2 to debt-balances→1 - the drop VISIBLE in the success output - with nothing comparing it to anything, while the gate printed '0 claim sites open, every money surface asks the guard'. CLAIM_CONSUMER_FLOOR declares the exact per-claim caller count, both directions, so a lost caller reds instead of being narrated. ⛔ MY FIRST VERSION OF THIS BLOCK WAS PLACED AFTER the failures report and its process.exit(1), so it pushed into a list nobody read: the check existed and did nothing, which is the exact class this file is fixing, written by me, inside the fix for it. Caught only because the P1 plant stayed GREEN and the red had to be explained. Plant-verified after the move: lose one of two calls -> RED naming the floor; pin gate -> GREEN. The success line was also softened to what is measured ('calls the guard', not 'asks the guard about this figure'), per assert-the-honest-state-by-name",
+    "file": "scripts/check-trust-claims.ts",
+    "token": "} else if (actual !== declared) {"
+  },
   "S1P2-B1-SELFCHECK": {
     "what": "pass-2 B-1's un-plantable seventh - the routing check reads a predicate in surface-coverage.ts rather than a file, so no scenario can hand it a defect; the first self-check asserted the PREDICATE and stayed green with `if (false && ...)` planted at the call site, which is tested-helper-is-not-a-used-helper written into the fix for it",
     "file": "scripts/surface-coverage.ts",

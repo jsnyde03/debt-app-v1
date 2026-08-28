@@ -233,12 +233,49 @@ const OPEN: Record<string, string> = {
 const MAX_EXEMPT = 1;
 const MAX_OPEN = 0;
 
+/**
+ * ⛔ **S1.11.2 [pass-4 D4-8] — A MENTION IS NOT A USE, AND MEMBERSHIP TURNED ON A MENTION.**
+ *
+ * The line was `if (src.includes('trustSelectors') || src.includes('dataRepairsCopy')) continue;` — so a
+ * file that so much as **names** the module left the ledger population entirely, and nothing then asked
+ * whether the money it prints is behind a call.
+ *
+ * ⚡ Measured on `widget/snapshot.ts`, `D3-1`'s own file, which holds **two** `mayClaim` calls. Comment out
+ * **one** — the realistic regression — and the import is still used, the file still mentions the module,
+ * and `lint:trust-claims` exits 0 printing *"⭐ 0 claim sites open — every money surface … asks the
+ * guard."* ⛔ **That sentence is false while the plant is in**, and the widget can go back to saying
+ * *"Debt-free · 100% · $0"* over balances the app returned `debt-free-unverified` about.
+ * ⚠️ Deleting **both** calls and leaving only the `import` also exits 0 — `tested-helper-is-not-a-used-helper`.
+ *
+ * Membership now turns on an actual **call**. ⚠️ The file-level limit the docblock already declares stands
+ * — a file that calls the guard can still ask the wrong question — but *called at all* is checkable, and
+ * *mentioned* was not the property anyone meant.
+ */
+const ASKS_GUARD = /\b(mayClaim|rowFieldUnread|anyRowFieldUnread|describeRepair|repairBlocks|repairsA11yLabel)\s*\(/;
+
+/** ⛔ Module scope — the distinction this finding is about, asserted rather than assumed. */
+{
+  const CASES: readonly (readonly [string, boolean, string])[] = [
+    ["const ok = mayClaim(store, 'debt-balances');", true, 'a call is a use'],
+    ['const u = rowFieldUnread(store, c, e, id, f);', true, 'the per-row helper is a use'],
+    ["import { mayClaim } from '@/store/trustSelectors';", false, '⛔ D4-8 — an import is a MENTION'],
+    ['// see trustSelectors for the rule', false, '⛔ D4-8 — a comment is a mention'],
+    ['const x = trustSelectors;', false, 'naming the module is a mention'],
+  ];
+  for (const [line, want, why] of CASES) {
+    if (ASKS_GUARD.test(line) !== want) {
+      console.error(`\n❌ trust claims — its own ASKS_GUARD is wrong: ${why}\n   ${JSON.stringify(line)} → ${ASKS_GUARD.test(line)}, expected ${want}\n`);
+      process.exit(1);
+    }
+  }
+}
+
 const unguarded: string[] = [];
 for (const rel of files) {
   if (isTest(rel) || rel === TRUST_MODULE) continue;
   const src = read.get(rel) ?? '';
   if (!PRINTS_MONEY.test(src) || !READS_ENTITIES.test(src)) continue;
-  if (src.includes('trustSelectors') || src.includes('dataRepairsCopy')) continue;
+  if (ASKS_GUARD.test(src)) continue;
   unguarded.push(rel);
 }
 
@@ -335,6 +372,39 @@ if (livenessTotal > MAX_LIVENESS_SITES) {
   failures.push(`[liveness] MAX_LIVENESS_SITES is ${MAX_LIVENESS_SITES} and the ledger holds ${livenessTotal}. This cap only goes DOWN.`);
 }
 
+/**
+ * ⛔ **S1.11.2 [pass-4 D4-8] — THE CONSUMER COUNT WAS PRINTED AND NEVER FLOORED.**
+ *
+ * Commenting out one of `widget/snapshot.ts`'s two `mayClaim` calls moved this line from
+ * `debt-balances→2` to `debt-balances→1` — **the drop was visible in the green output** — and nothing
+ * compared it to anything. A claim losing a caller now reds instead of being narrated.
+ *
+ * ⚠️ **EXACT in both directions**, the same shape check 4 uses. A new legitimate call site reds too, and
+ * that is deliberate: raising a floor should be a decision someone writes down, not a number that drifts.
+ */
+const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
+  'debt-balances': 2, // widget/snapshot.ts ×1 (the balance gate) + money.tsx
+  'goal-amounts': 1,
+  'required-plan': 5,
+  'row-figures': 5,
+};
+for (const claim of claims) {
+  const actual = consumers.get(claim)!.length;
+  const declared = CLAIM_CONSUMER_FLOOR[claim];
+  if (declared === undefined) {
+    failures.push(`[floor] '${claim}' has no entry in CLAIM_CONSUMER_FLOOR. Add it with the count this tree has.`);
+  } else if (actual !== declared) {
+    failures.push(
+      `[floor] '${claim}' is asked by ${actual} production file(s), and CLAIM_CONSUMER_FLOOR declares ${declared}.\n` +
+        `        ${actual < declared ? '⛔ A CALLER WAS LOST — this is the D4-8 regression: the count drops and the green line still says every surface asks the guard.' : 'A new caller appeared; raise the floor deliberately.'}\n` +
+        `        Callers: ${consumers.get(claim)!.join(', ') || '(none)'}`,
+    );
+  }
+}
+for (const claim of Object.keys(CLAIM_CONSUMER_FLOOR)) {
+  if (!claims.includes(claim)) failures.push(`[floor] CLAIM_CONSUMER_FLOOR names '${claim}', which is no longer a MoneyClaim. Remove the row.`);
+}
+
 if (failures.length > 0) {
   console.error(`\n❌ trust claims: ${failures.length} problem(s)\n`);
   failures.forEach((f) => console.error(`  ✗ ${f}`));
@@ -355,7 +425,11 @@ console.log(
  */
 console.log(
   Object.keys(OPEN).length === 0
-    ? `   ⭐ 0 claim sites open — every money surface that reads the user's entities asks the guard.`
+    ? // ⚠️ S1.11.2 [D4-8] — SOFTENED TO WHAT IS MEASURED. The old wording claimed "every money surface
+      // asks the guard", which this gate cannot establish: it checks that a money-printing file CALLS
+      // the guard somewhere, not that the figure it prints is behind that call. The consumer floors
+      // above are what make a lost caller red; this line states the weaker fact it can actually support.
+      `   ⭐ 0 claim sites open — every money-printing file that reads the user's entities calls the guard (per-claim callers floored).`
     : `   ⚠️ ${Object.keys(OPEN).length} claim site(s) still UNGUARDED and declared open — ${Object.keys(OPEN).join(', ')}`,
 );
 console.log(
