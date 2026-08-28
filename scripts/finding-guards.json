@@ -542,7 +542,18 @@
   "S1P3-A1-BUDGET": {
     "what": "pass-3 A1 — cannotAmortize compared remaining interest against the SHRINKING active-minimum sum, not the constant monthlyBudget the loop spends, so it bailed out of a plan that amortizes the instant the first debt cleared. The guard asserts the UNPAYABLE sentinel is absent AND pins the debt-free DATE to the payoff CHART's zero-crossing — the two producers that disagreed. Verified to red on the restored defect; the `monthlyBudget > 0` half is separately covered by the one-time-BNPL test",
     "file": "packages/core/debt/testDebtProjection.ts",
-    "token": "the debt-free DATE and the payoff CHART agree on the same plan (S1P3-A1)"
+    "token": "the debt-free DATE and the payoff CHART agree on the same plan (S1P3-A1)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/projectDebtPayoff.ts",
+          "find": "    return monthlyBudget > 0 && monthlyInterestTotal >= monthlyBudget;",
+          "replace": "    return monthlyInterestTotal >= activeDebts.reduce((s, d) => s + d.minimumPayment, 0);"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "S1P3-A1"
+    }
   },
   "S1P3-A2-INWINDOW": {
     "what": "pass-3 A2 — buildCycleSnapshot summed the raw per-installment minimumPayment while the rollover deducted the window-scaled one, so History reported $100 for a cycle that paid $200. The guard pins the snapshot to what applyRolloverPayment ACTUALLY deducts rather than to a literal, so the two cannot drift together, and carries a non-BNPL control. Every prior fixture in that file was monthly — the one member of the class where scaled and unscaled agree",
@@ -563,7 +574,18 @@
   "S1P3-A4-CADENCE": {
     "what": "pass-3 A4 — the in-window seams were gated on isInstallmentNative, so a fallback BNPL (type bnpl + recurrence + dueDate, no installment fields; reachable via CSV import and pre-2.7.2 backups) was reserved and paid down at 1x while the chart and date rated it by cadence. Jason chose the reserve moves to the cadence. The token names the PAYDOWN assertion, not the count — proven independently load-bearing by relaxing the two assertions before it (D3-3's lesson: name the line that USES the check)",
     "file": "packages/core/debt/testBnplInstallment.ts",
-    "token": "PAID DOWN by the same amount, so reserve and paydown stay in lockstep (S1P3-A4)"
+    "token": "PAID DOWN by the same amount, so reserve and paydown stay in lockstep (S1P3-A4)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/bnplInstallment.ts",
+          "find": "\tif (hasKnownBnplCadence(debt) && windowStartISO && windowEndISO) {",
+          "replace": "\tif (isInstallmentNative(debt) && windowStartISO && windowEndISO) {"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "S1P3-A4"
+    }
   },
   "S1P3-C1-ROWFIGURES": {
     "what": "pass-3 C-1 — the claim table's 'row-figures' route had ZERO production consumers (3 grep hits, all the declaration or its own test), so Money printed \"0% APR\" on a card charging 22% and \"$0/mo\" on one demanding $150. The token names the ABSENCE assertion rather than the honest-state one: verified red under the plant twice, once normally and once with the honest-state assertions relaxed, so both halves are independently load-bearing",
@@ -662,7 +684,18 @@
   "S1P3-B3-UNKNOWN": {
     "what": "pass-3 blocker B3 — backupToCloudGuarded branched on `unclaimed` alone, so an `unknown` remote (iCloud UP and stat() throwing) went through to backupToCloud, which re-checked isAvailable(), got true, and WROTE OVER another device's backup; the install then recorded its own clock as the file's identity and refused every later backup forever. The guard's own docblock claimed `unknown` was already refused downstream — true of one of the two ways it is produced, false of the other. This file's only coverage stopped at inspectRemote, and neither writeCount assertion was on an `unknown` claim. The token names the WRITE-COUNT assertion, proven independently load-bearing by relaxing the two before it",
     "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
-    "token": "ZERO writes: the other device’s copy is still in the container"
+    "token": "ZERO writes: the other device’s copy is still in the container",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/cloudBackup/service.ts",
+          "find": "  if (claim.state === 'unknown') return { ok: false, reason: 'unavailable' };",
+          "replace": "  if (false && claim.state === 'unknown') return { ok: false, reason: 'unavailable' };"
+        }
+      ],
+      "run": "test:app",
+      "expect": "B3"
+    }
   },
   "S1P3-B3-MTIME": {
     "what": "pass-3 B3's second half — new Date(undefined|NaN).toISOString() THROWS while new Date(null|0) silently becomes 1970-01-01, which inspectRemote then compares as a real file identity; both directions were unhandled. ⛔ The finding's own remedy (`return null`) would have been the clobber: inspectRemote reads null as `none`, which the guard PERMITS. metadataFromMtime throws instead, which becomes `unknown` and is refused — and the rule lives in the pure provider module because the iOS provider imports a TurboModule no runner can load, which is why it had neither owner nor test. Both the throw and the none-vs-unknown direction are plant-verified | S1.11.3.3 - RE-POINTED, and the reason is a measurement rather than a preference. Auditor D found this token pinned one of the finding's two directions; the throw direction is now S1P3-B3-MTIME-THROW. Measuring THIS one showed the registered assertion (`never none (which is permitted)`, the mtime-specific provider at the end of the block) is never the first to fire: un-fix inspectRemote's catch to return `none` and the run reds at `a throwing stat is contained as unknown`; relax THAT and it reds at `a guarded backup over an UNKNOWN remote does not succeed`, still two assertions before the registered one. Both are the same direction, so the token now names the assertion that actually reds. ⚠️ The final assertion is kept - it ties the mtime rule to the service-level outcome - but it is corroboration, not the guard, and saying so is the whole point of this sub-step.",
@@ -683,7 +716,18 @@
   "S1P3-B4-ADAPTER": {
     "what": "pass-3 B4 — createAdapter.web.ts wrapped getItem AND JSON.parse in one catch{return null}, so a truncated write read as 'nothing is stored': persistence.ts ran the v1.6 legacy import over a device that already had a v1.7 store and the first autosave overwrote the last copy. NEITHER adapter had a unit test and no store test parses a blob (MemoryStorageAdapter has no parse step); the one corrupt-bytes e2e seeds JSON.stringify('this is not a store'), which is VALID JSON and the single member of the class both adapters agreed on. This is the first unit test either adapter has had",
     "file": "apps/rn/src/storage/createAdapter.test.ts",
-    "token": "corrupt bytes come back as the RAW STRING"
+    "token": "corrupt bytes come back as the RAW STRING",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/createAdapter.web.ts",
+          "find": "        return raw;",
+          "replace": "        return null;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "corrupt bytes come back as the RAW STRING"
+    }
   },
   "S1P3-B4-E2E": {
     "what": "pass-3 B4's user-facing half — the truncated-bytes member added BESIDE the existing valid-JSON fixture, never in place of it, so one uncovered member is not traded for another. Asserts the same outcome as the valid-JSON case by design: the whole finding is that two members of one class behaved differently ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
@@ -693,12 +737,34 @@
   "S1P3-C7-LOSSES": {
     "what": "pass-3 C-7 — describeBackup was byte-identical for an intact backup and one the reader had just recorded three losses on, and the user learned about them only after the irreversible replace. The answer was already inside the object being described (result.store.pendingDataRepairs). All seven existing describeBackup assertions used healthy fixtures. The token names the COUNT assertion rather than the naming one, proven load-bearing by relaxing the naming assertion under the same plant",
     "file": "apps/rn/src/data/readBackup.test.ts",
-    "token": "…and counts it, so \"one\" is distinguishable from \"nine\""
+    "token": "…and counts it, so \"one\" is distinguishable from \"nine\"",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/readBackup.ts",
+          "find": "  return ` ⚠️ ${parts.join(' and ')} in this backup could not be read.`;",
+          "replace": "  return ' ⚠️ some of this backup could not be read.';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "counts it"
+    }
   },
   "S1P3-C7B-CLOUDDOOR": {
     "what": "pass-3 C-7b — the iCloud restore confirm described NOTHING: no counts, no losses, because it confirms before it fetches. The remedy is a PRE-READ (previewRestore), not a wording change, which the finding says explicitly because a sentence-only fix could not work. Both doors compose from one owner (describeRestorePreview) so they cannot drift. ⛔ Paired structurally in check-copy-owners as well, because this screen's `ready` branch is unreachable to every automated test in the repo — its own docblock records a defect surviving thirteen lenses for that reason",
     "file": "apps/rn/src/data/readBackup.test.ts",
-    "token": "C-7b — and it names the loss, exactly as the file door does"
+    "token": "C-7b — and it names the loss, exactly as the file door does",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/readBackup.ts",
+          "find": "  return `This backup has ${describeStoreContents(store)}.${describeLosses(store)}`;",
+          "replace": "  return `This backup has ${describeStoreContents(store)}.`;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C-7b"
+    }
   },
   "S1P3-B2-APRBOUND": {
     "what": "pass-3 B2 — the two RN hand-entry paths were the ONLY APR paths with no 0-100 bound, so `2599` (a missing decimal in 25.99 on a decimal-pad field labelled 'APR %') was saved and planned against as 2599%: $10,829.17/mo of interest on a $5,000 card, ranked first under avalanche, with a debt-free date computed from it. ⚡ A unit test asserted the bound and PASSED, because parseDebtFormValues' only live consumer is the legacy root tree — the guard travelled with v1.6 and never crossed to RN, while RN kept the error STRING for the same field and narrowed what triggers it to 'unparseable'. Asserts what LANDED in the store, not that an error appeared; the control pins 25.99 and the exact-100 boundary. Plant-verified: removing the bound reds the refusal test and leaves both controls green",
@@ -708,7 +774,18 @@
   "S1P3-B7-BREADCRUMB": {
     "what": "pass-3 B7 — the Sentry breadcrumb scrub redacted the amounts and passed the CREDITOR NAMES: 'Visa, Focus, $[redacted] · 22.99% APR, estimated verified Jun 3' left the device on a build with a live DSN. ⛔ The remedy is not a wider regex — a name cannot be pattern-matched — so touch categories are dropped whole, the way console already is. ⚡ Rated major because of the TEST: its fixture was a user-authored bill name asserted as correctly untouched, pinning the leak green. Four plants: the drop removed, only one of the two SDK spellings listed, the over-fix that drops navigation too (which turns the diagnostic feature off), and the money rule itself",
     "file": "apps/rn/src/utils/scrubBreadcrumb.test.ts",
-    "token": "a touch breadcrumb carrying a creditor name is DROPPED"
+    "token": "a touch breadcrumb carrying a creditor name is DROPPED",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/utils/scrubBreadcrumb.ts",
+          "find": "  if (breadcrumb.category != null && USER_AUTHORED_CATEGORIES.has(breadcrumb.category)) return null;",
+          "replace": "  if (false && breadcrumb.category != null && USER_AUTHORED_CATEGORIES.has(breadcrumb.category)) return null;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a touch breadcrumb carrying a creditor name is DROPPED"
+    }
   },
   "S1P3-G1-CALIBRATION": {
     "what": "S1.10.6.9 G-1 — selectCalibrationScore picked WHICH debt regime to grade off `debts.filter(balance > 0)`, the one field the import path repairs to 0. Measured: one lost balance re-graded the scorecard against the debt-free cycles and turned '0 of 4 reads matched · Under-warned 4' into '4 of 4 · Under-warned 0', with WARN_MATCH_RATE no longer firing so the recalibration apology vanished too. ⚡ The app's own honesty instrument, inverted from its worst record to a perfect one, in the flattering direction only — a lost balance repairs to 0 and never to a number. Suppression (not a caption) is right here because the figure is a claim about the app's accuracy, not about the user's money",
@@ -840,7 +917,18 @@
   "S1P3-B1-SWEEP": {
     "what": "pass-3 B1's SWEEP - the deferral's debt. The repaired gate red over the two live hand-rolled formatters the dead pattern had been green over: projectForecast.ts and buildSmartInsights.ts, each rendering a THIRD cents convention ($100.00 where the rest of the app reads $100, because Intl defaults USD to a minimum of two fraction digits). Both now call the sanctioned formatCurrency. The Math.max(0, ...) clamps were dropped and both are dead by construction - projectForecast's callers pass literals and a minimumPayment, and buildSmartInsights branches every negative case through Math.abs before formatting. B1's own text names that clamp as part of the defect: it renders $0.00 over a negative figure, which is a false statement rather than a safe default",
     "file": "packages/core/insights/buildSmartInsights.ts",
-    "token": "return formatCurrency(amount);"
+    "token": "return formatCurrency(amount);",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/insights/buildSmartInsights.ts",
+          "find": "    return formatCurrency(amount);",
+          "replace": "    return `$${amount.toFixed(2)}`;"
+        }
+      ],
+      "run": "lint:money",
+      "expect": "buildSmartInsights"
+    }
   },
   "S1P3-A3-TRACKEDHALF": {
     "what": "pass-3 A3 - lint:secrets --working-tree reads untracked files AND edits to tracked ones; the tracked half was added inside the same fix range as the harness, and the only scenario proving the authoring mode still refuses a credential plants an UNTRACKED file. So the un-fixed script reds for the OTHER half and the scenario scores a pass either way. Re-measured through the harness itself with the tracked half un-fixed: the untracked scenario stayed GREEN and the new one reported 'the gate FAILED OPEN'. The token names the line that would have to change, per the finding's own remedy - NOT `if (WORKING_TREE) {`, which is present in both columns and is exactly the substitution S1.9.4 already made once for this entry ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
@@ -895,7 +983,18 @@
   "S1P3-M1": {
     "what": "pass-3 m1 — CLOSED S1.10.6.7.1. `assert(endPillWidth(null, 1, S) > 0)` was VACUOUS and the auditor proved it with a plant: the expression is `(20 + chars * 6.5) * scale`, so the constant 20 term holds it above zero whatever `chars` is — including the 0 that reserves nothing for the label. Re-measured here before fixing: planting `: 8` → `: 0` left the old assertion green. ⚡ Pinned against `at1` rather than a fresh literal, because the fallback's whole meaning is `reserve an 8-character label's worth` and 'Oct 2026' is exactly 8 chars, already pinned to `20 + 8 * 6.5` six lines above — so it states the intent AND stays anchored to a number, instead of restating the formula, which is D3-7's defect in the same round. Plant-verified: the null→0 plant now reds `expected 72, got 20`",
     "file": "apps/rn/src/components/payoff/trajectoryDomain.test.ts",
-    "token": "eq(endPillWidth(null, 1, S), at1,"
+    "token": "eq(endPillWidth(null, 1, S), at1,",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payoff/trajectoryDomain.ts",
+          "find": "  return (20 + chars * 6.5) * Math.min(fontScale, scaleMax);",
+          "replace": "  return 20 * Math.min(fontScale, scaleMax);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "at 1× the estimate is the unscaled width"
+    }
   },
   "S1P3-D3-5": {
     "what": "pass-3 D3-5 — CLOSED S1.10.6.7.1. Two absence-only tests in on-plan-streak.spec.ts passed over a Progress screen that rendered NOTHING: `toHaveCount(0)` is satisfied by a page that has not rendered yet. ⚠ The FILE was not vacuous — test 1 is a positive in the same spec — which is why the auditor rated it minor rather than matching pass-2's D2-3, and that rating was a measurement, not a re-rating. Fix is one positive per test on `progress-hero-journey`, which renders in BOTH branches. ⛔ NOT a second absence assertion. Plant-verified with the auditor's own plant (`if (true) return null` in the Progress screen): before the fix only test 1 redded; after it, all 3 red",
@@ -905,7 +1004,18 @@
   "S1P3-D3-7": {
     "what": "pass-3 D3-7 — CLOSED S1.10.6.7.1. `eq(snap.remaining, formatWhole(8000))` computed its expectation with the function under test, so it pinned `the snapshot used the formatter` and never `the string is $8,000`. ⛔ The counterfactual was MEASURED, not argued: with `formatWhole` planted to return 'PLANTED', the old form reads `expected \"PLANTED\", got \"PLANTED\"` and the suite reports 32 assertions passed; the literal form reds. ⚠ The plant also reds an EARLIER test (journeySelectors), so the widget assertion had to be exercised in isolation — a plant that reds early never reaches the later ones. The now-unused `formatWhole` import was removed with the fix",
     "file": "apps/rn/src/widget/widgetSync.test.ts",
-    "token": "eq(snap.remaining, '$8,000',"
+    "token": "eq(snap.remaining, '$8,000',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/widget/snapshot.ts",
+          "find": "    remaining: mayStateBalances ? formatWhole(totalCurrent) : '—',",
+          "replace": "    remaining: mayStateBalances ? `$${Math.round(totalCurrent)}` : '—',"
+        }
+      ],
+      "run": "test:app",
+      "expect": "remaining = current total balance, as a STRING the test does not compute"
+    }
   },
   "S1P3-D3-8": {
     "what": "pass-3 D3-8 — CLOSED S1.10.6.7.1, and the finding's OWN PROPOSED FIX did not hold. The old assertion `getByText(/payments/).first()` pinned the word and not the number, and `/payments/` also matches DebtSheet.tsx so `.first()` could resolve elsewhere. ⚠ The finding names three failure modes and TWO ARE IMPOSSIBLE: formatCurrency is defensive and can return neither '' nor '$NaN'. The one that IS reachable, a `$0.00` subtotal, matches the finding's proposed `\\$\\d[\\d,.]*` and would have passed. ⛔ Measured, not reasoned: with the subtotal planted to `formatCurrency(0)`, the finding's regex PASSES (2 passed, exit 0) and the `[1-9]` form reds. `payments?` because the line is singular at one payment",
@@ -915,7 +1025,18 @@
   "S1P3-A5": {
     "what": "pass-3 A5 — CLOSED S1.10.6.7.2, and its REMEDY WAS REFUSED BY MEASUREMENT. The observation holds: this is the tree's only `||` on the pair, one site against thirty. ⛔ The inference does not — the thirty are not doing the same job. The `??` sites are a MIGRATION fallback (read the [D2] owner, fall back to the legacy field only when the owner is ABSENT, i.e. a pre-[D2] persisted store); this site is a DOMAIN OR (subtract the minimum when the minimum was paid OR the whole debt was paid), which the test beside it states outright: 'isPaidThisCycle also triggers the minimum subtraction (either flag counts)'. ⚡ Applying the remedy reds testGetDebtsWithDisplayBalances with 'expected 950, received 1000' — a debt paid IN FULL displaying its FULL balance, because a debt paid in full has necessarily covered its minimum. The `||` stands. ✅ What WAS fixed is the finding's second half: bulkMarkRequired.ts asserted as a MEASUREMENT that no reader in 'either tree' keys on the field alone, and that over-reaches by this one site; corrected in place rather than deleted, because a plan item was authored off that sentence once already. ⚠ Which record wins when the two flags CONTRADICT is a money-semantics call filed to P6.10 — the gate bulkMarkRequired's own header already routes this class to. The guard is the pre-existing test the remedy would have broken",
     "file": "packages/core/debt/testGetDebtsWithDisplayBalances.ts",
-    "token": "isPaidThisCycle also subtracts the minimum"
+    "token": "isPaidThisCycle also subtracts the minimum",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/getDebtsWithDisplayBalances.ts",
+          "find": "        debt.minimumPaidThisCycle || debt.isPaidThisCycle",
+          "replace": "        debt.minimumPaidThisCycle"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "isPaidThisCycle also subtracts the minimum"
+    }
   },
   "S1P3-B5": {
     "what": "pass-3 B5 — CLOSED S1.10.6.7.2. `funnel.test.ts` carried the LAST LIVE copy of the `(^|[^:])//` comment-stripper S0 replaced across the gates; the other five hits are the docblock ABOUT the fix. The `scripts`-scoped sweep never walked `apps/rn/src`. Replaced with the shared owner `stripCommentsOnly` rather than a corrected copy, since a copy is how the pattern reached six files. ⚠ FIRST import from `scripts/` anywhere under `apps/rn/src` — checked, not assumed: this module is reachable only from `src/testing/runAppTests.ts`, and a web export built after the change contains neither the test marker nor `stripCommentsAndStrings`, so Metro never walks it. ⛔ THE FIRST PLANT DID NOT DISCRIMINATE and that refined the finding: a caller written the ordinary way also names the symbol on its IMPORT line, which has no `//` on it, so the guard catches it either way. The weakness is reachable only through a NAMESPACE import. Measured with that shape: old regex reports `5 assertions passed` over a real sink installer; the shared owner reds",
@@ -939,9 +1060,20 @@
     }
   },
   "S1P3-M4": {
-    "what": "pass-3 m4 — CLOSED S1.10.6.7.3. `WhatIfControls` sanitised typed money with `[^0-9]`, which deletes the SEPARATOR and keeps the digits: `'12.50'` → `1250`, `'0.75'` → `75` — a hundredfold overstatement feeding a payoff projection, on a field whose `keyboardType='numeric'` offers a decimal key. It was the ONLY digits-only strip in the app. ⚡ THE FIX HAD A SECOND HALF THE FINDING DID NOT NAME: the input rendered `String(Number(extra) || 0)`, so `'12.'` round-tripped back to `'12'` and the decimal key could never be used AT ALL — the sanitiser alone changes nothing, because the character it preserves was being erased one line later. Display now shows the raw sanitised string, and the slider writes `''` rather than `'0'` so the placeholder still appears at the floor. ⭐ The rule moved to `packages/core/utils/amountField.ts` beside the parsers, so the next money input finds an owner instead of re-deriving one — which is how the same defect reached six files elsewhere. Plant-verified: restoring `[^0-9]` reds `sanitize \"12.50\"`",
+    "what": "pass-3 m4 — CLOSED S1.10.6.7.3. `WhatIfControls` sanitised typed money with `[^0-9]`, which deletes the SEPARATOR and keeps the digits: `'12.50'` → `1250`, `'0.75'` → `75` — a hundredfold overstatement feeding a payoff projection, on a field whose `keyboardType='numeric'` offers a decimal key. It was the ONLY digits-only strip in the app. ⚡ THE FIX HAD A SECOND HALF THE FINDING DID NOT NAME: the input rendered `String(Number(extra) || 0)`, so `'12.'` round-tripped back to `'12'` and the decimal key could never be used AT ALL — the sanitiser alone changes nothing, because the character it preserves was being erased one line later. Display now shows the raw sanitised string, and the slider writes `''` rather than `'0'` so the placeholder still appears at the floor. ⭐ The rule moved to `packages/core/utils/amountField.ts` beside the parsers, so the next money input finds an owner instead of re-deriving one — which is how the same defect reached six files elsewhere. Plant-verified: restoring `[^0-9]` reds `sanitize \"12.50\"` | S1.11.3.4: proven by plant - the digits-only strip restored, and the row that reds is `sanitize \"12.50\"`, the first of the sanitiser's assertions rather than the token's line.",
     "file": "packages/core/utils/testAmountField.ts",
-    "token": "assert(Number(sanitizeAmountInput('12.50')) === 12.5,"
+    "token": "assert(Number(sanitizeAmountInput('12.50')) === 12.5,",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/utils/amountField.ts",
+          "find": "  return raw.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1');",
+          "replace": "  return raw.replace(/[^0-9]/g, '');"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "sanitize \"12.50\""
+    }
   },
   "S1P3-M7": {
     "what": "pass-3 m7 — CLOSED S1.10.6.7.3. `clearQuarantinedData()` ran fire-and-forget AFTER `reset()` and after the screen had popped, so a failure had no surface left to admit itself on — while the confirm copy promises without qualification that everything 'will be permanently erased'. The quarantined blob is a FULL copy of the portfolio; that nothing reads it does not make it not the user's financial data. Now awaited BEFORE anything is destroyed, the same doctrine this file already states for the iCloud copy. ⛔ REUSING THE EXISTING BLOCKED STATE WOULD HAVE BEEN WRONG TWICE: its copy says iCloud could not be reached, which is false for a local fault, and the escape it offers — 'delete on this device only' — re-runs the step that just failed. So the reason is distinct and the escape is 'Delete the rest anyway', which proceeds knowingly; a user is never held hostage by a blob nothing reads. ⚠ THE BLOCKED BRANCH IS UNREACHABLE OFF-DEVICE and that is stated rather than papered over: the web adapter's clearQuarantine swallows every error by construction, so no e2e can enter it; it needs an MMKV fault on iOS. Filed as a P6.14 device row. The guard here is the ORDERING — the awaited call before the reset — which is what regresses if someone restores fire-and-forget | S1.11.3.3: auditor D measured the token dead - the ORDERING is what regresses and a substring on a line is present either way. lint:destructive now carries an ORDERED rule for this one named site, checked both directions: the awaited call moved below the reset reds with 'now runs AFTER', and the call disappearing entirely reds with 'no longer contains' (a rule that cannot be checked is not a rule that is satisfied). Static because the blocked branch is unreachable off-device - the web adapter swallows every error by construction - and the screen cannot be loaded by the node runner.",
@@ -967,7 +1099,18 @@
   "S1P3-M2": {
     "what": "pass-3 m2 — CLOSED S1.10.6.7.4. The payoff legend rounded months into years with Math.round, so \"30 months saved\" was stated as \"3 YEARS\" against a true 2.5 — half a year of payoff the plan does not deliver, on the line a user reads to decide whether the extra payment is worth making. ⛔ This figure is a BENEFIT CLAIM and may not round in its own favour: flooring understates by up to eleven months, which is the safe direction for a claim about someone else's money. ⚡ formatMonths was EXTRACTED to trajectoryDomain.ts for the same reason endPillWidth was — a .tsx component is unreachable from the node runner, so the instrument had to change before the claim could be pinned. Guarded by the exact rows Math.round overstated PLUS the property behind them: for every month 24..200 the stated years never exceed the true figure. Plant-verified: restoring Math.round reds 'expected \"2 years\", got \"3 years\"'",
     "file": "apps/rn/src/components/payoff/trajectoryDomain.test.ts",
-    "token": "eq(formatMonths(30), '2 years',"
+    "token": "eq(formatMonths(30), '2 years',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payoff/trajectoryDomain.ts",
+          "find": "  return `${Math.floor(months / 12)} years`;",
+          "replace": "  return `${Math.round(months / 12)} years`;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "30 months is 2.5 years and must not be sold as 3"
+    }
   },
   "S1P3-M6": {
     "what": "pass-3 m6 — CLOSED S1.10.6.7.4. `whereText` branched on `first.isPaidOff && second`, so when the extra clears the first debt and there is NO second, the branch was skipped and the fall-through said \"Goes straight to your Chase\" about money that in fact PAYS CHASE OFF — the strongest thing the simulator can tell someone, described as if it merely made a dent. No number was wrong; the better sentence was simply unavailable to the previous shape. ⚠ GUARDED BY TOKEN, NOT BY A TEST, and the reason is written rather than omitted: `whereText` is an unexported helper inside a .tsx component taking a WhatIfResult, and extracting a module to pin a one-line copy branch is out of proportion to a minor inside a code freeze. The token is the branch itself, which is what disappears if the fall-through is restored",
