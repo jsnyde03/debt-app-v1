@@ -159,13 +159,13 @@
   "scripts/apostrophe-baseline.json": [
     "p4"
   ],
-  "scripts/begin-gate-run.ts": [
-    "s1p1",
-    "s1p2"
-  ],
   "scripts/audit-route.ts": [
     "never",
     "s1p4"
+  ],
+  "scripts/begin-gate-run.ts": [
+    "s1p1",
+    "s1p2"
   ],
   "scripts/check-a11y-collapse.ts": [
     "p4"
@@ -333,6 +333,9 @@
     "never",
     "s1p4"
   ],
+  "scripts/lib/verdict.ts": [
+    "never"
+  ],
   "scripts/maestro-results.mjs": [
     "never"
   ],
@@ -345,6 +348,9 @@
     "s1p2"
   ],
   "scripts/preflight-xcuitest-target.ts": [
+    "never"
+  ],
+  "scripts/prove-guards.ts": [
     "never"
   ],
   "scripts/run-gates.ts": [

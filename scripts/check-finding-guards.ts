@@ -54,6 +54,19 @@ interface Entry {
   token?: string;
   /** set instead of file/token when nothing guards it yet; must say why and where it is tracked */
   unguarded?: string;
+  /**
+   * ⛔ **S1.11.3.2 — THE TOKEN IS A DELETION DETECTOR AND THIS IS THE CLOSURE PROOF.** `prove:guards`
+   * plants the finding's own defect and requires the named command to red for the named reason. What is
+   * checked HERE is only the half a static gate can check: that the un-fix's anchor still matches the
+   * file **exactly once**, so a recorded measurement cannot outlive the line it was measured against.
+   */
+  proof?: { unfix: { at: string; find: string; replace: string }[]; run?: string; cmd?: string[]; expect: string };
+  /**
+   * ⚠️ **NOT PROVEN TO RED — stated rather than implied.** Either the guard was measured to survive its
+   * own un-fix, or nothing here can plant it. Both are the same fact about the record: this entry's
+   * `CLOSED` rests on a token. The text must carry the measurement, and **the count only goes DOWN.**
+   */
+  guardOnly?: string;
 }
 
 /**
@@ -113,6 +126,23 @@ const MIN_ENTRIES = 159;
 const MAX_UNGUARDED = 1;
 
 /**
+ * ⛔ **S1.11.3.2 — THE TWO NUMBERS THAT SAY HOW MUCH OF THIS REGISTRY IS EVIDENCE.**
+ *
+ * ⚡ Pass 4's result was not a defect: it was that **this gate exited 0 over every un-fix four auditors
+ * performed.** Eight registered guards were proven to survive their own un-fix and 35 more had never been
+ * tested by anyone — so `CLOSED` and `OPEN` were indistinguishable in the record, which invalidates
+ * counts rather than adding to them.
+ *
+ * `MAX_UNPROVEN` — nobody has ever made this guard red. `MAX_GUARD_ONLY` — somebody tried and it did not.
+ * ⛔ **Both only go DOWN, strictly**, the `MIN_ENTRIES` idiom: a new closure that arrives without a proof
+ * pushes the count over its cap and reds *at the moment it is written*, which is the only moment the
+ * un-fix is cheap to derive. ⚠️ **Raising either to make a run pass is the defect this pair exists to
+ * catch** — and it is the same move as raising `MAX_UNGUARDED`.
+ */
+const MAX_UNPROVEN = 157;
+const MAX_GUARD_ONLY = 0;
+
+/**
  * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.
  *
  * Two entries sharing an id drop one and lower the count with nothing to show for it. That was invisible
@@ -164,6 +194,12 @@ const dupes = keyLines.filter((k, i) => keyLines.indexOf(k) !== i);
 const problems: string[] = [];
 let guarded = 0;
 const unguarded: string[] = [];
+/** carries a re-runnable `prove:guards` proof */
+const proven: string[] = [];
+/** the token stands and nothing proves it reds — measured, or unplantable; both are the same hole */
+const guardOnly: string[] = [];
+/** nobody has ever made this guard red */
+const unproven: string[] = [];
 
 for (const [id, e] of Object.entries(registry)) {
   if (e.unguarded) {
@@ -232,6 +268,44 @@ for (const [id, e] of Object.entries(registry)) {
     continue;
   }
   guarded++;
+
+  /**
+   * ⛔ **S1.11.3.2 — A PROOF IS VOID WHEN ITS ANCHOR IS GONE, and that is the ONE part of it a static
+   * gate can decide.** `prove:guards` re-runs the plant; this only asks whether the un-fix it recorded
+   * still describes this file. ⚡ An anchor matching **zero** times is a measurement about bytes that no
+   * longer exist — `remembered-gate-result-is-unrun` with a JSON wrapper. Matching **twice** is worse
+   * than useless: the plant would restore one of two sites and the verdict would be about that.
+   */
+  if (e.proof && e.guardOnly) {
+    problems.push(`${id} — carries BOTH a proof and a guardOnly note. It is one or the other: proven to red, or not.`);
+    continue;
+  }
+  if (e.proof) {
+    let void_ = false;
+    for (const u of e.proof.unfix) {
+      const target = join(REPO_ROOT, u.at);
+      if (!existsSync(target)) {
+        problems.push(`${id} — its proof un-fixes ${u.at}, which no longer exists. The proof is VOID.`);
+        void_ = true;
+        continue;
+      }
+      const n = readFileSync(target, 'utf8').split(u.find).length - 1;
+      if (n !== 1) {
+        problems.push(
+          `${id} — its proof's anchor matches ${n}× in ${u.at}: ${JSON.stringify(u.find)}\n` +
+            '        the proof is VOID, not merely stale: it was measured against a line this file no longer has\n' +
+            '        exactly once. Re-derive the un-fix, re-run `npm run prove:guards -- --id=' + id + '`.',
+        );
+        void_ = true;
+      }
+    }
+    if (!void_) proven.push(id);
+  } else if (e.guardOnly) {
+    if (!e.guardOnly.trim()) problems.push(`${id} — marked guardOnly with an empty measurement`);
+    guardOnly.push(id);
+  } else {
+    unproven.push(id);
+  }
 }
 
 if (dupes.length) {
@@ -278,6 +352,29 @@ if (unguarded.length !== MAX_UNGUARDED) {
   );
 }
 
+/** ⛔ S1.11.3.2 — the same ratchet, over evidence rather than existence. See `MAX_UNPROVEN`. */
+const ratchet = (count: number, cap: number, label: string, drains: string): void => {
+  if (count === cap) return;
+  problems.push(
+    count > cap
+      ? `${count} findings are ${label}; the cap is ${cap} and it only ever goes DOWN. ${drains}`
+      : `${count} findings are ${label} and the cap is still ${cap}. Lower it to ${count} in the same edit — ` +
+        'a cap above its own count is slack the next un-evidenced entry hides in.',
+  );
+};
+ratchet(
+  unproven.length,
+  MAX_UNPROVEN,
+  'unproven — nobody has ever made their guard red',
+  'A new closure ships with a `proof` block, or it is not a closure: run `npm run prove:guards -- --id=<ID>`.',
+);
+ratchet(
+  guardOnly.length,
+  MAX_GUARD_ONLY,
+  'guard-only — measured NOT to red on their own defect',
+  'A guard-only entry is an OPEN finding wearing a closure. Fix the guard rather than raising the cap.',
+);
+
 if (problems.length) {
   console.error(`\n❌ finding-guards: ${problems.length} problem(s).\n`);
   for (const p of problems) console.error(`  • ${p}`);
@@ -288,6 +385,16 @@ if (problems.length) {
 console.log(
   `✅ finding-guards: ${guarded} of ${ids.length} findings carry a standing guard; ` +
     `${unguarded.length} unguarded (cap ${MAX_UNGUARDED}, downward-only).`,
+);
+/**
+ * ⛔ **PRINTED ON THE GREEN PATH, because the number this gate could not see is the number that matters.**
+ * `guarded` counts tokens that are present. `proven` counts guards that have been made to RED. For three
+ * passes those were read as the same figure and they are not — a backlog nobody sees is a backlog nobody
+ * drains, which is why `lint:s0-coverage` prints its unswept list here too.
+ */
+console.log(
+  `   proof: ${proven.length} proven by plant · ${guardOnly.length} guard-only (cap ${MAX_GUARD_ONLY}) · ` +
+    `${unproven.length} never tested (cap ${MAX_UNPROVEN}) — \`npm run prove:guards -- --list\``,
 );
 // ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
 // number nobody sees is a number nobody drains.

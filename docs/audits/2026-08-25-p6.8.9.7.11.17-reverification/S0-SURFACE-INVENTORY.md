@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**109 files on the S0 surface · 59 swept · 50 unswept.**
+**111 files on the S0 surface · 59 swept · 52 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -105,10 +105,12 @@
 | `scripts/lib/scanFloor.ts` | never · s1p4 |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
 | `scripts/lib/stripMarkdown.ts` | never · s1p4 |
+| `scripts/lib/verdict.ts` | ⛔ **never** |
 | `scripts/maestro-results.mjs` | ⛔ **never** |
 | `scripts/make-cutover-backups.ts` | ⛔ **never** |
 | `scripts/preflight-native-lane.ts` | p4 · s1p1 · s1p2 |
 | `scripts/preflight-xcuitest-target.ts` | ⛔ **never** |
+| `scripts/prove-guards.ts` | ⛔ **never** |
 | `scripts/run-gates.ts` | p1 · p3 · s1p1 · s1p2 · s1p4 |
 | `scripts/secrets-exemptions.json` | ⛔ **never** |
 | `scripts/stamp-coverage.ts` | p2 |
@@ -169,9 +171,11 @@
 - `scripts/conform-app-preview.sh`
 - `scripts/e2e-fresh-rn.cjs`
 - `scripts/e2e-fresh.cjs`
+- `scripts/lib/verdict.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/make-cutover-backups.ts`
 - `scripts/preflight-xcuitest-target.ts`
+- `scripts/prove-guards.ts`
 - `scripts/secrets-exemptions.json`
 - `scripts/surface-inventory.ts`
 - `scripts/test-conform-assertions.sh`

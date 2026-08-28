@@ -199,6 +199,33 @@ const B1_SCENARIOS: Scenario[] = [
     expect: 'the guard is gone',
     why: 'reverting `lead` to plain containment lets a renamed identifier keep satisfying its old token',
   },
+  /**
+   * ⛔ **S1.11.3.2 — A RECORDED PROOF THAT NO LONGER DESCRIBES THE FILE.** `prove:guards` measures the
+   * plant; nothing re-measures it afterwards, so a proof decays exactly the way a documented gate result
+   * does — `remembered-gate-result-is-unrun`, with a JSON wrapper. ⚡ The one half a static gate CAN
+   * decide is whether the un-fix's anchor still matches, and matching **zero** times means the bytes it
+   * was measured against are gone.
+   */
+  {
+    gate: 'lint:finding-guards [S1.11.3.2-void]',
+    script: 'check-finding-guards.ts',
+    args: ['--registry=scripts/__gate_plant_registry__.json'],
+    controlArgs: [],
+    at: 'scripts/__gate_plant_guard__.ts',
+    body: 'export const plantedFloor = 7;\n',
+    also: [
+      {
+        at: 'scripts/__gate_plant_registry__.json',
+        body:
+          '{\n  "PLANT-VOID-PROOF": {\n    "what": "a proof whose un-fix anchor is no longer in the file it names",\n' +
+          '    "file": "scripts/__gate_plant_guard__.ts",\n    "token": "export const plantedFloor = 7;",\n' +
+          '    "proof": {\n      "unfix": [{ "at": "scripts/__gate_plant_guard__.ts", "find": "a line this file does not have", "replace": "x" }],\n' +
+          '      "run": "lint:finding-guards",\n      "expect": "x"\n    }\n  }\n}\n',
+      },
+    ],
+    expect: 'VOID',
+    why: 'a proof is evidence about bytes; when the anchor stops matching, the entry is unevidenced rather than green',
+  },
   {
     gate: 'lint:finding-guards [M8]',
     script: 'check-finding-guards.ts',
@@ -440,7 +467,7 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 21;
+const MIN_SCENARIOS = 22;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 

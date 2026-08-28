@@ -81,6 +81,12 @@ interface Entry {
   guardOnly?: string;
 }
 
+// ⚠️ A missing registry is a harness fault too, and an ENOENT stack trace reads like a broken tool
+// rather than a mistyped flag.
+if (!existsSync(REGISTRY)) {
+  console.error(`\n❌ prove:guards — no registry at ${REGISTRY}\n`);
+  process.exit(1);
+}
 const registry = JSON.parse(readFileSync(REGISTRY, 'utf8')) as Record<string, Entry>;
 
 const arg = (name: string): string | undefined =>
@@ -185,7 +191,11 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
         fault(
           id,
           `the anchor matches ${count}× in ${u.at}: ${JSON.stringify(u.find)}\n` +
-            '   ⛔ this proof is VOID, not failing — the code moved out from under a recorded measurement.\n' +
+            `   ⛔ this proof is VOID, not failing — ${
+              count === 0
+                ? 'the code moved out from under a recorded measurement'
+                : 'one anchor, two sites: the un-fix would restore half the defect and the verdict would be about that'
+            }.\n` +
             '   Re-derive the un-fix against the current file, then re-run.',
         );
       }
