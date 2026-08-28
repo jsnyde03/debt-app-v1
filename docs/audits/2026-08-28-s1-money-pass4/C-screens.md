@@ -156,7 +156,7 @@ statement withheld"* failure `progress.tsx:186-196` records having already made 
 *"is this debt live?"* visible; it reads only `balance > 0`, so `balance <= 0` — the spelling
 `C4-2`'s blocker is written in — is invisible to it, and the next one ships the same way.
 
-**File.** `scripts/check-trust-claims.ts:243` `const LIVENESS_RE = /balance\s*>\s*0/;` — lane **D**,
+**File.** `scripts/check-trust-claims.ts:243` `const LIVENESS_RE = /\bbalance\s*>\s*0\b/;` — lane **D**,
 origin **instrument**. *(Reported here because the class it misses is my lane's, and because `C4-2` is the
 proof it misses it; auditor D owns the file.)*
 
@@ -188,7 +188,7 @@ condition the consumer evaluates, never the example the finding cited."* The led
 (`:229-241`) argues at length that a *ban* is unsatisfiable and a ledger is the answer, and then builds
 the ledger out of one spelling of the enumeration it warned about.
 
-**Remedy (hypothesis).** Widen `LIVENESS_RE` to `/balance\s*(>|>=|<|<=|===|==|!==|!=)\s*0(\.\d+)?/`,
+**Remedy (hypothesis).** Widen `LIVENESS_RE` to `/\bbalance\s*(>|>=|<|<=|===|==|!==|!=)\s*0(\.\d+)?\b/`,
 re-count, and raise `MAX_LIVENESS_SITES` **once** to the measured total with every new row carrying its
 `why` — the cap is downward-only from there. Rows whose subject is a projection point rather than a store
 debt should be excluded by *scope* (they are not in `store.debts`), not by the regex.
@@ -244,7 +244,7 @@ wrong question"*. What it does not say is that its **success line makes the stro
 is `assert-the-honest-state-by-name` inverted — a true-looking sentence about a check that did less.
 
 **Remedy (hypothesis).** The escape should be a **call**, not a substring: reuse check 2's existing
-`CALL` regex (`(rowFieldUnread|anyRowFieldUnread)\s*\(`) plus `mayClaim\s*\(` / `debtLiveness\s*\(` /
+`CALL` regex (`\b(rowFieldUnread|anyRowFieldUnread)\s*\(`) plus `mayClaim\s*\(` / `debtLiveness\s*\(` /
 `liveDebts\s*\(`, and `continue` only when one of those actually appears. Re-measure the population —
 6 of the current 7 escape by substring, so this will surface rows and the honest move is to ledger them
 in `OPEN` at a measured cap and ratchet **down** from there. Separately, weaken the success line to what
