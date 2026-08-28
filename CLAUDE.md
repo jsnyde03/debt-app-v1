@@ -33,18 +33,36 @@ lived only on the plan)* · the log *(P6.8's closed sweep, the 62 findings, the 
 backup) = P6.3** and **"6.5" (repo consolidation, was 5.5) = P6.11**, so a commit or log entry naming
 `5.5.1` means **P6.11.1**.
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-08-28).** 🎯: standing authority to run the surface audits **to
-convergence**, including triaging and fixing what they find. **S0 CONVERGED · S1 passes 1, 2 and 3 all RUN
-AND FULLY FIXED · PASS 4 IS DISPATCHED** — four fresh auditors at pin `e65f9c7`.
+▶ **WHERE THIS SESSION LEFT OFF (2026-08-28, evening).** 🎯: standing authority to run the surface audits
+**to convergence**, including triaging and fixing what they find. **S0 CONVERGED · S1 passes 1–3 fixed ·
+PASS 4 RUN, RECORDED and being fixed by class.**
 
-🔴 **PASS 3 RETURNED 11 BLOCKERS · 9 MAJORS · 14 MINORS** — the largest round yet, on the widened surface.
-[`docs/audits/2026-08-26-s1-money-pass3/SUMMARY.md`](docs/audits/2026-08-26-s1-money-pass3/SUMMARY.md) is
-the map. ⛔ **S1 does NOT converge**; 9 of the 20 restart [D65]'s count, and **pass 3 is not a clean pass**,
-so a clean pass 4 still owes a pass 5.
+⭐ **PASS 4's RESULT WAS NOT A DEFECT — IT WAS THAT THE GUARD LEDGER COULD NOT BE CASHED**, and that is now
+closed at the source. `lint:finding-guards` is a **deletion detector** that had been read for three passes
+as a **closure proof**: it exited 0 over every un-fix four auditors performed. **`npm run prove:guards`**
+executes a registry entry's own defect — plant → the named command must red **for the named reason** →
+restore → assert the bytes → run the control — and the gate now separates *carries a proof* from
+*guard-only* from *never tested*, the last two on downward-only caps.
 
-▶ **ACTIVE: `S1.10.7.5` — pass 4 is RUNNING.** `.7.1`–`.7.4` closed 2026-08-28: the net green, pushed, the
-route generated, the brief written and its dispatch verified. Decomposed at the top of the plan.
-✅ **`S1.10.6` is CLOSED except `.6.10`** *(held for just-before-S2, see below)*: all **20** blocker+majors, the `G-1`…`G-6` enumeration, the whole `GAP-*` guard backlog and all **14** minors — every guard measured RED on its own restored defect.
+▶ **ACTIVE: `S1.11.3` is CLOSED through `.3.5`; `.3.6` is the net.** All **8** proven-dead guards are
+repaired and proven, and all **32** never-tested lane-A/B/C entries now carry **executed** proofs — 40 in
+all, 8 of them backed by a Playwright spec at ~3m40s each.
+⛔ **THE HONEST RESIDUAL: 119 entries still rest on a token alone.** Printed on every run, capped
+downward-only, and stated in
+[`LEDGER-RESOLUTION.md`](docs/audits/2026-08-28-s1-money-pass4/LEDGER-RESOLUTION.md).
+
+⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
+is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's
+REACH — the over-fix that makes `typecheck` PASS)*, and an `ORDERED` rule in `lint:destructive` *(an
+ordering is what no substring can pin)*.
+
+⛔ **AND MY OWN HARNESS CARRIED THE CLASS IT WAS BUILT FOR.** Two un-fixes on the same file clobbered each
+other, so a real, working guard came back **`failed-open`** — the safe-looking direction. **Found by
+planting, not by reading**, which is now the fourteenth instance. Its self-test carries a same-file row.
+
+▶ **NEXT after the net:** `S1.11.4` — the 13 CLASS-1 partial fixes, *one assertion per class that ITERATES
+the class*. ⚠️ The 119 unproven include the **8 `S1P4` instrument entries** and the **13 lane-D `S1P3`**
+ones, which are the cheapest next drain.
 
 ⭐ **[D75] — THE AUDIT ROUTE IS A GENERATED SET DIFFERENCE**, `scripts/audit-route.ts`, never a typed list.
 Four origins: **first-look** *(never swept)* · **fix-churn** *(swept, then changed — the pass read bytes that

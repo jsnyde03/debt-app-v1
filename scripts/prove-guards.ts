@@ -133,6 +133,13 @@ const fault = (id: string, detail: string): never => {
   process.exit(1);
 };
 
+/** Every path git reports as changed — the baseline a run is measured against, not a verdict. */
+const dirtyPaths = (): string[] =>
+  execFileSync('git', ['status', '--porcelain'], { cwd: REPO_ROOT, encoding: 'utf8' })
+    .split('\n')
+    .map((l) => l.slice(3).trim())
+    .filter(Boolean);
+
 const gitStatus = (rel: string): string =>
   execFileSync('git', ['status', '--porcelain', '--', rel], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
 
@@ -195,6 +202,31 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
    * unverifiable statically. Counting here against the accumulated text keeps the two consistent and
    * turns an edit that destroys another's anchor into a loud 0×.
    */
+  /**
+   * ⛔ **A PLAYWRIGHT PROOF IS VOID IF SOMETHING IS ALREADY SERVING.** `apps/rn/playwright.config.ts` sets
+   * `reuseExistingServer: !process.env.CI`, so a listener on the port makes the run skip `expo export` —
+   * and the plant is in APP SOURCE, so the browser would be handed the **pre-plant bundle**. The verdict
+   * that produces is `failed-open`: a working guard reported dead, in the safe-looking direction.
+   *
+   * ⚠️ **Not hypothetical.** Pass 4 found two `serve` processes on 4319 left over from Aug 8 and Aug 10,
+   * either of which would have served a days-old `dist/` to anything that bound after it.
+   */
+  if ((p.cmd ?? []).includes('playwright')) {
+    const port = /-l\s*(\d+)/.exec(readFileSync(join(REPO_ROOT, 'apps/rn/playwright.config.ts'), 'utf8'))?.[1] ?? '4319';
+    const listening = spawnSync('netstat', ['-ano'], { encoding: 'utf8', shell: true }).stdout ?? '';
+    if (new RegExp(`[:.]${port}\\s+.*LISTEN`, 'i').test(listening)) {
+      fault(
+        id,
+        `something is already listening on :${port}, and this proof runs playwright.\n` +
+          '   ⛔ The config reuses an existing server, so the plant would never be built and the guard\n' +
+          '   would read as failed-open. Stop that server and re-run.',
+      );
+    }
+  }
+
+  // ⚠️ The baseline, so the stray-file report below names what THIS run wrote rather than whatever the
+  // working tree was already carrying.
+  const dirtyBefore = new Set(dirtyPaths());
   const originals = new Map<string, string>();
   for (const u of p.unfix) {
     if (!originals.has(u.at)) originals.set(u.at, readFileSync(join(REPO_ROOT, u.at), 'utf8'));
@@ -251,6 +283,19 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
   }
 
   const withoutPlant = run(p);
+
+  /**
+   * ⚠️ **THE REST OF THE TREE, because the restore check only covers the files this proof edits.** Some
+   * gates regenerate an artifact as they run — `surface-coverage.ts` rewrites its inventory markdown — and
+   * under a plant that artifact is written from the PLANTED state. Reported rather than faulted: the
+   * writing is legitimate, and the thing that is not legitimate is committing it without noticing.
+   */
+  const strays = dirtyPaths().filter((f) => !dirtyBefore.has(f) && !originals.has(f));
+  if (strays.length) {
+    console.log(`       ⚠️ this run left ${strays.length} other file(s) modified — check them before committing:`);
+    for (const f of strays.slice(0, 6)) console.log(`          ${f}`);
+  }
+
   return { ...verdict(id, p.expect, planted, withPlant, withoutPlant), plantedStatus: withPlant.status, plantedOut: withPlant.out };
 }
 

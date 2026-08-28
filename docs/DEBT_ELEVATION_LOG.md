@@ -27731,3 +27731,91 @@ which is the assertion-deleted-file-survived shape it exists for.
 code: `npx tsx` cannot resolve the `@/` alias so both cells died at startup · a grep for `failed` matched
 **passing** lines · two duplicate count assertions and `C-m1`'s label check redded before the assertion
 under test was reached. **A red is not evidence until you know which claim produced it.**
+
+
+## S1.11.3 — PROVING THE GUARD LEDGER (2026-08-28)
+
+⛔ **The round's result was that `lint:finding-guards` exited 0 over every un-fix four auditors
+performed.** It is a deletion detector — a token string is still present — and it had been read for three
+passes as a closure proof. Eight guards were proven to survive their own un-fix and 35 more had never been
+tested by anyone. **Until a guard is proven to red, `CLOSED` and `OPEN` are indistinguishable in the
+record.**
+
+### The mechanism (.3.1 / .3.2)
+
+**`scripts/prove-guards.ts`** plants a finding's own defect from a `proof` block in the registry — the
+un-fix, the command, and the reason the command must red for — then restores, asserts the bytes, and runs
+the **control after the restore**, so one run carries both [D63]'s *"this command is not red
+unconditionally"* and the restore verification a plant loop structurally omits.
+
+- **`verdict()` moved to `scripts/lib/verdict.ts`.** Two harnesses, one question; `D4-6` is what a second
+  implementation of it produces. Its module-scope self-check now fires for both callers, and the two
+  registry entries whose token moved with it were re-pointed.
+- **`--selftest`** is a hermetic 2×2 on a throwaway fixture — a control built on a real defect inverts
+  silently the day that defect is fixed. Registered in `lint:rn`, because an instrument in no chain is
+  unexecuted ([M5]).
+- **`lint:finding-guards` gained three states**: a re-runnable proof, a written `guardOnly`, or the
+  never-tested backlog. Both new counts are strict-equality downward-only caps — so a closure that arrives
+  without a proof reds **at the moment it is written**, which is the only moment its un-fix is cheap to
+  derive. ⚠️ The gate can check a proof EXISTS and that its anchor still matches; it cannot run one, and
+  its summary line says so.
+- **A proof whose anchor no longer matches its file exactly once is VOID**, not green — the one half of a
+  recorded measurement a static gate can decide. `test:gate-plants` plants it (22 → 23 scenarios).
+
+### The eight dead guards (.3.3), and the two that needed a new gate
+
+| entry | why the token could not hold | what now holds it |
+|---|---|---|
+| `S1P3-D3-CAPS` · `S1P3-G-LIVENESSLEDGER` | a cap computed from the list it caps is `n > n` | **`lint:cap-literals`** — every `MAX_*`/`MIN_*` in `scripts/` must be a literal. Walks the directory rather than the index, so it can be planted |
+| `S1P3-G6-SCRIPTSREACH` | the over-fix makes `typecheck` **pass**, so no typecheck plant can catch it | `lint:gate-sources` direction 3 — the scripts compiler's REACH, asserted on the config's literal text |
+| `S1P3-B6` | the claim is enforced by a TYPE, and widening `DemoStageId` in another file restored the defect with tsc green | a `@ts-expect-error` in `funnel.test.ts`: if the union stops refusing a free-form stage the directive becomes `TS2578` |
+| `S1P3-M7` | the guard is an ORDERING, which no substring can pin | an `ORDERED` rule in `lint:destructive`, checked in both directions |
+| `S1P3-B3-MTIME` | one token, two directions | split into `-MTIME` and `-MTIME-THROW`. ⚡ Measuring the survivor showed its registered assertion is **never the first to fire** — un-fix and it reds two assertions earlier, both on the same direction — so the token was re-pointed to the one that reds |
+| `S1P2-B1-REASON` | measured `GUARD-ONLY` in pass 4 | S1.11.2's re-point had already fixed it; now machine-proven |
+| `S1P3-A2-INWINDOW` | — | proven first, as the harness's own pilot |
+
+### ⛔ The self-inflicted defect, found by planting rather than reading — again
+
+**Two un-fixes on the SAME file clobbered each other.** Each was computed from the file's original text and
+written in turn, so the second erased the first. `S1P3-M7`'s proof moves one statement below another: two
+edits, one file. ⚠️ **The verdict that produced was `failed-open`** — a real, working guard reported dead by
+a harness bug, in the safe-looking direction. The self-test now carries a same-file row, and it reds on the
+restored bug.
+
+⚠️ **Three smaller ones in the same session:** the failure printer showed the tail of a suite's output,
+which is its stack trace rather than the message a human needs; the first fix for that matched `expected`,
+which appears on the **passing** rows (the `grep for "failed"` trap, again); and a bash heredoc silently
+mangles backslashes, which is why the harness was written with the Write tool rather than a shell script.
+
+### What the proofs measured that reading had not
+
+- **Five entries' `expect` is NOT the assertion their token names.** The un-fix reds an earlier assertion
+  about the same finding. Recorded per entry rather than smoothed over: the token proves the assertion
+  still exists, the proof proves the defect is still caught, and they are different claims.
+- **`m6` had no guard at all that could be made to red.** Nothing in the tree asserted any of `whereText`'s
+  four strings — it was a closure inside a React Native component, which is *why* nobody tested it. Fixed by
+  extraction, the remedy `tested-helper-is-not-a-used-helper` names by hand.
+- **The e2e-backed proofs cost ~3m40s each** *(two `expo export --clear` cycles)*, and they are only valid with no server on `:4319`: the config reuses an existing one unless `CI` is
+  set, so a stray listener serves the PRE-PLANT bundle and the proof reports `failed-open`. ⚠️ Stated
+  from the config's own rule rather than measured here — measuring it needs the port this session was
+  using. The backlog already carries a measured instance: two `serve` processes weeks stale on 4319.
+
+### Where it landed (.3.4 / .3.5)
+
+**40 entries carry an executed proof · 0 guard-only · 119 still rest on a token alone.** The eight
+Playwright-backed proofs ran at ~3m40s each *(two `expo export --clear` cycles apiece)* and all eight held.
+
+⛔ **The residual is stated rather than implied.** 119 `CLOSED`s mean *the assertion is still present*, which
+is a weaker claim than *the defect is still caught*. `lint:finding-guards` prints the split on every run and
+both new counts are downward-only, so the number can only drain. The cheapest next drain is the **8 `S1P4`
+instrument entries** *(each already 2×2-measured by hand at S1.11.2, so the un-fixes are written down)* and
+the **13 lane-D `S1P3`** ones.
+
+⚠️ **Two hazards this work surfaced about ITSELF, both folded in rather than filed:**
+1. **A Playwright proof is void if anything is already serving on the e2e port** — the config reuses an
+   existing server, so the plant never reaches the bundle and a working guard reads `failed-open`. The
+   harness now refuses, and the refusal was **proven by starting a listener on 4319** and watching it fault.
+2. **A proof's command can write to the tree** *(coverage gates regenerate their inventory markdown)*, and
+   the restore check only covers the files the proof edits. A baselined `git status` diff now reports what
+   a run left behind — reported, not faulted: the writing is legitimate; committing it unnoticed is not.
+

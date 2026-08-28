@@ -139,7 +139,7 @@ const MAX_UNGUARDED = 1;
  * un-fix is cheap to derive. ⚠️ **Raising either to make a run pass is the defect this pair exists to
  * catch** — and it is the same move as raising `MAX_UNGUARDED`.
  */
-const MAX_UNPROVEN = 127;
+const MAX_UNPROVEN = 119;
 const MAX_GUARD_ONLY = 0;
 
 /**
@@ -392,9 +392,12 @@ console.log(
  * passes those were read as the same figure and they are not — a backlog nobody sees is a backlog nobody
  * drains, which is why `lint:s0-coverage` prints its unswept list here too.
  */
+// ⚠️ **"carry a proof", not "are proven"** — and the distinction is this gate's own limit. It can check
+// that a proof exists and that its anchor still matches; it cannot RUN one. A proof that has started
+// failing looks identical here, which is why the line names the command that executes them.
 console.log(
-  `   proof: ${proven.length} proven by plant · ${guardOnly.length} guard-only (cap ${MAX_GUARD_ONLY}) · ` +
-    `${unproven.length} never tested (cap ${MAX_UNPROVEN}) — \`npm run prove:guards -- --list\``,
+  `   proof: ${proven.length} carry a re-runnable proof · ${guardOnly.length} guard-only (cap ${MAX_GUARD_ONLY}) · ` +
+    `${unproven.length} never tested (cap ${MAX_UNPROVEN}) — execute them with \`npm run prove:guards -- --all\``,
 );
 // ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
 // number nobody sees is a number nobody drains.

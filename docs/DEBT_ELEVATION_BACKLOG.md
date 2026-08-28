@@ -759,6 +759,29 @@ grouping is by destination. Each bullet keeps its own `→` where it had one.
 
 ---
 
+
+## → surfaced by S1.11.3, 2026-08-28 — the guard-ledger work, routed per bullet
+
+- **→ Tooling / hygiene.** ⛔ **`prove:guards --all` runs in NO chain, so a recorded proof decays exactly
+  the way a documented gate result does.** What CI holds is the static half — the proof exists and its
+  anchor still matches its file exactly once. The executing half is a human typing the command. ⚠️ Cost is
+  the reason: ~10 s for a unit-suite proof and **~3m40s for an e2e-backed one**, so `--all` is tens of
+  minutes and cannot sit on every push. The shape that would work is a scheduled or pre-release run over
+  the proofs whose target files changed since their `sha` — the `audit-route.ts` set-difference idea,
+  applied to proofs. **Do not add it to `validate:release:rn` without solving that**: the release gate
+  fingerprints the tree at the END, and a harness that edits source mid-run is [D49]'s own failure mode.
+
+- **→ P6.10 / S1.11.5.** ⚠️ **`check-trust-claims`'s three ledger comparisons are `>` rather than `!==`.**
+  `lint:cap-literals` now refuses a DERIVED cap, which is the half that could not fail at all; the residual
+  is the `M8` slack — a cap left above its own count is room for a row to disappear unnoticed. Cheap, but it
+  belongs with `D4-4`/`C4-4` rather than in the middle of the ledger work.
+
+- **→ Tooling / hygiene.** ⚠️ **`MAX_GUARD_ONLY` is 0 and only goes DOWN, so the FIRST honest `guardOnly`
+  entry cannot be recorded without raising a cap the gate calls a defect to raise.** It was set at 0 because
+  all eight known-dead guards were repaired rather than accepted. The escape has to stay deliberate — a
+  one-time raise with the measurement written in the docblock — or the gate pushes a future session toward
+  faking a proof instead of recording the truth.
+
 ## → surfaced by S1 pass 4, 2026-08-28 — deferred, routed per bullet
 
 ⛔ Filed here, **not** on the plan — the plan carries only `S1.11`'s decomposition. Each row names where it

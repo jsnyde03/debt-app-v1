@@ -590,7 +590,27 @@
   "S1P3-C1-ROWFIGURES": {
     "what": "pass-3 C-1 — the claim table's 'row-figures' route had ZERO production consumers (3 grep hits, all the declaration or its own test), so Money printed \"0% APR\" on a card charging 22% and \"$0/mo\" on one demanding $150. The token names the ABSENCE assertion rather than the honest-state one: verified red under the plant twice, once normally and once with the honest-state assertions relaxed, so both halves are independently load-bearing",
     "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
-    "token": "await expect(row).not.toHaveAccessibleName(/0% APR/);"
+    "token": "await expect(row).not.toHaveAccessibleName(/0% APR/);",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/trustSelectors.ts",
+          "find": "  'row-figures': { debt: 'any', requiredExpense: 'any', livingExpense: 'any', goal: 'any' },",
+          "replace": "  'row-figures': { requiredExpense: 'any', livingExpense: 'any', goal: 'any' },"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "trust-claims.spec.ts",
+        "-g",
+        "C-1"
+      ],
+      "expect": "a debt row does not restate an APR"
+    }
   },
   "S1P3-C1-GATE": {
     "what": "pass-3 C-1's structural half — trustSelectors.test.ts gates the table's INPUTS (every repairable field is routed) and nothing gated its OUTPUTS, which is how a route shipped with no callers. lint:trust-claims reds when any MoneyClaim has no production consumer, when a call site asks a field its claim does not route (the intersection silently reads \"readable\"), and when the unguarded-claim-site ledger goes stale. All three plant-verified",
@@ -600,17 +620,77 @@
   "S1P3-C2-SUMS": {
     "what": "pass-3 C-2 — the sums on both expense screens had no guard, so Everyday Spending headlined $120 over a true figure of at least $520 and Money captioned \"of $55 recommended each paycheck\" against $1,400 of rent. ⚠️ The direction is the finding: a dropped addend makes a RECOMMENDATION smaller, so the failure runs toward the user under-reserving. The token names the headline's own testID, which exists because \"$120\" is also the Gas row's amount and a page-wide assertion could not tell them apart",
     "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
-    "token": "living-reserve-headline"
+    "token": "living-reserve-headline",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/living-expenses.tsx",
+          "find": "  const reserveUnread = anyRowFieldUnread(store, 'row-figures', 'livingExpense', 'amount');",
+          "replace": "  const reserveUnread = false;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "trust-claims.spec.ts",
+        "-g",
+        "C-2"
+      ],
+      "expect": "Everyday Spending does not headline a reserve missing an unknown addend"
+    }
   },
   "S1P3-C3-QUANTITY": {
     "what": "pass-3 C-3 — selectHistorySummary computed balance REDUCTION and history.tsx printed it as money \"paid down\", in success green; deleting a duplicated import credited the user with $2,923 they never paid. Fixed by making the quantity match the sentence (sum totalPaidThisCycle), with guardianSelectors' identical expression collapsed onto the same owner. The CONTROL is the load-bearing half — it reds under the plant too, because the pre-fix quantity is a different number",
     "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
-    "token": "History still anchors on money that WAS paid"
+    "token": "History still anchors on money that WAS paid",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/historySelectors.ts",
+          "find": "  return { paidDown: sumPaidToDebt(h), cycleCount: h.length };",
+          "replace": "  return { paidDown: Math.max(0, (h[0]?.totalDebtBalance ?? 0) - (h[h.length - 1]?.totalDebtBalance ?? 0)), cycleCount: h.length };"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "trust-claims.spec.ts",
+        "-g",
+        "C-3"
+      ],
+      "expect": "History does not credit the user with a DELETED debt"
+    }
   },
   "S1P3-C4-ARCHIVE": {
     "what": "pass-3 C-4 — the trophy shelf gated on hasUnreadDebtBalances (balance only) while the claim table routed originalBalance to 'debt-balances', so a cleared $12,000 card was filed \"$0 paid off\" and shared that way. Fixed in selectPaidOffDebts so BOTH mount points inherit it — progress.tsx:346 carries no trust check at all and needs no debt-free state to render. NOT fixed by widening hasUnreadDebtBalances: that would gag the graduation banner over balances read perfectly",
     "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
-    "token": "await expect(page.getByText('$0 paid off')).toHaveCount(0);"
+    "token": "await expect(page.getByText('$0 paid off')).toHaveCount(0);",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/celebrationSelectors.ts",
+          "find": "rowFieldUnread(store, 'debt-balances', 'debt', d.id, 'originalBalance')",
+          "replace": "false"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "trust-claims.spec.ts",
+        "-g",
+        "C-4"
+      ],
+      "expect": "the trophy shelf does not file a cleared debt"
+    }
   },
   "S1P3-C5-PAYWALL": {
     "what": "pass-3 C-5 — the paywall named a $100 shortfall on a cycle $500 short and sold a Recovery Plan sized against it. mayStatePlanFigures is a REQUIRED parameter rather than an internal check, so the next consumer cannot be added without answering the question. The cushion assertion is the token, not the shortfall one: it covers the NON-shortfall branch, and it was proven independently load-bearing by relaxing the shortfall assertion under the same plant | S1.11.3.4: proven by plant. ⚠ The registered TOKEN names a later assertion in the same file; the un-fix reds an earlier one asserting the same finding, so `expect` names the assertion that actually fires. The two halves are complementary - the token proves the assertion still exists, the proof proves the defect is still caught.",
@@ -631,7 +711,27 @@
   "S1P3-C6-CALENDAR": {
     "what": "pass-3 C-6 — a BNPL plan whose scheduledPaymentAmount could not be read left the installment expansion and was listed as ONE payment of four, with no \"+ N more\" and a month subtotal reading as the month's whole BNPL load. The unread plan's degraded row is now dropped and the plan named. The token is the absence assertion on the short list, verified red with the honest-state assertion relaxed",
     "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
-    "token": "await expect(page.getByText(/1 payment/)).toHaveCount(0);"
+    "token": "await expect(page.getByText(/1 payment/)).toHaveCount(0);",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/money/BnplCalendarSection.tsx",
+          "find": "  const listed = schedule.filter((e) => !unreadIds.has(e.debtId));",
+          "replace": "  const listed = schedule;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "trust-claims.spec.ts",
+        "-g",
+        "C-6"
+      ],
+      "expect": "the BNPL calendar says what it could not read"
+    }
   },
   "S1P3-D3-1-WIDGET": {
     "what": "pass-3 D3-1 — the Home/Lock Screen said \"Debt-free · 100% · $0\" over balances mayClaim('debt-balances') was refusing at the same instant: B1's finding verbatim with the widget standing where Today used to. No fixture in the repo had ever put a pendingDataRepairs entry through buildWidgetSnapshot. The token names the PERCENT assertion, not the date one, because the finding's own warning is that repairing only the date leaves \"100% · $0\" — the same falsehood without the word; plant-verified as its own scenario | S1.11.3.4: proven by plant. ⚠ The registered TOKEN names a later assertion in the same file; the un-fix reds an earlier one asserting the same finding, so `expect` names the assertion that actually fires. The two halves are complementary - the token proves the assertion still exists, the proof proves the defect is still caught.",
@@ -732,7 +832,27 @@
   "S1P3-B4-E2E": {
     "what": "pass-3 B4's user-facing half — the truncated-bytes member added BESIDE the existing valid-JSON fixture, never in place of it, so one uncovered member is not traded for another. Asserts the same outcome as the valid-JSON case by design: the whole finding is that two members of one class behaved differently ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated.",
     "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
-    "token": "await seedTruncated(page);"
+    "token": "await seedTruncated(page);",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/createAdapter.web.ts",
+          "find": "        return raw;",
+          "replace": "        return null;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "data-recovery.spec.ts",
+        "-g",
+        "B4"
+      ],
+      "expect": "TRUNCATED bytes are quarantined too"
+    }
   },
   "S1P3-C7-LOSSES": {
     "what": "pass-3 C-7 — describeBackup was byte-identical for an intact backup and one the reader had just recorded three losses on, and the user learned about them only after the irreversible replace. The answer was already inside the object being described (result.store.pendingDataRepairs). All seven existing describeBackup assertions used healthy fixtures. The token names the COUNT assertion rather than the naming one, proven load-bearing by relaxing the naming assertion under the same plant",
@@ -769,7 +889,27 @@
   "S1P3-B2-APRBOUND": {
     "what": "pass-3 B2 — the two RN hand-entry paths were the ONLY APR paths with no 0-100 bound, so `2599` (a missing decimal in 25.99 on a decimal-pad field labelled 'APR %') was saved and planned against as 2599%: $10,829.17/mo of interest on a $5,000 card, ranked first under avalanche, with a debt-free date computed from it. ⚡ A unit test asserted the bound and PASSED, because parseDebtFormValues' only live consumer is the legacy root tree — the guard travelled with v1.6 and never crossed to RN, while RN kept the error STRING for the same field and narrowed what triggers it to 'unparseable'. Asserts what LANDED in the store, not that an error appeared; the control pins 25.99 and the exact-100 boundary. Plant-verified: removing the bound reds the refusal test and leaves both controls green",
     "file": "apps/rn/tests/e2e/amount-guards.spec.ts",
-    "token": "Enter an APR between 0 and 100."
+    "token": "Enter an APR between 0 and 100.",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/entities/DebtSheet.tsx",
+          "find": "    if (aprN > 100) return setError(FORM_ERRORS.aprOutOfRange);",
+          "replace": "    if (false && aprN > 100) return setError(FORM_ERRORS.aprOutOfRange);"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "amount-guards.spec.ts",
+        "-g",
+        "B2"
+      ],
+      "expect": "an APR above 100 is REFUSED"
+    }
   },
   "S1P3-B7-BREADCRUMB": {
     "what": "pass-3 B7 — the Sentry breadcrumb scrub redacted the amounts and passed the CREDITOR NAMES: 'Visa, Focus, $[redacted] · 22.99% APR, estimated verified Jun 3' left the device on a build with a live DSN. ⛔ The remedy is not a wider regex — a name cannot be pattern-matched — so touch categories are dropped whole, the way console already is. ⚡ Rated major because of the TEST: its fixture was a user-authored bill name asserted as correctly untouched, pinning the leak green. Four plants: the drop removed, only one of the two SDK spellings listed, the over-fix that drops navigation too (which turns the diagnostic feature off), and the money rule itself",
@@ -999,7 +1139,25 @@
   "S1P3-D3-5": {
     "what": "pass-3 D3-5 — CLOSED S1.10.6.7.1. Two absence-only tests in on-plan-streak.spec.ts passed over a Progress screen that rendered NOTHING: `toHaveCount(0)` is satisfied by a page that has not rendered yet. ⚠ The FILE was not vacuous — test 1 is a positive in the same spec — which is why the auditor rated it minor rather than matching pass-2's D2-3, and that rating was a measurement, not a re-rating. Fix is one positive per test on `progress-hero-journey`, which renders in BOTH branches. ⛔ NOT a second absence assertion. Plant-verified with the auditor's own plant (`if (true) return null` in the Progress screen): before the fix only test 1 redded; after it, all 3 red",
     "file": "apps/rn/tests/e2e/on-plan-streak.spec.ts",
-    "token": "await expect(page.getByTestId('progress-hero-journey')).toBeVisible();"
+    "token": "await expect(page.getByTestId('progress-hero-journey')).toBeVisible();",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/(tabs)/progress.tsx",
+          "find": "<Text testID=\"progress-hero-journey\"",
+          "replace": "<Text testID=\"progress-hero-journey-renamed\""
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "on-plan-streak.spec.ts"
+      ],
+      "expect": "progress-hero-journey"
+    }
   },
   "S1P3-D3-7": {
     "what": "pass-3 D3-7 — CLOSED S1.10.6.7.1. `eq(snap.remaining, formatWhole(8000))` computed its expectation with the function under test, so it pinned `the snapshot used the formatter` and never `the string is $8,000`. ⛔ The counterfactual was MEASURED, not argued: with `formatWhole` planted to return 'PLANTED', the old form reads `expected \"PLANTED\", got \"PLANTED\"` and the suite reports 32 assertions passed; the literal form reds. ⚠ The plant also reds an EARLIER test (journeySelectors), so the widget assertion had to be exercised in isolation — a plant that reds early never reaches the later ones. The now-unused `formatWhole` import was removed with the fix",

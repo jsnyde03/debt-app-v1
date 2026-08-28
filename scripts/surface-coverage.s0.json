@@ -182,6 +182,9 @@
     "s1p2",
     "partial"
   ],
+  "scripts/check-cap-literals.ts": [
+    "never"
+  ],
   "scripts/check-ci-chain.ts": [
     "never",
     "partial"
