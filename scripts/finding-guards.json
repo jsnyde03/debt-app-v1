@@ -1328,5 +1328,30 @@
       "run": "test:app",
       "expect": "owner · a whole ROW unreadable"
     }
+  },
+  "S1P4-C4-9-MIXED": {
+    "what": "pass-4 C4-9 (blocker) - the Progress ring credited the user with $12,000 they had not paid. progress.tsx asked hasUnreadDebtBalances ONCE, inside if (!view.hasDebts), and one live debt beside one unread makes hasDebts true - so control reached selectJourneyTotals with no trust check at all. Measured on one store with one variable: ring 78% vs a true 11%, journey line '$14,000 of $18,000 paid' vs $2,000, debt-free date four months early, while the widget on the same store printed 'Balances unread'. Now gated on mayClaim('debt-balances') at the claim rather than on the empty-state branch, with the percentage, the journey line, the hero date, the milestone caption and the chart's saved-interest headline suppressed TOGETHER. ⛔ Not hasUnreadDebtBalances - that is the Guardian's narrow liveness question; and deliberately not the trophy shelf's claim (C4-2), which is a different question on the same screen.",
+    "file": "apps/rn/tests/e2e/progress-hero-journey.spec.ts",
+    "token": "C4-9 · one unread balance beside a live one suppresses every figure derived from it",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/(tabs)/progress.tsx",
+          "find": "  const mayStateBalances = mayClaim(store, 'debt-balances');",
+          "replace": "  const mayStateBalances = true;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "progress-hero-journey.spec.ts",
+        "-g",
+        "C4-9"
+      ],
+      "expect": "C4-9"
+    }
   }
 }
