@@ -145,6 +145,19 @@ function run() {
     'debt-free',
     '⚠️ owner — a RECOVERED balance is exactly right and must not suppress anything (the load-bearing exclusion)',
   );
+  /**
+   * ⭐ **THE OVER-FIX CONTROL FOR `F-B4`, AND IT WAS MEASURED MISSING.** The laziest repair for that
+   * finding is *"ask the claim owner"* — `!mayClaim(store, 'debt-balances')` — and the route it would
+   * inherit **also carries `originalBalance`**. ⚡ Planted: the whole suite stayed **GREEN**, so nothing
+   * refused the wider predicate. An unread ORIGINAL balance is the trophy shelf's question (`C-4`); it
+   * says nothing about whether the CURRENT balances were readable, and suppressing the Guardian's framing
+   * over it is a second false statement told by omission.
+   */
+  eq(
+    debtLiveness(base({ debts: [visaLost], repairs: [lost('debt', 'd0', 'Visa', 'originalBalance')] })),
+    'debt-free',
+    '⭐ owner over-fix control — an unread originalBalance is not a liveness question and must not suppress',
+  );
 
   // ── G-1 · the calibration scorecard ───────────────────────────────────────────────────────────
   /**
