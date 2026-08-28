@@ -333,6 +333,11 @@
     "file": "apps/rn/src/store/trustSelectors.test.ts",
     "token": "if (named.has(key)) continue;"
   },
+  "S1P4-D4-3-TESTCONV": {
+    "what": "pass-4 D4-3 - lint:trust-claims knew ONE of this repo's two test-file conventions. isTest was /\\.test\\.tsx?$/ || startsWith('apps/rn/tests/'), and packages/ contains ZERO .test.ts files - its convention is testXxx.ts. Measured: 64 tracked test*.ts under packages/core plus 20 in packages/core/testing, every one classified PRODUCTION (the finding said '40+'). So a MoneyClaim could lose its last real production caller with this gate green as long as one testXxx.ts still mentioned it - pass-3 blocker C-1 verbatim, behind the gate built to make C-1 impossible. inScope had been widened to packages/ and isTest had not, in the same file. ⛔ Fixed by matching the CONDITION, not by adding a spelling - the gate's own history records the previous version missing a .ts import spelling and calling that the undercount class arriving inside the instrument written to close it. This token pins the MODULE-SCOPE self-check, which asserts the classifier against real tracked paths from BOTH conventions and asserts those paths EXIST (a fixture of stale paths passes by testing nothing). 2x2: NEW isTest + a claim asked only by a packages test -> [claim] row PRESENT; OLD isTest + the same plant -> row ABSENT, the defect. ⚠️ D4-3 warned the same isTest gates check 3's ledger so widening could HIDE a money surface: measured with the predicate swapped and the self-check neutered, ledger is IDENTICAL both ways (sites=13 files=10 cap=13). Warning checked and refuted for this tree",
+    "file": "scripts/check-trust-claims.ts",
+    "token": "['packages/core/debt/testDebtProjection.ts', true]"
+  },
   "S1P2-B1-SELFCHECK": {
     "what": "pass-2 B-1's un-plantable seventh - the routing check reads a predicate in surface-coverage.ts rather than a file, so no scenario can hand it a defect; the first self-check asserted the PREDICATE and stayed green with `if (false && ...)` planted at the call site, which is tested-helper-is-not-a-used-helper written into the fix for it",
     "file": "scripts/surface-coverage.ts",

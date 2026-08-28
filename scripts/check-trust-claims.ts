@@ -51,7 +51,58 @@ function trackedSources(): string[] {
 }
 
 const TRUST_MODULE = 'apps/rn/src/store/trustSelectors.ts';
-const isTest = (rel: string) => /\.test\.tsx?$/.test(rel) || rel.startsWith('apps/rn/tests/');
+
+/**
+ * ⛔ **S1.11.2 [pass-4 D4-3] — THIS REPO HAS TWO TEST-FILE CONVENTIONS AND THIS KNEW ONE.**
+ *
+ * It was `/\.test\.tsx?$/ || rel.startsWith('apps/rn/tests/')`. ⚡ **`packages/` contains ZERO `.test.ts`
+ * files.** Its convention is `testXxx.ts` — `testDebtProjection.ts`, `testBnplInstallment.ts`, … —
+ * **64 tracked files**, plus the 20 in `packages/core/testing/`. `inScope` admits all of them and every
+ * one was classified **production**.
+ *
+ * ⛔ So a `MoneyClaim` could lose its last real production caller with this gate green, as long as one
+ * `testXxx.ts` still mentioned it — which is pass-3 blocker `C-1` verbatim, behind the gate written to
+ * make `C-1` impossible. ⚠️ The finding said *"40+"*; measured, it is **64**.
+ *
+ * ⚠️ **Widening the enumeration by one spelling is what produced this.** The gate's own history records
+ * the previous version missing `check-trust-claims.ts` over a `.ts` import spelling and calling it
+ * *"the undercount class this repo has now measured seven times, arriving inside the instrument written
+ * to close it."* So this matches the CONDITION — a file whose job is testing — by directory and by
+ * basename convention, and the self-check below asserts it against real tracked paths from **both**
+ * conventions rather than trusting the regex to be read correctly.
+ */
+const isTest = (rel: string) =>
+  /\.test\.tsx?$/.test(rel) || // apps/rn convention
+  /(^|\/)tests?\//.test(rel) || // apps/rn/tests/, and any tests/ dir
+  /(^|\/)testing\//.test(rel) || // packages/core/testing/ — the runners
+  /(^|\/)test[A-Z][A-Za-z0-9]*\.tsx?$/.test(rel); // packages/core convention: testDebtProjection.ts
+
+/**
+ * ⛔ **MODULE SCOPE, and the sample paths are asserted to EXIST.** A classifier self-check whose fixtures
+ * are stale paths passes by testing nothing — the same shape as a plant that never applied. Each row is a
+ * real tracked file, and the existence assertion is what stops this rotting into a tautology.
+ */
+{
+  const SAMPLES: readonly (readonly [string, boolean])[] = [
+    ['apps/rn/src/store/trustSelectors.test.ts', true], //           apps: .test.ts
+    ['apps/rn/tests/e2e/trust-claims.spec.ts', true], //             apps: the e2e tree
+    ['packages/core/debt/testDebtProjection.ts', true], //           packages: testXxx.ts — the 64 D4-3 found
+    ['packages/core/testing/runRegressionTests.ts', true], //        packages: the runners
+    ['apps/rn/src/store/trustSelectors.ts', false], //               production, and the subject itself
+    ['packages/core/debt/projectDebtPayoff.ts', false], //           production, in the tree that was misread
+  ];
+  const tracked = new Set(trackedSources());
+  for (const [rel, want] of SAMPLES) {
+    if (!tracked.has(rel)) {
+      console.error(`\n❌ trust claims — its own isTest() fixture \`${rel}\` is not a tracked file.\n   ⛔ A classifier checked against paths that no longer exist proves nothing. Re-point the sample.\n`);
+      process.exit(1);
+    }
+    if (isTest(rel) !== want) {
+      console.error(`\n❌ trust claims — isTest(${rel}) is ${isTest(rel)}, expected ${want}.\n   ⛔ [D4-3] Misclassifying a test as production lets a claim keep a caller it does not have.\n`);
+      process.exit(1);
+    }
+  }
+}
 /**
  * ⛔ The LEGACY Capacitor tree is out of scope and says so here rather than by being forgotten. It is
  * deleted at P6.11 and shares no store with the RN app, so a trust guard there would be guarding nothing.
