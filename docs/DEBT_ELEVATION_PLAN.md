@@ -26,26 +26,30 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.10.7 · the round's NET, then pass 4**
+## ▶ RIGHT NOW — **S1.11 · pass 4 RECORDED, then FIXED BY CLASS**
 
-**Surface S1 · money · goals · plan cards.** Passes 1 and 2 run and fully fixed. **Pass 3 run at `96d1f11` and FIXED — 20 of 20 blocker+majors, then all 14 minors**, plus `G-1`…`G-6` and the whole `GAP-*` guard backlog. ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively** and pass 3 was not clean, so **pass 4 is the next first-candidate and a clean pass 4 still owes a pass 5.** S0 converged 2026-08-25. ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+**Surface S1 · money · goals · plan cards.** Passes 1–3 run and fully fixed. **Pass 4 run at `e65f9c7` by four fresh agents → 8 blockers · 19 majors · 7 minors across 217 files** ([`SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md)). ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next first-candidate and a clean pass 5 still owes a pass 6.** ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
-⚡ **What the last two sub-steps measured, and it governs how pass 4 is read.** Of the 12 `GAP-*` rows, **9 were wrong about their own scope or remedy**; of the 14 minors, **6 had a remedy that was wrong, incomplete or unnecessary** — while the premises were almost always right. ⛔ **The ledger is reliable about WHERE and unreliable about WHAT TO DO**: verify a finding's remedy, not just its location. Three remedies would have introduced the defect they described.
+⛔ **PASS 4's RESULT IS NOT A DEFECT — IT IS THAT THE LEDGER CANNOT BE CASHED.** `lint:finding-guards` exited 0 over **every** un-fix auditor D performed. It is a **deletion detector** — it proves a token string still exists — and it has been read for three passes as a **closure proof**. **Eight registered guards were proven to survive their own un-fix** by four auditors independently, and **35 more entries in lanes A/B/C have never been tested by anyone.** ⚠️ **Until a guard is proven to red, `CLOSED` and `OPEN` are indistinguishable in the record** — which invalidates counts rather than adding to them.
+
+⚡ **13 of the 34 findings are ONE class:** the fix reached the instance that was reported and left a sibling of the same class asserting on the same store. ⛔ **`C4-10` and `D4-6` are the two instruments built to prevent exactly that, and neither can fail** — `D4-6` is inside `test:gate-plants` itself, which prints `reason=WRONG` beside a green tick and then announces `✅ all 21 gates fail closed`, exit 0.
+
+⚠️ **Carried from pass 3 and still governing:** of the 12 `GAP-*` rows, **9 were wrong about their own scope or remedy**; of the 14 minors, **6 had a remedy that was wrong, incomplete or unnecessary** — while the premises were almost always right. ⛔ **The ledger is reliable about WHERE and unreliable about WHAT TO DO.** Three remedies would have introduced the defect they described.
 
 ⛔ **THERE IS NO CURRENT GATE RECORD, AND MID-AUDIT THAT IS THE EXPECTED STATE** ([D74]). ⚠️ **Do not type the fingerprint or the file count here** — this block has carried a decayed one twice, which is why [D49] says quote `npm run lint:gate-freshness` and read `gate-status.json`. ⛔ **The harness reports exit 0 over a RED gate** — read the gate's own summary line, never the pipeline's status.
 
 ### ⏭ WHAT THE NEXT SESSION PICKS UP
 
-▶ **`S1.10.6` is CLOSED except `.6.10`, which is deliberately held for just-before-S2.** All 20 blocker+majors and all 14 minors are closed. ⛔ **Read the guard count from `npm run lint:finding-guards`, never from here.** ⚡ **Across the minors, 6 of 14 remedies were wrong, incomplete or unnecessary while the premises were almost always right** — verify what a finding says to DO, not just where it points.
-▶ **Next: `S1.10.7` — the NET (full e2e + embed, no `gate:record`), push, then regenerate the routing and write pass 4's brief.** ⛔ [D68]: a NEW SESSION runs the pass.
+▶ **`S1.11.1` — RECORD & CLASSIFY, and `s1p4` is NOT yet in `SWEPT_CLAIMS`.** The array reads `p1…p4 g4 r10 r17 s1p1 s1p2 s1p3`. ⛔ **`s1p2` and `s1p3` each had to be registered first and it was twice nearly missed** — write the claims back **in the same step as the record**, computed from the four manifests and *reconciled against* each auditor's number, never taken from it.
+▶ **Then `S1.11.2` — the instruments, before any money blocker.** Fixing `A-F3` or `C4-9` first buys a fix that nothing can prove stays fixed.
 
-⚠️ **The GAP backlog is CLOSED — `MAX_UNGUARDED` 16 → 1**, and the one row left (`GAP-14`) exits by a DECISION, not a build. ⛔ **What carries forward is the LESSON, not the list:** those rows were authored against `b03e0d3` and the tree has moved a great deal, so **9 of 12 did not survive contact** — three had already been closed by `M8`'s strict-equality sweep without anyone noticing, one proposed remedy would have been the defect, and one was rejected because it would have shipped 12 exemptions against 1 rule. **A refutation is a real exit ([D65]) — record it with the measurement and a token.**
+⛔ **A finding's MECHANISM is a hypothesis; its site list is a floor.** Measured repeatedly here — in one cluster **4 of 4** stated mechanisms were wrong while all four observations stood, and **three of the proposed fixes would not have closed the defect.** Verify what a finding says to DO against the current code before writing anything.
 
-⛔ **Then, and only then: pass 4 — and its subject is largely CODE WRITTEN DURING THE FIXING.** ⚠️ **The enumeration below said SIX and the count is EIGHT** *(corrected 2026-08-28 from `git diff 96d1f11..HEAD -- scripts/`, not from a list)* — it omitted **`lint:trust-claims`**, the 313-line gate that is `.6.2`'s durable half, and **`lint:ci-chain`**. ⛔ **Read the churn from `audit-route.ts`, never from this sentence:** **13 new files · 20 modified · +2,654 / −332** in `scripts/` since pass 3's pin. The seventh instance of the undercount class, and this one was inside the paragraph warning about it.
+⚠️ **The audit's own dispatch is half-blind and pass 5 depends on fixing it.** `audit-route.ts` routes files *changed* since the pin, so a two-producer disagreement is **half-routed by construction** — the fix touches one producer, the route sees one producer, and the disagreement is only visible from the side that moved. Three independent proofs: `buildPayoffTrajectory.ts` routed to nobody · a fifth bucket, **`unrouted`**, holding `(tabs)/progress.tsx` and `(tabs)/index.tsx` where **3 of C's 4 blockers live** · and the route emits `first-look` for S1 and **never S0** — **49 never-swept S0 files** against a surface declared CONVERGED.
 
-⚡ **Across those two sessions ELEVEN defects went into the instruments themselves**, and the split is the point: the previous session put five in *(a word-boundary regex escape mangled into a literal backspace byte, an edit pre-flight that never landed, three verifier errors that each produced a confident verdict about nothing)*, and this one put six in — **an exemption ledger keyed so it could never excuse the case it existed for · a CRLF guard that normalised away the thing under test · a scope check that could not tell a MENTION from a USE and red on its own write-up · a NUL gate blind to untracked files · a consumer detector blind to the `.ts` import spelling · an escaping fix that wrote a raw NUL into the file doing the fixing.**
+⚠️ **The dispatch crashed once and the recovery is protocol now** ([`RESUME-PROTOCOL.md`](audits/2026-08-28-s1-money-pass4/RESUME-PROTOCOL.md)): heap capped at **1536 MB**, ⛔ **an OOM is a FINDING and never a retry** *(the retry with `--max-old-space-size=6144` on a 6 GB box was the kill)*, no whole-monorepo typecheck, kill servers you start, **verify every restore**. ⚡ **Incremental writing is what saved the round** — 11 findings were already on disk when three auditors died.
 
-⛔ **Every one was found by PLANTING, none by reading** — which is what the brief must ask for. **Report pass 4 split by origin**, or a flat total hides both halves moving.
+⛔ **Eleven defects went into the instruments across the two fixing sessions, and pass 4 found more.** **Every one was found by PLANTING, none by reading.** Report pass 5 split by origin, or a flat total hides both halves moving.
 
 ### 🔨 THE ACTIVE DECOMPOSITION — S1 *(the ONLY decomposed section on this doc)*
 
@@ -53,7 +57,8 @@
 |---|---|---|
 | ✅ | **S1.1 – S1.8** — the surface opened, both passes run and pass 1 fixed | CLOSED 2026-08-26 · pass 1: **5 blockers · 10 majors**, every one fixed and guarded · **S1.6** the gate recorded at fingerprint `69c372a0` · **S1.7** [D73] put the TEST TREE on a surface · **S1.8** pass 2, four fresh auditors at `4b58d75` → **3 blockers · 6 majors · 12 minors** ([`SUMMARY.md`](audits/2026-08-26-s1-money-pass2/SUMMARY.md)). ⭐ **A issued 23 verdicts and 22 came back CLOSED.** Detail → log |
 | ✅ | **S1.9 — pass 2 FIXED** | CLOSED 2026-08-26 · 3 blockers · 6 majors · 12 minors, **57 plants · 22 guards**. ⚡ **Three times the fix WAS the defect class**; the roots were wrong twice more *(1 dir → 18, then 184 invisible files)*; `lint:rn` 27 → **28 gates**. Detail → log |
-| ▶ | **S1.10 — pass 3** *(decomposed below)* | ⛔ **[D68]: a NEW SESSION runs it.** The surface is **2.5×** what pass 2 read |
+| ✅ | **S1.10 — pass 3 FIXED, the route became a generator, pass 4 RUN** | CLOSED 2026-08-28 · 11 blockers · 9 majors · 14 minors all fixed, plus `G-1`…`G-6` and the `GAP-*` backlog *(`MAX_UNGUARDED` 16 → 1)*; NET green at `cec7edc3`; **[D75]** made the route a committed generator. ⚡ **9 of 12 `GAP-*` rows and 6 of 14 minor remedies did not survive contact.** Detail → log |
+| ▶ | **S1.11 — pass 4 FIXED** *(decomposed below)* | **8 blockers · 19 majors · 7 minors.** ⛔ The result is that **the guard ledger cannot be cashed** — 8 guards proven dead, 35 never tested |
 
 **Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
 new instruments swept. ✅ **The instrument half is DONE** — pass 1 swept `check-finding-guards.ts`,
@@ -62,65 +67,33 @@ found in them. ⚡ Every one was the S0 shape: *an instrument reporting green wh
 claimed.*
 
 
-#### S1.10's sub-steps — pass 3, the first candidate for a clean pass
+#### S1.11's sub-steps — pass 4 RECORDED, then FIXED BY CLASS
 
-⛔ **[D65] exits on 0 blockers / 0 majors TWICE CONSECUTIVELY.** Pass 2 reset the count; pass 3 is the first
-candidate, and a clean pass 3 still owes a pass 4.
+⛔ **Grouped by class because the ids are not independent** — **13 of the 34** are one defect: *the fix
+reached the instance that was reported and left a sibling of the same class asserting on the same store.*
+Fixing those one id at a time is what produced this round.
 
-⚠️ **THE SURFACE IS 2.5× THE ONE PASS 2 READ — 188 → 470 files, 116 → 331 unswept.** S1.9.5 admitted all of
-`packages/core` *(18 directories, 102 files — `debt` alone is 53)* and all of `apps/rn/src` *(184 files
-under no root at all)*. ⛔ **A brief that reuses pass 2's routing hands four auditors the old surface** and
-the coverage number will not move.
+⛔ **The instruments come FIRST and the money blockers wait behind them.** `C4-10` and `D4-6` are the two
+gates built to prevent that class and **neither can fail**; fixing `A-F3` or `C4-9` before them buys a fix
+nothing can prove stays fixed. ⚠️ Each sub-step is: **verify the finding's MECHANISM against current code**
+→ reproduce with a control → fix → re-run the control → **plant the original defect and confirm the guard
+reds FOR THE PLANTED REASON** → **plant the naive over-fix** → register the guard.
 
-| # | sub-step |
-|---|---|
-| ✅ | **S1.10.1 — the brief**, no verdict ([D68]), at [`pass3/BRIEF.md`](audits/2026-08-26-s1-money-pass3/BRIEF.md). ⚠️ **Pinned `96d1f11`, not S1.9.8's `6f93846`** — [D74]'s own commit changed two S0 instruments after it. ⛔ **Routing is four generated manifests, not a sentence** — `ROUTING-{A,B,C,D}.txt`, asserted **331 routed · 0 unrouted · 0 duplicated · 0 missing**. ⚡ **This step's own pre-authored route list named 118 of the 331** *(it omitted `apps/rn/src/store`, 24 files, and the whole test tree)* — the sixth instance of the undercount class, which is why the route is now a file |
-| ✅ | **S1.10.2 — the dispatch verified** ([D68]): 8 links · 4 explicit paths · **17 bare filenames each resolving to exactly one tracked file** · 5 SHAs. ⚡ **It caught one wrong number in my own brief** — *"8 of 9"* counted from memory where pass 2's [D69] table says **5**; corrected in place, with the miss left on the page |
-| ✅ | **S1.10.3 — RUN.** Four fresh auditors at `96d1f11` → **11 blockers · 9 majors · 14 minors** ([`pass3/SUMMARY.md`](audits/2026-08-26-s1-money-pass3/SUMMARY.md)). ⛔ **No auditor edited source** — `git diff 96d1f11 -- apps packages scripts` is empty. D ran every plant in an isolated worktree at the pin |
-| ✅ | **S1.10.4 – S1.10.5 — recorded and classified**, claims written back in the same step. **9 of 20 blocker+majors COUNT · 11 are first-look.** Coverage **331 → 113 unswept**; `s1p3` had to be registered in `SWEPT_CLAIMS` first, exactly as `s1p2` did. ⚡ **D's own reconciliation said 48/61 and the truth is 46/63** — braced tokens are two files each, so the write-back was computed from the manifests and *reconciled against* each auditor's number, not taken from it |
-| ▶ | **S1.10.6 — FIX** *(decomposed below)*. 20 blocker+majors. ⛔ **By CLASS, not by id** — eight separate ids are one rule wired to a subset. ▶ **`.6.5`, the instruments, is the last code class** |
-| **S1.10.7** | ⛔ **[D74]: a round ends with the NET, not the record.** Full e2e + embed green, commit, **push** — and `gate:record` only if pass 3 CONVERGES. ⚠️ It does not; the hand-off states *no current record* and names `818f934` |
+| # | sub-step | exit line |
+|---|---|---|
+| **S1.11.1** | **RECORD & CLASSIFY.** Register **`s1p4` in `SWEPT_CLAIMS`** *(it is absent — `p1…p4 g4 r10 r17 s1p1 s1p2 s1p3`)*, write the claims back **from the four manifests, reconciled against each auditor's number rather than taken from it**, and produce the [D69] table of all 34 split by origin and by COUNT | coverage recomputed and the `s1p4` claims written **in the same step as the record** |
+| **S1.11.2** | ⛔ **REPAIR THE INSTRUMENTS** — `D4-6` *(the plant harness scores a green tick beside `reason=WRONG`)* · `C4-10` *(the completeness gate cannot fail)* · `D4-3` · `D4-9` · `D4-5` · `D4-8` · `D4-2` *(crashes in a linked worktree — the environment the protocol mandates)* | every one reds **for the planted reason** on the un-fix that currently passes it |
+| **S1.11.3** | ⭐ **PROVE THE GUARD LEDGER.** The **8 proven-dead** entries, plus the **35 in lanes A/B/C that nobody has ever tested**. ⛔ `lint:finding-guards` must stop reporting a token's existence as a closure | every entry either **proven to red** or marked `GUARD-ONLY` with a measurement; every prior `CLOSED` resting on a dead guard **re-rated** |
+| **S1.11.4** | **CLASS 1 — the 13 partial-fix members.** `F-B4` `C4-9` `C4-7` `A-F4` `C4-11` `C4-5` `A-F5` `F-B3` + the `PARTIAL`s `C-4` `C-6` `C-7b` `D3-2` `G-6` | ⛔ **one assertion per class that ITERATES the class**, never one that names a member |
+| **S1.11.5** | **CLASS 2/3/5 — the rest.** `A-F3` *(blocker: `windowStartISO` accepted and never read — $1,200 against a true $300)* · `C4-1` · `C4-2` *(blocker: a debt owed in full filed as "$12,000 paid off" and offered for sharing)* · `A-F1` `A-F2` `F-B1` `C4-3` `C4-6` `C4-4` `F-B2` `D4-1` `D4-10` `D4-4` `D4-7` · the 7 minors | each carries **two plants** — the defect, and the laziest plausible repair |
+| **S1.11.6** | ⛔ **RE-ROUTE FOR PASS 5.** `audit-route.ts` must emit **the CONSUMERS of every changed producer**, not only changed files, and must emit **S0**. Fold the memory protocol in permanently *(heap 1536 MB · an OOM is a finding, never a retry)* | the route reproduces `A-F4`'s unrouted producer and C's two unrouted money screens as **routed** |
+| **S1.11.7** | ⚠️ **[DECISION] S0 was declared CONVERGED on a route that never emitted S0 files** *(`D4-7`: 49 never-swept, in no lane)*. Reopen S0, or accept the convergence and record why | Jason |
+| **S1.11.8** | **THE NET** — full e2e + embed, read from each suite's own summary line, commit, push. ⛔ **No `gate:record`** — [D74] writes it at convergence and pass 4 did not converge | green and pushed; the hand-off names the last full pass |
 
-**Exit (S1.10):** 0 blockers / 0 majors on the widened surface, the `s1p3` claims written back ✅, and the
-consecutive-clean count standing at **zero** — pass 4 is the next first-candidate.
-
-#### S1.10.6's sub-steps — the fix, grouped by CLASS
-
-⛔ **Grouped by class because the ids are not independent.** `C-1 C-2 C-3 C-4 C-5 C-6 D3-1 D3-2` are **one
-rule wired to a subset**; fixing them one id at a time is what produced this round's recurrence. Each
-sub-step is: reproduce with a control → fix → re-run the control → **plant the original defect and confirm
-the new guard REDS** → plant the **naive over-fix** → register the guard.
-
-| # | class | ids | state |
-|---|---|---|---|
-| **S1.10.6.1** | **The payoff engine** — three blockers, all first-look | `A1` `A2` `A4` | ✅ **CLOSED 2026-08-27** — one shape: two producers of one fact, disagreeing |
-| **S1.10.6.2** | ⭐ **The trust rule, INSIDE the app** | `C-1` `C-2` `C-3` `C-4` `C-5` `C-6` | ✅ **CLOSED 2026-08-27** — ⭐ **`lint:trust-claims`** is the durable half: a claim route with no caller now reds |
-| **S1.10.6.3** | ⭐ **The trust rule, OUTSIDE the app** — Home Screen, Lock Screen, Siri, Live Activity | `D3-1` `D3-2` | ✅ **CLOSED 2026-08-27** — ⛔ and the day-old gate's two caps were **vacuous**, found by re-reading it |
-| **S1.10.6.4** | **Storage & backup** — the iCloud clobber, the unparseable-bytes read, both restore doors | `B3` `B4` `C-7` `C-7b` | ✅ **CLOSED 2026-08-27** — ⚡ the finding's **own stated remedy would have been the defect** |
-| **S1.10.6.5** | ⛔ **The instruments** — four gates reporting green while doing less than they claim | `B1` `A3` `D3-3` `D3-4` | ✅ **CLOSED 2026-08-27** — ⚡ **every one had MORE than the finding said**: `B1` two blind spots · `A3` a plant covering one half · `D3-3` a sweep of **13** · `D3-4` pinnable only by a plant whose input is the git REVISION. Detail → log |
-| **S1.10.6.5.8** | ⭐ **THE GUARD BACKLOG** — the `unguarded` rows of the guard inventory | `GAP-*` | ✅ **CLOSED 2026-08-27** — `MAX_UNGUARDED` **16 → 1**, and the one row left (`GAP-14`) exits by DECISION. ⚡ **9 of 12 rows were wrong about their own scope or remedy**; three were already closed by `M8`'s strict-equality sweep, and one proposed remedy would have been the defect. Detail → log |
-| **S1.10.6.6** | **Input bounds & privacy** — the unbounded APR field, the creditor names in Sentry | `B2` `B7` | ✅ **CLOSED 2026-08-27** — ⚡ both were **already asserted somewhere**, and both assertions were green over the gap |
-| **S1.10.6.10** | ⭐ **MATERIALISE S2/S3/S4's INVENTORIES BEFORE S2 OPENS** *(🎯 2026-08-27: do the later surfaces bloat the way S1 did?)*. Their sizes are unmeasured — no claims file exists and the script answers *"unknown surface"* — because the routing lives inside S1's own `excluded` rather than a shared router. ⛔ **SHARPENED 2026-08-28: completeness proves a file is under a ROOT, not that an inventory CONTAINS it** — S1's own fixing edited three S3 files nothing was going to read. [D75]'s `off-surface` bucket is the stop-gap; this row is the fix. Detail → log | — | not started — ⭐ **do this BEFORE S2** |
-| **S1.10.6.7** | **The 14 minors** | `A5` `B5` `B6` `C m1–m7` `D3-5`–`D3-8` | ✅ **CLOSED 2026-08-27** — ⚡ **6 of 14 had a remedy that was wrong, incomplete or unnecessary** while the premises were almost always right: one accepted the defect it existed to catch, one reds a real test, one narrowed nothing, two had an unnamed second half. `m5` refuted by `C-3`; `m3` deferred (out of 2.0's storefronts). Detail → log |
-| **S1.10.6.8** | **Register every fix in `finding-guards.json`** — a two-line edit each (the entry **and** `MIN_ENTRIES`) | all 20 | ✅ **CLOSED 2026-08-27** — registered with each fix rather than batched. ⛔ **Read the count from `lint:finding-guards`, never from here**; `D3-3` then swept the whole registry because a token naming a DECLARATION outlives its use |
-| **S1.10.6.9** | ⚠️ **From `.6.2`'s enumeration, not from any auditor** — the claim sites still on `lint:trust-claims`' `OPEN` ledger | `G-1`…`G-6` | ✅ **CLOSED 2026-08-27** — ⛔ **the row named two sites and the file held five**, one of them **blocker `B1` unfixed**; a sixth (`G-6`) was **a RED release gate** found while verifying. `MAX_OPEN` → **0** |
-
-**Exit (S1.10.6):** 20 of 20 fixed, each with a guard **measured to red on its own original defect**, and
-`lint:rn` and the unit suites green.
-
-#### S1.10.7's sub-steps — THE NET, THEN PASS 4 *(ACTIVE)*
-
-⚠️ **Switch-in before-scan.** ⛔ **`S1.10.6` is complete except `.6.10`**, which is deliberately held: its own row says *do this BEFORE S2*, and S2 is two steps away — running it now would measure surfaces that pass 4's fixes are about to move. ⛔ **[D74]: a round ends with the NET, not the record** — `gate:record` runs only at [D65] convergence, and pass 3 did not converge.
-
-| # | sub-step |
-|---|---|
-| ✅ | **S1.10.7.1 — THE NET IS GREEN.** Full `test:e2e:rn` **325 passed** + `test:e2e:embed` **10 passed**, read from each suite's own summary line rather than the pipeline's exit code. ⛔ **No `gate:record`** — [D74] writes it at convergence, and pass 3 did not converge |
-| ✅ | **S1.10.7.2 — PUSHED, and the hand-off is honest.** `cec7edc3` is on `origin/v1.7-dev`, 0 ahead / 0 behind. ⛔ **There is no current gate record** — `lint:gate-freshness` reds: recorded `818f934` · 2026-08-26T21:52:39Z · 807 files, now 821 and the fingerprint differs; **36 commits** since. ⚠️ Expected mid-audit ([D74]). ⚡ **The `\| tail` trap, instance eleven** — the red printed under `EXIT=0` |
-| ✅ | **S1.10.7.3 — [D75] THE ROUTE IS A COMMITTED GENERATOR**, `scripts/audit-route.ts`, replacing pass 3's hand-derivation. **216 routed · 0 unrouted · 0 duplicated · 0 missing**, split **125 first-look · 48 fix-churn · 32 instrument · 11 off-surface**. ⛔ **The row's premise was wrong twice** — the new gates are on **S0**, not S1, and there are **eight**, not six. ⚡ **Two buckets nothing had a name for**, both found by the generator on its first run. **6 plants, and plant 6 found a check in my own router that could not fail.** Detail → log |
-| ✅ | **S1.10.7.4 — THE BRIEF IS WRITTEN AND THE DISPATCH VERIFIED**, pinned `e65f9c7`, no verdict ([D68]). ⚠️ **Row corrected at switch-in:** it read *"this session does NOT run the pass"* — [D68] binds the AGENTS to be fresh, not the session, and this one wrote none of the code under audit. ⭐ **A SECOND DELIVERABLE** *(🎯 2026-08-28: "verify if the fixes implemented are closed")* — a per-id closure verdict on all **34** pass-3 findings and all **53** `S1P3-*` guard entries, `CLOSED`/`PARTIAL`/`OPEN`/`REGRESSED`/`GUARD-ONLY`. ⛔ `lint:finding-guards` is not that answer: green proves a token sits on a line, and **7 green entries once survived their own un-fix**. Dispatch check is now a committed script, **5 plants** |
-| ▶ | **S1.10.7.5 — RUN pass 4** — four fresh agents, pinned `e65f9c7`, no sub-agents, incremental writes ([D68]) |
-
-**Exit (S1.10.7):** the net green and pushed, the hand-off naming the last full pass rather than quoting a stale record, and pass 4 dispatched against a **regenerated** route. ⛔ A clean pass 4 still owes a pass 5 — [D65] exits on 0/0 **twice consecutively**.
+**Exit (S1.11):** 0 blockers / 0 majors on pass 4's findings, every guard in the registry **proven to red on
+its own defect**, and the route regenerated so pass 5 reads the surface pass 4 could not see. ⛔ **Pass 4
+did not converge** — [D65] exits on 0/0 **twice consecutively**, so pass 5 is the next first-candidate and a
+clean pass 5 still owes a pass 6.
 
 ---
 

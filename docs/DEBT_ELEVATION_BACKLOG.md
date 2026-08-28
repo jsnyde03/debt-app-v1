@@ -755,3 +755,34 @@ grouping is by destination. Each bullet keeps its own `→` where it had one.
   the right thing for free"*). ⛔ Deliberately not taken now: the inflation comes from the ALLOCATION, so
   sanitising it means teaching the engine about repairs, which is a much larger change than this cluster's
   scope and would be unaudited work landing on the money engine.
+
+
+---
+
+## → surfaced by S1 pass 4, 2026-08-28 — deferred, routed per bullet
+
+⛔ Filed here, **not** on the plan — the plan carries only `S1.11`'s decomposition. Each row names where it
+lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md).
+
+- **→ INTERNATIONAL.** ⚠️ **Nothing in the tree enforces the storefront availability list.** `m3` is agreed
+  out of scope for 2.0 and that deferral is now **measured twice independently** — auditors C and D each
+  confirmed all four launch storefronts (`$` / `CA$` / `A$` / `NZ$`) render correctly from `paywall.tsx:91`,
+  and every wrong row in pass 3's own table is a storefront 2.0 does not sell in. **The residual is that the
+  list is a premise no gate holds**: add one storefront and the currency table goes wrong silently. Cheap
+  when the international workstream opens; pointless before it.
+
+- **→ Tooling / hygiene.** ⚠️ **Two `serve` processes were found listening on port 4319 from Aug 8 and
+  Aug 10** — weeks stale, and one of them would have served a **days-old `dist/`** to any e2e run that
+  bound after it. `RESUME-PROTOCOL.md` now requires killing a server in the step that starts it, but nothing
+  *checks* for a pre-existing listener. A one-line pre-flight in the e2e entry point would close it.
+
+- **→ Tooling / hygiene.** **`test:gate-plants` crashes in a linked git worktree** (`D4-2`), which is the
+  isolation the audit protocol mandates. Auditor D worked around it with a full clone. ⛔ **Folded INTO
+  `S1.11.2`** rather than deferred — recorded here only so the workaround is not mistaken for the fix.
+
+- **→ P6.10.** ⚠️ **`clearResuppliedRepairs` deletes a whole-row loss record on acknowledgement**, so after
+  one *"Got it"* tap the loss stops poisoning `mayClaim('debt-balances')` and *"Every balance is cleared"*
+  is re-armed. Auditor B measured it and deliberately did **not** rate it — the docblock argues the case on
+  purpose (a loss with nothing to reopen must be answerable somehow). ⚠️ It means `S1.11.4`'s `F-B4` fix must
+  be tested **after** an ack, not only before one. **Whether the ack should clear it at all is a product
+  call, not an audit finding.**
