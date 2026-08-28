@@ -21,7 +21,8 @@
     "p1",
     "p3",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p4"
   ],
   "apps/rn/src/data/migrationAudit/corpus.ts": [
     "p1",
@@ -39,7 +40,8 @@
     "p1",
     "p3",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p4"
   ],
   "apps/rn/src/data/migrationAudit/interruption.test.ts": [
     "never"
@@ -54,7 +56,8 @@
     "never"
   ],
   "apps/rn/src/testing/runAppTests.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p4"
   ],
   "apps/rn/src/testing/runScenarioTests.ts": [
     "never"
@@ -129,7 +132,8 @@
     "never"
   ],
   "packages/core/testing/testPayCycleHistoryRegression.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "packages/core/testing/testPlannerStateHardening.ts": [
     "never"
@@ -160,23 +164,27 @@
     "s1p2"
   ],
   "scripts/audit-route.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/check-a11y-collapse.ts": [
     "p4"
   ],
   "scripts/check-apostrophes.ts": [
-    "p3"
+    "p3",
+    "partial"
   ],
   "scripts/check-audit-closure.ts": [
     "p2",
     "p3",
     "p4",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "partial"
   ],
   "scripts/check-ci-chain.ts": [
-    "never"
+    "never",
+    "partial"
   ],
   "scripts/check-comment-convention.ts": [
     "r17"
@@ -184,16 +192,19 @@
   "scripts/check-committed-secrets.ts": [
     "p4",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "partial"
   ],
   "scripts/check-contrast.ts": [
     "p4"
   ],
   "scripts/check-control-chars.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/check-copy-owners.ts": [
-    "p3"
+    "p3",
+    "partial"
   ],
   "scripts/check-destructive-writes.ts": [
     "p1",
@@ -201,42 +212,50 @@
   ],
   "scripts/check-finding-guards.ts": [
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p4"
   ],
   "scripts/check-gate-freshness.ts": [
     "p4"
   ],
   "scripts/check-gate-sources.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/check-glossary.ts": [
-    "p3"
+    "p3",
+    "partial"
   ],
   "scripts/check-icon-glyphs.ts": [
     "r17"
   ],
   "scripts/check-local-dates.ts": [
     "p3",
-    "r17"
+    "r17",
+    "partial"
   ],
   "scripts/check-maestro-selectors.ts": [
     "p2",
     "p3"
   ],
   "scripts/check-money-format.ts": [
-    "p3"
+    "p3",
+    "partial"
   ],
   "scripts/check-month-arithmetic.ts": [
     "p1",
     "p2",
-    "p3"
+    "p3",
+    "partial"
   ],
   "scripts/check-native-a11y-props.ts": [
-    "p3"
+    "p3",
+    "partial"
   ],
   "scripts/check-press-opacity.ts": [
     "p3",
-    "r17"
+    "r17",
+    "partial"
   ],
   "scripts/check-rn-style-divergence.ts": [
     "r17"
@@ -246,10 +265,12 @@
     "p3"
   ],
   "scripts/check-scan-floors.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/check-trust-claims.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/check-type-scale.ts": [
     "p4",
@@ -257,7 +278,8 @@
     "s1p2"
   ],
   "scripts/check-webkit-flex-controls.ts": [
-    "r17"
+    "r17",
+    "partial"
   ],
   "scripts/collect-lane-diagnostics.mjs": [
     "never"
@@ -286,10 +308,12 @@
   ],
   "scripts/finding-guards.json": [
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "partial"
   ],
   "scripts/gate-scan-floors.json": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/gateSources.ts": [
     "p2",
@@ -298,14 +322,16 @@
     "s1p2"
   ],
   "scripts/lib/scanFloor.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/lib/stripCode.ts": [
     "p2",
     "p3"
   ],
   "scripts/lib/stripMarkdown.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/maestro-results.mjs": [
     "never"
@@ -325,7 +351,8 @@
     "p1",
     "p3",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p4"
   ],
   "scripts/secrets-exemptions.json": [
     "never"
@@ -337,33 +364,39 @@
     "p4",
     "r17",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "partial"
   ],
   "scripts/surface-coverage.ts": [
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "partial"
   ],
   "scripts/surface-inventory.ts": [
     "never"
   ],
   "scripts/test-closure-stripper.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/test-conform-assertions.sh": [
     "never"
   ],
   "scripts/test-gate-plants.ts": [
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "partial"
   ],
   "scripts/test-line-endings.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/test-stamp-coverage.ts": [
     "never"
   ],
   "scripts/test-strip-code.ts": [
-    "never"
+    "never",
+    "s1p4"
   ],
   "scripts/webkit-flex-controls-baseline.json": [
     "p4"

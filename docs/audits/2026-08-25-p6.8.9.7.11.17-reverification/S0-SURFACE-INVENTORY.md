@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**109 files on the S0 surface · 47 swept · 62 unswept.**
+**109 files on the S0 surface · 59 swept · 50 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -20,15 +20,15 @@
 | `apps/rn/playwright.embed.config.ts` | ⛔ **never** |
 | `apps/rn/playwright.shots.config.ts` | ⛔ **never** |
 | `apps/rn/scripts/copy-canvaskit.mjs` | ⛔ **never** |
-| `apps/rn/src/data/migrationAudit/audit.test.ts` | p1 · p3 · s1p1 · s1p2 |
+| `apps/rn/src/data/migrationAudit/audit.test.ts` | p1 · p3 · s1p1 · s1p2 · s1p4 |
 | `apps/rn/src/data/migrationAudit/corpus.ts` | p1 · p2 · p3 |
 | `apps/rn/src/data/migrationAudit/cutoverFiles.test.ts` | ⛔ **never** |
 | `apps/rn/src/data/migrationAudit/doors.ts` | p1 · p3 |
-| `apps/rn/src/data/migrationAudit/hostile.test.ts` | p1 · p3 · s1p1 · s1p2 |
+| `apps/rn/src/data/migrationAudit/hostile.test.ts` | p1 · p3 · s1p1 · s1p2 · s1p4 |
 | `apps/rn/src/data/migrationAudit/interruption.test.ts` | ⛔ **never** |
 | `apps/rn/src/data/migrationAudit/invariants.ts` | p1 · p3 · s1p1 · s1p2 |
 | `apps/rn/src/data/migrationAudit/run.ts` | ⛔ **never** |
-| `apps/rn/src/testing/runAppTests.ts` | s1p2 |
+| `apps/rn/src/testing/runAppTests.ts` | s1p2 · s1p4 |
 | `apps/rn/src/testing/runScenarioTests.ts` | ⛔ **never** |
 | `apps/rn/src/testing/scenarios/guardianColdStartLifecycle.scenario.ts` | ⛔ **never** |
 | `apps/rn/tests/shots/add-chooser.shot.ts` | ⛔ **never** |
@@ -53,7 +53,7 @@
 | `packages/core/testing/testForecastRegression.ts` | ⛔ **never** |
 | `packages/core/testing/testFullAppRegression.ts` | ⛔ **never** |
 | `packages/core/testing/testMultiCycleTimelineRegression.ts` | ⛔ **never** |
-| `packages/core/testing/testPayCycleHistoryRegression.ts` | ⛔ **never** |
+| `packages/core/testing/testPayCycleHistoryRegression.ts` | never · s1p4 |
 | `packages/core/testing/testPlannerStateHardening.ts` | ⛔ **never** |
 | `packages/core/testing/testRecommendedActionsRegression.ts` | ⛔ **never** |
 | `packages/core/testing/testSafeStorage.ts` | ⛔ **never** |
@@ -62,35 +62,35 @@
 | `packages/core/testing/testTimelineRegression.ts` | ⛔ **never** |
 | `packages/core/testing/testV11Regression.ts` | ⛔ **never** |
 | `scripts/apostrophe-baseline.json` | p4 |
-| `scripts/audit-route.ts` | ⛔ **never** |
+| `scripts/audit-route.ts` | never · s1p4 |
 | `scripts/begin-gate-run.ts` | s1p1 · s1p2 |
 | `scripts/check-a11y-collapse.ts` | p4 |
-| `scripts/check-apostrophes.ts` | p3 |
-| `scripts/check-audit-closure.ts` | p2 · p3 · p4 · s1p1 · s1p2 |
-| `scripts/check-ci-chain.ts` | ⛔ **never** |
+| `scripts/check-apostrophes.ts` | p3 · partial |
+| `scripts/check-audit-closure.ts` | p2 · p3 · p4 · s1p1 · s1p2 · partial |
+| `scripts/check-ci-chain.ts` | ⛔ **never · partial** |
 | `scripts/check-comment-convention.ts` | r17 |
-| `scripts/check-committed-secrets.ts` | p4 · s1p1 · s1p2 |
+| `scripts/check-committed-secrets.ts` | p4 · s1p1 · s1p2 · partial |
 | `scripts/check-contrast.ts` | p4 |
-| `scripts/check-control-chars.ts` | ⛔ **never** |
-| `scripts/check-copy-owners.ts` | p3 |
+| `scripts/check-control-chars.ts` | never · s1p4 |
+| `scripts/check-copy-owners.ts` | p3 · partial |
 | `scripts/check-destructive-writes.ts` | p1 · p3 |
-| `scripts/check-finding-guards.ts` | s1p1 · s1p2 |
+| `scripts/check-finding-guards.ts` | s1p1 · s1p2 · s1p4 |
 | `scripts/check-gate-freshness.ts` | p4 |
-| `scripts/check-gate-sources.ts` | ⛔ **never** |
-| `scripts/check-glossary.ts` | p3 |
+| `scripts/check-gate-sources.ts` | never · s1p4 |
+| `scripts/check-glossary.ts` | p3 · partial |
 | `scripts/check-icon-glyphs.ts` | r17 |
-| `scripts/check-local-dates.ts` | p3 · r17 |
+| `scripts/check-local-dates.ts` | p3 · r17 · partial |
 | `scripts/check-maestro-selectors.ts` | p2 · p3 |
-| `scripts/check-money-format.ts` | p3 |
-| `scripts/check-month-arithmetic.ts` | p1 · p2 · p3 |
-| `scripts/check-native-a11y-props.ts` | p3 |
-| `scripts/check-press-opacity.ts` | p3 · r17 |
+| `scripts/check-money-format.ts` | p3 · partial |
+| `scripts/check-month-arithmetic.ts` | p1 · p2 · p3 · partial |
+| `scripts/check-native-a11y-props.ts` | p3 · partial |
+| `scripts/check-press-opacity.ts` | p3 · r17 · partial |
 | `scripts/check-rn-style-divergence.ts` | r17 |
 | `scripts/check-sandbox-writes.ts` | p1 · p3 |
-| `scripts/check-scan-floors.ts` | ⛔ **never** |
-| `scripts/check-trust-claims.ts` | ⛔ **never** |
+| `scripts/check-scan-floors.ts` | never · s1p4 |
+| `scripts/check-trust-claims.ts` | never · s1p4 |
 | `scripts/check-type-scale.ts` | p4 · s1p1 · s1p2 |
-| `scripts/check-webkit-flex-controls.ts` | r17 |
+| `scripts/check-webkit-flex-controls.ts` | r17 · partial |
 | `scripts/collect-lane-diagnostics.mjs` | ⛔ **never** |
 | `scripts/compare-ios-screenshots.mjs` | ⛔ **never** |
 | `scripts/conform-app-preview.sh` | ⛔ **never** |
@@ -99,28 +99,28 @@
 | `scripts/duplicate-copy-baseline.json` | p4 · s1p2 |
 | `scripts/e2e-fresh-rn.cjs` | ⛔ **never** |
 | `scripts/e2e-fresh.cjs` | ⛔ **never** |
-| `scripts/finding-guards.json` | s1p1 · s1p2 |
-| `scripts/gate-scan-floors.json` | ⛔ **never** |
+| `scripts/finding-guards.json` | s1p1 · s1p2 · partial |
+| `scripts/gate-scan-floors.json` | never · s1p4 |
 | `scripts/gateSources.ts` | p2 · p3 · s1p1 · s1p2 |
-| `scripts/lib/scanFloor.ts` | ⛔ **never** |
+| `scripts/lib/scanFloor.ts` | never · s1p4 |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
-| `scripts/lib/stripMarkdown.ts` | ⛔ **never** |
+| `scripts/lib/stripMarkdown.ts` | never · s1p4 |
 | `scripts/maestro-results.mjs` | ⛔ **never** |
 | `scripts/make-cutover-backups.ts` | ⛔ **never** |
 | `scripts/preflight-native-lane.ts` | p4 · s1p1 · s1p2 |
 | `scripts/preflight-xcuitest-target.ts` | ⛔ **never** |
-| `scripts/run-gates.ts` | p1 · p3 · s1p1 · s1p2 |
+| `scripts/run-gates.ts` | p1 · p3 · s1p1 · s1p2 · s1p4 |
 | `scripts/secrets-exemptions.json` | ⛔ **never** |
 | `scripts/stamp-coverage.ts` | p2 |
-| `scripts/strings-inventory.ts` | p4 · r17 · s1p1 · s1p2 |
-| `scripts/surface-coverage.ts` | s1p1 · s1p2 |
+| `scripts/strings-inventory.ts` | p4 · r17 · s1p1 · s1p2 · partial |
+| `scripts/surface-coverage.ts` | s1p1 · s1p2 · partial |
 | `scripts/surface-inventory.ts` | ⛔ **never** |
-| `scripts/test-closure-stripper.ts` | ⛔ **never** |
+| `scripts/test-closure-stripper.ts` | never · s1p4 |
 | `scripts/test-conform-assertions.sh` | ⛔ **never** |
-| `scripts/test-gate-plants.ts` | s1p1 · s1p2 |
-| `scripts/test-line-endings.ts` | ⛔ **never** |
+| `scripts/test-gate-plants.ts` | s1p1 · s1p2 · partial |
+| `scripts/test-line-endings.ts` | never · s1p4 |
 | `scripts/test-stamp-coverage.ts` | ⛔ **never** |
-| `scripts/test-strip-code.ts` | ⛔ **never** |
+| `scripts/test-strip-code.ts` | never · s1p4 |
 | `scripts/webkit-flex-controls-baseline.json` | p4 |
 | `scripts/write-gate-status.ts` | p4 · s1p1 · s1p2 |
 
@@ -156,7 +156,6 @@
 - `packages/core/testing/testForecastRegression.ts`
 - `packages/core/testing/testFullAppRegression.ts`
 - `packages/core/testing/testMultiCycleTimelineRegression.ts`
-- `packages/core/testing/testPayCycleHistoryRegression.ts`
 - `packages/core/testing/testPlannerStateHardening.ts`
 - `packages/core/testing/testRecommendedActionsRegression.ts`
 - `packages/core/testing/testSafeStorage.ts`
@@ -164,28 +163,17 @@
 - `packages/core/testing/testSubscriptionGating.ts`
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
-- `scripts/audit-route.ts`
 - `scripts/check-ci-chain.ts`
-- `scripts/check-control-chars.ts`
-- `scripts/check-gate-sources.ts`
-- `scripts/check-scan-floors.ts`
-- `scripts/check-trust-claims.ts`
 - `scripts/collect-lane-diagnostics.mjs`
 - `scripts/compare-ios-screenshots.mjs`
 - `scripts/conform-app-preview.sh`
 - `scripts/e2e-fresh-rn.cjs`
 - `scripts/e2e-fresh.cjs`
-- `scripts/gate-scan-floors.json`
-- `scripts/lib/scanFloor.ts`
-- `scripts/lib/stripMarkdown.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/make-cutover-backups.ts`
 - `scripts/preflight-xcuitest-target.ts`
 - `scripts/secrets-exemptions.json`
 - `scripts/surface-inventory.ts`
-- `scripts/test-closure-stripper.ts`
 - `scripts/test-conform-assertions.sh`
-- `scripts/test-line-endings.ts`
 - `scripts/test-stamp-coverage.ts`
-- `scripts/test-strip-code.ts`
 

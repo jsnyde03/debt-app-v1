@@ -40,8 +40,8 @@
 
 ### ⏭ WHAT THE NEXT SESSION PICKS UP
 
-▶ **`S1.11.1` — RECORD & CLASSIFY, and `s1p4` is NOT yet in `SWEPT_CLAIMS`.** The array reads `p1…p4 g4 r10 r17 s1p1 s1p2 s1p3`. ⛔ **`s1p2` and `s1p3` each had to be registered first and it was twice nearly missed** — write the claims back **in the same step as the record**, computed from the four manifests and *reconciled against* each auditor's number, never taken from it.
-▶ **Then `S1.11.2` — the instruments, before any money blocker.** Fixing `A-F3` or `C4-9` first buys a fix that nothing can prove stays fixed.
+✅ **`S1.11.1` is CLOSED — recorded and classified.** ⚡ **[D69]: 29 of the 34 findings COUNT toward convergence, and ALL EIGHT BLOCKERS COUNT** — where pass 3 counted only 9 of 20 because 11 were first-look. **Every blocker this round sits on ground a previous pass had already swept.** ⛔ Coverage was **not** credited by route membership: 130 files were evidenced-swept and **87 were named not-reached** by their own auditor. Detail → [`CLASSIFICATION.md`](audits/2026-08-28-s1-money-pass4/CLASSIFICATION.md).
+▶ **`S1.11.2` — the instruments, before any money blocker.** Fixing `A-F3` or `C4-9` first buys a fix that nothing can prove stays fixed.
 
 ⛔ **A finding's MECHANISM is a hypothesis; its site list is a floor.** Measured repeatedly here — in one cluster **4 of 4** stated mechanisms were wrong while all four observations stood, and **three of the proposed fixes would not have closed the defect.** Verify what a finding says to DO against the current code before writing anything.
 
@@ -81,13 +81,13 @@ reds FOR THE PLANTED REASON** → **plant the naive over-fix** → register the 
 
 | # | sub-step | exit line |
 |---|---|---|
-| **S1.11.1** | **RECORD & CLASSIFY.** Register **`s1p4` in `SWEPT_CLAIMS`** *(it is absent — `p1…p4 g4 r10 r17 s1p1 s1p2 s1p3`)*, write the claims back **from the four manifests, reconciled against each auditor's number rather than taken from it**, and produce the [D69] table of all 34 split by origin and by COUNT | coverage recomputed and the `s1p4` claims written **in the same step as the record** |
+| ✅ **S1.11.1** | **RECORDED & CLASSIFIED 2026-08-28** — `s1p4` registered in `SWEPT_CLAIMS`, claims written back to **both** files *(the route spans two surfaces)*. Coverage **S1 125→63 · S0 62→50** unswept, both gates green. ⚠️ **The route is 217, not the 216 this doc carried** — manifests and `ROUTING-ORIGINS.tsv` agree, 0 disjoint. ⛔ Coverage **not** credited by route membership: 130 evidenced-swept vs **87 named not-reached**, and three matching errors were caught by reading the matches. ⚡ **[D69]: 29 of 34 COUNT and all EIGHT blockers count** *(pass 3 was 9 of 20)*. [`CLASSIFICATION.md`](audits/2026-08-28-s1-money-pass4/CLASSIFICATION.md) | CLOSED |
 | **S1.11.2** | ⛔ **REPAIR THE INSTRUMENTS** — `D4-6` *(the plant harness scores a green tick beside `reason=WRONG`)* · `C4-10` *(the completeness gate cannot fail)* · `D4-3` · `D4-9` · `D4-5` · `D4-8` · `D4-2` *(crashes in a linked worktree — the environment the protocol mandates)* | every one reds **for the planted reason** on the un-fix that currently passes it |
 | **S1.11.3** | ⭐ **PROVE THE GUARD LEDGER.** The **8 proven-dead** entries, plus the **35 in lanes A/B/C that nobody has ever tested**. ⛔ `lint:finding-guards` must stop reporting a token's existence as a closure | every entry either **proven to red** or marked `GUARD-ONLY` with a measurement; every prior `CLOSED` resting on a dead guard **re-rated** |
 | **S1.11.4** | **CLASS 1 — the 13 partial-fix members.** `F-B4` `C4-9` `C4-7` `A-F4` `C4-11` `C4-5` `A-F5` `F-B3` + the `PARTIAL`s `C-4` `C-6` `C-7b` `D3-2` `G-6` | ⛔ **one assertion per class that ITERATES the class**, never one that names a member |
 | **S1.11.5** | **CLASS 2/3/5 — the rest.** `A-F3` *(blocker: `windowStartISO` accepted and never read — $1,200 against a true $300)* · `C4-1` · `C4-2` *(blocker: a debt owed in full filed as "$12,000 paid off" and offered for sharing)* · `A-F1` `A-F2` `F-B1` `C4-3` `C4-6` `C4-4` `F-B2` `D4-1` `D4-10` `D4-4` `D4-7` · the 7 minors | each carries **two plants** — the defect, and the laziest plausible repair |
 | **S1.11.6** | ⛔ **RE-ROUTE FOR PASS 5.** `audit-route.ts` must emit **the CONSUMERS of every changed producer**, not only changed files, and must emit **S0**. Fold the memory protocol in permanently *(heap 1536 MB · an OOM is a finding, never a retry)* | the route reproduces `A-F4`'s unrouted producer and C's two unrouted money screens as **routed** |
-| **S1.11.7** | ⚠️ **[DECISION] S0 was declared CONVERGED on a route that never emitted S0 files** *(`D4-7`: 49 never-swept, in no lane)*. Reopen S0, or accept the convergence and record why | Jason |
+| ✅ **S1.11.7** | **[DECISION] S0's convergence stands — [D76], 2026-08-28.** ⚠️ `D4-7` said 49; the measured number is **62** *(`lint:s0-coverage`: 109 classified · 62 unswept)*. ⛔ The gate printing them on the **green** path is deliberate and documented — **nearly filed as a defect and it is not one**; what is real is that `audit-route.ts` can never route them | CLOSED — the routing half moves to `S1.11.6` |
 | **S1.11.8** | **THE NET** — full e2e + embed, read from each suite's own summary line, commit, push. ⛔ **No `gate:record`** — [D74] writes it at convergence and pass 4 did not converge | green and pushed; the hand-off names the last full pass |
 
 **Exit (S1.11):** 0 blockers / 0 majors on pass 4's findings, every guard in the registry **proven to red on
@@ -444,6 +444,20 @@ appeared **nowhere** in the log, so this page was their only copy — found by g
 id rather than trusting the sentence above. The whole ledger is now mirrored there verbatim.
 
 **Phase 6 — launch**
+
+- **[D76]** ✅ 2026-08-28 *(🎯: "I approve your rec for S0")* — **S0'S CONVERGENCE STANDS; THE UNSWEPT
+  REMAINDER IS A ROUTING BUG, NOT A REOPENING.** Pass 4's `D4-7` reported that `audit-route.ts` emits
+  `first-look` for S1 and **never S0**, so S0's unswept files can never be routed to an auditor.
+  ⚠️ **The finding's number was short — it said 49 and `lint:s0-coverage` measures 62** *(109 classified ·
+  62 unswept)*, the eighth instance of the undercount class. ⛔ **Two premises were checked and only one
+  survived:** the gate printing 62 holes on the **green** path is **deliberate and documented** — it proves
+  every surface file is *classified*, not swept, and the unswept list is the backlog [D69] exempts findings
+  against; **that is not a defect and was nearly filed as one.** What is real is that nothing can route
+  those files. ⭐ **[D70] closed S0 on *instruments-sound*, not on a pass count**, and `surface-coverage.ts`
+  already records that [D73] admitted files to S0 *after* it converged, calling it *"the honest consequence
+  rather than an argument against it."* **Reopening S0 would substantially duplicate `S1.11.2` and `.3`,
+  which re-prove that whole instrument layer.** ▶ The routing half is fixed in **`S1.11.6`**; if `.2`/`.3`
+  find instrument defects among those 62, that is the signal to reopen S0 properly.
 
 - **[D74]** ✅ 2026-08-26 *(🎯: "Do we need to always run a full release scan during audits? Or when
   they're all fixed we kick off the audit and run the release gate at convergence?")* — **THE RECORD IS
