@@ -159,6 +159,9 @@
     "s1p1",
     "s1p2"
   ],
+  "scripts/audit-route.ts": [
+    "never"
+  ],
   "scripts/check-a11y-collapse.ts": [
     "p4"
   ],

@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**108 files on the S0 surface · 47 swept · 61 unswept.**
+**109 files on the S0 surface · 47 swept · 62 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -62,6 +62,7 @@
 | `packages/core/testing/testTimelineRegression.ts` | ⛔ **never** |
 | `packages/core/testing/testV11Regression.ts` | ⛔ **never** |
 | `scripts/apostrophe-baseline.json` | p4 |
+| `scripts/audit-route.ts` | ⛔ **never** |
 | `scripts/begin-gate-run.ts` | s1p1 · s1p2 |
 | `scripts/check-a11y-collapse.ts` | p4 |
 | `scripts/check-apostrophes.ts` | p3 |
@@ -163,6 +164,7 @@
 - `packages/core/testing/testSubscriptionGating.ts`
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
+- `scripts/audit-route.ts`
 - `scripts/check-ci-chain.ts`
 - `scripts/check-control-chars.ts`
 - `scripts/check-gate-sources.ts`

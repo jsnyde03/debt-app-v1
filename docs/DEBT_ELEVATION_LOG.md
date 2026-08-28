@@ -27127,6 +27127,107 @@ with `CALL` reverted the scenario reports `planted=exit 0` and the harness reds 
 immediately caught the 12th strip-using consumer arriving** — `test-line-endings.ts`, my own new file —
 and its exemption was **measured** (blanked stripper → exit 1) rather than asserted.
 
+## S1.10.7.2 – .7.3 — the route becomes a generator, and it found two buckets nothing had a name for (2026-08-28)
+
+### .7.2 — the hand-off, honestly
+
+`cec7edc3` was already on `origin/v1.7-dev`, 0 ahead / 0 behind. ⛔ **No current gate record, and that is
+[D74]'s expected mid-audit state**: `lint:gate-freshness` reds — recorded `818f934` · 2026-08-26T21:52:39Z ·
+**807 files**; the tree is now **821** and the fingerprint differs, **36 commits** later.
+
+⚠️ **The `| tail` trap, instance eleven.** `npm run lint:gate-freshness 2>&1 | tail -20; echo "EXIT=$?"`
+printed the ❌ block under **`EXIT=0`**. The pipeline reported `tail`'s status, exactly as
+`shell-is-a-participant` says it does. The gate's own summary line was the only truthful thing on screen.
+
+### .7.3 — [D75], and the row's premise was wrong twice
+
+**The row said:** *"the surface has since gained the six gates and three test modules built this session, so
+a brief reusing pass 3's manifests hands four auditors a stale surface."* Both halves failed the switch-in
+verification.
+
+1. ⛔ **The new gates are not on S1 at all — they are on S0**, which converged. `scripts/` is S0's tree, and
+   S0's inventory has all eight of them sitting **unswept**. An S1-only route, "regenerated" exactly as the
+   row asked, would have handed pass 4 a tree with **2,654 new lines of unaudited checking code in it** and
+   read as thorough.
+2. ⛔ **There are EIGHT new gates, not six.** The plan's enumeration omitted **`lint:trust-claims`** — the
+   313-line gate that is `S1.10.6.2`'s durable half and the largest single new instrument — and
+   **`lint:ci-chain`**. Measured from `git diff 96d1f11..HEAD -- scripts/`: **13 added · 20 modified**.
+   ⚡ **The seventh instance of the undercount class, and it was inside the paragraph warning about it.**
+
+**So the decision is [D75]: the route is a committed generator, `scripts/audit-route.ts`.** Pass 3's brief
+says its manifests were *"generated mechanically"* — true, and the recipe lived nowhere, so pass 4 would
+have re-derived it by hand. Four origins, each a set difference, never a list:
+
+| origin | rule | pass 4 |
+|---|---|---|
+| `first-look` | on the surface, unswept | **125** |
+| `fix-churn` | swept by a prior pass, then **changed** since its pin | **48** |
+| `instrument` | on S0's inventory and changed since the pin | **32** |
+| `off-surface` | changed, and on **no** inventory at all | **11** |
+
+**216 routed · 0 unrouted · 0 duplicated · 0 missing on disk.** Lanes A 29 · B 45 · C 72 · D 70.
+
+### ⚡ The two buckets nothing had a name for, and both are the same shape
+
+⛔ **`fix-churn` — 48 files pass 3 read and the fixing then rewrote.** The claims file still says `s1p3`
+and `lint:s1-coverage` still counts them as swept, because a sweep is recorded against a *path*, not
+against *bytes*. **48 of the 60 changed S1 files were in exactly that state.** `the-fix-writes-the-next-defect`
+is the class, and the coverage instrument — the one thing that exists to know what has been read — has been
+structurally blind to it for the whole audit.
+
+⛔ **`off-surface` — 11 changed files on nobody's list, and this one the generator was not built to find.**
+`lint:surface-complete` proves every tracked source file sits under *a* surface ROOT. It cannot prove any
+inventory CONTAINS it, because `excluded` routes files onward to S2, S3 and S4 — and **those three surfaces
+have no claims file**. ⚡ **S1's own fixing edited three S3 files** — `apps/rn/src/data/readBackup.ts`, its
+test, and `apps/rn/tests/e2e/data-recovery.spec.ts`, the `C-7`/`C-7b` restore doors — **and nothing was
+going to read them.** The plan already warned *"completeness proves every file has a home, not the RIGHT
+one"*; this is the sharper form: **a home can be a surface that does not yet exist.** `S1.10.6.10` is the
+standing fix and its row now says so.
+
+Also caught by subtraction: **`package.json`**, which wires all 38 gates and no surface owns, and
+**`scripts/__fixtures__/crlf-source.ts.txt`** — the sole input to the CRLF gate, invisible because
+`SOURCE_EXT` has no `.txt`, while *"a CRLF guard that normalised away the thing under test"* was one of the
+eleven instrument defects.
+
+### ⛔ Six plants, and plant 6 found a check in my own router that could not fail
+
+| # | plant | verdict |
+|---|---|---|
+| 1 | lane catch-all narrowed to a prefix | RED — *".gitattributes reached no lane"* |
+| 2 | table-row regex narrowed so the parse drops rows | RED — *"parsed 358 but the file states 473"* |
+| 3 | a routed path that does not exist on disk | RED — named the file |
+| 4 | ⭐ **the naive over-fix**: filter `off-surface` by `SOURCE_EXT` | RED — named `crlf-source.ts.txt` **and** `.gitignore` |
+| 5 | unswept-section regex narrowed so first-look empties | RED — *"parsed 0 unswept but the file states 125"* |
+| 6 | ⛔ **an overlapping file on both inventories** | **GREEN. The check could not fail.** |
+
+**Plant 6 is the result worth keeping.** The first cut resolved an overlap by PRECEDENCE —
+`if (s0Files.has(f) && changed.has(f)) continue; // claimed by the instrument bucket below` — and then
+checked for a collision *after* that line had already prevented one. The `die()` underneath was
+unreachable. The planted run went **green** and quietly moved a `packages/core` money file into the
+instrument lane, where a gate auditor would have read it as a script.
+
+⚡ **This is `a-pass-that-cannot-fail` written into the very file whose docblock warns about it**, one
+commit after `lint:trust-claims`' two vacuous caps were found the same way. It was invisible to reading —
+the code looks like a guarded merge — and visible in one run of a plant. **Fixed by asserting disjointness
+on the inventories themselves, before any bucket exists**, so it no longer depends on a file having
+changed; plant 6 re-run REDS, and the control is byte-identical at 216 routed.
+
+⚠️ **Plant 4 needed a guard that did not exist.** Filtering `off-surface` by `SOURCE_EXT` — the tidy
+version, the one that would have been written without a plant — passed all four original assertions,
+because a file that is never *bucketed* is never unrouted, never duplicated and never missing. The answer
+was a fifth assertion of a different kind: **every changed tracked non-prose file must be routed**, a
+totality proof rather than a property of the files that got in. That is the only check in the file that can
+see an undercount, and it exists because of the plant.
+
+**Verified:** `typecheck:scripts` clean · `eslint` clean · `lint:s0-coverage` 109 files (the router
+registered `never`, and it audits itself next round) · `lint:surface-complete` · `lint:control-chars` ·
+`lint:line-endings` · `lint:gate-sources` · `lint:apostrophes` all green. ⚠️ Pristine was backed up **by
+copy, not by git** — the file is untracked, and `git checkout --` would have deleted it with the plant
+(`verify-the-restore-not-just-the-plant`); every restore was md5-verified.
+
+⚠️ **One before-scan suspicion was refuted:** `check-comment-convention.ts` looked like an unwired gate. It
+is wired, as `lint:comments`, and is in `run-gates.ts`. Measured before filing.
+
 ## SESSION CLOSE 2026-08-27 (second) — the guard backlog drained, the minors closed, and a number worth carrying
 
 **Closed this session:** `S1.10.6.5.8` *(the whole `GAP-*` guard backlog, `.8.4`–`.8.7`)* and
