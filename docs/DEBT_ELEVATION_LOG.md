@@ -27086,7 +27086,8 @@ gate that is mostly exemption. ⚡ **The registry carried the better remedy** �
 
 ⛔ **THE FIRST VERSION OF THAT GUARD WAS VACUOUS AND ONLY A PLANT FOUND IT.** It compared
 `strip(crlf).replace(CRLF, LF)` against `strip(lf)` — **normalising away the very thing under test** — so
-a stripper rewritten to delete every `` passed it unchanged. The load-bearing assertion is that the
+a stripper rewritten to delete every `
+` passed it unchanged. The load-bearing assertion is that the
 endings **survive**. ⚠️ **Third instrument this session to carry the defect class it was built to catch**,
 and the third caught only by planting. ✅ `.gitattributes -text` was then proven by deleting the fixture
 and re-checking it out: 8 CRLF pairs, 0 bare LF.
@@ -27227,6 +27228,48 @@ copy, not by git** — the file is untracked, and `git checkout --` would have d
 
 ⚠️ **One before-scan suspicion was refuted:** `check-comment-convention.ts` looked like an unwired gate. It
 is wired, as `lint:comments`, and is in `run-gates.ts`. Measured before filing.
+
+## S1.10.7.4 — the brief, and the deliverable Jason added (2026-08-28)
+
+**Pinned `e65f9c7`.** [`audits/2026-08-28-s1-money-pass4/BRIEF.md`](audits/2026-08-28-s1-money-pass4/BRIEF.md).
+No verdict in it ([D68]); pass 3's finding text is handed over as text to be judged, and every place the
+record says *"fixed"* is flagged as a **claim under test**.
+
+### ⭐ The second deliverable
+
+🎯 2026-08-28: *"I also want the audit to verify if the fixes implemented are closed."* Added as a
+first-class, mandatory output rather than an implicit part of the fix range: **a per-id closure verdict on
+all 34 of pass 3's findings and all 53 `S1P3-*` registry entries**, in a five-value vocabulary —
+`CLOSED` · `PARTIAL` · `OPEN` · `REGRESSED` · **`GUARD-ONLY`** *(behaviour fixed, guard survives its own
+un-fix — real fix, no protection)*.
+
+⛔ **The brief states plainly that `lint:finding-guards` does not answer this.** It reports *"150 of 151
+findings carry a standing guard"*, and all that proves is a token string on a non-comment line — **pass 2
+measured 7 green entries that survived their own un-fix, three of them the fixes to the checker itself.**
+The instruction is to restore the defect and watch. The `D3-3` shape is named as the trap: a token can be
+right about the wrong line.
+
+### The dispatch check is now a script, and it needed one
+
+`docs/audits/2026-08-28-s1-money-pass4/verify-dispatch.py` — [D68]'s *"every path and id in a brief is
+verified before hand-over"*, committed instead of re-derived. Four classes: relative links resolve · every
+backticked file token outside a link is tracked, and a **bare basename must be unique in `git ls-files`** ·
+every hex token is a real commit · every `S1P<n>-*` token is in the registry. **Exemptions are declared in
+the file and printed, and a stale one reds.**
+
+**It caught one real ambiguity in my own brief:** a bare `package.json`, which matches both the repo root
+and `apps/rn/package.json`. Disambiguated in the prose, and the manifest carries the exact tracked path.
+
+⚠️ **And the checker's first run reported FAIL on a run where everything resolved** — the Windows console is
+cp1252 and the script's own ✅ PASS line raised `UnicodeEncodeError` *after* every check had passed.
+`author-the-instrument-for-the-broken-world`, inverted: this one broke in the world where it had **nothing
+to say**. Fixed with an explicit `sys.stdout.reconfigure`.
+
+**5 plants, all red for the planted reason:** a broken relative link · a SHA that is not a commit · a guard
+id absent from the registry · a genuinely ambiguous bare basename · a stale exemption nothing uses.
+⚠️ **The first ambiguity plant was UNFAITHFUL** — I planted `finding-guards.json`, which is *unique* in
+`git ls-files`, so the green verdict was evidence about the plant, not the code. Re-planted with
+`tsconfig.json` (4 matches) and it reds. **A plant that fails to red is a claim about the plant first.**
 
 ## SESSION CLOSE 2026-08-27 (second) — the guard backlog drained, the minors closed, and a number worth carrying
 
