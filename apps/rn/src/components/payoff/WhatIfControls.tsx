@@ -6,6 +6,7 @@ import { sanitizeAmountInput } from '@core/utils/amountField';
 import { Slider } from '@/components/ui/Slider';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { WhatIfResult } from '@/store/analysisSelectors';
+import { whereText } from '@/components/payoff/whereText';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
 
@@ -17,20 +18,12 @@ function niceCeil(v: number): number {
   return Math.ceil((v * 1.12) / inc) * inc;
 }
 
-/** The mechanism, in one plain-language line: where the extra dollars actually go. */
-function whereText(result: WhatIfResult): string | null {
-  const paid = result.allocation.filter((a) => a.amount > 0);
-  if (paid.length === 0) return null;
-  const [first, second] = paid;
-  if (first.isPaidOff && second) return `Pays off your ${first.debtName}, then hits ${second.debtName}`;
-  // ⛔ **THE CASE THIS CONTROL EXISTS FOR.** [S1.10.6.7.4 · pass-3 m6] When the extra clears the first debt
-  // and there is no second, `second` is `undefined`, so the branch above was skipped and the fall-through
-  // said *"Goes straight to your Chase"* about money that in fact **pays Chase off** — the strongest thing
-  // the simulator can tell someone, described as if it merely made a dent. No number was wrong; the better
-  // sentence was simply unavailable to the previous shape.
-  if (first.isPaidOff) return `Pays off your ${first.debtName}`;
-  return `Goes straight to your ${first.debtName}`;
-}
+/*
+ * ⛔ **S1.11.3.4 [pass-3 `m6`] — `whereText` MOVED to `./whereText.ts`, and the move is the fix.**
+ * It was a closure in this file, which imports React Native and cannot be loaded by the test runner — so
+ * `m6`'s only guard was a token proving its sentence still exists. It is now a pure module with
+ * `whereText.test.ts` beside it, and the four branches are asserted.
+ */
 
 /**
  * What-If controls — the extra-payment simulator folded INTO the projection card (no Card of its

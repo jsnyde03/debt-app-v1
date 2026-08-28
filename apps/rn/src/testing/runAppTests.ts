@@ -66,6 +66,11 @@ async function main() {
   // expression got RIGHT: the lean cone's reach, and the never-pays-off fallback.
   await import('../components/payoff/trajectoryDomain.test');
 
+  // S1.11.3.4 (pass-3 m6) — where the simulated extra goes. Extracted out of `WhatIfControls.tsx` to be
+  // testable at all: the rule was a closure in a file the runner cannot load, so its only guard was a
+  // token proving the sentence exists.
+  await import('../components/payoff/whereText.test');
+
   // P6.8.9.7.11.11 (audit C-E) — the chart's month step. The clamp existed and was tested while this
   // called `setMonth`, so these pin the LABEL a user reads, not the helper's return value.
   await (await import('../components/payoff/monthLabels.test')).default();

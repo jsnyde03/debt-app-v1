@@ -1039,9 +1039,20 @@
     }
   },
   "S1P3-B5": {
-    "what": "pass-3 B5 — CLOSED S1.10.6.7.2. `funnel.test.ts` carried the LAST LIVE copy of the `(^|[^:])//` comment-stripper S0 replaced across the gates; the other five hits are the docblock ABOUT the fix. The `scripts`-scoped sweep never walked `apps/rn/src`. Replaced with the shared owner `stripCommentsOnly` rather than a corrected copy, since a copy is how the pattern reached six files. ⚠ FIRST import from `scripts/` anywhere under `apps/rn/src` — checked, not assumed: this module is reachable only from `src/testing/runAppTests.ts`, and a web export built after the change contains neither the test marker nor `stripCommentsAndStrings`, so Metro never walks it. ⛔ THE FIRST PLANT DID NOT DISCRIMINATE and that refined the finding: a caller written the ordinary way also names the symbol on its IMPORT line, which has no `//` on it, so the guard catches it either way. The weakness is reachable only through a NAMESPACE import. Measured with that shape: old regex reports `5 assertions passed` over a real sink installer; the shared owner reds",
+    "what": "pass-3 B5 — CLOSED S1.10.6.7.2. `funnel.test.ts` carried the LAST LIVE copy of the `(^|[^:])//` comment-stripper S0 replaced across the gates; the other five hits are the docblock ABOUT the fix. The `scripts`-scoped sweep never walked `apps/rn/src`. Replaced with the shared owner `stripCommentsOnly` rather than a corrected copy, since a copy is how the pattern reached six files. ⚠ FIRST import from `scripts/` anywhere under `apps/rn/src` — checked, not assumed: this module is reachable only from `src/testing/runAppTests.ts`, and a web export built after the change contains neither the test marker nor `stripCommentsAndStrings`, so Metro never walks it. ⛔ THE FIRST PLANT DID NOT DISCRIMINATE and that refined the finding: a caller written the ordinary way also names the symbol on its IMPORT line, which has no `//` on it, so the guard catches it either way. The weakness is reachable only through a NAMESPACE import. Measured with that shape: old regex reports `5 assertions passed` over a real sink installer; the shared owner reds | S1.11.3.4: proven by planting a production 'caller' whose token sits AFTER a `//` inside a string literal - the exact input the retired local stripper truncated. The shared stripCommentsOnly sees it and the caller walk reds; the regex this finding removed would have blanked the line and stayed green.",
     "file": "apps/rn/src/analytics/funnel.test.ts",
-    "token": "stripCommentsOnly(readFileSync(p, 'utf8')).includes('setFunnelSink')"
+    "token": "stripCommentsOnly(readFileSync(p, 'utf8')).includes('setFunnelSink')",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payoff/trajectoryDomain.ts",
+          "find": "export function formatMonths(months: number): string {",
+          "replace": "const _b5probe = 'x//y setFunnelSink';\nexport function formatMonths(months: number): string {"
+        }
+      ],
+      "run": "test:app",
+      "expect": "now has a production caller"
+    }
   },
   "S1P3-B6": {
     "what": "pass-3 B6 — CLOSED S1.10.6.7.2. `funnel.ts`'s header claims `no free-form string, and no number anywhere in this file's types` BY CONSTRUCTION, and two of its eight events contradicted it: `demo_stage; stage: string` and `tutorial_skipped; beat: number`. Swept the union independently and confirmed EXACTLY those two — the enumeration is complete. ⛔ It matters because this docblock is the stated review surface for a privacy claim: P6.9 reads exactly this, so deferring it would have left the privacy audit reading a false sentence — which is why it was fixed here rather than routed. ⚡ THE FINDING'S PROPOSED NARROWING WOULD HAVE NARROWED NOTHING: `stage: (typeof DEMO_STAGES)[number]['id']` resolves straight back to `string`, because `DEMO_STAGES` is annotated `DemoStage[]` and `DemoStage.id` was `string`. The union had to be declared on the id itself (`DemoStageId`), imported type-only so the seam gains no runtime dependency. `beat` is a genuine step INDEX and cannot be narrowed, so the claim was corrected to state what is actually true rather than deleted | S1.11.3.3: auditor D measured the token dead - widening DemoStageId to string in demoRun.ts restores the defect verbatim with funnel.ts untouched, so check-finding-guards and tsc were both exit 0. funnel.test.ts now carries a @ts-expect-error on a free-form stage, which becomes TS2578 the moment the union stops refusing one. The beat: number half is deliberately not guarded - it is a step index, argued in funnel.ts's header.",
@@ -1113,9 +1124,20 @@
     }
   },
   "S1P3-M6": {
-    "what": "pass-3 m6 — CLOSED S1.10.6.7.4. `whereText` branched on `first.isPaidOff && second`, so when the extra clears the first debt and there is NO second, the branch was skipped and the fall-through said \"Goes straight to your Chase\" about money that in fact PAYS CHASE OFF — the strongest thing the simulator can tell someone, described as if it merely made a dent. No number was wrong; the better sentence was simply unavailable to the previous shape. ⚠ GUARDED BY TOKEN, NOT BY A TEST, and the reason is written rather than omitted: `whereText` is an unexported helper inside a .tsx component taking a WhatIfResult, and extracting a module to pin a one-line copy branch is out of proportion to a minor inside a code freeze. The token is the branch itself, which is what disappears if the fall-through is restored",
-    "file": "apps/rn/src/components/payoff/WhatIfControls.tsx",
-    "token": "if (first.isPaidOff) return `Pays off your ${first.debtName}`;"
+    "what": "pass-3 m6 — CLOSED S1.10.6.7.4. `whereText` branched on `first.isPaidOff && second`, so when the extra clears the first debt and there is NO second, the branch was skipped and the fall-through said \"Goes straight to your Chase\" about money that in fact PAYS CHASE OFF — the strongest thing the simulator can tell someone, described as if it merely made a dent. No number was wrong; the better sentence was simply unavailable to the previous shape. ⚠ GUARDED BY TOKEN, NOT BY A TEST, and the reason is written rather than omitted: `whereText` is an unexported helper inside a .tsx component taking a WhatIfResult, and extracting a module to pin a one-line copy branch is out of proportion to a minor inside a code freeze. The token is the branch itself, which is what disappears if the fall-through is restored | S1.11.3.4: the entry pointed at the FIXED LINE in WhatIfControls.tsx - a token proving a sentence exists in a file no runner can load, which is a deletion detector and nothing more. Measured: nothing in the tree asserted any of whereText's four strings. The rule is extracted to whereText.ts with whereText.test.ts beside it, all four branches asserted, and the token now names the m6 row.",
+    "file": "apps/rn/src/components/payoff/whereText.test.ts",
+    "token": "m6 — the extra clears the ONLY debt: this is a payoff, not a dent",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payoff/whereText.ts",
+          "find": "  if (first.isPaidOff) return `Pays off your ${first.debtName}`;",
+          "replace": ""
+        }
+      ],
+      "run": "test:app",
+      "expect": "m6 — the extra clears the ONLY debt"
+    }
   },
   "S1P3-B3-MTIME-THROW": {
     "what": "pass-3 B3's first direction, split out at S1.11.3.3 because one token cannot pin two. metadataFromMtime refuses every unusable mtimeMs by THROWING; null and 0 are the members nobody pictured - they do not throw from new Date(), they become 1970-01-01, and inspectRemote then compares that epoch stamp as a real file identity. The loop asserts all seven members, with a control on a real mtime so the row is falsifiable.",

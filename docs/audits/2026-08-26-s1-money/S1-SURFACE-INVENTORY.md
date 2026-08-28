@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**473 files on the S1 surface · 410 swept · 63 unswept.**
+**475 files on the S1 surface · 410 swept · 65 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -80,6 +80,8 @@
 | `apps/rn/src/components/payoff/monthLabels.ts` | s1p3 |
 | `apps/rn/src/components/payoff/trajectoryDomain.test.ts` | s1p3 · s1p4 |
 | `apps/rn/src/components/payoff/trajectoryDomain.ts` | s1p3 · s1p4 |
+| `apps/rn/src/components/payoff/whereText.test.ts` | ⛔ **never** |
+| `apps/rn/src/components/payoff/whereText.ts` | ⛔ **never** |
 | `apps/rn/src/components/plan/AffordabilityCard.tsx` | partial · s1p1 · s1p2 |
 | `apps/rn/src/components/plan/AffordabilityImpactBar.tsx` | s1p1 · s1p2 |
 | `apps/rn/src/components/plan/CaptureSlate.tsx` | never · s1p1 |
@@ -492,6 +494,8 @@
 
 - `apps/rn/src/app/more.tsx`
 - `apps/rn/src/components/payoff/TrajectoryChart.tsx`
+- `apps/rn/src/components/payoff/whereText.test.ts`
+- `apps/rn/src/components/payoff/whereText.ts`
 - `apps/rn/src/components/ui/AddRow.tsx`
 - `apps/rn/src/components/ui/AppIcon.ios.tsx`
 - `apps/rn/src/components/ui/AppIcon.tsx`

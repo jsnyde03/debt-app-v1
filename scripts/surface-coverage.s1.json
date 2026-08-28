@@ -229,6 +229,12 @@
     "s1p3",
     "s1p4"
   ],
+  "apps/rn/src/components/payoff/whereText.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/components/payoff/whereText.ts": [
+    "never"
+  ],
   "apps/rn/src/components/plan/AffordabilityCard.tsx": [
     "partial",
     "s1p1",
