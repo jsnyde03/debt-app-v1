@@ -349,6 +349,274 @@ currently plants against the planter.
 
 ---
 
+### D4-7 — `major` · `audit-route.ts` emits `first-look` for S1 and never for S0 — **49 never-swept S0 files are in no lane of this round**
+
+**Origin:** `instrument` (`scripts/audit-route.ts:271-283`).
+**User-facing consequence:** not user-facing directly; it is the *"where nobody has looked"* measurement
+this whole audit is steered by, and it is wrong by 49 files. S0 is recorded **converged** while more than
+half of its inventory has never been read by any pass, and no route will ever send an auditor there —
+including `apps/rn/src/data/migrationAudit/run.ts`, whose two test modules **are** on this route as
+`instrument`, so pass 4 audits the tests and nobody audits the subject.
+
+**The file's own taxonomy** (docblock): *"`first-look` — on the surface, **never swept by any pass**."*
+
+**The implementation applies it to one surface:**
+
+```ts
+for (const f of inv.files) {                       // the REQUESTED surface (s1)
+  if (inv.unswept.has(f)) origin.set(f, 'first-look');
+  else if (changed.has(f)) origin.set(f, 'fix-churn');
+}
+for (const f of s0.files) {
+  if (changed.has(f)) origin.set(f, 'instrument');  // ⛔ no unswept arm
+}
+```
+
+S1's unswept files are routed whether or not they changed. S0's unswept files are routed **only if they
+changed** — and "changed" is the definition of a *different* origin.
+
+**The measurement (this round's own committed artefacts, no plant needed).**
+
+```
+S0-SURFACE-INVENTORY.md   → 109 files on the S0 surface · 47 swept · 62 unswept
+ROUTING-ORIGINS.tsv       → 217 routed rows
+of the 62 S0-unswept files: 13 routed (because they also changed) · 49 NOT ROUTED
+```
+
+Named, first ten of the 49: `apps/rn/app.json` · `apps/rn/eslint.config.mjs` ·
+`apps/rn/playwright.embed.config.ts` · `apps/rn/playwright.shots.config.ts` ·
+`apps/rn/scripts/copy-canvaskit.mjs` · `apps/rn/src/data/migrationAudit/cutoverFiles.test.ts` ·
+`apps/rn/src/data/migrationAudit/interruption.test.ts` · **`apps/rn/src/data/migrationAudit/run.ts`** ·
+`apps/rn/src/testing/runScenarioTests.ts` ·
+`apps/rn/src/testing/scenarios/guardianColdStartLifecycle.scenario.ts`.
+
+**Why the totality proof does not see it.** The `owed` assertion — the one the docblock calls *"the
+assertion the other four cannot make"* — is `[...changed].filter(f => !NOT_CODE.test(f) && !laneOf.has(f))`.
+It is quantified over **`changed`**. A never-swept, never-changed file is not in `changed`, so the proof
+that *"a route that undercounts is this project's oldest defect"* cannot express this undercount. ⚡ It is
+the same shape as the `off-surface` discovery in the paragraph above it: *a file whose home is a surface
+nobody reads.*
+
+⚠️ **This is a measurement of coverage, not a claim that bugs are there.** It is offered because the brief
+states the variable is *where the auditor points*, and 49 files of the instrument surface have never been
+pointed at while S0 is recorded closed.
+
+**Remedy, as a hypothesis (not verified):** give the S0 loop the same unswept arm —
+`if (s0.unswept.has(f)) origin.set(f, 'first-look'); else if (changed.has(f)) origin.set(f, 'instrument');`
+— and widen `owed` from `changed` to `changed ∪ everyInventory'sUnswept`, so the totality proof is
+quantified over the union the taxonomy names rather than over one of its two terms. ⚠️ Verify the volume
+before adopting: this adds ~49 files to a route, so it may need to land as a declared multi-pass backlog
+rather than as one round's route — but it should be *counted* either way, and today it is not.
+
+---
+
+### D4-8 — `major` · `lint:trust-claims`' claim-site ledger cannot tell a MENTION from a USE, and prints *"every money surface … asks the guard"* over pass-3 blocker `D3-1` restored
+
+**Origin:** `instrument` (`scripts/check-trust-claims.ts:190`).
+**User-facing consequence:** the Home-Screen / Lock-Screen widget can go back to saying *"Debt-free · 100%
+· $0"* over balances the app returned `debt-free-unverified` about — pass-3 blocker `D3-1` verbatim — while
+`lint:trust-claims` exits 0 and states in its own success line that every money surface asks the guard.
+
+**The line that decides membership of the ledger's population:**
+
+```ts
+if (src.includes('trustSelectors') || src.includes('dataRepairsCopy')) continue;
+```
+
+A file *mentions* the module → it is removed from the population entirely. Nothing checks that the money
+this particular file prints is behind a call.
+
+**The measurement (plant, clone at the pin).** `apps/rn/src/widget/snapshot.ts` — **`D3-1`'s own file** —
+holds two `mayClaim` calls: the payload gate at line 68 and the balance gate at line 129. The realistic
+regression is losing **one**, so the import stays used and the file still mentions the module:
+
+```ts
+// const mayStateBalances = mayClaim(store, 'debt-balances');
+   const mayStateBalances = true;      // D3-1's defect, restored
+```
+
+```
+npm run lint:trust-claims   EXIT=0
+  ✅ trust claims: 4 claims all consumed in production (debt-balances→1 · goal-amounts→1 · required-plan→5 · row-figures→5)
+     ⭐ 0 claim sites open — every money surface that reads the user's entities asks the guard.
+npm run lint:finding-guards EXIT=0
+```
+
+⛔ **`⭐ 0 claim sites open — every money surface … asks the guard` is a false sentence while that plant is
+in.** ⚡ And the drop is *visible* in the same line — `debt-balances→2` became `debt-balances→1` — with
+nothing comparing it to anything. A consumer count is printed and never floored.
+
+**Stronger form, for completeness:** deleting **both** calls and leaving only
+`import { mayClaim } from '@/store/trustSelectors';` also leaves the gate at EXIT=0
+(`debt-balances→1 · required-plan→4`), which is `tested-helper-is-not-a-used-helper` exactly.
+
+⚠️ **Scoped honestly:** the gate's docblock does declare the file-level limit — *"a file that imports the
+module can still ask the wrong question"*. What is **not** declared is the ⭐ line, which asserts the
+opposite as a fact; `assert-the-honest-state-by-name` is about the sentence, and this sentence is wrong.
+⚠️ `D3-1`'s **behavioural** guard is `S1P3-D3-1-WIDGET` in `apps/rn/src/widget/widgetSync.test.ts` —
+**lane C, not tested here.** This finding is about the instrument, not about `D3-1`'s closure.
+
+**Remedy, as a hypothesis (not verified):** ① floor the per-claim consumer counts the green line already
+prints (`debt-balances → 2`), in a ledger with the same both-directions exactness check 4 uses — a claim
+losing a caller then reds instead of being printed; ② replace `src.includes('trustSelectors')` with a
+count of actual `mayClaim|rowFieldUnread|anyRowFieldUnread` **call** matches (the `CALL` regex at line 91
+already exists in this file) so a mention is not a use; ③ soften the ⭐ line to what is measured —
+*"0 money-printing files never reference the guard"* — since that is the claim the code supports.
+
+---
+
+### D4-9 — `major` · `lint:scan-floors`, the gate written to close the "eighth gate somebody writes next week", does not see a strip-using gate written with double quotes or one directory down
+
+**Origin:** `instrument` (`scripts/check-scan-floors.ts:57-60`).
+**User-facing consequence:** a new money gate can ship reporting ✅ while reading **zero** lines — the
+GAP-8 state that seven live gates were measured in — because the instrument that is supposed to force it
+to carry a floor cannot see it.
+
+**The gate's own purpose**, first paragraph: *"[the seven floors] fix seven files. It does nothing about
+**the eighth gate somebody writes next week**, which will import `stripCode` and inherit the identical
+hole."* Its detector:
+
+```ts
+const consumers = readdirSync(SCRIPTS)                       // NOT recursive
+  .filter((f) => f.endsWith('.ts') && f !== 'check-scan-floors.ts')
+  .filter((f) => /from '\.\/lib\/stripCode(\.ts)?'/.test(readFileSync(join(SCRIPTS, f), 'utf8')));
+```
+
+⛔ **Single quotes only, and `scripts/` only.** Its own docblock records the first version of this line
+missing `check-trust-claims.ts` over the `.ts` spelling and calls that *"the undercount class this repo has
+now measured seven times, arriving inside the instrument written to close it."* The fix widened the
+enumeration by one spelling instead of matching the condition.
+
+**The measurement (plant, clone at the pin).** Two files added, each importing the stripper and using it,
+neither carrying `SCAN_GATE`, `scanned()` or `assertScanFloor()`:
+
+| file | import spelling |
+|---|---|
+| `scripts/check-plant-gate.ts` | `from "./lib/stripCode"` — **double quotes** |
+| `scripts/lib/plantNested.ts` | `from './stripCode'` — **one directory down** |
+
+```
+before:  ✅ scan floors: 13 strip-using gate(s) — 7 floored, 6 exempt by a measured reason, none stale.
+after:   ✅ scan floors: 13 strip-using gate(s) — 7 floored, 6 exempt by a measured reason, none stale.   EXIT=0
+```
+
+⛔ **Byte-identical green, and the count did not move** — so the number in the success sentence is blind
+to the same thing the check is.
+
+**Why double quotes is not a hypothetical.** This repo mixes styles: `scripts/check-webkit-flex-controls.ts`
+imports with `"node:fs"` throughout, and `packages/core/testing/testPayCycleHistoryRegression.ts` — on this
+route — uses double quotes for every import. And `scripts/lib/` already holds two of the fixing session's
+own new modules (`scanFloor.ts`, `stripMarkdown.ts`), so "a helper one directory down" is where this
+cluster has been putting new code.
+
+**Remedy, as a hypothesis (not verified):** stop matching the import *text*. Resolve the consumers the way
+the runtime does — walk `scripts/**/*.ts` recursively and test for `stripCommentsOnly|stripCommentsAndStrings`
+being **imported** (parse the import statements with the `typescript` module the repo already depends on,
+as `check-apostrophes.ts` and `check-money-format.ts` both do), or invert it: have `lib/stripCode.ts` itself
+register its caller and have `assertScanFloor` refuse a gate that stripped without registering — the
+`scanned()` accumulator already has the hook. ⚠️ Verify the count moves from 13 when the plants are
+re-applied; a widened regex that still reports 13 has not been tested.
+
+---
+
+### D4-10 — `major` · `S1P3-G6-SCRIPTSREACH` is GUARD-ONLY: the token pins `include` and reach is `include` **minus `exclude`**
+
+**Origin:** `off-surface` (`scripts/tsconfig.json`), guard registered in `scripts/finding-guards.json`.
+**User-facing consequence:** `npm run typecheck` can be returned to green with the `G-6` aliases deleted
+and `check-trust-claims.ts` — the gate that stops *"0% APR"* on a card charging 22% — dropped out of the
+compiler's program entirely. `validate:release:rn` then opens with a green `typecheck` over a release
+whose money gate is uncompiled, which is exactly the state `G-6` was found in.
+
+**What the entry claims:** *"G-6's naive over-fix, found by planting it: `npm run typecheck` can also be
+made green by NARROWING `scripts/tsconfig.json`'s include until the app source stops being reachable …
+⛔ A typecheck-based plant structurally CANNOT catch this one: the over-fix makes typecheck PASS. **The
+token is the config's REACH rather than its aliases.**"* Token: `"include": ["**/*.ts"]`.
+
+⛔ **A tsconfig's reach is `include` minus `exclude`, and the token pins one of the two terms.**
+
+**The measurement — two plants, clone at the pin.**
+
+**A · the fix reverted (`paths` deleted, `"baseUrl": ".."` token kept):**
+
+```
+npx tsc --noEmit --incremental false --pretty false -p scripts/tsconfig.json   EXIT=2
+  apps/rn/src/data/defaults.ts(1,37): error TS2307: Cannot find module '@core/payCycle/getNextPaycheckDate' …
+  … 18 errors — G-6's own figure, reproduced
+npm run lint:finding-guards   EXIT=0
+```
+✅ so `S1P3-G6-SCRIPTSTYPES`' subject **is** guarded — by `typecheck:scripts`, not by its token.
+
+**B · the same revert plus the over-fix, one word in a sibling key:**
+
+```jsonc
+"include": ["**/*.ts"],
+"exclude": ["node_modules", "check-trust-claims.ts"]
+```
+
+```
+npx tsc --noEmit -p scripts/tsconfig.json      EXIT=0   (0 errors)
+grep -c '"include": ["**/*.ts"]'  scripts/tsconfig.json → 1   (token intact)
+grep -c '"baseUrl": ".."'          scripts/tsconfig.json → 1   (token intact)
+npm run lint:finding-guards                     EXIT=0
+npm run lint:gate-sources                       EXIT=0
+```
+
+⛔ **Green everywhere.** The aliases are gone, the C-1 gate is out of the program, and the entry written
+specifically to make this over-fix visible sees nothing — because the string it names never changed.
+
+**Remedy, as a hypothesis (not verified):** a token cannot express *"the reach did not shrink."* Register
+the property instead: add a `test:gate-plants` scenario, or a two-line assertion in `check-gate-sources.ts`,
+that runs `tsc --showConfig -p scripts/tsconfig.json` and asserts the resolved `files[]` still contains
+`check-trust-claims.ts` (and every other `scripts/check-*.ts`). That is the same *"read the resolved thing,
+not the source text"* move `lint:ci-chain` needs in `D4-5`, and `--showConfig` gives it for free.
+
+---
+
+### D4-11 — `minor` · three of `audit-route.ts`'s five "set identity" assertions are unreachable, and two of the three numbers in its success line are constants
+
+**Origin:** `instrument` (`scripts/audit-route.ts:288-296`).
+**Consequence:** not user-facing and nothing is blinded — the reachable checks (`missing`, `owed`, and the
+inner `die`) carry the file. But the success line advertises measurements that are not measurements, in
+the file whose own docblock records shipping *"a check that could not fail"* one commit earlier.
+
+```ts
+for (const [f, o] of [...origin].sort(…)) {
+  const lane = LANES.find((l) => l.match(f, o));
+  if (!lane) die(`"${f}" reached no lane — the catch-all is broken.`);   // ← always fires first
+  if (laneOf.has(f)) die(`"${f}" was routed twice.`);                    // ← Map keys are unique
+  laneOf.set(f, lane.id); byLane.get(lane.id)!.push(f);
+}
+const unrouted   = [...origin.keys()].filter((f) => !laneOf.has(f));     // always []
+const duplicated = routedCount !== new Set(laneOf.keys()).size;          // always false
+…
+if (routedCount !== origin.size) die(…);                                 // always equal
+```
+
+Every key of `origin` is either given a lane or killed by the inner `die`, and `origin` is a `Map`, so
+`unrouted`, `duplicated` and `routedCount !== origin.size` cannot be anything but empty / false / false.
+
+**The measurement.** Narrow lane D's catch-all from `match: () => true` to
+`match: (f) => f.startsWith('scripts/')` — the state `unrouted` exists to report:
+
+```
+npx tsx scripts/audit-route.ts --surface=s1 --since=96d1f11 --check   EXIT=1
+❌ audit-route: ".gitattributes" reached no lane — the catch-all is broken.
+```
+
+The **inner** `die` fires; execution never reaches the `unrouted` block. There is no tree state that
+reaches it.
+
+**And the line it feeds** — `217 routed · 0 unrouted · 0 duplicated · 0 missing on disk` — reports two
+constants beside one measurement. ⚠️ A reader treating *"0 unrouted · 0 duplicated"* as evidence the route
+is total is reading nothing; the totality proof is `owed`, which the line does not mention.
+
+**Remedy, as a hypothesis (not verified):** delete the three dead checks (the inner `die` already covers
+the first, and a `Map` covers the second), and print what `owed` proves instead —
+`N routed · every changed non-prose file accounted for · M excluded by NOT_CODE`. ⚠️ See `D4-7`: `owed`'s
+quantifier is `changed`, so that sentence is true of changed files only and should say so.
+
+---
+
 ---
 
 ## 2. Closure verdicts
