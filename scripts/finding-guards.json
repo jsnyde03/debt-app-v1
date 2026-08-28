@@ -591,9 +591,20 @@
     "token": "await expect(page.getByText('$0 paid off')).toHaveCount(0);"
   },
   "S1P3-C5-PAYWALL": {
-    "what": "pass-3 C-5 — the paywall named a $100 shortfall on a cycle $500 short and sold a Recovery Plan sized against it. mayStatePlanFigures is a REQUIRED parameter rather than an internal check, so the next consumer cannot be added without answering the question. The cushion assertion is the token, not the shortfall one: it covers the NON-shortfall branch, and it was proven independently load-bearing by relaxing the shortfall assertion under the same plant",
+    "what": "pass-3 C-5 — the paywall named a $100 shortfall on a cycle $500 short and sold a Recovery Plan sized against it. mayStatePlanFigures is a REQUIRED parameter rather than an internal check, so the next consumer cannot be added without answering the question. The cushion assertion is the token, not the shortfall one: it covers the NON-shortfall branch, and it was proven independently load-bearing by relaxing the shortfall assertion under the same plant | S1.11.3.4: proven by plant. ⚠ The registered TOKEN names a later assertion in the same file; the un-fix reds an earlier one asserting the same finding, so `expect` names the assertion that actually fires. The two halves are complementary - the token proves the assertion still exists, the proof proves the defect is still caught.",
     "file": "apps/rn/src/store/paywallLead.test.ts",
-    "token": "…and neither is the cushion, which is the branch that runs when the cycle looks fine"
+    "token": "…and neither is the cushion, which is the branch that runs when the cycle looks fine",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/paywallLead.ts",
+          "find": "  if (!summary || !mayStatePlanFigures) return null;",
+          "replace": "  if (!summary) return null;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C-5 — a shortfall derived from arrays missing an unread obligation is not stated"
+    }
   },
   "S1P3-C6-CALENDAR": {
     "what": "pass-3 C-6 — a BNPL plan whose scheduledPaymentAmount could not be read left the installment expansion and was listed as ONE payment of four, with no \"+ N more\" and a month subtotal reading as the month's whole BNPL load. The unread plan's degraded row is now dropped and the plan named. The token is the absence assertion on the short list, verified red with the honest-state assertion relaxed",
@@ -601,14 +612,36 @@
     "token": "await expect(page.getByText(/1 payment/)).toHaveCount(0);"
   },
   "S1P3-D3-1-WIDGET": {
-    "what": "pass-3 D3-1 — the Home/Lock Screen said \"Debt-free · 100% · $0\" over balances mayClaim('debt-balances') was refusing at the same instant: B1's finding verbatim with the widget standing where Today used to. No fixture in the repo had ever put a pendingDataRepairs entry through buildWidgetSnapshot. The token names the PERCENT assertion, not the date one, because the finding's own warning is that repairing only the date leaves \"100% · $0\" — the same falsehood without the word; plant-verified as its own scenario",
+    "what": "pass-3 D3-1 — the Home/Lock Screen said \"Debt-free · 100% · $0\" over balances mayClaim('debt-balances') was refusing at the same instant: B1's finding verbatim with the widget standing where Today used to. No fixture in the repo had ever put a pendingDataRepairs entry through buildWidgetSnapshot. The token names the PERCENT assertion, not the date one, because the finding's own warning is that repairing only the date leaves \"100% · $0\" — the same falsehood without the word; plant-verified as its own scenario | S1.11.3.4: proven by plant. ⚠ The registered TOKEN names a later assertion in the same file; the un-fix reds an earlier one asserting the same finding, so `expect` names the assertion that actually fires. The two halves are complementary - the token proves the assertion still exists, the proof proves the defect is still caught.",
     "file": "apps/rn/src/widget/widgetSync.test.ts",
-    "token": "…and the ring does not say 100%, which is the same falsehood without the word"
+    "token": "…and the ring does not say 100%, which is the same falsehood without the word",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/widget/snapshot.ts",
+          "find": "  const mayStateBalances = mayClaim(store, 'debt-balances');",
+          "replace": "  const mayStateBalances = true;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "D3-1 — the Home Screen does not say \"Debt-free\" over balances the app refused to claim"
+    }
   },
   "S1P3-D3-2-SPOKEN": {
-    "what": "pass-3 D3-2 — Siri and the Lock-Screen Live Activity said \"$1,080 free to put toward debt\" when the obligation netted out was one the app could not read; measured against a control that moves the figure $180 -> $1,080 on that single variable. Both nothing-to-say returns already existed and their callers already handled them, so the whole path was there and the CALL was missing. The Live Activity token names the LIFECYCLE assertion — a null payload must END a running activity, not freeze it on the last false figure — and its control pins that the end comes from the trust guard rather than from the window or the toggle",
+    "what": "pass-3 D3-2 — Siri and the Lock-Screen Live Activity said \"$1,080 free to put toward debt\" when the obligation netted out was one the app could not read; measured against a control that moves the figure $180 -> $1,080 on that single variable. Both nothing-to-say returns already existed and their callers already handled them, so the whole path was there and the CALL was missing. The Live Activity token names the LIFECYCLE assertion — a null payload must END a running activity, not freeze it on the last false figure — and its control pins that the end comes from the trust guard rather than from the window or the toggle | S1.11.3.4: proven by plant. ⚠ The registered TOKEN names a later assertion in the same file; the un-fix reds an earlier one asserting the same finding, so `expect` names the assertion that actually fires. The two halves are complementary - the token proves the assertion still exists, the proof proves the defect is still caught.",
     "file": "apps/rn/src/liveActivity/paydayActivityContent.test.ts",
-    "token": "…and a running activity is ENDED, not left showing the last figure"
+    "token": "…and a running activity is ENDED, not left showing the last figure",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/liveActivity/paydayActivityContent.ts",
+          "find": "  if (!mayClaim(store, 'required-plan')) return null;",
+          "replace": "  if (false && !mayClaim(store, 'required-plan')) return null;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "D3-2 — the Lock Screen shows nothing rather than naming money free over an obligation nobody read"
+    }
   },
   "S1P3-D3-CAPS": {
     "what": "S1.10.6.3's own after-scan — check-trust-claims.ts shipped with MAX_EXEMPT/MAX_OPEN computed as Object.keys(X).length, so both downward-only caps were VACUOUS: a cap derived from the list it caps can never be exceeded. Found by re-reading the gate while removing D3-1's row, not by any suite. Now literals, and plant-verified by adding a row above the cap | S1.11.3.3: auditor D measured this entry GUARD-ONLY - reverting the caps to Object.keys(X).length left the token present, lint:trust-claims green and the ledger holding 2 against a cap of 1. The token still pins the comparison; what was missing is anything that refuses a DERIVED bound, and lint:cap-literals is now that, over every script rather than this one file. Proven by plant.",
@@ -680,27 +713,82 @@
   "S1P3-G1-CALIBRATION": {
     "what": "S1.10.6.9 G-1 — selectCalibrationScore picked WHICH debt regime to grade off `debts.filter(balance > 0)`, the one field the import path repairs to 0. Measured: one lost balance re-graded the scorecard against the debt-free cycles and turned '0 of 4 reads matched · Under-warned 4' into '4 of 4 · Under-warned 0', with WARN_MATCH_RATE no longer firing so the recalibration apology vanished too. ⚡ The app's own honesty instrument, inverted from its worst record to a perfect one, in the flattering direction only — a lost balance repairs to 0 and never to a number. Suppression (not a caption) is right here because the figure is a claim about the app's accuracy, not about the user's money",
     "file": "apps/rn/src/store/guardianTrust.test.ts",
-    "token": "an unread balance grades NOTHING rather than the wrong regime"
+    "token": "an unread balance grades NOTHING rather than the wrong regime",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "if (liveness === 'debt-free-unverified') return scoreCalibration([], opts);",
+          "replace": "if (false && liveness === 'debt-free-unverified') return scoreCalibration([], opts);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "an unread balance grades NOTHING rather than the wrong regime"
+    }
   },
   "S1P3-G2-RESERVETARGET": {
     "what": "S1.10.6.9 G-2 — selectReserveRelease named the freed reserve's destination off the same re-derived liveness test, so it said 'your savings' over a live $4,200 card. Unverified now takes the EXISTING 'your debt' fallback rather than a fourth phrasing: a debt row exists and only its number is unknown, so the reserve really is going to debt and only the NAME is unavailable",
     "file": "apps/rn/src/store/guardianTrust.test.ts",
-    "token": "an unread balance takes the existing"
+    "token": "an unread balance takes the existing",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "debtLiveness(store) === 'debt-free' ? 'your savings'",
+          "replace": "debtLiveness(store) !== 'has-debt' ? 'your savings'"
+        }
+      ],
+      "run": "test:app",
+      "expect": "an unread balance takes the existing"
+    }
   },
   "S1P3-G3-GUARDIANREGIME": {
     "what": "S1.10.6.9 G-3 — pass-1 blocker B1 itself, unfixed, in the selector beside the one that got the remedy. selectPlanState returns 'debt-free-unverified' so a screen cannot forget to ask; selectPaydayGuardian re-derived the same conjunct and asked nothing, and buildGuardianBrief branches on the result eight times ('Extra savings resumes' for 'Extra payoff', the destination noun, the deploy target, deployTradeoff silently off). One unreadable balance graduated the whole Today headline. Unverified resolves to has-debt: the debt framing is the true one, and treating unknown as graduated is the exact defect B1 was raised for",
     "file": "apps/rn/src/store/guardianTrust.test.ts",
-    "token": "does NOT graduate the headline"
+    "token": "does NOT graduate the headline",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "const debtFree = debtLiveness(store) === 'debt-free';",
+          "replace": "const debtFree = debtLiveness(store) !== 'has-debt';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "does NOT graduate the headline"
+    }
   },
   "S1P3-G4-PLANROUTE": {
     "what": "S1.10.6.9 G-4 — a hole in the CLAIM TABLE, not at any call site, and the store-level owner cannot see it (a live Visa beside a lost Store Card leaves both worlds `has-debt`). The allocation engine skips a debt with no balance left to pay, so an unread BALANCE drops its minimum out of the plan exactly as pass-2 C-4's unread minimumPayment did — the obligation gone by a second door, with only the first routed. Measured: 'tight — you'd dip to $0, below your $200 line' became 'Yes — you'd still hold about $300', spare $250 → $550. `balance` now joins 'required-plan', which reaches all four of its consumers; AffordabilityCard asks the claim and REPLACES the verdict rather than captioning it, because the answer is one word the user acts on and it is wrong in a known direction",
     "file": "apps/rn/src/store/guardianTrust.test.ts",
-    "token": "an unread BALANCE poisons the plan claim"
+    "token": "an unread BALANCE poisons the plan claim",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/trustSelectors.ts",
+          "find": "'required-plan': { debt: ['minimumPayment', 'balance']",
+          "replace": "'required-plan': { debt: ['minimumPayment']"
+        }
+      ],
+      "run": "test:app",
+      "expect": "an unread BALANCE poisons the plan claim"
+    }
   },
   "S1P3-G5-SAVINGSPOOL": {
     "what": "S1.10.6.9 G-5 — pickTopUpGoal filters on `currentAmount > 0`, so a pot whose amount could not be read repairs to 0 and leaves the running with nothing anywhere saying so. Measured with an $800 Vacation beside a $25 Coffee Fund and a $100 gap: 'You have $800 in Vacation — moving $100 over holds your line' became 'Coffee Fund has $25 — moving all of it over … it won't close the gap'. ⚡ A false NEGATIVE about the user's own money, the direction this class had not produced before. Captioned rather than suppressed (C-4's rule): the offer is still the best one the app can see",
     "file": "apps/rn/src/store/guardianTrust.test.ts",
-    "token": "it now SAYS a savings amount could not be read"
+    "token": "it now SAYS a savings amount could not be read",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "  return store.goals.some(",
+          "replace": "  return false && store.goals.some("
+        }
+      ],
+      "run": "test:app",
+      "expect": "it now SAYS a savings amount could not be read"
+    }
   },
   "S1P3-G6-SCRIPTSTYPES": {
     "what": "S1.10.6.9 G-6 — found while verifying G-1…G-5, not by any auditor: `npm run typecheck` was RED on the committed tree and nothing said so. check-trust-claims.ts imports trustSelectors.ts, which drags the app's module graph into scripts/tsconfig.json where the @/ and @core/ aliases do not exist — 18 errors, none real. ⛔ typecheck is core && rn && scripts && tests, so the failure took typecheck:tests with it (never ran at all), and validate:release:rn opens with npm run typecheck, so the release gate could not have passed. Every per-fix 'typecheck green' recorded since C-1 was typecheck:rn alone. Fixed with aliases, not an exclusion: excluding the app would restore the green by making the gates' own imports unchecked, which is the hole [P6.8.7a-1] closed",

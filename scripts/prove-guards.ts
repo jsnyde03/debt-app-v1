@@ -377,8 +377,14 @@ for (const id of selected) {
       // ⚠️ The red it DID produce is printed, because the usual cause is an earlier assertion firing
       // first and hiding the one being measured — and a verdict with no output to read sends you
       // hand-reproducing the plant to find that out (`plant-that-reds-early-hides-assertions`).
-      const tail = v.plantedOut.split('\n').map((l) => l.trimEnd()).filter(Boolean).slice(-6);
-      for (const l of tail) console.log(`         │ ${l.slice(0, 160)}`);
+      // ⚠️ The FAILURE lines, not the last lines. A suite's tail is its stack trace, and the message a
+      // human needs — *which* assertion fired — is at the top of it. Printing the tail sent me
+      // hand-reproducing a plant to read a message the harness already had.
+      const lines = v.plantedOut.split('\n').map((l) => l.trimEnd()).filter(Boolean);
+      // ⛔ `✓` lines carry the word "expected" too — a filter matching it selects the PASSES, which is
+      // the same trap as grepping for "failed" and hitting `0 failed`. Match the failure markers only.
+      const named = lines.filter((l) => /FAIL \[|Error:|❌/.test(l) && !l.includes('✓') && !/^\s+at /.test(l));
+      for (const l of (named.length ? named : lines).slice(0, 4)) console.log(`         │ ${l.slice(0, 220)}`);
     }
     if (v.failed.includes('control-red')) {
       console.log('       ⛔ the control redded too, so this run measured nothing: the command is red with or without the plant.');
