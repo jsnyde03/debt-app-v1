@@ -166,11 +166,45 @@ export default function run(): void {
    * entry, and a stale entry is a rule nobody has read since the field was renamed.
    */
   {
-    const routed = new Set<string>();
+    /**
+     * ⛔ **S1.11.2 [pass-4 C4-10] — A WILDCARD NO LONGER SATISFIES COMPLETENESS, BECAUSE IT SATISFIED
+     * EVERYTHING.**
+     *
+     * The forward loop used to accept `routed.has(`${entity} *`)`, and `'row-figures'` routes
+     * `debt: 'any'`, `requiredExpense: 'any'`, `livingExpense: 'any'` and `goal: 'any'` — **all four
+     * entities**. So every repairable field of every entity passed by construction and **the loop could
+     * not fail.** Measured: four new repairable money fields, one per entity, none routed by name, and
+     * this block stayed green. ⚡ The only thing that redded was the hard-coded count below, whose
+     * message says *raise the number* — the one action that clears it **without** deciding anything.
+     *
+     * ⚠️ **The wildcard is not wrong** — `'row-figures'` genuinely does poison any repaired money figure
+     * a row prints. What was wrong is letting it answer a question it was never asked: *which claims does
+     * this new field poison, beyond the catch-all?*
+     *
+     * ⛔ So completeness is now decided by **named** routes only, and a field whose sole route really is
+     * the catch-all must say so **out loud, here, with a reason.** Adding a money field to
+     * `REPAIRABLE_MONEY_FIELDS` now fails this test until someone chooses one or the other.
+     */
+    const CATCH_ALL_IS_THE_DECISION = new Map<string, string>([
+      // `apr` changes no obligation this cycle — it is stated by the row and nothing else, which is
+      // exactly `row-figures`. `trustSelectors.ts` already records this as its only routing.
+      ['debt apr', 'stated by the row and by nothing else — row-figures IS the decision'],
+      // Autopay's scheduled amount is displayed on the row; it is not what the plan requires this
+      // cycle (that is `minimumPayment`, which `required-plan` names).
+      ['debt scheduledPaymentAmount', 'a displayed figure, not an obligation — required-plan names minimumPayment instead'],
+      // `goal-amounts` routes the goal entity wholesale and is the claim ABOUT goal money, so a goal
+      // money field has no second claim to be decided against.
+      ['goal targetAmount', 'goal-amounts is the claim about goal money; there is no second claim to decide'],
+      ['goal currentAmount', 'goal-amounts is the claim about goal money; there is no second claim to decide'],
+      ['goal priorityPerPaycheck', 'goal-amounts is the claim about goal money; there is no second claim to decide'],
+    ]);
+
+    const named = new Set<string>();
+    const wildcardEntities = new Set<string>();
     for (const route of Object.values(claimFields())) {
       for (const [entity, fields] of Object.entries(route)) {
-        if (fields === 'any') routed.add(`${entity} *`);
-        else for (const f of fields) routed.add(`${entity} ${f}`);
+        if (fields === 'any') wildcardEntities.add(entity);
+        else for (const f of fields) named.add(`${entity} ${f}`);
       }
     }
     const repairable: string[] = [];
@@ -178,16 +212,32 @@ export default function run(): void {
       for (const f of [...lists.required, ...lists.optional]) repairable.push(`${entity} ${f}`);
     }
     // ⚠️ Counted by the test, not by me — my own hand count of this list was 9 and the assertion said 10.
-    eq(repairable.length, 10, 'the fixture knows how many repairable money fields there are (raise it WITH the field)');
+    // ⛔ Its message no longer says "raise it": raising it clears this line and the loop below still reds,
+    // because the new field is neither named by a claim nor recorded as a catch-all decision.
+    eq(repairable.length, 10, 'the fixture knows how many repairable money fields there are (a new one must ALSO be routed or recorded below)');
     for (const key of repairable) {
-      const entity = key.split(' ')[0];
-      if (!routed.has(key) && !routed.has(`${entity} *`)) {
-        fail(`⛔ S1.9.2 — \`${key}\` can be repaired and NO claim in trustSelectors routes it. Decide which claim it poisons.`);
-      }
+      if (named.has(key)) continue;
+      if (CATCH_ALL_IS_THE_DECISION.has(key)) continue;
+      fail(
+        `⛔ S1.11.2 [C4-10] — \`${key}\` can be repaired and NO claim NAMES it. A catch-all ('any') does ` +
+          `not count: it routes every field of its entity, so it answers this question for everything and ` +
+          `therefore for nothing. Name it in a claim in trustSelectors.ts, or add it to ` +
+          `CATCH_ALL_IS_THE_DECISION with the reason the catch-all is genuinely the whole answer.`,
+      );
     }
-    for (const key of routed) {
-      if (key.endsWith(' *')) continue;
+    for (const key of named) {
       if (!repairable.includes(key)) fail(`⛔ S1.9.2 — a claim routes \`${key}\`, which migrations.ts can no longer repair. Stale route.`);
+    }
+    // ⚠️ The reverse direction for the ledger itself: an entry naming a field the repair layer no longer
+    // writes is a decision nobody has read since the field was renamed — the same staleness the loop
+    // above refuses for named routes.
+    for (const key of CATCH_ALL_IS_THE_DECISION.keys()) {
+      if (!repairable.includes(key)) fail(`⛔ S1.11.2 [C4-10] — CATCH_ALL_IS_THE_DECISION records \`${key}\`, which migrations.ts can no longer repair. Stale entry.`);
+      if (named.has(key)) fail(`⛔ S1.11.2 [C4-10] — \`${key}\` is BOTH named by a claim and recorded as catch-all-only. Remove the record; the claim decided it.`);
+    }
+    // ⚠️ And a wildcard route for an entity the repair layer cannot write at all is equally stale.
+    for (const entity of wildcardEntities) {
+      if (!repairable.some((k) => k.startsWith(`${entity} `))) fail(`⛔ S1.11.2 [C4-10] — a claim routes \`${entity} 'any'\`, but migrations.ts repairs no field of that entity. Stale route.`);
     }
   }
 

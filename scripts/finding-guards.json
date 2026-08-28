@@ -328,6 +328,11 @@
     "file": "scripts/test-gate-plants.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-C4-10-NAMEDONLY": {
+    "what": "pass-4 C4-10 - the trust COMPLETENESS GATE could not fail. Its forward loop accepted routed.has(`${entity} *`), and 'row-figures' routes debt/requiredExpense/livingExpense/goal all as 'any' - so every repairable field of every entity passed by construction. Measured: four new repairable money fields, one per entity, none routed by name, block still green. Completeness is now decided by NAMED routes only; a field whose sole route really is the catch-all must be recorded in CATCH_ALL_IS_THE_DECISION with a reason, and that ledger is asserted in reverse too (stale entry, and an entry that is ALSO named). ⚠️ The wildcard itself is not wrong - it was answering a question it was never asked. 2x2 measured, and it took four collateral guards neutralised to become attributable: NEW logic + unrouted field -> RED naming C4-10; OLD wildcard-satisfies logic + the SAME field -> GREEN. ⛔ Three earlier verifier faults each produced a confident wrong red - npx tsx cannot resolve the @/ alias so both cells died at startup; a grep for 'failed' matched PASSING lines; and TWO hard-coded counts of the same fact (trustSelectors.test.ts and dataRepairsCopy.test.ts:199, identical message) plus C-m1's label check redded before the assertion under test was reached",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "if (named.has(key)) continue;"
+  },
   "S1P2-B1-SELFCHECK": {
     "what": "pass-2 B-1's un-plantable seventh - the routing check reads a predicate in surface-coverage.ts rather than a file, so no scenario can hand it a defect; the first self-check asserted the PREDICATE and stayed green with `if (false && ...)` planted at the call site, which is tested-helper-is-not-a-used-helper written into the fix for it",
     "file": "scripts/surface-coverage.ts",
@@ -369,9 +374,9 @@
     "token": "does NOT read as"
   },
   "S1P2-CLAIM-TABLE": {
-    "what": "pass-2 C2/C4's shared cause - the trust rule was wired to a SUBSET of repairable fields three separate ways in one round; migrations.ts now declares what it can repair, trustSelectors routes each one to a claim, and this asserts the two agree in BOTH directions",
+    "what": "pass-2 C2/C4's shared cause - the trust rule was wired to a SUBSET of repairable fields three separate ways in one round; migrations.ts now declares what it can repair, trustSelectors routes each one to a claim, and this asserts the two agree in BOTH directions RE-POINTED S1.11.2 [pass-4 C4-10]: the assertion is intact and STRONGER - it now refuses a field routed only by a catch-all - but the message was reworded, so the old token ('NO claim in trustSelectors routes it') went missing and this gate redded. ⭐ That red is the gate doing its job: it is exactly the 'assertion deleted, file survived' shape, and re-pointing rather than deleting keeps the claim guarded",
     "file": "apps/rn/src/store/trustSelectors.test.ts",
-    "token": "NO claim in trustSelectors routes it"
+    "token": "can be repaired and NO claim NAMES it"
   },
   "S1P2-D2-2-STORE": {
     "what": "pass-2 D2-2, a REGRESSION [B3]'s own fix introduced — one entry per SOURCE accumulates, so undoTightTopUp(source) handed back every cover the source made this cycle; $50 then $30 returned $80 and silently un-covered the earlier purchase. Every prior undo case applied each source ONCE, the member of the class where whole-entry and per-draw agree",

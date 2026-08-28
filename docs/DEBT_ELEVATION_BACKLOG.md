@@ -786,3 +786,15 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   purpose (a loss with nothing to reopen must be answerable somehow). ⚠️ It means `S1.11.4`'s `F-B4` fix must
   be tested **after** an ack, not only before one. **Whether the ack should clear it at all is a product
   call, not an audit finding.**
+
+- **→ Tooling / hygiene.** ⭐ **Surfaced by BUILDING `C4-10`'s fix, not by any auditor.** *"How many
+  repairable money fields exist"* is hard-coded as `10` in **two** files — `trustSelectors.test.ts` and
+  `dataRepairsCopy.test.ts:199` — **with the identical message** *"(raise it WITH the field)"*. Adding one
+  money field therefore takes **four** coordinated edits across three files (both counts, `FIELD_LABEL`,
+  and a claim route), and the guards fire in an order that points **away** from the decision being asked
+  for: the trust gate's question surfaces last, behind two count assertions and `C-m1`'s label check.
+  ⛔ **This is the round's own two-producers-of-one-fact class, living inside the guards.** It cost three
+  failed verification attempts on `C4-10` before the red became attributable. **Collapse the count to one
+  owner** *(export it from `migrations.ts` beside `REPAIRABLE_MONEY_FIELDS` and have both tests read it)*.
+  ⚠️ Not folded into `S1.11.2`: it is a change to two passing guards on a route pass 4 already swept, and
+  `S1.11.4` is where two-producer collapses are being done as a class.
