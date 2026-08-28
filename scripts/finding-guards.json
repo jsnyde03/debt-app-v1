@@ -358,6 +358,11 @@
     "file": "scripts/check-trust-claims.ts",
     "token": "} else if (actual !== declared) {"
   },
+  "S1P4-D4-2-WORKTREE": {
+    "what": "pass-4 D4-2 - test:gate-plants crashed in a LINKED GIT WORKTREE, which is the environment the audit protocol mandates. The staged-plant scenario copied join(REPO_ROOT, '.git', 'index'), and in a linked worktree .git is a FILE holding 'gitdir: ...', not a directory - so it threw an uncaught ENOENT after 11 scenarios and the remaining 10 never ran. The crash reads as a broken harness rather than as 'these 10 gates are unverified here', which is why auditor D had to work in a full clone. Now resolved with git rev-parse --path-format=absolute --git-path index. ⛔ Computed with a CLEAN env on purpose: the scenario's own git() helper injects GIT_INDEX_FILE so the plant stages into a throwaway index, and asking THAT git where the index lives would answer with the override we are about to write rather than the real one being copied FROM. Measured in a real linked worktree at C:/Users/Jason/d4-2-wt: .git is a file, $WT/.git/index does not exist, git resolves it to .git/worktrees/d4-2-wt/index which does. Control (pre-fix HEAD, same worktree): 11 green then ENOENT. Fixed harness, same worktree: 21/21 green, 0 ENOENT",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "copyFileSync(REAL_INDEX, tmpIndex);"
+  },
   "S1P2-B1-SELFCHECK": {
     "what": "pass-2 B-1's un-plantable seventh - the routing check reads a predicate in surface-coverage.ts rather than a file, so no scenario can hand it a defect; the first self-check asserted the PREDICATE and stayed green with `if (false && ...)` planted at the call site, which is tested-helper-is-not-a-used-helper written into the fix for it",
     "file": "scripts/surface-coverage.ts",

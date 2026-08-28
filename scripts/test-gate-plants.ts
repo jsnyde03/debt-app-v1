@@ -442,6 +442,25 @@ const MIN_SCENARIOS = 21;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 
+/**
+ * ⛔ **S1.11.2 [pass-4 D4-2] — `.git` IS NOT ALWAYS A DIRECTORY.**
+ *
+ * The staged-plant scenario copied `join(REPO_ROOT, '.git', 'index')`. In a **linked worktree** `.git` is
+ * a FILE holding `gitdir: …`, so that path does not exist: the harness threw an uncaught `ENOENT` after
+ * 11 scenarios and the remaining 10 never ran. ⚠️ That is precisely the isolated-worktree environment the
+ * audit protocol mandates, where the crash reads as *"the harness is broken"* rather than *"these 10 gates
+ * are unverified here"* — and it is why auditor D had to work in a full clone.
+ *
+ * ⛔ **Resolved with a CLEAN env, deliberately.** The scenario's own `git()` helper injects
+ * `GIT_INDEX_FILE` so the plant stages into a throwaway index — asking *that* git where the index lives
+ * would answer with the override we are about to write, not the real one being copied FROM.
+ */
+const REAL_INDEX = execFileSync('git', ['rev-parse', '--path-format=absolute', '--git-path', 'index'], {
+  cwd: REPO_ROOT,
+  encoding: 'utf8',
+  env: process.env,
+}).trim();
+
 /** Refuse to start over a tree a previous run left dirty — a stale plant would score as a real defect. */
 for (const s of SCENARIOS) {
   // ⚠️ `also` included: a stale extra file is exactly as poisonous as a stale primary one.
@@ -619,7 +638,12 @@ for (const s of SCENARIOS) {
       files.every((f) => existsSync(abs(f.at))) &&
       edits.every((f) => !readFileSync(abs(f.at)).equals(originals.get(f.at)!));
     if (staged.length) {
-      copyFileSync(join(REPO_ROOT, '.git', 'index'), tmpIndex);
+      // ⛔ S1.11.2 [pass-4 D4-2] — `join(REPO_ROOT, '.git', 'index')` assumes `.git` is a DIRECTORY. In a
+      // linked worktree it is a FILE holding `gitdir: …`, so this threw ENOENT and killed the run after
+      // 11 scenarios — in exactly the isolated-worktree environment the audit protocol mandates, where
+      // the crash reads as a broken harness rather than as "these 10 gates are unverified here".
+      // git knows where the index is in every layout; ask it rather than reconstructing the path.
+      copyFileSync(REAL_INDEX, tmpIndex);
       for (const f of staged) {
         mkdirSync(dirname(abs(f.at)), { recursive: true });
         writeFileSync(abs(f.at), f.body, 'utf8');
