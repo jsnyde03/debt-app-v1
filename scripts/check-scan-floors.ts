@@ -54,16 +54,90 @@ const problems: string[] = [];
  *
  * `check-scan-floors.ts` excludes itself: it names the import path in a string literal, not an import.
  */
-const consumers = readdirSync(SCRIPTS)
-  .filter((f) => f.endsWith('.ts') && f !== 'check-scan-floors.ts')
-  .filter((f) => /from '\.\/lib\/stripCode(\.ts)?'/.test(readFileSync(join(SCRIPTS, f), 'utf8')));
+/**
+ * ⛔ **S1.11.2 [pass-4 D4-9] — IT MATCHED A SPELLING WHERE IT MEANT A CONDITION, AND THE DOCBLOCK ABOVE
+ * SAYS SO ABOUT ITS OWN PREVIOUS VERSION.**
+ *
+ * The detector was `readdirSync(SCRIPTS)` — **not recursive** — filtered on
+ * `/from '\.\/lib\/stripCode(\.ts)?'/` — **single quotes, and `./lib/` exactly**. So the *"eighth gate
+ * somebody writes next week"* that this file exists for is invisible to it if it is written with double
+ * quotes, or lives one directory down. ⚡ That is the same undercount the docblock above already records
+ * arriving inside this instrument — **fixed the first time by widening the enumeration by one spelling**,
+ * which is what left the other two open.
+ *
+ * The condition is *"this file imports the stripper"*. A non-comment line with `from '<anything>stripCode'`
+ * IS that condition, at any depth and in any quote style. ⚠️ Comment lines are excluded deliberately: this
+ * file's own docblock quotes the import path, and so does `run-gates.ts`.
+ */
+export function importsStripper(src: string): boolean {
+  return src.split(/\r?\n/).some((line) => {
+    const t = line.trim();
+    if (t.startsWith('*') || t.startsWith('//') || t.startsWith('/*')) return false;
+    return /\bfrom\s*['"`][^'"`]*stripCode(\.ts)?['"`]/.test(t);
+  });
+}
+
+/** Every `.ts` under `scripts/`, at any depth. `readdirSync` alone stopped at the top level. */
+function walkTs(dir: string, prefix = ''): string[] {
+  const out: string[] = [];
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const rel = prefix ? `${prefix}/${e.name}` : e.name;
+    // ⚠️ A deny-list with a reason, not an allow-list of directories: forgetting to exclude a build dir
+    // shows up as an extra file someone deletes, where forgetting to INCLUDE one is silent.
+    if (e.isDirectory()) {
+      if (e.name !== 'node_modules') out.push(...walkTs(join(dir, e.name), rel));
+    } else if (e.name.endsWith('.ts')) out.push(rel);
+  }
+  return out;
+}
+
+/**
+ * ⛔ **MODULE SCOPE — the detector is asserted before it is trusted.** The synthetic rows are the three
+ * spellings `D4-9` measured as invisible; the real-file rows keep it honest about this tree, and their
+ * existence is asserted so a renamed file cannot turn this into a check of nothing.
+ */
+{
+  const CASES: readonly (readonly [string, boolean, string])[] = [
+    [`import { stripCommentsOnly } from './lib/stripCode';`, true, 'the spelling it already saw'],
+    [`import { stripCommentsOnly } from "./lib/stripCode";`, true, '⛔ D4-9 — double quotes'],
+    [`import { stripCommentsOnly } from './lib/stripCode.ts';`, true, 'the .ts spelling, missed once before'],
+    [`import { x } from '../lib/stripCode';`, true, '⛔ D4-9 — one directory down'],
+    [` * match on \`from './lib/stripCode'\` — closing quote included`, false, "a docblock quoting the path is not an import"],
+    [`// every script importing lib/stripCode carries a scan floor`, false, 'a comment naming the module is not an import'],
+    [`import { y } from './lib/other';`, false, 'an unrelated import'],
+  ];
+  for (const [line, want, why] of CASES) {
+    if (importsStripper(line) !== want) {
+      console.error(`\n❌ scan floors — its own importsStripper() is wrong: ${why}\n   ${JSON.stringify(line)} → ${importsStripper(line)}, expected ${want}\n`);
+      process.exit(1);
+    }
+  }
+}
+
+const consumers = walkTs(SCRIPTS)
+  .filter((f) => f !== 'check-scan-floors.ts')
+  .filter((f) => importsStripper(readFileSync(join(SCRIPTS, f), 'utf8')));
+
+// ⚠️ The detector must still see the tree it was built for. A refactor that quietly stops matching
+// everything would otherwise report "0 strip-using gates" and exit 0 — GAP-8 one level up.
+{
+  const MUST_SEE = ['check-apostrophes.ts', 'check-trust-claims.ts', 'test-strip-code.ts'];
+  for (const f of MUST_SEE) {
+    if (!consumers.includes(f)) {
+      console.error(`\n❌ scan floors — \`${f}\` imports the stripper and the detector no longer sees it.\n   ⛔ [D4-9] A detector that finds nothing reports every gate floored.\n`);
+      process.exit(1);
+    }
+  }
+}
 
 for (const file of consumers) {
   const src = readFileSync(join(SCRIPTS, file), 'utf8');
   if (EXEMPT[file]) continue;
   const hasCount = src.includes('scanned(SCAN_GATE,') || src.includes('scanLines(SCAN_GATE,');
   const hasAssert = src.includes('assertScanFloor(SCAN_GATE)');
-  const keyMatch = /const SCAN_GATE = '([^']+)'/.exec(src);
+  // ⚠️ Any quote style, for the same reason `importsStripper` does — this line had the identical
+  // single-quote assumption D4-9 found next to it.
+  const keyMatch = /const SCAN_GATE = ['"`]([^'"`]+)['"`]/.exec(src);
   if (!hasCount || !hasAssert || !keyMatch) {
     problems.push(
       `${file} strips its input but does not floor it` +
@@ -90,7 +164,7 @@ for (const file of Object.keys(EXEMPT)) {
 // Stale ledger entries — a floor for a gate that no longer declares it.
 const declared = new Set(
   consumers
-    .map((f) => /const SCAN_GATE = '([^']+)'/.exec(readFileSync(join(SCRIPTS, f), 'utf8'))?.[1])
+    .map((f) => /const SCAN_GATE = ['"`]([^'"`]+)['"`]/.exec(readFileSync(join(SCRIPTS, f), 'utf8'))?.[1])
     .filter(Boolean) as string[],
 );
 for (const key of Object.keys(ledger)) {

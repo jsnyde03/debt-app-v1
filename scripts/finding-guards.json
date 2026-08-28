@@ -338,6 +338,11 @@
     "file": "scripts/check-trust-claims.ts",
     "token": "['packages/core/debt/testDebtProjection.ts', true]"
   },
+  "S1P4-D4-9-STRIPCONSUMERS": {
+    "what": "pass-4 D4-9 - lint:scan-floors, the gate written to close 'the eighth gate somebody writes next week', could not see one. Its detector was readdirSync(SCRIPTS) - NOT recursive - filtered on /from '\\.\\/lib\\/stripCode(\\.ts)?'/ - single quotes and ./lib/ exactly. A new strip-using gate written with double quotes, or living in scripts/lib/, was invisible, so it could ship reporting green while reading zero lines (GAP-8). ⛔ The docblock directly above already recorded the PREVIOUS version of this line missing check-trust-claims.ts over the .ts spelling and named it 'the undercount class arriving inside the instrument written to close it' - and it was fixed by widening the enumeration by one spelling, which is what left the other two open. Now matches the CONDITION (a non-comment line with from '<anything>stripCode') at any depth and any quote style, with comment lines excluded because this file's own docblock and run-gates.ts both quote the path. The SCAN_GATE reader carried the identical single-quote assumption two lines down and was widened with it. ⛔ TOKEN PINS THE CALL, NOT THE FUNCTION: reverting only the consumers= line leaves importsStripper defined and its self-check green, which is tested-helper-is-not-a-used-helper. 2x2: NEW detector + an unfloored 8th gate in BOTH missed spellings -> RED naming both files; OLD detector + the same two files -> GREEN",
+    "file": "scripts/check-scan-floors.ts",
+    "token": ".filter((f) => importsStripper(readFileSync(join(SCRIPTS, f), 'utf8')));"
+  },
   "S1P2-B1-SELFCHECK": {
     "what": "pass-2 B-1's un-plantable seventh - the routing check reads a predicate in surface-coverage.ts rather than a file, so no scenario can hand it a defect; the first self-check asserted the PREDICATE and stayed green with `if (false && ...)` planted at the call site, which is tested-helper-is-not-a-used-helper written into the fix for it",
     "file": "scripts/surface-coverage.ts",
