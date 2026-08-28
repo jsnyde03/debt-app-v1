@@ -99,12 +99,13 @@ whole-list losses through `isWholeRowLoss` — **two producers of one fact, in t
 
 | # | sub-step | exit line |
 |---|---|---|
-| **S1.11.4.1** | ⭐ **THE LIVENESS PREDICATE — `F-B4` (blocker), and with it the `G-1`/`G-2`/`G-3` recurrence.** A three-member class *(field loss · whole row · whole list)* with one member enumerated: the LOUDEST loss reads `debt-free` while the quietest reads `debt-free-unverified` | one assertion that **iterates all three members**; the two standing controls must not move *(a `recovered` balance stays `debt-free`; an unread `apr` still grades the calibration)*; and it is tested **after an acknowledgement** as well as before |
+| ✅ **S1.11.4.1** | **`F-B4` CLOSED — the predicate saw one member of a three-member class.** `hasUnreadDebtBalances` now asks the same question `poisons()` does, and `guardianTrust.test.ts` **iterates** *field loss · whole row · whole list* plus the empty-list shape. ⚡ **Both plants measured**: the defect reds, and the laziest repair *(`!mayClaim('debt-balances')`, which drags in `originalBalance`)* went **green until a control was added for it**. The after-ack behaviour is measured and PINNED → `S1.11.4.8` | CLOSED |
 | **S1.11.4.2** | **THE MOUNT POINTS — `C4-9` (blocker: the mixed portfolio) · `C4-7` (blocker: the Today card `D3-2` was raised about) · the `PARTIAL`s `D3-2` `C-4`** | every surface that states the claim in ONE list, and the assertion walks the list |
 | **S1.11.4.3** | **THE RESTORE DOORS — `C4-11` (there are four; `C-7`/`C-7b` fixed two) + `C-7b` PARTIAL** | the doors are enumerated once and the test walks that enumeration |
 | **S1.11.4.4** | **THE OFFER/CAPTION PAIRS — `C4-5` (the one-pot case) + `C-6` PARTIAL** | the caption fires at every arity of the list, not only the two-pot one |
 | **S1.11.4.5** | **TWO PRODUCERS — `A-F4` (`A1` aligned their FORM, not their PHASE) + `F-B3` (`describeLosses` pools two producers)** | the producers are asserted to **agree on one shared fixture**, never each against itself |
 | **S1.11.4.6** | **THE SECOND SITE — `A-F5` (fixed at both APR paths, guarded at one) + `G-6` PARTIAL** | both sites guarded by an assertion that iterates the paths |
+| **S1.11.4.8** | ⚠️ **[DECISION] — an acknowledgement over a WHOLE-LIST debt loss re-arms the debt-free framing.** A loss with nothing to re-type is answerable only by the ack, so one *"Got it"* drops the record and *"every balance is cleared"* returns over a portfolio the app never read. **Measured and pinned** in `guardianTrust.test.ts`; both directions are defensible and it is Jason's call, not mine | the answer is recorded, or the pin stands with the reason |
 | **S1.11.4.7** | **THE NET** — `typecheck` · `lint:rn` · the unit suites · the e2e specs whose surface changed · commit + push | green, pushed, plan + log atomic |
 
 **Exit (S1.11.4):** every one of the 13 closed by an assertion over its CLASS, each plant-verified in both

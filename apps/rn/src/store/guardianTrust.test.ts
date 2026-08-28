@@ -7,7 +7,7 @@ import {
   selectReserveRelease,
   selectTightTopUp,
 } from '@/store/guardianSelectors';
-import { debtLiveness, mayClaim } from '@/store/trustSelectors';
+import { clearResuppliedRepairs, debtLiveness, mayClaim } from '@/store/trustSelectors';
 
 /**
  * ⛔ **S1.10.6.9 [`G-1`…`G-5`] — THE GUARDIAN NEVER GOT PASS-1 BLOCKER `B1`'s REMEDY.**
@@ -157,6 +157,32 @@ function run() {
     debtLiveness(base({ debts: [visaLost], repairs: [lost('debt', 'd0', 'Visa', 'originalBalance')] })),
     'debt-free',
     '⭐ owner over-fix control — an unread originalBalance is not a liveness question and must not suppress',
+  );
+
+  /**
+   * ⛔ **AFTER THE ACKNOWLEDGEMENT — the half `F-B4` flagged and declined to rate, measured here rather
+   * than left as a question.**
+   *
+   * A whole-row loss is `!answerableByEdit` — there is no screen to open and no number to re-type — so
+   * `clearResuppliedRepairs` keeps it only while it is unacknowledged, and one *"Got it"* drops the
+   * record. ⚡ **Measured: the suppression ends with it**, and the app returns to the debt-free framing
+   * over a portfolio it never read.
+   *
+   * ⚠️ **This is pinned, not endorsed.** Both directions are defensible — a loss with nothing to reopen
+   * has to be answerable somehow, and a permanent unverified state is its own trap — but the current
+   * behaviour means the *"every balance is cleared"* class of sentence re-arms after one tap. Filed as a
+   * `[DECISION]` on the plan rather than decided here; this assertion exists so the answer cannot change
+   * silently while it waits.
+   */
+  const wholeListLoss = DEBT_LOSSES[2].repair;
+  const beforeAck = base({ debts: [], repairs: [wholeListLoss] });
+  const afterAck = { ...beforeAck, pendingDataRepairs: [{ ...wholeListLoss, acknowledged: true }] };
+  const acked = clearResuppliedRepairs(beforeAck, afterAck);
+  eq(acked.pendingDataRepairs.length, 0, '⚠️ ack — a whole-list loss has nothing to re-type, so the ack is what clears it');
+  eq(
+    debtLiveness(acked),
+    'debt-free',
+    '⚠️ ack — and the suppression goes with it: the debt-free framing returns over a list nobody read. PINNED, pending [DECISION]',
   );
 
   // ── G-1 · the calibration scorecard ───────────────────────────────────────────────────────────
