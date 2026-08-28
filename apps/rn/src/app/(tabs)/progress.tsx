@@ -25,13 +25,21 @@ import { selectJourneyTotals } from '@/store/journeySelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { selectOnPlanStreakLabel } from '@/store/planSelectors';
 import { effectivePaycheckBuffer } from '@/store/selectors';
-import { hasUnreadDebtBalances } from '@/store/trustSelectors';
+import { hasUnreadDebtBalances, mayClaim } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
 import { layout, spacing } from '@/theme/spacing';
 import { eyebrow, textStyles } from '@/theme/typography';
 import { decorative, groupLabel } from '@/utils/a11y';
+
+/**
+ * ⛔ **[pass-4 `C4-9`] THE HONEST SENTENCE, IN THE SCREEN'S OWN WORDS.** The same line this file's
+ * unreadable-portfolio empty state already uses, so a user meets one wording rather than two — and it
+ * SAYS the state rather than merely withholding the figure, which is `B1`'s lesson: a true statement
+ * withheld gets replaced by a false one.
+ */
+const UNREAD_JOURNEY_LINE = 'Some balances couldn’t be read';
 
 const RING_SIZE = 112;
 
@@ -232,7 +240,32 @@ export default function ProgressScreen() {
   // (always-current) balances so the hero reconciles with the rows"*). ⚠️ A first cut passed `engineStore`
   // for both, which would have made "% paid" FALL as interest accrued while the user did nothing. Free is
   // unaffected either way: `withProjectedBalances` returns the store untouched.
-  const { pct, line: journeyLine } = selectJourneyTotals(store.debts, engineStore.debts);
+  /**
+   * ⛔ **S1.11.4.2 [pass-4 `C4-9`] — THE GUARD WAS ON THE EMPTY-STATE BRANCH AND THE CLAIM IS DOWN HERE.**
+   *
+   * ⚡ `hasUnreadDebtBalances` is asked at the top of this file, inside `if (!view.hasDebts)`. One live
+   * debt beside one unread one makes `hasDebts` true, so that whole block — the *"Some balances couldn't
+   * be read"* state included — is never entered, and control reaches this line with **no trust check of
+   * any kind**. Measured on one store with one variable: the ring read **78%** against a true **11%**,
+   * the journey line said **"$14,000 of $18,000 paid"** against a true **$2,000**, and the date moved
+   * four months earlier — the app crediting a card the user still owes in full to their own repayment,
+   * while the Home-Screen widget on that same store refused to say anything at all.
+   *
+   * ⛔ **The four are suppressed TOGETHER** — `snapshot.ts`'s rule, *"repairing one figure and leaving the
+   * others is the same false statement without the word"*: the percentage, the journey line, the
+   * debt-free date, and the chart's saved-interest headline.
+   *
+   * ⚠️ **`mayClaim`, not `hasUnreadDebtBalances`.** The narrow selector is the Guardian's liveness
+   * question and `celebrationSelectors.ts` records why the second consumer needs it narrow; the question
+   * HERE is *"may this screen state a balance figure"*, which is what the claim owner answers.
+   * ⚠️ And this is deliberately NOT the trophy-shelf question (`C4-2`) — different claim, same screen; a
+   * store-wide gag would take out a genuinely-earned trophy, which this file has already done once.
+   */
+  const mayStateBalances = mayClaim(store, 'debt-balances');
+  const journey = selectJourneyTotals(store.debts, engineStore.debts);
+  const pct = mayStateBalances ? journey.pct : 0;
+  const journeyLine = mayStateBalances ? journey.line : UNREAD_JOURNEY_LINE;
+  const heroDate = mayStateBalances ? (view.debtFreeDate ?? '—') : '—';
   const surf = c.surface;
 
   // Milestone states for the on-ring nodes: passed (green) · next (gold glow, the pull-forward) ·
@@ -247,7 +280,8 @@ export default function ProgressScreen() {
   // center %), and the nodes already GLOW to mark next/passed/Free. So the ring stays clean and the next
   // checkpoint reads as a caption in the meta column (which has room). Suppressed past 75%, where the
   // next milestone IS Free and the DEBT-FREE date already says it.
-  const nextMilestoneLabel = nextT && nextT < 100 ? `Next milestone: ${nextT}%` : null;
+  // ⛔ [C4-9] A milestone caption is a claim about progress, so it goes with the rest of them.
+  const nextMilestoneLabel = mayStateBalances && nextT && nextT < 100 ? `Next milestone: ${nextT}%` : null;
 
   // 3.7.B.3 (F10.3) — the free on-plan streak. Read from the RAW store: the streak is a fact about what
   // the user did in past cycles, so the projected-balance wrapper has no bearing on it.
@@ -256,10 +290,10 @@ export default function ProgressScreen() {
   // One collapsed screen-reader utterance for the ring (which is otherwise a decorative canvas).
   const reached = MILE_TS.filter((t) => pct >= t && t < 100).map((t) => `${t}%`);
   const ringA11y = groupLabel(
-    `${pct}% paid`,
+    mayStateBalances ? `${pct}% paid` : 'percentage paid unavailable — some balances could not be read',
     reached.length ? `${reached.join(', ')} reached` : 'no milestones reached yet',
     nextT ? `next milestone ${nextT === 100 ? 'debt-free' : `${nextT}%`}` : 'all milestones reached',
-    view.debtFreeDate ? `debt-free projected ${view.debtFreeDate}` : undefined,
+    mayStateBalances && view.debtFreeDate ? `debt-free projected ${view.debtFreeDate}` : undefined,
   );
 
   return (
@@ -291,13 +325,18 @@ export default function ProgressScreen() {
               style={[StyleSheet.absoluteFill, styles.ringCenter]}
               pointerEvents="none"
               {...decorative}>
-              <CountUp value={pct} format={(n) => `${Math.round(n)}%`} maxFontSizeMultiplier={1.4} style={[styles.ringPct, { color: surf.heroText }]} />
+              {mayStateBalances ? (
+                <CountUp value={pct} format={(n) => `${Math.round(n)}%`} maxFontSizeMultiplier={1.4} style={[styles.ringPct, { color: surf.heroText }]} />
+              ) : (
+                // ⛔ [C4-9] An indeterminate ring, not a 0% one: "0% paid" is as false as "78% paid".
+                <Text maxFontSizeMultiplier={1.4} style={[styles.ringPct, { color: surf.heroText }]}>—</Text>
+              )}
               <Text style={[textStyles.caption, { color: surf.heroSub }]}>paid</Text>
             </View>
           </View>
           <View style={styles.ringMeta}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]}>DEBT-FREE</Text>
-            <Text testID="progress-hero-date" {...heroDateFit} style={[styles.heroDate, { color: surf.heroText }]}>{view.debtFreeDate ?? '—'}</Text>
+            <Text testID="progress-hero-date" {...heroDateFit} style={[styles.heroDate, { color: surf.heroText }]}>{heroDate}</Text>
             {/* ⚠️ [P6.8.9.7.11.12.10] The branch, both figures and the wording live together in
                 `selectJourneyTotals` — this line exists to be READ, and a testID so a spec can name it
                 rather than matching a dollar amount that appears elsewhere on the screen. */}
@@ -335,8 +374,11 @@ export default function ProgressScreen() {
         lean={view.lean}
         band={view.band}
         strategy={strategy}
-        debtFreeDate={view.debtFreeDate}
-        interestSaved={view.interestSaved}
+        // ⛔ [C4-9] The chart's own headline reads the same ungated figures, so it is suppressed with the
+        // rest — `{ kind: 'none' }` is the union's own no-claim member, which the chart already renders
+        // as no delta suffix at all, rather than a prop-type change reaching into the component.
+        debtFreeDate={mayStateBalances ? view.debtFreeDate : null}
+        interestSaved={mayStateBalances ? view.interestSaved : { kind: 'none' }}
         startDate={store.paycheck.currentDate}
         whatIf={whatIf}
         extra={extra}

@@ -168,3 +168,56 @@ test('Progress does not hand out a trophy for balances it could not read', async
     'nor is it an empty one — the user has debts, the app just cannot read them',
   ).toHaveCount(0);
 });
+
+
+/**
+ * ⛔ **S1.11.4.2 [pass-4 `C4-9`] — THE MIXED PORTFOLIO, WHICH IS THE ORDINARY CASE AND WAS NEVER RUN.**
+ *
+ * ⚡ The test above seeds **both** debts unreadable, and that is the one member of the class which reaches
+ * the `!hasDebts` branch the `B1` fix put its guard in. One live card beside one unread card makes
+ * `hasDebts` true, control falls past the guard entirely, and the screen states figures derived from a
+ * balance repaired to `0`: measured at **78% paid · "$14,000 of $18,000 paid" · debt-free October 2026**,
+ * against a true **11% · $2,000 · February 2027** — the app crediting a card still owed in full to the
+ * user's own repayment, while the Home-Screen widget refused to say anything on the same store.
+ *
+ * ⚠️ **The four figures are asserted together**, because suppressing one and leaving the others is the
+ * same false statement without the word.
+ */
+test('C4-9 · one unread balance beside a live one suppresses every figure derived from it', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      genuineCycleCount: 6,
+      debts: [
+        { id: 'd1', name: 'Chase card', balance: '', originalBalance: 12000, minimumPayment: 200, apr: 20, dueDate: day(3), type: 'debt', recurrence: 'monthly' },
+        { id: 'd2', name: 'Amex', balance: 4000, originalBalance: 6000, minimumPayment: 120, apr: 18, dueDate: day(5), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/progress');
+
+  // The positive assertion first — a page that has not rendered satisfies every `toHaveCount(0)` below.
+  await expect(page.getByTestId('progress-hero-journey')).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByTestId('progress-hero-journey'),
+    'the journey line names the honest state instead of a figure built on a repaired zero',
+  ).toContainText('Some balances couldn’t be read');
+  await expect(
+    page.getByTestId('progress-hero-date'),
+    'and the debt-free date goes with it — a date computed from that balance is the same claim',
+  ).toHaveText('—');
+  await expect(
+    page.getByText(/\d+% *$/),
+    'the ring reads indeterminate rather than a confident percentage',
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(/Next milestone/),
+    'a milestone caption is a claim about progress too',
+  ).toHaveCount(0);
+  // ⚠️ **And the screen is still the PAYOFF screen**, not the unreadable-portfolio empty state: this user
+  // has a live card and a real projection, so degrading the whole screen would withhold what the app DID
+  // read — the failure mode `B1`'s own first fix shipped. `progress-hero-date` renders only on the payoff
+  // branch, and the empty state's CTA must be absent.
+  await expect(page.getByText('Go to Today')).toHaveCount(0);
+});
+
