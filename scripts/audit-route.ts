@@ -24,7 +24,7 @@
  * computing the same number differently. The parse is checked against the inventory's own stated totals,
  * so a format drift reds rather than silently routing a short list.
  *
- * ## The three origins, and why the split is the point
+ * ## The four origins, and why the split is the point
  *
  * ⚡ **Report the round split by ORIGIN or a flat total hides both halves moving.** Across the two fixing
  * sessions ELEVEN defects went into the instruments themselves while the app's own defect count fell;
@@ -180,10 +180,18 @@ interface Lane {
 }
 
 const LANES: Lane[] = [
+  /**
+   * ⛔ **A HOLDS THE ENGINE AND THE SPECS THAT GUARD IT, IN ONE HEAD — deliberately, and it is also what
+   * balances the load.** Pass 3 put the e2e tree in the instrument lane, where its auditor had the gates
+   * in front of them and not the arithmetic. But pass 2's `A1` — *every test written for `AS-3` used
+   * `topUp 200` against `shortfall 400`, the single input shape where blanket-zero and netting agree
+   * exactly* — is only visible to a reader who knows what the engine does with the other shapes.
+   * ⚡ *"Which member of its class did this test pick?"* is an engine question wearing a test's clothes.
+   */
   {
     id: 'A',
-    what: 'The money engine — where a wrong number is computed',
-    match: (f, o) => o !== 'instrument' && f.startsWith('packages/core/'),
+    what: 'The money engine, and the specs that claim to guard it',
+    match: (f, o) => o !== 'instrument' && (f.startsWith('packages/core/') || f.startsWith('apps/rn/tests/')),
   },
   {
     id: 'B',
@@ -206,7 +214,7 @@ const LANES: Lane[] = [
   },
   {
     id: 'D',
-    what: 'The instruments and the edges — the checking code the fixing itself wrote',
+    what: 'The instruments — the checking code the fixing itself wrote, plus the config no surface owns',
     match: () => true,
   },
 ];
