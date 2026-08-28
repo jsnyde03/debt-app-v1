@@ -40,8 +40,8 @@
 
 ### ⏭ WHAT THE NEXT SESSION PICKS UP
 
-✅ **`S1.11.1` and `S1.11.2` are CLOSED.** Pass 4 is recorded *(29 of 34 count, **all eight blockers**)* and **all seven instruments are repaired**, each proven by a 2×2 against the pre-fix code. ⛔ **The measurement problem this round exists for is now closed at the source:** the plant harness can no longer print a green tick beside `reason=WRONG`, and it runs in a linked worktree.
-▶ **`S1.11.3` — PROVE THE GUARD LEDGER.** The **8 entries measured dead** and the **35 in lanes A/B/C that nobody has ever tested**. ⚠️ Two more stale tokens surfaced while fixing the instruments, so the base rate on the untested 35 is not zero.
+✅ **`S1.11.1`, `S1.11.2` and `S1.11.3` are CLOSED.** Pass 4 recorded *(29 of 34 count, **all eight blockers**)*; all seven instruments repaired; and the guard ledger now carries **evidence rather than tokens** — 40 entries with executed proofs, ⛔ **119 still resting on a token alone.**
+▶ **`S1.11.4` — CLASS 1, the 13 partial-fix members.** ⛔ **One assertion per class that ITERATES the class**, never one that names a member: fixing these one id at a time is what produced this round. Decomposed below.
 
 ⛔ **A finding's MECHANISM is a hypothesis; its site list is a floor.** Measured repeatedly here — in one cluster **4 of 4** stated mechanisms were wrong while all four observations stood, and **three of the proposed fixes would not have closed the defect.** Verify what a finding says to DO against the current code before writing anything.
 
@@ -83,28 +83,33 @@ reds FOR THE PLANTED REASON** → **plant the naive over-fix** → register the 
 |---|---|---|
 | ✅ **S1.11.1** | **RECORDED & CLASSIFIED 2026-08-28** — `s1p4` registered in `SWEPT_CLAIMS`, claims written back to **both** files *(the route spans two surfaces)*. Coverage **S1 125→63 · S0 62→50** unswept, both gates green. ⚠️ **The route is 217, not the 216 this doc carried** — manifests and `ROUTING-ORIGINS.tsv` agree, 0 disjoint. ⛔ Coverage **not** credited by route membership: 130 evidenced-swept vs **87 named not-reached**, and three matching errors were caught by reading the matches. ⚡ **[D69]: 29 of 34 COUNT and all EIGHT blockers count** *(pass 3 was 9 of 20)*. [`CLASSIFICATION.md`](audits/2026-08-28-s1-money-pass4/CLASSIFICATION.md) | CLOSED |
 | ✅ **S1.11.2** | **THE INSTRUMENTS ARE REPAIRED — 7 of 7, 2026-08-28.** `D4-6` `C4-10` `D4-3` `D4-9` `D4-5` `D4-8` `D4-2`, each proven by a **2×2 against the pre-fix code**, not by an exit code. Registry **151 → 159**, and two stale tokens re-pointed. ⛔ **Two self-inflicted defects caught in my own fix work** — a check placed after its own `process.exit(1)`, and a plant script that left a file planted. Detail → log | CLOSED |
-| **S1.11.3** | ⭐ **PROVE THE GUARD LEDGER.** The **8 proven-dead** entries, plus the **35 in lanes A/B/C that nobody has ever tested**. ⛔ `lint:finding-guards` must stop reporting a token's existence as a closure | every entry either **proven to red** or marked `GUARD-ONLY` with a measurement; every prior `CLOSED` resting on a dead guard **re-rated** |
+| ✅ **S1.11.3** | **THE GUARD LEDGER IS EVIDENCE NOW — CLOSED 2026-08-28.** `npm run prove:guards` executes a finding's own defect and requires the named command to red **for the named reason**; `lint:finding-guards` separates *carries a proof* · *guard-only* · *never tested*, the last two downward-only. **All 8 proven-dead guards repaired · all 32 never-tested lane-A/B/C entries proven · 40 in all.** Three new instruments fell out of it, and ⛔ **119 entries still rest on a token alone** — printed every run. [`LEDGER-RESOLUTION.md`](audits/2026-08-28-s1-money-pass4/LEDGER-RESOLUTION.md) · detail → log | CLOSED |
 | **S1.11.4** | **CLASS 1 — the 13 partial-fix members.** `F-B4` `C4-9` `C4-7` `A-F4` `C4-11` `C4-5` `A-F5` `F-B3` + the `PARTIAL`s `C-4` `C-6` `C-7b` `D3-2` `G-6` | ⛔ **one assertion per class that ITERATES the class**, never one that names a member |
 | **S1.11.5** | **CLASS 2/3/5 — the rest.** `A-F3` *(blocker: `windowStartISO` accepted and never read — $1,200 against a true $300)* · `C4-1` · `C4-2` *(blocker: a debt owed in full filed as "$12,000 paid off" and offered for sharing)* · `A-F1` `A-F2` `F-B1` `C4-3` `C4-6` `C4-4` `F-B2` `D4-1` `D4-10` `D4-4` `D4-7` · the 7 minors | each carries **two plants** — the defect, and the laziest plausible repair |
 | **S1.11.6** | ⛔ **RE-ROUTE FOR PASS 5.** `audit-route.ts` must emit **the CONSUMERS of every changed producer**, not only changed files, and must emit **S0**. Fold the memory protocol in permanently *(heap 1536 MB · an OOM is a finding, never a retry)* | the route reproduces `A-F4`'s unrouted producer and C's two unrouted money screens as **routed** |
 | ✅ **S1.11.7** | **[DECISION] S0's convergence stands — [D76], 2026-08-28.** ⚠️ `D4-7` said 49; the measured number is **62** *(`lint:s0-coverage`: 109 classified · 62 unswept)*. ⛔ The gate printing them on the **green** path is deliberate and documented — **nearly filed as a defect and it is not one**; what is real is that `audit-route.ts` can never route them | CLOSED — the routing half moves to `S1.11.6` |
 | **S1.11.8** | **THE NET** — full e2e + embed, read from each suite's own summary line, commit, push. ⛔ **No `gate:record`** — [D74] writes it at convergence and pass 4 did not converge | green and pushed; the hand-off names the last full pass |
 
-##### S1.11.3's sub-steps — the ledger, PROVEN
+##### S1.11.4's sub-steps — CLASS 1, grouped by the class rather than by the id
 
-⛔ **Verified at switch-in: the scope is 40 entries, not 43** — three of the eight proven-dead
-(`S1P3-B6` `S1P3-M7` `S1P3-B3-MTIME`) sit *inside* the 35. ⚠️ **And 106 entries outside `S1P3-*` have never
-been proven by anyone either** *(39 `S1P1` · 22 `S1P2` · 21 `GAP` · 5 `REVERIFY4` · the rest)* — the
-mechanism records them as a **draining ledger**, never as silence.
+⛔ **Verified at switch-in against the current code, not read off the report.** `hasUnreadDebtBalances`
+still matches `r.field === 'balance'` exactly while `poisons()` handles the parenthesised whole-row and
+whole-list losses through `isWholeRowLoss` — **two producers of one fact, in the same file**, which is
+`F-B4` exactly as measured.
 
 | # | sub-step | exit line |
 |---|---|---|
-| ✅ **S1.11.3.1** | **THE PROOF HARNESS — `npm run prove:guards`.** Plants a finding's own defect, requires the named command to red **for the named reason**, restores, asserts the bytes, and runs the control AFTER the restore so one run carries both claims. `verdict()` extracted to `scripts/lib/verdict.ts` — **one producer**, `D4-6`'s lesson. `--selftest` is its hermetic 2×2 and is in `lint:rn`. Detail → log | CLOSED |
-| ✅ **S1.11.3.2** | ⛔ **A TOKEN IS NO LONGER A CLOSURE.** Three states: a re-runnable `proof`, a written `guardOnly`, or the never-tested backlog — the last two on downward-only caps, so a closure arriving without a proof reds **when it is written**. A proof whose anchor no longer matches its file **exactly once** is VOID, not green, and `test:gate-plants` plants that (23 scenarios) | CLOSED |
-| ✅ **S1.11.3.3** | **ALL EIGHT PROVEN-DEAD GUARDS REPAIRED AND PROVEN.** Two needed a new gate — `lint:cap-literals` refuses a ratchet computed from the list it caps (`check-trust-claims` shipped two, both `n > n`) — one needed `lint:gate-sources` to assert the scripts compiler's REACH, one a `@ts-expect-error`, one an ORDERED rule in `lint:destructive`, and `B3` split in two. ⚡ **A same-file two-edit plant clobbered itself and reported a live guard `failed-open`** — my own harness, found by planting. Detail → log | CLOSED |
-| ✅ **S1.11.3.4** | **ALL 32 NEVER-TESTED ENTRIES NOW CARRY EXECUTED PROOFS** — including the 8 whose guard is a Playwright spec *(~3m40s each; the harness now refuses to run one while anything is listening on the e2e port, because the config would reuse it and serve the pre-plant bundle)*. ⚡ `m6` had to be **extracted** from a React Native component to be testable at all — nothing in the tree asserted any of its four strings. ⚠️ **Five entries' proof reds an EARLIER assertion than their token names**, recorded per entry: the token proves the assertion exists, the proof proves the defect is caught | CLOSED |
-| ✅ **S1.11.3.5** | **THE RECORD NOW DISTINGUISHES PROVEN FROM PRESENT.** 40 entries carry a re-runnable proof · 0 guard-only · **119 still rest on a token alone**, printed every run and capped downward-only. Pass 4's own report gets [`LEDGER-RESOLUTION.md`](audits/2026-08-28-s1-money-pass4/LEDGER-RESOLUTION.md) so *"the ledger cannot be cashed"* is not read for three more rounds as if it still stood | CLOSED |
-| **S1.11.3.6** | **THE NET for the sub-step** — `typecheck` · `lint:rn` · the unit suites · commit | green and pushed; plan + log written in the same edit |
+| **S1.11.4.1** | ⭐ **THE LIVENESS PREDICATE — `F-B4` (blocker), and with it the `G-1`/`G-2`/`G-3` recurrence.** A three-member class *(field loss · whole row · whole list)* with one member enumerated: the LOUDEST loss reads `debt-free` while the quietest reads `debt-free-unverified` | one assertion that **iterates all three members**; the two standing controls must not move *(a `recovered` balance stays `debt-free`; an unread `apr` still grades the calibration)*; and it is tested **after an acknowledgement** as well as before |
+| **S1.11.4.2** | **THE MOUNT POINTS — `C4-9` (blocker: the mixed portfolio) · `C4-7` (blocker: the Today card `D3-2` was raised about) · the `PARTIAL`s `D3-2` `C-4`** | every surface that states the claim in ONE list, and the assertion walks the list |
+| **S1.11.4.3** | **THE RESTORE DOORS — `C4-11` (there are four; `C-7`/`C-7b` fixed two) + `C-7b` PARTIAL** | the doors are enumerated once and the test walks that enumeration |
+| **S1.11.4.4** | **THE OFFER/CAPTION PAIRS — `C4-5` (the one-pot case) + `C-6` PARTIAL** | the caption fires at every arity of the list, not only the two-pot one |
+| **S1.11.4.5** | **TWO PRODUCERS — `A-F4` (`A1` aligned their FORM, not their PHASE) + `F-B3` (`describeLosses` pools two producers)** | the producers are asserted to **agree on one shared fixture**, never each against itself |
+| **S1.11.4.6** | **THE SECOND SITE — `A-F5` (fixed at both APR paths, guarded at one) + `G-6` PARTIAL** | both sites guarded by an assertion that iterates the paths |
+| **S1.11.4.7** | **THE NET** — `typecheck` · `lint:rn` · the unit suites · the e2e specs whose surface changed · commit + push | green, pushed, plan + log atomic |
+
+**Exit (S1.11.4):** every one of the 13 closed by an assertion over its CLASS, each plant-verified in both
+directions and **registered with a `proof` block** — the ledger built at `S1.11.3` is now the standard for
+what "closed" means here.
 
 **Exit (S1.11):** 0 blockers / 0 majors on pass 4's findings, every guard in the registry **proven to red on
 its own defect**, and the route regenerated so pass 5 reads the surface pass 4 could not see. ⛔ **Pass 4
