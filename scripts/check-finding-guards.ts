@@ -139,7 +139,7 @@ const MAX_UNGUARDED = 1;
  * un-fix is cheap to derive. ⚠️ **Raising either to make a run pass is the defect this pair exists to
  * catch** — and it is the same move as raising `MAX_UNGUARDED`.
  */
-const MAX_UNPROVEN = 157;
+const MAX_UNPROVEN = 153;
 const MAX_GUARD_ONLY = 0;
 
 /**

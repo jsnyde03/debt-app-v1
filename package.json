@@ -38,6 +38,7 @@
   "lint:surface-complete": "tsx scripts/surface-coverage.ts --completeness",
     "test:gate-plants": "tsx scripts/test-gate-plants.ts",
     "lint:finding-guards": "tsx scripts/check-finding-guards.ts",
+    "lint:cap-literals": "tsx scripts/check-cap-literals.ts",
     "prove:guards": "tsx scripts/prove-guards.ts",
     "prove:guards:selftest": "tsx scripts/prove-guards.ts --selftest",
     "lint:gate-sources": "tsx scripts/check-gate-sources.ts",

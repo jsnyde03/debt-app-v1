@@ -41,5 +41,11 @@
     "measured": "2026-08-27",
     "measuredCount": 67021,
     "why": "Measured 2026-08-27 at S1.10.6.5.8.4 by blanking both exports of lib/stripCode.ts: this gate reported ✅ and exited 0 while reading nothing. Floor is 95% of the measured count — see the note in the ledger header for why a margin and not the exact figure."
+  },
+  "cap-literals": {
+    "floor": 6475,
+    "measured": "2026-08-28",
+    "measuredCount": 6816,
+    "why": "Measured 2026-08-28 at S1.11.3.3 on the gate first run: 6816 non-blank lines of scripts/**/*.ts after stripping comments. Floor is 95% of it - see the ledger header for why a margin and not the exact figure. This gate also carries MIN_CAPS, which reds at 0 caps; the floor is what catches PARTIAL blinding, which a cap count cannot."
   }
 }

@@ -84,6 +84,10 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // nothing the check reads is called `failed-open` — because an instrument in no chain is unexecuted
     // ([M5]), which is how `test:gate-plants` itself sat unrun while fifteen gates were reporting green.
     'prove:guards:selftest',
+    // ⛔ S1.11.3.3 [pass-4 D4-4] — check-trust-claims shipped two caps computed as `Object.keys(X).length`,
+    // so both downward-only ratchets were `n > n`. Nothing could see it: the tokens were present, the gate
+    // was green, and no plant existed for a cap. This refuses the class across every script.
+    'lint:cap-literals',
     'lint:a11y-collapse',
     'lint:contrast',
     'lint:type-scale',

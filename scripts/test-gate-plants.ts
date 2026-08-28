@@ -200,6 +200,20 @@ const B1_SCENARIOS: Scenario[] = [
     why: 'reverting `lead` to plain containment lets a renamed identifier keep satisfying its old token',
   },
   /**
+   * ⛔ **S1.11.3.3 [pass-4 `D4-4`] — A CAP DERIVED FROM ITS OWN POPULATION.** `check-trust-claims.ts`
+   * shipped two of these and both "downward-only ratchets" were `n > n`. ⚠️ The planted file is
+   * **untracked**, which is why the gate walks the directory rather than the index — an index-derived
+   * population would report ✅ over a file it never read.
+   */
+  {
+    gate: 'lint:cap-literals',
+    script: 'check-cap-literals.ts',
+    at: 'scripts/__gate_plant_cap__.ts',
+    body: 'const OPEN: Record<string, string> = { a: "b" };\nexport const MAX_OPEN = Object.keys(OPEN).length;\n',
+    expect: 'not a literal',
+    why: 'a ratchet whose bound is computed from the list it caps can never be exceeded',
+  },
+  /**
    * ⛔ **S1.11.3.2 — A RECORDED PROOF THAT NO LONGER DESCRIBES THE FILE.** `prove:guards` measures the
    * plant; nothing re-measures it afterwards, so a proof decays exactly the way a documented gate result
    * does — `remembered-gate-result-is-unrun`, with a JSON wrapper. ⚡ The one half a static gate CAN
@@ -467,7 +481,7 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 22;
+const MIN_SCENARIOS = 23;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 

@@ -23,6 +23,8 @@
  * uses. An entry here that matches nothing tracked is a hole with a comment in front of it.
  */
 import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { REPO_ROOT, sourceFiles } from './gateSources';
 
@@ -110,6 +112,37 @@ for (const e of EXCUSED) {
         '      or the exemption will silently cover a future file that genuinely needs review.',
     );
   }
+}
+
+// ── Direction 3: the scripts compiler's REACH ─────────────────────────────────────────────────────
+/**
+ * ⛔ **S1.11.3.3 [pass-3 `G-6`'s naive over-fix] — `npm run typecheck` CAN ALSO BE MADE GREEN BY
+ * NARROWING WHAT IT COMPILES.**
+ *
+ * ⚡ `G-6` was 18 × `TS2307` from a gate importing app source into a program with no aliases. The fix was
+ * the aliases. **The over-fix is an `exclude`** — drop the offending gate out of the program and the
+ * errors go with it, buying the green by leaving that gate's own imports unchecked. That is the hole
+ * `[P6.8.7a-1]` closed when it found `scripts/**` had no compiler behind it at all.
+ *
+ * ⛔ **A typecheck-based plant structurally CANNOT catch this**, because the over-fix makes typecheck
+ * PASS — measured by auditor D: `paths` deleted **plus** an `exclude` for the importing gate →
+ * `tsc` **exit 0, 0 errors**, with both registered tokens present and `lint:finding-guards` green.
+ * `S1P3-G6-SCRIPTSTYPES` pins the aliases; this is the surface they apply to.
+ *
+ * ⚠️ **Asserted on the literal text, deliberately.** This config is JSONC — it opens with a 16-line
+ * comment — so parsing it needs a stripper, and a stripper is exactly the layer whose silent failure
+ * `GAP-8` and `GAP-9` are about. The two lines are stable and any edit to them is a deliberate act.
+ */
+const SCRIPTS_REACH = '"include": ["**/*.ts"],\n  "exclude": ["node_modules"]\n}';
+const scriptsTsconfig = readFileSync(join(REPO_ROOT, 'scripts/tsconfig.json'), 'utf8').replace(/\r\n/g, '\n');
+if (!scriptsTsconfig.includes(SCRIPTS_REACH)) {
+  problems.push(
+    'scripts/tsconfig.json no longer ends with the exact reach it is recorded as having:\n' +
+      `      ${JSON.stringify(SCRIPTS_REACH)}\n` +
+      '      Narrowing `include`, or excluding anything beyond node_modules, drops scripts out of the\n' +
+      '      program — which is how `npm run typecheck` goes green by compiling less rather than by\n' +
+      '      being right. If the change is deliberate, say so here and re-measure the reach.',
+  );
 }
 
 if (problems.length > 0) {
