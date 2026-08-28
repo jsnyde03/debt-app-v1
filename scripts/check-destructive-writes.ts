@@ -174,5 +174,58 @@ if (drift.length > 0) {
   process.exit(1);
 }
 
+/**
+ * ⛔ **S1.11.3.3 [pass-3 `m7`] — THE ORDER OF A DESTRUCTIVE FLOW IS PART OF ITS CORRECTNESS, AND ORDER IS
+ * WHAT NO TOKEN CAN PIN.**
+ *
+ * ⚡ `clearQuarantinedData()` — erasing a FULL copy of the portfolio — ran fire-and-forget **after**
+ * `reset()` and after the screen had popped, so a failure had no surface left to admit itself on, under a
+ * confirm that promises everything *"will be permanently erased"*. The fix moved it before, and the
+ * registered guard was the token `await clearQuarantinedData();`. ⛔ **That token is equally present with
+ * the call moved back below the reset** — auditor D's finding: the registry claims it guards the ORDERING,
+ * and a substring on a line cannot.
+ *
+ * ⚠️ **Why static and why here.** The blocked branch is unreachable off-device — the web adapter's
+ * `clearQuarantine` swallows every error by construction — so no e2e can enter it, and the screen cannot
+ * be loaded by the node runner. What CAN be checked is the sequence, which is the thing that regressed.
+ * It lives in this gate because this gate already owns *"the most destructive operation in the app"*.
+ *
+ * ⚠️ **One site, and it is named rather than pattern-matched.** A general rule ("no destructive call
+ * before its guards") cannot be written statically without a model of what guards what; pretending
+ * otherwise would be the enumerated-predicate class this repo keeps paying for. If a second flow earns
+ * the same rule, it gets its own row.
+ */
+const ORDERED: { file: string; before: string; after: string; why: string }[] = [
+  {
+    file: 'apps/rn/src/app/more.tsx',
+    before: 'await clearQuarantinedData();',
+    after: 'appStore.getState().reset();',
+    why: "pass-3 m7 — the quarantined blob is a full copy of the portfolio, and erasing it after the reset (and after the screen pops) leaves a failure with no surface to admit itself on",
+  },
+];
+
+for (const rule of ORDERED) {
+  const text = readFileSync(join(REPO_ROOT, rule.file), 'utf8');
+  const b = text.indexOf(rule.before);
+  const a = text.indexOf(rule.after);
+  if (b === -1 || a === -1) {
+    console.error(
+      `\n❌ destructive order: ${rule.file} no longer contains ${b === -1 ? JSON.stringify(rule.before) : JSON.stringify(rule.after)}.\n` +
+        '   The rule cannot be checked, which is not the same as being satisfied — re-point it or delete it.\n',
+    );
+    process.exit(1);
+  }
+  if (b > a) {
+    console.error(
+      `\n❌ destructive order: in ${rule.file}, ${JSON.stringify(rule.before)} now runs AFTER ` +
+        `${JSON.stringify(rule.after)}.\n   ${rule.why}\n`,
+    );
+    process.exit(1);
+  }
+}
+
 const total = Object.values(ALLOWED).reduce((n, { sites }) => n + sites, 0);
-console.log(`✅ wholesale overwrite: ${total}/${total} \`importStore\` sites sanctioned across ${Object.keys(ALLOWED).length} files, none unaccounted for.`);
+console.log(
+  `✅ wholesale overwrite: ${total}/${total} \`importStore\` sites sanctioned across ${Object.keys(ALLOWED).length} files, ` +
+    `none unaccounted for; ${ORDERED.length} destructive-order rule(s) hold.`,
+);

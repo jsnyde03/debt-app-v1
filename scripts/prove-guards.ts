@@ -169,7 +169,7 @@ if (has('list')) {
  * so the control is simultaneously [D63]'s *"this command is not red unconditionally"* and the restore
  * verification a plant loop structurally omits.
  */
-function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Failure[]; plantedStatus: number } {
+function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Failure[]; plantedStatus: number; plantedOut: string } {
   const p = e.proof as Proof;
   if (!p.run && !p.cmd) fault(id, 'the proof names neither an npm script (`run`) nor an argv (`cmd`)');
 
@@ -181,16 +181,45 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
     if (dirty) fault(id, `${u.at} is already modified (${dirty}); commit or revert it first`);
   }
 
-  const originals = p.unfix.map((u) => readFileSync(join(REPO_ROOT, u.at), 'utf8'));
+  /**
+   * ⛔ **EDITS ACCUMULATE PER FILE, and the first cut did not — found by planting, exactly like every
+   * other defect in these instruments.** `S1P3-M7`'s proof moves one statement below another: two edits,
+   * one file. Each was computed from the file's ORIGINAL text and written in turn, so the second write
+   * simply erased the first, the awaited call stayed where it was, and the gate — correctly — reported
+   * green. ⚠️ **The verdict that produced was `failed-open`**: a real guard, reported dead, by a harness
+   * bug that reads as a finding. That is the safe-looking direction, and it is why the self-test below
+   * carries a same-file case.
+   *
+   * ⚠️ Each anchor must still match the PRISTINE file exactly once — `lint:finding-guards`'s VOID check
+   * reads the file on disk, so a proof whose second edit is only anchorable after the first would be
+   * unverifiable statically. Counting here against the accumulated text keeps the two consistent and
+   * turns an edit that destroys another's anchor into a loud 0×.
+   */
+  const originals = new Map<string, string>();
+  for (const u of p.unfix) {
+    if (!originals.has(u.at)) originals.set(u.at, readFileSync(join(REPO_ROOT, u.at), 'utf8'));
+  }
+  const restore = (): void => {
+    for (const [rel, text] of originals) writeFileSync(join(REPO_ROOT, rel), text, 'utf8');
+  };
+
   let planted = true;
   let withPlant: { status: number; out: string };
   try {
-    p.unfix.forEach((u, i) => {
-      const { next, count } = planEdit(originals[i], u);
+    const working = new Map(originals);
+    for (const u of p.unfix) {
+      const { next, count } = planEdit(working.get(u.at) as string, u);
       if (count !== 1) {
+        // ⚠️ Named rather than guessed at: this tree is checked out with CRLF, so a multi-line anchor
+        // written with bare `\n` matches nothing and reads as "the code moved" when nothing moved.
+        const crlf =
+          count === 0 && u.find.includes('\n') && (originals.get(u.at) as string).includes('\r\n')
+            ? '   ⚠️ this anchor spans lines and the file is CRLF — the newlines in `find` must be `\\r\\n`.\n'
+            : '';
         fault(
           id,
           `the anchor matches ${count}× in ${u.at}: ${JSON.stringify(u.find)}\n` +
+            crlf +
             `   ⛔ this proof is VOID, not failing — ${
               count === 0
                 ? 'the code moved out from under a recorded measurement'
@@ -199,27 +228,30 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
             '   Re-derive the un-fix against the current file, then re-run.',
         );
       }
-      if (next === originals[i]) fault(id, `the un-fix for ${u.at} changes nothing — its replace equals its find`);
-      writeFileSync(join(REPO_ROOT, u.at), next, 'utf8');
-      planted = planted && readFileSync(join(REPO_ROOT, u.at), 'utf8') !== originals[i];
-    });
+      if (next === working.get(u.at)) fault(id, `the un-fix for ${u.at} changes nothing — its replace equals its find`);
+      working.set(u.at, next);
+    }
+    for (const [rel, text] of working) writeFileSync(join(REPO_ROOT, rel), text, 'utf8');
+    for (const [rel, text] of originals) {
+      if (readFileSync(join(REPO_ROOT, rel), 'utf8') === text) planted = false;
+    }
     withPlant = run(p);
   } finally {
-    p.unfix.forEach((u, i) => writeFileSync(join(REPO_ROOT, u.at), originals[i], 'utf8'));
+    restore();
   }
 
   // ⛔ THE RESTORE IS ASSERTED ON THE BYTES, and then again by git — an in-memory compare cannot see a
   // command that wrote to the file itself.
-  p.unfix.forEach((u, i) => {
-    if (readFileSync(join(REPO_ROOT, u.at), 'utf8') !== originals[i]) {
-      fault(id, `${u.at} was NOT restored. The original is not on disk — recover it before doing anything else.`);
+  for (const [rel, text] of originals) {
+    if (readFileSync(join(REPO_ROOT, rel), 'utf8') !== text) {
+      fault(id, `${rel} was NOT restored. The original is not on disk — recover it before doing anything else.`);
     }
-    const dirty = gitStatus(u.at);
-    if (dirty) fault(id, `${u.at} is dirty after the restore: ${dirty}`);
-  });
+    const dirty = gitStatus(rel);
+    if (dirty) fault(id, `${rel} is dirty after the restore: ${dirty}`);
+  }
 
   const withoutPlant = run(p);
-  return { ...verdict(id, p.expect, planted, withPlant, withoutPlant), plantedStatus: withPlant.status };
+  return { ...verdict(id, p.expect, planted, withPlant, withoutPlant), plantedStatus: withPlant.status, plantedOut: withPlant.out };
 }
 
 /**
@@ -260,6 +292,27 @@ function selfTest(): never {
         },
       },
       want: ['failed-open'],
+    },
+    /**
+     * ⛔ **TWO EDITS, ONE FILE — the case that shipped broken.** Each un-fix used to be computed from the
+     * file's original text, so the second write erased the first and the plant was half-applied. ⚠️ It
+     * failed in the safe-looking direction: `S1P3-M7`'s real, working guard came back **`failed-open`**.
+     * Under that bug this row's second edit restores the marker and the probe goes green.
+     */
+    {
+      id: 'selftest:two edits, one file',
+      e: {
+        what: 'edits accumulate; the second does not overwrite the first',
+        proof: {
+          unfix: [
+            { at, find: "MARKER = 'the guard holds'", replace: "MARKER = 'the guard is gone'" },
+            { at, find: 'this line is not what the probe reads', replace: 'nor is this one' },
+          ],
+          cmd: probe,
+          expect: 'PROBE: the guard is gone',
+        },
+      },
+      want: [],
     },
   ];
 
@@ -321,6 +374,11 @@ for (const id of selected) {
     // which is `D4-6` in miniature.
     if (v.failed.includes('wrong-reason') && v.plantedStatus !== 0) {
       console.log(`       ⛔ it redded, but not for ${JSON.stringify(p.expect)} — the red is not attributable to this defect.`);
+      // ⚠️ The red it DID produce is printed, because the usual cause is an earlier assertion firing
+      // first and hiding the one being measured — and a verdict with no output to read sends you
+      // hand-reproducing the plant to find that out (`plant-that-reds-early-hides-assertions`).
+      const tail = v.plantedOut.split('\n').map((l) => l.trimEnd()).filter(Boolean).slice(-6);
+      for (const l of tail) console.log(`         │ ${l.slice(0, 160)}`);
     }
     if (v.failed.includes('control-red')) {
       console.log('       ⛔ the control redded too, so this run measured nothing: the command is red with or without the plant.');

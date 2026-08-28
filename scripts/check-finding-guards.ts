@@ -122,7 +122,7 @@ const ids = Object.keys(registry);
  * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
-const MIN_ENTRIES = 159;
+const MIN_ENTRIES = 160;
 const MAX_UNGUARDED = 1;
 
 /**
@@ -139,7 +139,7 @@ const MAX_UNGUARDED = 1;
  * un-fix is cheap to derive. ⚠️ **Raising either to make a run pass is the defect this pair exists to
  * catch** — and it is the same move as raising `MAX_UNGUARDED`.
  */
-const MAX_UNPROVEN = 153;
+const MAX_UNPROVEN = 150;
 const MAX_GUARD_ONLY = 0;
 
 /**

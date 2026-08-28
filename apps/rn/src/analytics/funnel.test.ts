@@ -18,6 +18,24 @@ import { stripCommentsOnly } from '../../../../scripts/lib/stripCode';
  * at every call site individually.
  */
 
+/**
+ * ⛔ **S1.11.3.3 [pass-3 `B6`] — THE CLAIM IS ENFORCED BY A TYPE, SO ITS GUARD HAS TO BE A TYPE ERROR.**
+ *
+ * ⚡ `B6` closed by narrowing `demo_stage`'s `stage` from `string` to `DemoStageId`, and the registered
+ * guard was the token `stage: DemoStageId` in `funnel.ts`. Auditor D measured that dead in one edit:
+ * **widen `DemoStageId` itself to `string`** — a different file — and the defect is back verbatim while
+ * the token, `tsc` and `lint:finding-guards` are all green. A narrowing is only as narrow as the name it
+ * points at.
+ *
+ * ⚠️ **`@ts-expect-error` is the assertion, and it fails in the direction that matters:** if the union
+ * stops refusing a free-form stage, the error this line expects never happens and the directive itself
+ * becomes `TS2578`. ⛔ The `beat: number` half of `B6` is NOT guarded here and is not meant to be — it is
+ * a step index, argued in `funnel.ts`'s header as the one number the privacy claim permits.
+ */
+// @ts-expect-error 'not-a-real-stage' is the B6 defect: DemoStageId must stay a closed union of literals
+const B6_STAGE_STAYS_CLOSED: FunnelEvent = { name: 'demo_stage', stage: 'not-a-real-stage' };
+void B6_STAGE_STAYS_CLOSED;
+
 let passed = 0;
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(`❌ ${msg}`);

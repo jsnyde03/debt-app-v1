@@ -632,9 +632,20 @@
     "token": "ZERO writes: the other device’s copy is still in the container"
   },
   "S1P3-B3-MTIME": {
-    "what": "pass-3 B3's second half — new Date(undefined|NaN).toISOString() THROWS while new Date(null|0) silently becomes 1970-01-01, which inspectRemote then compares as a real file identity; both directions were unhandled. ⛔ The finding's own remedy (`return null`) would have been the clobber: inspectRemote reads null as `none`, which the guard PERMITS. metadataFromMtime throws instead, which becomes `unknown` and is refused — and the rule lives in the pure provider module because the iOS provider imports a TurboModule no runner can load, which is why it had neither owner nor test. Both the throw and the none-vs-unknown direction are plant-verified",
+    "what": "pass-3 B3's second half — new Date(undefined|NaN).toISOString() THROWS while new Date(null|0) silently becomes 1970-01-01, which inspectRemote then compares as a real file identity; both directions were unhandled. ⛔ The finding's own remedy (`return null`) would have been the clobber: inspectRemote reads null as `none`, which the guard PERMITS. metadataFromMtime throws instead, which becomes `unknown` and is refused — and the rule lives in the pure provider module because the iOS provider imports a TurboModule no runner can load, which is why it had neither owner nor test. Both the throw and the none-vs-unknown direction are plant-verified | S1.11.3.3 - RE-POINTED, and the reason is a measurement rather than a preference. Auditor D found this token pinned one of the finding's two directions; the throw direction is now S1P3-B3-MTIME-THROW. Measuring THIS one showed the registered assertion (`never none (which is permitted)`, the mtime-specific provider at the end of the block) is never the first to fire: un-fix inspectRemote's catch to return `none` and the run reds at `a throwing stat is contained as unknown`; relax THAT and it reds at `a guarded backup over an UNKNOWN remote does not succeed`, still two assertions before the registered one. Both are the same direction, so the token now names the assertion that actually reds. ⚠️ The final assertion is kept - it ties the mtime rule to the service-level outcome - but it is corroboration, not the guard, and saying so is the whole point of this sub-step.",
     "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
-    "token": "a file with no usable mtime is `unknown`"
+    "token": "a throwing stat is contained as `unknown`",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/cloudBackup/service.ts",
+          "find": "    reportError(error, { seam: 'cloud-backup', op: 'inspect' });\n    return { state: 'unknown' };",
+          "replace": "    reportError(error, { seam: 'cloud-backup', op: 'inspect' });\n    return { state: 'none' };"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a throwing stat is contained as `unknown`"
+    }
   },
   "S1P3-B4-ADAPTER": {
     "what": "pass-3 B4 — createAdapter.web.ts wrapped getItem AND JSON.parse in one catch{return null}, so a truncated write read as 'nothing is stored': persistence.ts ran the v1.6 legacy import over a device that already had a v1.7 store and the first autosave overwrote the last copy. NEITHER adapter had a unit test and no store test parses a blob (MemoryStorageAdapter has no parse step); the one corrupt-bytes e2e seeds JSON.stringify('this is not a store'), which is VALID JSON and the single member of the class both adapters agreed on. This is the first unit test either adapter has had",
@@ -824,9 +835,20 @@
     "token": "stripCommentsOnly(readFileSync(p, 'utf8')).includes('setFunnelSink')"
   },
   "S1P3-B6": {
-    "what": "pass-3 B6 — CLOSED S1.10.6.7.2. `funnel.ts`'s header claims `no free-form string, and no number anywhere in this file's types` BY CONSTRUCTION, and two of its eight events contradicted it: `demo_stage; stage: string` and `tutorial_skipped; beat: number`. Swept the union independently and confirmed EXACTLY those two — the enumeration is complete. ⛔ It matters because this docblock is the stated review surface for a privacy claim: P6.9 reads exactly this, so deferring it would have left the privacy audit reading a false sentence — which is why it was fixed here rather than routed. ⚡ THE FINDING'S PROPOSED NARROWING WOULD HAVE NARROWED NOTHING: `stage: (typeof DEMO_STAGES)[number]['id']` resolves straight back to `string`, because `DEMO_STAGES` is annotated `DemoStage[]` and `DemoStage.id` was `string`. The union had to be declared on the id itself (`DemoStageId`), imported type-only so the seam gains no runtime dependency. `beat` is a genuine step INDEX and cannot be narrowed, so the claim was corrected to state what is actually true rather than deleted",
+    "what": "pass-3 B6 — CLOSED S1.10.6.7.2. `funnel.ts`'s header claims `no free-form string, and no number anywhere in this file's types` BY CONSTRUCTION, and two of its eight events contradicted it: `demo_stage; stage: string` and `tutorial_skipped; beat: number`. Swept the union independently and confirmed EXACTLY those two — the enumeration is complete. ⛔ It matters because this docblock is the stated review surface for a privacy claim: P6.9 reads exactly this, so deferring it would have left the privacy audit reading a false sentence — which is why it was fixed here rather than routed. ⚡ THE FINDING'S PROPOSED NARROWING WOULD HAVE NARROWED NOTHING: `stage: (typeof DEMO_STAGES)[number]['id']` resolves straight back to `string`, because `DEMO_STAGES` is annotated `DemoStage[]` and `DemoStage.id` was `string`. The union had to be declared on the id itself (`DemoStageId`), imported type-only so the seam gains no runtime dependency. `beat` is a genuine step INDEX and cannot be narrowed, so the claim was corrected to state what is actually true rather than deleted | S1.11.3.3: auditor D measured the token dead - widening DemoStageId to string in demoRun.ts restores the defect verbatim with funnel.ts untouched, so check-finding-guards and tsc were both exit 0. funnel.test.ts now carries a @ts-expect-error on a free-form stage, which becomes TS2578 the moment the union stops refusing one. The beat: number half is deliberately not guarded - it is a step index, argued in funnel.ts's header.",
     "file": "apps/rn/src/analytics/funnel.ts",
-    "token": "stage: DemoStageId"
+    "token": "stage: DemoStageId",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/demoRun.ts",
+          "find": "export type DemoStageId = 'debts' | 'held' | 'absorbed' | 'trajectory' | 'payoff';",
+          "replace": "export type DemoStageId = string;"
+        }
+      ],
+      "run": "typecheck:rn",
+      "expect": "2578"
+    }
   },
   "S1P3-M4": {
     "what": "pass-3 m4 — CLOSED S1.10.6.7.3. `WhatIfControls` sanitised typed money with `[^0-9]`, which deletes the SEPARATOR and keeps the digits: `'12.50'` → `1250`, `'0.75'` → `75` — a hundredfold overstatement feeding a payoff projection, on a field whose `keyboardType='numeric'` offers a decimal key. It was the ONLY digits-only strip in the app. ⚡ THE FIX HAD A SECOND HALF THE FINDING DID NOT NAME: the input rendered `String(Number(extra) || 0)`, so `'12.'` round-tripped back to `'12'` and the decimal key could never be used AT ALL — the sanitiser alone changes nothing, because the character it preserves was being erased one line later. Display now shows the raw sanitised string, and the slider writes `''` rather than `'0'` so the placeholder still appears at the floor. ⭐ The rule moved to `packages/core/utils/amountField.ts` beside the parsers, so the next money input finds an owner instead of re-deriving one — which is how the same defect reached six files elsewhere. Plant-verified: restoring `[^0-9]` reds `sanitize \"12.50\"`",
@@ -834,9 +856,25 @@
     "token": "assert(Number(sanitizeAmountInput('12.50')) === 12.5,"
   },
   "S1P3-M7": {
-    "what": "pass-3 m7 — CLOSED S1.10.6.7.3. `clearQuarantinedData()` ran fire-and-forget AFTER `reset()` and after the screen had popped, so a failure had no surface left to admit itself on — while the confirm copy promises without qualification that everything 'will be permanently erased'. The quarantined blob is a FULL copy of the portfolio; that nothing reads it does not make it not the user's financial data. Now awaited BEFORE anything is destroyed, the same doctrine this file already states for the iCloud copy. ⛔ REUSING THE EXISTING BLOCKED STATE WOULD HAVE BEEN WRONG TWICE: its copy says iCloud could not be reached, which is false for a local fault, and the escape it offers — 'delete on this device only' — re-runs the step that just failed. So the reason is distinct and the escape is 'Delete the rest anyway', which proceeds knowingly; a user is never held hostage by a blob nothing reads. ⚠ THE BLOCKED BRANCH IS UNREACHABLE OFF-DEVICE and that is stated rather than papered over: the web adapter's clearQuarantine swallows every error by construction, so no e2e can enter it; it needs an MMKV fault on iOS. Filed as a P6.14 device row. The guard here is the ORDERING — the awaited call before the reset — which is what regresses if someone restores fire-and-forget",
+    "what": "pass-3 m7 — CLOSED S1.10.6.7.3. `clearQuarantinedData()` ran fire-and-forget AFTER `reset()` and after the screen had popped, so a failure had no surface left to admit itself on — while the confirm copy promises without qualification that everything 'will be permanently erased'. The quarantined blob is a FULL copy of the portfolio; that nothing reads it does not make it not the user's financial data. Now awaited BEFORE anything is destroyed, the same doctrine this file already states for the iCloud copy. ⛔ REUSING THE EXISTING BLOCKED STATE WOULD HAVE BEEN WRONG TWICE: its copy says iCloud could not be reached, which is false for a local fault, and the escape it offers — 'delete on this device only' — re-runs the step that just failed. So the reason is distinct and the escape is 'Delete the rest anyway', which proceeds knowingly; a user is never held hostage by a blob nothing reads. ⚠ THE BLOCKED BRANCH IS UNREACHABLE OFF-DEVICE and that is stated rather than papered over: the web adapter's clearQuarantine swallows every error by construction, so no e2e can enter it; it needs an MMKV fault on iOS. Filed as a P6.14 device row. The guard here is the ORDERING — the awaited call before the reset — which is what regresses if someone restores fire-and-forget | S1.11.3.3: auditor D measured the token dead - the ORDERING is what regresses and a substring on a line is present either way. lint:destructive now carries an ORDERED rule for this one named site, checked both directions: the awaited call moved below the reset reds with 'now runs AFTER', and the call disappearing entirely reds with 'no longer contains' (a rule that cannot be checked is not a rule that is satisfied). Static because the blocked branch is unreachable off-device - the web adapter swallows every error by construction - and the screen cannot be loaded by the node runner.",
     "file": "apps/rn/src/app/more.tsx",
-    "token": "await clearQuarantinedData();"
+    "token": "await clearQuarantinedData();",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/more.tsx",
+          "find": "      try {\r\n        await clearQuarantinedData();\r\n      } catch (error: unknown) {",
+          "replace": "      try {\r\n        await Promise.resolve();\r\n      } catch (error: unknown) {"
+        },
+        {
+          "at": "apps/rn/src/app/more.tsx",
+          "find": "    InteractionManager.runAfterInteractions(() => {\r\n      appStore.getState().reset();\r\n    });",
+          "replace": "    InteractionManager.runAfterInteractions(() => {\r\n      appStore.getState().reset();\r\n    });\r\n    await clearQuarantinedData();"
+        }
+      ],
+      "run": "lint:destructive",
+      "expect": "now runs AFTER"
+    }
   },
   "S1P3-M2": {
     "what": "pass-3 m2 — CLOSED S1.10.6.7.4. The payoff legend rounded months into years with Math.round, so \"30 months saved\" was stated as \"3 YEARS\" against a true 2.5 — half a year of payoff the plan does not deliver, on the line a user reads to decide whether the extra payment is worth making. ⛔ This figure is a BENEFIT CLAIM and may not round in its own favour: flooring understates by up to eleven months, which is the safe direction for a claim about someone else's money. ⚡ formatMonths was EXTRACTED to trajectoryDomain.ts for the same reason endPillWidth was — a .tsx component is unreachable from the node runner, so the instrument had to change before the claim could be pinned. Guarded by the exact rows Math.round overstated PLUS the property behind them: for every month 24..200 the stated years never exceed the true figure. Plant-verified: restoring Math.round reds 'expected \"2 years\", got \"3 years\"'",
@@ -847,5 +885,21 @@
     "what": "pass-3 m6 — CLOSED S1.10.6.7.4. `whereText` branched on `first.isPaidOff && second`, so when the extra clears the first debt and there is NO second, the branch was skipped and the fall-through said \"Goes straight to your Chase\" about money that in fact PAYS CHASE OFF — the strongest thing the simulator can tell someone, described as if it merely made a dent. No number was wrong; the better sentence was simply unavailable to the previous shape. ⚠ GUARDED BY TOKEN, NOT BY A TEST, and the reason is written rather than omitted: `whereText` is an unexported helper inside a .tsx component taking a WhatIfResult, and extracting a module to pin a one-line copy branch is out of proportion to a minor inside a code freeze. The token is the branch itself, which is what disappears if the fall-through is restored",
     "file": "apps/rn/src/components/payoff/WhatIfControls.tsx",
     "token": "if (first.isPaidOff) return `Pays off your ${first.debtName}`;"
+  },
+  "S1P3-B3-MTIME-THROW": {
+    "what": "pass-3 B3's first direction, split out at S1.11.3.3 because one token cannot pin two. metadataFromMtime refuses every unusable mtimeMs by THROWING; null and 0 are the members nobody pictured - they do not throw from new Date(), they become 1970-01-01, and inspectRemote then compares that epoch stamp as a real file identity. The loop asserts all seven members, with a control on a real mtime so the row is falsifiable.",
+    "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
+    "token": "throws rather than inventing a file identity",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/cloudBackup/provider.ts",
+          "find": "!Number.isFinite(mtimeMs) || mtimeMs <= 0",
+          "replace": "!Number.isFinite(mtimeMs) || mtimeMs < 0"
+        }
+      ],
+      "run": "test:app",
+      "expect": "an unusable mtimeMs (0) throws"
+    }
   }
 }
