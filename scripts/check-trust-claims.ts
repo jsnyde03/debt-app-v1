@@ -271,12 +271,45 @@ const ASKS_GUARD = /\b(mayClaim|rowFieldUnread|anyRowFieldUnread|describeRepair|
 }
 
 const unguarded: string[] = [];
+/** ⛔ [C4-4] Every file the ledger CONSIDERED, guarded or not — the population, which was never counted. */
+const population: string[] = [];
 for (const rel of files) {
   if (isTest(rel) || rel === TRUST_MODULE) continue;
   const src = read.get(rel) ?? '';
   if (!PRINTS_MONEY.test(src) || !READS_ENTITIES.test(src)) continue;
+  population.push(rel);
   if (ASKS_GUARD.test(src)) continue;
   unguarded.push(rel);
+}
+
+/**
+ * ⛔ **S1.11.5.3 [pass-4 `C4-4`] — THE LEDGER COUNTED ITS EXCEPTIONS AND NEVER ITS POPULATION.**
+ *
+ * ⭐ **`C4-4`'s NAMED defect is already closed, and it was re-measured rather than read.** It reported the
+ * escape as `src.includes('trustSelectors')` — *"a file escapes by IMPORTING the guard, not by asking
+ * it"* — and `D4-8` had since replaced that with `ASKS_GUARD`, a call regex carrying its own module-scope
+ * self-check. Re-ran the finding's plant 3 verbatim *(a new money surface using the sanctioned
+ * `formatWhole`, importing `mayClaim` and never calling it)*: **the gate REDS**, naming the file.
+ *
+ * ⛔ **What measurement found instead is one level down, and it is this cluster's own class.** Neuter
+ * `PRINTS_MONEY` — one identifier — and the population collapses to **zero**: no file is considered, no row
+ * is unguarded, and the gate prints *"0 claim sites open"* over a tree it never looked at.
+ * ⚠️ **Today that is caught only by COINCIDENCE**: `EXEMPT` holds one row, and the stale-row check reds
+ * because that row stops qualifying. `MAX_EXEMPT` is downward-only and this file's own docblock argues
+ * toward emptying both ledgers — **so the accident that saves it is the thing the gate is trying to
+ * remove.** Measured both ways: neutered → `population 0`, reds; intact → 7, green.
+ *
+ * ⚠️ A floor, not an exact count — the number moves with every money screen added or removed, and an exact
+ * figure would red permanently and train people to raise it without reading. What it catches is the
+ * failure being guarded: total blinding takes it to ~0.
+ */
+const MIN_POPULATION = 6; // measured 2026-08-29: 7 files, the same 7 this file's own docblock records.
+if (population.length < MIN_POPULATION) {
+  failures.push(
+    `[population] the ledger considered ${population.length} file(s) and the floor is ${MIN_POPULATION}. ` +
+      'Either the money surface really shrank — lower the floor in the same edit, and say why — or ' +
+      'PRINTS_MONEY / READS_ENTITIES stopped matching and this gate is reporting an empty tree as a clean one.',
+  );
 }
 
 for (const rel of unguarded) {
@@ -324,7 +357,27 @@ if (Object.keys(OPEN).length > MAX_OPEN) {
  * this check buys is that the number is now on a screen instead of nowhere — when this class was last
  * counted by hand, the count was **two**, and the file the hand-count named held five.
  */
-const LIVENESS_RE = /\bbalance\s*>\s*0\b/;
+/**
+ * ⛔ **S1.11.5.3 [pass-4 `C4-3`] — THE LEDGER READ ONE SPELLING OF A TWO-SIDED CONDITION.**
+ *
+ * ⚡ This was `balance > 0` alone, so `balance <= 0` — **the spelling `C4-2`'s blocker was written in** —
+ * was invisible to the instrument built to make every re-derivation visible. Auditor C measured it on this
+ * gate's own file list and scope: **14 ledgered sites, 13 unledgered**, across 9 files, **7 of which were
+ * on the ledger at no spelling at all**. `celebrationSelectors.ts` was ledgered at *one* site while holding
+ * *three* liveness tests.
+ *
+ * ⛔ **This file's own docblock argued that a BAN is unsatisfiable and a LEDGER is the answer — and then
+ * built the ledger out of one member of the enumeration it had just warned about.** Reading rule 4
+ * verbatim: *judge the condition the consumer evaluates, never the example the finding cited.* The
+ * condition is *"is this debt live?"*, and `<= 0` asks it exactly as much as `> 0` does.
+ *
+ * ⚠️ **Projection points are NOT excluded mechanically, and that is deliberate.** `TrajectoryChart` and
+ * friends test `p.balance <= 0` on a curve point, which is not repairable and is correctly out of scope —
+ * but a receiver-name heuristic is a second rule to get wrong, and this ledger's contract is already that
+ * *"a row is NOT a verdict of defect; it is `this site re-derives liveness and nobody has measured whether
+ * it matters`"*. So they are rows, with that written into their `why`.
+ */
+const LIVENESS_RE = /\bbalance\s*(?:>=?|<=?|={2,3}|!={1,2})\s*0\b/;
 const livenessCounts = new Map<string, number>();
 for (const rel of files) {
   if (isTest(rel) || rel === TRUST_MODULE || !rel.startsWith('apps/rn/src/')) continue;
@@ -338,25 +391,43 @@ const LIVENESS_OPEN: Record<string, { sites: number; why: string }> = {
   'apps/rn/src/store/balanceSelectors.ts': { sites: 2, why: 'the stale-estimate filters; never mentions the trust module' },
   'apps/rn/src/store/demoRun.ts': { sites: 1, why: 'the demo script; a seeded store carries no repairs, so this is very likely a non-defect — unmeasured' },
   'apps/rn/src/store/drift.ts': { sites: 1, why: '"has a plan" gate; never mentions the trust module' },
-  'apps/rn/src/store/payoffCelebration.ts': { sites: 2, why: 'before/after arrays around a payoff; never mentions the trust module' },
+  'apps/rn/src/store/payoffCelebration.ts': { sites: 3, why: 'before/after arrays around a payoff; never mentions the trust module. ⛔ Ledgered at 2 and holding 3 until `C4-3` widened the condition — the third is `now.balance <= 0`, the CROSSING test itself, and the render is gated by `selectCelebration` (pass-2 `C3`)' },
+  // ── ⛔ Surfaced by `C4-3`'s widening. Every row below was re-derived all along and invisible. ──
+  'apps/rn/src/store/guardianSelectors.ts': { sites: 1, why: '`d.balance <= 0 || !isInstallmentNative(d)` — a SKIP in the BNPL installment walk, not a claim. A repaired-to-0 balance is skipped as already-clear; whether that under-reserves is unmeasured' },
+  'apps/rn/src/store/payday.ts': { sites: 1, why: '`balance === 0 && !prior` — a snapshot suppressor for a debt that was already at zero, on the RAW value. Unmeasured against a repaired 0' },
+  'apps/rn/src/store/recoverySelectors.ts': { sites: 1, why: '`d.balance <= 0` — a SKIP in the catch-up plan walk. Same shape as `guardianSelectors` above and equally unmeasured' },
+  // ⚠️ PROJECTION POINTS, not store debts — `p.balance` on a computed curve, which is not repairable and is
+  // correctly out of scope. Ledgered rather than excluded by a receiver-name heuristic: a second rule to get
+  // wrong, over a ledger whose contract already says a row is not a verdict of defect.
+  'apps/rn/src/components/payoff/TrajectoryChart.tsx': { sites: 4, why: 'PROJECTION POINTS (`p.balance <= 0` on a curve) — not repairable, out of scope, ledgered for visibility' },
+  'apps/rn/src/components/payoff/compareStrategies.ts': { sites: 1, why: 'PROJECTION POINT — `points.find((p) => p.balance <= 0)`, the debt-free month off a computed curve' },
+  'apps/rn/src/components/payoff/trajectoryDomain.ts': { sites: 1, why: 'PROJECTION POINT — the same find, one module over' },
   'apps/rn/src/store/payoffSelectors.ts': { sites: 1, why: 'the ranking basis; never mentions the trust module' },
   'apps/rn/src/store/planSelectors.ts': { sites: 2, why: 'asks the module at `selectPlanState`; these two sites are separate and unmeasured' },
   'apps/rn/src/store/sandboxScenarios.ts': { sites: 1, why: 'the tutorial sandbox; a synthetic store carries no repairs — unmeasured' },
   'apps/rn/src/widget/snapshot.ts': { sites: 1, why: 'asks the module at the payload gate (`D3-1`); whether THIS site is covered is unmeasured' },
 };
 /** ⛔ Downward-only, and a LITERAL — check 3's caps were once derived from their own lists and vacuous.
+ *
+ *  ⛔ **12 → 22, S1.11.5.3 [pass-4 `C4-3`], AND THIS IS THE ONE TIME IT GOES UP.** The cap's rule is
+ *  downward-only and it is being raised, so the reason is written here rather than assumed: **the
+ *  INSTRUMENT was widened, not the tree.** `LIVENESS_RE` read `balance > 0` alone and was blind to
+ *  `<= 0` — the spelling `C4-2`'s blocker was written in — so ten of these sites existed all along and
+ *  could not be seen. ⚠️ **No site was added by any commit; every one is a re-derivation this ledger was
+ *  built to show and did not.** From here it is downward-only again, from 22.
+ *
  *  ⭐ 13 → 12, S1.11.4.2 [pass-4 `C4-2`]: `celebrationSelectors.ts` no longer re-derives liveness at all.
  *  Its one ledgered site was the `balance > 0` inside `isLastLiveDebt`, and the row's own `why` said the
  *  coverage was **unmeasured** — measured now, and it was wrong: the helper answered *"clearing Amex makes
  *  you debt-free"* over a $12,000 balance the reader had lost. It asks `mayClaim` instead. ⚠️ The gate
  *  found this itself, on the green path, by noticing the ledger had gone stale. */
-const MAX_LIVENESS_SITES = 12;
+const MAX_LIVENESS_SITES = 22;
 
 for (const [rel, n] of livenessCounts) {
   const row = LIVENESS_OPEN[rel];
   if (!row) {
     failures.push(
-      `[liveness] ${rel} re-derives \`balance > 0\` (${n} site(s)) and is not on the liveness ledger. ` +
+      `[liveness] ${rel} re-derives LIVENESS (${n} site(s): \`balance\` compared against 0) and is not on the ledger. ` +
         `Ask \`trustSelectors.debtLiveness\` / \`liveDebts\`, or add the row with what is known about it.`,
     );
   } else if (row.sites !== n) {
@@ -437,10 +508,12 @@ console.log(
       // asks the guard", which this gate cannot establish: it checks that a money-printing file CALLS
       // the guard somewhere, not that the figure it prints is behind that call. The consumer floors
       // above are what make a lost caller red; this line states the weaker fact it can actually support.
-      `   ⭐ 0 claim sites open — every money-printing file that reads the user's entities calls the guard (per-claim callers floored).`
+      `   ⭐ 0 claim sites open — all ${population.length} money-printing files that read the user's entities call the guard (floor ${MIN_POPULATION}; per-claim callers floored).`
     : `   ⚠️ ${Object.keys(OPEN).length} claim site(s) still UNGUARDED and declared open — ${Object.keys(OPEN).join(', ')}`,
 );
 console.log(
-  `   ⚠️ ${livenessTotal} liveness re-derivation(s) of \`balance > 0\` across ${Object.keys(LIVENESS_OPEN).length} file(s), ` +
+  // ⛔ [C4-3] The line said "of `balance > 0`" — the one spelling — while claiming to count the class.
+  // A success sentence that names a narrower thing than it measured is how the ledger read as complete.
+  `   ⚠️ ${livenessTotal} liveness re-derivation(s) (\`balance\` compared against 0, either direction) across ${Object.keys(LIVENESS_OPEN).length} file(s), ` +
     `cap ${MAX_LIVENESS_SITES} — none measured against a repaired balance yet: ${Object.keys(LIVENESS_OPEN).join(', ')}`,
 );

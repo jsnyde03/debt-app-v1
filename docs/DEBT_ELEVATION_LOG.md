@@ -28368,6 +28368,58 @@ the unconditional danger sentence stands alone. Only the in-flight state holds t
 perfectly correct table sitting one module away. The suite reads the sheet's source and requires the live
 flag at both call sites.
 
+### `C4-3` + `C4-4` — the two ledgers that could not see their own class
+
+#### `C4-3` — the liveness ledger read ONE SPELLING of a two-sided condition
+
+`LIVENESS_RE` was `balance > 0`, so **`balance <= 0` — the spelling `C4-2`'s blocker was written in** — was
+invisible to the instrument built to make every re-derivation visible. ⛔ **This file's own docblock argues
+at length that a BAN is unsatisfiable and a LEDGER is the answer, and then builds the ledger out of one
+member of the enumeration it had just warned about.** Reading rule 4 verbatim: *judge the condition the
+consumer evaluates, never the example the finding cited.*
+
+Widening it to *"`balance` compared against 0, either direction"* surfaced **ten sites across six files
+that had always been there**:
+
+| file | sites | what it is |
+|---|---|---|
+| `guardianSelectors.ts` | 1 | `d.balance <= 0` — a skip in the BNPL installment walk |
+| `payday.ts` | 1 | `balance === 0 && !prior` — a snapshot suppressor, on the RAW value |
+| `recoverySelectors.ts` | 1 | `d.balance <= 0` — a skip in the catch-up plan walk |
+| `payoffCelebration.ts` | 2 → **3** | the crossing test itself, `now.balance <= 0` |
+| `TrajectoryChart` · `compareStrategies` · `trajectoryDomain` | 6 | **projection points**, not store debts |
+
+⚠️ **The projection points are LEDGERED, not excluded by a receiver-name heuristic.** A `p.balance` rule is
+a second rule to get wrong, over a ledger whose contract already says *"a row is not a verdict of defect;
+it is `this site re-derives liveness and nobody has measured whether it matters`"*.
+
+⛔ **`MAX_LIVENESS_SITES` 12 → 22, and this is the one time it goes up.** The reason is written onto the
+cap rather than assumed: **the instrument widened, not the tree.** No commit added a site; every one is a
+re-derivation this ledger was built to show and did not. Downward-only again from 22.
+
+⚠️ And the success line said *"N re-derivations of `balance > 0`"* while claiming to count the class —
+**a sentence naming something narrower than it measured**, which is how the ledger read as complete.
+
+#### `C4-4` — re-measured at switch-in, and the named defect was already closed
+
+The finding reported the escape as `src.includes('trustSelectors')` — *"a file escapes by IMPORTING the
+guard, not by asking it"*. ⭐ **`D4-8` had since replaced that with `ASKS_GUARD`, a call regex with its own
+module-scope self-check.** Re-ran the finding's **plant 3 verbatim** — a new money surface using the
+sanctioned `formatWhole`, importing `mayClaim` and never calling it — and **the gate reds, naming the
+file.** *(Second finding this session whose named half was already closed; the before-scan rule paying for
+itself again.)*
+
+⛔ **What measurement found instead is one level down, and it is this cluster's own class: the ledger
+counted its EXCEPTIONS and never its POPULATION.** Neuter `PRINTS_MONEY` — one identifier — and the
+population collapses to zero: nothing is considered, nothing is unguarded, and the gate prints *"0 claim
+sites open"* over a tree it never looked at.
+
+⚠️ **Today that is caught only by COINCIDENCE.** `EXEMPT` holds one row, and the stale-row check reds
+because that row stops qualifying. `MAX_EXEMPT` is downward-only and this file's docblock argues toward
+emptying both ledgers — **so the accident that saves it is the thing the gate is trying to remove.**
+`MIN_POPULATION` is a floor now *(6, measured at 7 — the same 7 the docblock records)*, and the success
+line states N so the size is visible as well as checked.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be
