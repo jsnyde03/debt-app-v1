@@ -28218,6 +28218,62 @@ the reach by changing *what* is compiled is the defect; narrowing it by changing
 is the same defect through a door nothing was reading. **Direction 4 asserts the pointer**, plant-verified
 both ways.
 
+### `S1.11.4` — the WHOLE-ITEM after-scan, and what only the whole item shows
+
+**Closed:** `F-B4` `C4-9` `C4-7` `C4-2` `C4-5` `C4-1` `C4-11` `A-F4` `A-F5` `F-B3` `D4-10` + the
+`PARTIAL`s `D3-2` `C-4` `C-6` `G-6`, and the `[DECISION]` at `.4.8`. **The net:** `typecheck` (4 projects)
+· `lint:rn` **39 of 39** · all three unit suites · **337 e2e passed** *(325 before this item; the 12 new
+ones are the guards)*.
+
+#### ⛔ SIX OF ELEVEN REMEDIES WOULD NOT HAVE CLOSED THE FINDING, AND FOUR WOULD HAVE INTRODUCED A DEFECT
+
+The round carried *"the ledger is reliable about WHERE and unreliable about WHAT TO DO"*. Measured across
+this item:
+
+| finding | its stated remedy | what it would have done |
+|---|---|---|
+| `C4-2` | *"apply the same exclusion in `money.tsx`"* | **deleted the debt from the screen** — it is in neither list |
+| `C4-11` | *"put `describeRestorePreview` in both alerts"* | correct, but silent on the **overwrite** half, which is the destructive one |
+| `F-B3` | *"drive the clause off `entity`"* + retire the `(`-prefix coupling | **fails OPEN** — a third synthetic loss stops poisoning claims |
+| `C4-5` | *"return a goal-less shape carrying `unreadSavings: true`"* | keeps the caption **inside the offer**, which is the defect |
+| `D4-10` | *"register the property with `--showConfig`"* | **already closed** by `S1.11.2`, ten days before the report was read |
+| `A-F4` | *"export the guard and call it at the same point"* | ⭐ **right, and the only one that was** |
+
+⚡ **The premises were right every time.** `C4-2`'s $12,000, `C4-7`'s $1,800, `A-F4`'s 4,000-plan sweep,
+`A-F5`'s 325-green plant — every measurement reproduced exactly. **Verify what a finding says to DO.**
+
+#### ⭐ THE LEDGER BUILT AT `S1.11.3` CAUGHT FOUR THINGS THIS ITEM WOULD HAVE SHIPPED
+
+1. **A guard my own rewrite ABSORBED** — `S1P3-G5-SAVINGSPOOL` asserted `unreadSavings` on a field that no
+   longer exists. Red on the next run.
+2. **Two stale proof anchors** — `S1P3-A1-BUDGET` and `S1P3-C7-LOSSES` pointed at lines that had moved.
+3. **A closure registered with no proof** (`C4-1`), refused by the never-tested cap.
+4. ⛔ **A plant that redded for the WRONG REASON** — `F-B3`'s un-fix hit the clause assertion above the
+   registered one, and `prove:guards` said *"not attributable to this defect"*. The load-bearing claim is
+   asserted **first** now. **That is the `plant-that-reds-early` class caught by an instrument rather than
+   by someone remembering.**
+
+#### ⛔ AND THREE DEFECTS IN MY OWN NEW TESTS, TWO OF THEM IN A CLASS NO PLANT CAN SEE
+
+**Every lesson in this repo says planting finds what reading cannot. This item found the converse.** Two
+unscoped `getByText` locators were **strict-mode violations that exist only in the GREEN state** — under a
+plant the text is absent, so every planted run was green about them. The third was an absence assertion
+**vacuous by timing**: `readStore` straight after the click saw 0 debts and passed; two seconds later, 1.
+⚡ **All three were caught by the same two cheap habits** — run the changed spec green, and re-run each
+plant with the assertion above it relaxed. ▶ Two candidate gates filed to the backlog, deliberately
+**unbuilt** until measured.
+
+#### The instruments this item added, split by origin
+
+**From findings:** `lint:restore-doors` *(a new gate; the population is DERIVED from every production
+`importStore(`)* · `check-gate-sources` **direction 4** · `requiredPlanTrust.test.ts` · `APR_ENTRY_PATHS`.
+**From collapsing pairs:** `packages/core/debt/cannotAmortize.ts` · `partitionDebts` · `clearedDebts` ·
+`selectSavingsPoolUnread` · `BNPL_COUNT_FIELDS` · `SYNTHETIC_LOSS_FIELDS` · `describeLocalOverwrite` ·
+`FREE_INVITE_CLEAR`. **Registry:** 163 → 172 entries, 44 → **52** carrying an executed proof.
+
+⚠️ **The honest residual is unchanged in shape:** 119 entries still rest on a token alone, printed every
+run and capped downward-only.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

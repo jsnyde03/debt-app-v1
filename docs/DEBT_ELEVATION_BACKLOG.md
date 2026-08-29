@@ -855,3 +855,24 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   whose surface changed)* already catches it, and it did — **both times, on the run after the plants.** The
   rule to carry is narrower and free: ⛔ **a fix is not done on plant evidence alone.** Filed so the class
   has a name the next time it costs a re-run.
+
+- **→ Tooling / hygiene.** ⭐ **Surfaced by `S1.11.4`'s WHOLE-ITEM after-scan — three defects in my own new
+  tests, none of them visible by reading, and TWO OF THE THREE ARE A CLASS NO PLANT CAN SEE.** Two were
+  unscoped `getByText(...)` locators that became **strict-mode violations the moment the fix landed** *(three
+  honest banners on Today; a tombstone that says its figure twice by design)*. The third was an
+  *"and nothing was written"* assertion that was **vacuous by timing** — measured, `readStore` immediately
+  after the click reported **0 debts and PASSED** while the same read two seconds later reported **1**.
+  ▶ **Two candidate gates, both deferred rather than built:** *(a)* refuse an unscoped page-wide
+  `getByText` for a string the repo renders in more than one component; *(b)* require an absence assertion
+  over the store to be preceded by a deterministic settle. ⚠️ **Deferred because neither is measured yet
+  and both risk being the kind of gate this audit keeps finding** — a rule that reports green while doing
+  less than it claims. The cheap protection already exists and worked all three times: **run the changed
+  spec GREEN, and re-run each plant with the assertion above it relaxed.** File a measurement first.
+
+- **→ P6.10.** ⚠️ **The plan carried four `PARTIAL`s in TWO PLACES EACH, and nothing would have caught it.**
+  A pass-3 `PARTIAL` whose open half was given a new pass-4 id was filed both under the sub-step that owns
+  the `PARTIAL` and in `S1.11.5`'s catch-all list — `C-4`/`C4-2`, `C-6`/`C4-1`, `C-7b`/`C4-6`, `G-6`/`D4-10`.
+  Three were struck as they were done and `C4-6` remains in `S1.11.5` deliberately. ⛔ **The class is that
+  a `PARTIAL` and its successor are one piece of work with two names**, and the ledger records them as two.
+  ▶ Cheap fix when the next audit's classification runs: `CLASSIFICATION.md` should carry the
+  `PARTIAL → successor` mapping as data, and the plan should be generated against it rather than typed.

@@ -182,8 +182,30 @@ re-run with each preceding assertion relaxed in turn.
 real residual is one level up and nobody had named it: **repoint `typecheck:scripts` and both gates stay
 green**, because the guarded file stops being the one compiled. Direction 4 asserts the pointer.
 
-▶ **NEXT: `S1.11.4.7`** — THE NET: `typecheck` · `lint:rn` · the unit suites · the e2e specs whose surface
-changed · commit + push. That closes `S1.11.4`; then `S1.11.5` (CLASS 2/3/5) and `S1.11.6` (the re-route).
+⭐ **`S1.11.4` IS CLOSED (2026-08-29) — 11 findings and 4 `PARTIAL`s, each by an assertion over its CLASS.**
+Net green: **39/39 gates · 337 e2e** *(was 325 — the 12 new ones are the guards)* · registry **163 → 172**,
+proofs **44 → 52**.
+
+⛔ **THE NUMBER TO CARRY: 6 OF 11 STATED REMEDIES WOULD NOT HAVE CLOSED THEIR FINDING, AND 4 WOULD HAVE
+INTRODUCED ONE** — while **every premise reproduced exactly**. `C4-2`'s would have deleted a debt from the
+screen · `F-B3`'s would have failed OPEN · `C4-5`'s kept the caption inside the offer, which is the defect ·
+`D4-10` was **already closed by `S1.11.2`** and would have been fixed twice. **Verify what a finding says to
+DO.**
+
+⭐ **The `S1.11.3` ledger caught four things this item would have shipped**: a guard my own rewrite
+**absorbed**, two **stale proof anchors**, a closure registered with **no proof**, and ⛔ **a plant that
+redded for the WRONG REASON** — the load-bearing claim is asserted first now.
+
+⛔ **AND PLANTING HAS A BLIND SPOT, MEASURED THREE TIMES: THE GREEN STATE.** Two unscoped `getByText`
+locators were strict-mode violations that exist **only when the fix works** *(under a plant the text is
+absent)*, and one *"nothing was written"* assertion was **vacuous by timing** — `readStore` straight after
+the click saw 0 debts and PASSED; two seconds later it saw 1. ⚡ **Every lesson here said planting finds
+what reading cannot; this is the converse.** The two habits that caught all three: **run the changed spec
+GREEN**, and **re-run each plant with the assertion above it relaxed**.
+
+▶ **ACTIVE: `S1.11.5` — CLASS 2/3/5, decomposed as `.5.1`–`.5.6`** at the top of the plan. `A-F3`
+*(blocker)* · `C4-6` *(the null-preview window, `C-7b`'s open half)* · `C4-3` + `C4-4` *(the two ledgers that
+cannot see their own class)* · the rest and the 7 minors. Then `S1.11.6` (the re-route) and `S1.11.8`.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's
