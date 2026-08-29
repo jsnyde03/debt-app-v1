@@ -1,3 +1,4 @@
+import { plural } from '@core/utils/plural';
 import { describeStoreContents, parseBackupValue, type BackupParseFailure } from './backup';
 import { detectBackupFormat, type BackupKind } from './detectBackupFormat';
 import { formatBackupTime } from './formatBackupTime';
@@ -120,7 +121,6 @@ export function readBackup(raw: string): ReadBackupResult {
   }
 }
 
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 const SOURCE: Record<BackupKind, string> = {
   envelope: 'This backup',

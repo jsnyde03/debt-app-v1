@@ -77,7 +77,8 @@
     "preflight:xcuitest": "tsx scripts/preflight-xcuitest-target.ts",
     "test:regression": "tsx packages/core/testing/runRegressionTests",
     "test:e2e:embed": "playwright test --config apps/rn/playwright.embed.config.ts",
-    "test:e2e:amount-guards": "playwright test --config apps/rn/playwright.config.ts amount-guards.spec.ts"
+    "test:e2e:amount-guards": "playwright test --config apps/rn/playwright.config.ts amount-guards.spec.ts",
+    "test:e2e:trust-claims": "playwright test --config apps/rn/playwright.config.ts trust-claims.spec.ts"
   },
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "^10.0.0",

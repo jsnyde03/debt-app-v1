@@ -1,3 +1,4 @@
+import { plural } from '@core/utils/plural';
 import { PAY_CYCLE_HISTORY_TITLE } from '@core/copy/vocabulary';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
@@ -41,8 +42,10 @@ export default function HistoryScreen() {
       {summary.paidDown > 0 ? (
         <View style={styles.anchor}>
           <Text maxFontSizeMultiplier={1.3} style={[styles.anchorNum, { color: c.accent.success }]}>{formatWhole(summary.paidDown)}</Text>
+          {/* ⛔ [pass-4 `C4-8`] `plural`, not `{n} cycles` — this line's FIRST render for every user is the
+              first rollover in which anything was paid, i.e. `1`. */}
           <Text style={[textStyles.subhead, { color: c.text.secondary }]}>
-            paid down across {summary.cycleCount} cycles
+            paid down across {plural(summary.cycleCount, 'cycle', 'cycles')}
           </Text>
         </View>
       ) : (

@@ -1669,6 +1669,9 @@
   "packages/core/utils/money.ts": [
     "s1p3"
   ],
+  "packages/core/utils/plural.ts": [
+    "never"
+  ],
   "packages/core/utils/testAddMonths.ts": [
     "s1p3"
   ],

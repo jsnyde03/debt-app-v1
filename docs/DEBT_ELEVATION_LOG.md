@@ -28490,6 +28490,53 @@ would have un-guarded the other direction on the *claim* that the loop covers bo
 the kind of stated mechanism this round has measured wrong four times out of four.** Two directions, two
 tokens, two proofs.
 
+### `S1.11.5.5` — the minors, and three of the seven were already behind us
+
+The seven were `F-B1` `F-B2` `D4-2` `C4-8` `D4-11` `D4-12` `D4-13`. `D4-2` closed at `S1.11.2`; `F-B1` and
+`F-B2` closed at `.5.4`. ⚠️ **`D4-11` folds into `S1.11.6`** — it is `audit-route.ts`'s own unreachable
+self-checks, and `.6` rewrites that file, so fixing it here buys a second edit of the same lines.
+
+#### `C4-8` — "1 cycles", on the first render every user sees
+
+The headline shows as soon as `paidDown > 0`, which is the first rollover in which anything was paid — so
+the **singular** is what everybody met before they ever saw the plural. ⚠️ The finding's remedy was *"the
+repo has the helper twice already; use either, do not add a third spelling."* Both copies were
+character-identical private consts, so **collapsing the pair** cost one unit more and is what every other
+fix this round did with two producers of one fact.
+
+⭐ **What it does NOT cover was measured, not assumed.** Five interpolated `{count} <word>s` sites outside
+tests: three handle the singular inline, and `CashRunwayChart`'s is **unreachable at 1** because the
+component returns `null` above it. History was the only live one — which is why this is a helper and not a
+sweep.
+
+#### `D4-12` — the ledger's own account of why something is closed
+
+`REVERIFY4-2` claimed that after the registry-wide re-point, `lint:finding-guards` *"now reds too"*.
+Measured: the un-fix that restores `D3-4`'s defect **leaves the token's line intact** — the blob machinery
+stays and the callback reads the working tree instead of the bytes it was handed — so `lint:secrets` and
+`lint:finding-guards` both exit 0 and only `test:gate-plants [D3-4-blob]` reds.
+
+⛔ **The token holds against the *deletion* spelling of the un-fix, not against the defect.** Reading rule 4
+again. Nothing is blinded and no user-facing statement changes; what was wrong is **the ledger's account of
+why it is closed**, which is what a future session reads before deciding whether the behavioural plant is
+still needed. The false sentence is **deleted, not annotated** ([D17]).
+
+⭐ **AND THE PROOF ANCHOR HAD TO BE ONE LINE.** A multi-line `find` matched **0×** while the same string was
+provably present: the working tree is **CRLF** and the registry stores `\n`, so any anchor spanning a line
+break is unmatchable on this platform. ⚠️ It makes a proof **unrunnable rather than wrong** — it reds as
+"anchor matches 0×", which reads like a stale anchor. Single-line anchors only.
+
+#### `D4-13` — `>` left a silent slot
+
+The duplicate-copy baseline was capped with `>`, so a baseline that **falls** keeps one unused permission
+open: re-duplicate a phrase later and the gate stays green about a number nobody re-read. That is the
+`>`-vs-`!==` slack `D4-4` names, and the shape `check-local-dates.ts` already closed for its own baseline —
+**ground gained has to be recorded, or it stays available to spend.** Exact in both directions now.
+
+⚠️ **The finding's other half is deliberate and stays.** The stale-phrase report is a `console.log` rather
+than an exit, because *"a gate that reds on progress is a gate that gets reverted"* — argued in
+`check-apostrophes.ts` and re-stated here rather than re-opened.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

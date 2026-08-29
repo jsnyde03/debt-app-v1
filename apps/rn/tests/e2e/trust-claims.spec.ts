@@ -204,6 +204,26 @@ test('C-3 control · History still anchors on money that WAS paid', async ({ pag
   await expect(page.getByText('$350')).toBeVisible();
 });
 
+/**
+ * ⛔ **S1.11.5.5 [pass-4 `C4-8`] — THE SINGULAR, WHICH IS THIS LINE'S FIRST RENDER FOR EVERY USER.**
+ * The headline shows as soon as `paidDown > 0`, i.e. the first rollover in which anything was paid — so
+ * *"paid down across **1 cycles**"* was what everybody met before they ever saw the plural.
+ * ⚠️ The control above (two cycles) is what keeps this from being satisfied by a line that lost its count.
+ */
+test('C4-8 · the History headline says "1 cycle", not "1 cycles"', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [{ id: 'd0', name: 'Chase card', balance: 5000, originalBalance: 8000, minimumPayment: 100, apr: 20, dueDate: day(4), type: 'debt', recurrence: 'monthly' }],
+      cycleHistory: [{ cycleEndDate: day(-14), totalDebtBalance: 7800, totalPaidThisCycle: 200 }],
+    }),
+  );
+  await page.goto('/history');
+  await expect(page.getByText(/paid down across 1 cycle$/)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/1 cycles/)).toHaveCount(0);
+});
+
 // ── C-4 · the trophy shelf ───────────────────────────────────────────────────────────────────────
 
 test('C-4 · the trophy shelf does not file a cleared debt as "$0 paid off"', async ({ page }) => {

@@ -45,7 +45,7 @@
     "token": "SOURCE MOVED WHILE THE SUITES WERE RUNNING"
   },
   "REVERIFY4-2": {
-    "what": "lint:secrets took the file list from git and the content from the working tree, so it passed over a HEAD holding a credential ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated. ⛔ S1.10.6.5.5 [pass-3 D3-4] — PINNED BEHAVIOURALLY at last. The finding measured all three instruments green over the un-fix; after .6.5.4's registry-wide re-point, lint:finding-guards now reds too (the token names the visit(...) line the un-fix removes), so the token half was already closed by that sweep. The behavioural half is test:gate-plants [D3-4-blob], whose input is the git REVISION rather than a file: a fixture staged into a THROWAWAY index (GIT_INDEX_FILE, so the developer's own index is never touched) and then DELETED from the working tree, which a filesystem read cannot see at all. Re-measured with the revert in place: lint:secrets exit 0 printing 'none across 1221 tracked files in index+HEAD', and that scenario reporting 'the gate FAILED OPEN'",
+    "what": "lint:secrets took the file list from git and the content from the working tree, so it passed over a HEAD holding a credential ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated. ⛔ S1.10.6.5.5 [pass-3 D3-4] — PINNED BEHAVIOURALLY at last. The finding measured all three instruments green over the un-fix; ⛔ S1.11.5.5 [pass-4 D4-12] — THE SENTENCE THAT USED TO STAND HERE WAS MEASURED FALSE AND IS GONE. It claimed that after .6.5.4's registry-wide re-point, lint:finding-guards 'now reds too'. Measured: the un-fix that restores the defect leaves the token's line INTACT - the blob machinery stays and the callback reads the working tree instead of the bytes it was handed - so lint:secrets EXIT=0, lint:finding-guards EXIT=0, and only test:gate-plants [D3-4-blob] reds. The token holds against the DELETION spelling of the un-fix, not against the defect: reading rule 4, judging the example rather than the condition. The honest text: the token pins the batch read; the BEHAVIOUR is pinned ONLY by test:gate-plants [D3-4-blob], and D4-6 showed that harness can be defanged in two lines with everything green - so the plant is not redundant and must not be read as such. The behavioural half is test:gate-plants [D3-4-blob], whose input is the git REVISION rather than a file: a fixture staged into a THROWAWAY index (GIT_INDEX_FILE, so the developer's own index is never touched) and then DELETED from the working tree, which a filesystem read cannot see at all. Re-measured with the revert in place: lint:secrets exit 0 printing 'none across 1221 tracked files in index+HEAD', and that scenario reporting 'the gate FAILED OPEN'",
     "file": "scripts/check-committed-secrets.ts",
     "token": "if (size <= 8 * 1024 * 1024) visit(specs[i], buf.toString("
   },
@@ -184,9 +184,9 @@
     "token": "if (!observedAnnounce.has(rel)) {"
   },
   "GAP-17d": {
-    "what": "S0.13 GAP-17, the duplicate-copy half — CLOSED S1.10.6.5.8.5. ⛔ The registry recorded this one as ALREADY FIXED by REVERIFY4-3 and it was not: REVERIFY4-3 fixed the exit-code override (process.exit(0) discarding the self-check's verdict), while --update-baseline still wrote whatever it found. A run on a regressed tree writes the regression in as the new normal. Now a downward-only size cap on both the re-record path and the read path. Plant-verified: cap lowered below the live baseline → reds `the RECORDED baseline holds 3 phrase(s), above the cap of 2`",
+    "what": "S0.13 GAP-17, the duplicate-copy half — CLOSED S1.10.6.5.8.5. ⛔ The registry recorded this one as ALREADY FIXED by REVERIFY4-3 and it was not: REVERIFY4-3 fixed the exit-code override (process.exit(0) discarding the self-check's verdict), while --update-baseline still wrote whatever it found. A run on a regressed tree writes the regression in as the new normal. Now a downward-only size cap on both the re-record path and the read path. Plant-verified: cap lowered below the live baseline → reds `the RECORDED baseline holds 3 phrase(s), above the cap of 2` | S1.11.5.5 [pass-4 D4-13]: token re-pointed, `>` -> `!==`. The cap left a SILENT SLOT in the other direction - a baseline that FALLS keeps an unused permission open, which is the >-vs-!== slack D4-4 names. This entry's own subject (a widened baseline turning a red gate green) is unchanged and still guarded by the same line; the line now also refuses ground quietly re-spendable.",
     "file": "scripts/strings-inventory.ts",
-    "token": "if (baseline.size > MAX_DUP_BASELINED) {"
+    "token": "if (baseline.size !== MAX_DUP_BASELINED) {"
   },
   "GAP-18": {
     "what": "S0.13 GAP-18 — CLOSED S1.10.6.5.8.6, and its premise was STALE IN A LIVE WAY. The row measured `0 raw NULs` over FOUR named files (corpus.ts, the log, the plan, hostile-v16-cases.json). Scanning all 1,030 tracked .ts/.tsx/.md/.json found ONE: docs/audits/strings-inventory.md carried a raw U+0000 written straight through from the `key:unicode` torture fixture, because the generator escaped `|` and newlines and nothing else. ⚡ The undercount class again — the row's four-file list vs the repo. Fixed by ESCAPING in the generator, the corpus.ts precedent, because a report that drops the byte lies about its own subject. ⛔ AND THE FIRST CUT OF THAT FIX REINTRODUCED THE DEFECT: escaping via a regex class of literal control bytes put a real NUL into strings-inventory.ts itself — which is exactly the recurrence this row records (`the commit that removed one introduced another`). Now a code-point test. ⚠ run-gates.ts also held 8 raw ESC bytes as ANSI colour codes; converted to escape sequences, output verified byte-identical. ⛔ THE GATE'S OWN FIRST CUT WAS BLIND AND A CONTROL RUN FOUND IT: `git ls-files` lists only TRACKED files, so a NUL planted into the new gate file read GREEN — and the likeliest moment for a control byte to appear is the commit that CREATES the file. Now `--cached --others --exclude-standard`. Plant-verified both directions: a raw NUL reds naming file, line and codepoint; a stale exemption reds",
@@ -338,6 +338,54 @@
     "what": "pass-4 D4-6 - ONE PRODUCER OF THE VERDICT. The tick and the printed reason were two independent expressions over the same inputs, so deleting two words made `ok` true while `reason=WRONG` kept printing. verdict() now returns { ok, line, failed } - the caller prints `line` and counts `ok`, so every un-fix has to happen inside the function the module-scope self-check reads. Pinning the RETURN rather than the function name: renaming verdict() reds typecheck, but changing what it returns is the silent edit. See S1P2-B1-REASON for the self-check that proves it still discriminates",
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
+  },
+  "S1P4-C4-8-SINGULAR": {
+    "what": "pass-4 C4-8 (minor) - the History headline read 'paid down across 1 cycles' on the FIRST render of that line for every user: the screen shows it as soon as paidDown > 0, which is the first rollover in which anything was paid. Grammar, not money, which is why it is a minor; worth closing because it is the one render of that headline everybody sees. ⚠️ The finding's remedy was 'the repo has the helper twice already - use either; do not add a third spelling'. Both copies were character-identical private consts in data/backup.ts and data/readBackup.ts, so COLLAPSING the pair was one unit of extra work and is what every other fix this round did with two producers of one fact: packages/core/utils/plural.ts is the one owner and all three sites read it. ⛔ Sites this does NOT cover were measured rather than assumed - a repo-wide sweep of interpolated {count} <word>s strings outside tests returns five, three handle the singular inline and CashRunwayChart's is unreachable at 1 because the component returns null above it. History was the only live one",
+    "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
+    "token": "the History headline says \"1 cycle\", not \"1 cycles\"",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/history.tsx",
+          "find": "            paid down across {plural(summary.cycleCount, 'cycle', 'cycles')}",
+          "replace": "            paid down across {summary.cycleCount} cycles"
+        }
+      ],
+      "run": "test:e2e:trust-claims",
+      "expect": "1 cycle"
+    }
+  },
+  "S1P4-D4-12-LEDGERCLAIM": {
+    "what": "pass-4 D4-12 (minor) - REVERIFY4-2's own entry claimed lint:finding-guards 'now reds too' on its un-fix, and measured it does not. The un-fix that restores D3-4's defect leaves the token's line INTACT - the blob machinery stays and the callback reads the working tree instead of the bytes it was handed - so lint:secrets EXIT=0, lint:finding-guards EXIT=0, and only test:gate-plants [D3-4-blob] reds. The token holds against the DELETION spelling of the un-fix, not against the defect: reading rule 4, judging the example rather than the condition. ⛔ Nothing is blinded and no user-facing statement changes - what was wrong is the LEDGER'S OWN ACCOUNT of why it is closed, which is what a future session reads before deciding whether the behavioural plant is still needed. The false sentence is DELETED (not annotated - [D17]) and replaced with what holds: the token pins the batch read, the behaviour is pinned ONLY by test:gate-plants [D3-4-blob], and D4-6 showed that harness can be defanged in two lines with everything green. This entry's token is that scenario, so deleting the one guard that does hold now reds ⚠️ The proof restores D3-4's defect the way the finding measured it - list from git, content from the working tree - rather than by deleting eachBlob, because the DELETION spelling is precisely the one the old token caught and the defect is not. ⛔ AND THE PROOF ANCHOR HAD TO BE ONE LINE. A multi-line `find` matched 0x while the same string was provably present: the working tree is CRLF and the registry stores \n, so any anchor spanning a line break is unmatchable on this platform. Single-line anchors only - measured here, and it silently makes a proof unrunnable rather than wrong.",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "gate: 'lint:secrets [D3-4-blob]',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-committed-secrets.ts",
+          "find": "    (spec, text) => {",
+          "replace": "    (spec, blobText) => { void blobText; const text = readFileSync(join(REPO_ROOT, spec.slice(prefix.length)), 'utf8');"
+        }
+      ],
+      "run": "test:gate-plants",
+      "expect": "lint:secrets [D3-4-blob]"
+    }
+  },
+  "S1P4-D4-13-EXACTCAP": {
+    "what": "pass-4 D4-13 (minor) - the duplicate-copy baseline was capped with `>`, which leaves a SILENT SLOT. With the cap at 3 and the comparison `>`, a baseline that falls to 2 keeps one unused permission open: someone re-duplicates a phrase later and the gate stays green about a number nobody re-read. That is the >-vs-!== slack D4-4 names, and the same shape check-local-dates.ts closed for its hand-parse baseline - ground gained has to be RECORDED or it stays available to spend. Exact in both directions now, and a fall says 'lower the cap', a one-line deliberate edit and the only response that leaves nothing stale. ⚠️ The finding's OTHER half is deliberate and stays: the stale-phrase report is a console.log rather than an exit, because a gate that reds on progress gets reverted - argued in check-apostrophes.ts and re-stated rather than re-opened. Plant-verified: cap one above the baseline reds with 'BELOW the cap'",
+    "file": "scripts/strings-inventory.ts",
+    "token": "if (baseline.size !== MAX_DUP_BASELINED) {",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/strings-inventory.ts",
+          "find": "const MAX_DUP_BASELINED = 3; // measured 2026-08-27",
+          "replace": "const MAX_DUP_BASELINED = 4; // measured 2026-08-27"
+        }
+      ],
+      "run": "lint:copy",
+      "expect": "BELOW the cap"
+    }
   },
   "S1P4-A-F2-ATMOSTONEPOINT": {
     "what": "pass-4 A-F2 - sanitizeAmountInput did NOT keep 'only the first point', its docblock said it did, and the one test row was the single member of the class where the regex happened to work. .replace(/(\\..*)\\./g, '$1') removes ONE point per non-overlapping match while the greedy .* spans to the LAST point, so three or more points leave two or more behind: '1.2.3.4' -> '1.2.34' (NaN), '1..2..3' -> '1..2.3' (NaN), and '1.2.3' -> '1.23', a DIFFERENT number silently. Pasting 1.2.3.4 into What-If's extra-payment box left 1.2.34 in the field while the projection simulated $0 extra - the exact NaN -> || 0 -> $0 failure the sanitizer's own docblock names as the reason it exists. ⛔ The assertion written to prevent it was 'no surviving string parses to NaN' asserted about EXACTLY ONE string, '12..5', which is the member the regex handles. Reading rule 2, inside the guard. The collapse is not order-dependent now (split on the point, keep the first segment and join the rest - no pass whose result depends on how many points it met), and the property asserted is AT MOST ONE POINT rather than 'parses to a finite number', because '12.' is a required half-typed state and '...' correctly collapses to '.'. Two controls keep the m4 hundredfold fix intact: a plain decimal is untouched and the surviving digits are the typed ones in order",

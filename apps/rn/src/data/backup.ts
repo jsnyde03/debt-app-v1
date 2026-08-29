@@ -1,3 +1,4 @@
+import { plural } from '@core/utils/plural';
 import { todayLocalISODate } from '@core/utils/localDate';
 
 import { CURRENT_STORE_VERSION, type DebtStore } from './models';
@@ -112,7 +113,6 @@ export function serializeBackup(store: DebtStore, opts?: { now?: Date }): string
  * and *"$14,320 across 4 debts"* is a disclosure the surface was not asked to make.
  */
 export function describeStoreContents(store: Partial<DebtStore>): string {
-  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
   const parts = [
     plural(store.debts?.length ?? 0, 'debt', 'debts'),
     plural((store.requiredExpenses?.length ?? 0) + (store.livingExpenses?.length ?? 0), 'expense', 'expenses'),

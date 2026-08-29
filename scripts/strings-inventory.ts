@@ -522,12 +522,23 @@ if (process.argv.includes('--update-baseline')) {
 } else if (process.argv.includes('--gate')) {
   const baseline = new Set<string>(existsSync(BASELINE_PATH) ? JSON.parse(readFileSync(BASELINE_PATH, 'utf8')) : []);
   // ⛔ [GAP-17] The same cap on the RECORDED file — a hand edit or a merge never passes the check above.
-  if (baseline.size > MAX_DUP_BASELINED) {
+  /**
+   * ⛔ **S1.11.5.5 [pass-4 `D4-13`] — `>` LEFT A SILENT SLOT, WHICH IS THE `>`-vs-`!==` SLACK `D4-4`
+   * NAMES.** With the cap at 3 and the comparison `>`, a baseline that falls to 2 keeps one unused
+   * permission open — someone re-duplicates a phrase later and this gate stays green about a number
+   * nobody re-read. ⚡ The same shape `check-local-dates.ts` closed for its hand-parse baseline: **ground
+   * gained has to be RECORDED, or it stays available to spend.** Exact in both directions now, and a fall
+   * says *"lower the cap"* — a one-line deliberate edit, and the only response that leaves nothing stale.
+   */
+  if (baseline.size !== MAX_DUP_BASELINED) {
+    const direction =
+      baseline.size > MAX_DUP_BASELINED
+        ? 'ABOVE the cap. A wider baseline turns a red gate green — extract the shared copy, or raise'
+        : 'BELOW the cap — good news this gate refuses to forget. Lower';
     console.error(
-      `\n❌ duplicate copy: the RECORDED baseline holds ${baseline.size} phrase(s), above the cap of ${MAX_DUP_BASELINED}.\n`,
+      `\n❌ duplicate copy: the RECORDED baseline holds ${baseline.size} phrase(s), ${direction}\n`,
     );
-    console.error('  A wider baseline turns a red gate green. Extract the shared copy, or raise');
-    console.error('  MAX_DUP_BASELINED in scripts/strings-inventory.ts deliberately and say why.\n');
+    console.error(`  MAX_DUP_BASELINED to ${baseline.size} in scripts/strings-inventory.ts, deliberately, and say why.\n`);
     process.exit(1);
   }
   const fresh = gateFindings.filter((f) => !baseline.has(f.text));

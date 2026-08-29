@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**477 files on the S1 surface · 410 swept · 67 unswept.**
+**478 files on the S1 surface · 410 swept · 68 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -488,6 +488,7 @@
 | `packages/core/utils/formatDisplayAmount.ts` | s1p3 |
 | `packages/core/utils/localDate.ts` | s1p3 |
 | `packages/core/utils/money.ts` | s1p3 |
+| `packages/core/utils/plural.ts` | ⛔ **never** |
 | `packages/core/utils/testAddMonths.ts` | s1p3 |
 | `packages/core/utils/testAmountField.ts` | s1p3 · s1p4 |
 | `packages/core/utils/testLocalDate.ts` | s1p3 |
@@ -561,4 +562,5 @@
 - `packages/core/debt/cannotAmortize.ts`
 - `packages/core/debt/testDeriveRequiredActionView.ts`
 - `packages/core/debt/testReconcileAutopay.ts`
+- `packages/core/utils/plural.ts`
 
