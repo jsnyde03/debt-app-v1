@@ -84,7 +84,7 @@ function stripComments(src: string): string {
  * same edit, or the ground it gained is silently re-spendable by the next author.
  */
 const HAND_PARSE = /new Date\(\s*[`'"][^`'"]*\$\{[^}]*\}T00:00:00[`'"]\s*\)|new Date\(\s*[`'"][\d-]+T00:00:00[`'"]\s*\)/;
-const HAND_PARSE_BASELINE = 41;
+const HAND_PARSE_BASELINE = 39;
 
 const hits: string[] = [];
 let handParseCount = 0;

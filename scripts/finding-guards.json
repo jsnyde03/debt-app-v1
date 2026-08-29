@@ -339,6 +339,22 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-A-F3-WINDOWSTART": {
+    "what": "pass-4 blocker A-F3 - bnplInstallmentsInWindow declared a windowStartISO and it appeared NOWHERE in the body, so the window had one live bound while its docstring claimed [start, end). Every occurrence a plan had MISSED before the window opened was counted as due in the CURRENT pay cycle. Measured on a $1,200 biweekly Klarna against a $2,000 monthly paycheck, window 2026-08-01 to 2026-09-01, varying only the stored due date: Aug 1 -> 3 charges, $300 required; Feb 1 -> 16 charges, $1,200; a year back -> 29 charges, $1,200 - the whole balance held out of one paycheck. Reachable: debtCsv validates a due date for shape and calendar validity only, and DateField passes no minimumDate, so a past 'Next payment' is one scroll away in the add form. 🎯 2026-08-29 chose HONOUR THE CONTRACT over 'an overdue plan is all due now': the concrete harm is that one payday capture then zeroes the balance and files $1,200 in History as paid down, a record of money never paid. The arrears do not vanish - the balance is untouched and the past due date makes the row read overdue. ⛔ Every window row in this file used dueDate === windowStart, and the ONE row that varied the relationship moved the END before the due date: the class is 'the due date is outside the window' and every row picked the far side, which is why a dead parameter kept the file green. The rows are a SWEEP over the four positions now (before / on / inside / after) with a control that the counts are not one number. ⚠️ The finding predicted the far-behind row would be 2 and it is 3 - Feb 1 plus 14x13 days lands Aug 2 - measured, not taken: the premise reproduced exactly and the number attached to its REMEDY did not. Plant-verified, and each sweep row measured under the plant: two discriminate (3->4, 3->16), three are controls",
+    "file": "packages/core/debt/testBnplInstallment.ts",
+    "token": "the window counts what is charged INSIDE it",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/bnplInstallment.ts",
+          "find": "\tconst start = at(windowStartISO);\n\twhile (at(due) < start) {\n\t\tconst next = advanceDueDateOnce(due, debt.recurrence);\n\t\t// ⛔ A one-time / per-paycheck plan does not advance. Without this the skip loop never terminates —\n\t\t// and it is the same `next === due` condition the counting loop below already depends on.\n\t\tif (next === due) return 0;\n\t\tdue = next;\n\t}\n\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:regression",
+      "expect": "the window counts what is charged INSIDE it"
+    }
+  },
   "S1P4-A-F5-PATHS": {
     "what": "pass-4 A-F5 - B2 was fixed at BOTH RN hand-entry paths and guarded at ONE. amount-guards.spec.ts drives DebtSheet through openAddDebt (/money -> money-add -> add-choice-debt); the onboarding form is a different component reached only before onboardingComplete, and every scenario in the suite seeds it true. Measured by auditor A: delete the four lines bounding the rate at FirstDebtOrBillStep.tsx:70-73, rebuild dist and run everything - 325 of 325 e2e and all three unit suites GREEN with the bound gone, while lint:finding-guards reported S1P3-B2-APRBOUND green about the site that IS covered. ⛔ The paths are a LIST now and the assertion walks it: a second test naming the second path would leave the third one exactly where this one was. ⚠️ TWO defects in my own first cut, both found by running it. (1) The onboarding fixture was CONTRADICTORY - runMigrations promotes a store carrying income AND an obligation to onboarded, so a full scenario() with the flag flipped renders Today; earlyjourney.spec.ts records this from 2026-08-19 and I walked into it anyway. (2) The 'nothing was written' assertions were VACUOUS BY TIMING - measured, readStore immediately after the click reported 0 debts and the row passed, while the same read after two seconds reported 1 named 'Slipped card'. absence-assertions-pass-before-render in its timing form. Fixed with a deterministic 'the form is still on screen' assertion plus a measured settle, and all three assertion layers re-measured live under the plant ⚠️ The proof runs a SCOPED e2e (test:e2e:amount-guards) because the bound lives in a component's submit handler and there is no unit seam; it rebuilds dist twice and takes minutes, which is the honest cost of guarding a path only the browser can reach.",
     "file": "apps/rn/tests/e2e/amount-guards.spec.ts",

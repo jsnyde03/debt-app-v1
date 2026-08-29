@@ -1,5 +1,6 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
 import { advanceDueDateOnce } from "@core/recurrence/rolloverPayCycle";
+import { parseLocalDate } from "@core/utils/localDate";
 
 function roundMoney(amount: number) {
 	return Math.round(amount * 100) / 100;
@@ -100,8 +101,10 @@ export function bnplPaymentsTotal(debt: Debt): number | null {
  * MONTHLY paycheck window charges ~2×, but the per-cycle allocator (which keys off a single due date)
  * counts it as 1 → the Guardian under-detects that crunch. This is the count that lets the cash read
  * reflect the FULL between-paycheck outflow. Steps from the debt's next due date by its cadence,
- * counting occurrences strictly before `end`, capped at `remainingPayments`. Returns 0 for a
- * non-installment-native debt or when nothing is due before `end`. In the aligned case (a biweekly
+ * counting occurrences in `[start, end)`, capped at `remainingPayments`. Returns 0 for a
+ * non-installment-native debt, when nothing is due before `end`, or when a one-time plan's single
+ * charge already fell before `start`. ⛔ **Both bounds are live** — see the block at the skip loop for
+ * what it cost when only one of them was. In the aligned case (a biweekly
  * BNPL for a biweekly-paid user) the window holds exactly one charge → 1, so nothing changes.
  */
 /**
@@ -145,10 +148,18 @@ export function hasKnownBnplCadence(debt: Debt): boolean {
 	);
 }
 
+/**
+ * ⛔ **S1.11.5.1 — `parseLocalDate`, NOT `new Date(`${iso}T00:00:00`)`.** The hand-rolled form is correct
+ * and `@core/utils/localDate` owns it; this file spelled it out four times, and `lint:local-dates` reds on
+ * the count RISING, which is exactly what adding `A-F3`'s two did. Collapsing all four to the owner is the
+ * cheaper answer than raising a baseline that exists to stop this class growing.
+ */
+const at = (iso: string): number => parseLocalDate(iso).getTime();
+
 export function bnplInstallmentsInWindow(debt: Debt, windowStartISO: string, windowEndISO: string): number {
 	// ⛔ S1P3-A4 — gated on CADENCE, not on installment data. See `hasKnownBnplCadence`.
 	if (!hasKnownBnplCadence(debt)) return 0;
-	const end = new Date(`${windowEndISO}T00:00:00`).getTime();
+	const end = at(windowEndISO);
 	// ⚠️ An unknown remaining-count is an UNKNOWN CAP, which is `Infinity` — not `0`. Reading a missing
 	// `remainingPayments` as a cap of 0 is what made the loop return 0 and the whole seam a no-op.
 	const cap =
@@ -157,7 +168,47 @@ export function bnplInstallmentsInWindow(debt: Debt, windowStartISO: string, win
 			: Number.POSITIVE_INFINITY;
 	let count = 0;
 	let due = debt.dueDate;
-	while (count < cap && new Date(`${due}T00:00:00`).getTime() < end) {
+
+	/**
+	 * ⛔ **S1.11.5.1 [pass-4 blocker `A-F3`] — `windowStartISO` WAS A DECLARED PARAMETER THAT APPEARED
+	 * NOWHERE IN THIS BODY, so the window had one live bound and the docstring above claimed two.**
+	 *
+	 * ⚡ Every occurrence a plan MISSED before the window opened was counted as due in the CURRENT pay
+	 * cycle. Measured on a $1,200 biweekly Klarna against a $2,000 monthly paycheck, window
+	 * `2026-08-01 → 2026-09-01`, varying only the stored due date:
+	 *
+	 * ```
+	 * dueDate 2026-08-01 ->  3 charges  ->   $300 required
+	 * dueDate 2026-02-01 -> 16 charges  -> $1,200 required   (the whole balance)
+	 * dueDate 2025-08-01 -> 29 charges  -> $1,200 required
+	 * ```
+	 *
+	 * ⛔ **And it is reachable**: `debtCsv.ts` validates a due date for shape and calendar validity only,
+	 * and `DateField` passes no `minimumDate`, so a past "Next payment" is one scroll away in the add
+	 * form. The steady state hides it — `applyRollover` advances the cycle and the due dates in the same
+	 * call — so a date can only fall behind the window by *arriving* behind it.
+	 *
+	 * 🎯 **2026-08-29 — HONOUR THE CONTRACT.** The alternative reading (*a genuinely overdue plan IS all
+	 * due now*) was put and declined: the concrete harm today is that one payday capture then zeroes the
+	 * whole balance and files **$1,200 in History as paid down** — a record of money the user never paid,
+	 * which is the class this whole audit exists for. ⚠️ **The arrears do not vanish**: the balance is
+	 * untouched, the debt still lists at its full amount, and a due date in the past makes its row read
+	 * overdue. What changes is only *how much this paycheck is told to cover*.
+	 *
+	 * ⚠️ **Skipping does NOT consume `cap`.** `remainingPayments` counts what is still owed, and a missed
+	 * installment is still owed — spending the cap on it would under-count the charges that really do
+	 * fall inside the window.
+	 */
+	const start = at(windowStartISO);
+	while (at(due) < start) {
+		const next = advanceDueDateOnce(due, debt.recurrence);
+		// ⛔ A one-time / per-paycheck plan does not advance. Without this the skip loop never terminates —
+		// and it is the same `next === due` condition the counting loop below already depends on.
+		if (next === due) return 0;
+		due = next;
+	}
+
+	while (count < cap && at(due) < end) {
 		count += 1;
 		const next = advanceDueDateOnce(due, debt.recurrence);
 		if (next === due) break; // one-time / per-paycheck don't advance → a single occurrence in-window

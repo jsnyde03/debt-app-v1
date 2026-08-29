@@ -100,6 +100,61 @@ function runBnplInstallmentTests() {
 	assertEqual(bnplInstallmentsInWindow(biweeklyBnpl, "2026-08-01", "2026-07-15"), 0, "nothing due before a window that ends before the due date");
 	assertEqual(bnplInstallmentsInWindow(debt({ type: "debt", balance: 1000, minimumPayment: 50 }), "2026-08-01", "2026-09-01"), 0, "a plain debt has no in-window installment count");
 
+	/**
+	 * ⛔ **S1.11.5.1 [pass-4 blocker `A-F3`] — THE OTHER SIDE OF THE WINDOW, WHICH NO ROW HERE TESTED.**
+	 *
+	 * ⚡ Every window row above uses `dueDate === windowStart`, and the one row that varies the
+	 * relationship — *"nothing due before a window that ends before the due date"* — moves the **END**
+	 * before the due date. **The class is "the due date is outside the window" and every row picked the
+	 * far side of it**, so `windowStartISO` could be a dead parameter with the whole file green. Measured:
+	 * three different window STARTS against one debt returned the same 3.
+	 *
+	 * ⛔ **The rows are a SWEEP over the relationship, not a list of examples.** `before` · `on` · `inside`
+	 * · `after` — the four positions a due date can hold relative to `[start, end)`.
+	 *
+	 * ⚠️ **The finding predicted the far-behind row would be 2 and it is 3 — measured, not taken.** Feb 1
+	 * plus 14 × 13 days lands on **Aug 2**, so the resumed schedule charges Aug 2 / 16 / 30. The premise
+	 * (`windowStartISO` is dead, and $1,200 is required against a true $300) reproduced exactly; the
+	 * number attached to its proposed REMEDY did not. That is the round's own rule, one more time.
+	 */
+	const SWEEP: { label: string; dueDate: string; expect: number }[] = [
+		{ label: "one cycle BEFORE the start", dueDate: "2026-07-18", expect: 3 },
+		{ label: "far behind — six months of missed charges", dueDate: "2026-02-01", expect: 3 },
+		{ label: "ON the start", dueDate: "2026-08-01", expect: 3 },
+		{ label: "INSIDE the window", dueDate: "2026-08-20", expect: 1 },
+		{ label: "AFTER the end", dueDate: "2026-09-15", expect: 0 },
+	];
+	for (const row of SWEEP) {
+		assertEqual(
+			bnplInstallmentsInWindow(
+				debt({ type: "bnpl", balance: 1200, minimumPayment: 100, dueDate: row.dueDate, recurrence: "biweekly" }),
+				"2026-08-01",
+				"2026-09-01",
+			),
+			row.expect,
+			`⛔ A-F3 · the due date ${row.label} — the window counts what is charged INSIDE it`,
+		);
+	}
+	// ⭐ THE CONTROL THAT MAKES THE SWEEP MEAN SOMETHING: the answers must not all be the same, or a
+	// function ignoring both bounds would satisfy every row above.
+	assertTrue(new Set(SWEEP.map((r) => r.expect)).size > 1, "⭐ A-F3 control — the sweep discriminates; the counts are not one number");
+	// ⛔ A one-time plan whose single charge already fell before the window contributes NOTHING — and the
+	// skip loop cannot advance it, so this is also the non-termination case.
+	assertEqual(
+		bnplInstallmentsInWindow(
+			debt({ type: "bnpl", scheduledPaymentAmount: 100, remainingPayments: 1, balance: 100, minimumPayment: 100, dueDate: "2026-07-01", recurrence: "one-time" }),
+			"2026-08-01",
+			"2026-09-01",
+		),
+		0,
+		"⛔ A-F3 — a one-time BNPL charged before the window is not charged again inside it",
+	);
+	// ⚠️ THE ARREARS DO NOT VANISH, and this is the assertion that says so. The effective minimum falls to
+	// what the window really holds; the BALANCE is untouched, which is what keeps the debt on the books.
+	const behind = debt({ type: "bnpl", balance: 1200, minimumPayment: 100, dueDate: "2026-02-01", recurrence: "biweekly" });
+	assertEqual(effectiveMinimumInWindow(behind, "2026-08-01", "2026-09-01"), 300, "⛔ A-F3 — a plan six months behind is due THREE charges this cycle, not its whole $1,200 balance");
+	assertEqual(behind.balance, 1200, "⚠️ A-F3 — …and it still owes every cent of it");
+
 	// scaleBnplMinimumForWindow: reflect the full in-window outflow in the effective minimum.
 	assertEqual(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-28").minimumPayment, 200, "2-charge window → effective minimum scales to 2 × the installment");
 	assertTrue(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-15") === biweeklyBnpl, "aligned window (1 charge) → no-op, same reference");

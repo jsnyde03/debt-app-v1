@@ -28274,6 +28274,56 @@ plant with the assertion above it relaxed. ▶ Two candidate gates filed to the 
 ⚠️ **The honest residual is unchanged in shape:** 119 entries still rest on a token alone, printed every
 run and capped downward-only.
 
+### `A-F3` (blocker) — a declared parameter that appeared nowhere in the body
+
+`bnplInstallmentsInWindow(debt, windowStartISO, windowEndISO)` never read `windowStartISO`, so the window
+had **one live bound** while its own docstring claimed `[start, end)`. Every occurrence a plan had missed
+before the window opened was counted as due in the **current** pay cycle. Measured on a $1,200 biweekly
+Klarna against a $2,000 monthly paycheck, varying only the stored due date:
+
+```
+dueDate 2026-08-01 ->  3 charges  ->   $300 required
+dueDate 2026-02-01 -> 16 charges  -> $1,200 required   (the whole balance)
+dueDate 2025-08-01 -> 29 charges  -> $1,200 required
+```
+
+⛔ **And it is reachable**: `debtCsv` validates a due date for shape and calendar validity only, and
+`DateField` passes no `minimumDate`, so a past *"Next payment"* is one scroll away in the add form. The
+steady state hides it — `applyRollover` advances the cycle and the due dates in the same call — so a date
+can only fall behind the window by *arriving* behind it.
+
+🎯 **2026-08-29 — HONOUR THE CONTRACT.** The alternative reading (*a genuinely overdue plan IS all due
+now*) was put with its cost and declined. The deciding fact: one payday capture then zeroes the balance and
+files **$1,200 in History as paid down** — a record of money the user never paid, which is the class this
+whole audit exists for. ⚠️ **The arrears do not vanish**: the balance is untouched, the debt still lists in
+full, and a past due date makes its row read overdue. What changes is only how much *this paycheck* is told
+to cover.
+
+#### ⛔ Every window row in the file picked the far side of the class
+
+*"Nothing due before a window that ends before the due date"* moves the **END** before the due date. The
+class is *"the due date is outside the window"*, and **every existing row chose the other side of it** — so
+a dead parameter kept the whole file green. The rows are a **sweep over the four positions** now
+*(before · on · inside · after)*, with a control that the counts are not one number. ⚠️ Measured under the
+plant: **two rows discriminate** *(3 → 4 and 3 → 16)* and three are controls.
+
+⚠️ **The finding predicted the far-behind row would be `2`; it is `3`.** Feb 1 plus 14 × 13 days lands on
+**Aug 2**, so the resumed schedule charges Aug 2 / 16 / 30. **The premise reproduced exactly and the number
+attached to its proposed remedy did not** — the round's own rule, one more time.
+
+#### ⛔ And two self-inflicted mistakes, both from the shell rather than the code
+
+1. **`git checkout -- <file>` on an UNCOMMITTED test threw the whole new block away.** I ran it to undo a
+   probe edit; it took the `A-F3` sweep with it. Caught by `grep -c` immediately after — the restore, not
+   the plant, is what needed verifying. Every restore since is from a copy, and the copy is diffed.
+2. **`rm -f` swallowed a wrong-directory delete.** The probe file was reported removed and was still there;
+   `typecheck:core` found it three steps later. **`-f` turns a failed delete into a silent one.**
+
+⭐ **And `lint:local-dates` red on the RISE**, because the fix added two hand-rolled `new Date(\`${iso}T00:00:00\`)`
+parses. Rather than raise a baseline that exists to stop the class growing, all **four** in the file now go
+through `parseLocalDate` — 41 → **39**, and the gate's fall-check made recording that mandatory in the same
+edit.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be
