@@ -339,6 +339,22 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-C4-6-RACE": {
+    "what": "pass-4 C4-6, which is C-7b's open half - the loss disclosure could be RACED. openRestoreConfirm sets preview to null and renders the confirm SYNCHRONOUSLY, then starts the iCloud read, so the confirm's first frame drew NOTHING - byte-identical to the un-fixed state C-7b was raised about. The confirm button was disabled={busy !== null} and previewRestore never set busy, and there was no spinner, so the window was invisible: hundreds of milliseconds to seconds over a network round-trip, on the one screen in the app where a second tap destroys data. ⚠️ The docblock's stated intent did not cover it - it argued null is right 'so a slow or unavailable iCloud never blocks a restore the user has asked for', and not blocking the RESTORE and not blocking the CONFIRM BUTTON during a read already in flight are different decisions; only the first was argued. ⛔ The decision is a PURE TABLE in cloudBackupMessages for the reason that module already exists: CloudBackupSheet's ready branch is unreachable to every test in the repo (on web the provider is the unavailable stub), and 'the computed diagnosis is dropped at the last layer' survived thirteen lenses because of it. Three states, three distinct sentences, and the third - 'I couldn't read the backup to tell you what's in it' - used to be SILENCE, which is suppressing a false statement to produce no statement. The commit gate sits beside the words because they are one decision. ⭐ The standing decision survives: a FAILED read re-enables the confirm; only the in-flight state holds. Four plants: the reading state removed, the gate ignoring previewing, and the sheet passing a CONSTANT instead of the live flag - the last is 'a tested helper is not a used helper', and restoreConfirmDisabled(busy, false) typechecks and reads plausibly",
+    "file": "apps/rn/src/data/cloudBackupMessages.test.ts",
+    "token": "the confirm is committable only when the disclosure is known",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/cloudBackupMessages.ts",
+          "find": "  return busy !== null || previewing;",
+          "replace": "  return busy !== null;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the confirm is committable only when the disclosure is known"
+    }
+  },
   "S1P4-A-F3-WINDOWSTART": {
     "what": "pass-4 blocker A-F3 - bnplInstallmentsInWindow declared a windowStartISO and it appeared NOWHERE in the body, so the window had one live bound while its docstring claimed [start, end). Every occurrence a plan had MISSED before the window opened was counted as due in the CURRENT pay cycle. Measured on a $1,200 biweekly Klarna against a $2,000 monthly paycheck, window 2026-08-01 to 2026-09-01, varying only the stored due date: Aug 1 -> 3 charges, $300 required; Feb 1 -> 16 charges, $1,200; a year back -> 29 charges, $1,200 - the whole balance held out of one paycheck. Reachable: debtCsv validates a due date for shape and calendar validity only, and DateField passes no minimumDate, so a past 'Next payment' is one scroll away in the add form. 🎯 2026-08-29 chose HONOUR THE CONTRACT over 'an overdue plan is all due now': the concrete harm is that one payday capture then zeroes the balance and files $1,200 in History as paid down, a record of money never paid. The arrears do not vanish - the balance is untouched and the past due date makes the row read overdue. ⛔ Every window row in this file used dueDate === windowStart, and the ONE row that varied the relationship moved the END before the due date: the class is 'the due date is outside the window' and every row picked the far side, which is why a dead parameter kept the file green. The rows are a SWEEP over the four positions now (before / on / inside / after) with a control that the counts are not one number. ⚠️ The finding predicted the far-behind row would be 2 and it is 3 - Feb 1 plus 14x13 days lands Aug 2 - measured, not taken: the premise reproduced exactly and the number attached to its REMEDY did not. Plant-verified, and each sweep row measured under the plant: two discriminate (3->4, 3->16), three are controls",
     "file": "packages/core/debt/testBnplInstallment.ts",

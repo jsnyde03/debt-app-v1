@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import {
   cloudBackupMessage,
   GENERIC_FAILURE,
@@ -5,6 +9,9 @@ import {
   REMOTE_UNCLAIMED,
   SIGN_IN_TO_ICLOUD,
   toCloudAction,
+  restoreConfirmDisabled,
+  restoreDisclosure,
+  type RestoreDisclosure,
 } from '@/data/cloudBackupMessages';
 
 /**
@@ -85,6 +92,52 @@ export default async function run() {
     const bare = toCloudAction({ reason: 'no-backup' });
     eq(bare.message, undefined, 'a reason with nothing to add carries no message');
     eq(cloudBackupMessage(bare, 'ok'), NO_BACKUP_YET, 'and falls back to its own copy');
+  }
+
+  /**
+   * ⛔ **S1.11.5.2 [pass-4 `C4-6`] — THE DISCLOSURE SLOT AND THE COMMIT GATE, WALKED TOGETHER.**
+   *
+   * ⚡ `C-7b`'s disclosure was RACEABLE: the confirm renders synchronously and the read starts after it, so
+   * its first frame drew **nothing** while the button stayed live — byte-identical to the un-fixed state,
+   * for a whole network round-trip, on the one screen where a second tap destroys data.
+   * ⛔ **The two are asserted as ONE table** because they are one decision: the slot must never be silent,
+   * and the confirm must not be committable while it says *"reading"*.
+   */
+  {
+    const STATES: { label: string; previewing: boolean; preview: string | null; kind: RestoreDisclosure['kind']; disabled: boolean }[] = [
+      { label: 'the read is in flight', previewing: true, preview: null, kind: 'reading', disabled: true },
+      { label: 'a STALE description with a new read in flight', previewing: true, preview: 'This backup has 2 debts…', kind: 'reading', disabled: true },
+      { label: 'the read came back', previewing: false, preview: 'This backup has 2 debts…', kind: 'contents', disabled: false },
+      { label: 'the read failed', previewing: false, preview: null, kind: 'unreadable', disabled: false },
+    ];
+    for (const st of STATES) {
+      const slot = restoreDisclosure(st.previewing, st.preview);
+      eq(slot.kind, st.kind, `⛔ C4-6 · ${st.label} — the slot says which state it is in`);
+      assert(slot.text.length > 0, `⛔ C4-6 · ${st.label} — …and it is NEVER silent, which is what shipped`);
+      eq(restoreConfirmDisabled(null, st.previewing), st.disabled, `⛔ C4-6 · ${st.label} — the confirm is committable only when the disclosure is known`);
+    }
+    // ⭐ THE CONTROL THAT KEEPS THE STANDING DECISION. "A slow or unavailable iCloud never blocks a restore
+    // the user has asked for" — so the FAILURE path re-enables, and only the in-flight one holds.
+    eq(restoreConfirmDisabled(null, false), false, '⭐ C4-6 control — a failed read does not block the restore');
+    // ⛔ …and a real restore in progress still blocks it, or this fix would have deleted the old guard.
+    eq(restoreConfirmDisabled('restore', false), true, '⛔ C4-6 — `busy` still blocks, which is the guard that was already there');
+    // ⛔ The three texts must be DISTINCT, or "reading" and "unreadable" would be one sentence again.
+    const texts = new Set(STATES.map((st) => restoreDisclosure(st.previewing, st.preview).text));
+    eq(texts.size, 3, '⛔ C4-6 — three states, three sentences; a shared one is how the slot went silent');
+
+    /**
+     * ⛔ **A TESTED HELPER IS NOT A USED HELPER.** This whole module exists because `CloudBackupSheet`'s
+     * `ready` branch is unreachable to every automated test in the repo — which means a correct table here
+     * and a sheet that never consults it would look exactly like a fix. ⚠️ The sheet must pass the LIVE
+     * `previewing`, not a constant: `restoreConfirmDisabled(busy, false)` typechecks, reads plausibly, and
+     * restores the defect in full.
+     */
+    const sheet = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '..', 'components', 'more', 'CloudBackupSheet.tsx'),
+      'utf8',
+    );
+    assert(sheet.includes('restoreDisclosure(previewing, preview)'), '⛔ C4-6 — the sheet asks for the slot with the LIVE flag');
+    assert(sheet.includes('restoreConfirmDisabled(busy, previewing)'), '⛔ C4-6 — …and gates the confirm on it, not on a constant');
   }
 
   console.log(`✅ cloud backup message mapping (M3-5) tests passed (${passed} asserts).`);

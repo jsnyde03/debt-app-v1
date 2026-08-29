@@ -28324,6 +28324,50 @@ parses. Rather than raise a baseline that exists to stop the class growing, all 
 through `parseLocalDate` — 41 → **39**, and the gate's fall-check made recording that mandatory in the same
 edit.
 
+### `C4-6` (major) — `C-7b`'s disclosure could be RACED, and the docblock argued a different question
+
+`openRestoreConfirm` sets `preview = null` and renders the confirm **synchronously**, then starts the
+iCloud read. So the confirm's first frame drew **nothing** — byte-identical to the un-fixed state `C-7b`
+was raised about — while the button stayed live, because it was `disabled={busy !== null}` and
+`previewRestore` never touched `busy`. No spinner either, so the window was invisible: hundreds of
+milliseconds to seconds over a network round-trip, **on the one screen in the app where a second tap
+destroys data.**
+
+⚠️ **The docblock's stated intent did not cover it.** It argued `null` is correct *"so a slow or
+unavailable iCloud never blocks a restore the user has asked for."* **Not blocking the RESTORE and not
+blocking the CONFIRM BUTTON for the duration of a read already in flight are different decisions**, and
+only the first was ever argued.
+
+#### The decision is a pure table, for the reason that module already exists
+
+`CloudBackupSheet`'s `ready` branch is unreachable to every automated test in the repo — on web the
+provider is the unavailable stub by construction — and its own docblock records that *"the computed
+diagnosis is dropped at the last layer"* survived thirteen lenses because of it. A three-way choice
+written as nested ternaries in that branch is un-assertable; written in `cloudBackupMessages` it is a
+table, and the suite walks it.
+
+**Three states, three distinct sentences** — asserted distinct, because a shared one is how the slot went
+silent in the first place. ⚠️ **The third is folded in rather than deferred:** *"I couldn't read the backup
+to tell you what's in it"* used to be **silence**, and suppressing a false statement to produce **no**
+statement is the same defect one step quieter.
+
+⭐ **The standing decision survives, and the control says so:** a **failed** read re-enables the confirm and
+the unconditional danger sentence stands alone. Only the in-flight state holds the button.
+
+#### Four plants, and the fourth is the one that mattered
+
+| plant | reds |
+|---|---|
+| the `reading` state removed | the slot assertion — it goes `unreadable` while a read is in flight |
+| the gate ignores `previewing` | the commit assertion |
+| the sheet passes a **constant** (`restoreConfirmDisabled(busy, false)`) | ⛔ the **wiring** assertion |
+| *(control)* `busy: 'restore'` | still blocks, so the old guard was not deleted by this fix |
+
+⛔ **The third is `a tested helper is not a used helper` in its most plausible clothing.**
+`restoreConfirmDisabled(busy, false)` typechecks, reads sensibly, and restores the defect in full — with a
+perfectly correct table sitting one module away. The suite reads the sheet's source and requires the live
+flag at both call sites.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

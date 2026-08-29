@@ -64,6 +64,13 @@ export interface UseCloudBackup {
   unclaimedRemoteAt: string | null;
   /** Which long-running action is in flight, so the UI can disable both rather than queue them. */
   busy: 'backup' | 'restore' | null;
+  /**
+   * ⛔ **S1.11.5.2 [pass-4 `C4-6`] — THE PRE-READ IS IN FLIGHT.** Distinct from `busy`, deliberately:
+   * `busy: 'restore'` would mislabel the state as *"we are overwriting your device"* on a screen whose
+   * whole job is to say what is about to happen. This one means *"we do not yet know what is in the
+   * backup"*, which is exactly the condition under which the confirm must not be committable.
+   */
+  previewing: boolean;
   setEnabled(next: boolean): Promise<void>;
   /**
    * ⛔ `opts.replaceUnclaimed` is the user having been SHOWN the other copy and having chosen to lose it.
@@ -80,6 +87,7 @@ export function useCloudBackup(): UseCloudBackup {
   const [lastBackupAt, setLastBackupAt] = useState<string | null>(null);
   const [unclaimedRemoteAt, setUnclaimedRemoteAt] = useState<string | null>(null);
   const [busy, setBusy] = useState<'backup' | 'restore' | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   // ⚠️ Read with the hook, write through `useActiveStore()` — never the `appStore` singleton. Mixing the
   // two is how a component reads scripted tutorial money and mutates the user's real plan.
   const enabled = useAppStore((s) => s.store.prefs.cloudBackupEnabled === true);
@@ -157,13 +165,33 @@ export function useCloudBackup(): UseCloudBackup {
    * exactly this reason. A failure returns `null` and the sheet falls back to its unconditional warning
    * rather than blocking the restore on a description.
    */
+  /**
+   * ⛔ **S1.11.5.2 [pass-4 `C4-6`] — IT SET NOTHING WHILE IT RAN, AND THAT IS WHAT MADE `C-7b` RACEABLE.**
+   *
+   * ⚡ `openRestoreConfirm` renders the confirm SYNCHRONOUSLY and starts this read afterwards, so the
+   * confirm's first frame carries `preview === null` — **byte-identical to the un-fixed state** `C-7b` was
+   * raised about. The button was `disabled={busy !== null}` and this function never touched `busy`, and
+   * there was no spinner, so the window was invisible. Over an iCloud round-trip that is hundreds of
+   * milliseconds to seconds, on the one screen in the app where a second tap destroys data.
+   *
+   * ⚠️ **The docblock's stated intent did not cover it.** It argued that `null` is right *"so a slow or
+   * unavailable iCloud never blocks a restore the user has asked for"* — **not blocking the RESTORE and
+   * not blocking the CONFIRM BUTTON for the duration of a read already in flight are different
+   * decisions**, and only the first was ever argued. The failure path is unchanged: this clears, the
+   * button re-enables, and the unconditional warning stands on its own.
+   */
   const previewRestore = useCallback(async (): Promise<DebtStore | null> => {
     if (isSandboxStore(store)) return null;
+    setPreviewing(true);
     try {
       const result = await restoreFromCloud(getCloudBackupProvider());
       return result.ok ? result.store : null;
     } catch {
       return null;
+    } finally {
+      // ⛔ `finally`, not the two return paths: a throw that skipped this would leave the confirm
+      // permanently un-committable, which is the failure direction the docblock above refuses.
+      setPreviewing(false);
     }
   }, [store]);
 
@@ -213,5 +241,5 @@ export function useCloudBackup(): UseCloudBackup {
     [status, backupNow, store],
   );
 
-  return { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, setEnabled, backupNow, previewRestore, restoreNow };
+  return { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, previewing, setEnabled, backupNow, previewRestore, restoreNow };
 }

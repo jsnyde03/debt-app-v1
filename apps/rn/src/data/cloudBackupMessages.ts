@@ -57,3 +57,52 @@ export function cloudBackupMessage(action: CloudBackupActionLike, success: strin
   if (result === 'unavailable') return SIGN_IN_TO_ICLOUD;
   return GENERIC_FAILURE;
 }
+
+/**
+ * ⛔ **THE RESTORE CONFIRM'S DISCLOSURE SLOT, AS A PURE DECISION.** [S1.11.5.2 · pass-4 `C4-6`]
+ *
+ * ⚡ **`C-7b`'s disclosure could be RACED.** `openRestoreConfirm` renders the confirm synchronously and
+ * starts the iCloud read afterwards, so the confirm's first frame carried `preview === null` and the slot
+ * drew **nothing** — byte-identical to the un-fixed state. The confirm button was `disabled={busy !== null}`
+ * and the pre-read never set `busy`, and there was no spinner, so the window was invisible. Over a network
+ * round-trip that is hundreds of milliseconds to seconds, on the one screen where a second tap destroys
+ * data.
+ *
+ * ⛔ **It lives here rather than in the JSX for the reason this file already exists.** `CloudBackupSheet`'s
+ * `ready` branch is unreachable to every automated test in the repo — on web the provider is the
+ * unavailable stub by construction — and *"the computed diagnosis is dropped at the last layer"* survived
+ * thirteen lenses because of it. A three-way choice written as nested ternaries in that branch is
+ * un-assertable; written here it is a table.
+ *
+ * ⚠️ **Three states, and the third one is the folded-in half.** *"I could not read it"* used to be
+ * **silence** — the slot simply drew nothing on the failure path — and suppressing a false statement to
+ * produce no statement is the same defect one step quieter.
+ */
+export type RestoreDisclosure =
+  | { kind: 'reading'; text: string }
+  | { kind: 'contents'; text: string }
+  | { kind: 'unreadable'; text: string };
+
+export const RESTORE_READING = 'Reading the backup…';
+export const RESTORE_UNREADABLE = 'I couldn’t read the backup to tell you what’s in it.';
+
+export function restoreDisclosure(previewing: boolean, preview: string | null): RestoreDisclosure {
+  // ⛔ `previewing` OUTRANKS a stale `preview`: re-opening the confirm clears the description and starts a
+  // new read, and showing the previous backup's contents over a read in flight is a claim about the wrong
+  // file.
+  if (previewing) return { kind: 'reading', text: RESTORE_READING };
+  if (preview) return { kind: 'contents', text: preview };
+  return { kind: 'unreadable', text: RESTORE_UNREADABLE };
+}
+
+/**
+ * ⛔ **AND THE COMMIT GATE, BESIDE THE WORDS, BECAUSE THEY ARE ONE DECISION.** The confirm may not be
+ * committed while the disclosure is unknown. ⚠️ `previewing`, never `busy: 'restore'` — that would label
+ * the state *"we are overwriting your device"* while we are only reading it. ⭐ The failure path is
+ * deliberately NOT blocked: the read returned nothing, the slot says so, and the unconditional danger
+ * sentence stands on its own — *"a slow or unavailable iCloud never blocks a restore the user has asked
+ * for"* is the standing decision, and it survives.
+ */
+export function restoreConfirmDisabled(busy: unknown, previewing: boolean): boolean {
+  return busy !== null || previewing;
+}

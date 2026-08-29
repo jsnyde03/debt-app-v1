@@ -5,7 +5,7 @@ import { StyleSheet, Switch, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { cloudBackupMessage } from '@/data/cloudBackupMessages';
+import { cloudBackupMessage, restoreConfirmDisabled, restoreDisclosure } from '@/data/cloudBackupMessages';
 import { formatBackupTime } from '@/data/formatBackupTime';
 import { describeRestorePreview } from '@/data/readBackup';
 import { useCloudBackup, type CloudBackupAction } from '@/hooks/use-cloud-backup';
@@ -28,7 +28,7 @@ import { textStyles } from '@/theme/typography';
  */
 export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
   const c = useAppColors();
-  const { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, setEnabled, backupNow, previewRestore, restoreNow } =
+  const { status, enabled, lastBackupAt, unclaimedRemoteAt, busy, previewing, setEnabled, backupNow, previewRestore, restoreNow } =
     useCloudBackup();
   const [message, setMessage] = useState('');
   const [confirmingRestore, setConfirmingRestore] = useState(false);
@@ -158,11 +158,22 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
                   direction only, and the user is the only one who knows which copy is the good one. */}
               {/* ⛔ [C-7b] What is in the file, ABOVE the danger sentence — the file door's own rule
                   ("SHOW what is in it, and only then replace"), applied to the door that skipped it. */}
-              {preview ? (
-                <Text testID="cloud-restore-preview" style={[textStyles.body, { color: c.text.primary }]}>
-                  {preview}
-                </Text>
-              ) : null}
+              {/* ⛔ **S1.11.5.2 [pass-4 `C4-6`] — THE DISCLOSURE SLOT IS NEVER SILENTLY EMPTY.** The
+                  confirm renders synchronously and the read starts after it, so this slot's first frame
+                  was blank and indistinguishable from the un-fixed state. Three states now, and each says
+                  which one it is: reading · what is in it · and *"I could not read it"*, which is the one
+                  that used to be silence. ⚠️ The last is folded in rather than deferred — suppressing a
+                  false statement to produce NO statement is the same defect one step quieter. */}
+              {(() => {
+                const slot = restoreDisclosure(previewing, preview);
+                return (
+                  <Text
+                    testID={`cloud-restore-${slot.kind}`}
+                    style={[textStyles.body, { color: slot.kind === 'unreadable' ? c.accent.warning : slot.kind === 'reading' ? c.text.secondary : c.text.primary }]}>
+                    {slot.text}
+                  </Text>
+                );
+              })()}
               <Text testID="cloud-restore-warning" style={[textStyles.body, { color: c.text.primary }]}>
                 Restoring replaces everything on this device with the copy in iCloud. This can’t be undone.
               </Text>
@@ -170,7 +181,9 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
                 label={REPLACE_DATA_ACTION}
                 variant="danger"
                 testID="cloud-restore-confirm"
-                disabled={busy !== null}
+                // ⛔ [C4-6] …and it cannot be COMMITTED while the disclosure is unknown. `previewing`, not
+                // `busy`: the second would say "we are overwriting your device" while we are only reading.
+                disabled={restoreConfirmDisabled(busy, previewing)}
                 onPress={() => {
                   setConfirmingRestore(false);
                   void restoreNow().then((r) => report(r, 'Restored from iCloud.'));
