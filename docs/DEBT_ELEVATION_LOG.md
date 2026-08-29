@@ -28537,6 +28537,36 @@ open: re-duplicate a phrase later and the gate stays green about a number nobody
 than an exit, because *"a gate that reds on progress is a gate that gets reverted"* — argued in
 `check-apostrophes.ts` and re-stated here rather than re-opened.
 
+### `F-B5` — the finding the plan's own lists had dropped
+
+⛔ **`F-B5` appears in no sub-step list on the plan.** It surfaced by **enumerating every `###` heading
+across the four lane files** rather than reading the lists — `5 + 11 + 13 + 5 = 34`, and `F-B5` is the one
+nobody had routed. ⚡ **The undercount class, arriving in the routing of the FIXES rather than in a
+finding** — measured for the eighth time in this audit, and the reason the count was checked at all is
+that the session was asked how many were left.
+
+`S1P3-B6`'s token is `stage: DemoStageId` in `analytics/funnel.ts` — the **consumer's annotation**. Widen
+the union at its **declaration** in `demoRun.ts` and `funnel.ts` is untouched, so the token stays on a
+non-comment line and `lint:finding-guards` exits 0 while `demo_stage.stage` is an open `string` again.
+`D3-3`'s shape. ⚠️ It matters because `funnel.ts`'s header is the **stated review surface for a privacy
+claim** — *"the Phase-6 privacy audit reads exactly it"* — so *"no free-form string anywhere in this
+file's types"* could be made false with every gate green.
+
+⭐ **Measured at switch-in: the BEHAVIOUR is already closed.** `S1.11.3.3` added `funnel.test.ts`'s
+`@ts-expect-error`, which becomes `TS2578` the moment the union stops refusing a free-form stage — re-run
+here, and the plant reds `typecheck`. **What was still open is that deleting that directive left `lint:rn`
+green**, because `prove:guards` is not in the chain. The token is the guard's own use line now.
+
+⛔ **A second assertion at the declaration was written, measured to red on the same plant, and REMOVED.**
+Two producers of one fact is the class this round is collapsing everywhere else, and it does not get an
+exception because I wrote it. The reasoning stays at the declaration, where an editor meets it; the guard
+stays where it already worked.
+
+⚠️ **And the token could not be the `@ts-expect-error` line itself** — `lint:finding-guards` refuses a
+token that lives only in a comment, which is right, **except that here the guard IS a comment with
+compiler semantics.** The use line covers both: deleting the directive alone reds `typecheck`, and
+deleting the block takes the use line with it.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

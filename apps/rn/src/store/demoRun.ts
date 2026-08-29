@@ -28,7 +28,27 @@ import { seedSandbox, type SandboxScenario, type SandboxStoreInstance } from './
  * is annotated `DemoStage[]`, so that indexed access resolves straight back to `string`. The union has to
  * live here, on the id itself.
  */
+/**
+ * ⛔ **S1.11.5.5 [pass-4 `F-B5`] — WIDENING THIS ONE WORD USED TO LEAVE EVERY GATE GREEN.**
+ *
+ * ⚡ `S1P3-B6`'s registered token is `stage: DemoStageId` in `analytics/funnel.ts` — the CONSUMER's
+ * annotation. Set this union to `string` and `funnel.ts` is untouched, so the token is still on a
+ * non-comment line and `lint:finding-guards` exits 0 while `demo_stage.stage` is an open string again.
+ * ⛔ `D3-3`'s shape: the token is right about the wrong line, and the defect lives at the declaration.
+ *
+ * ⚠️ **`funnel.ts`'s header is the stated review surface for a PRIVACY claim** — its own docblock says
+ * the Phase-6 privacy audit *"reads exactly it"* — so *"no free-form string anywhere in this file's
+ * types"* could be made false with every gate green, and the audit would read a sentence nothing checks.
+ *
+ * ⭐ **Measured at switch-in: the BEHAVIOUR is already guarded.** `S1.11.3.3` added
+ * `funnel.test.ts`'s `@ts-expect-error`, which becomes `TS2578` the moment this union stops refusing a
+ * free-form stage — re-run here, and the plant reds `typecheck`. A second assertion beside this
+ * declaration was written, measured to red on the same plant, and **removed**: two producers of one fact
+ * is the class this whole round is collapsing. What was left open is the TOKEN, and that is where the
+ * fix went.
+ */
 export type DemoStageId = 'debts' | 'held' | 'absorbed' | 'trajectory' | 'payoff';
+
 
 export interface DemoStage {
   id: DemoStageId;
