@@ -106,6 +106,61 @@ export function liveDebts(store: DebtStore): Debt[] {
   return store.debts.filter((d) => d.balance > 0);
 }
 
+/**
+ * ⛔ **THE COMPLEMENT OWNER — *"which debts are CLEARED?"* — AND IT IS A PARTITION, NOT A SECOND FILTER.**
+ * [S1.11.4.2 · pass-4 blocker `C4-2`]
+ *
+ * ⚡ `liveDebts` gave *"is this debt live?"* one owner and left the **inverse** spelled out at every site
+ * that asks it, which is the same defect one negation away. Measured on one store with one variable — a
+ * $12,000 Chase balance the reader lost, repaired to `0` and recorded, beside an intact Amex — every one
+ * of them filed a card the user owes IN FULL as paid off: the permanent trophy shelf read
+ * *"Chase — $12,000 paid off"* with a Share button composing *"I paid off 1 debt ($12,000) 🎉"*, Money put
+ * it under a **"PAID OFF"** heading, and `selectCelebrationStats` counted `debtsCleared: 1` against a true
+ * **0**. ⛔ Every existing guard covered the **amount** and none covered the **membership**: `d.balance <= 0`
+ * is the one test a repaired balance passes, and `originalBalance` — the figure that WAS guarded — had been
+ * read perfectly.
+ *
+ * ⛔ **WHY A PARTITION AND NOT A `clearedDebts` FILTER, WHICH IS WHAT THE FINDING ASKED FOR.** Excluding the
+ * unread row from *"paid off"* without saying where it goes **deletes it from Money's list**: it is not in
+ * `active` either (`view.order` ranks `balance > 0`), so the finding's own stated remedy would have made a
+ * debt the user still owes vanish from the debts screen entirely. That failure has a name here already —
+ * `migrations.ts:99` records *"puts it in neither the active list nor the paid-off list"* as the shape a
+ * `$NaN` came out of. Returning all three groups at once makes "in neither list" unrepresentable, and
+ * `trustSelectors.test.ts` asserts the three sum to `store.debts.length`.
+ *
+ * ⚠️ **Per ROW, not store-wide** — `rowFieldUnread` is the right question for a row and carries the
+ * whole-row-loss case with it (`F-B4`'s three-member class). ⛔ Do **not** reach for
+ * `hasUnreadDebtBalances` here: it is correctly narrow for its own consumers, and a store-wide gag would
+ * take a genuinely-earned trophy off the shelf over an unrelated debt's repair — the *"true statement
+ * withheld"* failure `progress.tsx` records having already made once.
+ */
+export interface DebtPartition {
+  /** Money still on them. Identical to `liveDebts(store)`, asserted rather than assumed. */
+  live: Debt[];
+  /** `balance <= 0` **and** the app read that balance — the only group anything may call *paid off*. */
+  cleared: Debt[];
+  /** `balance <= 0` only because the reader lost it. Still owed as far as anyone knows; must still be SHOWN. */
+  unreadBalance: Debt[];
+}
+
+export function partitionDebts(store: DebtStore): DebtPartition {
+  const live: Debt[] = [];
+  const cleared: Debt[] = [];
+  const unreadBalance: Debt[] = [];
+  for (const d of store.debts) {
+    if (d.balance > 0) live.push(d);
+    else if (rowFieldUnread(store, 'debt-balances', 'debt', d.id, 'balance')) unreadBalance.push(d);
+    else cleared.push(d);
+  }
+  return { live, cleared, unreadBalance };
+}
+
+/** The debts the app has CONFIRMED are cleared. Sugar over `partitionDebts` for the sites that only ask
+ *  the one question — never re-spell it as `balance <= 0`. */
+export function clearedDebts(store: DebtStore): Debt[] {
+  return partitionDebts(store).cleared;
+}
+
 
 
 /**

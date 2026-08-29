@@ -339,6 +339,22 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-C4-2-MEMBERSHIP": {
+    "what": "pass-4 blocker C4-2 - MEMBERSHIP, which every existing guard left open. A balance the reader loses repairs to 0, and d.balance <= 0 is the one test that value passes; C-4 guarded the AMOUNT at both mount points and originalBalance had been read perfectly, so the figure printed. Measured on one store with one variable (Chase $12,000 unreadable beside an intact Amex): the permanent trophy shelf read 'DEBTS PAID OFF 1 / Chase - $12,000 paid off' with a Share button composing 'I paid off 1 debt ($12,000) on my way to debt-free', Money put the same row under a 'PAID OFF' heading, and two siblings the report never named were wrong too - selectCelebrationStats counted debtsCleared 1 against a true 0, and isLastLiveDebt said Amex was the last live debt. ⛔ The remedy is a PARTITION and not the exclusion the finding asked for: excluding the unread row from paid-off DELETES it from Money's list, because it is not in `active` either (view.order ranks balance > 0) - the 'in neither list' failure migrations.ts:99 already records. Planted the finding's own remedy verbatim and the e2e reds on the Chase row not being visible. partitionDebts returns { live, cleared, unreadBalance }, total by construction, and trustSelectors.test.ts asserts the three sum to store.debts.length AND that live IS liveDebts rather than a second copy of the expression. ⚠️ Routing isLastLiveDebt through liveDebts was NOT the fix and the test said so by failing: liveDebts is the owner of the EXPRESSION and is deliberately silent about the unread case, so a function that BRANCHES owes the claim question (mayClaim('debt-balances'), the same one selectCelebration gates the finale on). ⚠️ detectPayoff's finale stamp was measured, nearly filed as a fourth blocker, and is NOT a defect - selectCelebration gates the RENDER, deliberately, because detection is transition-based and an unstamped crossing can never be detected again",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "      p.live.length + p.cleared.length + p.unreadBalance.length,",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/trustSelectors.ts",
+          "find": "    else if (rowFieldUnread(store, 'debt-balances', 'debt', d.id, 'balance')) unreadBalance.push(d);",
+          "replace": "    else if (false) unreadBalance.push(d);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the trophy shelf"
+    }
+  },
   "S1P4-C4-7-SURFACES": {
     "what": "pass-4 blocker C4-7 - D3-2's remedy wired mayClaim(store,'required-plan') into the Lock Screen and the widget/Siri, the two surfaces OUTSIDE the app, and never into the in-app Payday Guardian card the brief is built for. Measured on one store with one variable (a $1,500 minimum the reader lost, repaired to $0 and recorded): the card said 'Apply the spare $1,800 toward Visa' and showed 'To debt $1,800' against a true $300, while the Lock Screen returned null and Siri returned '' on that same store. The app instructing someone to move six times the money they actually have free. ⛔ The guard is NOT one test naming that mount - the finding is that this claim is wired per-site and nothing walked the sites, so requiredPlanTrust.test.ts holds ONE list of the six surfaces and the assertion walks it: three answerable purely (Lock Screen, widget/Siri, paywall lead) asserted as a PAIR against a control, three React cards asserted at the mount for the call plus a named e2e for the render. ⚠️ Its completeness is explicitly NOT claimed - lint:trust-claims check 3 is the structural half and pass-4 C4-4 is the measured hole in it, which is the escape C4-7 itself came through. Both plants measured: removing the wiring reds this file naming the Guardian mount, and the naive over-fix the finding warns against (null the brief at the host, which deletes Today's whole premium surface rather than making it honest) reds trust-claims.spec.ts on payday-guardian-card not being visible. ⭐ And the e2e's four absence assertions were each re-measured with the assertions above them relaxed, so none is the vacuous kind a plant redding early hides",
     "file": "apps/rn/src/store/requiredPlanTrust.test.ts",
@@ -1029,14 +1045,14 @@
     "token": "\"baseUrl\": \"..\""
   },
   "S1P3-G-LIVENESSLEDGER": {
-    "what": "S1.10.6.9 — the durable half. A blanket ban on `balance > 0` was written, measured and thrown away: git grep returns 40+ occurrences and most are packages/core amortization loops that hold no store and are right to treat a 0 balance as paid, so the rule would have been unsatisfiable — B1's own failure mode. The gate is scoped to apps/rn/src, where DebtStore and therefore pendingDataRepairs are in reach, and is a self-ratcheting LEDGER: 13 sites across 10 files, counts exact in BOTH directions (a fixed site reds until its row goes, a new one reds on arrival), cap downward-only, and every file printed by name on the GREEN line. Seven of the ten never mention the trust module at any line ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated. | S1.11.3.3: measured GUARD-ONLY by auditor D - reverted to a derived sum, 14 sites were accepted against a cap of 13 and the green line printed `cap 14`, with both gates at exit 0. lint:cap-literals now refuses a derived bound anywhere in scripts/. Proven by plant.",
+    "what": "S1.10.6.9 — the durable half. A blanket ban on `balance > 0` was written, measured and thrown away: git grep returns 40+ occurrences and most are packages/core amortization loops that hold no store and are right to treat a 0 balance as paid, so the rule would have been unsatisfiable — B1's own failure mode. The gate is scoped to apps/rn/src, where DebtStore and therefore pendingDataRepairs are in reach, and is a self-ratcheting LEDGER: 13 sites across 10 files, counts exact in BOTH directions (a fixed site reds until its row goes, a new one reds on arrival), cap downward-only, and every file printed by name on the GREEN line. Seven of the ten never mention the trust module at any line ⛔ S1.10.6.5.4 [pass-3 D3-3] — token RE-POINTED from the line that DECLARES the value to the line that USES it. A declaration survives its use being deleted, so the old token was green over the defect's own return; swept registry-wide rather than repaired one entry at a time, and gated. | S1.11.3.3: measured GUARD-ONLY by auditor D - reverted to a derived sum, 14 sites were accepted against a cap of 13 and the green line printed `cap 14`, with both gates at exit 0. lint:cap-literals now refuses a derived bound anywhere in scripts/. Proven by plant. | S1.11.4.2 [C4-2]: the ledger did its job on the GREEN path - celebrationSelectors.ts's row went STALE when that file stopped re-deriving liveness, and the gate said so rather than passing. Row removed, cap 13 -> 12, and this proof's anchor re-pointed with it (the gate caught the stale anchor too).",
     "file": "scripts/check-trust-claims.ts",
     "token": "if (livenessTotal > MAX_LIVENESS_SITES) {",
     "proof": {
       "unfix": [
         {
           "at": "scripts/check-trust-claims.ts",
-          "find": "const MAX_LIVENESS_SITES = 13;",
+          "find": "const MAX_LIVENESS_SITES = 12;",
           "replace": "const MAX_LIVENESS_SITES = Object.values(LIVENESS_OPEN).reduce((n, r) => n + r.sites, 0);"
         }
       ],

@@ -1,6 +1,6 @@
-import type { Debt, DebtStore, PendingPayoff } from '@/data/models';
+import type { DebtStore, PendingPayoff } from '@/data/models';
 
-import { mayClaim, rowFieldUnread } from '@/store/trustSelectors';
+import { clearedDebts, liveDebts, mayClaim, rowFieldUnread } from '@/store/trustSelectors';
 
 /**
  * Debt-paid-off celebration (3.3.1) — the pure read layer for the "paid off" archive + the grand-finale
@@ -45,8 +45,12 @@ export interface PaidOffDebt {
  * card and still owes another was reading "$0 paid off" without needing to be debt-free at all.
  */
 export function selectPaidOffDebts(store: DebtStore): PaidOffDebt[] {
-  return store.debts
-    .filter((d) => d.balance <= 0)
+  // ⛔ S1.11.4.2 [pass-4 blocker `C4-2`] — MEMBERSHIP, not just the amount. `C-4` guarded the FIGURE
+  // (`originalBalance`) at both mount points and the docblock above claims it "fixes BOTH mount points";
+  // measured, it fixes the figure at both and the membership at neither. `d.balance <= 0` is the one test
+  // a repaired balance passes, so a $12,000 card the user owes in full walked onto the permanent trophy
+  // shelf reading "Chase — $12,000 paid off", with a Share button composing it into a sentence.
+  return clearedDebts(store)
     .map((d) => ({
       id: d.id,
       name: d.name,
@@ -63,8 +67,23 @@ export function selectPaidOffDebts(store: DebtStore): PaidOffDebt[] {
  * True when `id` is the LAST live debt — confirming it to $0 makes the user debt-free. Called at confirm
  * time (BEFORE the store mutates, while `id` still has a balance) to choose the per-debt beat vs the finale.
  */
-export function isLastLiveDebt(debts: Debt[], id: string): boolean {
-  const live = debts.filter((d) => d.balance > 0);
+export function isLastLiveDebt(store: DebtStore, id: string): boolean {
+  // ⛔ S1.11.4.2 [pass-4 `C4-2`, sibling] — took a `Debt[]` and re-spelled `balance > 0`, so a balance the
+  // reader lost left the live list and this answered TRUE on a portfolio still owing $12,000. Measured on
+  // `C4-2`'s own store. ⚠️ Latent rather than shipped — grep finds no production consumer today — but a
+  // helper that is wrong when someone finally calls it is worse than one that does not exist.
+  //
+  // ⛔ **ROUTING IT THROUGH `liveDebts` WAS NOT THE FIX, AND THE TEST SAID SO BY FAILING.** `liveDebts` is
+  // the owner of the EXPRESSION and is deliberately silent about the unread case — its own docblock:
+  // *"a portfolio that is entirely unread returns `[]` here exactly as a paid-off one does… branch copy
+  // from `debtLiveness`."* This function branches, so it owes the claim question, not the array.
+  //
+  // ⚠️ `mayClaim('debt-balances')` and not `hasUnreadDebtBalances`, because this decides the FINALE and
+  // `selectCelebration` gates the finale on exactly that claim — one producer for one question. It is the
+  // wider of the two (it carries `originalBalance`), which is right here and wrong for liveness: `F-B4`
+  // measured that distinction in the other direction, on the other question.
+  if (!mayClaim(store, 'debt-balances')) return false;
+  const live = liveDebts(store);
   return live.length === 1 && live[0].id === id;
 }
 
@@ -80,7 +99,11 @@ export interface CelebrationStats {
 export function selectCelebrationStats(store: DebtStore): CelebrationStats {
   const { debts } = store;
   const totalPaid = round2(debts.reduce((sum, d) => sum + (d.originalBalance ?? Math.max(0, d.balance)), 0));
-  const cleared = debts.filter((d) => d.balance <= 0);
+  // ⛔ S1.11.4.2 [pass-4 `C4-2`, sibling in the same file] — `debtsCleared` read **1** against a true **0**
+  // on `C4-2`'s store. Gated at the render by `selectCelebration`, so it is latent rather than shipped;
+  // the count is still wrong at the source, and "the fix reached the instance reported and left a sibling
+  // asserting on the same store" is the class this whole round is about.
+  const cleared = clearedDebts(store);
 
   const latestClear = cleared.reduce<string | null>((max, d) => {
     const dt = d.lastVerifiedDate ?? d.balanceAsOfDate ?? null;

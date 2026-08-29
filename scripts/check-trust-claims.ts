@@ -336,7 +336,6 @@ for (const rel of files) {
 const LIVENESS_OPEN: Record<string, { sites: number; why: string }> = {
   'apps/rn/src/store/analysisSelectors.ts': { sites: 1, why: 'the analysis debt basis; never mentions the trust module' },
   'apps/rn/src/store/balanceSelectors.ts': { sites: 2, why: 'the stale-estimate filters; never mentions the trust module' },
-  'apps/rn/src/store/celebrationSelectors.ts': { sites: 1, why: 'asks the module elsewhere in the file — whether THIS site is covered is unmeasured' },
   'apps/rn/src/store/demoRun.ts': { sites: 1, why: 'the demo script; a seeded store carries no repairs, so this is very likely a non-defect — unmeasured' },
   'apps/rn/src/store/drift.ts': { sites: 1, why: '"has a plan" gate; never mentions the trust module' },
   'apps/rn/src/store/payoffCelebration.ts': { sites: 2, why: 'before/after arrays around a payoff; never mentions the trust module' },
@@ -345,8 +344,13 @@ const LIVENESS_OPEN: Record<string, { sites: number; why: string }> = {
   'apps/rn/src/store/sandboxScenarios.ts': { sites: 1, why: 'the tutorial sandbox; a synthetic store carries no repairs — unmeasured' },
   'apps/rn/src/widget/snapshot.ts': { sites: 1, why: 'asks the module at the payload gate (`D3-1`); whether THIS site is covered is unmeasured' },
 };
-/** ⛔ Downward-only, and a LITERAL — check 3's caps were once derived from their own lists and vacuous. */
-const MAX_LIVENESS_SITES = 13;
+/** ⛔ Downward-only, and a LITERAL — check 3's caps were once derived from their own lists and vacuous.
+ *  ⭐ 13 → 12, S1.11.4.2 [pass-4 `C4-2`]: `celebrationSelectors.ts` no longer re-derives liveness at all.
+ *  Its one ledgered site was the `balance > 0` inside `isLastLiveDebt`, and the row's own `why` said the
+ *  coverage was **unmeasured** — measured now, and it was wrong: the helper answered *"clearing Amex makes
+ *  you debt-free"* over a $12,000 balance the reader had lost. It asks `mayClaim` instead. ⚠️ The gate
+ *  found this itself, on the green path, by noticing the ledger had gone stale. */
+const MAX_LIVENESS_SITES = 12;
 
 for (const [rel, n] of livenessCounts) {
   const row = LIVENESS_OPEN[rel];

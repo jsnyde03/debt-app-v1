@@ -344,3 +344,75 @@ test('C4-7 control · the same card with the minimum readable still states the w
   await expect(page.getByText('To debt')).toBeVisible();
   await expect(page.getByTestId('guardian-unread-inputs')).toHaveCount(0);
 });
+
+// ── C4-2 · the trophy shelf, and the heading Money put over the same row ─────────────────────────
+
+/**
+ * ⛔ **S1.11.4.2 [pass-4 blocker `C4-2`] — MEMBERSHIP, WHICH EVERY EXISTING GUARD LEFT OPEN.** A balance
+ * the reader loses repairs to `0`, and `d.balance <= 0` is the one test that value passes. `C-4` guarded
+ * the AMOUNT at both mount points; `originalBalance` had been read perfectly, so the figure printed.
+ *
+ * ⚡ Chase at $12,000 unreadable, beside an intact Amex, so the user is provably not debt-free. The unit
+ * suite walks the producers; these two prove the SCREENS, which is where the sentence and the heading are.
+ */
+test('C4-2 · the trophy shelf does not file a debt the app could not read as paid off', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'c1', name: 'Chase', balance: 'twelve thousand', originalBalance: 12000, minimumPayment: 200, apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+        { id: 'a1', name: 'Amex', balance: 4000, originalBalance: 6000, minimumPayment: 100, apr: 18, dueDate: day(8), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/progress');
+  // ⛔ The shelf renders `null` for an empty list, so the absence below could also mean "the page never
+  // loaded". Anchor on something this screen always shows first.
+  await expect(page.getByTestId('progress-hero-date')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/DEBTS PAID OFF/)).toHaveCount(0);
+  await expect(page.getByText(/\$12,000 paid off/)).toHaveCount(0);
+});
+
+test('C4-2 · Money keeps the row and drops the PAID OFF heading over it', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'c1', name: 'Chase', balance: 'twelve thousand', originalBalance: 12000, minimumPayment: 200, apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+        { id: 'a1', name: 'Amex', balance: 4000, originalBalance: 6000, minimumPayment: 100, apr: 18, dueDate: day(8), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/money');
+  await expect(page.getByRole('button', { name: /^Amex,/ })).toBeVisible({ timeout: 15_000 });
+  // ⛔ THE ROW MUST STILL BE ON THE SCREEN. The finding's own stated remedy — apply the same exclusion
+  // here — would have deleted it: it is not in `active` either, which is the "in neither list" failure
+  // `migrations.ts:99` already records. This assertion is the reason the producer is a partition.
+  await expect(page.getByRole('button', { name: /^Chase,/ })).toBeVisible();
+  // …under an honest heading, and not under the false one.
+  await expect(page.getByText('BALANCE UNREAD')).toBeVisible();
+  await expect(page.getByText('PAID OFF')).toHaveCount(0);
+});
+
+test('C4-2 control · a genuinely cleared debt is still on the shelf, at its real figure', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'c1', name: 'Chase', balance: 0, originalBalance: 12000, minimumPayment: 200, apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly', lastVerifiedDate: day(-3) },
+        { id: 'a1', name: 'Amex', balance: 4000, originalBalance: 6000, minimumPayment: 100, apr: 18, dueDate: day(8), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/progress');
+  // ⭐ The half that stops this being a blanket suppression: the trophy the user actually earned.
+  await expect(page.getByText(/DEBTS PAID OFF/)).toBeVisible({ timeout: 15_000 });
+  // ⚠️ `.first()` because the tombstone says this TWICE by design — the visible caption carries the date
+  // ("$12,000 paid off · Aug 2026") and the row's collapsed a11y label says it without one. Asserting an
+  // unscoped match here is a strict-mode violation that only exists in the GREEN state, which is the
+  // second one this sub-step produced: no plant can see it, because under a plant the text is absent.
+  await expect(page.getByText(/\$12,000 paid off/).first()).toBeVisible();
+});

@@ -27918,6 +27918,64 @@ on this screen at once, and the required-actions card below says it verbatim. A 
 wording proves *some* card is honest, never that **this** one is. Scoped to the card's own testID.
 ⚡ Invisible in every planted run, because under the plant the assertion above it fired first.
 
+### `C4-2` (blocker) — the shelf filed a card the user owes in full, and the class had five members
+
+`C-4` guarded the **amount** at both mount points and its own docblock claims it *"fixes BOTH mount
+points"*; measured, it fixes the figure at both and the **membership** at neither. `d.balance <= 0` is the
+one test a repaired balance passes, and `originalBalance` — the field that WAS guarded — had been read
+perfectly. One store, one variable *(Chase's $12,000 balance lost, beside an intact Amex)*:
+
+```
+selectPaidOffDebts  : [{ name: "Chase", amount: 12000, … }]
+SHELF HEADER        : DEBTS PAID OFF · 1      TOMBSTONE: Chase — $12,000 paid off
+SHARE HEADLINE      : I paid off 1 debt ($12,000) on my way to debt-free 🎉
+money.tsx           : Chase under a section headed "PAID OFF"
+celebrationStats    : debtsCleared 1          <- not in the report
+isLastLiveDebt('a1'): true                    <- not in the report
+detectPayoff(a1→$0) : { kind: 'finale' }      <- not in the report
+```
+
+⚠️ **The last of those is NOT a defect and measuring the consumer is what said so.** `selectCelebration`
+gates the finale's RENDER on `mayClaim('debt-balances')`, and `withPayoffCelebration`'s docblock explains
+why the gate is deliberately on the read: detection is transition-based, so a crossing not stamped can
+never be detected again and the once-ever finale would be lost for the life of the install. ⛔ Nearly filed
+as a fourth blocker; it is the design. **`B3` again — ask what the value does downstream.**
+
+#### The remedy is a PARTITION, and the finding's own remedy was the trap
+
+The finding said `selectPaidOffDebts` should exclude the unread row. **Doing only that deletes the debt
+from Money's list** — it is not in `active` either, because `view.order` ranks `balance > 0`.
+`migrations.ts:99` already records that exact shape, *"puts it in neither the active list nor the paid-off
+list"*, as what a `$NaN` came out of. ⭐ **Measured, not reasoned: planted the finding's remedy verbatim
+and the e2e reds on the Chase row not being visible.** Fourth remedy this round that would have introduced
+a defect.
+
+`partitionDebts(store)` returns `{ live, cleared, unreadBalance }` — total by construction, with
+`trustSelectors.test.ts` asserting the three sum to `store.debts.length` **and** that `live` is
+`liveDebts(store)` rather than a second copy of the expression. Money renders the third group under
+**"BALANCE UNREAD"**, in the hero's own vocabulary.
+
+⛔ **`liveDebts` WAS NOT THE FIX FOR `isLastLiveDebt`, AND THE TEST SAID SO BY FAILING.** Routing it
+through the array owner left it answering `true`, because `liveDebts` is deliberately silent about the
+unread case — its own docblock: *"a portfolio that is entirely unread returns `[]` here exactly as a
+paid-off one does… branch copy from `debtLiveness`."* ⚡ **A function that BRANCHES owes the claim
+question, not the array**, and the claim is `mayClaim('debt-balances')` — the same one `selectCelebration`
+gates the finale on. ⚠️ The opposite of `F-B4`'s call three sub-steps earlier, on the opposite question.
+
+#### The plants
+
+| plant | result |
+|---|---|
+| the partition stops asking | the shelf and `debtsCleared` both red — **and `isLastLiveDebt` does not**, so it needed its own |
+| `isLastLiveDebt` stops asking the claim | reds the third surface, which the first plant never exercised |
+| **the finding's own stated remedy** *(exclude, no third group)* | the Chase row vanishes from Money and the e2e reds |
+
+⛔ **AND THE GREEN-STATE DEFECT HAPPENED AGAIN, IN THE SAME SUB-STEP.** The control's
+`getByText(/\$12,000 paid off/)` was a strict-mode violation: the tombstone says it twice by design, once
+as the visible caption with a date and once in the row's collapsed a11y label. ⚡ **Second instance in one
+sub-step. No plant can see this class — under a plant the text is absent — and the only instrument that
+catches it is running the suite GREEN.**
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

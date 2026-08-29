@@ -43,7 +43,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { useActiveStore } from '@/store/StoreContext';
 import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
-import { anyRowFieldUnread, hasUnreadDebtBalances, rowFieldUnread, unreadFieldsFor } from '@/store/trustSelectors';
+import { anyRowFieldUnread, hasUnreadDebtBalances, partitionDebts, rowFieldUnread, unreadFieldsFor } from '@/store/trustSelectors';
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL, resolveBillCategory } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
@@ -230,7 +230,21 @@ function DebtsSection({
   // pushes the `/schedule/[id]` route instead (see `viewSchedule`).
   const [scheduleFor, setScheduleFor] = useState<string | null>(null);
   const { isExpanded } = useLayout(); // 3.6.2 — iPad landscape / wide → master-detail
-  const paidOff = store.debts.filter((d) => d.balance <= 0);
+  /**
+   * ⛔ **S1.11.4.2 [pass-4 blocker `C4-2`, third site] — THE ROW DEGRADED HONESTLY AND THE HEADING DID NOT.**
+   *
+   * `store.debts.filter((d) => d.balance <= 0)` is the one test a balance the reader LOST passes: it
+   * repairs to `0`, so a $12,000 card the user owes in full sat under a section headed **"PAID OFF"**. The
+   * row itself renders an em dash for the figure — correctly, by `C-1` — which is what made this invisible:
+   * everything *inside* the section was honest and the word above it was not.
+   *
+   * ⛔ **`unreadBalance` is a THIRD group and not a deletion, and that distinction is the fix.** The
+   * finding's stated remedy was to apply the same exclusion here — which would have removed the row from
+   * the debts screen altogether, because it is not in `active` either (`view.order` ranks `balance > 0`).
+   * `migrations.ts:99` already names that failure: *"puts it in neither the active list nor the paid-off
+   * list."* The partition returns all three groups, so a row cannot fall between them.
+   */
+  const { cleared: paidOff, unreadBalance } = partitionDebts(store);
   const c = useAppColors();
   const insets = useSafeAreaInsets();
 
@@ -342,6 +356,10 @@ function DebtsSection({
 
   type DebtGroup = { key: string; title?: string; data: Debt[] };
   const sections: DebtGroup[] = [{ key: 'active', data: active }];
+  // ⛔ [C4-2] The unread-balance group sits ABOVE "PAID OFF" and below the active list: it is the group
+  // that still needs something from the user, and the heading is in the hero's own vocabulary ("Some
+  // balances unread · set them again and your total comes back") so the screen speaks with one voice.
+  if (unreadBalance.length > 0) sections.push({ key: 'unread', title: 'BALANCE UNREAD', data: unreadBalance });
   if (paidOff.length > 0) sections.push({ key: 'paid', title: 'PAID OFF', data: paidOff });
 
   // Own scroll surface (virtualized) — the debt-heavy user (student loans, BNPL, medical) can carry

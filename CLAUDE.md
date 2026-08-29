@@ -82,9 +82,32 @@ reading cannot; this is the converse, and the only instrument that catches it is
 report's own $1,500 the paywall row read *"You have $0 cushion this paycheck."* on **both** stores — a row
 that could not fail, caught by reading the first green run's output rather than its exit code.
 
-▶ **NEXT: `S1.11.4.2`'s remainder** — the `PARTIAL` `C-4`, whose open half **is `C4-2`** *(blocker: a debt
-owed in full filed as "$12,000 paid off" and offered for sharing)*; it was carried in `S1.11.5` too and is
-now struck from there. Then `.4.3`–`.4.7`.
+✅ **`C4-2` CLOSED, and with it `C-4`'s `PARTIAL` — `S1.11.4.2` IS CLOSED.** The trophy shelf filed a card
+the user owes IN FULL as *"$12,000 paid off"* and offered it for sharing. ⛔ **Every existing guard covered
+the AMOUNT and none covered the MEMBERSHIP**: `d.balance <= 0` is the one test a repaired balance passes,
+and `originalBalance` — the field that WAS guarded — had been read perfectly.
+
+⛔ **THE FINDING'S OWN REMEDY WAS THE TRAP, AND PLANTING IT VERBATIM PROVED IT.** *"Apply the same
+exclusion"* **deletes the debt from Money's list** — it is not in `active` either — which is
+`migrations.ts:99`'s recorded *"in neither the active list nor the paid-off list."* `partitionDebts` returns
+`{ live, cleared, unreadBalance }`, total by construction, and the suite asserts the three sum to
+`store.debts.length`. **Fourth remedy this round that would have introduced the defect it described.**
+
+⚡ **Two siblings the report never named were wrong too** *(`debtsCleared` read 1 against a true 0;
+`isLastLiveDebt` said the other card was the last)*, ⚠️ **and a third that LOOKED wrong is the design** —
+`detectPayoff` stamps the finale deliberately, because detection is transition-based and `selectCelebration`
+gates the render. **Nearly filed as a blocker; caught by asking what the value does downstream.**
+
+⛔ **`liveDebts` WAS NOT THE FIX, AND THE TEST SAID SO BY FAILING.** The array owner is deliberately silent
+about the unread case — *"a portfolio that is entirely unread returns `[]` exactly as a paid-off one does…
+branch copy from `debtLiveness`."* ⚡ **A function that BRANCHES owes the CLAIM question, not the array**,
+which is `F-B4`'s call inverted, on the opposite question, three sub-steps later.
+
+⭐ **And `lint:trust-claims` caught its own ledger going stale on the GREEN path** — `celebrationSelectors`'
+row said the coverage was *"unmeasured"*; measured, it was wrong. Row retired, cap 13 → 12.
+
+▶ **NEXT: `S1.11.4.3`** — the RESTORE DOORS: `C4-11` *(there are four; `C-7`/`C-7b` fixed two)* + `C-7b`'s
+`PARTIAL`. Then `.4.4`–`.4.7`.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's

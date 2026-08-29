@@ -4,7 +4,7 @@ import { selectPlanState } from '@/store/planSelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
 import { detectPayoff } from '@/store/payoffCelebration';
 import { createDebtStore } from '@/store/store';
-import { claimFields, hasUnreadDebtBalances, mayClaim, rowFieldUnread } from '@/store/trustSelectors';
+import { claimFields, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, rowFieldUnread } from '@/store/trustSelectors';
 import type { DebtStore } from '@/data/models';
 
 /**
@@ -87,6 +87,50 @@ function storeWith(store: DebtStore): ReturnType<typeof createDebtStore> {
 }
 
 export default function run(): void {
+  /**
+   * ⛔ **S1.11.4.2 [pass-4 blocker `C4-2`] — THE PARTITION IS TOTAL, AND THAT IS THE WHOLE REASON IT IS A
+   * PARTITION RATHER THAN A `clearedDebts` FILTER.**
+   *
+   * ⚡ The finding's stated remedy was to exclude the unread row from *"paid off"*. Doing only that
+   * **deletes the debt from Money's list**: it is not in `active` either, because `view.order` ranks
+   * `balance > 0`. `migrations.ts:99` already records that exact shape — *"puts it in neither the active
+   * list nor the paid-off list"* — as what a `$NaN` came out of. ⛔ **A remedy that would have introduced
+   * a defect, which is the third one this round, and this is the assertion that makes it unrepeatable.**
+   */
+  {
+    const store = migrated([0, 'twelve thousand', 500]);
+    const p = partitionDebts(store);
+    eq(
+      p.live.length + p.cleared.length + p.unreadBalance.length,
+      store.debts.length,
+      '⛔ C4-2 — every debt lands in exactly one group; a row cannot fall between them',
+    );
+    eq(p.unreadBalance.map((d) => d.id).join(), 'd1', '⛔ C4-2 — the repaired-to-0 balance is UNREAD, not cleared');
+    eq(p.cleared.map((d) => d.id).join(), 'd0', '⛔ C4-2 — …and the genuine 0 beside it still IS cleared');
+    eq(p.live.map((d) => d.id).join(), 'd2', 'the live row is untouched');
+    // ⛔ ONE PRODUCER, ASSERTED RATHER THAN ASSUMED. `liveDebts` is the owner of "is this debt live?" and
+    // the partition must not become a second answer to it — that is the two-producers class this round
+    // has collapsed everywhere else, and it would be introduced by the very fix for it.
+    eq(
+      p.live.map((d) => d.id).join(),
+      liveDebts(store).map((d) => d.id).join(),
+      '⛔ C4-2 — the partition live group IS `liveDebts`, never a second copy of the expression',
+    );
+  }
+
+  /**
+   * ⭐ **THE CONTROL.** With every balance readable there is no third group at all, so the partition
+   * degrades to exactly the two lists the app had before — a suppression that never lets the good state
+   * through is a second false statement, not a fix.
+   */
+  {
+    const store = migrated([0, 12000, 500]);
+    const p = partitionDebts(store);
+    eq(p.unreadBalance.length, 0, '⭐ control — a store the app read in full has nothing in the third group');
+    eq(p.cleared.length, 1, '⭐ control — …the genuinely cleared debt is still cleared');
+    eq(clearedDebts(store).map((d) => d.id).join(), 'd0', '⭐ control — and the sugar agrees with the partition');
+  }
+
   /**
    * ⛔ **THE CASE THAT SHIPPED.** Two blank balances → both repaired to `0` → `liveDebts.length === 0`.
    * Money refused; Today did not.
