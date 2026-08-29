@@ -1355,7 +1355,7 @@
     }
   },
   "S1P4-ACK-DOES-NOT-VERIFY": {
-    "what": "S1.11.4.8 [Jason, 2026-08-28] - THE ACKNOWLEDGEMENT SILENCES THE CARD AND DOES NOT VERIFY THE DATA. clearResuppliedRepairs used to DROP a whole-row / whole-list loss on the ack, and dropping the record ends the suppression with it: one 'Got it' over a backup whose entire debts array was unreadable put the app back on 'every balance is cleared' over a portfolio it never read. Measured at S1.11.4.1 and taken to Jason because both directions are defensible; his answer is that a generic tap is not an answer to 'are you debt-free?'. ⚠️ The question stays ANSWERABLE, two ways, both asserted: the list comes back (the user entered their debts), or resolveUnreadableRows removes the record from the card's own 'These are all my debts' action. ⛔ The two parenthesised losses are NOT the same question - a standing control said so by failing: other rows being present answers nothing about the row that is gone, so only the confirmation clears a whole-ROW loss. A migration count keeps the ack, which is genuinely the only answer it can have.",
+    "what": "S1.11.4.8 [Jason, 2026-08-28] - THE ACKNOWLEDGEMENT SILENCES THE CARD AND DOES NOT VERIFY THE DATA. clearResuppliedRepairs used to DROP a whole-row / whole-list loss on the ack, and dropping the record ends the suppression with it: one 'Got it' over a backup whose entire debts array was unreadable put the app back on 'every balance is cleared' over a portfolio it never read. Measured at S1.11.4.1 and taken to Jason because both directions are defensible; his answer is that a generic tap is not an answer to 'are you debt-free?'. ⚠️ The question stays ANSWERABLE, two ways, both asserted: the list comes back (the user entered their debts), or resolveUnreadableRows removes the record from the card's own 'These are all my debts' action. ⛔ The two parenthesised losses are NOT the same question - a standing control said so by failing: other rows being present answers nothing about the row that is gone, so only the confirmation clears a whole-ROW loss. A migration count keeps the ack, which is genuinely the only answer it can have. ⚠️ The proof's expected reason names guardianTrust.test.ts's assertion, which runs first; the token names trustSelectors.test.ts's half, which asserts the same rule at the store-action level.",
     "file": "apps/rn/src/store/trustSelectors.test.ts",
     "token": "the ack does NOT settle it — the card hides and the data is still unread",
     "proof": {
@@ -1367,7 +1367,7 @@
         }
       ],
       "run": "test:app",
-      "expect": "the ack does NOT settle it"
+      "expect": "the record SURVIVES the acknowledgement"
     }
   }
 }
