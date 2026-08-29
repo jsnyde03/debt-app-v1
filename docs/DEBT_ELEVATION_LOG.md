@@ -28167,6 +28167,57 @@ receive minimums any more — so its un-fix reproduces it at the **call site**, 
 sum instead of the constant budget. Recorded on the entry, because a proof that quietly weakened would be
 worse than one that reds.
 
+### `A-F5` (major) — `B2` was fixed at both hand-entry paths and guarded at one
+
+`amount-guards.spec.ts` drives `DebtSheet` through `openAddDebt` (`/money` → `money-add` →
+`add-choice-debt`). **The onboarding form is a different component**, reached only before
+`onboardingComplete`, and every scenario in the suite seeds it `true`. Auditor A deleted the four lines
+that bound the rate at `FirstDebtOrBillStep.tsx:70-73`, rebuilt `dist/` and ran everything:
+
+```
+CI=1 npx playwright test --config apps/rn/playwright.config.ts   -> 325 passed   EXIT=0
+runRegressionTests / runAppTests / runScenarioTests               -> EXIT=0
+npm run lint:finding-guards                                       -> EXIT=0
+```
+
+⛔ **`S1P3-B2-APRBOUND` was green the whole time, and it was green about the site that IS covered.**
+
+The paths are a **list** now and the assertion walks it — a second test naming the second path would leave
+the third one exactly where this one was.
+
+#### ⛔ Two defects in my own first cut, both found by running it
+
+1. **The onboarding fixture was CONTRADICTORY.** `runMigrations` promotes a store carrying income **and**
+   an obligation to onboarded (a v1.6 backup cannot express the flag), so a full `scenario()` with the flag
+   flipped renders **Today** and the step under test is never reached. ⚠️ `earlyjourney.spec.ts` records
+   this verbatim from 2026-08-19 — *"the fixture was contradictory, not the app"* — and I walked into it
+   anyway. The suite caught it by timing out on *"Get started"* over a Today screen.
+
+2. ⛔ **The *"nothing was written"* assertions were VACUOUS BY TIMING.** Measured: with the bound deleted
+   and the error assertion relaxed, `readStore` immediately after the click reported **0 debts and the row
+   PASSED**; the same read after two seconds reported **1, named "Slipped card"**. The write lands — the
+   assertion was racing it. ⚡ That is `absence-assertions-pass-before-render` in its **timing** form, and
+   the only reason it surfaced is that the plant was re-run with each preceding assertion relaxed in turn.
+   Now: a deterministic *"the form is still on screen"* assertion carries the row, and the store read gets
+   a settle whose length is justified by the measurement rather than by taste. **All three layers
+   re-measured live under the plant.**
+
+### `D4-10` — re-measured at switch-in, and the named half was already closed
+
+The finding said `S1P3-G6-SCRIPTSREACH` was guard-only because *"a tsconfig's reach is `include` minus
+`exclude`, and the token pins one of the two terms"*. ⭐ **`S1.11.2` had since built
+`lint:gate-sources` direction 3, which asserts the pair.** Re-ran the finding's own over-fix — the aliases
+dropped plus `"exclude": ["node_modules", "check-trust-claims.ts"]` — and the gate **reds**. The report was
+written before the gate existed. *(Pre-authored premise, verified against current code rather than acted
+on: `feedback_verify_preauthored_audit_accuracy`, earning its keep again.)*
+
+⛔ **What was still open is the same class one level up, and nobody had named it.** Measured: repoint
+`typecheck:scripts` at any other config and **`lint:gate-sources` and `lint:ci-chain` both stay green** —
+the guarded file simply stops being the one compiled, and every assertion about it goes vacuous. Narrowing
+the reach by changing *what* is compiled is the defect; narrowing it by changing *which thing* is compiled
+is the same defect through a door nothing was reading. **Direction 4 asserts the pointer**, plant-verified
+both ways.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

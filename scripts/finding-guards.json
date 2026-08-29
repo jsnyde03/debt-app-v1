@@ -339,6 +339,38 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-A-F5-PATHS": {
+    "what": "pass-4 A-F5 - B2 was fixed at BOTH RN hand-entry paths and guarded at ONE. amount-guards.spec.ts drives DebtSheet through openAddDebt (/money -> money-add -> add-choice-debt); the onboarding form is a different component reached only before onboardingComplete, and every scenario in the suite seeds it true. Measured by auditor A: delete the four lines bounding the rate at FirstDebtOrBillStep.tsx:70-73, rebuild dist and run everything - 325 of 325 e2e and all three unit suites GREEN with the bound gone, while lint:finding-guards reported S1P3-B2-APRBOUND green about the site that IS covered. ⛔ The paths are a LIST now and the assertion walks it: a second test naming the second path would leave the third one exactly where this one was. ⚠️ TWO defects in my own first cut, both found by running it. (1) The onboarding fixture was CONTRADICTORY - runMigrations promotes a store carrying income AND an obligation to onboarded, so a full scenario() with the flag flipped renders Today; earlyjourney.spec.ts records this from 2026-08-19 and I walked into it anyway. (2) The 'nothing was written' assertions were VACUOUS BY TIMING - measured, readStore immediately after the click reported 0 debts and the row passed, while the same read after two seconds reported 1 named 'Slipped card'. absence-assertions-pass-before-render in its timing form. Fixed with a deterministic 'the form is still on screen' assertion plus a measured settle, and all three assertion layers re-measured live under the plant ⚠️ The proof runs a SCOPED e2e (test:e2e:amount-guards) because the bound lives in a component's submit handler and there is no unit seam; it rebuilds dist twice and takes minutes, which is the honest cost of guarding a path only the browser can reach.",
+    "file": "apps/rn/tests/e2e/amount-guards.spec.ts",
+    "token": "for (const path of APR_ENTRY_PATHS) {",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx",
+          "find": "      if (aprN > 100) {\n        setError(FORM_ERRORS.aprOutOfRange);\n        return;\n      }\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:e2e:amount-guards",
+      "expect": "A-F5"
+    }
+  },
+  "S1P4-D4-10-POINTER": {
+    "what": "pass-4 D4-10 - RE-MEASURED AT SWITCH-IN AND THE NAMED HALF WAS ALREADY CLOSED. The finding said S1P3-G6-SCRIPTSREACH was guard-only because 'a tsconfig's reach is include minus exclude and the token pins one of the two terms'; S1.11.2 had since built lint:gate-sources direction 3, which asserts the PAIR. Re-ran the finding's own over-fix (aliases dropped plus exclude check-trust-claims.ts) -> the gate REDS. The report was written before the gate existed. ⛔ What was still open is the same class one level up and nobody had named it: repoint typecheck:scripts at any other config and lint:gate-sources AND lint:ci-chain both stay green - the guarded file simply stops being the one compiled and every assertion about it goes vacuous. Direction 4 asserts the pointer. Plant-verified both ways",
+    "file": "scripts/check-gate-sources.ts",
+    "token": "package.json no longer runs the scripts typecheck against the config this gate guards:",
+    "proof": {
+      "unfix": [
+        {
+          "at": "package.json",
+          "find": "\"typecheck:scripts\": \"tsc --noEmit -p scripts/tsconfig.json\",",
+          "replace": "\"typecheck:scripts\": \"tsc --noEmit -p scripts/tsconfig.narrow.json\","
+        }
+      ],
+      "run": "lint:gate-sources",
+      "expect": "no longer runs the scripts typecheck against the config this gate guards"
+    }
+  },
   "S1P4-A-F4-ONEGUARD": {
     "what": "pass-4 blocker A-F4 - A1 aligned the two producers' EXPRESSION and left their PHASE different. projectDebtPayoff tested the negative-amortization guard on the balance it was ABOUT to accrue; buildPayoffTrajectory ran the same expression AFTER its own accrual. Accrual only raises the balance, so the chart's test is strictly harsher and it bailed on a band of plans the date engine amortizes: budget/(1 + apr/1200) <= interest < budget, a 2% window for a 25% card, and a minimum set at ~2% of balance is the ordinary credit-card shape. Measured over 4,000 pseudo-random plans: 6 disagreements, every one the same direction - the DATE clears and the CHART never does. A $6,379.24 Visa at 25.22% paying $136 read 'September 2043' over a curve that is one point at the full balance. ⛔ Fixed by making it literally ONE producer (packages/core/debt/cannotAmortize.ts) called at ONE point in the month body, not by correcting the loser again - correcting the loser is what A1 did and it bought this round. ⭐ The assertion that would have caught it ALREADY EXISTED and was green: 'the debt-free DATE and the payoff CHART agree on the same plan' pinned to ONE plan whose interest is nowhere near its budget - reading rule 2, the right guard aimed at the one input where the producers happen to agree. It sweeps the band now, seven plans straddling the boundary, asserting the PROPERTY (payable iff the curve reaches zero) rather than a month count, with a control that the sweep contains both answers. Plant-verified: moving the call back after the accrual reds three of the seven rows",
     "file": "packages/core/debt/testDebtProjection.ts",

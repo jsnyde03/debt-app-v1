@@ -124,6 +124,116 @@ test('B2 · an APR above 100 is REFUSED — nothing is written', async ({ page }
   expect(after.debts?.some((d: { name: string }) => d.name === 'Slipped card')).toBeFalsy();
 });
 
+/**
+ * ⛔ **S1.11.4.6 [pass-4 `A-F5`] — `B2` WAS FIXED AT BOTH HAND-ENTRY PATHS AND GUARDED AT ONE.**
+ *
+ * ⚡ The test above drives `DebtSheet` through `openAddDebt`, which goes `/money` → `money-add` →
+ * `add-choice-debt`. **The onboarding form is a different component**, reached only before
+ * `onboardingComplete`, and every scenario in this suite seeds it `true`. Measured by auditor A: delete
+ * the four lines that bound the rate at `FirstDebtOrBillStep.tsx:70-73`, rebuild `dist/` and run the whole
+ * suite — **325 of 325 e2e tests and all three unit suites green** with the bound gone. Not one assertion
+ * in the tree touched it. ⛔ `lint:finding-guards` reported `S1P3-B2-APRBOUND` green the whole time, and
+ * it was green **about the site that is covered**.
+ *
+ * ⛔ **SO THE PATHS ARE A LIST AND THE ASSERTION WALKS IT.** A second test naming the second path would
+ * leave the third one — whenever it arrives — exactly where this one was. ⚠️ Its completeness is not this
+ * file's claim: `packages/core/imports/debtCsv.ts` and the legacy `parseDebtFormValues` bound the rate too
+ * and are not e2e-reachable; what the list holds is **every path a user can type an APR into by hand**,
+ * which is the population `A-F5` counted over the whole repo.
+ *
+ * ⚠️ Each row asserts **what landed in the store**, not that an error appeared — this file's own standard,
+ * and the reason `B2` survived a unit test that passed.
+ */
+const APR_ENTRY_PATHS: {
+  label: string;
+  seed: Record<string, unknown>;
+  open: (page: Page) => Promise<void>;
+  fill: (page: Page, apr: string) => Promise<void>;
+  submit: string;
+  /** The field that is still on screen when the entry was REFUSED — the deterministic half of the test. */
+  stillOpen: string;
+}[] = [
+  {
+    label: 'Money → add a debt (DebtSheet)',
+    seed: scenario(),
+    open: openAddDebt,
+    fill: async (page, apr) => {
+      await page.getByTestId('field-debt-name').fill('Slipped card');
+      await page.getByTestId('field-debt-balance').fill('5000');
+      await page.getByTestId('field-debt-minimum').fill('150');
+      await page.getByTestId('field-debt-apr').fill(apr);
+    },
+    submit: 'Add debt',
+    stillOpen: 'field-debt-apr',
+  },
+  {
+    label: "onboarding → the user's FIRST debt",
+    /**
+     * ⛔ **A GENUINE PRE-ONBOARDING STORE — no income, no obligations.** A full `scenario()` with the flag
+     * flipped is a **contradictory fixture**: `runMigrations` PROMOTES a store carrying income AND an
+     * obligation to onboarded (a v1.6 backup file cannot express the flag, and the restored portfolio was
+     * being hidden behind this very gate), so the route guard correctly renders Today and the step under
+     * test is never reached. ⚠️ `earlyjourney.spec.ts` records this from 2026-08-19 and my first cut
+     * walked into it anyway — the suite caught it by timing out on "Get started" over a Today screen.
+     */
+    seed: scenario({ paycheck: { amount: '' }, debts: [], requiredExpenses: [], prefs: { onboardingComplete: false } }),
+    open: async (page) => {
+      await page.goto('/onboarding');
+      await page.getByRole('button', { name: 'Get started' }).click();
+      await page.getByTestId('field-paycheck-amount').fill('2000');
+      await page.getByRole('button', { name: 'Continue' }).click();
+      await expect(page.getByTestId('field-onboarding-apr')).toBeVisible({ timeout: 10_000 });
+    },
+    fill: async (page, apr) => {
+      await page.getByTestId('field-onboarding-name').fill('Slipped card');
+      await page.getByTestId('field-onboarding-balance').fill('5000');
+      await page.getByTestId('field-onboarding-minimum').fill('150');
+      await page.getByTestId('field-onboarding-apr').fill(apr);
+    },
+    submit: 'Add & Continue',
+    stillOpen: 'field-onboarding-apr',
+  },
+];
+
+for (const path of APR_ENTRY_PATHS) {
+  test(`A-F5 · ${path.label} — an APR above 100 is REFUSED, nothing is written`, async ({ page }) => {
+    await seedStore(page, path.seed);
+    await path.open(page);
+    const before = (await readStore(page)).debts?.length ?? 0;
+    await path.fill(page, '2599');
+    await page.getByRole('button', { name: path.submit }).click();
+    // ⛔ The honest state by name: the form stays put on an error that names the range.
+    await expect(page.getByText('Enter an APR between 0 and 100.')).toBeVisible();
+    // ⛔ …and the form really is still the thing on screen. This is the DETERMINISTIC half: a path that
+    // accepted the value advances (the onboarding step) or closes (the sheet), so this locator's own
+    // timeout is what carries the row rather than the store read below.
+    await expect(page.getByTestId(path.stillOpen)).toBeVisible();
+    /**
+     * ⛔ **AND WHAT LANDED — WITH A SETTLE, BECAUSE WITHOUT ONE THIS ASSERTION WAS VACUOUS.** Measured:
+     * with the onboarding bound deleted and the error assertion relaxed, `readStore` immediately after the
+     * click reported **0 debts** and the row PASSED; the same read after two seconds reported **1, named
+     * "Slipped card"**. The write lands — the assertion was racing it, which is
+     * `absence-assertions-pass-before-render` in its timing form. The wait is justified by that
+     * measurement, not by taste.
+     */
+    await page.waitForTimeout(2_000);
+    const after = await readStore(page);
+    expect(after.debts?.length ?? 0).toBe(before);
+    expect(after.debts?.some((d: { name: string }) => d.name === 'Slipped card')).toBeFalsy();
+  });
+
+  test(`A-F5 control · ${path.label} — a real APR still lands`, async ({ page }) => {
+    // ⭐ Or a path that had simply stopped accepting debts would satisfy the row above.
+    await seedStore(page, path.seed);
+    await path.open(page);
+    await path.fill(page, '25.99');
+    await page.getByRole('button', { name: path.submit }).click();
+    await expect
+      .poll(async () => (await readStore(page)).debts?.find((d: { name: string }) => d.name === 'Slipped card')?.apr)
+      .toBe(25.99);
+  });
+}
+
 test('B2 control · a real APR still goes in, and 100 is still allowed', async ({ page }) => {
   await seedStore(page, scenario());
   await openAddDebt(page);

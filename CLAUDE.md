@@ -166,8 +166,24 @@ emitted. **Fifth remedy this round that would have introduced a defect.**
 
 ⭐ **Both moves broke a registered proof anchor, and the ledger said so on the next run.**
 
-▶ **NEXT: `S1.11.4.6`** — THE SECOND SITE: `A-F5` *(fixed at both APR paths, guarded at one)* + `G-6`'s
-`PARTIAL`. Then `.4.7`, the net.
+✅ **`A-F5` + `D4-10` CLOSED — `S1.11.4.6` is CLOSED.** ⛔ **`A-F5`: the onboarding APR bound could be
+DELETED with 325/325 e2e and all three unit suites green**, while `lint:finding-guards` reported the guard
+green *about the site that is covered*. `APR_ENTRY_PATHS` is a list the assertion walks.
+
+⛔ **AND MY OWN FIRST CUT CARRIED TWO DEFECTS, BOTH FOUND BY RUNNING IT.** The onboarding fixture was
+**contradictory** — `runMigrations` promotes a store with income AND an obligation to onboarded, so the
+route guard renders Today; `earlyjourney.spec.ts` records this verbatim from 2026-08-19 and I walked into
+it anyway. ⚡ **And the *"nothing was written"* assertions were VACUOUS BY TIMING**: measured, `readStore`
+straight after the click saw **0 debts and PASSED**, the same read two seconds later saw **1**. That is
+`absence-assertions-pass-before-render` in its timing form, and it only surfaced because the plant was
+re-run with each preceding assertion relaxed in turn.
+
+⭐ **`D4-10`'s named half was ALREADY CLOSED by `S1.11.2` — re-measured, not read off the report.** Its
+real residual is one level up and nobody had named it: **repoint `typecheck:scripts` and both gates stay
+green**, because the guarded file stops being the one compiled. Direction 4 asserts the pointer.
+
+▶ **NEXT: `S1.11.4.7`** — THE NET: `typecheck` · `lint:rn` · the unit suites · the e2e specs whose surface
+changed · commit + push. That closes `S1.11.4`; then `S1.11.5` (CLASS 2/3/5) and `S1.11.6` (the re-route).
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's

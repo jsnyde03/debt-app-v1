@@ -145,6 +145,34 @@ if (!scriptsTsconfig.includes(SCRIPTS_REACH)) {
   );
 }
 
+// ── Direction 4: the POINTER to that config ───────────────────────────────────────────────────────
+/**
+ * ⛔ **S1.11.4.6 [pass-4 `D4-10`, and the residual its own measurement did not name] — THE CONFIG'S TEXT
+ * IS GUARDED AND THE POINTER TO IT IS NOT.**
+ *
+ * ⚡ `D4-10` said `S1P3-G6-SCRIPTSREACH` was guard-only because *"a tsconfig's reach is `include` minus
+ * `exclude`, and the token pins one of the two terms"*. ⭐ **Re-measured at switch-in, and that half is
+ * already CLOSED** — direction 3 above asserts the pair, and re-running the finding's own over-fix (the
+ * aliases dropped plus `"exclude": ["node_modules", "check-trust-claims.ts"]`) reds it. The report was
+ * written before `S1.11.2` built direction 3.
+ *
+ * ⛔ **What is still open is one level up, and it is the same class.** Measured: repoint
+ * `typecheck:scripts` at any other config and **`lint:gate-sources` and `lint:ci-chain` both stay green**
+ * — the guarded file simply stops being the one compiled, and every assertion about it goes vacuous.
+ * Narrowing the reach by changing what gets compiled is the defect; narrowing it by changing WHICH THING
+ * gets compiled is the same defect through a door nothing was reading.
+ */
+const TYPECHECK_SCRIPTS = '"typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.json"';
+const rootPackage = readFileSync(join(REPO_ROOT, 'package.json'), 'utf8');
+if (!rootPackage.includes(TYPECHECK_SCRIPTS)) {
+  problems.push(
+    'package.json no longer runs the scripts typecheck against the config this gate guards:\n' +
+      `      ${JSON.stringify(TYPECHECK_SCRIPTS)}\n` +
+      "      Direction 3 above pins that config's reach; pointing the script somewhere else leaves the\n" +
+      '      pinned file uncompiled and every assertion about it vacuous. Same narrowing, one level up.',
+  );
+}
+
 if (problems.length > 0) {
   console.error(`\n❌ gate sources: ${problems.length} problem(s).\n`);
   for (const p of problems) console.error(`  • ${p}\n`);
