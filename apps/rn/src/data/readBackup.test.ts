@@ -491,11 +491,17 @@ console.log(`✅ readBackup router tests passed (${passed} asserts).`);
 
   const listSaid = describeLosses(withRepairs([wholeList]));
   const rowSaid = describeLosses(withRepairs([wholeRow]));
+  /**
+   * ⛔ **THE ASSERTION THAT CARRIES THE FINDING GOES FIRST, AND `prove:guards` IS WHY.** What shipped was
+   * ONE sentence serving both loss kinds; the pair is what makes that unrepresentable. ⚠️ It was written
+   * third and the un-fix redded on the clause assertion above it instead — the harness reported
+   * *"it redded, but not for the named reason"*, which is exactly the `plant-that-reds-early` class caught
+   * by an instrument rather than by someone remembering. **The strongest claim is asserted first so the
+   * plant meets it first**, and the two clause rows below now read as the detail they are.
+   */
+  assert(listSaid !== rowSaid, '⛔ F-B3 — opposite-sized losses no longer produce the identical clause');
   assert(listSaid.includes('the whole debts list'), `⛔ F-B3 — a whole LIST names the list (got ${JSON.stringify(listSaid)})`);
   assert(rowSaid.includes('1 whole row'), `F-B3 — a whole ROW is still counted, which is right for it (got ${JSON.stringify(rowSaid)})`);
-  // ⛔ THE ASSERTION THAT CARRIES THE FINDING. Both clauses being present proves nothing; what shipped was
-  // ONE sentence serving both, and the pair is what makes that unrepresentable.
-  assert(listSaid !== rowSaid, '⛔ F-B3 — opposite-sized losses no longer produce the identical clause');
   // The finding's case E: all three kinds at once, in one sentence, joined once.
   const all = describeLosses(withRepairs([wholeList, wholeRow, anAmount]));
   assert(all.includes('the whole debts list'), '⛔ F-B3 · case E — the list clause survives company');
