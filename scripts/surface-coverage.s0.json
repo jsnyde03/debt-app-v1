@@ -327,6 +327,9 @@
     "s1p1",
     "s1p2"
   ],
+  "scripts/lib/anchor.ts": [
+    "never"
+  ],
   "scripts/lib/scanFloor.ts": [
     "never",
     "s1p4"

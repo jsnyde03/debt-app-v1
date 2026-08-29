@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**113 files on the S0 surface · 59 swept · 54 unswept.**
+**114 files on the S0 surface · 59 swept · 55 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -104,6 +104,7 @@
 | `scripts/finding-guards.json` | s1p1 · s1p2 · partial |
 | `scripts/gate-scan-floors.json` | never · s1p4 |
 | `scripts/gateSources.ts` | p2 · p3 · s1p1 · s1p2 |
+| `scripts/lib/anchor.ts` | ⛔ **never** |
 | `scripts/lib/scanFloor.ts` | never · s1p4 |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
 | `scripts/lib/stripMarkdown.ts` | never · s1p4 |
@@ -175,6 +176,7 @@
 - `scripts/conform-app-preview.sh`
 - `scripts/e2e-fresh-rn.cjs`
 - `scripts/e2e-fresh.cjs`
+- `scripts/lib/anchor.ts`
 - `scripts/lib/verdict.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/make-cutover-backups.ts`

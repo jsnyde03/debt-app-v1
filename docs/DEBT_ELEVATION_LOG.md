@@ -28567,6 +28567,67 @@ token that lives only in a comment, which is right, **except that here the guard
 compiler semantics.** The use line covers both: deleting the directive alone reds `typecheck`, and
 deleting the block takes the use line with it.
 
+### `S1.11.6.0` — ⛔ CI HAD BEEN RED FOR SIX PUSHES AND SIX SESSIONS REPORTED THE GATE GREEN
+
+**Found by asking `gh run list` after a push, not by any gate.** `lint:finding-guards` fails in CI and
+passes locally, and the two are the same command.
+
+```
+30aeb25d  running        <- this session
+5bded853  failure        <- this session
+6f4df529  failure        <- this session
+f5fd3218  failure        <- the session before
+df3e3cf0  failure
+6f87818f  failure
+7584a008  failure        <- it starts here
+0614de9f  success
+```
+
+⚡ **`S1P3-M7`'s recorded proof anchors carry literal CRLF.** A Windows working tree is CRLF, so they match
+here; CI checks out LF, so they match **0×** — and the gate then reports *"the proof is VOID"*, which reads
+like a stale anchor rather than a platform split. ⛔ **Twelve registry entries carry a multi-line anchor**,
+so this is a class, not a row.
+
+⛔ **It is the third instance of one shape: an instrument green where it is run and red where it matters.**
+`REVERIFY4-2` — list from git, content from the working tree. `lint:surface-complete` — `git ls-files` plus
+`existsSync`. This. **Each was closed by picking ONE world**, and that is what this does: every comparison
+happens in LF, on both sides.
+
+⚠️ **And a permanently-red CI is worse than no CI** — `web-e2e.yml`'s own header records that failure
+killing the previous lane. Six sessions in a row wrote *"`lint:rn` green"* into the log, truthfully, about
+a command that was failing every push. **`a-remembered-gate-result-is-an-unrun-one`, measured again.**
+
+#### What was built
+
+`scripts/lib/anchor.ts` is the **one producer** of anchor matching — `lf`, `planEdit`, `anchorCount` — with
+**no side effects on import**, which is the point: `prove-guards.ts` reads the registry and parses argv at
+module scope, so importing *it* to test the matcher would run a CLI. `check-finding-guards.ts` and
+`prove-guards.ts` both route through it, because two normalisers that drift is how the checker and the
+planter would begin disagreeing about what a proof means.
+
+⭐ **The corrected gate reproduces CI's failure locally, which the original could not** — the standard this
+repo set when `lint:surface-complete` had the same split. Measured in both shapes:
+
+```
+un-normalised matcher + LF more.tsx  ->  CI's exact two lines
+normalised matcher   + LF more.tsx  ->  green
+normalised matcher   + CRLF tree    ->  green
+```
+
+The guard is in `test-line-endings.ts`, the gate that exists for this class and covered only `lib/stripCode`
+— **four directions**, because a matcher stripping CR from one side only would pass a two-direction test and
+still be half broken; plus a control that it is not answering `1` to everything; plus the ambiguity check,
+because normalising must not weaken the refusal to edit a doubly-matching anchor.
+
+#### ⚠️ And two false greens on the way, both mine
+
+1. **The first plant of this fix never applied.** The heredoc mangled the search string, the neuter did not
+   land, and the gate "passed" — reported as `PLANT W EXIT=0`. **`verify-the-plant-applied`, inside the
+   plant for the fix for a false green.**
+2. **The registry entry documenting the escaping trap was broken by the escaping trap, twice** — its
+   `find` stored real CR/LF where the file holds the two-character escape. It is taken verbatim from the
+   source line now, which is the only reliable way to record an anchor.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

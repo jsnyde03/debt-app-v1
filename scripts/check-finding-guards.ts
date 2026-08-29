@@ -25,6 +25,9 @@
  * Usage: npm run lint:finding-guards
  */
 import { existsSync, readFileSync } from 'node:fs';
+// ⛔ S1.11.6.0 — ONE producer for anchor matching, shared with prove-guards.ts. See lib/anchor.ts for
+// what a per-file normaliser cost: this gate was red in CI for six pushes while reading green locally.
+import { anchorCount } from './lib/anchor';
 import { join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -122,7 +125,7 @@ const ids = Object.keys(registry);
  * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
-const MIN_ENTRIES = 183;
+const MIN_ENTRIES = 184;
 const MAX_UNGUARDED = 1;
 
 /**
@@ -289,7 +292,11 @@ for (const [id, e] of Object.entries(registry)) {
         void_ = true;
         continue;
       }
-      const n = readFileSync(target, 'utf8').split(u.find).length - 1;
+      // ⛔ S1.11.6.0 — NORMALISED ON BOTH SIDES. A multi-line anchor carrying CRLF matched on a Windows
+      // working tree and 0× in CI's LF checkout, so this gate was red in CI for six consecutive pushes
+      // while reading green locally — and it reds as "the proof is VOID", which looks like staleness.
+      // `prove-guards.ts` normalises identically; the two must agree or a proof passes one and not the other.
+      const n = anchorCount(readFileSync(target, 'utf8'), u.find);
       if (n !== 1) {
         problems.push(
           `${id} — its proof's anchor matches ${n}× in ${u.at}: ${JSON.stringify(u.find)}\n` +

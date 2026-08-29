@@ -435,6 +435,22 @@
       "expect": "throws rather than inventing a file identity"
     }
   },
+  "S1P4-ANCHOR-ONEWORLD": {
+    "what": "S1.11.6.0 - lint:finding-guards was RED IN CI FOR SIX CONSECUTIVE PUSHES while reading GREEN LOCALLY, and six sessions in a row reported it green. S1P3-M7's recorded proof anchors carry literal CRLF: a Windows working tree is CRLF so they matched here, CI checks out LF so they matched 0x, and the gate reported 'the proof is VOID' about a proof that is fine. Twelve registry entries carry a multi-line anchor, so it is a class rather than one row. ⛔ It fails in the shape this repo has now paid for three times - an instrument green where it is run and red where it matters: REVERIFY4-2 (list from git, content from the working tree), lint:surface-complete (git ls-files plus existsSync), this. Each was closed by PICKING ONE WORLD. ⚡ Reproduced locally before fixing: un-normalised matcher over an LF more.tsx gives CI's exact two lines, which the original could not do. lib/anchor.ts is now the ONE producer of anchor matching - no side effects on import, so test-line-endings.ts can assert it directly - and both check-finding-guards and prove-guards route through it. The guard is FOUR directions plus a control that the matcher is not answering 1 to everything, plus the ambiguity check, because normalising must not weaken the refusal to edit a doubly-matching anchor. ⚠️ And the first plant of this was a FALSE GREEN: the heredoc mangled the search string so the neuter never applied and the gate 'passed'. verify-the-plant-applied, in the plant for the fix for a false green ⚠️ And this entry's own anchor had to be taken verbatim from the source line rather than retyped: the first two attempts stored real CR/LF characters where the file holds the two-character escape. The entry documenting the escaping trap was broken by the escaping trap, twice.",
+    "file": "scripts/test-line-endings.ts",
+    "token": "a CRLF anchor finds itself in an LF file",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/lib/anchor.ts",
+          "find": "export const lf = (s: string): string => s.replace(/\\r\\n/g, '\\n');",
+          "replace": "export const lf = (s: string): string => s;"
+        }
+      ],
+      "run": "lint:line-endings",
+      "expect": "a CRLF anchor finds itself in an LF file"
+    }
+  },
   "S1P4-A-F1-WINDOWREQUIRED": {
     "what": "pass-4 A-F1 - buildCycleSnapshot's pay-cycle window said REQUIRED in prose and `?` in the type. The docblock already carried the rule ('omitting it falls back to one installment, which is what the defect did') and the type let a caller do it anyway. Measured: delete both arguments from the only shipping call (payday.ts) and all three suites stay GREEN - test:regression, test:app, test:scenarios - re-introducing blocker A2, History telling a user who paid $200 that they paid $100. ⚡ The registered guard S1P3-A2-INWINDOW is structurally incapable of seeing it: it calls the function WITH the window, so it is pinned to the HELPER's behaviour - un-fixing the helper reds it, un-fixing the CALL does not. D3-3's shape, right about the line that computes and blind to the line that uses. ⛔ So the guard is the TYPE: a required field turns the deletion into a compile error, the one guard an edit that looks reasonable cannot route around. ⚠️ Both live callers had the dates in scope; the legacy root tree simply never passed them, which is that tree's own copy of A2 and was fixed on the way past. Three window-agnostic test rows were given a window rather than the type being softened for them",
     "file": "packages/core/history/buildCycleSnapshot.ts",

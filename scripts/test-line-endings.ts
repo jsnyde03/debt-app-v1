@@ -31,6 +31,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { anchorCount, planEdit } from './lib/anchor';
 import { stripCommentsAndStrings, stripCommentsOnly } from './lib/stripCode';
 
 const FIXTURE = join(import.meta.dirname, '__fixtures__', 'crlf-source.ts.txt');
@@ -85,6 +86,40 @@ const safe = stripCommentsOnly(crlf).split(/\r?\n/).filter((l) => l.endsWith('\r
 check(naive >= 5, `the NAIVE idiom leaves ${naive} lines carrying a trailing CR — the defect class, reproduced`);
 check(safe === 0, `the SAFE idiom leaves ${safe} — this is what the eleven gates use`);
 check(naive !== safe, 'the fixture DISCRIMINATES the two idioms (if it did not, nothing above means anything)');
+
+/**
+ * -- S1.11.6.0 -- THE SECOND CONSUMER OF THIS CLASS, AND IT WAS RED IN CI FOR SIX PUSHES ------------
+ *
+ * This file guarded `lib/stripCode`, which eleven gates route through. **`lint:finding-guards` and
+ * `prove:guards` do not** -- they match a recorded proof anchor against a file's raw bytes, so an anchor
+ * spanning a line break meant different things on the two platforms. `S1P3-M7`'s anchors carry literal
+ * CRLF: they matched a Windows working tree and **0x** in CI's LF checkout, and the gate reported
+ * *"the proof is VOID"* about a proof that is fine.
+ *
+ * Six consecutive sessions reported that gate green, because locally it is. A permanently-red CI is worse
+ * than no CI -- `web-e2e.yml`'s header records that failure killing the previous lane -- and the local run
+ * said the opposite every time. Reproduced before fixing: an un-normalised matcher over an LF tree gives
+ * CI's exact two lines.
+ *
+ * All FOUR directions are asserted, because a matcher stripping CR from only one side would pass a
+ * two-direction test and still be half-broken.
+ */
+{
+  const anchorCRLF = 'try {\r\n  a();\r\n} catch {}';
+  const anchorLF = 'try {\n  a();\n} catch {}';
+  const textCRLF = `x\r\n${anchorCRLF}\r\ny`;
+  const textLF = `x\n${anchorLF}\ny`;
+  check(anchorCount(textCRLF, anchorLF) === 1, 'an LF anchor finds itself in a CRLF file (CI record, Windows tree)');
+  check(anchorCount(textLF, anchorCRLF) === 1, 'a CRLF anchor finds itself in an LF file - S1P3-M7 in CI, the failure that shipped');
+  check(anchorCount(textCRLF, anchorCRLF) === 1, 'CRLF against CRLF still matches');
+  check(anchorCount(textLF, anchorLF) === 1, 'LF against LF still matches');
+  // THE DISCRIMINATING CONTROL. A matcher returning 1 for everything would satisfy all four rows above.
+  check(anchorCount(textLF, 'try {\n  b();\n} catch {}') === 0, 'a genuinely absent anchor is still 0 - the matcher is not answering 1 to everything');
+  // And the plant must still refuse an AMBIGUOUS anchor, or normalising would have bought a half-defect.
+  const twice = planEdit(`${textLF}\n${textLF}`, { find: anchorCRLF, replace: 'GONE' });
+  check(twice.count === 2, 'an anchor matching twice is counted as twice, across endings');
+  check(!twice.next.includes('GONE'), 'and an ambiguous anchor edits NOTHING - normalising did not weaken that');
+}
 
 if (failures.length > 0) {
   console.error(`\n❌ line endings: ${failures.length} failure(s).\n`);

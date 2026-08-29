@@ -94,16 +94,22 @@ const arg = (name: string): string | undefined =>
 const has = (name: string): boolean => process.argv.includes(`--${name}`);
 
 /**
- * ⛔ **THE ANCHOR IS COUNTED, NOT SEARCHED.** `String.replace` takes the FIRST match and says nothing
- * about the others, so an anchor appearing twice silently un-fixes one of two sites and the plant then
- * measures a half-defect. ⚠️ Zero matches is the more dangerous direction: it reads as
- * `plant-not-applied`, which looks like a broken plant rather than what it is — **a proof whose anchor
- * the code has moved out from under**, i.e. a recorded measurement that no longer describes this tree.
+ * ⛔ **S1.11.6.0 — `planEdit` MOVED TO `lib/anchor.ts`, AND THE MOVE IS THE FIX.**
+ *
+ * ⚡ `lint:finding-guards` was red in CI for six consecutive pushes while reading green locally: a
+ * recorded anchor carrying a Windows line break matches a CRLF working tree and **0×** in CI's LF
+ * checkout, and the
+ * gate reports *"the proof is VOID"* about a proof that is fine. ⛔ Every comparison happens in LF now,
+ * on both sides — and the logic lives in a module with **no side effects on import**, so
+ * `test-line-endings.ts` can assert it directly. This file reads the registry and parses argv at module
+ * scope; importing it to test the matcher would run a CLI.
+ *
+ * ⚠️ ONE copy, shared with `check-finding-guards.ts`. Two normalisers that drift is how the checker and
+ * the planter would begin disagreeing about what a proof means.
  */
-export function planEdit(text: string, u: Unfix): { next: string; count: number } {
-  const count = text.split(u.find).length - 1;
-  return { next: count === 1 ? text.split(u.find).join(u.replace) : text, count };
-}
+export { planEdit } from './lib/anchor';
+import { planEdit } from './lib/anchor';
+
 
 /**
  * ⛔ **MODULE SCOPE — the import fires it**, the `S1P3-SELFCHECK-CALL` idiom. Every plant in this file
