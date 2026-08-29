@@ -182,30 +182,48 @@ re-run with each preceding assertion relaxed in turn.
 real residual is one level up and nobody had named it: **repoint `typecheck:scripts` and both gates stay
 green**, because the guarded file stops being the one compiled. Direction 4 asserts the pointer.
 
-⭐ **`S1.11.4` IS CLOSED (2026-08-29) — 11 findings and 4 `PARTIAL`s, each by an assertion over its CLASS.**
-Net green: **39/39 gates · 337 e2e** *(was 325 — the 12 new ones are the guards)* · registry **163 → 172**,
-proofs **44 → 52**.
+⭐ **`S1.11.4` AND `S1.11.5` ARE BOTH CLOSED (2026-08-29). ALL 34 PASS-4 FINDINGS ARE ACCOUNTED FOR** —
+**32 carry a registry entry with an executed proof**, and the two that do not (`D4-7` `D4-11`) are the
+routing pair, routed to `S1.11.6`. Net green: **39/39 gates · 338 e2e · typecheck ×4 · three unit suites**.
+Registry **163 → 183**, proofs **44 → 60+**.
 
-⛔ **THE NUMBER TO CARRY: 6 OF 11 STATED REMEDIES WOULD NOT HAVE CLOSED THEIR FINDING, AND 4 WOULD HAVE
-INTRODUCED ONE** — while **every premise reproduced exactly**. `C4-2`'s would have deleted a debt from the
-screen · `F-B3`'s would have failed OPEN · `C4-5`'s kept the caption inside the offer, which is the defect ·
-`D4-10` was **already closed by `S1.11.2`** and would have been fixed twice. **Verify what a finding says to
-DO.**
+⛔ **THE NUMBER TO CARRY: OF THE REMEDIES WORKED, MORE THAN HALF WOULD NOT HAVE CLOSED THEIR FINDING, AND
+FIVE WOULD HAVE INTRODUCED ONE** — while **every premise reproduced exactly**. `C4-2`'s would have deleted a
+debt from the screen · `F-B3`'s would have failed **OPEN** · `C4-5`'s kept the caption inside the offer,
+which *is* the defect · `A-F2`'s predicted 2 where the answer is 3. **Verify what a finding says to DO.**
 
-⭐ **The `S1.11.3` ledger caught four things this item would have shipped**: a guard my own rewrite
-**absorbed**, two **stale proof anchors**, a closure registered with **no proof**, and ⛔ **a plant that
-redded for the WRONG REASON** — the load-bearing claim is asserted first now.
+⛔ **AND FOUR FINDINGS' NAMED DEFECTS WERE ALREADY CLOSED** — `D4-10` `D4-1` `D4-4` `C4-4`, each re-measured
+rather than read. Two of them would have been "fixed" a second time. ⚡ **The switch-in before-scan has now
+paid for itself four times in one item.**
 
-⛔ **AND PLANTING HAS A BLIND SPOT, MEASURED THREE TIMES: THE GREEN STATE.** Two unscoped `getByText`
-locators were strict-mode violations that exist **only when the fix works** *(under a plant the text is
-absent)*, and one *"nothing was written"* assertion was **vacuous by timing** — `readStore` straight after
-the click saw 0 debts and PASSED; two seconds later it saw 1. ⚡ **Every lesson here said planting finds
-what reading cannot; this is the converse.** The two habits that caught all three: **run the changed spec
-GREEN**, and **re-run each plant with the assertion above it relaxed**.
+⛔ **`F-B5` WAS IN NO LIST ON THE PLAN.** It surfaced by **enumerating every `###` heading across the four
+lane files** — `5+11+13+5 = 34` — rather than by reading the sub-step lists. **The undercount class, this
+time in the routing of the FIXES.** Count the ids; never trust the list.
 
-▶ **ACTIVE: `S1.11.5` — CLASS 2/3/5, decomposed as `.5.1`–`.5.6`** at the top of the plan. `A-F3`
-*(blocker)* · `C4-6` *(the null-preview window, `C-7b`'s open half)* · `C4-3` + `C4-4` *(the two ledgers that
-cannot see their own class)* · the rest and the 7 minors. Then `S1.11.6` (the re-route) and `S1.11.8`.
+⛔ **PLANTING HAS A BLIND SPOT, MEASURED THREE TIMES: THE GREEN STATE.** Two unscoped `getByText` locators
+were strict-mode violations that exist **only when the fix works** *(under a plant the text is absent)*, and
+one *"nothing was written"* assertion was **vacuous by timing** — `readStore` straight after the click saw
+0 debts and PASSED; two seconds later it saw 1. ⚡ **Every lesson here said planting finds what reading
+cannot; this is the converse.** The two habits that caught all three: **run the changed spec GREEN**, and
+**re-run each plant with the assertion above it relaxed**.
+
+⭐ **The `S1.11.3` ledger caught seven things these items would have shipped**: a guard a rewrite
+**absorbed**, **four stale proof anchors**, closures registered with **no proof**, and ⛔ **a plant that
+redded for the WRONG REASON**. ⚠️ **A multi-line proof anchor is unmatchable on this platform** — the tree
+is CRLF and the registry stores `\n`, so it reds as *"anchor matches 0×"*, which reads like staleness.
+**Single-line anchors only.**
+
+⚠️ **Two shell traps cost real work this session.** `git checkout -- <file>` on an **uncommitted** test threw
+a whole new block away; and `rm -f` **swallowed a wrong-directory delete**, so a probe reported removed was
+still there until `typecheck` found it three steps later. ⛔ **Restore from a copy taken AFTER the fix**, and
+diff it — a snapshot taken before the fix undoes the fix.
+
+▶ **ACTIVE: `S1.11.6` — the RE-ROUTE, decomposed as `.6.1`–`.6.5`** at the top of the plan. The route emits
+files *changed* since the pin, so **a two-producer disagreement is half-routed by construction** (`A-F4`'s
+producer routed to nobody); it never emits **S0**, leaving **62 never-swept files** in no lane; and
+`D4-11`'s own self-checks are unreachable, so the checker is repaired before its output is trusted.
+⛔ **Pass 5 depends on this** — [D65] exits on 0/0 twice consecutively, so pass 5 is the next
+first-candidate and a clean pass 5 still owes a pass 6.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's
