@@ -832,3 +832,14 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   reads as consumed. **Same mention-vs-use defect, one check up.** Deferred rather than folded in: it is a
   behaviour change to a passing gate needing its own 2×2, and `S1.11.2` was already at seven fixes.
   ▶ Fix with the `CALL` regex that already lives in this file and extracts the claim argument.
+
+- **→ P6.10.** ⭐ **Surfaced by the `C4-7` before-scan, and MEASURED before filing — it is a documented
+  consequence, not a defect.** The §2.8 proactive risk push reads `selectPaydayGuardian(...)?.state`, and
+  a band derived from a repaired-to-`$0` obligation reads `clear`. One store, one variable *(a $2,500
+  minimum the reader lost)*: `selectRiskNotification.fire = false · level clear · reason not-risk`, against
+  the control's `fire = true · at-risk · risk-onset`. ⛔ **So an unread minimum silently withholds the
+  heads-up a genuinely at-risk cycle would have sent.** ⚠️ Filed rather than fixed because the direction is
+  the opposite of `C4-7`'s: this is **silence**, not a false claim, and the app cannot warn about an
+  obligation it never read. ▶ The open question is whether the *unread state itself* deserves a push of its
+  own *("an amount couldn't be read — your plan is incomplete")*, which is a product call about
+  notification volume, not an audit finding.

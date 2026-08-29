@@ -946,6 +946,9 @@
   "apps/rn/src/store/recoverySelectors.ts": [
     "s1p2"
   ],
+  "apps/rn/src/store/requiredPlanTrust.test.ts": [
+    "never"
+  ],
   "apps/rn/src/store/selectors.ts": [
     "s1p2"
   ],

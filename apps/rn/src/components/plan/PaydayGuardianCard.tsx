@@ -27,6 +27,17 @@ const BAR_H = 14;
  *  while, and "Set aside" is the GIG app's brand term, which this app deliberately doesn't borrow.) */
 const RESERVE_OPACITY = 0.5;
 
+/** ⛔ [pass-4 `C4-7`] The headline the card wears in place of a verdict it cannot reach. Says the STATE
+ *  rather than merely withholding the figure — `B1`'s lesson: a true statement withheld gets replaced by
+ *  a false one, and "Looks clear this paycheck" is the false one this card was printing. */
+const UNREAD_TITLE = 'One amount is missing';
+
+/** ⛔ [pass-4 `C4-7`] ONE producer for the free tier's no-shortfall pitch. It is now read from two render
+ *  paths (the ordinary card, and the unread-inputs state which must not choose by `brief.shortfall` —
+ *  that is the figure in doubt), and a second hand-written copy is this round's own defect class. */
+const FREE_INVITE_CLEAR =
+  'Premium works out how much to keep back each payday to protect your cushion, all on your device — no deciding each paycheck.';
+
 /**
  * Payday Cushion Guardian card (2.4) — the premium headline on Today, and an ACTOR: premium holds your
  * cushion at your line before any extra payoff, and this card shows what it did. Centerpiece is the
@@ -44,6 +55,7 @@ export function PaydayGuardianCard({
   onUndoTopUp,
   onReplayTutorial,
   onSetFloor,
+  unreadPlanInputs = false,
   attestation,
   onAttestBills,
   recovery,
@@ -95,6 +107,33 @@ export function PaydayGuardianCard({
    *  it covers the coaching card that sent the user there; without this they are alone with a slider
    *  mid-lesson. Undefined outside a tutorial, which is every real use. */
   coachLine?: string;
+  /**
+   * ⛔ **S1.11.4.2 [pass-4 blocker `C4-7`] — could the app read every amount this paycheck is obliged to
+   * cover?** Same question, same owner and same prop name as `RequiredActionsCard` and `AffordabilityCard`
+   * carry (`trustSelectors`' `mayClaim(store, 'required-plan')`), never re-derived here.
+   *
+   * ⚡ **Why this card needed it too.** A `minimumPayment` or bill `amount` the app could not read repairs
+   * to **$0**, so the obligation leaves the plan entirely and every figure downstream of the allocation is
+   * honestly computed off arrays that are wrong. Measured on one store with one variable — a $1,500
+   * minimum the reader lost — this card said *"Apply the spare **$1,800** toward Visa"* against a true
+   * **$300**, and showed *"To debt $1,800"*: the app instructing someone to move six times the money they
+   * actually have free. ⛔ `D3-2`'s remedy wired this claim into the Lock Screen and Siri — the two
+   * surfaces OUTSIDE the app, which on that same store refused to say anything at all — and never into
+   * the in-app card the brief is built for. **The outer surfaces refused and the primary one asserted.**
+   *
+   * ⛔ **The VERDICT goes with the figures, not just the numbers.** `snapshot.ts`'s rule is that repairing
+   * one figure and leaving the others is *"the same false statement without the word"*, and `brief.title`
+   * — *"Looks clear this paycheck"* — is the loudest claim on the card: it is a verdict about whether the
+   * money covers the obligations, computed from the obligations that went missing. The two already-fixed
+   * outer surfaces suppress it (they emit `null` / `''`), so suppressing the figures here while keeping
+   * *"Looks clear"* would leave the in-app card making the one claim they both refuse.
+   *
+   * ⚠️ **Not the same question as `brief.debtFree`.** `selectPaydayGuardian` already carries `G-3`'s
+   * `debtLiveness` guard for the REGIME; this is the field-level half, and the two must not collapse into
+   * one gag. ⛔ And the host must NOT null the brief instead: `index.tsx` renders nothing for a null
+   * brief, which removes Today's whole premium surface rather than making it honest.
+   */
+  unreadPlanInputs?: boolean;
 }) {
   const c = useAppColors();
   const [barW, setBarW] = useState(0);
@@ -144,6 +183,49 @@ export function PaydayGuardianCard({
   // is running" is knowable synchronously and is what this actually means.
   const inWalkthrough = useTutorialSession((s) => s.active);
 
+  /**
+   * ⛔ **S1.11.4.2 [pass-4 blocker `C4-7`] — THE UNREAD-INPUTS STATE. See the prop's docblock for the
+   * measurement.** Placed after the last hook and before anything is derived from `brief`, so there is
+   * exactly ONE gate rather than a suppression per figure — the shape `snapshot.ts` warns about ("the
+   * same false statement without the word") is what a per-figure list decays into the moment a figure is
+   * added. ⚠️ Everything withheld here is downstream of the allocation: the verdict, the bar, the three
+   * flow amounts, the safe-move sentence, the detail paragraph, the lookahead, and the interactive
+   * top-up / recovery controls, whose copy names the very shortfall that is wrong.
+   *
+   * ⭐ **What is KEPT is what the app really did read.** The user's own line (`brief.floor`) is a number
+   * they set, not one the reader lost, so the honest sentence names it — a card that withheld everything
+   * would be indistinguishable from a broken one. And the free invite stays, in its no-shortfall wording:
+   * the shortfall-flavoured pitch is chosen by `brief.shortfall`, which is exactly the figure in doubt.
+   */
+  if (unreadPlanInputs) {
+    const unreadBody =
+      `An amount this paycheck has to cover could not be read, so I can’t say what’s spare or hold your ` +
+      `${formatWhole(brief.floor)} line against it — set it again above and this comes back.`;
+    return (
+      <Card testID="payday-guardian-card">
+        <View {...groupLabel(isExample ? 'Example' : undefined, 'Payday Guardian', UNREAD_TITLE, unreadBody)}>
+          <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>PAYDAY GUARDIAN</Text>
+          <View style={styles.head}>
+            {/* The stale state's neutral shield, for the same reason: no color-coded verdict, because
+                there is no verdict. `update` is the glyph this card already uses for "I can't see". */}
+            <AppIcon name="update" size={22} color={c.text.tertiary} />
+            <Text style={[textStyles.title3, styles.title, { color: c.text.tertiary }]}>{UNREAD_TITLE}</Text>
+          </View>
+          <Text
+            testID="guardian-unread-inputs"
+            style={[textStyles.subhead, styles.detail, { color: c.accent.warning }]}>
+            {unreadBody}
+          </Text>
+        </View>
+        {!isPremium ? (
+          <View style={styles.invite}>
+            <PremiumInvite message={FREE_INVITE_CLEAR} />
+          </View>
+        ) : null}
+      </Card>
+    );
+  }
+
   // The card's tail, in render order: … attest → adjust → replay → proof strip → forecast. Only a 44pt
   // link row at the END needs the bottom spacer (its label is vertically centred, so it leaves less
   // visual space below it than the gaps above it). Mirrors the render conditions below exactly — if one
@@ -173,7 +255,7 @@ export function PaydayGuardianCard({
       ? 'Premium builds you a catch-up plan — what to cover first, and what (if anything) can safely wait.'
       // ⛔ Was "keeps your cushion at your line automatically" — an outcome the app cannot always deliver
       // (the Recovery Plan exists for the cycles where it does not). States the WORK, not the guarantee.
-      : 'Premium works out how much to keep back each payday to protect your cushion, all on your device — no deciding each paycheck.';
+      : FREE_INVITE_CLEAR;
 
   return (
     // `testID` on the CARD, not on a stat inside it: the stats are state-conditional (the safety-net

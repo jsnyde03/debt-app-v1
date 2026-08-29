@@ -278,3 +278,69 @@ test('C-6 control · a BNPL plan the app read still lists every installment', as
   await expect(page.getByText(/payment 1 of 4/)).toBeVisible();
   await expect(page.getByText(/could not be read/)).toHaveCount(0);
 });
+
+// ── C4-7 · the in-app card the outer surfaces left behind ────────────────────────────────────────
+
+/**
+ * ⛔ **S1.11.4.2 [pass-4 blocker `C4-7`] — THE RENDER HALF.** `requiredPlanTrust.test.ts` walks every
+ * surface that states the `'required-plan'` claim and proves this mount ASKS it; a passed prop is not a
+ * suppressed figure, so the screen itself is asserted here.
+ *
+ * ⚡ **The store is one variable from its own control.** The debt's `minimumPayment` is a value the
+ * reader cannot parse — `migrations.ts` repairs it to `$0` and records the loss — so the obligation
+ * leaves the plan entirely and the card computed a spare that is the whole missing minimum too large.
+ * ⛔ `D3-2` had already closed this sentence on the Lock Screen and in Siri, which on this very store
+ * refuse to say anything, while Today went on saying it.
+ */
+test('C4-7 · the Payday Guardian card states nothing over a minimum the app could not read', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'd0', name: 'Visa', balance: 5000, originalBalance: 8000, minimumPayment: 'n/a', apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.getByTestId('payday-guardian-card')).toBeVisible({ timeout: 15_000 });
+  // ⛔ THE HONEST STATE BY NAME, FIRST. A card that merely dropped its figures would satisfy every
+  // absence assertion below while telling the user nothing about why the read is missing — and an
+  // absence assertion is also satisfied by a page that never rendered, which the visibility check above
+  // and this positive one together rule out.
+  await expect(page.getByTestId('guardian-unread-inputs')).toBeVisible();
+  await expect(page.getByText('One amount is missing')).toBeVisible();
+  // ⚠️ Scoped to the CARD, not to the page. An unscoped `getByText(/could not be read/)` was a strict-mode
+  // violation the moment the fix landed — three honest banners say it on this screen at once, and the
+  // required-actions one below says the very same sentence. A page-wide locator for this wording proves
+  // some card is honest, never that THIS one is.
+  await expect(page.getByTestId('guardian-unread-inputs')).toContainText('could not be read');
+  // ⭐ …and it still names the line the user set THEMSELVES, which the reader never lost. A card that
+  // withheld even that would be indistinguishable from a broken one.
+  await expect(page.getByTestId('guardian-unread-inputs')).toContainText('$200');
+  // ⛔ THE VERDICT, which is the loudest claim on the card and the one the two outer surfaces suppress.
+  await expect(page.getByText('Looks clear this paycheck')).toHaveCount(0);
+  // ⛔ …and the figures. "To debt" is the stat label the invented spare renders under, and the safe-move
+  // sentence is the app telling someone to go and spend it.
+  await expect(page.getByText('To debt')).toHaveCount(0);
+  await expect(page.getByText(/Apply the spare/)).toHaveCount(0);
+});
+
+test('C4-7 control · the same card with the minimum readable still states the whole read', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'd0', name: 'Visa', balance: 5000, originalBalance: 8000, minimumPayment: 1500, apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.getByTestId('payday-guardian-card')).toBeVisible({ timeout: 15_000 });
+  // ⭐ THE CONTROL THAT MAKES THE ABSENCES ABOVE MEAN ANYTHING: one variable apart, the card speaks in
+  // full. Without it, a card that had simply stopped rendering its read would pass the test above.
+  await expect(page.getByText('Looks clear this paycheck')).toBeVisible();
+  await expect(page.getByText('To debt')).toBeVisible();
+  await expect(page.getByTestId('guardian-unread-inputs')).toHaveCount(0);
+});

@@ -355,6 +355,13 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
             <PaydayGuardianCard
               brief={guardian}
               isPremium={isPremium}
+              // ⛔ S1.11.4.2 [pass-4 blocker `C4-7`] — the SAME claim, from the SAME owner, that
+              // `RequiredActionsCard` below already asks (`:529`). `D3-2` wired it into the Lock Screen
+              // and Siri and stopped there, so on one store the two outer surfaces refused to say
+              // anything while this card said "Apply the spare $1,800 toward Visa" against a true $300.
+              // ⚠️ The honest caption on `RequiredActionsCard` does not cover it: different card, below
+              // this one, and this one was still printing the wrong dollar figure above it.
+              unreadPlanInputs={!mayClaim(store, 'required-plan')}
               isExample={isExample}
               proofOfWork={proofOfWork}
               onSeeForecast={() => router.push('/cushion-forecast')}

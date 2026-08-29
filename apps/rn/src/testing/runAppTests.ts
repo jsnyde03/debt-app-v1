@@ -125,6 +125,11 @@ async function main() {
   // honesty scorecard from its worst record to a perfect one.
   await import('../store/guardianTrust.test');
 
+  // S1.11.4.2 [pass-4 C4-7] — the SIBLING claim, asserted over its surfaces as a class rather than at the
+  // one mount a finding named. `D3-2` wired `'required-plan'` into the Lock Screen and Siri and left the
+  // in-app card saying "the spare $1,800" against a true $300; this walks every surface that states it.
+  await import('../store/requiredPlanTrust.test');
+
   // 3.7.A5 — which KIND of premium is active, incl. the "RevenueCat hasn't answered" third state that
   // four surfaces used to render as "subscription". Nothing covered the Lifetime row before this.
   await import('../premium/premiumKind.test');

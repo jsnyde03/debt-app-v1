@@ -62,8 +62,29 @@ whole-row / whole-list loss now survives the acknowledgement; the exits are the 
 user confirming it *("These are all my debts")*. ⚠️ A standing control proved the two parenthesised losses
 are not the same question — **by failing**.
 
-▶ **NEXT: `S1.11.4.2`'s remainder** — `C4-7` *(blocker: the Today card `D3-2` was raised about, stating
-**$1,800 spare** against a true **$300**)*, then the `PARTIAL`s `D3-2` `C-4`, then `.4.3`–`.4.7`.
+✅ **`C4-7` CLOSED, and with it `D3-2`'s `PARTIAL`.** `D3-2` wired the `required-plan` claim into the Lock
+Screen and Siri — **the two surfaces outside the app** — and never into the card the brief is built for, so
+on one store the outer two refused while Today said *"Apply the spare **$1,800** toward Visa"* against a
+true **$300**. ⛔ **The VERDICT went with the figures and the finding did not name it**: *"Looks clear this
+paycheck"* is the loudest claim on the card and the one both outer surfaces already suppress.
+⚡ **`requiredPlanTrust.test.ts` walks SIX surfaces in ONE list** — three pure, asserted as a pair against a
+control; three React cards asserted at the mount for the call plus a named e2e for the render. ⚠️ Its
+completeness is deliberately not claimed: `lint:trust-claims` check 3 is that half and **`C4-4` is the
+measured hole `C4-7` came through.**
+
+⛔ **AND PLANTING HAS A BLIND SPOT, MEASURED FOR THE FIRST TIME HERE: A DEFECT THAT EXISTS ONLY IN THE GREEN
+STATE.** My e2e's `getByText(/could not be read/)` was a **strict-mode violation the moment the fix landed**
+— three honest banners say that sentence on that screen at once. Every planted run was green about it,
+because under a plant the assertion above it fired first. **Every lesson here so far said planting sees what
+reading cannot; this is the converse, and the only instrument that catches it is running the suite GREEN.**
+
+⚠️ **A shared fixture can discriminate one surface and be a NO-OP for another on the same claim.** At the
+report's own $1,500 the paywall row read *"You have $0 cushion this paycheck."* on **both** stores — a row
+that could not fail, caught by reading the first green run's output rather than its exit code.
+
+▶ **NEXT: `S1.11.4.2`'s remainder** — the `PARTIAL` `C-4`, whose open half **is `C4-2`** *(blocker: a debt
+owed in full filed as "$12,000 paid off" and offered for sharing)*; it was carried in `S1.11.5` too and is
+now struck from there. Then `.4.3`–`.4.7`.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's

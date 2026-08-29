@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**475 files on the S1 surface · 410 swept · 65 unswept.**
+**476 files on the S1 surface · 410 swept · 66 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -278,6 +278,7 @@
 | `apps/rn/src/store/realWriteGuard.ts` | s1p2 |
 | `apps/rn/src/store/recoverySelectors.test.ts` | s1p2 |
 | `apps/rn/src/store/recoverySelectors.ts` | s1p2 |
+| `apps/rn/src/store/requiredPlanTrust.test.ts` | ⛔ **never** |
 | `apps/rn/src/store/selectors.ts` | s1p2 |
 | `apps/rn/src/store/steadyStateProjection.test.ts` | ⛔ **never · partial** |
 | `apps/rn/src/store/store.ts` | partial · s1p1 · s1p2 |
@@ -533,6 +534,7 @@
 - `apps/rn/src/store/payoffCelebration.test.ts`
 - `apps/rn/src/store/persistenceLifecycle.test.ts`
 - `apps/rn/src/store/realWriteGuard.test.ts`
+- `apps/rn/src/store/requiredPlanTrust.test.ts`
 - `apps/rn/src/store/steadyStateProjection.test.ts`
 - `apps/rn/src/store/storeContext.test.ts`
 - `apps/rn/src/store/windfallSplit.test.ts`

@@ -339,6 +339,22 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-C4-7-SURFACES": {
+    "what": "pass-4 blocker C4-7 - D3-2's remedy wired mayClaim(store,'required-plan') into the Lock Screen and the widget/Siri, the two surfaces OUTSIDE the app, and never into the in-app Payday Guardian card the brief is built for. Measured on one store with one variable (a $1,500 minimum the reader lost, repaired to $0 and recorded): the card said 'Apply the spare $1,800 toward Visa' and showed 'To debt $1,800' against a true $300, while the Lock Screen returned null and Siri returned '' on that same store. The app instructing someone to move six times the money they actually have free. ⛔ The guard is NOT one test naming that mount - the finding is that this claim is wired per-site and nothing walked the sites, so requiredPlanTrust.test.ts holds ONE list of the six surfaces and the assertion walks it: three answerable purely (Lock Screen, widget/Siri, paywall lead) asserted as a PAIR against a control, three React cards asserted at the mount for the call plus a named e2e for the render. ⚠️ Its completeness is explicitly NOT claimed - lint:trust-claims check 3 is the structural half and pass-4 C4-4 is the measured hole in it, which is the escape C4-7 itself came through. Both plants measured: removing the wiring reds this file naming the Guardian mount, and the naive over-fix the finding warns against (null the brief at the host, which deletes Today's whole premium surface rather than making it honest) reds trust-claims.spec.ts on payday-guardian-card not being visible. ⭐ And the e2e's four absence assertions were each re-measured with the assertions above them relaxed, so none is the vacuous kind a plant redding early hides",
+    "file": "apps/rn/src/store/requiredPlanTrust.test.ts",
+    "token": "label: 'Today · the Payday Guardian card',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/(tabs)/index.tsx",
+          "find": "              unreadPlanInputs={!mayClaim(store, 'required-plan')}\n              isExample={isExample}",
+          "replace": "              isExample={isExample}"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the mount in app/(tabs)/index.tsx asks the claim owner"
+    }
+  },
   "S1P4-C4-10-NAMEDONLY": {
     "what": "pass-4 C4-10 - the trust COMPLETENESS GATE could not fail. Its forward loop accepted routed.has(`${entity} *`), and 'row-figures' routes debt/requiredExpense/livingExpense/goal all as 'any' - so every repairable field of every entity passed by construction. Measured: four new repairable money fields, one per entity, none routed by name, block still green. Completeness is now decided by NAMED routes only; a field whose sole route really is the catch-all must be recorded in CATCH_ALL_IS_THE_DECISION with a reason, and that ledger is asserted in reverse too (stale entry, and an entry that is ALSO named). ⚠️ The wildcard itself is not wrong - it was answering a question it was never asked. 2x2 measured, and it took four collateral guards neutralised to become attributable: NEW logic + unrouted field -> RED naming C4-10; OLD wildcard-satisfies logic + the SAME field -> GREEN. ⛔ Three earlier verifier faults each produced a confident wrong red - npx tsx cannot resolve the @/ alias so both cells died at startup; a grep for 'failed' matched PASSING lines; and TWO hard-coded counts of the same fact (trustSelectors.test.ts and dataRepairsCopy.test.ts:199, identical message) plus C-m1's label check redded before the assertion under test was reached",
     "file": "apps/rn/src/store/trustSelectors.test.ts",

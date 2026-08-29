@@ -27851,6 +27851,73 @@ milestone caption and the chart's saved-interest headline **suppressed together*
 seeded BOTH debts unreadable — the one member of the class that reaches the branch the old guard sits in —
 so the mixed portfolio, which is the ordinary case, had never been run. It is now.
 
+### `C4-7` (blocker) — the two surfaces outside the app refused, and the primary one asserted
+
+`D3-2` wired `mayClaim(store, 'required-plan')` into `paydayActivityContent.ts` and `widget/snapshot.ts`
+— the Lock Screen and Siri — and never into the in-app card the Guardian brief is built for. Reproduced
+before touching anything, one store, one variable *(a $1,500 minimum the reader lost, repaired to `$0`
+and recorded)*:
+
+```
+── UNREAD minimum        mayClaim(required-plan) = false
+   TODAY safeMove : Apply the spare $1,800 toward Visa when you’re ready — your $200 cushion stays protected…
+   TODAY figures  : deployedToDebt 1800 · cushion 200 · state clear
+   LOCK SCREEN    : null          SIRI : ""
+── CONTROL (minimum $1,500)   mayClaim = true
+   TODAY safeMove : Apply the spare $300 toward Visa …
+   LOCK SCREEN    : SPEAKS        SIRI : "…with $300 free to put toward debt."
+```
+
+**The error is $1,500 and it is stated as an instruction to spend.**
+
+⛔ **The VERDICT went with the figures, and the finding did not name it.** `brief.title` — *"Looks clear
+this paycheck"* — is the loudest claim on the card and is computed from the obligations that went missing;
+the two already-fixed outer surfaces suppress it by emitting `null` / `''`. Suppressing the numbers while
+keeping *"Looks clear"* would have left the in-app card making the one claim they both refuse. ⚠️ Two more
+sites the report's four-figure list omitted: `brief.detail` restates the same money *("About $2,000 after
+everything required… apply the spare $1,800")*, and the a11y group label speaks every figure. All of it is
+downstream of one gate rather than a per-figure suppression list, which is what `snapshot.ts`'s
+*"the same false statement without the word"* decays into the moment a figure is added.
+
+⭐ **What is KEPT is what the app really read.** `brief.floor` is a number the user set themselves, so the
+honest sentence names it; a card that withheld everything is indistinguishable from a broken one.
+
+#### The class, and why it is a list rather than a test
+
+The finding is not *"the Guardian card is ungated"* — it is that this claim is wired per-site and nothing
+walks the sites. `requiredPlanTrust.test.ts` holds **ONE list of six surfaces** and the assertion walks it:
+three answerable purely *(Lock Screen · widget/Siri · the paywall lead)* asserted as a **pair** against a
+control, and three React cards asserted at the mount for the **call** plus a named e2e for the **render**.
+
+⚠️ **Its completeness is explicitly not claimed, and saying so is the honest part.** `lint:trust-claims`
+check 3 is the structural half that derives the population instead of typing it, and **`C4-4` is the
+measured hole in it** — `(tabs)/index.tsx` is `continue`d because its source *contains the substring*
+`trustSelectors`. That escape is what `C4-7` came through, and it is open at `S1.11.5`.
+
+⛔ **The fixture is $2,500, not the report's $1,500, because the paywall row was VACUOUS at $1,500.**
+`paywallLead` states *"You have $0 cushion this paycheck."* on **both** stores at that minimum — an
+identical sentence either side of the variable. A shortfall is what makes all three pure surfaces
+discriminate at once. Found by reading the first green run's own output, which is the only reason it was
+not a row that could not fail.
+
+#### Both plants measured, and the absence assertions re-measured behind them
+
+| plant | result |
+|---|---|
+| the original defect *(drop the wiring at the mount)* | `test:app` reds naming the Guardian mount; the e2e reds on the honest state being absent |
+| the naive over-fix *(null the brief at the host — the remedy the finding warns against)* | the card disappears entirely and the e2e reds on `payday-guardian-card` not visible |
+
+⭐ **The first plant red on the FIRST assertion, so the four absence assertions had proven nothing yet.**
+Re-run three more times with each preceding assertion relaxed in turn: *"Looks clear this paycheck"*,
+*"To debt"* and *"Apply the spare"* each fire on their own. ⚠️ This is the `plant-that-reds-early` lesson
+applied prospectively rather than after a vacuous assertion shipped.
+
+⛔ **AND MY OWN FIRST GREEN RUN CARRIED A DEFECT THE PLANTS COULD NOT SEE.** `getByText(/could not be
+read/)` was a **strict-mode violation the moment the fix landed** — three honest banners say that sentence
+on this screen at once, and the required-actions card below says it verbatim. A page-wide locator for that
+wording proves *some* card is honest, never that **this** one is. Scoped to the card's own testID.
+⚡ Invisible in every planted run, because under the plant the assertion above it fired first.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be
