@@ -3,6 +3,11 @@ import { addMonthsToDate } from "@core/utils/addMonths";
 import { parseLocalDate } from "@core/utils/localDate";
 import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from "./bnplPayoffPace";
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
+// ⛔ S1.11.4.5 [pass-4 blocker `A-F4`] — ONE PRODUCER, shared with `buildPayoffTrajectory`. The comment
+// above used to end "this is the second producer of one fact being brought into line with the first",
+// which is exactly the state that let the two drift again — on WHEN the guard runs rather than on what it
+// computes. There is no second producer now.
+import { cannotAmortize } from "./cannotAmortize";
 
 /**
  * The `estimatedDebtFreeDate` SENTINEL — "this plan does not amortize inside the horizon".
@@ -72,29 +77,6 @@ function sortDebts(debts: ProjectedDebt[], strategy: PayoffStrategy) {
         });
 }
 
-// ⛔ COMPARE AGAINST THE BUDGET THE LOOP ACTUALLY SPENDS, NOT THE SHRINKING MINIMUM SUM (S1P3-A1).
-// This guard used to re-sum the minimums of the debts still LIVE at that month and add the extra. But
-// the loop below does not spend that number — it spends `monthlyBudget`, a CONSTANT that deliberately
-// keeps a paid-off debt's freed minimum in the pool (the defining snowball/avalanche mechanic, see the
-// comment above `totalMinimums`). So the instant the first debt cleared, this compared the remaining
-// interest against a payment total that no longer included the money actually being paid, and bailed
-// out of a plan that amortizes fine: a $2,000 car loan at 5% (min $500) plus a $10,000 Visa at 25%
-// (min $50) returned "Unable to estimate" at month 5 while `buildPayoffTrajectory` — same inputs, same
-// directory — drew that plan clearing at month 30. The Progress hero printed `—` over its own chart.
-// ⚠️ The `monthlyBudget > 0` half is NOT incidental and must not be dropped: a $0 recurring budget
-// (an all-one-time-BNPL plan with no extra) is not un-amortizable — the lumps clear via their month-1
-// minimum — and `0 >= 0` would call it unpayable. `buildPayoffTrajectory.ts:91` already had both halves;
-// this is the second producer of one fact being brought into line with the first, not a new rule.
-function cannotAmortize(debts: ProjectedDebt[], monthlyBudget: number) {
-    const activeDebts = debts.filter((debt) => debt.balance > 0);
-
-    const monthlyInterestTotal = activeDebts.reduce(
-        (sum, debt) => sum + calculateMonthlyInterest(debt.balance, debt.apr),
-        0
-    );
-
-    return monthlyBudget > 0 && monthlyInterestTotal >= monthlyBudget;
-}
 
 export function projectDebtPayoff({
     debts,

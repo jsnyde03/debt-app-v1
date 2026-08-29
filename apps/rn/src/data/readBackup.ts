@@ -3,7 +3,7 @@ import { detectBackupFormat, type BackupKind } from './detectBackupFormat';
 import { formatBackupTime } from './formatBackupTime';
 import { LEGACY_KEY_PREFIX } from './legacyBridge/webkitLocalStorage';
 import { mapLegacyStore, type LegacyMapReport } from './legacyBridge/mapLegacyStore';
-import { runMigrations } from './migrations';
+import { runMigrations, WHOLE_LIST_LOSS_FIELD } from './migrations';
 import { type DebtStore } from './models';
 
 /**
@@ -215,16 +215,52 @@ export function describeLocalOverwrite(store: DebtStore): string {
   return ` This replaces ${list} you have already entered on this device.`;
 }
 
+/** "debts" / "expenses" / "goals" — the user's word for an entity's list, for the whole-list clause. */
+const LIST_NOUN: Record<string, string> = {
+  debt: 'debts',
+  requiredExpense: 'bills',
+  livingExpense: 'everyday spending',
+  goal: 'goals',
+};
+
+/**
+ * ⛔ **S1.11.4.5 [pass-4 `F-B3`] — TWO PRODUCERS WERE POOLED INTO ONE COUNT, AND THE COUNT CANNOT CARRY
+ * THE LARGER OF THEM.**
+ *
+ * ⚡ `migrations.ts` writes two parenthesised fields and they are not the same event: one row that could
+ * not be parsed, and an **entire array** that was not an array. This split on `startsWith('(')` and
+ * counted both as *"whole rows"*, so a backup whose whole `debts` list was unreadable read
+ * *"⚠️ 1 whole row in this backup could not be read"* — one sentence above **Replace my data**, under
+ * *"It can't be undone"*. ⛔ Measured: a 3-debt store with the list lost and a store with exactly one bad
+ * row produced the **identical clause** from opposite-sized losses.
+ *
+ * ⚠️ **The count cannot be fixed — the unparseable value has no length.** So the whole-list case gets its
+ * own clause, driven off `entity` rather than off a number: it says WHICH list, which is the thing that is
+ * actually known. That is `C-7`'s rule (*"counts it, so 'one' is distinguishable from 'nine'"*) applied to
+ * the member where counting is impossible: name it instead.
+ *
+ * ⚠️ Three clause kinds can co-occur (the finding's case E), so the order is fixed and the joins are done
+ * once: whole lists first, because they are the largest loss in the sentence.
+ */
 export function describeLosses(store: DebtStore): string {
   const lost = store.pendingDataRepairs.filter((r) => r.kind !== 'recovered');
   if (lost.length === 0) return '';
-  const rows = lost.filter((r) => r.field.startsWith('(')).length;
-  const fields = lost.length - rows;
+  const lists = [...new Set(lost.filter((r) => r.field === WHOLE_LIST_LOSS_FIELD).map((r) => LIST_NOUN[r.entity] ?? r.entity))];
+  // ⚠️ Still `startsWith('(')` and not an exact match on `WHOLE_ROW_LOSS_FIELD`: the prefix is the
+  // fail-SAFE backstop for a third synthetic loss nobody has classified yet, and dropping it here would
+  // make such a loss vanish from this sentence entirely. `migrations.ts`'s docblock records why the
+  // constants pin the coupling without replacing the catch-all.
+  const rows = lost.filter((r) => r.field.startsWith('(') && r.field !== WHOLE_LIST_LOSS_FIELD).length;
+  const fields = lost.filter((r) => !r.field.startsWith('(')).length;
   const parts = [
+    lists.length > 0
+      ? `the whole ${lists.length === 1 ? lists[0] : `${lists.slice(0, -1).join(', ')} and ${lists[lists.length - 1]}`} list${lists.length === 1 ? '' : 's'}`
+      : '',
     fields > 0 ? plural(fields, 'amount', 'amounts') : '',
     rows > 0 ? plural(rows, 'whole row', 'whole rows') : '',
   ].filter(Boolean);
-  return ` ⚠️ ${parts.join(' and ')} in this backup could not be read.`;
+  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+  return ` ⚠️ ${list} in this backup could not be read.`;
 }
 
 /**

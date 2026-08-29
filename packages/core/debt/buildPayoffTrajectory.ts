@@ -1,5 +1,6 @@
 import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from "./bnplPayoffPace";
 import { calculateMonthlyInterest } from "./calculateMonthlyInterest";
+import { cannotAmortize } from "./cannotAmortize";
 
 export type TrajectoryPoint = { month: number; balance: number };
 /** The month a single debt's balance first reaches zero (for per-debt "Visa gone — Aug 2027" waypoints). */
@@ -74,6 +75,22 @@ export function simulatePayoff({ debts, monthlyExtraPayment, strategy }: SimInpu
     // payoffs (>10yr) flattening above zero, contradicting the date shown (#4). The
     // loop still breaks early the moment the balance clears, so short plans are unaffected.
     for (let month = 1; month <= 600; month++) {
+        /**
+         * ⛔ **S1.11.4.5 [pass-4 blocker `A-F4`] — THE SAME GUARD, AT THE SAME POINT IN THE MONTH, FROM
+         * THE SAME OWNER.** This ran AFTER the accrual below while `projectDebtPayoff` ran it BEFORE.
+         * Accrual only raises the balance, so this test was strictly the harsher one and the chart bailed
+         * on a band of plans the date engine amortizes — `budget/(1 + apr/1200) ≤ interest < budget`,
+         * which for a 25% card is a **2% window**, and a minimum set at ~2% of balance is the ordinary
+         * credit-card shape. Measured over 4,000 pseudo-random plans: 6 disagreements, **all in the same
+         * direction**. A $6,379.24 Visa at 25.22% paying its $136 minimum read *"September 2043"* over a
+         * curve that is a single point at the full balance and never descends.
+         *
+         * ⚠️ `A1` corrected this pair's EXPRESSION and left them two producers; the half it did not align
+         * was WHEN. There is one producer now — moving the call is only half the fix, and importing it is
+         * the other half.
+         */
+        if (cannotAmortize(pool, monthlyBudget)) break;
+
         for (let i = 0; i < pool.length; i++) {
             if (pool[i].balance > 0) {
                 pool[i] = {
@@ -82,13 +99,6 @@ export function simulatePayoff({ debts, monthlyExtraPayment, strategy }: SimInpu
                 };
             }
         }
-
-        // Negative-amortization guard, but ONLY when there's a recurring budget to compare against — a
-        // $0 recurring budget (e.g. an all-one-time-BNPL plan with no extra) is not un-amortizable; the
-        // lumps still clear via their month-1 minimum below. Without the `> 0` guard, `0 >= 0` broke the
-        // curve pre-payment and it flatlined while the date said month 1 (round-3 Finding 1).
-        const totalInterest = pool.reduce((s, d) => s + calculateMonthlyInterest(d.balance, d.apr), 0);
-        if (monthlyBudget > 0 && totalInterest >= monthlyBudget) break;
 
         let minimumsPaidThisMonth = 0;
         for (let i = 0; i < pool.length; i++) {

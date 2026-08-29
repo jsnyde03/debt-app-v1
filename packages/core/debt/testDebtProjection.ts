@@ -399,6 +399,73 @@ function runDebtProjectionTests() {
         "the debt-free DATE and the payoff CHART agree on the same plan (S1P3-A1)"
     );
 
+    /**
+     * ⛔ **S1.11.4.5 [pass-4 blocker `A-F4`] — THE ASSERTION ABOVE EXISTED, WAS GREEN OVER THE DEFECT, AND
+     * SAID SO IN ITS OWN LABEL.** *"The debt-free DATE and the payoff CHART agree on the same plan"* is a
+     * class-level sentence pinned to **one plan** — a $2,000 car loan at 5% beside a $10,000 Visa at 25%,
+     * whose interest is nowhere near its budget. Run against a plan INSIDE the disagreement band the same
+     * expression is `assertEqual(undefined, 205)`. ⚡ Reading rule 2 exactly: the right guard, aimed at the
+     * one input where the two producers happen to agree.
+     *
+     * ⛔ **So the assertion SWEEPS the band rather than naming a member of it.** The two engines differed
+     * only in WHEN the negative-amortization guard ran, and accrual only raises the balance — so the band
+     * is `budget/(1 + apr/1200) ≤ monthlyInterest < budget`, a window that narrows with the APR. The rows
+     * below walk it deliberately: a minimum set at ~2% of balance is the ordinary credit-card shape, which
+     * is why 4,000 random plans landed in it six times.
+     *
+     * ⚠️ **The property, not the number.** Asserting a month count would pin today's arithmetic; what must
+     * hold is that the two producers AGREE — the date says payable **iff** the curve reaches zero. A
+     * disagreement in either direction is the defect, and the message names which way it went.
+     */
+    const BAND_PLANS: { label: string; balance: number; apr: number; min: number; extra?: number }[] = [
+        { label: "the reported plan: $6,379.24 @ 25.22%, $136 min", balance: 6379.24, apr: 25.22, min: 136 },
+        { label: "the same card, one dollar of minimum lower", balance: 6379.24, apr: 25.22, min: 135 },
+        { label: "a 30% card at ~2% minimum, carried by a $100 extra", balance: 7833.66, apr: 30.08, min: 96.37, extra: 100 },
+        { label: "a 22% card whose minimum is just above its interest", balance: 5000, apr: 22, min: 92 },
+        { label: "…and just below it, which really is unpayable", balance: 5000, apr: 22, min: 90 },
+        { label: "a 0% card, far outside the band", balance: 1200, apr: 0, min: 100 },
+        { label: "a 5% loan, far outside the band", balance: 2000, apr: 5, min: 500 },
+    ];
+    for (const plan of BAND_PLANS) {
+        const date = projectDebtPayoff({
+            debts: [
+                { id: "b", name: "Card", balance: plan.balance, minimumPayment: plan.min, apr: plan.apr, dueDate: "2026-01-15", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
+            ],
+            monthlyExtraPayment: plan.extra ?? 0,
+            strategy: "avalanche",
+            startDate: "2026-01-15",
+        });
+        const curve = buildPayoffTrajectory({
+            debts: [
+                { id: "b", name: "Card", balance: plan.balance, minimumPayment: plan.min, apr: plan.apr, type: "debt", recurrence: "monthly" },
+            ],
+            monthlyExtraPayment: plan.extra ?? 0,
+            strategy: "avalanche",
+        });
+        const datePayable = date.estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE;
+        const chartPayable = curve.some((point) => point.balance <= 0.01);
+        assertEqual(
+            chartPayable,
+            datePayable,
+            `⛔ A-F4 · ${plan.label} — the DATE says ${datePayable ? "payable" : "unpayable"} and the CHART says ${chartPayable ? "payable" : "unpayable"}; they are one fact`
+        );
+    }
+    // ⭐ THE CONTROL THAT STOPS THIS PASSING BY AGREEING ON NOTHING. If every row above were unpayable the
+    // loop would be satisfied by two engines that had both simply given up, so the sweep is asserted to
+    // contain BOTH answers — which is also what proves the band rows really are near the boundary.
+    const verdicts = BAND_PLANS.map((plan) =>
+        projectDebtPayoff({
+            debts: [
+                { id: "b", name: "Card", balance: plan.balance, minimumPayment: plan.min, apr: plan.apr, dueDate: "2026-01-15", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
+            ],
+            monthlyExtraPayment: plan.extra ?? 0,
+            strategy: "avalanche",
+            startDate: "2026-01-15",
+        }).estimatedDebtFreeDate !== DEBT_FREE_DATE_UNPAYABLE
+    );
+    assertEqual(verdicts.includes(true), true, "⭐ A-F4 control — the sweep contains a payable plan");
+    assertEqual(verdicts.includes(false), true, "⭐ A-F4 control — …and an unpayable one, so it straddles the boundary");
+
     // R2.2 — a one-time BNPL must NOT phantom-accelerate a coexisting debt. A $1000 card ($100/mo, 0%)
     // takes 10 months alone; adding a $2000 one-time BNPL must leave the card at 10 months (the one-time
     // clears month 1 and is excluded from the recurring budget), not wipe it early via phantom freed cash.

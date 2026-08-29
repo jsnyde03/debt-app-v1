@@ -3,8 +3,9 @@ import { join } from 'node:path';
 
 import { serializeBackup } from '@/data/backup';
 import { createDefaultStore } from '@/data/defaults';
+import { SYNTHETIC_LOSS_FIELDS, WHOLE_LIST_LOSS_FIELD, WHOLE_ROW_LOSS_FIELD } from '@/data/migrations';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
-import { describeBackup, describeLocalOverwrite, describeRestorePreview, readBackup, v16FileToLegacyItems } from '@/data/readBackup';
+import { describeBackup, describeLocalOverwrite, describeLosses, describeRestorePreview, readBackup, v16FileToLegacyItems } from '@/data/readBackup';
 
 /**
  * 5.8.3 — the import router + the v1.6 file adapter.
@@ -467,6 +468,63 @@ console.log(`✅ readBackup router tests passed (${passed} asserts).`);
   const paycheckOnly = createDefaultStore();
   paycheckOnly.paycheck = { ...paycheckOnly.paycheck, amount: '0' };
   assert(describeLocalOverwrite(paycheckOnly) === '', '⭐ control — a $0 paycheck is not something to lose');
+}
+
+/**
+ * ── S1.11.4.5 [pass-4 `F-B3`]: the two synthetic losses are TWO events ────────────────────────────
+ *
+ * ⛔ `describeLosses` split on `startsWith('(')` and counted both as *"whole rows"*, so a backup whose
+ * entire `debts` list was unreadable read *"⚠️ 1 whole row in this backup could not be read"* — one
+ * sentence above **Replace my data**, under *"It can't be undone"*. ⚠️ The count cannot be made right: the
+ * unparseable value has no length. So the whole-list case says WHICH list, which is what is actually
+ * known. ⭐ **The pair is the test** — the two loss kinds are asserted to produce DIFFERENT sentences on
+ * one shared fixture, because producing the same one from opposite-sized losses was the defect.
+ */
+{
+  const withRepairs = (repairs: DebtStore['pendingDataRepairs']): DebtStore => ({
+    ...createDefaultStore(),
+    pendingDataRepairs: repairs,
+  });
+  const wholeList = { entity: 'debt' as const, id: '', name: '', field: WHOLE_LIST_LOSS_FIELD, kind: 'lost' as const };
+  const wholeRow = { entity: 'debt' as const, id: '', name: '', field: WHOLE_ROW_LOSS_FIELD, kind: 'lost' as const };
+  const anAmount = { entity: 'debt' as const, id: 'd1', name: 'Visa', field: 'balance', kind: 'lost' as const };
+
+  const listSaid = describeLosses(withRepairs([wholeList]));
+  const rowSaid = describeLosses(withRepairs([wholeRow]));
+  assert(listSaid.includes('the whole debts list'), `⛔ F-B3 — a whole LIST names the list (got ${JSON.stringify(listSaid)})`);
+  assert(rowSaid.includes('1 whole row'), `F-B3 — a whole ROW is still counted, which is right for it (got ${JSON.stringify(rowSaid)})`);
+  // ⛔ THE ASSERTION THAT CARRIES THE FINDING. Both clauses being present proves nothing; what shipped was
+  // ONE sentence serving both, and the pair is what makes that unrepresentable.
+  assert(listSaid !== rowSaid, '⛔ F-B3 — opposite-sized losses no longer produce the identical clause');
+  // The finding's case E: all three kinds at once, in one sentence, joined once.
+  const all = describeLosses(withRepairs([wholeList, wholeRow, anAmount]));
+  assert(all.includes('the whole debts list'), '⛔ F-B3 · case E — the list clause survives company');
+  assert(all.includes('1 amount'), '⛔ F-B3 · case E — …and so does the amount');
+  assert(all.includes('1 whole row'), '⛔ F-B3 · case E — …and the row');
+  assert(!all.includes('2 whole rows'), '⛔ F-B3 · case E — the list is NOT counted as a row any more');
+  // ⭐ CONTROL — a recovered value is not a loss, and the sentence is empty rather than reassuring.
+  assert(describeLosses(withRepairs([{ ...anAmount, kind: 'recovered' }])) === '', '⭐ F-B3 control — a recovered value warns about nothing');
+
+  /**
+   * ⛔ **THE COUPLING, PINNED AT LAST.** Every reader of these records tests `field.startsWith('(')`, and
+   * nothing tied that convention to the two literals `migrations.ts` actually writes — *"a third
+   * `(`-prefixed field added in `migrations.ts` would silently join the whole rows bucket"*.
+   * ⚠️ **The prefix test STAYS** — it fails SAFE, and an exact-match list would fail OPEN, which would be
+   * the remedy introducing a defect. What is asserted instead is that the producer emits no third one, so
+   * a new synthetic loss cannot arrive unclassified.
+   */
+  for (const field of SYNTHETIC_LOSS_FIELDS) {
+    assert(field.startsWith('('), `⛔ F-B3 — ${field} keeps the prefix every reader's backstop tests`);
+  }
+  const migrationsSrc = readFileSync(join(import.meta.dirname, 'migrations.ts'), 'utf8');
+  const emitted = [...migrationsSrc.matchAll(/field: '(\([^']*\))'/g)].map((m) => m[1]);
+  if (emitted.length > 0) {
+    throw new Error(
+      `FAIL [⛔ F-B3 — migrations.ts writes ${emitted.join(', ')} as a LITERAL. Name it in SYNTHETIC_LOSS_FIELDS, ` +
+        'or a reader that tells the two events apart will silently put it in the wrong bucket]',
+    );
+  }
+  assert(true, '⛔ F-B3 — migrations.ts emits no UNNAMED parenthesised field, so no third synthetic loss can arrive unclassified');
 }
 
 console.log(`✅ readBackup onboarding-gate tests passed.`);

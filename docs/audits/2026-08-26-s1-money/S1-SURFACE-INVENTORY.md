@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**476 files on the S1 surface · 410 swept · 66 unswept.**
+**477 files on the S1 surface · 410 swept · 67 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -394,6 +394,7 @@
 | `packages/core/debt/buildPayoffTrajectory.ts` | s1p3 |
 | `packages/core/debt/bulkMarkRequired.ts` | s1p3 · s1p4 |
 | `packages/core/debt/calculateMonthlyInterest.ts` | s1p3 |
+| `packages/core/debt/cannotAmortize.ts` | ⛔ **never** |
 | `packages/core/debt/computeCycleDelta.ts` | s1p3 |
 | `packages/core/debt/computeDrift.ts` | s1p3 |
 | `packages/core/debt/computeInterestSaved.ts` | s1p3 |
@@ -557,6 +558,7 @@
 - `apps/rn/tests/e2e/spoken-state.spec.ts`
 - `apps/rn/tests/e2e/trajectory-interactivity.spec.ts`
 - `apps/rn/tests/e2e/trust-claims.spec.ts`
+- `packages/core/debt/cannotAmortize.ts`
 - `packages/core/debt/testDeriveRequiredActionView.ts`
 - `packages/core/debt/testReconcileAutopay.ts`
 

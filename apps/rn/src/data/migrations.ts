@@ -126,7 +126,7 @@ function repairMoneyFields<T extends Record<string, unknown>>(
     // `persistenceLifecycle`'s malformed-nested case caught it: a corrupt `debts` key became an empty
     // list with nothing to show for it — the precise silent drop this whole item exists to remove, added
     // by the fix for it. `rows === undefined` is the ordinary "key absent" case and is not a loss.
-    if (rows !== undefined) repairs.push({ entity, id: '', name: '', field: '(whole list unreadable)', kind: 'lost' });
+    if (rows !== undefined) repairs.push({ entity, id: '', name: '', field: WHOLE_LIST_LOSS_FIELD, kind: 'lost' });
     return fallback;
   }
   return rows.flatMap((row) => {
@@ -152,7 +152,7 @@ function repairMoneyFields<T extends Record<string, unknown>>(
      * array with a hole or an `undefined` element, or an external mutation of the stored blob.
      */
     if (!row || typeof row !== 'object' || Array.isArray(row)) {
-      repairs.push({ entity, id: '', name: '', field: '(a row could not be read)', kind: 'lost' });
+      repairs.push({ entity, id: '', name: '', field: WHOLE_ROW_LOSS_FIELD, kind: 'lost' });
       return [];
     }
     const next = { ...(row as Record<string, unknown>) };
@@ -220,6 +220,29 @@ function inferOnboarding(
  * leaves an absent one absent. Both record a repair when the field is present and unreadable, so both
  * belong to the inventory. See `repairMoneyFields`' docblock for why the split is by schema optionality.
  */
+/**
+ * ⛔ **THE TWO SYNTHETIC LOSS FIELDS, OWNED WHERE THEY ARE PRODUCED.** [S1.11.4.5 · pass-4 `F-B3`]
+ *
+ * A `DataRepair.field` normally names a field. These two name **no** field, because there was nothing left
+ * to name — one row that could not be parsed, or an entire array that was not an array at all. They are
+ * written here and read in three other modules (`trustSelectors`, `dataRepairsCopy`, `readBackup`), and
+ * until now the coupling was a **naming convention**: every reader tested `field.startsWith('(')`.
+ *
+ * ⚡ **`F-B3` is what an unpinned convention costs.** `describeLosses` pooled both into one *"whole rows"*
+ * count, so a backup whose ENTIRE `debts` list was unreadable was described as *"⚠️ 1 whole row in this
+ * backup could not be read"* — immediately before **Replace my data**, under *"It can't be undone"*. One
+ * row and a whole list produced the identical clause from opposite-sized losses.
+ *
+ * ⚠️ **Naming them does not replace the prefix test, and that is deliberate.** `startsWith('(')` fails
+ * SAFE — a third synthetic loss added here would poison every claim the other two poison, which is the
+ * right default. An exact-match list would fail OPEN. So the constants pin the coupling and
+ * `trustSelectors.test.ts` asserts this file produces no `(`-prefixed field outside the pair; the
+ * catch-all stays underneath as the backstop.
+ */
+export const WHOLE_LIST_LOSS_FIELD = '(whole list unreadable)';
+export const WHOLE_ROW_LOSS_FIELD = '(a row could not be read)';
+export const SYNTHETIC_LOSS_FIELDS = [WHOLE_LIST_LOSS_FIELD, WHOLE_ROW_LOSS_FIELD] as const;
+
 export const REPAIRABLE_MONEY_FIELDS = {
   debt: { required: ['balance', 'minimumPayment', 'apr'], optional: ['originalBalance', 'scheduledPaymentAmount'] },
   requiredExpense: { required: ['amount'], optional: [] },

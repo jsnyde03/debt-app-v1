@@ -28102,6 +28102,71 @@ assertion that replaced it, with the reason recorded on the entry.
 never-tested cap said no. The plantable half is the **predicate both readers stand on**, asserted in the
 unit suite; the four e2e assertions were each re-measured with the ones above them relaxed.
 
+### `A-F4` (blocker) — `A1` aligned the two producers' FORM and left their PHASE different
+
+The debt-free DATE and the payoff CHART are one fact rendered side by side by one selector, and they
+disagreed. `projectDebtPayoff` tested the negative-amortization guard on the balance it was **about to**
+accrue; `buildPayoffTrajectory` ran the same expression **after** its own accrual. Accrual only raises the
+balance, so the chart's test is strictly harsher.
+
+```
+$6,379.24 Visa @ 25.22% APR, $136 minimum, no extra
+  interest on the CURRENT balance  = 134.07   -> the date engine amortizes
+  balance after this month accrues = 6513.31
+  interest on the ACCRUED balance  = 136.89   -> the chart breaks
+  DATE  "September 2043" (205 months)    CHART  [{month: 0, balance: 6379.24}]
+```
+
+A user reads a debt-free date and, directly beneath it, a curve that never descends. ⚡ The band is
+`budget/(1 + apr/1200) ≤ interest < budget` — a **2% window** for a 25% card, and a minimum set at ~2% of
+balance is the ordinary credit-card shape, which is why a random sweep of 4,000 plans landed in it six
+times, **every one in the same direction**.
+
+⛔ **The fix is ONE producer, not a third corrected copy.** `A1`'s own comment said *"this is the second
+producer of one fact being brought into line with the first"* — and that is the state that let them drift
+again, on **when** rather than on **what**. `packages/core/debt/cannotAmortize.ts` is now the only place
+the expression exists, called at one point in the month body by both engines. Pass-3's history moved onto
+it rather than being deleted.
+
+⭐ **THE ASSERTION THAT WOULD HAVE CAUGHT THIS ALREADY EXISTED AND WAS GREEN OVER THE DEFECT.** *"The
+debt-free DATE and the payoff CHART agree on the same plan (S1P3-A1)"* — a class-level sentence pinned to
+**one plan** whose interest is nowhere near its budget. Reading rule 2: the right guard, aimed at the one
+input where the two producers happen to agree. It **sweeps the band** now — seven plans straddling the
+boundary, asserting the *property* (`payable iff the curve reaches zero`) rather than a month count, with a
+control that the sweep contains **both** answers. ⚠️ Under the plant, three of the seven rows are live
+discriminators and four correctly agree; measured, not assumed.
+
+### `F-B3` (major) — two producers pooled into one count, at the point of no return
+
+`migrations.ts` writes two parenthesised `field`s and they are not the same event. `describeLosses` split
+on `startsWith('(')` and counted both as *"whole rows"*:
+
+```
+WHOLE debts list unreadable (3 debts existed)  -> "⚠️ 1 whole row in this backup could not be read."
+ONE row not an object                          -> "⚠️ 1 whole row in this backup could not be read."
+```
+
+The identical clause from opposite-sized losses, one sentence above **Replace my data**, under *"It can't
+be undone"*. ⚠️ **The count cannot be made right — the unparseable value has no length.** So the whole-list
+case gets its own clause naming **which** list, driven off `entity`. That is `C-7`'s rule (*"counts it, so
+'one' is distinguishable from 'nine'"*) applied to the member where counting is impossible: **name it
+instead.**
+
+⛔ **AND THE `(`-PREFIX TEST STAYS, WHICH IS THE HALF THE FINDING DID NOT SAY.** The convention had two
+producers and nothing pinning it — *"a third `(`-prefixed field would silently join the whole rows
+bucket"*. But replacing it with an exact-match list **fails OPEN**: a third synthetic loss would stop
+poisoning claims at all. ⚡ **That would be the remedy introducing a defect, for the fifth time this
+round.** The two fields are named at the producer (`SYNTHETIC_LOSS_FIELDS`), the catch-all stays underneath
+as the backstop, and the suite asserts `migrations.ts` emits no **unnamed** parenthesised literal — plant
+a third one and it reds.
+
+⭐ **Both moves broke a registered proof anchor and the ledger said so on the next run.** `S1P3-A1-BUDGET`
+pointed at a line that had moved into the new module, and `S1P3-C7-LOSSES` at a return statement that had
+been rewritten. ⚠️ **`A1`'s original defect is no longer expressible inside the guard** — it does not
+receive minimums any more — so its un-fix reproduces it at the **call site**, passing the shrinking minimum
+sum instead of the constant budget. Recorded on the entry, because a proof that quietly weakened would be
+worse than one that reds.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

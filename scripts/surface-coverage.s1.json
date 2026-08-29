@@ -1347,6 +1347,9 @@
   "packages/core/debt/calculateMonthlyInterest.ts": [
     "s1p3"
   ],
+  "packages/core/debt/cannotAmortize.ts": [
+    "never"
+  ],
   "packages/core/debt/computeCycleDelta.ts": [
     "s1p3"
   ],

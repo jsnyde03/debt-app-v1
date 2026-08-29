@@ -339,6 +339,38 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-A-F4-ONEGUARD": {
+    "what": "pass-4 blocker A-F4 - A1 aligned the two producers' EXPRESSION and left their PHASE different. projectDebtPayoff tested the negative-amortization guard on the balance it was ABOUT to accrue; buildPayoffTrajectory ran the same expression AFTER its own accrual. Accrual only raises the balance, so the chart's test is strictly harsher and it bailed on a band of plans the date engine amortizes: budget/(1 + apr/1200) <= interest < budget, a 2% window for a 25% card, and a minimum set at ~2% of balance is the ordinary credit-card shape. Measured over 4,000 pseudo-random plans: 6 disagreements, every one the same direction - the DATE clears and the CHART never does. A $6,379.24 Visa at 25.22% paying $136 read 'September 2043' over a curve that is one point at the full balance. ⛔ Fixed by making it literally ONE producer (packages/core/debt/cannotAmortize.ts) called at ONE point in the month body, not by correcting the loser again - correcting the loser is what A1 did and it bought this round. ⭐ The assertion that would have caught it ALREADY EXISTED and was green: 'the debt-free DATE and the payoff CHART agree on the same plan' pinned to ONE plan whose interest is nowhere near its budget - reading rule 2, the right guard aimed at the one input where the producers happen to agree. It sweeps the band now, seven plans straddling the boundary, asserting the PROPERTY (payable iff the curve reaches zero) rather than a month count, with a control that the sweep contains both answers. Plant-verified: moving the call back after the accrual reds three of the seven rows",
+    "file": "packages/core/debt/testDebtProjection.ts",
+    "token": "they are one fact`",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/buildPayoffTrajectory.ts",
+          "find": "        if (cannotAmortize(pool, monthlyBudget)) break;\n\n        for (let i = 0; i < pool.length; i++) {\n            if (pool[i].balance > 0) {\n                pool[i] = {\n                    ...pool[i],\n                    balance: pool[i].balance + calculateMonthlyInterest(pool[i].balance, pool[i].apr),\n                };\n            }\n        }",
+          "replace": "        for (let i = 0; i < pool.length; i++) {\n            if (pool[i].balance > 0) {\n                pool[i] = {\n                    ...pool[i],\n                    balance: pool[i].balance + calculateMonthlyInterest(pool[i].balance, pool[i].apr),\n                };\n            }\n        }\n\n        if (cannotAmortize(pool, monthlyBudget)) break;"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "they are one fact"
+    }
+  },
+  "S1P4-F-B3-TWOEVENTS": {
+    "what": "pass-4 F-B3 - two producers pooled into one count, and the count cannot carry the larger of them. migrations.ts writes two parenthesised DataRepair fields and they are not the same event: one row that could not be parsed, and an entire array that was not an array. describeLosses split on startsWith('(') and counted both as 'whole rows', so a backup whose whole debts list was unreadable read '⚠️ 1 whole row in this backup could not be read' - one sentence above Replace my data, under 'It can't be undone'. Measured: a 3-debt store with the list lost and a store with exactly one bad row produced the IDENTICAL clause from opposite-sized losses. ⚠️ The count cannot be fixed - the unparseable value has no length - so the whole-list case gets its own clause naming WHICH list, driven off entity. That is C-7's rule ('counts it, so one is distinguishable from nine') applied to the member where counting is impossible. ⛔ AND THE PREFIX TEST STAYS. The (-convention had two producers and nothing pinning it, but replacing it with an exact-match list would fail OPEN - a third synthetic loss would stop poisoning claims. So the two fields are NAMED at the producer (SYNTHETIC_LOSS_FIELDS), the catch-all stays underneath as the backstop, and the test asserts migrations.ts emits no unnamed parenthesised literal. Both plants measured: pooling them again reds the pair assertion, and a third unnamed field reds the source check",
+    "file": "apps/rn/src/data/readBackup.test.ts",
+    "token": "opposite-sized losses no longer produce the identical clause",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/readBackup.ts",
+          "find": "  const rows = lost.filter((r) => r.field.startsWith('(') && r.field !== WHOLE_LIST_LOSS_FIELD).length;",
+          "replace": "  const rows = lost.filter((r) => r.field.startsWith('(')).length;\n  lists.length = 0;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "opposite-sized losses no longer produce the identical clause"
+    }
+  },
   "S1P4-C4-5-ARITY": {
     "what": "pass-4 C4-5 - the caption was a FIELD OF THE OFFER and both go null together. G-5 put 'one of your savings amounts could not be read' on TightTopUp.unreadSavings and on coverFromSavings.unreadSavings; both objects are null when pickTopUpGoal finds nothing, and a pot whose balance the reader lost repairs to $0, which is exactly what pickTopUpGoal skips. Measured on a $650 purchase against $750 discretionary and a $200 floor, varying ONLY the number of pots: two pots -> caption shown; ONE pot, and it the unread one -> nothing at all, no offer, no caption, no mention a figure could not be read. The pass-3 finding's own words were 'captioned, not suppressed'. ⚡ Reading rule 2 exactly: guardianTrust.test.ts fixed the fixture at a $800 Vacation beside a $25 Coffee Fund - the ONE member of the class where a fallback pot exists - so the member with no fallback was never run, and it is the member where the fix does not reach the screen. The caption is hoisted OUT of both offer shapes and the fields DELETED, so the compiler found all four readers. ⚠️ The first cut reached for one selectSavingsPoolUnread at both callers and the suite refused it: the guardian gates on THIS cycle's gap, the affordability dip is caused BY the purchase, so on a comfortable cycle it answered false for a buy that really is tight. savingsPoolIncomplete is the shared FACT; whether there is a top-up question at all is genuinely per-caller. The test walks all four arities on both surfaces, and both plants (either half riding on the offer again) red",
     "file": "apps/rn/src/store/guardianTrust.test.ts",
@@ -620,15 +652,15 @@
     "token": "await expect(coverNames).not.toContainText('Essential 11');"
   },
   "S1P3-A1-BUDGET": {
-    "what": "pass-3 A1 — cannotAmortize compared remaining interest against the SHRINKING active-minimum sum, not the constant monthlyBudget the loop spends, so it bailed out of a plan that amortizes the instant the first debt cleared. The guard asserts the UNPAYABLE sentinel is absent AND pins the debt-free DATE to the payoff CHART's zero-crossing — the two producers that disagreed. Verified to red on the restored defect; the `monthlyBudget > 0` half is separately covered by the one-time-BNPL test",
+    "what": "pass-3 A1 — cannotAmortize compared remaining interest against the SHRINKING active-minimum sum, not the constant monthlyBudget the loop spends, so it bailed out of a plan that amortizes the instant the first debt cleared. The guard asserts the UNPAYABLE sentinel is absent AND pins the debt-free DATE to the payoff CHART's zero-crossing — the two producers that disagreed. Verified to red on the restored defect; the `monthlyBudget > 0` half is separately covered by the one-time-BNPL test | S1.11.4.5 [pass-4 blocker A-F4]: ⛔ THE GUARD MOVED TO ITS OWN MODULE AND THE PROOF MOVED WITH IT. A-F4 found that A1 had aligned the two producers' EXPRESSION and left their PHASE different - projectDebtPayoff tested the interest on the balance it was ABOUT to accrue, buildPayoffTrajectory on the balance it HAD accrued - so the chart bailed on a band of plans the date engine amortizes. cannotAmortize is now one function called at one point in the month body by both. ⚠️ A1's original defect is no longer expressible INSIDE the guard, because it no longer receives minimums at all; the un-fix therefore reproduces it at the CALL SITE, passing the shrinking minimum sum instead of the constant budget, which is the same defect through the door that still exists.",
     "file": "packages/core/debt/testDebtProjection.ts",
     "token": "the debt-free DATE and the payoff CHART agree on the same plan (S1P3-A1)",
     "proof": {
       "unfix": [
         {
           "at": "packages/core/debt/projectDebtPayoff.ts",
-          "find": "    return monthlyBudget > 0 && monthlyInterestTotal >= monthlyBudget;",
-          "replace": "    return monthlyInterestTotal >= activeDebts.reduce((s, d) => s + d.minimumPayment, 0);"
+          "find": "        if (cannotAmortize(projectedDebts, monthlyBudget)) {",
+          "replace": "        if (cannotAmortize(projectedDebts, projectedDebts.filter((d) => d.balance > 0).reduce((s, d) => s + d.minimumPayment, 0))) {"
         }
       ],
       "run": "test:regression",
@@ -935,14 +967,14 @@
     }
   },
   "S1P3-C7-LOSSES": {
-    "what": "pass-3 C-7 — describeBackup was byte-identical for an intact backup and one the reader had just recorded three losses on, and the user learned about them only after the irreversible replace. The answer was already inside the object being described (result.store.pendingDataRepairs). All seven existing describeBackup assertions used healthy fixtures. The token names the COUNT assertion rather than the naming one, proven load-bearing by relaxing the naming assertion under the same plant",
+    "what": "pass-3 C-7 — describeBackup was byte-identical for an intact backup and one the reader had just recorded three losses on, and the user learned about them only after the irreversible replace. The answer was already inside the object being described (result.store.pendingDataRepairs). All seven existing describeBackup assertions used healthy fixtures. The token names the COUNT assertion rather than the naming one, proven load-bearing by relaxing the naming assertion under the same plant | S1.11.4.5 [pass-4 F-B3]: proof anchor re-pointed. describeLosses now builds three clause kinds (the whole-list one named by entity, because its count cannot be right), so the return joins `list` rather than `parts`. The assertion this guard pins is unchanged and still discriminates.",
     "file": "apps/rn/src/data/readBackup.test.ts",
     "token": "…and counts it, so \"one\" is distinguishable from \"nine\"",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/data/readBackup.ts",
-          "find": "  return ` ⚠️ ${parts.join(' and ')} in this backup could not be read.`;",
+          "find": "  return ` ⚠️ ${list} in this backup could not be read.`;",
           "replace": "  return ' ⚠️ some of this backup could not be read.';"
         }
       ],

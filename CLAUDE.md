@@ -145,8 +145,29 @@ balance was lost to re-enter a *payment amount* that was never missing.
 field that no longer exists), **and refused a closure that shipped with no proof.** Both are the ledger
 built at `S1.11.3` doing exactly what it was built for.
 
-▶ **NEXT: `S1.11.4.5`** — TWO PRODUCERS: `A-F4` *(`A1` aligned their FORM, not their PHASE)* + `F-B3`
-*(`describeLosses` pools two producers)*. Then `.4.6`–`.4.7`.
+✅ **`A-F4` + `F-B3` CLOSED — `S1.11.4.5` is CLOSED.** ⛔ **`A-F4`: `A1` aligned the two producers'
+EXPRESSION and left their PHASE different.** The chart ran the negative-amortization guard AFTER its accrual
+and the date engine BEFORE — accrual only raises the balance, so the chart is strictly harsher and bailed on
+a **2% band** that is the ordinary credit-card shape. 4,000 random plans → 6 disagreements, **all one
+direction**: *"September 2043"* printed over a curve that is one point and never descends.
+⚡ **`cannotAmortize` is ONE module now**, called at one point in the month body by both.
+
+⭐ **THE ASSERTION THAT WOULD HAVE CAUGHT IT ALREADY EXISTED AND WAS GREEN** — *"the DATE and the CHART agree
+on the same plan"*, a class-level sentence pinned to **one plan** whose interest is nowhere near its budget.
+**Reading rule 2 again.** It sweeps the band now, asserting the PROPERTY, with a control that the sweep
+straddles the boundary.
+
+⛔ **`F-B3`: and its remedy would have failed OPEN.** A whole unreadable LIST read *"1 whole row"* above
+**Replace my data** — the identical clause from opposite-sized losses. The count cannot be fixed *(the
+unparseable value has no length)*, so the list clause names WHICH list. ⚠️ **But replacing the `(`-prefix
+test with an exact-match list would stop a third synthetic loss poisoning claims at all** — the fields are
+NAMED at the producer and the catch-all **stays underneath**, with the suite asserting no unnamed one is
+emitted. **Fifth remedy this round that would have introduced a defect.**
+
+⭐ **Both moves broke a registered proof anchor, and the ledger said so on the next run.**
+
+▶ **NEXT: `S1.11.4.6`** — THE SECOND SITE: `A-F5` *(fixed at both APR paths, guarded at one)* + `G-6`'s
+`PARTIAL`. Then `.4.7`, the net.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's
