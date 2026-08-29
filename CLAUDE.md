@@ -125,8 +125,28 @@ that render is **unreachable to automation** *(door 3 is an OS `Alert`; door 4 n
 is the unavailable stub on web)*. Corrected before commit. **An instrument that overstates its reach is how
 the next `C4-11` gets past this one.**
 
-▶ **NEXT: `S1.11.4.4`** — the OFFER/CAPTION PAIRS: `C4-5` *(the one-pot case)* + `C-6`'s `PARTIAL`. Then
-`.4.5`–`.4.7`.
+✅ **`C4-5` + `C4-1` CLOSED — `S1.11.4.4` is CLOSED.** ⛔ **`C4-5`: the caption was a FIELD OF THE OFFER**,
+and both go `null` together — a pot the reader lost repairs to `$0`, which is exactly what `pickTopUpGoal`
+skips. With ONE pot, and it the unread one, the user was shown **nothing at all**. ⚡ **Reading rule 2
+exactly**: the shipped fixture was the one member of the class where a fallback pot exists. Hoisted to a
+store fact, the fields **deleted** so the compiler found all four readers, and `ARITIES` now walks four
+members on **both** surfaces. ⚠️ **The first cut used ONE selector for both callers and the suite refused
+it** — the Guardian gates on this cycle's gap, the affordability dip is caused BY the purchase.
+
+⛔ **`C4-1`: `B1`'s RULE MISSING A FOURTH DIRECTION.** Sites → fields → surfaces, **all three about dollar
+figures**. The BNPL installment count is not a dollar figure and was gated nowhere: *"0 of 2 paid"* against
+a true **2 of 4**, because `raiseOriginalBalance` stamps the dropped field from `balance` and the total
+collapses to the remaining count. `BNPL_COUNT_FIELDS` names the list **once, at the producer** —
+`BnplCalendarSection`'s filter had named one field and was *"one field short"*, which is `C-6`'s open half.
+⚠️ **And suppressing the falsehood produced a different one**: the caption told a user whose *starting*
+balance was lost to re-enter a *payment amount* that was never missing.
+
+⭐ **The registry caught a guard my own rewrite had absorbed** (`S1P3-G5-SAVINGSPOOL`'s assertion asserted a
+field that no longer exists), **and refused a closure that shipped with no proof.** Both are the ledger
+built at `S1.11.3` doing exactly what it was built for.
+
+▶ **NEXT: `S1.11.4.5`** — TWO PRODUCERS: `A-F4` *(`A1` aligned their FORM, not their PHASE)* + `F-B3`
+*(`describeLosses` pools two producers)*. Then `.4.6`–`.4.7`.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's

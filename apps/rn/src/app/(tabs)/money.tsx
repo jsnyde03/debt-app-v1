@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { bnplPaymentsRemaining, bnplPaymentsTotal, isInstallmentNative } from '@core/debt/bnplInstallment';
+import { BNPL_COUNT_FIELDS, bnplPaymentsRemaining, bnplPaymentsTotal, isInstallmentNative } from '@core/debt/bnplInstallment';
 import { primaryEmergencyGoal } from '@core/engine/emergencyFund';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { parseStatementText } from '@core/scan/parseStatementText';
@@ -584,7 +584,16 @@ function DebtRow({
     : view.isEstimate
       ? `~${formatWhole(view.currentBalance)}`
       : formatCurrency(view.currentBalance);
-  const meta = bnplRemaining != null && bnplTotal != null
+  /**
+   * ⛔ **S1.11.4.4 [pass-4 blocker `C4-1`] — THE COUNT IS A CLAIM, AND IT WAS THE ONE THING ON THIS ROW
+   * NOBODY ASKED ABOUT.** Every `formatCurrency` here is gated; *"0 of 2 paid"* was not, and it is derived
+   * from `originalBalance` — which `repairMoneyFields` drops and `raiseOriginalBalance` then stamps from
+   * `balance`, so the total collapses to the remaining count. Measured: a Klarna 4-pay with two payments
+   * made printed **"0 of 2 paid"** against a true **2 of 4**. ⚠️ Degrades to the `interest-free` clause
+   * that already exists one line below — the row keeps saying everything the app really did read.
+   */
+  const bnplCountUnread = rowFieldUnread(store, 'row-figures', 'debt', debt.id, ...BNPL_COUNT_FIELDS);
+  const meta = bnplRemaining != null && bnplTotal != null && !bnplCountUnread
     ? `${balanceText} · ${bnplTotal - bnplRemaining} of ${bnplTotal} paid · interest-free`
     : isBnpl
       ? `${balanceText} · interest-free`

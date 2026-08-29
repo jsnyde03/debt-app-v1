@@ -50,6 +50,7 @@ export function PaydayGuardianCard({
   isPremium,
   onSeeForecast,
   topUp,
+  unreadSavings = false,
   onTopUp,
   appliedTopUp,
   onUndoTopUp,
@@ -81,6 +82,11 @@ export function PaydayGuardianCard({
   onKeepEssential?: (id: string) => void;
   /** §2.10 tight-case (2.4.11.2) — the "move $X from savings to hold your line" one-tap, when available. */
   topUp?: TightTopUp | null;
+  /** ⛔ S1.11.4.4 [pass-4 `C4-5`] — could the app read every eligible savings pot this cycle? Asked of
+   *  `selectSavingsPoolUnread`, never re-derived. ⚠️ Deliberately NOT a field of `topUp`: a pot the reader
+   *  lost repairs to `$0` and is skipped by `pickTopUpGoal`, so a caption riding on the offer goes silent
+   *  in precisely the case it exists for. */
+  unreadSavings?: boolean;
   onTopUp?: () => void;
   /** 3.7.A3.5 — a live, reversible top-up for this cycle (null when there is nothing to undo). */
   /** 3.7.A3.6 — `holdsLine` says whether the move actually reached the floor; a capped draw did not. */
@@ -428,6 +434,19 @@ export function PaydayGuardianCard({
           {brief.lookahead ? <Text style={[textStyles.caption, styles.look, { color: c.text.tertiary }]}>{brief.lookahead}</Text> : null}
         </>
       ) : null}
+      {/* ⛔ **S1.11.4.4 [pass-4 `C4-5`] — THE CAPTION RENDERS OUTSIDE THE OFFER, AND THAT IS THE FIX.**
+          `G-5` put it inside the `topUp` block, so it could only speak when there was a pot to offer —
+          and a pot whose balance the reader lost repairs to $0, which is exactly what `pickTopUpGoal`
+          skips. Measured: with TWO pots the caption showed; with ONE, and it the unread one, the offer and
+          the caption went dark together and the user was told nothing at all. ⚠️ Its own condition, not
+          `topUp &&`: the two questions are *"is there a move to offer"* and *"could the app read the
+          pots"*, and the second is the one that must survive the first being no. */}
+      {isPremium && !recovery && unreadSavings ? (
+        <Text testID="topup-unread-savings" style={[textStyles.caption, styles.unreadSavings, { color: c.accent.warning }]}>
+          One of your savings amounts couldn’t be read, so there may be a better pot than this one —
+          set it again in Goals and I’ll re-check.
+        </Text>
+      ) : null}
       {/* §2.10 tight-case one-tap (2.4.11.2): a REAL move to hold the line — only when the user has savings to tap. */}
       {isPremium && !recovery && topUp ? (
         <View style={styles.topUp}>
@@ -440,17 +459,6 @@ export function PaydayGuardianCard({
               ? `You have ${formatWhole(topUp.available)} in ${topUp.goalName} — moving ${formatWhole(topUp.topUp)} over holds your line this paycheck.`
               : `${topUp.goalName} has ${formatWhole(topUp.available)} — moving all of it over gets you to ${formatWhole(topUp.cushionAfter)} of your ${formatWhole(topUp.floor)} line. It won’t close the gap, but it narrows it.`}
           </Text>
-          {/* ⛔ S1.10.6.9 [`G-5`] — a pot whose balance could not be read repairs to $0, so `pickTopUpGoal`
-              never sees it and this card names the best of what is LEFT as if it were the best there is.
-              Measured: a lost $800 Vacation handed the offer to a $25 Coffee Fund and turned "holds your
-              line" into "it won't close the gap" — a false negative about their own money. ⚠️ Captioned
-              rather than suppressed (`C-4`'s rule): the offer is still the best one the app can see. */}
-          {topUp.unreadSavings ? (
-            <Text testID="topup-unread-savings" style={[textStyles.caption, { color: c.accent.warning }]}>
-              One of your savings amounts couldn’t be read, so there may be a better pot than this one —
-              set it again in Goals and I’ll re-check.
-            </Text>
-          ) : null}
           {/* 3.7.A3.3 [D24] — the label said "from savings" unconditionally, including when the source
               was the EMERGENCY fund. A control that calls the safety net "savings" while spending it is
               the dishonest half of this affordance; the selector now flags which pot it picked. */}
@@ -649,6 +657,7 @@ const styles = StyleSheet.create({
   look: { marginTop: spacing.sm },
   bnplHeadsUp: { marginTop: spacing.sm, lineHeight: 18 },
   topUp: { marginTop: spacing.md, gap: spacing.sm },
+  unreadSavings: { paddingHorizontal: spacing.md, paddingTop: spacing.sm },
   topUpBtn: { alignSelf: 'stretch' },
   // 3.5.3.10 (Jason 2026-08-04) — the card's stacked text links are 44pt ROWS.
   //

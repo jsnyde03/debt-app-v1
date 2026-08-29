@@ -271,9 +271,37 @@ export interface TightTopUp {
    *  truth ("gets you to $X of your $Y line") instead of claiming the line is held. */
   floor: number;
   cushionAfter: number;
-  /** ⛔ S1.10.6.9 [`G-5`] — at least one eligible pot's balance could not be read, so this may not be the
-   *  best pot available and a `holdsLine: false` verdict may be wrong. See `savingsPoolIncomplete`. */
-  unreadSavings: boolean;
+}
+
+/**
+ * ⛔ **S1.11.4.4 [pass-4 `C4-5`] — THE CAPTION IS A FACT ABOUT THE STORE, AND IT WAS A FIELD OF THE OFFER.**
+ *
+ * ⚡ `G-5` put *"one of your savings amounts couldn't be read"* on `TightTopUp.unreadSavings` and on
+ * `coverFromSavings.unreadSavings`. Both objects are `null` when `pickTopUpGoal` finds nothing — and a pot
+ * whose balance the reader lost repairs to **$0**, so it is exactly what `pickTopUpGoal` skips. **With one
+ * savings pot, and it the unread one, the offer AND the caption vanish together.** Measured on a $650
+ * purchase against $750 discretionary and a $200 floor, varying only the number of pots: two pots →
+ * caption shown; one pot → *nothing at all*, no offer, no caption, no mention that a figure could not be
+ * read. ⛔ The pass-3 finding's own words were *"captioned, not suppressed"*; the single-pot member — the
+ * one the shipped fixture never ran — is suppressed and uncaptioned.
+ *
+ * ⛔ **So it is hoisted OUT of both offer shapes rather than repaired inside them.** A caption that rides
+ * on an offer can only speak when there is an offer, which is the one thing it must not depend on.
+ * Removing the fields is what makes the compiler find every reader — two producers of one fact, collapsed
+ * to one, which is what every fix in this round has done.
+ *
+ * ⚠️ **Gated on the GAP, not merely on the loss.** A cycle sitting comfortably above the line has no
+ * top-up question, and a warning about savings pots there is noise that teaches people to skip the row.
+ */
+export function selectSavingsPoolUnread(store: DebtStore): boolean {
+  const allocation = selectAllocation(store);
+  if (!allocation) return false;
+  const { residual, surplus } = nettedTopUp(store, allocation.shortfall);
+  if (residual > 0) return false;
+  const floor = store.cushionFloor ?? 200;
+  const gap = Math.round((floor - (selectDiscretionary(allocation) + surplus)) * 100) / 100;
+  if (gap <= 0) return false;
+  return savingsPoolIncomplete(store, ['savings', 'emergency']);
 }
 
 /**
@@ -368,7 +396,6 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
     holdsLine: topUp >= gap,
     floor,
     cushionAfter: Math.round((cushion + topUp) * 100) / 100,
-    unreadSavings: savingsPoolIncomplete(store, preference),
   };
 }
 
@@ -430,10 +457,14 @@ export interface Affordability {
     goalName: string;
     amount: number;
     holdsLine: boolean;
-    /** ⛔ S1.10.6.9 [`G-5`] — a savings pot's balance could not be read, so this may not be the best pot
-     *  and a `holdsLine: false` may be wrong. See `savingsPoolIncomplete`. */
-    unreadSavings: boolean;
   } | null;
+  /**
+   * ⛔ **S1.11.4.4 [pass-4 `C4-5`] — HOISTED OUT OF `coverFromSavings`.** A savings pot the reader lost
+   * repairs to `$0`, so `pickTopUpGoal` skips it; with one pot, and it the unread one, `coverFromSavings`
+   * is `null` and the caption that used to live inside it went dark with the offer. It is a fact about the
+   * store, so it lives beside the offer and not in it. See `selectSavingsPoolUnread`.
+   */
+  savingsPoolUnread: boolean;
 }
 
 /** The ephemeral one-off used to re-solve the plan WITH the purchase (never persisted — the preview). */
@@ -490,8 +521,21 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   // §2.9.5 cover-a-tight-dip: only when tight, and only from a discretionary SAVINGS goal (never the
   // emergency fund for a discretionary purchase). The gap = how far the purchase pushes you below the floor.
   let coverFromSavings: Affordability['coverFromSavings'] = null;
+  /**
+   * ⛔ **S1.11.4.4 [pass-4 `C4-5`] — SET INSIDE THE BRANCH THAT KNOWS THE GAP, AND THE FIRST CUT GOT THIS
+   * WRONG.** I reached for `selectSavingsPoolUnread` here and the suite refused it: that function gates on
+   * the **Guardian's** gap — this cycle, before any purchase — and the affordability dip is caused BY the
+   * purchase, so on an otherwise-comfortable cycle it answered `false` for a buy that really is tight.
+   * ⚡ The shared producer is `savingsPoolIncomplete`, the fact *"a pot could not be read"*; **whether
+   * there is a top-up question at all is genuinely per-caller**, and forcing one function to answer both
+   * is what produced the wrong gate. Measured, not reasoned — the arity walk caught it.
+   */
+  let savingsPoolUnread = false;
   if (verdict === 'tight') {
     const gap = Math.round((floor - cushionAfter) * 100) / 100;
+    // Savings only — the emergency fund is never drawn for a discretionary purchase, so a loss there says
+    // nothing about this offer. Set BEFORE the `goal` check, which is the whole finding.
+    savingsPoolUnread = gap > 0 && savingsPoolIncomplete(store, ['savings']);
     // Savings only — never the emergency fund for a discretionary purchase — but the SAME within-type
     // rule as the Guardian's top-up, from the same owner.
     const goal = pickTopUpGoal(store.goals, gap, ['savings']);
@@ -502,12 +546,11 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
         goalName: goal.name,
         amount,
         holdsLine: amount >= gap,
-        unreadSavings: savingsPoolIncomplete(store, ['savings']),
       };
     }
   }
 
-  return { amount, verdict, discretionaryNow, cushionAfter, shortBy, floor, nextPayday: store.paycheck.nextPaycheckDate, extraToDebtDelta, coverFromSavings };
+  return { amount, verdict, discretionaryNow, cushionAfter, shortBy, floor, nextPayday: store.paycheck.nextPaycheckDate, extraToDebtDelta, coverFromSavings, savingsPoolUnread };
 }
 
 // ── Windfall Autopilot (Phase-3 premium beat) ────────────────────────────────

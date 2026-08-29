@@ -339,6 +339,38 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-C4-5-ARITY": {
+    "what": "pass-4 C4-5 - the caption was a FIELD OF THE OFFER and both go null together. G-5 put 'one of your savings amounts could not be read' on TightTopUp.unreadSavings and on coverFromSavings.unreadSavings; both objects are null when pickTopUpGoal finds nothing, and a pot whose balance the reader lost repairs to $0, which is exactly what pickTopUpGoal skips. Measured on a $650 purchase against $750 discretionary and a $200 floor, varying ONLY the number of pots: two pots -> caption shown; ONE pot, and it the unread one -> nothing at all, no offer, no caption, no mention a figure could not be read. The pass-3 finding's own words were 'captioned, not suppressed'. ⚡ Reading rule 2 exactly: guardianTrust.test.ts fixed the fixture at a $800 Vacation beside a $25 Coffee Fund - the ONE member of the class where a fallback pot exists - so the member with no fallback was never run, and it is the member where the fix does not reach the screen. The caption is hoisted OUT of both offer shapes and the fields DELETED, so the compiler found all four readers. ⚠️ The first cut reached for one selectSavingsPoolUnread at both callers and the suite refused it: the guardian gates on THIS cycle's gap, the affordability dip is caused BY the purchase, so on a comfortable cycle it answered false for a buy that really is tight. savingsPoolIncomplete is the shared FACT; whether there is a top-up question at all is genuinely per-caller. The test walks all four arities on both surfaces, and both plants (either half riding on the offer again) red",
+    "file": "apps/rn/src/store/guardianTrust.test.ts",
+    "token": "the caption is a fact about the STORE and does not depend on there being an offer",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "  return savingsPoolIncomplete(store, ['savings', 'emergency']);",
+          "replace": "  return savingsPoolIncomplete(store, ['savings', 'emergency']) && !!pickTopUpGoal(store.goals, gap, ['savings', 'emergency']);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "does not depend on there being an offer"
+    }
+  },
+  "S1P4-C4-1-COUNT": {
+    "what": "pass-4 blocker C4-1 - B1's rule missing a FOURTH direction. Pass 1->2 widened the claim SITES, 2->3 the FIELDS, 3->4 the SURFACES, and all three are about DOLLAR FIGURES. The BNPL installment count is not a dollar figure and was gated nowhere, while being derived from originalBalance: repairMoneyFields drops the unreadable value and raiseOriginalBalance stamps it from balance on the next line of runMigrations, so bnplPaymentsTotal's basis/scheduled collapses to remainingPayments. Measured: a Klarna 4-pay with two installments already made printed '$200.00 · 0 of 2 paid · interest-free' on Money and 'payment 1 of 2' / 'payment 2 of 2' in the calendar, against a true 2 of 4. ⛔ This is also C-6's open half: BnplCalendarSection's unreadPlans filter named scheduledPaymentAmount ALONE, so a plan whose originalBalance was the recorded loss walked straight through - one field short. BNPL_COUNT_FIELDS names all three repairable fields the count is derived from, ONCE, at the producer, and both readers ask it. ⚠️ The calendar's caption said 'the payment amount could not be read' unconditionally, which became a SECOND false statement the moment the filter widened - a plan dropped for a starting balance told the user to re-enter a payment amount that was never missing. It now asks unreadRowCaption, the one owner of 'which field, in words'. ⛔ Do NOT exempt BNPL from raiseOriginalBalance: originalBalanceHighWater records that inference being made and being wrong, and it would re-open D62. Plant-verified, and all four assertions in the e2e re-measured with the ones above them relaxed ⚠️ The registered token is the PREDICATE both readers stand on, in the unit suite, because it is the cheap thing to plant; the render halves are trust-claims.spec.ts's C4-1 pair, whose four assertions were each re-measured with the ones above them relaxed.",
+    "file": "apps/rn/src/store/guardianTrust.test.ts",
+    "token": "the fields the installment COUNT is derived from include the one that was lost",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/bnplInstallment.ts",
+          "find": "export const BNPL_COUNT_FIELDS = ['balance', 'scheduledPaymentAmount', 'originalBalance'] as const;",
+          "replace": "export const BNPL_COUNT_FIELDS = ['scheduledPaymentAmount'] as const;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "include the one that was lost"
+    }
+  },
   "S1P4-C4-11-DOORS": {
     "what": "pass-4 C4-11 - the ledger said TWO restore doors and there are FOUR. S1P3-C7B-CLOUDDOOR's own text reads 'both doors compose from one owner so they cannot drift', written over a hand-counted pair; a repo-wide count of production calls that write a backup into the live store returns four, and the two nobody had counted were the two with NO disclosure at all. The launch-time offer (_layout.tsx) fires over a store the user has already typed a paycheck and a first debt into - it is gated on !isOnboarded, which is prefs.onboardingComplete === true, and onboarding's four steps write as they go while only CompletionStep completes - and one tap replaced all of it with no statement of either side. DataResetScreen's one-tap restore described nothing at all. ⛔ The gate DERIVES its population from every production `importStore(` call rather than listing doors: a gate that LISTS the doors it audits is blind to the door omitted from the list, which is the failure it exists to catch. Four plants, each redding for its own reason: door 3 loses its disclosure -> [door]; the paired discloser rolls its own wording -> [pair]; a FIFTH door added in a file no list names -> [door]; and the over-fix the finding warns against (remove the offer rather than describe it) -> [count]. ⚡ The gate found the flaw in its own unit of analysis on its first run: use-cloud-backup performs the write and CloudBackupSheet composes the sentence, so a door can span two modules - recorded as a PAIRED entry that names the discloser and reads it from disk, not as an exemption, because the difference is whether deleting the sentence reds. ⚠️ The RENDER of doors 3 and 4 is unreachable to automation (an OS Alert; and a cloud provider that is the unavailable stub on web) and the gate's docblock says so rather than overstating its reach",
     "file": "scripts/check-restore-doors.ts",
@@ -1040,9 +1072,9 @@
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
-    "what": "S1.10.6.9 G-5 — pickTopUpGoal filters on `currentAmount > 0`, so a pot whose amount could not be read repairs to 0 and leaves the running with nothing anywhere saying so. Measured with an $800 Vacation beside a $25 Coffee Fund and a $100 gap: 'You have $800 in Vacation — moving $100 over holds your line' became 'Coffee Fund has $25 — moving all of it over … it won't close the gap'. ⚡ A false NEGATIVE about the user's own money, the direction this class had not produced before. Captioned rather than suppressed (C-4's rule): the offer is still the best one the app can see",
+    "what": "S1.10.6.9 G-5 — pickTopUpGoal filters on `currentAmount > 0`, so a pot whose amount could not be read repairs to 0 and leaves the running with nothing anywhere saying so. Measured with an $800 Vacation beside a $25 Coffee Fund and a $100 gap: 'You have $800 in Vacation — moving $100 over holds your line' became 'Coffee Fund has $25 — moving all of it over … it won't close the gap'. ⚡ A false NEGATIVE about the user's own money, the direction this class had not produced before. Captioned rather than suppressed (C-4's rule): the offer is still the best one the app can see | S1.11.4.2/.4 [pass-4 C4-5]: ⛔ TOKEN RE-POINTED, and the reason is that this guard's own assertion was ABSORBED into a stronger one. It pinned `tDamaged?.unreadSavings === true` on the two-pot fixture - the one member of the class with a fallback pot. The block now walks all four arities on BOTH surfaces, and the field it asserted on no longer exists: the caption is a store fact, not a field of the offer. lint:finding-guards caught the deletion on the very run after the rewrite, which is exactly what it is for.",
     "file": "apps/rn/src/store/guardianTrust.test.ts",
-    "token": "it now SAYS a savings amount could not be read",
+    "token": "affordability · ${label} — the caption survives the offer being null",
     "proof": {
       "unfix": [
         {

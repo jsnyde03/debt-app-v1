@@ -28038,6 +28038,70 @@ computed diagnosis is dropped at the last layer"* survived thirteen lenses. ⚡ 
 claimed an e2e owned that render. It does not.** An instrument that overstates its reach is how the next
 `C4-11` gets past this one.
 
+### `C4-5` (major) — the caption was a FIELD OF THE OFFER, so both went null together
+
+`G-5` put *"one of your savings amounts couldn't be read"* on `TightTopUp.unreadSavings` **and** on
+`coverFromSavings.unreadSavings`. Both objects are `null` when `pickTopUpGoal` finds nothing — and a pot
+whose balance the reader lost repairs to **$0**, which is exactly what `pickTopUpGoal` skips. Measured at a
+$650 purchase against $750 discretionary and a $200 floor, varying only the number of pots:
+
+```
+TWO POTS, one unread     offer: Coffee Fund $25   caption: shown
+ONE POT, and it unread   offer: null              caption: NOT SHOWN — nothing at all
+CONTROL one pot, $800    offer: Vacation $100     caption: correctly absent
+```
+
+⚡ **Reading rule 2, exactly.** `guardianTrust.test.ts` fixed the fixture at *"a $800 Vacation beside a $25
+Coffee Fund"* — the one member of the class where a **fallback pot exists**, so the offer object exists and
+the caption has something to be a field of. The member with no fallback was never run, and it is the member
+where the fix does not reach the screen.
+
+#### The remedy is a hoist, and the fields are DELETED rather than repaired
+
+The caption is a fact about the **store**; it was a field of an **offer**, and a caption that rides on an
+offer can only speak when there is one. Both fields removed, so the compiler found all four readers.
+⚠️ `ARITIES` is now the fixture: four rows, walked on **both** surfaces.
+
+⛔ **AND THE FIRST CUT USED ONE SELECTOR FOR BOTH CALLERS. THE SUITE REFUSED IT.** `selectSavingsPoolUnread`
+gates on the **Guardian's** gap — this cycle, before any purchase — while the affordability dip is caused
+**by** the purchase, so on an otherwise-comfortable cycle it answered `false` for a buy that really is
+tight. ⚡ `savingsPoolIncomplete` is the shared **fact**; *whether there is a top-up question at all* is
+genuinely per-caller, and forcing one function to answer both is what produced the wrong gate. **Measured,
+not reasoned — the arity walk caught it.**
+
+### `C4-1` (blocker) — `B1`'s rule missing a FOURTH direction, and `C-6`'s open half
+
+Pass 1→2 widened the claim SITES, 2→3 the FIELDS, 3→4 the SURFACES. **All three are about dollar figures.**
+The BNPL installment count is not a dollar figure and was gated nowhere — while being derived from
+`originalBalance`, which `repairMoneyFields` drops and `raiseOriginalBalance` stamps from `balance` on the
+next line of `runMigrations`, so `basis / scheduled` collapses to `remainingPayments`.
+
+```
+Klarna 4-pay, two installments made, originalBalance unreadable
+  MONEY ROW : $200.00 · 0 of 2 paid · interest-free      TRUTH: 2 of 4
+  CALENDAR  : "payment 1 of 2" · "payment 2 of 2"        TRUTH: payments 3 and 4 of 4
+```
+
+⛔ **`BnplCalendarSection`'s filter named `scheduledPaymentAmount` ALONE** — one field short, which is
+`C-6`'s open half. `BNPL_COUNT_FIELDS` names all three repairable fields the count is derived from, **once,
+at the producer**, and both readers ask it. An enumeration typed at a reader is how this one went short.
+
+⚠️ **AND SUPPRESSING THE FALSE STATEMENT PRODUCED A DIFFERENT ONE.** The calendar's caption said *"the
+payment amount could not be read"* unconditionally — true while the filter asked about one field, and a
+**second falsehood** the moment it asked about three: a plan dropped for an unreadable *starting* balance
+told the user to go and re-enter a payment amount that was never missing. It now asks `unreadRowCaption`,
+the one owner of *"which field, in words"*, so the wording comes from the same `FIELD_LABEL` map Money's
+row caption reads. ⚠️ The pass-3 `C-6` e2e's asserted string moved with it — deliberately, and recorded.
+
+⭐ **The registry caught a guard I had absorbed.** Rewriting the `G-5` block deleted the exact assertion
+`S1P3-G5-SAVINGSPOOL` pinned (`tDamaged?.unreadSavings === true`) — because the field it asserted on no
+longer exists. `lint:finding-guards` reddened on the very next run. Token re-pointed to the stronger
+assertion that replaced it, with the reason recorded on the entry.
+
+⭐ **And it refused a closure with no proof**: `C4-1` was registered token-only and the ledger's
+never-tested cap said no. The plantable half is the **predicate both readers stand on**, asserted in the
+unit suite; the four e2e assertions were each re-measured with the ones above them relaxed.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

@@ -67,6 +67,26 @@ export function bnplPaymentsRemaining(debt: Debt): number | null {
  * ORIGINAL balance when we have it, else the current remaining count. Returns null for a
  * non-installment-native debt.
  */
+/**
+ * ⛔ **S1.11.4.4 [pass-4 blocker `C4-1`] — EVERY REPAIRABLE FIELD THE INSTALLMENT COUNT IS DERIVED FROM,
+ * NAMED ONCE, AT THE PRODUCER.**
+ *
+ * ⚡ The count is not a dollar figure, and that is exactly why it got past three widenings of `B1`'s rule
+ * (claim sites → fields → surfaces, all three about money). `rowFieldUnread` is asked before every
+ * `formatCurrency` on a BNPL row and was asked before **none** of the count, the ordinal or the total —
+ * which are computed from `originalBalance`, a field the reader can lose. Measured: a Klarna 4-pay with
+ * two installments already paid printed *"$200.00 · **0 of 2** paid"* on Money and *"payment 1 of 2"* in
+ * the calendar, against a true **2 of 4**, because `repairMoneyFields` drops the unreadable
+ * `originalBalance` and `raiseOriginalBalance` stamps it to `Math.max(0, balance)` on the next line — so
+ * `basis / scheduled` collapses to `remainingPayments`.
+ *
+ * ⚠️ **A LIST, and it lives at the producer rather than at either reader** — `BnplCalendarSection`'s
+ * filter named `scheduledPaymentAmount` alone, which is how it was *"one field short"* (`C-6`'s open
+ * half). ⛔ Do NOT exempt BNPL from `raiseOriginalBalance`: `originalBalanceHighWater.ts` records that
+ * inference being made and being wrong, and it would re-open the journey-ring defect `D62` closed.
+ */
+export const BNPL_COUNT_FIELDS = ['balance', 'scheduledPaymentAmount', 'originalBalance'] as const;
+
 export function bnplPaymentsTotal(debt: Debt): number | null {
 	if (!isInstallmentNative(debt)) return null;
 	const scheduled = debt.scheduledPaymentAmount as number;

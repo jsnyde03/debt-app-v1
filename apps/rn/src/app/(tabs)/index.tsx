@@ -53,7 +53,7 @@ import { startTutorial, tutorialSession, useTutorialSession } from '@/store/tuto
 import { INTERACTIVE_STEP_IDS, TUTORIAL_STEPS } from '@/store/tutorialPath';
 import type { DebtStoreInstance } from '@/store/store';
 import { selectStaleBalanceViews, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectAppliedTopUp, selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
+import { selectAppliedTopUp, selectBillsAttestation, selectBnplBetweenPaycheck, selectGuardianProofOfWork, selectPaydayGuardian, selectReserveRelease, selectReserveWalkback, selectRiskAcknowledgment, selectSavingsPoolUnread, selectTightTopUp, selectTrialConversion } from '@/store/guardianSelectors';
 import { selectRecoveryPlan } from '@/store/recoverySelectors';
 import { selectLeanSuggestion } from '@/store/incomeLearning';
 import {
@@ -366,6 +366,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               proofOfWork={proofOfWork}
               onSeeForecast={() => router.push('/cushion-forecast')}
               topUp={tightTopUp}
+              // ⛔ S1.11.4.4 [pass-4 `C4-5`] — asked of the store, NOT read off `tightTopUp`. A pot the
+              // reader lost repairs to $0 and `pickTopUpGoal` skips it, so with one pot the offer is null
+              // and a caption living inside it never renders — the exact member `G-5`'s fixture missed.
+              unreadSavings={selectSavingsPoolUnread(engineStore)}
               onTopUp={() => tightTopUp && store_.getState().applyTightTopUp('guardian', tightTopUp.goalId, tightTopUp.topUp)}
               appliedTopUp={appliedTopUp}
               // ⛔ S1.5.3 [B3] — REVERSES THE GUARDIAN'S OWN ENTRY, never the cycle's total.

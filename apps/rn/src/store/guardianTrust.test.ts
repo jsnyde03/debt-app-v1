@@ -5,9 +5,11 @@ import {
   selectCalibrationScore,
   selectPaydayGuardian,
   selectReserveRelease,
+  selectSavingsPoolUnread,
   selectTightTopUp,
 } from '@/store/guardianSelectors';
-import { clearResuppliedRepairs, debtLiveness, mayClaim } from '@/store/trustSelectors';
+import { BNPL_COUNT_FIELDS, bnplPaymentsTotal } from '@core/debt/bnplInstallment';
+import { clearResuppliedRepairs, debtLiveness, mayClaim, rowFieldUnread } from '@/store/trustSelectors';
 
 /**
  * ⛔ **S1.10.6.9 [`G-1`…`G-5`] — THE GUARDIAN NEVER GOT PASS-1 BLOCKER `B1`'s REMEDY.**
@@ -317,28 +319,118 @@ function run() {
    * Coffee Fund and turns "holds your line" into "it won't close the gap" — a false NEGATIVE about the
    * user's own money. ⛔ Captioned, not suppressed: the offer is still the best one the app can see.
    */
-  const pots = (vacation: number, repairs: DataRepair[]) =>
-    base({
-      debts: [visa],
-      bills: 1550,
-      living: 200,
-      goals: [{ id: 'g0', name: 'Vacation', current: vacation }, { id: 'g1', name: 'Coffee Fund', current: 25 }],
-      repairs,
-    });
+  /**
+   * ⛔ **S1.11.4.4 [pass-4 `C4-5`] — THE ARITY IS THE FIXTURE NOW.** Every assertion below used to run on
+   * the TWO-pot store alone, which is the one member of the class where a fallback pot exists — so
+   * `pickTopUpGoal` returns something, the offer object exists, and the caption has an object to be a
+   * field of. ⚡ **With ONE pot, and it the unread one, `selectTightTopUp` returns `null`** and a caption
+   * living inside that object went dark with the offer: no top-up, no caption, no mention that a figure
+   * could not be read. That is reading rule 2 exactly — *a test that picks the one member of a class that
+   * works reports on the member, not the class* — and it is why the caption is now a store fact.
+   */
+  const pots = (goals: { id: string; name: string; current: number }[], repairs: DataRepair[]) =>
+    base({ debts: [visa], bills: 1550, living: 200, goals, repairs });
   const goalRepair = lost('goal', 'g0', 'Vacation', 'currentAmount');
-  const tTruth = selectTightTopUp(pots(800, []));
-  const tDamaged = selectTightTopUp(pots(0, [goalRepair]));
+  const VACATION = { id: 'g0', name: 'Vacation', current: 800 };
+  const VACATION_LOST = { id: 'g0', name: 'Vacation', current: 0 };
+  const COFFEE = { id: 'g1', name: 'Coffee Fund', current: 25 };
+
+  const tTruth = selectTightTopUp(pots([VACATION, COFFEE], []));
+  const tDamaged = selectTightTopUp(pots([VACATION_LOST, COFFEE], [goalRepair]));
 
   eq(tTruth?.goalName, 'Vacation', 'G-5 control — the pot that can hold the line is the one offered');
   eq(tTruth?.holdsLine, true, 'G-5 control — …and it does hold it');
-  eq(tTruth?.unreadSavings, false, 'G-5 control — nothing unread, so no caption');
   eq(tDamaged?.goalName, 'Coffee Fund', 'G-5 — the blanked pot really does leave the running (the offer still stands)');
   eq(tDamaged?.holdsLine, false, 'G-5 — …and the app still states the honest outcome of the pot it can see');
+
+  /**
+   * ⛔ **THE CAPTION, WALKED OVER EVERY ARITY OF THE POT LIST.** One row per member, iterated rather than
+   * repeated — a list someone has to remember to extend is the defect this is fixing.
+   */
+  const ARITIES: { label: string; goals: typeof VACATION[]; repairs: DataRepair[]; expect: boolean }[] = [
+    { label: 'TWO pots, one unread', goals: [VACATION_LOST, COFFEE], repairs: [goalRepair], expect: true },
+    { label: 'ONE pot, and it is the unread one', goals: [VACATION_LOST], repairs: [goalRepair], expect: true },
+    { label: 'TWO pots, both readable', goals: [VACATION, COFFEE], repairs: [], expect: false },
+    { label: 'ONE pot, readable', goals: [VACATION], repairs: [], expect: false },
+  ];
+  for (const { label, goals, repairs, expect } of ARITIES) {
+    eq(
+      selectSavingsPoolUnread(pots(goals, repairs)),
+      expect,
+      `⛔ C4-5 · ${label} — the caption is a fact about the STORE and does not depend on there being an offer`,
+    );
+  }
+  // ⭐ THE MEMBER THAT SHIPPED, NAMED. With one unread pot there is no offer at all — which is correct,
+  // there is nothing to move — and the caption is what must survive it.
+  eq(selectTightTopUp(pots([VACATION_LOST], [goalRepair])), null, '⭐ C4-5 — one unread pot really does leave nothing to offer');
+  // ⛔ …and the caption is silent on a cycle with no gap, or it becomes noise on every clear paycheck.
   eq(
-    tDamaged?.unreadSavings,
-    true,
-    '⛔ G-5 — …but it now SAYS a savings amount could not be read, so the negative is not stated as final',
+    selectSavingsPoolUnread(base({ debts: [visa], bills: 100, living: 100, goals: [VACATION_LOST], repairs: [goalRepair] })),
+    false,
+    '⛔ C4-5 — no gap, no top-up question, no caption',
   );
+
+  /**
+   * ⛔ **THE SECOND SURFACE, AND IT IS THE SAME DEFECT RATHER THAN A SIBLING.** `selectAffordability`
+   * builds `coverFromSavings` behind `if (gap > 0 && goal)`, so a `null` from `pickTopUpGoal` took out the
+   * offer AND the caption together — `AffordabilityCard` read `coverFromSavings?.unreadSavings`, which
+   * cannot be true when the object is `null`. Walked over the same arities, on the finding's own measured
+   * fixture: a $650 purchase against a $200 floor, which lands squarely on `tight` with a real gap.
+   * ⚠️ The finding's FIRST one-pot fixture returned `short` rather than `tight` and skipped the branch for
+   * an unrelated reason — recorded here because a fixture that misses the branch reports the same green as
+   * a fix.
+   */
+  const buyer = (goals: { id: string; name: string; current: number }[], repairs: DataRepair[]) =>
+    base({ debts: [visa], bills: 1100, living: 0, goals, repairs });
+  for (const { label, goals, repairs, expect } of ARITIES) {
+    const afford = selectAffordability(buyer(goals, repairs), 650);
+    eq(afford?.verdict, 'tight', `⭐ C4-5 · ${label} — the fixture really does land on TIGHT, or the branch is skipped for an unrelated reason`);
+    eq(
+      afford?.savingsPoolUnread,
+      expect,
+      `⛔ C4-5 · affordability · ${label} — the caption survives the offer being null`,
+    );
+  }
+  eq(
+    selectAffordability(buyer([VACATION_LOST], [goalRepair]), 650)?.coverFromSavings,
+    null,
+    '⭐ C4-5 · affordability — one unread pot really does leave nothing to cover from',
+  );
+
+  /**
+   * ⛔ **S1.11.4.4 [pass-4 blocker `C4-1`] — THE PREDICATE BOTH BNPL READERS ASK, AND IT WAS ONE FIELD
+   * SHORT.** `BnplCalendarSection`'s filter named `scheduledPaymentAmount` alone, so a plan whose
+   * `originalBalance` was the recorded loss walked through it and the calendar printed *"payment 1 of 2"*
+   * for what is truly payment 3 of 4. ⚡ The count is derived from `originalBalance` because
+   * `repairMoneyFields` drops the unreadable value and `raiseOriginalBalance` stamps it from `balance` on
+   * the next line — so `basis / scheduled` collapses to `remainingPayments`. ⚠️ The RENDER halves are
+   * `tests/e2e/trust-claims.spec.ts`'s `C4-1` pair; this is the predicate they both stand on, and it is
+   * the cheap thing to plant.
+   */
+  {
+    const klarna = (originalBalance: number, repairs: DataRepair[]): DebtStore => ({
+      ...base({ debts: [], goals: [], repairs }),
+      debts: [
+        {
+          id: 'k1', name: 'Klarna', balance: 200, originalBalance, minimumPayment: 100, apr: 0,
+          dueDate: TODAY, type: 'bnpl', recurrence: 'biweekly', bnplProvider: 'Klarna',
+          scheduledPaymentAmount: 100, remainingPayments: 2,
+        },
+      ] as DebtStore['debts'],
+    });
+    const originalLost = lost('debt', 'k1', 'Klarna', 'originalBalance');
+    const asked = (store: DebtStore) => rowFieldUnread(store, 'row-figures', 'debt', 'k1', ...BNPL_COUNT_FIELDS);
+    eq(
+      asked(klarna(200, [originalLost])),
+      true,
+      '⛔ C4-1 — the fields the installment COUNT is derived from include the one that was lost',
+    );
+    // ⭐ The control, or the predicate could simply be `true` and pass the assertion above.
+    eq(asked(klarna(400, [])), false, '⭐ C4-1 control — a plan the app read in full is not filtered out');
+    // ⛔ And the count really is wrong on that store, which is what makes the predicate worth asking.
+    eq(bnplPaymentsTotal(klarna(200, [originalLost]).debts[0]), 2, '⭐ C4-1 — the stamped basis really does collapse the total to 2');
+    eq(bnplPaymentsTotal(klarna(400, []).debts[0]), 4, '⭐ C4-1 control — …against a true 4 when the field was read');
+  }
 
   console.log(`✅ Guardian trust (S1.10.6.9) tests passed (${passed} asserts).`);
 }

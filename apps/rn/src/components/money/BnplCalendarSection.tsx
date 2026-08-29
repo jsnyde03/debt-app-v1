@@ -1,12 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { BNPL_COUNT_FIELDS } from '@core/debt/bnplInstallment';
 import { buildBnplSchedule, type BnplInstallmentEntry } from '@core/debt/bnplSchedule';
 import { addMonthsISO } from '@core/utils/addMonths';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { rowFieldUnread } from '@/store/trustSelectors';
+import { unreadRowCaption } from '@/components/plan/dataRepairsCopy';
+import { rowFieldUnread, unreadFieldsFor } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
 import { textStyles } from '@/theme/typography';
@@ -80,7 +82,14 @@ export function BnplCalendarSection({ debts, currentDate }: { debts: Debt[]; cur
   // `money.tsx:614` already carries this warning verbatim about `selectRecurringSmoothed`; I wrote the
   // defect it describes, in the same folder, and the e2e caught it on the first run.
   const store = useAppStore((s) => s.store);
-  const unreadPlans = debts.filter((d) => rowFieldUnread(store, 'row-figures', 'debt', d.id, 'scheduledPaymentAmount'));
+  /**
+   * ⛔ **S1.11.4.4 [pass-4 blocker `C4-1`] — THE FILTER WAS ONE FIELD SHORT, WHICH IS `C-6`'s OPEN HALF.**
+   * It named `scheduledPaymentAmount` alone, so a plan whose `originalBalance` was the recorded loss
+   * passed straight through and the calendar printed *"payment 1 of 2"* / *"payment 2 of 2"* for what are
+   * truly payments 3 and 4 of 4. ⚠️ The list is `BNPL_COUNT_FIELDS`, owned by the producer that derives
+   * the count — an enumeration typed at a reader is how this one went short.
+   */
+  const unreadPlans = debts.filter((d) => rowFieldUnread(store, 'row-figures', 'debt', d.id, ...BNPL_COUNT_FIELDS));
   const schedule = buildBnplSchedule(debts, currentDate);
   if (schedule.length === 0 && unreadPlans.length === 0) return null;
 
@@ -125,16 +134,27 @@ export function BnplCalendarSection({ debts, currentDate }: { debts: Debt[]; cur
         </Text>
       ) : null}
       {/* ⛔ [C-6] The honest state, said by NAME — the list is short and the user is told which plan is
-          missing from it, rather than the shortfall being invisible. */}
+          missing from it, rather than the shortfall being invisible.
+          ⛔ **S1.11.4.4 [pass-4 `C4-1`] — AND IT NAMES THE FIELD THAT WAS ACTUALLY LOST.** The copy said
+          *"the payment amount could not be read"* unconditionally, which was true while the filter asked
+          about one field and became **a second false statement** the moment it asked about three: a plan
+          dropped for an unreadable `originalBalance` was told its payment amount was the problem, and the
+          user would go and re-enter a figure that was never missing. ⚠️ Asked of `unreadRowCaption`, the
+          one owner of *"which field, in words"*, rather than a third hand-written spelling. */}
       {unreadPlans.length > 0 ? (
         <Text style={[textStyles.caption, styles.more, { color: c.accent.warning }]}>
           {unreadPlans.length === 1
-            ? `${planName(unreadPlans[0])} — the payment amount could not be read, so its installments are not listed. Set it again to see them.`
-            : `${unreadPlans.map(planName).join(', ')} — the payment amounts could not be read, so those installments are not listed. Set them again to see them.`}
+            ? `${planName(unreadPlans[0])} — ${lower(unreadRowCaption(unreadFieldsFor(store, 'debt', unreadPlans[0].id)) ?? 'a figure could not be read')}, so its installments are not listed. Set it again to see them.`
+            : `${unreadPlans.map(planName).join(', ')} — figures these plans are built from could not be read, so those installments are not listed. Set them again to see them.`}
         </Text>
       ) : null}
     </View>
   );
+}
+
+/** `unreadRowCaption` returns a sentence-cased clause; here it lands mid-sentence after an em dash. */
+function lower(s: string): string {
+  return s.charAt(0).toLowerCase() + s.slice(1);
 }
 
 const styles = StyleSheet.create({

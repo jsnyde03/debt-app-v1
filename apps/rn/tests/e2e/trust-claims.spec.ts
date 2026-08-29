@@ -258,7 +258,10 @@ test('C-6 · the BNPL calendar says what it could not read instead of listing a 
   await page.goto('/money');
   await expect(page.getByText('UPCOMING BNPL INSTALLMENTS')).toBeVisible({ timeout: 15_000 });
   // ⛔ The honest state, by NAME and by plan…
-  await expect(page.getByText(/Affirm — the payment amount could not be read/)).toBeVisible();
+  // ⚠️ S1.11.4.4 [C4-1] — the wording moved to `FIELD_LABEL`'s own words ("the scheduled payment"), the
+  // same map Money's row caption reads. It was a hand-written "the payment amount", which was true only
+  // while the filter asked about one field; naming the field that was actually lost is the whole point.
+  await expect(page.getByText(/Affirm — the scheduled payment could not be read/)).toBeVisible();
   // …and the shortened schedule is gone rather than standing as the month's whole BNPL load.
   await expect(page.getByText(/1 payment/)).toHaveCount(0);
 });
@@ -415,4 +418,49 @@ test('C4-2 control · a genuinely cleared debt is still on the shelf, at its rea
   // unscoped match here is a strict-mode violation that only exists in the GREEN state, which is the
   // second one this sub-step produced: no plant can see it, because under a plant the text is absent.
   await expect(page.getByText(/\$12,000 paid off/).first()).toBeVisible();
+});
+
+// ── C4-1 · the installment COUNT, which is not a dollar figure and was gated nowhere ─────────────
+
+/** A Klarna 4-pay with two installments already made, whose `originalBalance` the reader lost. */
+const klarnaHalfPaid = (originalBalance: unknown) => ({
+  id: 'k1', name: 'Klarna', balance: 200, originalBalance, minimumPayment: 100, apr: 0,
+  dueDate: day(6), type: 'bnpl', recurrence: 'biweekly', bnplProvider: 'Klarna',
+  scheduledPaymentAmount: 100, remainingPayments: 2,
+});
+
+/**
+ * ⛔ **S1.11.4.4 [pass-4 blocker `C4-1`] — `B1`'s RULE, MISSING A FOURTH DIRECTION.** Pass 1→2 widened the
+ * claim SITES, 2→3 the FIELDS, 3→4 the SURFACES — all three about dollar figures. The count is not a
+ * dollar figure, and it is derived from `originalBalance`: `repairMoneyFields` drops the unreadable value
+ * and `raiseOriginalBalance` stamps it from `balance` on the next line, so the total collapses to the
+ * remaining count.
+ */
+test('C4-1 · the BNPL row does not state a count derived from a starting balance nobody read', async ({ page }) => {
+  await seedStore(page, scenario({ requiredExpenses: [], debts: [klarnaHalfPaid('four hundred')] }));
+  await page.goto('/money');
+  const row = page.getByRole('button', { name: /^Klarna,/ });
+  await expect(row).toBeVisible({ timeout: 15_000 });
+  // ⛔ THE HONEST STATE FIRST — the row still says everything the app really did read.
+  await expect(row).toHaveAccessibleName(/interest-free/);
+  await expect(row).toHaveAccessibleName(/the starting balance could not be read/i);
+  // ⛔ …and the false count by name. "0 of 2 paid" over a plan two payments into four.
+  await expect(row).not.toHaveAccessibleName(/0 of 2 paid/);
+  await expect(row).not.toHaveAccessibleName(/of 2 paid/);
+  // ⛔ The calendar's ordinal is the same claim through the other door, and its caption must name the
+  // field that was ACTUALLY lost — a plan dropped for a starting balance told the user to re-enter a
+  // payment amount that was never missing.
+  await expect(page.getByText(/payment 1 of 2/)).toHaveCount(0);
+  await expect(page.getByText(/Klarna — the starting balance could not be read/)).toBeVisible();
+});
+
+test('C4-1 control · the same plan with a readable starting balance states 2 of 4', async ({ page }) => {
+  await seedStore(page, scenario({ requiredExpenses: [], debts: [klarnaHalfPaid(400)] }));
+  await page.goto('/money');
+  const row = page.getByRole('button', { name: /^Klarna,/ });
+  await expect(row).toBeVisible({ timeout: 15_000 });
+  // ⭐ The half that stops this being a blanket suppression: the true count, which the app CAN read.
+  await expect(row).toHaveAccessibleName(/2 of 4 paid/);
+  await expect(row).not.toHaveAccessibleName(/could not be read/i);
+  await expect(page.getByText(/payment 3 of 4/)).toBeVisible();
 });

@@ -278,11 +278,14 @@ export function AffordabilityCard() {
               style={styles.action}
             />
           ) : null}
-          {/* ⛔ S1.10.6.9 [`G-5`] — same defect as the Guardian's own top-up: a pot whose balance could not
-              be read repairs to $0, leaves `pickTopUpGoal`'s running silently, and this button then names
-              the best of what is LEFT. Captioned, not suppressed — the offer is still the best one the app
-              can see, and a smaller cover still narrows the dip. */}
-          {result.verdict === 'tight' && result.coverFromSavings?.unreadSavings ? (
+          {/* ⛔ **S1.11.4.4 [pass-4 `C4-5`] — READ OFF THE STORE, NOT OFF THE OFFER.** `G-5` wrote this
+              condition as `coverFromSavings?.unreadSavings`, and `coverFromSavings` is `null` whenever
+              `pickTopUpGoal` finds nothing — which is exactly what a pot repaired to `$0` produces. So with
+              ONE savings pot, and it the unread one, the button and this caption disappeared together and
+              the user was told nothing. Measured at a $650 purchase against $750 discretionary and a $200
+              floor: two pots → caption; one pot → silence. ⚠️ Captioned, not suppressed, is still the rule
+              — the offer above is the best one the app can see. */}
+          {result.savingsPoolUnread ? (
             <Text testID="afford-unread-savings" style={[textStyles.caption, { color: c.accent.warning }]}>
               One of your savings amounts couldn’t be read, so there may be a better pot than this one.
             </Text>
