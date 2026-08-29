@@ -180,6 +180,41 @@ export function describeRestorePreview(store: DebtStore): string {
   return `This backup has ${describeStoreContents(store)}.${describeLosses(store)}`;
 }
 
+/**
+ * ⛔ **THE OTHER HALF OF THE SENTENCE, AND NO DOOR SAID IT.** [S1.11.4.3 · pass-4 `C4-11`]
+ *
+ * ⚡ `describeBackup` and `describeRestorePreview` both describe **what is being written**. Neither says a
+ * word about **what is being overwritten**, and one of the four doors fires at launch over a store the
+ * user has already typed into: `_layout.tsx`'s one-shot offer is gated on `!isOnboarded`, which is exactly
+ * `prefs.onboardingComplete === true`, and `onboarding.tsx` records that the four steps *"write to the
+ * store as they go"* while only `CompletionStep` completes. `step` is React state, so a user who enters
+ * their paycheck and first debt, is interrupted, and reopens the app arrives back at step 0 with **both
+ * already persisted and `onboardingComplete` still false** — and taps *Restore* on an Alert that mentions
+ * neither side.
+ *
+ * ⚠️ **Empty string when there is nothing to lose, and that is not a nicety.** Door 4 renders over a
+ * `data-reset` store, which is `createDefaultStore()` — appending *"this will replace 0 debts"* there
+ * would be a warning about nothing, and a warning that cries wolf on the common path is how the real one
+ * stops being read.
+ *
+ * ⚠️ **Names only what is actually there.** `describeStoreContents` is right for a backup, where *"0
+ * goals"* is information about the file; it is wrong here, where the sentence is a list of what the user
+ * stands to lose.
+ */
+export function describeLocalOverwrite(store: DebtStore): string {
+  const expenses = store.requiredExpenses.length + store.livingExpenses.length;
+  const hasPaycheck = Number(store.paycheck.amount) > 0;
+  const parts = [
+    hasPaycheck ? 'the paycheck' : '',
+    store.debts.length > 0 ? plural(store.debts.length, 'debt', 'debts') : '',
+    expenses > 0 ? plural(expenses, 'expense', 'expenses') : '',
+    store.goals.length > 0 ? plural(store.goals.length, 'goal', 'goals') : '',
+  ].filter(Boolean);
+  if (parts.length === 0) return '';
+  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+  return ` This replaces ${list} you have already entered on this device.`;
+}
+
 export function describeLosses(store: DebtStore): string {
   const lost = store.pendingDataRepairs.filter((r) => r.kind !== 'recovered');
   if (lost.length === 0) return '';

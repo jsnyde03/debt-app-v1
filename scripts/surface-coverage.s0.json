@@ -260,6 +260,9 @@
     "r17",
     "partial"
   ],
+  "scripts/check-restore-doors.ts": [
+    "never"
+  ],
   "scripts/check-rn-style-divergence.ts": [
     "r17"
   ],

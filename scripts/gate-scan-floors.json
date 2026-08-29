@@ -47,5 +47,11 @@
     "measured": "2026-08-28",
     "measuredCount": 6816,
     "why": "Measured 2026-08-28 at S1.11.3.3 on the gate first run: 6816 non-blank lines of scripts/**/*.ts after stripping comments. Floor is 95% of it - see the ledger header for why a margin and not the exact figure. This gate also carries MIN_CAPS, which reds at 0 caps; the floor is what catches PARTIAL blinding, which a cap count cannot."
+  },
+  "restore-doors": {
+    "floor": 20866,
+    "measured": "2026-08-29",
+    "measuredCount": 21965,
+    "why": "Measured 2026-08-29 at S1.11.4.3 on the gate's first green run. Floor is 95% of the measured count — see the ledger header for why a margin and not the exact figure. ⛔ Verified the same way as its siblings: blanking lib/stripCode's exports drops the count to ~0 and this gate reds instead of reporting a clean four-door surface it never read."
   }
 }

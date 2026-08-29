@@ -97,6 +97,11 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // ⛔ S1.10.6.2 [C-1] — the trust rule's own gate. `trustSelectors.test.ts` proves every repairable
     // field is ROUTED to a claim; this proves every claim is ASKED by production, which is the half that
     // was missing when `'row-figures'` shipped with three grep hits and no callers.
+    // ⛔ S1.11.4.3 [pass-4 C4-11] — the restore doors, DERIVED from every production `importStore(` call
+    // rather than listed. The registry entry it replaces asserted the WORDING over a hand-counted pair and
+    // said "both doors compose from one owner"; there were four, and the two nobody had counted were the
+    // two with no disclosure at all.
+    'lint:restore-doors',
     'lint:trust-claims',
   // ⛔ S1.10.6.5.8.3 — the workflow's header claims it runs every link of `validate:release:rn`, the
   // embed deploy's [D44] guard is built on that claim, and it has already been false once ([W1-3]).

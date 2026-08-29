@@ -339,6 +339,22 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-C4-11-DOORS": {
+    "what": "pass-4 C4-11 - the ledger said TWO restore doors and there are FOUR. S1P3-C7B-CLOUDDOOR's own text reads 'both doors compose from one owner so they cannot drift', written over a hand-counted pair; a repo-wide count of production calls that write a backup into the live store returns four, and the two nobody had counted were the two with NO disclosure at all. The launch-time offer (_layout.tsx) fires over a store the user has already typed a paycheck and a first debt into - it is gated on !isOnboarded, which is prefs.onboardingComplete === true, and onboarding's four steps write as they go while only CompletionStep completes - and one tap replaced all of it with no statement of either side. DataResetScreen's one-tap restore described nothing at all. ⛔ The gate DERIVES its population from every production `importStore(` call rather than listing doors: a gate that LISTS the doors it audits is blind to the door omitted from the list, which is the failure it exists to catch. Four plants, each redding for its own reason: door 3 loses its disclosure -> [door]; the paired discloser rolls its own wording -> [pair]; a FIFTH door added in a file no list names -> [door]; and the over-fix the finding warns against (remove the offer rather than describe it) -> [count]. ⚡ The gate found the flaw in its own unit of analysis on its first run: use-cloud-backup performs the write and CloudBackupSheet composes the sentence, so a door can span two modules - recorded as a PAIRED entry that names the discloser and reads it from disk, not as an exemption, because the difference is whether deleting the sentence reds. ⚠️ The RENDER of doors 3 and 4 is unreachable to automation (an OS Alert; and a cloud provider that is the unavailable stub on web) and the gate's docblock says so rather than overstating its reach",
+    "file": "scripts/check-restore-doors.ts",
+    "token": "if (!OWNERS.test(src)) undisclosed.push(key);",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/_layout.tsx",
+          "find": "          ` ${describeRestorePreview(result.store)}` +\n          describeLocalOverwrite(appStore.getState().store),",
+          "replace": "          '',"
+        }
+      ],
+      "run": "lint:restore-doors",
+      "expect": "never composes a disclosure"
+    }
+  },
   "S1P4-C4-2-MEMBERSHIP": {
     "what": "pass-4 blocker C4-2 - MEMBERSHIP, which every existing guard left open. A balance the reader loses repairs to 0, and d.balance <= 0 is the one test that value passes; C-4 guarded the AMOUNT at both mount points and originalBalance had been read perfectly, so the figure printed. Measured on one store with one variable (Chase $12,000 unreadable beside an intact Amex): the permanent trophy shelf read 'DEBTS PAID OFF 1 / Chase - $12,000 paid off' with a Share button composing 'I paid off 1 debt ($12,000) on my way to debt-free', Money put the same row under a 'PAID OFF' heading, and two siblings the report never named were wrong too - selectCelebrationStats counted debtsCleared 1 against a true 0, and isLastLiveDebt said Amex was the last live debt. ⛔ The remedy is a PARTITION and not the exclusion the finding asked for: excluding the unread row from paid-off DELETES it from Money's list, because it is not in `active` either (view.order ranks balance > 0) - the 'in neither list' failure migrations.ts:99 already records. Planted the finding's own remedy verbatim and the e2e reds on the Chase row not being visible. partitionDebts returns { live, cleared, unreadBalance }, total by construction, and trustSelectors.test.ts asserts the three sum to store.debts.length AND that live IS liveDebts rather than a second copy of the expression. ⚠️ Routing isLastLiveDebt through liveDebts was NOT the fix and the test said so by failing: liveDebts is the owner of the EXPRESSION and is deliberately silent about the unread case, so a function that BRANCHES owes the claim question (mayClaim('debt-balances'), the same one selectCelebration gates the finale on). ⚠️ detectPayoff's finale stamp was measured, nearly filed as a fourth blocker, and is NOT a defect - selectCelebration gates the RENDER, deliberately, because detection is transition-based and an unstamped crossing can never be detected again",
     "file": "apps/rn/src/store/trustSelectors.test.ts",
@@ -903,7 +919,7 @@
     }
   },
   "S1P3-C7B-CLOUDDOOR": {
-    "what": "pass-3 C-7b — the iCloud restore confirm described NOTHING: no counts, no losses, because it confirms before it fetches. The remedy is a PRE-READ (previewRestore), not a wording change, which the finding says explicitly because a sentence-only fix could not work. Both doors compose from one owner (describeRestorePreview) so they cannot drift. ⛔ Paired structurally in check-copy-owners as well, because this screen's `ready` branch is unreachable to every automated test in the repo — its own docblock records a defect surviving thirteen lenses for that reason",
+    "what": "pass-3 C-7b — the iCloud restore confirm described NOTHING: no counts, no losses, because it confirms before it fetches. The remedy is a PRE-READ (previewRestore), not a wording change, which the finding says explicitly because a sentence-only fix could not work. Both doors compose from one owner (describeRestorePreview) so they cannot drift. ⛔ Paired structurally in check-copy-owners as well, because this screen's `ready` branch is unreachable to every automated test in the repo — its own docblock records a defect surviving thirteen lenses for that reason | S1.11.4.3 [pass-4 C4-11]: ⛔ THIS ENTRY'S OWN COUNT WAS WRONG. 'Both doors' was TWO and there are FOUR - the launch-time iCloud offer and DataResetScreen's one-tap restore, neither of which composed anything. The wording claim here is still true and still guarded; the COUNT claim is retired and replaced by lint:restore-doors, which derives the population instead of asserting it.",
     "file": "apps/rn/src/data/readBackup.test.ts",
     "token": "C-7b — and it names the loss, exactly as the file door does",
     "proof": {

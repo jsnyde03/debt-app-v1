@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { serializeBackup } from '@/data/backup';
 import { createDefaultStore } from '@/data/defaults';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
-import { describeBackup, describeRestorePreview, readBackup, v16FileToLegacyItems } from '@/data/readBackup';
+import { describeBackup, describeLocalOverwrite, describeRestorePreview, readBackup, v16FileToLegacyItems } from '@/data/readBackup';
 
 /**
  * 5.8.3 — the import router + the v1.6 file adapter.
@@ -434,6 +434,39 @@ console.log(`✅ readBackup router tests passed (${passed} asserts).`);
   if (damaged.ok) {
     assert(describeRestorePreview(damaged.store).includes('could not be read'), '⛔ C-7b — and it names the loss, exactly as the file door does');
   }
+}
+
+/**
+ * ── S1.11.4.3 [pass-4 `C4-11`]: the OTHER half of the sentence ────────────────────────────────────
+ *
+ * ⛔ Both existing owners describe what is being WRITTEN. Neither says what is being OVERWRITTEN, and the
+ * launch-time door fires over a store the user has already typed a paycheck and a debt into: `_layout.tsx`
+ * gates on `!isOnboarded`, and `onboarding.tsx` records that the steps write as they go while only
+ * `CompletionStep` completes. ⚠️ `lint:restore-doors` proves every door COMPOSES a sentence; this proves
+ * what the sentence says, and the empty case is asserted first because it is the common one.
+ */
+{
+  const empty = createDefaultStore();
+  assert(describeLocalOverwrite(empty) === '', '⛔ C4-11 — a store with nothing in it warns about nothing');
+
+  const typed = createDefaultStore();
+  typed.paycheck = { ...typed.paycheck, amount: '2000' };
+  typed.debts = [
+    { id: 'd1', name: 'Chase', balance: 5000, originalBalance: 5000, minimumPayment: 100, apr: 20, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' },
+  ] as DebtStore['debts'];
+  const said = describeLocalOverwrite(typed);
+  assert(said.includes('the paycheck'), '⛔ C4-11 — it names the paycheck the user entered');
+  assert(said.includes('1 debt'), '⛔ C4-11 — …and the debt, singular');
+  // ⛔ Only what is THERE. `describeStoreContents` is right for a backup, where "0 goals" is information
+  // about the file; here it would be a list of things the user is not losing.
+  assert(!said.includes('0 '), '⛔ C4-11 — and nothing the user does not have');
+  assert(!said.includes('goal'), '⛔ C4-11 — …no empty goals clause either');
+
+  // ⭐ A paycheck with no amount is not a paycheck. `createDefaultStore` seeds the field as a string, so
+  // a truthiness test would have called every fresh install "already entered".
+  const paycheckOnly = createDefaultStore();
+  paycheckOnly.paycheck = { ...paycheckOnly.paycheck, amount: '0' };
+  assert(describeLocalOverwrite(paycheckOnly) === '', '⭐ control — a $0 paycheck is not something to lose');
 }
 
 console.log(`✅ readBackup onboarding-gate tests passed.`);

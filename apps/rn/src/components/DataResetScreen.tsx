@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ImportBackupSheet } from '@/components/more/BackupSheets';
+import { describeRestorePreview } from '@/data/readBackup';
 import { Button } from '@/components/ui/Button';
 import { getCloudBackupProvider } from '@/storage/cloudBackup';
 import { restoreFromCloud } from '@/storage/cloudBackup/service';
@@ -80,6 +81,23 @@ export function DataResetScreen({
             Something was wrong with the file, so the app started fresh. Nothing was deleted — your old
             data is still set aside on this device, and any iCloud backup is untouched.
           </Text>
+          {cloud ? (
+            /**
+             * ⛔ **S1.11.4.3 [pass-4 `C4-11`] — DOOR 4 OF FOUR, AND IT SAID NOTHING AT ALL.** The other
+             * three describe what is being restored; this one offered a one-tap replace over a store the
+             * app had just failed to read, with no statement of what the backup holds — including the
+             * amounts inside it the reader has already recorded that it could not read, which is
+             * `C-7b`'s whole point and the reason a shared owner exists.
+             *
+             * ⚠️ **No `describeLocalOverwrite` here, and no confirm — traced rather than assumed.** This
+             * screen renders only over a `data-reset` store, which IS `createDefaultStore()`: there is
+             * nothing local to lose, so a warning about it would be a warning about nothing. Door 3 is
+             * the one with something underneath it, and it says so there.
+             */
+            <Text testID="data-reset-restore-preview" style={[textStyles.body, styles.body, { color: body }]}>
+              {describeRestorePreview(cloud)}
+            </Text>
+          ) : null}
           {cloud ? (
             <Button
               label={RESTORE_FROM_CLOUD_ACTION}

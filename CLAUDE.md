@@ -106,8 +106,27 @@ which is `F-B4`'s call inverted, on the opposite question, three sub-steps later
 ⭐ **And `lint:trust-claims` caught its own ledger going stale on the GREEN path** — `celebrationSelectors`'
 row said the coverage was *"unmeasured"*; measured, it was wrong. Row retired, cap 13 → 12.
 
-▶ **NEXT: `S1.11.4.3`** — the RESTORE DOORS: `C4-11` *(there are four; `C-7`/`C-7b` fixed two)* + `C-7b`'s
-`PARTIAL`. Then `.4.4`–`.4.7`.
+✅ **`C4-11` CLOSED — `S1.11.4.3` is CLOSED.** ⛔ **The ledger said TWO restore doors and there are FOUR.**
+`S1P3-C7B-CLOUDDOOR` asserted the WORDING over a hand-counted pair; the two nobody had counted had **no
+disclosure at all**, and one of them fires at launch over a store the user has already typed a paycheck and
+a first debt into — `!isOnboarded` is `onboardingComplete === true`, and onboarding's steps write as they
+go while only the last one completes. **One tap replaced all of it, naming neither side.**
+
+⚡ **`lint:restore-doors` DERIVES its population** from every production `importStore(` call. **A gate that
+LISTS the doors it audits is blind to the door omitted from the list** — `lint:surface-complete`'s
+inversion, one surface over. Four plants, each redding for its own reason, including **a fifth door added
+in a file no list names.** ⭐ **It found the flaw in its own unit of analysis on its first run**: a door can
+span two modules *(the hook writes, the sheet discloses)*, recorded as a `PAIRED` entry that names the
+discloser **and reads it from disk** — not an exemption, because the difference is whether deleting the
+sentence reds.
+
+⛔ **AND THE GATE'S FIRST DOCBLOCK OVERSTATED ITS OWN REACH.** It claimed an e2e proved door 4's render;
+that render is **unreachable to automation** *(door 3 is an OS `Alert`; door 4 needs a cloud provider that
+is the unavailable stub on web)*. Corrected before commit. **An instrument that overstates its reach is how
+the next `C4-11` gets past this one.**
+
+▶ **NEXT: `S1.11.4.4`** — the OFFER/CAPTION PAIRS: `C4-5` *(the one-pot case)* + `C-6`'s `PARTIAL`. Then
+`.4.5`–`.4.7`.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's

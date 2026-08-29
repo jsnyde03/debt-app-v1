@@ -27976,6 +27976,68 @@ as the visible caption with a date and once in the row's collapsed a11y label. �
 sub-step. No plant can see this class — under a plant the text is absent — and the only instrument that
 catches it is running the suite GREEN.**
 
+### `C4-11` (major) — the ledger said TWO doors and there are FOUR
+
+`S1P3-C7B-CLOUDDOOR`'s registry text reads *"both doors compose from one owner (`describeRestorePreview`)
+so they cannot drift"* — written over a **hand-counted pair**. A repo-wide count of production calls that
+write a backup into the live store returns **four**, and the two nobody had counted were the two with no
+disclosure at all:
+
+| door | disclosure before |
+|---|---|
+| `use-cloud-backup.ts` → `CloudBackupSheet` | `describeRestorePreview` |
+| `BackupSheets.tsx` (the file door) | `describeBackup` |
+| **`_layout.tsx`** — the launch-time iCloud offer | ⛔ **nothing** |
+| **`DataResetScreen.tsx`** — one tap, no confirm | ⛔ **nothing** |
+
+⛔ **Door 3 is the destructive one, and the store shape it fires on is the INTENDED one.** It is gated on
+`!isOnboarded`, which is exactly `prefs.onboardingComplete === true`; `onboarding.tsx` records that the
+four steps *"write to the store as they go"* while only `CompletionStep` completes, and `step` is React
+state. So a user who enters their paycheck and first debt, is interrupted, and reopens the app arrives
+back at step 0 with **both already persisted and `onboardingComplete` still false** — and is offered
+*Restore* on an Alert naming neither side.
+
+#### The remedy, and the half neither owner had
+
+`describeRestorePreview` and `describeBackup` both describe what is coming **IN**. **`describeLocalOverwrite`**
+is new and says what goes **OUT** — *"This replaces the paycheck and 1 debt you have already entered on
+this device."* ⚠️ Empty when the local store holds nothing, which is not a nicety: door 4 renders over a
+`data-reset` store *(literally `createDefaultStore()`)*, and a warning about nothing on the common path is
+how the real one stops being read. ⛔ **Deliberately not solved by suppressing the offer when local data
+exists** — a user reinstalling *wants* the old plan back, and removing the door recreates the
+*"built, verified, then unhandled"* failure `config/qa.ts` records for the demo entry.
+
+#### `lint:restore-doors` — the population is DERIVED, never typed
+
+The finding is not *"two doors are undisclosed"*; it is that a count nobody could check went stale. So the
+gate takes its population from **every production `importStore(` call**, and each must compose from a
+shared owner or be recorded with a reason. ⛔ **A gate that LISTS the doors it audits is blind to the door
+omitted from the list** — `lint:surface-complete`'s inversion, applied one surface over.
+
+⚡ **It found the flaw in its own unit of analysis on its first run.** `use-cloud-backup` performs the
+write while `CloudBackupSheet` composes the sentence, so a door can span two modules. ⛔ **Recorded as a
+`PAIRED` entry that NAMES the discloser and reads it from disk — not as an exemption.** An exemption says
+*"this one needs no sentence"*; what is true is *"its sentence is over there"*, and the difference is
+whether deleting the sentence reds. It does.
+
+⚠️ **And the fifth `importStore` site is a non-door, traced rather than assumed.** `persistence.ts`'s v1.6
+legacy bridge offers no choice, overwrites nothing *(it runs only when there is no RN store to carry
+into)*, and does disclose — through `pendingDataRepairs`, which the data-repairs card surfaces.
+
+| plant | reds as |
+|---|---|
+| door 3 loses its disclosure | `[door]` |
+| the paired discloser rolls its own wording | `[pair]` |
+| **a FIFTH door added in a file no list names** | `[door]` — the derivation proof |
+| the over-fix: remove the offer rather than describe it | `[count]` |
+
+⛔ **THE RENDER OF DOORS 3 AND 4 IS UNREACHABLE TO AUTOMATION, AND THE GATE SAYS SO.** Door 3 is an OS
+`Alert`; door 4 renders only when `restoreFromCloud` succeeds, which on web is the unavailable stub by
+construction — the same hole `CloudBackupSheet`'s docblock records for its `ready` branch, where *"the
+computed diagnosis is dropped at the last layer"* survived thirteen lenses. ⚡ **The docblock's first draft
+claimed an e2e owned that render. It does not.** An instrument that overstates its reach is how the next
+`C4-11` gets past this one.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

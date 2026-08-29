@@ -8,6 +8,7 @@ import { AppLockGate } from '@/components/AppLockGate';
 import { SaveFailedBanner } from '@/components/SaveFailedBanner';
 import { DataResetScreen } from '@/components/DataResetScreen';
 import { StorageErrorScreen } from '@/components/StorageErrorScreen';
+import { describeLocalOverwrite, describeRestorePreview } from '@/data/readBackup';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotificationSync } from '@/hooks/use-notification-sync';
 import { useInitPremium } from '@/premium/premiumSync';
@@ -215,9 +216,25 @@ function RootLayout() {
     void (async () => {
       const result = await restoreFromCloud(getCloudBackupProvider());
       if (!result.ok) return;
+      /**
+       * ⛔ **S1.11.4.3 [pass-4 `C4-11`] — DOOR 3 OF FOUR, AND THE ONE THAT CAN REPLACE WHAT THE USER JUST
+       * TYPED.** `S1P3-C7B-CLOUDDOOR` recorded *"both doors compose from one owner"* over a count of two;
+       * a repo-wide count of production calls that import a backup into the live store returns **four**.
+       * This one and `DataResetScreen`'s said nothing about either side of an irreversible replace.
+       *
+       * ⚠️ **Both halves, and they answer different questions.** `describeRestorePreview` says what is
+       * coming IN — including the amounts the reader already recorded that it could not read, which is
+       * `C-7b`'s whole point. `describeLocalOverwrite` says what goes OUT, and it is empty unless the
+       * local store actually holds something, so the ordinary first-launch case reads exactly as before.
+       * ⛔ Deliberately NOT solved by suppressing the offer when local data exists: a user reinstalling
+       * WANTS the old plan back, and removing the door recreates the *"built, verified, then unhandled"*
+       * failure `config/qa.ts` records for the demo entry.
+       */
       notify(
         'Restore from iCloud?',
-        'There is a backup of your plan in your iCloud account. Restore it to this device?',
+        'There is a backup of your plan in your iCloud account. Restore it to this device?' +
+          ` ${describeRestorePreview(result.store)}` +
+          describeLocalOverwrite(appStore.getState().store),
         {
           label: 'Restore',
           // [R4] Declared. This offer is made only to a NOT-YET-ONBOARDED store, which is exactly the
