@@ -26,12 +26,29 @@ export function buildCycleSnapshot(input: {
     payoffStrategy: "snowball" | "avalanche";
     allRequiredMet: boolean;
     /**
-     * The pay-cycle window this snapshot closes. ⛔ REQUIRED to report a cross-cadence BNPL correctly
-     * (S1P3-A2) — omitting it falls back to one installment, which is what the defect did. The caller
-     * (`payday.ts`) already has both dates in scope and passes them to `applyRolloverPayment`.
+     * The pay-cycle window this snapshot closes.
+     *
+     * ⛔ **S1.11.5.4 [pass-4 `A-F1`] — REQUIRED, AND THE TYPE IS WHAT MAKES IT SO.** These two were
+     * optional until now, so omitting them fell back to one installment — which is what blocker `A2` did.
+     * Measured: delete both arguments from the only shipping call (`payday.ts`) and **all three suites
+     * stay green** —
+     * `test:regression`, `test:app`, `test:scenarios` — re-introducing blocker `A2`, History telling a
+     * user who paid $200 that they paid $100.
+     *
+     * ⚡ **The registered guard `S1P3-A2-INWINDOW` is structurally incapable of seeing it**: it calls this
+     * function *with* the window, so it is pinned to the HELPER's behaviour. Un-fixing the helper reds it;
+     * un-fixing the CALL does not. `D3-3`'s shape — right about the line that computes, blind to the line
+     * that uses.
+     *
+     * ⛔ **So the guard is the type.** A required field turns the deletion into a compile error, which is
+     * the one guard that cannot be routed around by an edit that looks reasonable. Both live callers had
+     * the dates in scope already — the legacy tree's simply never passed them, which is that tree's own
+     * copy of `A2`, fixed here on the way past.
+     *
+     * ⚠️ REQUIRED to report a cross-cadence BNPL correctly (S1P3-A2).
      */
-    windowStartISO?: string;
-    windowEndISO?: string;
+    windowStartISO: string;
+    windowEndISO: string;
 }): PayCycleSnapshot {
     const {
         cycleEndDate,

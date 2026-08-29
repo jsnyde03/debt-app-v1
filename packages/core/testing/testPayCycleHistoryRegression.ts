@@ -59,6 +59,11 @@ function testBuildSnapshot_correctTotals() {
         completedRecommendedActions: [action(100), action(50.25)],
         payoffStrategy: "avalanche",
         allRequiredMet: true,
+        // ⛔ S1.11.5.4 [pass-4 `A-F1`] — the window is REQUIRED now. This row and the two below do not
+        // test it; a cycle always has one, and a type that let a caller omit it is exactly what let the
+        // only shipping call drop it with all three suites green.
+        windowStartISO: "2026-06-01",
+        windowEndISO: "2026-06-15",
     });
 
     assertEqual(result.cycleEndDate, "2026-06-15", "snapshot carries cycleEndDate");
@@ -83,6 +88,8 @@ function testBuildSnapshot_paidTowardDebtExcludesSavings() {
         ],
         payoffStrategy: "snowball",
         allRequiredMet: false,
+        windowStartISO: "2026-06-01",
+        windowEndISO: "2026-06-15",
     });
 
     assertEqual(result.totalPaidThisCycle, 125, "paid = minimum (25) + snowball (100); emergency savings excluded");
@@ -166,6 +173,8 @@ function testBuildSnapshot_emptyState() {
         completedRecommendedActions: [],
         payoffStrategy: "snowball",
         allRequiredMet: true,
+        windowStartISO: "2026-06-01",
+        windowEndISO: "2026-06-15",
     });
 
     assertEqual(result.totalDebtBalance, 0, "no debts → 0 balance");

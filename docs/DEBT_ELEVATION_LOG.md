@@ -28420,6 +28420,76 @@ emptying both ledgers — **so the accident that saves it is the thing the gate 
 `MIN_POPULATION` is a floor now *(6, measured at 7 — the same 7 the docblock records)*, and the success
 line states N so the size is visible as well as checked.
 
+### `S1.11.5.4` — the remaining claim sites, and two of the seven were already closed
+
+⭐ **`D4-1` and `D4-4` were closed by `S1.11.2` and `S1.11.3`, verified by re-running their own
+measurements rather than by reading the report.** `D4-1` said `S1P2-B1-REASON`'s token sat one line away
+from the use and survived deleting `&& rightReason`; that expression **no longer exists as live code** —
+`S1.11.2` collapsed it into `verdict()`, which returns the tick and the printed line together, so the
+contradiction is unrepresentable rather than detectable. `D4-4` said `S1P3-D3-CAPS` and
+`S1P3-G-LIVENESSLEDGER` were guard-only; **both now carry executed proofs and red on their own defects.**
+⚠️ `D4-7`'s remaining half is the routing one and belongs to `S1.11.6`, where the plan already put it.
+
+*(That is the third and fourth pass-4 finding this session whose named defect was already gone. The
+before-scan rule has now paid for itself four times.)*
+
+#### `A-F1` — the type said `?` and the docblock said REQUIRED
+
+Delete both window arguments from the only shipping call and **all three suites stay green**, re-introducing
+blocker `A2` — History telling a user who paid $200 that they paid $100. ⚡ The registered guard
+`S1P3-A2-INWINDOW` is **structurally incapable** of seeing it: it calls the helper *with* the window, so
+un-fixing the helper reds it and un-fixing the **call** does not. `D3-3`'s shape.
+
+⛔ **So the guard is the TYPE.** A required field turns the deletion into a compile error, which is the one
+guard an edit that looks reasonable cannot route around — measured: the same plant now reds `typecheck` at
+`payday.ts:86`. ⚠️ The legacy root tree's call never passed the window either — **that tree's own copy of
+`A2`**, fixed on the way past, since both dates were already in scope.
+
+#### `A-F2` — "only the first point survives" was not true, and one row said it was
+
+The point collapse removed **one** point per non-overlapping match while its greedy span reached the *last*
+point, so three or more points left two or more behind:
+
+```
+"12..5"   -> "12.5"    12.5     <- the ONE row asserted
+"1.2.3"   -> "1.23"    1.23     <- a different number, silently
+"1.2.3.4" -> "1.2.34"  NaN
+"1..2..3" -> "1..2.3"  NaN
+```
+
+Pasting `1.2.3.4` into What-If's extra-payment box left `1.2.34` in the field while the projection
+simulated **$0 extra** — the exact `NaN → || 0 → $0` failure the sanitizer's own docblock names as the
+reason it exists. ⛔ **And the assertion written to prevent that read *"no surviving string parses to
+NaN"*, asserted about exactly one string** — the member the old expression happens to handle. Reading
+rule 2, inside the guard.
+
+The collapse is not order-dependent any more *(split on the point, keep the first segment, join the rest)*
+and the property is **at most one point**, not *parses to a finite number* — `'12.'` is a required
+half-typed state and `'...'` correctly collapses to `'.'`. Two controls keep `m4`'s hundredfold fix intact.
+
+#### `F-B1` — a false mechanism with a true conclusion, and the gate refused to let a comment be a guard
+
+The `stat()` docblock claimed the next inspect reads `unclaimed` and **asks** rather than destroying.
+Measured: `inspectRemote` never reaches that branch, because `provider.stat()` **throws** and its own
+`catch` returns `unknown` first. The app does not ask — it **refuses**, and every later automatic backup is
+refused the same way until a readable mtime returns. ⭐ Filed `minor` because the direction is still safe
+and the conclusion still holds; **only the mechanism was false.**
+
+⭐ **`lint:finding-guards` refused the first registration** — the token lived only in a comment, and a
+sentence guards nothing. Re-pointed onto the behavioural assertion that makes the corrected sentence true
+*(a throwing stat is contained as `unknown`)*, whose un-fix returns `none` — the state the guard
+**permits**. ⚠️ And `lint:comments` reds on annotating a false comment rather than deleting it ([D17]); it
+caught my first draft of both this and `A-F1`.
+
+#### `F-B2` — one finding, two directions, one token
+
+`S1P3-B3-MTIME` names the **silent 1970** and **none-vs-unknown**, and only the second was behind its
+token: plant the silent-epoch direction, relax the loop assertion alone, and the suite exits 0 with 86
+asserts green. ⚠️ **A second entry rather than moving the token** — the finding offered both, and moving it
+would have un-guarded the other direction on the *claim* that the loop covers both. **That is precisely
+the kind of stated mechanism this round has measured wrong four times out of four.** Two directions, two
+tokens, two proofs.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

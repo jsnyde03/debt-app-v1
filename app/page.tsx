@@ -910,6 +910,11 @@ export default function Home() {
                 completedRecommendedActions,
                 payoffStrategy,
                 allRequiredMet,
+                // ⛔ S1.11.5.4 [pass-4 `A-F1`] — this tree carried its own copy of blocker `A2`: it never
+                // passed the window, so a cross-cadence BNPL was reported at one installment. The fields
+                // are REQUIRED now, which is what surfaced it. Both dates were already in scope.
+                windowStartISO: currentDate,
+                windowEndISO: nextPaycheckDate,
             })
         );
 

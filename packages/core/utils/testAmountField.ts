@@ -99,7 +99,39 @@ function run() {
   }
   // The property behind every row: what survives must never parse to something the user did not type.
   assert(Number(sanitizeAmountInput('12.50')) === 12.5, 'a typed decimal keeps its value, not 100× it');
-  assert(!Number.isNaN(Number(sanitizeAmountInput('12..5'))), 'no surviving string parses to NaN');
+
+  /**
+   * ⛔ **S1.11.5.4 [pass-4 `A-F2`] — THE PROPERTY WAS A CLASS-LEVEL SENTENCE PINNED TO ONE INPUT.**
+   *
+   * ⚡ It read `assert(!Number.isNaN(Number(sanitizeAmountInput('12..5'))), 'no surviving string parses to
+   * NaN')` — *"no surviving string"*, asserted about **exactly one** string, and `'12..5'` is the single
+   * member of the class where the old regex happened to work. `.replace(/(\..*)\./g, '$1')` removes one
+   * point per non-overlapping match and the greedy `.*` spans to the LAST point, so **three or more points
+   * leave two or more behind**:
+   *
+   * ```
+   * "1.2.3.4" -> "1.2.34"  NaN      "1..2..3" -> "1..2.3"  NaN
+   * ```
+   *
+   * ⚡ Pasting `1.2.3.4` into What-If's extra-payment box left `1.2.34` in the field while the projection
+   * simulated **$0 extra** — the exact `NaN → || 0 → $0` failure the sanitizer's own docblock names as the
+   * reason it exists. Reading rule 2, in the assertion written to prevent it.
+   *
+   * ⛔ **The property is AT MOST ONE POINT, not "parses to a finite number".** `'12.'` is a required
+   * half-typed state and `Number('12.')` is 12; `'...'` collapses to `'.'`, which is `NaN` and correct —
+   * a field holding only points has no number in it, and the caller's `|| 0` is right to read zero.
+   */
+  const POINT_INPUTS = ['12..5', '1.2.3', '1.2.3.4', '1..2..3', '...', '12.5.', '12.', '.5', '1.2.3.4.5.6'];
+  for (const raw of POINT_INPUTS) {
+    const out = sanitizeAmountInput(raw);
+    const points = (out.match(/\./g) ?? []).length;
+    assert(points <= 1, `⛔ A-F2 · ${JSON.stringify(raw)} → ${JSON.stringify(out)} keeps ${points} point(s); at most one may survive`);
+  }
+  // ⭐ THE CONTROL. A sanitizer that deleted every point would satisfy every row above, and would be the
+  // hundredfold bug `m4` closed — so the digits and the ONE point must both still be there.
+  assert(sanitizeAmountInput('12.50') === '12.50', '⭐ A-F2 control — a plain decimal is untouched');
+  assert(sanitizeAmountInput('12.') === '12.', '⭐ A-F2 control — …and the half-typed trailing point survives');
+  assert(sanitizeAmountInput('1.2.3.4') === '1.234', '⭐ A-F2 — the surviving digits are the ones typed, in order');
 
   console.log(`\n✅ money-field parser: ${passed} assertions passed\n`);
 }

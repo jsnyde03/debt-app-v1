@@ -339,6 +339,70 @@
     "file": "scripts/lib/verdict.ts",
     "token": "return { ok, line, failed };"
   },
+  "S1P4-A-F2-ATMOSTONEPOINT": {
+    "what": "pass-4 A-F2 - sanitizeAmountInput did NOT keep 'only the first point', its docblock said it did, and the one test row was the single member of the class where the regex happened to work. .replace(/(\\..*)\\./g, '$1') removes ONE point per non-overlapping match while the greedy .* spans to the LAST point, so three or more points leave two or more behind: '1.2.3.4' -> '1.2.34' (NaN), '1..2..3' -> '1..2.3' (NaN), and '1.2.3' -> '1.23', a DIFFERENT number silently. Pasting 1.2.3.4 into What-If's extra-payment box left 1.2.34 in the field while the projection simulated $0 extra - the exact NaN -> || 0 -> $0 failure the sanitizer's own docblock names as the reason it exists. ⛔ The assertion written to prevent it was 'no surviving string parses to NaN' asserted about EXACTLY ONE string, '12..5', which is the member the regex handles. Reading rule 2, inside the guard. The collapse is not order-dependent now (split on the point, keep the first segment and join the rest - no pass whose result depends on how many points it met), and the property asserted is AT MOST ONE POINT rather than 'parses to a finite number', because '12.' is a required half-typed state and '...' correctly collapses to '.'. Two controls keep the m4 hundredfold fix intact: a plain decimal is untouched and the surviving digits are the typed ones in order",
+    "file": "packages/core/utils/testAmountField.ts",
+    "token": "at most one may survive",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/utils/amountField.ts",
+          "find": "  const digits = raw.replace(/[^0-9.]/g, '');\n  const [head, ...rest] = digits.split('.');\n  return rest.length > 0 ? `${head}.${rest.join('')}` : head;",
+          "replace": "  return raw.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1');"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "at most one may survive"
+    }
+  },
+  "S1P4-F-B1-MECHANISM": {
+    "what": "pass-4 F-B1 (minor) - the iOS provider's stat() docblock stated a mechanism the code does not have. It said of the un-stat-able-file path: 'the next inspect reads unclaimed and ASKS rather than destroying.' Measured against the real modules with a provider whose stat() raises: backupToCloud succeeds at OUR clock with writes=1, the next inspectRemote returns { state: 'unknown' } - NOT unclaimed - and the next guarded backup returns { ok: false, reason: 'unavailable' } with writes still 1. inspectRemote never reaches the unclaimed branch because provider.stat() THROWS and that function's own catch returns unknown first. So the app does not ask; it REFUSES, and every later automatic backup is refused the same way until a readable mtime returns. ⭐ Filed minor because the direction is still safe and the conclusion still true - nothing is clobbered - only the mechanism was false. ⚠️ A docblock is a carried premise and decays like a carried number: the same paragraph is duplicated at provider.ts:20-35 and THAT copy never made the unclaimed claim and was accurate the whole time ⚠️ The token is the BEHAVIOURAL assertion, not the corrected prose: lint:finding-guards refused a token that lived only in a comment, and it was right to - a sentence guards nothing. What makes the corrected sentence true is that a throwing stat is contained as `unknown`, and that assertion already existed; the un-fix returns `none` from the catch, which is the state the guard PERMITS.",
+    "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
+    "token": "a throwing stat is contained as `unknown`",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/cloudBackup/service.ts",
+          "find": "  } catch (error) {\n    reportError(error, { seam: 'cloud-backup', op: 'inspect' });\n    return { state: 'unknown' };\n  }",
+          "replace": "  } catch (error) {\n    reportError(error, { seam: 'cloud-backup', op: 'inspect' });\n    return { state: 'none' };\n  }"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a throwing stat is contained as `unknown`"
+    }
+  },
+  "S1P4-F-B2-BOTHDIRECTIONS": {
+    "what": "pass-4 F-B2 (minor) - S1P3-B3-MTIME's token pinned only ONE of the finding's two directions. The entry names (a) the silent 1970 (new Date(null|0) does not throw) and (b) none-vs-unknown (returning null reads as 'none', which the guard permits); only (b) was behind the token. Measured: plant the silent-epoch direction (metadataFromMtime stops validating), relax the loop assertion only, re-run - exit 0, 86 asserts green with the worse of the two directions unguarded. Deleting the `for (const bad of [...])` loop would leave lint:finding-guards green. ⛔ D3-3's shape: the token is right about A line, not about the line that carries the whole finding. ⚠️ A SECOND ENTRY rather than moving the token, deliberately - the finding offered both and moving it would have un-guarded direction (b) on the claim that the loop 'covers both directions', which is exactly the kind of stated mechanism this round has measured wrong four times out of four. Two directions, two tokens, two proofs",
+    "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
+    "token": "throws rather than inventing a file identity",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/cloudBackup/provider.ts",
+          "find": "  if (typeof mtimeMs !== 'number' || !Number.isFinite(mtimeMs) || mtimeMs <= 0) {\n    throw new Error(`cloud-backup: the file exists but its mtimeMs is unusable (${String(mtimeMs)})`);\n  }\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:app",
+      "expect": "throws rather than inventing a file identity"
+    }
+  },
+  "S1P4-A-F1-WINDOWREQUIRED": {
+    "what": "pass-4 A-F1 - buildCycleSnapshot's pay-cycle window said REQUIRED in prose and `?` in the type. The docblock already carried the rule ('omitting it falls back to one installment, which is what the defect did') and the type let a caller do it anyway. Measured: delete both arguments from the only shipping call (payday.ts) and all three suites stay GREEN - test:regression, test:app, test:scenarios - re-introducing blocker A2, History telling a user who paid $200 that they paid $100. ⚡ The registered guard S1P3-A2-INWINDOW is structurally incapable of seeing it: it calls the function WITH the window, so it is pinned to the HELPER's behaviour - un-fixing the helper reds it, un-fixing the CALL does not. D3-3's shape, right about the line that computes and blind to the line that uses. ⛔ So the guard is the TYPE: a required field turns the deletion into a compile error, the one guard an edit that looks reasonable cannot route around. ⚠️ Both live callers had the dates in scope; the legacy root tree simply never passed them, which is that tree's own copy of A2 and was fixed on the way past. Three window-agnostic test rows were given a window rather than the type being softened for them",
+    "file": "packages/core/history/buildCycleSnapshot.ts",
+    "token": "windowStartISO: string;",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/payday.ts",
+          "find": "      // ⛔ The SAME window passed to applyRolloverPayment below (S1P3-A2). Without it the snapshot\n      // reports one installment for a cross-cadence BNPL while the rollover pays down two.\n      windowStartISO: store.paycheck.currentDate,\n      windowEndISO: nextPaycheckDate,\n",
+          "replace": ""
+        }
+      ],
+      "run": "typecheck",
+      "expect": "src/store/payday.ts"
+    }
+  },
   "S1P4-C4-3-BOTHDIRECTIONS": {
     "what": "pass-4 C4-3 - the liveness LEDGER read one spelling of a two-sided condition. LIVENESS_RE was /\bbalance\\s*>\\s*0\b/, so `balance <= 0` - THE SPELLING C4-2's BLOCKER WAS WRITTEN IN - was invisible to the instrument built to make every re-derivation visible. Auditor C measured 14 ledgered against 13 unledgered across 9 files, 7 of them on the ledger at no spelling at all; celebrationSelectors.ts was ledgered at ONE site while holding THREE. ⛔ This file's own docblock argued that a BAN is unsatisfiable and a LEDGER is the answer, and then built the ledger out of one member of the enumeration it had just warned about - reading rule 4 verbatim. The condition is matched now, either direction, and the widening surfaced TEN sites across six files that had always been there: three real store-debt skips (guardianSelectors, payday, recoverySelectors), one undercount (payoffCelebration 2 -> 3), and four projection points. ⚠️ Projection points are LEDGERED, not excluded by a receiver-name heuristic - a second rule to get wrong, over a ledger whose contract already says a row is not a verdict of defect. ⛔ MAX_LIVENESS_SITES 12 -> 22 and this is the ONE time it goes up: the INSTRUMENT widened, not the tree, and no commit added a site. Downward-only again from 22. The success line said 'of `balance > 0`' while claiming to count the class, which is how the ledger read as complete; it names the condition now",
     "file": "scripts/check-trust-claims.ts",
@@ -1437,15 +1501,15 @@
     }
   },
   "S1P3-M4": {
-    "what": "pass-3 m4 — CLOSED S1.10.6.7.3. `WhatIfControls` sanitised typed money with `[^0-9]`, which deletes the SEPARATOR and keeps the digits: `'12.50'` → `1250`, `'0.75'` → `75` — a hundredfold overstatement feeding a payoff projection, on a field whose `keyboardType='numeric'` offers a decimal key. It was the ONLY digits-only strip in the app. ⚡ THE FIX HAD A SECOND HALF THE FINDING DID NOT NAME: the input rendered `String(Number(extra) || 0)`, so `'12.'` round-tripped back to `'12'` and the decimal key could never be used AT ALL — the sanitiser alone changes nothing, because the character it preserves was being erased one line later. Display now shows the raw sanitised string, and the slider writes `''` rather than `'0'` so the placeholder still appears at the floor. ⭐ The rule moved to `packages/core/utils/amountField.ts` beside the parsers, so the next money input finds an owner instead of re-deriving one — which is how the same defect reached six files elsewhere. Plant-verified: restoring `[^0-9]` reds `sanitize \"12.50\"` | S1.11.3.4: proven by plant - the digits-only strip restored, and the row that reds is `sanitize \"12.50\"`, the first of the sanitiser's assertions rather than the token's line.",
+    "what": "pass-3 m4 — CLOSED S1.10.6.7.3. `WhatIfControls` sanitised typed money with `[^0-9]`, which deletes the SEPARATOR and keeps the digits: `'12.50'` → `1250`, `'0.75'` → `75` — a hundredfold overstatement feeding a payoff projection, on a field whose `keyboardType='numeric'` offers a decimal key. It was the ONLY digits-only strip in the app. ⚡ THE FIX HAD A SECOND HALF THE FINDING DID NOT NAME: the input rendered `String(Number(extra) || 0)`, so `'12.'` round-tripped back to `'12'` and the decimal key could never be used AT ALL — the sanitiser alone changes nothing, because the character it preserves was being erased one line later. Display now shows the raw sanitised string, and the slider writes `''` rather than `'0'` so the placeholder still appears at the floor. ⭐ The rule moved to `packages/core/utils/amountField.ts` beside the parsers, so the next money input finds an owner instead of re-deriving one — which is how the same defect reached six files elsewhere. Plant-verified: restoring `[^0-9]` reds `sanitize \"12.50\"` | S1.11.3.4: proven by plant - the digits-only strip restored, and the row that reds is `sanitize \"12.50\"`, the first of the sanitiser's assertions rather than the token's line. | S1.11.5.4 [pass-4 A-F2]: anchor re-pointed. The collapse is no longer a regex - the greedy `.*` was order-dependent and left two points on any run of three - so the un-fix now replaces the split-and-join body. M4's own subject (the hundredfold strip) is unchanged and still guarded.",
     "file": "packages/core/utils/testAmountField.ts",
     "token": "assert(Number(sanitizeAmountInput('12.50')) === 12.5,",
     "proof": {
       "unfix": [
         {
           "at": "packages/core/utils/amountField.ts",
-          "find": "  return raw.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1');",
-          "replace": "  return raw.replace(/[^0-9]/g, '');"
+          "find": "  const digits = raw.replace(/[^0-9.]/g, '');\n  const [head, ...rest] = digits.split('.');\n  return rest.length > 0 ? `${head}.${rest.join('')}` : head;",
+          "replace": "  return raw.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1');"
         }
       ],
       "run": "test:regression",

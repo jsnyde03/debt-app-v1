@@ -88,7 +88,30 @@ export function parseNonNegativeAmount(raw: string): number | null {
  * is `NaN`, which callers' `|| 0` then read as **zero** — silently worse than the hundredfold error.
  * Grouping separators and the currency symbol are dropped rather than kept, matching `normalize` above:
  * `"1,200"` reads back as `"1200"`, which is the same number to the person typing it.
+ *
+ * ⛔ **S1.11.5.4 [pass-4 `A-F2`] — AND THE SENTENCE ABOVE WAS NOT TRUE.** The collapse was
+ * `.replace(/(\..*)\./g, '$1')`, which removes **one** point per non-overlapping match while the greedy
+ * `.*` makes each match span to the *last* point — so a run of three or more points leaves two or more
+ * behind, and the exact `NaN → || 0 → $0` failure the paragraph above names was still reachable:
+ *
+ * ```
+ * "12..5"    -> "12.5"     12.5    <- the ONE row the test asserted
+ * "1.2.3"    -> "1.23"     1.23    <- a DIFFERENT number, silently, not NaN
+ * "1.2.3.4"  -> "1.2.34"   NaN     <- two points survive
+ * "1..2..3"  -> "1..2.3"   NaN     <- three survive
+ * ```
+ *
+ * ⚡ Pasting `1.2.3.4` into What-If's extra-payment box left `1.2.34` in the field while the projection
+ * simulated **$0 extra** — the dashed *"with extra"* curve and the date under it drawing the un-boosted
+ * plan, beneath a number the user had just entered.
+ *
+ * ⛔ **The replacement is not order-dependent**: split on the point, keep the first segment and join the
+ * rest. There is no regex pass whose result depends on how many points it met. ⚠️ `"12."` must still come
+ * back as `"12."` — a trailing point is a required half-typed state — so the property is **at most one
+ * point**, not *parses to a finite number*.
  */
 export function sanitizeAmountInput(raw: string): string {
-  return raw.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+  const digits = raw.replace(/[^0-9.]/g, '');
+  const [head, ...rest] = digits.split('.');
+  return rest.length > 0 ? `${head}.${rest.join('')}` : head;
 }

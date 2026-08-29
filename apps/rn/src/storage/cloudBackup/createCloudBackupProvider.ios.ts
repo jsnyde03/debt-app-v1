@@ -98,9 +98,29 @@ export function createCloudBackupProvider(): CloudBackupProvider {
      * remedy said *"return `null` rather than an epoch date or a throw"* — and `null` is precisely the value
      * `inspectRemote` reads as **`none`**, *"there is no copy to lose"*, which the guard **permits**. A file
      * that exists and cannot be identified is the one case that must never be permitted. A throw is caught
-     * by `inspectRemote` and becomes `unknown`, which the guard now refuses. ⚠️ The stat-after-write path
-     * catches it too and falls back to our clock — the documented behaviour, and the safe direction: the
-     * next inspect reads `unclaimed` and **asks** rather than destroying.
+     * by `inspectRemote` and becomes `unknown`, which the guard now refuses.
+     *
+     * ⚠️ **The stat-after-write path catches it too and falls back to our clock — the safe direction, and
+     * the next inspect reads `unknown`, which the guard REFUSES.**
+     *
+     * ⛔ **S1.11.5.4 [pass-4 `F-B1`] — the app does NOT ask.** Measured against the real modules, with a
+     * provider whose `stat()` raises:
+     *
+     * ```
+     * 1) backupToCloud on an un-stat-able file -> ok, at = OUR clock, writes = 1
+     * 2) next inspectRemote                    -> { state: "unknown" }      (not `unclaimed`)
+     * 3) next guarded backup                   -> { ok: false, reason: "unavailable" }, writes = 1
+     * ```
+     *
+     * `inspectRemote` never reaches the `unclaimed` branch: `provider.stat()` **throws**, and that
+     * function's own `catch` returns `unknown` first. ⚠️ So the app does not **ask** — it **refuses**, and
+     * every later automatic backup is refused the same way for as long as the mtime stays unreadable.
+     * ⭐ The direction is still safe and the conclusion still holds — `writes` stays at 1 and nothing is
+     * clobbered — which is why this was filed `minor`. **Only the mechanism was wrong.**
+     *
+     * ⚠️ **A docblock is a carried premise and decays like a carried number**, in both directions: this
+     * paragraph is duplicated at `provider.ts:20-35`, and *that* copy never made the `unclaimed` claim and
+     * was accurate the whole time.
      */
     async stat(): Promise<CloudBackupMetadata | null> {
       if (!(await CloudStorage.exists(BACKUP_PATH, SCOPE))) return null;
