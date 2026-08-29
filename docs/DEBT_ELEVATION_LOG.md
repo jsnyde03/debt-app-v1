@@ -27819,3 +27819,50 @@ the **13 lane-D `S1P3`** ones.
    the restore check only covers the files the proof edits. A baselined `git status` diff now reports what
    a run left behind — reported, not faulted: the writing is legitimate; committing it unnoticed is not.
 
+## S1.11.4 — CLASS 1, fixed by class (2026-08-28 · opened)
+
+⛔ **The pass's own instruction, and the reason this step exists:** 13 of the 34 findings are one defect —
+*the fix reached the instance that was reported and left a sibling of the same class asserting on the same
+store.* Fixing them one id at a time is what produced the round.
+
+### `F-B4` (blocker) — the predicate saw one member of a three-member class
+
+`hasUnreadDebtBalances` matched `r.field === 'balance'` exactly while `poisons()`, twenty lines below it in
+the **same file**, handled the parenthesised whole-row and whole-list losses. So the LOUDEST loss read
+`debt-free` and the quietest read `debt-free-unverified`: `G-1` printed *"4 of 4 matched · Under-warned 0 ·
+proven"*, `G-2` sent the freed reserve to *"your savings"*, `G-3` graduated the headline.
+
+- The predicate now asks the same question, and `guardianTrust.test.ts` **iterates** the three members plus
+  the empty-list shape a whole-list loss actually arrives in.
+- ⛔ **NOT `!mayClaim('debt-balances')`**, which the finding suggested first: that route also carries
+  `originalBalance`, which is the trophy shelf's question, not liveness.
+- ⚡ **The over-fix plant went GREEN.** Nothing in the suite refused the wider predicate, so the control
+  that refuses it was written from the measurement rather than assumed.
+
+### `C4-9` (blocker) — the Progress ring credited a card still owed in full
+
+The screen's only trust check sat inside `if (!view.hasDebts)`. One live debt beside one unread makes
+`hasDebts` true, so control reached `selectJourneyTotals` with **no trust check of any kind**: the ring read
+**78%** against a true **11%**, the journey line said **"$14,000 of $18,000 paid"** against **$2,000**, and
+the date moved four months earlier — while the widget on the same store printed *"Balances unread"*.
+
+Gated on `mayClaim('debt-balances')` at the claim, with the percentage, the journey line, the hero date, the
+milestone caption and the chart's saved-interest headline **suppressed together**. ⚠️ The existing e2e
+seeded BOTH debts unreadable — the one member of the class that reaches the branch the old guard sits in —
+so the mixed portfolio, which is the ordinary case, had never been run. It is now.
+
+### `S1.11.4.8` — the [DECISION], answered
+
+🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be
+dropped by `clearResuppliedRepairs` on the acknowledgement, and dropping the record ends the suppression
+with it — one *"Got it"* over an unreadable portfolio put the app back on *"every balance is cleared"*.
+
+⚠️ **The question had to stay answerable**, or the fix is the trap `C1` was raised for wearing a new face.
+Two answers, both asserted: the list comes back, or the user says so — `resolveUnreadableRows`, wired to the
+card's own **"These are all my debts"**.
+
+⛔ **And the two parenthesised losses are NOT the same question — a standing control said so by failing.**
+*"Editing a debt that CAN be read answers nothing about the one that cannot."* A whole **LIST** loss is
+answered when the list comes back; a whole **ROW** loss is not, so only the confirmation clears it. The
+first cut treated them alike and the suite refused it.
+

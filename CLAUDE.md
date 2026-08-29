@@ -44,12 +44,26 @@ executes a registry entry's own defect — plant → the named command must red 
 restore → assert the bytes → run the control — and the gate now separates *carries a proof* from
 *guard-only* from *never tested*, the last two on downward-only caps.
 
-▶ **ACTIVE: `S1.11.3` is CLOSED through `.3.5`; `.3.6` is the net.** All **8** proven-dead guards are
-repaired and proven, and all **32** never-tested lane-A/B/C entries now carry **executed** proofs — 40 in
-all, 8 of them backed by a Playwright spec at ~3m40s each.
+▶ **ACTIVE: `S1.11.4` — CLASS 1, fixed by class.** `S1.11.3` is CLOSED: all **8** proven-dead guards
+repaired and all **32** never-tested lane-A/B/C entries proven — **43 entries carry an executed proof**, 8
+of them Playwright-backed at ~3m40s each.
 ⛔ **THE HONEST RESIDUAL: 119 entries still rest on a token alone.** Printed on every run, capped
 downward-only, and stated in
 [`LEDGER-RESOLUTION.md`](docs/audits/2026-08-28-s1-money-pass4/LEDGER-RESOLUTION.md).
+
+✅ **Two blockers closed in `S1.11.4`.** **`F-B4`** — the liveness predicate matched `field === 'balance'`
+while `poisons()` twenty lines below handled the parenthesised losses, so the LOUDEST loss read `debt-free`;
+the suite now **iterates** the three members. **`C4-9`** — the Progress ring credited **$12,000 the user had
+not paid**, because the screen's only trust check sat inside its `!hasDebts` empty-state branch and the
+ordinary mixed portfolio never reaches it.
+
+⭐ **[DECISION] ANSWERED 🎯 2026-08-28 — the ack SILENCES the card and does not VERIFY the data.** A
+whole-row / whole-list loss now survives the acknowledgement; the exits are the list coming back, or the
+user confirming it *("These are all my debts")*. ⚠️ A standing control proved the two parenthesised losses
+are not the same question — **by failing**.
+
+▶ **NEXT: `S1.11.4.2`'s remainder** — `C4-7` *(blocker: the Today card `D3-2` was raised about, stating
+**$1,800 spare** against a true **$300**)*, then the `PARTIAL`s `D3-2` `C-4`, then `.4.3`–`.4.7`.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's
