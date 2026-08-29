@@ -843,3 +843,15 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   obligation it never read. ▶ The open question is whether the *unread state itself* deserves a push of its
   own *("an amount couldn't be read — your plan is incomplete")*, which is a product call about
   notification volume, not an audit finding.
+
+- **→ Tooling / hygiene.** ⭐ **Surfaced by BUILDING `S1.11.4.2`, twice in one sub-step, and it is a limit
+  of planting rather than a defect in anything.** ⛔ **A DEFECT THAT EXISTS ONLY IN THE GREEN STATE IS
+  INVISIBLE TO EVERY PLANT.** Both new e2e blocks shipped an unscoped `getByText(...)` that became a
+  **strict-mode violation the moment the fix landed** — three honest banners say *"could not be read"* on
+  Today at once, and `PaidOffArchive` says *"$12,000 paid off"* twice by design *(the visible caption
+  carries a date, the row's collapsed a11y label does not)*. Under a plant the text is **absent**, so every
+  planted run was green about it. ⚡ **Every lesson in this repo so far says planting finds what reading
+  cannot; this is the converse.** ▶ No instrument is proposed: [D74]'s per-fix rule *(run the e2e specs
+  whose surface changed)* already catches it, and it did — **both times, on the run after the plants.** The
+  rule to carry is narrower and free: ⛔ **a fix is not done on plant evidence alone.** Filed so the class
+  has a name the next time it costs a re-run.
