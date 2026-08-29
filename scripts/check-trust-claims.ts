@@ -383,7 +383,11 @@ if (livenessTotal > MAX_LIVENESS_SITES) {
  * that is deliberate: raising a floor should be a decision someone writes down, not a number that drifts.
  */
 const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
-  'debt-balances': 2, // widget/snapshot.ts ×1 (the balance gate) + money.tsx
+  // ⛔ 3 at S1.11.4.2 [pass-4 C4-9]: progress.tsx joined them. The ring, the journey line, the debt-free
+  // date and the chart headline all read figures derived from a balance the app may not have read, and the
+  // screen's only trust check sat inside its `!hasDebts` empty-state branch — unreachable on the ordinary
+  // mixed portfolio. Raised deliberately, with the caller named.
+  'debt-balances': 3, // widget/snapshot.ts ×1 (the balance gate) + money.tsx + progress.tsx
   'goal-amounts': 1,
   'required-plan': 5,
   'row-figures': 5,

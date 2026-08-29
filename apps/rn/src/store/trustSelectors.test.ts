@@ -355,9 +355,11 @@ export default function run(): void {
   }
 
   /**
-   * ⛔ **A REPAIR NOTHING CAN BE OPENED FOR IS ANSWERED BY THE ACK, AND BY NOTHING ELSE.** A `migration`
-   * record names no row; a whole-row loss names no field. Neither can ever be re-supplied, so without this
-   * they are permanent and every guard stays armed for the life of the install.
+   * ⛔ **A REPAIR NOTHING CAN BE OPENED FOR NEEDS AN ANSWER THAT IS NOT A DISMISSAL.** A `migration` record
+   * names no row; a whole-row loss names no field. Neither can ever be re-supplied, so without an exit they
+   * are permanent and every guard stays armed for the life of the install — and with the WRONG exit the app
+   * resumes celebrating a portfolio it never read. ⚠️ `migration` keeps the ack; a whole-row loss takes the
+   * explicit confirmation ([S1.11.4.8]).
    *
    * ⚠️ **The first cut dropped them at BOOTSTRAP** — `findRow` returns nothing for a `migration` entity, so
    * every v1.6 bridge loss read as *"the row is gone"*. `persistenceLifecycle.test.ts` caught it.
@@ -374,8 +376,24 @@ export default function run(): void {
     s.getState().updateDebt('d0', { balance: 900 });
     eq(s.getState().store.pendingDataRepairs.length, 1, '⭐ control — editing a debt that CAN be read answers nothing about the one that cannot');
     eq(mayClaim(s.getState().store, 'debt-balances'), false, '⭐ control — …so the claim stays gagged');
+    /**
+     * ⛔ **S1.11.4.8 [🎯 2026-08-28] — THIS ASSERTION USED TO READ `length, 0`, AND THAT WAS THE DEFECT.**
+     *
+     * ⚡ Dropping the record on the ack ends the SUPPRESSION with it, so one *"Got it"* over an unreadable
+     * portfolio put the app back on *"every balance is cleared"* — the sentence this whole module exists
+     * to prevent. Measured at `S1.11.4.1`, taken to Jason as a product call, and decided: **the ack
+     * silences the card and does not verify the data.**
+     *
+     * ⚠️ The old comment argued the ack was *"the only answer that exists for a record naming nothing"*.
+     * It was the only answer OFFERED; `resolveUnreadableRows` is the one that actually settles the
+     * question, and it says something true — *these are all my debts* — rather than merely dismissing.
+     */
     s.getState().acknowledgeDataRepairs();
-    eq(s.getState().store.pendingDataRepairs.length, 0, '⛔ the ack SETTLES it — it is the only answer that exists for a record naming nothing');
+    eq(s.getState().store.pendingDataRepairs.length, 1, '⛔ the ack does NOT settle it — the card hides and the data is still unread');
+    eq(mayClaim(s.getState().store, 'debt-balances'), false, '⛔ …so the claim stays gagged through the acknowledgement');
+    s.getState().resolveUnreadableRows('debt');
+    eq(s.getState().store.pendingDataRepairs.length, 0, '⭐ the user confirming their portfolio is what settles it');
+    eq(mayClaim(s.getState().store, 'debt-balances'), true, '⭐ …and the claim comes back, so the state has an exit');
     eq(mayClaim(s.getState().store, 'debt-balances'), true, '…so the app can speak again, which under C1 it never could');
 
     // ⚠️ A `migration` record is settled the same way — and DELIBERATELY gags nothing while it stands.

@@ -160,30 +160,41 @@ function run() {
   );
 
   /**
-   * ⛔ **AFTER THE ACKNOWLEDGEMENT — the half `F-B4` flagged and declined to rate, measured here rather
-   * than left as a question.**
+   * ⛔ **AFTER THE ACKNOWLEDGEMENT — 🎯 2026-08-28 [S1.11.4.8]: THE ACK SILENCES THE CARD AND DOES NOT
+   * VERIFY THE DATA.**
    *
-   * A whole-row loss is `!answerableByEdit` — there is no screen to open and no number to re-type — so
-   * `clearResuppliedRepairs` keeps it only while it is unacknowledged, and one *"Got it"* drops the
-   * record. ⚡ **Measured: the suppression ends with it**, and the app returns to the debt-free framing
-   * over a portfolio it never read.
+   * ⚡ A whole-row loss is `!answerableByEdit` — no screen to open, no number to re-type — and
+   * `clearResuppliedRepairs` used to DROP it on the ack. Dropping the record ends the suppression with it,
+   * so one *"Got it"* over a backup whose entire `debts` array was unreadable put the app straight back on
+   * the debt-free framing. Measured first, then taken to Jason as a product call, and this is his answer:
+   * the generic tap is not an answer to *"are you debt-free?"*.
    *
-   * ⚠️ **This is pinned, not endorsed.** Both directions are defensible — a loss with nothing to reopen
-   * has to be answerable somehow, and a permanent unverified state is its own trap — but the current
-   * behaviour means the *"every balance is cleared"* class of sentence re-arms after one tap. Filed as a
-   * `[DECISION]` on the plan rather than decided here; this assertion exists so the answer cannot change
-   * silently while it waits.
+   * ⚠️ **So the question has to stay answerable**, and there are exactly two answers — both asserted here,
+   * because a suppression with no exit is the trap `C1` was raised for wearing a new face.
    */
   const wholeListLoss = DEBT_LOSSES[2].repair;
   const beforeAck = base({ debts: [], repairs: [wholeListLoss] });
   const afterAck = { ...beforeAck, pendingDataRepairs: [{ ...wholeListLoss, acknowledged: true }] };
   const acked = clearResuppliedRepairs(beforeAck, afterAck);
-  eq(acked.pendingDataRepairs.length, 0, '⚠️ ack — a whole-list loss has nothing to re-type, so the ack is what clears it');
+  eq(acked.pendingDataRepairs.length, 1, '⛔ ack — the record SURVIVES the acknowledgement; the card hides, the data is still unread');
   eq(
     debtLiveness(acked),
-    'debt-free',
-    '⚠️ ack — and the suppression goes with it: the debt-free framing returns over a list nobody read. PINNED, pending [DECISION]',
+    'debt-free-unverified',
+    '⛔ ack — …so the debt-free framing does NOT return over a list nobody read',
   );
+
+  // ⚠️ ANSWER 1 — the list comes back. The user entered their debts, so the app is reading their numbers
+  // again and the question is genuinely settled.
+  const refilled = clearResuppliedRepairs(beforeAck, { ...afterAck, debts: base({ debts: [visa] }).debts });
+  eq(refilled.pendingDataRepairs.length, 0, '⭐ ack exit 1 — entering the debts answers it: the record clears');
+
+  // ⚠️ ANSWER 2 — they say so. `resolveUnreadableRows('debt')` is the card's own "These are all my debts",
+  // and removing the record is what makes the state exitable for a genuinely debt-free user.
+  const resolved = {
+    ...acked,
+    pendingDataRepairs: acked.pendingDataRepairs.filter((r) => !(r.entity === 'debt' && r.field.startsWith('('))),
+  };
+  eq(debtLiveness(resolved), 'debt-free', '⭐ ack exit 2 — and the user confirming their portfolio settles it');
 
   // ── G-1 · the calibration scorecard ───────────────────────────────────────────────────────────
   /**

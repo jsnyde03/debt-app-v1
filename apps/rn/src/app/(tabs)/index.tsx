@@ -576,7 +576,11 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
       ) : null}
 
       {activeAck === 'data-repairs' ? (
-        <DataRepairsCard repairs={dataRepairs} onAck={() => store_.getState().acknowledgeDataRepairs()} />
+        <DataRepairsCard
+          repairs={dataRepairs}
+          onAck={() => store_.getState().acknowledgeDataRepairs()}
+          onResolveDebts={() => store_.getState().resolveUnreadableRows('debt')}
+        />
       ) : null}
 
       {store.pendingMilestone && activeAck === 'milestone' ? (

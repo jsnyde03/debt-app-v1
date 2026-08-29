@@ -198,6 +198,15 @@ function isWholeRowLoss(r: DataRepair): boolean {
   return isWholeRowLossField(r.field);
 }
 
+/**
+ * ⛔ **[S1.11.4.8] The whole-LIST member, told apart from the whole-ROW one.** `migrations.ts` writes both
+ * as parenthesised fields, and `isWholeRowLossField` covers the pair on purpose — every claim they poison
+ * is poisoned by either. What differs is how each is ANSWERED, and only `clearResuppliedRepairs` asks.
+ */
+function isWholeListLossField(field: string): boolean {
+  return field === '(whole list unreadable)';
+}
+
 /** ⚠️ The same question asked of a bare field name — `unreadFieldsFor` returns strings, not records. */
 function isWholeRowLossField(field: string): boolean {
   return field.startsWith('(');
@@ -341,6 +350,35 @@ export function clearResuppliedRepairs(before: DebtStore, after: DebtStore): Deb
   const kept = after.pendingDataRepairs.filter((r) => {
     // A repair this very patch created is never cleared by it — see signal 1's note.
     if (!known.has(key(r))) return true;
+    /**
+     * ⛔ **S1.11.4.8 [🎯 2026-08-28] — AN ACKNOWLEDGEMENT SILENCES THE CARD AND DOES NOT VERIFY THE DATA.**
+     *
+     * ⚡ A whole-row or whole-list loss used to be dropped by the ack, and dropping the record ends the
+     * suppression with it: one *"Got it"* over a backup whose entire `debts` array was unreadable put the
+     * app back on the debt-free framing — **"every balance is cleared"** — over a portfolio it never read.
+     * Measured at `S1.11.4.1` and taken to Jason, because both directions are defensible and this one is
+     * a product call: *the generic tap is not an answer to "are you debt-free?"*, which is the doctrine
+     * the rest of this module is built on ([A-J2-1]: the ack hides the CARD, it does not un-repair
+     * the DATA).
+     *
+     * ⚠️ **So the answer has to be a real one**, and there are exactly two:
+     *   · the list comes back — the user enters their debts, and `listFor` stops being empty; or
+     *   · they say so — `resolveUnreadableRows` removes the record, from the card's own action.
+     * ⛔ A `migration` count keeps the old behaviour: it names v1.6 keys this build never understood,
+     * there is no list for it to refill, and the ack is genuinely the only answer it can have.
+     */
+    if (isWholeRowLoss(r)) {
+      /**
+       * ⚠️ **AND THE TWO PARENTHESISED LOSSES ARE NOT THE SAME QUESTION** — a standing control in
+       * `trustSelectors.test.ts` is what said so, by failing: *"editing a debt that CAN be read answers
+       * nothing about the one that cannot."* A whole **LIST** loss is answered when the list comes back,
+       * because the user has re-entered the portfolio the reader could not parse. A whole **ROW** loss is
+       * not: the other rows being present says nothing about the one that is gone, so only the explicit
+       * confirmation removes it.
+       */
+      if (isWholeListLossField(r.field)) return listFor(after, r.entity).length === 0;
+      return true;
+    }
     if (!answerableByEdit(r)) return !r.acknowledged;
     const wasRow = findRow(before, r);
     const nowRow = findRow(after, r);
@@ -361,17 +399,24 @@ function answerableByEdit(r: DataRepair): boolean {
 
 /** The row a repair names, in whichever list its entity lives in. A `migration` record has none. */
 function findRow(store: DebtStore, r: DataRepair): Record<string, unknown> | undefined {
-  const list: { id: string }[] =
-    r.entity === 'debt'
-      ? store.debts
-      : r.entity === 'requiredExpense'
-        ? store.requiredExpenses
-        : r.entity === 'livingExpense'
-          ? store.livingExpenses
-          : r.entity === 'goal'
-            ? store.goals
-            : [];
-  return list.find((row) => row.id === r.id) as Record<string, unknown> | undefined;
+  return listFor(store, r.entity).find((row) => row.id === r.id) as Record<string, unknown> | undefined;
+}
+
+/**
+ * The list a repair's entity lives in — `[]` for a `migration` count, which owns none. ⚠️ Extracted from
+ * `findRow` rather than re-derived: `S1.11.4.8` needs the list's EMPTINESS and `findRow` needs a row in
+ * it, and two spellings of *"which list is this"* is the two-producers shape this module exists to refuse.
+ */
+function listFor(store: DebtStore, entity: DataRepair['entity']): { id: string }[] {
+  return entity === 'debt'
+    ? store.debts
+    : entity === 'requiredExpense'
+      ? store.requiredExpenses
+      : entity === 'livingExpense'
+        ? store.livingExpenses
+        : entity === 'goal'
+          ? store.goals
+          : [];
 }
 
 /**

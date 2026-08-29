@@ -10,6 +10,7 @@ import { runMigrations } from '@/data/migrations';
 import {
   CURRENT_STORE_VERSION,
   type CompletedRecommendedAction,
+  type DataRepair,
   type CycleTopUpEntry,
   type Debt,
   type DebtStore,
@@ -219,6 +220,13 @@ export interface DebtAppState {
   /** P6.8.7e.1 [B2] — the paid-off beat / debt-free finale has been seen. */
   acknowledgePayoff(): void;
   acknowledgeDataRepairs(): void;
+  /**
+   * ⛔ **S1.11.4.8 [🎯 2026-08-28] — THE ANSWER a whole-row / whole-list loss can actually be given.**
+   * The ack silences the card and no longer clears these records, so the app stops celebrating a
+   * portfolio it never read; this is the user saying *"that is all of them"* — the one statement that
+   * genuinely settles the question — and it is the ONLY thing that removes them.
+   */
+  resolveUnreadableRows(entity: DataRepair['entity']): void;
   /** §2.0.c (2.4.11.4b) — dismiss the settling-in-reserve release acknowledgment. */
   acknowledgeReserveRelease(): void;
   /** §2.0.c (2.4.11.4c) — the user attests their regular bills are all entered (true) / retracts it
@@ -820,6 +828,19 @@ export function createDebtStore(opts?: {
       // trustworthy" must keep getting the same answer it got before the tap.
       set((s) => ({
         store: { ...s.store, pendingDataRepairs: s.store.pendingDataRepairs.map((r) => ({ ...r, acknowledged: true })) },
+      }));
+    },
+    resolveUnreadableRows(entity) {
+      // ⛔ [S1.11.4.8] The record is REMOVED, not marked: unlike every other repair there is nothing left
+      // to re-read, so the user's confirmation is the answer and keeping the record after it would be a
+      // permanent unverified state with no exit — the trap `C1` was raised for, wearing a new face.
+      set((s) => ({
+        store: {
+          ...s.store,
+          pendingDataRepairs: s.store.pendingDataRepairs.filter(
+            (r) => !(r.entity === entity && r.field.startsWith('(')),
+          ),
+        },
       }));
     },
     applyTightTopUp(source, goalId, amount) {

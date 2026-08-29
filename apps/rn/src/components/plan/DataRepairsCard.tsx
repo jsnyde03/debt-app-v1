@@ -48,9 +48,31 @@ import { repairBlocks, repairsA11yLabel } from './dataRepairsCopy';
  * ⛔ **The words live in `dataRepairsCopy`, not here** — a recovered amount and a lost one are opposite
  * events and the card said the loss sentence over both. Pinning the strings needs them out of JSX.
  */
-export function DataRepairsCard({ repairs, onAck }: { repairs: DataRepair[]; onAck: () => void }) {
+export function DataRepairsCard({
+  repairs,
+  onAck,
+  onResolveDebts,
+}: {
+  repairs: DataRepair[];
+  onAck: () => void;
+  /** ⛔ [S1.11.4.8] Present only when a whole-row / whole-list DEBT loss is showing — see below. */
+  onResolveDebts?: () => void;
+}) {
   const c = useAppColors();
   const blocks = repairBlocks(repairs);
+  /**
+   * ⛔ **S1.11.4.8 [🎯 2026-08-28] — THE ONE REPAIR THE "Got it" TAP CANNOT ANSWER.**
+   *
+   * ⚡ A whole row, or a whole `debts` list, that could not be read leaves **nothing to reopen and nothing
+   * to re-type** — so until this the only exit was the generic ack, and the ack dropping the record put
+   * the app straight back on *"every balance is cleared"* over a portfolio it never read. The ack now
+   * silences the card and leaves the data unverified, which needs a real answer to exist: **this is it.**
+   *
+   * ⚠️ The wording is a statement about the user's own portfolio, not a dismissal — *"These are all my
+   * debts"* — because that is the claim the app is relying on when it starts celebrating again. And it is
+   * offered only when such a loss is actually showing.
+   */
+  const debtRowLoss = repairs.some((r) => r.entity === 'debt' && r.field.startsWith('(') && r.kind !== 'recovered');
 
   return (
     <Card tone="accent" testID="data-repairs-ack" style={styles.card}>
@@ -81,13 +103,24 @@ export function DataRepairsCard({ repairs, onAck }: { repairs: DataRepair[]; onA
           </View>
         ))}
       </View>
-      <Button label="Got it" variant="text" onPress={onAck} testID="data-repairs-ack-button" />
+      <View style={styles.actions}>
+        {debtRowLoss && onResolveDebts ? (
+          <Button
+            label={repairs.some((r) => r.entity === 'debt' && !r.field.startsWith('(')) ? 'These are all my debts' : 'I have no other debts'}
+            variant="text"
+            onPress={onResolveDebts}
+            testID="data-repairs-resolve-debts"
+          />
+        ) : null}
+        <Button label="Got it" variant="text" onPress={onAck} testID="data-repairs-ack-button" />
+      </View>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: { gap: spacing.sm },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, flexWrap: 'wrap' },
   block: { gap: spacing.xxs },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   headText: { flex: 1, fontWeight: '600' },
