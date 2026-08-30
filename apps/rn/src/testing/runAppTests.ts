@@ -138,6 +138,10 @@ async function main() {
    * and it moved to the general rule — **assert the unit before the sweep built on top of it**, so a
    * failure names the narrowest thing that broke.
    */
+  // S1.12.5.3 [pass-5 A5-2 · B5-4] - the money formatters' first test. The Number.isFinite guard
+  // with the highest fan-in in the tree survived its own un-fix in all four gates that run.
+  await import('../utils/moneyFormatters.test');
+
   await import('../store/paywallLead.test');
 
   // S1.11.4.2 [pass-4 C4-7] — the SIBLING claim, asserted over its surfaces as a class rather than at the

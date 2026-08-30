@@ -12,7 +12,12 @@ import type { Recurrence } from '@core/types/recurrence';
  * done as a replace: a clamp is a decision about the VALUE and belongs to the selector that produces it.
  */
 export function formatWhole(amount: number): string {
-  const safe = Number.isFinite(amount) ? amount : 0;
+  const finite = Number.isFinite(amount) ? amount : 0;
+  // ⛔ **[pass-5 B5-4] — NEGATIVE ZERO IS ZERO.** `formatWhole(-0)` rendered `"-$0"`, and so did every
+  // value that rounds to zero from below (`-0.4` → `"-$0"`). A minus sign in front of $0 states a
+  // direction the money does not have, and this formatter rounds to whole dollars, so every small
+  // negative lands there. ⚠️ It still does NOT clamp real negatives — see the header: `-45` → `-$45`.
+  const safe = Math.round(finite) === 0 ? 0 : finite;
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(safe);
 }
 

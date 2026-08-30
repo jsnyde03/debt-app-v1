@@ -1076,6 +1076,9 @@
     "s1p3",
     "s1p5"
   ],
+  "apps/rn/src/utils/moneyFormatters.test.ts": [
+    "never"
+  ],
   "apps/rn/src/utils/reportError.ts": [
     "s1p3"
   ],

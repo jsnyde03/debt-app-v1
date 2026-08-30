@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**478 files on the S1 surface · 415 swept · 63 unswept.**
+**479 files on the S1 surface · 415 swept · 64 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -307,6 +307,7 @@
 | `apps/rn/src/utils/ecosystem.ts` | s1p3 |
 | `apps/rn/src/utils/format.test.ts` | s1p3 |
 | `apps/rn/src/utils/format.ts` | s1p3 · s1p5 |
+| `apps/rn/src/utils/moneyFormatters.test.ts` | ⛔ **never** |
 | `apps/rn/src/utils/reportError.ts` | s1p3 |
 | `apps/rn/src/utils/scrubBreadcrumb.test.ts` | never · s1p4 |
 | `apps/rn/src/utils/scrubBreadcrumb.ts` | s1p3 · s1p4 |
@@ -543,6 +544,7 @@
 - `apps/rn/src/theme/motion.ts`
 - `apps/rn/src/theme/spacing.ts`
 - `apps/rn/src/theme/typography.ts`
+- `apps/rn/src/utils/moneyFormatters.test.ts`
 - `apps/rn/src/utils/skia-ready.web.ts`
 - `apps/rn/tests/e2e/a11y-axe.spec.ts`
 - `apps/rn/tests/e2e/analytics-optout.spec.ts`
@@ -559,5 +561,5 @@
 - `packages/core/debt/testDeriveRequiredActionView.ts`
 - `packages/core/debt/testReconcileAutopay.ts`
 
-<!-- claims-sha256: b384fbeb4da41905 -->
+<!-- claims-sha256: dbbc8c4d05669efc -->
 

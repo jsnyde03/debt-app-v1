@@ -39,8 +39,23 @@
  */
 export function formatCurrency(amount: number) {
     // Defensive: never render "$NaN"/"$Infinity". A non-finite value here means
-    // something upstream broke; show $0.00 rather than a garbage figure.
-    const safe = Number.isFinite(amount) ? amount : 0;
+    // something upstream broke; show $0 rather than a garbage figure.
+    //
+    // ⛔ **S1.12.5.3 [pass-5 A5-2] — THIS LINE SURVIVED ITS OWN UN-FIX IN ALL FOUR GATES THAT RUN.**
+    // Deleting the `Number.isFinite` check renders `$NaN` / `$∞`, and `test:regression`, `test:app`,
+    // `test:scenarios` AND `lint:money` were all green over it. This is the highest-fan-in money guard in
+    // the tree — its own header records that it is the root fix that let T6.4 collapse seven local
+    // formatters — and until pass 5 nothing asserted it. `testMoneyFormatters.ts` is that assertion.
+    // ⚠️ `lint:money` was written to stop formatters MULTIPLYING; nothing was written to stop the survivor
+    // from being edited. And `apps/rn/tests/e2e/bnpl.spec.ts:83` had already narrowed its own regex on the
+    // premise that this line holds — a carried premise doing load-bearing work with nothing under it.
+    const finite = Number.isFinite(amount) ? amount : 0;
+    // ⛔ **[pass-5 B5-4] — NEGATIVE ZERO IS ZERO, AT THE PRECISION ACTUALLY RENDERED.** `formatCurrency(-0)`
+    // rendered `"-$0"`, and so did every value that rounds to zero from below — `-0.004` is not `=== 0`,
+    // and that is exactly the case the first cut of this fix missed and the test below caught. A minus sign
+    // in front of $0 states a direction the money does not have. Rounded to CENTS because cents are what
+    // this formatter shows; a whole-dollar formatter has to ask the same question at its own precision.
+    const safe = Math.round(finite * 100) === 0 ? 0 : finite;
     // `minimumFractionDigits: 0` — cents render only when there ARE cents. USD defaults the MINIMUM to 2,
     // so `maximumFractionDigits: 2` alone was still forcing "$1,240.00" onto whole amounts.
     //
@@ -51,10 +66,17 @@ export function formatCurrency(amount: number) {
     //
     // Deliberately NOT `formatWhole`: rounding a real $1,240.37 to $1,240 would hide money. This only
     // removes noise that was never information.
+    // ⛔ **[pass-5 B5-4] — CENTS ARE ALL-OR-NOTHING.** With `minimumFractionDigits: 0` a value carrying a
+    // single decimal digit rendered `"-$0.4"` / `"$0.4"` — a money string with one cent digit, which is not
+    // a form money is ever written in. The rule this file states is *"cents render only when there ARE
+    // cents"*; it is `hasCents ? 2 : 0`, and `0` was being applied to both halves of it.
+    // ⚠️ This does NOT re-open the decision recorded in the header above: a WHOLE amount still renders
+    // `$1,240`, never `$1,240.00`. Only a value that already had cents changes, and only to show both of them.
+    const hasCents = Math.round(Math.abs(safe) * 100) % 100 !== 0;
     return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
-        minimumFractionDigits: 0,
+        minimumFractionDigits: hasCents ? 2 : 0,
         maximumFractionDigits: 2,
     }).format(safe);
 }
