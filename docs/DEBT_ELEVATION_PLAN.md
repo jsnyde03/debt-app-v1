@@ -26,7 +26,7 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.11 · pass 4 RECORDED, then FIXED BY CLASS**
+## ▶ RIGHT NOW — **S1.12 · PASS 5, and it is NOT started**
 
 **Surface S1 · money · goals · plan cards.** Passes 1–3 run and fully fixed. **Pass 4 run at `e65f9c7` by four fresh agents → 8 blockers · 19 majors · 7 minors across 217 files** ([`SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md)). ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next first-candidate and a clean pass 5 still owes a pass 6.** ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
@@ -58,7 +58,7 @@
 | ✅ | **S1.1 – S1.8** — the surface opened, both passes run and pass 1 fixed | CLOSED 2026-08-26 · pass 1: **5 blockers · 10 majors**, every one fixed and guarded · **S1.6** the gate recorded at fingerprint `69c372a0` · **S1.7** [D73] put the TEST TREE on a surface · **S1.8** pass 2, four fresh auditors at `4b58d75` → **3 blockers · 6 majors · 12 minors** ([`SUMMARY.md`](audits/2026-08-26-s1-money-pass2/SUMMARY.md)). ⭐ **A issued 23 verdicts and 22 came back CLOSED.** Detail → log |
 | ✅ | **S1.9 — pass 2 FIXED** | CLOSED 2026-08-26 · 3 blockers · 6 majors · 12 minors, **57 plants · 22 guards**. ⚡ **Three times the fix WAS the defect class**; the roots were wrong twice more *(1 dir → 18, then 184 invisible files)*; `lint:rn` 27 → **28 gates**. Detail → log |
 | ✅ | **S1.10 — pass 3 FIXED, the route became a generator, pass 4 RUN** | CLOSED 2026-08-28 · 11 blockers · 9 majors · 14 minors all fixed, plus `G-1`…`G-6` and the `GAP-*` backlog *(`MAX_UNGUARDED` 16 → 1)*; NET green at `cec7edc3`; **[D75]** made the route a committed generator. ⚡ **9 of 12 `GAP-*` rows and 6 of 14 minor remedies did not survive contact.** Detail → log |
-| ▶ | **S1.11 — pass 4 FIXED** *(decomposed below)* | **8 blockers · 19 majors · 7 minors.** ⛔ The result is that **the guard ledger cannot be cashed** — 8 guards proven dead, 35 never tested |
+| ✅ | **S1.11 — pass 4 FIXED, CLOSED 2026-08-29** | **All 34 findings closed**, each with a re-runnable proof. Registry **163 → 186**, proofs **43 → 66**; ⛔ **119 still rest on a token alone**. Net green + **CI green**. Detail → log |
 
 **Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
 new instruments swept. ✅ **The instrument half is DONE** — pass 1 swept `check-finding-guards.ts`,
@@ -67,7 +67,7 @@ found in them. ⚡ Every one was the S0 shape: *an instrument reporting green wh
 claimed.*
 
 
-#### S1.11's sub-steps — pass 4 RECORDED, then FIXED BY CLASS
+#### S1.11's sub-steps — pass 4 RECORDED, then FIXED BY CLASS *(all CLOSED 2026-08-29)*
 
 ⛔ **Grouped by class because the ids are not independent** — **13 of the 34** are one defect: *the fix
 reached the instance that was reported and left a sibling of the same class asserting on the same store.*
@@ -88,23 +88,29 @@ reds FOR THE PLANTED REASON** → **plant the naive over-fix** → register the 
 | ✅ **S1.11.5** | **CLASS 2/3/5 — CLOSED 2026-08-29.** `A-F3` *(blocker: a plan a year behind required its **whole $1,200 balance** out of one $2,000 paycheck)* · `C4-6` · `C4-3` `C4-4` *(the two ledgers blind to their own class)* · `A-F1` `A-F2` `F-B1` `F-B2` `C4-8` `D4-12` `D4-13` · ⛔ **`F-B5`, which no list on this doc carried**. ⭐ `D4-1` `D4-4` were **already closed** by `.2`/`.3` *(re-measured)*; `D4-7` `D4-11` route to `S1.11.6`. Detail → log | each carries **two plants** — the defect, and the laziest plausible repair |
 | ✅ **S1.11.6** | ⛔ **RE-ROUTE FOR PASS 5 — CLOSED 2026-08-29.** `D4-11` *(3 of 5 assertions could not fail)* · **`neighbour`, the fifth origin** *(the four buckets were all predicates on **changed**, so a two-producer disagreement was half-routed by construction)* · `D4-7` *(51 never-swept S0 files in no lane)* · the memory protocol now **ships with the route**. ⭐ And `S1.11.6.0`: **CI had been red for six pushes** while this gate read green locally. Detail → log | the route reproduces `A-F4`'s unrouted producer and C's two unrouted money screens as **routed** |
 | ✅ **S1.11.7** | **[DECISION] S0's convergence stands — [D76], 2026-08-28.** ⚠️ `D4-7` said 49; the measured number is **62** *(`lint:s0-coverage`: 109 classified · 62 unswept)*. ⛔ The gate printing them on the **green** path is deliberate and documented — **nearly filed as a defect and it is not one**; what is real is that `audit-route.ts` can never route them | CLOSED — the routing half moves to `S1.11.6` |
-| ▶ **S1.11.8** | **THE NET** — full e2e + embed, read from each suite's own summary line, commit, push. ⛔ **No `gate:record`** — [D74] writes it at convergence and pass 4 did not converge | green and pushed; the hand-off names the last full pass |
+| ✅ **S1.11.8** | **THE NET — GREEN AND PUSHED 2026-08-29.** typecheck ×4 · `lint:rn` **40/40** · three unit suites · **338 e2e** · **10 embed** · **CI green**. ⛔ No `gate:record` — [D74] writes it at convergence and pass 4 did not converge | green and pushed; the hand-off names the last full pass |
 
-##### S1.11.8's sub-steps — the round's net
+##### S1.12's sub-steps — PASS 5, the next first-candidate
 
-⛔ **No `gate:record`.** [D74] writes the record at CONVERGENCE, and pass 4 did not converge — [D65] exits
-on 0/0 **twice consecutively**, so pass 5 is the next first-candidate and a clean pass 5 still owes a
-pass 6. Writing *"the gate is green"* on a surface with an open successor claims releasable on a tree the
-audit does not say is releasable.
+⛔ **[D65] EXITS ON 0/0 TWICE CONSECUTIVELY.** Pass 4 found 34, so pass 5 is a **first**-candidate and a
+clean pass 5 still owes a **pass 6**. ⚠️ This is the live build; it is **not started** — dispatching four
+fresh agents is a real spend and 🎯 has not been asked yet.
+
+⚠️ **Expect the shape to differ from pass 4.** The route now carries **51 never-swept S0 files** and
+**207 neighbours** that have been in no lane of any round, so most findings should be `first-look` or
+`neighbour` — [D69] coverage results that **do not restart the convergence count**. ⛔ Exempt from the
+count is NOT exempt from the fix.
 
 | # | sub-step | exit line |
 |---|---|---|
-| ✅ **S1.11.8.1** | **THE FULL RUN — GREEN.** `typecheck` ×4 · `lint:rn` **40/40** · `test:regression` · `test:app` · `test:scenarios` · **338 e2e** · **10 embed**, each read from its own summary line | every figure quoted comes from the command's own `$?` |
-| **S1.11.8.2** | **PUSH, AND WATCH CI** — ⛔ a local green is not a CI green, measured at `S1.11.6.0`: this gate was red in CI for six pushes while reading green here | `gh run view --json conclusion`, the field read, not `gh run watch | tail` |
-| ✅ **S1.11.8.3** | **THE HAND-OFF.** Last full recorded pass **`818f934` · 2026-08-26 · 807 files**; the tree is **836** and the fingerprint differs. ⛔ **No current record, and [D74] says that is expected mid-audit** — ask `lint:gate-freshness`, never quote the sha | the next session cannot mistake a stale fingerprint for a fresh one |
+| **S1.12.1** | **[DECISION] 🎯 — dispatch pass 5?** Four fresh agents over ~392 routed files. Worst case is stated with the ask, and the alternative is a narrower round *(blockers-and-majors only, or lanes A+C alone)* | a yes/no with the scope named, recorded here |
+| **S1.12.2** | **PIN + ROUTE.** `npx tsx scripts/audit-route.ts --surface=s1 --since=<pass-4 pin> --out=docs/audits/<date>-s1-money-pass5` — the route writes `RESUME-PROTOCOL.md` beside its manifests now | 0 unrouted, 0 owed, and the origin split printed |
+| **S1.12.3** | **THE BRIEF.** Carried forward, in the auditors' own words: *a remedy is a hypothesis and a premise is not* · *judge the CONDITION, never the example* · *a report is a decaying artifact* · ⛔ *a plant cannot see the green state* | the brief names what pass 4 measured about ITS OWN findings |
+| **S1.12.4** | **RUN + RECORD.** Four lanes, incremental writes, heap 1536 MB, ⛔ an OOM is a **finding** | findings on disk per lane; classification written back to BOTH claims files in the same step |
+| **S1.12.5** | **FIX BY CLASS** — one assertion per class that ITERATES the class, two plants each, a registered `proof` | 0 blockers / 0 majors, every closure proven to red |
 
-**Exit (S1.11.8):** green and pushed, CI confirmed by reading its own conclusion field, and the hand-off
-names the last full pass rather than implying a record that does not exist.
+**Exit (S1.12):** pass 5 recorded and fixed. ⛔ **Convergence still requires a clean pass 6** — a 0/0 pass 5
+does not close S1 on its own.
 
 **Exit (S1.11):** 0 blockers / 0 majors on pass 4's findings, every guard in the registry **proven to red on
 its own defect**, and the route regenerated so pass 5 reads the surface pass 4 could not see. ⛔ **Pass 4

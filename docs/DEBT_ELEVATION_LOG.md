@@ -28691,6 +28691,56 @@ which is what saved 11 findings from that round.
 **The route now:** `392 routed · 68 first-look · 33 fix-churn · 21 instrument · 12 off-surface ·
 207 neighbour · 51 s0-first-look`.
 
+### `S1.11` — the WHOLE-ITEM after-scan
+
+**Closed:** all **34** pass-4 findings, each with a registry entry carrying a re-runnable proof. Registry
+**163 → 186**; proofs **43 → 66**. ⛔ **The honest residual is unchanged: 119 entries still rest on a token
+alone**, printed every run and capped downward-only. **Net:** typecheck ×4 · `lint:rn` **40/40** · three
+unit suites · **338 e2e** · **10 embed** · **CI green**.
+
+#### ⛔ THE MOST VALUABLE FIND OF THE ROUND CAME FROM `gh run list`, NOT FROM ANY GATE OR FINDING
+
+`lint:finding-guards` had been **red in CI on every push since `7584a008`** — before this round opened —
+while passing locally, and **six consecutive sessions wrote *"lint:rn green"* into the log, truthfully.**
+⚡ Nothing in the tree could see it, because the split is between platforms rather than between
+commits. ▶ **The rule that follows is one line: after a push, ask CI for its own conclusion field.**
+
+#### The three shapes this round measured, in order of what they cost
+
+1. ⛔ **A REMEDY IS A HYPOTHESIS AND A PREMISE IS NOT.** More than half the stated remedies would not have
+   closed their finding; **five would have introduced one** — `C4-2`'s deletes a debt from the screen,
+   `F-B3`'s fails **open**, `C4-5`'s keeps the caption inside the offer, `A-F2`'s predicts 2 where the
+   answer is 3, `A-F1`'s omits the destructive half. **Every premise reproduced exactly.**
+2. ⛔ **FOUR FINDINGS' NAMED DEFECTS WERE ALREADY CLOSED** — `D4-10` `D4-1` `D4-4` `C4-4` — and two would
+   have been "fixed" a second time. ⚠️ **A report is a decaying artifact, and so is the plan's routing of
+   it**: `F-B5` was in no sub-step list at all, and four `PARTIAL`s were filed in two places each.
+3. ⛔ **PLANTING HAS A BLIND SPOT: THE GREEN STATE.** Three defects in this round's own new tests were
+   invisible to every plant, because under a plant the text an over-broad locator matches is simply
+   absent. ⚡ **Every lesson in this repo said planting finds what reading cannot; this is the converse.**
+
+#### What the instruments cost, split by origin — because a flat total hides both halves
+
+**Nine of the round's closures were instrument work**, and the two heaviest (`S1.11.6.0`'s CRLF split and
+`.6.2`'s neighbourhood) were not findings anyone reported. ⚠️ Against that, the ledger built at `S1.11.3`
+**caught eight things this round would have shipped**: a guard a rewrite absorbed · four stale proof
+anchors · closures registered with no proof · a plant that redded for the wrong reason · a token that lived
+only in a comment. ⭐ **It has now paid for itself more times than it cost.**
+
+#### New instruments
+
+`lint:restore-doors` *(the population DERIVED from every production `importStore(`)* · `lint:import-graph`
+*(the route's fifth origin, pinned against the real graph)* · `check-gate-sources` **direction 4** *(the
+pointer to the config, not just the config)* · `check-trust-claims`' **population floor** · `lib/anchor.ts`
+*(one world for anchor matching)* · `lib/importGraph.ts` · `cannotAmortize.ts` · `partitionDebts` ·
+`BNPL_COUNT_FIELDS` · `SYNTHETIC_LOSS_FIELDS` · `describeLocalOverwrite` · `plural` · `requiredPlanTrust.test.ts`.
+
+#### ⚠️ Two shell traps, both of which lost work
+
+`git checkout -- <file>` on an **uncommitted** test threw a whole new block away; `rm -f` **swallowed a
+wrong-directory delete** and the probe survived three steps until `typecheck` found it. ⛔ **Restore from a
+copy taken AFTER the fix, and diff it** — a snapshot taken before the fix undoes the fix, which happened
+once here too.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be
