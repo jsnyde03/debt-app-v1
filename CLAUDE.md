@@ -182,10 +182,19 @@ re-run with each preceding assertion relaxed in turn.
 real residual is one level up and nobody had named it: **repoint `typecheck:scripts` and both gates stay
 green**, because the guarded file stops being the one compiled. Direction 4 asserts the pointer.
 
-⭐ **`S1.11.4` AND `S1.11.5` ARE BOTH CLOSED (2026-08-29). ALL 34 PASS-4 FINDINGS ARE ACCOUNTED FOR** —
-**32 carry a registry entry with an executed proof**, and the two that do not (`D4-7` `D4-11`) are the
-routing pair, routed to `S1.11.6`. Net green: **39/39 gates · 338 e2e · typecheck ×4 · three unit suites**.
-Registry **163 → 183**, proofs **44 → 60+**.
+⭐ **`S1.11` IS COMPLETE. ALL 34 PASS-4 FINDINGS ARE CLOSED**, each with a registry entry carrying a
+**re-runnable proof** — `prove:guards` plants the finding's own defect and requires the named command to red
+for the named reason. Net: **typecheck ×4 · `lint:rn` 40/40 · three unit suites · 338 e2e · 10 embed**, and
+⭐ **CI is GREEN** *(read from `gh run view --json conclusion`, never from a piped `watch`)*.
+
+⛔ **THERE IS NO CURRENT GATE RECORD, AND MID-AUDIT THAT IS THE EXPECTED STATE** ([D74]). The last full
+recorded pass is **`818f934` · 2026-08-26 · 807 files**; the tree is now **836 files** and the fingerprint
+differs. ⛔ **Never quote `818f934` as if it describes this tree** — ask `npm run lint:gate-freshness`.
+
+⛔ **S1 STILL DOES NOT CONVERGE.** [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next
+first-candidate and a clean pass 5 still owes a pass 6.** ▶ The route is ready for it: regenerate with
+`npx tsx scripts/audit-route.ts --surface=s1 --since=<this session's last sha> --out=<dir>` — it now writes
+`RESUME-PROTOCOL.md` beside the manifests.
 
 ⛔ **THE NUMBER TO CARRY: OF THE REMEDIES WORKED, MORE THAN HALF WOULD NOT HAVE CLOSED THEIR FINDING, AND
 FIVE WOULD HAVE INTRODUCED ONE** — while **every premise reproduced exactly**. `C4-2`'s would have deleted a
@@ -193,37 +202,33 @@ debt from the screen · `F-B3`'s would have failed **OPEN** · `C4-5`'s kept the
 which *is* the defect · `A-F2`'s predicted 2 where the answer is 3. **Verify what a finding says to DO.**
 
 ⛔ **AND FOUR FINDINGS' NAMED DEFECTS WERE ALREADY CLOSED** — `D4-10` `D4-1` `D4-4` `C4-4`, each re-measured
-rather than read. Two of them would have been "fixed" a second time. ⚡ **The switch-in before-scan has now
-paid for itself four times in one item.**
+rather than read. Two would have been "fixed" a second time. ⚡ **The switch-in before-scan paid for itself
+four times.**
 
 ⛔ **`F-B5` WAS IN NO LIST ON THE PLAN.** It surfaced by **enumerating every `###` heading across the four
-lane files** — `5+11+13+5 = 34` — rather than by reading the sub-step lists. **The undercount class, this
-time in the routing of the FIXES.** Count the ids; never trust the list.
+lane files** — `5+11+13+5 = 34` — not by reading the sub-step lists. **The undercount class, this time in
+the routing of the FIXES.** Count the ids; never trust the list.
 
 ⛔ **PLANTING HAS A BLIND SPOT, MEASURED THREE TIMES: THE GREEN STATE.** Two unscoped `getByText` locators
 were strict-mode violations that exist **only when the fix works** *(under a plant the text is absent)*, and
 one *"nothing was written"* assertion was **vacuous by timing** — `readStore` straight after the click saw
 0 debts and PASSED; two seconds later it saw 1. ⚡ **Every lesson here said planting finds what reading
-cannot; this is the converse.** The two habits that caught all three: **run the changed spec GREEN**, and
-**re-run each plant with the assertion above it relaxed**.
+cannot; this is the converse.** What caught all three: **run the changed spec GREEN**, and **re-run each
+plant with the assertion above it relaxed**.
 
-⭐ **The `S1.11.3` ledger caught seven things these items would have shipped**: a guard a rewrite
-**absorbed**, **four stale proof anchors**, closures registered with **no proof**, and ⛔ **a plant that
-redded for the WRONG REASON**. ⚠️ **A multi-line proof anchor is unmatchable on this platform** — the tree
-is CRLF and the registry stores `\n`, so it reds as *"anchor matches 0×"*, which reads like staleness.
-**Single-line anchors only.**
+⛔ **AND A GATE WAS RED IN CI FOR SIX PUSHES WHILE READING GREEN LOCALLY** (`S1.11.6.0`). A recorded proof
+anchor carrying CRLF matches a Windows tree and **0×** in CI's LF checkout. **Third instance of *green where
+it is run, red where it matters*** — after `REVERIFY4-2` and `lint:surface-complete` — and each was closed
+by **picking one world**. ⚠️ Six sessions wrote *"lint:rn green"*, truthfully. **Ask CI after a push.**
 
-⚠️ **Two shell traps cost real work this session.** `git checkout -- <file>` on an **uncommitted** test threw
-a whole new block away; and `rm -f` **swallowed a wrong-directory delete**, so a probe reported removed was
-still there until `typecheck` found it three steps later. ⛔ **Restore from a copy taken AFTER the fix**, and
+⚠️ **Two shell traps cost real work.** `git checkout -- <file>` on an **uncommitted** test threw a whole new
+block away; `rm -f` **swallowed a wrong-directory delete**. ⛔ **Restore from a copy taken AFTER the fix**, and
 diff it — a snapshot taken before the fix undoes the fix.
 
-▶ **ACTIVE: `S1.11.6` — the RE-ROUTE, decomposed as `.6.1`–`.6.5`** at the top of the plan. The route emits
-files *changed* since the pin, so **a two-producer disagreement is half-routed by construction** (`A-F4`'s
-producer routed to nobody); it never emits **S0**, leaving **62 never-swept files** in no lane; and
-`D4-11`'s own self-checks are unreachable, so the checker is repaired before its output is trusted.
-⛔ **Pass 5 depends on this** — [D65] exits on 0/0 twice consecutively, so pass 5 is the next
-first-candidate and a clean pass 5 still owes a pass 6.
+▶ **NEXT: `S1.11.8`'s hand-off is written; the queue's next live build is PASS 5** — four fresh agents
+against the regenerated route, per `docs/audits/2026-08-28-s1-money-pass4/BRIEF.md`'s shape. ⚠️ Expect most
+of its findings to be `first-look` or `neighbour`: 51 never-swept S0 files and 207 neighbours are in a lane
+for the first time.
 
 ⚡ **Three new instruments came out of it** — `lint:cap-literals` *(a ratchet computed from the list it caps
 is `n > n`; `check-trust-claims` shipped two)*, `lint:gate-sources` direction 3 *(the scripts compiler's

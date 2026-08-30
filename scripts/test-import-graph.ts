@@ -86,6 +86,22 @@ check(consumers.has(CONSUMER), '⛔ A-F4 · hop 1 — the consumer of the change
 check(!consumers.has(SIBLING), '⛔ A-F4 · hop 1 does NOT reach the sibling — which is why one hop was not enough');
 check(siblings.has(SIBLING), '⛔ A-F4 · hop 2 — the producer that did NOT change is routed');
 
+/**
+ * ⛔ **C's TWO UNROUTED MONEY SCREENS — the other half of the exit line.** `(tabs)/progress.tsx` and
+ * `(tabs)/index.tsx` held **3 of auditor C's 4 blockers** and were in no lane of pass 4: they had not
+ * changed, so no bucket could see them. Each is a **hop-1 consumer** of a store selector the fixing
+ * touched, which is the edge asserted here — `C4-9`'s own producer for one, the Guardian's for the other.
+ */
+for (const [screen, producer] of [
+  ['apps/rn/src/app/(tabs)/progress.tsx', 'apps/rn/src/store/journeySelectors.ts'],
+  ['apps/rn/src/app/(tabs)/index.tsx', 'apps/rn/src/store/guardianSelectors.ts'],
+] as const) {
+  check(tracked.has(screen) && tracked.has(producer), `C-screens fixture — ${screen} and ${producer} are tracked`);
+  check(graph.importsOf.get(screen)?.has(producer) === true, `${screen} really does import ${producer}`);
+  const n = neighbourhood(graph, new Set([producer]), sourceFiles);
+  check(n.consumers.has(screen), `⛔ C-screens · ${screen} is routed when its producer moves — it was in no lane of pass 4`);
+}
+
 // ⭐ THE CONTROL. A neighbourhood that returned every file would satisfy every row above.
 const all = new Set([...consumers, ...siblings]);
 check(all.size < sourceFiles.length / 2, `the neighbourhood of ONE file is a neighbourhood (${all.size} of ${sourceFiles.length}), not the repo`);
