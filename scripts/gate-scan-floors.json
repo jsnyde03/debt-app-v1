@@ -53,5 +53,11 @@
     "measured": "2026-08-29",
     "measuredCount": 21965,
     "why": "Measured 2026-08-29 at S1.11.4.3 on the gate's first green run. Floor is 95% of the measured count — see the ledger header for why a margin and not the exact figure. ⛔ Verified the same way as its siblings: blanking lib/stripCode's exports drops the count to ~0 and this gate reds instead of reporting a clean four-door surface it never read."
+  },
+  "rounding": {
+    "floor": 47719,
+    "measured": "2026-08-30",
+    "measuredCount": 50231,
+    "why": "S1.12.5.6 [pass-5 A5-4]. Wired because lint:scan-floors REFUSED this gate on its first run - it strips its input and had no floor, which is GAP-8: a gate that strips can report a pass while reading nothing. Its own downward-only cap does not protect it, and in fact inverts: a scan that suddenly reads zero files reports FEWER copies, and the gate would then ask someone to lower the cap to match. 5% margin per the _README."
   }
 }

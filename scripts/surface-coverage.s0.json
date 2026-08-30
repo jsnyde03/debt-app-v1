@@ -271,6 +271,9 @@
   "scripts/check-rn-style-divergence.ts": [
     "r17"
   ],
+  "scripts/check-rounding.ts": [
+    "never"
+  ],
   "scripts/check-runner-completeness.ts": [
     "never"
   ],

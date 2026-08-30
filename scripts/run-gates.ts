@@ -93,6 +93,10 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // when measured; the gap is that nothing would notice one, and 30 registered guard proofs run
     // `test:app` — such a guard would read as DEAD rather than as UNEXECUTED.
     'lint:runner-completeness',
+    // ⛔ S1.12.5.6 [pass-5 A5-4] — 93 inline copies of the money-rounding expression beside the one
+    // exported owner. They agree today; the class (two producers of one fact) is what A1, A2 and A-F4
+    // each were. Downward-only, so the copies cannot grow while the collapse is scheduled.
+    'lint:rounding',
     'lint:a11y-collapse',
     'lint:contrast',
     'lint:type-scale',

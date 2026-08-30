@@ -96,10 +96,40 @@ function buildGuardianSpoken(store: DebtStore): string {
  */
 export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): WidgetSnapshot {
   const debts = store.debts ?? [];
+  /**
+   * ⛔ **S1.12.5.6 [pass-5 `C5-2`] — THE WIDGET STATED A DEBT TOTAL $2,513 BELOW THE APP'S, ON ONE STORE
+   * AT ONE INSTANT.**
+   *
+   * ⚡ Measured: a premium user with one card verified eleven months ago read **"$9,000 remaining"** on the
+   * Home Screen and heard *"You have $9,000 in debt remaining"* from Siri, while Money's hero said
+   * **$11,513** — 28% apart. A second fixture moved it the other way (app $14,304 · widget $15,000), so
+   * the widget was not conservative in a fixed direction; it was simply a different number.
+   * ⭐ **Free is the control and it agreed exactly**, because `withProjectedBalances` is a documented no-op
+   * for free — so the divergence is the premium projection and nothing else.
+   *
+   * ⛔ **This module already knew the rule.** `buildGuardianSpoken` below calls
+   * `selectPaydayGuardian(withProjectedBalances(store, true))`: the projection was applied to the Guardian
+   * SENTENCE and not to the four figures above it. And premium's own paywall bullet is *"Balances that
+   * keep themselves roughly right — projected forward between statements"*, while the surface a user sees
+   * **without opening the app** was the one that did not.
+   *
+   * ⚠️ **Only the FORWARD-LOOKING figures move**, and each exclusion is a hazard lane C named:
+   *   · `totalOriginal` / `totalPaid` / `pct` stay on the anchors — the backward-looking rule
+   *     (`journeySelectors.ts`): "% paid" must not fall while the user does nothing.
+   *   · ⛔ `live`/`cleared` stay on the anchors. A projected estimate reaching `$0` would put
+   *     **"Debt-free"** on the Home Screen before the user confirmed anything, which
+   *     `selectProvisionalPayoffs` and `PayoffInvitationCard` exist to prevent.
+   *   · `debtsJson` stays on the anchors — it feeds Siri's log-a-payment disambiguation, where the
+   *     verified figure is the one to hand back.
+   */
+  const engineDebts = withProjectedBalances(store, store.subscriptionPlan === 'premium').debts ?? [];
+  // ⚠️ Anchors, deliberately — see the hazard note above.
   const live = debts.filter((d) => d.balance > 0);
   const totalOriginal = debts.reduce((s, d) => s + (d.originalBalance ?? d.balance), 0);
-  const totalCurrent = debts.reduce((s, d) => s + d.balance, 0);
-  const totalPaid = Math.max(0, totalOriginal - totalCurrent);
+  const totalCurrent = engineDebts.reduce((s, d) => s + d.balance, 0);
+  // ⚠️ `totalPaid` is measured against the ANCHOR total, not the projected one: interest accruing between
+  // statements is not the user paying money, and crediting it would make "% paid" move on its own.
+  const totalPaid = Math.max(0, totalOriginal - debts.reduce((s, d) => s + d.balance, 0));
   const pct = totalOriginal > 0 ? Math.max(0, Math.min(1, totalPaid / totalOriginal)) : 0;
 
   /**
@@ -134,7 +164,11 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
     ? UNREAD_WIDGET_DATE
     : cleared
       ? 'Debt-free'
-      : (selectPayoffView(store).debtFreeDate ?? '—');
+      // ⛔ [pass-5 C5-2] the PROJECTED store, the same basis `progress.tsx` uses — otherwise the widget's
+      // date is computed from a different balance set than the app's. ⚠️ Lane C could not reproduce a
+      // fixture where the two printed dates DIFFERED and said so; this is aligned on principle, and the
+      // measured divergence is `remaining`.
+      : (selectPayoffView(withProjectedBalances(store, store.subscriptionPlan === 'premium')).debtFreeDate ?? '—');
 
   return {
     hasData: debts.length > 0,

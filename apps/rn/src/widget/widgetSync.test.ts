@@ -1,3 +1,6 @@
+import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
+import { selectDebtBalanceView } from '@/store/balanceSelectors';
+import { formatWhole } from '@/utils/format';
 import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
 import type { Debt, DebtStore } from '@/data/models';
@@ -177,6 +180,72 @@ function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
     true,
   );
   assert(buildWidgetSnapshot(read, 600).guardianSpoken.length > 0, '⭐ control — a plan the app read is still spoken');
+}
+
+
+/**
+ * ⛔ **S1.12.5.6 [pass-5 `C5-2`] — THE WIDGET AND THE APP MUST STATE THE SAME NUMBER.**
+ *
+ * ⚡ Measured before the fix, one store at one instant: the Home Screen and Siri said **"$9,000
+ * remaining"** while Money's hero said **$11,513** — 28% apart. A second fixture moved it the other way
+ * (app $14,304 · widget $15,000), so the widget was not conservative; it was a different number.
+ *
+ * ⛔ **THIS FILE COULD NOT HAVE CAUGHT IT, AND THAT IS THE FINDING'S SHARPEST HALF.** `runMigrations`
+ * stamps `lastVerifiedDate = paycheck.currentDate`, so **every fixture built through
+ * `migratedWidgetStore` has zero elapsed time** — the projection is a no-op on all of them and free and
+ * premium are indistinguishable. Both existing premium fixtures sit in the one member of the class where
+ * this defect cannot appear. And nothing asserted PARITY: `remaining` was checked against the literal
+ * `'$8,000'` and against `'—'`, never against what a screen states.
+ *
+ * ⚠️ So the fixture below back-dates the verification explicitly, and the assertion is a PARITY one —
+ * widget against the app's own expression — not a value one. A value assertion has to be re-derived by
+ * hand whenever the projection changes, and drifts into agreeing with whichever side someone updated.
+ */
+{
+  const ELEVEN_MONTHS_AGO = '2025-04-02';
+  const aged = (premium: boolean): DebtStore => {
+    const st = migratedWidgetStore(
+      [{ id: 'a', name: 'Chase', balance: 9000, originalBalance: 12000, minimumPayment: 25, apr: 29.99, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' }],
+      premium,
+    );
+    return { ...st, debts: st.debts.map((d) => ({ ...d, lastVerifiedDate: ELEVEN_MONTHS_AGO, balanceAsOfDate: ELEVEN_MONTHS_AGO })) };
+  };
+
+  for (const premium of [false, true]) {
+    const store = aged(premium);
+    // The app's own expression for the same claim — `money.tsx` sums `selectDebtBalanceView(...).currentBalance`.
+    const cpm = payCyclesPerMonth(store.paycheck.payCycle);
+    const appTotal = store.debts.reduce((sum, d) => sum + selectDebtBalanceView(d, store.paycheck.currentDate, premium, cpm).currentBalance, 0);
+    const snap = buildWidgetSnapshot(store, 1);
+    assert(
+      snap.remaining === formatWhole(appTotal),
+      `⛔ C5-2 · ${premium ? 'premium' : 'free'} — the widget states the app's figure (widget ${snap.remaining}, app ${formatWhole(appTotal)})`,
+    );
+  }
+
+  // ⭐ THE CONTROL THAT MAKES THE PARITY ROW MEAN SOMETHING. With no elapsed time the two sides agree
+  // trivially — which is exactly why every pre-existing fixture passed. The tiers must be able to differ.
+  const freeSnap = buildWidgetSnapshot(aged(false), 1);
+  const premiumSnap = buildWidgetSnapshot(aged(true), 1);
+  assert(
+    freeSnap.remaining !== premiumSnap.remaining,
+    `⭐ C5-2 control — the fixture has real elapsed time, so the tiers CAN differ (both read ${freeSnap.remaining})`,
+  );
+
+  // ⛔ THE HAZARD LANE C NAMED: a projected estimate reaching $0 must NOT say "Debt-free" on the Home
+  // Screen before the user confirms it — which is what `selectProvisionalPayoffs` exists to prevent.
+  const nearlyPaid = migratedWidgetStore(
+    [{ id: 'a', name: 'Chase', balance: 5, originalBalance: 12000, minimumPayment: 400, apr: 0, dueDate: '2026-03-10', type: 'debt', recurrence: 'monthly' }],
+    true,
+  );
+  const agedNearlyPaid: DebtStore = {
+    ...nearlyPaid,
+    debts: nearlyPaid.debts.map((d) => ({ ...d, lastVerifiedDate: ELEVEN_MONTHS_AGO, balanceAsOfDate: ELEVEN_MONTHS_AGO })),
+  };
+  assert(
+    buildWidgetSnapshot(agedNearlyPaid, 1).debtFreeDate !== 'Debt-free',
+    '⛔ C5-2 — a PROJECTED $0 never says "Debt-free" on the Home Screen before the user confirms it',
+  );
 }
 
 console.log(`✅ widget snapshot + sync — ${passed} assertions passed\n`);

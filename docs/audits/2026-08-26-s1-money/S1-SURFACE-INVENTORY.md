@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**480 files on the S1 surface · 415 swept · 65 unswept.**
+**482 files on the S1 surface · 415 swept · 67 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -253,6 +253,8 @@
 | `apps/rn/src/store/incomeLearning.ts` | s1p2 |
 | `apps/rn/src/store/journeySelectors.test.ts` | r17 |
 | `apps/rn/src/store/journeySelectors.ts` | r17 · s1p1 |
+| `apps/rn/src/store/logPaymentCopy.test.ts` | ⛔ **never** |
+| `apps/rn/src/store/logPaymentCopy.ts` | ⛔ **never** |
 | `apps/rn/src/store/looksLikeDebt.test.ts` | s1p2 |
 | `apps/rn/src/store/looksLikeDebt.ts` | s1p2 |
 | `apps/rn/src/store/milestoneCross.test.ts` | ⛔ **never · partial** |
@@ -530,6 +532,8 @@
 - `apps/rn/src/store/glossary.test.ts`
 - `apps/rn/src/store/greeting.test.ts`
 - `apps/rn/src/store/guardianSubjects.test.ts`
+- `apps/rn/src/store/logPaymentCopy.test.ts`
+- `apps/rn/src/store/logPaymentCopy.ts`
 - `apps/rn/src/store/milestoneCross.test.ts`
 - `apps/rn/src/store/onboardingFinish.test.ts`
 - `apps/rn/src/store/payoffCelebration.test.ts`
@@ -563,5 +567,5 @@
 - `packages/core/debt/testDeriveRequiredActionView.ts`
 - `packages/core/debt/testReconcileAutopay.ts`
 
-<!-- claims-sha256: 9e2cd2ff75554a2e -->
+<!-- claims-sha256: 850a1b316bcaf6eb -->
 

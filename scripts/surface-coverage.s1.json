@@ -876,6 +876,12 @@
     "r17",
     "s1p1"
   ],
+  "apps/rn/src/store/logPaymentCopy.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/store/logPaymentCopy.ts": [
+    "never"
+  ],
   "apps/rn/src/store/looksLikeDebt.test.ts": [
     "s1p2"
   ],
