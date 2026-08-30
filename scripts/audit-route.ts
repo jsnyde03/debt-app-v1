@@ -24,7 +24,7 @@
  * computing the same number differently. The parse is checked against the inventory's own stated totals,
  * so a format drift reds rather than silently routing a short list.
  *
- * ## The four origins, and why the split is the point
+ * ## The six origins, and why the split is the point
  *
  * ⚡ **Report the round split by ORIGIN or a flat total hides both halves moving.** Across the two fixing
  * sessions ELEVEN defects went into the instruments themselves while the app's own defect count fell;
@@ -34,6 +34,8 @@
  *   fix-churn     swept by a prior pass, then CHANGED since it   → the pass read a version that is gone
  *   instrument    on S0's surface and changed since the pin      → the code the fixing itself wrote
  *   off-surface   changed since the pin and on NO inventory      → the hole completeness cannot see
+ *   neighbour     did NOT change, but sits in the import neighbourhood → the two-producer blind spot
+ *   s0-first-look on S0's surface and never swept by any pass       → routed by nobody until S1.11.6.3
  *
  * ⚠️ **`fix-churn` is the bucket pass 3 had no name for.** A file a pass read and a fix then rewrote is
  * not swept — the sweep describes bytes that no longer exist — but the claims file still says `s1p3`
@@ -71,12 +73,16 @@
  *   npx tsx scripts/audit-route.ts --surface=s1 --since=<sha> --out=<dir> --check   (assert only)
  *
  * Exits 1 on: an unparseable inventory · a parse that disagrees with the inventory's own totals ·
- * a file in two buckets · a file in two lanes · a routed file missing on disk · a bucket file that
- * reached no lane.
+ * a file in two buckets · a routed file missing on disk · a bucket file that reached no lane · a CHANGED
+ * tracked non-prose file that reached no bucket at all.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+
+// ⛔ S1.11.6.2 — the import neighbourhood, in a module with no side effects so `test-import-graph` can
+// assert the resolver directly. See its header for why a route built on `changed` alone is half-blind.
+import { buildImportGraph, neighbourhood } from './lib/importGraph';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -91,9 +97,23 @@ const INVENTORY: Record<string, string> = {
   s1: 'docs/audits/2026-08-26-s1-money/S1-SURFACE-INVENTORY.md',
 };
 
-type Origin = 'first-look' | 'fix-churn' | 'instrument' | 'off-surface';
+/**
+ * ⛔ **S1.11.6.2 [pass-4 `A-F4`] — `neighbour` IS THE FIFTH ORIGIN, AND IT EXISTS BECAUSE THE OTHER FOUR
+ * ARE ALL PREDICATES ON *CHANGED*.**
+ *
+ * ⚡ A two-producer disagreement is **half-routed by construction**: the fix touches one producer, the
+ * route sees one producer, and the disagreement is only visible from the side that moved.
+ * `projectDebtPayoff.ts` and `buildPayoffTrajectory.ts` compute one fact; `A1` corrected one of them and
+ * the other **routed to nobody** — it had not changed. ⚠️ They are not producer/consumer: they are
+ * **siblings through a common consumer**, which is why one hop does not reach it.
+ *
+ * ⚠️ **The cost is stated.** Measured at pass 4's own endpoints, the neighbourhood is ~3.7× the changed
+ * set — 95 changed, 101 consumers, 155 siblings. That is the price of the exit line, and it buys the two
+ * money screens where **3 of C's 4 blockers lived** plus `A-F4`'s producer.
+ */
+type Origin = 'first-look' | 'fix-churn' | 'instrument' | 'off-surface' | 'neighbour' | 's0-first-look';
 
-const ORIGINS: readonly Origin[] = ['first-look', 'fix-churn', 'instrument', 'off-surface'];
+const ORIGINS: readonly Origin[] = ['first-look', 'fix-churn', 'instrument', 'off-surface', 'neighbour', 's0-first-look'];
 
 /**
  * ⛔ **A DENY-LIST, AND THE ONLY ONE IN THIS FILE.** It exists because `off-surface` is defined by
@@ -267,8 +287,24 @@ function main(): void {
     else if (changed.has(f)) origin.set(f, 'fix-churn');
     // swept and unchanged → accounted for. This is the ONLY exit from the route.
   }
+  /**
+   * ⛔ **S1.11.6.3 [pass-4 `D4-7`] — THIS EMITTED `first-look` FOR S1 AND NEVER FOR S0.** The S1 loop
+   * above routes a surface file that no pass has ever swept; the S0 loop asked only whether it CHANGED.
+   * So S0's never-swept files were in **no lane of any round** — 57 of them at this pin, against a surface
+   * declared CONVERGED.
+   *
+   * ⚠️ **[D76] settled that S0's convergence STANDS**, and that the coverage gate printing those files on
+   * its green path is deliberate. *"What is real is that `audit-route.ts` can never route them"* — which
+   * is this, and only this.
+   *
+   * ⚠️ **Its own origin rather than `first-look`.** Conflating them would put two surfaces' never-swept
+   * sets behind one number, and *"report the round split by ORIGIN or a flat total hides both halves
+   * moving"* is this file's own rule. ⛔ `changed` still wins: a file that is both never-swept and changed
+   * is `instrument`, because what the fixing just wrote is the sharper claim about it.
+   */
   for (const f of s0.files) {
     if (changed.has(f)) origin.set(f, 'instrument');
+    else if (s0.unswept.has(f)) origin.set(f, 's0-first-look');
   }
   /**
    * ⛔ The remainder, by subtraction. Everything CHANGED that neither inventory contains — S2/S3/S4's
@@ -277,6 +313,34 @@ function main(): void {
   for (const f of changed) {
     if (origin.has(f) || s1Files.has(f) || s0Files.has(f) || NOT_CODE.test(f)) continue;
     origin.set(f, 'off-surface');
+  }
+
+  /**
+   * ⛔ **S1.11.6.2 [pass-4 `A-F4`] — THE FOUR BUCKETS ABOVE ARE ALL PREDICATES ON *CHANGED*, SO A FILE
+   * THAT DID NOT MOVE CANNOT REACH THEM.** That is the half-blindness: a fix corrects one of two
+   * producers, the route emits the one that moved, and the disagreement is invisible from the other side.
+   *
+   * ⚠️ **LAST, and only for files nothing else claimed** — a neighbour that is also `first-look` or
+   * `fix-churn` keeps the stronger origin, because those say something about the file itself while this
+   * says only *"something near it moved"*.
+   *
+   * ⚠️ The graph is built over tracked `.ts`/`.tsx` only: an import edge is the whole mechanism, and a
+   * file with no imports cannot be a neighbour of anything. `edges` is printed so a resolver that stops
+   * resolving shows as a number collapsing rather than as an empty bucket.
+   */
+  const sourceFiles = execFileSync('git', ['ls-files', '*.ts', '*.tsx'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+  })
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .sort();
+  const graph = buildImportGraph(REPO_ROOT, sourceFiles);
+  const { consumers, siblings } = neighbourhood(graph, changed, sourceFiles);
+  for (const f of [...consumers, ...siblings]) {
+    if (!origin.has(f) && !NOT_CODE.test(f)) origin.set(f, 'neighbour');
   }
 
   // ── lanes ───────────────────────────────────────────────────────────────────────────────────────
@@ -290,16 +354,25 @@ function main(): void {
     byLane.get(lane.id)!.push(f);
   }
 
-  // ── the assertions, every one of them a set identity ────────────────────────────────────────────
+  /**
+   * ── the assertions that can actually fail ───────────────────────────────────────────────────────
+   *
+   * ⛔ **S1.11.6.1 [pass-4 `D4-11`] — THREE OF THE FIVE COULD NOT.** They read as set identities and were
+   * tautologies of the loop above: every key of `origin` either gets a lane or is killed by the inner
+   * `die` (which returns `never`), so `unrouted` was always `[]`; `laneOf` gains exactly one key per
+   * iteration and `byLane` exactly one entry, so `duplicated` and `routedCount !== origin.size` were
+   * always `false`. ⚡ Measured: narrowing lane D's catch-all — the state `unrouted` exists to report —
+   * fires the **inner** `die`, and execution never reaches the block. **There is no tree state that
+   * reaches it.**
+   *
+   * ⛔ **In the file whose own docblock records shipping *"a check that could not fail"* one commit
+   * earlier.** Deleted rather than repaired: the inner `die` already covers the first, and a `Map` covers
+   * the second. What is left below is the two that can fail — and `owed`, which is the only one that
+   * proves anything about totality.
+   */
   const routedCount = [...byLane.values()].reduce((n, l) => n + l.length, 0);
-  const unrouted = [...origin.keys()].filter((f) => !laneOf.has(f));
-  const duplicated = routedCount !== new Set(laneOf.keys()).size;
   const missing = [...laneOf.keys()].filter((f) => !existsSync(join(REPO_ROOT, f)));
-
-  if (unrouted.length) die(`${unrouted.length} bucket file(s) reached no lane:\n  ${unrouted.join('\n  ')}`);
-  if (duplicated) die('a file was routed into more than one lane.');
   if (missing.length) die(`${missing.length} routed file(s) do not exist on disk:\n  ${missing.join('\n  ')}`);
-  if (routedCount !== origin.size) die(`routed ${routedCount} but bucketed ${origin.size} — the lanes are not total.`);
 
   /**
    * ⛔ **THE ASSERTION THE OTHER FOUR CANNOT MAKE: nothing that MOVED is missing from the route.**
@@ -318,6 +391,9 @@ function main(): void {
    * not documentation or a binary*. `NOT_CODE` is the only permitted subtraction, and it is printed.
    */
   const owed = [...changed].filter((f) => !NOT_CODE.test(f) && !laneOf.has(f)).sort();
+  // ⛔ [D4-11] The one permitted subtraction, COUNTED — the success line names it, so a widening `NOT_CODE`
+  // shows up as a number moving rather than as silence. It is the only way `owed` can be emptied dishonestly.
+  const excludedByNotCode = [...changed].filter((f) => NOT_CODE.test(f)).length;
   if (owed.length) {
     die(
       `${owed.length} file(s) CHANGED since ${since} and reached no bucket at all:\n  ${owed.join('\n  ')}\n\n` +
@@ -330,7 +406,17 @@ function main(): void {
   for (const o of origin.values()) counts[o] += 1;
 
   console.log(`\n✅ audit-route ${surface.toUpperCase()} since ${since}`);
-  console.log(`   ${routedCount} routed · 0 unrouted · 0 duplicated · 0 missing on disk`);
+  /**
+   * ⛔ **S1.11.6.1 [pass-4 `D4-11`] — THIS LINE ADVERTISED TWO CONSTANTS BESIDE ONE MEASUREMENT.** It read
+   * `N routed · 0 unrouted · 0 duplicated · 0 missing on disk`, and a reader treating *"0 unrouted · 0
+   * duplicated"* as evidence the route is total was reading nothing at all. ⚠️ **The totality proof is
+   * `owed`**, which the line never mentioned — and `owed`'s quantifier is **changed**, so the sentence has
+   * to say so ([D4-7]: this route cannot speak for a file that did not move).
+   */
+  console.log(
+    `   ${routedCount} routed · ${missing.length} missing on disk · ` +
+      `every CHANGED tracked file since ${since} is accounted for (${excludedByNotCode} excluded as prose or binary)`,
+  );
   console.log(`   by origin: ${ORIGINS.map((o) => `${counts[o]} ${o}`).join(' · ')}`);
   console.log(`   surface: ${inv.statedTotal} files (${inv.statedUnswept} unswept) · S0: ${s0.statedTotal} files`);
   for (const l of LANES) {
@@ -358,7 +444,52 @@ function main(): void {
     tsv.push(`${f}\t${lane}\t${origin.get(f)}`);
   }
   writeFileSync(join(abs, 'ROUTING-ORIGINS.tsv'), `${tsv.join('\n')}\n`, 'utf8');
-  console.log(`   written: ${outDir}/ROUTING-{${LANES.map((l) => l.id).join(',')}}.txt + ROUTING-ORIGINS.tsv\n`);
+
+  /**
+   * ⛔ **S1.11.6.4 — THE MEMORY PROTOCOL SHIPS WITH THE ROUTE, NOT IN A DOC A ROUND MAY NOT OPEN.**
+   *
+   * ⚡ Pass 4's dispatch crashed. Three auditors died mid-round, and the recovery was written down in
+   * `RESUME-PROTOCOL.md` — a file the NEXT round has to know exists. ⛔ The rules below are the ones that
+   * cost something to rediscover, and the sharpest is not about memory at all: **an OOM is a FINDING and
+   * never a retry.** The retry with `--max-old-space-size=6144` on a 6 GB box is what did the killing.
+   *
+   * ⚠️ Written beside the manifests every time the route is generated, so it arrives with the work rather
+   * than being remembered. ⭐ Incremental writing is what saved that round — 11 findings were already on
+   * disk when the three auditors died — so it is rule one.
+   */
+  const protocol = [
+    '# Running a pass against this route',
+    '',
+    'Generated by `scripts/audit-route.ts` beside the manifests. Read before dispatching.',
+    '',
+    '1. **Write findings to disk as you go.** Pass 4 lost three auditors mid-round and kept 11 findings',
+    '   because they were already written. A round that reports at the end reports nothing when it dies.',
+    '2. **Cap the heap at 1536 MB.** ⛔ **An OOM is a FINDING, never a retry** — the retry with',
+    '   `--max-old-space-size=6144` on a 6 GB box is what killed pass 4\'s dispatch.',
+    '3. **No whole-monorepo typecheck.** Typecheck the project you touched.',
+    '4. **Kill any server you start**, in the step that starts it. Two `serve` processes were found',
+    '   listening weeks stale, one of them serving a days-old `dist/` to whatever bound after it.',
+    '5. **Verify every restore.** `git checkout --` on an uncommitted fix throws the fix away with the',
+    '   plant, and the loop never re-runs to notice. Restore from a copy taken AFTER the fix, and diff it.',
+    '6. **Read a command\'s own `$?`.** A pipeline reports the LAST stage: `| tail` has reported exit 0',
+    '   over a failed run ten times in this project.',
+    '',
+    'Origins in `ROUTING-ORIGINS.tsv`, and what each means for the report:',
+    '',
+    '- `first-look` / `s0-first-look` — never swept by any pass. [D69] exempts findings here from the',
+    '  convergence count; they are still fixed.',
+    '- `fix-churn` — swept, then rewritten. The recorded sweep describes bytes that are gone.',
+    '- `instrument` — the checking code the fixing itself wrote. Report the round SPLIT BY ORIGIN, or a',
+    '  flat total hides the app improving while the instruments regress.',
+    '- `off-surface` — changed and on no inventory at all.',
+    '- `neighbour` — did NOT change, but a file it imports or shares a consumer with did. This is where a',
+    '  two-producer disagreement is visible from the side that did not move.',
+    '',
+  ].join('\n');
+  writeFileSync(join(abs, 'RESUME-PROTOCOL.md'), `${protocol}\n`, 'utf8');
+  console.log(
+    `   written: ${outDir}/ROUTING-{${LANES.map((l) => l.id).join(',')}}.txt + ROUTING-ORIGINS.tsv + RESUME-PROTOCOL.md\n`,
+  );
 }
 
 main();

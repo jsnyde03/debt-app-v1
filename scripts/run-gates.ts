@@ -102,6 +102,11 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // said "both doors compose from one owner"; there were four, and the two nobody had counted were the
     // two with no disclosure at all.
     'lint:restore-doors',
+    // ⛔ S1.11.6.2 [pass-4 A-F4] — the route's fifth origin. `audit-route.ts` built its four buckets out of
+    // predicates on CHANGED, so a two-producer disagreement was half-routed by construction: the fix moves
+    // one producer and the other is invisible. This pins the import resolver and the two hops against the
+    // real pair, because a resolver that stops resolving does not red — it returns a smaller route.
+    'lint:import-graph',
     'lint:trust-claims',
   // ⛔ S1.10.6.5.8.3 — the workflow's header claims it runs every link of `validate:release:rn`, the
   // embed deploy's [D44] guard is built on that claim, and it has already been false once ([W1-3]).

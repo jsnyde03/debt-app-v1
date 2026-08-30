@@ -435,6 +435,45 @@
       "expect": "throws rather than inventing a file identity"
     }
   },
+  "S1P4-A-F4-NEIGHBOUR": {
+    "what": "S1.11.6.2 [pass-4 A-F4 / D4-7] - audit-route.ts built its four buckets out of predicates on CHANGED, so a file that did not move could not reach any of them and a two-producer disagreement was HALF-ROUTED BY CONSTRUCTION: the fix touches one producer, the route emits one producer, and the disagreement is invisible from the other side. A-F4 is that measured - buildPayoffTrajectory.ts routed to nobody, and (tabs)/progress.tsx and (tabs)/index.tsx, where 3 of C's 4 blockers lived, were unrouted too. ⛔ The pair is NOT producer/consumer: they are SIBLINGS through a common consumer (analysisSelectors.ts imports both), which is why one hop does not reach it - measured, and the plant proves it: removing hop 2 reds exactly the sibling row. ⚠️ THE COST IS STATED rather than hidden. At pass 4's own endpoints (96d1f11...e65f9c7): 95 changed, +101 consumers, +155 siblings - the neighbourhood is ~3.7x the changed set. Restricting either hop to files an inventory already owns saves only 351 -> 311, so it is not taken; the saving does not pay for a second rule to get wrong. ⚠️ Resolution fails toward a SMALLER neighbourhood (a bare package specifier is not an edge, a dynamic import is not matched), which is the wrong direction for a route - so the edge count is printed and the resolver's four shapes are pinned against real tracked paths. ⭐ The A-F4 assertion runs against the REAL graph, not a fixture: a synthetic one proves the algorithm and says nothing about whether this repo's specifiers resolve, which is the half that actually fails. And the first version of that assertion named payoffSelectors.ts as the common consumer from memory - measured, it imports only the trajectory half",
+    "file": "scripts/test-import-graph.ts",
+    "token": "hop 2 — the producer that did NOT change is routed",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/lib/importGraph.ts",
+          "find": "\t\tfor (const i of graph.importsOf.get(c) ?? []) {",
+          "replace": "\t\tfor (const i of [] as string[]) {"
+        }
+      ],
+      "run": "lint:import-graph",
+      "expect": "hop 2"
+    }
+  },
+  "S1P4-D4-11-REACHABLE": {
+    "what": "pass-4 D4-11 (minor) - three of audit-route.ts's five 'set identity' assertions were unreachable and two of the three numbers in its success line were constants, in the file whose own docblock records shipping 'a check that could not fail' one commit earlier. Every key of origin either gets a lane or is killed by the INNER die (which returns never), so unrouted was always []; laneOf gains exactly one key per iteration and byLane exactly one entry, so duplicated and routedCount !== origin.size were always false. Measured: narrowing lane D's catch-all - the state unrouted exists to report - fires the inner die and execution never reaches the block. There is no tree state that reaches it. ⛔ Deleted rather than repaired: the inner die already covers the first and a Map covers the second. ⚠️ And the success line read 'N routed · 0 unrouted · 0 duplicated · 0 missing on disk' - two constants beside one measurement, so a reader treating '0 unrouted · 0 duplicated' as evidence the route is total was reading nothing. THE TOTALITY PROOF IS owed, which the line never mentioned, and owed's quantifier is CHANGED, so the sentence says so (D4-7: this route cannot speak for a file that did not move). The one permitted subtraction, NOT_CODE, is counted and printed, so widening it shows as a number moving rather than as silence. Plant-verified: the catch-all narrowed reds naming the catch-all, which is the reachable check that carries the file",
+    "file": "scripts/audit-route.ts",
+    "token": "every CHANGED tracked file since ${since} is accounted for",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/audit-route.ts",
+          "find": "    match: () => true,",
+          "replace": "    match: (f: string) => f.startsWith('scripts/'),"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "scripts/audit-route.ts",
+        "--surface=s1",
+        "--since=e65f9c7",
+        "--check"
+      ],
+      "expect": "reached no lane"
+    }
+  },
   "S1P4-ANCHOR-ONEWORLD": {
     "what": "S1.11.6.0 - lint:finding-guards was RED IN CI FOR SIX CONSECUTIVE PUSHES while reading GREEN LOCALLY, and six sessions in a row reported it green. S1P3-M7's recorded proof anchors carry literal CRLF: a Windows working tree is CRLF so they matched here, CI checks out LF so they matched 0x, and the gate reported 'the proof is VOID' about a proof that is fine. Twelve registry entries carry a multi-line anchor, so it is a class rather than one row. ⛔ It fails in the shape this repo has now paid for three times - an instrument green where it is run and red where it matters: REVERIFY4-2 (list from git, content from the working tree), lint:surface-complete (git ls-files plus existsSync), this. Each was closed by PICKING ONE WORLD. ⚡ Reproduced locally before fixing: un-normalised matcher over an LF more.tsx gives CI's exact two lines, which the original could not do. lib/anchor.ts is now the ONE producer of anchor matching - no side effects on import, so test-line-endings.ts can assert it directly - and both check-finding-guards and prove-guards route through it. The guard is FOUR directions plus a control that the matcher is not answering 1 to everything, plus the ambiguity check, because normalising must not weaken the refusal to edit a doubly-matching anchor. ⚠️ And the first plant of this was a FALSE GREEN: the heredoc mangled the search string so the neuter never applied and the gate 'passed'. verify-the-plant-applied, in the plant for the fix for a false green ⚠️ And this entry's own anchor had to be taken verbatim from the source line rather than retyped: the first two attempts stored real CR/LF characters where the file holds the two-character escape. The entry documenting the escaping trap was broken by the escaping trap, twice.",
     "file": "scripts/test-line-endings.ts",

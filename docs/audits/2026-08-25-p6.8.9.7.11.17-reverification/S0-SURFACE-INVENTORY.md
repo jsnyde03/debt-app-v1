@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**114 files on the S0 surface · 59 swept · 55 unswept.**
+**116 files on the S0 surface · 59 swept · 57 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -105,6 +105,7 @@
 | `scripts/gate-scan-floors.json` | never · s1p4 |
 | `scripts/gateSources.ts` | p2 · p3 · s1p1 · s1p2 |
 | `scripts/lib/anchor.ts` | ⛔ **never** |
+| `scripts/lib/importGraph.ts` | ⛔ **never** |
 | `scripts/lib/scanFloor.ts` | never · s1p4 |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
 | `scripts/lib/stripMarkdown.ts` | never · s1p4 |
@@ -123,6 +124,7 @@
 | `scripts/test-closure-stripper.ts` | never · s1p4 |
 | `scripts/test-conform-assertions.sh` | ⛔ **never** |
 | `scripts/test-gate-plants.ts` | s1p1 · s1p2 · partial |
+| `scripts/test-import-graph.ts` | ⛔ **never** |
 | `scripts/test-line-endings.ts` | never · s1p4 |
 | `scripts/test-stamp-coverage.ts` | ⛔ **never** |
 | `scripts/test-strip-code.ts` | never · s1p4 |
@@ -177,6 +179,7 @@
 - `scripts/e2e-fresh-rn.cjs`
 - `scripts/e2e-fresh.cjs`
 - `scripts/lib/anchor.ts`
+- `scripts/lib/importGraph.ts`
 - `scripts/lib/verdict.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/make-cutover-backups.ts`
@@ -185,5 +188,6 @@
 - `scripts/secrets-exemptions.json`
 - `scripts/surface-inventory.ts`
 - `scripts/test-conform-assertions.sh`
+- `scripts/test-import-graph.ts`
 - `scripts/test-stamp-coverage.ts`
 

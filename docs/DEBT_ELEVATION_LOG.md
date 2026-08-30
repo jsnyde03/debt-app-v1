@@ -28628,6 +28628,69 @@ because normalising must not weaken the refusal to edit a doubly-matching anchor
    `find` stored real CR/LF where the file holds the two-character escape. It is taken verbatim from the
    source line now, which is the only reliable way to record an anchor.
 
+### `S1.11.6` — the re-route, and the checker repaired before its output was trusted
+
+#### `.6.1` `D4-11` — three of five assertions could not fail
+
+`unrouted`, `duplicated` and `routedCount !== origin.size` were tautologies of the loop above them: every
+key of `origin` either gets a lane or is killed by the **inner** `die` (which returns `never`), and
+`laneOf` gains exactly one key per iteration. ⚡ Measured — narrowing lane D's catch-all, the state
+`unrouted` exists to report, fires the inner `die` and execution never reaches the block. **There is no
+tree state that reaches it**, in the file whose own docblock records shipping *"a check that could not
+fail"* one commit earlier.
+
+⚠️ **And the success line advertised two constants beside one measurement** — `N routed · 0 unrouted · 0
+duplicated · 0 missing`. A reader treating *"0 unrouted"* as evidence of totality was reading nothing.
+**The totality proof is `owed`**, which the line never named, and `owed`'s quantifier is **changed**, so
+the sentence says so. The one permitted subtraction (`NOT_CODE`) is counted and printed, so widening it
+shows as a number moving rather than as silence.
+
+#### `.6.2` `A-F4` — `neighbour`, the fifth origin
+
+⛔ **All four buckets were predicates on *changed*, so a file that did not move could not reach any of
+them.** That is the half-blindness: the fix touches one producer, the route emits one producer, and the
+disagreement is invisible from the other side.
+
+⚠️ **The pair is not producer/consumer — it is SIBLINGS through a common consumer**, which is why one hop
+is not enough. Measured at pass 4's own endpoints (`96d1f11…e65f9c7`):
+
+```
+changed tracked source files      95
++ direct CONSUMERS               101   -> (tabs)/progress.tsx, (tabs)/index.tsx   ← 3 of C's 4 blockers
++ their other imports (SIBLINGS)  155   -> buildPayoffTrajectory.ts               ← A-F4's producer
+```
+
+⛔ **The cost is stated, not hidden**: the neighbourhood is ~3.7× the changed set, and restricting either
+hop to files an inventory already owns saves only 351 → 311 — not enough to pay for a second rule to get
+wrong. ⚠️ Resolution **fails toward a smaller neighbourhood** (a bare package specifier is not an edge; a
+dynamic `import()` is not matched), which is the wrong direction for a route — so the edge count is printed
+and the four resolution shapes are pinned.
+
+⭐ **The `A-F4` assertion runs against the REAL graph.** A synthetic fixture proves the algorithm and says
+nothing about whether this repo's specifiers resolve, which is the half that actually fails. ⚠️ And the
+first version of it named `payoffSelectors.ts` as the common consumer **from memory** — measured, that file
+imports only the trajectory half. `analysisSelectors.ts` is where the pair actually meets.
+
+#### `.6.3` `D4-7` — S0's never-swept files were in no lane of any round
+
+The S1 loop routes a surface file no pass has swept; the S0 loop asked only whether it **changed**. So 51
+never-swept S0 files sat outside every route, against a surface declared converged. ⚠️ **[D76] settled that
+the convergence stands** and that the coverage gate printing them is deliberate — *"what is real is that
+`audit-route.ts` can never route them"*, which is this and only this. Its own origin rather than
+`first-look`, because *"report the round split by origin"* is this file's own rule and two surfaces behind
+one number breaks it.
+
+#### `.6.4` — the memory protocol ships with the route
+
+Pass 4's dispatch crashed and three auditors died mid-round; the recovery was written into a file the next
+round has to know exists. It is now **generated beside the manifests every time**, so it arrives with the
+work. ⛔ The sharpest rule in it is not about memory: **an OOM is a FINDING, never a retry** — the retry
+with `--max-old-space-size=6144` on a 6 GB box is what did the killing. Rule one is incremental writing,
+which is what saved 11 findings from that round.
+
+**The route now:** `392 routed · 68 first-look · 33 fix-churn · 21 instrument · 12 off-surface ·
+207 neighbour · 51 s0-first-look`.
+
 ### `S1.11.4.8` — the [DECISION], answered
 
 🎯 **The ack silences the card and does not verify the data.** A whole-row / whole-list loss used to be

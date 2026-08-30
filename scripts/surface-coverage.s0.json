@@ -330,6 +330,9 @@
   "scripts/lib/anchor.ts": [
     "never"
   ],
+  "scripts/lib/importGraph.ts": [
+    "never"
+  ],
   "scripts/lib/scanFloor.ts": [
     "never",
     "s1p4"
@@ -401,6 +404,9 @@
     "s1p1",
     "s1p2",
     "partial"
+  ],
+  "scripts/test-import-graph.ts": [
+    "never"
   ],
   "scripts/test-line-endings.ts": [
     "never",
