@@ -37,6 +37,13 @@ type ProjectDebtPayoffParams = {
     monthlyExtraPayment: number;
     strategy: PayoffStrategy;
     startDate: string;
+    /**
+     * ⛔ **[pass-5 `A5-1`] REQUIRED, and only read for a `per-paycheck` plan.** Making it optional would
+     * leave every unthreaded caller silently on the old biweekly assumption, which is the defect itself:
+     * a monthly payer was shown **July 2026** against a true **January 2027**.
+     * `payCyclesPerMonth(store.paycheck.payCycle)`.
+     */
+    cyclesPerMonth: number;
 };
 
 type ProjectedDebt = {
@@ -83,6 +90,7 @@ export function projectDebtPayoff({
     monthlyExtraPayment,
     strategy,
     startDate,
+    cyclesPerMonth,
 }: ProjectDebtPayoffParams) {
     let projectedDebts: ProjectedDebt[] = debts
         .filter((debt) => debt.balance > 0)
@@ -94,7 +102,7 @@ export function projectDebtPayoff({
             // debt-free date rates every cadence correctly (B1). Non-BNPL minimums are already monthly.
             minimumPayment:
                 debt.type === "bnpl"
-                    ? bnplMonthlyEquivalentMinimum(debt)
+                    ? bnplMonthlyEquivalentMinimum(debt, cyclesPerMonth)
                     : debt.minimumPayment,
             // BNPL is fixed-installment, interest-free by definition - never
             // accrue interest on it even if a nonzero APR was entered/defaulted.

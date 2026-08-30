@@ -112,6 +112,9 @@
   "packages/core/testing/testAprMath.ts": [
     "partial"
   ],
+  "packages/core/testing/testCadenceIdentity.ts": [
+    "never"
+  ],
   "packages/core/testing/testDebtMathRegression.ts": [
     "partial"
   ],

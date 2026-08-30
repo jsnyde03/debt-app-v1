@@ -67,7 +67,7 @@ function runComputeDriftTests() {
   assertClose(exact.dollarsBehind, 0, 1, "exactly on plan → $0");
 
   // buildDriftBaseline: anchorBalance = sum of POSITIVE debts; projected points seeded from the engine.
-  const built = buildDriftBaseline({
+  const built = buildDriftBaseline({ cyclesPerMonth: 26 / 12,
     anchorDate: "2026-01-01",
     debts: [
       { balance: 5000, minimumPayment: 100, apr: 20 },

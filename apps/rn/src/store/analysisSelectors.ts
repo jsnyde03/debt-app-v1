@@ -38,6 +38,8 @@ interface PlanBasis {
   projectedBuffer: number;
   currentDate: string;
   strategy: PayoffStrategy;
+  /** ⛔ [pass-5 A5-1] the user's real pay cadence — `per-paycheck` is one installment per CYCLE. */
+  cyclesPerMonth: number;
 }
 
 function derivePlanBasis(store: DebtStore): PlanBasis {
@@ -49,7 +51,8 @@ function derivePlanBasis(store: DebtStore): PlanBasis {
   // extrapolated across years and the What-If baseline date matches the Payoff endpoint. `perCycleExtra`
   // / `projectedBuffer` stay on the dampened allocation (they're this-cycle figures).
   const steady = selectSteadyStateAllocation(store);
-  const monthlyExtra = (steady ? selectExtraToDebt(steady) : 0) * payCyclesPerMonth(store.paycheck.payCycle);
+  const cyclesPerMonth = payCyclesPerMonth(store.paycheck.payCycle);
+  const monthlyExtra = (steady ? selectExtraToDebt(steady) : 0) * cyclesPerMonth;
   const projectedBuffer = perCycleExtra - (allocation?.shortfall ?? 0);
   return {
     liveDebts,
@@ -59,6 +62,7 @@ function derivePlanBasis(store: DebtStore): PlanBasis {
     projectedBuffer,
     currentDate: store.paycheck.currentDate,
     strategy: store.payoffStrategy,
+    cyclesPerMonth,
   };
 }
 
@@ -93,17 +97,17 @@ export interface WhatIfResult {
 /** PERF-2: the What-If BASELINE payoff (no extra) — invariant of the extra input, so the caller memoizes
  *  it on the store and passes it into `selectWhatIf`, keeping a keystroke to a single (simulated) sim. */
 export function selectWhatIfBaseline(store: DebtStore): ReturnType<typeof projectDebtPayoff> {
-  const { liveDebts, monthlyExtra, currentDate, strategy } = derivePlanBasis(store);
-  return projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra, strategy, startDate: currentDate });
+  const { liveDebts, monthlyExtra, currentDate, strategy, cyclesPerMonth } = derivePlanBasis(store);
+  return projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra, strategy, startDate: currentDate, cyclesPerMonth });
 }
 
 export function selectWhatIf(store: DebtStore, extraMonthly: number, baseline?: ReturnType<typeof projectDebtPayoff>): WhatIfResult {
-  const { liveDebts, monthlyExtra, currentDate, strategy } = derivePlanBasis(store);
+  const { liveDebts, monthlyExtra, currentDate, strategy, cyclesPerMonth } = derivePlanBasis(store);
   const extra = Math.max(0, extraMonthly);
 
   // PERF-2: reuse a precomputed baseline (memoized off the store) when given; compute it only as a fallback.
-  const base = baseline ?? projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra, strategy, startDate: currentDate });
-  const simulated = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra + extra, strategy, startDate: currentDate });
+  const base = baseline ?? projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra, strategy, startDate: currentDate, cyclesPerMonth });
+  const simulated = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: monthlyExtra + extra, strategy, startDate: currentDate, cyclesPerMonth });
 
   const canEstimate =
     liveDebts.length > 0 &&
@@ -118,7 +122,7 @@ export function selectWhatIf(store: DebtStore, extraMonthly: number, baseline?: 
   // Only build the overlay curve when there's a real extra to visualize (else it duplicates the plan line).
   const simulatedTrajectory =
     extra > 0 && liveDebts.length > 0
-      ? buildPayoffTrajectory({ debts: liveDebts, monthlyExtraPayment: monthlyExtra + extra, strategy })
+      ? buildPayoffTrajectory({ debts: liveDebts, monthlyExtraPayment: monthlyExtra + extra, strategy, cyclesPerMonth })
       : [];
 
   return {
@@ -167,14 +171,14 @@ export interface DebtAmortization {
 
 /** A single debt's month-by-month payoff schedule at its minimum + (if it's the focus) the extra. */
 export function selectDebtAmortization(store: DebtStore, debtId: string): DebtAmortization | null {
-  const { liveDebts, monthlyExtra, strategy, currentDate } = derivePlanBasis(store);
+  const { liveDebts, monthlyExtra, strategy, currentDate, cyclesPerMonth } = derivePlanBasis(store);
   const debt = liveDebts.find((d) => d.id === debtId);
   if (!debt) return null;
   const isFocus = rankDebts(liveDebts, strategy)[0]?.id === debt.id;
   // Only the focus debt receives the recommended extra; others amortize at their minimum. A BNPL pays
   // per-installment at its cadence → use the monthly equivalent so this per-debt schedule agrees with the
   // headline debt-free date, the payoff chart, and the BNPL calendar (after-scan AS.5).
-  const baseMonthly = debt.type === 'bnpl' ? bnplMonthlyEquivalentMinimum(debt) : debt.minimumPayment;
+  const baseMonthly = debt.type === 'bnpl' ? bnplMonthlyEquivalentMinimum(debt, cyclesPerMonth) : debt.minimumPayment;
   const monthlyPayment = baseMonthly + (isFocus ? monthlyExtra : 0);
   const schedule = buildAmortizationSchedule({
     balance: debt.balance,

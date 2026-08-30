@@ -37,3 +37,24 @@ export const CADENCE_SUFFIX: Record<Recurrence, string> = {
 export function cadenceSuffix(recurrence: string): string {
 	return CADENCE_SUFFIX[recurrence as Recurrence] ?? "";
 }
+
+/**
+ * ⛔ **S1.12.5.5 [pass-5 `C5-4`] — THE UNIT A DEBT ROW PRINTS BESIDE ITS MINIMUM, IN ONE PLACE.**
+ *
+ * ⚡ Money's row wrote `isBnpl ? CADENCE_SUFFIX[…] : '/mo'` — this table consulted for one branch and
+ * bypassed with a literal for the other — so a **quarterly** student loan read **"$600/mo"**, a 12×
+ * overstatement, and `ListRow` put the same string in the a11y label so VoiceOver said it too.
+ *
+ * ⛔ **It lives here, beside the table, because the first version of the fix was tested as a COPY.** The
+ * assertion re-implemented the row's expression, so planting the defect back into `money.tsx` left the
+ * suite green — `tested-helper-is-not-a-used-helper`, in the test written to close the finding. A
+ * function the screen actually calls is the only thing a plant can reach.
+ *
+ * ⚠️ **No `|| '/mo'` fallback.** `one-time` maps to `''` deliberately — a one-time debt has no rhythm to
+ * state — and the fallback turned that into a monthly rate. The table is `Record<Recurrence, string>` and
+ * therefore total, so the fallback guarded nothing.
+ */
+export function debtAmountSuffix(recurrence: Recurrence, minimumUnread: boolean): string | undefined {
+	// A unit beside an em dash would assert a rate for a figure the app has just said it could not read.
+	return minimumUnread ? undefined : CADENCE_SUFFIX[recurrence];
+}

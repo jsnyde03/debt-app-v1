@@ -1,4 +1,5 @@
 import { DEBT_FIELD, LOG_PAYMENT_ENTRY } from '@core/copy/vocabulary';
+import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
@@ -107,7 +108,8 @@ export function DebtSheet({
   const c = useAppColors();
   const currentDate = useAppStore((s) => s.store.paycheck.currentDate);
   const isPremium = useAppStore((s) => s.store.subscriptionPlan === 'premium');
-  const estimate = editing ? selectDebtBalanceView(editing, currentDate, isPremium) : null;
+  const payCycle = useAppStore((s) => s.store.paycheck.payCycle);
+  const estimate = editing ? selectDebtBalanceView(editing, currentDate, isPremium, payCyclesPerMonth(payCycle)) : null;
   const isEdit = !!editing;
   // A new debt seeds from a scan prefill (if any); an existing debt seeds from itself.
   const seed = editing ?? prefill ?? null;

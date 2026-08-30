@@ -65,5 +65,7 @@ import "./testSubscriptionGating";
 import "./testPayCycleHistoryRegression";
 import "./testSafeStorage";
 import "./testDemoModeSeed";
+// S1.12.5.5 [pass-5 A5-1 A5-5 C5-4] - one identity over 7 recurrences x 4 pay cycles.
+import "./testCadenceIdentity";
 
 console.log("✅ All regression tests passed.");

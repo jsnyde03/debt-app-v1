@@ -211,7 +211,7 @@ function runStressScenarioTests() {
     );
 
     // Scenario 5: Very high APR projection should not silently claim success.
-    const impossibleProjection = projectDebtPayoff({
+    const impossibleProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         startDate: "2026-05-01",
         strategy: "avalanche",
         monthlyExtraPayment: 0,
@@ -269,7 +269,7 @@ function runStressScenarioTests() {
     );
 
     // Scenario 7: Projection with no debts should finish immediately.
-    const noDebtProjection = projectDebtPayoff({
+    const noDebtProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         startDate: "2026-05-01",
         strategy: "snowball",
         monthlyExtraPayment: 500,
@@ -283,7 +283,7 @@ function runStressScenarioTests() {
     );
 
     // Scenario 8: Avalanche should produce interest and a valid payoff timeline.
-    const realisticProjection = projectDebtPayoff({
+    const realisticProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         startDate: "2026-05-01",
         strategy: "avalanche",
         monthlyExtraPayment: 250,

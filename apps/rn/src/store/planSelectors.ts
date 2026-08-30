@@ -118,6 +118,7 @@ export function selectDebtFreeDate(store: DebtStore, allocation: Allocation | nu
     monthlyExtraPayment: selectExtraToDebt(steady ?? allocation) * payCyclesPerMonth(store.paycheck.payCycle),
     strategy: store.payoffStrategy,
     startDate: store.paycheck.currentDate,
+    cyclesPerMonth: payCyclesPerMonth(store.paycheck.payCycle),
   });
   // [P6.4.4 · L6-6] ⚡ THIS is why the string is not copy: it is mapped to `null` before anything can
   // render it. The finding called it "a user-facing fallback"; measured, the user never sees it.

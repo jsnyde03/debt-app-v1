@@ -57,7 +57,7 @@ export interface ProjectableDebt {
  * Returns the anchor unchanged when unverified, when `asOfDate` is at/before the anchor, or when the
  * anchor is already $0.
  */
-export function projectCurrentBalance(debt: ProjectableDebt, asOfDate: string): number {
+export function projectCurrentBalance(debt: ProjectableDebt, asOfDate: string, cyclesPerMonth: number): number {
   const anchor = roundMoney(Math.max(0, debt.balance));
   if (anchor <= 0) return 0;
   // Project from the balance's as-of date. Fall back to lastVerifiedDate for pre-split blobs; absent
@@ -71,7 +71,7 @@ export function projectCurrentBalance(debt: ProjectableDebt, asOfDate: string): 
   const apr = debt.type === "bnpl" ? 0 : debt.apr;
   // BNPL pays per-installment at its cadence → use the monthly equivalent so a biweekly plan pays down
   // ~2.17× its installment per month, matching the payoff trajectory (AS.1). Non-BNPL is unchanged.
-  const monthlyPayment = debt.type === "bnpl" ? bnplMonthlyEquivalentMinimum(debt) : debt.minimumPayment;
+  const monthlyPayment = debt.type === "bnpl" ? bnplMonthlyEquivalentMinimum(debt, cyclesPerMonth) : debt.minimumPayment;
   const wholeMonths = Math.floor(totalMonths);
   const frac = totalMonths - wholeMonths;
 
@@ -96,10 +96,10 @@ export function projectCurrentBalance(debt: ProjectableDebt, asOfDate: string): 
  * projection auto-maintenance (2.3 routed the display; 2.4 routes the engine). Pure; premium-gated at
  * the caller (free never projects).
  */
-export function projectDebtsToDate<T extends ProjectableDebt>(debts: T[], asOfDate: string): T[] {
+export function projectDebtsToDate<T extends ProjectableDebt>(debts: T[], asOfDate: string, cyclesPerMonth: number): T[] {
   return debts.map((debt) => ({
     ...debt,
-    balance: projectCurrentBalance(debt, asOfDate),
+    balance: projectCurrentBalance(debt, asOfDate, cyclesPerMonth),
     balanceAsOfDate: asOfDate,
   }));
 }
@@ -110,8 +110,8 @@ export function projectDebtsToDate<T extends ProjectableDebt>(debts: T[], asOfDa
  * we celebrate the moment provisionally but only write the permanent record on a confirmed $0. A
  * debt whose anchor is already $0 is confirmed-paid-off, not "projected", so it returns false.
  */
-export function isDebtProjectedPaidOff(debt: ProjectableDebt, asOfDate: string): boolean {
-  return debt.balance > 0 && projectCurrentBalance(debt, asOfDate) <= 0;
+export function isDebtProjectedPaidOff(debt: ProjectableDebt, asOfDate: string, cyclesPerMonth: number): boolean {
+  return debt.balance > 0 && projectCurrentBalance(debt, asOfDate, cyclesPerMonth) <= 0;
 }
 
 /** How stale an estimate is. `stale` is the gate for the Payday Autopilot re-verify prompt (2.3.5). */
@@ -130,12 +130,12 @@ export interface EstimateConfidence {
 }
 
 /** Confidence in a debt's current estimate, driven by how long since it was last verified. */
-export function computeEstimateConfidence(debt: ProjectableDebt, asOfDate: string): EstimateConfidence {
+export function computeEstimateConfidence(debt: ProjectableDebt, asOfDate: string, cyclesPerMonth: number): EstimateConfidence {
   const daysSinceVerified = debt.lastVerifiedDate
     ? Math.max(0, Math.floor(daysBetween(debt.lastVerifiedDate, asOfDate)))
     : 0;
   const staleness: EstimateStaleness =
     daysSinceVerified >= ESTIMATE_STALE_DAYS ? "stale" : daysSinceVerified >= ESTIMATE_AGING_DAYS ? "aging" : "fresh";
-  const drift = roundMoney(projectCurrentBalance(debt, asOfDate) - roundMoney(Math.max(0, debt.balance)));
+  const drift = roundMoney(projectCurrentBalance(debt, asOfDate, cyclesPerMonth) - roundMoney(Math.max(0, debt.balance)));
   return { daysSinceVerified, staleness, drift };
 }

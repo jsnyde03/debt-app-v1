@@ -245,7 +245,7 @@ assertMoney(allOverdue.totalRequired, 380, "all overdue total required");
 assertMoney(allOverdue.shortfall, 0, "all overdue covered by paycheck");
 
 // Fully debt-free user should not generate projection debt work.
-const debtFreeProjection = projectDebtPayoff({
+const debtFreeProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
 startDate: "2026-05-01",
 strategy: "snowball",
 monthlyExtraPayment: 500,
@@ -256,7 +256,7 @@ assertEqual(debtFreeProjection.monthsToDebtFree, 0, "debt-free months");
 assertEqual(debtFreeProjection.totalInterestPaid, 0, "debt-free interest");
 
 // Toxic user data: zero minimum payment with APR should not claim success.
-const toxicProjection = projectDebtPayoff({
+const toxicProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
 startDate: "2026-05-01",
 strategy: "avalanche",
 monthlyExtraPayment: 0,

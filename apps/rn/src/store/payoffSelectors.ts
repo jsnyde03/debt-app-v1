@@ -102,19 +102,21 @@ export function selectPayoffView(store: DebtStore): PayoffView {
   const steady = selectSteadyStateAllocation(store);
   const monthlyExtra = steady ? selectExtraToDebt(steady) * payCyclesPerMonth(store.paycheck.payCycle) : 0;
   const startDate = store.paycheck.currentDate;
+  // ⛔ [pass-5 A5-1] every month-stepped projection below rates a `per-paycheck` BNPL by THIS, not by a fortnight.
+  const cyclesPerMonth = payCyclesPerMonth(store.paycheck.payCycle);
 
   const interestSaved: InterestSaved =
     liveDebts.length > 0
-      ? computeInterestSaved({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: store.payoffStrategy, startDate })
+      ? computeInterestSaved({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: store.payoffStrategy, startDate, cyclesPerMonth })
       : { kind: 'none' };
 
-  const snowballSim = liveDebts.length > 0 ? simulatePayoff({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'snowball' }) : { points: [], clears: [] };
-  const avalancheSim = liveDebts.length > 0 ? simulatePayoff({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'avalanche' }) : { points: [], clears: [] };
+  const snowballSim = liveDebts.length > 0 ? simulatePayoff({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'snowball', cyclesPerMonth }) : { points: [], clears: [] };
+  const avalancheSim = liveDebts.length > 0 ? simulatePayoff({ debts: store.debts, monthlyExtraPayment: monthlyExtra, strategy: 'avalanche', cyclesPerMonth }) : { points: [], clears: [] };
   const snowball = snowballSim.points;
   const avalanche = avalancheSim.points;
   // The minimums-only baseline (no extra) — pays off later (or, when interest outruns minimums,
   // never), so it trails above/beyond the active plan: the visible "vs. minimums" gap.
-  const minimums = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: 0, strategy: store.payoffStrategy }) : [];
+  const minimums = liveDebts.length > 0 ? buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: 0, strategy: store.payoffStrategy, cyclesPerMonth }) : [];
 
   // VIS-5 — the lean/safe-floor curve for a variable-income user: the SAME plan run on the lean income,
   // so it pays off later (the cone's upper edge). Only computed when there's a real band.
@@ -124,7 +126,7 @@ export function selectPayoffView(store: DebtStore): PayoffView {
     const leanStore: DebtStore = { ...store, paycheck: { ...store.paycheck, amount: String(store.paycheck.leanAmount) } };
     const leanSteady = selectSteadyStateAllocation(leanStore);
     const leanExtra = leanSteady ? selectExtraToDebt(leanSteady) * payCyclesPerMonth(store.paycheck.payCycle) : 0;
-    lean = buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: leanExtra, strategy: store.payoffStrategy });
+    lean = buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: leanExtra, strategy: store.payoffStrategy, cyclesPerMonth });
   }
 
   const order = rankDebts(liveDebts, store.payoffStrategy);

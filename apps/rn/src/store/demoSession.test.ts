@@ -84,7 +84,7 @@ function run() {
   const box = createSandboxStore(demoScenario(closing));
   closing.prime!(box);
   const primed = box.getState().store;
-  const invited = primed.debts.filter((d) => isDebtProjectedPaidOff(d, primed.paycheck.currentDate));
+  const invited = primed.debts.filter((d) => isDebtProjectedPaidOff(d, primed.paycheck.currentDate, 26 / 12));
   assert(invited.length === 1, 'exactly one debt is primed to the payoff invitation — not none, not all');
 
   // 3.5.8.4 — the closing prime must leave the debt-free date ALONE, and that is asserted in the e2e

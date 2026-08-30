@@ -9,7 +9,7 @@ import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { parseStatementText } from '@core/scan/parseStatementText';
 // [T8 · L2-1] `CADENCE_SUFFIX` moved beside the type it keys on — it existed here AND in
 // `guardianSelectors`, and the two had already diverged (`/2 wks` vs `/2wks`, `/check` vs `/paycheck`).
-import { CADENCE_SUFFIX } from '@core/types/recurrence';
+import { debtAmountSuffix } from '@core/types/recurrence';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
 import { AddObligationSheet, type AddKind } from '@/components/entities/AddObligationSheet';
@@ -349,10 +349,12 @@ function DebtsSection({
 
   const isPremium = store.subscriptionPlan === 'premium';
   const currentDate = store.paycheck.currentDate;
+  // ⛔ [pass-5 A5-1] a `per-paycheck` BNPL is one installment per PAY CYCLE, not per fortnight.
+  const cyclesPerMonth = payCyclesPerMonth(store.paycheck.payCycle);
   const active = view.order; // ranked by the payoff strategy
   const focusId = view.focus?.id;
   // Premium sums the projected (always-current) balances so the hero reconciles with the rows.
-  const totalBal = active.reduce((s, d) => s + selectDebtBalanceView(d, currentDate, isPremium).currentBalance, 0);
+  const totalBal = active.reduce((s, d) => s + selectDebtBalanceView(d, currentDate, isPremium, cyclesPerMonth).currentBalance, 0);
 
   type DebtGroup = { key: string; title?: string; data: Debt[] };
   const sections: DebtGroup[] = [{ key: 'active', data: active }];
@@ -533,7 +535,8 @@ function DebtRow({
   // ⛔ S1.10.6.2 [C-1] — the row's own money, asked per FIELD of the one owner. `useAppStore` reads
   // through `StoreContext`, so this resolves to the same store the rows above came from.
   const store = useAppStore((s) => s.store);
-  const view = selectDebtBalanceView(debt, currentDate, isPremium);
+  const cyclesPerMonth = payCyclesPerMonth(store.paycheck.payCycle);
+  const view = selectDebtBalanceView(debt, currentDate, isPremium, cyclesPerMonth);
   const est = buildEstimateCaption(view, isPremium, shortDate);
   // A stale premium estimate becomes a one-tap in-place verify: tap → accept the estimate as the
   // verified balance (re-anchors both dates to today). Blue = interactive (not the amber warning).
@@ -627,7 +630,34 @@ function DebtRow({
           : undefined
       }
       amount={minimumUnread ? UNREAD_FIGURE : formatCurrency(debt.minimumPayment)}
-      amountSuffix={minimumUnread ? undefined : isBnpl ? (CADENCE_SUFFIX[debt.recurrence] || '/mo') : '/mo'}
+      /**
+       * ⛔ **S1.12.5.5 [pass-5 `C5-4`] — THIS PRINTED `/mo` ON EVERY NON-BNPL DEBT, INCLUDING THE ONES THE
+       * USER TOLD THE APP WERE QUARTERLY, ANNUAL OR WEEKLY.**
+       *
+       * ⚡ A student loan billed **quarterly** — a cadence `DebtSheet` offers and `submit()` writes —
+       * came back as **"$600/mo"**. A $600 annual payment read as a $600 monthly obligation: a 12×
+       * overstatement, on the screen that lists the user's debts, and `ListRow` puts the same string in
+       * the a11y label, so VoiceOver said *"six hundred dollars per month"* too.
+       *
+       * ⛔ **The correct answer was already in this expression.** `CADENCE_SUFFIX` was consulted for BNPL
+       * and bypassed with a literal for everything else — and its own docblock says it *"lives beside the
+       * type so a new `Recurrence` member cannot be added without the compiler asking what it is called on
+       * screen."* That is true of the table and false of any site that writes the unit as a literal, which
+       * is why a de-duplication pass had no reason to look here: **a literal is not a second spelling.**
+       *
+       * ⚠️ **Lane C filed this as a fork needing lane A's answer** — whether a debt's `recurrence`
+       * describes its AMOUNT or only its DUE DATE. It resolves to the same expression either way: if the
+       * amount is per-cadence, `/qtr` is the rate; if the cadence is only the due date, `/qtr` is still
+       * what is owed each time it falls due. ⛔ **What is NOT settled here is the engine half** — whether
+       * a non-BNPL debt's minimum should scale by cadence the way `monthlyEquivalent` scales an expense.
+       * That is lane A's, it is untouched, and this label does not depend on it.
+       * ⚠️ **AND THE `|| '/mo'` FALLBACK IS GONE, WHICH THE TEST FOUND AND I HAD NOT.**
+       * `CADENCE_SUFFIX['one-time']` is deliberately `''` — a one-time debt has no rhythm to state —
+       * and `'' || '/mo'` printed **`/mo` on it**, which is the same false sentence in the member the
+       * finding did not name. The table is `Record<Recurrence, string>` and therefore total, so the
+       * fallback protected nothing and asserted something wrong.
+       */
+      amountSuffix={debtAmountSuffix(debt.recurrence, minimumUnread)}
       badges={chips.length ? chips : undefined}
       progress={progress}
       progressColor={focus ? c.accent.primary : undefined}

@@ -23,6 +23,12 @@ type SimInput = {
     debts: PayoffSimDebt[];
     monthlyExtraPayment: number;
     strategy: "snowball" | "avalanche";
+    /**
+     * ⛔ **[pass-5 `A5-1`] REQUIRED, and only read for a `per-paycheck` plan.** Making it optional
+     * would leave every unthreaded caller silently on the old biweekly assumption, which is the
+     * defect. `payCyclesPerMonth(store.paycheck.payCycle)`.
+     */
+    cyclesPerMonth: number;
 };
 
 /**
@@ -31,7 +37,7 @@ type SimInput = {
  * which the old total-only return threw away. `buildPayoffTrajectory` stays a thin points-only wrapper
  * so every existing caller and test is untouched.
  */
-export function simulatePayoff({ debts, monthlyExtraPayment, strategy }: SimInput): { points: TrajectoryPoint[]; clears: DebtClearPoint[] } {
+export function simulatePayoff({ debts, monthlyExtraPayment, strategy, cyclesPerMonth }: SimInput): { points: TrajectoryPoint[]; clears: DebtClearPoint[] } {
     type DebtState = { balance: number; minimumPayment: number; apr: number; oneTimeLump: boolean };
 
     // `meta` stays index-aligned to `pool` so a cleared pool slot maps back to its debt's id/name.
@@ -44,7 +50,7 @@ export function simulatePayoff({ debts, monthlyExtraPayment, strategy }: SimInpu
                 balance: d.balance,
                 // Rate BNPL by cadence (monthly-equivalent), the same as projectDebtPayoff, so the chart and
                 // the debt-free date agree (R2.1). Non-BNPL minimums are unchanged.
-                minimumPayment: d.type === "bnpl" ? bnplMonthlyEquivalentMinimum(d) : d.minimumPayment,
+                minimumPayment: d.type === "bnpl" ? bnplMonthlyEquivalentMinimum(d, cyclesPerMonth) : d.minimumPayment,
                 apr: d.type === "bnpl" ? 0 : (d.apr ?? 0),
                 oneTimeLump: isOneTimeBnplLump(d),
             };

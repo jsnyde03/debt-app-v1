@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**118 files on the S0 surface · 75 swept · 43 unswept.**
+**119 files on the S0 surface · 75 swept · 44 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -46,6 +46,7 @@
 | `packages/core/testing/simSmokeSeed.ts` | ⛔ **partial** |
 | `packages/core/testing/testAbuseScenarios.ts` | ⛔ **partial** |
 | `packages/core/testing/testAprMath.ts` | ⛔ **partial** |
+| `packages/core/testing/testCadenceIdentity.ts` | ⛔ **never** |
 | `packages/core/testing/testDebtMathRegression.ts` | ⛔ **partial** |
 | `packages/core/testing/testDemoModeSeed.ts` | ⛔ **partial** |
 | `packages/core/testing/testEngineFuzz.ts` | s1p5 |
@@ -154,6 +155,7 @@
 - `packages/core/testing/simSmokeSeed.ts`
 - `packages/core/testing/testAbuseScenarios.ts`
 - `packages/core/testing/testAprMath.ts`
+- `packages/core/testing/testCadenceIdentity.ts`
 - `packages/core/testing/testDebtMathRegression.ts`
 - `packages/core/testing/testDemoModeSeed.ts`
 - `packages/core/testing/testFinalLaunchRegression.ts`
@@ -179,5 +181,5 @@
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
 
-<!-- claims-sha256: 7b6b283e6189f1b6 -->
+<!-- claims-sha256: 531dc2acbdc01e73 -->
 

@@ -54,7 +54,7 @@ function runAmortizationScheduleTests() {
             minimumPayment: testCase.minimumPayment,
         });
 
-        const projection = projectDebtPayoff({
+        const projection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
             debts: [debt],
             monthlyExtraPayment: testCase.extra,
             strategy: "snowball",
@@ -147,7 +147,7 @@ function runAmortizationScheduleTests() {
     assertMoney(negativeAm.totalInterest, 0, "unpayable debt reports 0 interest (no false total)");
 
     // projectDebtPayoff agrees this debt is unpayable.
-    const unpayableProjection = projectDebtPayoff({
+    const unpayableProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [makeDebt({ balance: 10000, apr: 35, minimumPayment: 10 })],
         monthlyExtraPayment: 0,
         strategy: "snowball",

@@ -36,7 +36,7 @@ function baseDebt(overrides: {
 }
 
 function runProjectionAccuracyTests() {
-    const zeroAprMinimumOnly = projectDebtPayoff({
+    const zeroAprMinimumOnly = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             baseDebt({
                 id: "zero",
@@ -69,7 +69,7 @@ function runProjectionAccuracyTests() {
         "zero APR minimum-only interest"
     );
 
-    const highAprMinimumOnly = projectDebtPayoff({
+    const highAprMinimumOnly = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             baseDebt({
                 id: "high",
@@ -102,7 +102,7 @@ function runProjectionAccuracyTests() {
         "high APR minimum-only interest"
     );
 
-    const highAprWithExtra = projectDebtPayoff({
+    const highAprWithExtra = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             baseDebt({
                 id: "high",
@@ -135,7 +135,7 @@ function runProjectionAccuracyTests() {
         "high APR with extra payment interest"
     );
 
-    const snowballTwoDebts = projectDebtPayoff({
+    const snowballTwoDebts = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             baseDebt({
                 id: "small",
@@ -177,7 +177,7 @@ function runProjectionAccuracyTests() {
         "snowball two-debt payoff order"
     );
 
-    const avalancheTwoDebts = projectDebtPayoff({
+    const avalancheTwoDebts = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             baseDebt({
                 id: "low",
@@ -223,7 +223,7 @@ function runProjectionAccuracyTests() {
         "avalanche two-debt interest"
     );
 
-    const exactBoundary = projectDebtPayoff({
+    const exactBoundary = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             baseDebt({
                 id: "boundary",

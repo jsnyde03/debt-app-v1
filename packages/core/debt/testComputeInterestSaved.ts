@@ -26,10 +26,10 @@ function run() {
     {
         const debts = [debt({ id: "d1", balance: 5000, minimumPayment: 100, apr: 20 })];
         const extra = 200;
-        const result = computeInterestSaved({ debts, monthlyExtraPayment: extra, strategy: "snowball", startDate: START });
+        const result = computeInterestSaved({ cyclesPerMonth: 26 / 12, debts, monthlyExtraPayment: extra, strategy: "snowball", startDate: START });
 
-        const minPlan = projectDebtPayoff({ debts, monthlyExtraPayment: 0, strategy: "snowball", startDate: START });
-        const actualPlan = projectDebtPayoff({ debts, monthlyExtraPayment: extra, strategy: "snowball", startDate: START });
+        const minPlan = projectDebtPayoff({ cyclesPerMonth: 26 / 12, debts, monthlyExtraPayment: 0, strategy: "snowball", startDate: START });
+        const actualPlan = projectDebtPayoff({ cyclesPerMonth: 26 / 12, debts, monthlyExtraPayment: extra, strategy: "snowball", startDate: START });
 
         assertEqual(result.kind, "saving", "both payable → kind saving");
         if (result.kind === "saving") {
@@ -50,14 +50,14 @@ function run() {
 
     // ── no extra → nothing to claim ──
     assertEqual(
-        computeInterestSaved({ debts: [debt({ id: "d1" })], monthlyExtraPayment: 0, strategy: "snowball", startDate: START }).kind,
+        computeInterestSaved({ cyclesPerMonth: 26 / 12, debts: [debt({ id: "d1" })], monthlyExtraPayment: 0, strategy: "snowball", startDate: START }).kind,
         "none",
         "no extra → none"
     );
 
     // ── no live debts → none ──
     assertEqual(
-        computeInterestSaved({ debts: [debt({ id: "d1", balance: 0 })], monthlyExtraPayment: 200, strategy: "snowball", startDate: START }).kind,
+        computeInterestSaved({ cyclesPerMonth: 26 / 12, debts: [debt({ id: "d1", balance: 0 })], monthlyExtraPayment: 200, strategy: "snowball", startDate: START }).kind,
         "none",
         "no live debts → none"
     );
@@ -68,10 +68,10 @@ function run() {
         // 10000 @ 30% APR → monthly interest = 10000 * 0.30/12 = 250. A $250 minimum
         // exactly covers interest → balance never falls → unpayable. +$500 extra clears it.
         const debts = [debt({ id: "d1", balance: 10000, apr: 30, minimumPayment: 250 })];
-        const minPlan = projectDebtPayoff({ debts, monthlyExtraPayment: 0, strategy: "snowball", startDate: START });
+        const minPlan = projectDebtPayoff({ cyclesPerMonth: 26 / 12, debts, monthlyExtraPayment: 0, strategy: "snowball", startDate: START });
         assertEqual(minPlan.estimatedDebtFreeDate, "Unable to estimate", "sanity: minimums alone are unpayable here");
 
-        const result = computeInterestSaved({ debts, monthlyExtraPayment: 500, strategy: "snowball", startDate: START });
+        const result = computeInterestSaved({ cyclesPerMonth: 26 / 12, debts, monthlyExtraPayment: 500, strategy: "snowball", startDate: START });
         assertEqual(result.kind, "payoff-enabling", "unpayable minimums + payable plan → payoff-enabling");
         if (result.kind === "payoff-enabling") {
             assert(result.debtFreeDate !== "Unable to estimate", "payoff-enabling carries a real debt-free date");
@@ -81,7 +81,7 @@ function run() {
     // ── even with the extra it can't be paid off → none (no false claim) ──
     {
         const debts = [debt({ id: "d1", balance: 10000, apr: 30, minimumPayment: 100 })];
-        const result = computeInterestSaved({ debts, monthlyExtraPayment: 100, strategy: "snowball", startDate: START });
+        const result = computeInterestSaved({ cyclesPerMonth: 26 / 12, debts, monthlyExtraPayment: 100, strategy: "snowball", startDate: START });
         assertEqual(result.kind, "none", "plan still unpayable → none");
     }
 

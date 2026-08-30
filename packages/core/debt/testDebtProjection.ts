@@ -79,7 +79,7 @@ function runDebtProjectionTests() {
         "zero APR projection balance"
     );
 
-    const snowballProjection = projectDebtPayoff({
+    const snowballProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             {
                 id: "small",
@@ -115,7 +115,7 @@ function runDebtProjectionTests() {
         "snowball payoff order"
     );
 
-    const avalancheProjection = projectDebtPayoff({
+    const avalancheProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             {
                 id: "lowapr",
@@ -163,7 +163,7 @@ function runDebtProjectionTests() {
         "months to debt free"
     );
 
-    const impossibleProjection = projectDebtPayoff({
+    const impossibleProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             {
                 id: "bad",
@@ -188,7 +188,7 @@ function runDebtProjectionTests() {
         "negative amortization detection"
     );
 
-    const overpaymentProjection = projectDebtPayoff({
+    const overpaymentProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             {
                 id: "tiny",
@@ -219,7 +219,7 @@ function runDebtProjectionTests() {
         "zero APR overpayment has no interest"
     );
 
-    const exactBaselineDateProjection = projectDebtPayoff({
+    const exactBaselineDateProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             {
                 id: "exact-date",
@@ -250,7 +250,7 @@ function runDebtProjectionTests() {
         "exact baseline payoff date"
     );
 
-    const exactRecommendedDateProjection = projectDebtPayoff({
+    const exactRecommendedDateProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             {
                 id: "exact-date",
@@ -281,7 +281,7 @@ function runDebtProjectionTests() {
         "exact recommended payoff date"
     );
 
-    const paidDebtIgnoredProjection = projectDebtPayoff({
+    const paidDebtIgnoredProjection = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             {
                 id: "paid",
@@ -326,7 +326,7 @@ function runDebtProjectionTests() {
 
     // B1 — BNPL cadence: a biweekly pay-in-4 ($100 × 4 = $400) really costs ~$216.67/mo, so it clears in
     // 2 months, not the 4 a naive "$100 minimum per month" would give.
-    const biweeklyBnpl = projectDebtPayoff({
+    const biweeklyBnpl = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             { id: "bnpl", name: "Klarna", balance: 400, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "biweekly", isPaidThisCycle: false },
         ],
@@ -338,7 +338,7 @@ function runDebtProjectionTests() {
 
     // The SAME numbers labeled monthly are NOT scaled — proves the scaling is cadence-specific, not a
     // blanket BNPL bump: $100/mo against $400 = 4 months.
-    const monthlyBnpl = projectDebtPayoff({
+    const monthlyBnpl = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             { id: "bnpl", name: "Affirm", balance: 400, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "monthly", isPaidThisCycle: false },
         ],
@@ -349,7 +349,7 @@ function runDebtProjectionTests() {
     assertEqual(monthlyBnpl.monthsToDebtFree, 4, "monthly BNPL stays at its monthly rate (cadence-specific)");
 
     // A one-time (pay-in-30) BNPL clears the month it lands.
-    const oneTimeBnpl = projectDebtPayoff({
+    const oneTimeBnpl = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             { id: "k30", name: "Klarna Pay-in-30", balance: 200, minimumPayment: 200, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "one-time", isPaidThisCycle: false },
         ],
@@ -368,7 +368,7 @@ function runDebtProjectionTests() {
     // a month-count assertion alone could be satisfied by the defect. Assert the sentinel is absent AND
     // the real term, and assert the date first so it is the one that reds.
     // ⚠️ No earlier assertion in this block can fire first: `freedMinimumRolls` is built fresh here.
-    const freedMinimumRolls = projectDebtPayoff({
+    const freedMinimumRolls = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             { id: "car", name: "Car loan", balance: 2000, minimumPayment: 500, apr: 5, dueDate: "2026-01-15", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
             { id: "visa", name: "Visa", balance: 10000, minimumPayment: 50, apr: 25, dueDate: "2026-01-15", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
@@ -385,7 +385,7 @@ function runDebtProjectionTests() {
     assertEqual(freedMinimumRolls.monthsToDebtFree, 30, "…and it clears in 30 months (S1P3-A1)");
     // ⛔ The DATE and the CHART are two producers of one fact and disagreed here — the hero printed the
     // sentinel over a chart drawing the same plan to zero at month 30. Pin them to each other.
-    const trajectory = buildPayoffTrajectory({
+    const trajectory = buildPayoffTrajectory({ cyclesPerMonth: 26 / 12,
         debts: [
             { id: "car", name: "Car loan", balance: 2000, minimumPayment: 500, apr: 5, type: "debt", recurrence: "monthly" },
             { id: "visa", name: "Visa", balance: 10000, minimumPayment: 50, apr: 25, type: "debt", recurrence: "monthly" },
@@ -427,7 +427,7 @@ function runDebtProjectionTests() {
         { label: "a 5% loan, far outside the band", balance: 2000, apr: 5, min: 500 },
     ];
     for (const plan of BAND_PLANS) {
-        const date = projectDebtPayoff({
+        const date = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
             debts: [
                 { id: "b", name: "Card", balance: plan.balance, minimumPayment: plan.min, apr: plan.apr, dueDate: "2026-01-15", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
             ],
@@ -435,7 +435,7 @@ function runDebtProjectionTests() {
             strategy: "avalanche",
             startDate: "2026-01-15",
         });
-        const curve = buildPayoffTrajectory({
+        const curve = buildPayoffTrajectory({ cyclesPerMonth: 26 / 12,
             debts: [
                 { id: "b", name: "Card", balance: plan.balance, minimumPayment: plan.min, apr: plan.apr, type: "debt", recurrence: "monthly" },
             ],
@@ -454,7 +454,7 @@ function runDebtProjectionTests() {
     // loop would be satisfied by two engines that had both simply given up, so the sweep is asserted to
     // contain BOTH answers — which is also what proves the band rows really are near the boundary.
     const verdicts = BAND_PLANS.map((plan) =>
-        projectDebtPayoff({
+        projectDebtPayoff({ cyclesPerMonth: 26 / 12,
             debts: [
                 { id: "b", name: "Card", balance: plan.balance, minimumPayment: plan.min, apr: plan.apr, dueDate: "2026-01-15", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
             ],
@@ -469,7 +469,7 @@ function runDebtProjectionTests() {
     // R2.2 — a one-time BNPL must NOT phantom-accelerate a coexisting debt. A $1000 card ($100/mo, 0%)
     // takes 10 months alone; adding a $2000 one-time BNPL must leave the card at 10 months (the one-time
     // clears month 1 and is excluded from the recurring budget), not wipe it early via phantom freed cash.
-    const cardAlone = projectDebtPayoff({
+    const cardAlone = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             { id: "card", name: "Card", balance: 1000, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
         ],
@@ -479,7 +479,7 @@ function runDebtProjectionTests() {
     });
     assertEqual(cardAlone.monthsToDebtFree, 10, "baseline: the card alone takes 10 months");
 
-    const oneTimePlusCard = projectDebtPayoff({
+    const oneTimePlusCard = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             { id: "k30", name: "Klarna Pay-in-30", balance: 2000, minimumPayment: 2000, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "one-time", isPaidThisCycle: false },
             { id: "card", name: "Card", balance: 1000, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
@@ -492,7 +492,7 @@ function runDebtProjectionTests() {
 
     // R2.1 — the payoff CHART and the debt-free DATE must agree on BNPL cadence. A biweekly BNPL's
     // trajectory must hit zero the same month projectDebtPayoff reports (month 2), not month 4.
-    const biweeklyTraj = buildPayoffTrajectory({
+    const biweeklyTraj = buildPayoffTrajectory({ cyclesPerMonth: 26 / 12,
         debts: [{ balance: 400, minimumPayment: 100, apr: 0, type: "bnpl", recurrence: "biweekly" }],
         monthlyExtraPayment: 0,
         strategy: "snowball",
@@ -502,7 +502,7 @@ function runDebtProjectionTests() {
 
     // R3 Finding 1 — a solo one-time BNPL (zero recurring budget) must clear on the CHART too, not
     // flatline forever. Its trajectory zero-crossing must be month 1, matching the date.
-    const oneTimeTraj = buildPayoffTrajectory({
+    const oneTimeTraj = buildPayoffTrajectory({ cyclesPerMonth: 26 / 12,
         debts: [{ balance: 200, minimumPayment: 200, apr: 0, type: "bnpl", recurrence: "one-time" }],
         monthlyExtraPayment: 0,
         strategy: "snowball",
@@ -511,11 +511,11 @@ function runDebtProjectionTests() {
 
     // R3 Finding 2 — with extra > 0, a one-time BNPL must NOT decelerate a coexisting debt either. The
     // $1000 card at $400/mo (100 min + 300 extra) clears in the same months with or without a $2000 one-time.
-    const cardExtraAlone = projectDebtPayoff({
+    const cardExtraAlone = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [{ id: "card", name: "Card", balance: 1000, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "debt", recurrence: "monthly", isPaidThisCycle: false }],
         monthlyExtraPayment: 300, strategy: "snowball", startDate: "2026-05-01",
     });
-    const cardExtraWithLump = projectDebtPayoff({
+    const cardExtraWithLump = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [
             { id: "k30", name: "Klarna Pay-in-30", balance: 2000, minimumPayment: 2000, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "one-time", isPaidThisCycle: false },
             { id: "card", name: "Card", balance: 1000, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
@@ -525,7 +525,7 @@ function runDebtProjectionTests() {
     assertEqual(cardExtraWithLump.monthsToDebtFree, cardExtraAlone.monthsToDebtFree, "one-time BNPL doesn't decelerate a coexisting debt with extra>0 (R3 F2)");
 
     // Coverage — a weekly pay-in-4 ($100×4) clears in ~1 month (52/12 ≈ 4.33 installments/mo).
-    const weeklyBnpl = projectDebtPayoff({
+    const weeklyBnpl = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts: [{ id: "z", name: "Zip", balance: 400, minimumPayment: 100, apr: 0, dueDate: "2026-05-01", type: "bnpl", recurrence: "weekly", isPaidThisCycle: false }],
         monthlyExtraPayment: 0, strategy: "snowball", startDate: "2026-05-01",
     });
@@ -535,12 +535,12 @@ function runDebtProjectionTests() {
     // a $2000 one-time BNPL must not shift the card's chart zero-crossing (3 months at $400/mo), matching
     // the date engine and the card alone. Guards against a future regression re-adding the lump to the
     // chart's minimumsPaidThisMonth.
-    const cardChartAlone = buildPayoffTrajectory({
+    const cardChartAlone = buildPayoffTrajectory({ cyclesPerMonth: 26 / 12,
         debts: [{ balance: 1000, minimumPayment: 100, apr: 0, type: "debt", recurrence: "monthly" }],
         monthlyExtraPayment: 300,
         strategy: "snowball",
     });
-    const cardChartWithLump = buildPayoffTrajectory({
+    const cardChartWithLump = buildPayoffTrajectory({ cyclesPerMonth: 26 / 12,
         debts: [
             { balance: 2000, minimumPayment: 2000, apr: 0, type: "bnpl", recurrence: "one-time" },
             { balance: 1000, minimumPayment: 100, apr: 0, type: "debt", recurrence: "monthly" },

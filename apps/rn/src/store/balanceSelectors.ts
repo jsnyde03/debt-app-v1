@@ -1,3 +1,4 @@
+import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import {
   projectCurrentBalance,
   projectDebtsToDate,
@@ -18,7 +19,7 @@ import type { Debt, DebtStore } from '@/data/models';
  */
 export function withProjectedBalances(store: DebtStore, isPremium: boolean): DebtStore {
   if (!isPremium) return store;
-  return { ...store, debts: projectDebtsToDate(store.debts, store.paycheck.currentDate) };
+  return { ...store, debts: projectDebtsToDate(store.debts, store.paycheck.currentDate, payCyclesPerMonth(store.paycheck.payCycle)) };
 }
 
 /**
@@ -43,12 +44,12 @@ function roundMoney(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-export function selectDebtBalanceView(debt: Debt, currentDate: string, isPremium: boolean): DebtBalanceView {
+export function selectDebtBalanceView(debt: Debt, currentDate: string, isPremium: boolean, cyclesPerMonth: number): DebtBalanceView {
   const anchorBalance = roundMoney(Math.max(0, debt.balance));
-  const confidence = computeEstimateConfidence(debt, currentDate);
+  const confidence = computeEstimateConfidence(debt, currentDate, cyclesPerMonth);
   return {
     debt,
-    currentBalance: isPremium ? projectCurrentBalance(debt, currentDate) : anchorBalance,
+    currentBalance: isPremium ? projectCurrentBalance(debt, currentDate, cyclesPerMonth) : anchorBalance,
     anchorBalance,
     lastVerifiedDate: debt.lastVerifiedDate,
     // Only premium projects; verified-today (0 elapsed days) reads as verified, not "estimated".
@@ -58,7 +59,8 @@ export function selectDebtBalanceView(debt: Debt, currentDate: string, isPremium
 }
 
 export function selectDebtBalanceViews(store: DebtStore, isPremium: boolean): DebtBalanceView[] {
-  return store.debts.map((debt) => selectDebtBalanceView(debt, store.paycheck.currentDate, isPremium));
+  const cpm = payCyclesPerMonth(store.paycheck.payCycle);
+  return store.debts.map((debt) => selectDebtBalanceView(debt, store.paycheck.currentDate, isPremium, cpm));
 }
 
 /**
@@ -98,8 +100,9 @@ export function buildEstimateCaption(
  */
 export function selectStaleDebtIds(store: DebtStore): string[] {
   const asOf = store.paycheck.currentDate;
+  const cpm = payCyclesPerMonth(store.paycheck.payCycle);
   return store.debts
-    .filter((debt) => debt.balance > 0 && computeEstimateConfidence(debt, asOf).staleness === 'stale')
+    .filter((debt) => debt.balance > 0 && computeEstimateConfidence(debt, asOf, cpm).staleness === 'stale')
     .map((debt) => debt.id);
 }
 
@@ -112,14 +115,15 @@ export function selectStaleDebtIds(store: DebtStore): string[] {
 export function selectProvisionalPayoffs(store: DebtStore, isPremium: boolean): Debt[] {
   if (!isPremium) return [];
   const asOf = store.paycheck.currentDate;
-  return store.debts.filter((debt) => isDebtProjectedPaidOff(debt, asOf));
+  return store.debts.filter((debt) => isDebtProjectedPaidOff(debt, asOf, payCyclesPerMonth(store.paycheck.payCycle)));
 }
 
 /** Views for the stale-estimate debts — the Payday Autopilot re-verify batch (2.3.5). Premium-only ([]  for free). */
 export function selectStaleBalanceViews(store: DebtStore, isPremium: boolean): DebtBalanceView[] {
   if (!isPremium) return [];
   const asOf = store.paycheck.currentDate;
+  const cpm = payCyclesPerMonth(store.paycheck.payCycle);
   return store.debts
-    .filter((debt) => debt.balance > 0 && computeEstimateConfidence(debt, asOf).staleness === 'stale')
-    .map((debt) => selectDebtBalanceView(debt, asOf, true));
+    .filter((debt) => debt.balance > 0 && computeEstimateConfidence(debt, asOf, cpm).staleness === 'stale')
+    .map((debt) => selectDebtBalanceView(debt, asOf, true, cpm));
 }

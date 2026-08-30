@@ -237,7 +237,33 @@ export function allocatePaycheck({
 			return 1;
 		}
 
-		const stepDays = recurrence === "weekly" ? 7 : 14; // biweekly and per-paycheck both step a fortnight
+		/**
+		 * ⛔ **S1.12.5.5 [pass-5 `A5-5`] — `per-paycheck` IS ONE PER CYCLE, NOT ONE PER FORTNIGHT.**
+		 *
+		 * ⚡ It used to be stepped by 14 days alongside `biweekly`, and the label says otherwise: the form
+		 * renders it **"Every paycheck"**. Measured, one $200 "Every paycheck" bill, truth is 1 row / $200:
+		 *
+		 * | payCycle | rows | reserved |
+		 * |---|---|---|
+		 * | weekly · biweekly | 1 | $200 ✅ |
+		 * | semimonthly | 2 | $400 ⛔ |
+		 * | monthly | **3** | **$600** ⛔ |
+		 *
+		 * ⛔ **A monthly-paid user with a $500 paycheck was told they were $100 SHORT while holding $250 of
+		 * spare cash**, shown their grocery bill three times, and handed a phantom obligation `e1__occ2`
+		 * that exists in no store. On a healthier paycheck the same expansion ate the cushion silently —
+		 * **$400 missing from "Leftover cash"** with no row accounting for it, because the paid flag spreads
+		 * onto all three occurrences and all three are deducted.
+		 *
+		 * ⚠️ **The rest of the repo already implemented it correctly, which is what makes this a producer
+		 * disagreement rather than an open question.** `rolloverPayCycle.ts` re-anchors a `per-paycheck` due
+		 * date to `nextPlanDate` on every rollover — exactly one per cycle — and `format.ts` prices it as
+		 * `amount × cyclesPerMonth`, the user's real cadence read from the store. This was the only producer
+		 * hardcoding a fortnight, and it is the one that decides what the paycheck can cover.
+		 */
+		if (recurrence === "per-paycheck") return 1;
+
+		const stepDays = recurrence === "weekly" ? 7 : 14;
 		const next = new Date(`${nextPaycheckDate}T00:00:00`);
 		const cursor = new Date(`${dueDate}T00:00:00`);
 		let count = 0;

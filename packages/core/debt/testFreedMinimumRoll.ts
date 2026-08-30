@@ -19,7 +19,7 @@ function runFreedMinimumRollTests() {
         { id: "b", name: "B", balance: 300, minimumPayment: 100, apr: 0, dueDate: "2026-01-01", type: "debt" as const, recurrence: "monthly" as const },
     ];
 
-    const projected = projectDebtPayoff({
+    const projected = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 0,
         strategy: "snowball",
@@ -28,7 +28,7 @@ function runFreedMinimumRollTests() {
     assertEqual(projected.monthsToDebtFree, 2, "projectDebtPayoff rolls the freed minimum (2 months, not 3)");
     assertEqual(projected.payoffOrder.join(","), "A,B", "payoff order A then B");
 
-    const trajectory = buildPayoffTrajectory({
+    const trajectory = buildPayoffTrajectory({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 0,
         strategy: "snowball",

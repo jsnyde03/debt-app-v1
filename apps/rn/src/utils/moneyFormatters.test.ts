@@ -20,6 +20,8 @@
 import { formatDisplayAmount } from '@core/utils/formatDisplayAmount';
 import { formatCurrency } from '@core/utils/formatCurrency';
 
+import { CADENCE_SUFFIX, debtAmountSuffix, type Recurrence } from '@core/types/recurrence';
+
 import { formatWhole } from '@/utils/format';
 
 function assert(cond: boolean, label: string): void {
@@ -109,3 +111,41 @@ eq(formatCurrency(1240), '$1,240', '⭐ B5-4 control — a whole amount is NEVER
 eq(formatCurrency(0), '$0', '⭐ B5-4 control — …including zero');
 
 console.log('  ✓ money formatters — non-finite never reaches the screen, and real amounts are untouched');
+
+/**
+ * ⛔ **S1.12.5.5 [pass-5 `C5-4`] — MONEY'S ROW PRINTED `/mo` ON EVERY NON-BNPL DEBT.**
+ *
+ * ⚡ A student loan the user billed **quarterly** came back as **"$600/mo"** — a 12× overstatement of a
+ * recurring obligation on the screen that lists their debts, and in the a11y label too, so VoiceOver read
+ * *"six hundred dollars per month"*. ⭐ The control is `monthly`: the string was right for exactly ONE
+ * member of the six-member class the form offers, which is why it survived review.
+ *
+ * ⛔ **Asserted over EVERY `Recurrence`, not over the quarterly case that was reported.** The expression
+ * was `isBnpl ? CADENCE_SUFFIX[…] : '/mo'` — the owner table consulted for one branch and bypassed with a
+ * literal for the other — so a test naming `quarterly` would pass the moment that one member was special
+ * cased. This walks the table and requires the row's suffix to BE the table's answer.
+ */
+{
+  // ⛔ THE FUNCTION THE SCREEN CALLS, not a re-implementation of it. The first cut of this test copied
+  // the expression, so planting the defect back into `money.tsx` left the suite GREEN — measured.
+  const rowSuffix = debtAmountSuffix;
+
+  for (const recurrence of Object.keys(CADENCE_SUFFIX) as Recurrence[]) {
+    eq(
+      rowSuffix(recurrence, false),
+      CADENCE_SUFFIX[recurrence],
+      `⛔ C5-4 · ${recurrence} — the debt row's unit is the cadence the user chose, never a literal "/mo"`,
+    );
+  }
+  // ⭐ The member that was already right, stated so a fix cannot regress it into something else.
+  eq(rowSuffix('monthly', false), '/mo', '⭐ C5-4 control — a monthly debt still reads /mo');
+  // ⛔ Found by this test, not by the finding: the `one-time` suffix is deliberately empty, and the old
+  // `|| '/mo'` fallback turned that into a monthly rate on a debt that has no rhythm at all.
+  eq(rowSuffix('one-time', false), '', '⛔ C5-4 — a ONE-TIME debt states no cadence, never "/mo"');
+  eq(rowSuffix('quarterly', false), '/qtr', '⛔ C5-4 — the reported case: a quarterly debt is not "/mo"');
+  // ⭐ And an unread minimum still prints no unit at all — a suffix beside an em dash asserts a rate for
+  // a figure the app just said it could not read.
+  eq(rowSuffix('quarterly', true), undefined, '⭐ C5-4 control — an unread minimum carries no unit');
+}
+
+console.log('  ✓ C5-4 — the debt row states the cadence the user chose');

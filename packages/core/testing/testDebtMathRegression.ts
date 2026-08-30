@@ -120,7 +120,7 @@ function testProjectDebtPayoff_snowballPaysSmallestFirst() {
         makeDebt({ id: "d1", name: "BigVisa", balance: 3000, apr: 22.99, minimumPayment: 75 }),
         makeDebt({ id: "d2", name: "SmallCard", balance: 500, apr: 5, minimumPayment: 25 }),
     ];
-    const result = projectDebtPayoff({
+    const result = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 200,
         strategy: "snowball",
@@ -139,7 +139,7 @@ function testProjectDebtPayoff_avalanchePaysHighestAprFirst() {
         makeDebt({ id: "d1", name: "LowAprDebt", balance: 500, apr: 5, minimumPayment: 25 }),
         makeDebt({ id: "d2", name: "HighAprDebt", balance: 3000, apr: 22.99, minimumPayment: 75 }),
     ];
-    const result = projectDebtPayoff({
+    const result = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 200,
         strategy: "avalanche",
@@ -150,7 +150,7 @@ function testProjectDebtPayoff_avalanchePaysHighestAprFirst() {
     if (!result.payoffOrder.includes("HighAprDebt")) throw new Error("FAIL: HighAprDebt must appear in payoff order");
     if (!result.payoffOrder.includes("LowAprDebt")) throw new Error("FAIL: LowAprDebt must appear in payoff order");
     // Avalanche should save more interest than snowball for this debt mix
-    const snowballResult = projectDebtPayoff({ debts, monthlyExtraPayment: 200, strategy: "snowball", startDate: "2026-06-01" });
+    const snowballResult = projectDebtPayoff({ cyclesPerMonth: 26 / 12, debts, monthlyExtraPayment: 200, strategy: "snowball", startDate: "2026-06-01" });
     if (result.totalInterestPaid >= snowballResult.totalInterestPaid) {
         throw new Error(`FAIL: avalanche should save more interest than snowball for high-APR debt target`);
     }
@@ -163,7 +163,7 @@ function testProjectDebtPayoff_avalancheTiebreakerUsesSmallestBalance() {
         makeDebt({ id: "d1", name: "LargerBalance", balance: 1000, apr: 22.99, minimumPayment: 30 }),
         makeDebt({ id: "d2", name: "SmallerBalance", balance: 300, apr: 22.99, minimumPayment: 20 }),
     ];
-    const result = projectDebtPayoff({
+    const result = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 200,
         strategy: "avalanche",
@@ -184,7 +184,7 @@ function testProjectDebtPayoff_cannotAmortize() {
     const debts = [
         makeDebt({ id: "d1", name: "TrapDebt", balance: 10000, apr: 25, minimumPayment: 1 }),
     ];
-    const result = projectDebtPayoff({
+    const result = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 0,
         strategy: "snowball",
@@ -199,7 +199,7 @@ function testProjectDebtPayoff_singleDebtPayoffDate() {
     const debts = [
         makeDebt({ id: "d1", name: "ZeroInterest", balance: 600, apr: 0, minimumPayment: 100 }),
     ];
-    const result = projectDebtPayoff({
+    const result = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 0,
         strategy: "snowball",
@@ -215,7 +215,7 @@ function testProjectDebtPayoff_bnplNeverAccruesInterestEvenWithNonzeroApr() {
     const debts = [
         makeDebt({ id: "d1", name: "BnplPlan", balance: 400, apr: 24.99, minimumPayment: 100, type: "bnpl" }),
     ];
-    const result = projectDebtPayoff({
+    const result = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 0,
         strategy: "snowball",
@@ -231,7 +231,7 @@ function testProjectDebtPayoff_payoffOrderContainsAllDebts() {
         makeDebt({ id: "d2", name: "DebtB", balance: 500, apr: 15, minimumPayment: 30 }),
         makeDebt({ id: "d3", name: "DebtC", balance: 250, apr: 5, minimumPayment: 20 }),
     ];
-    const result = projectDebtPayoff({
+    const result = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
         debts,
         monthlyExtraPayment: 100,
         strategy: "snowball",

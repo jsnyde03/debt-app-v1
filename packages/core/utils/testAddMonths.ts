@@ -67,7 +67,7 @@ assertEqual(advanceDueDateOnce("2024-02-29", "annually"), "2025-02-28", "annual 
 // ── the date a user is actually shown ───────────────────────────────────────
 // One debt cleared by its own minimum in a single month. Overflowed, Jan 31 + 1 lands on Mar 3 and
 // `formatMonthYear` prints the whole three-day slip as a different month.
-const oneMonth = projectDebtPayoff({
+const oneMonth = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
 	debts: [debt()],
 	monthlyExtraPayment: 0,
 	strategy: "snowball",
@@ -81,7 +81,7 @@ assertEqual(
 );
 
 // Three months, so the slip crosses into a month with a different number of days (Apr 31 -> May 1).
-const threeMonths = projectDebtPayoff({
+const threeMonths = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
 	debts: [debt({ balance: 300 })],
 	monthlyExtraPayment: 0,
 	strategy: "snowball",
@@ -96,7 +96,7 @@ assertEqual(
 
 // The 29th and 30th reach only February, and both are shown as March when unclamped.
 for (const day of ["29", "30"]) {
-	const result = projectDebtPayoff({
+	const result = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
 		debts: [debt()],
 		monthlyExtraPayment: 0,
 		strategy: "snowball",
@@ -107,7 +107,7 @@ for (const day of ["29", "30"]) {
 
 // A start day every month carries must be unaffected by the fix — the clamp is not allowed to move a
 // date that was already right.
-const midMonth = projectDebtPayoff({
+const midMonth = projectDebtPayoff({ cyclesPerMonth: 26 / 12,
 	debts: [debt()],
 	monthlyExtraPayment: 0,
 	strategy: "snowball",

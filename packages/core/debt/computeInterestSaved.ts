@@ -29,6 +29,7 @@ export type InterestSaved =
  */
 export function computeInterestSaved({
     debts,
+    cyclesPerMonth,
     monthlyExtraPayment,
     strategy,
     startDate,
@@ -37,12 +38,14 @@ export function computeInterestSaved({
     monthlyExtraPayment: number;
     strategy: PayoffStrategy;
     startDate: string;
+    /** ⛔ [pass-5 A5-1] required — see `bnplMonthlyEquivalentMinimum`. */
+    cyclesPerMonth: number;
 }): InterestSaved {
     const liveDebts = debts.filter((d) => d.balance > 0);
     if (liveDebts.length === 0 || monthlyExtraPayment <= 0) return { kind: "none" };
 
-    const minPlan = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: 0, strategy, startDate });
-    const actualPlan = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment, strategy, startDate });
+    const minPlan = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment: 0, strategy, startDate, cyclesPerMonth });
+    const actualPlan = projectDebtPayoff({ debts: liveDebts, monthlyExtraPayment, strategy, startDate, cyclesPerMonth });
 
     const minUnpayable = minPlan.estimatedDebtFreeDate === DEBT_FREE_DATE_UNPAYABLE;
     const actualUnpayable = actualPlan.estimatedDebtFreeDate === DEBT_FREE_DATE_UNPAYABLE;

@@ -60,6 +60,7 @@ export function recordDriftBaseline(
     debts: store.debts,
     payoffStrategy: store.payoffStrategy,
     monthlyExtraPayment: monthlyExtra,
+    cyclesPerMonth: payCyclesPerMonth(store.paycheck.payCycle),
     projectedDebtFreeDate: selectDebtFreeDate(store, allocation) ?? DEBT_FREE_DATE_UNPAYABLE,
   });
   return { ...store, driftBaseline: baseline };

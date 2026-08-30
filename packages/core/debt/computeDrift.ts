@@ -124,6 +124,8 @@ export function buildDriftBaseline(input: {
   payoffStrategy: "snowball" | "avalanche";
   monthlyExtraPayment: number;
   projectedDebtFreeDate: string;
+  /** ⛔ [pass-5 A5-1] required — see `bnplMonthlyEquivalentMinimum`. */
+  cyclesPerMonth: number;
 }): DriftBaseline {
   const anchorBalance = input.debts.filter((d) => d.balance > 0).reduce((s, d) => s + d.balance, 0);
   return {
@@ -136,6 +138,7 @@ export function buildDriftBaseline(input: {
       debts: input.debts,
       monthlyExtraPayment: input.monthlyExtraPayment,
       strategy: input.payoffStrategy,
+      cyclesPerMonth: input.cyclesPerMonth,
     }),
     projectedDebtFreeDate: input.projectedDebtFreeDate,
   };
