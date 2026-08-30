@@ -2078,5 +2078,41 @@
       "measured": "2026-08-30",
       "sha": "b9ee9f90"
     }
+  },
+  "S1P5-C5-1-VIEWGAG": {
+    "what": "pass-5 C5-1 (blocker) - Progress refused to state the debt-free date and then stated a DIFFERENT one five months early three rows below it. C4-9 gated four hand-listed props and passed the rest of the view to the chart, so with one of two balances unreadable the hero read '—' and 'Some balances couldn't be read' while the Safe-floor row printed 'June 2026' against a true 'November 2026' - the only date left on screen, and the one the design calls the honest floor for a variable earner. The curve, its $k gridlines, the waypoints, the scrub readout and the What-If row all read the same repaired $0. gagBalanceDerived writes every PayoffView key out, so a field added later cannot bypass the gate by being forgotten.",
+    "file": "apps/rn/src/store/payoffViewGag.test.ts",
+    "token": "the Safe-floor date is not stated when a balance could not be read",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/payoffSelectors.ts",
+          "find": "    band: { typical: null, lean: null, hasBand: false },",
+          "replace": "    band: view.band,"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the Safe-floor date is not stated",
+      "measured": "2026-08-30",
+      "sha": "5a68a174"
+    }
+  },
+  "S1P5-B5-12-INVENTORYAGREE": {
+    "what": "pass-5 B5-12 (minor) - invariant 3, the instrument built to prove a restore cannot corrupt the user's money, checked 3 of the 5 money fields REPAIRABLE_MONEY_FIELDS declares for a debt (originalBalance and scheduledPaymentAmount were outside it). The same omission had already happened in that file for GOALS and been repaired by hand, so it did not generalise - the fix was a list, not a relationship. The two lists are written independently and asserted to AGREE in both directions, deliberately NOT derived from one another: a checker computed from the list it checks agrees with whatever it is handed (D4-4's class). No live defect - repairMoneyFields coerces every declared field, so nothing non-numeric survives to be caught.",
+    "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
+    "token": "invariant ③ and REPAIRABLE_MONEY_FIELDS agree, in both directions",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/migrationAudit/invariants.ts",
+          "find": "  'originalBalance',\n  'scheduledPaymentAmount',\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:app",
+      "expect": "every money field a DEBT declares is checked",
+      "measured": "2026-08-30",
+      "sha": "5a68a174"
+    }
   }
 }
