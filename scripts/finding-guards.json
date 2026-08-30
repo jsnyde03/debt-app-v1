@@ -1857,5 +1857,41 @@
       "measured": "2026-08-30",
       "sha": "995946ca"
     }
+  },
+  "S1P5-A5-2-NONFINITE": {
+    "what": "pass-5 A5-2 (major) - formatCurrency's Number.isFinite guard survived its own un-fix in test:regression, test:app, test:scenarios AND lint:money. It is the highest-fan-in money guard in the tree (the root fix that let T6.4 collapse seven local formatters) and nothing asserted it; removed, it renders $NaN and $INF. lint:money was written to stop formatters MULTIPLYING, not to stop the survivor being edited. Closed by a test that iterates the formatters as a CLASS, which is how formatDisplayAmount was found rendering 'NaN.N' with no guard at all - the fifth formatter, and the one PRINTS_MONEY cannot see (D5-13).",
+    "file": "apps/rn/src/utils/moneyFormatters.test.ts",
+    "token": "a non-finite value reached the screen",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/utils/formatCurrency.ts",
+          "find": "const finite = Number.isFinite(amount) ? amount : 0;",
+          "replace": "const finite = amount;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a non-finite value reached the screen",
+      "measured": "2026-08-30",
+      "sha": "c81e845d"
+    }
+  },
+  "S1P5-B5-4-NEGZERO": {
+    "what": "pass-5 B5-4 (minor) - formatCurrency(-0) and formatWhole(-0) rendered '-$0', as did every value rounding to zero from below; and formatCurrency(-0.4) rendered '-$0.4', a money string with one cent digit. A minus sign in front of $0 states a direction the money does not have. Normalised at the precision each formatter actually RENDERS - the first cut compared === 0 and missed -0.004, which the new test caught.",
+    "file": "apps/rn/src/utils/moneyFormatters.test.ts",
+    "token": "negative zero is $0, not -$0",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/utils/formatCurrency.ts",
+          "find": "const safe = Math.round(finite * 100) === 0 ? 0 : finite;",
+          "replace": "const safe = finite;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "negative zero is $0, not -$0",
+      "measured": "2026-08-30",
+      "sha": "c81e845d"
+    }
   }
 }
