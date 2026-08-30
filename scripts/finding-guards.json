@@ -663,7 +663,7 @@
       "run": "test:app",
       "expect": "opposite-sized losses no longer produce the identical clause",
       "measured": "2026-08-30",
-      "sha": "995946ca"
+      "sha": "b7370ba6"
     }
   },
   "S1P4-C4-5-ARITY": {
@@ -1946,6 +1946,60 @@
       "expect": "runningCash is clamped even when the cycle is $600 short",
       "measured": "2026-08-30",
       "sha": "8ee70449"
+    }
+  },
+  "S1P5-B5-1-ROWCOUNT": {
+    "what": "pass-5 B5-1 (blocker) - a backup holding 10 debts of which 9 were unreadable rows said '1 whole row in this backup could not be read', byte-identical to losing exactly one, one line above Replace my data under 'It can't be undone'. A whole-row loss carries id: '' and mergeRepairs dedupes on entity|id|field, so every row loss in one entity collapsed to one record and describeLosses counted records - structurally capped at one per entity. The dedupe key is UNCHANGED (dropping id collapses field repairs on different rows and breaks the working '9 amounts' count); the magnitude rides on the record as count?: n. Also fixes counting ENTITIES rather than rows across entities (5 debt + 4 goal read as '2 whole rows').",
+    "file": "apps/rn/src/data/readBackup.test.ts",
+    "token": "nine lost rows say NINE, not one",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/readBackup.ts",
+          "find": "  const rows = lost\n    .filter((r) => r.field.startsWith('(') && r.field !== WHOLE_LIST_LOSS_FIELD)\n    .reduce((n, r) => n + (r.count ?? 1), 0);",
+          "replace": "  const rows = lost.filter((r) => r.field.startsWith('(') && r.field !== WHOLE_LIST_LOSS_FIELD).length;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "nine lost rows say NINE, not one",
+      "measured": "2026-08-30",
+      "sha": "b7370ba6"
+    }
+  },
+  "S1P5-B5-2-FRESHWINS": {
+    "what": "pass-5 B5-2 (major) - mergeRepairs iterated `pending` first and kept the first record per key, so a stale 'recovered' shadowed a fresh 'lost': a field readable on one read and unreadable on the next stayed labelled recovered, and every guard reading `kind` to decide 'is this number trustworthy' flipped green - the fail-open direction, on the one field that exists to say the opposite. This read is now the authority on what it just read.",
+    "file": "apps/rn/src/data/readBackup.test.ts",
+    "token": "a field that has become unreadable is LOST",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/migrations.ts",
+          "find": "    if (isFresh) {\n      prev.kind = rep.kind;\n      prev.name = rep.name;\n    }",
+          "replace": "    void isFresh;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a field that has become unreadable is LOST",
+      "measured": "2026-08-30",
+      "sha": "b7370ba6"
+    }
+  },
+  "S1P5-D5-7-EXPECTREQUIRED": {
+    "what": "pass-5 D5-7 (minor) - 11 of 23 test:gate-plants scenarios carried no `expect`, so for those the harness proved only 'the gate exited non-zero under the plant', never 'for this defect' - the exact distinction D4-6 is about. Being optional is what let it spread: expect was added after the first scenarios and back-filled only where someone touched the row. All 11 back-filled from each gate's own violation sentence (every one correct on the first measured run) and the field is REQUIRED, so omitting it is a typecheck error.",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "expect: string;",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/test-gate-plants.ts",
+          "find": "    expect: 'A calendar date routed through UTC',",
+          "replace": ""
+        }
+      ],
+      "run": "typecheck:scripts",
+      "expect": "test-gate-plants.ts",
+      "measured": "2026-08-30",
+      "sha": "b7370ba6"
     }
   }
 }
