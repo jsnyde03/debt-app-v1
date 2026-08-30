@@ -140,6 +140,9 @@ async function main() {
    */
   // S1.12.5.3 [pass-5 A5-2 · B5-4] - the money formatters' first test. The Number.isFinite guard
   // with the highest fan-in in the tree survived its own un-fix in all four gates that run.
+  // S1.12.5.4 [pass-5 C5-1] - nothing derived from an unreadable balance may reach the screen.
+  await import('../store/payoffViewGag.test');
+
   await import('../utils/moneyFormatters.test');
 
   await import('../store/paywallLead.test');

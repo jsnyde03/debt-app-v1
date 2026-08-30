@@ -504,7 +504,14 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
   // date and the chart headline all read figures derived from a balance the app may not have read, and the
   // screen's only trust check sat inside its `!hasDebts` empty-state branch — unreachable on the ordinary
   // mixed portfolio. Raised deliberately, with the caller named.
-  'debt-balances': 3, // widget/snapshot.ts ×1 (the balance gate) + money.tsx + progress.tsx
+  //
+  // ⛔ **S1.12.5.4 [pass-5 `C5-5`] — THIS COMMENT NAMED A CALLER THAT DOES NOT EXIST.** It read
+  // *"+ money.tsx"*, and `money.tsx` asks for `'row-figures'`, never `'debt-balances'` — grep returns
+  // zero. The real third caller is `celebrationSelectors.ts`. ⚠️ The floor's NUMBER was right, so nothing
+  // could red: a reader checking whether Money is guarded for the portfolio claim would have concluded
+  // from this line that it is, and stopped looking. **A comment is a carried premise and decays like a
+  // carried number** — this one decayed inside the gate written to stop claims drifting from their callers.
+  'debt-balances': 3, // widget/snapshot.ts (the balance gate) + progress.tsx + celebrationSelectors.ts
   'goal-amounts': 1,
   'required-plan': 5,
   'row-figures': 5,

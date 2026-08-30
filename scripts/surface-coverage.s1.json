@@ -922,6 +922,9 @@
     "s1p2",
     "s1p5"
   ],
+  "apps/rn/src/store/payoffViewGag.test.ts": [
+    "never"
+  ],
   "apps/rn/src/store/paywallLead.test.ts": [
     "never",
     "s1p4"

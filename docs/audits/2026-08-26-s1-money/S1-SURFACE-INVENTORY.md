@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**479 files on the S1 surface · 415 swept · 64 unswept.**
+**480 files on the S1 surface · 415 swept · 65 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -265,6 +265,7 @@
 | `apps/rn/src/store/payoffCelebration.test.ts` | ⛔ **never · partial** |
 | `apps/rn/src/store/payoffCelebration.ts` | s1p2 · s1p5 |
 | `apps/rn/src/store/payoffSelectors.ts` | s1p2 · s1p5 |
+| `apps/rn/src/store/payoffViewGag.test.ts` | ⛔ **never** |
 | `apps/rn/src/store/paywallLead.test.ts` | never · s1p4 |
 | `apps/rn/src/store/paywallLead.ts` | s1p2 · s1p4 |
 | `apps/rn/src/store/persistence.ts` | s1p2 · s1p5 |
@@ -532,6 +533,7 @@
 - `apps/rn/src/store/milestoneCross.test.ts`
 - `apps/rn/src/store/onboardingFinish.test.ts`
 - `apps/rn/src/store/payoffCelebration.test.ts`
+- `apps/rn/src/store/payoffViewGag.test.ts`
 - `apps/rn/src/store/persistenceLifecycle.test.ts`
 - `apps/rn/src/store/realWriteGuard.test.ts`
 - `apps/rn/src/store/requiredPlanTrust.test.ts`
@@ -561,5 +563,5 @@
 - `packages/core/debt/testDeriveRequiredActionView.ts`
 - `packages/core/debt/testReconcileAutopay.ts`
 
-<!-- claims-sha256: dbbc8c4d05669efc -->
+<!-- claims-sha256: 9e2cd2ff75554a2e -->
 

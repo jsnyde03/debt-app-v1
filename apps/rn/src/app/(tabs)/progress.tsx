@@ -22,7 +22,7 @@ import { selectWhatIf, selectWhatIfBaseline } from '@/store/analysisSelectors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaidOffDebts } from '@/store/celebrationSelectors';
 import { selectJourneyTotals } from '@/store/journeySelectors';
-import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
+import { gagBalanceDerived, selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { selectOnPlanStreakLabel } from '@/store/planSelectors';
 import { effectivePaycheckBuffer } from '@/store/selectors';
 import { hasUnreadDebtBalances, mayClaim } from '@/store/trustSelectors';
@@ -98,7 +98,19 @@ export default function ProgressScreen() {
   // stable zustand reference between renders, so these recompute only when the plan actually changes.
   const isPremium = store.subscriptionPlan === 'premium';
   const engineStore = useMemo(() => withProjectedBalances(store, isPremium), [store, isPremium]);
-  const view = useMemo(() => selectPayoffView(engineStore), [engineStore]);
+  /**
+   * ⛔ **S1.12.5.4 [pass-5 `C5-1`] — GAGGED HERE, ONCE, RATHER THAN PROP BY PROP AT THE CARD.**
+   *
+   * `C4-9` gated four props and left the rest of the view flowing to the chart, which printed a Safe-floor
+   * debt-free date **five months early** off a balance the app had just told the user it could not read.
+   * Doing it at the source means a prop that is added later cannot bypass the gate by being forgotten —
+   * see `gagBalanceDerived`, where every field of the view has to be classified to compile.
+   */
+  const rawView = useMemo(() => selectPayoffView(engineStore), [engineStore]);
+  const view = useMemo(
+    () => (mayClaim(store, 'debt-balances') ? rawView : gagBalanceDerived(rawView)),
+    [store, rawView],
+  );
 
   // 3.5.5.4 — the trajectory scrub. Unlike the row long-press this is cross-platform (the chart handles
   // touch and pointer alike), so there is no platform gate; the mark simply waits for the chart to lay

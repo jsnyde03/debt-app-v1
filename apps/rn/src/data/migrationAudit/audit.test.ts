@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { generateV16Cases, type Case } from '@/data/migrationAudit/corpus';
 import { importDoor, webkitDoor } from '@/data/migrationAudit/doors';
-import { INVARIANTS, checkAll, priorityGoalIsCapped, type DoorOutcome } from '@/data/migrationAudit/invariants';
+import { REPAIRABLE_MONEY_FIELDS } from '@/data/migrations';
+import { GOAL_MONEY_FIELDS, INVARIANTS, MONEY_FIELDS, checkAll, priorityGoalIsCapped, type DoorOutcome } from '@/data/migrationAudit/invariants';
 import { createDefaultStore } from '@/data/defaults';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
 
@@ -431,4 +432,48 @@ export function selfCheck(): void {
     `  ✓ self-check: all ${INVARIANTS.length} invariants fire (${perInvariant} poisons, one per invariant), ` +
       `the verdict throws, and run() still calls it`,
   );
+}
+
+/**
+ * ⛔ **S1.12.5.4 [pass-5 `B5-12`] — INVARIANT ③'s FIELD LISTS MUST AGREE WITH THE DECLARED INVENTORY.**
+ *
+ * ⚡ `invariants.ts` checked `balance`, `minimumPayment` and `apr` on a debt while
+ * `REPAIRABLE_MONEY_FIELDS.debt` declares five — `originalBalance` and `scheduledPaymentAmount` were
+ * outside the instrument built to prove *"a restore cannot corrupt the user's money."*
+ *
+ * ⛔ **The same omission had already happened in this file and been repaired BY HAND.** Its own docblock
+ * records goals being invisible to this invariant — *"the field names it looked for are none of the ones a
+ * goal carries"* — and the goal list was then written out correctly while the debt list stayed short.
+ * Nothing tied either to the inventory, so the fix did not generalise: it was a list, not a relationship.
+ *
+ * ⚠️ **This ASSERTS AGREEMENT rather than sharing a constant, deliberately.** A checker derived from the
+ * list it checks agrees with whatever it is handed — `D4-4`'s class, and rule 4 of this round's brief.
+ * Two independently written lists that must match is a claim; one list read twice is not.
+ */
+{
+  const declared = REPAIRABLE_MONEY_FIELDS;
+  const missing = (entity: keyof typeof declared, checked: readonly string[]) =>
+    [...declared[entity].required, ...declared[entity].optional].filter((f) => !checked.includes(f));
+
+  // ⚠️ This file throws directly rather than using a helper — matching its own idiom, not importing one.
+  const mustCover = (entity: keyof typeof declared, checked: readonly string[], label: string) => {
+    const gap = missing(entity, checked);
+    if (gap.length) throw new Error(`FAIL [⛔ B5-12 — ${label}]: invariant ③ never checks ${gap.join(', ')}`);
+  };
+  mustCover('debt', MONEY_FIELDS, 'every money field a DEBT declares is checked');
+  mustCover('goal', GOAL_MONEY_FIELDS, '…and every one a GOAL declares');
+  mustCover('requiredExpense', MONEY_FIELDS, '…and every one a requiredExpense declares');
+  mustCover('livingExpense', MONEY_FIELDS, '…and every one a livingExpense declares');
+
+  // ⭐ THE CONTROL. A `MONEY_FIELDS` listing every string anyone could think of satisfies every row above;
+  // this is what makes the agreement mutual rather than one-sided, and it is why the two lists are written
+  // independently instead of one being derived from the other.
+  const declaredAnywhere = new Set<string>(
+    Object.values(declared).flatMap((e) => [...e.required, ...e.optional] as string[]),
+  );
+  const stray = [...MONEY_FIELDS, ...GOAL_MONEY_FIELDS].filter((f) => !declaredAnywhere.has(f));
+  if (stray.length) {
+    throw new Error(`FAIL [⭐ B5-12 control — invariant ③ checks nothing the inventory does not declare]: ${stray.join(', ')}`);
+  }
+  console.log('  ✓ ⛔ B5-12 — invariant ③ and REPAIRABLE_MONEY_FIELDS agree, in both directions');
 }

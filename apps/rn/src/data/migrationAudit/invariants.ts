@@ -73,7 +73,37 @@ export const nothingSilentlyDropped: Invariant = (o) => {
  * concatenates instead of adding. Both versions declare these as numbers; the question this settles is
  * whether anything ENFORCES that at the boundary.
  */
-const MONEY_FIELDS = ['balance', 'minimumPayment', 'apr', 'amount'] as const;
+/**
+ * ⛔ **S1.12.5.4 [pass-5 `B5-12`] — TWO FIELDS SHORT OF THE INVENTORY THIS INVARIANT EXISTS TO PROVE.**
+ *
+ * ⚡ Invariant ③ is *"money and dates keep their type"* — the instrument built to show that a restore
+ * cannot corrupt the user's money. `migrations.ts` declares what money a debt carries in
+ * `REPAIRABLE_MONEY_FIELDS.debt`: `balance`, `minimumPayment`, `apr`, **`originalBalance`** and
+ * **`scheduledPaymentAmount`**. This list held the first three.
+ *
+ * ⛔ **It is the same shape as the defect recorded twelve lines below.** That note reads *"GOALS WERE NOT
+ * CHECKED, AND GOALS ARE WHERE BOTH MONEY DEFECTS WERE FOUND … the field names it looked for are none of
+ * the ones a goal carries."* The goal list was then repaired **by hand**, nothing tied either list to the
+ * declared inventory, and the debt list stayed short — the same omission, in the same file, surviving its
+ * own fix because the fix was a list and not a relationship.
+ *
+ * ⚠️ **No live defect today**, and that is stated rather than implied: `repairMoneyFields` coerces every
+ * declared field through `readMoney`, so no non-number survives to be caught. What was wrong is an
+ * instrument doing less than it claims.
+ *
+ * ⛔ **Deliberately NOT derived from `REPAIRABLE_MONEY_FIELDS`.** A checker computed from the list it
+ * checks agrees with whatever it is handed — `D4-4`'s class, and rule 4 of this round's brief. The two
+ * lists are written independently and `invariants.test.ts` asserts they AGREE, which is a claim a
+ * shared constant cannot make.
+ */
+export const MONEY_FIELDS = [
+  'balance',
+  'minimumPayment',
+  'apr',
+  'originalBalance',
+  'scheduledPaymentAmount',
+  'amount',
+] as const;
 
 /**
  * ⛔ **GOALS WERE NOT CHECKED, AND GOALS ARE WHERE BOTH MONEY DEFECTS WERE FOUND.**
@@ -97,7 +127,7 @@ const MONEY_FIELDS = ['balance', 'minimumPayment', 'apr', 'amount'] as const;
  *
  * ⭐ The branch itself is now judged by invariant ⑨, `priorityGoalIsCapped`, below.
  */
-const GOAL_MONEY_FIELDS = ['targetAmount', 'currentAmount', 'priorityPerPaycheck'] as const;
+export const GOAL_MONEY_FIELDS = ['targetAmount', 'currentAmount', 'priorityPerPaycheck'] as const;
 
 export const moneyKeepsItsType: Invariant = (o) => {
   if (!o.store) return null;

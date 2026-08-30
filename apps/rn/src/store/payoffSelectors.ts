@@ -45,6 +45,49 @@ export interface PayoffView {
   focus: Debt | null;
 }
 
+/**
+ * ⛔ **S1.12.5.4 [pass-5 `C5-1`] — THE WHOLE VIEW IS GAGGED, BECAUSE GATING PROPS ONE BY ONE LEFT A
+ * DIFFERENT DEBT-FREE DATE ON THE SAME SCREEN.**
+ *
+ * ⚡ Pass-4 `C4-9` gated four hand-listed props on Progress — `debtFreeDate`, `interestSaved`, the hero
+ * percentage and its journey line — and passed the rest of `view` to the chart untouched. Measured with
+ * one card's balance unreadable: the hero read **"—"** and *"Some balances couldn't be read"*, the "Your
+ * plan" legend printed no date, **and the Safe-floor row printed "June 2026" against a true "November
+ * 2026"** — five months early. ⛔ **The only debt-free date left on the screen was the one the design calls
+ * *"the honest floor for a variable earner"*, and it credited the user with a card they still owed in full.**
+ *
+ * ⚠️ The plotted curve, its `$k` gridline labels, the waypoints, the scrub readout and the What-If row were
+ * all reading the same repaired `$0`.
+ *
+ * ⭐ **Every key is written out, and that is the point.** A new `PayoffView` field does not compile until
+ * someone decides whether it is balance-derived — which is the check a hand-written prop list at a call
+ * site can never make. ⛔ The four props `C4-9` gated were correct and incomplete; the class is *"which of
+ * these figures are derived from a balance the app could not read"*, and it is answerable here and nowhere
+ * else.
+ */
+export function gagBalanceDerived(view: PayoffView): PayoffView {
+  return {
+    // Readable without reading any balance: that debts EXIST, what the user typed as extra, and the
+    // ordering/focus the row-level guards already gag figure-by-figure on Money.
+    hasDebts: view.hasDebts,
+    monthlyExtra: view.monthlyExtra,
+    order: view.order,
+    focus: view.focus,
+    // Every one of these is a projection off balances, and at least one balance is a repaired `$0`.
+    debtFreeDate: null,
+    interestSaved: { kind: 'none' },
+    snowball: [],
+    avalanche: [],
+    snowballClears: [],
+    avalancheClears: [],
+    minimums: [],
+    lean: [],
+    // ⚠️ `hasBand: false` is what removes the Safe-floor ROW, not just its date — a row reading
+    // "Safe-floor —" would still assert that a floor had been computed.
+    band: { typical: null, lean: null, hasBand: false },
+  };
+}
+
 /** Rank live debts by the chosen strategy (snowball = smallest balance · avalanche = highest APR). */
 export function rankDebts(debts: Debt[], strategy: PayoffStrategy): Debt[] {
   return [...debts].sort((a, b) => (strategy === 'snowball' ? a.balance - b.balance : b.apr - a.apr));
