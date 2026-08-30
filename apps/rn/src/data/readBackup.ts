@@ -250,8 +250,15 @@ export function describeLosses(store: DebtStore): string {
   // fail-SAFE backstop for a third synthetic loss nobody has classified yet, and dropping it here would
   // make such a loss vanish from this sentence entirely. `migrations.ts`'s docblock records why the
   // constants pin the coupling without replacing the catch-all.
-  const rows = lost.filter((r) => r.field.startsWith('(') && r.field !== WHOLE_LIST_LOSS_FIELD).length;
-  const fields = lost.filter((r) => !r.field.startsWith('(')).length;
+  // ⛔ **S1.12.5.3 [pass-5 B5-1] — SUM THE COUNTS, NEVER THE RECORDS.** A whole-row loss has no id, so
+  // `mergeRepairs` collapses every row loss in one entity onto one record: counting records capped this
+  // at ONE PER ENTITY, and nine lost debts read as *"1 whole row"* — byte-identical to losing one, one
+  // line above **Replace my data**. ⚠️ The field clause sums too, so the two clauses stay the same kind
+  // of number; field repairs carry distinct ids so their count was already right and stays right.
+  const rows = lost
+    .filter((r) => r.field.startsWith('(') && r.field !== WHOLE_LIST_LOSS_FIELD)
+    .reduce((n, r) => n + (r.count ?? 1), 0);
+  const fields = lost.filter((r) => !r.field.startsWith('(')).reduce((n, r) => n + (r.count ?? 1), 0);
   const parts = [
     lists.length > 0
       ? `the whole ${lists.length === 1 ? lists[0] : `${lists.slice(0, -1).join(', ')} and ${lists[lists.length - 1]}`} list${lists.length === 1 ? '' : 's'}`

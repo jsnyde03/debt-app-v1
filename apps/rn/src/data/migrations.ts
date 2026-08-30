@@ -469,16 +469,56 @@ export function runMigrations(raw: unknown): DebtStore {
   };
 }
 
-/** Union of already-pending repairs and this read's, keyed by the field a repair actually identifies. */
+/**
+ * Union of already-pending repairs and this read's, keyed by the field a repair actually identifies.
+ *
+ * ⛔ **S1.12.5.3 [pass-5 `B5-1`] — DEDUPING DROPPED THE MAGNITUDE, AND THE MAGNITUDE WAS THE SENTENCE.**
+ * A whole-row loss carries `id: ''`, so every row loss in one entity shares one key and nine collapsed to
+ * one. The key is kept — dropping `id` would collapse field-level repairs on different rows and break the
+ * working *"9 amounts"* count — and the count is summed onto the surviving record instead.
+ *
+ * ⛔ **AND [pass-5 `B5-2`] — A STALE `recovered` USED TO SHADOW A FRESH `lost`.** `pending` is iterated
+ * first, so for one key the already-stored record won and this read's was discarded. A value that was
+ * readable last time and is unreadable now therefore stayed labelled *recovered*, and every guard reading
+ * `kind` flipped green — in the **fail-open** direction, over money the app can no longer read. **This
+ * read is the authority on what it just read**, so `fresh` now wins the fields that describe the loss.
+ */
 function mergeRepairs(pending: DataRepair[], fresh: DataRepair[]): DataRepair[] {
   const out: DataRepair[] = [];
-  const seen = new Set<string>();
-  for (const rep of [...pending, ...fresh]) {
+  const at = new Map<string, number>();
+  const freshKeys = new Set<string>();
+  for (const rep of fresh) {
+    if (!rep || typeof rep !== 'object') continue;
+    freshKeys.add(`${rep.entity}|${rep.id}|${rep.field}`);
+  }
+  for (const [isFresh, rep] of [...pending.map((r) => [false, r] as const), ...fresh.map((r) => [true, r] as const)]) {
     if (!rep || typeof rep !== 'object') continue;
     const key = `${rep.entity}|${rep.id}|${rep.field}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(rep);
+    const seenAt = at.get(key);
+    if (seenAt === undefined) {
+      at.set(key, out.length);
+      out.push({ ...rep, count: rep.count ?? 1 });
+      continue;
+    }
+    const prev = out[seenAt];
+    // ⚠️ The count SUMS across the merge — that is the whole point of the field. `acknowledged` is
+    // preserved from whichever record carried it, so a merge never silently un-acknowledges a card the
+    // user already dismissed.
+    prev.count = (prev.count ?? 1) + (rep.count ?? 1);
+    if (isFresh) {
+      prev.kind = rep.kind;
+      prev.name = rep.name;
+    }
+    if (rep.acknowledged) prev.acknowledged = true;
+  }
+  // ⚠️ A key present in BOTH lists was counted twice above — once as pending, once as fresh — which would
+  // report a re-migration of an unchanged store as double the loss. The pending record is the same event
+  // the fresh read is re-reporting, not a second one.
+  for (const [key, i] of at) {
+    if (freshKeys.has(key) && out[i].count && out[i].count! > 1) {
+      const dupes = pending.filter((r) => r && `${r.entity}|${r.id}|${r.field}` === key).reduce((n, r) => n + (r.count ?? 1), 0);
+      out[i].count = Math.max(1, (out[i].count ?? 1) - dupes);
+    }
   }
   return out;
 }

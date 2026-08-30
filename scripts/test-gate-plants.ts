@@ -113,8 +113,20 @@ interface Scenario {
    * planted defect scores as a perfect pass under an exit-code-only check, which is the same shape as an
    * assertion that reds before the one it exists to exercise. When set, the planted run's output must
    * contain this, so the plant is attributable.
+   *
+   * ⛔ **S1.12.5.3 [pass-5 D5-7] — REQUIRED NOW, AND IT WAS OPTIONAL WHILE 11 OF 23 SCENARIOS OMITTED IT.**
+   * For those 11 the harness proved only *"the gate exited non-zero under the plant"* — not *"for this
+   * defect"* — which is the exact distinction this file's headline (`D4-6`) exists to make. A gate that
+   * had started redding for an unrelated reason (a parse error in the scratch file, a missing dependency)
+   * read identically to one catching its own class. ⚠️ Being optional is what let the omission spread:
+   * `expect` was added after the first scenarios and back-filled only where someone happened to touch the
+   * row, and nothing pushed back. Required is what pushes back.
+   *
+   * ⚠️ **A back-filled `expect` is worthless if the string also appears on the green path** — see `D5-5`.
+   * `verdict()` now requires it in a line the PLANT INTRODUCED, so that failure mode is closed at the
+   * checker rather than left to whoever writes the row.
    */
-  expect?: string;
+  expect: string;
 }
 
 /**
@@ -317,6 +329,7 @@ const B1_SCENARIOS: Scenario[] = [
 const SCENARIOS: Scenario[] = [
   {
     gate: 'lint:month-arithmetic',
+    expect: 'A date stepped by months with setMonth/setFullYear',
     script: 'check-month-arithmetic.ts',
     at: 'apps/rn/src/__gate_plant__.ts',
     body: 'export function bump(d: Date): Date {\n  d.setMonth(d.getMonth() + 1);\n  return d;\n}\n',
@@ -324,6 +337,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     gate: 'lint:local-dates',
+    expect: 'A calendar date routed through UTC',
     script: 'check-local-dates.ts',
     at: 'apps/rn/src/__gate_plant__.ts',
     body: "export const today = (d: Date): string => d.toISOString().slice(0, 10);\n",
@@ -331,6 +345,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     gate: 'lint:glossary',
+    expect: 'retired word(s) back in user-facing copy',
     script: 'check-glossary.ts',
     at: 'apps/rn/src/__gate_plant__.ts',
     body: "export const copy = 'You vanquished this debt, giving you breathing room.';\n",
@@ -338,6 +353,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     gate: 'lint:a11y-props',
+    expect: 'Native-only a11y props found',
     script: 'check-native-a11y-props.ts',
     at: 'apps/rn/src/__gate_plant__.tsx',
     body: 'export const P = () => <View accessibilityState={{ checked: true }} />;\n',
@@ -345,6 +361,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     gate: 'lint:type-scale',
+    expect: 'large figure(s) with no font-scale cap',
     script: 'check-type-scale.ts',
     at: 'apps/rn/src/__gate_plant__.tsx',
     body:
@@ -366,6 +383,7 @@ const SCENARIOS: Scenario[] = [
      * undone; an alias or a `.call` reaches it just as completely as a direct call does.
      */
     gate: 'lint:destructive',
+    expect: 'unsanctioned call(s) to',
     script: 'check-destructive-writes.ts',
     at: 'apps/rn/src/__gate_plant__.ts',
     body:
@@ -379,6 +397,7 @@ const SCENARIOS: Scenario[] = [
     // of it. ⚡ A single plant carrying all five would red on whichever is caught first and say
     // nothing about the rest — a plant that reds early never exercises the later ones.
     gate: 'lint:month-arithmetic [setUTCMonth]',
+    expect: 'A date stepped by months with setMonth/setFullYear',
     script: 'check-month-arithmetic.ts',
     at: 'apps/rn/src/__gate_plant__.ts',
     body: 'export function bump(d: Date): Date {\n  d.setUTCMonth(d.getUTCMonth() + 1);\n  return d;\n}\n',
@@ -391,6 +410,7 @@ const SCENARIOS: Scenario[] = [
     // of it. ⚡ A single plant carrying all five would red on whichever is caught first and say
     // nothing about the rest — a plant that reds early never exercises the later ones.
     gate: 'lint:month-arithmetic [setFullYear]',
+    expect: 'A date stepped by months with setMonth/setFullYear',
     script: 'check-month-arithmetic.ts',
     at: 'apps/rn/src/__gate_plant__.ts',
     body: 'export function nextYear(d: Date): Date {\n  d.setFullYear(d.getFullYear() + 1);\n  return d;\n}\n',
@@ -403,6 +423,7 @@ const SCENARIOS: Scenario[] = [
     // of it. ⚡ A single plant carrying all five would red on whichever is caught first and say
     // nothing about the rest — a plant that reds early never exercises the later ones.
     gate: 'lint:month-arithmetic [setUTCFullYear]',
+    expect: 'A date stepped by months with setMonth/setFullYear',
     script: 'check-month-arithmetic.ts',
     at: 'apps/rn/src/__gate_plant__.ts',
     body: 'export function nextYearUtc(d: Date): Date {\n  d.setUTCFullYear(d.getUTCFullYear() + 1);\n  return d;\n}\n',
@@ -415,6 +436,7 @@ const SCENARIOS: Scenario[] = [
     // of it. ⚡ A single plant carrying all five would red on whichever is caught first and say
     // nothing about the rest — a plant that reds early never exercises the later ones.
     gate: 'lint:month-arithmetic [constructorOverflow]',
+    expect: 'A date stepped by months with setMonth/setFullYear',
     script: 'check-month-arithmetic.ts',
     at: 'apps/rn/src/__gate_plant__.ts',
     body: 'export const shift = (d: Date, n: number): Date =>\n  new Date(d.getFullYear(), d.getMonth() + n, d.getDate());\n',
@@ -434,6 +456,7 @@ const SCENARIOS: Scenario[] = [
      * `unclassified` bucket every time somebody reformats a file.
      */
     gate: 'lint:copy [GAP-15-self-check]',
+    expect: 'the self-check above FAILED',
     script: 'strings-inventory.ts',
     args: ['--gate'],
     at: 'apps/rn/src/__gate_plant__.ts',

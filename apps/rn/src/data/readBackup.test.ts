@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { serializeBackup } from '@/data/backup';
 import { createDefaultStore } from '@/data/defaults';
-import { SYNTHETIC_LOSS_FIELDS, WHOLE_LIST_LOSS_FIELD, WHOLE_ROW_LOSS_FIELD } from '@/data/migrations';
+import { runMigrations, SYNTHETIC_LOSS_FIELDS, WHOLE_LIST_LOSS_FIELD, WHOLE_ROW_LOSS_FIELD } from '@/data/migrations';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
 import { describeBackup, describeLocalOverwrite, describeLosses, describeRestorePreview, readBackup, v16FileToLegacyItems } from '@/data/readBackup';
 
@@ -502,6 +502,83 @@ console.log(`✅ readBackup router tests passed (${passed} asserts).`);
   assert(listSaid !== rowSaid, '⛔ F-B3 — opposite-sized losses no longer produce the identical clause');
   assert(listSaid.includes('the whole debts list'), `⛔ F-B3 — a whole LIST names the list (got ${JSON.stringify(listSaid)})`);
   assert(rowSaid.includes('1 whole row'), `F-B3 — a whole ROW is still counted, which is right for it (got ${JSON.stringify(rowSaid)})`);
+
+  /**
+   * ⛔ **S1.12.5.3 [pass-5 `B5-3` · `B5-1`] — THE ROW ABOVE IS A WORD CHECK WEARING A COUNT CHECK'S
+   * SENTENCE, AND IT IS ASSERTED ON THE ONE ARITY WHERE THE DEFECT CANNOT APPEAR.**
+   *
+   * `"a whole ROW is still counted"` is satisfied by the literal string `1 whole row` over a **hand-built
+   * one-element** `pendingDataRepairs` — a fixture the producer cannot make, asserting a count of one
+   * against a list of length one. ⚡ Capping the count at 1 leaves the whole suite green; only changing
+   * the WORD reds it. Measured three ways by lane B.
+   *
+   * ⛔ **And the count really was capped.** A whole-row loss carries `id: ''`, `mergeRepairs` dedupes on
+   * `entity|id|field`, so nine lost debt rows collapsed to one record and the sentence one line above
+   * **Replace my data** read *"⚠️ 1 whole row could not be read"* — byte-identical to losing exactly one.
+   *
+   * ⚠️ **So these run through `runMigrations`, not through a hand-built array.** Nothing else distinguishes
+   * a fixture the app can produce from one it cannot, which is the gap that let a one-per-entity cap look
+   * like a working counter for two passes.
+   */
+  const migrated = (debts: unknown[], goals: unknown[] = []): DebtStore =>
+    runMigrations({ version: 99, debts, goals, requiredExpenses: [], livingExpenses: [] } as never) as DebtStore;
+  const okDebt = { id: 'd1', name: 'Visa', balance: 100, minimumPayment: 10, apr: 0, dueDate: '2026-06-01', type: 'debt', recurrence: 'monthly' };
+
+  const nine = describeLosses(migrated([okDebt, ...Array.from({ length: 9 }, () => null)]));
+  assert(nine.includes('9 whole rows'), `⛔ B5-1 — nine lost rows say NINE, not one (got ${JSON.stringify(nine)})`);
+  // ⭐ THE CONTROL that makes the row above mean something: the one-loss case must still say ONE. A counter
+  // that returned the list length, or any constant, satisfies "9 whole rows" and fails here.
+  const one = describeLosses(migrated([okDebt, null]));
+  assert(one.includes('1 whole row') && !one.includes('9'), `⭐ B5-1 control — one lost row still says one (got ${JSON.stringify(one)})`);
+  // ⛔ It counted ENTITIES, not rows: 5 bad debt rows + 4 bad goal rows reported "2 whole rows".
+  const across = describeLosses(migrated([okDebt, null, null, null, null, null], [null, null, null, null]));
+  assert(across.includes('9 whole rows'), `⛔ B5-1 — losses ACROSS entities sum, they do not count entities (got ${JSON.stringify(across)})`);
+  // ⭐ The field class already counted correctly and must not regress — the obvious repair (dropping `id`
+  // from the dedupe key) collapses these to one and would trade this working count for the broken one.
+  const nineAmounts = migrated(Array.from({ length: 9 }, (_, i) => ({ ...okDebt, id: `d${i}`, balance: 'not-a-number' })));
+  const amounts = describeLosses(nineAmounts);
+  assert(amounts.includes('9 amounts'), `⭐ B5-1 control — nine unreadable AMOUNTS still say nine (got ${JSON.stringify(amounts)})`);
+  /**
+   * ⭐ **THE CONTROL FOR THE REPAIR B NAMED AS DANGEROUS, and the sentence alone cannot carry it.**
+   * Dropping `id` from `mergeRepairs`' dedupe key is the obvious way to make row losses stop collapsing.
+   * ⚠️ **Measured: with the counts summed, that over-fix leaves the SENTENCE correct** — nine amounts still
+   * reads *"9 amounts"* — while nine per-debt records collapse into one. The card that names WHICH debts
+   * could not be read would then name one. So the record count is asserted, not just the wording.
+   */
+  const perDebt = nineAmounts.pendingDataRepairs.filter((r) => r.field === 'balance');
+  assert(
+    perDebt.length === 9,
+    `⭐ B5-1 control — nine unreadable balances stay NINE records, so the card can name each debt (got ${perDebt.length})`,
+  );
+  // ⭐ And a re-migration of an already-migrated store must not double it: the pending record and the fresh
+  // read are the same event being re-reported, not two losses.
+  const twice = describeLosses(runMigrations(migrated([okDebt, ...Array.from({ length: 9 }, () => null)]) as never) as DebtStore);
+  assert(twice.includes('9 whole rows'), `⭐ B5-1 control — re-migrating does not double the count (got ${JSON.stringify(twice)})`);
+
+  /**
+   * ⛔ **S1.12.5.3 [pass-5 `B5-2`] — A STALE `recovered` SHADOWED A FRESH `lost`, AND IT FAILED OPEN.**
+   *
+   * `mergeRepairs` iterated `pending` first and kept the first record it saw for a key, so a value that
+   * was RECOVERABLE on one read and is UNREADABLE on the next stayed labelled `recovered`. ⚡ Every guard
+   * that reads `kind` to decide *"is this number trustworthy"* then flips green over money the app can no
+   * longer read — the fail-open direction, on the one field that exists to say the opposite.
+   *
+   * Driven through two real migrations rather than by calling the merge directly: `'4,000'` is repaired by
+   * stripping its grouping (a `recovered`), and the second read finds the same field unreadable (a `lost`).
+   */
+  const recoverable = migrated([{ ...okDebt, balance: '4,000' }]);
+  const firstKind = recoverable.pendingDataRepairs.find((r) => r.field === 'balance')?.kind;
+  assert(firstKind === 'recovered', `B5-2 premise — a grouped number is RECOVERED on the first read (got ${String(firstKind)})`);
+  const nowUnreadable = runMigrations({
+    ...(recoverable as unknown as Record<string, unknown>),
+    version: 99,
+    debts: [{ ...okDebt, balance: 'not-a-number' }],
+  } as never) as DebtStore;
+  const secondKind = nowUnreadable.pendingDataRepairs.find((r) => r.field === 'balance')?.kind;
+  assert(
+    secondKind === 'lost',
+    `⛔ B5-2 — this read is the authority: a field that has become unreadable is LOST, not still "recovered" (got ${String(secondKind)})`,
+  );
   // The finding's case E: all three kinds at once, in one sentence, joined once.
   const all = describeLosses(withRepairs([wholeList, wholeRow, anAmount]));
   assert(all.includes('the whole debts list'), '⛔ F-B3 · case E — the list clause survives company');

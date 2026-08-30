@@ -293,6 +293,25 @@ export interface DataRepair {
    * `migrations.ts`.
    */
   kind?: 'recovered' | 'lost';
+  /**
+   * ⛔ **HOW MANY LOSSES THIS RECORD STANDS FOR. [S1.12.5.3 · pass-5 `B5-1`]**
+   *
+   * ⚡ A whole-row loss has no id to key on — `repairMoneyFields` writes `id: ''`, because there was no
+   * id to read — and `mergeRepairs` dedupes on `entity|id|field`. So **every row loss inside one entity
+   * collapsed to a single record**, and the sentence shown one line above **Replace my data** counted
+   * records. Measured: a backup holding **10 debts of which 9 were unreadable** produced *"⚠️ 1 whole row
+   * in this backup could not be read"* — **byte-identical** to a file that lost exactly one. The reader
+   * was told they were losing 1 row while losing 9, under *"It can't be undone"*, over a live portfolio.
+   *
+   * ⚠️ **The dedupe key is deliberately unchanged.** Dropping `id` from it — the obvious repair — makes
+   * field-level repairs on different rows share `entity|field` and collapse, which breaks the *"9 amounts"*
+   * count that works correctly today. The magnitude rides on the record instead, so one record still means
+   * one card and the number survives the merge.
+   *
+   * ⚠️ Optional and absent-means-1, so every stored blob backfills without a version bump — the same shape
+   * as `acknowledged` and `kind`.
+   */
+  count?: number;
 }
 
 /**
