@@ -1893,5 +1893,59 @@
       "measured": "2026-08-30",
       "sha": "c81e845d"
     }
+  },
+  "S1P5-A5-3-APRBOUND": {
+    "what": "pass-5 A5-3 (major) - the scanner's `aprNum <= 100` bound could not fire: both captures were \\d{1,2}, so 99.99 was the largest reachable value. And the trailing-label pattern was unanchored on its left, so a 3-digit rate slid one digit right and matched its tail. Measured: '129.99% APR' -> 29.99, and '399.00% annual percentage rate' -> 99 (worse than the finding reported). A payday rate prefilled 300 points low, with nothing marking it inferred. Captures widened to \\d{1,3} + a lookbehind, so the bound now does the rejecting it always claimed to. Whether 100 is the right ceiling is deliberately NOT answered - refusing is the conservative half and is what closes the false number.",
+    "file": "packages/core/scan/testParseStatementText.ts",
+    "token": "a 3-digit rate BEFORE the label is refused, not read as 29.99",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/scan/parseStatementText.ts",
+          "find": "/(?<![\\d.])(\\d{1,3}(?:\\.\\d{1,2})?)\\s*%\\s*(?:apr|annual percentage rate)/i,",
+          "replace": "/(\\d{1,2}(?:\\.\\d{1,2})?)\\s*%\\s*(?:apr|annual percentage rate)/i,"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "a 3-digit rate BEFORE the label is refused",
+      "measured": "2026-08-30",
+      "sha": "8ee70449"
+    }
+  },
+  "S1P5-A5-6-PROJBNPL": {
+    "what": "pass-5 A5-6 (major) - buildMultiCycleTimeline's PROJECTED-cycle BNPL scaling was asserted by nothing; deleting it was invisible to all three suites while every projected cycle's ending balance read $100 too high - money already committed, shown back as cushion. The fixture constraint IS the finding: lane A's first two fixtures used a $3,000 paycheck, which lets the snowball clear the BNPL in cycle 0 so the projected line is never reached, and it nearly filed the line as dead. The guard's paycheck is deliberately tight. Covers :197 only; cycle 0's scaling at :137 is a separate call site. NOTE: the blanket-scaling over-fix is caught by TWO pre-existing controls in testBnplInstallment.ts that fire before this row, so this row's own ability to catch that over-fix is unverified - what it uniquely covers is the PROJECTED path.",
+    "file": "packages/core/testing/testMultiCycleTimelineRegression.ts",
+    "token": "so the projected minimum is $300, never the unscaled $100",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/timeline/buildMultiCycleTimeline.ts",
+          "find": "const scaledProjDebts = scaleBnplMinimumsForWindow(projDebts, cycleWindowStart, projNextDate);",
+          "replace": "const scaledProjDebts = projDebts;"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "so the projected minimum is $300, never the unscaled $100",
+      "measured": "2026-08-30",
+      "sha": "8ee70449"
+    }
+  },
+  "S1P5-A5-7-CLAMPHONEST": {
+    "what": "pass-5 A5-7 (minor, second-order half) - testFullAppRegression framed a loop as a money property ('running cash should only ever be >= 0') over a field buildTimelineItems.ts:160 clamps by construction, so it could not fail; its sibling in testMultiCycleTimelineRegression says 'must be CLAMPED at 0', which is honest. AND the loop ran on a $1,500-vs-$540 fixture that never reaches the clamp, so it was vacuous twice over. Re-framed to say what it checks, plus a TIGHT fixture asserting the pair: the ledger clamps, and the engine still reports the shortfall the clamp conceals. NOTE: removing the shortfall reds an upstream basicShortfall assertion first, so that half was already guarded; this row's contribution is the PAIRING. Whether the ledger should SHOW the negative is [DECISION] S1.12.7, not settled here.",
+    "file": "packages/core/testing/testFullAppRegression.ts",
+    "token": "runningCash is clamped even when the cycle is $600 short",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/timeline/buildTimelineItems.ts",
+          "find": "runningCash: Math.max(0, runningCash)",
+          "replace": "runningCash"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "runningCash is clamped even when the cycle is $600 short",
+      "measured": "2026-08-30",
+      "sha": "8ee70449"
+    }
   }
 }
