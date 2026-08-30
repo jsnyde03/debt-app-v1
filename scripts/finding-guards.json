@@ -2065,7 +2065,7 @@
         {
           "at": "scripts/check-cap-literals.ts",
           "find": "const DECL = /^[^\\S\\n]*(?:export\\s+)?const\\s+((?:MAX|MIN)_[A-Z0-9_]+)\\s*(?::[^=;]+)?=\\s*([\\s\\S]*?);[ \\t\\r]*$/gm;",
-          "replace": "const DECL = /^[^\\S\\n]*(?:export\\s+)?const\\s+((?:MAX|MIN)_[A-Z0-9_]+)\\s*(?::[^=;]+)?=\\s*(.*?);[ \\t\\r]*$/gm;"
+          "replace": "const DECL = /^[^\\S\\n]*(?:export\\s+)?const\\s+((?:MAX|MIN)_[A-Z0-9_]+)\\s*(?::[^=;]+)?=[ \\t]*([^;\\n]*?);[ \\t\\r]*$/gm;"
         },
         {
           "at": "scripts/check-finding-guards.ts",
