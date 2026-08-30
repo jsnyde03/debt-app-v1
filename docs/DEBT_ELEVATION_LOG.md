@@ -29046,3 +29046,58 @@ because nobody read it, but because nothing records whether anyone did."* ⚡ Th
 measured independently during classification, from a different direction.
 
 Net for both: typecheck ×4 · `lint:rn` **40/40** · `test:regression` + `test:app` + `test:scenarios`, green.
+
+---
+
+## 2026-08-30 — [DECISION] S1.12.6 ANSWERED: coverage, not route size
+
+🎯 *"Coverage is what I want. Not unneeded files."* **The `neighbour` seed is NOT widened.**
+
+The question was whether to seed the import neighbourhood with `changed union first-look union
+s0-first-look`, closing `D5-8`'s remaining half at ~+18% route size. The answer reframes the metric, and
+the reframing is right: **the number that matters is files actually READ, not files routed.**
+
+### What the route is actually made of, measured
+
+| files | share | what |
+|---|---|---|
+| **212** | 53.9% | **money / app code** |
+| 72 | 18.3% | tests / harnesses |
+| 38 | 9.7% | instruments (`scripts/`) |
+| 34 | 8.7% | theme / motion / UI primitives |
+| 24 | 6.1% | demo / sandbox / tutorial |
+| 8 | 2.0% | screenshot fixtures |
+| **5** | 1.3% | **the legacy root surface — `5.5.1` DELETES it** |
+
+And what pass 5 evidenced reading, per bucket:
+
+| read | of | | |
+|---|---|---|---|
+| **91** | **212** | **43%** | money / app code |
+| 19 | 38 | 50% | instruments |
+| 4 | 72 | 6% | tests / harnesses |
+| **0** | **71** | **0%** | theme · demo/sandbox/tutorial · shot fixtures · legacy root |
+
+⚡ **The four lanes were already voting with their attention.** Not one of the 71 files that cannot carry
+a money claim was read by anybody — including five on a surface a later step **deletes**. Auditing those
+is not coverage, it is spend.
+
+⛔ **So the gap is 121 unread MONEY files, not 82 unrouted neighbours.** Widening the seed would have added
+~82 files to a round that had already left 121 of the ones that matter unread. Declining it is not thrift;
+it is refusing to buy more of what was not being consumed.
+
+### What this makes pass 6
+
+Two changes, both scoped by the decision rather than by me:
+
+1. **Prune what cannot carry a money claim** — and derive it mechanically (does the file contain a
+   money-bearing expression, or import a path to one), **never as a directory enumeration**. A typed
+   category list is the exact class that has failed eight times in this repo.
+2. ⛔ **Per-file coverage becomes a CHECKABLE EXIT, not lane prose.** Today each lane self-reports its gaps
+   in a paragraph and the classification is hand-derived afterwards — which is how "32% of the route" became
+   something discovered at write-up rather than known during the round. A round should not be able to close
+   with a routed file carrying no verdict.
+
+⚠️ **And the 121 unread money files are a live risk now, not only a pass-6 concern.** `PaydayGuardianCard.tsx`
+— 712 lines, `fix-churn`, the subject of pass-4 `C4-5` and `C4-7` — is among them, and lane C's own words
+were *"the one I would send the next reader to first."*
