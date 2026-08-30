@@ -26,7 +26,7 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.12.5 · FIX PASS 5 BY CLASS — 39 findings, 8 classes, instruments first**
+## ▶ RIGHT NOW — **S1.12.5.3 · CLASS III — a check that cannot fail** *(CLASS I + II closed)*
 
 **Surface S1 · money · goals · plan cards.** Passes 1–3 run and fully fixed. **Pass 4 run at `e65f9c7` by four fresh agents → 8 blockers · 19 majors · 7 minors across 217 files** ([`SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md)). ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next first-candidate and a clean pass 5 still owes a pass 6.** ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
@@ -104,14 +104,15 @@ and five would have INTRODUCED one. Verify against current code before writing a
 
 | # | sub-step | exit line |
 |---|---|---|
-| ▶ **S1.12.5.1** | **CLASS I — the proof machinery does not execute.** `D5-1` `D5-4` `D5-3` `D5-2` `D5-11` | `prove:guards --all` executes, sits in a chain, records what it ran, and **passes** |
-| **S1.12.5.2** | **CLASS II — route & coverage integrity.** `D5-10` *(a rejected lint still writes the inventory, and the route then upgrades a swept file to `first-look` — corruption toward EASIER convergence)* · `D5-8` *(72 files adjacent to never-swept files reach no lane)* · `D5-6` *(a green `lint:rn` dirties the tree where `git diff` shows nothing)*. ⚠️ Includes a home for the **50 routed files in NEITHER claims file** | a rejected gate writes nothing; `neighbour` seeds from never-swept too; `lint:rn` leaves the tree clean |
-| **S1.12.5.3** | **CLASS III — a check that cannot fail.** `A5-2` `A5-3` `A5-6` `A5-7` `B5-1` `B5-3` `D5-5` `D5-7` | each reds on its own defect **and** on the naive over-fix |
+| ✅ **S1.12.5.1** | **CLASS I CLOSED 2026-08-30.** `D5-1` `D5-4` `D5-3` `D5-2` `D5-11` + `D5-5`. ⭐ **The registry carries 54 recorded executions where it carried ZERO**; the 12 left are the playwright and whole-monorepo-typecheck proofs this round forbids. ⛔ Executing found **5** unattributable proofs, not D's 3 — and **none had the mechanism D hypothesised**: one planted the wrong defect, one named a sentence absent from the tree, one matched the ENOENT of its own un-fix. Detail → log | CLOSED |
+| ✅ **S1.12.5.2** | **CLASS II CLOSED 2026-08-30.** `D5-10` *(the write now sits BELOW the refusal, the inventory is stamped with a hash of its CLAIMS FILE, and the route checks it first — lane D's own plant now exits 1 where it measured exit 0 with a swept file promoted to `first-look`)* · `D5-6` *(**a full green `lint:rn` now leaves the tree at 0 modified files**)* · `D5-8` *(the seed is NOT widened — the false sentence is: the route prints the **82** unseen neighbours and the **50** files no claims file owns)*. Detail → log | CLOSED |
+| ▶ **S1.12.5.3** | **CLASS III — a check that cannot fail.** `A5-2` `A5-3` `A5-6` `A5-7` `B5-1` `B5-3` `D5-7`. ⚠️ `D5-5` closed inside CLASS I *(it is the same function)*, and a sixth member surfaced there — a `test:gate-plants` scenario whose `expect` was satisfied by its own crash | each reds on its own defect **and** on the naive over-fix |
 | **S1.12.5.4** | **CLASS IV — a population that is an enumeration.** `D5-13` `D5-9` `D5-12` `B5-7` `B5-12` `B5-8` `C5-1` `C5-5`. ⚡ D's prescription adopted: **enumerate what is ACCOUNTED FOR and refuse the remainder** | one pattern, applied at every site; a new member joins or the gate reds |
 | **S1.12.5.5** | ⛔ **CLASS V — CADENCE, the biggest money class.** `A5-1` `A5-5` `C5-4`. A monthly payer is shown **July 2026** against a true **January 2027**, charged **3×** for one "Every paycheck" bill, and told of a **$100 shortfall over $250 of spare cash**. ⚠️ `C5-4` **cannot be fixed alone** | **one identity over 7 × 4 cadence pairs** — it must find `A5-1` and `A5-5` without either being named |
 | **S1.12.5.6** | **CLASS VI — two producers, one corrected.** `C5-2` *(widget/Siri **$2,513** below the app on one store)* · `C5-3` · `A5-4`. ⛔ **`C5-2`'s own remedy was planted and left the suite GREEN**, and must not project `live`/`cleared` or "Debt-free" reaches the Home Screen unconfirmed | one assertion that every external claim site agrees with the app's own figure |
 | **S1.12.5.7** | **CLASS VII — id & record lifecycle (data loss).** `B5-9` *(a re-issued id moves **$500** onto the wrong debt and four more records follow it)* · `B5-2` | no id the store still references can be re-minted |
 | **S1.12.5.8** | **CLASS VIII — copy, formatting, stale premises.** `B5-4` `B5-5` `B5-6` `B5-10` `B5-11` `B5-13` `C5-6` `D5-14` | each closed or refuted with a reason |
+| **S1.12.6** | ⛔ **[DECISION] 🎯 — widen the `neighbour` seed to `changed ∪ first-look ∪ s0-first-look`?** It closes `D5-8`'s remaining half and adds **~18%** to every future round. **Recommendation: NO, not for pass 6** — pass 5 read **32% of the 393 files it was given**, so a wider seed buys unread files rather than coverage; widen once a round can show it read what it was handed. The route now names the 82 either way | a yes/no, recorded here |
 | **S1.12.5.9** | **THE NET** — typecheck ×4 · `lint:rn` end to end · three unit suites · full e2e + embed · CI | net green and pushed; ⛔ **no `gate:record`** — [D74] writes it at convergence and pass 5 did not converge |
 
 **Exit (S1.12):** pass 5 recorded and fixed. ⛔ **Convergence still requires a clean pass 6** — a 0/0 pass 5

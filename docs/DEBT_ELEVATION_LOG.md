@@ -28917,3 +28917,132 @@ larger heap — which is the failure that killed pass 4's dispatch.
 ⚡ **D5-6 reproduced in this session's own work:** running the coverage gates left `git status` reporting
 `M` on two committed inventories while `git diff --ignore-cr-at-eol` showed nothing. Confirmed with a
 control on the pre-pass-5 claims, which produced the same CRLF-only dirt.
+
+
+---
+
+## 2026-08-30 — S1.12.5.1 · CLASS I: the proof ledger had never executed
+
+`S1.11.3` closed on *"the guard ledger is evidence now."* Pass 5's lane D executed `prove:guards`, which
+nobody had done, and found **66 of 66 proofs reading `never run`**: `measured`/`sha` were written only by
+a `--record` flag no npm script and no workflow ever passed, and `--all` sat in no chain. So the
+`MAX_UNPROVEN` ratchet drained as JSON was **authored**, not as proofs were **executed** — while the gate's
+green line said *"66 carry a re-runnable proof"* and three passes read that as 66 closures.
+
+⭐ **The registry now carries 54 recorded executions where it carried zero.** The 12 that remain are the 11
+playwright proofs and the whole-monorepo typecheck — the commands this round's own resource rules forbid,
+which is itself a conflict worth naming rather than skipping silently.
+
+### What executing them found, and it was not what was predicted
+
+⛔ **5 proofs were unattributable, not the 3 lane D reported** — and D said so: its count was a lower bound
+and *"only executing can tell you which are safe."* The two extra were invisible to a read. `S1P3-M4` came
+back **MATCHED** in pass 5's own run; `S1P4-D4-12-LEDGERCLAIM` had never been executed by anyone.
+
+⚡ **And none of the five had the mechanism D hypothesised.** D's stated cause was *"an earlier assertion
+sits upstream in a fail-fast suite."* That was true for two. The other three:
+
+- **`S1P3-M4`'s un-fix planted the wrong defect.** Its `replace` was a greedy point-collapse — **A-F2's**
+  defect — not m4's separator strip. `'12.50'` still returned `'12.50'`, so m4's own rows passed and A-F2's
+  redded. It could never have been attributable. Re-derived to `[^0-9]`.
+- **`S1P3-G5-SAVINGSPOOL`'s `expect` named a sentence that exists nowhere in the tree** — grep returns the
+  registry and nothing else — and its un-fix disabled `selectSavingsPoolUnread` wholesale, which `C4-5`'s
+  **direct** assertion rightly caught first. Re-derived to the offer-block regression the finding actually
+  describes, and the `expect` to the guard's own message.
+- **`S1P4-D4-12-LEDGERCLAIM`'s `expect` was the fixture FILENAME**, which appears in the `ENOENT` its own
+  un-fix throws. So `test:gate-plants [D3-4-blob]` printed `✅ … reason=MATCHED` under the exact un-fix it
+  exists to catch: **the gate redded by CRASHING, not by detecting**, and nothing could tell them apart.
+  The scenario's `expect` is now the gate's detection sentence, measured passing clean and WRONG under the
+  un-fix. ⛔ D4-12's own recorded claim — *"only `test:gate-plants [D3-4-blob]` reds"* — was measured
+  **false** at this tree and is corrected in the registry.
+
+The two genuine fail-fast cases were fixed by ordering, not by weakening: `A-F3`'s fixture is itself a
+fallback BNPL so it depends on A4's fix, and `paywallLead`'s cross-surface sweep ran 164 files before the
+unit's own suite. **Neither assertion was weakened and no fixture changed** — changing either would change
+which member of its class it covers. Both directions were then measured, so the swap is not zero-sum.
+
+### D5-5, and the fix that was the same defect again
+
+`wrong-reason` was `withPlant.out.includes(expect)`, and both suites print a passing row as `✓ <label>` —
+so for **26 of 50 checkable proofs the string was already in the fully green output.**
+
+⚠️ **The first fix was a failure-marker list** (`/FAIL \[|Error:|❌/`), lifted from the private filter
+`prove-guards.ts` already used for printing. **The harness's own hermetic probe refuted it in one run**:
+`prove-guards-probe.mjs` reds with `PROBE: the guard is gone`, which carries none of those markers, and all
+three self-test controls flipped. ⛔ **A marker list is an enumeration of spellings — the class being fixed.**
+
+⭐ The discriminator that shipped is not what a line looks like but **whether the plant introduced it**:
+`expect` must appear in a line the planted run produced and the control did not. Compared on a normalised
+key (ANSI stripped, digits folded) so a duration cannot make an unchanged line read as new — the permissive
+direction. ⚡ **Predicted 26 vacuous; measured 5 unattributable.** Both are right: the 26 could not have
+failed *as implemented*, and 21 of them are attributable once the question is asked properly.
+
+### A ratchet I got wrong, measured twice
+
+`MAX_AUTHORED` shipped as strict equality like its siblings. But this counter drains when a **command**
+runs, not when a human edits JSON — so the gate is red for the whole interval between running a proof and
+editing the cap. It bit twice: once on the 66 → 17 batch, and again at 17 → 13 where it surfaced as a nested
+`control=exit 1` inside `test:gate-plants` and read as **a defect in an unrelated proof**. It is a ceiling
+now, and its note states exactly what that gives up: a new authored entry can hide in the gap, while
+`MAX_UNPROVEN` stays strict and catches a new closure arriving without a proof.
+
+`D5-11`: `SOURCE_EXT` had a byte-identical second copy under a comment claiming *"kept in sync by the
+assertion at the bottom"* — there is no such assertion, in that file or anywhere, in the very file whose
+neighbours (`F-B1`, `A-F1`) are that exact failure. One producer now. ⚠️ D's stated risk — that importing
+would disturb the module graph — is **measured false**: that consumer already imported from the module, and
+`lint:import-graph` and `lint:scan-floors` are both green.
+
+---
+
+## 2026-08-30 — S1.12.5.2 · CLASS II: the route could be corrupted toward easier convergence
+
+### D5-10 had three halves and needed all three
+
+The `writeFileSync` sat **above** the gate's own `missing`/`stale` refusal, so a run that **rejected** the
+tree still published its inventory. Lane D's measurement: delete one claims entry, `lint:s1-coverage` exits
+1 having already written a document that lists the file as unswept — and `audit-route --check` then read it
+at **exit 0** and routed a swept file as `first-look`, **which [D69] exempts from the convergence count.**
+⛔ **A gate whose rejected output makes convergence easier to declare is worse than no gate.**
+
+Moving the write below the refusal is necessary and not sufficient — D said so, and it is right: it leaves
+a **stale** inventory instead of a wrong one, and `readInventory` could not tell those apart either. Every
+check it had was **internal**: parsed rows against the totals line the same generator wrote, which a
+wrong-but-self-consistent document passes perfectly.
+
+⭐ So the inventory is now **stamped with a hash of its claims file**, and `readInventory` checks it before
+parsing anything else. ⚠️ Hashed on the **data**, not on the git sha — a sha stamp changes every commit, so
+the document would be rewritten on every run and `D5-6`'s dirty tree would come straight back.
+
+**Planted, and all three halves verified:** the gate exits 1 · the inventory is **untouched** · the route
+exits 1 naming the stale stamp. Lane D measured that same plant as exit 0 with `69 first-look`.
+
+### D5-6, verified on the condition that actually matters
+
+The write was unconditional and the file is committed **CRLF** while the generator emits **LF**, so a fully
+green `lint:rn` left `git status` reporting `M` and `git diff` reporting **nothing**, every run, on every
+Windows checkout — the exact camouflage a left-behind plant needs, and an invitation to `git checkout -- .`,
+this repo's recorded way of throwing an uncommitted fix away with the noise. CI checks out LF, so it could
+never see it.
+
+It now writes only when the LF-normalised content differs. ⭐ **Measured after committing, which is the only
+state that proves it: a full green `lint:rn` leaves the tree at 0 modified files.** ⛔ Not fixed via
+`.gitattributes -text`, which would make the committed bytes machine-dependent — the class
+`lint:line-endings` exists to refuse.
+
+### D5-8 — the seed is not widened, and the sentence is fixed instead
+
+`neighbour` was added because every other bucket is a predicate on `changed` — and it was then **seeded with
+`changed`**, so the identical half-blindness survives on the other axis. Lane D measured 72 files reachable
+from a never-swept file and routed to nobody; at this tree the number is **82**.
+
+⛔ **Widening the seed is a dispatch decision, not a code fix** — D said so explicitly, and it adds ~18% to
+every future round. Pass 5 read **32% of the 393 files it was given**, so a wider seed buys unread files
+rather than coverage. Raised as **[DECISION] S1.12.6** with the recommendation to decline for pass 6.
+
+What is fixed is the false claim. *"393 files · 0 unrouted · 0 owed"* is what the dispatch, the brief and
+four manifests repeat, and a reader takes it as coverage. The route now prints the **82** unseen neighbours
+and — separately — the **50 routed files no claims file owns**, where [D69] would exempt a finding *"not
+because nobody read it, but because nothing records whether anyone did."* ⚡ That 50 matches the number
+measured independently during classification, from a different direction.
+
+Net for both: typecheck ×4 · `lint:rn` **40/40** · `test:regression` + `test:app` + `test:scenarios`, green.
