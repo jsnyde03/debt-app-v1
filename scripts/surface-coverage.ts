@@ -59,8 +59,11 @@
  * Usage: npm run lint:s0-coverage · npm run lint:s1-coverage   ·   `--report` prints the full table
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
+
+import { lf } from './lib/anchor';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 const REPORT = process.argv.includes('--report');
@@ -648,6 +651,13 @@ if (REPORT) {
 }
 
 // ── the inventory, regenerated so the doc can never disagree with the data ────────────────────────
+/**
+ * The fingerprint of the DATA this document is generated from, normalised to LF so it is identical on
+ * a CRLF checkout and in CI. `audit-route.ts` recomputes it and refuses an inventory whose stamp does
+ * not match the claims file it claims to describe — see the stamp's own note below (D5-10).
+ */
+const claimsHash = createHash('sha256').update(lf(readFileSync(CLAIMS_FILE, 'utf8'))).digest('hex').slice(0, 16);
+
 const lines = [
   `# ${SURFACE.title}`,
   '',
@@ -675,9 +685,32 @@ const lines = [
   '',
   ...(unswept.length ? unswept.map((f) => `- \`${f}\``) : ['*(none)*']),
   '',
+  /**
+   * ⛔ **S1.12.5.2 [pass-5 D5-10] — THE STAMP, SO A CONSUMER CAN TELL CURRENT FROM STALE.**
+   *
+   * `audit-route.ts` used to validate this document against **its own stated totals** — an internal
+   * consistency check, which a wrong-but-self-consistent inventory passes perfectly. Moving the write
+   * below the refusal (see below) stops a REJECTED run from publishing one, but it leaves the other
+   * half open: the file on disk is then **stale**, and nothing could distinguish stale from current.
+   *
+   * ⚠️ **Hashed on the CLAIMS FILE, not on the git sha.** A sha stamp changes every commit, so the
+   * document would be rewritten on every run and `D5-6`'s dirty tree would come straight back. This
+   * changes exactly when the data it describes changes, which is the property a consumer needs.
+   */
+  `<!-- claims-sha256: ${claimsHash} -->`,
+  '',
 ];
-writeFileSync(INVENTORY, `${lines.join('\n')}\n`, 'utf8');
 
+/**
+ * ⛔ **S1.12.5.2 [pass-5 D5-10] — THE REFUSAL COMES FIRST NOW.**
+ *
+ * The write used to sit ABOVE this block, so a run that **rejected** the tree still published its
+ * inventory. Measured by lane D: delete one entry from the claims file, and `lint:s1-coverage` exits 1
+ * while having already written a document that moves the file into the Unswept list — then
+ * `audit-route --check` reads it at **exit 0** and routes that file as `first-look`, which **[D69]
+ * exempts from the convergence count.** ⚡ A gate whose rejected output can quietly make convergence
+ * EASIER to declare is worse than no gate.
+ */
 if (missing.length || stale.length) {
   console.error(`\n❌ ${SURFACE.gate}: the recorded claims do not describe the ${requested.toUpperCase()} surface.\n`);
   // Every entry, not a sample — an omitted line here is a file whose coverage nobody has decided.
@@ -689,6 +722,27 @@ if (missing.length || stale.length) {
       `  Edit ${relative(REPO_ROOT, CLAIMS_FILE)}.\n`,
   );
   process.exit(1);
+}
+
+/**
+ * ⛔ **S1.12.5.2 [pass-5 D5-6] — WRITE ONLY IF IT CHANGED, COMPARED IN LF ON BOTH SIDES.**
+ *
+ * ⚡ The write was unconditional, and this file is committed **CRLF** while the generator emits **LF**.
+ * So a fully green `npm run lint:rn` ended with `git status` reporting `M` and `git diff` reporting
+ * **nothing** — every run, on every Windows checkout. Two consequences, both measured: the two commands
+ * a session uses to ask *"did I leave something behind?"* disagreed, which is exactly the camouflage a
+ * **left-behind plant** needs; and the habitual cure for unexplained dirt is `git checkout -- .`, this
+ * repo's recorded way of throwing an uncommitted fix away with the noise.
+ *
+ * ⚠️ **CI could never see it** — CI checks out LF, so the write was a byte no-op there. That is
+ * `anchor.ts`'s own documented shape running backwards: **dirty where it is run, invisible where it is
+ * checked.** ⛔ Not fixed by adding these files to `.gitattributes` as `-text`: that makes the committed
+ * bytes machine-dependent, which is the class `lint:line-endings` exists to refuse.
+ */
+const nextInventory = `${lines.join('\n')}\n`;
+const prevInventory = existsSync(INVENTORY) ? readFileSync(INVENTORY, 'utf8') : null;
+if (prevInventory === null || lf(prevInventory) !== lf(nextInventory)) {
+  writeFileSync(INVENTORY, nextInventory, 'utf8');
 }
 
 console.log(`✅ ${SURFACE.gate}: ${files.length} surface files classified · ${unswept.length} unswept.`);

@@ -77,11 +77,13 @@
  * tracked non-prose file that reached no bucket at all.
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
 // ⛔ S1.11.6.2 — the import neighbourhood, in a module with no side effects so `test-import-graph` can
 // assert the resolver directly. See its header for why a route built on `changed` alone is half-blind.
+import { lf } from './lib/anchor';
 import { buildImportGraph, neighbourhood } from './lib/importGraph';
 import { fileURLToPath } from 'node:url';
 
@@ -95,6 +97,16 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const INVENTORY: Record<string, string> = {
   s0: 'docs/audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-SURFACE-INVENTORY.md',
   s1: 'docs/audits/2026-08-26-s1-money/S1-SURFACE-INVENTORY.md',
+};
+
+/**
+ * The DATA behind each inventory. ⛔ S1.12.5.2 [D5-10] — `readInventory` hashes this and requires the
+ * document's stamp to match, so an inventory that has gone stale under its own claims file is refused
+ * rather than routed from. Kept beside `INVENTORY` because the two are one fact in two halves.
+ */
+const CLAIMS: Record<string, string> = {
+  s0: 'scripts/surface-coverage.s0.json',
+  s1: 'scripts/surface-coverage.s1.json',
 };
 
 /**
@@ -146,6 +158,39 @@ function readInventory(surface: string): Inventory {
   const abs = join(REPO_ROOT, rel);
   if (!existsSync(abs)) die(`${rel} does not exist — run \`npm run lint:${surface}-coverage\` first.`);
   const text = readFileSync(abs, 'utf8');
+
+  /**
+   * ⛔ **S1.12.5.2 [pass-5 D5-10] — THE STAMP IS CHECKED BEFORE ANYTHING ELSE IS PARSED.**
+   *
+   * ⚡ Every check below this point is INTERNAL: parsed rows against the totals line the same generator
+   * wrote. A wrong inventory is perfectly self-consistent, so all of them pass. Lane D measured the
+   * consequence: delete one entry from the claims file and `lint:s1-coverage` exits 1 — while having
+   * already written a document that lists the file as unswept — and then this function read it at
+   * **exit 0** and routed a swept file as `first-look`, **which [D69] exempts from the convergence
+   * count.** ⛔ The corruption moved in the direction that makes convergence EASIER to declare, with
+   * every number on the route's success line still green.
+   *
+   * The generator now writes below its own refusal, so a rejected run publishes nothing. That leaves
+   * **stale** — and this is what tells stale from current: the stamp is a hash of the CLAIMS FILE, so
+   * it stops matching the moment the data moves under the document.
+   */
+  const stamp = /<!-- claims-sha256: ([0-9a-f]{16}) -->/.exec(text);
+  if (!stamp) {
+    die(
+      `${rel} carries no claims stamp. Regenerate it with \`npm run lint:${surface}-coverage\`.\n` +
+        '   ⛔ An unstamped inventory predates D5-10 and cannot be told apart from one a REJECTED gate run left behind.',
+    );
+  }
+  const claimsRel = CLAIMS[surface];
+  const actual = createHash('sha256').update(lf(readFileSync(join(REPO_ROOT, claimsRel), 'utf8'))).digest('hex').slice(0, 16);
+  if (stamp[1] !== actual) {
+    die(
+      `${rel} is STALE: its stamp says the claims were ${stamp[1]}, and ${claimsRel} is now ${actual}.\n` +
+        `   ⛔ Routing from it would describe coverage that no longer exists — and a file wrongly read as\n` +
+        `   unswept becomes \`first-look\`, which [D69] exempts from the convergence count.\n` +
+        `   Run \`npm run lint:${surface}-coverage\` and re-run this.`,
+    );
+  }
 
   const totals = /\*\*(\d+) files on the \S+ surface · (\d+) swept · (\d+) unswept\.\*\*/.exec(text);
   if (!totals) die(`${rel} has no totals line — the generator's format changed and this parse is stale.`);
@@ -419,6 +464,60 @@ function main(): void {
   );
   console.log(`   by origin: ${ORIGINS.map((o) => `${counts[o]} ${o}`).join(' · ')}`);
   console.log(`   surface: ${inv.statedTotal} files (${inv.statedUnswept} unswept) · S0: ${s0.statedTotal} files`);
+
+  /**
+   * ⛔ **S1.12.5.2 [pass-5 D5-8] — WHAT THE NEIGHBOURHOOD STILL CANNOT SEE, PRINTED RATHER THAN IMPLIED.**
+   *
+   * `neighbour` was added because every other bucket is a predicate on **changed**, so a two-producer
+   * disagreement is half-routed by construction. ⚡ **It was then SEEDED with `changed`** — so the
+   * identical half-blindness survives on the other axis: a file that has **never been swept by any pass**
+   * does not pull its neighbourhood in either, and a disagreement between a never-swept producer and a
+   * swept-unchanged sibling is still invisible from the side that did not move. Lane D measured **72**
+   * such files, and they are money screens — `PlanHero.tsx`, `RecoveryPlanSection.tsx`, `TimelineLedger.tsx`.
+   *
+   * ⚠️ **The seed is NOT widened here, and that is deliberate.** Doing so adds ~18% to every future round,
+   * and pass 5 read **32% of the 393 files it was given** — so a wider seed buys unread files, not
+   * coverage. That is a dispatch decision and it is [DECISION] S1.12.6 on the plan, not a silent code change.
+   *
+   * ⛔ **What IS fixed is the sentence.** *"N routed · 0 unrouted · 0 owed"* is what a dispatch, a brief and
+   * four manifests repeat, and a reader takes it as coverage. The line below states the blind spot in the
+   * same breath, so the claim can no longer over-read.
+   */
+  const unsweptSeed = new Set([...inv.unswept, ...s0.unswept].filter((f) => !NOT_CODE.test(f)));
+  const fromUnswept = neighbourhood(graph, unsweptSeed, sourceFiles);
+  const unseen = [...fromUnswept.consumers, ...fromUnswept.siblings].filter((f) => !laneOf.has(f) && !NOT_CODE.test(f)).sort();
+  console.log(
+    `   ⛔ blind spot: ${unseen.length} file(s) sit in the import neighbourhood of a NEVER-SWEPT file and reached no lane.\n` +
+      `      The neighbourhood is seeded with CHANGED only, so this route cannot speak for them. See [D5-8].`,
+  );
+  /**
+   * ⛔ **S1.12.5.2 — ROUTED, BUT OWNED BY NO CLAIMS FILE, AND [D69] TREATS THAT AS AN EXEMPTION.**
+   *
+   * A routed file that appears in neither `surface-coverage.s0.json` nor `.s1.json` has **no record of
+   * whether anyone ever read it** — so a finding on it is exempted from the convergence count not because
+   * nobody swept it, but because **there is no file in which to say whether anyone did.** ⚡ Pass 5
+   * measured 50 such files, and two of them carried findings: `readBackup.ts` a **blocker**, and
+   * `parseStatementText.ts` a **major**.
+   *
+   * ⚠️ The standing fix is `S1.10.6.10` — S2/S3/S4 have no claims file at all, and creating them is that
+   * surface's setup, not this route's job. What belongs here is the COUNT, printed every run, so the hole
+   * is a number a dispatch reads rather than something a synthesis has to rediscover.
+   */
+  const claimed = new Set([...inv.files, ...s0.files]);
+  const homeless = [...origin.keys()].filter((f) => !claimed.has(f)).sort();
+  if (homeless.length) {
+    console.log(
+      `   ⛔ no claims file owns ${homeless.length} routed file(s), so [D69] would exempt a finding on them\n` +
+        `      for the WRONG reason — not "nobody read it" but "nothing records whether anyone did". See S1.10.6.10.`,
+    );
+  }
+
+  // ⚠️ `--check` writes nothing anywhere, so the list is printed by count only in that mode. The file is
+  // for a real dispatch, where the next round needs the names in order to price widening the seed.
+  if (unseen.length && outDir && !checkOnly) {
+    writeFileSync(join(REPO_ROOT, outDir, 'UNSEEN-NEIGHBOURS.txt'), `${unseen.join('\n')}\n`, 'utf8');
+    console.log(`      Written to ${outDir}/UNSEEN-NEIGHBOURS.txt — the names, so the next dispatch can price widening the seed.`);
+  }
   for (const l of LANES) {
     const files = byLane.get(l.id)!;
     const c: Record<string, number> = {};
