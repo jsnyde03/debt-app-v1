@@ -543,15 +543,15 @@
     }
   },
   "S1P4-C4-4-POPULATION": {
-    "what": "pass-4 C4-4 - RE-MEASURED AT SWITCH-IN AND THE NAMED DEFECT WAS ALREADY CLOSED. The finding reported the ledger's escape as src.includes('trustSelectors') - 'a file escapes by IMPORTING the guard, not by asking it' - and D4-8 (S1.11.2) had since replaced that with ASKS_GUARD, a call regex carrying its own module-scope self-check. Re-ran the finding's plant 3 verbatim (a new money surface using the sanctioned formatWhole, importing mayClaim and never calling it): the gate REDS, naming the file. ⛔ What measurement found instead is one level down and is this cluster's own class: the ledger counted its EXCEPTIONS and never its POPULATION. Neuter PRINTS_MONEY - one identifier - and the population collapses to zero, no row is unguarded, and the gate prints '0 claim sites open' over a tree it never looked at. ⚠️ Today that is caught only by COINCIDENCE: EXEMPT holds one row and the stale-row check reds because that row stops qualifying - and MAX_EXEMPT is downward-only while this file's docblock argues toward emptying both ledgers, so the accident that saves it is the thing the gate is trying to remove. MIN_POPULATION is a floor (6, measured at 7, the same 7 the docblock records) rather than an exact count, and the success line states N so the size is visible as well as checked. Plant-verified both ways",
+    "what": "pass-4 C4-4 - RE-MEASURED AT SWITCH-IN AND THE NAMED DEFECT WAS ALREADY CLOSED. The finding reported the ledger's escape as src.includes('trustSelectors') - 'a file escapes by IMPORTING the guard, not by asking it' - and D4-8 (S1.11.2) had since replaced that with ASKS_GUARD, a call regex carrying its own module-scope self-check. Re-ran the finding's plant 3 verbatim (a new money surface using the sanctioned formatWhole, importing mayClaim and never calling it): the gate REDS, naming the file. ⛔ What measurement found instead is one level down and is this cluster's own class: the ledger counted its EXCEPTIONS and never its POPULATION. Neuter PRINTS_MONEY - one identifier - and the population collapses to zero, no row is unguarded, and the gate prints '0 claim sites open' over a tree it never looked at. ⚠️ Today that is caught only by COINCIDENCE: EXEMPT holds one row and the stale-row check reds because that row stops qualifying - and MAX_EXEMPT is downward-only while this file's docblock argues toward emptying both ledgers, so the accident that saves it is the thing the gate is trying to remove. MIN_POPULATION is a floor (6, measured at 7, the same 7 the docblock records) rather than an exact count, and the success line states N so the size is visible as well as checked. Plant-verified both ways >>> S1.12.5.4 [pass-5 D5-13]: PRINTS_MONEY is no longer a typed list - it is DERIVED from the format modules' own exports, because a fifth formatter (formatDisplayAmount) existed and the gate exited 0 over a file using it. The un-fix is re-derived onto that form and restores the same defect: a shrunken population.",
     "file": "scripts/check-trust-claims.ts",
     "token": "[population] the ledger considered ${population.length} file(s) and the floor is ${MIN_POPULATION}.",
     "proof": {
       "unfix": [
         {
           "at": "scripts/check-trust-claims.ts",
-          "find": "const PRINTS_MONEY = /\\b(formatCurrency|formatWhole|formatMoney|formatCompactMoney)\\s*\\(/;",
-          "replace": "const PRINTS_MONEY = /\b(formatCurrencyXX)\\s*\\(/;"
+          "find": "const PRINTS_MONEY = new RegExp(`\\\\b(${MONEY_FORMATTERS.join('|')})\\\\s*\\\\(`);",
+          "replace": "const PRINTS_MONEY = /(formatCurrencyXX)\\s*\\(/;"
         }
       ],
       "run": "lint:trust-claims",

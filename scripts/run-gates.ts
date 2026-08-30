@@ -88,6 +88,11 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // so both downward-only ratchets were `n > n`. Nothing could see it: the tokens were present, the gate
     // was green, and no plant existed for a cap. This refuses the class across every script.
     'lint:cap-literals',
+    // ⛔ S1.12.5.4 [pass-5 D5-12] — a test file in the tree and in NO runner is silently unexecuted:
+    // `test:app` printed ALL PASSED over a file that throws on its first line. Both runners were complete
+    // when measured; the gap is that nothing would notice one, and 30 registered guard proofs run
+    // `test:app` — such a guard would read as DEAD rather than as UNEXECUTED.
+    'lint:runner-completeness',
     'lint:a11y-collapse',
     'lint:contrast',
     'lint:type-scale',

@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { claimFields } from '../apps/rn/src/store/trustSelectors.ts';
@@ -196,7 +196,49 @@ for (const rel of files) {
  * already sanitised its props — which is exactly how `C-4` was fixed (`selectPaidOffDebts` nulls the
  * figure and *"every render downstream then does the right thing for free"*).
  */
-const PRINTS_MONEY = /\b(formatCurrency|formatWhole|formatMoney|formatCompactMoney)\s*\(/;
+/**
+ * ⛔ **S1.12.5.4 [pass-5 `D5-13`] — THIS WAS A LIST OF FOUR NAMES, AND A FIFTH FORMATTER EXISTED.**
+ *
+ * It read `/\b(formatCurrency|formatWhole|formatMoney|formatCompactMoney)\s*\(/`. Lane D planted a file
+ * that sums `store.debts[].balance`, formats it with **`formatDisplayAmount`** and never asks
+ * `trustSelectors` — the exact defect this ledger exists to refuse — and the gate exited **0**, still
+ * announcing *"all 7 money-printing files call the guard"*. The file was never *considered*, so it could
+ * never be *unguarded*. ⚠️ The control, the same file using `formatWhole`, redded correctly.
+ *
+ * ⛔ **`MIN_POPULATION` cannot save it.** A floor sees the population SHRINK; it is structurally blind to
+ * a money file that never joins. The population line still read 7 under the plant.
+ *
+ * ⭐ **So the names are DERIVED from the format modules' own exports rather than typed here.** Adding a
+ * formatter to `utils/format*.ts` now enrols it automatically; deleting the last one empties the set and
+ * the assertion below reds. ⛔ Lane D said explicitly *"do not repair this by adding `formatDisplayAmount`
+ * to the regex"* — a fifth name would have closed the finding and left the class exactly as it was.
+ *
+ * ⚠️ **What this still cannot see, stated rather than implied:** a component that interpolates a number
+ * directly (`` `$${x.toFixed(2)}` ``) prints money without naming any formatter. That spelling is
+ * `lint:money`'s subject — it exists to stop hand-rolled formatters — and it is named here so the seam
+ * between the two gates is written down rather than assumed.
+ */
+const FORMAT_MODULES = ['apps/rn/src/utils/format.ts', 'packages/core/utils/formatCurrency.ts', 'packages/core/utils/formatDisplayAmount.ts'];
+const MONEY_FORMATTERS = [
+  ...new Set(
+    FORMAT_MODULES.flatMap((rel) => {
+      const abs = join(REPO_ROOT, rel);
+      if (!existsSync(abs)) return [];
+      return [...readFileSync(abs, 'utf8').matchAll(/export\s+function\s+(format\w+)/g)].map((m) => m[1]);
+    }),
+  ),
+];
+if (MONEY_FORMATTERS.length < 3) {
+  // ⛔ The derivation failing OPEN would silently exempt every money file — the same blindness one level
+  // up. A module renamed or a signature reshaped reds here instead of quietly emptying the population.
+  console.error(
+    `\n❌ trust claims: only ${MONEY_FORMATTERS.length} money formatter(s) derived from ${FORMAT_MODULES.length} modules ` +
+      `(${MONEY_FORMATTERS.join(', ') || 'none'}).\n   ⛔ The population this gate checks is derived from those exports; ` +
+      'an empty or near-empty set silently exempts every money file. Fix FORMAT_MODULES.\n',
+  );
+  process.exit(1);
+}
+const PRINTS_MONEY = new RegExp(`\\b(${MONEY_FORMATTERS.join('|')})\\s*\\(`);
 const READS_ENTITIES = /\.(debts|goals|requiredExpenses|livingExpenses)\b/;
 // ⚠️ Referenced so a repairable field added to `migrations.ts` still reaches this file's reader; the
 // routing completeness itself is `trustSelectors.test.ts`'s gate, and check 2 above is the call-site half.
