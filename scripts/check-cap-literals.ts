@@ -56,7 +56,27 @@ function walk(dir: string): string[] {
 const files = walk(join(REPO_ROOT, 'scripts'));
 
 /** `const MAX_FOO = <rhs>;` / `const MIN_FOO: number = <rhs>;`, `export` optional. */
-const DECL = /^\s*(?:export\s+)?const\s+((?:MAX|MIN)_[A-Z0-9_]+)\s*(?::[^=]+)?=\s*([^;]+);/;
+/**
+ * ⛔ **S1.12.5.4 [pass-5 `D5-9`] — THIS WAS MATCHED PER LINE, AND A LINE WRAP DEFEATED IT.**
+ *
+ * ⚡ Lane D planted the exact `D4-4` shape — a cap derived from the population it caps — on one line, and
+ * the gate redded correctly. Then planted the **identical derivation wrapped onto two lines**: exit 0,
+ * `✅ … 17 downward-only cap(s)`. The wrap did not merely hide the derivation; it removed the declaration
+ * from the gate's population, and the tick was printed beside a count that had silently fallen from 18.
+ *
+ * ⛔ **So what a formatter does unprompted to a long declaration blinded the one gate standing between
+ * this repo and a class it records being hit twice in a single file.** The next `D4-4` would arrive as a
+ * prettier reflow rather than as an edit anyone reviews.
+ *
+ * ⚠️ `[\s\S]*?` so the right-hand side may cross newlines; `m` anchors `^`/`$` per line so the `;`
+ * terminator still ends the declaration; `g` because the whole file is scanned at once now.
+ *
+ * ⚠️ **The terminator is `;[ \t\r]*$`, not `;$`**, and the difference is not cosmetic: `stripCommentsOnly`
+ * blanks a comment in place, so a declaration line ends in `;` followed by the spaces the comment used to
+ * occupy and a `\r`. With a bare `;$` the lazy match ran PAST the real terminator to the next line ending
+ * in `;` — measured, and it reported four false derived ratchets on the first run.
+ */
+const DECL = /^[^\S\n]*(?:export\s+)?const\s+((?:MAX|MIN)_[A-Z0-9_]+)\s*(?::[^=;]+)?=\s*([\s\S]*?);[ \t\r]*$/gm;
 
 /** A number, or an object literal whose every value is a number. Anything else moved with its subject. */
 const isLiteral = (rhs: string): boolean => {
@@ -79,9 +99,9 @@ for (const rel of files) {
   // ⚠️ Comments are blanked first: this file's own docblock quotes the exact derived declaration it
   // exists to refuse, and a gate that reds on the sentence describing a defect is a gate nobody keeps.
   const code = scanned(SCAN_GATE, stripCommentsOnly(text));
-  for (const line of code.split('\n')) {
-    const m = DECL.exec(line);
-    if (!m) continue;
+  // ⛔ D5-9 — over the whole file, not line by line: a declaration wrapped onto two lines used to leave
+  // the population entirely, and the gate printed a smaller count beside a ✅.
+  for (const m of code.matchAll(DECL)) {
     caps++;
     if (isLiteral(m[2])) continue;
     problems.push(
@@ -93,16 +113,28 @@ for (const rel of files) {
 }
 
 /**
- * ⛔ **A FLOOR ON THE CAPS THEMSELVES**, because a gate that finds nothing to check reports the same ✅
+ * ⛔ **A COUNT OF THE CAPS THEMSELVES**, because a gate that finds nothing to check reports the same ✅
  * as a gate that checked everything — the `lint:scan-floors` lesson, applied to this file's own subject.
- * ⚠️ Downward-only would be wrong here: caps are added as ledgers are, so this floor RISES.
+ *
+ * ⛔ **S1.12.5.4 [pass-5 `D5-9`] — PINNED WITH `!==`, AND IT USED TO BE A FLOOR WITH THREE UNITS OF SLACK.**
+ *
+ * ⚡ At `MIN_CAPS = 15` against 18 observed, a declaration LEAVING the population was absorbed silently:
+ * lane D wrapped a derived cap onto two lines, the count fell to 17, and the gate printed **`✅ … 17
+ * downward-only cap(s)`**. A floor sees a collapse; it cannot see one member walk away — the same shape
+ * as `D5-13`'s `MIN_POPULATION` and `D5-12`'s runner list, all three found in this round.
+ *
+ * ⚠️ **The two-line-edit friction is deliberate.** `check-finding-guards.ts`'s `MIN_ENTRIES` documents it
+ * as a feature: adding a cap costs a number here, and that is the moment the addition is visible.
  */
-const MIN_CAPS = 15;
+const MIN_CAPS = 19;
 
-if (caps < MIN_CAPS) {
+if (caps !== MIN_CAPS) {
   problems.push(
-    `only ${caps} cap constant(s) found; ${MIN_CAPS} are expected. Either the pattern stopped matching ` +
-      'the declarations, or the walk stopped reaching the files — both mean this gate read nothing.',
+    `${caps} cap constant(s) found; MIN_CAPS is ${MIN_CAPS}, and this is PINNED rather than floored. ` +
+      (caps < MIN_CAPS
+        ? 'A declaration LEFT the population — the pattern stopped matching it, or the walk stopped ' +
+          'reaching its file. A cap this gate cannot see is a cap that can be derived from its own list.'
+        : `A cap was added: raise MIN_CAPS to ${caps} in the same edit, so the next departure reds.`),
   );
 }
 
