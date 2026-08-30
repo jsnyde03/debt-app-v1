@@ -154,6 +154,38 @@ const B1_SCENARIOS: Scenario[] = [
    * So the input is the **revision**: stage the fixture, then delete it from the working tree. A gate
    * reading the filesystem now sees nothing at all.
    */
+  /**
+   * ⛔ **S1.12.5.4 [pass-5 `D5-12`] — A TEST FILE IN THE TREE AND IN NO RUNNER.**
+   *
+   * ⚡ This is the one scenario whose plant cannot be an edit: the defect is a file's ABSENCE from a list,
+   * so something has to create the file. `prove:guards` edits existing text and can only ever make this
+   * gate fail OPEN — measured, exit 0 both ways — which is why the proof lives here instead.
+   *
+   * Lane D's measurement: a file throwing on line 1, wired into nothing, and `npm run test:app` printed
+   * **"✅ ALL PASSED"**, exit 0. 30 registered guard proofs run `test:app`, so a guard whose test file
+   * quietly left the runner would score `failed-open` and be read as a DEAD guard rather than an
+   * UNEXECUTED one.
+   */
+  {
+    gate: 'lint:runner-completeness',
+    script: 'check-runner-completeness.ts',
+    at: 'docs/audits/__gate_plant_unused_runner__.md',
+    body: 'This scenario plants into the INDEX; the created file is inert and exists only because `at` is required.\n',
+    /**
+     * ⚠️ **STAGED, because the gate enumerates `git ls-files` and an untracked file is invisible to it.**
+     * Measured: planting only on disk left the gate green — `planted=exit 0` — which is a true statement
+     * about the gate's scope and a useless plant. An untracked file is also not a file anyone ships, so
+     * tracked is the right population; the plant has to join it to be seen.
+     */
+    stageIndex: [
+      {
+        at: 'apps/rn/src/store/__gate_plant_unwired__.test.ts',
+        body: "throw new Error('a test file in no runner — if anything runs this, it fails');\n",
+      },
+    ],
+    expect: 'in NO runner',
+    why: 'a tracked test file that no runner imports is never executed, and test:app prints ALL PASSED over it',
+  },
   {
     gate: 'lint:secrets [D3-4-blob]',
     script: 'check-committed-secrets.ts',
@@ -520,7 +552,7 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 23;
+const MIN_SCENARIOS = 24;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 

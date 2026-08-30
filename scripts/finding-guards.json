@@ -557,7 +557,7 @@
       "run": "lint:trust-claims",
       "expect": "[population] the ledger considered",
       "measured": "2026-08-30",
-      "sha": "995946ca"
+      "sha": "2b438abb"
     }
   },
   "S1P4-C4-6-RACE": {
@@ -2000,6 +2000,42 @@
       "expect": "test-gate-plants.ts",
       "measured": "2026-08-30",
       "sha": "b7370ba6"
+    }
+  },
+  "S1P5-D5-13-DERIVEDPOP": {
+    "what": "pass-5 D5-13 (major) - check-trust-claims' PRINTS_MONEY was a literal list of four formatter names and a fifth existed in the tree. A file summing store.debts[].balance, formatting with formatDisplayAmount and never asking trustSelectors exited the gate at 0, still announcing 'all 7 money-printing files call the guard': it was never considered, so it could never be unguarded. MIN_POPULATION is a floor and is structurally blind to a member that never joins. The names are DERIVED from the format modules' exports; the derivation fails CLOSED (fewer than three formatters is an error, not a silent exemption of every money file). Lane D said explicitly not to repair this by adding the fifth name to the regex.",
+    "file": "scripts/check-trust-claims.ts",
+    "token": "money formatter(s) derived from",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-trust-claims.ts",
+          "find": "const FORMAT_MODULES = ['apps/rn/src/utils/format.ts', 'packages/core/utils/formatCurrency.ts', 'packages/core/utils/formatDisplayAmount.ts'];",
+          "replace": "const FORMAT_MODULES = ['packages/core/utils/formatCurrency.ts'];"
+        }
+      ],
+      "run": "lint:trust-claims",
+      "expect": "money formatter(s) derived from",
+      "measured": "2026-08-30",
+      "sha": "2b438abb"
+    }
+  },
+  "S1P5-D5-12-RUNNERSET": {
+    "what": "pass-5 D5-12 (major) - a test file in the tree and in NO runner is silently unexecuted: test:app printed 'ALL PASSED' over a file throwing on its first line, and typecheck:tests was green too. Both runners were COMPLETE when measured (73/73 and 64/64) - the gap is that nothing would notice one. It composes with the ledger: 30 registered guard proofs run test:app, so a guard whose test file left the runner would score failed-open and read as a DEAD guard rather than an UNEXECUTED one. lint:runner-completeness asserts SET INCLUSION (a count with slack is D5-9) on repo-relative paths (basename collides), and reds if its own pathspecs match nothing. >>> The proof runs test:gate-plants, not the gate directly: the defect is a FILE ABSENT from a list, so something has to CREATE the file. prove:guards edits existing text and could only ever make this gate fail OPEN - measured, exit 0 both ways. And the plant must be STAGED, because the gate enumerates git ls-files and an untracked file is invisible to it (also measured: on-disk-only left it green).",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "gate: 'lint:runner-completeness',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-runner-completeness.ts",
+          "find": "  const missing = tracked.filter((t) => !importedStems.has(stem(t)));",
+          "replace": "  const missing: string[] = [];"
+        }
+      ],
+      "run": "test:gate-plants",
+      "expect": "lint:runner-completeness",
+      "measured": "2026-08-30",
+      "sha": "2b438abb"
     }
   }
 }
