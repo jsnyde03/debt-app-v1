@@ -2114,5 +2114,41 @@
       "measured": "2026-08-30",
       "sha": "5a68a174"
     }
+  },
+  "S1P5-CADENCE-IDENTITY": {
+    "what": "pass-5 A5-1 + A5-5 + C5-4 (2 blockers + 1) - ONE defect in three files: a cadence whose period is a USER VARIABLE, replaced by a constant. allocatePaycheck stepped per-paycheck by a fortnight (a monthly payer's $200 bill reserved 3x = $600, declaring a $100 shortfall over $250 of spare cash and naming a phantom obligation e1__occ2); bnplPayoffPace hardcoded 26/12 for it (a monthly payer shown July 2026 against a true January 2027); Money's row printed a literal /mo (a quarterly loan as $600/mo, in the a11y label too). cyclesPerMonth is REQUIRED so no caller can stay on the old assumption. The guard is one identity over 7 recurrences x 4 pay cycles - lane A's own prescription, which finds A5-1 and A5-5 without either being named.",
+    "file": "packages/core/testing/testCadenceIdentity.ts",
+    "token": "an \"Every paycheck\" bill is ONE row per cycle",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/engine/allocatePaycheck.ts",
+          "find": "\t\tif (recurrence === \"per-paycheck\") return 1;\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:regression",
+      "expect": "an \"Every paycheck\" bill is ONE row per cycle",
+      "measured": "2026-08-30",
+      "sha": "a5bec7a1"
+    }
+  },
+  "S1P5-C5-4-ROWCADENCE": {
+    "what": "pass-5 C5-4 (blocker) - Money's debt row printed /mo on every non-BNPL debt: a quarterly student loan read '$600/mo', a 12x overstatement, and ListRow put the same string in the a11y label so VoiceOver said it too. CADENCE_SUFFIX was consulted for the BNPL branch and bypassed with a literal for the other. Also fixed: the `|| '/mo'` fallback turned the deliberately-empty one-time suffix into a monthly rate. NOTE: the first version of this test asserted a COPY of the row's expression and planting the defect back into money.tsx left the suite GREEN - measured. The suffix is now one exported function the screen and the test both call.",
+    "file": "apps/rn/src/utils/moneyFormatters.test.ts",
+    "token": "the debt row's unit is the cadence the user chose",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/types/recurrence.ts",
+          "find": "\treturn minimumUnread ? undefined : CADENCE_SUFFIX[recurrence];",
+          "replace": "\treturn minimumUnread ? undefined : '/mo';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the debt row's unit is the cadence the user chose",
+      "measured": "2026-08-30",
+      "sha": "a5bec7a1"
+    }
   }
 }
