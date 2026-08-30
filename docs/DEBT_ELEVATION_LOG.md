@@ -28756,3 +28756,35 @@ card's own **"These are all my debts"**.
 answered when the list comes back; a whole **ROW** loss is not, so only the confirmation clears it. The
 first cut treated them alike and the suite refused it.
 
+---
+
+## `S1.12.1`–`S1.12.3` — pass 5 is ROUTED and BRIEFED, and it stops there (2026-08-29)
+
+**`S1.12.1` [DECISION] answered 🎯: the FULL four-lane pass.** Narrowing to the lanes that carried pass 4's
+blockers would have left the 256 never-before-routed files unread **while still owing two clean passes** —
+[D65] exits on 0/0 twice consecutively, so a narrowed pass 5 does not shorten the loop, it only moves the
+spend later and reads less for it.
+
+**`S1.12.2` — the route, generated not typed.** `--since=e65f9c7` → **393 routed · 0 unrouted · 0 owed**,
+and every changed tracked file since the pin accounted for (16 excluded as prose or binary). By origin:
+68 `first-look` · 33 `fix-churn` · 24 `instrument` · 12 `off-surface` · **207 `neighbour`** · **49
+`s0-first-look`**. Lanes A 108 · B 113 · C 122 · D 50.
+
+⚡ **Two of those six origins put files in a lane for the first time**, and the reason is the round's own
+finding: until `S1.11.6` the route was built entirely from predicates on *changed*, so **a file that did
+not move could not be routed at all.** That is precisely how `A-F4`'s second producer stayed invisible
+while its pair was being corrected. ⚠️ Expect most of pass 5's findings to be `first-look` or `neighbour`
+— [D69] exempts those from the convergence count, and ⛔ **exempt from the count is not exempt from the fix.**
+
+**`S1.12.3` — the brief**, `docs/audits/2026-08-29-s1-money-pass5/BRIEF.md`. It carries five reading
+rules, and what is new is that **three of them are things pass 4 measured about its OWN findings** rather
+than about the app: *a remedy is a hypothesis and a premise is not* (more than half would not have closed
+their finding, five would have introduced one, every premise reproduced) · *four named defects were
+already closed* · ⛔ *a plant cannot see the green state.*
+
+### ⛔ `S1.12.4` deliberately NOT started — 🎯 2026-08-29: *"Button up before then. It needs a new session."*
+
+Correct on its own terms and it matches `audits always use fresh agents`: **this session has spent the
+whole round fixing**, and an incumbent dispatching its own audit re-reads its own premises into the brief.
+Everything the run needs is on disk — brief, protocol, four manifests, the origin table — so the next
+session starts at the dispatch and not at the reconstruction.

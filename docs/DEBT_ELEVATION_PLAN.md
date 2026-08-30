@@ -26,7 +26,7 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.12 · PASS 5, and it is NOT started**
+## ▶ RIGHT NOW — **S1.12.4 · DISPATCH PASS 5 — the route and brief are READY; it needs a FRESH SESSION**
 
 **Surface S1 · money · goals · plan cards.** Passes 1–3 run and fully fixed. **Pass 4 run at `e65f9c7` by four fresh agents → 8 blockers · 19 majors · 7 minors across 217 files** ([`SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md)). ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next first-candidate and a clean pass 5 still owes a pass 6.** ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
@@ -103,10 +103,10 @@ count is NOT exempt from the fix.
 
 | # | sub-step | exit line |
 |---|---|---|
-| **S1.12.1** | **[DECISION] 🎯 — dispatch pass 5?** Four fresh agents over ~392 routed files. Worst case is stated with the ask, and the alternative is a narrower round *(blockers-and-majors only, or lanes A+C alone)* | a yes/no with the scope named, recorded here |
-| **S1.12.2** | **PIN + ROUTE.** `npx tsx scripts/audit-route.ts --surface=s1 --since=<pass-4 pin> --out=docs/audits/<date>-s1-money-pass5` — the route writes `RESUME-PROTOCOL.md` beside its manifests now | 0 unrouted, 0 owed, and the origin split printed |
-| **S1.12.3** | **THE BRIEF.** Carried forward, in the auditors' own words: *a remedy is a hypothesis and a premise is not* · *judge the CONDITION, never the example* · *a report is a decaying artifact* · ⛔ *a plant cannot see the green state* | the brief names what pass 4 measured about ITS OWN findings |
-| **S1.12.4** | **RUN + RECORD.** Four lanes, incremental writes, heap 1536 MB, ⛔ an OOM is a **finding** | findings on disk per lane; classification written back to BOTH claims files in the same step |
+| ✅ **S1.12.1** | **[DECISION] ANSWERED 🎯 2026-08-29 — the FULL four-lane pass.** Narrowing would leave the 256 never-routed files unread while still owing two clean passes, so the spend moves rather than shrinks | a yes/no with the scope named, recorded here |
+| ✅ **S1.12.2** | **ROUTE GENERATED** at `--since=e65f9c7` → `docs/audits/2026-08-29-s1-money-pass5/`. **393 routed · 0 unrouted · 0 owed.** A 108 · B 113 · C 122 · D 50. `RESUME-PROTOCOL.md` written beside the manifests | 0 unrouted, 0 owed, and the origin split printed |
+| ✅ **S1.12.3** | **BRIEF WRITTEN** — `BRIEF.md`, carrying the five reading rules **and what pass 4 measured about its own findings**: a remedy is a hypothesis, a premise is not · judge the CONDITION · which member of its class did this test pick · a check that cannot fail · ⛔ **a plant cannot see the green state** | the brief names what pass 4 measured about ITS OWN findings |
+| ▶ **S1.12.4** | ⛔ **RUN — NEEDS A FRESH SESSION** (🎯 2026-08-29). Dispatch four lane agents against `docs/audits/2026-08-29-s1-money-pass5/`: each reads `BRIEF.md` + `RESUME-PROTOCOL.md` + its own `ROUTING-<lane>.txt`, ⚠️ **no sub-agents**, heap **1536 MB**, findings written to `<lane>-*.md` **incrementally** — an OOM is a FINDING, never a retry | findings on disk per lane; classification written back to BOTH claims files in the same step |
 | **S1.12.5** | **FIX BY CLASS** — one assertion per class that ITERATES the class, two plants each, a registered `proof` | 0 blockers / 0 majors, every closure proven to red |
 
 **Exit (S1.12):** pass 5 recorded and fixed. ⛔ **Convergence still requires a clean pass 6** — a 0/0 pass 5
