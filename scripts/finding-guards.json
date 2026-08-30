@@ -2037,5 +2037,44 @@
       "measured": "2026-08-30",
       "sha": "2b438abb"
     }
+  },
+  "S1P5-B5-7-ANSWERABLEID": {
+    "what": "pass-5 B5-7 (blocker) - answerableByEdit asked whether the row's NAME STRING was empty, not whether the repair names a row. A debt whose name key is absent/empty/non-string produces a repair with name: '' while the row still exists and is still editable, so one 'Got it' tap DELETED its unreadable-balance record: hasUnreadDebtBalances false, mayClaim('debt-balances') true, partitionDebts moved it to CLEARED - the app calling a debt whose balance it could not read paid off, unlocking the debt-free framing and the once-ever finale. A-J2-1 verbatim on the blank-name member. Asked of the id now. B5-8 folded in: dataRepairsCopy carried a second copy omitting isWholeRowLoss while the docblock claimed one producer.",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "\"Got it\" is not an ANSWER to an unreadable balance on an editable row",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/trustSelectors.ts",
+          "find": "  return r.entity !== 'migration' && !!r.id && !isWholeRowLoss(r);",
+          "replace": "  return r.entity !== 'migration' && !!r.name && !isWholeRowLoss(r);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "is not an ANSWER to an unreadable balance",
+      "measured": "2026-08-30",
+      "sha": "77168eed"
+    }
+  },
+  "S1P5-D5-9-CAPWRAP": {
+    "what": "pass-5 D5-9 (major) - lint:cap-literals matched declarations PER LINE, so the same derived cap that redded on one line exited 0 when wrapped onto two - and the wrap removed the declaration from the gate's population entirely, printing a count silently fallen from 18 beside a tick. MIN_CAPS was floored at 15 against 18, so three units of slack absorbed the departure. DECL now matches the whole stripped file; MIN_CAPS is PINNED with !==. Same floor-vs-membership shape as D5-13 and D5-12. >>> The proof takes TWO edits: narrowing the pattern back to a single line is INVISIBLE until a cap is actually wrapped - which is exactly why the defect survived, since nothing in the tree was multi-line when the gate was written. Measured: the narrowing alone leaves it green (exit 0).",
+    "file": "scripts/check-cap-literals.ts",
+    "token": "PINNED rather than floored",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-cap-literals.ts",
+          "find": "const DECL = /^[^\\S\\n]*(?:export\\s+)?const\\s+((?:MAX|MIN)_[A-Z0-9_]+)\\s*(?::[^=;]+)?=\\s*([\\s\\S]*?);[ \\t\\r]*$/gm;",
+          "replace": "const DECL = /^[^\\S\\n]*(?:export\\s+)?const\\s+((?:MAX|MIN)_[A-Z0-9_]+)\\s*(?::[^=;]+)?=\\s*(.*?);[ \\t\\r]*$/gm;"
+        },
+        {
+          "at": "scripts/check-finding-guards.ts",
+          "find": "const MAX_GUARD_ONLY = 0;",
+          "replace": "const MAX_GUARD_ONLY =\n  0;"
+        }
+      ],
+      "run": "lint:cap-literals",
+      "expect": "PINNED rather than floored"
+    }
   }
 }
