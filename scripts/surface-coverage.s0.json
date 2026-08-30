@@ -1,21 +1,21 @@
 {
   "apps/rn/app.json": [
-    "never"
+    "partial"
   ],
   "apps/rn/eslint.config.mjs": [
-    "never"
+    "partial"
   ],
   "apps/rn/playwright.config.ts": [
     "s1p2"
   ],
   "apps/rn/playwright.embed.config.ts": [
-    "never"
+    "s1p5"
   ],
   "apps/rn/playwright.shots.config.ts": [
-    "never"
+    "s1p5"
   ],
   "apps/rn/scripts/copy-canvaskit.mjs": [
-    "never"
+    "s1p5"
   ],
   "apps/rn/src/data/migrationAudit/audit.test.ts": [
     "p1",
@@ -30,7 +30,7 @@
     "p3"
   ],
   "apps/rn/src/data/migrationAudit/cutoverFiles.test.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/src/data/migrationAudit/doors.ts": [
     "p1",
@@ -44,124 +44,126 @@
     "s1p4"
   ],
   "apps/rn/src/data/migrationAudit/interruption.test.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/src/data/migrationAudit/invariants.ts": [
     "p1",
     "p3",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/data/migrationAudit/run.ts": [
-    "never"
+    "s1p5"
   ],
   "apps/rn/src/testing/runAppTests.ts": [
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/testing/runScenarioTests.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/src/testing/scenarios/guardianColdStartLifecycle.scenario.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/add-chooser.shot.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/demo-beats.shot.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/explore-demo.shot.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/floor-impact.shot.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/guardian-spacing.shot.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/misfiled-hint.shot.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/money-sections.shot.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/p6.8-a11y.shot.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/tests/shots/p6.8-matrix.shot.ts": [
     "s1p2"
   ],
   "apps/rn/tests/shots/phase35-themes.shot.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/runRegressionTests.ts": [
     "s1p2"
   ],
   "packages/core/testing/seedPlannerState.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/simSmokeSeed.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testAbuseScenarios.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testAprMath.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testDebtMathRegression.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testDemoModeSeed.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testEngineFuzz.ts": [
-    "never"
+    "s1p5"
   ],
   "packages/core/testing/testFinalLaunchRegression.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testForecastRegression.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testFullAppRegression.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testMultiCycleTimelineRegression.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testPayCycleHistoryRegression.ts": [
     "never",
     "s1p4"
   ],
   "packages/core/testing/testPlannerStateHardening.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testRecommendedActionsRegression.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testSafeStorage.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testStressScenarios.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testSubscriptionGating.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testTimelineRegression.ts": [
-    "never"
+    "partial"
   ],
   "packages/core/testing/testV11Regression.ts": [
-    "never"
+    "partial"
   ],
   "scripts/apostrophe-baseline.json": [
     "p4"
   ],
   "scripts/audit-route.ts": [
-    "never",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "scripts/begin-gate-run.ts": [
     "s1p1",
@@ -183,11 +185,10 @@
     "partial"
   ],
   "scripts/check-cap-literals.ts": [
-    "never"
+    "s1p5"
   ],
   "scripts/check-ci-chain.ts": [
-    "never",
-    "partial"
+    "s1p5"
   ],
   "scripts/check-comment-convention.ts": [
     "r17"
@@ -216,14 +217,15 @@
   "scripts/check-finding-guards.ts": [
     "s1p1",
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "scripts/check-gate-freshness.ts": [
     "p4"
   ],
   "scripts/check-gate-sources.ts": [
-    "never",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "scripts/check-glossary.ts": [
     "p3",
@@ -261,7 +263,7 @@
     "partial"
   ],
   "scripts/check-restore-doors.ts": [
-    "never"
+    "s1p5"
   ],
   "scripts/check-rn-style-divergence.ts": [
     "r17"
@@ -275,8 +277,8 @@
     "s1p4"
   ],
   "scripts/check-trust-claims.ts": [
-    "never",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "scripts/check-type-scale.ts": [
     "p4",
@@ -288,13 +290,13 @@
     "partial"
   ],
   "scripts/collect-lane-diagnostics.mjs": [
-    "never"
+    "partial"
   ],
   "scripts/compare-ios-screenshots.mjs": [
-    "never"
+    "partial"
   ],
   "scripts/conform-app-preview.sh": [
-    "never"
+    "partial"
   ],
   "scripts/coverage-model.ts": [
     "p1"
@@ -307,19 +309,19 @@
     "s1p2"
   ],
   "scripts/e2e-fresh-rn.cjs": [
-    "never"
+    "s1p5"
   ],
   "scripts/e2e-fresh.cjs": [
-    "never"
+    "s1p5"
   ],
   "scripts/finding-guards.json": [
     "s1p1",
     "s1p2",
-    "partial"
+    "s1p5"
   ],
   "scripts/gate-scan-floors.json": [
-    "never",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "scripts/gateSources.ts": [
     "p2",
@@ -328,10 +330,13 @@
     "s1p2"
   ],
   "scripts/lib/anchor.ts": [
+    "s1p5"
+  ],
+  "scripts/lib/guardBuckets.ts": [
     "never"
   ],
   "scripts/lib/importGraph.ts": [
-    "never"
+    "partial"
   ],
   "scripts/lib/scanFloor.ts": [
     "never",
@@ -346,13 +351,13 @@
     "s1p4"
   ],
   "scripts/lib/verdict.ts": [
-    "never"
+    "s1p5"
   ],
   "scripts/maestro-results.mjs": [
-    "never"
+    "partial"
   ],
   "scripts/make-cutover-backups.ts": [
-    "never"
+    "s1p5"
   ],
   "scripts/preflight-native-lane.ts": [
     "p4",
@@ -360,20 +365,21 @@
     "s1p2"
   ],
   "scripts/preflight-xcuitest-target.ts": [
-    "never"
+    "partial"
   ],
   "scripts/prove-guards.ts": [
-    "never"
+    "s1p5"
   ],
   "scripts/run-gates.ts": [
     "p1",
     "p3",
     "s1p1",
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "scripts/secrets-exemptions.json": [
-    "never"
+    "s1p5"
   ],
   "scripts/stamp-coverage.ts": [
     "p2"
@@ -388,17 +394,17 @@
   "scripts/surface-coverage.ts": [
     "s1p1",
     "s1p2",
-    "partial"
+    "s1p5"
   ],
   "scripts/surface-inventory.ts": [
-    "never"
+    "partial"
   ],
   "scripts/test-closure-stripper.ts": [
     "never",
     "s1p4"
   ],
   "scripts/test-conform-assertions.sh": [
-    "never"
+    "partial"
   ],
   "scripts/test-gate-plants.ts": [
     "s1p1",
@@ -406,14 +412,14 @@
     "partial"
   ],
   "scripts/test-import-graph.ts": [
-    "never"
+    "partial"
   ],
   "scripts/test-line-endings.ts": [
     "never",
     "s1p4"
   ],
   "scripts/test-stamp-coverage.ts": [
-    "never"
+    "s1p5"
   ],
   "scripts/test-strip-code.ts": [
     "never",

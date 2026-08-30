@@ -37,6 +37,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { type Failure, verdict } from './lib/verdict';
+import { bucketGuards } from './lib/guardBuckets';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 /**
@@ -157,22 +158,28 @@ function run(p: Proof): { status: number; out: string } {
 }
 
 const ids = Object.keys(registry);
-const withProof = ids.filter((id) => registry[id].proof);
-const guardOnly = ids.filter((id) => registry[id].guardOnly && !registry[id].proof);
-const untested = ids.filter((id) => !registry[id].proof && !registry[id].guardOnly);
+// ⛔ D5-2 — the buckets come from ONE producer. This file used to compute its own, and it had never been
+// taught the third state (`unguarded`), so it printed 120 where the gate printed 119. See `guardBuckets`.
+const { withProof, guardOnly, untested, unguarded } = bucketGuards(registry);
 
 if (has('list')) {
   console.log(`\n  prove:guards — ${ids.length} registry entries\n`);
-  console.log(`  proven by plant : ${withProof.length}`);
+  // ⛔ **`authored` is not `executed`, and conflating them is D5-1.** A proof block is a plan to measure;
+  // `measured`/`sha` are the only evidence it ever ran. The two are counted apart because the whole point
+  // of this ledger is the distinction — `CLOSED` and `OPEN` are indistinguishable until a proof has RUN.
+  const executed = withProof.filter((id) => (registry[id].proof as Proof).measured);
+  console.log(`  proofs          : ${withProof.length}  — ${executed.length} EXECUTED · ${withProof.length - executed.length} authored, never run`);
   for (const id of withProof) {
     const p = registry[id].proof as Proof;
-    const when = p.measured ? `${p.measured} @ ${p.sha ?? '?'}` : 'never run';
+    const when = p.measured ? `${p.measured} @ ${p.sha ?? '?'}` : '⛔ never run';
     console.log(`     ${id.padEnd(28)} ${(p.run ?? p.cmd?.join(' ')) as string}  (${when})`);
   }
   console.log(`\n  guard-only      : ${guardOnly.length}  — measured NOT to hold; the entry says what would`);
   for (const id of guardOnly) console.log(`     ${id}`);
   console.log(`\n  never tested    : ${untested.length}  — nobody has ever made these red`);
   for (const id of untested) console.log(`     ${id}`);
+  console.log(`\n  unguarded       : ${unguarded.length}  — a written reason for having no guard; NOT part of the untested backlog`);
+  for (const id of unguarded) console.log(`     ${id}`);
   console.log('');
   process.exit(0);
 }
@@ -216,16 +223,34 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
    *
    * ⚠️ **Not hypothetical.** Pass 4 found two `serve` processes on 4319 left over from Aug 8 and Aug 10,
    * either of which would have served a days-old `dist/` to anything that bound after it.
+   *
+   * ⛔ **S1.12.5.1 [pass-5 D5-3] — THE PREDICATE USED TO BE `p.cmd.includes('playwright')`, AND IT WAS
+   * BLIND TO HALF THE PROOFS THAT NEED IT.** A proof written as `run: "test:e2e:trust-claims"` names an
+   * npm script; the word `playwright` is in `package.json`, not in the argv, so the check never fired.
+   * Lane D measured it with a control: the `cmd:` form faulted, the `run:` form sailed past to the anchor
+   * check with a listener bound on the port. **Two live entries were affected** (`S1P4-C4-8-SINGULAR`,
+   * `S1P4-A-F5-PATHS`), both added by pass 4's own fixing — a form the predicate's author had not seen.
+   *
+   * ⛔ **AND THE OBVIOUS REPAIR IS REFUSED HERE.** Resolving `p.run` through `package.json` and looking
+   * for the word again still loses to `a && b`, to `npm --prefix`, and to the next spelling nobody has
+   * written yet. ⚡ **An enumeration of spellings has failed in this repo eight times.** The question that
+   * is actually being asked is *"could this run be handed a stale server"*, and the honest answer does not
+   * depend on the command at all: **no proof runs while that port is listening.** Strictly larger, strictly
+   * cheaper, and it cannot be out-spelled — the cost is that a listener now blocks proofs that would not
+   * have cared, which is the safe direction and is a fault a human clears in one command.
    */
-  if ((p.cmd ?? []).includes('playwright')) {
+  {
     const port = /-l\s*(\d+)/.exec(readFileSync(join(REPO_ROOT, 'apps/rn/playwright.config.ts'), 'utf8'))?.[1] ?? '4319';
     const listening = spawnSync('netstat', ['-ano'], { encoding: 'utf8', shell: true }).stdout ?? '';
     if (new RegExp(`[:.]${port}\\s+.*LISTEN`, 'i').test(listening)) {
       fault(
         id,
-        `something is already listening on :${port}, and this proof runs playwright.\n` +
-          '   ⛔ The config reuses an existing server, so the plant would never be built and the guard\n' +
-          '   would read as failed-open. Stop that server and re-run.',
+        `something is already listening on :${port}, so NO proof can run.\n` +
+          '   ⛔ `apps/rn/playwright.config.ts` sets `reuseExistingServer`, so any proof that reaches\n' +
+          '   playwright — by argv, by npm script, or through a script that chains to one — would be\n' +
+          '   handed the PRE-PLANT bundle and read as failed-open: a working guard reported dead.\n' +
+          '   ⚠️ This refuses every proof rather than the ones whose command spells "playwright",\n' +
+          '   because that spelling missed two live entries. Stop that server and re-run.',
       );
     }
   }
@@ -440,7 +465,20 @@ for (const id of selected) {
     if (v.failed.includes('control-red')) {
       console.log('       ⛔ the control redded too, so this run measured nothing: the command is red with or without the plant.');
     }
-  } else if (has('record')) {
+  } else if (!has('no-record')) {
+    /**
+     * ⛔ **S1.12.5.1 [pass-5 D5-1] — RECORDING IS THE DEFAULT NOW, BECAUSE `--record` WAS INVOKED BY
+     * NOTHING.** `measured`/`sha` were written only under an opt-in flag that no npm script and no
+     * workflow ever passed, and read only by `--list`. The result: **66 of 66 proofs read `(never run)`
+     * and zero of 186 entries carried a recorded execution on any sha** — while `lint:finding-guards`
+     * printed *"66 carry a re-runnable proof"* on its green path and three passes read that as 66
+     * closures. ⚡ **The ratchet drained as JSON was AUTHORED, not as proofs were EXECUTED.**
+     *
+     * ⚠️ **An opt-in flag on the one field that distinguishes authored from executed is the same defect
+     * as no field at all.** A proof that passes has, by definition, just been measured; making the
+     * caller ask for that to be written is how the distinction stayed theoretical for three passes.
+     * `--no-record` remains for a read-only run (a dirty-tree check, or CI wanting no write-back).
+     */
     const sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
     const raw = JSON.parse(readFileSync(REGISTRY, 'utf8')) as Record<string, Entry>;
     const rp = raw[id].proof as Proof;

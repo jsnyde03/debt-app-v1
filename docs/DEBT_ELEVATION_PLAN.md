@@ -26,7 +26,7 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.12.4 · DISPATCH PASS 5 — the route and brief are READY; it needs a FRESH SESSION**
+## ▶ RIGHT NOW — **S1.12.5 · FIX PASS 5 BY CLASS — 39 findings, 8 classes, instruments first**
 
 **Surface S1 · money · goals · plan cards.** Passes 1–3 run and fully fixed. **Pass 4 run at `e65f9c7` by four fresh agents → 8 blockers · 19 majors · 7 minors across 217 files** ([`SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md)). ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next first-candidate and a clean pass 5 still owes a pass 6.** ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
@@ -67,47 +67,52 @@ found in them. ⚡ Every one was the S0 shape: *an instrument reporting green wh
 claimed.*
 
 
-#### S1.11's sub-steps — pass 4 RECORDED, then FIXED BY CLASS *(all CLOSED 2026-08-29)*
+#### S1.11's sub-steps — pass 4 RECORDED then FIXED BY CLASS *(all CLOSED 2026-08-29)*
 
-⛔ **Grouped by class because the ids are not independent** — **13 of the 34** are one defect: *the fix
-reached the instance that was reported and left a sibling of the same class asserting on the same store.*
-Fixing those one id at a time is what produced this round.
-
-⛔ **The instruments come FIRST and the money blockers wait behind them.** `C4-10` and `D4-6` are the two
-gates built to prevent that class and **neither can fail**; fixing `A-F3` or `C4-9` before them buys a fix
-nothing can prove stays fixed. ⚠️ Each sub-step is: **verify the finding's MECHANISM against current code**
-→ reproduce with a control → fix → re-run the control → **plant the original defect and confirm the guard
-reds FOR THE PLANTED REASON** → **plant the naive over-fix** → register the guard.
-
-| # | sub-step | exit line |
-|---|---|---|
-| ✅ **S1.11.1** | **RECORDED & CLASSIFIED 2026-08-28** — `s1p4` registered in `SWEPT_CLAIMS`, claims written back to **both** files *(the route spans two surfaces)*. Coverage **S1 125→63 · S0 62→50** unswept, both gates green. ⚠️ **The route is 217, not the 216 this doc carried** — manifests and `ROUTING-ORIGINS.tsv` agree, 0 disjoint. ⛔ Coverage **not** credited by route membership: 130 evidenced-swept vs **87 named not-reached**, and three matching errors were caught by reading the matches. ⚡ **[D69]: 29 of 34 COUNT and all EIGHT blockers count** *(pass 3 was 9 of 20)*. [`CLASSIFICATION.md`](audits/2026-08-28-s1-money-pass4/CLASSIFICATION.md) | CLOSED |
-| ✅ **S1.11.2** | **THE INSTRUMENTS ARE REPAIRED — 7 of 7, 2026-08-28.** `D4-6` `C4-10` `D4-3` `D4-9` `D4-5` `D4-8` `D4-2`, each proven by a **2×2 against the pre-fix code**, not by an exit code. Registry **151 → 159**, and two stale tokens re-pointed. ⛔ **Two self-inflicted defects caught in my own fix work** — a check placed after its own `process.exit(1)`, and a plant script that left a file planted. Detail → log | CLOSED |
-| ✅ **S1.11.3** | **THE GUARD LEDGER IS EVIDENCE NOW — CLOSED 2026-08-28.** `npm run prove:guards` executes a finding's own defect and requires the named command to red **for the named reason**; `lint:finding-guards` separates *carries a proof* · *guard-only* · *never tested*, the last two downward-only. **All 8 proven-dead guards repaired · all 32 never-tested lane-A/B/C entries proven · 40 in all.** Three new instruments fell out of it, and ⛔ **119 entries still rest on a token alone** — printed every run. [`LEDGER-RESOLUTION.md`](audits/2026-08-28-s1-money-pass4/LEDGER-RESOLUTION.md) · detail → log | CLOSED |
-| ✅ **S1.11.4** | **CLASS 1 CLOSED 2026-08-29 — 11 findings and 4 `PARTIAL`s, each by an assertion over its CLASS.** `F-B4` `C4-9` `C4-7` `C4-2` `C4-5` `C4-1` `C4-11` `A-F4` `A-F5` `F-B3` `D4-10`. Net green: **39/39 gates · 337 e2e** *(was 325)*; registry **163 → 172**, proofs **44 → 52**. ⛔ **6 of 11 stated remedies would not have closed the finding and 4 would have INTRODUCED one** — while every premise reproduced exactly. Detail → log | CLOSED |
-| ✅ **S1.11.5** | **CLASS 2/3/5 — CLOSED 2026-08-29.** `A-F3` *(blocker: a plan a year behind required its **whole $1,200 balance** out of one $2,000 paycheck)* · `C4-6` · `C4-3` `C4-4` *(the two ledgers blind to their own class)* · `A-F1` `A-F2` `F-B1` `F-B2` `C4-8` `D4-12` `D4-13` · ⛔ **`F-B5`, which no list on this doc carried**. ⭐ `D4-1` `D4-4` were **already closed** by `.2`/`.3` *(re-measured)*; `D4-7` `D4-11` route to `S1.11.6`. Detail → log | each carries **two plants** — the defect, and the laziest plausible repair |
-| ✅ **S1.11.6** | ⛔ **RE-ROUTE FOR PASS 5 — CLOSED 2026-08-29.** `D4-11` *(3 of 5 assertions could not fail)* · **`neighbour`, the fifth origin** *(the four buckets were all predicates on **changed**, so a two-producer disagreement was half-routed by construction)* · `D4-7` *(51 never-swept S0 files in no lane)* · the memory protocol now **ships with the route**. ⭐ And `S1.11.6.0`: **CI had been red for six pushes** while this gate read green locally. Detail → log | the route reproduces `A-F4`'s unrouted producer and C's two unrouted money screens as **routed** |
-| ✅ **S1.11.7** | **[DECISION] S0's convergence stands — [D76], 2026-08-28.** ⚠️ `D4-7` said 49; the measured number is **62** *(`lint:s0-coverage`: 109 classified · 62 unswept)*. ⛔ The gate printing them on the **green** path is deliberate and documented — **nearly filed as a defect and it is not one**; what is real is that `audit-route.ts` can never route them | CLOSED — the routing half moves to `S1.11.6` |
-| ✅ **S1.11.8** | **THE NET — GREEN AND PUSHED 2026-08-29.** typecheck ×4 · `lint:rn` **40/40** · three unit suites · **338 e2e** · **10 embed** · **CI green**. ⛔ No `gate:record` — [D74] writes it at convergence and pass 4 did not converge | green and pushed; the hand-off names the last full pass |
+✅ **Collapsed 2026-08-30** — `S1.11.1`–`S1.11.8`: pass 4 recorded and classified · seven instruments repaired ·
+the guard ledger turned to evidence · classes 1/2/3/5 fixed · the route re-built with `neighbour` as a fifth
+origin · [D76] · the net green and pushed. ⛔ **Pass 5 measured that `S1.11.3`'s ledger records nothing and
+cannot pass** — see `D5-1`/`D5-4`, repaired in `S1.12.5.1`. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
 ##### S1.12's sub-steps — PASS 5, the next first-candidate
 
-⛔ **[D65] EXITS ON 0/0 TWICE CONSECUTIVELY.** Pass 4 found 34, so pass 5 is a **first**-candidate and a
-clean pass 5 still owes a **pass 6**. ⚠️ This is the live build; it is **not started** — dispatching four
-fresh agents is a real spend and 🎯 has not been asked yet.
+⛔ **[D65] EXITS ON 0/0 TWICE CONSECUTIVELY.** Pass 5 is **8 blockers / 15 majors that COUNT**, so it is not a
+first clean pass: **pass 6 is owed, and a clean pass 6 would still owe a pass 7.**
 
-⚠️ **Expect the shape to differ from pass 4.** The route now carries **51 never-swept S0 files** and
-**207 neighbours** that have been in no lane of any round, so most findings should be `first-look` or
-`neighbour` — [D69] coverage results that **do not restart the convergence count**. ⛔ Exempt from the
-count is NOT exempt from the fix.
+⚡ **The round's central result:** `prove:guards` — the instrument `S1.11.3` built so the ledger would carry
+evidence rather than tokens — **has never executed.** 66 of 66 proofs read `(never run)`, `--record` is invoked by
+nothing, `--all` is in no chain, and of the 51 lane D ran **3 red for the wrong reason**, so `--all` **cannot pass
+at this commit.** ⛔ **Until that is repaired, every closure written below lands in a ledger that does not execute
+it** — which is why the classes are ordered the way they are.
 
 | # | sub-step | exit line |
 |---|---|---|
 | ✅ **S1.12.1** | **[DECISION] ANSWERED 🎯 2026-08-29 — the FULL four-lane pass.** Narrowing would leave the 256 never-routed files unread while still owing two clean passes, so the spend moves rather than shrinks | a yes/no with the scope named, recorded here |
 | ✅ **S1.12.2** | **ROUTE GENERATED** at `--since=e65f9c7` → `docs/audits/2026-08-29-s1-money-pass5/`. **393 routed · 0 unrouted · 0 owed.** A 108 · B 113 · C 122 · D 50. `RESUME-PROTOCOL.md` written beside the manifests | 0 unrouted, 0 owed, and the origin split printed |
 | ✅ **S1.12.3** | **BRIEF WRITTEN** — `BRIEF.md`, carrying the five reading rules **and what pass 4 measured about its own findings**: a remedy is a hypothesis, a premise is not · judge the CONDITION · which member of its class did this test pick · a check that cannot fail · ⛔ **a plant cannot see the green state** | the brief names what pass 4 measured about ITS OWN findings |
-| ▶ **S1.12.4** | ⛔ **RUN — NEEDS A FRESH SESSION** (🎯 2026-08-29). Dispatch four lane agents against `docs/audits/2026-08-29-s1-money-pass5/`: each reads `BRIEF.md` + `RESUME-PROTOCOL.md` + its own `ROUTING-<lane>.txt`, ⚠️ **no sub-agents**, heap **1536 MB**, findings written to `<lane>-*.md` **incrementally** — an OOM is a FINDING, never a retry | findings on disk per lane; classification written back to BOTH claims files in the same step |
-| **S1.12.5** | **FIX BY CLASS** — one assertion per class that ITERATES the class, two plants each, a registered `proof` | 0 blockers / 0 majors, every closure proven to red |
+| ✅ **S1.12.4** | **PASS 5 RUN, RECORDED & CLASSIFIED 2026-08-30.** Four fresh lane agents at `65566a09` → **9 blockers · 15 majors · 15 minors = 39** ([`SYNTHESIS.md`](audits/2026-08-29-s1-money-pass5/SYNTHESIS.md)). `s1p5` registered; claims written to **both** files; coverage **S1 68→63 · S0 57→41** unswept, three gates green. ⛔ **Only 126 of 393 routed files are evidenced-swept (32%)** — pass 4 was 60% of a route half the size. ⚡ **`neighbour` is the largest bucket and carries 4 of 9 blockers**; `first-look` produced **zero**, and the reservoir was not read. [`CLASSIFICATION.md`](audits/2026-08-29-s1-money-pass5/CLASSIFICATION.md) | CLOSED |
+| ▶ **S1.12.5** | **FIX BY CLASS** — 39 findings in **8 classes**, ordered so the proof machinery is repaired before anything is proven with it. Decomposed below | 0 blockers / 0 majors, every closure proven to red |
+
+###### S1.12.5's sub-steps — the ACTIVE decomposition *(the ONLY one on this doc)*
+
+⚠️ Each sub-step is: **verify the finding's MECHANISM against current code** → reproduce with a control →
+fix → re-run the control → **plant the original defect and confirm the guard reds FOR THE PLANTED REASON**
+→ **plant the laziest plausible repair** → register the guard. ⛔ **One assertion per class that ITERATES
+the class**, never one that names a member — fixing ids one at a time produced pass 4's round, then pass 5's.
+⛔ **A remedy in a finding is a HYPOTHESIS**: more than half of pass 4's would not have closed their finding
+and five would have INTRODUCED one. Verify against current code before writing anything.
+
+| # | sub-step | exit line |
+|---|---|---|
+| ▶ **S1.12.5.1** | **CLASS I — the proof machinery does not execute.** `D5-1` `D5-4` `D5-3` `D5-2` `D5-11` | `prove:guards --all` executes, sits in a chain, records what it ran, and **passes** |
+| **S1.12.5.2** | **CLASS II — route & coverage integrity.** `D5-10` *(a rejected lint still writes the inventory, and the route then upgrades a swept file to `first-look` — corruption toward EASIER convergence)* · `D5-8` *(72 files adjacent to never-swept files reach no lane)* · `D5-6` *(a green `lint:rn` dirties the tree where `git diff` shows nothing)*. ⚠️ Includes a home for the **50 routed files in NEITHER claims file** | a rejected gate writes nothing; `neighbour` seeds from never-swept too; `lint:rn` leaves the tree clean |
+| **S1.12.5.3** | **CLASS III — a check that cannot fail.** `A5-2` `A5-3` `A5-6` `A5-7` `B5-1` `B5-3` `D5-5` `D5-7` | each reds on its own defect **and** on the naive over-fix |
+| **S1.12.5.4** | **CLASS IV — a population that is an enumeration.** `D5-13` `D5-9` `D5-12` `B5-7` `B5-12` `B5-8` `C5-1` `C5-5`. ⚡ D's prescription adopted: **enumerate what is ACCOUNTED FOR and refuse the remainder** | one pattern, applied at every site; a new member joins or the gate reds |
+| **S1.12.5.5** | ⛔ **CLASS V — CADENCE, the biggest money class.** `A5-1` `A5-5` `C5-4`. A monthly payer is shown **July 2026** against a true **January 2027**, charged **3×** for one "Every paycheck" bill, and told of a **$100 shortfall over $250 of spare cash**. ⚠️ `C5-4` **cannot be fixed alone** | **one identity over 7 × 4 cadence pairs** — it must find `A5-1` and `A5-5` without either being named |
+| **S1.12.5.6** | **CLASS VI — two producers, one corrected.** `C5-2` *(widget/Siri **$2,513** below the app on one store)* · `C5-3` · `A5-4`. ⛔ **`C5-2`'s own remedy was planted and left the suite GREEN**, and must not project `live`/`cleared` or "Debt-free" reaches the Home Screen unconfirmed | one assertion that every external claim site agrees with the app's own figure |
+| **S1.12.5.7** | **CLASS VII — id & record lifecycle (data loss).** `B5-9` *(a re-issued id moves **$500** onto the wrong debt and four more records follow it)* · `B5-2` | no id the store still references can be re-minted |
+| **S1.12.5.8** | **CLASS VIII — copy, formatting, stale premises.** `B5-4` `B5-5` `B5-6` `B5-10` `B5-11` `B5-13` `C5-6` `D5-14` | each closed or refuted with a reason |
+| **S1.12.5.9** | **THE NET** — typecheck ×4 · `lint:rn` end to end · three unit suites · full e2e + embed · CI | net green and pushed; ⛔ **no `gate:record`** — [D74] writes it at convergence and pass 5 did not converge |
 
 **Exit (S1.12):** pass 5 recorded and fixed. ⛔ **Convergence still requires a clean pass 6** — a 0/0 pass 5
 does not close S1 on its own.

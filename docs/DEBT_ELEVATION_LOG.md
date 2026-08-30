@@ -28788,3 +28788,132 @@ Correct on its own terms and it matches `audits always use fresh agents`: **this
 whole round fixing**, and an incumbent dispatching its own audit re-reads its own premises into the brief.
 Everything the run needs is on disk — brief, protocol, four manifests, the origin table — so the next
 session starts at the dispatch and not at the reconstruction.
+
+
+---
+
+## 2026-08-30 — S1.12.4: pass 5 RUN, RECORDED and CLASSIFIED
+
+**Four fresh `general-purpose` agents, one per lane, in parallel, at `65566a09`.** Dispatch recorded
+verbatim in `docs/audits/2026-08-29-s1-money-pass5/DISPATCH.md`, including the pre-dispatch verification —
+**0 missing paths of 393 · 0 cross-lane dupes · lane sums 108+113+122+50 · origin split confirmed against
+the brief.** That check is not ceremony: a prior round handed an auditor a directory that did not exist.
+
+Two things were added to the dispatch that the brief did not carry: **the per-lane origin split** (so each
+auditor knew most of its own lane had never been read — A 55 neighbours + 27 s0-first-look, B 76, C 73),
+and **the isolated-worktree recipe**, so no plant could land in the main checkout. Both paid: every lane
+returned a `git status --porcelain` proving the main tree untouched, and all four worktrees were removed.
+
+### The result — 39 findings: 9 blockers · 15 majors · 15 minors
+
+Pass 4 found 34. **Pass 5 found 39, and 34 of them COUNT.** [D65] exits on 0/0 twice consecutively, so
+pass 5 is not a first clean pass: **pass 6 is owed and a clean pass 6 would still owe a pass 7.**
+
+⚡ **The re-route paid on its first use.** `S1.11.6` added `neighbour` because a two-producer disagreement
+was half-routed by construction — the fix corrects one producer, the route emits one producer, and nothing
+puts the other in front of a reader. **`neighbour` is now the largest bucket and carries 4 of the 9
+blockers.** Every one of lane A's seven findings is `neighbour`; three of C's five app-side findings are.
+`B5-9` is the clearest instance: `debtIds.ts`, `store.ts` and `payday.ts` are **each individually correct,
+none of them changed**, and the defect exists only in the sentence they form together.
+
+⛔ **`first-look` produced ZERO findings, and that is not a clean bill.** B said it plainly: *"15 of my 18
+`first-look` files are `*.test.ts` and I read only two."* The reservoir was not read, so it did not report.
+
+### The central result — the ledger built to carry evidence has never executed
+
+`S1.11.3` closed on *"the guard ledger is evidence now."* **Lane D executed `prove:guards`, which nobody
+had done**, and found that **66 of 66 registry proofs read `(never run)`**: `measured`/`sha` are written
+only by `--record`, which is invoked by nothing, and `--all` is in no chain — so `MAX_UNPROVEN` drains as
+JSON is *authored*, not as proofs are *executed*. Of the **51 D ran — the first execution of any of them —
+48 held and 3 red for the wrong reason**, so `--all` **cannot pass at this commit**. And the
+`wrong-reason` check inside `verdict()` is **vacuous for 26 of 50 checkable proofs**, because the `expect`
+string is already present in the fully green output: D planted an unrelated defect carrying another
+finding's `expect` and the harness printed **`✅ … reason=MATCHED`**.
+
+⛔ **So the instruments are fixed before the money blockers, exactly as `S1.11` decided, and the argument is
+stronger this round:** every closure written for a money blocker would land in a ledger that does not
+execute it. ⛔ And `D5-10` corrupts in the direction that makes convergence *easier* — a **rejected**
+`lint:s1-coverage` still rewrites the inventory, and `audit-route --check` then routes from the rewritten
+file at exit 0, **upgrading a swept file to `first-look`**, which [D69] exempts from the count.
+
+### The classification, and the method changed on purpose
+
+Pass 4 defaulted a routed file to SWEPT unless a lane named it not-reached — and that default failed
+inside pass 4 itself, when C disclaimed three whole *directories* in prose and 30 files had to be moved by
+hand because **silence read as swept**. Pass 5's lane D found the same shape three more times as live
+defects (`D5-13` `D5-9` `D5-12`) and prescribed the cure: *enumerate what is ACCOUNTED FOR and refuse the
+remainder.* **This classification applies that to itself** — `s1p5` only where a lane's own report
+evidences a sweep.
+
+**126 of 393 routed files are evidenced-swept — 32%. Pass 4 evidenced 60% of a route half the size.** In
+absolute terms pass 5 read about as many files as pass 4; the route nearly doubled and the reading did not.
+⚡ **Only 21 of the 126 were previously unswept**, which is the coverage result stated plainly: pass 5
+re-read ground already read and barely touched the reservoir — and that is *why* `first-look` reported
+nothing. Coverage moved **S1 68 → 63** and **S0 57 → 41** unswept; `s1p5` registered in `SWEPT_CLAIMS`;
+claims written to **both** files; three gates green, each read from its own summary line.
+
+⚠️ **The plan carried "S0 → 50" after pass 4 while the committed inventory said 57.** Not reconciled and
+not quoted forward — [D49] exists for this: quote the gate, never the document.
+
+### ⛔ Three classifier errors, all mine, all found by reading the matches
+
+Pass 4 made exactly three corrections this way and every one inflated coverage. **Pass 5's classifier made
+three of its own, in the same direction**, and they are recorded because a classifier that is not itself
+audited is one more instrument reporting green while doing less than it claims:
+
+1. the matcher treated only `.ts`/`.tsx`/`.mjs` as full filenames, so **`app.json`,
+   `conform-app-preview.sh` and `test-conform-assertions.sh` — all three on D's explicit never-swept
+   list — failed to match and were marked SWEPT**;
+2. the `s1p5` path stripped `partial` but not `never`, writing **24 entries** as the self-contradictory
+   `["never","s1p5"]` — which the gate counts as swept, so no gate could see it;
+3. a name written without its extension (`skia-ready`) could not match a file carrying two
+   (`skia-ready.web.ts`).
+
+All three are the **same class as the findings being recorded** — an enumeration blind to a spelling it did
+not anticipate. ⛔ **That class has now failed in this repo eight times, and the eighth was in the code
+written to record the seventh.** The matcher is now one anchored rule that keeps pass 4's correction:
+`Card` matches `Card.tsx` and not `AffordabilityCard.tsx`.
+
+⚠️ **And the restore failed silently once.** The writer is additive-only, so re-running it after a
+correction cannot retract a wrong claim; both re-runs had to start from a restored baseline. The first
+attempt's restore **did not apply** — a `cd` from an earlier step had persisted and the pathspecs did not
+resolve — and the run that followed reported *"0 entries updated"* over the uncorrected file. The pathspec
+errors were visible in the output and the reset was redone from the repo root and verified. That is
+`verify-the-restore-not-just-the-plant` and `the-shell-is-a-participant`, both live in one step.
+
+### ⛔ 50 routed files are in NEITHER claims file — and two carry pass-5 findings
+
+No inventory owns them, so **no gate can ever state whether anyone read them**. `readBackup.ts` carries
+**`B5-1`, a blocker** — nine lost debt rows described as *"1 whole row"*, one line above **Replace my
+data** — and `parseStatementText.ts` carries **`A5-3`, a major**. This is `S1.10.6.10` on its second round
+and **wider than that item describes**: 38 of the 50 are `neighbour`, on S1's own import graph. It is what
+makes the three `off-surface` [D69] exemptions exempt for a bad reason — not because nobody read them, but
+because there is no file in which to say whether anyone did. Folded into `S1.12.5.2`.
+
+### Pass 5 is a PARTIAL sweep, and every lane said so unprompted
+
+A ran **zero Playwright specs** — all 14 e2e and 9 `.shot.ts` files read but never planted against, and in
+this repo reading has never once found the vacuous-check class. B opened ~50 of 113, leaving
+`migrationAudit/cutoverFiles.test.ts` and `interruption.test.ts` **never-swept by any pass**. C left 12
+money-bearing files unread, `PaydayGuardianCard.tsx` (712 lines, `fix-churn`, the subject of pass-4 `C4-5`
+and `C4-7`) first among them. D left 15 of 66 proofs unexecuted and never ran `lint:rn` end to end.
+
+⚠️ **One registered proof's command is forbidden by this round's own resource rules** —
+`S1P4-A-F1-WINDOWREQUIRED` is `run: typecheck`, a whole-monorepo typecheck. Two live rules in direct
+conflict; recorded rather than silently skipped, and resolved in `S1.12.5.1`.
+
+### Process notes earned, folded into `RESUME-PROTOCOL.md` in the same step
+
+A fresh worktree needs a junction from `apps/rn/core` to `packages/core` or `tsx` cannot resolve `@core/*`
+and `test:app` cannot run at all — the junction is gitignored and the failure reads as a broken import.
+**Junctions must be removed with `rmdir` BEFORE `git worktree remove`**, or the recursive delete follows one
+into the main checkout's `node_modules`. **MSYS rewrites a leading double slash** and turned one plant into
+a fake syntax red. **A batch plant runner must restore in a `trap`**, because a tool timeout killed one
+*between* mutate and restore and the next plant's red was the previous plant's mutation still on disk.
+
+**No OOM occurred in any lane.** Everything ran under `--max-old-space-size=1536` and nobody retried with a
+larger heap — which is the failure that killed pass 4's dispatch.
+
+⚡ **D5-6 reproduced in this session's own work:** running the coverage gates left `git status` reporting
+`M` on two committed inventories while `git diff --ignore-cr-at-eol` showed nothing. Confirmed with a
+control on the pre-pass-5 claims, which produced the same CRLF-only dirt.

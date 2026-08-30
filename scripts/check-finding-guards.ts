@@ -63,7 +63,21 @@ interface Entry {
    * checked HERE is only the half a static gate can check: that the un-fix's anchor still matches the
    * file **exactly once**, so a recorded measurement cannot outlive the line it was measured against.
    */
-  proof?: { unfix: { at: string; find: string; replace: string }[]; run?: string; cmd?: string[]; expect: string };
+  /**
+   * ⚠️ **`measured`/`sha` were absent from THIS declaration while `prove-guards.ts` declared them** — one
+   * shape, two hand-written types, and the half that gates was the half that could not see the evidence
+   * fields. That is why the ratchet here counted authored blocks as proven for three passes (D5-1): the
+   * gate could not have read `measured` even if it had wanted to.
+   */
+  proof?: {
+    unfix: { at: string; find: string; replace: string }[];
+    run?: string;
+    cmd?: string[];
+    expect: string;
+    /** ISO date the proof last PASSED, and the sha it passed on — written by a passing `prove:guards` run */
+    measured?: string;
+    sha?: string;
+  };
   /**
    * ⚠️ **NOT PROVEN TO RED — stated rather than implied.** Either the guard was measured to survive its
    * own un-fix, or nothing here can plant it. Both are the same fact about the record: this entry's
@@ -144,6 +158,13 @@ const MAX_UNGUARDED = 1;
  */
 const MAX_UNPROVEN = 119;
 const MAX_GUARD_ONLY = 0;
+/**
+ * ⛔ **D5-1's ratchet. Starts at the measured truth — every one of the 66 proof blocks had never run —
+ * and only ever goes DOWN as they are executed.** It is deliberately NOT set to 0 and declared fixed:
+ * that would red the tree on a fact this session has not yet finished changing, and a cap nobody can
+ * satisfy gets raised, which is the one move both ratchets exist to refuse.
+ */
+const MAX_AUTHORED = 66;
 
 /**
  * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.
@@ -197,8 +218,10 @@ const dupes = keyLines.filter((k, i) => keyLines.indexOf(k) !== i);
 const problems: string[] = [];
 let guarded = 0;
 const unguarded: string[] = [];
-/** carries a re-runnable `prove:guards` proof */
+/** ⭐ carries a proof that HAS BEEN EXECUTED — `measured` + `sha` written by a passing `prove:guards` run */
 const proven: string[] = [];
+/** ⛔ carries a proof block that has NEVER been run. A plan to measure is not a measurement (D5-1). */
+const authored: string[] = [];
 /** the token stands and nothing proves it reds — measured, or unplantable; both are the same hole */
 const guardOnly: string[] = [];
 /** nobody has ever made this guard red */
@@ -306,7 +329,12 @@ for (const [id, e] of Object.entries(registry)) {
         void_ = true;
       }
     }
-    if (!void_) proven.push(id);
+    // ⛔ **S1.12.5.1 [pass-5 D5-1] — AUTHORED IS NOT EXECUTED, AND THIS GATE COUNTED THEM AS ONE.**
+    // A proof block whose anchor still matches is a *plan to measure*. `measured`/`sha` are the only
+    // evidence it was ever RUN — and when pass 5 looked, **66 of 66 read `never run`**, because the
+    // only writer was a `--record` flag nothing invoked. So `MAX_UNPROVEN` drained as JSON was written.
+    // ⚠️ The two counts are ratcheted separately below; collapsing them again restores the hole.
+    if (!void_) (e.proof.measured ? proven : authored).push(id);
   } else if (e.guardOnly) {
     if (!e.guardOnly.trim()) problems.push(`${id} — marked guardOnly with an empty measurement`);
     guardOnly.push(id);
@@ -375,6 +403,21 @@ ratchet(
   'unproven — nobody has ever made their guard red',
   'A new closure ships with a `proof` block, or it is not a closure: run `npm run prove:guards -- --id=<ID>`.',
 );
+/**
+ * ⛔ **S1.12.5.1 [pass-5 D5-1] — THE SECOND RATCHET, AND IT IS THE ONE THAT WAS MISSING.**
+ *
+ * `MAX_UNPROVEN` drains when a `proof` block is **written**. Nothing anywhere drained when a proof was
+ * **run**, so all 66 sat at `never run` while the gate's green line said *"66 carry a re-runnable proof"*
+ * and three passes read that as 66 closures. ⚡ **Authoring is cheap and executing is the evidence** — two
+ * facts, so two counters, each downward-only. ⚠️ Raising this to make a run pass is the same move as
+ * raising `MAX_UNGUARDED`, and it is the defect the pair exists to catch.
+ */
+ratchet(
+  authored.length,
+  MAX_AUTHORED,
+  'authored but NEVER EXECUTED — the proof block exists and no run has ever recorded a result',
+  'Execute it: `npm run prove:guards -- --id=<ID>` records `measured` + `sha` on a pass.',
+);
 ratchet(
   guardOnly.length,
   MAX_GUARD_ONLY,
@@ -403,8 +446,9 @@ console.log(
 // that a proof exists and that its anchor still matches; it cannot RUN one. A proof that has started
 // failing looks identical here, which is why the line names the command that executes them.
 console.log(
-  `   proof: ${proven.length} carry a re-runnable proof · ${guardOnly.length} guard-only (cap ${MAX_GUARD_ONLY}) · ` +
-    `${unproven.length} never tested (cap ${MAX_UNPROVEN}) — execute them with \`npm run prove:guards -- --all\``,
+  `   proof: ${proven.length} EXECUTED · ${authored.length} authored but never run (cap ${MAX_AUTHORED}) · ` +
+    `${guardOnly.length} guard-only (cap ${MAX_GUARD_ONLY}) · ${unproven.length} never tested (cap ${MAX_UNPROVEN})\n` +
+    '          ⛔ "authored" is a plan to measure, not a measurement — `npm run prove:guards -- --id=<ID>` records it.',
 );
 // ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
 // number nobody sees is a number nobody drains.

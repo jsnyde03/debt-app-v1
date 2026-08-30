@@ -25,3 +25,30 @@ Origins in `ROUTING-ORIGINS.tsv`, and what each means for the report:
 - `neighbour` — did NOT change, but a file it imports or shares a consumer with did. This is where a
   two-producer disagreement is visible from the side that did not move.
 
+---
+
+## The worktree recipe — every line below was paid for in pass 5
+
+```bash
+git -C /c/Users/Jason/debt-app-v1 worktree add --detach /c/Users/Jason/audit-p<N>-<lane> <sha>
+cmd //c mklink //J "C:\Users\Jason\audit-p<N>-<lane>\node_modules"          "C:\Users\Jason\debt-app-v1\node_modules"
+cmd //c mklink //J "C:\Users\Jason\audit-p<N>-<lane>\apps\rn\node_modules" "C:\Users\Jason\debt-app-v1\apps\rn\node_modules"
+cmd //c mklink //J "C:\Users\Jason\audit-p<N>-<lane>\apps\rn\core"         "C:\Users\Jason\audit-p<N>-<lane>\packages\core"
+```
+
+7. ⛔ **The third junction is not optional.** `apps/rn/core` is **gitignored**, so a fresh worktree cannot
+   resolve `@core/*` and **cannot run `test:app` at all**. The failure reads as
+   `Cannot find module '@core/debt/bnplInstallment'` and looks like a broken import, not a missing link.
+8. ⛔ **Detach every junction with `rmdir` BEFORE `git worktree remove`.** A recursive delete **follows a
+   junction**, and would take the main checkout's `node_modules` and `packages/core` with it. Two lane
+   agents independently stopped short of this in pass 5; it is not a hypothetical.
+9. **MSYS rewrites a leading `//`.** It turned one plant into a **fake syntax red** — a red that was real,
+   for a reason that was not the claim. Rule 6's *"a red is not evidence until you know which claim
+   produced it"* has a shell-level member.
+10. ⛔ **A batch plant runner must restore in a `trap`, never on a trailing line.** A tool timeout killed
+    one *between* mutate and restore, so the next plant's red was actually the previous plant's mutation
+    still on disk. Both re-ran clean — but the failure mode is a **misattributed red**, which is the one
+    thing this protocol exists to prevent.
+11. ⚠️ **A registered proof may name a command this protocol forbids.** `S1P4-A-F1-WINDOWREQUIRED` is
+    `run: typecheck` — a whole-monorepo typecheck, refused by rule 3. Do not run it and do not silently
+    skip it: **record the conflict as a finding.**

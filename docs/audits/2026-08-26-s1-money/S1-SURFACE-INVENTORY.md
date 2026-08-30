@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**478 files on the S1 surface · 410 swept · 68 unswept.**
+**478 files on the S1 surface · 415 swept · 63 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -17,18 +17,18 @@
 | `apps/rn/src/analytics/funnel.test.ts` | s1p3 · s1p4 |
 | `apps/rn/src/analytics/funnel.ts` | s1p3 · s1p4 |
 | `apps/rn/src/app/(tabs)/_layout.tsx` | s1p3 |
-| `apps/rn/src/app/(tabs)/index.tsx` | s1p2 |
-| `apps/rn/src/app/(tabs)/money.tsx` | r10 · s1p1 · s1p2 · s1p4 |
-| `apps/rn/src/app/(tabs)/progress.tsx` | s1p2 |
+| `apps/rn/src/app/(tabs)/index.tsx` | s1p2 · s1p5 |
+| `apps/rn/src/app/(tabs)/money.tsx` | r10 · s1p1 · s1p2 · s1p4 · s1p5 |
+| `apps/rn/src/app/(tabs)/progress.tsx` | s1p2 · s1p5 |
 | `apps/rn/src/app/+not-found.tsx` | s1p3 |
 | `apps/rn/src/app/_layout.tsx` | partial · s1p4 |
-| `apps/rn/src/app/cushion-forecast.tsx` | s1p2 |
+| `apps/rn/src/app/cushion-forecast.tsx` | s1p2 · s1p5 |
 | `apps/rn/src/app/demo.tsx` | s1p3 |
-| `apps/rn/src/app/history.tsx` | s1p3 |
+| `apps/rn/src/app/history.tsx` | s1p3 · s1p5 |
 | `apps/rn/src/app/living-expenses.tsx` | s1p3 · s1p4 |
 | `apps/rn/src/app/more.tsx` | ⛔ **partial** |
 | `apps/rn/src/app/onboarding.tsx` | s1p3 |
-| `apps/rn/src/app/paywall.tsx` | partial · s1p4 |
+| `apps/rn/src/app/paywall.tsx` | s1p4 · s1p5 |
 | `apps/rn/src/app/schedule/[id].tsx` | s1p3 |
 | `apps/rn/src/app/tutorial.tsx` | s1p3 |
 | `apps/rn/src/appIntents/drainPendingActions.ts` | s1p3 |
@@ -43,17 +43,17 @@
 | `apps/rn/src/components/StorageErrorScreen.tsx` | s1p3 |
 | `apps/rn/src/components/entities/AddObligationSheet.tsx` | partial · s1p1 |
 | `apps/rn/src/components/entities/AmortizationView.tsx` | never · s1p1 |
-| `apps/rn/src/components/entities/DebtSheet.tsx` | s1p1 · s1p2 · partial |
+| `apps/rn/src/components/entities/DebtSheet.tsx` | s1p1 · s1p2 · s1p5 |
 | `apps/rn/src/components/entities/ExpenseSheet.tsx` | s1p1 · s1p2 |
 | `apps/rn/src/components/entities/GoalSheet.tsx` | r17 · s1p1 · s1p2 |
 | `apps/rn/src/components/entities/ImportDebtsSheet.tsx` | never · s1p1 |
 | `apps/rn/src/components/entities/LivingExpenseSheet.tsx` | never · s1p1 |
-| `apps/rn/src/components/entities/LogPaymentSheet.tsx` | never · s1p1 |
+| `apps/rn/src/components/entities/LogPaymentSheet.tsx` | s1p1 · s1p5 |
 | `apps/rn/src/components/money/AllocationBarCanvas.tsx` | s1p3 |
 | `apps/rn/src/components/money/AllocationBarCanvas.web.tsx` | s1p3 |
 | `apps/rn/src/components/money/AllocationBarChart.tsx` | s1p3 |
 | `apps/rn/src/components/money/BillBreakdownSheet.tsx` | s1p3 · s1p4 |
-| `apps/rn/src/components/money/BnplCalendarSection.tsx` | s1p3 · s1p4 |
+| `apps/rn/src/components/money/BnplCalendarSection.tsx` | s1p3 · s1p4 · s1p5 |
 | `apps/rn/src/components/more-button.tsx` | s1p3 |
 | `apps/rn/src/components/more/BackupSheets.tsx` | s1p3 |
 | `apps/rn/src/components/more/CloudBackupSheet.tsx` | partial · s1p4 |
@@ -71,7 +71,7 @@
 | `apps/rn/src/components/payoff/StrategyCompare.tsx` | s1p3 |
 | `apps/rn/src/components/payoff/TrajectoryCanvas.tsx` | s1p3 |
 | `apps/rn/src/components/payoff/TrajectoryCanvas.web.tsx` | s1p3 |
-| `apps/rn/src/components/payoff/TrajectoryChart.tsx` | ⛔ **partial** |
+| `apps/rn/src/components/payoff/TrajectoryChart.tsx` | s1p5 |
 | `apps/rn/src/components/payoff/TrajectorySkiaChart.tsx` | never · s1p4 |
 | `apps/rn/src/components/payoff/WhatIfControls.tsx` | s1p3 · s1p4 |
 | `apps/rn/src/components/payoff/compareStrategies.test.ts` | s1p3 |
@@ -79,10 +79,10 @@
 | `apps/rn/src/components/payoff/monthLabels.test.ts` | s1p3 |
 | `apps/rn/src/components/payoff/monthLabels.ts` | s1p3 |
 | `apps/rn/src/components/payoff/trajectoryDomain.test.ts` | s1p3 · s1p4 |
-| `apps/rn/src/components/payoff/trajectoryDomain.ts` | s1p3 · s1p4 |
-| `apps/rn/src/components/payoff/whereText.test.ts` | ⛔ **never** |
-| `apps/rn/src/components/payoff/whereText.ts` | ⛔ **never** |
-| `apps/rn/src/components/plan/AffordabilityCard.tsx` | partial · s1p1 · s1p2 |
+| `apps/rn/src/components/payoff/trajectoryDomain.ts` | s1p3 · s1p4 · s1p5 |
+| `apps/rn/src/components/payoff/whereText.test.ts` | ⛔ **partial** |
+| `apps/rn/src/components/payoff/whereText.ts` | s1p5 |
+| `apps/rn/src/components/plan/AffordabilityCard.tsx` | s1p1 · s1p2 · s1p5 |
 | `apps/rn/src/components/plan/AffordabilityImpactBar.tsx` | s1p1 · s1p2 |
 | `apps/rn/src/components/plan/CaptureSlate.tsx` | never · s1p1 |
 | `apps/rn/src/components/plan/CashRunwayCanvas.tsx` | never · s1p1 |
@@ -113,7 +113,7 @@
 | `apps/rn/src/components/plan/RecoveryPlanSection.tsx` | s1p1 · s1p2 |
 | `apps/rn/src/components/plan/RequiredActionsCard.tsx` | s1p1 · s1p2 |
 | `apps/rn/src/components/plan/SaveForItSheet.tsx` | r17 |
-| `apps/rn/src/components/plan/ShareCard.tsx` | partial · s1p1 · s1p2 · s1p4 |
+| `apps/rn/src/components/plan/ShareCard.tsx` | s1p1 · s1p2 · s1p4 · s1p5 |
 | `apps/rn/src/components/plan/SpokenForSheet.tsx` | s1p1 · s1p2 |
 | `apps/rn/src/components/plan/WindfallSheet.tsx` | partial · s1p1 · s1p2 |
 | `apps/rn/src/components/plan/dataRepairsCopy.test.ts` | r17 |
@@ -124,7 +124,7 @@
 | `apps/rn/src/components/progress/JourneyRingCanvas.tsx` | s1p3 |
 | `apps/rn/src/components/progress/JourneyRingCanvas.web.tsx` | s1p3 |
 | `apps/rn/src/components/progress/JourneyRingChart.tsx` | s1p3 |
-| `apps/rn/src/components/progress/PaidOffArchive.tsx` | s1p3 · s1p4 |
+| `apps/rn/src/components/progress/PaidOffArchive.tsx` | s1p3 · s1p4 · s1p5 |
 | `apps/rn/src/components/progress/TimelineLedger.tsx` | s1p2 |
 | `apps/rn/src/components/screen.tsx` | s1p3 |
 | `apps/rn/src/components/tab-bar-icon.tsx` | s1p3 |
@@ -158,10 +158,10 @@
 | `apps/rn/src/components/ui/TwoColumn.tsx` | ⛔ **never · partial** |
 | `apps/rn/src/components/ui/sheet-styles.ts` | ⛔ **never · partial** |
 | `apps/rn/src/config/qa.ts` | s1p3 |
-| `apps/rn/src/data/defaults.ts` | s1p2 |
+| `apps/rn/src/data/defaults.ts` | s1p2 · s1p5 |
 | `apps/rn/src/data/migrations.test.ts` | s1p1 · s1p2 |
-| `apps/rn/src/data/migrations.ts` | r10 · s1p2 |
-| `apps/rn/src/data/models.ts` | r17 |
+| `apps/rn/src/data/migrations.ts` | r10 · s1p2 · s1p5 |
+| `apps/rn/src/data/models.ts` | r17 · s1p5 |
 | `apps/rn/src/hooks/spotlight.test.ts` | never · s1p4 |
 | `apps/rn/src/hooks/spotlightGeometry.ts` | partial · s1p4 |
 | `apps/rn/src/hooks/use-app-colors.ts` | s1p3 |
@@ -193,14 +193,14 @@
 | `apps/rn/src/liveActivity/liveActivityKeys.ts` | s1p3 |
 | `apps/rn/src/liveActivity/liveActivitySync.ts` | s1p3 |
 | `apps/rn/src/liveActivity/paydayActivityContent.test.ts` | s1p3 · s1p4 |
-| `apps/rn/src/liveActivity/paydayActivityContent.ts` | s1p3 · s1p4 |
+| `apps/rn/src/liveActivity/paydayActivityContent.ts` | s1p3 · s1p4 · s1p5 |
 | `apps/rn/src/motion/CountUp.tsx` | s1p3 |
 | `apps/rn/src/motion/Motion.tsx` | ⛔ **never · partial** |
 | `apps/rn/src/motion/haptics.ts` | never · s1p4 |
 | `apps/rn/src/motion/hooks.ts` | ⛔ **never · partial** |
 | `apps/rn/src/motion/index.ts` | ⛔ **never · partial** |
 | `apps/rn/src/notifications/notificationCopy.ts` | s1p3 |
-| `apps/rn/src/notifications/notifications.ts` | s1p3 |
+| `apps/rn/src/notifications/notifications.ts` | s1p3 · s1p5 |
 | `apps/rn/src/notifications/notifications.web.ts` | s1p3 |
 | `apps/rn/src/premium/config.ts` | s1p3 |
 | `apps/rn/src/premium/introOffer.test.ts` | s1p3 |
@@ -212,13 +212,13 @@
 | `apps/rn/src/premium/purchases.ts` | s1p3 |
 | `apps/rn/src/premium/purchasesClient.ts` | s1p3 |
 | `apps/rn/src/premium/purchasesClient.web.ts` | s1p3 |
-| `apps/rn/src/storage/adapter.ts` | s1p3 |
-| `apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ios.ts` | s1p3 · s1p4 |
+| `apps/rn/src/storage/adapter.ts` | s1p3 · s1p5 |
+| `apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ios.ts` | s1p3 · s1p4 · s1p5 |
 | `apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ts` | s1p3 |
-| `apps/rn/src/storage/cloudBackup/index.ts` | s1p3 |
+| `apps/rn/src/storage/cloudBackup/index.ts` | s1p3 · s1p5 |
 | `apps/rn/src/storage/cloudBackup/provider.ts` | s1p3 · s1p4 |
 | `apps/rn/src/storage/cloudBackup/service.test.ts` | s1p3 · s1p4 |
-| `apps/rn/src/storage/cloudBackup/service.ts` | s1p3 · s1p4 |
+| `apps/rn/src/storage/cloudBackup/service.ts` | s1p3 · s1p4 · s1p5 |
 | `apps/rn/src/storage/createAdapter.test.ts` | never · s1p4 |
 | `apps/rn/src/storage/createAdapter.ts` | s1p3 |
 | `apps/rn/src/storage/createAdapter.web.ts` | s1p3 · s1p4 |
@@ -230,10 +230,10 @@
 | `apps/rn/src/store/bnplCadence.test.ts` | ⛔ **never · partial** |
 | `apps/rn/src/store/boundedRun.ts` | s1p2 |
 | `apps/rn/src/store/celebrationSelectors.test.ts` | never · s1p4 |
-| `apps/rn/src/store/celebrationSelectors.ts` | s1p2 · s1p4 |
+| `apps/rn/src/store/celebrationSelectors.ts` | s1p2 · s1p4 · s1p5 |
 | `apps/rn/src/store/debtFreeBand.test.ts` | ⛔ **never · partial** |
-| `apps/rn/src/store/debtIds.test.ts` | ⛔ **never · partial** |
-| `apps/rn/src/store/debtIds.ts` | s1p2 |
+| `apps/rn/src/store/debtIds.test.ts` | s1p5 |
+| `apps/rn/src/store/debtIds.ts` | s1p2 · s1p5 |
 | `apps/rn/src/store/drift.ts` | s1p2 |
 | `apps/rn/src/store/expenseReserve.test.ts` | ⛔ **never · partial** |
 | `apps/rn/src/store/expenseReserveSelectors.ts` | s1p2 |
@@ -256,39 +256,39 @@
 | `apps/rn/src/store/looksLikeDebt.test.ts` | s1p2 |
 | `apps/rn/src/store/looksLikeDebt.ts` | s1p2 |
 | `apps/rn/src/store/milestoneCross.test.ts` | ⛔ **never · partial** |
-| `apps/rn/src/store/obligationForm.ts` | s1p2 · s1p4 |
+| `apps/rn/src/store/obligationForm.ts` | s1p2 · s1p4 · s1p5 |
 | `apps/rn/src/store/onboardingFinish.test.ts` | ⛔ **never · partial** |
 | `apps/rn/src/store/onboardingFinish.ts` | s1p2 |
 | `apps/rn/src/store/paycheckForm.test.ts` | s1p3 |
-| `apps/rn/src/store/paycheckForm.ts` | s1p2 |
-| `apps/rn/src/store/payday.ts` | s1p2 · s1p4 |
+| `apps/rn/src/store/paycheckForm.ts` | s1p2 · s1p5 |
+| `apps/rn/src/store/payday.ts` | s1p2 · s1p4 · s1p5 |
 | `apps/rn/src/store/payoffCelebration.test.ts` | ⛔ **never · partial** |
-| `apps/rn/src/store/payoffCelebration.ts` | s1p2 |
-| `apps/rn/src/store/payoffSelectors.ts` | s1p2 |
+| `apps/rn/src/store/payoffCelebration.ts` | s1p2 · s1p5 |
+| `apps/rn/src/store/payoffSelectors.ts` | s1p2 · s1p5 |
 | `apps/rn/src/store/paywallLead.test.ts` | never · s1p4 |
 | `apps/rn/src/store/paywallLead.ts` | s1p2 · s1p4 |
-| `apps/rn/src/store/persistence.ts` | s1p2 |
+| `apps/rn/src/store/persistence.ts` | s1p2 · s1p5 |
 | `apps/rn/src/store/persistenceLifecycle.test.ts` | ⛔ **never · partial** |
 | `apps/rn/src/store/planSelectors.test.ts` | never · s1p4 |
-| `apps/rn/src/store/planSelectors.ts` | s1p1 · s1p2 · s1p4 |
+| `apps/rn/src/store/planSelectors.ts` | s1p1 · s1p2 · s1p4 · s1p5 |
 | `apps/rn/src/store/projectedIncome.test.ts` | s1p3 |
 | `apps/rn/src/store/projectedIncome.ts` | s1p2 |
 | `apps/rn/src/store/proofOfWork.test.ts` | never · s1p4 |
 | `apps/rn/src/store/realWriteGuard.test.ts` | ⛔ **never · partial** |
-| `apps/rn/src/store/realWriteGuard.ts` | s1p2 |
+| `apps/rn/src/store/realWriteGuard.ts` | s1p2 · s1p5 |
 | `apps/rn/src/store/recoverySelectors.test.ts` | s1p2 |
 | `apps/rn/src/store/recoverySelectors.ts` | s1p2 |
-| `apps/rn/src/store/requiredPlanTrust.test.ts` | ⛔ **never** |
+| `apps/rn/src/store/requiredPlanTrust.test.ts` | ⛔ **partial** |
 | `apps/rn/src/store/selectors.ts` | s1p2 |
 | `apps/rn/src/store/steadyStateProjection.test.ts` | ⛔ **never · partial** |
-| `apps/rn/src/store/store.ts` | partial · s1p1 · s1p2 |
+| `apps/rn/src/store/store.ts` | s1p1 · s1p2 · s1p5 |
 | `apps/rn/src/store/storeActions.test.ts` | s1p2 |
 | `apps/rn/src/store/storeContext.test.ts` | ⛔ **never · partial** |
 | `apps/rn/src/store/substrateProducers.test.ts` | s1p3 |
 | `apps/rn/src/store/substrateProducers.ts` | s1p2 |
 | `apps/rn/src/store/topUpSelectors.ts` | s1p2 |
 | `apps/rn/src/store/trustSelectors.test.ts` | s1p2 · s1p4 |
-| `apps/rn/src/store/trustSelectors.ts` | s1p2 · s1p4 |
+| `apps/rn/src/store/trustSelectors.ts` | s1p2 · s1p4 · s1p5 |
 | `apps/rn/src/store/useAppStore.ts` | s1p2 |
 | `apps/rn/src/store/windfallSplit.test.ts` | ⛔ **never · partial** |
 | `apps/rn/src/theme/colors.ts` | never · s1p4 |
@@ -306,7 +306,7 @@
 | `apps/rn/src/utils/debtFreeSound.web.ts` | s1p3 |
 | `apps/rn/src/utils/ecosystem.ts` | s1p3 |
 | `apps/rn/src/utils/format.test.ts` | s1p3 |
-| `apps/rn/src/utils/format.ts` | s1p3 |
+| `apps/rn/src/utils/format.ts` | s1p3 · s1p5 |
 | `apps/rn/src/utils/reportError.ts` | s1p3 |
 | `apps/rn/src/utils/scrubBreadcrumb.test.ts` | never · s1p4 |
 | `apps/rn/src/utils/scrubBreadcrumb.ts` | s1p3 · s1p4 |
@@ -317,11 +317,11 @@
 | `apps/rn/src/utils/sizeClass.ts` | s1p3 |
 | `apps/rn/src/utils/skia-ready.ts` | s1p3 |
 | `apps/rn/src/utils/skia-ready.web.ts` | ⛔ **never · partial** |
-| `apps/rn/src/widget/snapshot.ts` | partial · s1p4 |
+| `apps/rn/src/widget/snapshot.ts` | s1p4 · s1p5 |
 | `apps/rn/src/widget/widgetKeys.ts` | s1p3 |
 | `apps/rn/src/widget/widgetStorage.native.ts` | s1p3 |
 | `apps/rn/src/widget/widgetStorage.ts` | s1p3 |
-| `apps/rn/src/widget/widgetSync.test.ts` | s1p3 · s1p4 |
+| `apps/rn/src/widget/widgetSync.test.ts` | s1p3 · s1p4 · s1p5 |
 | `apps/rn/src/widget/widgetSync.ts` | s1p3 |
 | `apps/rn/tests/e2e/a11y-axe.spec.ts` | ⛔ **never · partial** |
 | `apps/rn/tests/e2e/a11y-row-labels.spec.ts` | never · s1p4 |
@@ -378,37 +378,37 @@
 | `packages/core/cashflow/detectCrunches.ts` | s1p3 |
 | `packages/core/cashflow/testDetectCrunches.ts` | s1p3 |
 | `packages/core/cashflow/testWaterFill.ts` | s1p3 |
-| `packages/core/cashflow/waterFill.ts` | s1p3 |
+| `packages/core/cashflow/waterFill.ts` | s1p3 · s1p5 |
 | `packages/core/constants/livingExpensePresets.ts` | s1p3 |
 | `packages/core/constants/requiredExpensePresets.ts` | s1p3 |
 | `packages/core/copy/vocabulary.ts` | s1p2 |
-| `packages/core/debt/applyDebtPaymentProjection.ts` | s1p3 |
-| `packages/core/debt/applyPaydayCapture.ts` | s1p3 |
-| `packages/core/debt/applyRolloverPayment.ts` | s1p3 · s1p4 |
-| `packages/core/debt/bnplInstallment.ts` | s1p3 · s1p4 |
-| `packages/core/debt/bnplPayoffPace.ts` | s1p3 |
-| `packages/core/debt/bnplProviders.ts` | s1p3 |
+| `packages/core/debt/applyDebtPaymentProjection.ts` | s1p3 · s1p5 |
+| `packages/core/debt/applyPaydayCapture.ts` | s1p3 · s1p5 |
+| `packages/core/debt/applyRolloverPayment.ts` | s1p3 · s1p4 · s1p5 |
+| `packages/core/debt/bnplInstallment.ts` | s1p3 · s1p4 · s1p5 |
+| `packages/core/debt/bnplPayoffPace.ts` | s1p3 · s1p5 |
+| `packages/core/debt/bnplProviders.ts` | s1p3 · s1p5 |
 | `packages/core/debt/bnplSchedule.ts` | s1p3 |
-| `packages/core/debt/buildAmortizationSchedule.ts` | s1p3 |
-| `packages/core/debt/buildPaydayCaptureItems.ts` | s1p3 |
-| `packages/core/debt/buildPayoffTrajectory.ts` | s1p3 |
-| `packages/core/debt/bulkMarkRequired.ts` | s1p3 · s1p4 |
-| `packages/core/debt/calculateMonthlyInterest.ts` | s1p3 |
-| `packages/core/debt/cannotAmortize.ts` | ⛔ **never** |
+| `packages/core/debt/buildAmortizationSchedule.ts` | s1p3 · s1p5 |
+| `packages/core/debt/buildPaydayCaptureItems.ts` | s1p3 · s1p5 |
+| `packages/core/debt/buildPayoffTrajectory.ts` | s1p3 · s1p5 |
+| `packages/core/debt/bulkMarkRequired.ts` | s1p3 · s1p4 · s1p5 |
+| `packages/core/debt/calculateMonthlyInterest.ts` | s1p3 · s1p5 |
+| `packages/core/debt/cannotAmortize.ts` | s1p5 |
 | `packages/core/debt/computeCycleDelta.ts` | s1p3 |
-| `packages/core/debt/computeDrift.ts` | s1p3 |
-| `packages/core/debt/computeInterestSaved.ts` | s1p3 |
-| `packages/core/debt/computeMilestones.ts` | s1p3 |
-| `packages/core/debt/computeStreak.ts` | s1p3 |
-| `packages/core/debt/deriveRequiredActionView.ts` | s1p3 |
-| `packages/core/debt/extraPaymentPlan.ts` | s1p3 |
-| `packages/core/debt/getDebtsWithDisplayBalances.ts` | s1p3 · s1p4 |
+| `packages/core/debt/computeDrift.ts` | s1p3 · s1p5 |
+| `packages/core/debt/computeInterestSaved.ts` | s1p3 · s1p5 |
+| `packages/core/debt/computeMilestones.ts` | s1p3 · s1p5 |
+| `packages/core/debt/computeStreak.ts` | s1p3 · s1p5 |
+| `packages/core/debt/deriveRequiredActionView.ts` | s1p3 · s1p5 |
+| `packages/core/debt/extraPaymentPlan.ts` | s1p3 · s1p5 |
+| `packages/core/debt/getDebtsWithDisplayBalances.ts` | s1p3 · s1p4 · s1p5 |
 | `packages/core/debt/mergeCompletedAction.ts` | s1p3 |
-| `packages/core/debt/originalBalanceHighWater.ts` | s1p3 |
+| `packages/core/debt/originalBalanceHighWater.ts` | s1p3 · s1p5 |
 | `packages/core/debt/parseDebtFormValues.ts` | s1p3 |
-| `packages/core/debt/projectCurrentBalance.ts` | s1p3 |
-| `packages/core/debt/projectDebtPayoff.ts` | s1p3 · s1p4 |
-| `packages/core/debt/reconcileAutopay.ts` | s1p3 |
+| `packages/core/debt/projectCurrentBalance.ts` | s1p3 · s1p5 |
+| `packages/core/debt/projectDebtPayoff.ts` | s1p3 · s1p4 · s1p5 |
+| `packages/core/debt/reconcileAutopay.ts` | s1p3 · s1p5 |
 | `packages/core/debt/reconcileGoalAmount.ts` | s1p3 |
 | `packages/core/debt/selectActiveRecommendedActions.ts` | s1p3 |
 | `packages/core/debt/shouldPromptPaydayCapture.ts` | s1p3 |
@@ -436,19 +436,19 @@
 | `packages/core/debt/testReconcileAutopay.ts` | ⛔ **never · partial** |
 | `packages/core/debt/testSelectActiveRecommendedActions.ts` | never · s1p4 |
 | `packages/core/debt/testShouldPromptPaydayCapture.ts` | never · s1p4 |
-| `packages/core/engine/allocatePaycheck.ts` | r17 · s1p2 |
-| `packages/core/engine/emergencyFund.ts` | r17 |
+| `packages/core/engine/allocatePaycheck.ts` | r17 · s1p2 · s1p5 |
+| `packages/core/engine/emergencyFund.ts` | r17 · s1p5 |
 | `packages/core/engine/recommendedActions.ts` | never · s1p1 |
 | `packages/core/engine/testAllocation.ts` | r17 |
 | `packages/core/engine/testExpenseReserve.ts` | never · s1p1 |
 | `packages/core/forecast/getForecastStatus.ts` | s1p3 |
-| `packages/core/forecast/projectForecast.ts` | s1p3 · s1p4 |
+| `packages/core/forecast/projectForecast.ts` | s1p3 · s1p4 · s1p5 |
 | `packages/core/forecast/types.ts` | s1p3 |
 | `packages/core/guardian/affordability.ts` | s1p1 · s1p2 |
-| `packages/core/guardian/buildGuardianBrief.ts` | s1p1 · s1p2 |
+| `packages/core/guardian/buildGuardianBrief.ts` | s1p1 · s1p2 · s1p5 |
 | `packages/core/guardian/calibrationScore.ts` | never · s1p1 |
-| `packages/core/guardian/computeState.ts` | s1p1 · s1p2 |
-| `packages/core/guardian/holdbackComposition.ts` | never · s1p1 |
+| `packages/core/guardian/computeState.ts` | s1p1 · s1p2 · s1p5 |
+| `packages/core/guardian/holdbackComposition.ts` | s1p1 · s1p5 |
 | `packages/core/guardian/notificationDecision.ts` | never · s1p1 |
 | `packages/core/guardian/testAffordability.ts` | never · s1p1 |
 | `packages/core/guardian/testBuildGuardianBrief.ts` | s1p1 · s1p2 |
@@ -456,39 +456,39 @@
 | `packages/core/guardian/testComputeState.ts` | never · s1p1 |
 | `packages/core/guardian/testGuardianPartition.ts` | never · s1p1 |
 | `packages/core/guardian/testNotificationDecision.ts` | never · s1p1 |
-| `packages/core/history/buildCycleSnapshot.ts` | s1p3 · s1p4 |
+| `packages/core/history/buildCycleSnapshot.ts` | s1p3 · s1p4 · s1p5 |
 | `packages/core/history/selectVisibleHistory.ts` | s1p3 |
 | `packages/core/income/suggestLean.ts` | s1p3 |
 | `packages/core/income/testSuggestLean.ts` | s1p3 |
-| `packages/core/insights/buildSmartInsights.ts` | s1p3 · s1p4 |
-| `packages/core/obligations/classifyDeferability.ts` | s1p2 |
-| `packages/core/obligations/effectiveObligationAmount.ts` | s1p3 |
+| `packages/core/insights/buildSmartInsights.ts` | s1p3 · s1p4 · s1p5 |
+| `packages/core/obligations/classifyDeferability.ts` | s1p2 · s1p5 |
+| `packages/core/obligations/effectiveObligationAmount.ts` | s1p3 · s1p5 |
 | `packages/core/obligations/testClassifyDeferability.ts` | never · s1p4 |
 | `packages/core/obligations/testEffectiveObligationAmount.ts` | never · s1p4 |
 | `packages/core/payCycle/cyclesPerYear.ts` | s1p3 |
-| `packages/core/payCycle/getNextPaycheckDate.ts` | s1p3 |
-| `packages/core/payCycle/payCyclesPerMonth.ts` | s1p3 |
+| `packages/core/payCycle/getNextPaycheckDate.ts` | s1p3 · s1p5 |
+| `packages/core/payCycle/payCyclesPerMonth.ts` | s1p3 · s1p5 |
 | `packages/core/payCycle/rollPaydayToFuture.ts` | s1p3 |
 | `packages/core/payCycle/testPayCycle.ts` | s1p3 |
 | `packages/core/payCycle/testPayCyclesPerMonth.ts` | s1p3 |
 | `packages/core/payCycle/testRollPaydayToFuture.ts` | s1p3 |
-| `packages/core/recovery/buildRecoveryPlan.ts` | s1p3 |
+| `packages/core/recovery/buildRecoveryPlan.ts` | s1p3 · s1p5 |
 | `packages/core/recovery/testBuildRecoveryPlan.ts` | never · s1p4 |
-| `packages/core/recurrence/rolloverPayCycle.ts` | s1p3 |
+| `packages/core/recurrence/rolloverPayCycle.ts` | s1p3 · s1p5 |
 | `packages/core/recurrence/testRolloverDueDates.ts` | s1p3 |
 | `packages/core/storage/debtPlannerStorage.ts` | s1p3 |
-| `packages/core/timeline/buildMultiCycleTimeline.ts` | s1p2 |
-| `packages/core/timeline/buildTimelineItems.ts` | s1p3 |
-| `packages/core/types/livingExpense.ts` | s1p3 |
-| `packages/core/types/recurrence.ts` | s1p3 |
-| `packages/core/utils/addMonths.ts` | s1p3 |
-| `packages/core/utils/amountField.ts` | s1p3 · s1p4 |
+| `packages/core/timeline/buildMultiCycleTimeline.ts` | s1p2 · s1p5 |
+| `packages/core/timeline/buildTimelineItems.ts` | s1p3 · s1p5 |
+| `packages/core/types/livingExpense.ts` | s1p3 · s1p5 |
+| `packages/core/types/recurrence.ts` | s1p3 · s1p5 |
+| `packages/core/utils/addMonths.ts` | s1p3 · s1p5 |
+| `packages/core/utils/amountField.ts` | s1p3 · s1p4 · s1p5 |
 | `packages/core/utils/dayBefore.ts` | s1p3 |
-| `packages/core/utils/formatCurrency.ts` | s1p3 |
+| `packages/core/utils/formatCurrency.ts` | s1p3 · s1p5 |
 | `packages/core/utils/formatDisplayAmount.ts` | s1p3 |
-| `packages/core/utils/localDate.ts` | s1p3 |
-| `packages/core/utils/money.ts` | s1p3 |
-| `packages/core/utils/plural.ts` | ⛔ **never** |
+| `packages/core/utils/localDate.ts` | s1p3 · s1p5 |
+| `packages/core/utils/money.ts` | s1p3 · s1p5 |
+| `packages/core/utils/plural.ts` | s1p5 |
 | `packages/core/utils/testAddMonths.ts` | s1p3 |
 | `packages/core/utils/testAmountField.ts` | s1p3 · s1p4 |
 | `packages/core/utils/testLocalDate.ts` | s1p3 |
@@ -496,9 +496,7 @@
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
 - `apps/rn/src/app/more.tsx`
-- `apps/rn/src/components/payoff/TrajectoryChart.tsx`
 - `apps/rn/src/components/payoff/whereText.test.ts`
-- `apps/rn/src/components/payoff/whereText.ts`
 - `apps/rn/src/components/ui/AddRow.tsx`
 - `apps/rn/src/components/ui/AppIcon.ios.tsx`
 - `apps/rn/src/components/ui/AppIcon.tsx`
@@ -526,7 +524,6 @@
 - `apps/rn/src/store/affordability.test.ts`
 - `apps/rn/src/store/bnplCadence.test.ts`
 - `apps/rn/src/store/debtFreeBand.test.ts`
-- `apps/rn/src/store/debtIds.test.ts`
 - `apps/rn/src/store/expenseReserve.test.ts`
 - `apps/rn/src/store/glossary.test.ts`
 - `apps/rn/src/store/greeting.test.ts`
@@ -559,8 +556,6 @@
 - `apps/rn/tests/e2e/spoken-state.spec.ts`
 - `apps/rn/tests/e2e/trajectory-interactivity.spec.ts`
 - `apps/rn/tests/e2e/trust-claims.spec.ts`
-- `packages/core/debt/cannotAmortize.ts`
 - `packages/core/debt/testDeriveRequiredActionView.ts`
 - `packages/core/debt/testReconcileAutopay.ts`
-- `packages/core/utils/plural.ts`
 

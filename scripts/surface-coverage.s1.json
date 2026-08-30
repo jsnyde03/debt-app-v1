@@ -11,16 +11,19 @@
     "s1p3"
   ],
   "apps/rn/src/app/(tabs)/index.tsx": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/app/(tabs)/money.tsx": [
     "r10",
     "s1p1",
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/app/(tabs)/progress.tsx": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/app/+not-found.tsx": [
     "s1p3"
@@ -30,13 +33,15 @@
     "s1p4"
   ],
   "apps/rn/src/app/cushion-forecast.tsx": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/app/demo.tsx": [
     "s1p3"
   ],
   "apps/rn/src/app/history.tsx": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "apps/rn/src/app/living-expenses.tsx": [
     "s1p3",
@@ -49,8 +54,8 @@
     "s1p3"
   ],
   "apps/rn/src/app/paywall.tsx": [
-    "partial",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/app/schedule/[id].tsx": [
     "s1p3"
@@ -99,7 +104,7 @@
   "apps/rn/src/components/entities/DebtSheet.tsx": [
     "s1p1",
     "s1p2",
-    "partial"
+    "s1p5"
   ],
   "apps/rn/src/components/entities/ExpenseSheet.tsx": [
     "s1p1",
@@ -119,8 +124,8 @@
     "s1p1"
   ],
   "apps/rn/src/components/entities/LogPaymentSheet.tsx": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p5"
   ],
   "apps/rn/src/components/money/AllocationBarCanvas.tsx": [
     "s1p3"
@@ -137,7 +142,8 @@
   ],
   "apps/rn/src/components/money/BnplCalendarSection.tsx": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/components/more-button.tsx": [
     "s1p3"
@@ -199,7 +205,7 @@
     "s1p3"
   ],
   "apps/rn/src/components/payoff/TrajectoryChart.tsx": [
-    "partial"
+    "s1p5"
   ],
   "apps/rn/src/components/payoff/TrajectorySkiaChart.tsx": [
     "never",
@@ -227,18 +233,19 @@
   ],
   "apps/rn/src/components/payoff/trajectoryDomain.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/components/payoff/whereText.test.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/src/components/payoff/whereText.ts": [
-    "never"
+    "s1p5"
   ],
   "apps/rn/src/components/plan/AffordabilityCard.tsx": [
-    "partial",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/components/plan/AffordabilityImpactBar.tsx": [
     "s1p1",
@@ -367,10 +374,10 @@
     "r17"
   ],
   "apps/rn/src/components/plan/ShareCard.tsx": [
-    "partial",
     "s1p1",
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/components/plan/SpokenForSheet.tsx": [
     "s1p1",
@@ -410,7 +417,8 @@
   ],
   "apps/rn/src/components/progress/PaidOffArchive.tsx": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/components/progress/TimelineLedger.tsx": [
     "s1p2"
@@ -533,7 +541,8 @@
     "s1p3"
   ],
   "apps/rn/src/data/defaults.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/data/migrations.test.ts": [
     "s1p1",
@@ -541,10 +550,12 @@
   ],
   "apps/rn/src/data/migrations.ts": [
     "r10",
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/data/models.ts": [
-    "r17"
+    "r17",
+    "s1p5"
   ],
   "apps/rn/src/hooks/spotlight.test.ts": [
     "never",
@@ -652,7 +663,8 @@
   ],
   "apps/rn/src/liveActivity/paydayActivityContent.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/motion/CountUp.tsx": [
     "s1p3"
@@ -677,7 +689,8 @@
     "s1p3"
   ],
   "apps/rn/src/notifications/notifications.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "apps/rn/src/notifications/notifications.web.ts": [
     "s1p3"
@@ -713,17 +726,20 @@
     "s1p3"
   ],
   "apps/rn/src/storage/adapter.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ios.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ts": [
     "s1p3"
   ],
   "apps/rn/src/storage/cloudBackup/index.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "apps/rn/src/storage/cloudBackup/provider.ts": [
     "s1p3",
@@ -735,7 +751,8 @@
   ],
   "apps/rn/src/storage/cloudBackup/service.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/storage/createAdapter.test.ts": [
     "never",
@@ -777,18 +794,19 @@
   ],
   "apps/rn/src/store/celebrationSelectors.ts": [
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/store/debtFreeBand.test.ts": [
     "never",
     "partial"
   ],
   "apps/rn/src/store/debtIds.test.ts": [
-    "never",
-    "partial"
+    "s1p5"
   ],
   "apps/rn/src/store/debtIds.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/store/drift.ts": [
     "s1p2"
@@ -870,7 +888,8 @@
   ],
   "apps/rn/src/store/obligationForm.ts": [
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/store/onboardingFinish.test.ts": [
     "never",
@@ -883,21 +902,25 @@
     "s1p3"
   ],
   "apps/rn/src/store/paycheckForm.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/store/payday.ts": [
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/store/payoffCelebration.test.ts": [
     "never",
     "partial"
   ],
   "apps/rn/src/store/payoffCelebration.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/store/payoffSelectors.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/store/paywallLead.test.ts": [
     "never",
@@ -908,7 +931,8 @@
     "s1p4"
   ],
   "apps/rn/src/store/persistence.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/store/persistenceLifecycle.test.ts": [
     "never",
@@ -921,7 +945,8 @@
   "apps/rn/src/store/planSelectors.ts": [
     "s1p1",
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/store/projectedIncome.test.ts": [
     "s1p3"
@@ -938,7 +963,8 @@
     "partial"
   ],
   "apps/rn/src/store/realWriteGuard.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/store/recoverySelectors.test.ts": [
     "s1p2"
@@ -947,7 +973,7 @@
     "s1p2"
   ],
   "apps/rn/src/store/requiredPlanTrust.test.ts": [
-    "never"
+    "partial"
   ],
   "apps/rn/src/store/selectors.ts": [
     "s1p2"
@@ -957,9 +983,9 @@
     "partial"
   ],
   "apps/rn/src/store/store.ts": [
-    "partial",
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "apps/rn/src/store/storeActions.test.ts": [
     "s1p2"
@@ -983,7 +1009,8 @@
   ],
   "apps/rn/src/store/trustSelectors.ts": [
     "s1p2",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/store/useAppStore.ts": [
     "s1p2"
@@ -1046,7 +1073,8 @@
     "s1p3"
   ],
   "apps/rn/src/utils/format.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "apps/rn/src/utils/reportError.ts": [
     "s1p3"
@@ -1082,8 +1110,8 @@
     "partial"
   ],
   "apps/rn/src/widget/snapshot.ts": [
-    "partial",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/widget/widgetKeys.ts": [
     "s1p3"
@@ -1096,7 +1124,8 @@
   ],
   "apps/rn/src/widget/widgetSync.test.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "apps/rn/src/widget/widgetSync.ts": [
     "s1p3"
@@ -1297,7 +1326,8 @@
     "s1p3"
   ],
   "packages/core/cashflow/waterFill.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/constants/livingExpensePresets.ts": [
     "s1p3"
@@ -1309,90 +1339,112 @@
     "s1p2"
   ],
   "packages/core/debt/applyDebtPaymentProjection.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/applyPaydayCapture.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/applyRolloverPayment.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/debt/bnplInstallment.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/debt/bnplPayoffPace.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/bnplProviders.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/bnplSchedule.ts": [
     "s1p3"
   ],
   "packages/core/debt/buildAmortizationSchedule.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/buildPaydayCaptureItems.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/buildPayoffTrajectory.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/bulkMarkRequired.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/debt/calculateMonthlyInterest.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/cannotAmortize.ts": [
-    "never"
+    "s1p5"
   ],
   "packages/core/debt/computeCycleDelta.ts": [
     "s1p3"
   ],
   "packages/core/debt/computeDrift.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/computeInterestSaved.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/computeMilestones.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/computeStreak.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/deriveRequiredActionView.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/extraPaymentPlan.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/getDebtsWithDisplayBalances.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/debt/mergeCompletedAction.ts": [
     "s1p3"
   ],
   "packages/core/debt/originalBalanceHighWater.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/parseDebtFormValues.ts": [
     "s1p3"
   ],
   "packages/core/debt/projectCurrentBalance.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/projectDebtPayoff.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/debt/reconcileAutopay.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/debt/reconcileGoalAmount.ts": [
     "s1p3"
@@ -1493,10 +1545,12 @@
   ],
   "packages/core/engine/allocatePaycheck.ts": [
     "r17",
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "packages/core/engine/emergencyFund.ts": [
-    "r17"
+    "r17",
+    "s1p5"
   ],
   "packages/core/engine/recommendedActions.ts": [
     "never",
@@ -1514,7 +1568,8 @@
   ],
   "packages/core/forecast/projectForecast.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/forecast/types.ts": [
     "s1p3"
@@ -1525,7 +1580,8 @@
   ],
   "packages/core/guardian/buildGuardianBrief.ts": [
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "packages/core/guardian/calibrationScore.ts": [
     "never",
@@ -1533,11 +1589,12 @@
   ],
   "packages/core/guardian/computeState.ts": [
     "s1p1",
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "packages/core/guardian/holdbackComposition.ts": [
-    "never",
-    "s1p1"
+    "s1p1",
+    "s1p5"
   ],
   "packages/core/guardian/notificationDecision.ts": [
     "never",
@@ -1569,7 +1626,8 @@
   ],
   "packages/core/history/buildCycleSnapshot.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/history/selectVisibleHistory.ts": [
     "s1p3"
@@ -1582,13 +1640,16 @@
   ],
   "packages/core/insights/buildSmartInsights.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/obligations/classifyDeferability.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "packages/core/obligations/effectiveObligationAmount.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/obligations/testClassifyDeferability.ts": [
     "never",
@@ -1602,10 +1663,12 @@
     "s1p3"
   ],
   "packages/core/payCycle/getNextPaycheckDate.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/payCycle/payCyclesPerMonth.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/payCycle/rollPaydayToFuture.ts": [
     "s1p3"
@@ -1620,14 +1683,16 @@
     "s1p3"
   ],
   "packages/core/recovery/buildRecoveryPlan.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/recovery/testBuildRecoveryPlan.ts": [
     "never",
     "s1p4"
   ],
   "packages/core/recurrence/rolloverPayCycle.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/recurrence/testRolloverDueDates.ts": [
     "s1p3"
@@ -1636,41 +1701,50 @@
     "s1p3"
   ],
   "packages/core/timeline/buildMultiCycleTimeline.ts": [
-    "s1p2"
+    "s1p2",
+    "s1p5"
   ],
   "packages/core/timeline/buildTimelineItems.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/types/livingExpense.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/types/recurrence.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/utils/addMonths.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/utils/amountField.ts": [
     "s1p3",
-    "s1p4"
+    "s1p4",
+    "s1p5"
   ],
   "packages/core/utils/dayBefore.ts": [
     "s1p3"
   ],
   "packages/core/utils/formatCurrency.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/utils/formatDisplayAmount.ts": [
     "s1p3"
   ],
   "packages/core/utils/localDate.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/utils/money.ts": [
-    "s1p3"
+    "s1p3",
+    "s1p5"
   ],
   "packages/core/utils/plural.ts": [
-    "never"
+    "s1p5"
   ],
   "packages/core/utils/testAddMonths.ts": [
     "s1p3"
