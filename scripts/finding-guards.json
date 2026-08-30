@@ -2074,7 +2074,9 @@
         }
       ],
       "run": "lint:cap-literals",
-      "expect": "PINNED rather than floored"
+      "expect": "PINNED rather than floored",
+      "measured": "2026-08-30",
+      "sha": "b9ee9f90"
     }
   }
 }
