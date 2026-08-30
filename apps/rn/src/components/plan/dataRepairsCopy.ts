@@ -1,4 +1,5 @@
 import type { DataRepair } from '@/data/models';
+import { answerableByEdit } from '@/store/trustSelectors';
 
 /**
  * The words the repairs card says, separated from the card so they can be pinned.
@@ -135,11 +136,20 @@ function kindOf(repair: DataRepair): 'lost' | 'recovered' {
  */
 export function repairBlocks(repairs: DataRepair[]): RepairBlock[] {
   /**
-   * ⚠️ **A record with no `name` cannot be opened and set** — see `RepairBlock.kind`. The v1.6 bridge's
+   * ⚠️ **A record that names no ROW cannot be opened and set** — see `RepairBlock.kind`. The v1.6 bridge's
    * entries are the same case for the same reason; they are counts, and `describeRepair` already treats
    * their `field` as the whole sentence.
+   *
+   * ⛔ **S1.12.5.4 [pass-5 `B5-8`] — THIS WAS A SECOND COPY OF THE PREDICATE, AND IT WAS NOT THE SAME ONE.**
+   * It read `r.entity !== 'migration' && !!r.name` — omitting `isWholeRowLoss` entirely — while
+   * `trustSelectors.answerableByEdit`'s docblock claimed this test was *"re-derived rather than
+   * re-invented"*. Two producers of one question, already disagreeing, with a comment asserting they could
+   * not. ⚡ And both carried `B5-7`'s defect: `!!r.name` asks whether the row's NAME is empty, not whether
+   * the repair names a row — a debt whose name key is absent still has a screen to open.
+   *
+   * The owner is `answerableByEdit`. One producer, imported.
    */
-  const actionable = (r: DataRepair) => r.entity !== 'migration' && !!r.name;
+  const actionable = answerableByEdit;
   const lost = repairs.filter((r) => kindOf(r) === 'lost' && actionable(r));
   const unrecoverable = repairs.filter((r) => kindOf(r) === 'lost' && !actionable(r));
   const recovered = repairs.filter((r) => kindOf(r) === 'recovered');

@@ -445,11 +445,38 @@ export function clearResuppliedRepairs(before: DebtStore, after: DebtStore): Deb
 }
 
 /**
- * Can the user open something and set this number again? ⚠️ The same test `dataRepairsCopy.repairBlocks`
- * uses to choose its wording — a record with no `name`, or a `migration` count, has no screen to open.
+ * Can the user open something and set this number again?
+ *
+ * ⛔ **S1.12.5.4 [pass-5 `B5-7`] — THIS ASKED WHETHER THE ROW'S NAME STRING WAS EMPTY, NOT WHETHER THE
+ * REPAIR NAMES A ROW, AND THE DIFFERENCE WAS A BLOCKER.**
+ *
+ * ⚡ `repairMoneyFields` writes `name: typeof next.name === 'string' ? next.name : ''`, so a debt whose
+ * `name` key is **absent, empty, or not a string** produces a repair whose `name` is `''` — while the row
+ * still exists, still renders, and is still editable. `!!r.name` therefore read *"nothing can be opened
+ * for this"* about a row that can be opened. Measured through the real store: restore such a backup with
+ * an unreadable balance, tap **"Got it"** once, and the record is DELETED —
+ * `hasUnreadDebtBalances` → false, `mayClaim('debt-balances')` → true, and `partitionDebts` moves the debt
+ * into **`cleared`**. ⛔ **The app then states that a debt whose balance it could not read is paid off**,
+ * and the debt-free framing, the trophy shelf and the once-ever finale all unlock over it. That is blocker
+ * `A-J2-1` verbatim, on the member of its class with a blank name.
+ *
+ * ⚡ **The docblock enumerated three members while the condition admitted four.** It said: a whole-row or
+ * whole-list loss names no field; a `migration` record names no row. The fourth — *any* repair with a
+ * falsy `name` — is the one nobody wrote down, and it is the one that shipped. Rule 2: judge the condition
+ * the consumer evaluates, never the example cited beside it.
+ *
+ * ⭐ **So the question is asked of the `id`, which is what identifies a row you can open.** A whole-row
+ * loss, a whole-list loss and a `migration` count all carry `id: ''` because there was no row to name; a
+ * field repair on a real row carries the row's id whatever its name says. ⚠️ The `migration` and
+ * whole-row tests are kept explicitly rather than left implied by the id — they are separate facts, and
+ * collapsing them into one condition is how the enumeration drifted from the code in the first place.
+ *
+ * ⛔ **EXPORTED, because there were TWO producers of this question and the docblock claimed one.**
+ * `dataRepairsCopy.ts` carried its own copy that omitted `isWholeRowLoss` entirely (`B5-8`), so the two
+ * already disagreed while the comment said one was *"re-derived rather than re-invented"*.
  */
-function answerableByEdit(r: DataRepair): boolean {
-  return r.entity !== 'migration' && !!r.name && !isWholeRowLoss(r);
+export function answerableByEdit(r: DataRepair): boolean {
+  return r.entity !== 'migration' && !!r.id && !isWholeRowLoss(r);
 }
 
 /** The row a repair names, in whichever list its entity lives in. A `migration` record has none. */

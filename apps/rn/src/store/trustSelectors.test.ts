@@ -408,6 +408,71 @@ export default function run(): void {
    * ⚠️ **The first cut dropped them at BOOTSTRAP** — `findRow` returns nothing for a `migration` entity, so
    * every v1.6 bridge loss read as *"the row is gone"*. `persistenceLifecycle.test.ts` caught it.
    */
+  /**
+   * ⛔ **S1.12.5.4 [pass-5 `B5-7`] — A DEBT WITH A BLANK NAME LOST ITS RECORD TO ONE "GOT IT" TAP, AND THE
+   * APP THEN CALLED IT CLEARED.**
+   *
+   * `answerableByEdit` read `!!r.name` — whether the row's NAME STRING is empty, not whether the repair
+   * names a row. `repairMoneyFields` writes `name: ''` when the key is absent, empty or not a string,
+   * while the row still exists, still renders and is still editable. So `clearResuppliedRepairs` treated
+   * the generic acknowledgement as a valid ANSWER, deleted the record, and `partitionDebts` moved the debt
+   * into **`cleared`** — the app stating that a debt whose balance it could not read is **paid off**,
+   * unlocking the debt-free framing, the trophy shelf and the once-ever finale over it.
+   * ⚡ That is blocker `A-J2-1` verbatim, on the member of its class with a blank name.
+   *
+   * ⛔ **THE WHOLE CLASS IS ASSERTED, because every blank-name fixture in this repo paired the blank name
+   * with a SYNTHETIC field or a `migration` entity — never with a real field on a real row.** Six such
+   * fixtures were enumerated, and in every one the name half does not decide: `isWholeRowLoss` or the
+   * entity test returns the same verdict either way. **The assertion pinning the name half was written on
+   * the one shape where the name half is irrelevant.**
+   */
+  {
+    const nameless = (name: unknown): DebtStore =>
+      runMigrations({
+        version: 8,
+        paycheck: { amount: '2000', currentDate: DAY, nextPaycheckDate: DAY },
+        debts: [{ id: 'd0', ...(name === undefined ? {} : { name }), balance: 'not-a-number', apr: 20, minimumPayment: 25, dueDate: DAY, type: 'debt', recurrence: 'monthly' }],
+        goals: [],
+        prefs: { onboardingComplete: true },
+      }) as DebtStore;
+
+    for (const [label, name] of [['absent', undefined], ['empty string', ''], ['not a string', 42]] as [string, unknown][]) {
+      const s = storeWith(nameless(name));
+      eq(hasUnreadDebtBalances(s.getState().store), true, `B5-7 premise — a debt whose name is ${label} still arms the unread guard`);
+      // ⛔ ONE tap. `acknowledgeDataRepairs` moves the store, and the `set` wrapper runs
+      // `clearResuppliedRepairs` on every patch that does — no second action is needed.
+      s.getState().acknowledgeDataRepairs();
+      eq(
+        hasUnreadDebtBalances(s.getState().store),
+        true,
+        `⛔ B5-7 — "Got it" is not an ANSWER to an unreadable balance on an editable row (name ${label})`,
+      );
+      eq(
+        mayClaim(s.getState().store, 'debt-balances'),
+        false,
+        `⛔ B5-7 — …so the portfolio claim stays gagged (name ${label})`,
+      );
+      eq(partitionDebts(s.getState().store).cleared.length, 0, `⛔ B5-7 — …and the debt is NOT called paid off (name ${label})`);
+    }
+
+    /**
+     * ⭐ **THE CONTROL, and it is the whole reason `id` replaced `name` rather than the clause being
+     * deleted.** A record that genuinely names no ROW — a whole-row loss, a whole-list loss, a `migration`
+     * count — has no screen to open, and the acknowledgement IS its only possible answer. Dropping the
+     * clause outright (the finding's own suggested plant) would strand those forever.
+     */
+    const migrationOnly = storeWith({
+      ...migrated([100]),
+      pendingDataRepairs: [{ entity: 'migration', id: '', name: '', field: '3 items were not recognised', kind: 'lost' }],
+    });
+    migrationOnly.getState().acknowledgeDataRepairs();
+    eq(
+      migrationOnly.getState().store.pendingDataRepairs.length,
+      0,
+      '⭐ B5-7 control — a migration count names no row, so the ack really is its only answer and still clears it',
+    );
+  }
+
   {
     const base = migrated([100]);
     // A whole ROW of the debts list was unreadable: no id, no name, no field — the loudest loss there is.
