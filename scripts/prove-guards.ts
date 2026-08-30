@@ -501,7 +501,13 @@ for (const id of selected) {
  * on the one proof whose command runs it as a control.
  */
 if (recorded.length) {
-  const stillAuthored = Object.values(registry).filter((e) => e.proof && !e.proof.measured).length - recorded.length;
+  // ⚠️ Only the ids that were UNMEASURED before this run reduce the backlog. Subtracting every recording
+  // over-counts by one for each proof that already carried a `measured` and was simply re-run — which is
+  // exactly what happened the first time this line printed: it said 11 against a true 12, the ceiling was
+  // set to 11, and `lint:finding-guards` redded. An instrument that is off by one about its own backlog is
+  // the class this whole item is fixing.
+  const newlyMeasured = recorded.filter((id) => !registry[id].proof?.measured).length;
+  const stillAuthored = Object.values(registry).filter((e) => e.proof && !e.proof.measured).length - newlyMeasured;
   console.log(
     `\n  📌 recorded ${recorded.length} execution(s). ${stillAuthored} proof(s) remain never-executed —\n` +
       `     set \`MAX_AUTHORED = ${stillAuthored}\` in scripts/check-finding-guards.ts, in this same edit.\n` +
