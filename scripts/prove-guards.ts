@@ -432,6 +432,8 @@ for (const id of selected) {
 }
 
 let failures = 0;
+/** ids whose `measured`/`sha` this run wrote — used to print the cap edit that must follow. */
+const recorded: string[] = [];
 
 for (const id of selected) {
   const p = registry[id].proof as Proof;
@@ -485,7 +487,26 @@ for (const id of selected) {
     rp.measured = new Date().toISOString().slice(0, 10);
     rp.sha = sha;
     writeFileSync(REGISTRY, `${JSON.stringify(raw, null, 2)}\n`, 'utf8');
+    recorded.push(id);
   }
+}
+
+/**
+ * ⛔ **S1.12.5.1 — RECORDING DRAINS A STRICT-EQUALITY RATCHET, SO SAY SO BEFORE IT REDS.**
+ *
+ * `MAX_AUTHORED` in `check-finding-guards.ts` must equal the count of never-executed proofs. This run
+ * just lowered that count, so the gate is red **until the cap follows** — and a session that meets that
+ * red without this line diagnoses a broken gate instead of an unfinished edit. ⚡ **Measured:** the first
+ * batch drained 66 → 17 mid-run, which redded `lint:finding-guards` and produced a **false `control-red`**
+ * on the one proof whose command runs it as a control.
+ */
+if (recorded.length) {
+  const stillAuthored = Object.values(registry).filter((e) => e.proof && !e.proof.measured).length - recorded.length;
+  console.log(
+    `\n  📌 recorded ${recorded.length} execution(s). ${stillAuthored} proof(s) remain never-executed —\n` +
+      `     set \`MAX_AUTHORED = ${stillAuthored}\` in scripts/check-finding-guards.ts, in this same edit.\n` +
+      '     ⚠️ Until you do, lint:finding-guards reds, and so does every gate that runs it as a control.',
+  );
 }
 
 if (failures) {

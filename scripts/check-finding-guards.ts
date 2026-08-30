@@ -159,12 +159,33 @@ const MAX_UNGUARDED = 1;
 const MAX_UNPROVEN = 119;
 const MAX_GUARD_ONLY = 0;
 /**
- * ⛔ **D5-1's ratchet. Starts at the measured truth — every one of the 66 proof blocks had never run —
- * and only ever goes DOWN as they are executed.** It is deliberately NOT set to 0 and declared fixed:
- * that would red the tree on a fact this session has not yet finished changing, and a cap nobody can
- * satisfy gets raised, which is the one move both ratchets exist to refuse.
+ * ⛔ **D5-1's ratchet: proof blocks that have never been executed. Only ever goes DOWN.**
+ *
+ * ⚠️ **THIS ONE DRAINS MECHANICALLY, AND THAT MAKES IT DIFFERENT FROM ITS SIBLINGS.** `MAX_UNPROVEN` and
+ * `MAX_UNGUARDED` change only when a human edits JSON, so strict equality costs nothing. This count falls
+ * whenever `prove:guards` **passes** — so the first successful run after the cap is set reds this gate,
+ * and every gate that invokes it as a control reds with it.
+ *
+ * ⚡ **Measured, not predicted: it happened on the first batch.** Draining 66 → 17 turned
+ * `lint:finding-guards` red mid-run, and `test:gate-plants` — which runs it as a control in four
+ * scenarios — reported `control=exit 1`, which surfaced as a **false `control-red`** on
+ * `S1P4-D4-12-LEDGERCLAIM`: a sound proof reported broken by a gate reacting to its own siblings' success.
+ *
+ * ⛔ **SO THIS ONE IS A CEILING, AND THE DEVIATION IS DELIBERATE.** Its siblings are strict-equality
+ * because *"a cap above its own count is slack the next un-evidenced entry hides in"* — and that argument
+ * still holds for a counter a human moves. It does not survive a counter that a **command** moves: strict
+ * equality here means the gate is red for the whole interval between running a proof and editing this
+ * line, and during a fixing session that is most of the time. ⚡ **Measured twice in one session** — first
+ * the 66 → 17 batch, then again at 17 → 13, where it surfaced as a nested `control=exit 1` inside
+ * `test:gate-plants` and read as a defect in an unrelated proof.
+ *
+ * ⚠️ **What is given up, stated exactly:** a NEW authored entry can hide in the gap between this cap and
+ * the drained count. What still catches it: `MAX_UNPROVEN` is strict and downward-only, so a new closure
+ * arriving without a proof reds at the moment it is written — and a new closure arriving WITH one is the
+ * case this cap was never the last line of defence for. **The direction that matters — authored going UP —
+ * still reds.** ⛔ Lower it whenever `prove:guards` prints the nudge; it exists to keep the gap small.
  */
-const MAX_AUTHORED = 66;
+const MAX_AUTHORED = 12;
 
 /**
  * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.
@@ -412,12 +433,16 @@ ratchet(
  * facts, so two counters, each downward-only. ⚠️ Raising this to make a run pass is the same move as
  * raising `MAX_UNGUARDED`, and it is the defect the pair exists to catch.
  */
-ratchet(
-  authored.length,
-  MAX_AUTHORED,
-  'authored but NEVER EXECUTED — the proof block exists and no run has ever recorded a result',
-  'Execute it: `npm run prove:guards -- --id=<ID>` records `measured` + `sha` on a pass.',
-);
+// ⛔ A CEILING, not the strict-equality `ratchet()` above — see `MAX_AUTHORED`'s note for why this one
+// differs from its siblings, and for exactly what that gives up.
+if (authored.length > MAX_AUTHORED) {
+  problems.push(
+    `${authored.length} proof blocks have NEVER been executed; the ceiling is ${MAX_AUTHORED} and it only ever ` +
+      'goes DOWN. A proof block is a plan to measure, not a measurement — execute it with ' +
+      '`npm run prove:guards -- --id=<ID>`, which records `measured` + `sha` on a pass. ' +
+      'Raising this to make a run pass is the defect this pair exists to catch.',
+  );
+}
 ratchet(
   guardOnly.length,
   MAX_GUARD_ONLY,

@@ -149,12 +149,6 @@ function runBnplInstallmentTests() {
 		0,
 		"⛔ A-F3 — a one-time BNPL charged before the window is not charged again inside it",
 	);
-	// ⚠️ THE ARREARS DO NOT VANISH, and this is the assertion that says so. The effective minimum falls to
-	// what the window really holds; the BALANCE is untouched, which is what keeps the debt on the books.
-	const behind = debt({ type: "bnpl", balance: 1200, minimumPayment: 100, dueDate: "2026-02-01", recurrence: "biweekly" });
-	assertEqual(effectiveMinimumInWindow(behind, "2026-08-01", "2026-09-01"), 300, "⛔ A-F3 — a plan six months behind is due THREE charges this cycle, not its whole $1,200 balance");
-	assertEqual(behind.balance, 1200, "⚠️ A-F3 — …and it still owes every cent of it");
-
 	// scaleBnplMinimumForWindow: reflect the full in-window outflow in the effective minimum.
 	assertEqual(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-28").minimumPayment, 200, "2-charge window → effective minimum scales to 2 × the installment");
 	assertTrue(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-15") === biweeklyBnpl, "aligned window (1 charge) → no-op, same reference");
@@ -178,6 +172,28 @@ function runBnplInstallmentTests() {
 	// ⛔ AN UNKNOWN remainingPayments IS AN UNKNOWN CAP — Infinity, not 0. Reading it as 0 is what made
 	// the loop return 0 and the whole seam a silent no-op for this shape.
 	assertEqual(bnplInstallmentsInWindow(fallbackBiweekly, "2026-08-01", "2026-11-01"), 7, "an absent remaining-count caps at nothing, not at zero (S1P3-A4)");
+
+	/**
+	 * ⚠️ **THE ARREARS DO NOT VANISH, and this is the assertion that says so.** The effective minimum falls
+	 * to what the window really holds; the BALANCE is untouched, which is what keeps the debt on the books.
+	 *
+	 * ⛔ **S1.12.5.1 [pass-5 D5-4] — THIS BLOCK MOVED DOWN, AND THE ORDER IS LOAD-BEARING.** It used to sit
+	 * ABOVE the `S1P3-A4` block. Its fixture is itself a **fallback BNPL** (`type: bnpl` + `recurrence`, no
+	 * installment fields), so it depends on A4's fix — the seam being gated on `hasKnownBnplCadence` rather
+	 * than `isInstallmentNative`. ⚡ Restoring A4's defect therefore reds THIS line first, and since
+	 * `runRegressionTests` is import-driven and `assertEqual` throws, `S1P3-A4`'s own assertion 20 lines
+	 * below **never ran**. Its registered proof redded for A-F3's reason and was unattributable — measured
+	 * the first time that proof was ever executed.
+	 *
+	 * ⚠️ **Neither assertion is weakened and neither fixture changed** — changing either would change which
+	 * member of its class it covers, which is the trap this round is full of. Only the order moved: the
+	 * seam is asserted before the thing built on top of it. ⛔ **A future assertion inserted above
+	 * `S1P3-A4`'s block that also reacts to A4's un-fix re-creates this**, and what catches it now is that
+	 * `prove:guards` executes and records — the state that made this invisible for three passes is gone.
+	 */
+	const behind = debt({ type: "bnpl", balance: 1200, minimumPayment: 100, dueDate: "2026-02-01", recurrence: "biweekly" });
+	assertEqual(effectiveMinimumInWindow(behind, "2026-08-01", "2026-09-01"), 300, "⛔ A-F3 — a plan six months behind is due THREE charges this cycle, not its whole $1,200 balance");
+	assertEqual(behind.balance, 1200, "⚠️ A-F3 — …and it still owes every cent of it");
 
 	// ⚠️ CONTROLS, both directions. The scaling must be CADENCE-specific, not a blanket BNPL bump — and
 	// it must not reach a plain debt at all.

@@ -125,6 +125,21 @@ async function main() {
   // honesty scorecard from its worst record to a perfect one.
   await import('../store/guardianTrust.test');
 
+  /**
+   * ⛔ **S1.12.5.1 [pass-5 D5-4] — A UNIT'S OWN SUITE RUNS BEFORE THE CROSS-SURFACE SWEEP THAT COVERS IT.**
+   *
+   * `requiredPlanTrust.test` walks EVERY surface that states the required plan, `paywallLead` among them.
+   * This runner is sequential `await import()` and an assert throws, so restoring `paywallLead.ts`'s own
+   * defect used to red the sweep at file 131 and `paywallLead.test` at file 295 **never ran** — its
+   * registered proof (`S1P3-C5-PAYWALL`) redded for the sweep's reason and was unattributable. Measured
+   * the first time that proof was ever executed.
+   *
+   * ⚠️ **Nothing is weakened: the sweep still runs and still asserts every surface.** Only the order moved,
+   * and it moved to the general rule — **assert the unit before the sweep built on top of it**, so a
+   * failure names the narrowest thing that broke.
+   */
+  await import('../store/paywallLead.test');
+
   // S1.11.4.2 [pass-4 C4-7] — the SIBLING claim, asserted over its surfaces as a class rather than at the
   // one mount a finding named. `D3-2` wired `'required-plan'` into the Lock Screen and Siri and left the
   // in-app card saying "the spare $1,800" against a true $300; this walks every surface that states it.
@@ -292,7 +307,7 @@ async function main() {
 
   // T3B (L5-12) — the paywall leads with the reader's own money, and cannot re-introduce the two claims
   // this screen already retired (L1-2 autopilot, L1-3 the unconditional cushion hold).
-  await import('../store/paywallLead.test');
+  // ⚠️ `paywallLead.test` now runs EARLIER, above `requiredPlanTrust.test` — see the note there (D5-4).
   await import('../premium/introOffer.test');
   await import('../store/glossary.test');
 

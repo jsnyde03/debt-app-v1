@@ -80,7 +80,16 @@ const ROOTS = [
 /** Repo-root files that change what the gate builds or runs and sit outside every root above. */
 const EXTRA_FILES = ['package.json', 'package-lock.json', 'tsconfig.json', 'eslint.config.mjs'];
 
-const SOURCE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json', '.yml', '.yaml']);
+/**
+ * The extensions this module treats as source.
+ *
+ * EXPORTED for S1.12.5.1 [pass-5 D5-11]: check-gate-sources.ts carried a byte-identical second copy,
+ * under a comment claiming it was kept in sync by an assertion at the bottom of that file. There was no
+ * such assertion, there or anywhere - a carried premise in the very file whose neighbours (F-B1, A-F1)
+ * are that exact failure. One producer now, so the claim is true by construction rather than by a
+ * sentence. That consumer already imported from this module, so nothing about the module graph moved.
+ */
+export const SOURCE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json', '.yml', '.yaml']);
 
 /** Never source: build output, dependencies, prose, and the record this check writes. */
 function skipDir(name: string): boolean {

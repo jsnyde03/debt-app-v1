@@ -153,7 +153,23 @@ const B1_SCENARIOS: Scenario[] = [
         body: `export const dsn = '${'SENTRY' + '_DSN=https://'}${'0123456789abcdef'.repeat(2)}${'@o1.ingest.' + 'sentry.io/1'}';\n`,
       },
     ],
-    expect: '__gate_plant_staged__',
+    /**
+     * ⛔ **S1.12.5.1 [pass-5, found while measuring `D4-12`] — THIS `expect` USED TO BE THE FILENAME,
+     * AND THE FILENAME IS IN THE CRASH.**
+     *
+     * ⚡ Measured: applying `D4-12`'s registered un-fix — the callback reading the working tree instead
+     * of the blob it was handed — makes this gate `readFileSync` a path that was **staged and then
+     * deleted**, so it throws `ENOENT: … packages/core/__gate_plant_staged__.ts`. The old `expect` was
+     * `'__gate_plant_staged__'`, **which is in that ENOENT message**. So the scenario printed
+     * `✅ … reason=MATCHED` under the exact un-fix it exists to catch: the gate redded by CRASHING, not
+     * by detecting, and nothing could tell the two apart.
+     *
+     * ⛔ **The `expect` now names the gate's own DETECTION sentence** (`check-committed-secrets.ts:298`),
+     * which a crash cannot produce. ⚠️ `D4-12`'s recorded claim — *"only `test:gate-plants [D3-4-blob]`
+     * reds"* — was measured FALSE at this tree: this scenario passed, and what redded were five
+     * `lint:finding-guards` scenarios reacting to the same edit.
+     */
+    expect: 'credential(s) are in a PUBLIC repository',
     why: 'content read from the filesystem instead of the git object reports clean over a HEAD that publishes a credential',
   },
   /**

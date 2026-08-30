@@ -331,7 +331,9 @@
         }
       ],
       "run": "test:gate-plants",
-      "expect": "printed a ✅ beside reason=WRONG"
+      "expect": "printed a ✅ beside reason=WRONG",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-D4-6-VERDICT": {
@@ -356,7 +358,7 @@
     }
   },
   "S1P4-D4-12-LEDGERCLAIM": {
-    "what": "pass-4 D4-12 (minor) - REVERIFY4-2's own entry claimed lint:finding-guards 'now reds too' on its un-fix, and measured it does not. The un-fix that restores D3-4's defect leaves the token's line INTACT - the blob machinery stays and the callback reads the working tree instead of the bytes it was handed - so lint:secrets EXIT=0, lint:finding-guards EXIT=0, and only test:gate-plants [D3-4-blob] reds. The token holds against the DELETION spelling of the un-fix, not against the defect: reading rule 4, judging the example rather than the condition. ⛔ Nothing is blinded and no user-facing statement changes - what was wrong is the LEDGER'S OWN ACCOUNT of why it is closed, which is what a future session reads before deciding whether the behavioural plant is still needed. The false sentence is DELETED (not annotated - [D17]) and replaced with what holds: the token pins the batch read, the behaviour is pinned ONLY by test:gate-plants [D3-4-blob], and D4-6 showed that harness can be defanged in two lines with everything green. This entry's token is that scenario, so deleting the one guard that does hold now reds ⚠️ The proof restores D3-4's defect the way the finding measured it - list from git, content from the working tree - rather than by deleting eachBlob, because the DELETION spelling is precisely the one the old token caught and the defect is not. ⛔ AND THE PROOF ANCHOR HAD TO BE ONE LINE. A multi-line `find` matched 0x while the same string was provably present: the working tree is CRLF and the registry stores \n, so any anchor spanning a line break is unmatchable on this platform. Single-line anchors only - measured here, and it silently makes a proof unrunnable rather than wrong.",
+    "what": "pass-4 D4-12 (minor) - REVERIFY4-2's own entry claimed lint:finding-guards 'now reds too' on its un-fix, and measured it does not. The un-fix that restores D3-4's defect leaves the token's line INTACT - the blob machinery stays and the callback reads the working tree instead of the bytes it was handed - so lint:secrets EXIT=0, lint:finding-guards EXIT=0, and only test:gate-plants [D3-4-blob] reds. >>> S1.12.5.1 [pass-5]: RE-MEASURED and the claim above is now FALSE. At this tree the un-fix leaves test:gate-plants [D3-4-blob] PASSING - its expect was the fixture FILENAME, which appears in the ENOENT the un-fix throws, so the scenario scored reason=MATCHED on a gate that redded by CRASHING rather than by detecting. What actually redded were five lint:finding-guards scenarios reacting to the same edit. The scenario expect is now the gate own detection sentence (credential(s) are in a PUBLIC repository), which a crash cannot produce; measured passing clean and WRONG under the un-fix.",
     "file": "scripts/test-gate-plants.ts",
     "token": "gate: 'lint:secrets [D3-4-blob]',",
     "proof": {
@@ -368,7 +370,9 @@
         }
       ],
       "run": "test:gate-plants",
-      "expect": "lint:secrets [D3-4-blob]"
+      "expect": "lint:secrets [D3-4-blob]",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-D4-13-EXACTCAP": {
@@ -384,7 +388,9 @@
         }
       ],
       "run": "lint:copy",
-      "expect": "BELOW the cap"
+      "expect": "BELOW the cap",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-A-F2-ATMOSTONEPOINT": {
@@ -400,7 +406,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "at most one may survive"
+      "expect": "at most one may survive",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-F-B1-MECHANISM": {
@@ -416,7 +424,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "a throwing stat is contained as `unknown`"
+      "expect": "a throwing stat is contained as `unknown`",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-F-B2-BOTHDIRECTIONS": {
@@ -432,7 +442,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "throws rather than inventing a file identity"
+      "expect": "throws rather than inventing a file identity",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-A-F4-NEIGHBOUR": {
@@ -448,7 +460,9 @@
         }
       ],
       "run": "lint:import-graph",
-      "expect": "hop 2"
+      "expect": "hop 2",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-D4-11-REACHABLE": {
@@ -471,7 +485,9 @@
         "--since=e65f9c7",
         "--check"
       ],
-      "expect": "reached no lane"
+      "expect": "reached no lane",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-ANCHOR-ONEWORLD": {
@@ -487,7 +503,9 @@
         }
       ],
       "run": "lint:line-endings",
-      "expect": "a CRLF anchor finds itself in an LF file"
+      "expect": "a CRLF anchor finds itself in an LF file",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-A-F1-WINDOWREQUIRED": {
@@ -519,7 +537,9 @@
         }
       ],
       "run": "lint:trust-claims",
-      "expect": "apps/rn/src/store/guardianSelectors.ts is ledgered and re-derives nothing any more"
+      "expect": "apps/rn/src/store/guardianSelectors.ts is ledgered and re-derives nothing any more",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-4-POPULATION": {
@@ -535,7 +555,9 @@
         }
       ],
       "run": "lint:trust-claims",
-      "expect": "[population] the ledger considered"
+      "expect": "[population] the ledger considered",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-6-RACE": {
@@ -551,7 +573,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the confirm is committable only when the disclosure is known"
+      "expect": "the confirm is committable only when the disclosure is known",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-A-F3-WINDOWSTART": {
@@ -567,7 +591,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "the window counts what is charged INSIDE it"
+      "expect": "the window counts what is charged INSIDE it",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-A-F5-PATHS": {
@@ -599,7 +625,9 @@
         }
       ],
       "run": "lint:gate-sources",
-      "expect": "no longer runs the scripts typecheck against the config this gate guards"
+      "expect": "no longer runs the scripts typecheck against the config this gate guards",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-A-F4-ONEGUARD": {
@@ -615,7 +643,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "they are one fact"
+      "expect": "they are one fact",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-F-B3-TWOEVENTS": {
@@ -631,7 +661,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "opposite-sized losses no longer produce the identical clause"
+      "expect": "opposite-sized losses no longer produce the identical clause",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-5-ARITY": {
@@ -647,7 +679,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "does not depend on there being an offer"
+      "expect": "does not depend on there being an offer",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-1-COUNT": {
@@ -663,7 +697,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "include the one that was lost"
+      "expect": "include the one that was lost",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-11-DOORS": {
@@ -679,7 +715,9 @@
         }
       ],
       "run": "lint:restore-doors",
-      "expect": "never composes a disclosure"
+      "expect": "never composes a disclosure",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-2-MEMBERSHIP": {
@@ -695,7 +733,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the trophy shelf"
+      "expect": "the trophy shelf",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-7-SURFACES": {
@@ -711,7 +751,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the mount in app/(tabs)/index.tsx asks the claim owner"
+      "expect": "the mount in app/(tabs)/index.tsx asks the claim owner",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-10-NAMEDONLY": {
@@ -927,7 +969,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "S1P3-A1"
+      "expect": "S1P3-A1",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-A2-INWINDOW": {
@@ -943,7 +987,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "History reports the money the rollover actually deducted (S1P3-A2)"
+      "expect": "History reports the money the rollover actually deducted (S1P3-A2)",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-A4-CADENCE": {
@@ -959,7 +1005,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "S1P3-A4"
+      "expect": "S1P3-A4",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-C1-ROWFIGURES": {
@@ -1080,7 +1128,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "C-5 — a shortfall derived from arrays missing an unread obligation is not stated"
+      "expect": "C-5 — a shortfall derived from arrays missing an unread obligation is not stated",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-C6-CALENDAR": {
@@ -1121,7 +1171,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "D3-1 — the Home Screen does not say \"Debt-free\" over balances the app refused to claim"
+      "expect": "D3-1 — the Home Screen does not say \"Debt-free\" over balances the app refused to claim",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-D3-2-SPOKEN": {
@@ -1137,7 +1189,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "D3-2 — the Lock Screen shows nothing rather than naming money free over an obligation nobody read"
+      "expect": "D3-2 — the Lock Screen shows nothing rather than naming money free over an obligation nobody read",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-D3-CAPS": {
@@ -1153,7 +1207,9 @@
         }
       ],
       "run": "lint:cap-literals",
-      "expect": "not a literal"
+      "expect": "not a literal",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B3-UNKNOWN": {
@@ -1169,7 +1225,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "B3"
+      "expect": "B3",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B3-MTIME": {
@@ -1185,7 +1243,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "a throwing stat is contained as `unknown`"
+      "expect": "a throwing stat is contained as `unknown`",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B4-ADAPTER": {
@@ -1201,7 +1261,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "corrupt bytes come back as the RAW STRING"
+      "expect": "corrupt bytes come back as the RAW STRING",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B4-E2E": {
@@ -1242,7 +1304,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "counts it"
+      "expect": "counts it",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-C7B-CLOUDDOOR": {
@@ -1258,7 +1322,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "C-7b"
+      "expect": "C-7b",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B2-APRBOUND": {
@@ -1299,7 +1365,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "a touch breadcrumb carrying a creditor name is DROPPED"
+      "expect": "a touch breadcrumb carrying a creditor name is DROPPED",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-G1-CALIBRATION": {
@@ -1315,7 +1383,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "an unread balance grades NOTHING rather than the wrong regime"
+      "expect": "an unread balance grades NOTHING rather than the wrong regime",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-G2-RESERVETARGET": {
@@ -1331,7 +1401,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "an unread balance takes the existing"
+      "expect": "an unread balance takes the existing",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-G3-GUARDIANREGIME": {
@@ -1347,7 +1419,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "does NOT graduate the headline"
+      "expect": "does NOT graduate the headline",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-G4-PLANROUTE": {
@@ -1363,7 +1437,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "an unread BALANCE poisons the plan claim"
+      "expect": "an unread BALANCE poisons the plan claim",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
@@ -1374,12 +1450,19 @@
       "unfix": [
         {
           "at": "apps/rn/src/store/guardianSelectors.ts",
-          "find": "  return store.goals.some(",
-          "replace": "  return false && store.goals.some("
+          "find": "    savingsPoolUnread = gap > 0 && savingsPoolIncomplete(store, ['savings']);",
+          "replace": ""
+        },
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "    if (gap > 0 && goal) {\n      const amount = Math.min(gap, Math.round(goal.currentAmount * 100) / 100);",
+          "replace": "    if (gap > 0 && goal) {\n      savingsPoolUnread = gap > 0 && savingsPoolIncomplete(store, ['savings']);\n      const amount = Math.min(gap, Math.round(goal.currentAmount * 100) / 100);"
         }
       ],
       "run": "test:app",
-      "expect": "it now SAYS a savings amount could not be read"
+      "expect": "the caption survives the offer being null",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-G6-SCRIPTSTYPES": {
@@ -1400,7 +1483,9 @@
         }
       ],
       "run": "lint:cap-literals",
-      "expect": "not a literal"
+      "expect": "not a literal",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-G6-SCRIPTSREACH": {
@@ -1416,7 +1501,9 @@
         }
       ],
       "run": "lint:gate-sources",
-      "expect": "no longer ends with the exact reach"
+      "expect": "no longer ends with the exact reach",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B1-INTLPATTERN": {
@@ -1442,7 +1529,9 @@
         }
       ],
       "run": "lint:money",
-      "expect": "buildSmartInsights"
+      "expect": "buildSmartInsights",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-A3-TRACKEDHALF": {
@@ -1508,7 +1597,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "at 1× the estimate is the unscaled width"
+      "expect": "at 1× the estimate is the unscaled width",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-D3-5": {
@@ -1547,7 +1638,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "remaining = current total balance, as a STRING the test does not compute"
+      "expect": "remaining = current total balance, as a STRING the test does not compute",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-D3-8": {
@@ -1568,7 +1661,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "isPaidThisCycle also subtracts the minimum"
+      "expect": "isPaidThisCycle also subtracts the minimum",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B5": {
@@ -1584,7 +1679,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "now has a production caller"
+      "expect": "now has a production caller",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B6": {
@@ -1600,7 +1697,9 @@
         }
       ],
       "run": "typecheck:rn",
-      "expect": "2578"
+      "expect": "2578",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-M4": {
@@ -1612,11 +1711,13 @@
         {
           "at": "packages/core/utils/amountField.ts",
           "find": "  const digits = raw.replace(/[^0-9.]/g, '');\n  const [head, ...rest] = digits.split('.');\n  return rest.length > 0 ? `${head}.${rest.join('')}` : head;",
-          "replace": "  return raw.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1');"
+          "replace": "  return raw.replace(/[^0-9]/g, '');"
         }
       ],
       "run": "test:regression",
-      "expect": "sanitize \"12.50\""
+      "expect": "sanitize \"12.50\"",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-M7": {
@@ -1637,7 +1738,9 @@
         }
       ],
       "run": "lint:destructive",
-      "expect": "now runs AFTER"
+      "expect": "now runs AFTER",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-M2": {
@@ -1653,7 +1756,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "30 months is 2.5 years and must not be sold as 3"
+      "expect": "30 months is 2.5 years and must not be sold as 3",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-M6": {
@@ -1669,7 +1774,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "m6 — the extra clears the ONLY debt"
+      "expect": "m6 — the extra clears the ONLY debt",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P3-B3-MTIME-THROW": {
@@ -1685,7 +1792,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "an unusable mtimeMs (0) throws"
+      "expect": "an unusable mtimeMs (0) throws",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-F-B4-CLASS": {
@@ -1701,7 +1810,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "owner · a whole ROW unreadable"
+      "expect": "owner · a whole ROW unreadable",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   },
   "S1P4-C4-9-MIXED": {
@@ -1742,7 +1853,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the record SURVIVES the acknowledgement"
+      "expect": "the record SURVIVES the acknowledgement",
+      "measured": "2026-08-30",
+      "sha": "995946ca"
     }
   }
 }

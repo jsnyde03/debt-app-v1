@@ -26,10 +26,7 @@ import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { REPO_ROOT, sourceFiles } from './gateSources';
-
-/** The extensions `gateSources` treats as source. Kept in sync by the assertion at the bottom. */
-const SOURCE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json', '.yml', '.yaml']);
+import { REPO_ROOT, SOURCE_EXT, sourceFiles } from './gateSources';
 
 /**
  * ⛔ **THE ONLY SANCTIONED WAY FOR A TRACKED SOURCE FILE NOT TO BE FINGERPRINTED.** Each prefix carries
