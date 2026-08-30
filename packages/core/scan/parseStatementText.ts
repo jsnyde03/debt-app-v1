@@ -104,10 +104,34 @@ export function parseStatementText(raw: string): ParsedStatement {
 		new RegExp(`min(?:imum)?\\.? (?:payment|due)${AMT}`, "i"),
 	]));
 
-	// APR either side of the % sign: "Purchase APR 24.99%" or "24.99% APR".
+	/**
+	 * APR either side of the % sign: "Purchase APR 24.99%" or "24.99% APR".
+	 *
+	 * ⛔ **S1.12.5.3 [pass-5 A5-3] — THE `<= 100` BOUND BELOW COULD NOT FIRE, AND THE REGEX WAS READING
+	 * A FALSE NUMBER RATHER THAN REFUSING.**
+	 *
+	 * Both captures were `\d{1,2}`, so the largest value the expression could produce was `99.99` and
+	 * `aprNum <= 100` was true for every input the regex could match. It read exactly like the scanner's
+	 * rate bound and had never rejected anything — while `amount-guards.spec.ts:98` cited it as one of
+	 * three paths that *"bound the rate to 0–100"*.
+	 *
+	 * ⚡ **And the second pattern was unanchored on its left, so on a three-digit rate it slid one digit
+	 * right and matched the tail.** Measured: `"129.99% APR"` → **`29.99`**, and
+	 * `"399.00% annual percentage rate"` → **`99`**. A 399% payday loan — exactly the debt this app is
+	 * for — prefilled as 99%, with nothing on screen marking the figure as inferred.
+	 *
+	 * The captures are `\d{1,3}` so a three-digit rate is CAPTURED, and the lookbehind stops the slide,
+	 * which leaves the bound below to do the rejecting it always claimed to do. A rate over 100 is now
+	 * an honest absence the user fills in, never a number 100 points low.
+	 *
+	 * ⚠️ **Whether 100 is the right ceiling is a separate question and is deliberately not answered here.**
+	 * Payday and title lending in the shipped markets routinely exceeds it. Raising it would mean
+	 * ACCEPTING a scanned 399%, which is a product decision about a prefilled field; refusing is the
+	 * conservative half and is what closes the false number.
+	 */
 	const aprStr = firstMatch(text, [
-		/(?:purchase apr|annual percentage rate|interest rate|apr)[^\n\d]{0,25}(\d{1,2}(?:\.\d{1,2})?)\s*%/i,
-		/(\d{1,2}(?:\.\d{1,2})?)\s*%\s*(?:apr|annual percentage rate)/i,
+		/(?:purchase apr|annual percentage rate|interest rate|apr)[^\n\d]{0,25}(\d{1,3}(?:\.\d{1,2})?)\s*%/i,
+		/(?<![\d.])(\d{1,3}(?:\.\d{1,2})?)\s*%\s*(?:apr|annual percentage rate)/i,
 	]);
 	const aprNum = aprStr != null ? Number(aprStr) : NaN;
 	const apr = Number.isFinite(aprNum) && aprNum >= 0 && aprNum <= 100 ? aprNum : undefined;

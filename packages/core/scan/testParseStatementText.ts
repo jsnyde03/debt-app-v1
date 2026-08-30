@@ -65,6 +65,30 @@ function runParseStatementTests() {
 	assertEqual(partial.apr, undefined, "partial: no APR → undefined");
 	assertEqual(partial.dueDate, undefined, "partial: no due date → undefined");
 
+	/**
+	 * ⛔ **S1.12.5.3 [pass-5 A5-3] — A RATE OVER 100 IS REFUSED, NEVER READ 100 POINTS LOW.**
+	 *
+	 * The `<= 100` bound could not fire — both captures were `\d{1,2}`, so `99.99` was the largest value
+	 * reachable — and the trailing-label pattern was unanchored on its left, so a three-digit rate slid one
+	 * digit right and matched its tail. ⚡ Measured before the fix: `"129.99% APR"` → `29.99`, and
+	 * `"399.00% annual percentage rate"` → `99`. A payday rate, prefilled 300 points low.
+	 *
+	 * ⚠️ **Asserted on BOTH layouts**, because only the trailing-label one slid: the leading-label pattern
+	 * already refused a three-digit rate, so a fixture using only `"Purchase APR 129.99%"` would have
+	 * passed against the defect. Which member of its class the fixture picks is the whole question.
+	 */
+	assertEqual(parseStatementText("129.99% APR").apr, undefined, "⛔ A5-3 — a 3-digit rate BEFORE the label is refused, not read as 29.99");
+	assertEqual(parseStatementText("399.00% annual percentage rate").apr, undefined, "⛔ A5-3 — …and 399% is not read as 99");
+	assertEqual(parseStatementText("Purchase APR 129.99%").apr, undefined, "⛔ A5-3 — a 3-digit rate AFTER the label is refused too");
+	assertEqual(parseStatementText("Annual Percentage Rate 399.00%").apr, undefined, "⛔ A5-3 — …in both spellings of that layout");
+	// ⭐ THE CONTROLS. Widening the captures to `\d{1,3}` without the lookbehind, or dropping the bound
+	// entirely, both satisfy the rows above; these are what separate "refuses everything" from "refuses
+	// what is out of range". A two-digit rate must still parse on BOTH layouts.
+	assertEqual(parseStatementText("129.99% APR").balance, undefined, "⭐ A5-3 control — a refused APR does not smuggle a balance in either");
+	assertEqual(parseStatementText("24.99% APR").apr, 24.99, "⭐ A5-3 control — a normal rate before the label still parses");
+	assertEqual(parseStatementText("Purchase APR 24.99%").apr, 24.99, "⭐ A5-3 control — …and after it");
+	assertEqual(parseStatementText("100.00% APR").apr, 100, "⭐ A5-3 control — the boundary itself is IN range, so the bound is `> 100` and not `>= 100`");
+
 	// Empty / junk input → an empty object, never a throw.
 	assertEqual(Object.keys(parseStatementText("")).length, 0, "empty string → {}");
 	assertEqual(Object.keys(parseStatementText("no numbers here at all")).length, 1, "text-only → just the fallback name");

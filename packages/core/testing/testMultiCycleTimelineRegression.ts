@@ -91,6 +91,81 @@ function testRetiredDebtFreesItsMinimumIntoLaterNet() {
 // timeline item once marked paid) → not directly observable via the public TimelineCycle API. It's
 // covered by construction + indirectly by the debt-retirement timing above (freed goal money → snowball).
 
+/**
+ * ⛔ **S1.12.5.3 [pass-5 `A5-6`] — THE PROJECTED CYCLES' CROSS-CADENCE BNPL SCALING WAS ASSERTED BY
+ * NOTHING, AND ITS REMOVAL CHANGES WHAT A USER READS.**
+ *
+ * `buildMultiCycleTimeline.ts:197` scales a BNPL's minimum to the FULL in-window outflow, because a
+ * biweekly plan charges ~2× before a monthly paycheck. Deleting it from the **projected** cycles was
+ * invisible to `test:regression`, `test:app` and `test:scenarios` — while every projected cycle's ending
+ * balance read **$100 too high**: money already committed to Klarna, shown back as cushion, on the screen
+ * whose entire job is to say what is coming.
+ *
+ * ⛔ **THE FIXTURE CONSTRAINT IS THE FINDING, AND IT IS WHY THIS TEST LOOKS OVER-SPECIFIED.** Lane A's
+ * first two fixtures produced identical output on both sides and it nearly filed the line as dead. They
+ * used a $3,000 paycheck — enough for the snowball to clear the whole BNPL in cycle 0, **so no projected
+ * cycle ever held a BNPL to scale, and the line under test was never reached.** The paycheck here is
+ * deliberately tight enough that the debt survives into the projection. ⚠️ A "tidier" fixture with a
+ * comfortable paycheck re-creates a test that passes against the defect.
+ *
+ * ⚠️ Covers `:197` (the projected path) only. Cycle 0's scaling at `:137` is a separate call site.
+ */
+function testProjectedCyclesScaleACrossCadenceBnpl() {
+    // A monthly payer with a BIWEEKLY plan — the cross-cadence case. $100 × 24 remaining.
+    const klarna: Debt[] = [
+        { id: "bnpl1", name: "Klarna", balance: 2400, minimumPayment: 100, apr: 0, dueDate: "2026-06-05", type: "bnpl", recurrence: "biweekly", isPaidThisCycle: false },
+    ];
+    const rent: RequiredExpense[] = [
+        { id: "e1", name: "Rent", amount: 1200, dueDate: "2026-06-03", recurrence: "monthly", isPaidThisCycle: false } as RequiredExpense,
+    ];
+    const monthly = (debts: Debt[]) => {
+        const result = allocatePaycheck({
+            paycheckAmount: 1600, currentDate: "2026-06-01", nextPaycheckDate: "2026-07-01",
+            expenses: rent, livingExpenses: [], debts, goals: [], strategy: "snowball", paycheckBuffer: 0,
+        });
+        return buildMultiCycleTimeline({
+            result, requiredExpenses: rent, debts, goals: [], livingExpenses: [],
+            completedRecommendedActions: [], currentDate: "2026-06-01", nextPaycheckDate: "2026-07-01",
+            payCycleConfig: { payCycle: "monthly", monthlyPayDay: 1 }, strategy: "snowball", paycheckBuffer: 0, maxCycles: 3,
+        });
+    };
+
+    const cycles = monthly(klarna);
+    // ⚠️ A PROJECTED cycle, not cycle 0 — `:197` is the projected call site and cycle 0 goes through `:137`.
+    const projected = assertExists(cycles.find((c) => c.isProjected), "A5-6 — a projected cycle exists to measure");
+    const item = assertExists(
+        projected.items.find((i) => i.label === "Pay minimum on Klarna"),
+        "⛔ A5-6 — the projected cycle still carries the BNPL (if not, the fixture is too generous and asserts nothing)",
+    );
+    /**
+     * The window is Jul 1 → Aug 1 and the plan charges biweekly from Jun 5, so it falls due on **Jul 3,
+     * Jul 17 and Jul 31** — three charges, $300. ⚠️ Lane A's write-up says $200 for this class; its probe
+     * used a different window, and a 31-day month holds three biweekly charges rather than two. **The
+     * number here is the one measured against this fixture**, not the one carried from the finding.
+     *
+     * ⛔ The defect renders `$100` — the unscaled minimum, as though a biweekly plan charged once a month.
+     */
+    assertMoney(
+        item.amount,
+        300,
+        "⛔ A5-6 — a biweekly BNPL charges three times in this monthly window, so the projected minimum is $300, never the unscaled $100",
+    );
+
+    /**
+     * ⭐ **THE CONTROL, and without it a blanket "scale everything by the window" passes.** A BNPL whose
+     * cadence already matches the pay cycle must NOT be scaled — the scaling is about the mismatch, not
+     * about windows in general.
+     */
+    const aligned: Debt[] = [{ ...klarna[0], recurrence: "monthly" }];
+    const alignedCycles = monthly(aligned);
+    const alignedProjected = assertExists(alignedCycles.find((c) => c.isProjected), "A5-6 control — a projected cycle exists");
+    const alignedItem = assertExists(
+        alignedProjected.items.find((i) => i.label === "Pay minimum on Klarna"),
+        "A5-6 control — the aligned BNPL is still there",
+    );
+    assertMoney(alignedItem.amount, 100, "⭐ A5-6 control — a MONTHLY BNPL under a monthly paycheck is charged once, never scaled");
+}
+
 // ─── One-time windfall (2.4.6.1.4) ──────────────────────────────────────────
 
 function testWindfallDoesNotRepeatInProjectedCycles() {
@@ -592,6 +667,9 @@ export function runMultiCycleTimelineRegressionTests() {
 
     // One-time windfall not repeated across projected cycles (2.4.6.1.4)
     testWindfallDoesNotRepeatInProjectedCycles();
+
+    // S1.12.5.3 [pass-5 A5-6] — the PROJECTED cycles' cross-cadence BNPL scaling
+    testProjectedCyclesScaleACrossCadenceBnpl();
 
     // Cross-cycle carry (2.4.D.6)
     testNetEqualsPaycheckMinusRequiredMinusLiving();
