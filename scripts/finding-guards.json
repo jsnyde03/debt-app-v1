@@ -662,8 +662,8 @@
       ],
       "run": "test:app",
       "expect": "opposite-sized losses no longer produce the identical clause",
-      "measured": "2026-08-30",
-      "sha": "b7370ba6"
+      "measured": "2026-08-31",
+      "sha": "03c9aaa9"
     }
   },
   "S1P4-C4-5-ARITY": {
@@ -1208,8 +1208,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "not a literal",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "03c9aaa9"
     }
   },
   "S1P3-B3-UNKNOWN": {
@@ -2203,6 +2203,24 @@
       "expect": "the cap is still",
       "measured": "2026-08-30",
       "sha": "4f32f846"
+    }
+  },
+  "S1P5-B5-9-RESERVEDIDS": {
+    "what": "pass-5 B5-9 (blocker) - deleting a debt and adding another in the same pay cycle re-issued the dead id, and $500 of the deleted debt's extra payment landed on the new one: measured through real store actions, the Car loan was written down to $10,967.54 instead of $11,467.54 at the next payday, persisted. Four more records followed the id (a 75% milestone high-water on a brand-new debt, an override, a pending payoff beat, a repair record). The docblock's premise was the defect: uniqueness against the debts ARRAY is not uniqueness against the ids the STORE references. reservedDebtIds scans the serialized store - derived from the document, not from a list of the fields that key on debt id. The obvious repair (purging completedRecommendedActions) is refused: cycleHistory's snapshot is built from them, so it would rewrite the closing cycle's history.",
+    "file": "apps/rn/src/store/debtIds.test.ts",
+    "token": "an id surviving only in completedRecommendedActions is reserved",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/debtIds.ts",
+          "find": "\tfor (const m of JSON.stringify(store ?? null).matchAll(/debt-\\d{4}-\\d{2}-\\d{2}-\\d+/g)) found.add(m[0]);",
+          "replace": "\tfor (const d of ((store as { debts?: { id: string }[] })?.debts ?? [])) found.add(d.id);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "an id surviving only in completedRecommendedActions is reserved",
+      "measured": "2026-08-31",
+      "sha": "03c9aaa9"
     }
   }
 }
