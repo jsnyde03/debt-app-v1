@@ -117,4 +117,23 @@ if (failures.length > 0) {
 	process.exit(1);
 }
 
+/**
+ * ⛔ **S1.13.7.2 [pass-6 `D2-5`] — `passed` WAS PRINTED AND NEVER CHECKED, so a load-bearing control row
+ * could be deleted and BOTH gates stayed green.**
+ *
+ * ⚡ Measured by planting: lane D2 removed the *"hop 2 — the producer that did NOT change is routed"*
+ * assertion — the one row pinning the `neighbour` origin, the origin that exists because a two-producer
+ * disagreement is otherwise half-routed by construction — and this file exited **0** while
+ * `lint:finding-guards` also stayed green, because the registry pins the guard's *token*, not its
+ * *count*. **Deleting an assertion is invisible to a gate that only counts failures.**
+ *
+ * ⚠️ Downward-only, and it is `!==` rather than `<` for `D2-7`'s reason: a silently ADDED assertion means
+ * the pinned number and the real one have drifted in the direction nobody looks.
+ */
+const MIN_ASSERTIONS = 21;
+if (passed !== MIN_ASSERTIONS) {
+	console.error(`\n❌ import graph: ${passed} assertions ran, ${MIN_ASSERTIONS} expected.\n`);
+	process.exit(1);
+}
+
 console.log(`✅ import graph: ${passed} assertions · ${graph.edges} resolved edges across ${sourceFiles.length} source files.`);

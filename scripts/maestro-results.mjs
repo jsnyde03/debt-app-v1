@@ -107,7 +107,14 @@ export function buildResults({ junitPath, tier = 'unknown', flowDir }) {
     // ⚠️ An empty or missing report is a RESULT, and it is this lane's signature failure — the driver
     // stall that produces zero flows costs a full build and is indistinguishable from a green suite in
     // wall-clock. Recording `junitFound: false` is what lets 4.1.9c's writer refuse to stamp anything.
-    junitFound: Boolean(xml),
+    /**
+     * ⛔ S1.13.7.2 [pass-6 `D2-13`] — `Boolean(xml)` meant *"some file had bytes"*, not *"a flow ran"*.
+     * A report containing **zero testcases** — and two empty reports concatenated — both read `true`, so
+     * the stall refusal this field exists to trigger **never fired**. The comment above already stated
+     * the stronger meaning; this is the code catching up to it. ⚠️ Strictness is the safe direction here:
+     * the consequence of `false` is that `stamp-coverage` writes nothing, which is what a stall deserves.
+     */
+    junitFound: Boolean(xml) && flows.length > 0,
     totals,
     flows,
     unresolved,

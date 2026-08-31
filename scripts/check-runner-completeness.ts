@@ -39,8 +39,15 @@ interface Runner {
   gate: string;
   /** the runner file, repo-relative */
   runner: string;
-  /** git pathspecs enumerating the files that MUST be in it */
+  /** git pathspecs — the ROOTS to look under, never a shape */
   pathspecs: string[];
+  /**
+   * ⛔ **S1.13.7.2 [pass-6 `D1-2`] — THE SHAPE IS A REGEX, NOT A GLOB, and that is the whole fix.**
+   * `apps/rn/src/**\/*.test.ts` requires a directory between the root and the file, so a test sitting at
+   * the TOP LEVEL of either root matched nothing at all — the gate was green over a hole shaped exactly
+   * like the defect it exists to catch. A root plus a regex has no depth to get wrong.
+   */
+  match: (repoPath: string) => boolean;
   /** how the runner names a member — returns repo-relative paths */
   imports: (src: string, runnerRel: string) => Set<string>;
 }
@@ -77,7 +84,8 @@ const RUNNERS: Runner[] = [
   {
     gate: 'test:app',
     runner: 'apps/rn/src/testing/runAppTests.ts',
-    pathspecs: ['apps/rn/src/**/*.test.ts', 'apps/rn/src/**/*.test.tsx'],
+    pathspecs: ['apps/rn/src'],
+    match: (p) => /\.test\.tsx?$/.test(p),
     imports: (src, rel) =>
       new Set([...src.matchAll(/import\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => toRepoPath(rel, m[1]))),
   },
@@ -86,11 +94,36 @@ const RUNNERS: Runner[] = [
     runner: 'packages/core/testing/runRegressionTests.ts',
     // ⚠️ `packages/` uses the `testXxx.ts` convention, NOT `*.test.ts` — the same two-convention split that
     // produced pass-4 `D4-3`, where a classifier knowing one convention read 64 test files as production.
-    pathspecs: ['packages/core/**/test[A-Z]*.ts'],
+    pathspecs: ['packages/core'],
+    match: (p) => /(^|\/)test[A-Z][A-Za-z0-9]*\.ts$/.test(p),
     imports: (src, rel) =>
       new Set([...src.matchAll(/import\s+["']([^"']+)["']/g)].map((m) => toRepoPath(rel, m[1]))),
   },
 ];
+
+/**
+ * ⛔ **S1.13.7.2 [pass-6 `D2-8` · `C3-11`] — THE THIRD POPULATION, AND IT IS WHERE THE CHECKING CODE LIVES.**
+ *
+ * This gate closed *"a test in no runner"* for two trees and was blind to **`scripts/`**, which holds
+ * **six of the repo's eight test-shaped instrument files** — the harnesses that certify every other gate.
+ * A test could be added there, or stop being run, with `lint:rn` fully green.
+ *
+ * ⚡ **And `test-gate-plants.ts` planted its proof of this very gate into
+ * `apps/rn/src/store/__gate_plant_unwired__.test.ts` — inside one of the two populations it already
+ * covered.** The scenario could not discover the third by construction. *"Which member of its class did
+ * this test pick?"*, asked of the plant rather than the code.
+ *
+ * ⚠️ Here the "runner" is `package.json`: a script in `scripts/` is run because an npm script names it.
+ * So the membership test is *"does the script map mention this file"*, and the extraction is a path match
+ * rather than an import parse.
+ */
+RUNNERS.push({
+  gate: 'package.json (npm script map)',
+  runner: 'package.json',
+  pathspecs: ['scripts'],
+  match: (p) => /(^|\/)test-[A-Za-z0-9._-]+\.(ts|mjs|cjs|sh)$/.test(p),
+  imports: (src) => new Set([...src.matchAll(/scripts\/(test-[A-Za-z0-9._-]+\.(?:ts|mjs|cjs|sh))/g)].map((m) => `scripts/${m[1]}`)),
+});
 
 const problems: string[] = [];
 const summary: string[] = [];
@@ -99,7 +132,8 @@ for (const r of RUNNERS) {
   const tracked = execFileSync('git', ['ls-files', ...r.pathspecs], { cwd: REPO_ROOT, encoding: 'utf8' })
     .split('\n')
     .map((l) => l.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((p) => r.match(p));
   const imported = r.imports(readFileSync(join(REPO_ROOT, r.runner), 'utf8'), r.runner);
   // A runner names a module without its extension; compare on the stem so `.ts`/`.tsx` cannot disagree.
   const stem = (p: string) => p.replace(/\.(ts|tsx)$/, '');
@@ -123,6 +157,51 @@ for (const r of RUNNERS) {
     );
   }
   summary.push(`${r.gate}: ${tracked.length} tracked · ${tracked.length - missing.length} wired`);
+}
+
+/**
+ * ⛔ **S1.13.7.2 [pass-6 `D1-8`] — AND NOTHING ASSERTED THE GATE LIST ITSELF WAS COMPLETE.**
+ *
+ * `run-gates.ts`'s `GATES` is a hand-written literal array. A gate script can exist in the tree, be wired
+ * into `package.json`, and be in **no chain** — so it is never executed, and `lint:rn` still announces
+ * *"all N gates pass."* **There is a live instance** (`lint:webkit`, already on the backlog), which is how
+ * this was found rather than reasoned about.
+ *
+ * ⚠️ Same shape as the file check above, transposed onto script names: the population is derived from
+ * `package.json` rather than typed here, so a gate added tomorrow is covered without editing this file.
+ * An intentional omission is **named with a reason** — an exclusion list fails safe; an inclusion list is
+ * what produced the hole.
+ */
+const EXEMPT_FROM_CHAIN: Record<string, string> = {
+  'lint:rn': 'is the runner itself — it executes the chain',
+  'lint:webkit': 'red and unchained, tracked on the deferred backlog; chaining it now would red every push',
+  // ⚠️ Verified against the code rather than assumed — `run-gates.ts:140` states it in as many words:
+  // *"`lint:gate-freshness` is the file that IS deliberately outside every chain"*. [D49]/[D74]: it reds
+  // for the whole duration of an audit by design, so chaining it would make mid-pass red the normal state.
+  'lint:gate-freshness': 'deliberately outside every chain — it reds for the duration of a pass by design ([D49]/[D74])',
+  // ⚠️ `--working-tree` variant of `lint:secrets`, which IS chained. Built for [M10], an auditor writing a
+  // new report; running both in one chain would double the scan and refuse the authoring case.
+  'lint:secrets:authoring': 'the --working-tree variant of lint:secrets, which is chained; authoring mode only',
+};
+
+const pkg = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8')) as { scripts: Record<string, string> };
+const runGates = readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8');
+const unchained = Object.keys(pkg.scripts)
+  .filter((n) => n.startsWith('lint:'))
+  .filter((n) => !(n in EXEMPT_FROM_CHAIN))
+  .filter((n) => !runGates.includes(`'${n}'`));
+
+if (unchained.length) {
+  problems.push(
+    `[lint:rn] ${unchained.length} lint script(s) exist in package.json and are in NO chain:\n` +
+      unchained.map((n) => `          ${n}`).join('\n') +
+      "\n        ⛔ `lint:rn` would still print \"all N gates pass\" — the gate is never executed. Add it to\n" +
+      '        GATES in scripts/run-gates.ts, or name it in EXEMPT_FROM_CHAIN with the reason.',
+  );
+}
+// ⚠️ A stale exemption is a hole with a comment in front of it — the MAX_EXEMPT shape this repo uses.
+for (const [name, why] of Object.entries(EXEMPT_FROM_CHAIN)) {
+  if (!(name in pkg.scripts)) problems.push(`[lint:rn] EXEMPT_FROM_CHAIN names "${name}" (${why}) and package.json has no such script.`);
 }
 
 if (problems.length) {

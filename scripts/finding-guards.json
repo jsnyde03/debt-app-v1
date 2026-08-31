@@ -487,7 +487,7 @@
       ],
       "expect": "reached no lane",
       "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "sha": "95e895e9"
     }
   },
   "S1P4-ANCHOR-ONEWORLD": {
@@ -2257,6 +2257,90 @@
       "expect": "reached NO origin",
       "measured": "2026-08-31",
       "sha": "f7e39483"
+    }
+  },
+  "S1P6-D2-5-ASSERTFLOOR": {
+    "what": "S1.13.7.2 [pass-6 D2-5] - test-import-graph.ts printed `passed` and never checked it, so a load-bearing control row could be DELETED and both gates stayed green. Lane D2 proved it by planting: it removed the 'hop 2 - the producer that did NOT change is routed' assertion, the one row pinning the `neighbour` origin, and this file exited 0 while lint:finding-guards also stayed green - because the registry pins a guard's TOKEN, not its COUNT. Deleting an assertion is invisible to a gate that only counts failures. MIN_ASSERTIONS is `!==` rather than `<` for D2-7's reason. Re-proven by disabling one check(): 20 assertions ran, 21 expected, exit 1.",
+    "file": "scripts/test-import-graph.ts",
+    "token": "const MIN_ASSERTIONS",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/test-import-graph.ts",
+          "find": "const MIN_ASSERTIONS = 21;",
+          "replace": "const MIN_ASSERTIONS = 22;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "scripts/test-import-graph.ts"
+      ],
+      "expect": "assertions ran"
+    }
+  },
+  "S1P6-D2-8-SCRIPTSRUNNER": {
+    "what": "S1.13.7.2 [pass-6 D2-8 + C3-11 + D1-2] - lint:runner-completeness closed 'a test in no runner' for two trees and was BLIND to scripts/, where six of the repo's eight test-shaped instruments live. AND test-gate-plants planted its proof of THIS gate into a file inside one of the two populations already covered, so the scenario could not discover the third by construction. Live instance on the first run: scripts/test-conform-assertions.sh - whose own docstring says 'a guard whose success is indistinguishable from its failure has to be run' - was executed by NOTHING. Now wired as test:conform-assertions and passing. D1-2 fixed in the same edit: the pathspec apps/rn/src/**/*.test.ts requires a directory between root and file, so a test at the TOP LEVEL of either root matched nothing; roots + a regex now, so the glob's depth cannot be wrong again.",
+    "file": "scripts/check-runner-completeness.ts",
+    "token": "package.json (npm script map)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "package.json",
+          "find": "    \"test:conform-assertions\": \"bash scripts/test-conform-assertions.sh\",\n",
+          "replace": ""
+        }
+      ],
+      "run": "lint:runner-completeness",
+      "expect": "in NO runner"
+    }
+  },
+  "S1P6-D1-8-GATECHAIN": {
+    "what": "S1.13.7.2 [pass-6 D1-8] - nothing asserted run-gates.ts's GATES list was complete. A gate can exist in the tree, be wired into package.json, and be in NO chain: never executed, while lint:rn still announces 'all N gates pass'. D1-8 named one live instance (lint:webkit). The check added here found TWO MORE it never named - lint:gate-freshness and lint:secrets:authoring - and BOTH proved deliberate when checked against the code rather than assumed: run-gates.ts:140 states gate-freshness 'IS deliberately outside every chain' ([D49]/[D74]), and secrets:authoring is the --working-tree variant of lint:secrets, which IS chained. Population derived from package.json rather than typed; a stale exemption reds too.",
+    "file": "scripts/check-runner-completeness.ts",
+    "token": "EXEMPT_FROM_CHAIN",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/run-gates.ts",
+          "find": "    'lint:fixture-dates',\n",
+          "replace": ""
+        }
+      ],
+      "run": "lint:runner-completeness",
+      "expect": "in NO chain"
+    }
+  },
+  "S1P6-D3-4-HALFCONFLICT": {
+    "what": "S1.13.7.2 [pass-6 D3-4] - check-conflict-markers required the OPEN *and* CLOSE marker to BOTH survive, so a HALF-RESOLVED conflict read green: a stray close marker left after keeping the upper side, or a stray open marker after keeping the lower one - the commonest leftover a human actually produces, invisible to the gate written because six files carried markers for 177 commits while 42 gates reported green. Any ONE marker is a conflict now. MID alone is safe only because .md is in SKIP_EXT and a bare seven-equals line is a syntax error in anything else this gate scans. D3 correctly declined to plant it while eleven lanes shared the tree; the plant is executed here.",
+    "file": "scripts/check-conflict-markers.ts",
+    "token": "OPEN.test(text) || MID.test(text) || CLOSE.test(text)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/lib/moneyClaim.ts",
+          "find": "export const MIN_MONEY_BEARING = 424;",
+          "replace": "export const MIN_MONEY_BEARING = 424;\n>>>>>>> theirs"
+        }
+      ],
+      "run": "lint:conflict-markers",
+      "expect": "marker line(s)"
+    }
+  },
+  "S1P6-D2-1-PROOFSTALE": {
+    "what": "S1.13.7.2 [pass-6 D2-1] - `measured`/`sha` never expired, so 32 of 86 EXECUTED proofs described a tree their target had already left. The pass-4 defect one level up: lint:finding-guards was read as a closure proof for three passes, prove:guards fixed that by writing measured/sha, and then measured/sha became the thing that decays. RE-RUNNING ALL 32 IS WHAT PROVED IT MATTERS: 30 held and 2 DID NOT, and one of the two was a real defect in S1-ROUTE-EXIT-REACHABLE's own assertion that only appeared once the pass recorded its reads. PINNED ceiling rather than downward-only: ordinary development legitimately moves a guarded file. AND THE FIRST CUT OF THIS CHECK REPORTED 0 STALE BECAUSE IT COULD NOT RUN - execFileSync was never imported and a bare catch{} turned the ReferenceError into 'nothing is stale', the fail-open class inside the check written to close a fail-open.",
+    "file": "scripts/check-finding-guards.ts",
+    "token": "MAX_STALE_PROOFS",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-finding-guards.ts",
+          "find": "const MAX_STALE_PROOFS = 8;",
+          "replace": "const MAX_STALE_PROOFS = -1;"
+        }
+      ],
+      "run": "lint:finding-guards",
+      "expect": "STALE"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
