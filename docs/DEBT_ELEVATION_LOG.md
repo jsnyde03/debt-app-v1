@@ -29607,3 +29607,86 @@ lane is written into `DISPATCH.md` **to be verified, not adopted unread**.
 ⚡ **And a sizing trap found while measuring it: lane D carries the MOST lines on the FEWEST files** —
 27.7k over 75, because the instruments carry enormous docblocks. **Sizing by file count alone would have
 under-weighted it by a factor of three**, and D is the lane that reads the checking code.
+
+---
+
+## S1.13.5 — the dispatch's own switch-in scan, 2026-08-31
+
+**The fresh session `S1.13.4` asked for.** `DISPATCH.md`'s two verifications came back green —
+`lint:rn` **43/43**, `audit:route-check` **0 owed**, tree clean, and the only diff since the route was
+generated was docs plus one line of `finding-guards.json`. **The record was still wrong about the thing
+that mattered.**
+
+### ⛔ The pass's own exit was unreachable, and `--check` printed `0 owed` over it
+
+Measured before an agent was spawned: of the **446** money-bearing files
+`audit:read-coverage --pass=s1p6` demands, **12 reached no lane** —
+`packages/core/debt/{applyDebtPaymentProjection,applyPaydayCapture,applyRolloverPayment,bnplProviders,cannotAmortize,computeMilestones,computeStreak,getDebtsWithDisplayBalances,reconcileAutopay}.ts`,
+`packages/core/history/buildCycleSnapshot.ts`, `apps/rn/src/store/paycheckForm.ts`,
+`apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ios.ts`.
+
+⚡ **The mechanism, verified rather than assumed: all 12 carry `s1p5`.** The router seeds `stale-read`
+from the pass it *follows* (`--unread-pass=s1p5`), so a file pass 5 **did** read is subtracted from the
+seed on purpose. The exit asks the absolute question, and pass 5's reads are no excuse for pass 6.
+
+⛔ **The `owed` assertion is not wrong — it is a different statement.** It proves *"every money-bearing
+file the FOLLOWED pass did not read reaches an origin"*, exactly what its docblock claims. Nothing
+asserted *"every file the EXIT demands reaches a lane"*, which is the statement a dispatch is held to.
+**Two instruments, two populations, and the gap was silent in both.** This is `S1.13.3` one turn on: that
+step fixed the files **no** pass had read going unrouted; this is its complement.
+
+### ⚠️ The fix's first cut could not fail, in the file that records that exact class
+
+The first `--exit-pass` assertion sat beside the seed and tested **the very set the loop three lines above
+had just assigned** — `audit-route.ts`'s own recorded `D4-11` defect (three tautological set identities,
+deleted rather than repaired) committed a **fourth** time, in the block whose docblock warns about it.
+Two changes move it out of the class: the unit is the **lane** (downstream of every `LANES` predicate),
+and the population is read from the **claims JSON** — the same file `check-pass-coverage.ts` counts 446
+out of — so it compares two producers of one population rather than a set against itself. Planted:
+**exit 1 naming 24 files**, and only the 24 genuinely unreachable, not all 45 in the planted directory.
+
+### ⚡ Two guards, one voided twice — and the second time by prose
+
+Adding the second seed made `S1-ROUTE-STALE-READ`'s un-fix anchor match **2×**: *"the proof is VOID, not
+merely stale."* Factored to one `seedStaleRead` helper with two callers — **the two assertions stay
+separate**, because they are two statements; the seed genuinely was one thing said twice. ⚠️ **Then the
+anchor was voided a second time by the docblock explaining the first** — a comment quoting the line
+verbatim is another copy of it. **Second and third occurrence in two commits** of *duplicating a predicate
+voids its own anchor*; the first was `S1-PASS-COVERAGE-FLOOR`. `MIN_ENTRIES` 216 → **217**.
+
+### ⛔ Nothing ingested the read-lists the exit is defined in terms of
+
+`DISPATCH.md` stated the contract as *"every lane emits `READ-<lane>.txt`"* and the exit as 446/446.
+**`check-pass-coverage.ts` never opens a `READ-*` file** — its population and its claims both come from
+`scripts/surface-coverage.s1.json`, which `surface-coverage.ts` only ever tells you to *"Edit"*. So the
+dispatch as recorded ended in **twelve lane files hand-merged into a 484-entry JSON**, the enumeration
+class this project has come in short on for eight consecutive items.
+
+`record-reads.ts` closes it. Two refusals, both proven: **a run that records nothing cannot exit 0**
+(missing lane files, empty ones, or every path off-surface), and **an untracked path is a refusal that
+names the lane that wrote it**. A tracked path not on the surface is reported and not recorded — lanes are
+routed 622 files and only 446 are the exit's population. Chain proven end to end: 3 files recorded,
+446 → **443** unread, `[D5-10]`'s stale stamp then confirmed to refuse the route until restamped.
+
+### ⚠️ What the measurement changed about the split
+
+**Lane D contributes ZERO to the coverage exit and carries the MOST lines** — 27.9k over 76 files; all 446
+exit-bearing files are in A, B and C. Not an argument for cutting D (it produced 14 of pass 5's 39
+findings, and `major` is *"an instrument reports green while doing less than it claims"*) — an argument
+about what is inside it. **~8k of D's lines are the legacy Next root `P6.11` deletes**, so it is isolated
+as `D3` with a reduced mandate: read it for a defect that MIGRATES, or for evidence it still ships.
+Precedent — `S1.12.11` found six files there carrying merge-conflict markers for **177 commits** while 42
+gates read green over them.
+
+`audit-sublanes.ts` derives the 12 and asserts them: sum against each parent, no duplicates, and **every
+one of the 446 in a sub-lane** — because the route can assert a file reached a *lane* and still hand a
+reader a manifest without it. `check-*` alone came out at 2.4k while `D2` came out at 14.7k, so the
+regression suites moved to `D1` on subject: **a gate and a suite are both code whose job is to report the
+tree green.** Final spread 6.2k–10.9k.
+
+### ⚠️ The 6 GB box, verified rather than carried
+
+`RESUME-PROTOCOL.md` calls this *"a 6 GB box"*. `Win32_OperatingSystem` reports **6.0 GB visible / 0.5 GB
+free** over DIMMs of 4 GB + 2 GB; node's default heap here is **2096 MB**, so the 1536 cap is a real
+reduction. No stale servers — protocol rule 4 clean. ⛔ **So the 12 lanes run in two waves of six**, and
+the brief forbids in-lane `lint:rn`, Playwright and whole-monorepo typechecks.

@@ -128,9 +128,27 @@ and five would have INTRODUCED one. Verify against current code before writing a
 | ✅ **S1.13.1 + .2** | **CLOSED 2026-08-31 — `npm run audit:read-coverage`, the pass-coverage EXIT.** ⛔ **NOT a prune** — the switch-in scan killed it against the code *(whole-directory roots, `excluded` fails safe, five prior widenings each undoing a hand-narrowed set)*; files are **classified**, nothing leaves the surface. ⚡ **The first measurement: pass 5 read 86 of 446 money-bearing files — 19%** *(pass 4: 103)*. The *"393 routed / 126 read"* prose counted non-money files and other passes' claims. ⛔ Writing its guard found a **fail-open in the instrument itself** — a blind predicate reports every pass fully covered; floored at 424, guarded both ways. Detail → log | CLOSED |
 | ✅ **S1.13.3** | **CLOSED 2026-08-31 — the route was retiring files on "swept ONCE, EVER".** ⛔ `audit-route` exited on `!unswept && !changed`, and `unswept` means *never read by any pass* — so a file pass 2 read once was accounted for forever. **131 of the 360 money files pass 5 never read reached NO LANE**, including `FirstDebtOrBillStep.tsx`, which mints a debt id from `Date.now()` — a defect found this session, in a file the router had already retired. New **`stale-read`** origin, opt-in *(control: 476/0 without the flag, **607/280** with)*, sharing **one** money predicate with the coverage exit. The seed asserts its own completeness every run — I had checked it by hand once. Record → `docs/audits/2026-08-31-s1-money-pass6/DISPATCH.md` | CLOSED |
 | ✅ **S1.13.4** | **[DECISION] ANSWERED 🎯 2026-08-31 — GO, at 12 lanes + a coverage-driven SECOND WAVE, with lanes emitting read-lists.** ⚡ Sized on measurement, not preference: pass 5 gave 4 lanes ~16k lines each and they read **about a third**, which is why coverage was 86/446. 12 lanes ≈ 8k lines each. ⭐ The wave is what guarantees the exit and is the cheap half — the coverage command names the remainder exactly. Worst case **~3–5M tokens**. 🎯 **Jason asked for a FRESH SESSION to run it** | ANSWERED |
-| ▶ **S1.13.5** | ⛔ **DISPATCH PASS 6 — in a new session.** ▶ **START HERE: `docs/audits/2026-08-31-s1-money-pass6/DISPATCH.md`**, which carries the agreed shape, the verify-first instruction, and a proposed 12-way sub-split **to check, not adopt unread** *(the `LANES` spec is four SUBJECTS, not a load partition)*. ⚠️ Re-run `audit:route-check` + `lint:rn` before spawning anything | 12 lanes dispatched, read-lists landing |
+| ▶ **S1.13.5** | **DISPATCH PASS 6.** Switch-in scan found the pass's own exit **unreachable** while `--check` printed `0 owed`; prep closed it, then wave 1 launched. Decomposed below. Record → [`PREFLIGHT.md`](audits/2026-08-31-s1-money-pass6/PREFLIGHT.md) | 12 lanes dispatched, read-lists landing |
 | **S1.13.6** | **WAVE 2** — re-run `audit:read-coverage --pass=s1p6`, dispatch only the still-unread remainder | **446/446** money-bearing files read |
 | **S1.13.7** | **TRIAGE TO 0/0**, then the second consecutive clean pass [D65] requires | 0 blockers / 0 majors, twice |
+
+###### S1.13.5's sub-steps — the ACTIVE decomposition *(the ONLY one on this doc)*
+
+⛔ **THE SWITCH-IN SCAN'S RESULT: the coverage exit was UNREACHABLE and `audit:route-check` printed `0 owed`
+over it.** 12 of the 446 money-bearing files reached **no lane** — all 12 carry `s1p5`, and the router seeds
+`stale-read` from the pass it *follows*, so a file pass 5 read is subtracted by construction while the exit
+asks the absolute question. ⚠️ **The `owed` assertion is not wrong; it is a different statement than a
+dispatch is held to.** Two instruments, two populations, silent in both.
+
+| # | sub-step | exit line |
+|---|---|---|
+| ✅ **S1.13.5.1** | **`--exit-pass` — the route now seeds and asserts against the pass it is dispatched FOR.** Asserted on the **lane manifests** and the exit's **own claims file** (two producers), not on the origin map — the first cut was a tautology of the loop above it, this file's own `D4-11` defect a fourth time. Route **608 → 622**, all 446 reachable. Guard `S1-ROUTE-EXIT-REACHABLE` proven | CLOSED |
+| ✅ **S1.13.5.2** | **`audit:record-reads` — nothing ingested `READ-*.txt`.** The exit reads a claims JSON that `surface-coverage` only ever says to *"Edit"*, so the dispatch ended in 12 lane files hand-merged into 484 entries. Two refusals proven: an empty merge cannot exit 0, an untracked path names its lane. Chain proven end-to-end, 446 → 443 | CLOSED |
+| ✅ **S1.13.5.3** | **`audit:sublanes` — the 12-way split derived and asserted**, not adopted unread: sum, no dupes, every one of the 446 in a sub-lane. ⚡ Lane D contributes **0** to the exit and carries the **most** lines, so the legacy Next root `P6.11` deletes is isolated as `D3` on a reduced mandate | CLOSED |
+| ✅ **S1.13.5.4** | **`BRIEF.md` written** — it did not exist. Carries the read-list contract, what pass 5 measured about its own findings, and the 6 GB constraint | CLOSED |
+| ▶ **S1.13.5.5** | **WAVE 1 DISPATCHED** — A1 A2 A3 B1 B2 B3, the engine and the store. ⛔ **Six at a time, not twelve**: verified **6.0 GB visible / 0.5 GB free** | 6 lanes returned, read-lists + findings on disk |
+| **S1.13.5.6** | **WAVE 1b** — C1 C2 C3 D1 D2 D3, the screens and the instruments | 6 lanes returned |
+| **S1.13.5.7** | **RECORD** — `audit:record-reads`, restamp *([D5-10])*, then classify the findings | claims written, coverage measured |
 
 **Exit (S1.12):** pass 5 recorded and fixed. ⛔ **Convergence still requires a clean pass 6** — a 0/0 pass 5
 does not close S1 on its own.

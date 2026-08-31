@@ -1,0 +1,12 @@
+packages/core/debt/applyDebtPaymentProjection.ts
+packages/core/debt/applyPaydayCapture.ts
+packages/core/debt/applyRolloverPayment.ts
+packages/core/debt/bnplPayoffPace.ts
+packages/core/debt/bnplProviders.ts
+packages/core/debt/bnplSchedule.ts
+packages/core/debt/bnplInstallment.ts
+packages/core/debt/calculateMonthlyInterest.ts
+packages/core/debt/buildAmortizationSchedule.ts
+packages/core/debt/cannotAmortize.ts
+packages/core/debt/projectDebtPayoff.ts
+packages/core/debt/buildPayoffTrajectory.ts
