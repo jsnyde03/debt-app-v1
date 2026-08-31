@@ -111,8 +111,16 @@ function testDebtMinimumAppearsInTimelineWithFullMinimumAmount() {
 		"Debt minimum appears in timeline snapshot"
 	);
 
-	assertEqual(visaItem.amount, 75, "Timeline shows the full planned minimum payment amount");
-	assertEqual(visaItem.runningCash, 925, "Debt minimum reduces timeline cash regardless of paid status");
+	/**
+	 * ⛔ **S1.13.7.6 [pass-6 `A3-18`] — THIS ROW ASSERTED THE DEFECT AS CORRECT, and the fixture is the
+	 * exact case: a $20 balance carrying a $75 stated minimum.**
+	 *
+	 * `allocatePaycheck` caps the real payment at the balance in two places — you cannot pay $75 against
+	 * $20 — so the ledger the user reads stated a number the engine never moves, **on the last payment of
+	 * every debt**. Replaced, not deleted: this is the only coverage of the final-payment arity.
+	 */
+	assertEqual(visaItem.amount, 20, "Timeline charges the BALANCE on a final payment, not the stated minimum");
+	assertEqual(visaItem.runningCash, 980, "Debt minimum reduces timeline cash regardless of paid status");
 }
 
 function testPaidOffDebtDoesNotAppearInTimeline() {

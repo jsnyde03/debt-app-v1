@@ -1,4 +1,5 @@
 import { EVERYDAY_SPENDING_LABEL, EXPORT_BACKUP_TITLE, IMPORT_BACKUP_TITLE, PAY_CYCLE_HISTORY_TITLE, PRIVACY_CLAIM, PRIVACY_POLICY_LABEL, UNLOCK_PREMIUM_CTA } from '@core/copy/vocabulary';
+import { pendingActionBridge } from '@/appIntents/pendingActionBridge';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { tutorialRunFor } from '@/store/tutorialSelectors';
@@ -162,6 +163,20 @@ export default function MoreScreen() {
     // nothing at all. Found by the e2e added at d.2, whose first draft landed on `/more` directly.
     if (router.canGoBack()) router.back();
     else router.replace('/');
+    /**
+     * ⛔ **S1.13.7.6 [pass-6 `C3-10`] — "DELETE ALL DATA" NEVER TOUCHED THE APP GROUP.**
+     *
+     * Two consequences, both measured. The **widget snapshot** keeps the user's debt names and balances
+     * readable outside the app after they asked for everything to be erased — and the confirm copy
+     * enumerates the locations it will clear, so this is a promise the code did not keep. And a **queued
+     * `payday-landed`** survives the wipe: `drainPendingActions()` runs at launch, so the brand-new
+     * default store gets rolled two weeks into the future on the very next start.
+     *
+     * ⚠️ Cleared BEFORE the reset, in the same order the iCloud copy and the quarantine already use —
+     * *"the only honest order is to fail before anything is destroyed"*. `clear()` is best-effort by
+     * design and existed with no JS caller at all.
+     */
+    pendingActionBridge.clear();
     InteractionManager.runAfterInteractions(() => {
       appStore.getState().reset();
     });

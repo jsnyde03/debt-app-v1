@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { allowRealStoreWrite } from '@/store/realWriteGuard';
 import { isDemoReachable } from '@/config/qa';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -204,7 +205,21 @@ export default function PaywallScreen() {
       const result = await client.purchase(selected.pkg);
       if (result.userCancelled) return;
       if (isPremiumActive(result.customerInfo)) {
-        appStore.getState().setSubscriptionPlan('premium');
+        /**
+         * ⛔ **S1.13.7.6 [pass-6 `C3-8`] — A PURCHASE MADE INSIDE THE DEMO WAS CHARGED BY APPLE AND
+         * DROPPED BY THE APP.**
+         *
+         * `_layout.tsx:320` wraps the whole `<Stack>` — the paywall modal included — in
+         * `<StoreProvider store={demoSandbox ?? appStore}>`, deliberately, so the demo's conversion
+         * path runs inside the sandbox. `refuseRealStoreWrite` then drops any undeclared write to the
+         * real store. ⚡ Measured with both controls: this statement lands with no sandbox mounted and
+         * lands when wrapped, and is **dropped** during a demo — so the user pays, sees *"You’re on
+         * Premium"*, and `subscriptionPlan` stays `free`.
+         *
+         * ⚠️ Wrapping the SYNCHRONOUS call only, per this helper's own contract: the flag is down again
+         * by the time it returns, so wrapping the promise chain would protect nothing past the `await`.
+         */
+        allowRealStoreWrite(() => appStore.getState().setSubscriptionPlan('premium'));
         notify('You’re on Premium', 'Your premium tools are unlocked.');
         router.back();
       } else {
@@ -228,7 +243,9 @@ export default function PaywallScreen() {
     try {
       const info = await client.restore();
       if (isPremiumActive(info)) {
-        appStore.getState().setSubscriptionPlan('premium');
+        // ⛔ S1.13.7.6 [pass-6 C3-8] — the restore path is the same real-store write as the purchase
+        // above, and was equally undeclared. A restore inside the demo was dropped identically.
+        allowRealStoreWrite(() => appStore.getState().setSubscriptionPlan('premium'));
         notify('Purchases restored', 'Your premium access is back.');
         router.back();
       } else {

@@ -95,7 +95,18 @@ export function buildTimelineItems({
             label: debt.isAutopay
                 ? `Reserve minimum for ${debt.name}`
                 : `Pay minimum on ${debt.name}`,
-            amount: debt.minimumPayment,
+            /**
+             * ⛔ **S1.13.7.6 [pass-6 `A3-18`] — ON THE LAST PAYMENT OF EVERY DEBT THIS CHARGED THE FULL
+             * STATED MINIMUM INSTEAD OF THE BALANCE.**
+             *
+             * `allocatePaycheck` caps the real payment at the balance in two places — you cannot pay $50
+             * against a $12 balance — so the ledger the user reads was a different number from the money
+             * the engine actually moves, on the final payment of **every** debt.
+             *
+             * ⚠️ The cap is what the engine already does; this makes the row agree rather than inventing
+             * a third rule.
+             */
+            amount: Math.min(debt.minimumPayment, debt.balance),
             type: debt.isAutopay ? "autopay_debt" : "minimum_debt",
             isPaid: paidThisCycle,
         });

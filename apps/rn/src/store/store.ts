@@ -690,7 +690,32 @@ export function createDebtStore(opts?: {
     applyPaydayLandedIntent() {
       // 3.5.3.5 — same roll as rolloverPayCycle, but stash the pre-roll store first so the Today card can
       // offer a one-tap Undo (an accidental Live-Activity tap is fully reversible).
-      set((s) => ({ intentRollback: { store: s.store, kind: 'payday-landed' }, store: recordDriftBaseline(applyRollover(s.store), 'user', clock) }));
+      /**
+       * ⛔ **S1.13.7.6 [pass-6 `C3-6`] — TWO TAPS OF THE LOCK SCREEN'S "PAYDAY LANDED" ROLLED THE PLAN
+       * FORWARD TWO WHOLE CYCLES ON ONE PAYDAY**, wrote two `cycleHistory` entries for one paycheck, and
+       * the Undo took back only one.
+       *
+       * ⚡ The queue's dedupe cannot catch it: both Swift producers mint `UUID().uuidString` **per
+       * invocation**, so no two actions ever share an id, and `pendingActions.test.ts` covers the dedupe
+       * with two entries that DO share one.
+       *
+       * ⛔ **Not fixed by "fixing the id".** A stable id per payday would collapse these two taps, but the
+       * same UUID-per-invocation shape is what `log-payment` needs — two deliberate Siri payments of $200
+       * to one debt genuinely ARE two payments — so an id rule applied to the class would silently swallow
+       * a real second payment. **The asymmetry puts the guard on the mutation, not on the queue.**
+       *
+       * ⚠️ The payday being landed is the PRE-roll `nextPaycheckDate`; `applyRollover` advances it. Same
+       * rule the in-app path already enforces via `lastHandledPaydayDate`, and it self-clears because the
+       * payday date advances past it (`payday.ts:65`).
+       */
+      set((s) => {
+        const landing = s.store.paycheck.nextPaycheckDate;
+        if (s.store.lastHandledPaydayDate === landing) return {};
+        return {
+          intentRollback: { store: s.store, kind: 'payday-landed' },
+          store: { ...recordDriftBaseline(applyRollover(s.store), 'user', clock), lastHandledPaydayDate: landing },
+        };
+      });
     },
     logManualPayment(debtId, amount) {
       // 3.5.5 — reduce the debt's balance by `amount` + re-anchor its verified date to today (the same
