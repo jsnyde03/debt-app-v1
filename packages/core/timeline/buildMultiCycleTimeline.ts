@@ -330,7 +330,12 @@ function markInCycleBillsAsPaid(
 
 function getEndingBalance(items: TimelineItem[], fallback: number): number {
     if (items.length === 0) return fallback;
-    return items[items.length - 1].runningCash;
+    // ⛔ S1.12.9 — the clamp lives HERE now, not on `runningCash` (S1.12.7: the ledger shows the true
+    // number). `endingBalance` seeds the NEXT cycle's starting balance, and a negative carried forward
+    // would compound a shortfall the user has not actually been charged twice for. The un-clamped dip
+    // is not lost — `net` and `carriedBalance` carry it, which is what the water-fill and
+    // `detectCrunches` read, and `testNegativeNetLumpyCyclePreservedUnclamped` pins that pair.
+    return Math.max(0, items[items.length - 1].runningCash);
 }
 
 /** This cycle's UN-CLAMPED net flow (income − required − living) — the §2.5 carry increment (2.4.D.6).

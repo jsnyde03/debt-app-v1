@@ -293,8 +293,13 @@ function testCompletedActionsForDifferentTargetsBothAppear() {
 
 // ─── 3. RUNNING CASH INVARIANTS ─────────────────────────────────────────────
 
-function testRunningCashNeverGoesNegative() {
-	// Running cash must never be negative — it clamps at 0 at each step.
+/**
+ * ⛔ **S1.12.9 [DECISION `S1.12.7`] — WAS *"running cash never goes negative"* OVER $800 OF INCOME AND
+ * $1,800 OF BILLS.** It passed because the field was clamped, not because the money held up. Now that the
+ * ledger states the true number, the same fixture asserts the shortfall it was concealing — **−$1,000** by
+ * the last row, exactly $800 − $1,500 − $200 − $100.
+ */
+function testRunningCashStatesTheShortfall() {
 	const expenses: RequiredExpense[] = [
 		{ id: "e1", name: "Rent", amount: 1500, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
 		{ id: "e2", name: "Electric", amount: 200, dueDate: "2026-06-07", recurrence: "monthly", isPaidThisCycle: false },
@@ -305,11 +310,9 @@ function testRunningCashNeverGoesNegative() {
 	const result = buildResult(800, expenses, debts);
 	const timeline = buildTimelineItems({ result, requiredExpenses: expenses, debts, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
 
-	for (const item of timeline) {
-		if (item.runningCash < 0) {
-			throw new Error(`FAIL [Running cash never negative]: went negative at "${item.label}": ${item.runningCash}`);
-		}
-	}
+	const last = timeline[timeline.length - 1];
+	if (!last) throw new Error("FAIL [S1.12.9]: the timeline is empty, so the assertion below would be vacuous.");
+	assertMoney(last.runningCash, -1000, "⛔ S1.12.9 — the last row states −$1,000, not a third identical $0");
 }
 
 function testRunningCashDecrementedByPaidItems() {
@@ -516,7 +519,7 @@ export function runTimelineRegressionTests() {
 	testCompletedActionsForDifferentTargetsBothAppear();
 
 	// Running cash invariants
-	testRunningCashNeverGoesNegative();
+	testRunningCashStatesTheShortfall();
 	testRunningCashDecrementedByPaidItems();
 	testRunningCashStartsAtPaycheckAmount();
 

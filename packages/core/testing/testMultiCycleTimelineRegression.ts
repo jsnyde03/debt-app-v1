@@ -469,19 +469,30 @@ function testCushionStatusPressureBelow100() {
 
 // ─── 7. DOLLAR INVARIANT ─────────────────────────────────────────────────────
 
-function testRunningCashNeverGoesNegativeInAnyProjectedCycle() {
-    // Regardless of how tight the budget is, runningCash must be clamped at 0, never negative.
+/**
+ * ⛔ **S1.12.9 [DECISION `S1.12.7`] — THIS TEST ASSERTED THE CLAMP AND NOW ASSERTS WHAT REPLACED IT.**
+ *
+ * ⚡ It was named *"running cash never goes negative in any projected cycle"* and its comment said
+ * *"regardless of how tight the budget is, runningCash must be clamped at 0"* — over $1,500 of income
+ * against $2,100 of bills. It could only ever have passed. ⚠️ **Deleting it would leave the gap where the
+ * true statement belongs**, so both halves are asserted: the ROWS state the real dip, and the CYCLE's
+ * `endingBalance` still clamps, because that is the field that seeds the next cycle.
+ */
+function testTightCycleStatesItsDipAndStillCarriesZero() {
     const expenses: RequiredExpense[] = [
         { id: "e1", name: "Rent", amount: 1800, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
         { id: "e2", name: "CarInsurance", amount: 300, dueDate: "2026-06-22", recurrence: "monthly", isPaidThisCycle: false },
     ];
     const cycles = buildTimeline({ paycheckAmount: 1500, expenses, maxCycles: 3 });
 
+    const dipped = cycles.some((c) => c.items.some((i) => i.runningCash < 0));
+    if (!dipped) {
+        throw new Error("FAIL [S1.12.9]: $1,500 against $2,100 of bills and no row states a negative balance — the clamp is back.");
+    }
+
     for (const cycle of cycles) {
-        for (const item of cycle.items) {
-            if (item.runningCash < 0) {
-                throw new Error(`FAIL [Running cash never negative]: cycle ${cycle.cycleStart}, item "${item.label}", runningCash=${item.runningCash}`);
-            }
+        if (cycle.endingBalance < 0) {
+            throw new Error(`FAIL [S1.12.9]: endingBalance must still clamp — it seeds the next cycle. cycle ${cycle.cycleStart} = ${cycle.endingBalance}`);
         }
     }
 }
@@ -503,7 +514,8 @@ function testCycleEndingBalanceMatchesPaycheckMinusDeductions() {
     // Actually allocatePaycheck with no buffer and no goals puts remaining into snowball.
     // But buildTimelineItems only shows completed recommended actions (not planned snowball).
     // So the ending balance in the timeline reflects what's left BEFORE completed actions.
-    // This test just verifies runningCash is non-negative.
+    // ⚠️ S1.12.9 — this verifies `endingBalance`, which is what it always read; the old line said
+    // `runningCash` and named a field it does not touch.
     const cycle0 = cycles[0];
     if (cycle0.endingBalance < 0) {
         throw new Error(`FAIL [Cycle ending balance]: expected >= 0, got ${cycle0.endingBalance}`);
@@ -651,7 +663,7 @@ export function runMultiCycleTimelineRegressionTests() {
     testCushionStatusPressureBelow100();
 
     // Dollar invariants
-    testRunningCashNeverGoesNegativeInAnyProjectedCycle();
+    testTightCycleStatesItsDipAndStillCarriesZero();
     testCycleEndingBalanceMatchesPaycheckMinusDeductions();
 
     // Cash buffer

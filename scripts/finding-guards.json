@@ -1931,21 +1931,19 @@
     }
   },
   "S1P5-A5-7-CLAMPHONEST": {
-    "what": "pass-5 A5-7 (minor, second-order half) - testFullAppRegression framed a loop as a money property ('running cash should only ever be >= 0') over a field buildTimelineItems.ts:160 clamps by construction, so it could not fail; its sibling in testMultiCycleTimelineRegression says 'must be CLAMPED at 0', which is honest. AND the loop ran on a $1,500-vs-$540 fixture that never reaches the clamp, so it was vacuous twice over. Re-framed to say what it checks, plus a TIGHT fixture asserting the pair: the ledger clamps, and the engine still reports the shortfall the clamp conceals. NOTE: removing the shortfall reds an upstream basicShortfall assertion first, so that half was already guarded; this row's contribution is the PAIRING. Whether the ledger should SHOW the negative is [DECISION] S1.12.7, not settled here.",
+    "what": "pass-5 A5-7 (minor, second-order half) - testFullAppRegression framed a loop as a money property ('running cash should only ever be >= 0') over a field buildTimelineItems.ts:160 clamps by construction, so it could not fail; its sibling in testMultiCycleTimelineRegression says 'must be CLAMPED at 0', which is honest. AND the loop ran on a $1,500-vs-$540 fixture that never reaches the clamp, so it was vacuous twice over. Re-framed to say what it checks, plus a TIGHT fixture asserting the pair: the ledger clamps, and the engine still reports the shortfall the clamp conceals. NOTE: removing the shortfall reds an upstream basicShortfall assertion first, so that half was already guarded; this row's contribution is the PAIRING. S1.12.9 [DECISION S1.12.7 ANSWERED 2026-08-30: SHOW it] - the clamp is GONE from buildTimelineItems and moved to getEndingBalance, the one consumer that needs it (endingBalance seeds the next cycle; the un-clamped dip lives on net/carriedBalance for the water-fill). So this guard INVERTED: it used to plant an un-clamp, and the un-clamp is now the shipped state. It plants a RE-CLAMP. Three suites assert the true number now - the tight cycle reads -00 beside the engine's 00 shortfall (the pair, held to agreeing), the multi-cycle case asserts the rows dip AND endingBalance still carries zero, and testTimelineRegression asserts -,000 where it used to assert a clamp it could not fail.",
     "file": "packages/core/testing/testFullAppRegression.ts",
-    "token": "runningCash is clamped even when the cycle is $600 short",
+    "token": "on a cycle that is $600 short",
     "proof": {
       "unfix": [
         {
           "at": "packages/core/timeline/buildTimelineItems.ts",
-          "find": "runningCash: Math.max(0, runningCash)",
-          "replace": "runningCash"
+          "find": "            runningCash,",
+          "replace": "            runningCash: Math.max(0, runningCash),"
         }
       ],
       "run": "test:regression",
-      "expect": "runningCash is clamped even when the cycle is $600 short",
-      "measured": "2026-08-30",
-      "sha": "8ee70449"
+      "expect": "S1.12.9"
     }
   },
   "S1P5-B5-1-ROWCOUNT": {

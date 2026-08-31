@@ -157,7 +157,16 @@ export function buildTimelineItems({
 
         return {
             ...item,
-            runningCash: Math.max(0, runningCash),
+            // ⛔ S1.12.9 [DECISION S1.12.7 — 🎯 2026-08-30] — UN-CLAMPED. This used to emit
+            // `Math.max(0, runningCash)`, so a user $800 short read three identical `$0` rows and a
+            // screen-reader heard "Pay Phone, −$200, balance $0". `formatCurrency.ts:21` states this
+            // codebase's own rule — "if a value cannot legitimately go negative, clamp it at the
+            // SELECTOR; if it can, show it" — and this one can.
+            // ⚠️ The ACCUMULATOR above was never clamped, only the emitted field was, so nothing about
+            // how the balance carries changes here. The clamp moved to `getEndingBalance`, which is the
+            // one consumer that genuinely needs it: `endingBalance` seeds the next cycle and the
+            // water-fill reads the un-clamped dip from `net`/`carriedBalance` instead.
+            runningCash,
         };
     });
 

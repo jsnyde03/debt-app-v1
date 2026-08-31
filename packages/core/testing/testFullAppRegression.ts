@@ -271,33 +271,37 @@ function testTimelineRunningCashEndToEnd() {
 	});
 
 	/**
-	 * ⛔ **S1.12.5.3 [pass-5 `A5-7`] — THIS LOOP READ AS A SOLVENCY CHECK AND IS A RESTATEMENT OF THE
+	 * ⛔ **S1.12.5.3 [pass-5 `A5-7`] — THIS LOOP READ AS A SOLVENCY CHECK AND WAS A RESTATEMENT OF THE
 	 * CLAMP.** Its comment said *"Running cash should only ever be >= 0 throughout"* — a property of the
-	 * MONEY — over a field `buildTimelineItems.ts:160` clamps with `Math.max(0, runningCash)`. It cannot
-	 * fail, and it described itself as though it could. ⚠️ Its sibling at
-	 * `testMultiCycleTimelineRegression.ts:398` says *"must be CLAMPED at 0"*, which is the honest framing
-	 * of the same check — the same assertion, described truthfully in one file and as a money property here.
+	 * MONEY — over a field `buildTimelineItems.ts:160` clamped with `Math.max(0, runningCash)`. It could
+	 * not fail, and it described itself as though it could.
 	 *
-	 * ⚡ **Renaming it is not enough, because a false statement removed leaves a gap where a true one
-	 * belongs.** The clamp hides a real number the engine already knows, so the honest pair is asserted:
-	 * the field IS clamped, **and** the shortfall the clamp conceals is still reported by `allocatePaycheck`.
-	 * If a future change made the clamp stop hiding anything, the second row reds and says so.
+	 * ⚡ **S1.12.9 [DECISION `S1.12.7` — 🎯 2026-08-30]: THE CLAMP IS GONE AND THIS IS A REAL CHECK NOW.**
+	 * `runningCash` is the true number, so `>= 0` on a comfortable fixture is a statement about the money
+	 * again — it holds because $1,500 covers $540, not because the field could not say otherwise. The
+	 * tight fixture below is what proves that: same assertion, and it now goes the other way.
 	 *
-	 * ⚠️ **Whether the ledger should SHOW the negative is a live decision** (`S1.12.7`), not settled here:
-	 * `formatCurrency.ts:21` states this codebase's own rule — *"if it can go negative, show it"* — and
-	 * `carriedBalance` in the adjacent module is deliberately un-clamped for exactly that reason.
+	 * ⚡ **Renaming it was not enough, because a false statement removed leaves a gap where a true one
+	 * belongs** — so the pair below still asserts both halves, with the halves swapped by the decision:
+	 * the ledger now STATES the shortfall, **and** `allocatePaycheck` still reports it. Two producers of
+	 * one number, held to agreeing, which is what kept the clamp survivable and is what keeps its removal
+	 * honest.
 	 */
 	for (const item of timeline) {
 		if (item.runningCash < 0) {
-			throw new Error(`FAIL [runningCash is CLAMPED at 0, never negative — see buildTimelineItems.ts:160]: got ${item.runningCash} at "${item.label}"`);
+			throw new Error(`FAIL [a comfortable cycle never runs the balance negative — $1,500 against $540]: got ${item.runningCash} at "${item.label}"`);
 		}
 	}
 
 	/**
 	 * ⛔ **S1.12.5.3 [`A5-7`] — THE LOOP ABOVE RUNS ON A COMFORTABLE FIXTURE**, $1,500 against $540 of
-	 * obligations, so it never reaches the clamp at all: it is vacuous twice over. This is the tight case,
-	 * and it asserts the PAIR — the ledger clamps, and the engine still knows the true position. Removing
-	 * the clamp reds the loop above; making the engine stop reporting the shortfall reds this.
+	 * obligations, so it never reached the clamp at all: it was vacuous twice over. This is the tight case.
+	 *
+	 * ⚡ **S1.12.9 — the same fixture, and the assertion has REVERSED.** The ledger no longer hides the
+	 * hole: the last row of a $600-short cycle states **−$600**, and the engine's `shortfall` still says
+	 * $600. ⭐ **The pair is the point** — two producers of one number, asserted to AGREE. Re-clamping
+	 * `buildTimelineItems` reds the first row; making the engine stop reporting the shortfall reds the
+	 * second; and the two disagreeing is the state neither row alone would catch.
 	 */
 	const tight = allocatePaycheck({
 		paycheckAmount: 900,
@@ -322,18 +326,18 @@ function testTimelineRunningCashEndToEnd() {
 		currentDate: "2026-06-01",
 		nextPaycheckDate: "2026-06-15",
 	});
-	// The ledger hides the hole …
-	assertEqual(
-		tightTimeline.every((i) => i.runningCash >= 0),
-		true,
-		"⛔ A5-7 — runningCash is clamped even when the cycle is $600 short",
+	// ⛔ The ledger STATES the hole — the exact figure, not a third identical `$0`.
+	assertMoney(
+		assertExists(tightTimeline[tightTimeline.length - 1], "last row of the tight cycle").runningCash,
+		-600,
+		"⛔ S1.12.9 [A5-7] — the ledger's last row reads −$600 on a cycle that is $600 short",
 	);
-	// ⭐ … and this is the row that makes that survivable: the engine still reports it. Without this, the
-	// clamp assertion above is a check that the app can hide money, with nothing saying it is knowable.
+	// ⭐ … and the engine still reports the same number. Without this row the one above is a check that the
+	// app can PRINT a shortfall, with nothing saying the figure is the true one.
 	assertEqual(
 		Math.round(tight.shortfall),
 		600,
-		"⭐ A5-7 — …and the shortfall the clamp conceals is still reported by the engine ($900 − $1,500)",
+		"⭐ A5-7 — …and the engine reports the same $600 ($900 − $1,500), so the two producers agree",
 	);
 
 	// Paycheck item should be first and have runningCash = paycheckAmount
@@ -780,10 +784,12 @@ function testAllocationAndTimelineCashAreConsistentForSimpleCase() {
 		nextPaycheckDate: "2026-06-15",
 	});
 
-	// Running cash should never go negative
+	// ⚠️ S1.12.9 — this fixture is solvent, so the balance staying ≥ 0 is a statement about ITS money.
+	// Since the clamp was removed it is no longer a restatement of the field's type, which is what the
+	// identical-looking loop above turned out to be.
 	for (const item of timeline) {
 		if (item.runningCash < 0) {
-			throw new Error(`Running cash went negative at "${item.label}": ${item.runningCash}`);
+			throw new Error(`Running cash went negative on a solvent fixture at "${item.label}": ${item.runningCash}`);
 		}
 	}
 
