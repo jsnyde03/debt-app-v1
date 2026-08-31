@@ -29759,3 +29759,64 @@ against their own tree. This plant (`dueDate: day(6)` → a fixed literal) reds 
 
 **Verified:** `lint:rn` **44/44** · `test:app` green · e2e **338/338** before and after · guard proven
 `planted=exit 1 · control=exit 0 · reason=MATCHED`.
+
+---
+
+## S1.13.7.2 — the proof machinery, 2026-08-31
+
+**12 findings closed.** `lint:rn` **44/44**; six guards registered and proven.
+
+### ⭐ 32 stale proofs re-run: 30 held, 2 did NOT — and one was a real defect
+
+`D2-1` measured that `measured`/`sha` never expire, so **32 of 86 "EXECUTED" proofs described a tree their
+target file had already left**. The pass-4 defect one level up: `lint:finding-guards` was read as a closure
+proof for three passes, `prove:guards` ended that by writing `measured`/`sha` — **and then `measured`/`sha`
+became the thing that decays.**
+
+⛔ **Re-running all 32 is what turned the claim into a result.** 30 held. **Two did not**, both guards
+written earlier the same day, and one of them was not a stale proof at all but a **live defect in
+`S1-ROUTE-EXIT-REACHABLE`'s own assertion**: it demanded a lane for every money-bearing file and never
+excluded files that already carry `s1p6`. The moment `audit:record-reads` stamped the pass's reads, the
+check went red **naming the same 12 files it was written to rescue** — a COMPLETED pass was
+indistinguishable from an unreachable one. Fixed: the population is what the exit still **owes**. Its
+success line now prints the owed count, because *"all 446 are in a lane"* read identically whether 446
+were owed or zero were.
+
+⚠️ **The guard's proof is repointed at `--exit-pass=s1p7`, which nothing carries**, so it stays provable
+after `s1p6` completes instead of going vacuous — `D2-1`'s own lesson applied to the fix for `D2-1`.
+
+### ⛔ And the staleness check itself shipped a fail-open, caught within the hour
+
+The first cut reported **`0 of them STALE`** over 86 proofs — because `execFileSync` was never imported and
+a bare `catch {}` turned the `ReferenceError` into *"nothing is stale."* **The fail-open class, inside the
+check written to close a fail-open.** Caught by reading the number rather than the ✅; the live count went
+**0 → 1**, correctly named. The catch is narrow now: an unresolvable sha is a skip, anything else is loud.
+
+⚠️ The ceiling is **pinned, not downward-only** — ordinary development moves a guarded file and
+legitimately makes its proof stale, and a ratchet there would train people to re-run proofs mechanically
+to clear a number.
+
+### What each of the rest turned out to be
+
+| finding | result |
+|---|---|
+| `D1-2` | `apps/rn/src/**/*.test.ts` requires a directory between root and file, so a test at the **top level** of either root matched nothing. **Roots + a regex now** — the glob has no depth left to get wrong |
+| `D2-8` · `C3-11` | The third population. `scripts/` holds **six of eight** test-shaped instruments and was unchecked; the live instance `test-conform-assertions.sh` — *"a guard whose success is indistinguishable from its failure has to be run"* — **was run by nothing.** Now wired and passing |
+| `D1-8` | Nothing asserted the GATES list was complete. The new check found **two instances `D1-8` never named**, and **both proved deliberate when checked against the code** rather than assumed — `run-gates.ts:140` says gate-freshness *"IS deliberately outside every chain"* |
+| `D2-5` | `passed` was printed and never checked, so deleting a load-bearing control row kept both gates green. `MIN_ASSERTIONS` is `!==`, planted: *"20 assertions ran, 21 expected"* |
+| `D3-4` | A **half-resolved** conflict read green — the commonest leftover. Any one marker refuses now; `.md` is skipped so `MID` alone is safe. D3 correctly declined to plant it while eleven lanes shared the tree; planted here |
+| `D2-7` | `MIN_SCENARIOS` was a `<` floor **in the harness that plants the `<`-floor defect elsewhere** |
+| `D2-6` | `audit-sublanes` inherited `D2-3`'s missing floor — it is what the twelve auditors were actually handed |
+| `D2-11` | `audit:sublanes` wired into `package.json`; the split that produced this dispatch was invoked only from a docstring |
+| `D2-13` | `junitFound` meant *"some file had bytes"*, not *"a flow ran"* — a zero-testcase report read `true`, so the stall refusal never fired |
+
+⚠️ **`D2-13` is fixed but NOT in the registry.** Its lane (maestro/iOS device) has no local runner to plant
+against, and the registry's caps are at their floors, so an unproven entry would red. Recorded here rather
+than silently skipped; it earns an entry when that lane is next built.
+
+### ⚠️ Two self-inflicted defects in this step, both caught before commit
+
+**A cap derived from the value it caps** — `const MIN_ASSERTIONS = passed` is a check that cannot fail, and
+it is exactly what `lint:cap-literals` exists to refuse. Replaced with the measured literal.
+**An invalid-JSON registry**, written because the script validated *after* writing. Reverted and rebuilt
+through `json.dumps` so escaping is the serialiser's job, not mine.

@@ -2350,7 +2350,9 @@
         }
       ],
       "run": "lint:finding-guards",
-      "expect": "STALE"
+      "expect": "STALE",
+      "measured": "2026-08-31",
+      "sha": "855e25cb"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
