@@ -60,13 +60,30 @@ function runBnplInstallmentTests() {
 		"a BNPL with zero remaining is not installment-native (nothing to derive)"
 	);
 
-	// --- normalizeBnplInstallment: derive balance + minimum from the installment truth ---
+	/**
+	 * --- normalizeBnplInstallment: the BALANCE is canonical; the installment fields describe it ---
+	 *
+	 * ⛔ **S1.13.7.6 [pass-6 `A2-2`] · 🎯 DECIDED 2026-08-31 — this block asserted the OPPOSITE canon and
+	 * that was the blocker.** It required `balance := scheduled × remaining`, so an extra payment — which
+	 * leaves a balance that product cannot represent — was silently rounded away by the next ordinary
+	 * `updateDebt`. Measured: an extra $60 on a $400 4-pay persisted **$200**, deleting $40; an extra $40
+	 * persisted **$300**, inventing $40. **On a RENAME.**
+	 *
+	 * ⚠️ Replaced, not deleted: this is the only unit coverage of the reconciliation, and the fixture is
+	 * exactly the disagreement case (a $380 balance under a 4 × $100 schedule).
+	 */
 	const messy = debt({ type: "bnpl", scheduledPaymentAmount: 100, remainingPayments: 4, balance: 380, minimumPayment: 95 });
 	const fixed = normalizeBnplInstallment(messy);
-	assertEqual(fixed.balance, 400, "balance is reconciled to scheduled × remaining (4 × $100)");
+	assertEqual(fixed.balance, 380, "⛔ A2-2 — the balance is the user's money and is NEVER rewritten from the count");
 	assertEqual(fixed.minimumPayment, 100, "minimumPayment is reconciled to the scheduled installment");
-	assertEqual(fixed.remainingPayments, 4, "the canonical installment fields are preserved");
+	assertEqual(fixed.remainingPayments, 4, "the count follows the balance: ceil(380 / 100) = 4, a part-installment still owed");
 	assertEqual(fixed.scheduledPaymentAmount, 100, "the scheduled installment is preserved");
+
+	// ⭐ THE REGRESSION THIS EXISTS FOR: an extra payment, then an unrelated edit. Neither may move money.
+	const overpaid = debt({ type: "bnpl", scheduledPaymentAmount: 100, remainingPayments: 4, balance: 240, minimumPayment: 100 });
+	const renamed = normalizeBnplInstallment({ ...overpaid, name: "Klarna (renamed)" });
+	assertEqual(renamed.balance, 240, "⛔ A2-2 — a rename does not delete $40 of debt");
+	assertEqual(renamed.remainingPayments, 3, "…and the count says 3 payments left, which is what the user owes");
 
 	// --- idempotence: normalizing an already-consistent debt returns it untouched (same reference) ---
 	const consistent = debt({ type: "bnpl", scheduledPaymentAmount: 100, remainingPayments: 4, balance: 400, minimumPayment: 100 });
@@ -78,9 +95,18 @@ function runBnplInstallmentTests() {
 	const fallbackBnpl = debt({ type: "bnpl", balance: 380, minimumPayment: 95 });
 	assertTrue(normalizeBnplInstallment(fallbackBnpl) === fallbackBnpl, "a fallback BNPL (no installment fields) is returned untouched");
 
-	// --- fractional installment rounds to cents ---
-	const fractional = normalizeBnplInstallment(debt({ type: "bnpl", scheduledPaymentAmount: 33.33, remainingPayments: 3 }));
-	assertEqual(fractional.balance, 99.99, "a fractional installment derives a cent-rounded balance");
+	/**
+	 * --- fractional installment: the balance is kept to cents, and the count follows it ---
+	 *
+	 * ⛔ **S1.13.7.6 [pass-6 `A2-2`] — this asserted that normalize DERIVES `99.99` from `3 × 33.33`.**
+	 * Under the balance-canonical rule it derives nothing: **deriving the balance is the defect**. The
+	 * cent-rounding this row exists for now lives at the seams that genuinely declare a schedule —
+	 * `prepareNewDebt` and the CSV importer — and what normalize owes is that it does not disturb a
+	 * fractional balance on the way past.
+	 */
+	const fractional = normalizeBnplInstallment(debt({ type: "bnpl", scheduledPaymentAmount: 33.33, remainingPayments: 3, balance: 99.99 }));
+	assertEqual(fractional.balance, 99.99, "a fractional balance survives normalization to the cent");
+	assertEqual(fractional.remainingPayments, 3, "…and the count derives from it: ceil(99.99 / 33.33) = 3");
 
 	// --- remaining/total derive off the current balance (stays in sync as the plan pays down) ---
 	const paidDown = debt({ type: "bnpl", scheduledPaymentAmount: 100, remainingPayments: 4, balance: 200, minimumPayment: 100, originalBalance: 400 });

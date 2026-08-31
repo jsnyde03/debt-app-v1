@@ -1,6 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 
 import { isInstallmentNative, normalizeBnplInstallment } from '@core/debt/bnplInstallment';
+import { roundMoney } from '@core/utils/money';
 import { raiseOriginalBalance } from '@core/debt/originalBalanceHighWater';
 import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import type { GuardianBand } from '@core/storage/debtPlannerStorage';
@@ -279,8 +280,22 @@ const recKey = (a: CompletedRecommendedAction) => `${a.category}:${a.targetId}:$
  * added under PAID OFF. Sharing the preparation is what makes the two paths incapable of disagreeing.
  */
 function prepareNewDebt(debt: Debt, now: string): Debt {
+  /**
+   * ⛔ **S1.13.7.6 [pass-6 `A2-2`] — CREATING a BNPL is DECLARING the schedule, so the balance is set here.**
+   *
+   * 🎯 2026-08-31 made the balance canonical, and `normalizeBnplInstallment` no longer derives it from
+   * the installment count — because on an ordinary edit (a rename) that rewrite deleted or invented real
+   * money. ⚠️ **Creation is the opposite case:** a user entering *"4 payments of $50"* in the debt sheet
+   * is stating the schedule, and the balance field beside it is often empty. Applied at this seam, once,
+   * which is what the normaliser's docblock now asks of a caller that means to change the schedule.
+   */
+  const declared =
+    isInstallmentNative(debt)
+      ? roundMoney((debt.scheduledPaymentAmount as number) * (debt.remainingPayments as number))
+      : debt.balance;
   return normalizeBnplInstallment({
     ...debt,
+    balance: declared,
     originalBalance: debt.originalBalance ?? (isInstallmentNative(debt) ? undefined : debt.balance),
     lastVerifiedDate: debt.lastVerifiedDate ?? now,
     balanceAsOfDate: debt.balanceAsOfDate ?? now,

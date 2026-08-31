@@ -14,7 +14,9 @@ function roundMoney(amount: number) {
  */
 function syncBnplRemaining(debt: Debt): Debt {
     if (!isInstallmentNative(debt)) return debt;
-    const remaining = Math.max(0, Math.round(debt.balance / (debt.scheduledPaymentAmount as number)));
+    // ⛔ S1.13.7.6 [pass-6 A2-2] — `ceil`, matching normalizeBnplInstallment: a part-installment still
+    // owed is a payment the user has to make, and `round` shed it from the count.
+    const remaining = Math.max(0, Math.ceil(debt.balance / (debt.scheduledPaymentAmount as number)));
     return remaining === debt.remainingPayments ? debt : { ...debt, remainingPayments: remaining };
 }
 

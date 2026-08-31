@@ -10,10 +10,23 @@ function roundMoney(amount: number) {
  * BNPL "installment-native" model (2.7.2).
  *
  * A Buy-Now-Pay-Later plan is fundamentally "N payments of $X" — an Affirm/Klarna/Afterpay
- * schedule, not an interest-accruing balance. So for BNPL the two INSTALLMENT fields are the
- * canonical truth and `balance`/`minimumPayment` are DERIVED from them:
+ * schedule, not an interest-accruing balance:
  *   - `scheduledPaymentAmount` = the fixed installment (→ `minimumPayment`, what the engine pays)
- *   - `remainingPayments`      = how many installments are left (→ `balance` = scheduled × remaining)
+ *   - `remainingPayments`      = how many installments are left
+ *
+ * ⛔ **S1.13.7.6 [pass-6 `A2-2`] · 🎯 DECIDED 2026-08-31 — THE BALANCE IS CANONICAL, and this header used
+ * to say the opposite.** It claimed the installment fields were the truth and `balance` was derived
+ * (`balance := scheduled × remaining`) — while `bnplPaymentsRemaining` twenty lines below derived the
+ * count from the balance. **Two answers to one question, and only one of them can be made safe.**
+ *
+ * ⚡ An extra payment leaves a balance `scheduled × remaining` **cannot represent**, so any rule deriving
+ * the balance from the count has to round — and rounding a balance is inventing or deleting money.
+ * Measured on a $400 4-pay: an extra $60 persisted **$200** (deleting $40); an extra $40 persisted
+ * **$300** (inventing $40), on the next ordinary `updateDebt` — **a rename**.
+ *
+ * So the installment fields **describe** the balance. `remainingPayments` is derived with `ceil`, because
+ * a part-installment still owed is a payment the user has to make; `minimumPayment` still follows
+ * `scheduledPaymentAmount`, the one direction that never disagreed.
  *
  * Before 2.7.2 these two fields were CAPTURED (the debt sheet + CSV import) but read back
  * nowhere: the engine and the amortization view both ran BNPL off `balance` + `minimumPayment`
@@ -22,8 +35,7 @@ function roundMoney(amount: number) {
  * the whole engine actually uses.
  *
  * A BNPL WITHOUT both installment fields (legacy / imported without them) is NOT installment-native
- * → it falls back to the plain balance+minimum path unchanged. That fallback IS the reconciliation:
- * when installment data exists, balance can't drift from scheduled × remaining because it's derived.
+ * → it falls back to the plain balance+minimum path unchanged, which needs no reconciliation at all.
  */
 export function isInstallmentNative(debt: Debt): boolean {
 	return (
@@ -46,9 +58,33 @@ export function isInstallmentNative(debt: Debt): boolean {
 export function normalizeBnplInstallment(debt: Debt): Debt {
 	if (!isInstallmentNative(debt)) return debt;
 	const scheduled = roundMoney(debt.scheduledPaymentAmount as number);
-	const balance = roundMoney(scheduled * (debt.remainingPayments as number));
-	if (balance === debt.balance && scheduled === debt.minimumPayment) return debt;
-	return { ...debt, balance, minimumPayment: scheduled };
+	/**
+	 * ⛔ **S1.13.7.6 [pass-6 `A2-2`] · 🎯 DECIDED 2026-08-31 — THE BALANCE IS CANONICAL, and this used to
+	 * overwrite it from the installment count.**
+	 *
+	 * ⚡ Measured: on a `$400` 4-pay Klarna, an extra **$60** left a true balance of `$240`, and the next
+	 * ordinary `updateDebt` — **a RENAME** — re-derived `scheduled × round(240/100)` and persisted
+	 * **`$200`**, deleting $40 of the user's debt. An extra **$40** persisted `$300`, inventing $40. Four
+	 * more records followed the rewritten balance.
+	 *
+	 * ⛔ **The module answered "which field is canonical" two ways** — this header said the installment
+	 * fields were, `bnplPaymentsRemaining` said the balance was — and only one of those answers can be
+	 * made safe. An extra payment leaves a balance that `scheduled × remaining` **cannot represent**, so
+	 * any rule deriving the balance FROM the count has to round, and rounding a balance is inventing or
+	 * deleting money. The count can absorb the imprecision; the money cannot.
+	 *
+	 * ⚠️ So the installment fields now **describe** the balance: `remainingPayments` is derived with
+	 * `ceil`, because a part-installment still owed is a payment the user has to make. `minimumPayment`
+	 * still follows `scheduledPaymentAmount` — that direction never disagreed.
+	 *
+	 * ⚠️ **A caller that means to change the SCHEDULE must set the balance too.** Editing
+	 * `remainingPayments` alone no longer moves the balance; it is a statement about a balance that has
+	 * its own value.
+	 */
+	const balance = roundMoney(debt.balance);
+	const remaining = Math.max(0, Math.ceil(balance / scheduled));
+	if (balance === debt.balance && scheduled === debt.minimumPayment && remaining === debt.remainingPayments) return debt;
+	return { ...debt, balance, minimumPayment: scheduled, remainingPayments: remaining };
 }
 
 /**
@@ -60,7 +96,8 @@ export function normalizeBnplInstallment(debt: Debt): Debt {
 export function bnplPaymentsRemaining(debt: Debt): number | null {
 	if (!isInstallmentNative(debt)) return null;
 	const scheduled = debt.scheduledPaymentAmount as number;
-	return Math.max(0, Math.round(debt.balance / scheduled));
+	// ⛔ S1.13.7.6 [pass-6 A2-2] — `ceil`, so the three producers of this count agree exactly.
+	return Math.max(0, Math.ceil(debt.balance / scheduled));
 }
 
 /**

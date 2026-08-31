@@ -1,4 +1,5 @@
 import type { Debt } from "@core/storage/debtPlannerStorage";
+import { roundMoney } from "@core/utils/money";
 import type { Recurrence } from "@core/types/recurrence";
 import { normalizeBnplInstallment } from "@core/debt/bnplInstallment";
 import { parseAmountField, parseOptionalAmount } from "@core/utils/amountField";
@@ -299,12 +300,27 @@ export function parseDebtCsvText(text: string, options: DebtCsvOptions): DebtCsv
 			return;
 		}
 
-		// Installment-native BNPL: reconcile balance + minimum to scheduled × remaining (2.7.2).
+		/**
+		 * ⛔ **S1.13.7.6 [pass-6 `A2-2`] — THE IMPORT STATES THE SCHEDULE, so it sets the balance itself.**
+		 *
+		 * 🎯 2026-08-31 made the BALANCE canonical, and `normalizeBnplInstallment` no longer derives it from
+		 * the installment count. That is right for an ordinary edit — a rename must not rewrite money — and
+		 * wrong here: a row saying `4` payments of `$50` is the user **declaring the schedule**, and the
+		 * `balance` column beside it may be anything at all (`999` in the fixture).
+		 *
+		 * ⚠️ So the declaration is applied explicitly at the seam that has it, which is exactly what
+		 * `normalizeBnplInstallment`'s docblock now asks of a caller meaning to change the schedule.
+		 */
+		const installmentNative =
+			type === "bnpl" && (remainingPayments ?? 0) > 0 && (scheduledPaymentAmount ?? 0) > 0;
+		const declaredBalance = installmentNative
+			? roundMoney((scheduledPaymentAmount as number) * (remainingPayments as number))
+			: balance;
 		debts.push(normalizeBnplInstallment({
 			id: options.makeId(),
 			name,
-			balance,
-			originalBalance: balance,
+			balance: declaredBalance,
+			originalBalance: declaredBalance,
 			minimumPayment,
 			apr,
 			dueDate,
