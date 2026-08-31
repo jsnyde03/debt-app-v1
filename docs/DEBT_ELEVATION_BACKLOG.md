@@ -876,3 +876,13 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   a `PARTIAL` and its successor are one piece of work with two names**, and the ledger records them as two.
   ▶ Cheap fix when the next audit's classification runs: `CLASSIFICATION.md` should carry the
   `PARTIAL → successor` mapping as data, and the plan should be generated against it rather than typed.
+
+- **→ Tooling / hygiene.** ⚠️ **`package.json` accepts a DUPLICATE script key and the later one silently
+  wins.** Surfaced at `S1.13.1`: I added `"audit:coverage"` for the new pass-coverage exit, and it ran
+  `scripts/coverage-split.ts` — an unrelated device-checklist script that had owned the name since 4.1.6a.
+  Nothing complained; `npm run` simply picked the second definition. ⛔ **The failure mode is the bad one:
+  the command runs and reports success, over the wrong script.** Renamed to `audit:read-coverage` and the
+  duplicate removed. ▶ **Candidate gate, deferred, not built:** parse `package.json` as TEXT (not
+  `JSON.parse`, which discards the collision) and refuse a repeated key in `scripts`. ⚠️ Deferred rather
+  than folded in because it is off the money surface and the round already added two gates; it is cheap and
+  the class is real — **two producers of one name, which is the same shape as two producers of one number.**

@@ -29445,3 +29445,73 @@ load. Recorded here so the next person who sees it red has the three data points
 ⛔ **No `gate:record`, deliberately.** [D74] writes the gate record at convergence. Pass 5 found 8 blockers
 and 15 majors; [D65] needs 0/0 twice consecutively, so the record stays unwritten and S1.13 (pass 6) is
 the active build.
+
+---
+
+## 2026-08-31 — S1.13.1 + S1.13.2 · COVERAGE BECOMES A NUMBER, AND THE NUMBER IS 19%
+
+⚡ **`npm run audit:read-coverage -- --surface=s1 --pass=<id>`.** Every surface pass so far ended with lanes
+*reporting* what they read. 🎯 answering `S1.12.6`: *"Coverage is what I want. Not unneeded files."*
+
+⛔ **The first measurement, taken the moment the instrument existed:**
+
+| pass | money-bearing files read | of 446 |
+|---|---|---|
+| **s1p5** | **86** | **19%** |
+| s1p4 | 103 | 23% |
+
+⚠️ **The lane prose said *"393 routed, 126 read."*** That 126 counted non-money files and files other
+passes had claimed. ⭐ **This is the answer to why 39 findings did not converge the surface** — pass 5 was
+not a sweep that missed things, it was a sample.
+
+### ⛔ THE PLAN SAID PRUNE. THE SWITCH-IN SCAN KILLED IT AGAINST THE CODE.
+
+I had written *"drop the 71 files that carry no money claim from the route."* Reading `surface-coverage.ts`
+first — which is what the pre-authored-item rule is for — says why that is wrong:
+
+- S1's roots are **whole directories**: `apps/rn/src`, `packages/core`, `apps/rn/tests`.
+- `excluded` **fails safe** by design: *"an exclusion list's whole virtue is that a file nobody thought
+  about is still counted."*
+- ⛔ Those roots have been widened **five separate times**, each undoing a hand-narrowed set, and the file
+  records the last: *"adding `packages/core/timeline` would have been the fifth hand-named directory, which
+  is M9's defect verbatim — and M9's own remedy was stated as a root, not a file list."*
+
+**Removing 71 files would have re-committed that defect in a new place.** So nothing leaves the surface.
+Files are **classified**, and only money-bearing ones are owed a read.
+
+### ⚠️ The predicate reads CONTENT, fails toward inclusion — and looking at it beat counting it
+
+`carriesMoneyClaim` matches money vocabulary against the file's **text and its path**. Not a path list and
+not a directory list: both are the shape that has undercounted this class every single time it was
+measured *(19 → 67 → 93 for `A5-4`; five files → six for the conflict markers; five root widenings here)*.
+
+⭐ **The first cut said 43 non-money and one of the 43 was wrong.** `packages/core/guardian/testComputeState.ts`
+was excluded — and Guardian state is derived from **cash against a floor**, so a lane would have been
+pointed at everything except a money state machine. ⛔ **The count looked plausible; the list did not.**
+Vocabulary widened by `floor · guardian · owe · spend · afford` → **446 money-bearing, 38 not.**
+
+### ⛔ WRITING THE GUARD FOUND A FAIL-OPEN IN THE INSTRUMENT ITSELF
+
+If `carriesMoneyClaim` goes blind — a broken regex, an unreadable root, a refactor dropping the content
+read — then `money` is empty, `unread` is empty, and **the exit reports every pass fully covered.**
+
+⚡ **A coverage check that passes because it found nothing to cover.** That is this round's defining shape,
+and it was sitting in the file built to end it, found only because a guard had to be written for it.
+Floored at **424** (95% of 446, the margin `gate-scan-floors.json` states) and guarded in **both** blinding
+directions — the predicate going blind, and the population going empty. It also refuses a claimed file that
+is not tracked: **coverage over a file that does not exist is not coverage.**
+
+### ⚠️ Deliberately NOT in `lint:rn`
+
+It reds for the whole duration of a pass — that is what an exit line **is**. Wiring it into every push
+makes it permanently red mid-pass, and `web-e2e.yml`'s header records that exact failure killing the
+previous lane: *"a permanently-red gate is worse than no gate — it trains you to ignore the one signal that
+is supposed to mean something."* Same reasoning [D74] applies to `lint:gate-freshness` (GAP-14).
+
+### ⚠️ And a hazard found by tripping over it: `package.json` takes a duplicate key silently
+
+I registered the new script as `"audit:coverage"` and it ran `scripts/coverage-split.ts` — an unrelated
+device-checklist script that had owned that name since 4.1.6a. **`npm run` took the second definition and
+reported success over the wrong script.** Renamed to `audit:read-coverage`. ⛔ The class is **two producers
+of one name**, which is the same shape as two producers of one number; a candidate gate is filed to the
+backlog rather than built, because it is off the money surface and this round has already added two.

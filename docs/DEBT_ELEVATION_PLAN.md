@@ -125,10 +125,9 @@ and five would have INTRODUCED one. Verify against current code before writing a
 
 | # | sub-step | exit line |
 |---|---|---|
-| ▶ **S1.13.1** | ⛔ **NOT A PRUNE — CLASSIFY.** The switch-in scan killed the prune: S1's roots are **whole directories** and `excluded` fails safe *("a file nobody thought about is still counted")*, and those roots have been widened **five times**, each undoing a hand-narrowed set. Removing 71 files re-commits M9's defect. Instead the **71 stay on the surface** and carry a **derived** non-money classification, so nothing vanishes and lane budget still goes to money | every routed file is money-bearing or classified, by predicate |
-| **S1.13.2** | **COVERAGE BECOMES A CHECKABLE EXIT.** A lane saying *"I read the surface"* is the unfalsifiable claim this pass exists to kill. Exit = **every money-bearing file READ** + every other file **classified with a reason** | a lane cannot report done over an unread money file |
-| **S1.13.3** | **RE-ROUTE** against the **121 unread** money files and re-verify the split *(0 missing, 0 dupes, per-lane origin)* | a dispatch record that survives [D69] |
-| **S1.13.4** | **[DECISION] DISPATCH** — four lanes, cost quoted, no sub-agents inside lanes, incremental writes | 🎯 a go/no-go with the spend named |
+| ✅ **S1.13.1 + .2** | **CLOSED 2026-08-31 — `npm run audit:read-coverage`, the pass-coverage EXIT.** ⛔ **NOT a prune** — the switch-in scan killed it against the code *(whole-directory roots, `excluded` fails safe, five prior widenings each undoing a hand-narrowed set)*; files are **classified**, nothing leaves the surface. ⚡ **The first measurement: pass 5 read 86 of 446 money-bearing files — 19%** *(pass 4: 103)*. The *"393 routed / 126 read"* prose counted non-money files and other passes' claims. ⛔ Writing its guard found a **fail-open in the instrument itself** — a blind predicate reports every pass fully covered; floored at 424, guarded both ways. Detail → log | CLOSED |
+| ▶ **S1.13.3** | **RE-ROUTE** against the **360 unread** money-bearing files *(not 121 — that figure predates the exit and was wrong)* and re-verify the split *(0 missing, 0 dupes, per-lane origin)* | a dispatch record that survives [D69] |
+| **S1.13.4** | ⛔ **[DECISION] DISPATCH** — four lanes over **360 unread money files**, an order of magnitude past pass 5's read set. Cost quoted, no sub-agents inside lanes, incremental writes | 🎯 a go/no-go with the spend named |
 | **S1.13.5** | **TRIAGE TO 0/0**, then the second consecutive clean pass [D65] requires | 0 blockers / 0 majors, twice |
 
 **Exit (S1.12):** pass 5 recorded and fixed. ⛔ **Convergence still requires a clean pass 6** — a 0/0 pass 5

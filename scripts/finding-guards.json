@@ -2254,7 +2254,9 @@
         }
       ],
       "run": "audit:read-coverage",
-      "expect": "The predicate has gone blind"
+      "expect": "The predicate has gone blind",
+      "measured": "2026-08-31",
+      "sha": "c7215241"
     }
   },
   "S1-PASS-COVERAGE-EMPTY": {
@@ -2270,7 +2272,9 @@
         }
       ],
       "run": "audit:read-coverage",
-      "expect": "the population is empty"
+      "expect": "the population is empty",
+      "measured": "2026-08-31",
+      "sha": "c7215241"
     }
   },
   "S1P5-CONFLICT-MARKERS": {
