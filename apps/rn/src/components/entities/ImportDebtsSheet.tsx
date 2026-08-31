@@ -9,7 +9,7 @@ import { CSV_FILE_SUPPORTED, pickCsvFile } from '@/data/csvImportFile';
 import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useActiveStore } from '@/store/StoreContext';
-import { mintDebtIds } from '@/store/debtIds';
+import { mintDebtIds, reservedDebtIds } from '@/store/debtIds';
 import { useAppStore } from '@/store/useAppStore';
 import { textStyles } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
@@ -74,7 +74,8 @@ export function ImportDebtsSheet({ onClose }: { onClose: () => void }) {
   function apply() {
     if (!preview) return;
     const state = store_.getState();
-    const ids = mintDebtIds(currentDate, state.store.debts, preview.debts.length);
+    // ⛔ [pass-5 B5-9] the import door re-issued dead ids in BATCH — the whole store, not the array.
+    const ids = mintDebtIds(currentDate, reservedDebtIds(state.store), preview.debts.length);
     // One `addDebt` per row rather than a bulk action: `addDebt` owns the stamping and the BNPL
     // normalisation, and a second write path for the same entity is how the two drift apart.
     preview.debts.forEach((debt, i) => store_.getState().addDebt({ ...debt, id: ids[i] }));

@@ -246,8 +246,19 @@ void REPAIRABLE_MONEY_FIELDS;
 
 /** States nothing back to the user as a fact about money it may not have read. Downward-only. */
 const EXEMPT: Record<string, string> = {
-  'apps/rn/src/components/entities/DebtSheet.tsx':
-    'the FORM. Every figure on it is what the user is typing this instant, so it asserts nothing back',
+  /**
+   * ⛔ **S1.12.5.7 [pass-5 `B5-9`] — `DebtSheet.tsx`'s ROW WAS REMOVED, AND THE GATE ASKED FOR IT.**
+   *
+   * Its exemption read *"the FORM. Every figure on it is what the user is typing this instant, so it
+   * asserts nothing back"* — true, and it was only ever IN the population because it read `store.debts`
+   * to mint an id. `B5-9` changed that call to read the whole store instead, so the file stopped
+   * qualifying and the gate refused the now-stale row: *"a stale entry is how a list stops describing
+   * the tree."*
+   *
+   * ⚠️ **Not a coverage loss.** The entity read was incidental — id minting, not a money read — and the
+   * reason the exemption gave still holds. ⚠️ Lane C separately noted that this sheet pre-fills the
+   * Balance field with a repaired `0`; it did **not** measure a false-clear, and that remains unmeasured.
+   */
 };
 
 /**
@@ -272,7 +283,7 @@ const OPEN: Record<string, string> = {
  * the same *"an instrument reporting green while doing less than it claims"* shape this whole cluster
  * exists to end, written into the instrument built to end it. ⚠️ Both numbers only ever go DOWN.
  */
-const MAX_EXEMPT = 1;
+const MAX_EXEMPT = 0;
 const MAX_OPEN = 0;
 
 /**

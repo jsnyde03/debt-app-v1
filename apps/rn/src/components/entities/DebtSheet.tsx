@@ -18,7 +18,7 @@ import type { Debt } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { parseAmountField, parseOptionalAmount } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
-import { newDebtId } from '@/store/debtIds';
+import { newDebtId, reservedDebtIds } from '@/store/debtIds';
 import { useCoachMark } from '@/hooks/use-coach-mark';
 import { FORM_ERRORS, RECURRENCE_LABEL, recurrenceOptions } from '@/store/obligationForm';
 import { TutorialTarget } from '@/store/tutorialTargets';
@@ -181,7 +181,9 @@ export function DebtSheet({
   function commit(fields: Omit<Debt, 'id'>, originalBalance: number) {
     if (isEdit && editing) return store_.getState().updateDebt(editing.id, fields);
     const fresh = {
-      id: newDebtId(currentDate, store_.getState().store.debts),
+      // ⛔ [pass-5 B5-9] the whole STORE, not the debts array — a deleted debt's id is still
+      // referenced by completedRecommendedActions, milestones, overrides and pending beats.
+      id: newDebtId(currentDate, reservedDebtIds(store_.getState().store)),
       originalBalance,
       isPaidThisCycle: false,
       minimumPaidThisCycle: false,

@@ -1195,14 +1195,14 @@
     }
   },
   "S1P3-D3-CAPS": {
-    "what": "S1.10.6.3's own after-scan — check-trust-claims.ts shipped with MAX_EXEMPT/MAX_OPEN computed as Object.keys(X).length, so both downward-only caps were VACUOUS: a cap derived from the list it caps can never be exceeded. Found by re-reading the gate while removing D3-1's row, not by any suite. Now literals, and plant-verified by adding a row above the cap | S1.11.3.3: auditor D measured this entry GUARD-ONLY - reverting the caps to Object.keys(X).length left the token present, lint:trust-claims green and the ledger holding 2 against a cap of 1. The token still pins the comparison; what was missing is anything that refuses a DERIVED bound, and lint:cap-literals is now that, over every script rather than this one file. Proven by plant.",
+    "what": "S1.10.6.3's own after-scan — check-trust-claims.ts shipped with MAX_EXEMPT/MAX_OPEN computed as Object.keys(X).length, so both downward-only caps were VACUOUS: a cap derived from the list it caps can never be exceeded. Found by re-reading the gate while removing D3-1's row, not by any suite. Now literals, and plant-verified by adding a row above the cap | S1.11.3.3: auditor D measured this entry GUARD-ONLY - reverting the caps to Object.keys(X).length left the token present, lint:trust-claims green and the ledger holding 2 against a cap of 1. The token still pins the comparison; what was missing is anything that refuses a DERIVED bound, and lint:cap-literals is now that, over every script rather than this one file. Proven by plant. >>> S1.12.5.7 [pass-5 B5-9]: the anchor moved from 1 to 0. B5-9 changed DebtSheet's id mint to read the whole store rather than store.debts, so that file stopped qualifying for the money-printing ledger and the gate refused its now-stale EXEMPT row - 'a stale entry is how a list stops describing the tree'. The exemption's own reason (a FORM asserts nothing back) still holds; its entity read was incidental. The un-fix is unchanged in what it restores: a cap derived from the list it caps.",
     "file": "scripts/check-trust-claims.ts",
     "token": "This cap only goes DOWN.",
     "proof": {
       "unfix": [
         {
           "at": "scripts/check-trust-claims.ts",
-          "find": "const MAX_EXEMPT = 1;",
+          "find": "const MAX_EXEMPT = 0;",
           "replace": "const MAX_EXEMPT = Object.keys(EXEMPT).length;"
         }
       ],
