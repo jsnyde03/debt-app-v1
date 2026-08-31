@@ -2254,7 +2254,9 @@
         }
       ],
       "run": "audit:route-check",
-      "expect": "reached NO origin"
+      "expect": "reached NO origin",
+      "measured": "2026-08-31",
+      "sha": "38ec5386"
     }
   },
   "S1-PASS-COVERAGE-FLOOR": {
@@ -2264,9 +2266,9 @@
     "proof": {
       "unfix": [
         {
-          "at": "scripts/check-pass-coverage.ts",
-          "find": "  if (MONEY_RE.test(rel)) return true;",
-          "replace": "  if (!MONEY_RE.test(rel)) return false;"
+          "at": "scripts/lib/moneyClaim.ts",
+          "find": "export function carriesMoneyClaim(rel: string): boolean {",
+          "replace": "export function carriesMoneyClaim(rel: string): boolean {\n  if (rel) return false;"
         }
       ],
       "run": "audit:read-coverage",
