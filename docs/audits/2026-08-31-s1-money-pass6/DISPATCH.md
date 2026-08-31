@@ -1,5 +1,47 @@
 # Pass 6 — the route, verified. ⛔ NOT YET DISPATCHED.
 
+> ## ▶ START HERE — the dispatching session
+>
+> 🎯 **2026-08-31: the shape is AGREED, and Jason asked for a FRESH SESSION to run it.** Nothing below
+> needs re-deciding; it needs verifying against the tree and executing.
+>
+> | | |
+> |---|---|
+> | **Lanes** | **12**, plus a **coverage-driven second wave** |
+> | **Read tracking** | every lane emits `READ-<lane>.txt` **incrementally**, as it opens files |
+> | **Exit** | `npm run audit:read-coverage -- --surface=s1 --pass=s1p6` at **446/446** |
+> | **Constraints** | no sub-agents inside lanes · heap 1536 MB · **an OOM is a FINDING, never a retry** · incremental writes |
+>
+> ⚠️ **Verify before acting** — this record is a hypothesis about a tree that has moved: re-run
+> `npm run audit:route-check` (it re-asserts 0 owed) and `npm run lint:rn`, and confirm the pin below is
+> still pass 5's target tree.
+>
+> ⛔ **The 12-way split is NOT a mechanical re-partition.** `LANES` in `audit-route.ts` is a *total spec of
+> four SUBJECTS*, each written to sit in one auditor's head — *"which member of its class did this test
+> pick?" is an engine question wearing a test's clothes.* Splitting for load without preserving subject
+> coherence throws away the thing the spec is for. **Proposed 3-way sub-split of each lane, to verify and
+> adjust — not to adopt unread:**
+>
+> | from | sub-lanes | ~lines each |
+> |---|---|---|
+> | **A** *(182 f · 21.6k)* | `packages/core` engine *(debt · cashflow · forecast)* · `packages/core` rest · `apps/rn/tests` | ~7.2k |
+> | **B** *(148 f · 23.4k)* | `store/` · `storage/` + `data/` · `utils/` + `lib/` + `config/` + `types/` + `analytics/` | ~7.8k |
+> | **C** *(202 f · 24.4k)* | `app/` routes + screens · `components/` money + plan + progress · `components/ui` + the rest | ~8.1k |
+> | **D** *(75 f · 27.7k)* | the `check-*` gates · the proof machinery + `scripts/lib` · config + off-surface | ~9.2k |
+>
+> ⚡ **Lane D carries the MOST lines on the FEWEST files** — 27.7k over 75 — because the instruments carry
+> enormous docblocks. Sizing by file count alone would have under-weighted it by a factor of three.
+>
+> ⛔ **Why 12 and not 4:** pass 5 handed 4 lanes ~16k lines each and they read **about a third** of what
+> they were given. That is the whole reason coverage came out at **86 of 446**. Twelve puts ~8k in front of
+> each lane — half the load that already under-read.
+>
+> ⭐ **The second wave is the half that guarantees the exit**, and it is the cheap half: the coverage
+> command names the still-unread files exactly, so wave 2 is a short targeted dispatch over a known
+> remainder, not a re-run.
+>
+> **Quoted worst case:** ~3–5M tokens across both waves. Estimated from line counts, not measured spend.
+
 **Route generated:** 2026-08-31 · **Target tree:** `4c0f7689` (`v1.7-dev`).
 **Pin:** `65566a09` → HEAD — pass 5's target tree.
 **Followed pass:** `s1p5`, via `--unread-pass=s1p5`.

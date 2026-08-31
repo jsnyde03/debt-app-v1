@@ -29571,3 +29571,39 @@ files are owned by no claims file**, so [D69] would exempt a finding on them for
 
 ⛔ **`S1.13.4` is a [DECISION] gate and the route stops there.** Pass 6 reads roughly **5× what pass 5
 read** (446 money-bearing files against 86), and the spend gets quoted to Jason before an agent is spawned.
+
+---
+
+## 2026-08-31 — S1.13.4 · [DECISION] PASS 6 IS A GO, AND IT IS SIZED ON A MEASUREMENT
+
+🎯 **12 lanes, plus a coverage-driven second wave, with every lane emitting its read-list.** Worst case
+**~3–5M tokens** across both waves — estimated from line counts, not measured spend. 🎯 **Jason asked for a
+fresh session to run it**, so this one stops at the gate with the route pinned and pushed.
+
+⚡ **The lane count came from evidence, not taste.** Pass 5 handed 4 lanes roughly **16k lines each** and
+they read **about a third** of what they were given. ⛔ **That is the whole explanation for 86 of 446** —
+pass 5 was not a sweep that missed things, it was a sample, and nothing in the tree could say so until the
+coverage exit existed. 12 lanes puts ~8k lines in front of each, half the load that already under-read.
+
+⭐ **The second wave is what actually guarantees the exit, and it is the cheap half.**
+`audit:read-coverage --pass=s1p6` names the still-unread files *exactly*, so wave 2 is a short targeted
+dispatch over a known remainder rather than a re-run. ⚠️ **8 lanes single-wave was the one combination to
+avoid** — above the load that already under-read, and then owing a wave anyway having spent more per lane
+to get there.
+
+⛔ **Lanes emit `READ-<lane>.txt` incrementally.** Marking every ROUTED file as read when the pass closes
+would re-create the exact unfalsifiable claim the exit was built to kill, relocated one level up: assigned
+is not read. It is also what makes wave 2 possible at all — without real read-lists there is no honest
+remainder to dispatch.
+
+### ⚠️ What the handoff had to record, and would have been lost otherwise
+
+⛔ **The 12-way split is NOT a mechanical re-partition, and it looked like one.** `LANES` in
+`audit-route.ts` is a *total spec of four SUBJECTS*, each written so one auditor holds a coherent domain —
+its own docblock: *"which member of its class did this test pick?" is an engine question wearing a test's
+clothes.* Splitting purely for load discards the thing the spec is for. A proposed 3-way sub-split of each
+lane is written into `DISPATCH.md` **to be verified, not adopted unread**.
+
+⚡ **And a sizing trap found while measuring it: lane D carries the MOST lines on the FEWEST files** —
+27.7k over 75, because the instruments carry enormous docblocks. **Sizing by file count alone would have
+under-weighted it by a factor of three**, and D is the lane that reads the checking code.
