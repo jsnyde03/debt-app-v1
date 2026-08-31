@@ -2274,7 +2274,7 @@
       "run": "audit:read-coverage",
       "expect": "The predicate has gone blind",
       "measured": "2026-08-31",
-      "sha": "c7215241"
+      "sha": "4c0f7689"
     }
   },
   "S1-PASS-COVERAGE-EMPTY": {

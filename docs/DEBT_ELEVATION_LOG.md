@@ -29515,3 +29515,59 @@ device-checklist script that had owned that name since 4.1.6a. **`npm run` took 
 reported success over the wrong script.** Renamed to `audit:read-coverage`. ⛔ The class is **two producers
 of one name**, which is the same shape as two producers of one number; a candidate gate is filed to the
 backlog rather than built, because it is off the money surface and this round has already added two.
+
+---
+
+## 2026-08-31 — S1.13.3 · THE ROUTE WAS RETIRING FILES ON "SWEPT ONCE, EVER"
+
+⛔ **`audit-route.ts` retired a surface file on `!inv.unswept.has(f) && !changed.has(f)`** — and
+`unswept` means *never read by ANY pass*. The line beside it read *"swept and unchanged → accounted for.
+This is the ONLY exit from the route."* It was.
+
+⚡ **So a file pass 2 read once — against a different brief, before three rounds of findings taught the
+lanes what to look for — was accounted for forever**, and no later pass would ever be pointed at it again
+unless something edited it.
+
+⛔ **Measured on the pass-6 route before the fix: 131 of the 360 money-bearing files pass 5 never read
+reached NO LANE.** Among them `apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx` — which mints a
+debt id from `Date.now()`, **a defect found in this same session, in a file the router had already
+retired.** Also `AllocationBarChart.tsx`, `pendingActions.ts`, `schedule/[id].tsx`, `PaycheckStep.tsx`.
+
+⚠️ **All five prior origins are predicates on CHANGED or on NEVER-read.** Nothing asked *"read by the pass
+we are following?"* — which is the only question a coverage-driven pass is actually about.
+
+### The `stale-read` origin
+
+Opt-in via `--unread-pass=<id>`, and ⭐ **the control was measured rather than reasoned**: without the flag
+the route is **476 files / 0 `stale-read`**, byte-identical to before; with it, **607 / 280**. A pass not
+chasing coverage routes exactly as it did.
+
+⛔ **Money-bearing comes from `scripts/lib/moneyClaim.ts`, imported by BOTH the router and the coverage
+exit.** A router seeding files the exit does not require — or an exit demanding files the router never
+seeds — is two producers of one fact, which is `A5-1`, `A5-2`, `A-F4` and `C5-2` all over again. The
+extraction voided `S1-PASS-COVERAGE-FLOOR`'s proof anchor, `lint:finding-guards` called it **VOID rather
+than stale** *(the right verdict — it was measured once against text that is gone)*, and it was re-anchored
+and re-run.
+
+### ⭐ The seed checks its own completeness, because I had checked it by hand
+
+I verified *"every unread money file is now routed"* once, by diffing two sorted lists. ⚠️ **A property
+checked once by hand is a property that holds once.** The router now asserts it every run — every
+money-bearing file the followed pass did not read must carry *some* origin — and a plant that disables the
+seed reds it. ⛔ The loop assigning origins and the assertion on the result are **not the same statement**:
+a `continue` firing for the wrong reason, a blind predicate, or a future reordering all leave the loop
+looking correct while the set silently shrinks.
+
+### The pass-6 route as it stands — verified, NOT dispatched
+
+**607 files** · lanes **182 · 148 · 202 · 75** · 0 duplicates · 0 missing on disk · 0 money files owed ·
+inventory stamp current · `lint:rn` 43/43. Full record in
+`docs/audits/2026-08-31-s1-money-pass6/DISPATCH.md`.
+
+⚠️ **Still open and reported by the router itself:** 31 files sit in the import neighbourhood of a
+never-swept file and reached no lane *(down from 58 — `stale-read` absorbed the rest)*; and **74 routed
+files are owned by no claims file**, so [D69] would exempt a finding on them for the wrong reason — not
+*"nobody read it"* but *"nothing records whether anyone did."*
+
+⛔ **`S1.13.4` is a [DECISION] gate and the route stops there.** Pass 6 reads roughly **5× what pass 5
+read** (446 money-bearing files against 86), and the spend gets quoted to Jason before an agent is spawned.
