@@ -74,12 +74,10 @@ export function useDebts(saveResetSnapshot: (overrides?: { debts?: Debt[] }) => 
         if (Object.keys(nextErrors).length > 0) {
             setDebtErrors(nextErrors);
             setDebtWarnings(nextWarnings);
-<<<<<<< Updated upstream
+            // Both halves of the conflict were live: the haptic is imported here, and the
+            // success path below ends `return true`, so the error path owes a `false`.
             void triggerErrorHaptic();
-            return;
-=======
             return false;
->>>>>>> Stashed changes
         }
 
         setDebtErrors({});

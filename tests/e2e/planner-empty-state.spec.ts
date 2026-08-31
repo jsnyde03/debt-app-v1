@@ -36,37 +36,12 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("planner empty state renders on mobile", async ({ page }) => {
-<<<<<<< Updated upstream
     // resetApp (beforeEach) seeded a paycheck with NO debts/expenses — the empty
     // MAIN-APP state (a returning user with no data), which is exactly what this
     // asserts (NOT the first-run overlay). The old inline re-seed cleared the
     // paycheck, which re-entered the first-run flow — where clicking "Calculate"
     // is a no-op (no paycheck to compute) so the overlay couldn't be dismissed —
     // and added a racy goto→evaluate→reload that flaked under load.
-=======
-    await page.goto("/");
-
-    await page.evaluate(() => {
-        localStorage.clear();
-    });
-
-    await page.reload();
-
-    const getStartedButton = page.getByRole("button", { name: /Get Started/i });
-
-    if (await getStartedButton.isVisible().catch(() => false)) {
-        await getStartedButton.click();
-    }
-
-    const calculateButton = page.getByRole("button", {
-        name: /Calculate plan/i,
-    });
-
-    if (await calculateButton.isVisible().catch(() => false)) {
-        await calculateButton.click();
-    }
-
->>>>>>> Stashed changes
     await expect(
         page.getByRole("heading", { name: "Debt Planner", exact: true })
     ).toBeVisible();
@@ -92,11 +67,7 @@ test("bottom navigation switches sections", async ({ page }) => {
     await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Payoff/i }).click();
 
     await expect(
-<<<<<<< Updated upstream
         page.getByRole("heading", { name: "Payoff", exact: true }).first()
-=======
-        page.getByRole("heading", { name: "Payoff", exact: true })
->>>>>>> Stashed changes
     ).toBeVisible();
 
     await page.locator(".bottom-nav-item:visible, .sidebar-nav-item:visible").filter({ hasText: /Goals/i }).click();

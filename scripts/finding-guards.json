@@ -2205,6 +2205,40 @@
       "sha": "4f32f846"
     }
   },
+  "S1P5-CONFLICT-MARKERS": {
+    "what": "S1.12.11 - five tracked files (app/page.tsx, three hooks, a root e2e spec) carried unresolved merge-conflict markers from 2026-08-25, and were still carrying them 177 commits later. The root Next app could not parse, so its ENTIRE e2e suite had been un-runnable for five days; 42 gates read green over a tree containing <<<<<<< because not one of them looks at app/ (surface-coverage marks it 'legacy Next surface - deleted at P6.11', and scheduled-for-deletion is not deleted). Surfaced only because a mistyped command started the one webserver nobody had started since. >>> The gate's population is `git ls-files`, NOT a directory list: on its first run it found a SIXTH file - app/styles/03-nav-results-modals.css - that the git grep hunting this class had missed, because that grep was scoped to *.ts *.tsx *.js *.mjs *.json. A scope list hiding a member of the class, inside the search for the class.",
+    "file": "scripts/run-gates.ts",
+    "token": "'lint:conflict-markers',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/debtIds.ts",
+          "find": "\tlet n = 1;",
+          "replace": "<<<<<<< Updated upstream\n\tlet n = 1;\n=======\n\tlet n = 0;\n>>>>>>> Stashed changes"
+        }
+      ],
+      "run": "lint:conflict-markers",
+      "expect": "marker line(s) in",
+      "measured": "2026-08-31",
+      "sha": "4a78b2a9"
+    }
+  },
+  "S1P5-CONFLICT-MARKERS-BLIND": {
+    "what": "S1.12.11, the second direction. The gate's own blinding mode is not an empty FILE (it does not strip - a marker inside a comment is still an unresolved conflict) but an empty POPULATION: `git ls-files` returning nothing, or the skip-set swallowing every extension. Either reports zero markers and exits 0, which reads exactly like a clean tree - GAP-8 with a different mechanism. So it floors itself even though lint:scan-floors would not have demanded one. >>> Wiring that floor exposed a defect in check-scan-floors itself: it derived 'which gates declare a SCAN_GATE' from the stripper-importing subset, so a gate that floors itself WITHOUT stripping is invisible to it - it reported this live floor STALE and instructed deleting it. The staleness check now reads every script.",
+    "file": "scripts/gate-scan-floors.json",
+    "token": "\"conflict-markers\": {",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-conflict-markers.ts",
+          "find": "  return dot === -1 ? true : !SKIP_EXT.has(rel.slice(dot).toLowerCase());",
+          "replace": "  return false;"
+        }
+      ],
+      "run": "lint:conflict-markers",
+      "expect": "the population went empty"
+    }
+  },
   "S1P5-B5-9-RESERVEDIDS": {
     "what": "pass-5 B5-9 (blocker) - deleting a debt and adding another in the same pay cycle re-issued the dead id, and $500 of the deleted debt's extra payment landed on the new one: measured through real store actions, the Car loan was written down to $10,967.54 instead of $11,467.54 at the next payday, persisted. Four more records followed the id (a 75% milestone high-water on a brand-new debt, an override, a pending payoff beat, a repair record). The docblock's premise was the defect: uniqueness against the debts ARRAY is not uniqueness against the ids the STORE references. reservedDebtIds scans the serialized store - derived from the document, not from a list of the fields that key on debt id. The obvious repair (purging completedRecommendedActions) is refused: cycleHistory's snapshot is built from them, so it would rewrite the closing cycle's history.",
     "file": "apps/rn/src/store/debtIds.test.ts",

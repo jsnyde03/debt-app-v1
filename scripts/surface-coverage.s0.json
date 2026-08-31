@@ -271,6 +271,9 @@
   "scripts/check-rn-style-divergence.ts": [
     "r17"
   ],
+  "scripts/check-conflict-markers.ts": [
+    "never"
+  ],
   "scripts/check-rounding.ts": [
     "never"
   ],

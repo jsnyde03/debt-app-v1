@@ -43,6 +43,7 @@
     "lint:cap-literals": "tsx scripts/check-cap-literals.ts",
     "lint:runner-completeness": "tsx scripts/check-runner-completeness.ts",
     "lint:rounding": "tsx scripts/check-rounding.ts",
+    "lint:conflict-markers": "tsx scripts/check-conflict-markers.ts",
     "prove:guards": "tsx scripts/prove-guards.ts",
     "prove:guards:selftest": "tsx scripts/prove-guards.ts --selftest",
     "lint:gate-sources": "tsx scripts/check-gate-sources.ts",

@@ -29244,3 +29244,92 @@ instrument refusing it — the thing eleven instrument defects across two prior 
 ⛔ **And three times I committed while `lint:rn` was red**, each time by reading the previous step's exit code
 instead of the gate's own output. All three corrected; the pattern is mine, not the tooling's, and it is
 precisely the class this pass exists to close.
+
+
+---
+
+## 2026-08-30 — S1.12.11 · SIX FILES CARRIED CONFLICT MARKERS FOR 177 COMMITS, AND 42 GATES SAID GREEN
+
+⛔ **Found by a typo.** Chasing an unrelated e2e flake I ran `npm run test:e2e` instead of
+`test:e2e:rn`. That is the **root Next suite**, whose webserver nobody had started in five days. It did
+not fail a test — it could not build:
+
+> `./app/page.tsx:94:1  Merge conflict marker encountered.`
+
+⚡ **`<<<<<<< Updated upstream` … `>>>>>>> Stashed changes`, committed on 2026-08-25 in `466e2b23`, still
+there 177 commits later.** Six tracked files: `app/page.tsx` (two blocks), `lib/hooks/useAppLock.ts`,
+`lib/hooks/useDebts.ts`, `lib/hooks/useRequiredExpenses.ts`, `tests/e2e/planner-empty-state.spec.ts`, and
+`app/styles/03-nav-results-modals.css`.
+
+⛔ **This round's own shape, one more time: a check that cannot fail.** The tree was syntactically broken
+and every instrument reported ✅ **because every instrument was pointed somewhere else** — `lint:rn` scopes
+to `apps/rn` + `packages/core` + `scripts`, and `surface-coverage.ts` marks `app/` *"legacy Next surface —
+deleted at P6.11."* ⚠️ **Scheduled-for-deletion is not deleted**, and a directory nothing checks is a
+directory anything can rot in.
+
+### Each conflict was resolved on evidence, and two did NOT go to either side
+
+⚠️ **Taking "upstream" everywhere would have been the lazy repair and it would have been wrong twice.**
+
+- **`useAppLock.ts` → upstream, measured.** The stashed side calls `loadStoredState`, which has **no
+  exported definition anywhere in the tree**; the file imports `readKeyValue` from `safeStorage`. The
+  stashed side could not have compiled.
+- **`page.tsx` ×2 → upstream, measured.** The stashed block is **235 lines of superseded code**: an inline
+  `<nav className="bottom-nav">` that `components/AppNav.tsx` now owns, a `settings-overlay` that
+  `PlanSettingsSheet.tsx` now owns, and a **30-prop `<OnboardingFlow …>`** — while `OnboardingFlow()`
+  today **takes no props**, so that call could never typecheck. `<PlanSettingsSheet>` (line 1099) and
+  `<AppNav>` (line 1713) were already live in the same file.
+- ⚡ **`useDebts.ts` + `useRequiredExpenses.ts` → the UNION, because both halves were load-bearing.**
+  Upstream had `void triggerErrorHaptic(); return;`, stashed had `return false;`. The **shared** success
+  path below already ends `return true`, so the boolean contract is live — *and* `triggerErrorHaptic` is a
+  live import, which the stashed side would have orphaned. Neither side alone was correct.
+- ⚡ **`03-nav-results-modals.css` → the UNION.** Not an either/or at all: upstream is
+  `.settings-danger-zone` / `.danger-*` / `.delete-confirm-*`, stashed is `.onboarding-*`. Both families
+  are referenced by live components (`PlanSettingsBody.tsx`; three `Onboarding/` steps). The conflict was
+  **purely positional** — two insertions at one spot — so either side deletes real styles.
+- **`planner-empty-state.spec.ts` ×2 → upstream.** The stashed block is the racy
+  `goto → evaluate → reload` re-seed whose **deletion the upstream comment documents**; the other is a
+  `.first()` strict-mode fix.
+
+⭐ **`page.tsx` was then verified by a second, independent route.** `466e2b23` added **242 lines and
+deleted 0** to that file — its entire change *was* the conflict block — and `466e2b23~1:app/page.tsx` is
+clean. Diffing the hand-resolved file against that ancestor returns **exactly** the 5-line hunk `2e01f80c`
+legitimately added, and nothing else. Two independent derivations agreeing byte-for-byte is the strongest
+available check on a 237-line deletion.
+
+### The gate — 43 — and the sixth file it found on its first run
+
+`lint:conflict-markers` refuses any tracked file carrying the conflict triple. **Its population is
+`git ls-files`**, with skips as a named extension set, so a new source extension is covered the day it
+appears rather than the day someone remembers it.
+
+⚡ **On its first run it found a file I had missed.** My own hunt for this class was
+`git grep -- '*.ts' '*.tsx' '*.js' '*.mjs' '*.json' '*.md'` and reported five files. The gate found
+**six** — `app/styles/03-nav-results-modals.css`. ⛔ **A scope list hiding a member of the class, inside
+the search for the class**, written by someone who had just finished writing up `truncated-search-hides-a-class`.
+That is the whole argument for `git ls-files` over a directory list, delivered by the gate against its own author.
+
+⚠️ **It deliberately does NOT strip comments** — a marker inside a comment is still an unresolved conflict,
+and in `page.tsx` the first block split an **import list**, which no stripper would have preserved. `.md`
+is skipped for a stated reason: prose about merge conflicts has to be able to quote them (this entry does),
+and a marker in a document renders oddly rather than breaking a build.
+
+⛔ **It floors itself anyway, and `lint:scan-floors` would NOT have asked it to.** That rule fires on gates
+that strip. This gate's blinding mode is a different one: an **empty population** — `git ls-files` returning
+nothing, or the skip-set swallowing every extension — which reports zero markers and exits 0, *identical to
+a clean tree*. Both directions are registered and proven: a planted conflict reds it, and a blinded
+population reds the floor.
+
+⚡ **Wiring that floor exposed a defect in `check-scan-floors.ts` itself.** It derived *"which gates declare
+a `SCAN_GATE`"* from the **stripper-importing subset**, so a gate that floors itself without stripping is
+invisible to it — it reported this live floor **STALE and instructed deleting it.** ⛔ A check that would
+have talked a correctly-floored gate out of its floor, and the narrower-population-than-the-thing-checked
+shape for the ninth time this round. The staleness check now reads every script.
+
+### The e2e flake that started it, measured rather than waved off
+
+The first full `test:e2e:rn` run was **337 passed / 1 failed** — `vis5-cone.spec.ts`, the variable-income
+Safe-floor row. ⚠️ Not filed as "flaky" on one observation. Three measurements: **2/2 passing alone**,
+**338/338 passing on a clean re-run**, and the fixture carries no `per-paycheck` recurrence, so the CLASS V
+cadence work cannot reach it. It is a timing flake on a **5-second** `toBeVisible` against a chart that
+animates, under full-suite load. Recorded, not chased.

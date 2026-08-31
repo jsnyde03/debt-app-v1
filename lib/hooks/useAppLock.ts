@@ -10,19 +10,11 @@ const LOCK_GRACE_PERIOD_MS = 30_000;
 
 export function useAppLock() {
     const [appLockEnabled, setAppLockEnabledState] = useState(() =>
-<<<<<<< Updated upstream
         readKeyValue("debtPlanner.appLockEnabled", false)
     );
 
     const [isUnlocked, setIsUnlocked] = useState(
         () => !readKeyValue("debtPlanner.appLockEnabled", false)
-=======
-        loadStoredState("debtPlanner.appLockEnabled", false)
-    );
-
-    const [isUnlocked, setIsUnlocked] = useState(
-        () => !loadStoredState("debtPlanner.appLockEnabled", false)
->>>>>>> Stashed changes
     );
 
     useEffect(() => {

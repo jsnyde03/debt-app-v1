@@ -162,8 +162,14 @@ for (const file of Object.keys(EXEMPT)) {
 }
 
 // Stale ledger entries — a floor for a gate that no longer declares it.
+// ⛔ S1.12.11 — derived from EVERY script, not from `consumers`. Stripping is why a gate is REQUIRED to
+// floor itself; it is not what makes a floor legitimate. `check-conflict-markers.ts` deliberately does
+// not strip — a marker inside a comment is still an unresolved conflict — and floors itself anyway,
+// because its own blinding mode is an empty population rather than an empty file. Read over the
+// stripper-importing subset, its live floor was reported STALE and the instruction was to delete it:
+// the check would have talked a correctly-floored gate out of its floor.
 const declared = new Set(
-  consumers
+  walkTs(SCRIPTS)
     .map((f) => /const SCAN_GATE = ['"`]([^'"`]+)['"`]/.exec(readFileSync(join(SCRIPTS, f), 'utf8'))?.[1])
     .filter(Boolean) as string[],
 );

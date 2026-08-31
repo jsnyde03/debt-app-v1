@@ -789,7 +789,6 @@
 	margin-bottom: 0.75rem;
 }
 
-<<<<<<< Updated upstream
 .settings-danger-zone {
 	margin-top: 16px;
 	padding: 16px;
@@ -861,7 +860,8 @@
 .danger-destructive-button:active {
 	opacity: 0.82;
 	transform: scale(0.97);
-=======
+}
+
 .onboarding-sheet {
 	display: flex;
 	flex-direction: column;
@@ -917,7 +917,6 @@
 .onboarding-skip-button {
 	align-self: center;
 	margin-top: 12px;
->>>>>>> Stashed changes
 }
 
 .section-collapse-subtitle {
