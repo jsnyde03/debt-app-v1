@@ -2229,6 +2229,9 @@
     "s1p5",
     "s1p6"
   ],
+  "packages/core/utils/percentComplete.ts": [
+    "never"
+  ],
   "packages/core/utils/plural.ts": [
     "s1p5",
     "s1p6"

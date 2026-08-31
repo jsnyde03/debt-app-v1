@@ -234,8 +234,8 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
     // without a native change, and an empty ring beside a "—" label is the honest one of the two.
     balancesUnread: !mayStateBalances,
     pctPaid: mayStateBalances ? pct : 0,
-    // ⛔ S1.13.7.5 [pass-6 C3-3] — this said "100% paid" on the same face as "$5 left". 100 is a
-    // completeness CLAIM, not a rounding; the ring above still sweeps on the full-precision `pct`.
+    // ⛔ S1.13.7.5 [pass-6 C3-3] — `Math.round` used to print "100% paid" on the same face as "$5 left".
+    // 100 is a completeness CLAIM, not a rounding; the ring above still sweeps on full-precision `pct`.
     pctLabel: mayStateBalances ? `${percentCompleteLabel(pct)}%` : '—',
     remaining: mayStateBalances ? formatWhole(totalCurrent) : '—',
     updatedAt,

@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**484 files on the S1 surface · 484 swept · 0 unswept.**
+**485 files on the S1 surface · 484 swept · 1 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -494,6 +494,7 @@
 | `packages/core/utils/formatDisplayAmount.ts` | s1p3 · s1p6 |
 | `packages/core/utils/localDate.ts` | s1p3 · s1p5 · s1p6 |
 | `packages/core/utils/money.ts` | s1p3 · s1p5 · s1p6 |
+| `packages/core/utils/percentComplete.ts` | ⛔ **never** |
 | `packages/core/utils/plural.ts` | s1p5 · s1p6 |
 | `packages/core/utils/testAddMonths.ts` | s1p3 · s1p6 |
 | `packages/core/utils/testAmountField.ts` | s1p3 · s1p4 · s1p6 |
@@ -501,7 +502,7 @@
 
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
-*(none)*
+- `packages/core/utils/percentComplete.ts`
 
-<!-- claims-sha256: 31e123def888dbb8 -->
+<!-- claims-sha256: 04deca08be8ed499 -->
 

@@ -886,3 +886,14 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   `JSON.parse`, which discards the collision) and refuse a repeated key in `scripts`. ⚠️ Deferred rather
   than folded in because it is off the money surface and the round already added two gates; it is cheap and
   the class is real — **two producers of one name, which is the same shape as two producers of one number.**
+
+## → S1 pass 7 / later — deferred from `S1.13.7` triage
+
+- **`A2-4` (minor) — the debt-free DATE and the payoff CHART have different tolerance to a missing `apr`,
+  on the one pair `S1.11.4.5` collapsed so they could not disagree.**
+  `packages/core/debt/projectDebtPayoff.ts:109` passes `debt.apr` straight through while
+  `buildAmortizationSchedule` takes `params.apr`, so an absent rate is absorbed differently by each.
+  ⛔ **Deferred deliberately, not skipped.** Its own author marked the obvious remedy as wrong — *"Not
+  `?? 0` on both: that makes an unreadable rate silently 0%"* — and closing it needs a measurement of what
+  each engine does with `undefined`, which is more than a minor's budget in this round. ⚠️ Re-opening it
+  should start by *measuring both engines on one store with the rate absent*, not by picking a default.

@@ -29915,3 +29915,52 @@ defaults to `false` so a snapshot written before the key existed still speaks.
 balance. `C3-4` sources Siri's list from live **plus unread**, not from all debts, which would resurrect
 genuinely paid-off debts. **A suppression that never lets the good state through is a second false
 statement, not a fix.**
+
+---
+
+## S1.13.7.5 — two producers of one number, 2026-08-31
+
+**7 of 8 closed**, `A2-4` deferred with a written reason. `lint:rn` 44/44 · both suites green.
+
+⛔ **`C3-2` — the widget's four figures were computed on two bases and rendered on one face:
+*"95% paid"* beside *"$0 remaining"*.** Pass 5's `C5-2` moved `remaining` alone onto the projection and
+left `pct`, `live`/`cleared` and `debtsJson` on the anchors; each exclusion is argued in isolation in that
+file and **each argument is sound on its own**. ⚡ What no line of it considers is that all four are read
+at a glance — and the file states the governing rule twelve lines below: *"ALL FOUR FIGURES DEGRADE
+TOGETHER."* It had been applied to the `mayClaim` refusal and not to the basis.
+
+⚠️ **Neither obvious move was right, and the finding said so** — projecting `pct` makes *"% paid"* fall
+while the user does nothing (measured and rejected in pass 5); reverting `remaining` re-opens the $2,513
+divergence. **So the rule is about the CLAIM, not the basis: a projection may not assert a completion the
+confirmed data has not reached.** While any debt is live by confirmed balance the face cannot print `$0`;
+everywhere else the projection stands.
+
+⛔ **`C3-3` — `Math.round(fraction × 100)` turns a residue into a COMPLETENESS CLAIM.** *"100% paid"* on
+the same face as *"$5 left"*; on Progress it lit the gold **Free** node and VoiceOver said *"all milestones
+reached"*. ⚡ The distinction the codebase already draws and this crossed: every other rounding here is
+`Math.round(n * 100) / 100` — cents, a **precision** choice. `percentCompleteLabel` clamps the **label**,
+never the ratio, so rings and bars still sweep at full precision.
+
+⛔ **`A2-1` — the simulation was right and the sentence outran it.** `selectDebtAmortization` amortises a
+**non-focus** debt against its own minimum, so `payoffPossible: false` truthfully means *"not at this
+payment"*. The card said *"this debt never gets paid off"* — a portfolio claim — while the headline read
+**February 2029** and the chart cleared it at month 30. ⚠️ The finding warned against swapping in
+`cannotAmortize`; the fix is the **scope of the claim**, and it is a class: every non-focus debt whose
+minimum sits below its own interest got that copy.
+
+| also closed | |
+|---|---|
+| `C3-9` | Money ranked on raw balances while Progress ranked on projected, so the two tabs named a **different focus debt** — and Money's rows were already rendering projected figures under a raw ordering |
+| `C2-2` | The axis labelled a $2,500 gridline **"$3k"** and a $7,500 one **"$8k"**. The formatter gained precision rather than the ladder losing a rung — dropping `2500` would trade a numeric defect for a visual one |
+| `D3-3` | `formatMonths` exists exactly twice; the legacy copy still **rounded a benefit claim in the app's own favour** — "30 months saved" as "3 years". Floored, and the duplication is stated rather than newly coupled, because `P6.11` deletes that tree |
+| `C1-18` | `RESERVE_OPACITY` declared twice, one copy documenting that it must match the other — the comment was the tell, not the safeguard |
+
+### ⚠️ Two process defects of my own, both recorded rather than tidied away
+
+**I committed a plant artifact twice**, by running `git add -A` while `test:gate-plants` was mid-run: it
+writes fixtures into the tree and removes them, so a commit at that instant captures whichever plant is
+live. Both reverted. **The rule is now explicit: stage named paths, or wait for the run to finish.**
+
+⚠️ **Three guard anchors moved because the lines they pin were the lines being fixed** (`S1P3-D3-1-WIDGET`,
+`S1P5-C5-2-WIDGETPARITY`, `GAP-16`). Each was re-pointed to the line it now guards and **re-proven** —
+which is `D2-1`'s staleness rule doing its job inside the same session that built it.
