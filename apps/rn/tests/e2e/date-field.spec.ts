@@ -70,7 +70,7 @@ test('the expense editor got the same control, and stopped teaching a format', a
     page,
     onboarded({
       requiredExpenses: [
-        { id: 'e0', name: 'Power', amount: 90, dueDate: '2026-09-04', recurrence: 'monthly', category: 'utilities' },
+        { id: 'e0', name: 'Power', amount: 90, dueDate: '2026-09-04', recurrence: 'monthly', category: 'utilities' },  // fixture-date-ok: the value IS the subject — asserted back out of the control at :84, never compared to now
       ],
     }),
   );

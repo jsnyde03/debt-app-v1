@@ -2,7 +2,7 @@ import path from 'path';
 
 import { test } from '@playwright/test';
 
-import { scenario, seedStore } from '../e2e/helpers/seed';
+import { day, scenario, seedStore } from '../e2e/helpers/seed';
 
 /**
  * 3.7.A10.2 — the hint, next to the rent it must NOT accuse.
@@ -14,9 +14,9 @@ const OUT = path.resolve(__dirname, '../../capture-ref/misfiled');
 
 test.use({ viewport: { width: 402, height: 874 } });
 
-const MORTGAGE = { id: 'e-mortgage', name: 'Mortgage', amount: 1600, dueDate: '2026-09-01', recurrence: 'monthly', category: 'housing' };
-const RENT = { id: 'e-rent', name: 'Rent', amount: 1450, dueDate: '2026-09-01', recurrence: 'monthly', category: 'housing' };
-const PHONE = { id: 'e-phone', name: 'Phone', amount: 60, dueDate: '2026-09-05', recurrence: 'monthly', category: 'utilities' };
+const MORTGAGE = { id: 'e-mortgage', name: 'Mortgage', amount: 1600, dueDate: day(1), recurrence: 'monthly', category: 'housing' };
+const RENT = { id: 'e-rent', name: 'Rent', amount: 1450, dueDate: day(1), recurrence: 'monthly', category: 'housing' };
+const PHONE = { id: 'e-phone', name: 'Phone', amount: 60, dueDate: day(5), recurrence: 'monthly', category: 'utilities' };
 
 for (const theme of ['light', 'dark'] as const) {
   test(`the mis-filed hint beside untouched expenses (${theme})`, async ({ page }) => {

@@ -2259,6 +2259,24 @@
       "sha": "b1cdd7fe"
     }
   },
+  "S1-FIXTURE-DATE-FUSE": {
+    "what": "S1.13.7.1 [pass-6 A1-4 + A1-5] - a calendar literal in a fixture is a fuse that burns SILENTLY. apps/rn/tests/e2e/helpers/seed.ts wrote dueDate: '2026-07-01' on the default debt AND the default bill; those are what scenario() returns, so 43 of 63 spec files inherited them, and by 2026-08-31 the date was 61 days past, isOverdue was true, and every one of those specs had been driving the OVERDUE branch since July. Nothing went red - the branch simply changed underneath. The file warned about this class 50 lines below the two literals that caused it, naming the next expiry by date. >>> THE FINDING'S MECHANISM WAS WRONG AND ITS SCOPE WAS SHORT, both measured: A1-4 said the day() sweep 'never touched dueDate' when `dueDate: day(...)` appears 87 times (it converted 87 sites and left 85); A1-5 said 8 fixtures cross on 2026-09-02 when the gate found 40, most of them in the UNIT test tree that lane never held. >>> TWO FALSE-POSITIVE CLASSES were caught before they became damage: 18 of the 40 sit in files that PIN currentDate to a literal, so every comparison is between two fixed dates and nothing ages - converting those would have swapped deterministic tests for drifting ones, the remedy-introduces-the-defect shape; and 11 unit literals were PROVEN passengers by planting 2020-01-01 across all of them and watching test:app stay green, so they carry an inline exemption with that evidence rather than a pointless conversion. >>> THE RESULT THAT ONLY THE FIX COULD REVEAL: the suite passed 338/338 with the shared default overdue AND 338/338 with it on-track. Zero specs distinguish the two branches. A1-4 predicted reds; there were none, and that is a WORSE answer than reds would have been.",
+    "file": "scripts/check-fixture-dates.ts",
+    "token": "cross into the past within",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/tests/e2e/helpers/seed.ts",
+          "find": "dueDate: day(6)",
+          "replace": "dueDate: '2026-09-10'"
+        }
+      ],
+      "run": "lint:fixture-dates",
+      "expect": "calendar literal",
+      "measured": "2026-08-31",
+      "sha": "3b9983dd"
+    }
+  },
   "S1-ROUTE-EXIT-REACHABLE": {
     "what": "S1.13.5 - pass 6's own coverage exit was UNREACHABLE and `audit-route --check` printed `0 owed` over it. MEASURED at the dispatch's switch-in, before an agent was spawned: 12 of the 446 money-bearing files `audit:read-coverage --pass=s1p6` demands reached NO LANE. All 12 carry s1p5, so --unread-pass=s1p5 subtracts them from the seed ON PURPOSE, while the exit asks the absolute question and pass 5's reads are no excuse for pass 6. >>> THE `owed` ASSERTION NEXT DOOR IS NOT WRONG - it proves 'every money-bearing file the FOLLOWED pass did not read reaches an origin', exactly what its docblock claims. Nothing asserted 'every file the EXIT demands reaches a lane', which is the statement a dispatch is actually held to. Two instruments, two populations, and the gap was silent in both. This is S1.13.3's finding one turn on: that step fixed the files NO pass had read going unrouted; this is its complement. >>> THE FIRST CUT OF THIS CHECK COULD NOT FAIL - it sat beside the seed and tested the very set the loop three lines above had just assigned, which is this file's own recorded D4-11 defect (three tautological set identities) committed a fourth time, in the block whose docblock warns about it. Two things move it out of that class: the unit is the LANE (downstream of every LANES predicate) rather than the origin, and the population is read from the claims JSON - the same file check-pass-coverage counts 446 out of - so it compares two producers of one population rather than a set against itself.",
     "file": "scripts/audit-route.ts",

@@ -102,6 +102,12 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // because not one of them looks at `app/`. Scheduled-for-deletion is not deleted. Population is
     // `git ls-files`, so a scope list can never hide the next one.
     'lint:conflict-markers',
+    // ⛔ S1.13.7.1 [pass-6 A1-4/A1-5] — a calendar literal in a fixture is a fuse that burns silently.
+    // `seed.ts` wrote `dueDate: '2026-07-01'` on the shared default, so 43 of 63 specs had been driving
+    // the OVERDUE branch since July with nothing red to say so. The `imminent` half fires BEFORE the
+    // branch changes; the `aged` half is a downward-only cap. Both have a population floor, because
+    // pass-6 `D2-3` was exactly the defect of shipping a check whose population can go quietly empty.
+    'lint:fixture-dates',
     'lint:a11y-collapse',
     'lint:contrast',
     'lint:type-scale',

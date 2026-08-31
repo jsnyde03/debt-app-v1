@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { day, scenario, seedStore } from './helpers/seed';
 
 /**
  * 3.7.A10.2 [D22b/c] — the recovery path, for a mistake that has ALREADY been made.
@@ -14,8 +14,8 @@ import { scenario, seedStore } from './helpers/seed';
  */
 test.use({ viewport: { width: 402, height: 874 } });
 
-const MORTGAGE = { id: 'e-mortgage', name: 'Mortgage', amount: 1600, dueDate: '2026-09-01', recurrence: 'monthly', category: 'housing' };
-const RENT = { id: 'e-rent', name: 'Rent', amount: 1600, dueDate: '2026-09-01', recurrence: 'monthly', category: 'housing' };
+const MORTGAGE = { id: 'e-mortgage', name: 'Mortgage', amount: 1600, dueDate: day(1), recurrence: 'monthly', category: 'housing' };
+const RENT = { id: 'e-rent', name: 'Rent', amount: 1600, dueDate: day(1), recurrence: 'monthly', category: 'housing' };
 
 const seeded = (expenses: unknown[]) => scenario({ requiredExpenses: expenses, prefs: { onboardingComplete: true } });
 
@@ -198,7 +198,7 @@ test('B4 · converting a QUARTERLY bill keeps its cadence, it does not become mo
     // ⚠️ The name must be one `looksLikeDebt` flags, or there is no convert affordance to tap at all —
     // "Insurance" was tried first and the row simply had no button. A quarterly LOAN is the realistic
     // member of the class: an obligation whose cadence is not monthly and which belongs in Debts.
-    seeded([{ id: 'e-loan', name: 'Equipment Loan', amount: 600, dueDate: '2026-09-01', recurrence: 'quarterly', category: 'other' }]),
+    seeded([{ id: 'e-loan', name: 'Equipment Loan', amount: 600, dueDate: day(1), recurrence: 'quarterly', category: 'other' }]),
   );
   await openExpenses(page);
   await page.getByTestId('misfiled-convert-e-loan').click();

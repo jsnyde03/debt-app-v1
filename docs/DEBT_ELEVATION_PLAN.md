@@ -128,27 +128,39 @@ and five would have INTRODUCED one. Verify against current code before writing a
 | ✅ **S1.13.1 + .2** | **CLOSED 2026-08-31 — `npm run audit:read-coverage`, the pass-coverage EXIT.** ⛔ **NOT a prune** — the switch-in scan killed it against the code *(whole-directory roots, `excluded` fails safe, five prior widenings each undoing a hand-narrowed set)*; files are **classified**, nothing leaves the surface. ⚡ **The first measurement: pass 5 read 86 of 446 money-bearing files — 19%** *(pass 4: 103)*. The *"393 routed / 126 read"* prose counted non-money files and other passes' claims. ⛔ Writing its guard found a **fail-open in the instrument itself** — a blind predicate reports every pass fully covered; floored at 424, guarded both ways. Detail → log | CLOSED |
 | ✅ **S1.13.3** | **CLOSED 2026-08-31 — the route was retiring files on "swept ONCE, EVER".** ⛔ `audit-route` exited on `!unswept && !changed`, and `unswept` means *never read by any pass* — so a file pass 2 read once was accounted for forever. **131 of the 360 money files pass 5 never read reached NO LANE**, including `FirstDebtOrBillStep.tsx`, which mints a debt id from `Date.now()` — a defect found this session, in a file the router had already retired. New **`stale-read`** origin, opt-in *(control: 476/0 without the flag, **607/280** with)*, sharing **one** money predicate with the coverage exit. The seed asserts its own completeness every run — I had checked it by hand once. Record → `docs/audits/2026-08-31-s1-money-pass6/DISPATCH.md` | CLOSED |
 | ✅ **S1.13.4** | **[DECISION] ANSWERED 🎯 2026-08-31 — GO, at 12 lanes + a coverage-driven SECOND WAVE, with lanes emitting read-lists.** ⚡ Sized on measurement, not preference: pass 5 gave 4 lanes ~16k lines each and they read **about a third**, which is why coverage was 86/446. 12 lanes ≈ 8k lines each. ⭐ The wave is what guarantees the exit and is the cheap half — the coverage command names the remainder exactly. Worst case **~3–5M tokens**. 🎯 **Jason asked for a FRESH SESSION to run it** | ANSWERED |
-| ▶ **S1.13.5** | **DISPATCH PASS 6.** Switch-in scan found the pass's own exit **unreachable** while `--check` printed `0 owed`; prep closed it, then wave 1 launched. Decomposed below. Record → [`PREFLIGHT.md`](audits/2026-08-31-s1-money-pass6/PREFLIGHT.md) | 12 lanes dispatched, read-lists landing |
-| **S1.13.6** | **WAVE 2** — re-run `audit:read-coverage --pass=s1p6`, dispatch only the still-unread remainder | **446/446** money-bearing files read |
-| **S1.13.7** | **TRIAGE TO 0/0**, then the second consecutive clean pass [D65] requires | 0 blockers / 0 majors, twice |
+| ✅ **S1.13.5** | **CLOSED 2026-08-31 — PASS 6 RUN, 446/446.** Switch-in scan found the pass's own exit **unreachable** while `--check` printed `0 owed`; `--exit-pass`, `audit:record-reads` and `audit:sublanes` closed it, 12 lanes ran in two waves of six, and the coverage exit is **GREEN in one wave**. **123 findings.** Records → [`PREFLIGHT.md`](audits/2026-08-31-s1-money-pass6/PREFLIGHT.md) · [`CLASSIFICATION.md`](audits/2026-08-31-s1-money-pass6/CLASSIFICATION.md). Detail → log | CLOSED |
+| ⛔ **S1.13.6** | **RETIRED 2026-08-31 — there is no remainder.** Wave 2 existed to dispatch the still-unread files; wave 1 read **446 of 446**, so the step has no population | RETIRED |
+| ▶ **S1.13.7** | **TRIAGE TO 0/0 — BY CLASS** *(🎯 2026-08-31)*, then the second consecutive clean pass [D65] requires. Decomposed below | 0 blockers / 0 majors, every closure proven to red |
 
-###### S1.13.5's sub-steps — the ACTIVE decomposition *(the ONLY one on this doc)*
+###### S1.13.7's sub-steps — the ACTIVE decomposition *(the ONLY one on this doc)*
 
-⛔ **THE SWITCH-IN SCAN'S RESULT: the coverage exit was UNREACHABLE and `audit:route-check` printed `0 owed`
-over it.** 12 of the 446 money-bearing files reached **no lane** — all 12 carry `s1p5`, and the router seeds
-`stale-read` from the pass it *follows*, so a file pass 5 read is subtracted by construction while the exit
-asks the absolute question. ⚠️ **The `owed` assertion is not wrong; it is a different statement than a
-dispatch is held to.** Two instruments, two populations, silent in both.
+⛔ **ONE ASSERTION PER CLASS THAT ITERATES THE CLASS**, never one that names a member — fixing ids one at a
+time produced pass 4's round, then pass 5's. ⚠️ Each class is: **verify the finding's MECHANISM against
+current code** → reproduce with a control → fix → re-run the control → **plant the original defect and
+confirm the guard reds FOR THE PLANTED REASON** → plant the laziest plausible repair → register the guard.
+⛔ **A remedy is a HYPOTHESIS**: every remedy in the twelve lane files is marked *unverified* by its author,
+and three lanes named the obvious fix as wrong.
 
-| # | sub-step | exit line |
-|---|---|---|
-| ✅ **S1.13.5.1** | **`--exit-pass` — the route now seeds and asserts against the pass it is dispatched FOR.** Asserted on the **lane manifests** and the exit's **own claims file** (two producers), not on the origin map — the first cut was a tautology of the loop above it, this file's own `D4-11` defect a fourth time. Route **608 → 622**, all 446 reachable. Guard `S1-ROUTE-EXIT-REACHABLE` proven | CLOSED |
-| ✅ **S1.13.5.2** | **`audit:record-reads` — nothing ingested `READ-*.txt`.** The exit reads a claims JSON that `surface-coverage` only ever says to *"Edit"*, so the dispatch ended in 12 lane files hand-merged into 484 entries. Two refusals proven: an empty merge cannot exit 0, an untracked path names its lane. Chain proven end-to-end, 446 → 443 | CLOSED |
-| ✅ **S1.13.5.3** | **`audit:sublanes` — the 12-way split derived and asserted**, not adopted unread: sum, no dupes, every one of the 446 in a sub-lane. ⚡ Lane D contributes **0** to the exit and carries the **most** lines, so the legacy Next root `P6.11` deletes is isolated as `D3` on a reduced mandate | CLOSED |
-| ✅ **S1.13.5.4** | **`BRIEF.md` written** — it did not exist. Carries the read-list contract, what pass 5 measured about its own findings, and the 6 GB constraint | CLOSED |
-| ▶ **S1.13.5.5** | **WAVE 1 DISPATCHED** — A1 A2 A3 B1 B2 B3, the engine and the store. ⛔ **Six at a time, not twelve**: verified **6.0 GB visible / 0.5 GB free** | 6 lanes returned, read-lists + findings on disk |
-| **S1.13.5.6** | **WAVE 1b** — C1 C2 C3 D1 D2 D3, the screens and the instruments | 6 lanes returned |
-| **S1.13.5.7** | **RECORD** — `audit:record-reads`, restamp *([D5-10])*, then classify the findings | claims written, coverage measured |
+| # | class | n | exit line |
+|---|---|---|---|
+| ▶ **S1.13.7.1** | ⏱ **THE DATE FUSE** — `A1-4` `A1-5`. **Fires 2026-09-02.** 43 of 63 specs already drive the OVERDUE branch; 8 more cross in 2 days. ⚠️ Not "move the dates" — a literal date in a fixture is a fuse by construction | 2 | the on-track branch guarded, no literal due-date left |
+| **S1.13.7.2** | **THE PROOF MACHINERY** — `D2-1` `D2-2` `D2-5` `D2-6` `D2-7` `D2-11` `D2-13` `D1-2` `D1-8` `D2-8`/`C3-11` `D3-4`. Everything below is *closed* using it. ⚠️ `D3-4`'s plant is **owed** | 12 | 30 stale proofs re-measured; every floor floored |
+| **S1.13.7.3** | **NaN BLINDNESS** — `A2-6` `D1-3` `C2-5` `B2-5` `A3-9`. Two lanes, independently. A comparison guard is blind to `NaN`, and the app renders it as **`$0`** | 5 | one identity over the spellings; 6 helper copies → 1 |
+| **S1.13.7.4** | **THE TRUST GATE'S POPULATION** — `C1-3` `C1-10` `B1-1` `B1-3` `B1-5` `C3-5` `C3-1` `C3-4` `B1-2`. Pass 5's `C4-7` recurring on the loudest cards | 9 *(6 blockers)* | the gate iterates its consumers, not a list |
+| **S1.13.7.5** | **TWO PRODUCERS OF ONE NUMBER** — `C3-2` `C3-3` `C3-9` `A2-1` `A2-4` `C2-2` `D3-3` `C1-18` | 8 | one producer per number, asserted |
+| **S1.13.7.6** | **MONEY WRITTEN OR DESTROYED** — `C3-8` `A2-2` `B3-1` `A3-5` `C3-6` `A3-18` `C3-10` `B3-4` | 8 *(6 blockers)* | no write path can invent, delete or mis-stamp money |
+| **S1.13.7.7** | **CADENCE AS A USER VARIABLE** — `A3-1` `A3-2` `A3-11` `A2-3` `A2-8` `A3-13`. Pass 5's CLASS V on the branches it did not reach | 6 *(3 blockers)* | one identity over the cadence × type matrix |
+| **S1.13.7.8** | **THE FIX REACHED THE MEMBER** — `C2-3` `B3-3` `A3-12` `D2-10` `C1-1` `C1-6` | 6 *(3 blockers)* | each closed by iterating its class, not its id |
+| **S1.13.7.9** | **TESTS THAT CANNOT FAIL** — `A1-1` `A1-2` `A1-3` `A1-6`–`A1-11` `A2-7` `A3-4` `A3-14`–`A3-17` `B2-4` `D1-4` `D1-5` `D1-6`. ⛔ **LAST, and fixed KNOWING what the classes above got wrong** — these are what re-verify everything, so repairing them first re-verifies against the same blind spots | 18 | every assertion reachable and falsifiable |
+| **S1.13.7.10** | **THE MINORS** — copy, labels, a11y, dead code. Batched; several are one-line | 43 | — |
+| **S1.13.7.11** | **INSTRUMENT THE REST OF THE TREE** *(🎯 2026-08-31)* — **197 tracked source files sit on NO claims file**, 82 of them in `apps/rn` and 4 in `packages/core`, so no instrument can even ASK whether they have been read. S2/S3/S4 have no claims file at all. ⛔ **Measure, do not audit** — generate the claims files so the unknown becomes a number before four more surfaces are priced | 197 | every tracked source file on some surface's claims file |
+| **S1.13.7.12** | **RE-RUN PASS 7** — [D65] needs a second consecutive clean pass. Route from `s1p7`, same 12-lane shape. ⚠️ Forecast: pass 7 will find the FIXES' own defects — every prior round did — so 0/0 twice is realistically passes 8–9 | — | 0/0 twice |
+
+⚠️ **CLASS X is NOT in this list — it is a PLAN correction that blocks `P6.11`, not a triage class.**
+`D3-1` `A3-8` `D3-2` `A2-9` `D2-9` `D2-14`: **the legacy root is LIVE** — `packages/core` imports **7 files
+out of it across 8 edges**, `typecheck:core` and `test:regression` both compile *and execute* them, and both
+are steps of `validate:release:rn` **and** `web-e2e.yml`. P6.11's written scope does not name it. Filed to
+`P6.11`, below.
 
 **Exit (S1.12):** pass 5 recorded and fixed. ⛔ **Convergence still requires a clean pass 6** — a 0/0 pass 5
 does not close S1 on its own.

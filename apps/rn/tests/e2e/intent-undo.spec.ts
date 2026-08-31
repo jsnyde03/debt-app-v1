@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { scenario, seedStore } from './helpers/seed';
+import { day, scenario, seedStore } from './helpers/seed';
 
 /**
  * ⛔ **S1.5.3 [B2] — THE UNDO THAT REVERTED THE WHOLE STORE.**
@@ -23,7 +23,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 
 const PLAN = () =>
   scenario({
-    debts: [{ id: 'card', name: 'Chase Freedom', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19.9, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }],
+    debts: [{ id: 'card', name: 'Chase Freedom', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19.9, dueDate: day(1), type: 'debt', recurrence: 'monthly' }],
     prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: true },
   });
 

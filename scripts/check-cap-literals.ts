@@ -126,7 +126,7 @@ for (const rel of files) {
  * ⚠️ **The two-line-edit friction is deliberate.** `check-finding-guards.ts`'s `MIN_ENTRIES` documents it
  * as a feature: adding a cap costs a number here, and that is the moment the addition is visible.
  */
-const MIN_CAPS = 21;
+const MIN_CAPS = 23;
 
 if (caps !== MIN_CAPS) {
   problems.push(

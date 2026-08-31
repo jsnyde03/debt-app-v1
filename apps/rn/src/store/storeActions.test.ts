@@ -396,7 +396,7 @@ function run() {
    * ⚠️ The deciding case is a CORRECTION, not a setback: enter $500 by mistake, fix it to $5,000.
    */
   {
-    const typo = () => inst({ debts: [{ id: 'd0', name: 'Card', balance: 500, originalBalance: 500, minimumPayment: 50, apr: 20, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] });
+    const typo = () => inst({ debts: [{ id: 'd0', name: 'Card', balance: 500, originalBalance: 500, minimumPayment: 50, apr: 20, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] });  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
 
     const edited = typo();
     edited.getState().updateDebt('d0', { balance: 5000 });
@@ -418,7 +418,7 @@ function run() {
     eq(single.getState().store.debts[0].originalBalance, 5000, 'verifyDebtBalance (singular) — the seam the plan row omitted');
 
     // ⛔ And paying DOWN must never lower it, or the ring would reset every time someone made progress.
-    const paid = inst({ debts: [{ id: 'd0', name: 'Card', balance: 4800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] });
+    const paid = inst({ debts: [{ id: 'd0', name: 'Card', balance: 4800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] });  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
     paid.getState().verifyDebtBalances([{ id: 'd0', balance: 3000 }], '2026-08-02');
     eq(paid.getState().store.debts[0].originalBalance, 12000, '…and paying down leaves the mark alone');
   }
@@ -753,7 +753,7 @@ function run() {
   {
     const bnpl = {
       id: 'b1', name: 'Affirm Sofa', balance: 0, minimumPayment: 0, apr: 0,
-      dueDate: '2026-09-01', type: 'bnpl' as const, recurrence: 'biweekly' as const,
+      dueDate: '2026-09-01', type: 'bnpl' as const, recurrence: 'biweekly' as const,  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
       scheduledPaymentAmount: 50, remainingPayments: 4,
     };
 
@@ -761,13 +761,13 @@ function run() {
     // asserts `requiredExpenses.length === 0` after an add is vacuously true — it cannot tell "did not
     // delete" from "there was nothing to delete."
     const added = inst({
-      requiredExpenses: [{ id: 'e1', name: 'Sofa payment', amount: 50, dueDate: '2026-09-01', recurrence: 'monthly', category: 'other' }] as DebtStore['requiredExpenses'],
+      requiredExpenses: [{ id: 'e1', name: 'Sofa payment', amount: 50, dueDate: '2026-09-01', recurrence: 'monthly', category: 'other' }] as DebtStore['requiredExpenses'],  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
     });
     added.getState().addDebt({ ...bnpl } as DebtStore['debts'][number]);
     const viaAdd = added.getState().store.debts.find((d) => d.id === 'b1')!;
 
     const converted = inst({
-      requiredExpenses: [{ id: 'e1', name: 'Sofa payment', amount: 50, dueDate: '2026-09-01', recurrence: 'monthly', category: 'other' }] as DebtStore['requiredExpenses'],
+      requiredExpenses: [{ id: 'e1', name: 'Sofa payment', amount: 50, dueDate: '2026-09-01', recurrence: 'monthly', category: 'other' }] as DebtStore['requiredExpenses'],  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
     });
     converted.getState().convertExpenseToDebt('e1', { ...bnpl } as DebtStore['debts'][number]);
     const viaConvert = converted.getState().store.debts.find((d) => d.id === 'b1')!;
@@ -814,7 +814,7 @@ function run() {
     // 3 · the SECOND DOOR the auditor named as inference: a restore must not be undoable by a payment card.
     const restored = inst();
     restored.getState().logManualPayment('d0', 200);
-    restored.getState().importStore(plan({ debts: [{ id: 'dX', name: 'Restored', balance: 111, minimumPayment: 10, apr: 1, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] as DebtStore['debts'] }));
+    restored.getState().importStore(plan({ debts: [{ id: 'dX', name: 'Restored', balance: 111, minimumPayment: 10, apr: 1, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' }] as DebtStore['debts'] }));  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
     eq(restored.getState().intentRollback, null, '⛔ B2 — importStore (restore a backup) invalidates it too');
     restored.getState().undoIntentAction();
     eq(restored.getState().store.debts.map((d) => d.id).join(','), 'dX', '⛔ B2 — the freshly-restored portfolio is not replaced by the pre-restore one');

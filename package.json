@@ -44,6 +44,7 @@
     "lint:runner-completeness": "tsx scripts/check-runner-completeness.ts",
     "lint:rounding": "tsx scripts/check-rounding.ts",
     "lint:conflict-markers": "tsx scripts/check-conflict-markers.ts",
+    "lint:fixture-dates": "tsx scripts/check-fixture-dates.ts",
     "audit:read-coverage": "tsx scripts/check-pass-coverage.ts",
     "audit:route-check": "tsx scripts/audit-route.ts --surface=s1 --since=65566a09 --unread-pass=s1p5 --exit-pass=s1p6 --check",
     "audit:record-reads": "tsx scripts/record-reads.ts --surface=s1 --pass=s1p6 --dir=docs/audits/2026-08-31-s1-money-pass6",

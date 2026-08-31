@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**125 files on the S0 surface · 75 swept · 50 unswept.**
+**126 files on the S0 surface · 75 swept · 51 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -79,6 +79,7 @@
 | `scripts/check-copy-owners.ts` | p3 · partial |
 | `scripts/check-destructive-writes.ts` | p1 · p3 |
 | `scripts/check-finding-guards.ts` | s1p1 · s1p2 · s1p4 · s1p5 |
+| `scripts/check-fixture-dates.ts` | ⛔ **never** |
 | `scripts/check-gate-freshness.ts` | p4 |
 | `scripts/check-gate-sources.ts` | s1p4 · s1p5 |
 | `scripts/check-glossary.ts` | p3 · partial |
@@ -177,6 +178,7 @@
 - `packages/core/testing/testV11Regression.ts`
 - `scripts/audit-sublanes.ts`
 - `scripts/check-conflict-markers.ts`
+- `scripts/check-fixture-dates.ts`
 - `scripts/check-pass-coverage.ts`
 - `scripts/check-rounding.ts`
 - `scripts/check-runner-completeness.ts`
@@ -193,5 +195,5 @@
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
 
-<!-- claims-sha256: 833cc618cb07e36d -->
+<!-- claims-sha256: cf134a282d681bf8 -->
 

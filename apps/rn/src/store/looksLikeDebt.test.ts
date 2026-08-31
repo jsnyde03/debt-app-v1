@@ -84,7 +84,7 @@ const expense: RequiredExpense = {
   id: 'e1',
   name: 'Mortgage',
   amount: 1600,
-  dueDate: '2026-09-01',
+  dueDate: '2026-09-01',  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
   recurrence: 'monthly',
   category: 'housing',
 } as RequiredExpense;
@@ -99,7 +99,7 @@ const debt: Debt = {
   balance: 240000,
   minimumPayment: 1600,
   apr: 6.5,
-  dueDate: '2026-09-01',
+  dueDate: '2026-09-01',  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
   type: 'debt',
   recurrence: 'monthly',
 } as Debt;

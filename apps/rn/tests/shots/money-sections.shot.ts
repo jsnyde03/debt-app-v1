@@ -2,7 +2,7 @@ import path from 'path';
 
 import { test } from '@playwright/test';
 
-import { scenario, seedStore } from '../e2e/helpers/seed';
+import { day, scenario, seedStore } from '../e2e/helpers/seed';
 
 /** 3.7.A10.3/.4 — the renamed sections and their captions, which have to read as calm, not as a lecture. */
 const OUT = path.resolve(__dirname, '../../capture-ref/money-sections');
@@ -10,8 +10,8 @@ const OUT = path.resolve(__dirname, '../../capture-ref/money-sections');
 test.use({ viewport: { width: 402, height: 874 } });
 
 const EXPENSES = [
-  { id: 'e-rent', name: 'Rent', amount: 1450, dueDate: '2026-09-01', recurrence: 'monthly', category: 'housing' },
-  { id: 'e-phone', name: 'Phone', amount: 60, dueDate: '2026-09-05', recurrence: 'monthly', category: 'utilities' },
+  { id: 'e-rent', name: 'Rent', amount: 1450, dueDate: day(1), recurrence: 'monthly', category: 'housing' },
+  { id: 'e-phone', name: 'Phone', amount: 60, dueDate: day(5), recurrence: 'monthly', category: 'utilities' },
 ];
 
 for (const theme of ['light', 'dark'] as const) {

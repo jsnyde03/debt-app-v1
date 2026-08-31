@@ -307,7 +307,7 @@ test('restoring a backup file from the reset screen leaves that screen', async (
     JSON.stringify(
       scenario({
         debts: [
-          { id: 'd1', name: 'Restored Visa', balance: 1200, minimumPayment: 35, apr: 19.99, dueDate: '2026-09-01', type: 'debt', recurrence: 'monthly' },
+          { id: 'd1', name: 'Restored Visa', balance: 1200, minimumPayment: 35, apr: 19.99, dueDate: day(1), type: 'debt', recurrence: 'monthly' },
         ],
       }),
     ),

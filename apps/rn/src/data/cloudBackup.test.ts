@@ -55,7 +55,7 @@ function storeWithADebt(): DebtStore {
         balance: 1234.56,
         minimumPayment: 40,
         apr: 19.99,
-        dueDate: '2026-09-01',
+        dueDate: '2026-09-01',  // fixture-date-ok: passenger — PLANTED 2020-01-01 across all 11 sites, `test:app` stayed green, so no assertion here reads this date against the clock
         type: 'debt',
         recurrence: 'monthly',
       },

@@ -10,12 +10,23 @@ import type { Page } from '@playwright/test';
 
 const KEY = 'debtPlanner.rnStore';
 
-const DEBT = { id: 'd0', name: 'Card', balance: 5000, minimumPayment: 100, apr: 20, dueDate: '2026-07-01', type: 'debt', recurrence: 'monthly' };
+/**
+ * ⛔ **S1.13.7.1 [pass-6 `A1-4`] — THE DUE DATES ARE RELATIVE, AND THE DEFAULT IS DELIBERATELY NOT OVERDUE.**
+ *
+ * These were `dueDate: '2026-07-01'` on both the debt and the bill. By 2026-08-31 that was **61 days
+ * past**, so `isOverdue` was true and **43 of 63 spec files had been silently driving the OVERDUE branch
+ * since July** — the shared default's *on-track* branch was guarded by nobody, and nothing ever went red
+ * to say so. See `day()` below, which this file's own docblock already demanded for `nextPaycheckDate`.
+ *
+ * ⚠️ A spec that genuinely needs an overdue row passes one explicitly — `day(-n)` — which then reads as a
+ * deliberate choice rather than as an accident of the calendar.
+ */
+const DEBT = { id: 'd0', name: 'Card', balance: 5000, minimumPayment: 100, apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly' };
 /** One recurring bill — see `scenario`.
  *  ⚠️ Deliberately JUST a bill. An everyday-spending default was tried and reverted: it shifted every
  *  financial assertion by a flat $300 and re-broke six specs that pin their own tight/shortfall states,
  *  while adding no coverage the measured hole called for. The hole was `requiredExpenses`. */
-const BILL = { id: 'e0', name: 'Rent', amount: 350, dueDate: '2026-07-01', recurrence: 'monthly', category: 'housing' };
+const BILL = { id: 'e0', name: 'Rent', amount: 350, dueDate: day(4), recurrence: 'monthly', category: 'housing' };
 
 /**
  * A plan-ready scenario: positive paycheck, one debt, ONE RECURRING BILL, an everyday reserve, onboarded,
