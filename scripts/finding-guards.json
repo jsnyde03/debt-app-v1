@@ -2236,7 +2236,9 @@
         }
       ],
       "run": "lint:conflict-markers",
-      "expect": "the population went empty"
+      "expect": "the population went empty",
+      "measured": "2026-08-31",
+      "sha": "87125682"
     }
   },
   "S1P5-B5-9-RESERVEDIDS": {
