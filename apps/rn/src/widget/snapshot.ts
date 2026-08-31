@@ -2,7 +2,7 @@ import type { DebtStore } from '@/data/models';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaydayGuardian } from '@/store/guardianSelectors';
 import { selectPayoffView } from '@/store/payoffSelectors';
-import { mayClaim } from '@/store/trustSelectors';
+import { mayClaim, partitionDebts } from '@/store/trustSelectors';
 import { formatWhole } from '@/utils/format';
 
 /**
@@ -217,8 +217,24 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
     updatedAt,
     guardianSpoken: buildGuardianSpoken(store),
     isPremium: store.subscriptionPlan === 'premium',
+    /**
+     * ⛔ **S1.13.7.4 [pass-6 `C3-4`] — A DEBT THE APP COULD NOT READ SILENTLY DISAPPEARED FROM SIRI'S
+     * LIST, so it was the one debt the user could not name in order to fix it.**
+     *
+     * `live` is `balance > 0`, and an unread balance is repaired to `0` — the same membership defect as
+     * `C4-2` and `B1-1`, on the voice surface. The user says *"log a payment to Chase"* and Siri does not
+     * know Chase exists.
+     *
+     * ⚠️ **Live PLUS unread, not all debts.** Sourcing from `debts` would resurrect genuinely paid-off
+     * debts into the disambiguation list, which is a second false statement rather than a fix. The
+     * partition is the owner of that three-way distinction and is not re-derived here.
+     */
     debtsJson: JSON.stringify(
-      live.map((d) => ({ id: d.id, name: d.name, balance: formatWhole(d.balance) })),
+      [...live, ...partitionDebts(store).unreadBalance].map((d) => ({
+        id: d.id,
+        name: d.name,
+        balance: formatWhole(d.balance),
+      })),
     ),
   };
 }

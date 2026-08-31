@@ -97,8 +97,20 @@ export interface CelebrationStats {
 }
 
 export function selectCelebrationStats(store: DebtStore): CelebrationStats {
-  const { debts } = store;
-  const totalPaid = round2(debts.reduce((sum, d) => sum + (d.originalBalance ?? Math.max(0, d.balance)), 0));
+  /**
+   * ⛔ **S1.13.7.4 [pass-6 `B1-2`] — `totalPaid` SUMMED EVERY DEBT, LIVE ONES INCLUDED, while
+   * `debtsCleared` beside it counted only the guarded partition.**
+   *
+   * ⚡ So the two fields on one card described two different populations: *"$15,000 paid off · 1 debt"*,
+   * where the $15,000 contained a debt the user still owes in full. The comment ten lines below already
+   * records the sibling half of this — `debtsCleared` reading **1** against a true **0** — and names the
+   * class: *"the fix reached the instance reported and left a sibling asserting on the same store."*
+   *
+   * ⚠️ Summed over `cleared` now, so both fields answer the same question. `clearedDebts` is the owner of
+   * *"which debts are confirmed cleared"* and is deliberately NOT re-derived here — a second copy of that
+   * expression is the two-producers class this round has collapsed everywhere else.
+   */
+  const totalPaid = round2(clearedDebts(store).reduce((sum, d) => sum + (d.originalBalance ?? Math.max(0, d.balance)), 0));
   // ⛔ S1.11.4.2 [pass-4 `C4-2`, sibling in the same file] — `debtsCleared` read **1** against a true **0**
   // on `C4-2`'s store. Gated at the render by `selectCelebration`, so it is latent rather than shipped;
   // the count is still wrong at the source, and "the fix reached the instance reported and left a sibling

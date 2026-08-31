@@ -29869,3 +29869,49 @@ drop the only coverage of the thing being fixed — and the regression case was 
 ⚠️ `C2-5` and `B2-5` were the same shape in product code: `Math.max(0, NaN)` is `NaN`, so neither clamp
 clamped. The verified-balance write now **refuses** rather than coercing — it is the one number the user is
 explicitly asserting is true.
+
+---
+
+## S1.13.7.4 — the trust gate's population, 2026-08-31
+
+**9 findings, 6 blockers.** `lint:rn` 44/44 · `test:app` + `test:regression` green.
+
+⚡ **Pass 5's `C4-7` recurring, on more surfaces.** The pattern is exact: the refusal reaches *some*
+consumers of a number and not the loudest one — or it is computed **over** different fields than the
+number is computed **from**.
+
+| finding | what it was |
+|---|---|
+| `C1-3` | **`PlanHero` — the first and loudest card on Today — had no trust gate at all**, stating *"On track · debt-free by ⟨date⟩"* on the store the Guardian card twenty lines below refuses to speak on. **Two independent doors bias that date EARLY**, so the unread case is not merely uncertain, it is optimistic |
+| `C1-10` | Same class, second file, **and this one spends**: the Windfall Autopilot itemised where a bonus lands on that blind plan and offered a Confirm that routes it |
+| `B1-1` | The once-ever finale was decided on `balance > 0`, so an **unread** balance emptied the list |
+| `B1-3` | The What-If was the one projection on the Progress card not gagged — a **second object from a second selector** reaching the same chart, walking past a gag applied at the source |
+| `B1-5` | *"That's the full $415.38"* against a true **$535.38**, on the confident branch, in a file with no trust call at any line |
+| `C3-5` | The widget's guard asked `'debt-balances'` while the figure came from the **projected** store, which reads `apr`/`minimumPayment` — routed to `'row-figures'` and only there |
+| `C3-1` | **Siri spoke the refusal sentinels aloud**: *"debt-free by Balances unread."* |
+| `C3-4` | A debt the app could not read **vanished from Siri's list** — the one debt the user could not name in order to fix |
+| `B1-2` | `totalPaid` summed every debt while `debtsCleared` beside it counted the guarded partition — two fields, two populations, one card |
+
+### ⛔ The three results worth carrying forward
+
+**`C1-3` needed NO new caller, so no floor could have caught it.** `index.tsx` was already counted as
+asking `'required-plan'` — on behalf of two *other* cards. **A per-file consumer count says a file asks;
+it cannot say every claim in that file is gated.** Recorded in the floor table itself.
+
+**`B1-1`'s test asserted the defect as correct**, reasoning that stamping the record and gating the render
+preserves the moment. ⚡ Measured, **the gate is a delay, not a filter**: the record outlives the condition
+it was gated on, so answering the repair card is the very event that makes it false *and* lifts the gag.
+⚠️ **The moment is not lost by refusing to stamp it** — the crossing is a beat, and the true finale fires
+later, at the real moment. `detectPayoff` now **requires** the unread set: a default would have preserved
+the defect at every caller that forgot, which is `tested-helper-is-not-a-used-helper` exactly.
+
+**`C3-1` is fixed with a FLAG, not a second string literal.** `SiriQueryIntents.swift` already matches
+`"Debt-free"` by literal, and its own comment records the hazard — *"a TypeScript-scoped search cannot see
+a `.swift` file, and a silent mismatch here does not crash."* A boolean cannot drift in spelling, and it
+defaults to `false` so a snapshot written before the key existed still speaks.
+
+⚠️ **Two fixes were deliberately NOT the widest available.** `C3-5` asks both claims rather than widening
+`'debt-balances'` — that route must keep meaning *"the balances are readable"* for surfaces showing a raw
+balance. `C3-4` sources Siri's list from live **plus unread**, not from all debts, which would resurrect
+genuinely paid-off debts. **A suppression that never lets the good state through is a second false
+statement, not a fix.**
