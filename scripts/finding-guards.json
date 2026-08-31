@@ -2220,7 +2220,7 @@
       "run": "test:app",
       "expect": "a surprise BEFORE the hold began is not credited to it",
       "measured": "2026-08-31",
-      "sha": "fd7e1784"
+      "sha": "016bf441"
     }
   },
   "S1P5-B5-10-HELDSINCE-CLOSED": {
@@ -2238,7 +2238,7 @@
       "run": "test:app",
       "expect": "a surprise during the hold",
       "measured": "2026-08-31",
-      "sha": "fd7e1784"
+      "sha": "016bf441"
     }
   },
   "S1P5-CONFLICT-MARKERS": {
