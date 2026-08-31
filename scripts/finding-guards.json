@@ -1943,7 +1943,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "S1.12.9"
+      "expect": "S1.12.9",
+      "measured": "2026-08-31",
+      "sha": "4022419f"
     }
   },
   "S1P5-B5-1-ROWCOUNT": {
@@ -2201,6 +2203,38 @@
       "expect": "the cap is still",
       "measured": "2026-08-30",
       "sha": "4f32f846"
+    }
+  },
+  "S1P5-B5-10-HELDSINCE": {
+    "what": "pass-5 B5-10 (minor), closed by S1.12.10 under [DECISION] S1.12.8 (Jason, 2026-08-30). computeReserveRelease scoped its surprise window with onboardedAt, which is null for every restored / v1.6-upgraded user - completeOnboarding stamps it, inferOnboarding does not, two producers of 'this user has started' and only one writes the date. '' is <= every ISO date string, so the filter widened to the ENTIRE surprise log: the exact pre-MF.5 defect this function's own docblock names, re-entered through the one field that is routinely absent. Bounded by Math.min(surpriseSum, heldReserve), which is why it was a minor. >>> Both available answers were wrong in a measured direction, so NEITHER was taken: crediting everything over-credits, and failing closed removes a credit the user genuinely earned. The honest bound was never when the user ONBOARDED - it is when the RESERVE WAS HELD - and that field did not exist. expenseReserve.heldSince is stamped when the balance goes from nothing to something, carried while the hold lasts, and DROPPED when the pot empties (a refill is a new hold; dating it from the old one re-opens the same over-wide window).",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "a surprise BEFORE the hold began is not credited to it",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/payday.ts",
+          "find": "  return store.expenseReserve?.heldSince ?? store.onboardedAt ?? '';",
+          "replace": "  return store.onboardedAt ?? '';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a surprise BEFORE the hold began is not credited to it"
+    }
+  },
+  "S1P5-B5-10-HELDSINCE-CLOSED": {
+    "what": "pass-5 B5-10, the OTHER direction - and it is the direction that already caught one wrong fix. A fail-closed version was written during S1.12.5.8 and REVERTED because it broke storeActions.test.ts's 'a surprise during the hold -> tapped': that fixture has no onboardedAt and a genuine in-window surprise, so failing closed deletes a credit the user earned. The first RECOMMENDATION for S1.12.8 repeated the same mistake in a subtler form - 'fall back to the current cycle's start' - and measurement killed it: that fixture logs its surprise at 2026-07-01 against a currentDate of today, so a RECENT fallback is not a lower bound at all. Every branch of reserveHeldSince is therefore a true lower bound; they differ only in tightness. This entry plants the recent-fallback and requires the legacy fixture to red.",
+    "file": "apps/rn/src/store/payday.ts",
+    "token": "Every branch is a TRUE lower bound",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/payday.ts",
+          "find": "  return store.expenseReserve?.heldSince ?? store.onboardedAt ?? '';",
+          "replace": "  return store.expenseReserve?.heldSince ?? store.paycheck.currentDate;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a surprise during the hold"
     }
   },
   "S1P5-CONFLICT-MARKERS": {

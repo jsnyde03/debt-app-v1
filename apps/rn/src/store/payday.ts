@@ -214,7 +214,11 @@ function nextExpenseReserve(store: DebtStore, allocation: Allocation | null): De
   // Nothing held, nothing carried, nothing drawn → stay absent rather than persisting an empty record, so
   // a user who never touches the feature keeps a store indistinguishable from a pre-3.8 one.
   if (balance === 0 && !prior) return undefined;
-  return { balance };
+  // ⛔ S1.12.10 [DECISION S1.12.8] — stamp when the hold BEGINS, carry it while the hold lasts, drop it
+  // when the pot empties. An emptied reserve that refills later is a NEW hold, and dating it from the old
+  // one would re-open exactly the over-wide window this field was added to close.
+  const heldSince = balance === 0 ? undefined : (prior?.balance ?? 0) > 0 ? prior?.heldSince : store.paycheck.currentDate;
+  return heldSince ? { balance, heldSince } : { balance };
 }
 
 /** The settling-in reserve's release ack (2.4.11.4b): `tapped` = a surprise outflow drew on the reserve
@@ -223,31 +227,35 @@ function nextExpenseReserve(store: DebtStore, allocation: Allocation | null): De
  *  surprise — so it could claim the safety net "covered a $300 surprise" over a $50 held reserve, and
  *  credit it for surprises the ordinary cushion absorbed. Now: scope to surprises logged since onboarding,
  *  and credit the reserve only up to what it actually held (0 held → nothing "covered" → the neutral branch). */
+/**
+ * ⛔ **S1.12.10 [pass-5 `B5-10` · DECISION `S1.12.8` — 🎯 2026-08-30] — THE EARLIEST DATE THE RESERVE
+ * COULD HAVE BEEN HELD.** Every branch is a TRUE lower bound, so no branch can erase a credit the user
+ * earned; they differ only in how tight the bound is.
+ *
+ * ⚡ **`heldSince` is the real answer** and is stamped by `nextExpenseReserve` the moment a hold starts,
+ * so every hold created from here on is bounded exactly.
+ *
+ * ⚠️ **`onboardedAt` is the legacy bound, not the intended one.** The reserve cannot have been held
+ * before the user existed, so it is sound — but it is null for every restored / v1.6-upgraded user,
+ * because `completeOnboarding` stamps it while `inferOnboarding` does not. **Two producers of "this user
+ * has started" and only one writes the date.**
+ *
+ * ⛔ **`''` is retained ONLY where nothing else is knowable, and it is the pre-MF.5 width.** It is
+ * bounded by `Math.min(surpriseSum, heldReserve)` below, which is why the finding was a minor. ⚠️ It
+ * cannot be replaced by "the current cycle" — **measured**: `storeActions.test.ts`'s *"a surprise during
+ * the hold → tapped"* logs its surprise at `2026-07-01` against a `currentDate` of today, so a recent
+ * fallback deletes a genuine in-window credit. That was the trap in the first fix, and in the first
+ * recommendation for this one.
+ */
+export function reserveHeldSince(store: DebtStore): string {
+  return store.expenseReserve?.heldSince ?? store.onboardedAt ?? '';
+}
+
 function computeReserveRelease(store: DebtStore): { tapped: boolean; covered: number } {
   const round = (n: number) => Math.round(n * 100) / 100;
   const alloc = selectAllocation(store);
   const heldReserve = alloc ? round(selectHeldReserve(alloc)) : 0;
-  /**
-   * ⚠️ **S1.12.5.8 [pass-5 `B5-10`] — MEASURED, NOT FIXED, AND THE REASON IS RECORDED RATHER THAN THE
-   * CHANGE.** `''` is `<=` every ISO date string, so a null `onboardedAt` widens this filter to the
-   * ENTIRE surprise log — which this function's own docblock names as the pre-MF.5 defect. The release
-   * ack can then credit the safety net for outflows that happened before the reserve was ever held.
-   * ⚠️ Bounded by the `Math.min(surpriseSum, heldReserve)` below, which is why it is a minor.
-   *
-   * ⚡ **And a null `onboardedAt` is the ordinary state for a whole class of users.** It is stamped only
-   * by `completeOnboarding`, while a user arriving by **restore or v1.6 upgrade** gets
-   * `onboardingComplete: true` from `inferOnboarding` — two producers of *"this user has started"*, and
-   * only one stamps the date.
-   *
-   * ⛔ **A fail-closed version was WRITTEN AND REVERTED, because it broke a real case.** Treating a null
-   * date as *"credit nothing"* makes `storeActions.test.ts`'s *"a surprise during the hold → tapped"*
-   * fail: that fixture has no `onboardedAt` and a genuine in-window surprise, so failing closed removes
-   * a credit the user has actually earned. **The honest lower bound is when the RESERVE WAS HELD, not
-   * when the user onboarded**, and that field does not exist. Lane B declined to choose between stamping
-   * a restore date (which is not the user's real start) and keeping null; so does this. It is
-   * **[DECISION] S1.12.8** on the plan, with the measurement above.
-   */
-  const since = store.onboardedAt ?? '';
+  const since = reserveHeldSince(store);
   const surpriseSum = round(
     (store.surpriseOutflowLog ?? [])
       .filter((o) => o.cycleEndDate >= since)

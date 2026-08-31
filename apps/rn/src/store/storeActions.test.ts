@@ -447,6 +447,38 @@ function run() {
     // an established user (reserve never held) → no false release on rollover
     const established = applyRollover(plan({ genuineCycleCount: 6, priorReserveHeld: false }));
     eq(established.pendingReserveRelease ?? null, null, 'established (no reserve) → no false release');
+
+    /**
+     * ⛔ **S1.12.10 [pass-5 `B5-10` · DECISION `S1.12.8`] — THE WINDOW IS THE HOLD, NOT THE ONBOARDING.**
+     *
+     * ⚡ `onboardedAt` is null for every restored / v1.6-upgraded user, and `''` is `<=` every ISO date,
+     * so the filter used to widen to the ENTIRE surprise log — the pre-MF.5 defect, re-entered through
+     * the one field that is routinely absent. `expenseReserve.heldSince` is the honest bound.
+     *
+     * ⚠️ **Both directions, because either alone is passable by a wrong fix.** Crediting nothing passes
+     * the first row and reds the second; crediting everything passes the second and reds the first.
+     */
+    const stamped = applyRollover(
+      plan({
+        genuineCycleCount: 2,
+        priorReserveHeld: true,
+        expenseReserve: { balance: 300, heldSince: '2026-08-01' },
+        surpriseOutflowLog: [{ cycleEndDate: '2026-07-01', amount: 120 } as DebtStore['surpriseOutflowLog'][number]],
+      }),
+    );
+    eq(stamped.pendingReserveRelease?.covered, 0, '⛔ S1.12.10 — a surprise BEFORE the hold began is not credited to it');
+    eq(stamped.pendingReserveRelease?.tapped, false, '…and nothing covered means the ack does not claim it was tapped');
+
+    // ⭐ The other direction: the same stamp, a surprise INSIDE the window, still credited in full.
+    const inside = applyRollover(
+      plan({
+        genuineCycleCount: 2,
+        priorReserveHeld: true,
+        expenseReserve: { balance: 300, heldSince: '2026-08-01' },
+        surpriseOutflowLog: [{ cycleEndDate: '2026-08-15', amount: 120 } as DebtStore['surpriseOutflowLog'][number]],
+      }),
+    );
+    eq(inside.pendingReserveRelease?.covered, 120, '⭐ S1.12.10 — a surprise DURING the hold is still credited in full');
   }
 
   // ── 2.4.11.4c — "bills complete" attestation + surprise-outflow walk-back ──

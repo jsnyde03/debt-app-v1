@@ -499,4 +499,16 @@ export interface ExpenseReserve {
   /** THIS cycle's set-aside, keyed by the cycle it belongs to (`paycheck.nextPaycheckDate`, matching
    *  `cycleTopUp.forCycle`). Absent / stale key ⇒ nothing held this cycle. */
   contribution?: { forCycle: string; amount: number };
+  /**
+   * ⛔ **S1.12.10 [DECISION `S1.12.8` — 🎯 2026-08-30] — WHEN THE HOLD BEGAN.** The date the balance last
+   * went from nothing to something; carried unchanged while it stays positive, dropped when it empties.
+   *
+   * ⚡ **It exists because the release ack had no honest lower bound.** `computeReserveRelease` scoped its
+   * surprise window with `onboardedAt`, which is null for every restored / v1.6-upgraded user — and `''`
+   * is `<=` every ISO date, so the filter widened to the *entire* surprise log, the exact pre-MF.5 defect
+   * that function's own docblock names. ⛔ Both available answers were wrong in a measured direction:
+   * crediting everything over-credits, and failing closed removes a credit the user genuinely earned.
+   * **The honest bound was never when the user onboarded — it is when the RESERVE WAS HELD.**
+   */
+  heldSince?: string;
 }
