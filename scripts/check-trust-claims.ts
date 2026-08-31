@@ -514,7 +514,18 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
   'debt-balances': 3, // widget/snapshot.ts (the balance gate) + progress.tsx + celebrationSelectors.ts
   'goal-amounts': 1,
   'required-plan': 5,
-  'row-figures': 5,
+  /**
+   * ⛔ **6 at S1.12.5.6 [pass-5 `C5-3`]: `logPaymentCopy.ts` joined them, and the direction is the point.**
+   * `'row-figures'` was created as *"a single row restating its own money"* and wired into the LIST row,
+   * so its population was taken to be rows — and every **SHEET** restating the same row's money sat
+   * outside it by construction. "Log payment" therefore said **"Chase · $0 owed"** on a $12,000 card one
+   * tap below a row correctly printing an em dash.
+   *
+   * ⚠️ This gate's own failure line says the rule *"has now been widened three times and missed a
+   * different direction each time"*. **This is the fourth**, and lane C listed eight more sheets that
+   * reference no trust selector at all — a population to check, named in `C-screens.md`, not findings.
+   */
+  'row-figures': 6,
 };
 for (const claim of claims) {
   const actual = consumers.get(claim)!.length;
