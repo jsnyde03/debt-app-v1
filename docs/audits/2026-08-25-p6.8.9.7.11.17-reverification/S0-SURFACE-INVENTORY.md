@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**121 files on the S0 surface · 75 swept · 46 unswept.**
+**122 files on the S0 surface · 75 swept · 47 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -87,6 +87,7 @@
 | `scripts/check-money-format.ts` | p3 · partial |
 | `scripts/check-month-arithmetic.ts` | p1 · p2 · p3 · partial |
 | `scripts/check-native-a11y-props.ts` | p3 · partial |
+| `scripts/check-pass-coverage.ts` | ⛔ **never** |
 | `scripts/check-press-opacity.ts` | p3 · r17 · partial |
 | `scripts/check-restore-doors.ts` | s1p5 |
 | `scripts/check-rn-style-divergence.ts` | r17 |
@@ -172,6 +173,7 @@
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
 - `scripts/check-conflict-markers.ts`
+- `scripts/check-pass-coverage.ts`
 - `scripts/check-rounding.ts`
 - `scripts/check-runner-completeness.ts`
 - `scripts/collect-lane-diagnostics.mjs`
@@ -185,5 +187,5 @@
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
 
-<!-- claims-sha256: 0a4594f87341278a -->
+<!-- claims-sha256: 93d1c6ce59a9357f -->
 

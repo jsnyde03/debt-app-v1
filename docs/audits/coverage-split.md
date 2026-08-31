@@ -14,11 +14,11 @@
 | **✅ Covered — PROVEN** | **26** | proved OUTRIGHT: 20 by a native run `✅auto·<runId>` · 5 by a push-gate spec `✅gate` · 1 human-earned `[x]` |
 | **◐ Automatable half proven** | **19** | `[M◐]` — the lane's half is green; **the device-owed half is still owed** and its box stays for the human |
 | **⚠️ Claimed but UNPROVEN** | **0** | a flow declares it; no run has ever passed it. **These were counted as covered before 4.1.9c** |
-| **▶ Coverable, not yet built** | **60** | verdict permits automation, nothing claims it — 🎯 2026-08-17: **PHASE 6 device-pass work, ticked by a human; automating any of it is optional and non-gating.** ⛔ Most of these have never been verified by ANYONE, so this is verification debt, not automation debt. Exception: §12.1–§12.7 stay in 4.1.10 |
+| **▶ Coverable, not yet built** | **66** | verdict permits automation, nothing claims it — 🎯 2026-08-17: **PHASE 6 device-pass work, ticked by a human; automating any of it is optional and non-gating.** ⛔ Most of these have never been verified by ANYONE, so this is verification debt, not automation debt. Exception: §12.1–§12.7 stay in 4.1.10 |
 | **🎯 Permanently device-owed** | **26** | `[D]` — no lane will ever carry it |
 | | | |
 | **🎯 The device pass** | **52** | `[D]` **+** the human half of every `[M◐]` (26) |
-| Real checks | 131 | 9 further rows are `[—]` — install steps and report-back prompts |
+| Real checks | 137 | 9 further rows are `[—]` — install steps and report-back prompts |
 
 ⛔ **A declaration is an author's claim, not a result.** `COVERS:` says what a flow is *meant* to test;
 it cannot say whether the flow has ever executed, let alone passed. The 0 unproven rows are all
@@ -30,7 +30,7 @@ report, from a check that passes on every run.
 ✅ **Every machine-earned row was re-proved by the same run**, which is what `npm run stamp:coverage` produces from a green lane. ⚠️ It says *proved at that commit*, not *stable* — the checklist keeps no history.
 
 
-**Verdict spread:** `[M]` 66 · `[M◐]` 26 · `[A]` 3 · `[X]` 10 · `[D]` 26
+**Verdict spread:** `[M]` 72 · `[M◐]` 26 · `[A]` 3 · `[X]` 10 · `[D]` 26
 
 `[X]` = a **native driver** (XCUITest) can carry it. ⚠️ A verdict, not a status: these rows moved OUT of
 the device pass and INTO *coverable, not yet built*. Nothing about them is covered yet.
@@ -41,7 +41,7 @@ what comes off the device pass.
 
 ---
 
-## ▶ Coverable, not yet built — the remaining work (60)
+## ▶ Coverable, not yet built — the remaining work (66)
 
 | id | verdict | check | claimed by | proof |
 |---|---|---|---|---|
@@ -105,6 +105,12 @@ what comes off the device pass.
 | §12.6.1 | `[M◐]` | Turn VoiceOver on, then enter the demo. You hear "Example money. This is a demonstration with | — | ⚠️ **none** |
 | §12.6.3 | `[M]` | Swipe through the whole screen: you can reach the dock's two exits, and you cannot reach a tab | — | ⚠️ **none** |
 | §12.6.4 | `[M]` | The dock reads as one utterance — "Example money. Demonstration, 1 of 5." — not as fragments. | — | ⚠️ **none** |
+| §12.9.1 | `[M]` | [V2-6] On a first visit to Progress with the trajectory hint unseen, the page | — | ⚠️ **none** |
+| §12.9.2 | `[M]` | [V2-6] Immediately on landing on Progress, reach for "Snowball or avalanche?" | — | ⚠️ **none** |
+| §12.9.3 | `[M]` | [V2-6] With the hint up, tap the control it points at. It must still work — the hint | — | ⚠️ **none** |
+| §12.8.1 | `[M]` | [C9] With iCloud signed out, ••• More → Delete all data → confirm. | — | ⚠️ **none** |
+| §12.8.2 | `[M]` | [C9] Same state, tap "Delete on this device only". The local plan IS wiped, the | — | ⚠️ **none** |
+| §12.8.3 | `[M]` | [C9] Sign back into iCloud and relaunch. The surviving backup is offered for | — | ⚠️ **none** |
 
 ---
 
@@ -146,7 +152,7 @@ run that has ever passed it. Until one does, it is a plan, not coverage.
 | §12.4.4 | `[M]` | "Start my real plan" → onboarding, no demo running, and your own plan is untouched — | `demo-containment` ᵂ | `✅gate` |
 | §12.5.2 | `[M]` | Scroll the content hard. The marker does not move — it sits above the scroller. | `demo-containment` ᵂ | `✅gate` |
 | §12.5.3 | `[M]` | It is said once in the dock too? No — it must appear in exactly ONE place. Two is a defect. | `demo-containment` ᵂ | `✅gate` |
-| §12.7.1 | `[M]` | ••• More → Preferences → "Share anonymous usage" is present, ON by default, and toggling it | `analytics-optout` ᵂ | `✅gate` |
+| §12.7.1 | `[M]` | ⛔ REWRITTEN 2026-08-24 [M1-8 · P6.8.9.7.2] — the old row was FALSE. It read | `analytics-optout` ᵂ | `✅gate` |
 
 ---
 

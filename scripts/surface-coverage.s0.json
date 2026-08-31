@@ -274,6 +274,9 @@
   "scripts/check-conflict-markers.ts": [
     "never"
   ],
+  "scripts/check-pass-coverage.ts": [
+    "never"
+  ],
   "scripts/check-rounding.ts": [
     "never"
   ],

@@ -2241,6 +2241,38 @@
       "sha": "016bf441"
     }
   },
+  "S1-PASS-COVERAGE-FLOOR": {
+    "what": "S1.13.1 + S1.13.2 - a pass's coverage is a checkable EXIT now, not lane prose. Measured the moment it existed: pass 5 read 86 of 446 money-bearing files (19%), pass 4 read 103. The lane reports said '393 routed, 126 read', which counted non-money files and files other passes had claimed. >>> THIS ENTRY GUARDS A FAIL-OPEN THAT WRITING THE GUARD FOUND, IN THE INSTRUMENT ITSELF: if carriesMoneyClaim goes blind - a broken regex, an unreadable root, a refactor dropping the content read - then money is empty, unread is empty, and the exit reports every pass fully covered. A coverage check that passes because it found nothing to cover is this round's defining shape, and it was in the file built to end it. Floored at 424, 95% of the 446 measured on 2026-08-31, per the margin gate-scan-floors.json states. >>> NOTE it does NOT prune: the plan said drop the 71 non-money files from the route, and the switch-in scan killed that against the code - S1's roots are whole directories and `excluded` fails safe ('a file nobody thought about is still counted'), and those roots have been widened five times, each undoing a hand-narrowed set. Files are classified; nothing leaves the surface.",
+    "file": "scripts/check-pass-coverage.ts",
+    "token": "if (money.length < MIN_MONEY_BEARING) {",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-pass-coverage.ts",
+          "find": "  if (MONEY_RE.test(rel)) return true;",
+          "replace": "  if (!MONEY_RE.test(rel)) return false;"
+        }
+      ],
+      "run": "audit:read-coverage",
+      "expect": "The predicate has gone blind"
+    }
+  },
+  "S1-PASS-COVERAGE-EMPTY": {
+    "what": "S1.13.2, the other blinding mode. The exit reads its population from the surface's claims file; if that file is ever emptied or its parse yields nothing, 'all money-bearing files read' is true of zero files. Same shape as the money-predicate fail-open above and as GAP-8's scan floors, one level up: the check cannot distinguish 'covered' from 'nothing was looked at' unless it refuses an empty population by name. Also refuses claimed files that are not tracked - coverage over a file that does not exist is not coverage - because a claims file drifting off the tree is the quieter version of the same failure.",
+    "file": "scripts/check-pass-coverage.ts",
+    "token": "the population is empty, so any coverage number it produced would be meaningless",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-pass-coverage.ts",
+          "find": "const files = Object.keys(claims);",
+          "replace": "const files: string[] = [];"
+        }
+      ],
+      "run": "audit:read-coverage",
+      "expect": "the population is empty"
+    }
+  },
   "S1P5-CONFLICT-MARKERS": {
     "what": "S1.12.11 - five tracked files (app/page.tsx, three hooks, a root e2e spec) carried unresolved merge-conflict markers from 2026-08-25, and were still carrying them 177 commits later. The root Next app could not parse, so its ENTIRE e2e suite had been un-runnable for five days; 42 gates read green over a tree containing <<<<<<< because not one of them looks at app/ (surface-coverage marks it 'legacy Next surface - deleted at P6.11', and scheduled-for-deletion is not deleted). Surfaced only because a mistyped command started the one webserver nobody had started since. >>> The gate's population is `git ls-files`, NOT a directory list: on its first run it found a SIXTH file - app/styles/03-nav-results-modals.css - that the git grep hunting this class had missed, because that grep was scoped to *.ts *.tsx *.js *.mjs *.json. A scope list hiding a member of the class, inside the search for the class.",
     "file": "scripts/run-gates.ts",
