@@ -521,7 +521,9 @@
         }
       ],
       "run": "typecheck",
-      "expect": "src/store/payday.ts"
+      "expect": "src/store/payday.ts",
+      "measured": "2026-08-31",
+      "sha": "fae240e8"
     }
   },
   "S1P4-C4-3-BOTHDIRECTIONS": {
