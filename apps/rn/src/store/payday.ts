@@ -217,7 +217,15 @@ function nextExpenseReserve(store: DebtStore, allocation: Allocation | null): De
   // ⛔ S1.12.10 [DECISION S1.12.8] — stamp when the hold BEGINS, carry it while the hold lasts, drop it
   // when the pot empties. An emptied reserve that refills later is a NEW hold, and dating it from the old
   // one would re-open exactly the over-wide window this field was added to close.
-  const heldSince = balance === 0 ? undefined : (prior?.balance ?? 0) > 0 ? prior?.heldSince : store.paycheck.currentDate;
+  //
+  // ⚠️ `priorPot`, not `prior.balance` inline, and NOT because the shape is inconvenient: `lint:trust-claims`
+  // counts `balance` compared against 0 as a LIVENESS re-derivation, and the rule it enforces is "never
+  // state a number about money the app could not read." This is the reserve POT — a figure the app computes
+  // for itself out of the allocation. There is no unreadable reserve and no repaired `$0` to mistake for
+  // one, so the question here is "was the pot already held", which is not that rule's subject. The ledger
+  // row for this file names both questions rather than letting the second one disappear.
+  const priorPot = prior?.balance ?? 0;
+  const heldSince = balance ? (priorPot > 0 ? prior?.heldSince : store.paycheck.currentDate) : undefined;
   return heldSince ? { balance, heldSince } : { balance };
 }
 

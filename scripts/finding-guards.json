@@ -2218,13 +2218,15 @@
         }
       ],
       "run": "test:app",
-      "expect": "a surprise BEFORE the hold began is not credited to it"
+      "expect": "a surprise BEFORE the hold began is not credited to it",
+      "measured": "2026-08-31",
+      "sha": "fd7e1784"
     }
   },
   "S1P5-B5-10-HELDSINCE-CLOSED": {
     "what": "pass-5 B5-10, the OTHER direction - and it is the direction that already caught one wrong fix. A fail-closed version was written during S1.12.5.8 and REVERTED because it broke storeActions.test.ts's 'a surprise during the hold -> tapped': that fixture has no onboardedAt and a genuine in-window surprise, so failing closed deletes a credit the user earned. The first RECOMMENDATION for S1.12.8 repeated the same mistake in a subtler form - 'fall back to the current cycle's start' - and measurement killed it: that fixture logs its surprise at 2026-07-01 against a currentDate of today, so a RECENT fallback is not a lower bound at all. Every branch of reserveHeldSince is therefore a true lower bound; they differ only in tightness. This entry plants the recent-fallback and requires the legacy fixture to red.",
-    "file": "apps/rn/src/store/payday.ts",
-    "token": "Every branch is a TRUE lower bound",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "a surprise during the hold",
     "proof": {
       "unfix": [
         {
@@ -2234,7 +2236,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "a surprise during the hold"
+      "expect": "a surprise during the hold",
+      "measured": "2026-08-31",
+      "sha": "fd7e1784"
     }
   },
   "S1P5-CONFLICT-MARKERS": {
