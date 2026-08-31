@@ -29820,3 +29820,52 @@ than silently skipped; it earns an entry when that lane is next built.
 it is exactly what `lint:cap-literals` exists to refuse. Replaced with the measured literal.
 **An invalid-JSON registry**, written because the script validated *after* writing. Reverted and rebuilt
 through `json.dumps` so escaping is the serialiser's job, not mine.
+
+---
+
+## S1.13.7.3 — NaN blindness, 2026-08-31
+
+**5 findings closed.** `lint:rn` 44/44, `test:regression` + `test:app` green, 2 guards proven.
+
+⛔ **`NaN` compares `false` to everything, so every guard written as a comparison was blind to it** —
+`Math.abs(a − b) > tol`, `x < 0`, `x > 0`. The `throw` beneath such a check is unreachable: the assertion
+passes and prints a green tick over a value that is not a number. ⚡ **Two lanes found it independently, in
+different files, on different spellings**, which is what made it a class rather than a bug.
+
+⛔ **And the user never sees `NaN`** — `formatWhole` renders it as **`$0`**, to the screen and to
+VoiceOver. The failure mode is a confident zero, not a visible crash.
+
+**The rule lives once now** (`packages/core/testing/assertNumeric.ts`), called by all five tolerance
+helpers and both `endingBalance` guards. ⚠️ **The rule was shared, not the assertion**: there were five
+copies across three directories under two signatures, and unifying those would have rewritten every call
+site in the regression suites — a large diff whose failure mode is a silently dropped assertion, which is
+the very class being fixed. **The duplication that mattered was the rule, not the wrapper.**
+
+⚠️ **The first plant redded for the wrong reason and that mattered.** Planting `NaN` into
+`projectCurrentBalance` exits 1 — but on an earlier strict-equality row (`expected 1000, got null`), never
+reaching a tolerance assertion. Re-planted into `computeDrift`, where `A2-6` measured the tolerance
+assertion failing to fire, it reds correctly: *"days behind (positive) failed: received NaN, which is not
+a finite number."* **An exit code is not a proof until you know which claim produced it.**
+
+### ⛔ `A3-9`: the conservative income FLOOR was anchored to the observed MAXIMUM
+
+`suggestLean`'s fallback — reached whenever `typicalAmount` is blank, because `incomeLearning.ts` passes
+`Number(...) || 0` — used `sorted[sorted.length - 1]`. **The single most outlier-sensitive statistic there
+is, in a function whose docstring promises *"one bad entry can't move lean."***
+
+| actuals, no typical entered | before | after |
+|---|---|---|
+| `[1000, 1000, 50000]` | **$42,500** | **$850** |
+| the same at N=12 | $4,250 | $850 |
+| with a typical entered | $1,020 | **$1,020** *(unchanged — the fix touches only the fallback)* |
+
+The anchor is the **median**: it is what *"typical"* means, and one absurd entry moves it by at most one
+rank. Deliberately **not** the mean, which fails the same way more quietly.
+
+⛔ **A TEST ASSERTED THE DEFECT AS CORRECT, AND NAMED IT:** `"N<12, no typical → max(2100) × 0.85"`.
+**Replaced, not deleted** — the arity it covers is exactly the branch that failed, so removing it would
+drop the only coverage of the thing being fixed — and the regression case was added beside it.
+
+⚠️ `C2-5` and `B2-5` were the same shape in product code: `Math.max(0, NaN)` is `NaN`, so neither clamp
+clamped. The verified-balance write now **refuses** rather than coercing — it is the one number the user is
+explicitly asserting is true.

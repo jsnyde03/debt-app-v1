@@ -2300,7 +2300,9 @@
         "tsx",
         "packages/core/income/testSuggestLean.ts"
       ],
-      "expect": "median(2000)"
+      "expect": "median(2000)",
+      "measured": "2026-08-31",
+      "sha": "9dbdb904"
     }
   },
   "S1P6-D2-5-ASSERTFLOOR": {
