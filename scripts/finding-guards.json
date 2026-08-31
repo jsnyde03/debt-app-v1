@@ -1168,7 +1168,7 @@
       "unfix": [
         {
           "at": "apps/rn/src/widget/snapshot.ts",
-          "find": "  const mayStateBalances = mayClaim(store, 'debt-balances');",
+          "find": "  const mayStateBalances = mayClaim(store, 'debt-balances') && mayClaim(store, 'row-figures');",
           "replace": "  const mayStateBalances = true;"
         }
       ],

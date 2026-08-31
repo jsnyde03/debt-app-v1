@@ -12,6 +12,12 @@ private struct DebtSnapshotRead: Codable {
     var debtFreeDate: String = "—"
     var remaining: String = "$0"
     var guardianSpoken: String = ""
+    /// S1.13.7.4 [pass-6 C3-1] — true when the app must not state a balance-derived figure.
+    /// Defaults to `false` so an OLD snapshot written before this key existed still speaks; the JS side
+    /// always writes it now. Read it rather than string-matching `debtFreeDate`: this file already
+    /// matches "Debt-free" by literal and its own comment records that a TS-scoped sweep cannot see
+    /// a .swift file, so a second literal would be a second thing for that sweep to miss.
+    var balancesUnread: Bool = false
 
     static func load() -> DebtSnapshotRead {
         guard
@@ -40,6 +46,11 @@ struct DebtFreeDateIntent: AppIntent {
         // sweep runs over the REPO ROOT with no directory list: a TypeScript-scoped search cannot see a
         // `.swift` file, and a silent mismatch here does not crash — Siri just stops recognising the
         // debt-free state and reads "on track to be debt-free by Debt-free" instead.
+        // ⛔ C3-1 — the refusal is a STATE, not a date. Interpolating the sentinel produced
+        // "You’re on track to be debt-free by Balances unread."
+        if snap.balancesUnread {
+            return .result(dialog: "Some of your balances couldn’t be read, so I can’t give you a date yet. Open Debt Planner and set them again.")
+        }
         if snap.debtFreeDate == "Debt-free" {
             return .result(dialog: "You’re debt-free — nicely done.")
         }
@@ -58,6 +69,10 @@ struct RemainingDebtIntent: AppIntent {
         let snap = DebtSnapshotRead.load()
         if !snap.hasData {
             return .result(dialog: "You don’t have any debts in Debt Planner yet.")
+        }
+        // ⛔ C3-1 — the same sentinel reached this sentence as "You have — in debt remaining."
+        if snap.balancesUnread {
+            return .result(dialog: "Some of your balances couldn’t be read, so I can’t total them yet. Open Debt Planner and set them again.")
         }
         return .result(dialog: "You have \(snap.remaining) in debt remaining.")
     }

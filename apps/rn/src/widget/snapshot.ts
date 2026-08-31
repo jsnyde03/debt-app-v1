@@ -27,6 +27,20 @@ export interface WidgetSnapshot {
   hasData: boolean;
   /** "October 2027" · "Debt-free" when all debts are cleared · "—" when unknowable. */
   debtFreeDate: string;
+  /**
+   * ⛔ **S1.13.7.4 [pass-6 `C3-1`] — A FLAG, BECAUSE SIRI WAS SPEAKING THE REFUSAL SENTINELS ALOUD.**
+   *
+   * `debtFreeDate` carries `'Balances unread'` / `'—'` when the app must not state a figure, and the
+   * widget renders it under a STATIC label, which reads correctly. **Siri interpolates it into a
+   * sentence**, so the same string became *"You’re on track to be debt-free by Balances unread."* and
+   * *"You have — in debt remaining."*
+   *
+   * ⚠️ **A boolean rather than another string comparison in Swift.** `SiriQueryIntents.swift` already
+   * matches `"Debt-free"` by literal, and its own comment records the hazard: *"a TypeScript-scoped
+   * search cannot see a `.swift` file, and a silent mismatch here does not crash."* Adding a second
+   * literal would add a second thing for that sweep to miss; a flag cannot drift in spelling.
+   */
+  balancesUnread: boolean;
   /** 0..1 for the SwiftUI ring/Gauge. Clamped. */
   pctPaid: number;
   /** "22%". */
@@ -156,7 +170,28 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
    * strings verbatim under STATIC labels (*"DEBT-FREE DATE"*), so "Balances unread" reads as *"we cannot
    * give you a date"* on every family. JS is the only place a guard can live.
    */
-  const mayStateBalances = mayClaim(store, 'debt-balances');
+  /**
+   * ⛔ **S1.13.7.4 [pass-6 `C3-5`] — THE GUARD WAS COMPUTED OVER DIFFERENT FIELDS THAN THE NUMBER IS
+   * COMPUTED FROM.**
+   *
+   * `'debt-balances'` routes `balance` and `originalBalance`. But `C5-2` correctly moved these figures
+   * onto the **PROJECTED** store, and `projectCurrentBalance` reads **`apr` and `minimumPayment`** — which
+   * route to `'row-figures'`, and only there. So the pass-5 fix changed what the number is computed FROM
+   * without changing what the guard is computed OVER.
+   *
+   * ⚡ Measured, one variable: a premium user whose imported **APR** was unreadable reads **$6,500** on the
+   * Home Screen and hears it from Siri, against a true **$8,931** — and `mayClaim('debt-balances')` is
+   * `true`, so nothing refuses. The mirror case (unreadable minimum) reads **$11,800**.
+   *
+   * ⛔ **And the payload contradicted itself**: on that store `guardianSpoken` is `""` — it refuses to
+   * speak the Guardian read *because* the minimum is unread — while the total beside it is computed from
+   * that same minimum.
+   *
+   * ⚠️ Both claims, not a widened route: `'debt-balances'` must keep meaning *"the balances are readable"*
+   * for the surfaces that show a RAW balance, or the fix becomes over-suppression — *a suppression that
+   * never lets the good state through is a second false statement, not a fix.*
+   */
+  const mayStateBalances = mayClaim(store, 'debt-balances') && mayClaim(store, 'row-figures');
 
   // Has debts but none live → they've cleared everything. Otherwise the projected payoff date (or —).
   const cleared = debts.length > 0 && live.length === 0 && mayStateBalances;
@@ -175,6 +210,7 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
     debtFreeDate,
     // ⚠️ `0` rather than the computed fraction: there is no indeterminate state for a `Gauge`/`ProgressRing`
     // without a native change, and an empty ring beside a "—" label is the honest one of the two.
+    balancesUnread: !mayStateBalances,
     pctPaid: mayStateBalances ? pct : 0,
     pctLabel: mayStateBalances ? `${Math.round(pct * 100)}%` : '—',
     remaining: mayStateBalances ? formatWhole(totalCurrent) : '—',

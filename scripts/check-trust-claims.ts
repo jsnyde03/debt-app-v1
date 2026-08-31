@@ -559,7 +559,16 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
    * 'amount')` BESIDE its own copy of the identical figure — the guarded twin, one tab over, for two
    * rounds. A per-file count cannot see that: the same number, computed twice, guarded once.
    */
-  'row-figures': 7,
+  /**
+   * ⛔ **8 at `S1.13.7.4` [pass-6 `C3-5`]: `widget/snapshot.ts` joined them, and the reason is the class.**
+   *
+   * The widget's guard was computed OVER `'debt-balances'` while the number was computed FROM the
+   * PROJECTED store — and `projectCurrentBalance` reads `apr` and `minimumPayment`, which route to
+   * `'row-figures'` and only there. ⚡ Pass 5's `C5-2` fix changed what the figure is derived from without
+   * changing what the guard asks about, so an unreadable APR gave **$6,500** against a true **$8,931**
+   * with `mayClaim('debt-balances')` returning `true`.
+   */
+  'row-figures': 8,
 };
 for (const claim of claims) {
   const actual = consumers.get(claim)!.length;
