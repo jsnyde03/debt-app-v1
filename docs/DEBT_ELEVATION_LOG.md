@@ -29428,3 +29428,20 @@ nothing."* I read that message **after** the commit in the same command had alre
 `git commit` behind the gate instead of gating on it. ⚠️ **Same mechanism as the other three: the gate's
 verdict was on screen and the commit did not depend on it.** Corrected — the token points at the assertion
 now — but the pattern is mine and it is the one this pass exists to close.
+
+---
+
+## 2026-08-31 — S1.12.5.9 · THE NET, GREEN AND PUSHED
+
+typecheck ×4 · `lint:rn` **43/43** · `test:regression` + `test:app` + `test:scenarios` · e2e **338/338
+(8.9m, zero error blocks)** · embed **10/10** · tree at 0 modified. Pushed as `4cf6888d`.
+
+⚠️ **The `vis5-cone` flake, measured rather than filed.** The first full run was 337/1 - the variable-income
+Safe-floor row. Three measurements say timing, not regression: **2/2 passing alone**, **338/338 on two
+separate full runs**, and the fixture carries no `per-paycheck` recurrence, so the CLASS V cadence work
+cannot reach it. The assertion is a 5-second `toBeVisible` against a chart that animates, under full-suite
+load. Recorded here so the next person who sees it red has the three data points rather than one.
+
+⛔ **No `gate:record`, deliberately.** [D74] writes the gate record at convergence. Pass 5 found 8 blockers
+and 15 majors; [D65] needs 0/0 twice consecutively, so the record stays unwritten and S1.13 (pass 6) is
+the active build.
