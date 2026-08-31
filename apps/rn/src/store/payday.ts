@@ -227,6 +227,26 @@ function computeReserveRelease(store: DebtStore): { tapped: boolean; covered: nu
   const round = (n: number) => Math.round(n * 100) / 100;
   const alloc = selectAllocation(store);
   const heldReserve = alloc ? round(selectHeldReserve(alloc)) : 0;
+  /**
+   * ⚠️ **S1.12.5.8 [pass-5 `B5-10`] — MEASURED, NOT FIXED, AND THE REASON IS RECORDED RATHER THAN THE
+   * CHANGE.** `''` is `<=` every ISO date string, so a null `onboardedAt` widens this filter to the
+   * ENTIRE surprise log — which this function's own docblock names as the pre-MF.5 defect. The release
+   * ack can then credit the safety net for outflows that happened before the reserve was ever held.
+   * ⚠️ Bounded by the `Math.min(surpriseSum, heldReserve)` below, which is why it is a minor.
+   *
+   * ⚡ **And a null `onboardedAt` is the ordinary state for a whole class of users.** It is stamped only
+   * by `completeOnboarding`, while a user arriving by **restore or v1.6 upgrade** gets
+   * `onboardingComplete: true` from `inferOnboarding` — two producers of *"this user has started"*, and
+   * only one stamps the date.
+   *
+   * ⛔ **A fail-closed version was WRITTEN AND REVERTED, because it broke a real case.** Treating a null
+   * date as *"credit nothing"* makes `storeActions.test.ts`'s *"a surprise during the hold → tapped"*
+   * fail: that fixture has no `onboardedAt` and a genuine in-window surprise, so failing closed removes
+   * a credit the user has actually earned. **The honest lower bound is when the RESERVE WAS HELD, not
+   * when the user onboarded**, and that field does not exist. Lane B declined to choose between stamping
+   * a restore date (which is not the user's real start) and keeping null; so does this. It is
+   * **[DECISION] S1.12.8** on the plan, with the measurement above.
+   */
   const since = store.onboardedAt ?? '';
   const surpriseSum = round(
     (store.surpriseOutflowLog ?? [])

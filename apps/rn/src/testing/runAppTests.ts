@@ -143,6 +143,8 @@ async function main() {
   // S1.12.5.4 [pass-5 C5-1] - nothing derived from an unreadable balance may reach the screen.
   // S1.12.5.6 [pass-5 C5-3] - the log-payment sheet states the same balance the row does.
   await (await import('../store/logPaymentCopy.test')).default();
+  // S1.12.5.8 [pass-5 C5-6] - the paywall's per-month anchor across real store currencies.
+  await (await import('../premium/perMonthAnchor.test')).default();
 
   await import('../store/payoffViewGag.test');
 

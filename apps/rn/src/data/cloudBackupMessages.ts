@@ -9,7 +9,8 @@
  * ⚠️ No `react-native` import may enter this file, or `test:app` (plain node, no RN mocks) stops loading it.
  */
 
-export type CloudBackupOutcomeKind = 'ok' | 'unavailable' | 'no-backup' | 'error' | 'remote-unclaimed';
+/** ⛔ [pass-5 B5-11] `remote-unreadable` is distinct from `unavailable`: the user IS signed in. */
+export type CloudBackupOutcomeKind = 'ok' | 'unavailable' | 'no-backup' | 'error' | 'remote-unclaimed' | 'remote-unreadable';
 
 export interface CloudBackupActionLike {
   result: CloudBackupOutcomeKind;
@@ -48,12 +49,26 @@ export const REMOTE_UNCLAIMED = 'iCloud already has a backup that this device ha
  *    sentence — a user told nothing about a condition the code had diagnosed precisely.
  * 4. Only then the per-reason fallbacks.
  */
+/**
+ * ⛔ [pass-5 `B5-11`] The honest sentence for *"you are signed in and iCloud will not tell us when this
+ * backup was written."* It states what is true and what the app did, and asks for nothing — because
+ * there is nothing the user can do. ⭐ Their data is untouched: the guard refuses rather than overwrites.
+ */
+export const REMOTE_UNREADABLE =
+  'iCloud isn’t reporting when this backup was last written, so it wasn’t replaced. Your data is safe — try again later.';
+
 export function cloudBackupMessage(action: CloudBackupActionLike, success: string): string {
   const { result, message } = action;
   if (result === 'ok') return success;
   if (result === 'remote-unclaimed') return REMOTE_UNCLAIMED;
   if (message) return message;
   if (result === 'no-backup') return NO_BACKUP_YET;
+  /**
+   * ⛔ **S1.12.5.8 [pass-5 `B5-11`]** — `'remote-unreadable'` is NOT `'unavailable'`. The user is signed
+   * in; iCloud simply will not report the backup's timestamp. Telling them to sign in names an action
+   * they have already taken and cannot repeat, forever.
+   */
+  if (result === 'remote-unreadable') return REMOTE_UNREADABLE;
   if (result === 'unavailable') return SIGN_IN_TO_ICLOUD;
   return GENERIC_FAILURE;
 }

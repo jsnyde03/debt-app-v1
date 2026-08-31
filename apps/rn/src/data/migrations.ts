@@ -260,8 +260,24 @@ export function runMigrations(raw: unknown): DebtStore {
   const paycheck = { ...base.paycheck, ...(r.paycheck ?? {}) };
   // `paycheck.amount` is deliberately a STRING on both sides — it mirrors the input model and is parsed at
   // the engine boundary — so it is normalised to a string rather than to a number.
-  if (paycheck.amount !== undefined && typeof paycheck.amount !== 'string') {
-    paycheck.amount = paycheck.amount === null || typeof paycheck.amount === 'object' ? '' : String(paycheck.amount);
+  /**
+   * ⛔ **S1.12.5.8 [pass-5 `B5-6`] — THE `!== undefined` HALF LET ONE SHAPE THROUGH UNNORMALISED.**
+   *
+   * ⚡ Measured across every input shape: `"1200"` → `"1200"`, `1200` → `"1200"`, `null` → `""`,
+   * `{}` → `""`, `[1,2]` → `""`, `true` → `"true"` — **and `undefined` → `undefined`**, with the type
+   * still declaring `string`. `{ ...base.paycheck, ...r.paycheck }` lets an explicitly-present
+   * `amount: undefined` overwrite the default `''`, and this guard then skipped it.
+   *
+   * ⛔ **The consequence is the failure `inferOnboarding` exists to stop.** It tests
+   * `typeof paycheck.amount === 'string'`, so an `undefined` amount reads as *"no income"* and routes a
+   * store back to onboarding **with the user's data already imported**.
+   *
+   * ⚠️ **Not reachable through JSON** — JSON has no `undefined` — so the door would be an in-memory
+   * object (`mapLegacyStore`'s partial, or a direct `importStore`), and lane B traced neither to a
+   * producer. That bound is why it is a minor; `undefined` now lands at `''` like `null`.
+   */
+  if (typeof paycheck.amount !== 'string') {
+    paycheck.amount = paycheck.amount == null || typeof paycheck.amount === 'object' ? '' : String(paycheck.amount);
   }
   // v3/v4 backfill: a debt with no user-confirmation date is treated as confirmed "now"; the projection
   // anchor defaults to that same date (balance is as-of when it was last confirmed).

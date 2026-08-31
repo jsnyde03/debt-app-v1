@@ -610,4 +610,52 @@ console.log(`✅ readBackup router tests passed (${passed} asserts).`);
   assert(true, '⛔ F-B3 — migrations.ts emits no UNNAMED parenthesised field, so no third synthetic loss can arrive unclassified');
 }
 
+
+/**
+ * ⛔ **S1.12.5.8 [pass-5 `B5-5` · `B5-6`] — TWO SHAPES OF `paycheck.amount` THE READ SIDE MISHANDLED.**
+ *
+ * ⚡ `B5-5`: with `"1,200"` the pre-overwrite sentence read *"This replaces 1 debt…"* and omitted **the
+ * paycheck** — the sentence that names what the user is about to lose, one line above an irreversible
+ * replace. `Number("1,200")` is `NaN`. ⛔ `paycheck.amount` is the one money field kept as a STRING, so
+ * it sits outside `readMoney`'s repairable set — and `readMoney` is where the comma tolerance lives.
+ *
+ * ⚡ `B5-6`: every other input shape normalised and `undefined` did not, while the type said `string`.
+ * `inferOnboarding` tests `typeof amount === 'string'`, so that reads as *"no income"* and routes a store
+ * back to onboarding **with the user's data already imported**.
+ */
+{
+  const withAmount = (amount: unknown): DebtStore =>
+    runMigrations({
+      version: 8,
+      paycheck: { amount, currentDate: '2026-03-02', nextPaycheckDate: '2026-03-16' },
+      debts: [{ id: 'd1', name: 'Visa', balance: 100, minimumPayment: 10, apr: 0, dueDate: '2026-03-02', type: 'debt', recurrence: 'monthly' }],
+      prefs: { onboardingComplete: true },
+    } as never) as DebtStore;
+
+  assert(
+    describeLocalOverwrite(withAmount('1,200')).includes('the paycheck'),
+    '⛔ B5-5 — a grouped amount still names the paycheck in the pre-overwrite warning',
+  );
+  // ⭐ CONTROLS. "always say the paycheck" passes the row above; these are what separate the two.
+  assert(
+    describeLocalOverwrite(withAmount('1200')).includes('the paycheck'),
+    '⭐ B5-5 control — …as does an ungrouped one',
+  );
+  assert(
+    !describeLocalOverwrite(withAmount('')).includes('the paycheck'),
+    '⭐ B5-5 control — and a store with NO income does not claim one',
+  );
+
+  // ⛔ B5-6 — every shape lands on a string, `undefined` included.
+  for (const input of [undefined, null, 1200, '1200', {}, [1, 2], true]) {
+    const out = withAmount(input).paycheck.amount;
+    assert(
+      typeof out === 'string',
+      `⛔ B5-6 — paycheck.amount is a string for every input shape (${JSON.stringify(input)} gave ${typeof out})`,
+    );
+  }
+  // ⭐ CONTROL — normalising must not flatten a real value to "".
+  eq(withAmount(1200).paycheck.amount, '1200', '⭐ B5-6 control — a real number still becomes its string');
+}
+
 console.log(`✅ readBackup onboarding-gate tests passed.`);

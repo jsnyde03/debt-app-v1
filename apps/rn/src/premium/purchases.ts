@@ -43,6 +43,20 @@ export interface PackageLike {
     priceString: string;
     /** Raw price for any subordinate per-unit display. */
     price: number;
+    /**
+     * ISO-4217 code for `price`, when the store supplies one.
+     *
+     * ⛔ **S1.12.5.8 [pass-5 `C5-6`] — WITHOUT IT THE PER-MONTH ANCHOR CANNOT BE FORMATTED, ONLY GUESSED.**
+     * The paywall derived a symbol by stripping digits out of `priceString` and re-composed it with US
+     * placement and US separators — so a euro store's card read **29,99 €** and the line beneath it read
+     * **€2.50**, and a won store's read **₩3250.00**, which is neither grouped nor a real KRW amount.
+     * Placement, separator and minor-unit count all come from the code, and `priceString` alone carries
+     * none of them recoverably.
+     *
+     * ⚠️ **Optional, because a `PackageLike` may be built from a source that has no code** — and the
+     * paywall's fallback when it is absent is to DROP the anchor rather than misformat it.
+     */
+    currencyCode?: string;
     title: string;
     identifier: string;
     /**

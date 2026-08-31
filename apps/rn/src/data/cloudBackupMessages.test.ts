@@ -140,5 +140,34 @@ export default async function run() {
     assert(sheet.includes('restoreConfirmDisabled(busy, previewing)'), '⛔ C4-6 — …and gates the confirm on it, not on a constant');
   }
 
+
+  /**
+   * ⛔ **S1.12.5.8 [pass-5 `B5-11`] — A SIGNED-IN USER WAS TOLD TO SIGN IN, FOREVER.**
+   *
+   * ⚡ `backupToCloudGuarded` returned `'unavailable'` when the backup file exists and its `mtimeMs`
+   * cannot be read — measured with `provider.isAvailable() === true`, i.e. the user IS signed in — and
+   * this mapping rendered that as **"Sign in to iCloud on this device to use backup."** There is no
+   * action they can take, and every later automatic backup is refused the same way for as long as the
+   * mtime stays unreadable, so the sentence repeats forever.
+   *
+   * ⭐ **Nothing is destroyed** (`writes = 0`), which is the safe direction the guard intends — the
+   * defect was the sentence, not the refusal.
+   */
+  {
+    const unreadable = cloudBackupMessage({ result: 'remote-unreadable' }, 'backed up');
+    assert(unreadable !== SIGN_IN_TO_ICLOUD, '⛔ B5-11 — an unreadable remote does not tell a signed-in user to sign in');
+    assert(!/sign in/i.test(unreadable), '⛔ B5-11 — …and asks for no action they have already taken');
+    assert(/safe|isn’t|not replaced|wasn’t/i.test(unreadable), '⛔ B5-11 — …while still saying their data is intact');
+    // ⭐ CONTROLS. A mapping that returned the same string for everything satisfies the rows above.
+    assert(
+      cloudBackupMessage({ result: 'unavailable' }, 'backed up') === SIGN_IN_TO_ICLOUD,
+      '⭐ B5-11 control — a genuinely unavailable provider DOES still say sign in',
+    );
+    assert(
+      cloudBackupMessage({ result: 'ok' }, 'backed up') === 'backed up',
+      '⭐ B5-11 control — success is untouched',
+    );
+  }
+
   console.log(`✅ cloud backup message mapping (M3-5) tests passed (${passed} asserts).`);
 }

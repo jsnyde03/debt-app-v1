@@ -39,6 +39,20 @@ const EXEMPT = [
   join('utils', 'formatCurrency.ts'),
   join('utils', 'format.ts'),
   join('components', 'payoff', 'TrajectoryChart.tsx'), // compact axis labels ($4k) — a different job
+  /**
+   * ⛔ **S1.12.5.8 [pass-5 `C5-6`] — AN APP STORE PRICE IS NOT THE APP'S OWN MONEY VOICE.**
+   *
+   * `formatCurrency` is USD-shaped by design and states the user's money in the app's own convention.
+   * This figure is a **store price**: its placement, separator and minor-unit count must follow the
+   * STORE's locale, or it contradicts the localized `priceString` printed three lines above it — which
+   * is the defect `C5-6` measured (`29,99 €` on the card, `€2.50` beneath it; `₩3250.00` on a won store,
+   * where KRW has no minor units at all).
+   *
+   * ⚠️ Exempt with a reason, per this list's own rule, and the reason is checkable: the module takes an
+   * ISO currency code and **drops the anchor entirely when it has none**, rather than falling back to a
+   * shape it cannot justify.
+   */
+  join('premium', 'perMonthAnchor.ts'),
 ];
 
 /**

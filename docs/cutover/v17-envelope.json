@@ -114,6 +114,20 @@
         "type": "emergency"
       }
     ],
+    "cycleHistory": [
+      {
+        "cycleEndDate": "2026-07-30",
+        "totalDebtBalance": 17284,
+        "totalPaidThisCycle": 498,
+        "allRequiredMet": true
+      },
+      {
+        "cycleEndDate": "2026-08-13",
+        "totalDebtBalance": 16761,
+        "totalPaidThisCycle": 523,
+        "allRequiredMet": true
+      }
+    ],
     "prefs": {
       "onboardingComplete": true
     }

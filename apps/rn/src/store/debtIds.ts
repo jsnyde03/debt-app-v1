@@ -5,8 +5,21 @@
  * cycle date looks equivalent and is not: it restarts at zero on every launch while the cycle date stays
  * put, so a debt added before a relaunch and one added after can be handed the same id.
  *
- * ⛔ **No `Date.now()`** — the React Compiler treats it as an impure render-time call, and the callers
- * declare their submit handlers in the component body.
+ * ⛔ **THIS SCHEME IS DERIVED, NOT TIME-BASED — and the reason recorded here was stale.** [pass-5 `B5-13`]
+ *
+ * ⚠️ The note used to read *"No `Date.now()` — the React Compiler treats it as an impure render-time
+ * call, and the callers declare their submit handlers in the component body."* **Measured against the
+ * tree: five shipped sites do exactly that**, all in submit handlers declared in the component body —
+ * `ExpenseSheet`, `GoalSheet`, `LivingExpenseSheet`, and `FirstDebtOrBillStep` twice, one of which mints
+ * a **debt** id as `debt-${Date.now()}`. ⛔ Lane B found three and said its count was a lower bound; it
+ * was, by two, and the fifth is a second id scheme for the very entity this module owns.
+ *
+ * ⚡ **So the constraint is not what justifies this scheme.** What does: a derived id is reproducible and
+ * inspectable, and a timestamp is neither — but a timestamp cannot COLLIDE, and this scheme could, which
+ * is `B5-9` and is why uniqueness is now checked against the whole store rather than the debts array.
+ * ⚠️ **The two schemes cannot collide with each other** (`debt-<n>` has no date part), so nothing is
+ * broken by the coexistence; what is unresolved is that debts have two producers of an id and the other
+ * entities have one each. That is a real question and it is not answered here.
  *
  * Shared rather than local to the debt sheet because the CSV import mints ids too, and a second scheme
  * for the same entity is how two rows end up disagreeing about which debt they are.

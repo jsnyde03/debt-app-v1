@@ -24,7 +24,21 @@ import type { CloudBackupProvider } from './provider';
 export type CloudBackupOutcome = { ok: true; at: string } | { ok: false; reason: 'unavailable' | 'error' };
 
 /** {@link backupToCloud}'s outcomes plus the one only the remote-aware guard can produce. */
-export type GuardedBackupOutcome = CloudBackupOutcome | { ok: false; reason: 'remote-unclaimed'; remoteAt: string };
+export type GuardedBackupOutcome =
+  | CloudBackupOutcome
+  | { ok: false; reason: 'remote-unclaimed'; remoteAt: string }
+  /**
+   * ⛔ **S1.12.5.8 [pass-5 `B5-11`] — NOT `'unavailable'`, BECAUSE THE USER IS SIGNED IN.**
+   *
+   * ⚡ This state is *"the backup file exists and its `mtimeMs` cannot be read"*. It used to return
+   * `'unavailable'`, which `cloudBackupMessages` renders as **"Sign in to iCloud on this device to use
+   * backup."** — measured with `provider.isAvailable() === true`, i.e. told to sign in while signed in.
+   * ⛔ There is no action the user can take, and every later automatic backup is refused the same way
+   * for as long as the mtime stays unreadable, so the sentence repeats forever.
+   * ⭐ Nothing is destroyed (`writes = 0`), which is the safe direction the guard intends — the defect
+   * is the sentence, not the refusal.
+   */
+  | { ok: false; reason: 'remote-unreadable' };
 
 export type CloudRestoreOutcome =
   | { ok: true; store: DebtStore; at: string | null }
@@ -162,7 +176,7 @@ export async function backupToCloudGuarded(
 ): Promise<GuardedBackupOutcome> {
   const claim = await inspectRemote(provider, store.prefs?.cloudBackupRemoteAt);
   if (claim.state === 'unclaimed') return { ok: false, reason: 'remote-unclaimed', remoteAt: claim.at };
-  if (claim.state === 'unknown') return { ok: false, reason: 'unavailable' };
+  if (claim.state === 'unknown') return { ok: false, reason: 'remote-unreadable' };
   return backupToCloud(store, provider, codec, opts);
 }
 

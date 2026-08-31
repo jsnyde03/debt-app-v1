@@ -17,6 +17,7 @@ import { MANAGE_SUBSCRIPTION_URL, PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '@
 import { introPrefix } from '@/premium/introOffer';
 import { getPurchasesClient, isPremiumActive, type PackageLike } from '@/premium/purchases';
 import { canManageSubscription, premiumKind } from '@/premium/premiumKind';
+import { perMonthAnchor } from '@/premium/perMonthAnchor';
 import { appStore } from '@/store/appStore';
 import { useAppStore } from '@/store/useAppStore';
 import { layout, spacing } from '@/theme/spacing';
@@ -88,10 +89,22 @@ function planFromPackage(pkg: PackageLike): PlanView | null {
   const intro = introPrefix(pkg, 'unknown');
   switch (pkg.packageType) {
     case 'ANNUAL': {
-      // Keep the per-month anchor on real devices too (A11) — it justifies the "Best value" badge. Derive
-      // the currency symbol from the localized priceString so it isn't a hardcoded "$" on non-USD stores (R2.5).
-      const sym = pkg.product.priceString.replace(/[\d.,\s ]/g, '') || '$';
-      const perMo = pkg.product.price > 0 ? ` · ${sym}${(pkg.product.price / 12).toFixed(2)}/mo` : '';
+      /**
+       * Keep the per-month anchor on real devices too (A11) — it justifies the "Best value" badge.
+       *
+       * ⛔ **S1.12.5.8 [pass-5 `C5-6`] — THIS BUILT THE FIGURE BY HAND AND GOT EVERY NON-US STORE WRONG.**
+       * It stripped digits out of `priceString` for a symbol — correctly avoiding a hardcoded `$` (R2.5) —
+       * and then re-composed with **US placement and US separators**. Measured over real App Store shapes:
+       * `29,99 €` → **€2.50** (symbol on the wrong side, and a `.` where the card above used a `,`),
+       * `₩39,000` → **₩3250.00** (ungrouped, and KRW has no minor units), `¥3,000` → **¥250.00**.
+       * ⭐ The US row was the control and was right, which is why it survived review.
+       *
+       * ⚡ **Placement, separator and minor-unit count are all carried by the CURRENCY CODE**, and none is
+       * recoverable from the price string. So the anchor is formatted when the store supplies a code and
+       * **dropped when it does not** — lane C's own call: *"the honest move is to drop the per-month
+       * anchor on non-`$` stores rather than misformat it."*
+       */
+      const perMo = perMonthAnchor(pkg.product.price, pkg.product.currencyCode);
       return { key: 'annual', title: 'Annual', priceString: pkg.product.priceString, periodLabel: 'per year', subnote: `${intro}Billed yearly${perMo}`, badge: 'Best value', pkg };
     }
     case 'LIFETIME':

@@ -326,7 +326,19 @@ export default async function run() {
     );
     assert(!guardedOverUnknown.ok, '⛔ B3 — a guarded backup over an UNKNOWN remote does not succeed');
     if (!guardedOverUnknown.ok) {
-      eq(guardedOverUnknown.reason, 'unavailable', '…and says the question was unanswered, not that it wrote');
+      /**
+       * ⛔ **S1.12.5.8 [pass-5 `B5-11`] — THIS EXPECTED `'unavailable'`, AND THAT WAS THE DEFECT.**
+       *
+       * This fixture's own note says it: `isAvailable()` stays **true**, so the user IS signed in.
+       * `'unavailable'` is rendered by `cloudBackupMessages` as **"Sign in to iCloud on this device to
+       * use backup."** — an instruction to do the one thing they have already done, repeated on every
+       * later automatic backup for as long as the mtime stays unreadable.
+       *
+       * ⚡ The assertion's own label was already the right sentence — *"the question was unanswered"* —
+       * and `'remote-unreadable'` is that sentence as a reason code. ⭐ The refusal itself was never the
+       * defect: the row below still asserts ZERO writes.
+       */
+      eq(guardedOverUnknown.reason, 'remote-unreadable', '⛔ B5-11 — the question was unanswered, and the user is NOT told to sign in');
     }
     eq(held.state.writeCount, 0, '⛔ B3 — ZERO writes: the other device’s copy is still in the container');
 

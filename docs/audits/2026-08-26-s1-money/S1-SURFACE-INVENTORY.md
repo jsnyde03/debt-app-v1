@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**482 files on the S1 surface · 415 swept · 67 unswept.**
+**484 files on the S1 surface · 415 swept · 69 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -206,6 +206,8 @@
 | `apps/rn/src/premium/introOffer.test.ts` | s1p3 |
 | `apps/rn/src/premium/introOffer.ts` | s1p3 |
 | `apps/rn/src/premium/legal.ts` | s1p3 |
+| `apps/rn/src/premium/perMonthAnchor.test.ts` | ⛔ **never** |
+| `apps/rn/src/premium/perMonthAnchor.ts` | ⛔ **never** |
 | `apps/rn/src/premium/premiumKind.test.ts` | s1p3 |
 | `apps/rn/src/premium/premiumKind.ts` | s1p3 |
 | `apps/rn/src/premium/premiumSync.ts` | s1p3 |
@@ -525,6 +527,8 @@
 - `apps/rn/src/motion/Motion.tsx`
 - `apps/rn/src/motion/hooks.ts`
 - `apps/rn/src/motion/index.ts`
+- `apps/rn/src/premium/perMonthAnchor.test.ts`
+- `apps/rn/src/premium/perMonthAnchor.ts`
 - `apps/rn/src/store/affordability.test.ts`
 - `apps/rn/src/store/bnplCadence.test.ts`
 - `apps/rn/src/store/debtFreeBand.test.ts`
@@ -567,5 +571,5 @@
 - `packages/core/debt/testDeriveRequiredActionView.ts`
 - `packages/core/debt/testReconcileAutopay.ts`
 
-<!-- claims-sha256: 850a1b316bcaf6eb -->
+<!-- claims-sha256: dfc7a1e3b67adc34 -->
 

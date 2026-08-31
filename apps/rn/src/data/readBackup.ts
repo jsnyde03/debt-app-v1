@@ -1,3 +1,4 @@
+import { parseAmountField } from '@core/utils/amountField';
 import { plural } from '@core/utils/plural';
 import { describeStoreContents, parseBackupValue, type BackupParseFailure } from './backup';
 import { detectBackupFormat, type BackupKind } from './detectBackupFormat';
@@ -203,7 +204,26 @@ export function describeRestorePreview(store: DebtStore): string {
  */
 export function describeLocalOverwrite(store: DebtStore): string {
   const expenses = store.requiredExpenses.length + store.livingExpenses.length;
-  const hasPaycheck = Number(store.paycheck.amount) > 0;
+  /**
+   * ⛔ **S1.12.5.8 [pass-5 `B5-5`] — A COMMA REMOVED "the paycheck" FROM THE SENTENCE THAT NAMES WHAT THE
+   * USER IS ABOUT TO LOSE.**
+   *
+   * ⚡ Measured: with `paycheck.amount = "1,200"` this line reads *"This replaces 1 debt you have already
+   * entered on this device."* — the control, `"1200"`, reads *"…replaces **the paycheck** and 1 debt…"*.
+   * `Number("1,200")` is `NaN` and `NaN > 0` is `false`.
+   *
+   * ⛔ **`paycheck.amount` is the one money field the app keeps as a STRING**, which is why it is excluded
+   * from `readMoney`'s repairable set — and `readMoney` is where the comma tolerance lives, with its own
+   * note that *"12,000 is a real thing users type"*. So the single string-typed money field was the one
+   * with no comma tolerance on the read side, and this was a second producer of *"does this user have
+   * income"* using a bare `Number()`.
+   *
+   * ⚠️ Lane B did not establish that the v1.7 form can persist `"1,200"` — the v1.6 bridge and the JSON
+   * restore door both accept arbitrary strings — and filed it minor on that bound. The sentence is
+   * pre-overwrite and irreversible either way, so it is read through the same parser the rest of the
+   * app's typed money goes through.
+   */
+  const hasPaycheck = (parseAmountField(store.paycheck.amount) ?? 0) > 0;
   const parts = [
     hasPaycheck ? 'the paycheck' : '',
     store.debts.length > 0 ? plural(store.debts.length, 'debt', 'debts') : '',

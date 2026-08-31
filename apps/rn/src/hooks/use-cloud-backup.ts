@@ -32,7 +32,8 @@ export type CloudBackupUiStatus = 'loading' | 'unavailable' | 'ready';
  * ⚠️ `remote-unclaimed` is NOT a failure. It is the B3 guard refusing to destroy a copy this install has
  * never accounted for, and the only correct response is to put the choice in front of the user.
  */
-export type CloudBackupActionResult = 'ok' | 'unavailable' | 'no-backup' | 'error' | 'remote-unclaimed';
+/** ⛔ [pass-5 B5-11] `remote-unreadable` is distinct from `unavailable`: the user IS signed in. */
+export type CloudBackupActionResult = 'ok' | 'unavailable' | 'no-backup' | 'error' | 'remote-unclaimed' | 'remote-unreadable';
 
 /**
  * P6.8.7d.3 [M3-5] — an outcome **plus the specific thing the code already worked out about it.**

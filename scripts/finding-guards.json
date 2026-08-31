@@ -1213,14 +1213,14 @@
     }
   },
   "S1P3-B3-UNKNOWN": {
-    "what": "pass-3 blocker B3 — backupToCloudGuarded branched on `unclaimed` alone, so an `unknown` remote (iCloud UP and stat() throwing) went through to backupToCloud, which re-checked isAvailable(), got true, and WROTE OVER another device's backup; the install then recorded its own clock as the file's identity and refused every later backup forever. The guard's own docblock claimed `unknown` was already refused downstream — true of one of the two ways it is produced, false of the other. This file's only coverage stopped at inspectRemote, and neither writeCount assertion was on an `unknown` claim. The token names the WRITE-COUNT assertion, proven independently load-bearing by relaxing the two before it",
+    "what": "pass-3 blocker B3 — backupToCloudGuarded branched on `unclaimed` alone, so an `unknown` remote (iCloud UP and stat() throwing) went through to backupToCloud, which re-checked isAvailable(), got true, and WROTE OVER another device's backup; the install then recorded its own clock as the file's identity and refused every later backup forever. The guard's own docblock claimed `unknown` was already refused downstream — true of one of the two ways it is produced, false of the other. This file's only coverage stopped at inspectRemote, and neither writeCount assertion was on an `unknown` claim. The token names the WRITE-COUNT assertion, proven independently load-bearing by relaxing the two before it >>> S1.12.5.8 [pass-5 B5-11]: the anchored line now returns 'remote-unreadable' rather than 'unavailable'. The refusal is unchanged - what changed is the SENTENCE it produces: 'unavailable' renders as 'Sign in to iCloud on this device to use backup' to a user who IS signed in, forever. The un-fix still restores the same defect this guard is about.",
     "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
     "token": "ZERO writes: the other device’s copy is still in the container",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/storage/cloudBackup/service.ts",
-          "find": "  if (claim.state === 'unknown') return { ok: false, reason: 'unavailable' };",
+          "find": "  if (claim.state === 'unknown') return { ok: false, reason: 'remote-unreadable' };",
           "replace": "  if (false && claim.state === 'unknown') return { ok: false, reason: 'unavailable' };"
         }
       ],

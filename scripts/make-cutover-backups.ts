@@ -111,6 +111,15 @@ function v17Envelope() {
       requiredExpenses: v16.requiredExpenses,
       livingExpenses: v16.livingExpenses,
       goals: v16.goals,
+      /**
+       * ⛔ **S1.12.5.8 [pass-5 `D5-14`] — THE ENVELOPE CARRIED NO CYCLE HISTORY, WHICH ITS OWN HEADER
+       * NAMES AS THE HAZARD.** Measured: `grep -c cycleHistory` was **1** in `v16-populated.json` and
+       * **0** here. `v17Envelope()` copies fields off `v16Populated()` one at a time, so a field added to
+       * the v1.6 fixture does not reach the v1.7 one — and the cutover fixtures exist precisely to prove
+       * a real user's data survives the v1.6 → v1.7 move. A fixture missing the field is a fixture that
+       * cannot fail on it.
+       */
+      cycleHistory: v16.cycleHistory,
       prefs: { onboardingComplete: true },
     },
   };

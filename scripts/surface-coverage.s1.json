@@ -707,6 +707,12 @@
   "apps/rn/src/premium/legal.ts": [
     "s1p3"
   ],
+  "apps/rn/src/premium/perMonthAnchor.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/premium/perMonthAnchor.ts": [
+    "never"
+  ],
   "apps/rn/src/premium/premiumKind.test.ts": [
     "s1p3"
   ],
