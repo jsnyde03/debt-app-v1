@@ -168,6 +168,9 @@
     "s1p4",
     "s1p5"
   ],
+  "scripts/audit-sublanes.ts": [
+    "never"
+  ],
   "scripts/begin-gate-run.ts": [
     "s1p1",
     "s1p2"
@@ -387,6 +390,9 @@
   ],
   "scripts/prove-guards.ts": [
     "s1p5"
+  ],
+  "scripts/record-reads.ts": [
+    "never"
   ],
   "scripts/run-gates.ts": [
     "p1",

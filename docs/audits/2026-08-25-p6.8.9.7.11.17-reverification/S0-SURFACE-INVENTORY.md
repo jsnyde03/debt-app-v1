@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**123 files on the S0 surface · 75 swept · 48 unswept.**
+**125 files on the S0 surface · 75 swept · 50 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -64,6 +64,7 @@
 | `packages/core/testing/testV11Regression.ts` | ⛔ **partial** |
 | `scripts/apostrophe-baseline.json` | p4 |
 | `scripts/audit-route.ts` | s1p4 · s1p5 |
+| `scripts/audit-sublanes.ts` | ⛔ **never** |
 | `scripts/begin-gate-run.ts` | s1p1 · s1p2 |
 | `scripts/check-a11y-collapse.ts` | p4 |
 | `scripts/check-apostrophes.ts` | p3 · partial |
@@ -122,6 +123,7 @@
 | `scripts/preflight-native-lane.ts` | p4 · s1p1 · s1p2 |
 | `scripts/preflight-xcuitest-target.ts` | ⛔ **partial** |
 | `scripts/prove-guards.ts` | s1p5 |
+| `scripts/record-reads.ts` | ⛔ **never** |
 | `scripts/run-gates.ts` | p1 · p3 · s1p1 · s1p2 · s1p4 · s1p5 |
 | `scripts/secrets-exemptions.json` | s1p5 |
 | `scripts/stamp-coverage.ts` | p2 |
@@ -173,6 +175,7 @@
 - `packages/core/testing/testSubscriptionGating.ts`
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
+- `scripts/audit-sublanes.ts`
 - `scripts/check-conflict-markers.ts`
 - `scripts/check-pass-coverage.ts`
 - `scripts/check-rounding.ts`
@@ -185,9 +188,10 @@
 - `scripts/lib/moneyClaim.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/preflight-xcuitest-target.ts`
+- `scripts/record-reads.ts`
 - `scripts/surface-inventory.ts`
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
 
-<!-- claims-sha256: 232eb43c3e79fcd0 -->
+<!-- claims-sha256: 833cc618cb07e36d -->
 

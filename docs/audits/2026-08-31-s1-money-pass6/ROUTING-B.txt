@@ -32,6 +32,7 @@ apps/rn/src/lib/review.ts
 apps/rn/src/lib/scan.ts
 apps/rn/src/lib/scan.web.ts
 apps/rn/src/storage/adapter.ts
+apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ios.ts
 apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ts
 apps/rn/src/storage/cloudBackup/index.ts
 apps/rn/src/storage/cloudBackup/provider.ts
@@ -82,6 +83,7 @@ apps/rn/src/store/obligationForm.ts
 apps/rn/src/store/onboardingFinish.test.ts
 apps/rn/src/store/onboardingFinish.ts
 apps/rn/src/store/paycheckForm.test.ts
+apps/rn/src/store/paycheckForm.ts
 apps/rn/src/store/payday.ts
 apps/rn/src/store/payoffCelebration.test.ts
 apps/rn/src/store/payoffCelebration.ts

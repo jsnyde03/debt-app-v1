@@ -38,6 +38,7 @@ packages/core/testing/testMultiCycleTimelineRegression.ts
 packages/core/testing/testStressScenarios.ts
 packages/core/testing/testTimelineRegression.ts
 scripts/audit-route.ts
+scripts/audit-sublanes.ts
 scripts/begin-gate-run.ts
 scripts/check-cap-literals.ts
 scripts/check-conflict-markers.ts
@@ -58,11 +59,13 @@ scripts/gate-scan-floors.json
 scripts/gateSources.ts
 scripts/lib/guardBuckets.ts
 scripts/lib/importGraph.ts
+scripts/lib/moneyClaim.ts
 scripts/lib/verdict.ts
 scripts/maestro-results.mjs
 scripts/make-cutover-backups.ts
 scripts/preflight-xcuitest-target.ts
 scripts/prove-guards.ts
+scripts/record-reads.ts
 scripts/run-gates.ts
 scripts/surface-coverage.s0.json
 scripts/surface-coverage.s1.json

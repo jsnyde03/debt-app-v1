@@ -306,6 +306,28 @@ function main(): void {
    * the route is exactly what it was — this adds a seed, it does not redefine the others.
    */
   const unreadPass = arg('unread-pass');
+  /**
+   * ⛔ **S1.13.5 — THE PASS THIS ROUTE IS DISPATCHED *FOR*, WHICH IS NOT THE ONE IT FOLLOWS.**
+   *
+   * ⚡ **Measured at pass 6's switch-in, before an agent was spawned: `--check` printed `0 owed` while
+   * 12 of the 446 money-bearing files the pass's own exit demands reached NO LANE.** All 12 carry
+   * `s1p5`, so `--unread-pass=s1p5` subtracts them from the seed *on purpose* — while
+   * `audit:read-coverage --pass=s1p6` asks the absolute question, and pass 5's reads are no excuse for
+   * pass 6.
+   *
+   * ⛔ **The `owed` assertion below is not wrong; it is a different statement.** It proves *"every
+   * money-bearing file the FOLLOWED pass did not read reaches an origin"* — exactly what its docblock
+   * claims. Nothing asserted *"every file the EXIT demands reaches a lane"*, which is the one a
+   * dispatch is held to. Two instruments, two populations, and the gap was silent in both.
+   *
+   * ⚠️ This is `S1.13.3`'s finding one turn on. That step fixed the files **no** pass had read going
+   * unrouted; this is its complement — the files the immediately preceding pass read.
+   *
+   * Given, this seeds and then ASSERTS against the absolute population. It also makes wave 2
+   * mechanical: record the wave-1 claims, re-run unchanged, and the route shrinks to exactly the
+   * remainder the coverage command names.
+   */
+  const exitPass = arg('exit-pass');
 
   if (!since) die('--since=<sha> is required — it is the previous pass\'s pin, and "changed since" is what fix-churn means.');
   if (!outDir && !checkOnly) die('--out=<dir> is required unless --check.');
@@ -368,13 +390,32 @@ function main(): void {
    * ⛔ Money-bearing only, through the SAME predicate `check-pass-coverage.ts` uses, because a router
    * seeding files the exit does not require is two producers of one fact.
    */
-  if (unreadPass) {
+  /**
+   * ⛔ **S1.13.5 — ONE SEED, TWO CALLERS, AND THE INSTRUMENTS ARE WHAT FORCED IT.**
+   *
+   * `--exit-pass` arrived as a second copy of this loop. ⚡ **`lint:finding-guards` red on the next run:
+   * `S1-ROUTE-STALE-READ`'s proof un-fixes the one line below that stamps the origin, and a second copy
+   * made that find/replace match **2×** — *"the proof is VOID, not merely stale: it was measured against
+   * a line this file no longer has exactly once."* ⚠️ **The line is deliberately not quoted in this
+   * comment**: prose that repeats an anchor verbatim is another copy of it, and voids it the same way.
+   *
+   * ⚠️ **That is the second time in two commits that duplicating a predicate voided its own anchor**
+   * (`S1-PASS-COVERAGE-FLOOR`, when extracting the money predicate). The lesson is not *"pick a better
+   * anchor"* — it is that **a proof anchored on a line is a standing pressure toward saying a thing
+   * once**, and here the thing genuinely was one thing said twice. The two ASSERTIONS stay separate,
+   * because they are two different statements; the seed does not.
+   */
+  const seedStaleRead = (passId: string): void => {
     for (const f of inv.files) {
       if (origin.has(f)) continue;
-      if ((inv.claims[f] ?? []).includes(unreadPass)) continue;
+      if ((inv.claims[f] ?? []).includes(passId)) continue;
       if (!carriesMoneyClaim(f)) continue;
       origin.set(f, 'stale-read');
     }
+  };
+
+  if (unreadPass) {
+    seedStaleRead(unreadPass);
     /**
      * ⛔ **THE SEED'S OWN COMPLETENESS CHECK, and it is not the same statement as the loop above.**
      *
@@ -393,6 +434,15 @@ function main(): void {
       );
     }
   }
+  /**
+   * ⛔ **S1.13.5 — THE EXIT'S OWN POPULATION, SEEDED AND THEN ASSERTED ABSOLUTELY.**
+   *
+   * It shares the seed with `--unread-pass` and NOT the assertion. ⚠️ **The two assertions stay
+   * separate deliberately** — they answer different questions, and a shared check with two meanings is
+   * how the `owed` check came to read like this one without being it. The seed is the half that really
+   * was one statement written twice; see `seedStaleRead` above.
+   */
+  if (exitPass) seedStaleRead(exitPass);
   /**
    * ⛔ **S1.11.6.3 [pass-4 `D4-7`] — THIS EMITTED `first-look` FOR S1 AND NEVER FOR S0.** The S1 loop
    * above routes a surface file that no pass has ever swept; the S0 loop asked only whether it CHANGED.
@@ -479,6 +529,35 @@ function main(): void {
   const routedCount = [...byLane.values()].reduce((n, l) => n + l.length, 0);
   const missing = [...laneOf.keys()].filter((f) => !existsSync(join(REPO_ROOT, f)));
   if (missing.length) die(`${missing.length} routed file(s) do not exist on disk:\n  ${missing.join('\n  ')}`);
+
+  /**
+   * ⛔ **S1.13.5 — IS THE DISPATCHED PASS'S EXIT REACHABLE? Asserted against the LANE MANIFESTS, and
+   * against the EXIT'S OWN FILE.**
+   *
+   * ⚠️ **The first cut of this check sat beside the seed and could not fail** — it tested the very set
+   * the loop three lines above had just assigned, which is this file's recorded failure (`D4-11`, three
+   * tautological set identities) committed a fourth time, in the block whose docblock warns about it.
+   * Two things move it out of that class:
+   *
+   *   • **The unit is the LANE, not the origin.** An origin is not a dispatch; `laneOf` is what a lane
+   *     manifest is written from, and it sits downstream of every `LANES` predicate.
+   *   • **The population is the EXIT'S OWN**, read from the claims JSON — the same file
+   *     `check-pass-coverage.ts` counts 446 out of. The route derives its file list from the inventory
+   *     *markdown*, so this compares **two producers of one population** rather than a set against
+   *     itself. `[D5-10]`'s stamp is what normally keeps them equal; this is what says so out loud.
+   */
+  if (exitPass) {
+    const exitPopulation = Object.keys(JSON.parse(readFileSync(join(REPO_ROOT, CLAIMS[surface]), 'utf8')) as Record<string, string[]>);
+    const owedByExit = exitPopulation.filter((f) => carriesMoneyClaim(f) && !laneOf.has(f));
+    if (owedByExit.length > 0) {
+      die(
+        `${owedByExit.length} money-bearing file(s) the exit demands reached NO LANE:\n  ${owedByExit.join('\n  ')}\n\n` +
+          `  ⛔ \`audit:read-coverage --pass=${exitPass}\` reds until every one of them carries ${exitPass}.\n` +
+          '  A file in no lane is read by nobody, so the pass could be run perfectly and still not exit.',
+      );
+    }
+    console.log(`   ⭐ exit reachable: all ${exitPopulation.filter(carriesMoneyClaim).length} money-bearing file(s) the ${exitPass} exit demands are in a lane.`);
+  }
 
   /**
    * ⛔ **THE ASSERTION THE OTHER FOUR CANNOT MAKE: nothing that MOVED is missing from the route.**
