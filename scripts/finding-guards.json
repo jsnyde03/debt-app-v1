@@ -2256,7 +2256,25 @@
       "run": "audit:route-check",
       "expect": "reached NO origin",
       "measured": "2026-08-31",
-      "sha": "38ec5386"
+      "sha": "b1cdd7fe"
+    }
+  },
+  "S1-ROUTE-EXIT-REACHABLE": {
+    "what": "S1.13.5 - pass 6's own coverage exit was UNREACHABLE and `audit-route --check` printed `0 owed` over it. MEASURED at the dispatch's switch-in, before an agent was spawned: 12 of the 446 money-bearing files `audit:read-coverage --pass=s1p6` demands reached NO LANE. All 12 carry s1p5, so --unread-pass=s1p5 subtracts them from the seed ON PURPOSE, while the exit asks the absolute question and pass 5's reads are no excuse for pass 6. >>> THE `owed` ASSERTION NEXT DOOR IS NOT WRONG - it proves 'every money-bearing file the FOLLOWED pass did not read reaches an origin', exactly what its docblock claims. Nothing asserted 'every file the EXIT demands reaches a lane', which is the statement a dispatch is actually held to. Two instruments, two populations, and the gap was silent in both. This is S1.13.3's finding one turn on: that step fixed the files NO pass had read going unrouted; this is its complement. >>> THE FIRST CUT OF THIS CHECK COULD NOT FAIL - it sat beside the seed and tested the very set the loop three lines above had just assigned, which is this file's own recorded D4-11 defect (three tautological set identities) committed a fourth time, in the block whose docblock warns about it. Two things move it out of that class: the unit is the LANE (downstream of every LANES predicate) rather than the origin, and the population is read from the claims JSON - the same file check-pass-coverage counts 446 out of - so it compares two producers of one population rather than a set against itself.",
+    "file": "scripts/audit-route.ts",
+    "token": "reached NO LANE:",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/audit-route.ts",
+          "find": "  if (exitPass) seedStaleRead(exitPass);",
+          "replace": "  if (false && exitPass) seedStaleRead(exitPass);"
+        }
+      ],
+      "run": "audit:route-check",
+      "expect": "reached NO LANE",
+      "measured": "2026-08-31",
+      "sha": "b1cdd7fe"
     }
   },
   "S1-PASS-COVERAGE-FLOOR": {
