@@ -73,7 +73,17 @@ for (const rel of scanFiles) {
   scanned(SCAN_GATE, text);
   // ⛔ NOT stripped. A conflict marker inside a comment is still an unresolved conflict — and in
   // `page.tsx` the first of the two blocks split an IMPORT list, which no stripper would have kept.
-  if (!(OPEN.test(text) && CLOSE.test(text))) continue;
+  /**
+   * ⛔ **S1.13.7.2 [pass-6 `D3-4`] — ANY ONE MARKER IS A CONFLICT. Requiring the PAIR let the commonest
+   * leftover through: a stray `>>>>>>>` after someone keeps the upper side, or a stray `<<<<<<<` after
+   * they keep the lower one. A half-resolved conflict is the one a human is most likely to leave, and it
+   * read GREEN — in the gate written because six files carried markers for 177 commits.**
+   *
+   * ⚠️ `MID` alone is safe here only because `.md` is in `SKIP_EXT`: a markdown H1 underline is exactly
+   * seven `=` at line start. In a `.ts` file a bare `=======` line is a syntax error, so it cannot be
+   * legitimate content in anything this gate actually scans.
+   */
+  if (!(OPEN.test(text) || MID.test(text) || CLOSE.test(text))) continue;
   text.split('\n').forEach((line, i) => {
     if (OPEN.test(line) || MID.test(line) || CLOSE.test(line)) hits.push({ rel, line: i + 1, text: line.trimEnd() });
   });

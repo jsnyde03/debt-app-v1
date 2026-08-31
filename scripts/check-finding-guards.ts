@@ -24,6 +24,7 @@
  *
  * Usage: npm run lint:finding-guards
  */
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 // ⛔ S1.11.6.0 — ONE producer for anchor matching, shared with prove-guards.ts. See lib/anchor.ts for
 // what a per-file normaliser cost: this gate was red in CI for six pushes while reading green locally.
@@ -470,11 +471,71 @@ console.log(
 // ⚠️ **"carry a proof", not "are proven"** — and the distinction is this gate's own limit. It can check
 // that a proof exists and that its anchor still matches; it cannot RUN one. A proof that has started
 // failing looks identical here, which is why the line names the command that executes them.
+/**
+ * ⛔ **S1.13.7.2 [pass-6 `D2-1`] — `measured`/`sha` NEVER EXPIRED, so 32 of 86 "EXECUTED" proofs described
+ * a tree their target file had already left.**
+ *
+ * ⚡ The pass-4 defect one level up. `lint:finding-guards` was read as a closure proof for three passes;
+ * `prove:guards` fixed that by writing `measured`/`sha` — **and then `measured`/`sha` became the thing
+ * that decays.** The anchor check is a substring test on ONE line, so a file can be rewritten around a
+ * surviving anchor while the assertion it guards moves, weakens, or loses its consumer, and the entry
+ * keeps its `EXECUTED` badge. Nothing compared `proof.sha` to the target's last-touched commit.
+ *
+ * ⛔ **AND RE-RUNNING THE 32 IS WHAT PROVED IT MATTERS: 30 still held, and 2 DID NOT.** Both were guards
+ * written earlier the same day, and one of them — `S1-ROUTE-EXIT-REACHABLE` — was red because its own
+ * assertion had a real defect that only appeared once the pass recorded its reads. **A proof describes
+ * the tree it was measured on and nothing else**, and that is no longer a claim in a document.
+ *
+ * ⚠️ **This is a PINNED ceiling, not a downward-only ratchet, and the difference is deliberate.** Ordinary
+ * development moves a guarded file and legitimately makes its proof stale; a downward-only floor would
+ * red every such commit and train people to re-run proofs mechanically to clear a number. The ceiling
+ * catches DRIFT — staleness accumulating unnoticed across a round — and `prove:guards --id=…` drains it.
+ */
+const MAX_STALE_PROOFS = 8;
+const stale: string[] = [];
+for (const id of proven) {
+  const p = registry[id].proof!;
+  for (const t of [...new Set((p.unfix ?? []).map((u) => u.at))]) {
+    try {
+      if (execFileSync('git', ['log', '--oneline', `${p.sha}..HEAD`, '--', t], { cwd: REPO_ROOT, encoding: 'utf8' }).trim()) {
+        stale.push(`${id} — ${t} has moved since ${p.sha} (measured ${p.measured})`);
+        break;
+      }
+    } catch (err) {
+      /**
+       * ⛔ **NARROW ON PURPOSE — the first cut of this block swallowed EVERYTHING and reported `0 of them
+       * STALE` over 86 proofs, because `execFileSync` was never imported.** A bare `catch` turned a
+       * `ReferenceError` into *"nothing is stale"*: the fail-open class, inside the check written to
+       * close a fail-open, caught within the hour by reading the number instead of trusting the ✅.
+       *
+       * An unresolvable sha is a legitimate skip — the anchor half reports it. Anything else is a broken
+       * scan and has to be loud.
+       */
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!/unknown revision|bad revision|ambiguous argument/i.test(msg)) {
+        problems.push(`${id} — the staleness scan could not run against ${t}: ${msg}`);
+      }
+    }
+  }
+}
+
 console.log(
-  `   proof: ${proven.length} EXECUTED · ${authored.length} authored but never run (cap ${MAX_AUTHORED}) · ` +
+  `   proof: ${proven.length} EXECUTED · ${stale.length} of them STALE (cap ${MAX_STALE_PROOFS}) · ` +
+    `${authored.length} authored but never run (cap ${MAX_AUTHORED}) · ` +
     `${guardOnly.length} guard-only (cap ${MAX_GUARD_ONLY}) · ${unproven.length} never tested (cap ${MAX_UNPROVEN})\n` +
-    '          ⛔ "authored" is a plan to measure, not a measurement — `npm run prove:guards -- --id=<ID>` records it.',
+    '          ⛔ "authored" is a plan to measure, not a measurement — `npm run prove:guards -- --id=<ID>` records it.\n' +
+    '          ⛔ "STALE" means the target moved since the proof was measured — re-run it; 2 of 32 did not hold.',
 );
+// ⚠️ Named, not just counted. A count nobody can act on is a count nobody drains — the same reason the
+// unguarded list prints on the green path.
+for (const s of stale) console.log(`     stale: ${s}`);
+if (stale.length > MAX_STALE_PROOFS) {
+  problems.push(
+    `${stale.length} executed proof(s) were measured against a tree their target has since left, and the ceiling is ${MAX_STALE_PROOFS}.\n` +
+      '        Re-run them: `npm run prove:guards -- --id=<comma-separated>` --record. 2 of the last 32 re-runs FAILED,\n' +
+      '        so a stale proof is not a formality — it is an unknown wearing an ✅.',
+  );
+}
 // ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
 // number nobody sees is a number nobody drains.
 for (const id of unguarded) console.log(`     unguarded: ${id} — ${registry[id].unguarded}`);

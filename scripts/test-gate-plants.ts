@@ -730,7 +730,12 @@ for (const s of SCENARIOS) {
   }
 }
 
-if (SCENARIOS.length < MIN_SCENARIOS) {
+/**
+ * ⛔ **S1.13.7.2 [pass-6 `D2-7`] — `!==`, NOT `<`. This is the harness that plants the `<`-floor defect
+ * into other gates, and it carried one: `<` is silent when a scenario is ADDED, so the pinned number and
+ * the real count could drift apart in the direction nobody checks.**
+ */
+if (SCENARIOS.length !== MIN_SCENARIOS) {
   console.error(
     `\n❌ test:gate-plants — ${SCENARIOS.length} scenarios, ${MIN_SCENARIOS} expected. Scenarios were\n` +
       '   REMOVED rather than red. Do not lower the floor; restore the scenario.\n',

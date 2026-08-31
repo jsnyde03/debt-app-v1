@@ -39,7 +39,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { carriesMoneyClaim } from './lib/moneyClaim';
+import { carriesMoneyClaim, MIN_MONEY_BEARING } from './lib/moneyClaim';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CLAIMS_S1 = 'scripts/surface-coverage.s1.json';
@@ -140,6 +140,21 @@ const checkOnly = process.argv.includes('--check');
 
 const claims: Record<string, string[]> = JSON.parse(readFileSync(join(REPO_ROOT, CLAIMS_S1), 'utf8'));
 const exitPopulation = new Set(Object.keys(claims).filter(carriesMoneyClaim));
+
+/**
+ * ⛔ **S1.13.7.2 [pass-6 `D2-6`] — THE SAME FLOOR `D2-3` FOUND MISSING NEXT DOOR, AND FOR THE SAME REASON.**
+ *
+ * The `⭐ exit reachable` line below is filtered by `carriesMoneyClaim`. Blind that predicate and the
+ * population empties, the lost set empties, and this prints a ⭐ over a split that is handing twelve
+ * readers almost nothing. ⚠️ **This file is what the auditors were actually given** — the route's own
+ * assertion is one level up and cannot see a mistake made here.
+ */
+if (exitPopulation.size < MIN_MONEY_BEARING) {
+  die(
+    `only ${exitPopulation.size} of ${Object.keys(claims).length} surface file(s) read as money-bearing, and the floor is ${MIN_MONEY_BEARING}.\n` +
+      '  ⛔ The predicate has gone blind, so "every owed file is in a sub-lane" would mean "almost nothing is owed".',
+  );
+}
 const nlines = (f: string): number => {
   try {
     return readFileSync(join(REPO_ROOT, f), 'utf8').split('\n').length;

@@ -72,7 +72,7 @@
   "GAP-16": {
     "what": "no planted-input harness proved any gate fails CLOSED — all 15 of S0's majors were gates failing open ⛔ S1.9.4 after-scan — re-pointed at the line that would have to change. The auditor named seven bare-identifier guards; measured across all 23 non-test entries there were six more of the same shape.",
     "file": "scripts/test-gate-plants.ts",
-    "token": "if (SCENARIOS.length < MIN_SCENARIOS)"
+    "token": "if (SCENARIOS.length !== MIN_SCENARIOS)"
   },
   "D69-INVENTORY": {
     "what": "\"first look\" was the auditor's own claim; [D69] needs it to be a lookup ⛔ S1.9.4 [pass-2 B-1] — the token now names THE LINE THAT WOULD HAVE TO CHANGE, not an identifier the un-fix leaves in place; the behavioural proof is the test:gate-plants scenario / self-check.",
@@ -2256,7 +2256,7 @@
       "run": "audit:route-check",
       "expect": "reached NO origin",
       "measured": "2026-08-31",
-      "sha": "b1cdd7fe"
+      "sha": "f7e39483"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2289,10 +2289,18 @@
           "replace": "  if (false && exitPass) seedStaleRead(exitPass);"
         }
       ],
-      "cmd": ["npx", "tsx", "scripts/audit-route.ts", "--surface=s1", "--since=65566a09", "--exit-pass=s1p7", "--check"],
+      "cmd": [
+        "npx",
+        "tsx",
+        "scripts/audit-route.ts",
+        "--surface=s1",
+        "--since=65566a09",
+        "--exit-pass=s1p7",
+        "--check"
+      ],
       "expect": "reached NO LANE",
       "measured": "2026-08-31",
-      "sha": "b1cdd7fe"
+      "sha": "f7e39483"
     }
   },
   "S1-PASS-COVERAGE-FLOOR": {
