@@ -547,7 +547,8 @@ function main(): void {
    *     itself. `[D5-10]`'s stamp is what normally keeps them equal; this is what says so out loud.
    */
   if (exitPass) {
-    const exitPopulation = Object.keys(JSON.parse(readFileSync(join(REPO_ROOT, CLAIMS[surface]), 'utf8')) as Record<string, string[]>);
+    const exitClaims = JSON.parse(readFileSync(join(REPO_ROOT, CLAIMS[surface]), 'utf8')) as Record<string, string[]>;
+    const exitPopulation = Object.keys(exitClaims);
     /**
      * ⛔ **S1.13.5 [pass-6 `D2-3`] — THE FLOOR, AND WITHOUT IT THE CHECK BELOW FAILS OPEN.**
      *
@@ -569,7 +570,22 @@ function main(): void {
           '  "almost nothing is demanded" — and this route is built BEFORE the lanes read anything.',
       );
     }
-    const owedByExit = exitPopulation.filter((f) => carriesMoneyClaim(f) && !laneOf.has(f));
+    /**
+     * ⛔ **S1.13.7.2 — THE POPULATION IS WHAT THE EXIT STILL OWES, NOT WHAT IT COVERS. The first cut got
+     * this wrong and the proof machinery is what caught it.**
+     *
+     * ⚡ Measured: pass 6 finished, `audit:record-reads` stamped `s1p6` onto 472 entries, and this check
+     * went **red naming the same 12 files it was written to rescue.** The seed correctly stops seeding a
+     * file once it carries the pass; the assertion below kept demanding a lane for it anyway. So a
+     * COMPLETED pass looked identical to an unreachable one.
+     *
+     * ⚠️ **It was invisible until the tree moved** — the guard was proven green at `b1cdd7fe`, and the
+     * only reason anyone found out is that `D2-1` sent every stale proof back through `prove:guards`.
+     * That is `D2-1`'s claim demonstrated on its own author's code, inside the same commit that fixes it:
+     * *a recorded proof describes the tree it was measured on, and nothing else.*
+     */
+    const stillOwed = (f: string): boolean => carriesMoneyClaim(f) && !(exitClaims[f] ?? []).includes(exitPass);
+    const owedByExit = exitPopulation.filter((f) => stillOwed(f) && !laneOf.has(f));
     if (owedByExit.length > 0) {
       die(
         `${owedByExit.length} money-bearing file(s) the exit demands reached NO LANE:\n  ${owedByExit.join('\n  ')}\n\n` +
@@ -577,7 +593,17 @@ function main(): void {
           '  A file in no lane is read by nobody, so the pass could be run perfectly and still not exit.',
       );
     }
-    console.log(`   ⭐ exit reachable: all ${exitPopulation.filter(carriesMoneyClaim).length} money-bearing file(s) the ${exitPass} exit demands are in a lane.`);
+    /**
+     * ⚠️ **The line states the OWED count, not the population.** *"all 446 … are in a lane"* was true and
+     * misleading the moment the pass finished: it stayed identical whether 446 files were owed and routed
+     * or zero were owed at all. A success line that cannot tell those apart is the prose half of the same
+     * defect the assertion above had.
+     */
+    const owedTotal = exitPopulation.filter(stillOwed).length;
+    console.log(
+      `   ⭐ exit reachable: ${owedTotal} money-bearing file(s) still owed to ${exitPass}, every one in a lane ` +
+        `(${exitPopulation.filter(carriesMoneyClaim).length - owedTotal} already read).`,
+    );
   }
 
   /**

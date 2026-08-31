@@ -425,8 +425,8 @@
       ],
       "run": "test:app",
       "expect": "a throwing stat is contained as `unknown`",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-F-B2-BOTHDIRECTIONS": {
@@ -486,8 +486,8 @@
         "--check"
       ],
       "expect": "reached no lane",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-ANCHOR-ONEWORLD": {
@@ -538,8 +538,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "apps/rn/src/store/guardianSelectors.ts is ledgered and re-derives nothing any more",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-C4-4-POPULATION": {
@@ -556,8 +556,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "[population] the ledger considered",
-      "measured": "2026-08-30",
-      "sha": "2b438abb"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-C4-6-RACE": {
@@ -574,8 +574,8 @@
       ],
       "run": "test:app",
       "expect": "the confirm is committable only when the disclosure is known",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-A-F3-WINDOWSTART": {
@@ -626,8 +626,8 @@
       ],
       "run": "lint:gate-sources",
       "expect": "no longer runs the scripts typecheck against the config this gate guards",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-A-F4-ONEGUARD": {
@@ -644,8 +644,8 @@
       ],
       "run": "test:regression",
       "expect": "they are one fact",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-F-B3-TWOEVENTS": {
@@ -663,7 +663,7 @@
       "run": "test:app",
       "expect": "opposite-sized losses no longer produce the identical clause",
       "measured": "2026-08-31",
-      "sha": "03c9aaa9"
+      "sha": "d1c4de30"
     }
   },
   "S1P4-C4-5-ARITY": {
@@ -734,8 +734,8 @@
       ],
       "run": "test:app",
       "expect": "the trophy shelf",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-C4-7-SURFACES": {
@@ -970,8 +970,8 @@
       ],
       "run": "test:regression",
       "expect": "S1P3-A1",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P3-A2-INWINDOW": {
@@ -1172,8 +1172,8 @@
       ],
       "run": "test:app",
       "expect": "D3-1 — the Home Screen does not say \"Debt-free\" over balances the app refused to claim",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P3-D3-2-SPOKEN": {
@@ -1209,7 +1209,7 @@
       "run": "lint:cap-literals",
       "expect": "not a literal",
       "measured": "2026-08-31",
-      "sha": "03c9aaa9"
+      "sha": "d1c4de30"
     }
   },
   "S1P3-B3-UNKNOWN": {
@@ -1244,8 +1244,8 @@
       ],
       "run": "test:app",
       "expect": "a throwing stat is contained as `unknown`",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P3-B4-ADAPTER": {
@@ -1305,8 +1305,8 @@
       ],
       "run": "test:app",
       "expect": "counts it",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P3-C7B-CLOUDDOOR": {
@@ -1323,8 +1323,8 @@
       ],
       "run": "test:app",
       "expect": "C-7b",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P3-B2-APRBOUND": {
@@ -1438,8 +1438,8 @@
       ],
       "run": "test:app",
       "expect": "an unread BALANCE poisons the plan claim",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
@@ -1484,8 +1484,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "not a literal",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P3-G6-SCRIPTSREACH": {
@@ -1639,8 +1639,8 @@
       ],
       "run": "test:app",
       "expect": "remaining = current total balance, as a STRING the test does not compute",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P3-D3-8": {
@@ -1811,8 +1811,8 @@
       ],
       "run": "test:app",
       "expect": "owner · a whole ROW unreadable",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P4-C4-9-MIXED": {
@@ -1854,8 +1854,8 @@
       ],
       "run": "test:app",
       "expect": "the record SURVIVES the acknowledgement",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P5-A5-2-NONFINITE": {
@@ -1926,8 +1926,8 @@
       ],
       "run": "test:regression",
       "expect": "so the projected minimum is $300, never the unscaled $100",
-      "measured": "2026-08-30",
-      "sha": "8ee70449"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P5-A5-7-CLAMPHONEST": {
@@ -1962,8 +1962,8 @@
       ],
       "run": "test:app",
       "expect": "nine lost rows say NINE, not one",
-      "measured": "2026-08-30",
-      "sha": "b7370ba6"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P5-B5-2-FRESHWINS": {
@@ -1980,8 +1980,8 @@
       ],
       "run": "test:app",
       "expect": "a field that has become unreadable is LOST",
-      "measured": "2026-08-30",
-      "sha": "b7370ba6"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P5-D5-7-EXPECTREQUIRED": {
@@ -1998,8 +1998,8 @@
       ],
       "run": "typecheck:scripts",
       "expect": "test-gate-plants.ts",
-      "measured": "2026-08-30",
-      "sha": "b7370ba6"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P5-D5-13-DERIVEDPOP": {
@@ -2016,8 +2016,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "money formatter(s) derived from",
-      "measured": "2026-08-30",
-      "sha": "2b438abb"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P5-D5-12-RUNNERSET": {
@@ -2075,8 +2075,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
-      "measured": "2026-08-30",
-      "sha": "b9ee9f90"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2093,8 +2093,8 @@
       ],
       "run": "test:app",
       "expect": "the Safe-floor date is not stated",
-      "measured": "2026-08-30",
-      "sha": "5a68a174"
+      "measured": "2026-08-31",
+      "sha": "d1c4de30"
     }
   },
   "S1P5-B5-12-INVENTORYAGREE": {
@@ -2289,7 +2289,7 @@
           "replace": "  if (false && exitPass) seedStaleRead(exitPass);"
         }
       ],
-      "run": "audit:route-check",
+      "cmd": ["npx", "tsx", "scripts/audit-route.ts", "--surface=s1", "--since=65566a09", "--exit-pass=s1p7", "--check"],
       "expect": "reached NO LANE",
       "measured": "2026-08-31",
       "sha": "b1cdd7fe"
@@ -2310,7 +2310,7 @@
       "run": "audit:read-coverage",
       "expect": "The predicate has gone blind",
       "measured": "2026-08-31",
-      "sha": "4c0f7689"
+      "sha": "d1c4de30"
     }
   },
   "S1-PASS-COVERAGE-EMPTY": {
@@ -2328,7 +2328,7 @@
       "run": "audit:read-coverage",
       "expect": "the population is empty",
       "measured": "2026-08-31",
-      "sha": "c7215241"
+      "sha": "d1c4de30"
     }
   },
   "S1P5-CONFLICT-MARKERS": {
@@ -2382,7 +2382,7 @@
       "run": "test:app",
       "expect": "an id surviving only in completedRecommendedActions is reserved",
       "measured": "2026-08-31",
-      "sha": "03c9aaa9"
+      "sha": "d1c4de30"
     }
   },
   "S1P5-C5-6-STORECURRENCY": {
