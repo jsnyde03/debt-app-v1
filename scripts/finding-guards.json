@@ -2241,6 +2241,22 @@
       "sha": "016bf441"
     }
   },
+  "S1-ROUTE-STALE-READ": {
+    "what": "S1.13.3 - the route's only exit was 'swept once, ever'. audit-route retired a surface file on `!inv.unswept.has(f) && !changed.has(f)`, and `unswept` means never read by ANY pass - so a file pass 2 read once, against a different brief and before three rounds of findings taught the lanes what to look for, was accounted for forever and no later pass would ever be pointed at it again unless something edited it. >>> MEASURED on the pass-6 route before the fix: 131 of the 360 money-bearing files pass 5 never read reached NO LANE. Among them FirstDebtOrBillStep.tsx, which mints a debt id from Date.now() - a defect found in this same session, in a file the router had already retired. All five prior origins are predicates on CHANGED or on NEVER-read; nothing asked 'read by the pass we are following?', which is the only question a coverage-driven pass is about. New `stale-read` origin, opt-in via --unread-pass so a route not chasing coverage is byte-identical (measured: 476 routed / 0 stale-read without the flag, 607 / 280 with it). Money-bearing via the SAME predicate the coverage exit uses, from scripts/lib/moneyClaim.ts, because a router seeding files the exit does not require is two producers of one fact.",
+    "file": "scripts/audit-route.ts",
+    "token": "reached NO origin:",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/audit-route.ts",
+          "find": "      origin.set(f, 'stale-read');",
+          "replace": "      if (false) origin.set(f, 'stale-read');"
+        }
+      ],
+      "run": "audit:route-check",
+      "expect": "reached NO origin"
+    }
+  },
   "S1-PASS-COVERAGE-FLOOR": {
     "what": "S1.13.1 + S1.13.2 - a pass's coverage is a checkable EXIT now, not lane prose. Measured the moment it existed: pass 5 read 86 of 446 money-bearing files (19%), pass 4 read 103. The lane reports said '393 routed, 126 read', which counted non-money files and files other passes had claimed. >>> THIS ENTRY GUARDS A FAIL-OPEN THAT WRITING THE GUARD FOUND, IN THE INSTRUMENT ITSELF: if carriesMoneyClaim goes blind - a broken regex, an unreadable root, a refactor dropping the content read - then money is empty, unread is empty, and the exit reports every pass fully covered. A coverage check that passes because it found nothing to cover is this round's defining shape, and it was in the file built to end it. Floored at 424, 95% of the 446 measured on 2026-08-31, per the margin gate-scan-floors.json states. >>> NOTE it does NOT prune: the plan said drop the 71 non-money files from the route, and the switch-in scan killed that against the code - S1's roots are whole directories and `excluded` fails safe ('a file nobody thought about is still counted'), and those roots have been widened five times, each undoing a hand-narrowed set. Files are classified; nothing leaves the surface.",
     "file": "scripts/check-pass-coverage.ts",

@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**122 files on the S0 surface · 75 swept · 47 unswept.**
+**123 files on the S0 surface · 75 swept · 48 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -112,6 +112,7 @@
 | `scripts/lib/anchor.ts` | s1p5 |
 | `scripts/lib/guardBuckets.ts` | ⛔ **never** |
 | `scripts/lib/importGraph.ts` | ⛔ **partial** |
+| `scripts/lib/moneyClaim.ts` | ⛔ **never** |
 | `scripts/lib/scanFloor.ts` | never · s1p4 |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
 | `scripts/lib/stripMarkdown.ts` | never · s1p4 |
@@ -181,11 +182,12 @@
 - `scripts/conform-app-preview.sh`
 - `scripts/lib/guardBuckets.ts`
 - `scripts/lib/importGraph.ts`
+- `scripts/lib/moneyClaim.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/preflight-xcuitest-target.ts`
 - `scripts/surface-inventory.ts`
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
 
-<!-- claims-sha256: 93d1c6ce59a9357f -->
+<!-- claims-sha256: 232eb43c3e79fcd0 -->
 

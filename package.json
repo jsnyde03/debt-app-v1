@@ -45,6 +45,7 @@
     "lint:rounding": "tsx scripts/check-rounding.ts",
     "lint:conflict-markers": "tsx scripts/check-conflict-markers.ts",
     "audit:read-coverage": "tsx scripts/check-pass-coverage.ts",
+    "audit:route-check": "tsx scripts/audit-route.ts --surface=s1 --since=65566a09 --unread-pass=s1p5 --check",
     "prove:guards": "tsx scripts/prove-guards.ts",
     "prove:guards:selftest": "tsx scripts/prove-guards.ts --selftest",
     "lint:gate-sources": "tsx scripts/check-gate-sources.ts",

@@ -42,45 +42,14 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { carriesMoneyClaim } from './lib/moneyClaim';
+
 const REPO_ROOT = join(import.meta.dirname, '..');
 
 const CLAIMS: Record<string, string> = {
   s0: 'scripts/surface-coverage.s0.json',
   s1: 'scripts/surface-coverage.s1.json',
 };
-
-/**
- * The money vocabulary. ⚠️ Deliberately broad: a term earns its place by being unable to appear in a file
- * that could NOT hold a money defect. `price`/`cost` are here because the paywall is money; `apr` and
- * `interest` because the projection is; `cycle`/`payday` because a cadence error IS a money error, which
- * is what CLASS V cost three files to learn.
- */
-const MONEY_WORDS = [
-  'balance', 'amount', 'paycheck', 'payday', 'payment', 'debt', 'reserve', 'goal', 'apr', 'interest',
-  'cash', 'money', 'currency', 'dollar', 'surplus', 'shortfall', 'allocat', 'budget', 'expense', 'income',
-  'payoff', 'snowball', 'avalanche', 'premium', 'price', 'cost', 'bnpl', 'minimum', 'cushion', 'buffer',
-  'cycle', 'forecast', 'projection', 'milestone', 'subscription', 'refund', 'billing',
-  // ⚠️ Added after LOOKING at what the first cut classified as non-money, rather than trusting its count.
-  // `packages/core/guardian/testComputeState.ts` had been excluded, and the Guardian state is derived from
-  // cash against a floor — a misclassification would have pointed no lane at a money state machine.
-  // ⛔ The lesson is the count is not the check: 43 looked plausible and one of the 43 was wrong.
-  'floor', 'guardian', 'owe', 'spend', 'afford',
-];
-const MONEY_RE = new RegExp(`(${MONEY_WORDS.join('|')})`, 'i');
-
-function carriesMoneyClaim(rel: string): boolean {
-  // ⚠️ The PATH counts too, not only the contents: a file named `moneyFormatters.test.ts` whose body is
-  // all fixtures still belongs to the money surface, and a reader looking only at contents would miss it.
-  if (MONEY_RE.test(rel)) return true;
-  try {
-    return MONEY_RE.test(readFileSync(join(REPO_ROOT, rel), 'utf8'));
-  } catch {
-    // ⛔ Unreadable → money-bearing. Failing toward inclusion is the whole posture of this file: an
-    // unreadable file is an UNKNOWN, and silently classifying unknowns as "no money here" is how a
-    // population goes quietly empty.
-    return true;
-  }
-}
 
 const args = process.argv.slice(2);
 const arg = (k: string): string | undefined => args.find((a) => a.startsWith(`--${k}=`))?.split('=')[1];

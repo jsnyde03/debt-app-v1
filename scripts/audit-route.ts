@@ -85,6 +85,7 @@ import { dirname, join, resolve } from 'node:path';
 // assert the resolver directly. See its header for why a route built on `changed` alone is half-blind.
 import { lf } from './lib/anchor';
 import { buildImportGraph, neighbourhood } from './lib/importGraph';
+import { carriesMoneyClaim } from './lib/moneyClaim';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -123,9 +124,9 @@ const CLAIMS: Record<string, string> = {
  * set — 95 changed, 101 consumers, 155 siblings. That is the price of the exit line, and it buys the two
  * money screens where **3 of C's 4 blockers lived** plus `A-F4`'s producer.
  */
-type Origin = 'first-look' | 'fix-churn' | 'instrument' | 'off-surface' | 'neighbour' | 's0-first-look';
+type Origin = 'first-look' | 'fix-churn' | 'instrument' | 'off-surface' | 'neighbour' | 's0-first-look' | 'stale-read';
 
-const ORIGINS: readonly Origin[] = ['first-look', 'fix-churn', 'instrument', 'off-surface', 'neighbour', 's0-first-look'];
+const ORIGINS: readonly Origin[] = ['first-look', 'fix-churn', 'instrument', 'off-surface', 'neighbour', 's0-first-look', 'stale-read'];
 
 /**
  * ⛔ **A DENY-LIST, AND THE ONLY ONE IN THIS FILE.** It exists because `off-surface` is defined by
@@ -140,6 +141,12 @@ interface Inventory {
   unswept: Set<string>;
   statedTotal: number;
   statedUnswept: number;
+  /**
+   * ⛔ S1.13.3 — the per-file sweep RECORD, not just the never-swept set. `unswept` collapses "read by
+   * pass 2 and nobody since" into "accounted for"; the `stale-read` origin needs to know WHICH passes.
+   * ⚠️ Read from the same claims file the stamp above already hashes, so it cannot drift from `unswept`.
+   */
+  claims: Record<string, string[]>;
 }
 
 function die(msg: string): never {
@@ -215,7 +222,8 @@ function readInventory(surface: string): Inventory {
   for (const f of unswept) {
     if (!files.includes(f)) die(`${rel}: "${f}" is listed unswept but is not in the table.`);
   }
-  return { files, unswept, statedTotal, statedUnswept };
+  const claims: Record<string, string[]> = JSON.parse(readFileSync(join(REPO_ROOT, claimsRel), 'utf8'));
+  return { files, unswept, statedTotal, statedUnswept, claims };
 }
 
 /** Files changed between `since` and HEAD, as tracked paths. Deletions are dropped — a route cannot point at a file that is gone. */
@@ -292,6 +300,12 @@ function main(): void {
   const since = arg('since');
   const outDir = arg('out');
   const checkOnly = process.argv.includes('--check');
+  /**
+   * ⛔ S1.13.3 — the id of the pass this route FOLLOWS (e.g. `s1p5`). Given, every money-bearing file
+   * that pass did not read is seeded as `stale-read`, even if nothing has touched it since. Omitted,
+   * the route is exactly what it was — this adds a seed, it does not redefine the others.
+   */
+  const unreadPass = arg('unread-pass');
 
   if (!since) die('--since=<sha> is required — it is the previous pass\'s pin, and "changed since" is what fix-churn means.');
   if (!outDir && !checkOnly) die('--out=<dir> is required unless --check.');
@@ -331,6 +345,53 @@ function main(): void {
     if (inv.unswept.has(f)) origin.set(f, 'first-look');
     else if (changed.has(f)) origin.set(f, 'fix-churn');
     // swept and unchanged → accounted for. This is the ONLY exit from the route.
+  }
+  /**
+   * ⛔ **S1.13.3 — "SWEPT" MEANT "SWEPT ONCE, EVER", AND THAT WAS THE ROUTE'S ONLY EXIT.**
+   *
+   * ⚡ The loop above retires a file on `!inv.unswept.has(f) && !changed.has(f)`, and `unswept` means
+   * *never read by ANY pass*. So a file pass 2 read once — against a different brief, before three
+   * rounds of findings taught the lanes what to look for — is **accounted for forever**, and no later
+   * pass will ever be pointed at it again unless something edits it.
+   *
+   * ⛔ **Measured on this route before the fix: 131 of the 360 money-bearing files pass 5 never read
+   * reached NO lane.** Among them `FirstDebtOrBillStep.tsx`, which mints a debt id from `Date.now()` —
+   * a defect found this same session, in a file the router had already retired. ⚠️ The five origins
+   * above are all predicates on **changed** or on **never-read**; nothing asked *"read by the pass we
+   * are following?"*, which is the only question a coverage-driven pass is actually about.
+   *
+   * ⚠️ **Opt-in via `--unread-pass=<id>`, and unchanged behaviour without it.** A pass that is not
+   * chasing coverage should route exactly as before; this is a seed, not a redefinition of the others.
+   * `changed`-derived origins keep priority — what the fixing just wrote is the sharper claim about a
+   * file than the fact an older pass skipped it.
+   *
+   * ⛔ Money-bearing only, through the SAME predicate `check-pass-coverage.ts` uses, because a router
+   * seeding files the exit does not require is two producers of one fact.
+   */
+  if (unreadPass) {
+    for (const f of inv.files) {
+      if (origin.has(f)) continue;
+      if ((inv.claims[f] ?? []).includes(unreadPass)) continue;
+      if (!carriesMoneyClaim(f)) continue;
+      origin.set(f, 'stale-read');
+    }
+    /**
+     * ⛔ **THE SEED'S OWN COMPLETENESS CHECK, and it is not the same statement as the loop above.**
+     *
+     * The loop assigns an origin; this asserts the RESULT — every money-bearing file the followed pass
+     * did not read now carries *some* origin. ⚠️ A `continue` that fires for the wrong reason, a
+     * predicate that goes blind, or a future edit reordering the origins all leave the loop looking
+     * correct while the set silently shrinks. ⛔ **I verified this by hand once, comparing two sorted
+     * files.** A property checked once by hand is a property that holds once; this is the same check
+     * every run, which is the difference between the two.
+     */
+    const owed = inv.files.filter((f) => !(inv.claims[f] ?? []).includes(unreadPass) && carriesMoneyClaim(f) && !origin.has(f));
+    if (owed.length > 0) {
+      die(
+        `${owed.length} money-bearing file(s) were not read by ${unreadPass} and reached NO origin:\n  ${owed.join('\n  ')}\n\n` +
+          '  ⛔ --unread-pass exists precisely so these are routed. Reaching no origin means they reach no lane.',
+      );
+    }
   }
   /**
    * ⛔ **S1.11.6.3 [pass-4 `D4-7`] — THIS EMITTED `first-look` FOR S1 AND NEVER FOR S0.** The S1 loop

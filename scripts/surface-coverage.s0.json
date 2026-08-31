@@ -353,6 +353,9 @@
   "scripts/lib/importGraph.ts": [
     "partial"
   ],
+  "scripts/lib/moneyClaim.ts": [
+    "never"
+  ],
   "scripts/lib/scanFloor.ts": [
     "never",
     "s1p4"
