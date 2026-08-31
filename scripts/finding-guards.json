@@ -2150,5 +2150,59 @@
       "measured": "2026-08-30",
       "sha": "a5bec7a1"
     }
+  },
+  "S1P5-C5-2-WIDGETPARITY": {
+    "what": "pass-5 C5-2 (blocker) - the Home Screen widget and Siri stated a debt total $2,513 BELOW the app's on one store at one instant ('$9,000 remaining' vs a $11,513 hero, 28% apart); a second fixture moved it the other way, so the widget was simply a different number. Free was the control and agreed exactly. The module already applied the projection to its Guardian SENTENCE and not to its four figures. Only forward-looking figures move: pct stays on anchors so '% paid' cannot fall on its own, live/cleared stay on anchors so a projected $0 never says 'Debt-free' before the user confirms, debtsJson stays for Siri disambiguation. The test could not have caught it before: runMigrations stamps lastVerifiedDate = currentDate so every fixture had ZERO elapsed time, and nothing asserted parity - only literals.",
+    "file": "apps/rn/src/widget/widgetSync.test.ts",
+    "token": "the widget states the app's figure",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/widget/snapshot.ts",
+          "find": "  const totalCurrent = engineDebts.reduce((s, d) => s + d.balance, 0);",
+          "replace": "  const totalCurrent = debts.reduce((s, d) => s + d.balance, 0);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the widget states the app's figure",
+      "measured": "2026-08-30",
+      "sha": "4f32f846"
+    }
+  },
+  "S1P5-C5-3-SHEETBALANCE": {
+    "what": "pass-5 C5-3 (blocker) - 'Log payment' said 'Chase - $0 owed' and offered to clear a $12,000 card, one tap below a row correctly printing an em dash, and the 'more than the balance' note fired against that same unread balance. Both sentences move together: suppressing the subtitle alone leaves the louder one. The WRITE was not damaged and that was checked - logManualPayment clamps, the repair record survives, no celebration fires - because reporting a data-loss that is not there is this round's named hazard. The predicates live in a PURE store module because the app-layer runner cannot load a .tsx, so a helper exported from the component is unreachable by any test (C5-4's first test asserted a copy and a plant passed green).",
+    "file": "apps/rn/src/store/logPaymentCopy.test.ts",
+    "token": "the sheet does not say \"$0 owed\" over a balance it could not read",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/logPaymentCopy.ts",
+          "find": "  if (rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'balance')) return undefined;\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:app",
+      "expect": "the \"more than the balance\" note does not fire",
+      "measured": "2026-08-30",
+      "sha": "4f32f846"
+    }
+  },
+  "S1P5-A5-4-ROUNDINGCAP": {
+    "what": "pass-5 A5-4 (minor) - 18 private copies of roundMoney beside the exported owner, all character-identical so no live defect; filed because 'two producers of one fact' is what A1, A2 and A-F4 each were. Lane A recommended the LINT first rather than a mechanical 18-site collapse. THREE MEASUREMENTS, EACH LARGER: identifier scan 19, git grep on the expression 67 ([^)]* cannot cross a nested paren), this scan 93. lint:scan-floors refused the new gate on its first run - it strips and had no floor (GAP-8), and its own downward-only cap inverts there: a scan reading nothing reports FEWER copies.",
+    "file": "scripts/run-gates.ts",
+    "token": "'lint:rounding',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-rounding.ts",
+          "find": "const MAX_INLINE_ROUNDING = 93;",
+          "replace": "const MAX_INLINE_ROUNDING = 94;"
+        }
+      ],
+      "run": "lint:rounding",
+      "expect": "the cap is still",
+      "measured": "2026-08-30",
+      "sha": "4f32f846"
+    }
   }
 }
