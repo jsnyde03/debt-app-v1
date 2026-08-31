@@ -1,9 +1,21 @@
 import { formatCurrency } from "@core/utils/formatCurrency";
 import type { InterestSaved } from "@core/debt/computeInterestSaved";
 
+/**
+ * ⛔ **S1.13.7.5 [pass-6 `D3-3`] — `S1.10.6.7.4`'s BENEFIT-CLAIM ROUNDING FIX REACHED ONE OF THIS
+ * FUNCTION'S TWO DEFINITIONS.**
+ *
+ * `formatMonths` exists exactly twice in the repo. The RN copy floors — `Math.floor(months / 12)` — for
+ * the recorded reason that a **benefit claim must never round in the app's own favour**. This copy still
+ * rounded, so **"30 months saved" read as "3 years"**, overstating the saving by a fifth.
+ *
+ * ⚠️ Not imported from the RN tree: this file is the legacy root, `P6.11` deletes it, and adding a new
+ * cross-tree dependency now would make that deletion harder rather than easier. The rule is duplicated
+ * deliberately and the duplication is stated, which is the honest form of a copy that has a scheduled end.
+ */
 function formatMonths(months: number): string {
     if (months < 24) return `${months} month${months === 1 ? "" : "s"}`;
-    return `${Math.round(months / 12)} years`;
+    return `${Math.floor(months / 12)} years`;
 }
 
 /**

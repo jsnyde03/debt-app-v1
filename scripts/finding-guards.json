@@ -2154,15 +2154,15 @@
     }
   },
   "S1P5-C5-2-WIDGETPARITY": {
-    "what": "pass-5 C5-2 (blocker) - the Home Screen widget and Siri stated a debt total $2,513 BELOW the app's on one store at one instant ('$9,000 remaining' vs a $11,513 hero, 28% apart); a second fixture moved it the other way, so the widget was simply a different number. Free was the control and agreed exactly. The module already applied the projection to its Guardian SENTENCE and not to its four figures. Only forward-looking figures move: pct stays on anchors so '% paid' cannot fall on its own, live/cleared stay on anchors so a projected $0 never says 'Debt-free' before the user confirms, debtsJson stays for Siri disambiguation. The test could not have caught it before: runMigrations stamps lastVerifiedDate = currentDate so every fixture had ZERO elapsed time, and nothing asserted parity - only literals.",
+    "what": "pass-5 C5-2 (blocker) - the Home Screen widget and Siri stated a debt total $2,513 BELOW the app's on one store at one instant ('$9,000 remaining' vs a $11,513 hero, 28% apart); a second fixture moved it the other way, so the widget was simply a different number. Free was the control and agreed exactly. The module already applied the projection to its Guardian SENTENCE and not to its four figures. Only forward-looking figures move: pct stays on anchors so '% paid' cannot fall on its own, live/cleared stay on anchors so a projected $0 never says 'Debt-free' before the user confirms, debtsJson stays for Siri disambiguation. The test could not have caught it before: runMigrations stamps lastVerifiedDate = currentDate so every fixture had ZERO elapsed time, and nothing asserted parity - only literals. >>> S1.13.7.5 [pass-6 C3-2]: the anchor moved when the widget's four figures were put on ONE claim basis. `remaining` still uses the PROJECTED sum -- C5-2 stays closed -- but a projection may no longer assert a completion the confirmed data has not reached, so while any debt is live by confirmed balance the face cannot print $0. The re-pointed un-fix still reproduces C5-2 exactly: it swaps the projected sum for the raw one.",
     "file": "apps/rn/src/widget/widgetSync.test.ts",
     "token": "the widget states the app's figure",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/widget/snapshot.ts",
-          "find": "  const totalCurrent = engineDebts.reduce((s, d) => s + d.balance, 0);",
-          "replace": "  const totalCurrent = debts.reduce((s, d) => s + d.balance, 0);"
+          "find": "  const projectedTotal = engineDebts.reduce((s, d) => s + d.balance, 0);",
+          "replace": "  const projectedTotal = debts.reduce((s, d) => s + d.balance, 0);"
         }
       ],
       "run": "test:app",

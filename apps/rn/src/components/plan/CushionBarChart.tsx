@@ -6,7 +6,13 @@ import { duration } from '@/theme/motion';
 
 /** The held "set aside" reserve renders as the cushion color at this opacity (§2.0.c — a visible-but-
  *  clearly-protected sub-zone, one calm slate language, not a second hue). */
-const RESERVE_OPACITY = 0.5;
+/**
+ * ⛔ **S1.13.7.5 [pass-6 `C1-18`] — EXPORTED, because it was declared TWICE and one of the two documented
+ * that it must match the other.** A constant whose correctness depends on a human keeping two literals
+ * equal is two producers of one fact; the comment saying so is the tell, not the safeguard. The chart
+ * that DRAWS the reserve owns the value, and the card's legend swatch imports it.
+ */
+export const RESERVE_OPACITY = 0.5;
 
 export interface CushionBarChartProps {
   width: number;

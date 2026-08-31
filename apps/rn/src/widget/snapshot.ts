@@ -1,4 +1,5 @@
 import type { DebtStore } from '@/data/models';
+import { percentCompleteLabel } from '@core/utils/percentComplete';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaydayGuardian } from '@/store/guardianSelectors';
 import { selectPayoffView } from '@/store/payoffSelectors';
@@ -140,10 +141,31 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
   // ⚠️ Anchors, deliberately — see the hazard note above.
   const live = debts.filter((d) => d.balance > 0);
   const totalOriginal = debts.reduce((s, d) => s + (d.originalBalance ?? d.balance), 0);
-  const totalCurrent = engineDebts.reduce((s, d) => s + d.balance, 0);
+  /**
+   * ⛔ **S1.13.7.5 [pass-6 `C3-2`] — THE FOUR FIGURES ON THIS FACE ARE RENDERED TOGETHER AND WERE
+   * COMPUTED ON TWO BASES, SO THE FACE CONTRADICTED ITSELF: "95% paid" beside "$0 remaining".**
+   *
+   * Pass 5's `C5-2` moved **`remaining` alone** onto the projection and left `pct`, `live`/`cleared` and
+   * `debtsJson` on the anchors. Each exclusion is argued in isolation at `:132` and each argument is
+   * sound on its own. ⚡ **What no line of it considers is that all four are read at one glance** — and
+   * this file states the governing rule itself twelve lines below: *"ALL FOUR FIGURES DEGRADE TOGETHER,
+   * and that is the load-bearing half."* It was applied to the `mayClaim` refusal and not to the basis.
+   *
+   * ⛔ **Neither obvious move is right, and the finding says so.** Putting `pct` on the projection makes
+   * *"% paid"* fall while the user does nothing — measured and rejected at `:117`. Reverting `remaining`
+   * to the anchors re-opens `C5-2`, where the widget was **$2,513** below the app.
+   *
+   * ⚠️ **So the rule is about the CLAIM, not the basis: a projection may not assert a completion the
+   * confirmed data has not reached.** While any debt is live by confirmed balance, the face may not print
+   * `$0`; it falls back to what the app actually knows is owed. Everywhere else the projection stands, so
+   * `C5-2`'s divergence stays closed.
+   */
+  const projectedTotal = engineDebts.reduce((s, d) => s + d.balance, 0);
+  const confirmedTotal = debts.reduce((s, d) => s + d.balance, 0);
+  const totalCurrent = live.length > 0 && projectedTotal <= 0 ? confirmedTotal : projectedTotal;
   // ⚠️ `totalPaid` is measured against the ANCHOR total, not the projected one: interest accruing between
   // statements is not the user paying money, and crediting it would make "% paid" move on its own.
-  const totalPaid = Math.max(0, totalOriginal - debts.reduce((s, d) => s + d.balance, 0));
+  const totalPaid = Math.max(0, totalOriginal - confirmedTotal);
   const pct = totalOriginal > 0 ? Math.max(0, Math.min(1, totalPaid / totalOriginal)) : 0;
 
   /**
@@ -212,7 +234,9 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
     // without a native change, and an empty ring beside a "—" label is the honest one of the two.
     balancesUnread: !mayStateBalances,
     pctPaid: mayStateBalances ? pct : 0,
-    pctLabel: mayStateBalances ? `${Math.round(pct * 100)}%` : '—',
+    // ⛔ S1.13.7.5 [pass-6 C3-3] — this said "100% paid" on the same face as "$5 left". 100 is a
+    // completeness CLAIM, not a rounding; the ring above still sweeps on the full-precision `pct`.
+    pctLabel: mayStateBalances ? `${percentCompleteLabel(pct)}%` : '—',
     remaining: mayStateBalances ? formatWhole(totalCurrent) : '—',
     updatedAt,
     guardianSpoken: buildGuardianSpoken(store),

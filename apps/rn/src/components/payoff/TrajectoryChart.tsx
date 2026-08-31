@@ -77,9 +77,28 @@ function shortDate(full: string): string {
 }
 
 /** A compact axis balance label: $0 · $4k · $12k. */
+/**
+ * ⛔ **S1.13.7.5 [pass-6 `C2-2`] — THE LABEL DID NOT NAME THE GRIDLINE IT SAT ON.**
+ *
+ * ⚡ `niceStep`'s ladder contains one non-round rung — **2500** — and this abbreviated at whole-thousand
+ * precision, so any portfolio with a max balance in **(7000, 8750]** drew gridlines at
+ * `0 / 2500 / 5000 / 7500` and labelled them **`$0 / $3k / $5k / $8k`**. Two of the four labels named a
+ * value the line was not at, and the axis is the reader's only scale for every balance on the chart.
+ *
+ * ⚠️ **The formatter gained precision rather than the ladder losing a rung.** Dropping `2500` would
+ * change gridline spacing on every portfolio to fix a labelling defect — a visual regression traded for a
+ * numeric one. One decimal is exact for every rung the ladder can produce.
+ *
+ * ⚠️ `check-money-format.ts:41` exempts this whole file, stating the abbreviation is *"a genuinely
+ * different job"* — true, and it is why nothing asserted the label names its own value. The exemption
+ * stands; this is the assertion it was missing.
+ */
 function formatAxisBalance(v: number): string {
   if (v === 0) return '$0';
-  if (v >= 1000) return `$${Math.round(v / 1000)}k`;
+  if (v >= 1000) {
+    const k = v / 1000;
+    return `$${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+  }
   return `$${Math.round(v)}`;
 }
 

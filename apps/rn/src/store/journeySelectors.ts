@@ -1,4 +1,5 @@
 import type { Debt } from '@/data/models';
+import { percentCompleteLabel } from '@core/utils/percentComplete';
 import { formatWhole } from '@/utils/format';
 
 /**
@@ -59,7 +60,10 @@ export function selectJourneyTotals(
   const totalConfirmed = debts.reduce((sum, d) => sum + d.balance, 0);
   const totalCurrent = projected.reduce((sum, d) => sum + d.balance, 0);
   const totalPaid = Math.max(0, totalOriginal - totalConfirmed);
-  const pct = totalOriginal > 0 ? Math.round((totalPaid / totalOriginal) * 100) : 0;
+  // ⛔ S1.13.7.5 [pass-6 C3-3] — `Math.round` rounded any residue under 0.5% UP into 100, which lit the
+  // gold "Free" milestone and had VoiceOver announce "all milestones reached" over money still owed.
+  // 100 now means complete, and 0 means nothing paid; everything else is 1..99. See percentComplete.ts.
+  const pct = totalOriginal > 0 ? percentCompleteLabel(totalPaid / totalOriginal) : 0;
   /**
    * Early on, lead FORWARD (the remaining as a goal) instead of a deflating "$0 paid" — 3.3.6b.
    *

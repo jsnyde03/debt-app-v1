@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { percentCompleteLabel } from '@core/utils/percentComplete';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,7 +43,7 @@ import type { Debt, Goal, RequiredExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { useActiveStore } from '@/store/StoreContext';
-import { selectDebtBalanceView, buildEstimateCaption } from '@/store/balanceSelectors';
+import { selectDebtBalanceView, buildEstimateCaption, withProjectedBalances } from '@/store/balanceSelectors';
 import { anyRowFieldUnread, hasUnreadDebtBalances, partitionDebts, rowFieldUnread, unreadFieldsFor } from '@/store/trustSelectors';
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL, resolveBillCategory } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
@@ -214,7 +215,24 @@ function DebtsSection({
   const strategy = store.payoffStrategy;
   // Memoized on the store so re-renders that don't change the plan (e.g. the parent's Debts/Bills/Goals
   // section toggle) don't rebuild all three payoff trajectories.
-  const view = useMemo(() => selectPayoffView(store), [store]);
+  /**
+   * ⛔ **S1.13.7.5 [pass-6 `C3-9`] — MONEY AND PROGRESS NAMED A DIFFERENT FOCUS DEBT FOR THE SAME STORE AT
+   * THE SAME INSTANT, because they ranked on two different balance sets.**
+   *
+   * `progress.tsx` builds its view from `withProjectedBalances(store, isPremium)`; this built it from the
+   * raw store. `view.focus` and `view.order` are ranked outputs, so for a premium user whose projections
+   * have moved the balances apart, the two tabs disagree about **which debt to pay next** — and Money's
+   * list was visibly not in the order its own caption claimed, because the ROWS were already rendering
+   * `selectDebtBalanceView(..., isPremium, ...)`, i.e. the projected figure, under a raw ranking.
+   *
+   * ⚠️ Same basis as Progress, so there is one answer to *"which debt is the focus"* rather than two.
+   * `withProjectedBalances` is a documented no-op for free, so nothing changes for the free tier.
+   */
+  const isPremiumForView = store.subscriptionPlan === 'premium';
+  const view = useMemo(
+    () => selectPayoffView(withProjectedBalances(store, isPremiumForView)),
+    [store, isPremiumForView],
+  );
   // ⛔ S1.5.3 [B4] — `convertingExpenseId` LIVES IN HERE, not beside it. It used to be its own
   // `useState` set on the conversion and cleared by nothing (`grep setConverting` returned exactly one
   // line: the setter). It was handed to every subsequent `DebtSheet`, and `DebtSheet:213` routes to
@@ -1217,7 +1235,7 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
               ? 'saved — one target could not be read'
               : `saved of ${formatWhole(totalTarget)} target`
         }
-        caption={targetUnread || savedUnread ? undefined : `${Math.round(overall * 100)}% funded`}
+        caption={targetUnread || savedUnread ? undefined : `${percentCompleteLabel(overall)}% funded`}
         bar={targetUnread || savedUnread ? undefined : <HeroProgressBar pct={overall} />}
       />
       <View style={styles.goalsList}>

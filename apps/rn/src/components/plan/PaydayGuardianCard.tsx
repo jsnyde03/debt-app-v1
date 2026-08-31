@@ -1,4 +1,5 @@
 import { CUSHION_LABEL, EMERGENCY_FUND_NOUN, SAFETY_NET_LABEL } from '@core/copy/vocabulary';
+import { RESERVE_OPACITY } from '@/components/plan/CushionBarChart';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 
@@ -25,7 +26,7 @@ const BAR_H = 14;
 /** The safety-net swatch matches the bar's tinted reserve zone (cushion color at this opacity).
  *  (Called "set aside" here and at the legend below — the rendered label has been "Safety net" for a
  *  while, and "Set aside" is the GIG app's brand term, which this app deliberately doesn't borrow.) */
-const RESERVE_OPACITY = 0.5;
+// ⛔ S1.13.7.5 [pass-6 C1-18] — imported, not re-declared. See CushionBarChart.tsx.
 
 /** ⛔ [pass-4 `C4-7`] The headline the card wears in place of a verdict it cannot reach. Says the STATE
  *  rather than merely withholding the figure — `B1`'s lesson: a true statement withheld gets replaced by

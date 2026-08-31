@@ -64,9 +64,24 @@ export function AmortizationView({ debtId }: { debtId: string | null }) {
       </Text>
 
       {!payoffPossible ? (
+        /**
+         * ⛔ S1.13.7.5 [pass-6 A2-1] — THIS SHEET STATED A PORTFOLIO OUTCOME FROM A SINGLE-DEBT
+         * SIMULATION, AND THE APP'S OWN HEADLINE CONTRADICTED IT.
+         *
+         * `selectDebtAmortization` amortises a NON-FOCUS debt against `baseMonthly` alone — its own
+         * minimum — because the snowball extra goes to the focus. So `payoffPossible: false` means
+         * "not at this payment", which is true. ⚡ The sentence said "this debt never gets paid off",
+         * which is false: on the very portfolio `cannotAmortize.ts`'s docblock names, the headline read
+         * February 2029 and the chart cleared it at month 30, because the plan hands this debt the
+         * rollover once the earlier one clears.
+         *
+         * ⚠️ It is a CLASS, not one card: every non-focus debt whose minimum is below its own interest
+         * gets this copy. The fix is the scope of the claim — the simulation is right, the sentence
+         * outran it.
+         */
         <Text style={[textStyles.body, styles.empty, { color: c.text.secondary }]}>
-          At {formatCurrency(amort.monthlyPayment)}/mo the interest outpaces the balance, so this debt never gets
-          paid off. Increasing the payment fixes it.
+          At {formatCurrency(amort.monthlyPayment)}/mo alone, the interest outpaces the balance — this debt
+          doesn’t come down on its own. Your plan puts more toward it as your other debts clear.
         </Text>
       ) : (
         <>
