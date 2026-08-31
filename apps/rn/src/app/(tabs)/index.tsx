@@ -340,6 +340,9 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               onAddWindfall={() => setWindfallSheet(true)}
               onEditPaycheck={() => setPaycheckSheet(true)}
               onOpenSpokenFor={() => setSpokenForSheet(true)}
+              // ⛔ S1.13.7.4 [pass-6 C1-3] — the hero is the FIRST and loudest claim on this screen and was
+              // the one card here not asking. The two cards below already pass this exact expression.
+              unreadPlanInputs={!mayClaim(store, 'required-plan')}
             />
           </TutorialFence>
         </Motion>

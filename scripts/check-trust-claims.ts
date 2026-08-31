@@ -524,7 +524,19 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
   // carried number** — this one decayed inside the gate written to stop claims drifting from their callers.
   'debt-balances': 3, // widget/snapshot.ts (the balance gate) + progress.tsx + celebrationSelectors.ts
   'goal-amounts': 1,
-  'required-plan': 5,
+  /**
+   * ⛔ **6 at `S1.13.7.4` [pass-6 `C1-10`]: `WindfallSheet.tsx` joined them, and this one SPENDS.**
+   *
+   * The autopilot itemised where every dollar of a bonus lands — *"To your emergency fund, $700"* — on a
+   * plan it knew was missing an obligation, and offered a **Confirm that routes it that way.** ⚠️ A lost
+   * obligation makes MORE money look spare, so the routing was wrong in the direction that moves money.
+   *
+   * ⚡ Its sibling `C1-3` needed no new caller: `PlanHero` — the first and loudest card on Today — already
+   * sat inside `index.tsx`, which was counted here. **The floor could not have caught it**, because the
+   * file was already asking on behalf of two *other* cards. A per-file count says a file asks; it cannot
+   * say every claim in that file is gated.
+   */
+  'required-plan': 6,
   /**
    * ⛔ **6 at S1.12.5.6 [pass-5 `C5-3`]: `logPaymentCopy.ts` joined them, and the direction is the point.**
    * `'row-figures'` was created as *"a single row restating its own money"* and wired into the LIST row,

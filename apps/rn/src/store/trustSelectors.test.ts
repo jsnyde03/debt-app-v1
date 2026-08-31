@@ -3,6 +3,11 @@ import { selectAllocation } from '@/store/selectors';
 import { selectPlanState } from '@/store/planSelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
 import { detectPayoff } from '@/store/payoffCelebration';
+
+/** ⛔ S1.13.7.4 [pass-6 B1-1] — the unread set detectPayoff now REQUIRES. Derived from the store
+ *  under test rather than typed, so a fixture that adds an unread balance is covered automatically. */
+const unreadIdsOf = (s: Parameters<typeof partitionDebts>[0]) =>
+  new Set(partitionDebts(s).unreadBalance.map((d) => d.id));
 import { createDebtStore } from '@/store/store';
 import { claimFields, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, rowFieldUnread } from '@/store/trustSelectors';
 import type { DebtStore } from '@/data/models';
@@ -332,14 +337,41 @@ export default function run(): void {
   {
     const store = migrated(['n/a', 400]);
     const after = store.debts.map((d) => (d.id === 'd1' ? { ...d, balance: 0 } : d));
-    const pending = { ...store, debts: after, pendingPayoff: detectPayoff(store.debts, after, store.payoffStrategy) };
-    eq(pending.pendingPayoff?.kind, 'finale', 'the crossing is STAMPED — never gate detection, or the once-ever moment is gone');
-    eq(selectCelebration(pending), null, '⛔ C3 — …and the finale is not shown over a balance nobody read');
+    const pending = { ...store, debts: after, pendingPayoff: detectPayoff(store.debts, after, store.payoffStrategy, unreadIdsOf(store)) };
+    /**
+     * ⛔ **S1.13.7.4 [pass-6 `B1-1`] — THIS ROW ASSERTED `finale` AND THAT WAS THE DEFECT.**
+     *
+     * The old reasoning was *"stamp the crossing, gate the render, so the moment survives the repair."*
+     * ⚡ Measured: the gate is a **delay, not a filter**. The record outlives the condition it was gated
+     * on, so the user answering the repair card — retyping the lost **$12,000** — is the very event that
+     * both makes the record false *and* lifts the gag. The full-screen once-ever finale then fired over a
+     * live $12,000 debt, reading *"$15,000 paid off · 1 debt"*, and it cannot be got back.
+     *
+     * ⚠️ **The moment is not lost by refusing to stamp it.** A portfolio with an unread balance is not
+     * debt-free, so this crossing is a **beat**; the true finale fires later, at the real moment, when
+     * that debt is actually cleared — asserted below.
+     */
+    eq(pending.pendingPayoff?.kind, 'beat', '⛔ B1-1 — an UNREAD balance is not a cleared one, so this is a beat and not the finale');
+    eq(selectCelebration(pending)?.kind, 'beat', '…and a beat about the debt that really was paid is still honest');
     eq(selectPlanState(pending, selectAllocation(pending)), 'debt-free-unverified', '…which is what the banner was already saying');
+    /**
+     * ⭐ **THE ASSERTION THE SUITE STOPPED ONE SHORT OF** — the step B1-1 had to run by hand. Answer the
+     * repair, and the finale must still not be claimed, because the debt is now known to be LIVE.
+     */
+    const repaired = {
+      ...pending,
+      debts: pending.debts.map((d) => (d.id === 'd0' ? { ...d, balance: 12000 } : d)),
+      pendingDataRepairs: [],
+    };
+    eq(
+      detectPayoff(pending.debts, repaired.debts, repaired.payoffStrategy, unreadIdsOf(repaired))?.kind ?? null,
+      null,
+      '⛔ B1-1 — answering the repair reveals a LIVE debt; nothing about that is a debt-free finale',
+    );
     // ⭐ THE CONTROL: the same crossing with every balance read must still celebrate.
     const clean = migrated([400]);
     const cleanAfter = clean.debts.map((d) => ({ ...d, balance: 0 }));
-    const celebrating = { ...clean, debts: cleanAfter, pendingPayoff: detectPayoff(clean.debts, cleanAfter, clean.payoffStrategy) };
+    const celebrating = { ...clean, debts: cleanAfter, pendingPayoff: detectPayoff(clean.debts, cleanAfter, clean.payoffStrategy, unreadIdsOf(clean)) };
     eq(selectCelebration(celebrating)?.kind, 'finale', '⭐ control — a real debt-free moment is NOT withheld');
   }
 
@@ -351,12 +383,12 @@ export default function run(): void {
   {
     const store = migrated(['n/a', 400, 900]);
     const after = store.debts.map((d) => (d.id === 'd1' ? { ...d, balance: 0 } : d));
-    const beat = { ...store, debts: after, pendingPayoff: detectPayoff(store.debts, after, store.payoffStrategy) };
+    const beat = { ...store, debts: after, pendingPayoff: detectPayoff(store.debts, after, store.payoffStrategy, unreadIdsOf(store)) };
     eq(beat.pendingPayoff?.kind, 'beat', 'clearing one of several live debts is a beat');
     eq(selectCelebration(beat)?.kind, 'beat', '⭐ C3 — a beat about a READ debt survives another debt being unread');
     // …and the same beat about the unread debt does not.
     const own = store.debts.map((d) => (d.id === 'd0' ? { ...d, balance: 0 } : d));
-    const ownBeat = { ...store, debts: own, pendingPayoff: detectPayoff(store.debts, own, store.payoffStrategy) };
+    const ownBeat = { ...store, debts: own, pendingPayoff: detectPayoff(store.debts, own, store.payoffStrategy, unreadIdsOf(store)) };
     eq(ownBeat.pendingPayoff?.kind, undefined, 'a debt repaired to 0 never CROSSES, so no beat is stamped for it');
   }
 

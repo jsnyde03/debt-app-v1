@@ -12,6 +12,7 @@ import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectWindfallSplit, type WindfallBucketKey } from '@/store/guardianSelectors';
+import { mayClaim } from '@/store/trustSelectors';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
@@ -58,7 +59,19 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
     [isPremium, validAmount, engineStore, n],
   );
   // C3 — only treat the split as renderable when it has rows (a sub-dollar windfall rounds to nothing).
-  const hasSplit = split != null && split.items.length > 0;
+  /**
+   * ⛔ **S1.13.7.4 [pass-6 `C1-10`] — SAME CLASS AS `C1-3`, SECOND FILE, AND THIS ONE SPENDS THE MONEY.**
+   *
+   * The autopilot itemises where every dollar of a bonus lands — *"To your emergency fund, $700"* — on a
+   * plan it knows is missing an obligation, and then offers a **Confirm that routes it that way.** The
+   * hero merely stated a wrong verdict; this acts on one.
+   *
+   * ⚠️ The routing is computed from the same `required-plan` inputs the card twenty lines up refuses on,
+   * so the split is not just uncertain — a lost obligation means MORE looks spare, and the itemisation
+   * sends it somewhere.
+   */
+  const unreadPlanInputs = !mayClaim(store, 'required-plan');
+  const hasSplit = split != null && split.items.length > 0 && !unreadPlanInputs;
 
   function submit() {
     if (!validAmount) return setError(FORM_ERRORS.amountPositive);
@@ -111,6 +124,16 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
           ))}
           <Text style={[textStyles.caption, styles.footHint, { color: c.text.tertiary }]}>
             Confirm to route it this way — your whole plan updates. Your call.
+          </Text>
+        </View>
+      ) : isPremium && validAmount && unreadPlanInputs ? (
+        // ⛔ S1.13.7.4 [pass-6 C1-10] — the itemisation is WITHHELD, not captioned (`G-4`). A lost
+        // obligation makes more money look spare, so the routing would be confidently wrong in the
+        // direction that spends it. Same voice as AffordabilityCard's unread state, and it names the fix.
+        <View style={styles.split}>
+          <Text testID="windfall-unread-inputs" style={[textStyles.subhead, { color: c.accent.warning }]}>
+            An amount this paycheck has to cover could not be read, so I can’t say where this would land —
+            set it again and I’ll route it.
           </Text>
         </View>
       ) : !isPremium && validAmount ? (

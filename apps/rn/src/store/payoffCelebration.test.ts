@@ -44,7 +44,7 @@ export default async function run() {
   {
     const before = [debt({ id: 'a', balance: 400, originalBalance: 1200, minimumPayment: 75 }), debt({ id: 'b', balance: 900, apr: 10 })];
     const after = [{ ...before[0], balance: 0 }, before[1]];
-    const result = detectPayoff(before, after, 'avalanche');
+    const result = detectPayoff(before, after, 'avalanche', new Set());
     assert(result?.kind === 'beat', 'clearing one of two debts fires the BEAT');
     if (result?.kind === 'beat') {
       eq(result.debtName, 'Debt a', 'named for the debt that cleared');
@@ -60,7 +60,7 @@ export default async function run() {
   {
     const before = [debt({ id: 'a', balance: 0 }), debt({ id: 'b', balance: 250 })];
     const after = [before[0], { ...before[1], balance: 0 }];
-    eq(detectPayoff(before, after, 'snowball')?.kind, 'finale', 'clearing the last live debt fires the FINALE');
+    eq(detectPayoff(before, after, 'snowball', new Set())?.kind, 'finale', 'clearing the last live debt fires the FINALE');
   }
 
   // ── ⛔ THE OVER-FIRING GUARD. Both halves of `before > 0 && after <= 0` matter. ──────────────────
@@ -70,7 +70,7 @@ export default async function run() {
   {
     const settled = [debt({ id: 'a', balance: 0 }), debt({ id: 'b', balance: 0 })];
     eq(
-      detectPayoff(settled, settled, 'avalanche'),
+      detectPayoff(settled, settled, 'avalanche', new Set()),
       null,
       '⛔ re-verifying already-cleared debts at $0 fires NOTHING — the finale is once-ever, not once-per-confirm',
     );
@@ -78,17 +78,17 @@ export default async function run() {
   {
     const before = [debt({ id: 'a', balance: 500 })];
     const after = [debt({ id: 'a', balance: 300 })];
-    eq(detectPayoff(before, after, 'avalanche'), null, 'a payment that does not clear the debt fires nothing');
+    eq(detectPayoff(before, after, 'avalanche', new Set()), null, 'a payment that does not clear the debt fires nothing');
   }
   {
     // A debt that VANISHED was deleted, not paid off. Nothing may read "gone" as "cleared".
     const before = [debt({ id: 'a', balance: 500 }), debt({ id: 'b', balance: 100 })];
     const after = [before[1]];
-    eq(detectPayoff(before, after, 'avalanche'), null, '⛔ a DELETED debt is not a payoff');
+    eq(detectPayoff(before, after, 'avalanche', new Set()), null, '⛔ a DELETED debt is not a payoff');
   }
   {
     // The empty plan. Nothing was live, so nothing crossed.
-    eq(detectPayoff([], [], 'avalanche'), null, 'an empty plan fires nothing');
+    eq(detectPayoff([], [], 'avalanche', new Set()), null, 'an empty plan fires nothing');
   }
 
   // ── A batch clearing several at once. ───────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ export default async function run() {
     // ⚠️ Two cleared, one still live → ONE beat, not two full-screen overlays stacked on each other.
     const before = [debt({ id: 'a', balance: 100, apr: 30 }), debt({ id: 'b', balance: 200, apr: 5 }), debt({ id: 'c', balance: 900 })];
     const after = [{ ...before[0], balance: 0 }, { ...before[1], balance: 0 }, before[2]];
-    const result = detectPayoff(before, after, 'avalanche');
+    const result = detectPayoff(before, after, 'avalanche', new Set());
     assert(result?.kind === 'beat', 'a batch clearing two of three still fires ONE beat');
     if (result?.kind === 'beat') {
       eq(result.debtName, 'Debt a', 'and the strategy picks which one speaks for the moment (avalanche → highest APR)');
@@ -107,14 +107,14 @@ export default async function run() {
     // rather than on what remains live would have produced a beat pointing at no next debt.
     const before = [debt({ id: 'a', balance: 100 }), debt({ id: 'b', balance: 200 })];
     const after = [{ ...before[0], balance: 0 }, { ...before[1], balance: 0 }];
-    eq(detectPayoff(before, after, 'avalanche')?.kind, 'finale', '⛔ clearing the last two at once is ONE finale');
+    eq(detectPayoff(before, after, 'avalanche', new Set())?.kind, 'finale', '⛔ clearing the last two at once is ONE finale');
   }
 
   // ── A debt with no recorded original still gets its moment. ─────────────────────────────────────
   {
     const before = [debt({ id: 'a', balance: 400, originalBalance: undefined }), debt({ id: 'b', balance: 900 })];
     const after = [{ ...before[0], balance: 0 }, before[1]];
-    const result = detectPayoff(before, after, 'snowball');
+    const result = detectPayoff(before, after, 'snowball', new Set());
     assert(result?.kind === 'beat', 'a debt with no recorded original still celebrates');
     if (result?.kind === 'beat') {
       eq(result.amount, null, 'it just declines to claim a total it never knew — never a 0, which would read as "$0 paid off"');

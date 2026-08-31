@@ -735,6 +735,7 @@ function run() {
         [{ id: 'd1', balance: 900 }, { id: 'd2', balance: 3000 }] as DebtStore['debts'],
         [{ id: 'd1', balance: 0 }, { id: 'd2', balance: 3000 }] as DebtStore['debts'],
         s.getState().store.payoffStrategy,
+        new Set(),
       )?.kind,
       'beat',
       'control — clearing one of two live debts is a BEAT, not a second finale',

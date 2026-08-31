@@ -47,6 +47,7 @@ export function PlanHero({
   onAddWindfall,
   onEditPaycheck,
   onOpenSpokenFor,
+  unreadPlanInputs = false,
 }: {
   summary: PlanSummary;
   recommended: ActiveRecommendedAction[];
@@ -56,6 +57,21 @@ export function PlanHero({
   onEditPaycheck?: () => void;
   /** 3.8.5 — opens the "Spoken for" split (everyday vs bills). Omitted → the legend item is inert. */
   onOpenSpokenFor?: () => void;
+  /**
+   * ⛔ **S1.13.7.4 [pass-6 `C1-3`] — THE FIRST AND LOUDEST CARD ON TODAY HAD NO TRUST GATE AT ALL.**
+   *
+   * It stated *"On track · debt-free by ⟨date⟩"* on the exact store where the `PaydayGuardianCard`
+   * **twenty lines below it** refuses to say anything. `grep mayClaim index.tsx` returned three lines and
+   * the hero was not one of them.
+   *
+   * ⚠️ **Two independent doors both bias the date EARLY**: `planSelectors.ts:113` drops a repaired-`$0`
+   * debt out of the projection entirely, and `:118` inflates `selectExtraToDebt` because the lost
+   * obligation left the allocation. The unread case does not merely make the date uncertain — it makes it
+   * **optimistic**, which is the direction that costs the user money.
+   *
+   * ⛔ **`G-4`'s rule: this is not a caption.** The verdict and the date are WITHHELD, not annotated.
+   */
+  unreadPlanInputs?: boolean;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
@@ -125,15 +141,24 @@ export function PlanHero({
   const suggestLabel =
     recommended.length === 1 ? recommended[0].label : recommended.length > 1 ? `${recommended.length} suggested moves` : null;
 
-  const statusColor =
-    summary.status === 'on-track' ? onNavy.essential : summary.status === 'short' ? onNavy.warning : onNavy.danger;
+  const statusColor = unreadPlanInputs
+    ? onNavy.warning
+    : summary.status === 'on-track'
+      ? onNavy.essential
+      : summary.status === 'short'
+        ? onNavy.warning
+        : onNavy.danger;
   const statusLabel =
     summary.status === 'overdue'
       ? 'Overdue payments need attention'
       : summary.status === 'short'
         ? 'Short this paycheck'
         : 'On track';
-  const reassurance = summary.debtFreeDate ? `${statusLabel} · debt-free by ${summary.debtFreeDate}` : statusLabel;
+  const reassurance = unreadPlanInputs
+    ? 'Something this paycheck has to cover could not be read, so I can’t tell you where the plan lands yet.'
+    : summary.debtFreeDate
+      ? `${statusLabel} · debt-free by ${summary.debtFreeDate}`
+      : statusLabel;
 
   const a11y = [
     `This paycheck ${formatWhole(paycheck)}.`,
@@ -237,7 +262,11 @@ export function PlanHero({
       </View>
 
       <View style={styles.statusRow}>
-        <AppIcon name={summary.status === 'on-track' ? 'check-circle' : 'error-outline'} size={15} color={statusColor} />
+        <AppIcon
+          name={!unreadPlanInputs && summary.status === 'on-track' ? 'check-circle' : 'error-outline'}
+          size={15}
+          color={statusColor}
+        />
         <Text style={[textStyles.footnote, styles.status, { color: statusColor }]}>{reassurance}</Text>
       </View>
 

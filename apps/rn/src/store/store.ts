@@ -26,7 +26,7 @@ import type { StorageAdapter } from '@/storage/adapter';
 import { reportError } from '@/utils/reportError';
 
 import { recordDriftBaseline } from './drift';
-import { answerBalanceRepairs, clearResuppliedRepairs } from './trustSelectors';
+import { answerBalanceRepairs, clearResuppliedRepairs, partitionDebts } from './trustSelectors';
 import { buildCycleTopUp, topUpEntries } from './topUpSelectors';
 import { stampCyclePrediction } from './guardianPrediction';
 import { applyCapture, applyRollover, type PaydayActuals } from './payday';
@@ -63,7 +63,14 @@ import { recordMissedArrival, stampInputsFresh, stampOnboardedAt } from './subst
  * single pass over `debts`; the early return was never load-bearing for cost.
  */
 function withPayoffCelebration(before: DebtStore, next: DebtStore): DebtStore {
-  const payoff = detectPayoff(before.debts, next.debts, next.payoffStrategy);
+  // ⛔ S1.13.7.4 [pass-6 B1-1] — the unread set is what stops a repaired-to-$0 balance reading as
+  // "cleared" and stamping the once-ever finale over a debt the user still owes in full.
+  const payoff = detectPayoff(
+    before.debts,
+    next.debts,
+    next.payoffStrategy,
+    new Set(partitionDebts(next).unreadBalance.map((d) => d.id)),
+  );
   if (!payoff) return next;
   // Keep what is already pending UNLESS this transition is the finale and the pending one is not.
   if (next.pendingPayoff && !(payoff.kind === 'finale' && next.pendingPayoff.kind !== 'finale')) return next;
