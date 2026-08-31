@@ -2167,8 +2167,8 @@
       ],
       "run": "test:app",
       "expect": "the widget states the app's figure",
-      "measured": "2026-08-30",
-      "sha": "4f32f846"
+      "measured": "2026-08-31",
+      "sha": "2c77aceb"
     }
   },
   "S1P5-C5-3-SHEETBALANCE": {
