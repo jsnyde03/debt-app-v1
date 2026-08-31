@@ -29101,3 +29101,146 @@ Two changes, both scoped by the decision rather than by me:
 ⚠️ **And the 121 unread money files are a live risk now, not only a pass-6 concern.** `PaydayGuardianCard.tsx`
 — 712 lines, `fix-churn`, the subject of pass-4 `C4-5` and `C4-7` — is among them, and lane C's own words
 were *"the one I would send the next reader to first."*
+
+
+---
+
+## 2026-08-30 — S1.12.5.5 – .8 · CLASSES V–VIII: the money half of pass 5
+
+### CLASS V — cadence: three findings in three files were one defect
+
+`A5-1`, `A5-5` and `C5-4` are **one defect**: a cadence whose period is a **user variable**, replaced by a
+constant. Two lanes found them from opposite ends of the import graph and neither could see the other.
+
+⛔ **The measured consequences.** A monthly-paid user with one $200 *"Every paycheck"* bill had it reserved
+**three times ($600)**, was told they were **$100 short while holding $250 of spare cash**, and was handed
+a phantom obligation `e1__occ2` that exists in no store; on a healthier paycheck the same expansion ate
+**$400** from *"Leftover cash"* with no row accounting for it. The same user's `per-paycheck` BNPL was rated
+at a fortnight, so their debt-free date read **July 2026** over a chart that agreed while the rollover did
+not clear until **January 2027**. And Money's row printed **"$600/mo"** on a quarterly loan — a 12×
+overstatement, in the a11y label too, so VoiceOver said it.
+
+⚡ **The rest of the repo was already right**, which is what makes this a producer disagreement rather than
+an open question: `rolloverPayCycle` re-anchors `per-paycheck` once per cycle and `format.ts` prices it as
+`amount × cyclesPerMonth` from the store. These were the only two producers hardcoding a fortnight.
+
+⛔ **`cyclesPerMonth` is REQUIRED, not optional.** Optional would have left every unthreaded caller silently
+on the old assumption — which *is* the defect. The compiler then enumerated all **20 production sites**, and
+the fixtures were pinned at `26/12` so nothing that does not exercise the defect changed; **the three suites
+passing is the evidence for that**, not an assumption.
+
+⚠️ **The guard is lane A's own prescription** — *"one test over 7 × 4 cadence pairs [that] would have found
+`A5-1` and `A5-5` without either being named"* — with the control that separates *"per-paycheck follows the
+user"* from *"nothing follows anything"*: a fixed-period cadence must still scale with the window.
+
+⚡ **Two things the work found that the findings did not.** `CADENCE_SUFFIX['one-time']` is deliberately
+empty and the `|| '/mo'` fallback turned that into a monthly rate on a debt with no rhythm at all. And
+**the first version of `C5-4`'s test asserted a COPY of the row's expression**, so planting the defect back
+into `money.tsx` left the suite green — `tested-helper-is-not-a-used-helper`, in the test written to close
+the finding. The suffix is now one exported function the screen and the test both call.
+
+⛔ **And a process failure worth recording: I tried to script the fixture threading three times.** The first
+added a field to an unrelated type; the second broke 13 files' syntax by inserting before a closing brace
+instead of after an opening one. `prefer-edit-tool-over-scripts` is the standing lesson and I hit it
+repeatedly before the brace-matching version worked.
+
+### CLASS VI — two producers of one number
+
+⛔ **`C5-2` (blocker): the Home Screen widget and Siri stated a debt total $2,513 below the app's**, on one
+store at one instant — *"$9,000 remaining"* against a hero reading **$11,513**, 28% apart. A second fixture
+moved it the other way (app $14,304 · widget $15,000), so the widget was not conservative in a fixed
+direction; it was simply a different number. ⭐ **Free was the control and agreed exactly**, so the
+divergence is the premium projection and nothing else.
+
+⚡ **The module already knew the rule** — it applied the projection to its Guardian *sentence* and not to the
+four figures above it. Only forward-looking figures move now, and **every exclusion is a hazard lane C
+named**: `pct` stays on anchors so *"% paid"* cannot fall while the user does nothing; `live`/`cleared` stay
+on anchors so a projected `$0` never says **"Debt-free"** before the user confirms; `debtsJson` stays for
+Siri's disambiguation. That over-fix is planted and reds on its own assertion.
+
+⛔ **The test could not have caught it, and that is the sharpest half.** `runMigrations` stamps
+`lastVerifiedDate = currentDate`, so **every fixture built through `migratedWidgetStore` has zero elapsed
+time** — the projection is a no-op on all of them and the tiers are indistinguishable. Both existing premium
+fixtures sat in the one member of the class where the defect cannot appear. And nothing asserted **parity**:
+`remaining` was checked against the literal `'$8,000'`, never against what a screen states.
+
+⛔ **`C5-3` (blocker): "Log payment" said "Chase · $0 owed"** and offered to clear a $12,000 card, one tap
+below a row correctly printing an em dash — and the *"more than the balance"* note fired against that same
+unread balance. Both sentences move together; suppressing the subtitle alone leaves the louder one.
+⭐ **The write was NOT damaged and that was checked** — `logManualPayment` clamps, the repair record
+survives, no celebration fires — because *"a remedy that deletes a debt from the screen"* is this round's
+named hazard and reporting a data-loss that is not there would have been easy.
+
+⚠️ The predicates live in a **pure store module**, not the `.tsx`: the app-layer runner only loads modules
+without a `react-native` import, so a helper exported from a component is unreachable by any test.
+
+⚡ **`A5-4`: three measurements of one population, each larger than the last.** Lane A's identifier scan said
+**19**; a `git grep` on the expression said **67** — `[^)]*` cannot cross a nested paren; the gate's own scan
+says **93**. ⛔ Every count of this class has come in short, **including the two taken while deliberately
+trying not to**. Lane A recommended the lint rather than a mechanical 93-site collapse, and given this
+session's own scripting record that is plainly right. `lint:scan-floors` then refused the new gate on its
+first run — it strips its input and had no floor (GAP-8) — and **its own downward-only cap inverts there**: a
+scan reading zero files reports *fewer* copies, and the gate would ask someone to lower the cap to match.
+
+### CLASS VII — `B5-9`, the re-issued debt id
+
+⛔ Delete a debt and add another **in the same pay cycle** and the new debt inherits the dead one's id.
+Measured through the real store with real actions: the Car loan was written down to **$10,967.54 instead of
+$11,467.54** at the next payday — **$500 of a payment never made against it, persisted** — plus four more
+records following the id, including a 75% milestone high-water on a brand-new debt so its 25/50/75% beats
+can never fire.
+
+⚡ **The docblock's own premise was the defect**: *"uniqueness comes from the ids that EXIST"* — because
+uniqueness against the `debts` array is not uniqueness against the ids the **store** references, and
+`cycleDate` holds still for a whole cycle, so *"delete and re-add inside one cycle"* is the ordinary case.
+
+⛔ **The obvious remedy is refused, and lane B said why**: purging `completedRecommendedActions` on delete
+would rewrite the closing cycle's history, since `cycleHistory`'s snapshot is built from them. The set is
+widened instead — `reservedDebtIds` scans the **serialized store**, derived from the document rather than
+from a list of the fields that key on debt id, because such a list is right the day it is written and silent
+about the next field anyone adds.
+
+⚠️ **One pre-existing expectation was corrected rather than preserved.** *"A foreign id still counts toward
+the length"* expected `-4` because the old algorithm started at `existing.length + 1`, so a foreign id
+inflated the start and a **free** id was skipped. The label's own rule — *"the result is unused"* — holds
+either way, and `-3` is simply the first one that is.
+
+### CLASS VIII — the eight minors, and one deliberately left open
+
+`B5-5` (a comma removed *"the paycheck"* from the sentence naming what the user is about to lose) ·
+`B5-6` (`undefined` was the one unnormalised shape, and `inferOnboarding` reads it as *"no income"* and
+routes a store back to onboarding **with the user's data already imported**) · `B5-11` (**a signed-in user
+was told to sign in, forever**) · `C5-6` (`₩3250.00` — ungrouped, with minor units KRW does not have) ·
+`D5-14` · `B5-13`.
+
+⚠️ **`B5-13` was worse than reported**: lane B found three `Date.now()` sites contradicting the docblock's
+prohibition; there are **five**, including one minting a **debt** id — a second id scheme for the very entity
+that module owns.
+
+⛔ **`B5-10` is MEASURED AND NOT FIXED, deliberately, and that is the honest outcome.** A fail-closed version
+was written and **reverted**: treating a null `onboardedAt` as *"credit nothing"* breaks
+`storeActions.test.ts`'s *"a surprise during the hold → tapped"*, whose fixture has no `onboardedAt` and a
+genuine in-window surprise — so failing closed removes a credit the user has actually earned. **The honest
+lower bound is when the RESERVE was held, not when the user onboarded, and that field does not exist.** Lane
+B declined to choose between stamping a restore date and keeping null; so does this. **[DECISION] S1.12.8.**
+
+### What the instruments caught in my own work, across all four classes
+
+⚡ This is the half worth keeping, because every one of these was the fixing writing a new defect and an
+instrument refusing it — the thing eleven instrument defects across two prior sessions were written for:
+
+- `lint:comments` on a **[D17] meta-comment**: I annotated a false comment instead of deleting it.
+- `lint:rn`'s first end-to-end run of the round caught a **raw ESC byte** that had reached the tree invisible
+  in every diff, and a new instrument file with no coverage claim.
+- `lint:cap-literals` — **the gate I had just fixed for `D5-9`** — caught `MAX_INLINE_ROUNDING` as a 20th cap
+  and made the pinned count follow.
+- `lint:scan-floors` refused `lint:rounding` for stripping without a floor.
+- `lint:trust-claims` caught `logPaymentCopy.ts` joining `'row-figures'` — **the fourth direction that rule
+  has been widened in** — and then refused `DebtSheet`'s now-stale exemption.
+- `lint:money` refused the new `Intl` formatter until it carried a written reason.
+- `lint:finding-guards` voided **four** pass-3/pass-4 proof anchors that these fixes moved: `F-B3`, `C4-4`,
+  `D3-CAPS`, `B3-UNKNOWN`. All four re-derived and **re-proven**, so none was left VOID by a fix.
+
+⛔ **And three times I committed while `lint:rn` was red**, each time by reading the previous step's exit code
+instead of the gate's own output. All three corrected; the pattern is mine, not the tooling's, and it is
+precisely the class this pass exists to close.
