@@ -1,4 +1,5 @@
 import { allocatePaycheck } from "@core/engine/allocatePaycheck";
+import { requireFinite } from './assertNumeric';
 import { buildMultiCycleTimeline } from "@core/timeline/buildMultiCycleTimeline";
 import { buildTimelineItems } from "@core/timeline/buildTimelineItems";
 import type { Debt, Goal, RequiredExpense } from "@core/storage/debtPlannerStorage";
@@ -491,6 +492,10 @@ function testTightCycleStatesItsDipAndStillCarriesZero() {
     }
 
     for (const cycle of cycles) {
+        // ⛔ S1.13.7.3 [pass-6 D1-3] — `x < 0` is FALSE for NaN, so this printed ✅ over a NaN cycle
+        // balance, which the app then renders to the user and to VoiceOver as `$0`. The guard has to
+        // ask whether it is a number BEFORE it asks whether it is negative.
+        requireFinite(cycle.endingBalance, `Cycle ${cycle.cycleNumber ?? '?'} ending balance`);
         if (cycle.endingBalance < 0) {
             throw new Error(`FAIL [S1.12.9]: endingBalance must still clamp — it seeds the next cycle. cycle ${cycle.cycleStart} = ${cycle.endingBalance}`);
         }
@@ -517,6 +522,7 @@ function testCycleEndingBalanceMatchesPaycheckMinusDeductions() {
     // ⚠️ S1.12.9 — this verifies `endingBalance`, which is what it always read; the old line said
     // `runningCash` and named a field it does not touch.
     const cycle0 = cycles[0];
+    requireFinite(cycle0.endingBalance, 'Cycle ending balance');
     if (cycle0.endingBalance < 0) {
         throw new Error(`FAIL [Cycle ending balance]: expected >= 0, got ${cycle0.endingBalance}`);
     }

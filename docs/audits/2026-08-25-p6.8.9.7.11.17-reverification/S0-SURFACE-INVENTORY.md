@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**126 files on the S0 surface · 75 swept · 51 unswept.**
+**127 files on the S0 surface · 75 swept · 52 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -41,6 +41,7 @@
 | `apps/rn/tests/shots/p6.8-a11y.shot.ts` | ⛔ **partial** |
 | `apps/rn/tests/shots/p6.8-matrix.shot.ts` | s1p2 |
 | `apps/rn/tests/shots/phase35-themes.shot.ts` | ⛔ **partial** |
+| `packages/core/testing/assertNumeric.ts` | ⛔ **never** |
 | `packages/core/testing/runRegressionTests.ts` | s1p2 |
 | `packages/core/testing/seedPlannerState.ts` | ⛔ **partial** |
 | `packages/core/testing/simSmokeSeed.ts` | ⛔ **partial** |
@@ -158,6 +159,7 @@
 - `apps/rn/tests/shots/money-sections.shot.ts`
 - `apps/rn/tests/shots/p6.8-a11y.shot.ts`
 - `apps/rn/tests/shots/phase35-themes.shot.ts`
+- `packages/core/testing/assertNumeric.ts`
 - `packages/core/testing/seedPlannerState.ts`
 - `packages/core/testing/simSmokeSeed.ts`
 - `packages/core/testing/testAbuseScenarios.ts`
@@ -195,5 +197,5 @@
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
 
-<!-- claims-sha256: cf134a282d681bf8 -->
+<!-- claims-sha256: b3ff545fb1049634 -->
 

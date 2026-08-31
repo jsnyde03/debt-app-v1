@@ -97,6 +97,9 @@
   "apps/rn/tests/shots/phase35-themes.shot.ts": [
     "partial"
   ],
+  "packages/core/testing/assertNumeric.ts": [
+    "never"
+  ],
   "packages/core/testing/runRegressionTests.ts": [
     "s1p2"
   ],

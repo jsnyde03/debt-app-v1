@@ -2261,6 +2261,46 @@
       "sha": "f7e39483"
     }
   },
+  "S1P6-A2-6-NANBLIND": {
+    "what": "S1.13.7.3 [pass-6 A2-6 + D1-3] - NaN compares false to everything, so EVERY comparison guard in this repo was blind to it. `Math.abs(actual - expected) > tolerance` is false when actual is NaN, making the throw beneath it unreachable: the assertion passes and prints a green tick over a value that is not a number. The same is true of `x < 0`. TWO LANES FOUND THIS INDEPENDENTLY in different files on different spellings: A2-6 planted NaN into projectCurrentBalance and the debt-math suite printed a tick over two money assertions, and planted into computeDrift it proved assertClose(behind.daysBehind, 59, 1) never fired at all; D1-3 found all three endingBalance guards spelled `x < 0`, so test:regression printed 'All regression tests passed' over a NaN cycle balance. AND THE USER NEVER SEES NaN - formatWhole renders it as $0, to the screen and to VoiceOver, so the failure mode is a confident zero rather than a visible crash. Five copies of the tolerance helper existed across three directories under two signatures; the RULE now lives once in packages/core/testing/assertNumeric.ts and each helper keeps its own shape, because unifying the signatures would have rewritten every call site in the regression suites and its failure mode is a silently dropped assertion.",
+    "file": "packages/core/testing/assertNumeric.ts",
+    "token": "requireFinite",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/computeDrift.ts",
+          "find": "return { daysBehind, dollarsBehind,",
+          "replace": "return { daysBehind: Number.NaN, dollarsBehind,"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "packages/core/debt/testComputeDrift.ts"
+      ],
+      "expect": "not a finite number"
+    }
+  },
+  "S1P6-A3-9-LEANANCHOR": {
+    "what": "S1.13.7.3 [pass-6 A3-9] - suggestLean's fallback anchored the CONSERVATIVE INCOME FLOOR to the observed MAXIMUM - the single most outlier-sensitive statistic available - in a function whose docstring promises 'one bad entry can't move lean'. Reached whenever typicalAmount is blank, because incomeLearning.ts passes `Number(store.paycheck.typicalAmount) || 0`. Measured: actuals [1000, 1000, 50000] with no typical gave a suggested lean of $42,500, and still $4,250 at N=12 where the percentile blend is meant to have taken over. One mistyped confirm sets the plan's income for a user whose real paycheck is $1,000. The anchor is the MEDIAN now: it is what 'typical' means and one absurd entry moves it by at most one rank; deliberately not the mean, which fails the same way more quietly. >>> A TEST ASSERTED THE DEFECT AS CORRECT AND NAMED IT ('N<12, no typical -> max(2100) x 0.85'). It was REPLACED rather than deleted - the arity it covers is exactly the one that failed - and the regression case was added beside it.",
+    "file": "packages/core/income/suggestLean.ts",
+    "token": "quantile(sorted, 0.5)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/income/suggestLean.ts",
+          "find": "quantile(sorted, 0.5)",
+          "replace": "sorted[sorted.length - 1]"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "packages/core/income/testSuggestLean.ts"
+      ],
+      "expect": "absurd entry"
+    }
+  },
   "S1P6-D2-5-ASSERTFLOOR": {
     "what": "S1.13.7.2 [pass-6 D2-5] - test-import-graph.ts printed `passed` and never checked it, so a load-bearing control row could be DELETED and both gates stayed green. Lane D2 proved it by planting: it removed the 'hop 2 - the producer that did NOT change is routed' assertion, the one row pinning the `neighbour` origin, and this file exited 0 while lint:finding-guards also stayed green - because the registry pins a guard's TOKEN, not its COUNT. Deleting an assertion is invisible to a gate that only counts failures. MIN_ASSERTIONS is `!==` rather than `<` for D2-7's reason. Re-proven by disabling one check(): 20 assertions ran, 21 expected, exit 1.",
     "file": "scripts/test-import-graph.ts",

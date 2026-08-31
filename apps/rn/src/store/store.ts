@@ -506,6 +506,14 @@ export function createDebtStore(opts?: {
       set((s) => ({ store: stampInputsFresh(recordDriftBaseline({ ...s.store, debts: s.store.debts.filter((d) => d.id !== id) }, 'user', clock)) }));
     },
     verifyDebtBalance(id, verifiedBalance, verifiedDate) {
+      /**
+       * ⛔ **S1.13.7.3 [pass-6 `B2-5`] — `Math.max(0, NaN)` is `NaN`, so this was SHAPED like a guard
+       * and was not one.** A non-finite verified balance was written to the store verbatim; the app then
+       * renders it as **`$0`** rather than as an error, which makes a corrupt balance look like a paid-off
+       * debt. ⚠️ This is the write path for *"I checked my statement, the balance is X"* — the one number
+       * the user is explicitly asserting is true — so it refuses rather than coercing.
+       */
+      if (!Number.isFinite(verifiedBalance)) return;
       const balance = Math.max(0, Math.round(verifiedBalance * 100) / 100);
       set((s) => ({
         store: withPayoffCelebration(

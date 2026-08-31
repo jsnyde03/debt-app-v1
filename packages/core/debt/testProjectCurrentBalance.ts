@@ -1,4 +1,5 @@
 import { buildPayoffTrajectory } from "./buildPayoffTrajectory";
+import { requireFinite } from '../testing/assertNumeric';
 import {
   projectCurrentBalance,
   projectDebtsToDate,
@@ -17,6 +18,7 @@ function assertEqual<T>(actual: T, expected: T, label: string) {
 }
 
 function assertApprox(actual: number, expected: number, label: string, tolerance = 0.05) {
+  requireFinite(actual, label);
   if (Math.abs(actual - expected) > tolerance) {
     throw new Error(`FAIL [${label}]: expected ~${expected}, got ${actual}`);
   }

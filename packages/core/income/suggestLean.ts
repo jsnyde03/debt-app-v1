@@ -56,7 +56,22 @@ export function suggestLean(actuals: number[], typical: number, currentLean: num
 	if (n === 0) return { suggestedLean: roundMoney(Number.isFinite(currentLean) ? currentLean : 0), n: 0 };
 
 	const sorted = [...clean].sort((a, b) => a - b);
-	const typicalAnchor = Number.isFinite(typical) && typical > 0 ? typical : sorted[sorted.length - 1];
+	/**
+	 * ⛔ **S1.13.7.3 [pass-6 `A3-9`] — THE FALLBACK WAS THE MAXIMUM, in a function whose own docstring
+	 * promises *"one bad entry can't move lean."* The maximum is the single most outlier-sensitive
+	 * statistic there is.**
+	 *
+	 * ⚡ Measured: with `typicalAmount` blank — which `incomeLearning.ts` reaches via `Number(...) || 0`,
+	 * so an empty field lands here — actuals of `[1000, 1000, 50000]` anchored the **conservative income
+	 * FLOOR** to `50000` and suggested a lean of **$42,500**. One mistyped confirm sets the plan's income
+	 * for a user whose real paycheck is $1,000. Still **$4,250** at N=12, where the percentile blend is
+	 * supposed to have taken over.
+	 *
+	 * The median is what *"typical"* means and is what the docstring already claims: half the observations
+	 * sit on each side, so a single absurd entry moves it by at most one rank. ⚠️ It is deliberately NOT
+	 * the mean — `[1000, 1000, 50000]` has a mean of 17,333, which fails the same way more quietly.
+	 */
+	const typicalAnchor = Number.isFinite(typical) && typical > 0 ? typical : quantile(sorted, 0.5);
 
 	// The two estimators.
 	const shrinkage = roundMoney(typicalAnchor * (1 - SHRINKAGE_HAIRCUT));

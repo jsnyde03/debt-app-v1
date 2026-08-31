@@ -131,7 +131,10 @@ export function ListRow({
         ) : null}
         {progress !== undefined ? (
           <View style={[styles.track, { backgroundColor: c.background.tertiary }]}>
-            <View style={[styles.fill, { backgroundColor: progressColor ?? c.accent.success, width: `${Math.min(100, Math.max(0, progress * 100))}%` }]} />
+            <View style={[styles.fill, { backgroundColor: progressColor ?? c.accent.success, // ⛔ S1.13.7.3 [pass-6 C2-5] — `Math.max(0, NaN)` is `NaN`, so this clamp did not clamp: it reads
+              // exactly like a guard and passes a non-finite width straight through. The finite check has to
+              // come first, because every comparison against NaN is false.
+              width: `${Number.isFinite(progress) ? Math.min(100, Math.max(0, progress * 100)) : 0}%` }]} />
           </View>
         ) : null}
       </View>

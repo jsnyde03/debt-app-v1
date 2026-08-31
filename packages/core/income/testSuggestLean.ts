@@ -22,8 +22,22 @@ assertMoney(suggestLean([], 2000, 1500).suggestedLean, 1500, "N=0 → keeps the 
 	assertMoney(s.suggestedLean, 1700, "N<12 → shrinkage floor = typical(2000) × 0.85");
 	assertTrue(s.n === 6, "reports the actual count");
 }
-// Below N, no typical entered → anchor on the observed max, then haircut.
-assertMoney(suggestLean([2000, 2100, 1900], 0, 1500).suggestedLean, 1785, "N<12, no typical → max(2100) × 0.85");
+/**
+ * ⛔ **S1.13.7.3 [pass-6 `A3-9`] — THIS ROW ASSERTED THE DEFECT AS CORRECT, and it named it: "max(2100)".**
+ *
+ * The fallback anchored the **conservative income FLOOR** to the observed **maximum**, which is the single
+ * most outlier-sensitive statistic available — in a function whose docstring promises *"one bad entry
+ * can't move lean."* Measured on actuals `[1000, 1000, 50000]` with no typical entered: suggested lean
+ * **$42,500**, and still **$4,250** at N=12 where the percentile blend is meant to have taken over.
+ *
+ * ⚠️ **Replaced, not deleted** — the arity it covers (below N, no typical) is exactly the one that failed,
+ * so removing it would drop the only coverage of the branch being fixed. The anchor is the **median**: it
+ * is what *"typical"* means, and one absurd entry moves it by at most one rank. Deliberately not the mean,
+ * which fails the same way more quietly.
+ */
+assertMoney(suggestLean([2000, 2100, 1900], 0, 1500).suggestedLean, 1700, "N<12, no typical → median(2000) × 0.85");
+// ⚡ The regression this row exists for, stated as its own case rather than left implicit.
+assertMoney(suggestLean([1000, 1000, 50000], 0, 1500).suggestedLean, 850, "A3-9: one absurd entry cannot move the floor");
 
 // At/above N=12+span (18) → the pure 12th percentile.
 {

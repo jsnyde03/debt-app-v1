@@ -1,3 +1,4 @@
+import { requireFinite } from './assertNumeric';
 import {
     computeFlexibleCash,
     computeCompletedSnowballByDebt,
@@ -14,6 +15,7 @@ function assertEqual<T>(actual: T, expected: T, msg: string) {
 }
 
 function assertApprox(actual: number, expected: number, msg: string, tolerance = 0.01) {
+    requireFinite(actual, msg);
     if (Math.abs(actual - expected) > tolerance) {
         throw new Error(`FAIL [${msg}]: expected ~${expected}, got ${actual}`);
     }

@@ -1,4 +1,5 @@
 import { buildDriftBaseline, computeDrift, shouldReAnchor, type DriftBaseline } from "./computeDrift";
+import { requireFinite } from '../testing/assertNumeric';
 
 function assertEqual<T>(actual: T, expected: T, label: string) {
   if (actual !== expected) {
@@ -6,6 +7,7 @@ function assertEqual<T>(actual: T, expected: T, label: string) {
   }
 }
 function assertClose(actual: number, expected: number, tol: number, label: string) {
+  requireFinite(actual, label);
   if (Math.abs(actual - expected) > tol) {
     throw new Error(`${label} failed. Expected ~${expected} (±${tol}), received ${actual}`);
   }
