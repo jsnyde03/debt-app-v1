@@ -2262,7 +2262,7 @@
   "S1P6-D2-5-ASSERTFLOOR": {
     "what": "S1.13.7.2 [pass-6 D2-5] - test-import-graph.ts printed `passed` and never checked it, so a load-bearing control row could be DELETED and both gates stayed green. Lane D2 proved it by planting: it removed the 'hop 2 - the producer that did NOT change is routed' assertion, the one row pinning the `neighbour` origin, and this file exited 0 while lint:finding-guards also stayed green - because the registry pins a guard's TOKEN, not its COUNT. Deleting an assertion is invisible to a gate that only counts failures. MIN_ASSERTIONS is `!==` rather than `<` for D2-7's reason. Re-proven by disabling one check(): 20 assertions ran, 21 expected, exit 1.",
     "file": "scripts/test-import-graph.ts",
-    "token": "const MIN_ASSERTIONS",
+    "token": "assertions ran,",
     "proof": {
       "unfix": [
         {
@@ -2276,7 +2276,9 @@
         "tsx",
         "scripts/test-import-graph.ts"
       ],
-      "expect": "assertions ran"
+      "expect": "assertions ran",
+      "measured": "2026-08-31",
+      "sha": "f182d444"
     }
   },
   "S1P6-D2-8-SCRIPTSRUNNER": {
@@ -2292,7 +2294,9 @@
         }
       ],
       "run": "lint:runner-completeness",
-      "expect": "in NO runner"
+      "expect": "in NO runner",
+      "measured": "2026-08-31",
+      "sha": "f182d444"
     }
   },
   "S1P6-D1-8-GATECHAIN": {
@@ -2308,7 +2312,9 @@
         }
       ],
       "run": "lint:runner-completeness",
-      "expect": "in NO chain"
+      "expect": "in NO chain",
+      "measured": "2026-08-31",
+      "sha": "f182d444"
     }
   },
   "S1P6-D3-4-HALFCONFLICT": {
@@ -2324,7 +2330,9 @@
         }
       ],
       "run": "lint:conflict-markers",
-      "expect": "marker line(s)"
+      "expect": "marker line(s)",
+      "measured": "2026-08-31",
+      "sha": "f182d444"
     }
   },
   "S1P6-D2-1-PROOFSTALE": {
