@@ -1175,7 +1175,7 @@
       "run": "test:app",
       "expect": "D3-1 — the Home Screen does not say \"Debt-free\" over balances the app refused to claim",
       "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "sha": "1256e532"
     }
   },
   "S1P3-D3-2-SPOKEN": {
