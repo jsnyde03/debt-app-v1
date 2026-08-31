@@ -143,8 +143,8 @@ and three lanes named the obvious fix as wrong.
 
 | # | class | n | exit line |
 |---|---|---|---|
-| ▶ **S1.13.7.1** | ⏱ **THE DATE FUSE** — `A1-4` `A1-5`. **Fires 2026-09-02.** 43 of 63 specs already drive the OVERDUE branch; 8 more cross in 2 days. ⚠️ Not "move the dates" — a literal date in a fixture is a fuse by construction | 2 | the on-track branch guarded, no literal due-date left |
-| **S1.13.7.2** | **THE PROOF MACHINERY** — `D2-1` `D2-2` `D2-5` `D2-6` `D2-7` `D2-11` `D2-13` `D1-2` `D1-8` `D2-8`/`C3-11` `D3-4`. Everything below is *closed* using it. ⚠️ `D3-4`'s plant is **owed** | 12 | 30 stale proofs re-measured; every floor floored |
+| ✅ **S1.13.7.1** | **CLOSED 2026-08-31 — THE DATE FUSE.** New gate **`lint:fixture-dates`** → **44**, guard `S1-FIXTURE-DATE-FUSE` proven. ⚡ Both finding premises were wrong: the sweep HAD reached `dueDate` *(87 converted, 85 left)*, and the fuse was **22 sites, not 8** — most in the UNIT tree A1 never held. ⚠️ **18 of 40 were false positives** *(clock-pinned files; "fixing" them would have broken deterministic tests)* and **11 were passengers PROVEN by planting `2020-01-01`**. ⛔ **The suite scored 338/338 with the default OVERDUE and 338/338 with it ON-TRACK** — zero specs tell the branches apart. Detail → log | 2 | CLOSED |
+| ▶ **S1.13.7.2** | **THE PROOF MACHINERY** — `D2-1` `D2-2` `D2-5` `D2-6` `D2-7` `D2-11` `D2-13` `D1-2` `D1-8` `D2-8`/`C3-11` `D3-4`. Everything below is *closed* using it. ⚠️ `D3-4`'s plant is **owed** | 12 | 30 stale proofs re-measured; every floor floored |
 | **S1.13.7.3** | **NaN BLINDNESS** — `A2-6` `D1-3` `C2-5` `B2-5` `A3-9`. Two lanes, independently. A comparison guard is blind to `NaN`, and the app renders it as **`$0`** | 5 | one identity over the spellings; 6 helper copies → 1 |
 | **S1.13.7.4** | **THE TRUST GATE'S POPULATION** — `C1-3` `C1-10` `B1-1` `B1-3` `B1-5` `C3-5` `C3-1` `C3-4` `B1-2`. Pass 5's `C4-7` recurring on the loudest cards | 9 *(6 blockers)* | the gate iterates its consumers, not a list |
 | **S1.13.7.5** | **TWO PRODUCERS OF ONE NUMBER** — `C3-2` `C3-3` `C3-9` `A2-1` `A2-4` `C2-2` `D3-3` `C1-18` | 8 | one producer per number, asserted |

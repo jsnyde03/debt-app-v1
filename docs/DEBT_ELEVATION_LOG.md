@@ -29690,3 +29690,72 @@ tree green.** Final spread 6.2k–10.9k.
 free** over DIMMs of 4 GB + 2 GB; node's default heap here is **2096 MB**, so the 1536 cap is a real
 reduction. No stale servers — protocol rule 4 clean. ⛔ **So the 12 lanes run in two waves of six**, and
 the brief forbids in-lane `lint:rn`, Playwright and whole-monorepo typechecks.
+
+---
+
+## S1.13.7.1 — the date fuse, and the answer that was worse than reds, 2026-08-31
+
+**Closed the same day it was found, because it was 2 days from firing.** New gate `lint:fixture-dates`
+(44 gates), guard `S1-FIXTURE-DATE-FUSE` planted and proven.
+
+### ⛔ Both of the finding's premises were wrong, and measuring is what caught it
+
+`A1-4` stated the mechanism as *"the `day()` sweep fixed `nextPaycheckDate` and never touched `dueDate`."*
+⚡ Measured: **`dueDate: day(…)` appears 87 times.** The sweep DID reach the field — it converted 87 sites
+and left **85**, including the shared default. **A half-finished sweep is indistinguishable from one that
+never started, from inside the files it did not reach.**
+
+`A1-5` stated the scope as *"eight fixtures cross on 2026-09-02."* ⚡ The gate found **40** — most in
+`apps/rn/src/**/*.test.ts`, the **unit** tree, which lane A1's manifest never contained. *(Law IV again:
+the recommendation was sound, the mechanism and the count were not; and a site list produced from one
+lane's manifest is bounded by that manifest.)*
+
+### ⚠️ TWO FALSE-POSITIVE CLASSES, both of which would have made the fix a defect
+
+⛔ **18 of the 40 are clock-pinned.** `affordability.test.ts` pins `currentDate: '2026-08-01'` beside
+`nextPaycheckDate: '2026-09-01'` — every comparison is between two FIXED dates, so nothing ages.
+"Converting" those to `day(n)` would have replaced deterministic tests with drifting ones and broken their
+assertions on the way past. The first cut of the gate flagged them; the refinement is a `CLOCK_PIN` check.
+
+⛔ **11 unit literals are passengers — PROVEN, not assumed.** Planted `2020-01-01` across all 11 and
+`test:app` stayed **green**, so no assertion there reads the date against a clock. They carry an inline
+`// fixture-date-ok:` exemption **quoting that plant**, rather than a conversion that would have been pure
+churn. ⚠️ The distinction cost one plant and saved eleven wrong edits.
+
+### ⛔ THE RESULT ONLY THE FIX COULD REVEAL, AND IT IS WORSE THAN REDS
+
+`A1-4` predicted the conversion would *"red a number of specs, which is the point."* Measured, twice, ten
+minutes apart:
+
+| shared default | result |
+|---|---|
+| `dueDate: '2026-07-01'` — **61 days overdue** | **338 passed** |
+| `dueDate: day(6)` / `day(4)` — **on-track** | **338 passed** |
+
+⚡ **Zero specs distinguish the two branches.** The finding said 43 of 63 specs were silently in the
+overdue branch; the truth is sharper — **the suite cannot tell which branch it is in.** A red would have
+meant some spec was pinned to overdue. Green in both directions means the plan status is asserted by
+nobody, and the two months in the wrong branch cost nothing *because nothing was looking either way.*
+Filed forward to `S1.13.7.9` (tests that cannot fail), where it belongs.
+
+### What the gate is, and why it has two different refusals
+
+**`imminent` — always fatal, never capped.** A literal on an aging field inside 21 days is a fuse with a
+lit match. ⭐ **This half fires BEFORE the branch changes**, which is the whole point: `A1-5` was caught two
+days out by a human-run audit, and nothing should depend on that again.
+
+**`aged` — capped downward-only at the measured 121.** Already-past literals are many and not all wrong (a
+spec that WANTS an overdue row is right to have one), and converting them blind is how a remedy introduces
+the defect it describes. ⛔ **The cap is a number, not a list** — an exempt-site list is an enumeration,
+and enumerations have undercounted this class every time this project has measured one.
+
+⛔ **It has a population floor from the first commit, because `D2-3` was exactly this.** If `isTestShaped`
+goes blind, `aged` is 0, `imminent` is 0, and a gate that scanned nothing reports the tree clean.
+`MIN_TEST_FILES` refuses instead.
+
+⚠️ **The proof is deliberately non-decaying** — `D2-1` measured that 30 of 85 recorded proofs had expired
+against their own tree. This plant (`dueDate: day(6)` → a fixed literal) reds as `imminent` today and as
+`aged`-over-cap once the date passes, so it cannot stop proving anything.
+
+**Verified:** `lint:rn` **44/44** · `test:app` green · e2e **338/338** before and after · guard proven
+`planted=exit 1 · control=exit 0 · reason=MATCHED`.

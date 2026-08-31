@@ -2274,7 +2274,7 @@
       "run": "lint:fixture-dates",
       "expect": "calendar literal",
       "measured": "2026-08-31",
-      "sha": "3b9983dd"
+      "sha": "cd402a23"
     }
   },
   "S1-ROUTE-EXIT-REACHABLE": {
