@@ -4,13 +4,15 @@ import { selectPlanState } from '@/store/planSelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
 import { detectPayoff } from '@/store/payoffCelebration';
 
+
+import { createDebtStore } from '@/store/store';
+import { claimFields, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, rowFieldUnread } from '@/store/trustSelectors';
+import type { DebtStore } from '@/data/models';
+
 /** ⛔ S1.13.7.4 [pass-6 B1-1] — the unread set detectPayoff now REQUIRES. Derived from the store
  *  under test rather than typed, so a fixture that adds an unread balance is covered automatically. */
 const unreadIdsOf = (s: Parameters<typeof partitionDebts>[0]) =>
   new Set(partitionDebts(s).unreadBalance.map((d) => d.id));
-import { createDebtStore } from '@/store/store';
-import { claimFields, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, rowFieldUnread } from '@/store/trustSelectors';
-import type { DebtStore } from '@/data/models';
 
 /**
  * ⛔ **THE THREE SCREENS THAT SAY "CLEARED" MUST AGREE ON ONE STORE.**
