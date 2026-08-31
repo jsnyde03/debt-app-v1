@@ -2285,8 +2285,8 @@
   },
   "S1P6-A3-9-LEANANCHOR": {
     "what": "S1.13.7.3 [pass-6 A3-9] - suggestLean's fallback anchored the CONSERVATIVE INCOME FLOOR to the observed MAXIMUM - the single most outlier-sensitive statistic available - in a function whose docstring promises 'one bad entry can't move lean'. Reached whenever typicalAmount is blank, because incomeLearning.ts passes `Number(store.paycheck.typicalAmount) || 0`. Measured: actuals [1000, 1000, 50000] with no typical gave a suggested lean of $42,500, and still $4,250 at N=12 where the percentile blend is meant to have taken over. One mistyped confirm sets the plan's income for a user whose real paycheck is $1,000. The anchor is the MEDIAN now: it is what 'typical' means and one absurd entry moves it by at most one rank; deliberately not the mean, which fails the same way more quietly. >>> A TEST ASSERTED THE DEFECT AS CORRECT AND NAMED IT ('N<12, no typical -> max(2100) x 0.85'). It was REPLACED rather than deleted - the arity it covers is exactly the one that failed - and the regression case was added beside it.",
-    "file": "packages/core/income/suggestLean.ts",
-    "token": "quantile(sorted, 0.5)",
+    "file": "packages/core/income/testSuggestLean.ts",
+    "token": "one absurd entry cannot move the floor",
     "proof": {
       "unfix": [
         {
