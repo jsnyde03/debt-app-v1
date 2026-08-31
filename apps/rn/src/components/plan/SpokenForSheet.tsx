@@ -31,9 +31,23 @@ export function SpokenForSheet({
   offer,
   onManageEveryday,
   onReserve,
+  unreadBillAmounts = false,
 }: {
   visible: boolean;
   onClose: () => void;
+  /**
+   * ⛔ **S1.13.7.4 [pass-6 `B1-5`] — THIS SHEET STATED A TOTAL BUILT FROM A BILL AMOUNT THE APP COULD
+   * NOT READ, AND SAID IT WAS THE FULL ONE.**
+   *
+   * ⚡ Measured: with one bill's amount lost on import (repaired to `0`), the sheet printed *"That's the
+   * full **$415.38** your expenses average out to"* against a true **$535.38** — and `coversRecommendation`
+   * was `true`, so it took the CONFIDENT copy branch. On the same store `mayClaim(store, 'required-plan')`
+   * is `false`. This file contained no trust call at any line.
+   *
+   * ⚠️ **Money's twin already does this**, computing `anyRowFieldUnread(..., 'requiredExpense', 'amount')`
+   * beside its own `selectRecurringSmoothed` call — the guarded copy of the identical figure, one tab over.
+   */
+  unreadBillAmounts?: boolean;
   everyday: number;
   /** ⛔ [L3-6] What the paycheck could actually hold of `everyday`. This sheet partitions THIS PAYCHECK,
    *  so every figure in it is an outcome — the request belongs on the manage screen, not here. */
@@ -88,9 +102,14 @@ export function SpokenForSheet({
               : `This paycheck can spare ${formatCurrency(offer.offer)} toward your upcoming expenses.`}
           </Text>
           <Text style={[textStyles.caption, { color: c.text.tertiary }]}>
-            {offer.coversRecommendation
-              ? `That’s the full ${formatCurrency(offer.recommended)} your expenses average out to.`
-              : `Less than the ${formatCurrency(offer.recommended)} they average out to — but it’s what’s genuinely free after your expenses and your cushion.`}
+            {/* ⛔ S1.13.7.4 [pass-6 B1-5] — "the full X" is a COMPLETENESS claim about a total the app may
+                not have read in full. When a bill amount is unread the average is understated, so the
+                confident branch is exactly the wrong one to take. The figure is withheld, not captioned. */}
+            {unreadBillAmounts
+              ? 'One of your bill amounts couldn’t be read, so I can’t say what they average out to yet — set it again and I’ll total them.'
+              : offer.coversRecommendation
+                ? `That’s the full ${formatCurrency(offer.recommended)} your expenses average out to.`
+                : `Less than the ${formatCurrency(offer.recommended)} they average out to — but it’s what’s genuinely free after your expenses and your cushion.`}
           </Text>
           <Pressable
             onPress={() => onReserve(offer.alreadyReserved + offer.offer)}

@@ -68,7 +68,7 @@ import { selectAllocation } from '@/store/selectors';
 import { TutorialFence } from '@/components/plan/TutorialFence';
 import { stageBounds } from '@/components/plan/tutorialStage';
 import { displayCushion } from '@/store/guardianSubjects';
-import { mayClaim } from '@/store/trustSelectors';
+import { anyRowFieldUnread, mayClaim } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 // ⛔ [T6.9] Today built FOUR currency strings by hand — none of them in L4-2's list, in T1's surface
 // inventory, or in T6.4's body-grep. Two were the SAME sentence rendered twice (visual + spoken) and only
@@ -797,6 +797,9 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
           router.push('/living-expenses');
         }}
         onReserve={(amount) => store_.getState().setExpenseReserveContribution(amount)}
+        // ⛔ S1.13.7.4 [pass-6 B1-5] — the same question money.tsx already asks beside its own copy of
+        // this figure. The sheet said "that's the FULL $415.38" against a true $535.38.
+        unreadBillAmounts={anyRowFieldUnread(store, 'row-figures', 'requiredExpense', 'amount')}
       />
       {/* Add-only here, so the schedule row never renders — but the handler is wired anyway so this host
           stays correct if Today ever opens an EXISTING debt (3.7.A0). Close first, then push: a presented

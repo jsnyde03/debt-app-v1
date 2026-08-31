@@ -146,7 +146,13 @@ export function TrajectoryChart({
   interestSaved: InterestSaved;
   startDate: string;
   /** The What-If simulation folded into this card — drives both the overlay curve and the controls. */
-  whatIf: WhatIfResult;
+  /**
+   * ⛔ **S1.13.7.4 [pass-6 `B1-3`] — NULLABLE, because a projection the app may not state has to be
+   * WITHHOLDABLE.** `null` means *the balances behind this could not be read*, and it is gagged at the
+   * source in `progress.tsx` for `C5-1`'s reason: a prop added later cannot bypass a gate it never knew
+   * about. The overlay, the simulated date and the savings suffix all disappear together.
+   */
+  whatIf: WhatIfResult | null;
   extra: string;
   onExtraChange: (value: string) => void;
 }) {
@@ -180,7 +186,7 @@ export function TrajectoryChart({
   // The What-If overlay: the "with extra" curve — only while the tool is open (collapsing returns the
   // chart to its calm resting state). The plan-vs-minimums "saved" line below is NEVER overridden by
   // it — the with-extra debt-free DATE lives in the What-If controls, not this slot.
-  const simulated = whatIfOpen ? whatIf.simulatedTrajectory : [];
+  const simulated = whatIfOpen && whatIf ? whatIf.simulatedTrajectory : [];
 
   const active = strategy === 'snowball' ? snowball : avalanche;
   // The ghost is the minimum-payments baseline — but only when there's a real gap to show. In the
@@ -570,7 +576,7 @@ export function TrajectoryChart({
                 <View style={[styles.swatch, styles.swatchDashed, { backgroundColor: c.accent.success }]} />
                 <Text style={[textStyles.caption, { color: c.text.secondary }]}>With extra</Text>
               </View>
-              {whatIf.simulatedDate ? (
+              {whatIf?.simulatedDate ? (
                 <Text style={[textStyles.caption, styles.rowData, { color: c.accent.success }]} numberOfLines={1}>
                   {shortDate(whatIf.simulatedDate)}
                   {deltaSuffix(whatIf.interestSaved, whatIf.monthsSaved, 'sooner')}
@@ -592,7 +598,7 @@ export function TrajectoryChart({
         </Text>
         <AppIcon name={whatIfOpen ? 'expand-less' : 'expand-more'} size={22} color={c.text.tertiary} />
       </Pressable>
-      {whatIfOpen ? <WhatIfControls result={whatIf} extra={extra} onExtraChange={onExtraChange} /> : null}
+      {whatIfOpen && whatIf ? <WhatIfControls result={whatIf} extra={extra} onExtraChange={onExtraChange} /> : null}
 
       {/* C7 / [D59] — collapsed by default, the same disclosure the What-If tool uses: this answers
           "should I switch?", which is a question the user asks occasionally, not every time they open

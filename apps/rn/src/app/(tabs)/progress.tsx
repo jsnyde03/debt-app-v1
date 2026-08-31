@@ -123,7 +123,19 @@ export default function ProgressScreen() {
   // PERF-2: the What-If baseline sim is invariant of `extra` — memoize it on the store so a keystroke runs
   // only the "with extra" sim, not both.
   const whatIfBaseline = useMemo(() => selectWhatIfBaseline(engineStore), [engineStore]);
-  const whatIf = useMemo(() => selectWhatIf(engineStore, Number(extra) || 0, whatIfBaseline), [engineStore, extra, whatIfBaseline]);
+  /**
+   * ⛔ **S1.13.7.4 [pass-6 `B1-3`] — THE WHAT-IF WAS THE ONE PROJECTION ON THIS CARD THAT WAS NOT GAGGED.**
+   *
+   * `C5-1` gagged `selectPayoffView` at the source precisely so a forgotten prop could not bypass the
+   * gate — and `WhatIfResult` is a **second object from a second selector** reaching the same chart, so it
+   * walked straight past that. ⚡ Measured: the *"Your plan"* legend correctly printed nothing while
+   * *"With extra"* printed **September 2026** against a true **January 2027** — four months early, three
+   * lines apart, on the card whose own headline had just been suppressed.
+   *
+   * ⚠️ Gagged at the source for `C5-1`'s reason, not at the prop.
+   */
+  const rawWhatIf = useMemo(() => selectWhatIf(engineStore, Number(extra) || 0, whatIfBaseline), [engineStore, extra, whatIfBaseline]);
+  const whatIf = useMemo(() => (mayClaim(store, 'debt-balances') ? rawWhatIf : null), [store, rawWhatIf]);
   // Same rule as above: the cash-cushion forecast is expensive and doesn't depend on `extra`, so it must
   // be memoized off the stable engineStore rather than rebuilt inline on every keystroke.
   const cashCycles = useMemo(() => selectCashTimeline(engineStore), [engineStore]);

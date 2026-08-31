@@ -548,7 +548,18 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
    * different direction each time"*. **This is the fourth**, and lane C listed eight more sheets that
    * reference no trust selector at all — a population to check, named in `C-screens.md`, not findings.
    */
-  'row-figures': 6,
+  /**
+   * ⛔ **7 at `S1.13.7.4` [pass-6 `B1-5`]: `index.tsx` joined them for the "Spoken for" sheet.**
+   *
+   * The sheet printed *"That’s the full **$415.38** your expenses average out to"* against a true
+   * **$535.38** — taking the CONFIDENT copy branch — on a store where `mayClaim(store, 'required-plan')`
+   * was already false, and the file contained no trust call at any line.
+   *
+   * ⚠️ **Money's twin already asked.** `money.tsx` computes `anyRowFieldUnread(…, 'requiredExpense',
+   * 'amount')` BESIDE its own copy of the identical figure — the guarded twin, one tab over, for two
+   * rounds. A per-file count cannot see that: the same number, computed twice, guarded once.
+   */
+  'row-figures': 7,
 };
 for (const claim of claims) {
   const actual = consumers.get(claim)!.length;
