@@ -2278,7 +2278,9 @@
         "tsx",
         "packages/core/debt/testComputeDrift.ts"
       ],
-      "expect": "not a finite number"
+      "expect": "not a finite number",
+      "measured": "2026-08-31",
+      "sha": "dfb5281e"
     }
   },
   "S1P6-A3-9-LEANANCHOR": {
@@ -2298,7 +2300,7 @@
         "tsx",
         "packages/core/income/testSuggestLean.ts"
       ],
-      "expect": "absurd entry"
+      "expect": "median(2000)"
     }
   },
   "S1P6-D2-5-ASSERTFLOOR": {
