@@ -1226,8 +1226,8 @@
       ],
       "run": "test:app",
       "expect": "B3",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-08-31",
+      "sha": "5184aecc"
     }
   },
   "S1P3-B3-MTIME": {
@@ -2221,6 +2221,60 @@
       "expect": "an id surviving only in completedRecommendedActions is reserved",
       "measured": "2026-08-31",
       "sha": "03c9aaa9"
+    }
+  },
+  "S1P5-C5-6-STORECURRENCY": {
+    "what": "pass-5 C5-6 (minor) - the paywall built its per-month anchor by hand: it derived the symbol from the localized priceString (correctly avoiding a hardcoded $) and then re-composed with US placement and US separators. Measured: '29,99 EUR' -> 'EUR2.50' with the symbol on the wrong side and a '.' under a card using a ','; 'KRW 39,000' -> 'KRW3250.00', ungrouped and with minor units KRW does not have. Placement, separator and minor-unit count are properties of the CURRENCY and none is recoverable from the price string, so PackageLike models currencyCode and the anchor is DROPPED when the store supplies none - lane C's own call, rather than misformatting. Exempt from lint:money with a reason: an App Store price follows the store's locale, not the app's USD-shaped voice.",
+    "file": "apps/rn/src/premium/perMonthAnchor.test.ts",
+    "token": "has no minor units, so the anchor carries none",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/premium/perMonthAnchor.ts",
+          "find": "    const formatted = new Intl.NumberFormat(undefined, { style: 'currency', currency: currencyCode }).format(annualPrice / 12);",
+          "replace": "    const formatted = `${currencyCode}${(annualPrice / 12).toFixed(2)}`;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "has no minor units, so the anchor carries none",
+      "measured": "2026-08-31",
+      "sha": "5184aecc"
+    }
+  },
+  "S1P5-B5-11-SIGNEDIN": {
+    "what": "pass-5 B5-11 (minor) - a signed-in user was told to sign in, forever. When the backup file exists and its mtimeMs cannot be read, backupToCloudGuarded returned 'unavailable', which cloudBackupMessages renders as 'Sign in to iCloud on this device to use backup' - measured with provider.isAvailable() === true. There is no action the user can take and every later automatic backup is refused the same way, so the sentence repeats forever. Now 'remote-unreadable' with a sentence that states what happened and asks for nothing. The refusal was never the defect - zero writes is still asserted.",
+    "file": "apps/rn/src/data/cloudBackupMessages.test.ts",
+    "token": "an unreadable remote does not tell a signed-in user to sign in",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/cloudBackup/service.ts",
+          "find": "  if (claim.state === 'unknown') return { ok: false, reason: 'remote-unreadable' };",
+          "replace": "  if (claim.state === 'unknown') return { ok: false, reason: 'unavailable' };"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the question was unanswered, and the user is NOT told to sign in",
+      "measured": "2026-08-31",
+      "sha": "5184aecc"
+    }
+  },
+  "S1P5-B5-5-B5-6-PAYCHECKSTR": {
+    "what": "pass-5 B5-5 + B5-6 (minors) - B5-5: a comma in paycheck.amount removed 'the paycheck' from the pre-overwrite sentence that names what the user is about to lose, one line above an irreversible replace (Number('1,200') is NaN). paycheck.amount is the ONE money field kept as a string, so it sits outside readMoney's repairable set - and readMoney is where the comma tolerance lives. B5-6: every input shape normalised except `undefined`, while the type said string; inferOnboarding tests typeof === 'string', so that reads as 'no income' and routes a store back to onboarding with the user's data already imported.",
+    "file": "apps/rn/src/data/readBackup.test.ts",
+    "token": "a grouped amount still names the paycheck in the pre-overwrite warning",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/readBackup.ts",
+          "find": "  const hasPaycheck = (parseAmountField(store.paycheck.amount) ?? 0) > 0;",
+          "replace": "  const hasPaycheck = Number(store.paycheck.amount) > 0;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a grouped amount still names the paycheck",
+      "measured": "2026-08-31",
+      "sha": "5184aecc"
     }
   }
 }
