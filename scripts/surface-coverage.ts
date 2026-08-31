@@ -121,7 +121,7 @@ const KNOWN_SURFACES = new Set([
  * appears in neither claims file. Documented and enforced are now the same list, by construction.
  */
 const UNSWEPT_CLAIMS = ['never', 'unknown', 'partial'] as const;
-const SWEPT_CLAIMS = ['p1', 'p2', 'p3', 'p4', 'g4', 'r10', 'r17', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5'] as const;
+const SWEPT_CLAIMS = ['p1', 'p2', 'p3', 'p4', 'g4', 'r10', 'r17', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6'] as const;
 const VALID_CLAIMS = new Set<string>([...UNSWEPT_CLAIMS, ...SWEPT_CLAIMS]);
 
 const SOURCE_EXT = new Set(['.ts', '.tsx', '.mjs', '.cjs', '.json', '.sh']);

@@ -1,0 +1,15 @@
+components/AmortizationCalendar.tsx
+components/PayoffInterestSavedCard.tsx
+lib/hooks/useDebts.ts
+lib/subscription/features.ts
+lib/subscription/hasFeatureAccess.ts
+lib/subscription/plans.ts
+tests/e2e/planner-empty-state.spec.ts
+packages/core/tsconfig.json
+packages/core/utils/formatCurrency.ts
+apps/rn/src/premium/premiumKind.ts
+scripts/check-conflict-markers.ts
+capacitor.config.ts
+next.config.ts
+package.json
+playwright.config.ts

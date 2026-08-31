@@ -85,7 +85,7 @@ import { dirname, join, resolve } from 'node:path';
 // assert the resolver directly. See its header for why a route built on `changed` alone is half-blind.
 import { lf } from './lib/anchor';
 import { buildImportGraph, neighbourhood } from './lib/importGraph';
-import { carriesMoneyClaim } from './lib/moneyClaim';
+import { carriesMoneyClaim, MIN_MONEY_BEARING } from './lib/moneyClaim';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -548,6 +548,27 @@ function main(): void {
    */
   if (exitPass) {
     const exitPopulation = Object.keys(JSON.parse(readFileSync(join(REPO_ROOT, CLAIMS[surface]), 'utf8')) as Record<string, string[]>);
+    /**
+     * ⛔ **S1.13.5 [pass-6 `D2-3`] — THE FLOOR, AND WITHOUT IT THE CHECK BELOW FAILS OPEN.**
+     *
+     * ⚡ Lane D2 planted a blinded `carriesMoneyClaim`: the money population collapsed **446 → 72** and
+     * this run still exited **0**, printing `⭐ exit reachable`. Both halves of the assertion filter by
+     * the predicate under test, so a blind predicate empties the population, empties the unreachable
+     * set, and reports the exit reachable over a route that is missing 374 files.
+     *
+     * ⛔ **`check-pass-coverage.ts` already carried this exact floor for this exact reason** — the fix
+     * that made the exit checkable took the shared predicate and left the guard behind. ⚠️ And the
+     * window is the whole pass: **the router runs before the lanes, the exit after**, so the guarded
+     * half cannot catch it until the dispatch has already happened.
+     */
+    const moneyCount = exitPopulation.filter(carriesMoneyClaim).length;
+    if (moneyCount < MIN_MONEY_BEARING) {
+      die(
+        `only ${moneyCount} of ${exitPopulation.length} file(s) on the ${surface.toUpperCase()} surface read as money-bearing, and the floor is ${MIN_MONEY_BEARING}.\n` +
+          '  ⛔ The predicate has gone blind, so "every file the exit demands is in a lane" would mean\n' +
+          '  "almost nothing is demanded" — and this route is built BEFORE the lanes read anything.',
+      );
+    }
     const owedByExit = exitPopulation.filter((f) => carriesMoneyClaim(f) && !laneOf.has(f));
     if (owedByExit.length > 0) {
       die(

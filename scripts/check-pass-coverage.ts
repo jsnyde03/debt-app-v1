@@ -42,7 +42,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { carriesMoneyClaim } from './lib/moneyClaim';
+import { carriesMoneyClaim, MIN_MONEY_BEARING } from './lib/moneyClaim';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -100,7 +100,8 @@ const other = files.filter((f) => !money.includes(f));
  * shape, and it was in the instrument built to end it. Measured 446 of 484 on 2026-08-31; floored at 95%
  * per `gate-scan-floors.json`'s stated margin.
  */
-const MIN_MONEY_BEARING = 424;
+// ⛔ S1.13.5 [pass-6 D2-3] — the floor now lives beside the predicate it guards, in lib/moneyClaim.ts,
+// because `audit-route.ts` needed the same one and a floor kept apart from its predicate is two producers.
 if (money.length < MIN_MONEY_BEARING) {
   console.error(
     `\n❌ pass-coverage: only ${money.length} of ${files.length} file(s) read as money-bearing, and the floor is ${MIN_MONEY_BEARING}.\n` +

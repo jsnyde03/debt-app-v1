@@ -37,6 +37,27 @@ export const MONEY_WORDS = [
 
 const MONEY_RE = new RegExp(`(${MONEY_WORDS.join('|')})`, 'i');
 
+/**
+ * ⛔ **S1.13.5 [pass-6 `D2-3`] — THE FLOOR LIVES BESIDE THE PREDICATE, because both consumers need it and
+ * only one had it.**
+ *
+ * ⚡ **Measured by lane D2, by planting:** blind `carriesMoneyClaim` and the route's money population
+ * collapses **446 → 72**, while `audit:route-check` still exits **0** and prints
+ * `⭐ exit reachable: all 72 …`. Both of that assertion's totality checks filter by *the predicate under
+ * test*, so a blind predicate makes the population empty, the unreachable set empty, and the check
+ * green — **the identical fail-open `check-pass-coverage.ts` already carried this constant to prevent**,
+ * re-committed one file over, in the fix written to make the exit checkable.
+ *
+ * ⛔ **And the window was the whole pass**: the router runs BEFORE the lanes and the exit runs AFTER, so
+ * the guarded half could not have caught it until every lane had already been dispatched at a route built
+ * from 72 files.
+ *
+ * ⚠️ **Exported from here rather than re-declared**, for the reason this module exists at all: a floor on
+ * a predicate, kept in a different file from the predicate, is two producers of one fact.
+ * **Downward-only** — 424 is 95% of the 446 measured 2026-08-31, per `gate-scan-floors.json`'s margin.
+ */
+export const MIN_MONEY_BEARING = 424;
+
 export function carriesMoneyClaim(rel: string): boolean {
   // ⚠️ The PATH counts too, not only the contents: a file named `moneyFormatters.test.ts` whose body is
   // all fixtures still belongs to the money surface, and a reader looking only at contents would miss it.
