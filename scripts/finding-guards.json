@@ -2749,5 +2749,25 @@
       "measured": "2026-09-01",
       "sha": "4d133dcf"
     }
+  },
+  "S1P6-D2-10-ENVELOPEFIELDS": {
+    "what": "S1.13.7.8 [pass-6 D2-10] - v17Envelope() copies fields off v16Populated() ONE AT A TIME, so a field added to the v1.6 fixture never reaches the v1.7 one. D5-14's docblock states that class exactly and then fixed the single member it had been told about (cycleHistory), leaving completedRecommendedActions and lastSavedAt reaching NEITHER store nor store.paycheck - while the v1.6 block of cutoverFiles.test.ts asserts the first IS an array, so two fixtures disagreed about whether the field matters. The envelope is what a device session proves a real portfolio survives on; a field missing from it is a field the round trip cannot fail on. TWO checks, for two DIFFERENT failures: the generator refuses to WRITE a short envelope (every v16 key must be in store, in paycheck, or in V16_FIELDS_NOT_IN_V17 with a reason, and a write-off describing nothing reds too), and cutoverFiles.test.ts refuses committed BYTES that were never regenerated after the generator was fixed - a generator-only check is green over stale bytes, and the bytes are what the device reads. Four plants: a dropped carry, a new unrouted v16 field, a stale write-off, and a stale committed envelope. NOT asserted against createDefaultStore()'s keys: a backup payload is legitimately a subset of a live store, which D2-10 itself flagged as a judgement about the format rather than a defect.",
+    "file": "apps/rn/src/data/migrationAudit/cutoverFiles.test.ts",
+    "token": "carries the v1.6 field",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/make-cutover-backups.ts",
+          "find": "      lastSavedAt: v16.lastSavedAt,\n",
+          "replace": ""
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "scripts/make-cutover-backups.ts"
+      ],
+      "expect": "reach neither the v1.7 envelope nor V16_FIELDS_NOT_IN_V17"
+    }
   }
 }

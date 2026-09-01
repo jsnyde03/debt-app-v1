@@ -120,10 +120,89 @@ function v17Envelope() {
        * cannot fail on it.
        */
       cycleHistory: v16.cycleHistory,
+      /**
+       * ⛔ **S1.13.7.8 [pass-6 `D2-10`] — `D5-14`'s FIX REACHED `cycleHistory` AND LEFT ITS SIBLINGS.**
+       *
+       * The docblock above states the class exactly — *"copies fields off `v16Populated()` one at a time,
+       * so a field added to the v1.6 fixture does not reach the v1.7 one"* — and then fixed the one member
+       * that had been reported. Measured on the committed fixtures, `completedRecommendedActions` and
+       * `lastSavedAt` reached **neither** `store` nor `store.paycheck`, while the v1.6 block of
+       * `cutoverFiles.test.ts` asserts the first IS an array. Two fixtures disagreeing about whether a
+       * field matters.
+       *
+       * ⚡ Both are real `DebtStore` fields (`defaults.ts:41`, `:68`). The envelope is what a device
+       * session proves a real portfolio survives on, and a field missing from it is a field the round
+       * trip cannot fail on.
+       */
+      completedRecommendedActions: v16.completedRecommendedActions,
+      lastSavedAt: v16.lastSavedAt,
       prefs: { onboardingComplete: true },
     },
   };
 }
+
+/**
+ * ⛔ **S1.13.7.8 [pass-6 `D2-10`] — EVERY v1.6 FIELD IS CARRIED OR WRITTEN OFF, CHECKED AT GENERATION.**
+ *
+ * ⚡ **Asking mechanically is the point.** `D5-14` named this class in prose and fixed one member; adding
+ * two more by hand would be the same shape again, two fields further along. For every key
+ * `v16Populated()` produces: is it in the v1.7 `store`, in its `paycheck` block, or named below? A field
+ * added to the v1.6 fixture **fails this script** until somebody answers.
+ *
+ * ⚠️ It runs at GENERATION rather than as a test assertion, deliberately: the failure being guarded is
+ * writing a fixture that is quietly short, and the cheapest place to refuse that is before the bytes are
+ * written. `cutoverFiles.test.ts` then asserts what the file CONTAINS.
+ */
+const V16_FIELDS_NOT_IN_V17: Record<string, string> = {
+  version: 'the v1.6 envelope format number; the v1.7 envelope carries `formatVersion` + `storeVersion`',
+  exportedAt: 'an envelope field in both formats, set at the top level here rather than inside `store`',
+  amount: 'moves into `store.paycheck.amount` — asserted by the v17 block of cutoverFiles.test.ts',
+  payCycle: 'moves into `store.paycheck.payCycle`',
+  currentDate: 'moves into `store.paycheck.currentDate`',
+  nextPaycheckDate: 'moves into `store.paycheck.nextPaycheckDate`',
+  semiMonthlyFirstDay: 'moves into `store.paycheck`, stringified — v1.7 holds these as strings',
+  semiMonthlySecondDay: 'moves into `store.paycheck`, stringified',
+  monthlyPayDay: 'moves into `store.paycheck`, stringified',
+};
+
+function die(lines: string[]): never {
+  console.error('');
+  for (const line of lines) console.error(line);
+  console.error('');
+  process.exit(1);
+}
+
+function assertEveryV16FieldAccountedFor(): void {
+  const v16 = v16Populated() as unknown as Record<string, unknown>;
+  const envelope = v17Envelope();
+  const store = envelope.store as unknown as Record<string, unknown>;
+  const paycheck = store.paycheck as Record<string, unknown>;
+
+  const missing = Object.keys(v16).filter(
+    (key) => !(key in store) && !(key in paycheck) && !(key in V16_FIELDS_NOT_IN_V17),
+  );
+  if (missing.length > 0) {
+    die([
+      `❌ make-cutover-backups: ${missing.length} v1.6 field(s) reach neither the v1.7 envelope nor V16_FIELDS_NOT_IN_V17:`,
+      ...missing.map((m) => `     ${m}`),
+      '',
+      '  [D2-10] The envelope is built field by field, so a field added to the v1.6 fixture does not reach',
+      '  the v1.7 one and the round trip cannot fail on it. Carry it, or write down why it does not travel.',
+    ]);
+  }
+
+  // ⚠️ The other direction: a write-off describing nothing is slack the next omission hides in — the same
+  // rule `check-amount-collapse`'s ALLOWED map carries.
+  const stale = Object.keys(V16_FIELDS_NOT_IN_V17).filter((key) => !(key in v16));
+  if (stale.length > 0) {
+    die([
+      `❌ make-cutover-backups: V16_FIELDS_NOT_IN_V17 names ${stale.length} field(s) the v1.6 fixture no longer has:`,
+      ...stale.map((m) => `     ${m}`),
+    ]);
+  }
+}
+
+assertEveryV16FieldAccountedFor();
 
 const files: [string, unknown][] = [
   ['v16-populated.json', v16Populated()],

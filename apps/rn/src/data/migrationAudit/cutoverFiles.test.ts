@@ -120,6 +120,37 @@ export default async function run() {
     assert(viaFile.store !== null, 'v17-envelope imports');
     assert(checkAll(viaFile).length === 0, 'v17-envelope: no invariant violations');
     assert(viaFile.store!.paycheck.amount === '3247', '…carrying the same income as the v1.6 seed');
+
+    /**
+     * ⛔ **S1.13.7.8 [pass-6 `D2-10`] — THE COMMITTED BYTES CARRY EVERY FIELD, NOT JUST THREE.**
+     *
+     * The three assertions above are the whole of this block, and none of them is field coverage — so
+     * `cycleHistory` was missing for as long as nobody looked (`D5-14`), and `completedRecommendedActions`
+     * and `lastSavedAt` were still missing after that fix reached only the field it named.
+     *
+     * ⚡ **This is a DIFFERENT failure from the generator's own check**, which is why both exist:
+     * `make-cutover-backups.ts` refuses to WRITE a short envelope, and this refuses a committed file that
+     * was never regenerated after the generator was fixed. A generator-only check is green over stale
+     * bytes, and the bytes are what the device session actually reads.
+     *
+     * ⚠️ Asserted against the v1.6 SEED's own keys rather than against `createDefaultStore()`. A backup
+     * payload is legitimately a subset of a live store — `D2-10` itself flagged that as a judgement about
+     * the format rather than a defect — but every field the v1.6 portfolio HAS must survive the move, and
+     * the paycheck block is where most of them land.
+     */
+    const seed = load('v16-populated.json');
+    const store = (blob as { store: Record<string, unknown> }).store;
+    const paycheck = store.paycheck as Record<string, unknown>;
+    const NOT_IN_V17 = new Set([
+      'version', 'exportedAt', 'amount', 'payCycle', 'currentDate', 'nextPaycheckDate',
+      'semiMonthlyFirstDay', 'semiMonthlySecondDay', 'monthlyPayDay',
+    ]);
+    for (const field of Object.keys(seed)) {
+      if (NOT_IN_V17.has(field)) continue;
+      assert(field in store || field in paycheck, `v17-envelope carries the v1.6 field \`${field}\``);
+    }
+    assert(Array.isArray(store.completedRecommendedActions), '⛔ D2-10 — including completedRecommendedActions, which the v1.6 block already asserts is an array');
+    assert(typeof store.lastSavedAt === 'string', '⛔ D2-10 — and lastSavedAt, its sibling in the same omission');
   }
 
   console.log(`✅ 5.11 cutover backup files verified (${passed} asserts).`);
