@@ -26,7 +26,7 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.12.5.9 · THE NET — all 39 findings fixed, e2e + embed running**
+## ▶ RIGHT NOW — **S1.13.7.10 · TESTS THAT CANNOT FAIL — 18 findings, the last triage class but the minors**
 
 **Surface S1 · money · goals · plan cards.** Passes 1–3 run and fully fixed. **Pass 4 run at `e65f9c7` by four fresh agents → 8 blockers · 19 majors · 7 minors across 217 files** ([`SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md)). ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next first-candidate and a clean pass 5 still owes a pass 6.** ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
