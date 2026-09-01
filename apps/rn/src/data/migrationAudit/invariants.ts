@@ -19,7 +19,25 @@ export interface Violation {
   detail: string;
 }
 
-export type Invariant = (outcome: DoorOutcome) => Violation | null;
+/**
+ * ⛔ **S1.13.7.10 [pass-6 `D1-4`] — `SKIP` EXISTS BECAUSE `null` MEANT TWO THINGS.**
+ *
+ * An invariant returned `null` both for *"I checked and it holds"* and for *"the field I need is not on
+ * this outcome, so I checked nothing"*. Those are opposite facts and the harness could not tell them
+ * apart: three of the nine could be made vacuous **over the whole 1,084-outcome corpus** and every
+ * self-check still printed `all 9 invariants fire`.
+ *
+ * ⚡ **Measured by the lane, and the pair is the finding**: an accounting corruption is caught while the
+ * `accounting` field is present (exit 1, 101 violations) and **silent when the field is absent** (exit 0,
+ * `✅ App-layer regression tests: ALL PASSED`) — and the absence is what nothing checked.
+ *
+ * ⚠️ `checkAll` filters `SKIP` exactly as it filtered `null`, so every existing caller is unchanged. The
+ * new fact is available to the harness through {@link checkAllTracked}, which is what turns "did not run"
+ * into a number that can have a floor.
+ */
+export const SKIP = Symbol('invariant-not-applicable');
+
+export type Invariant = (outcome: DoorOutcome) => Violation | null | typeof SKIP;
 
 /** What every door hands back, normalised — so one invariant set covers all four. */
 export interface DoorOutcome {
@@ -57,7 +75,10 @@ export const neverThrows: Invariant = (o) =>
  * this"* look identical in the resulting store while only one is a defect.
  */
 export const nothingSilentlyDropped: Invariant = (o) => {
-  if (!o.accounting) return null;
+  // ⛔ D1-4 — `SKIP`, not `null`: a door that supplies no accounting has not been checked, and that is
+  // the opposite of having passed. `importDoor` supplies none today, so this legitimately skips half the
+  // corpus — which is precisely why the harness records the count instead of assuming it.
+  if (!o.accounting) return SKIP;
   const { mapped, dropped, unknown, unparseable, total } = o.accounting;
   const seen = mapped.length + dropped.length + unknown.length + unparseable.length;
   return seen === total
@@ -200,7 +221,8 @@ const withoutRepairs = (store: DebtStore) => {
 };
 
 export const idempotent: Invariant = (o) => {
-  if (!o.store || o.second === undefined || o.second === null) return null;
+  if (!o.store || o.second === undefined || o.second === null) return SKIP; // ⛔ D1-4 — not checked ≠ passed
+
   return withoutRepairs(o.store) === withoutRepairs(o.second)
     ? null
     : v('idempotent', `${o.door}: second pass changed the data`);
@@ -212,7 +234,8 @@ export const idempotent: Invariant = (o) => {
  * people learn to dismiss. This is the property the idempotence exclusion above hands off to.
  */
 export const repairsAreNotRepeated: Invariant = (o) => {
-  if (!o.store || !o.second) return null;
+  if (!o.store || !o.second) return SKIP; // ⛔ D1-4 — not checked ≠ passed
+
   return o.second.dataRepairs.length === 0
     ? null
     : v('repairs-not-repeated', `${o.door}: ${o.second.dataRepairs.length} repair(s) re-reported on a clean second pass`);
@@ -272,5 +295,25 @@ export const INVARIANTS: Invariant[] = [
 ];
 
 export function checkAll(outcome: DoorOutcome): Violation[] {
-  return INVARIANTS.map((f) => f(outcome)).filter((x): x is Violation => x !== null);
+  return INVARIANTS.map((f) => f(outcome)).filter((x): x is Violation => x !== null && x !== SKIP);
+}
+
+/**
+ * ⛔ **THE SAME PASS, PLUS THE FACT `checkAll` THROWS AWAY: which invariants actually EVALUATED.**
+ * [S1.13.7.10 · pass-6 `D1-4`]
+ *
+ * The audit harness accumulates `evaluated` across the whole corpus and refuses a run in which any
+ * invariant evaluated fewer times than its recorded floor. Without it, an invariant that stopped running
+ * is indistinguishable from one that keeps passing — which is the state three of the nine shipped in.
+ */
+export function checkAllTracked(outcome: DoorOutcome): { violations: Violation[]; evaluated: string[] } {
+  const violations: Violation[] = [];
+  const evaluated: string[] = [];
+  for (const f of INVARIANTS) {
+    const r = f(outcome);
+    if (r === SKIP) continue;
+    evaluated.push(f.name);
+    if (r !== null) violations.push(r);
+  }
+  return { violations, evaluated };
 }

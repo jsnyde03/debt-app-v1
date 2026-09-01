@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { generateV16Cases, type Case } from '@/data/migrationAudit/corpus';
 import { importDoor, webkitDoor } from '@/data/migrationAudit/doors';
 import { REPAIRABLE_MONEY_FIELDS } from '@/data/migrations';
-import { GOAL_MONEY_FIELDS, INVARIANTS, MONEY_FIELDS, checkAll, priorityGoalIsCapped, type DoorOutcome } from '@/data/migrationAudit/invariants';
+import { GOAL_MONEY_FIELDS, INVARIANTS, MONEY_FIELDS, SKIP, checkAll, checkAllTracked, priorityGoalIsCapped, type DoorOutcome } from '@/data/migrationAudit/invariants';
 import { createDefaultStore } from '@/data/defaults';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
 
@@ -29,9 +29,44 @@ let checked = 0;
 type Row = { invariant: string; cause: string; example: string };
 const rows: Row[] = [];
 
+/**
+ * ⛔ **S1.13.7.10 [pass-6 `D1-4`] — EVERY INVARIANT'S EVALUATION COUNT IS ACCUMULATED HERE.
+ *
+ * `checkAll` cannot distinguish "held" from "never ran" — both were `null` — so three of the nine
+ * could go vacuous over all 1,084 outcomes with the summary still printing `9 invariants each`.
+ * `checkAllTracked` returns the second fact and `EVALUATION_FLOORS` gives it a number to fail on.
+ */
+const evaluations = new Map<string, number>(INVARIANTS.map((f) => [f.name, 0]));
+
+/**
+ * ⛔ **S1.13.7.10 [pass-6 `D1-4`] — HOW MANY OF THE 1,084 OUTCOMES EACH INVARIANT ACTUALLY EVALUATED, MEASURED 2026-09-01.
+ *
+ * ⚠️ ** Downward-only, and a FLOOR rather than an equality, for `gate-scan-floors`' reason: the corpus grows
+ * with ordinary work and an exact count would red on every added case, training people to raise the number
+ * without reading it. What it catches is the failure being guarded — an invariant that stops running
+ * drops to zero, or to a handful, and lands far below its floor.
+ *
+ * ⚡ ** `nothingSilentlyDropped` sits at half the corpus BY DESIGN: `importDoor` supplies no `accounting`
+ * field at all, so it is evaluated on the webkit door only. That is exactly why this is a recorded number
+ * and not an assumption — half looks identical to none until somebody writes the half down.
+ */
+const EVALUATION_FLOORS: Record<string, number> = {
+  neverThrows: 1000,
+  nothingSilentlyDropped: 500,
+  moneyKeepsItsType: 500,
+  alwaysCurrentVersion: 500,
+  sourceNotMutated: 1000,
+  refusalIsTotal: 1000,
+  idempotent: 500,
+  repairsAreNotRepeated: 500,
+  priorityGoalIsCapped: 500,
+};
+
 function record(caseId: string, target: string, outcome: DoorOutcome) {
   checked++;
-  for (const violation of checkAll(outcome)) {
+  const { violations, evaluated } = checkAllTracked(outcome);
+  for (const name of evaluated) evaluations.set(name, (evaluations.get(name) ?? 0) + 1);
+  for (const violation of violations) {
     rows.push({ invariant: violation.invariant, cause: `${outcome.door} · ${target}`, example: `${caseId} → ${violation.detail}` });
   }
 }
@@ -85,6 +120,30 @@ export default async function run() {
   }
 
   console.log(`\n  migration audit — ${cases.length} cases × 2 doors, ${checked} outcomes, ${INVARIANTS.length} invariants each`);
+
+  /**
+   * ⛔ **S1.13.7.10 [pass-6 `D1-4`]** D1-4's FLOOR. An invariant that evaluated nothing is not an invariant that passed.
+   * Printed as well as asserted, because a number nobody sees is a number nobody maintains.
+   */
+  {
+    const missing = Object.keys(EVALUATION_FLOORS).filter((k) => !evaluations.has(k));
+    if (missing.length > 0) {
+      throw new Error(`FAIL [D1-4]: EVALUATION_FLOORS names ${missing.join(', ')}, which is not in INVARIANTS`);
+    }
+    console.log(`  invariant coverage — ${[...evaluations.entries()].map(([n, c]) => `${n}:${c}`).join('  ·  ')}`);
+    const short = [...evaluations.entries()].filter(([name, n]) => n < (EVALUATION_FLOORS[name] ?? 0));
+    if (short.length > 0) {
+      throw new Error(
+        `FAIL [D1-4]: ${short.map(([n, c]) => `${n} evaluated ${c}/${checked} (floor ${EVALUATION_FLOORS[n]})`).join('; ')} — ` +
+          'an invariant that stops evaluating reads exactly like one that keeps passing, which is the state three of the nine shipped in',
+      );
+    }
+    for (const f of INVARIANTS) {
+      if (!(f.name in EVALUATION_FLOORS)) {
+        throw new Error(`FAIL [D1-4]: ${f.name} is in INVARIANTS with no evaluation floor — add one, measured`);
+      }
+    }
+  }
   console.log(`  differential — ${bothProduced} cases produced a store through BOTH doors, ${drift.length} disagreed`);
 
   // ⚠️ The healthy control must survive. A corpus that refuses EVERYTHING satisfies every invariant
@@ -294,13 +353,23 @@ function checkEveryInvariantFires(): number {
         `FAIL [self-check: no invariant named ${invariant} — it was renamed or deleted, and its poison now checks nothing]`,
       );
     }
-    if (fn(outcome) === null) {
+    /**
+     * ⛔ **S1.13.7.10 [pass-6 `D1-4`] — `SKIP` COUNTS AS "DID NOT FIRE" HERE, IN BOTH DIRECTIONS.
+     *
+     * `SKIP` was introduced so the harness could tell "held" from "never ran". This self-check asks a
+     * different question — can this invariant fire at all, and does it stay quiet on a clean base —
+     * and for both halves an invariant that could not evaluate is an invariant that did not fire.
+     * ⚠️ ** Testing `!== null` alone would have read `SKIP` as a violation and failed the clean control,
+     * which is exactly what it did on the first run of this change.
+     */
+    const fired = (r: ReturnType<typeof fn>) => r !== null && r !== SKIP;
+    if (!fired(fn(outcome))) {
       throw new Error(
         `FAIL [self-check: ${invariant} did NOT fire on ${why} — it can be deleted, inverted or broken with this suite green]`,
       );
     }
     // ⚠️ The clean base must fire nothing, or a poison proves only that SOMETHING is wrong with it.
-    if (fn(cleanOutcome()) !== null) {
+    if (fired(fn(cleanOutcome()))) {
       throw new Error(
         `FAIL [self-check: ${invariant} fires on the CLEAN control — its poison proves nothing]`,
       );

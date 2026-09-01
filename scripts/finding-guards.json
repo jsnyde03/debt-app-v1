@@ -2872,5 +2872,21 @@
       ],
       "expect": "traj-legend-with-extra"
     }
+  },
+  "S1P6-D1-4-INVARIANTCOVERAGE": {
+    "what": "S1.13.7.10 [pass-6 D1-4] - three of the migration audit's nine invariants could go VACUOUS over the whole 1,084-outcome corpus while every self-check still printed 'all 9 invariants fire'. The cause: an Invariant returned `null` both for 'I checked and it holds' and for 'the field I need is absent, so I checked nothing' - opposite facts the harness could not tell apart. The lane measured the pair that IS the finding: an accounting corruption is caught while the `accounting` field is present (exit 1) and SILENT when the field is absent (exit 0, 'ALL PASSED') - and the absence is what nothing checked. This is the harness whose stated job is 'can the migration lose or corrupt data?', so a regression here is data loss on upgrade. FIX: a SKIP sentinel distinct from null; checkAll filters it exactly as it filtered null so every existing caller is unchanged; checkAllTracked returns which invariants actually EVALUATED; and the harness accumulates per-invariant counts across the corpus against a recorded downward-only floor, printed on every run. MEASURED AND NOW VISIBLE: nothingSilentlyDropped evaluates 542 of 1,084 BY DESIGN, because importDoor supplies no accounting field at all - half looks identical to none until somebody writes the half down, which is the whole reason this is a recorded number. ⚠️ The self-check needed teaching too: it tested `!== null`, so it read SKIP as a violation and failed the clean control on the first run of this change.",
+    "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
+    "token": "an invariant that stops evaluating reads exactly like one that keeps passing",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/migrationAudit/doors.ts",
+          "find": "threw, accounting, second };",
+          "replace": "threw, accounting: undefined, second };"
+        }
+      ],
+      "run": "test:app",
+      "expect": "nothingSilentlyDropped evaluated 0/1084"
+    }
   }
 }

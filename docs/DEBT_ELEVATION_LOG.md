@@ -30367,3 +30367,33 @@ apart and a `testID` can.
 ⭐ **The control is the half that makes it an assertion.** Asserting the row visible after typing proves
 nothing on its own; asserting it **absent before** is what ties it to the tool. Planted by gating the row
 to `false` — the exact defect the old test stayed green over — and it reds `element(s) not found`.
+
+### `.10.3` — the oracle that could not tell "held" from "never ran"
+
+⛔ **`D1-4`: three of the migration audit's nine invariants could go vacuous over the whole 1,084-outcome
+corpus while every self-check printed *"all 9 invariants fire"*.** The cause is one line of type design: an
+`Invariant` returned `null` both for *"I checked and it holds"* and for *"the field I need is absent, so I
+checked nothing"*. **Opposite facts, one value.** This is the harness whose stated job is *"can the
+migration lose or corrupt data?"*, so what it cannot see is data loss on upgrade.
+
+⚡ **The lane's measurement is the finding, and it is a pair:** an accounting corruption is caught while
+`accounting` is present (exit 1) and **silent when the field is absent** (exit 0, *"ALL PASSED"*) — and the
+absence is what nothing checked.
+
+⭐ **`SKIP` splits the two.** `checkAll` filters it exactly as it filtered `null`, so every existing caller
+is unchanged; `checkAllTracked` returns the fact `checkAll` throws away; and the harness accumulates
+per-invariant evaluation counts across the corpus against a recorded, downward-only floor — **printed on
+every run**, because a number nobody sees is a number nobody maintains.
+
+⚡ **What the count made visible immediately:** `nothingSilentlyDropped` evaluates **542 of 1,084 by
+design** — `importDoor` supplies no `accounting` field at all, so it runs on the webkit door only.
+**Half looks identical to none until somebody writes the half down**, which is the whole reason this is a
+recorded number rather than an assumption.
+
+⚠️ **The self-check needed teaching, and it failed loudly rather than silently — which is the good
+direction.** It tested `fn(clean) !== null`, so it read `SKIP` as a violation and failed the clean control
+on the first run of the change. Both halves of it now ask *"did it fire"*, where an invariant that could
+not evaluate did not fire.
+
+Planted with the finding's own state A — `webkitDoor` stops supplying `accounting` — and it reds
+`nothingSilentlyDropped evaluated 0/1084 (floor 500)`.
