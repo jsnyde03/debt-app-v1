@@ -2767,7 +2767,9 @@
         "tsx",
         "scripts/make-cutover-backups.ts"
       ],
-      "expect": "reach neither the v1.7 envelope nor V16_FIELDS_NOT_IN_V17"
+      "expect": "reach neither the v1.7 envelope nor V16_FIELDS_NOT_IN_V17",
+      "measured": "2026-09-01",
+      "sha": "7e2b4c74"
     }
   }
 }
