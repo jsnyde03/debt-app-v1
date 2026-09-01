@@ -212,6 +212,62 @@ test('B4 · converting a QUARTERLY bill keeps its cadence, it does not become mo
 });
 
 /**
+ * ⛔ **S1.13.7.8 [pass-6 blocker `C2-3`] — THE BILL'S AUTOPAY SETTING SURVIVES THE MOVE.**
+ *
+ * A bill on autopay converted to a debt with `isAutopay: false`. From the next cycle on
+ * `isAutopayPresumedPaid` no longer suppresses it — it requires `isAutopay === true` — so the payday
+ * check-in asks the user to pay, and the required-actions list shows as outstanding, **money their bank
+ * has already taken.** The sheet HAS an Autopay switch; it was seeded `false` from a bill that had it on,
+ * and nothing on the screen said the setting had been dropped.
+ *
+ * ⚡ **This test exists because the unit test could not see the defect.** `debtPrefill.test.ts` proves
+ * the producer and the sheet's seeding; measured, it stays **fully green** with `money.tsx` reverted to
+ * its four-field literal, because nothing in it asserts that the convert path CALLS the producer. That
+ * is `tested-helper-is-not-a-used-helper` exactly — the helper existed, was correct and was tested while
+ * the defect shipped. This pins the user-facing path.
+ *
+ * ⚠️ The cadence is asserted in the same run, on the same debt, deliberately: `recurrence` is the field
+ * `S1.5.3 [B4]` lost at these same two hops, and a fix that carries one field and drops the other is the
+ * whole shape of this round.
+ */
+test('C2-3 · converting a bill on AUTOPAY keeps its autopay — the app does not ask for money the bank took', async ({ page }) => {
+  await seedStore(
+    page,
+    seeded([
+      {
+        id: 'e-loan',
+        name: 'Equipment Loan',
+        amount: 600,
+        dueDate: day(1),
+        recurrence: 'quarterly',
+        category: 'other',
+        isAutopay: true,
+      },
+    ]),
+  );
+  await openExpenses(page);
+  await page.getByTestId('misfiled-convert-e-loan').click();
+  await expect(page.getByText(/Moving this from Expenses/)).toBeVisible({ timeout: 10_000 });
+
+  // ⛔ The switch is the disclosure: a user looking at this screen must see autopay ON, because that is
+  // what their bill said. Seeded `false`, the screen was quietly asserting the opposite.
+  await expect(page.getByRole('switch', { name: 'Autopay' })).toBeChecked();
+
+  await page.getByPlaceholder('e.g. 2400').fill('4800');
+  await page.getByPlaceholder('e.g. 22.99').fill('9.9');
+  await page.getByText('Add debt', { exact: true }).click();
+
+  await expect
+    .poll(async () => {
+      const raw = await page.evaluate(() => window.localStorage.getItem('debtPlanner.rnStore'));
+      const s = JSON.parse(raw ?? '{}');
+      const debt = (s.debts ?? []).find((d: { name: string }) => d.name === 'Equipment Loan');
+      return { isAutopay: debt?.isAutopay, recurrence: debt?.recurrence, expenses: (s.requiredExpenses ?? []).length };
+    }, { timeout: 10_000 })
+    .toEqual({ isAutopay: true, recurrence: 'quarterly', expenses: 0 });
+});
+
+/**
  * ⛔ **S1.5.3 — CONVERTING A BILL INTO A BNPL DOUBLE-COUNTED IT. Found by a plant that did NOT red.**
  *
  * `DebtSheet.submit()`'s BNPL branch ended `else addDebt(…)` and **never consulted

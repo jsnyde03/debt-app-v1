@@ -19,6 +19,10 @@ async function main() {
   await import('../store/projectedIncome.test');
   await import('../store/guardianPrediction.test');
 
+  // S1.13.7.8 [pass-6 C2-3] — bill → debt: the carried/dropped partition, and that DebtSheet seeds from
+  // `seed` rather than `editing`. Both hops of the conversion, asserted as a class.
+  await import('../components/entities/debtPrefill.test');
+
   // RS.2 — Guardian selectors (states × tier × regime + break-it).
   await import('../store/guardianSelectors.test');
 

@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BNPL_COUNT_FIELDS, bnplPaymentsRemaining, bnplPaymentsTotal, isInstallmentNative } from '@core/debt/bnplInstallment';
 import { primaryEmergencyGoal } from '@core/engine/emergencyFund';
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
+import { debtPrefillFromExpense } from '@core/debt/debtPrefillFromExpense';
 import { parseStatementText } from '@core/scan/parseStatementText';
 // [T8 · L2-1] `CADENCE_SUFFIX` moved beside the type it keys on — it existed here AND in
 // `guardianSelectors`, and the two had already diverged (`/2 wks` vs `/2wks`, `/check` vs `/paycheck`).
@@ -283,7 +284,17 @@ function DebtsSection({
     openEditor({
       editing: null,
       convertingExpenseId: convertFrom.id,
-      prefill: { name: convertFrom.name, minimumPayment: convertFrom.amount, dueDate: convertFrom.dueDate, recurrence: convertFrom.recurrence },
+      /**
+       * ⛔ **S1.13.7.8 [pass-6 blocker `C2-3`] — `debtPrefillFromExpense`, NOT A LITERAL.**
+       *
+       * This was four hand-named fields and `isAutopay` was not one of them, so a bill on autopay became
+       * a debt paid by hand and the app then asked for money the bank had already taken. `recurrence` was
+       * lost the same way before it (`S1.5.3 [B4]`). ⚡ The producer's dropped-field map is keyed on
+       * `Exclude<keyof RequiredExpense, …>`, so a field added to `RequiredExpense` reds `typecheck:core`
+       * until it is carried or its omission is written down — a literal here can only ever be a list, and
+       * both lists were one field short.
+       */
+      prefill: debtPrefillFromExpense(convertFrom),
     });
     onConvertHandled?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps

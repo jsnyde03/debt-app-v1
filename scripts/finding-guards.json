@@ -2397,8 +2397,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "STALE",
-      "measured": "2026-08-31",
-      "sha": "855e25cb"
+      "measured": "2026-09-01",
+      "sha": "80fc0059"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2631,6 +2631,53 @@
       "expect": "CSV import (parseDebtCsvText): \"2026-02-28\" is a real day and still imports",
       "measured": "2026-09-01",
       "sha": "30079378"
+    }
+  },
+  "S1P6-C2-3-CONVERTFIELDS": {
+    "what": "S1.13.7.8 [pass-6 blocker C2-3] - converting a bill on autopay into a debt dropped isAutopay at BOTH hops: money.tsx's prefill was a four-field object literal that did not name it, and DebtSheet's `autopay` state seeded from `editing?` rather than `seed`. The debt landed with isAutopay:false, isAutopayPresumedPaid requires === true, and from the next cycle the payday check-in asked the user to pay - and the required-actions list showed as outstanding - money their bank had already taken. THE SHEET HAS AN AUTOPAY SWITCH; it was seeded false from a bill that had it on, so the screen quietly asserted the opposite and nothing said the setting had been dropped. THIS IS S1.5.3 [B4]'s SURVIVING CLASS: that fix changed `recurrence` on one line and left autopay, remainingPayments, scheduledPaymentAmount and bnplProvider on the same wrong variable, with a comment above them recording the measurement. The prefill is now debtPrefillFromExpense, whose dropped-field map is keyed Exclude<keyof RequiredExpense, Carried> so the COMPILER refuses a field that is neither carried nor written off - proven by two plants (a removed entry and an invented one, both exit 2). commit() carries a prefill's non-form fields by asking `k in fields`, the form's own output, rather than a list. autopayFailedThisCycle and isPaidThisCycle carried for the same reason as isAutopay; originalDueDate deliberately NOT (it is the rollover anchor and would override a due date the user edits on this very form).",
+    "file": "apps/rn/src/components/entities/debtPrefill.test.ts",
+    "token": "no useState in DebtSheet seeds from",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/entities/DebtSheet.tsx",
+          "find": "const [autopay, setAutopay] = useState(seed?.isAutopay ?? false);",
+          "replace": "const [autopay, setAutopay] = useState(editing?.isAutopay ?? false);"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/components/entities/debtPrefill.test.ts"
+      ],
+      "expect": "no useState in DebtSheet seeds from"
+    }
+  },
+  "S1P6-C2-3-CONVERTFIELDS-E2E": {
+    "what": "S1.13.7.8 [pass-6 C2-3], the half the unit test CANNOT see. debtPrefill.test.ts proves the producer and the sheet's seeding, and measured it stays FULLY GREEN (2,066 ticks, exit 0) with money.tsx reverted to its four-field literal - nothing in it asserts that the convert path CALLS the producer. tested-helper-is-not-a-used-helper, exactly: the helper existed, was correct and was tested while the defect shipped. This e2e drives the real convert path and asserts the Autopay switch is CHECKED on the screen and isAutopay:true in the store. Both assertions were proven independently: with money.tsx un-fixed the switch assertion reds `Expected: checked / Received: unchecked`, and re-run with that assertion RELAXED the store assertion reds `isAutopay: true -> false` - so neither is a passenger hidden behind the other.",
+    "file": "apps/rn/tests/e2e/misfiled-expense.spec.ts",
+    "token": "the app does not ask for money the bank took",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/(tabs)/money.tsx",
+          "find": "      prefill: debtPrefillFromExpense(convertFrom),",
+          "replace": "      prefill: { name: convertFrom.name, minimumPayment: convertFrom.amount, dueDate: convertFrom.dueDate, recurrence: convertFrom.recurrence },"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "misfiled-expense.spec.ts",
+        "-g",
+        "C2-3"
+      ],
+      "expect": "waiting for getByRole('switch', { name: 'Autopay' })"
     }
   }
 }

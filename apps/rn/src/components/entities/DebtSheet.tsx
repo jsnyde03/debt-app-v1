@@ -64,6 +64,23 @@ const PROVIDERS: { value: string; label: string }[] = [
   { value: 'Other', label: 'Other' },
 ];
 
+/**
+ * The prefill fields no control on this form edits — see `commit()`'s note. Anything `fields` spells is
+ * the form's answer and wins; anything it does not is the source record's and would otherwise be lost.
+ *
+ * ⚠️ `undefined` values are skipped so a prefill that merely *mentions* a field cannot blank one the
+ * defaults above set.
+ */
+function carriedFromPrefill(prefill: Partial<Debt> | null | undefined, fields: Omit<Debt, 'id'>): Partial<Debt> {
+  if (!prefill) return {};
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(prefill)) {
+    if (value === undefined || key in fields || key === 'id' || key === 'originalBalance') continue;
+    out[key] = value;
+  }
+  return out as Partial<Debt>;
+}
+
 /** Unified add/edit sheet for a debt. BNPL fields are now editable in both modes (redesign fix).
  *  `prefill` seeds a NEW debt's fields — the user reviews/edits, then Adds. ⚠️ It has TWO producers, and
  *  this docblock claiming only one is what let the scan copy leak into the other: §2.8's scanner
@@ -124,10 +141,24 @@ export function DebtSheet({
   // ANNUAL bill filed its amount as a MONTHLY minimum — money.tsx prefills `recurrence` and this line
   // threw it away.
   const [recurrence, setRecurrence] = useState<Recurrence>(seed?.recurrence ?? 'monthly');
-  const [autopay, setAutopay] = useState(editing?.isAutopay ?? false);
-  const [remainingPayments, setRemainingPayments] = useState(editing?.remainingPayments != null ? String(editing.remainingPayments) : '');
-  const [scheduledPaymentAmount, setScheduledPaymentAmount] = useState(editing?.scheduledPaymentAmount != null ? String(editing.scheduledPaymentAmount) : '');
-  const [bnplProvider, setBnplProvider] = useState(editing?.bnplProvider ?? '');
+  /**
+   * ⛔ **S1.13.7.8 [pass-6 blocker `C2-3`] — `seed`, NOT `editing`. THE SURVIVING MEMBERS OF `[B4]`.**
+   *
+   * The comment three lines above is `S1.5.3 [B4]`'s fix, and it changed `recurrence` only. These four
+   * were the same line with a different field name and were left reading `editing?`, so a prefill that
+   * supplied them was discarded in silence. ⚡ `autopay` is the one that was reachable: converting a bill
+   * on autopay produced a debt with `isAutopay: false`, and from the next cycle the payday check-in asked
+   * the user to pay — and showed as outstanding — **money their bank had already taken**, because
+   * `isAutopayPresumedPaid` requires `isAutopay === true`.
+   *
+   * ⚠️ The three BNPL fields were latent, not safe: `type` has read `seed?` since [B4], so the moment any
+   * producer prefills a BNPL the sheet switches to the BNPL form and would have discarded every field of
+   * it. Fixed as a class rather than one reachable member at a time — which is exactly what [B4] did.
+   */
+  const [autopay, setAutopay] = useState(seed?.isAutopay ?? false);
+  const [remainingPayments, setRemainingPayments] = useState(seed?.remainingPayments != null ? String(seed.remainingPayments) : '');
+  const [scheduledPaymentAmount, setScheduledPaymentAmount] = useState(seed?.scheduledPaymentAmount != null ? String(seed.scheduledPaymentAmount) : '');
+  const [bnplProvider, setBnplProvider] = useState(seed?.bnplProvider ?? '');
   const [error, setError] = useState('');
   // 3.4.5.5 dirty-guard: a tap/swipe dismiss confirms before discarding unsaved edits.
   const snapshot = JSON.stringify({ name, balance, minimumPayment, apr, dueDate, type, recurrence, autopay, remainingPayments, scheduledPaymentAmount, bnplProvider });
@@ -181,13 +212,29 @@ export function DebtSheet({
   function commit(fields: Omit<Debt, 'id'>, originalBalance: number) {
     if (isEdit && editing) return store_.getState().updateDebt(editing.id, fields);
     const fresh = {
+      isPaidThisCycle: false,
+      minimumPaidThisCycle: false,
+      /**
+       * ⛔ **S1.13.7.8 [pass-6 blocker `C2-3`] — THE PREFILL'S NON-FORM FIELDS, DERIVED RATHER THAN LISTED.**
+       *
+       * A converted bill knows things this form has no control for — whether its autopay FAILED this
+       * cycle, whether this cycle's payment is already made. Dropping those has the same consequence as
+       * dropping `isAutopay` itself: the app asks for money that is already gone.
+       *
+       * ⚡ **The population is `fields`, not a list.** `fields` is `Omit<Debt, 'id'>` and always spells
+       * every key it owns, so `k in fields` IS the question *"does a control on this form decide this?"* —
+       * asked of the form's own output rather than of a hand-written list beside it. That is the whole
+       * lesson of `[B4]` and `C2-3`: every previous version of this was a list, and every list was one
+       * field short.
+       *
+       * ⚠️ `id` and `originalBalance` are stamped AFTER the spreads so a prefill can never displace them.
+       */
+      ...(isEdit ? {} : carriedFromPrefill(prefill, fields)),
+      ...fields,
       // ⛔ [pass-5 B5-9] the whole STORE, not the debts array — a deleted debt's id is still
       // referenced by completedRecommendedActions, milestones, overrides and pending beats.
       id: newDebtId(currentDate, reservedDebtIds(store_.getState().store)),
       originalBalance,
-      isPaidThisCycle: false,
-      minimumPaidThisCycle: false,
-      ...fields,
     };
     // 3.7.A10.2 — a conversion is ONE write, not an add followed by a delete: two writes leave a window
     // where the same money is reserved as an expense and projected as a debt at the same time.
