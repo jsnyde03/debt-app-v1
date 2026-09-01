@@ -2697,7 +2697,9 @@
         }
       ],
       "run": "lint:amount-collapse",
-      "expect": "PaydayCaptureSheet.tsx"
+      "expect": "PaydayCaptureSheet.tsx",
+      "measured": "2026-09-01",
+      "sha": "54311631"
     }
   }
 }
