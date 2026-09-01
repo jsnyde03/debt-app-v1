@@ -5,7 +5,7 @@ import { StyleSheet, Switch, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { cloudBackupMessage, restoreConfirmDisabled, restoreDisclosure } from '@/data/cloudBackupMessages';
+import { cloudBackupMessage, cloudBackupStatusLine, restoreConfirmDisabled, restoreDisclosure } from '@/data/cloudBackupMessages';
 import { formatBackupTime } from '@/data/formatBackupTime';
 import { describeRestorePreview } from '@/data/readBackup';
 import { useCloudBackup, type CloudBackupAction } from '@/hooks/use-cloud-backup';
@@ -74,6 +74,14 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
       submitLabel="Done"
       onSubmit={onClose}
       onClose={onClose}>
+      {/* ⛔ S1.13.7.8 [pass-6 blocker `B3-3`] — `'unavailable'` ONLY, and `'ready-unreadable'` falls to the
+          `else` with every control in it. This branch used to catch a signed-in user whose backup's
+          mtime would not read: it told them to sign in — the one thing they had already done — and took
+          the toggle, **Back up now**, the conflict fork and **Restore from iCloud** with it. ⚠️ Restore is
+          the one that mattered: `restoreFromCloud` stats with `.catch(() => null)` and works in this
+          state, so the only thing between the user and their data was this line. ⭐ **Back up now** stays
+          enabled too, deliberately — `backupToCloudGuarded` refuses an unreadable remote and returns the
+          honest sentence, which tells the user more than a disabled button does. */}
       {status === 'unavailable' ? (
         // ⛔ An honest dead end rather than controls that do nothing when tapped — the same call
         // `BACKUP_FILE_SUPPORTED` makes for the file buttons on web.
@@ -97,19 +105,20 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
             />
           </View>
 
-          <Text testID="cloud-backup-status" style={[textStyles.caption, { color: c.text.secondary }]}>
-            {status === 'loading'
-              ? 'Checking iCloud…'
-              : // ⛔ P6.8.7d.1 [B3] — when the remote is unclaimed this line must NOT say "Last backed
-                // up". That is the sentence the finding turns on: it presents someone else's copy, or the
-                // one the user declined at first launch, as this device's own work — and the next tap
-                // deleted it. The date still shows, because which copy is older is the user's decision.
-                unclaimedRemoteAt
-                ? `A backup from ${formatBackupTime(unclaimedRemoteAt)} is in iCloud — not from this device`
-                : lastBackupAt
-                  ? `Last backed up ${formatBackupTime(lastBackupAt)}`
-                  : 'Not backed up yet'}
-          </Text>
+          {/* ⛔ S1.13.7.8 [pass-6 `B3-3`] — the chain moved to `cloudBackupStatusLine`, a pure table, for
+              the reason this module exists: this branch is unreachable to every automated test in the
+              repo, so a decision written as nested ternaries here cannot be asserted. [B3]'s rule — an
+              unclaimed copy is never called "Last backed up" — is the first row of it. */}
+          {(() => {
+            const line = cloudBackupStatusLine({ status, unclaimedRemoteAt, lastBackupAt, formatTime: formatBackupTime });
+            return (
+              <Text
+                testID={`cloud-backup-status-${line.kind}`}
+                style={[textStyles.caption, { color: line.kind === 'unreadable' ? c.accent.warning : c.text.secondary }]}>
+                {line.text}
+              </Text>
+            );
+          })()}
 
           {unclaimedRemoteAt ? (
             // ⛔ The B3 fork. Both outcomes are destructive in one direction, so neither is the default and
@@ -145,7 +154,10 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
             label="Back up now"
             variant="secondary"
             testID="cloud-backup-now"
-            disabled={busy !== null || status !== 'ready' || unclaimedRemoteAt !== null}
+            // ⛔ S1.13.7.8 [pass-6 `B3-3`] — was `status !== 'ready'`, which disabled this in
+            // `'ready-unreadable'`. The guard refuses an unreadable remote and NAMES why; a disabled
+            // button says nothing. `'unavailable'` cannot reach here — this is inside its else.
+            disabled={busy !== null || status === 'loading' || unclaimedRemoteAt !== null}
             onPress={() => {
               setMessage('');
               void backupNow().then((r) => report(r, 'Backed up.'));
@@ -201,7 +213,19 @@ export function CloudBackupSheet({ onClose }: { onClose: () => void }) {
               label={RESTORE_FROM_CLOUD_ACTION}
               variant="secondary"
               testID="cloud-restore"
-              disabled={busy !== null || status !== 'ready'}
+              /**
+               * ⛔ **S1.13.7.8 [pass-6 blocker `B3-3`] — THE SECOND SITE, AND THE FINDING NAMED NEITHER.**
+               *
+               * `status !== 'ready'` disabled the restore door in `'ready-unreadable'`, so fixing only the
+               * dead-end branch above would have made the door VISIBLE AND DEAD — a worse outcome than
+               * hiding it, because it looks like the app tried. ⚡ Found by the class assertion sweeping
+               * the file for `status !== 'ready'`, not by reading the finding, which pointed at
+               * `getCloudBackupStatus` and the `status === 'unavailable'` branch.
+               *
+               * ⚠️ Restore is exactly the operation that does not need an mtime — `restoreFromCloud`
+               * stats with `.catch(() => null)` — and it is asserted to succeed over this very provider.
+               */
+              disabled={busy !== null || status === 'loading'}
               onPress={openRestoreConfirm}
             />
           )}

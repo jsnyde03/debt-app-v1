@@ -928,6 +928,9 @@
     "s1p5",
     "s1p6"
   ],
+  "apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts": [
+    "never"
+  ],
   "apps/rn/src/storage/cloudBackup/createCloudBackupProvider.ios.ts": [
     "s1p3",
     "s1p4",

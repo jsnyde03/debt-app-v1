@@ -9,6 +9,7 @@ import {
   inspectRemote,
   restoreFromCloud,
 } from '@/storage/cloudBackup/service';
+import type { CloudBackupStatus } from '@/storage/cloudBackup/service';
 import type { DebtStore } from '@/data/models';
 import { isSandboxStore } from '@/store/sandboxStore';
 import { useActiveStore } from '@/store/StoreContext';
@@ -27,7 +28,24 @@ import { reportError } from '@/utils/reportError';
  * actions no-op, and the UI hides its controls instead of offering ones that do nothing.
  */
 
-export type CloudBackupUiStatus = 'loading' | 'unavailable' | 'ready';
+/**
+ * ⛔ **S1.13.7.8 [pass-6 blocker `B3-3`] — `'ready-unreadable'`: SIGNED IN, AND THE TIMESTAMP WILL NOT
+ * READ.** Three states could not carry it, so it was folded into `'unavailable'` — which the sheet
+ * renders as an instruction to sign in, with every control, including the only route back to the user's
+ * backup, inside the `else`. See `CloudBackupStatus.unreadable`.
+ */
+export type CloudBackupUiStatus = 'loading' | 'unavailable' | 'ready' | 'ready-unreadable';
+
+/**
+ * ⛔ **THE MAPPING, EXPORTED, because it is the layer `B3-3` broke and an inline ternary in a `useCallback`
+ * is unreachable to every test in this repo.** `next.available ? 'ready' : 'unavailable'` is what turned
+ * `getCloudBackupStatus`'s two-field record into the dead end — a boolean question asked of a three-state
+ * condition. Pure, so `cloudBackupUnreadable.test.ts` can walk it beside every other layer.
+ */
+export function toCloudBackupUiStatus(status: CloudBackupStatus): CloudBackupUiStatus {
+  if (!status.available) return 'unavailable';
+  return status.unreadable ? 'ready-unreadable' : 'ready';
+}
 /**
  * ⚠️ `remote-unclaimed` is NOT a failure. It is the B3 guard refusing to destroy a copy this install has
  * never accounted for, and the only correct response is to put the choice in front of the user.
@@ -95,10 +113,25 @@ export function useCloudBackup(): UseCloudBackup {
   const store = useActiveStore();
 
   const refresh = useCallback(async () => {
+    /**
+     * ⛔ **S1.13.7.8 [pass-6 `B3-3`] — THE STATUS READ AND THE CLAIM READ ARE SEPARATE `try`s NOW.**
+     *
+     * They shared one, so a throw from `inspectRemote` set `'unavailable'` over a status
+     * `getCloudBackupStatus` had already answered correctly — **a second producer of the same dead end**,
+     * which the finding named and which a fix confined to `getCloudBackupStatus` would have left standing.
+     * `getCloudBackupStatus` contains its own throws; this one only ever needed to protect the claim.
+     */
+    let next;
     try {
-      const next = await getCloudBackupStatus(getCloudBackupProvider());
-      setStatus(next.available ? 'ready' : 'unavailable');
-      setLastBackupAt(next.lastBackupAt);
+      next = await getCloudBackupStatus(getCloudBackupProvider());
+    } catch (error) {
+      reportError(error, { seam: 'cloud-backup', op: 'refresh' });
+      setStatus('unavailable');
+      return;
+    }
+    setStatus(toCloudBackupUiStatus(next));
+    setLastBackupAt(next.lastBackupAt);
+    try {
       // ⛔ P6.8.7d.1 — asked on every refresh, not once at mount. The remote can gain a foreign copy while
       // this sheet sits open, and a stale belief about iCloud is exactly what licensed the B3 overwrite.
       // ⚠️ Read the claim at CALL time. A value captured in this callback's closure would be the one from
@@ -107,8 +140,10 @@ export function useCloudBackup(): UseCloudBackup {
       const claim = await inspectRemote(getCloudBackupProvider(), claimed);
       setUnclaimedRemoteAt(claim.state === 'unclaimed' ? claim.at : null);
     } catch (error) {
+      // ⚠️ A failed CLAIM read means "do not show the conflict fork". It does not mean the feature is
+      // gone, and it must not overwrite the status decided above.
       reportError(error, { seam: 'cloud-backup', op: 'refresh' });
-      setStatus('unavailable');
+      setUnclaimedRemoteAt(null);
     }
   }, [store]);
 

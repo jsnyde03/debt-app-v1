@@ -121,3 +121,54 @@ export function restoreDisclosure(previewing: boolean, preview: string | null): 
 export function restoreConfirmDisabled(busy: unknown, previewing: boolean): boolean {
   return busy !== null || previewing;
 }
+
+/**
+ * ⛔ **S1.13.7.8 [pass-6 blocker `B3-3`] — THE SHEET'S STATUS LINE, AS A TABLE.**
+ *
+ * ⚡ It was three nested ternaries inside the one branch of `CloudBackupSheet` that **no automated test in
+ * this repo can reach** — on web the provider is the unavailable stub by construction — which is the
+ * reason this whole module exists (see `cloudBackupMessage`'s note: *"a defect as simple as 'the computed
+ * diagnosis is dropped at the last layer' survived thirteen lenses because of it"*).
+ *
+ * ⛔ **AND IT NOW HAS A FOURTH STATE THAT SUPPRESSING THE FALSE ONE WOULD HAVE GOT WRONG.** With
+ * `'ready-unreadable'` rendering the controls, `lastBackupAt` is `null` — so the old chain would have
+ * fallen through to **"Not backed up yet"** over a container that *does* hold a backup. Replacing one
+ * false statement with a different false statement is the shape `C4-1` and `F-B3` both closed this round;
+ * the honest line names what is missing, which is the timestamp, not the backup.
+ *
+ * ⚠️ `unclaimedRemoteAt` still outranks everything below it — [B3]: a copy this device has not accounted
+ * for must never be presented as this device's own work, because the next tap deletes it.
+ */
+export type CloudBackupStatusLine =
+  | { kind: 'loading'; text: string }
+  | { kind: 'unclaimed'; text: string }
+  | { kind: 'unreadable'; text: string }
+  | { kind: 'last-backup'; text: string }
+  | { kind: 'never'; text: string };
+
+export const STATUS_CHECKING = 'Checking iCloud…';
+export const STATUS_NEVER = 'Not backed up yet';
+export const STATUS_UNREADABLE =
+  'There is a backup in iCloud, but it isn’t reporting when it was written. You can still restore from it.';
+
+export function cloudBackupStatusLine(input: {
+  status: 'loading' | 'unavailable' | 'ready' | 'ready-unreadable';
+  unclaimedRemoteAt: string | null;
+  lastBackupAt: string | null;
+  formatTime: (iso: string) => string;
+}): CloudBackupStatusLine {
+  if (input.status === 'loading') return { kind: 'loading', text: STATUS_CHECKING };
+  if (input.unclaimedRemoteAt) {
+    return {
+      kind: 'unclaimed',
+      text: `A backup from ${input.formatTime(input.unclaimedRemoteAt)} is in iCloud — not from this device`,
+    };
+  }
+  // ⛔ ABOVE the `lastBackupAt` fallbacks, not below them: this state HAS a backup and no timestamp, so
+  // every line under here is false about it.
+  if (input.status === 'ready-unreadable') return { kind: 'unreadable', text: STATUS_UNREADABLE };
+  if (input.lastBackupAt) {
+    return { kind: 'last-backup', text: `Last backed up ${input.formatTime(input.lastBackupAt)}` };
+  }
+  return { kind: 'never', text: STATUS_NEVER };
+}

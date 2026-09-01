@@ -23,6 +23,10 @@ async function main() {
   // `seed` rather than `editing`. Both hops of the conversion, asserted as a class.
   await import('../components/entities/debtPrefill.test');
 
+  // S1.13.7.8 [pass-6 B3-3] — one condition (a backup whose mtime will not read), walked through every
+  // layer that consumes it. Pass 5's B5-11 fixed one consumer and left the status path saying "sign in".
+  await import('../storage/cloudBackup/cloudBackupUnreadable.test');
+
   // RS.2 — Guardian selectors (states × tier × regime + break-it).
   await import('../store/guardianSelectors.test');
 

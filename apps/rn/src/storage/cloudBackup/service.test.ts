@@ -199,8 +199,22 @@ export default async function run() {
     assert(!restore.ok, 'a throwing read is caught');
     if (!restore.ok) eq(restore.reason, 'error', 'and reported as an error');
 
+    /**
+     * ⛔ **S1.13.7.8 [pass-6 blocker `B3-3`] — THIS ASSERTED `available === false`, AND THAT WAS THE
+     * DEFECT.** REPLACED rather than deleted: the containment it covers is real and still asserted — a
+     * throwing `stat` must not propagate — but *"contained"* and *"the account is unavailable"* are
+     * different claims, and this file held the corrected version of the SAME condition **140 lines
+     * below** (`B5-11`'s `'remote-unreadable'`, over a fixture whose own note says `isAvailable()` stays
+     * true, so the user IS signed in). One file, one condition, two opposite answers.
+     *
+     * ⚡ `isAvailable()` returns **true** on this provider — read it above — so `available: false` said a
+     * signed-in user was signed out, the sheet told them to sign in, and every control including
+     * **Restore from iCloud** went with it.
+     */
     const status = await getCloudBackupStatus(exploding);
-    eq(status.available, false, 'a throwing stat degrades to unavailable rather than crashing the row');
+    assert(status.available, '⛔ B3-3 — the user IS signed in: a throwing stat is not an unavailable account');
+    assert(status.unreadable, '…and the state is named, so the screen can say what is actually wrong');
+    eq(status.lastBackupAt, null, '…with no timestamp, because that is precisely what could not be read');
   }
 
   // ── A FOREIGN blob in the container is refused, and the local store is never handed a fake one. ─

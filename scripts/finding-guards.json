@@ -2701,5 +2701,49 @@
       "measured": "2026-09-01",
       "sha": "54311631"
     }
+  },
+  "S1P6-B3-3-UNREADABLEMTIME": {
+    "what": "S1.13.7.8 [pass-6 blocker B3-3] - one condition (iCloud reachable, user SIGNED IN, backup file present, mtimeMs unreadable) answered opposite ways by two functions in one file. provider.ts makes metadataFromMtime THROW on it deliberately so the state would be visible; getCloudBackupStatus caught the throw and returned available:false, converting it straight back into the indistinguishable boolean the throw existed to avoid. The sheet renders every control inside the else of `status === unavailable`, so the toggle, Back up now, the conflict fork and Restore from iCloud all disappeared, under a sentence telling a signed-in user to sign in. Pass 5's B5-11 had already fixed the SIBLING - backupToCloudGuarded returns remote-unreadable with an honest message - and the status path was not reached by that fix. CloudBackupStatus carries a REQUIRED `unreadable` field now (optional would let every existing site keep compiling while meaning no, and no is the wrong answer), getCloudBackupStatus splits its try so isAvailable-threw and stat-threw are different records, the hook gains 'ready-unreadable' via an EXPORTED pure mapping, the hook's outer catch no longer downgrades a status already computed (the finding named that second producer), and the sheet's status line moved into cloudBackupMessages as a pure table. THE CLASS ASSERTION WALKS SEVEN LAYERS OVER ONE PROVIDER and it found a site the finding never named: the Restore button itself was `disabled={status !== 'ready'}`, so fixing only the dead-end branch would have made the door VISIBLE AND DEAD. Restore is asserted to SUCCEED over that provider - restoreFromCloud stats with .catch(() => null), so the door was only ever hidden. The old assertion (`a throwing stat degrades to unavailable`) was REPLACED, not deleted; the containment it covered is still asserted.",
+    "file": "apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts",
+    "token": "the user is signed in and this must say so",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/storage/cloudBackup/service.ts",
+          "find": "    return { available: true, unreadable: true, lastBackupAt: null };",
+          "replace": "    return { available: false, unreadable: false, lastBackupAt: null };"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts"
+      ],
+      "expect": "the user is signed in and this must say so"
+    }
+  },
+  "S1P6-B3-3-RESTOREDOOR": {
+    "what": "S1.13.7.8 [pass-6 B3-3], THE SITE THE FINDING NEVER NAMED. The report pointed at getCloudBackupStatus and at the `status === unavailable` dead-end branch. The Restore button twenty lines further down was `disabled={busy !== null || status !== 'ready'}`, so a fix confined to what the finding named would have left the door VISIBLE AND DEAD in this state - worse than hidden, because it looks like the app tried and failed. Found by the class assertion sweeping the sheet for `status !== 'ready'` rather than by reading the finding. Comment lines are dropped before the sweep: the docblocks now quote the banned expression while recording why it was wrong, and a guard that reds on its own documentation gets deleted rather than obeyed.",
+    "file": "apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts",
+    "token": "which excluded this state",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/more/CloudBackupSheet.tsx",
+          "find": "              disabled={busy !== null || status === 'loading'}\n              onPress={openRestoreConfirm}",
+          "replace": "              disabled={busy !== null || status !== 'ready'}\n              onPress={openRestoreConfirm}"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts"
+      ],
+      "expect": "which excluded this state"
+    }
   }
 }

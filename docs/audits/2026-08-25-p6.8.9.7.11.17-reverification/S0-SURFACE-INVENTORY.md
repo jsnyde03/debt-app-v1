@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**127 files on the S0 surface · 75 swept · 52 unswept.**
+**129 files on the S0 surface · 75 swept · 54 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -61,6 +61,7 @@
 | `packages/core/testing/testSafeStorage.ts` | ⛔ **partial** |
 | `packages/core/testing/testStressScenarios.ts` | ⛔ **partial** |
 | `packages/core/testing/testSubscriptionGating.ts` | ⛔ **partial** |
+| `packages/core/testing/testTextDateDoors.ts` | ⛔ **never** |
 | `packages/core/testing/testTimelineRegression.ts` | ⛔ **partial** |
 | `packages/core/testing/testV11Regression.ts` | ⛔ **partial** |
 | `scripts/apostrophe-baseline.json` | p4 |
@@ -68,6 +69,7 @@
 | `scripts/audit-sublanes.ts` | ⛔ **never** |
 | `scripts/begin-gate-run.ts` | s1p1 · s1p2 |
 | `scripts/check-a11y-collapse.ts` | p4 |
+| `scripts/check-amount-collapse.ts` | ⛔ **never** |
 | `scripts/check-apostrophes.ts` | p3 · partial |
 | `scripts/check-audit-closure.ts` | p2 · p3 · p4 · s1p1 · s1p2 · partial |
 | `scripts/check-cap-literals.ts` | s1p5 |
@@ -176,9 +178,11 @@
 - `packages/core/testing/testSafeStorage.ts`
 - `packages/core/testing/testStressScenarios.ts`
 - `packages/core/testing/testSubscriptionGating.ts`
+- `packages/core/testing/testTextDateDoors.ts`
 - `packages/core/testing/testTimelineRegression.ts`
 - `packages/core/testing/testV11Regression.ts`
 - `scripts/audit-sublanes.ts`
+- `scripts/check-amount-collapse.ts`
 - `scripts/check-conflict-markers.ts`
 - `scripts/check-fixture-dates.ts`
 - `scripts/check-pass-coverage.ts`
@@ -197,5 +201,5 @@
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
 
-<!-- claims-sha256: b3ff545fb1049634 -->
+<!-- claims-sha256: 1e438df3e5c5da9d -->
 

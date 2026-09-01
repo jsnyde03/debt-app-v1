@@ -45,7 +45,30 @@ export type CloudRestoreOutcome =
   | { ok: false; reason: 'unavailable' | 'no-backup' | 'error'; message?: string };
 
 export interface CloudBackupStatus {
+  /** An iCloud account is signed in and this app's container is reachable. */
   available: boolean;
+  /**
+   * ⛔ **S1.13.7.8 [pass-6 blocker `B3-3`] — THE THIRD STATE, AND IT IS REQUIRED RATHER THAN OPTIONAL.**
+   *
+   * The backup file exists and its `mtimeMs` cannot be read. `metadataFromMtime` was deliberately made to
+   * **throw** on that (`provider.ts:20-35`) so the condition would be visible — and this record had no
+   * state to move into, so `getCloudBackupStatus` caught the throw and returned `available: false`,
+   * converting the throw straight back into the indistinguishable boolean the throw existed to avoid.
+   *
+   * ⚡ **Its sibling twenty lines away had already been fixed for this exact condition.**
+   * `backupToCloudGuarded` returns `'remote-unreadable'` and `cloudBackupMessages` gives it an honest
+   * sentence (`S1.12.5.8 [pass-5 B5-11]`); the status path kept saying **"Sign in to iCloud on this
+   * device"** to a user who is signed in — and because the sheet renders every control inside the
+   * `else`, the toggle, **Back up now**, the conflict fork and **Restore from iCloud** all disappeared.
+   * ⛔ The restore door is the one that mattered: `restoreFromCloud` stats with `.catch(() => null)` and
+   * works perfectly in this state. The only thing standing between the user and their data was a screen
+   * that had decided not to offer it.
+   *
+   * ⚠️ **REQUIRED, not `?: boolean`.** Optional would let every existing construction site keep compiling
+   * while meaning "no" — and "no" is the answer that was wrong. Required makes the compiler walk the
+   * readers, which is `C4-5`'s move.
+   */
+  unreadable: boolean;
   lastBackupAt: string | null;
 }
 
@@ -239,13 +262,27 @@ export async function deleteCloudBackup(provider: CloudBackupProvider): Promise<
 
 /** Availability + last-backup time for the status row. An error is reported and read as unavailable. */
 export async function getCloudBackupStatus(provider: CloudBackupProvider): Promise<CloudBackupStatus> {
+  /**
+   * ⛔ **S1.13.7.8 [pass-6 blocker `B3-3`] — TWO `try`s, BECAUSE ONE CATCH ANSWERED TWO QUESTIONS.**
+   *
+   * A single block wrapped both calls, so *"iCloud is not reachable"* and *"the file is there and will
+   * not say when it was written"* produced the same record — and the second is not an unavailable
+   * account. See {@link CloudBackupStatus.unreadable}.
+   */
   try {
-    if (!(await provider.isAvailable())) return { available: false, lastBackupAt: null };
-    const meta = await provider.stat();
-    return { available: true, lastBackupAt: meta?.modifiedAt ?? null };
+    if (!(await provider.isAvailable())) return { available: false, unreadable: false, lastBackupAt: null };
   } catch (error) {
     reportError(error, { seam: 'cloud-backup', op: 'stat' });
-    return { available: false, lastBackupAt: null };
+    return { available: false, unreadable: false, lastBackupAt: null };
+  }
+  try {
+    const meta = await provider.stat();
+    return { available: true, unreadable: false, lastBackupAt: meta?.modifiedAt ?? null };
+  } catch (error) {
+    reportError(error, { seam: 'cloud-backup', op: 'stat' });
+    // ⚠️ `available: true` is the honest half — the user IS signed in — and `unreadable` is what stops
+    // that from being read as "everything is fine, there is simply no backup yet".
+    return { available: true, unreadable: true, lastBackupAt: null };
   }
 }
 
