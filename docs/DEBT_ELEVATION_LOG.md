@@ -30040,3 +30040,121 @@ refused"*. Both kept their coverage; the second moved to a cadence that is genui
 ⭐ **The fixture-date gate held across the midnight rollover to 2026-09-01** — 0 imminent fuses, aged count
 unchanged at its cap. The eight `2026-09-01` literals converted in `S1.13.7.1` are still *"tomorrow"* and
 did not shift branch. **That is the fix demonstrating itself on the date it was built to survive.**
+
+## S1.13.7.8 — the fix reached the member, 2026-09-01
+
+**All 6 closed** — `C2-3` `B3-3` `A3-12` (blockers) · `C1-1` `C1-6` (majors) · `D2-10` (minor) — each with
+an executed proof. ⚡ **And the class turned out to describe this session's own instruments as much as the
+findings**: four more defects of the same shape surfaced while fixing, three of them red *before* I started.
+
+⭐ **THE CLASS, RESTATED FROM SIX INSTANCES: a fix lands where the finding points, and the population it
+belonged to is never asked.** Every one of the six was a previous round's correct fix that stopped one
+line, one field, one hop or one consumer short.
+
+| finding | the member that was fixed | the sibling that was not |
+|---|---|---|
+| `C2-3` | `S1.5.3 [B4]` changed `recurrence` on ONE line | `autopay`, `remainingPayments`, `scheduledPaymentAmount`, `bnplProvider` — the four lines beneath it, under its own comment |
+| `B3-3` | pass-5 `B5-11` fixed `backupToCloudGuarded` | `getCloudBackupStatus`, twenty lines away, same file, same condition, opposite honesty |
+| `A3-12` | `P6.8.9.7.4` added the calendar round-trip to `debtCsv` | `parseStatementText`, whose own header names `debtCsv` as *"the precedent this mirrors"* |
+| `D2-10` | pass-5 `D5-14` carried `cycleHistory` into the v1.7 envelope | `completedRecommendedActions` and `lastSavedAt` — in the fix whose docblock states the class |
+| `C1-1` | the trust guards were wired to three cards | their COPY still pointed at a fourth card governed by a different predicate |
+| `C1-6` | `amountField.ts` was built to keep blank and unparseable apart | one caller handed the distinction straight back with `?? 0` |
+
+### ⛔ Four defects the FIXING found, and three of them were already red
+
+**1 · `typecheck:core` was RED at HEAD for the whole of `S1.13.7.3`–`.7`.** `cycle.cycleNumber` does not
+exist on `TimelineCycle`; `dfb5281e` introduced it. It survived because the regression suite runs under
+`tsx`, **which strips types and never compiles** — so `test:regression` was green over a tree the compiler
+rejects, and five sub-steps closed on that green.
+
+**2 · `data-recovery.spec.ts`'s C3 finale test had been RED since `d6fd015d`, for four sub-steps.**
+`S1.13.7.4`'s `B1-1` made an unread balance count as still-live in `detectPayoff` — correctly — and the
+test pinning the old design (*"the crossing is still STAMPED; only the render waits"*) was never updated.
+⚡ **Measured through the real app rather than argued**: the crossing stamps `{kind:'beat',
+nextDebtName:'Chase card'}`. ⛔ **And `unreadBalanceIds`, the parameter `B1-1` added, had ZERO unit
+coverage** — every call in `payoffCelebration.test.ts` passed `new Set()`. Covered now in both directions,
+with a control, and with the assertion the old design was protecting: **once the balance is supplied and
+that debt clears, the finale still arrives.** The moment is deferred to the real event, not spent.
+
+**3 · `check-finding-guards.ts`'s STALE CEILING WAS DEAD CODE.** `MAX_STALE_PROOFS` and the staleness
+scan's own error handler both `problems.push(…)` **eighty lines below the only reader of `problems`**. The
+gate printed `31 of them STALE (cap 8)` beside a green tick and exited 0. ⚡ **A check that cannot fail, in
+the gate whose own docblock is about checks that cannot fail** — and reading has never once found this
+class. **It surfaced because one summary line said `31 (cap 8)` next to `EXIT=0`**: the number and the
+verdict contradicting each other in the same sentence. ⭐ **Drained: 31 → 0, and all 31 held** once one
+real control failure was repaired.
+
+**4 · That control failure was mine, and it is the third instance of "write the claims back in the SAME
+step as the record".** Two new files were on the S1 surface and on no claims file, so `lint:s1-coverage`
+reported them `UNCLASSIFIED` and **two `test:gate-plants` scenarios could measure nothing** — the
+`prove:guards` verdict read `control=exit 1`, which is the harness correctly refusing to score a run.
+
+### ⚡ What each fix turned out to be
+
+⛔ **`C2-3` — the autopay flag was dropped at BOTH hops, and the sheet was quietly asserting the
+opposite.** `money.tsx`'s prefill was a four-field literal; `DebtSheet`'s `autopay` seeded from `editing?`.
+The debt landed with `isAutopay: false`, `isAutopayPresumedPaid` requires `=== true`, and from the next
+cycle the payday check-in asked for — and showed as outstanding — **money the bank had already taken**.
+⚠️ The finding said the setting *"is not offered anywhere on the convert screen"*; measured, **the sheet
+HAS an Autopay switch** and it was seeded `false` from a bill that had it on. The consequence stands; that
+premise was one word wrong, and the switch is what the e2e now asserts.
+⭐ **The dropped-field map is keyed `Exclude<keyof RequiredExpense, Carried>`, so the COMPILER refuses a
+field that is neither carried nor written off** — proven with two plants, exit 2 each. `commit()` carries a
+prefill's non-form fields by asking `k in fields`, the form's own output, rather than a list.
+⚠️ `originalDueDate` deliberately NOT carried: it is the rollover anchor and would override a due date the
+user edits on that very form. Filed to the backlog with its measurement.
+
+⛔ **`B3-3` — and the class assertion found a site the finding never named.** The report pointed at
+`getCloudBackupStatus` and the sheet's `status === 'unavailable'` branch. **The Restore button itself was
+`disabled={status !== 'ready'}`**, so fixing only what was named would have left the door **visible and
+dead** — worse than hidden, because it looks like the app tried. ⭐ `restoreFromCloud` stats with
+`.catch(() => null)` and **works in that state**, which the suite asserts: the door was only ever hidden.
+⚠️ `CloudBackupStatus.unreadable` is REQUIRED, not optional — optional lets every existing site keep
+compiling while meaning *"no"*, and *"no"* is the answer that was wrong.
+
+⛔ **`A3-12` — a shape check is not a calendar check, and the direction is worse than a `NaN`.**
+`day <= 31` accepted `02/30`; `parseLocalDate` **succeeds** and returns **March 2**. Nothing downstream can
+detect it — no `NaN`, no flag — and on a monthly cycle `totalRequired` reads `$0` while $950 of a $1,000
+paycheck goes to the snowball with the minimum owed inside that cycle. `isRealCalendarDate` is the owner
+now and both doors call it. ⚠️ `2028-02-29` is on the accepted list because **a hand-rolled month table
+with February at 28 passes the refusal half perfectly** — planted, and it reds.
+
+⛔ **`C1-1` — the sweep found a fourth site, and the HOST is where the next omission will be.**
+`WindfallSheet` said *"set it again"* with no figure and no "above" to give it away. The guard also walks
+backwards from every `unreadPlanInputs=` prop in `index.tsx` to the element that owns it: a card handed the
+boolean without the clause renders the empty-string default and **its sentence trails off
+mid-instruction**, which would be a fix that made the copy worse than the defect.
+⚠️ The unanswerable case is a **different sentence**, not the same one with a name in it — a whole-list
+loss has no screen to open, and *"set it again"* there is the false-instruction defect wearing the fix's
+clothes. Planted; it reds.
+
+⛔ **`C1-6` — and the auditor's honesty about what it had NOT measured shaped the fix.** The lane marked
+the *"a half-typed `12.` has no representation"* half as **unmeasured** and said explicitly not to write it
+into a fix note as fact. So the fix holds a raw draft rather than patching `?? 0` to `?? amount`, which
+would have left the parsed number as the `value`. New gate **`lint:amount-collapse` (45)**.
+⛔ **Stated rather than implied: the RENDER is not covered.** No automated test in this repo drives that
+row. An instrument that overstates its reach is how the next one gets past it.
+
+⛔ **`D2-10` — two checks, because they catch two different failures.** The generator refuses to WRITE a
+short envelope; `cutoverFiles.test.ts` refuses committed BYTES that were never regenerated after the
+generator was fixed. **A generator-only check is green over stale bytes, and the bytes are what the device
+session reads.** ⚠️ NOT asserted against `createDefaultStore()`'s keys, which is what the finding proposed:
+a backup payload is legitimately a subset of a live store, and `D2-10` itself flagged that as a judgement
+about the format rather than a defect.
+
+### ⚡ Three results to carry
+
+⛔ **A GUARD THAT REDS ON ITS OWN DOCUMENTATION GETS DELETED RATHER THAN OBEYED — met three times in one
+step.** `lint:amount-collapse`, the `C1-1` sweep and the `B3-3` sheet check each had to strip comments
+first, because the docblocks recording each defect QUOTE the banned form. `stripCode.ts` already says this;
+it is now measured in three more places, and the two app-tree checks say plainly that they are line filters
+rather than lexers.
+
+⛔ **A UNIT TEST CAN BE FULLY GREEN OVER THE UN-FIX OF THE THING IT IS ABOUT.** `debtPrefill.test.ts`
+proves the producer AND the sheet's seeding, and measured — **2,066 ticks, exit 0** — with `money.tsx`
+reverted to its four-field literal, because nothing in it asserts that the convert path CALLS the producer.
+`tested-helper-is-not-a-used-helper`, met head-on. The e2e is that half.
+
+⛔ **THE GREEN STATE, AGAIN.** `getByText(/Chase card/)` became a **strict-mode violation the moment the
+`C1-1` fix landed** — three elements name the row now, because the copy got better. Every planted run was
+green about it. Scoped to the repairs card, which is what it was always asserting.

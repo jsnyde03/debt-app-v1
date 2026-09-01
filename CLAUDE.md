@@ -13,6 +13,11 @@ root, which **5.5.1 deletes**. The live app is `apps/rn` (Expo/RN) over `package
 It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, the deferred
 backlog and the decision log. **Read it before touching anything.**
 
+⛔ **EVERY `▶ ACTIVE:` LINE FURTHER DOWN THIS FILE IS A SESSION HANDOFF NOTE AND GOES STALE.** As of
+**2026-09-01** the active item is **`S1.13.7.9`** — pass 6 triage, class IX, decomposed on the plan. The
+lines below naming `S1.11.4` and `S1.12.4` are archaeology; **ask the plan, never this file, what is
+being built.** Their *lessons* are current and are why they are kept.
+
 ⭐ **THE AUDIT GATE IS CLOSED (2026-08-19). T1–T8 + T3B are all done, and the [D37] exit check PASSES:
 55 of 55 blocker/major findings trace to a closure or a recorded refutation** — now enforced every push by
 `lint:closure`, not by memory.

@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**488 files on the S1 surface · 484 swept · 4 unswept.**
+**489 files on the S1 surface · 484 swept · 5 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -119,6 +119,7 @@
 | `apps/rn/src/components/plan/WindfallSheet.tsx` | partial · s1p1 · s1p2 · s1p6 |
 | `apps/rn/src/components/plan/dataRepairsCopy.test.ts` | r17 · s1p6 |
 | `apps/rn/src/components/plan/dataRepairsCopy.ts` | r17 · s1p2 · s1p4 · s1p6 |
+| `apps/rn/src/components/plan/unreadInputsCopy.test.ts` | ⛔ **never** |
 | `apps/rn/src/components/plan/useCaptureAutoConfirm.ts` | never · s1p1 · s1p6 |
 | `apps/rn/src/components/premium/PremiumInvite.tsx` | s1p3 · s1p6 |
 | `apps/rn/src/components/progress/CashFlowSection.tsx` | s1p2 · s1p6 |
@@ -506,9 +507,10 @@
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
 - `apps/rn/src/components/entities/debtPrefill.test.ts`
+- `apps/rn/src/components/plan/unreadInputsCopy.test.ts`
 - `apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts`
 - `packages/core/debt/debtPrefillFromExpense.ts`
 - `packages/core/utils/percentComplete.ts`
 
-<!-- claims-sha256: 7e328e06d57a3d5f -->
+<!-- claims-sha256: bc6eee16856f22a8 -->
 

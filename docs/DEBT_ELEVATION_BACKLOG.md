@@ -897,3 +897,43 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   `?? 0` on both: that makes an unreadable rate silently 0%"* — and closing it needs a measurement of what
   each engine does with `undefined`, which is more than a minor's budget in this round. ⚠️ Re-opening it
   should start by *measuring both engines on one store with the rate absent*, not by picking a default.
+
+### ⤵ surfaced by `S1.13.7.8`'s before/after scans, 2026-09-01 — routed per bullet
+
+- **A debt added by hand never gets an `originalDueDate`, so a bill due the 31st drifts to the 28th and
+  stays there.** → **S1 pass 7 / a later triage.** `advanceDueDateToPlanDate` takes its anchor day from
+  `originalDueDate ?? dueDate`, so with the field absent the anchor is the CURRENT due date and every
+  short-month clamp is permanent. Only `debtCsv` stamps it (`debtCsv.ts:348`, `originalDueDate: dueDate`);
+  `DebtSheet.commit()`'s `fields` literal does not. ⛔ **Deliberately out of `C2-3`'s scope**, and the
+  reason is recorded in `EXPENSE_FIELDS_DROPPED`: carrying the *bill's* anchor through the conversion
+  would override a due date the user edits on that very form, so this needs the ADD path fixed rather
+  than the conversion. ⚠️ Measured only as far as reading the two producers — the drift itself is
+  reasoned, not observed, and re-opening should start by measuring a Jan-31 monthly debt across two
+  rollovers.
+
+- **`C1-6`'s RENDER half is not covered by anything, and that is stated in its guard rather than implied.**
+  → **P6.8.9 / device QA.** `lint:amount-collapse` proves no caller collapses a parsed amount to `0`; it
+  reads source text. **No automated test in this repo drives the payday sheet's extra-payment row**, so
+  whether the draft renders correctly under RN's controlled-`TextInput` diffing is unverified — which is
+  the exact half the lane author refused to state as fact. ⚠️ A device-QA row is the cheap answer; an e2e
+  that reaches that row is the expensive one.
+
+- **`CloudBackupSheet`'s `ready` branch remains unreachable to automation, so `B3-3`'s sheet assertions
+  are source-level.** → **P6.8.9 / device QA.** On web the provider is the unavailable stub by
+  construction. The suite asserts the SHAPE (the dead end tests `'unavailable'` alone; Restore is not
+  inside it; nothing disables a control on `status !== 'ready'`) and the pure modules assert the words.
+  ⛔ Re-stated here because `C4-11`'s lesson is that an instrument overstating its reach is how the next
+  defect gets past it.
+
+- **`PlanHero`'s unread sentence issues no instruction at all.** → **P6.10 copy pass.** *"Something this
+  paycheck has to cover could not be read, so I can't tell you where the plan lands yet."* — exempted from
+  the `C1-1` sweep with that reason, because a sentence that points nowhere cannot point at a card that
+  has gone. ⚠️ It is the FIRST and loudest thing on Today, and the cards carrying the action are below the
+  fold on a small viewport. Worth deciding deliberately rather than inheriting.
+
+- **The stale-proof ceiling has no owner for draining, and it just went 31 → 0 in one step.**
+  → **Tooling / hygiene.** `MAX_STALE_PROOFS` is a DRIFT ceiling by its own docblock, not a ratchet — it
+  is meant to be drained by ordinary work. It was inert for its whole life (see `S1.13.7.8`), so nobody
+  has ever had to. ⚠️ Now that it can fail, a round that moves many guarded files will red the gate; the
+  drain is cheap (all 31 held) but it is ~15 minutes of wall clock and should be expected, not diagnosed
+  each time.
