@@ -425,8 +425,8 @@
       ],
       "run": "test:app",
       "expect": "a throwing stat is contained as `unknown`",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-01",
+      "sha": "20a14f06"
     }
   },
   "S1P4-F-B2-BOTHDIRECTIONS": {
@@ -755,7 +755,7 @@
       "run": "test:app",
       "expect": "the mount in app/(tabs)/index.tsx asks the claim owner",
       "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "sha": "20a14f06"
     }
   },
   "S1P4-C4-10-NAMEDONLY": {
@@ -2057,7 +2057,7 @@
       "run": "test:app",
       "expect": "is not an ANSWER to an unreadable balance",
       "measured": "2026-09-01",
-      "sha": "baed0f3d"
+      "sha": "20a14f06"
     }
   },
   "S1P5-D5-9-CAPWRAP": {
