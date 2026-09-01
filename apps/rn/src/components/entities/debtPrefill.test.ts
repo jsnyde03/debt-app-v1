@@ -46,8 +46,10 @@ const EVERY_FIELD: Required<RequiredExpense> = {
   id: 'e-loan',
   name: 'Equipment Loan',
   amount: 600,
-  dueDate: '2026-09-01',
-  originalDueDate: '2026-06-01',
+  // ⚠️ The dates here are compared only to THEMSELVES — `dueDate → debt.dueDate` is a carriage
+  // assertion — and nothing in this file reads a clock, so no branch exists for a crossing date to flip.
+  dueDate: '2026-09-01', // fixture-date-ok: carriage only; no clock is read in this file
+  originalDueDate: '2026-06-01', // fixture-date-ok: asserted ABSENT from the prefill, never compared to now
   recurrence: 'quarterly',
   isPaidThisCycle: true,
   isAutopay: true,

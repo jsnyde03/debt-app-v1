@@ -65,5 +65,11 @@
     "measured": "2026-08-30",
     "measuredCount": 50231,
     "why": "S1.12.5.6 [pass-5 A5-4]. Wired because lint:scan-floors REFUSED this gate on its first run - it strips its input and had no floor, which is GAP-8: a gate that strips can report a pass while reading nothing. Its own downward-only cap does not protect it, and in fact inverts: a scan that suddenly reads zero files reports FEWER copies, and the gate would then ask someone to lower the cap to match. 5% margin per the _README."
+  },
+  "amount-collapse": {
+    "floor": 56210,
+    "measured": "2026-09-01",
+    "measuredCount": 59169,
+    "why": "S1.13.7.8 [pass-6 C1-6]. This gate STRIPS comments — load-bearing, because both its own docblock and PaydayCaptureSheet's quote the banned form while recording the defect, and a guard that reds on its own documentation gets deleted rather than obeyed. Stripping is therefore exactly the blinding mode GAP-8 describes: a stripper that returns blanks makes the sweep find zero collapses and exit 0, indistinguishable from a clean tree. Population is `git ls-files` over apps/rn + packages/core + scripts. Margin per the _README."
   }
 }

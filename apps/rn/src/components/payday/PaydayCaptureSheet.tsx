@@ -24,7 +24,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSheetPresentation } from '@/hooks/use-sheet-presentation';
 import { CountUp, haptics, useReduceMotion } from '@/motion';
 import { elevation } from '@/theme/elevation';
-import { parseNonNegativeAmount } from '@core/utils/amountField';
+import { parseNonNegativeAmount, sanitizeAmountInput } from '@core/utils/amountField';
 import type { DebtBalanceView } from '@/store/balanceSelectors';
 import type { ActiveRecommendedAction, RequiredRow } from '@/store/planSelectors';
 import { spring } from '@/theme/motion';
@@ -94,6 +94,27 @@ export function PaydayCaptureSheet({
   const { pan, scrimStyle, sheetStyle, onBackdrop, onSheetLayout } = useSheetPresentation(onClose);
 
   const [editingExtraKey, setEditingExtraKey] = useState<string | null>(null);
+  /**
+   * ⛔ **S1.13.7.8 [pass-6 `C1-6`] — THE RAW STRING, because the box used to echo back the PARSED NUMBER.**
+   *
+   * `value={String(amount)}` with `onChangeText={… parseNonNegativeAmount(t) ?? 0}` did two things at
+   * once. The `?? 0` re-collapsed the distinction `amountField.ts` exists to keep — `null` means *blank
+   * or unparseable*, and its docblock says why: *"Blank returns `null` so the caller can keep whatever it
+   * was showing"* — so an entry that did not parse was recorded as **$0.00** rather than refused, and it
+   * is that figure the Interest-Saved Ledger and the Drift Tracker are fed. And because `value` was the
+   * parsed number, a half-typed `"12."` had no representation at all.
+   *
+   * ⚡ **The other three money inputs in this file already hold a raw string** — the balance check
+   * (`:343`) and the surprise outflow (`:473`) both keep the text and parse once. This was the one that
+   * did not, and the only one that did not use `sanitizeAmountInput`, which exists so a controlled money
+   * box *"can tolerate half-typed states (`"12."`) that no parser would accept"*.
+   *
+   * ⚠️ **A parseable value still commits on every keystroke**, deliberately: the running total above reads
+   * `o.actualAmount`, and Confirm is reachable without blurring this field on a touch device. What
+   * changed is that an UNPARSEABLE one now leaves the last good amount alone instead of writing `0` —
+   * the same `typed ?? v.currentBalance` fallback the balance check uses twenty lines below.
+   */
+  const [extraDraft, setExtraDraft] = useState('');
   const [overrides, setOverrides] = useState<Record<string, PaydayCaptureOverride>>({});
   const [captured, setCaptured] = useState(false);
   // P6.8.7e.2 [C1] — the absorb path's only user entry point. Blank on every ordinary payday.
@@ -433,13 +454,31 @@ export function PaydayCaptureSheet({
                           <TextInput
                             autoFocus
                             keyboardType="decimal-pad"
-                            value={String(amount)}
-                            onChangeText={(t) => setOverride(key, { actualAmount: parseNonNegativeAmount(t) ?? 0 })}
-                            onBlur={() => setEditingExtraKey(null)}
+                            value={extraDraft}
+                            onChangeText={(t) => {
+                              const next = sanitizeAmountInput(t);
+                              setExtraDraft(next);
+                              const typed = parseNonNegativeAmount(next);
+                              // ⛔ `null` is blank OR unparseable, and neither is a payment of $0. Keeping
+                              // the last good amount is what `?? 0` destroyed. See `extraDraft`'s note.
+                              if (typed !== null) setOverride(key, { actualAmount: typed });
+                            }}
+                            onBlur={() => {
+                              setEditingExtraKey(null);
+                              setExtraDraft('');
+                            }}
                             style={[textStyles.numericBody, styles.amountInput, { color: c.text.primary, borderColor: c.border.control }]}
                           />
                         ) : (
-                          <Pressable onPress={() => setEditingExtraKey(key)} disabled={skipped} accessibilityRole="button">
+                          <Pressable
+                            onPress={() => {
+                              // The draft opens on whatever the row is showing, so the first keystroke
+                              // edits the real figure rather than replacing it with a blank field.
+                              setExtraDraft(String(amount));
+                              setEditingExtraKey(key);
+                            }}
+                            disabled={skipped}
+                            accessibilityRole="button">
                             <Text style={[textStyles.numericBody, { color: c.text.primary }]}>{formatCurrency(amount)}</Text>
                           </Pressable>
                         )}

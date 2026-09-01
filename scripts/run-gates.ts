@@ -108,6 +108,12 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // branch changes; the `aged` half is a downward-only cap. Both have a population floor, because
     // pass-6 `D2-3` was exactly the defect of shipping a check whose population can go quietly empty.
     'lint:fixture-dates',
+    // ⛔ S1.13.7.8 [pass-6 C1-6] — `?? 0` on an `amountField` parser hands back the distinction the
+    // parser exists to keep: `null` is BLANK OR UNPARSEABLE, and neither is a payment of zero. The payday
+    // sheet's extra-payment box recorded an unreadable entry as $0.00, and that figure feeds the
+    // Interest-Saved Ledger and the Drift Tracker. Population is `git ls-files`; every site is named with
+    // a reason, and a permission that covers nothing reds too.
+    'lint:amount-collapse',
     'lint:a11y-collapse',
     'lint:contrast',
     'lint:type-scale',

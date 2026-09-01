@@ -2683,5 +2683,21 @@
       "measured": "2026-09-01",
       "sha": "538de617"
     }
+  },
+  "S1P6-C1-6-AMOUNTCOLLAPSE": {
+    "what": "S1.13.7.8 [pass-6 C1-6, major] - the payday sheet's extra-payment box was the one money input in that file that round-tripped through a parser on every keystroke, and `parseNonNegativeAmount(t) ?? 0` handed back the exact distinction amountField.ts exists to keep. Its docblock states it: `null` is BLANK OR UNPARSEABLE, returned so the caller can keep whatever it was showing. So an entry that did not parse was RECORDED AS $0.00 rather than refused - and that figure feeds the Interest-Saved Ledger and the Drift Tracker. The same file gets it right three times out of four: the balance check and the surprise outflow both hold a raw string and parse once, and this was the only money input in it not using sanitizeAmountInput. Because `value` was the PARSED number, a half-typed \"12.\" also had no representation - the auditor explicitly marked that half UNMEASURED and refused to state it as fact, so the fix addresses both by holding a raw draft rather than by patching `?? 0` to `?? amount`. New gate lint:amount-collapse (45) sweeps `git ls-files` for the class: every site must be in ALLOWED with a reason, and a permission covering nothing reds too. It STRIPS comments, which is load-bearing - its own docblock and the sheet's both quote the banned form - and therefore carries a GAP-8 scan floor, proven by blanking the stripper. Three plants: the original defect (named site+line), a stale permission, and the blinding mode. NOT COVERED, stated rather than implied: the RENDER. No automated test in this repo drives that row.",
+    "file": "scripts/check-amount-collapse.ts",
+    "token": "collapses a parsed amount to 0",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payday/PaydayCaptureSheet.tsx",
+          "find": "                              if (typed !== null) setOverride(key, { actualAmount: typed });",
+          "replace": "                              setOverride(key, { actualAmount: parseNonNegativeAmount(next) ?? 0 });"
+        }
+      ],
+      "run": "lint:amount-collapse",
+      "expect": "PaydayCaptureSheet.tsx"
+    }
   }
 }

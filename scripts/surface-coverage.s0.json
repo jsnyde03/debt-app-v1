@@ -158,6 +158,9 @@
   "packages/core/testing/testSubscriptionGating.ts": [
     "partial"
   ],
+  "packages/core/testing/testTextDateDoors.ts": [
+    "never"
+  ],
   "packages/core/testing/testTimelineRegression.ts": [
     "partial"
   ],
@@ -180,6 +183,9 @@
   ],
   "scripts/check-a11y-collapse.ts": [
     "p4"
+  ],
+  "scripts/check-amount-collapse.ts": [
+    "never"
   ],
   "scripts/check-apostrophes.ts": [
     "p3",
@@ -208,6 +214,9 @@
     "s1p2",
     "partial"
   ],
+  "scripts/check-conflict-markers.ts": [
+    "never"
+  ],
   "scripts/check-contrast.ts": [
     "p4"
   ],
@@ -223,14 +232,14 @@
     "p1",
     "p3"
   ],
-  "scripts/check-fixture-dates.ts": [
-    "never"
-  ],
   "scripts/check-finding-guards.ts": [
     "s1p1",
     "s1p2",
     "s1p4",
     "s1p5"
+  ],
+  "scripts/check-fixture-dates.ts": [
+    "never"
   ],
   "scripts/check-gate-freshness.ts": [
     "p4"
@@ -269,6 +278,9 @@
     "p3",
     "partial"
   ],
+  "scripts/check-pass-coverage.ts": [
+    "never"
+  ],
   "scripts/check-press-opacity.ts": [
     "p3",
     "r17",
@@ -279,12 +291,6 @@
   ],
   "scripts/check-rn-style-divergence.ts": [
     "r17"
-  ],
-  "scripts/check-conflict-markers.ts": [
-    "never"
-  ],
-  "scripts/check-pass-coverage.ts": [
-    "never"
   ],
   "scripts/check-rounding.ts": [
     "never"

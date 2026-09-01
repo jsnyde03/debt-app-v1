@@ -47,18 +47,18 @@ export const EXPENSE_FIELDS_DROPPED: Record<Exclude<keyof RequiredExpense, Carri
 	originalDueDate:
 		"⚠️ DELIBERATE, and the direction matters. It is the recurrence ANCHOR — `advanceDueDateToPlanDate` " +
 		"takes its anchor day from `originalDueDate ?? dueDate`. The convert sheet lets the user EDIT the due " +
-		"date, so carrying the bill's anchor would silently override the date they just typed at the first " +
+		"date, so carrying the bill’s anchor would silently override the date they just typed at the first " +
 		"rollover. Added debts carry no anchor today (only `debtCsv` stamps one), which is a real gap and is " +
 		"filed to the backlog rather than half-closed here.",
 	expenseType:
-		"'fixed' | 'variable' describes how much a BILL costs each time. A debt's per-cycle figure is its " +
+		"fixed-vs-variable describes how much a BILL costs each time. A debt’s per-cycle figure is its " +
 		"minimum payment, which the form captures directly.",
 	category: "RequiredExpenseCategory has no counterpart on Debt — debts are ranked by the payoff strategy",
 	isTrial: "trial/intro pricing is a subscription shape; a debt has a balance and an APR",
 	fullAmount: "only meaningful with `isTrial` — see above",
 	fullChargeDate: "only meaningful with `isTrial` — see above",
 	deferability:
-		"the Recovery engine's essential-vs-deferrable override, which applies to BILLS. Debts are ordered " +
+		"the Recovery engine’s essential-vs-deferrable override, which applies to BILLS. Debts are ordered " +
 		"by the payoff strategy and are never deferred as a class.",
 };
 
