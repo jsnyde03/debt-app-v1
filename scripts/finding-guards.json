@@ -2652,7 +2652,9 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/components/entities/debtPrefill.test.ts"
       ],
-      "expect": "no useState in DebtSheet seeds from"
+      "expect": "no useState in DebtSheet seeds from",
+      "measured": "2026-09-01",
+      "sha": "538de617"
     }
   },
   "S1P6-C2-3-CONVERTFIELDS-E2E": {
@@ -2677,7 +2679,9 @@
         "-g",
         "C2-3"
       ],
-      "expect": "waiting for getByRole('switch', { name: 'Autopay' })"
+      "expect": "waiting for getByRole('switch', { name: 'Autopay' })",
+      "measured": "2026-09-01",
+      "sha": "538de617"
     }
   }
 }

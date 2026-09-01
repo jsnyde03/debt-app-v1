@@ -451,7 +451,24 @@ ratchet(
   'A guard-only entry is an OPEN finding wearing a closure. Fix the guard rather than raising the cap.',
 );
 
-if (problems.length) {
+/**
+ * ⛔ **S1.13.7.8 — THE VERDICT USED TO BE HERE, AND EVERYTHING BELOW IT PUSHED INTO A LIST NOBODY READ
+ * AGAIN.** `MAX_STALE_PROOFS` and the staleness scan's own error handler both `problems.push(…)` about
+ * eighty lines further down — **after** the only reader of `problems`. So the stale ceiling was dead
+ * code: it printed `31 of them STALE (cap 8)` beside a green tick and exited 0, and the scan's
+ * *"could not run against"* branch — the fail-open guard written for the `ReferenceError` that once
+ * reported *"nothing is stale"* over 86 proofs — could not fail either.
+ *
+ * ⚡ **A check that cannot fail, in the gate whose own docblock is about checks that cannot fail.** Same
+ * class as `lint:trust-claims`' `Object.keys(X).length` caps and `audit-route.ts`' unreachable
+ * duplicate-bucket `die()`. ⛔ **Reading has never found this class here; it surfaced because a summary
+ * line said `31 (cap 8)` next to `EXIT=0`** — the number and the verdict contradicting each other on one
+ * line.
+ *
+ * {@link reportProblems} is the single exit, and it is the LAST statement in the file.
+ */
+function reportProblems(): void {
+  if (!problems.length) return;
   console.error(`\n❌ finding-guards: ${problems.length} problem(s).\n`);
   for (const p of problems) console.error(`  • ${p}`);
   console.error('\n  [D67]: a closed finding needs a standing guard, or it is not closed.\n');
@@ -539,3 +556,7 @@ if (stale.length > MAX_STALE_PROOFS) {
 // ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
 // number nobody sees is a number nobody drains.
 for (const id of unguarded) console.log(`     unguarded: ${id} — ${registry[id].unguarded}`);
+
+// ⛔ THE VERDICT, and it is the LAST statement in the file for the reason above: everything that can find
+// a problem has now run. A `problems.push` below this line would be dead, and there is nothing below it.
+reportProblems();
