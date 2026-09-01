@@ -2721,7 +2721,9 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts"
       ],
-      "expect": "the user is signed in and this must say so"
+      "expect": "the user is signed in and this must say so",
+      "measured": "2026-09-01",
+      "sha": "4d133dcf"
     }
   },
   "S1P6-B3-3-RESTOREDOOR": {
@@ -2743,7 +2745,9 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts"
       ],
-      "expect": "which excluded this state"
+      "expect": "which excluded this state",
+      "measured": "2026-09-01",
+      "sha": "4d133dcf"
     }
   }
 }
