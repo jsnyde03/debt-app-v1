@@ -73,16 +73,38 @@ for (const theme of ['light', 'dark'] as const) {
   });
 }
 
-// TEST-4 (closeout): the What-If UI path (only the selector was locked before). Typing an extra payment
-// opens the tool + surfaces the faster-payoff outcome in the legend.
+/**
+ * TEST-4 (closeout): the What-If UI path. Typing an extra payment opens the tool and surfaces the
+ * faster-payoff outcome in the legend.
+ *
+ * ⛔ **S1.13.7.10 [pass-6 `A1-9`] — THIS ASSERTED NOTHING ABOUT THE WHAT-IF.** Its only check was
+ * `getByText(/sooner|saved|less interest/).first()`, and the legend's **"Your plan"** row emits those same
+ * words from the same `deltaSuffix` helper, **at rest and earlier in the DOM**. So `.first()` resolved to a
+ * row that is on screen before the tool is opened: deleting the entire What-If legend row, or making the
+ * extra-payment field a no-op, left this test green.
+ *
+ * ⚡ **The control is the half that makes it an assertion.** Asserting the row is visible AFTER typing
+ * proves nothing on its own — it has to be **absent before**, which is what ties the row to the tool.
+ */
 test('§3.4.1 What-If: typing an extra payment surfaces the faster-payoff readout', async ({ page }) => {
   await seedStore(page, PLAN);
   await page.goto('/progress');
   await page.getByText('PAYOFF TRAJECTORY').scrollIntoViewIfNeeded();
   await page.waitForTimeout(1500); // CanvasKit lazy-load + draw-on
+
+  // ⛔ THE CONTROL, before anything is typed: the What-If's own row does not exist yet. Without this the
+  // assertion below is satisfied by a legend that never changed.
+  await expect(page.getByTestId('traj-legend-with-extra')).toHaveCount(0);
+
   await page.getByText('What if you paid extra?').click();
   await page.getByLabel('Extra monthly payment amount').fill('300');
   await page.waitForTimeout(300);
-  // The outcome lands in the legend: faster payoff (months sooner/saved) or interest saved.
-  await expect(page.getByText(/sooner|saved|less interest/).first()).toBeVisible();
+
+  // The outcome lands in the What-If's OWN legend row — not the plan-vs-minimums row above it, which
+  // renders the same words unconditionally.
+  const withExtra = page.getByTestId('traj-legend-with-extra');
+  await expect(withExtra).toBeVisible();
+  // …and it carries a real outcome: a payoff date plus the delta that extra payment bought.
+  await expect(withExtra).toHaveText(/\d{4}/);
+  await expect(withExtra).toHaveText(/sooner|less interest/);
 });

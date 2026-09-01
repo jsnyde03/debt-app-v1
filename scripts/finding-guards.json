@@ -2831,5 +2831,46 @@
       "measured": "2026-09-01",
       "sha": "837ab7b4"
     }
+  },
+  "S1P6-D1-5-VACUOUSORDER": {
+    "what": "S1.13.7.10 [pass-6 D1-5] - testAllocationsAppearAfterExpensesAndDebts executed ZERO assertions on every run: its whole body sat behind `if (snowballIndex !== -1)` and snowballIndex was always -1. Found in the GREEN state; a plant cannot see a test that does not fail because it does not run. THE FINDING'S IMPLIED EXPLANATION WAS WRONG AND IT CHANGED THE FIX: it reads as though the engine emits a snowball that buildTimelineItems drops, but buildTimelineItems:129-131 says the opposite in its own comment - extra payments are emitted ONLY from completedRecommendedActions, i.e. only once the user has marked them paid - so -1 was CORRECT for a fixture that passed none. The repair is to give the fixture a completed action, never to change the producer. ALSO MEASURED, AND THE FINDING OVERSTATED IT: its claim that this is 'the only test in the suite that pins the ORDER' and that 'nothing in this suite would red' is false - testFullAppRegression.ts:465-474 pins snowball-after-minimum_debt with a real fixture and a non-vacuity guard, and it reds first. What was genuinely uncovered is snowball vs EXPENSES, which that test cannot see because it passes requiredExpenses: []. The three `!== -1` escape hatches are now unconditional vacuity floors. Two plants: dating the completed action at currentDate so it sorts before the bills (proven with the earlier assertion RELAXED, per plant-that-reds-early-hides-assertions - it fired on testFullAppRegression first), and removing the fixture's completedRecommendedActions, which reds the floor with the exact state the test shipped in.",
+    "file": "packages/core/testing/testTimelineRegression.ts",
+    "token": "so every ordering check below is vacuous",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/testing/testTimelineRegression.ts",
+          "find": "\t\tcompletedRecommendedActions,\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:regression",
+      "expect": "so every ordering check below is vacuous"
+    }
+  },
+  "S1P6-A1-9-WHATIFROW": {
+    "what": "S1.13.7.10 [pass-6 A1-9] - the What-If e2e's ONLY assertion was getByText(/sooner|saved|less interest/).first(), and the trajectory legend's 'Your plan' row emits those same words from the same deltaSuffix helper AT REST and EARLIER IN THE DOM. So .first() resolved to a row that is on screen before the tool is opened: deleting the entire What-If legend row, or making the extra-payment field a no-op, left the test green - a premium user typing '$300 extra' and being shown no outcome at all was a regression the suite could not see. The two rows are independent BY DESIGN (TrajectoryChart:180-182: the plan-vs-minimums line is 'NEVER overridden'), which is exactly why a text matcher cannot tell them apart and a testID can. The What-If's own row now carries `traj-legend-with-extra`, and THE CONTROL IS THE HALF THAT MAKES IT AN ASSERTION: the row is asserted ABSENT before anything is typed, which is what ties it to the tool - asserting it visible afterwards proves nothing on its own. Planted by gating the row to `false`, i.e. the exact defect the old test stayed green over; it reds `element(s) not found`.",
+    "file": "apps/rn/tests/e2e/trajectory-interactivity.spec.ts",
+    "token": "traj-legend-with-extra",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payoff/TrajectoryChart.tsx",
+          "find": "          {showSimulated ? (\n            <View style={styles.legendRow}>",
+          "replace": "          {false ? (\n            <View style={styles.legendRow}>"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "trajectory-interactivity.spec.ts",
+        "-g",
+        "What-If"
+      ],
+      "expect": "traj-legend-with-extra"
+    }
   }
 }

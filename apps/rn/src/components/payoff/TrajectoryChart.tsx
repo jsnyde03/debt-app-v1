@@ -596,7 +596,20 @@ export function TrajectoryChart({
                 <Text style={[textStyles.caption, { color: c.text.secondary }]}>With extra</Text>
               </View>
               {whatIf?.simulatedDate ? (
-                <Text style={[textStyles.caption, styles.rowData, { color: c.accent.success }]} numberOfLines={1}>
+                /**
+                 * ⛔ **S1.13.7.10 [pass-6 `A1-9`] — THE WHAT-IF'S OWN OUTPUT NEEDS ITS OWN HANDLE.**
+                 *
+                 * The `Your plan` row above emits the SAME words from the SAME `deltaSuffix` helper, at
+                 * rest, earlier in the DOM — so `getByText(/sooner|saved|less interest/).first()` resolved
+                 * to it and the What-If test passed with the tool doing nothing. Deleting this row
+                 * entirely left that test green. ⚠️ The two rows are independent by design (`:180-182`:
+                 * the plan-vs-minimums line is *"NEVER overridden"*), which is exactly why a text matcher
+                 * cannot tell them apart and a testID can.
+                 */
+                <Text
+                  testID="traj-legend-with-extra"
+                  style={[textStyles.caption, styles.rowData, { color: c.accent.success }]}
+                  numberOfLines={1}>
                   {shortDate(whatIf.simulatedDate)}
                   {deltaSuffix(whatIf.interestSaved, whatIf.monthsSaved, 'sooner')}
                 </Text>

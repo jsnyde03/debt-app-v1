@@ -30325,3 +30325,45 @@ run as a regression: it is why the push decision matters, not a contradiction of
 section on the page claiming to be *"the ACTIVE decomposition (the ONLY one on this doc)"*. Collapsed to
 one line pointing here. A reader could not have told which sequence was live — which is exactly the rot
 the rule exists to stop.
+
+## S1.13.7.10 — tests that cannot fail, 2026-09-01 *(in flight)*
+
+⭐ **`.10.1` — THE CLASS IS 19, NOT 18.** Counted from the lane files rather than read off the plan.
+`CLASSIFICATION.md`'s membership line names 19 ids; its header says 18. All 19 have a real `##` heading —
+none phantom, none missing. **The undercount class, on the count of the undercount class.**
+⚠️ Filed rather than fixed: **CLASS XI claims 43 minors and holds 40** *(35 ids are named by no class
+section at all, plus its 5 notables)*, and the header's `29 + 48 + 47` sums to **124** against 123
+findings. ⛔ The class table totals 123 only because IX's −1 and XI's +3 run in opposite directions.
+⚡ And `C1-1` has an **addendum** I had not read when closing it in `.8` — it corroborates that fix rather
+than adding work, arguing the names must be IN the sentence, which is what `unreadInputsFix` now does.
+
+### `.10.2` — the two assertions that never executed
+
+⛔ **`D1-5`: `testAllocationsAppearAfterExpensesAndDebts` ran ZERO assertions on every run.** Its whole
+body sat behind `if (snowballIndex !== -1)` and `snowballIndex` was always `-1`. ⚠️ **Found in the green
+state** — a plant cannot see a test that does not fail, because it does not run.
+
+⚡ **The finding's implied explanation was wrong, and that changed the fix.** It reads as though the engine
+emits a snowball that `buildTimelineItems` drops. Measured: `buildTimelineItems:129-131` says the opposite
+in its own comment — extra payments appear **only once the user has marked them paid**, emitted from
+`completedRecommendedActions` and nothing else. **`-1` was correct for a fixture that passed none.** The
+repair is a completed action in the fixture, never a change to the producer.
+
+⛔ **And it overstated its blast radius, which is worth as much as the finding.** *"The only test in the
+suite that pins the ORDER"* / *"nothing in this suite would red"* is false: `testFullAppRegression:465-474`
+pins snowball-after-`minimum_debt` with a real fixture and a non-vacuity guard, **and it reds first** — my
+own plant fired there and had to be re-run with that assertion relaxed before the target's could speak
+(`plant-that-reds-early-hides-assertions`, again). ⚡ What was genuinely uncovered is snowball vs
+**EXPENSES**, which that test cannot see because it passes `requiredExpenses: []`. The repaired test owns
+exactly that half.
+
+⛔ **`A1-9`: the What-If test's only assertion was satisfied before the What-If was opened.**
+`getByText(/sooner|saved|less interest/).first()` — and the legend's *"Your plan"* row emits those same
+words from the same `deltaSuffix` helper, **at rest and earlier in the DOM**. Deleting the entire What-If
+legend row left the test green. The two rows are independent *by design* (`TrajectoryChart:180-182`: the
+plan-vs-minimums line is *"NEVER overridden"*), which is precisely why a text matcher cannot tell them
+apart and a `testID` can.
+
+⭐ **The control is the half that makes it an assertion.** Asserting the row visible after typing proves
+nothing on its own; asserting it **absent before** is what ties it to the tool. Planted by gating the row
+to `false` — the exact defect the old test stayed green over — and it reds `element(s) not found`.

@@ -1,6 +1,6 @@
 import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import { buildTimelineItems } from "@core/timeline/buildTimelineItems";
-import type { Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
+import type { CompletedRecommendedAction, Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -377,6 +377,26 @@ function testLivingReserveComesBeforeExpenses() {
 	if (livingIndex >= expenseIndex) throw new Error(`FAIL [Living reserve before expenses]: living_reserve at ${livingIndex}, expense at ${expenseIndex}`);
 }
 
+/**
+ * ⛔ **S1.13.7.10 [pass-6 `D1-5`] — THIS TEST EXECUTED ZERO ASSERTIONS, AND NO PLANT COULD SEE IT.**
+ *
+ * Its whole body sat behind `if (snowballIndex !== -1)`, and `snowballIndex` was **-1 on every run** — so
+ * the only test in this suite that pins the ORDER of the Today timeline did nothing at all. A sort-order
+ * regression putting an allocation above the bills it is funded from would change every `runningCash`
+ * figure on the screen and nothing here would red. ⚠️ **Found in the GREEN state**: a plant cannot see a
+ * test that does not fail, because it does not run.
+ *
+ * ⛔ **AND THE FINDING'S IMPLIED EXPLANATION WAS WRONG, WHICH CHANGES THE FIX.** It reads as though the
+ * engine emits a snowball that `buildTimelineItems` drops. Measured: `buildTimelineItems:129-131` says the
+ * opposite in its own comment — extra payments appear **only once the user has marked them paid**, so they
+ * are emitted from `completedRecommendedActions` and from nothing else. `-1` was CORRECT for a fixture
+ * that passed none. The repair is therefore to give the fixture a completed action, **not** to change the
+ * producer.
+ *
+ * ⚠️ **The vacuity guards come first and are unconditional** — the shape `testRunningCashStatesTheShortfall`
+ * forty lines above already uses. Three nested existence checks with no floor is how this test passed for
+ * as long as it did.
+ */
 function testAllocationsAppearAfterExpensesAndDebts() {
 	// Snowball/emergency allocations are dated at nextPaycheckDate, so they must sort after
 	// all expenses and debt minimums that are dated earlier in the cycle.
@@ -387,19 +407,39 @@ function testAllocationsAppearAfterExpensesAndDebts() {
 		{ id: "d1", name: "Visa", balance: 200, minimumPayment: 20, apr: 22, dueDate: "2026-06-08", type: "debt", recurrence: "monthly", isPaidThisCycle: false },
 	];
 	const result = buildResult(1500, expenses, debts);
-	const timeline = buildTimelineItems({ result, requiredExpenses: expenses, debts, currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15" });
+	// ⛔ The snowball reaches the timeline ONLY through here — see the docblock above.
+	const completedRecommendedActions: CompletedRecommendedAction[] = [
+		{ targetId: "d1", label: "Extra payment to Visa", category: "snowball", recommendedAmount: 180, actualAmount: 180 },
+	];
+	const timeline = buildTimelineItems({
+		result,
+		requiredExpenses: expenses,
+		debts,
+		completedRecommendedActions,
+		currentDate: "2026-06-01",
+		nextPaycheckDate: "2026-06-15",
+	});
 
 	const snowballIndex = timeline.findIndex((i) => i.type === "snowball");
 	const expenseIndex = timeline.findIndex((i) => i.label === "Pay Rent");
 	const debtIndex = timeline.findIndex((i) => i.label === "Pay minimum on Visa");
 
-	if (snowballIndex !== -1) {
-		if (expenseIndex !== -1 && snowballIndex <= expenseIndex) {
-			throw new Error(`FAIL [Allocations after expenses]: snowball at ${snowballIndex}, expense at ${expenseIndex}`);
-		}
-		if (debtIndex !== -1 && snowballIndex <= debtIndex) {
-			throw new Error(`FAIL [Allocations after expenses]: snowball at ${snowballIndex}, debt at ${debtIndex}`);
-		}
+	// ⛔ THE VACUITY FLOOR. Each of the three used to be an `!== -1` escape hatch; all three are now the
+	// assertion. A missing row means this test measured NOTHING, which is what it did for its whole life.
+	if (snowballIndex === -1) {
+		throw new Error(
+			"FAIL [D1-5]: no snowball item in the timeline, so every ordering check below is vacuous — " +
+				"which is exactly the state this test shipped in.",
+		);
+	}
+	if (expenseIndex === -1) throw new Error("FAIL [D1-5]: no expense row, so the ordering check is vacuous");
+	if (debtIndex === -1) throw new Error("FAIL [D1-5]: no debt-minimum row, so the ordering check is vacuous");
+
+	if (snowballIndex <= expenseIndex) {
+		throw new Error(`FAIL [Allocations after expenses]: snowball at ${snowballIndex}, expense at ${expenseIndex}`);
+	}
+	if (snowballIndex <= debtIndex) {
+		throw new Error(`FAIL [Allocations after expenses]: snowball at ${snowballIndex}, debt at ${debtIndex}`);
 	}
 }
 
