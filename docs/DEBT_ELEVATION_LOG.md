@@ -30214,3 +30214,20 @@ nothing — the plant is the entire proof.
 | `.10.4` | **ASSERTIONS AGAINST A FIXTURE RATHER THAN THE APP** — `A3-17` *(eight gate assertions named "backup …" test `JSON.stringify` on an object literal)*, `B2-4` *(the store-action suite never deletes anything, so pass 5's `$10,967.54` blocker was verified against a hand-built object)* | each drives the real producer |
 | `.10.5` | **THE REMAINDER**, each verified against current code first — `A1-1` `A1-2` `A1-3` `A1-6` `A1-7` `A1-8` `A1-10` `A1-11` `A2-7` `A3-4` `A3-14`–`A3-16` `D1-6` | closed, or measured never to have been a finding |
 | `.10.6` | **RE-RUN THE EARLIER CLASSES' GUARDS THROUGH THE REPAIRED INSTRUMENTS** — this is why the class is last: a guard registered in `.1`–`.8` was proven by an instrument this step repairs | `prove:guards` green across the round, stale at 0 |
+
+### ⭐ [DECISION `S1.13.7.9.6`] — the item close ends with a PUSH, 2026-09-01
+
+🎯: *"I agree. Let's push where appropriate."*
+
+⛔ **The process gap was never a missing check.** `web-e2e.yml` already runs `typecheck` · `lint:rn` · all
+three unit suites · the **full RN e2e** · the embed suite, automatically, on every push. It was **36
+unpushed commits** — all of `S1.13.7.5`–`.7` — sitting behind CI's last green, with three red suites
+inside them that were each found by accident, sub-steps later.
+
+⚡ **A PUSH IS NOT A BUILD DISPATCH.** `batch-ci-builds` is about what you *dispatch* — a Codemagic native
+build, a manual workflow run — where the cost is Jason's session time watching a spinner. It never
+governed `git push` to a branch whose CI is automatic and free. **The batch boundary is the item close,
+and the item close now ends with a push**, with the result read from `gh run view --json conclusion` and
+never from a piped `watch`. ⚠️ Holding a push back does not save a spinner; it hides a red one.
+
+The portfolio memory `batch-ci-builds` carries the same distinction now.
