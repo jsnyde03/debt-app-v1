@@ -152,8 +152,8 @@ constantly; it just never saw this work.
 402pt passes 3/3** with its own measurement — *"November 2026"* wants **108px in a 72px box** — so at
 least one is deterministic and reproducible. ⛔ **"Not this session's" is NOT established**: reverting
 `C1-1`'s seven files changed nothing and reverting `C1-6`'s file changed one flip-flopping test, but the
-other 35 commits were still in place for both measurements. ⚠️ A layout assertion can also differ between
-Windows Chrome and CI's Linux Chromium — **read the CI run on `df685975` before attributing anything.**
+other 35 commits were still in place for both measurements. ⛔ **AND CI HAS NOW ANSWERED THAT: THEY REPRODUCE ON LINUX, AND THERE ARE MORE OF THEM.** `04e65010`:
+**288 passed · 51 failed** against 302 · 37 locally, same clusters. **The number to work to is 51.**
 
 ⛔ **THIS IS THE THIRD TIME IN ONE ITEM THAT A SUITE [D74] NAMES WAS FOUND ALREADY RED.** `typecheck:core`
 since `.3` *(a field that does not exist on `TimelineCycle` — the regression suite runs under `tsx`, which
@@ -207,7 +207,7 @@ user-facing.** Do not open this step by assuming the rest are flake; assume the 
 | # | sub-step | exit line |
 |---|---|---|
 | **S1.13.7.9.1** | **CLASSIFY ALL 37 + THE 1 EMBED BY REPRODUCIBILITY** — each spec re-run with `--repeat-each=3`. ⛔ A failure that flips is not automatically flake: record the ratio, and treat *"passes sometimes"* as a defect until something explains WHY it passes sometimes | a table of 38 rows: spec · deterministic/intermittent · the failing assertion's own message |
-| **S1.13.7.9.0** | **READ CI ON `df685975` FIRST.** It is the same suite on Linux, and it is free — it has been running since the push. ⛔ A failure that is green there and red here is a PLATFORM difference (font metrics, animation timing), and `hero-date-fit`'s clipped-text assertion is exactly that shape. **Split the 37 by that answer before spending a bisect on any of them** | every failure labelled `both` / `local-only` / `CI-only` |
+| ✅ **S1.13.7.9.0** | **ANSWERED 2026-09-01 — CI REPRODUCES THEM, AND WORSE.** `04e65010` on Linux: **288 passed · 51 failed**, against **302 · 37** locally. ⛔ **Not a platform artifact and not this machine** — same clusters, same order of magnitude: `tutorial-invite` largest in both, then `celebration` · `swipe-mark-paid` · `expense-reserve` · `payday-reopen` · `a11y-axe`. ⚡ CI also names **`absorb-entry`**, **`recovery`** and **`premium-entry`**, which did not fail locally, so **51 is the number to work to, not 37.** ⭐ typecheck, `lint:rn` and all three unit suites are GREEN in CI, which confirms the local greens independently | ANSWERED |
 | **S1.13.7.9.2** | **FIND THE FIRST BAD COMMIT for each deterministic `both` cluster.** `tutorial-invite` alone is **17 of 37**; a single cause is likelier than seventeen. ⚡ The search space is bounded and known: **the 36 commits in `53a64d07..d0029c2d`**, none of which CI ever saw. ⛔ Bisect against a committed state — a git worktree needs `node_modules`, which is a **copy** on Windows and takes minutes, so budget it or use file-level reverts between two commits | each cluster attributed to a commit |
 | **S1.13.7.9.3** | **FIX THE DETERMINISTIC ONES BY CAUSE, NOT BY SPEC** — starting with `hero-date-fit`'s 320pt clip, which is a real user-facing defect on the app's headline number | each cause closed once, with a plant proving the red returns |
 | **S1.13.7.9.4** | **THE INTERMITTENT REMAINDER** — ⛔ *"element is not stable" / "element was detached"* is an animation-timing signature, not a logic one. `payday-reopen` shows it. ⚠️ A retry is not a fix and `[D65]` does not accept a re-rating as a proof | each one closed, or measured never to have been a failure, with the measurement recorded |
