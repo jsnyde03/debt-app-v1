@@ -2038,8 +2038,8 @@
       ],
       "run": "test:gate-plants",
       "expect": "lint:runner-completeness",
-      "measured": "2026-08-30",
-      "sha": "2b438abb"
+      "measured": "2026-09-01",
+      "sha": "9d8a1cc3"
     }
   },
   "S1P5-B5-7-ANSWERABLEID": {
