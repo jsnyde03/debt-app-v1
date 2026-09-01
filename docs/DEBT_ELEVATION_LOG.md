@@ -30005,3 +30005,38 @@ restore cannot corrupt the user's money"* was un-auditable for the store's own m
 ⚠️ **Three guard anchors moved** because the lines they pin were the lines being fixed
 (`S1P5-C5-2-WIDGETPARITY`, `S1P3-C1-ROWFIGURES`, `S1P3-D3-1-WIDGET`); each re-pointed and re-proven.
 `lint:rounding` stayed at its downward-only cap — the new expressions use the shared `roundMoney`.
+
+---
+
+## S1.13.7.7 — cadence as a user variable, 2026-08-31 / 09-01
+
+**All 6 closed**, two of them on 🎯 decisions. `lint:rn` 44/44 · both suites green.
+
+⭐ **[DECISION `A3-2`] — PER-OCCURRENCE PAID STATE.** A weekly/biweekly bill under a monthly payer expands
+into one row per occurrence with a distinct `__occ` id, and the paid flag was **copied off the parent** —
+so ticking one marked every one paid, and the other rows could not be ticked at all, because
+`markExpensePaid` matches the STORED list and no `__occ` id lives there. ⚠️ Chosen over collapsing to
+`amount × occurrences`, which the code's own `[A2]` note already argues against. **A user pays these on
+separate days, so the tick is a record of a real event and needs somewhere real to live.**
+
+⭐ **[DECISION `A3-11`] — THE MONEY IS AUTHORITATIVE, NOT THE BAND.** `"under"` was a literal rather than a
+comparison, so with hysteresis holding the band at `tight` above the floor the card read *"$230 … a little
+under your $200 line"* beside a *"To debt $30"* bar it claims does not exist. **Hysteresis exists to stop
+the band flickering — it is a presentation smoothing, and a smoothing must never make the app state
+something false about figures printed next to it.** The alternative (zeroing `deployedToDebt`) would stop
+a user *above* their floor from paying down debt because a window had not expired.
+
+| also closed | |
+|---|---|
+| `A3-1` | The seam gated on `type === 'bnpl'`, so a **plain** weekly debt under a monthly payer reserved one payment of three — flipping one dropdown moved `totalRequired` from $300 to $100. Safe to widen because the RESERVE and the PAYDOWN share one producer, so they move together or not at all |
+| `A2-3` | `advanceDueDateOnce` returns the same date for `per-paycheck` — correctly, that cadence has no calendar period — so the calendar drew **one installment of four** and captioned it *"payment 1 of 4"*. The caller lends the builder the one fact it cannot derive |
+| `A2-8` | The *"2 × $100"* explanation was gated on `scheduledPaymentAmount` while the **doubling** is gated on cadence, so a fallback BNPL showed the doubled amount bare |
+| `A3-13` | The importer refused a cadence the app's own debt sheet **offers**. Its comment called widening *"a product call"* — the call had already been made at `DebtSheet.tsx:40`, and `C5-4` measured a quarterly student loan |
+
+⚠️ **Two more tests asserted the old behaviour and were replaced, not deleted** — *"a plain debt has no
+in-window installment count"* (which encoded the type gate) and *"a cadence outside the debt set is
+refused"*. Both kept their coverage; the second moved to a cadence that is genuinely not a `Recurrence`.
+
+⭐ **The fixture-date gate held across the midnight rollover to 2026-09-01** — 0 imminent fuses, aged count
+unchanged at its cap. The eight `2026-09-01` literals converted in `S1.13.7.1` are still *"tomorrow"* and
+did not shift branch. **That is the fix demonstrating itself on the date it was built to survive.**
