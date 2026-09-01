@@ -30397,3 +30397,39 @@ not evaluate did not fire.
 
 Planted with the finding's own state A — `webkitDoor` stops supplying `accounting` — and it reds
 `nothingSilentlyDropped evaluated 0/1084 (floor 500)`.
+
+### `.10.4` — assertions against a fixture rather than the app
+
+⛔ **`A3-17`: eight release-gate assertions named *"backup …"* tested `JSON.parse(JSON.stringify(literal))`.**
+A property of the JavaScript engine, inside `test:regression`, inside `validate:release:rn`, reading as
+coverage of the one path where a defect loses a user's entire portfolio. `packages/core` cannot import the
+backup code at all — its import list is `allocatePaycheck` plus the rollovers.
+
+⚡ **AND THE FAKE COVERAGE WAS SITTING ON A REAL HOLE.** Measured while closing it: the genuine suite
+(`apps/rn/src/data/backup.test.ts`) had **48 assertions** and mentioned `completedRecommendedActions`,
+`isPaidThisCycle` and `minimumPaidThisCycle` **zero times** — the exact three properties the eight
+assertions named. Real round-trip coverage through `serializeBackup` → `parseBackup` was added **first**
+(48 → 71), and only then were the eight removed, each site left with a pointer.
+
+⚠️ **Deleted rather than replaced in place, which is the exception to this repo's rule and is stated at
+both sites:** there is nothing in core to replace them *with*, because the property is not a core property.
+
+⭐ **The pair that proves it:** drop `completedRecommendedActions` from `serializeBackup` — a real backup
+regression — and the new app-layer coverage reds while **`test:regression`, where the eight lived, exits
+0**.
+
+⛔ **`B2-4`: the store-action suite had never run a delete.** Its docblock claims *"comprehensive break-it
+coverage for the STORE ACTIONS"*; `removeDebt` appeared repo-wide in exactly one test — `sandboxStore.test.ts`,
+asserting sandbox isolation, not what a delete leaves behind — and the other three only in a **comment** in
+an e2e spec. So pass 5's blocker (*a deleted debt's id re-issued, `$10,967.54` against a true `$11,467.54`,
+persisted*) was verified against a **hand-written four-key object**. `debtIds.test.ts` names that gap in
+its own words and did not close it. **A literal cannot disagree with the action; only the action can.**
+
+⚠️ **MY FIRST DRAFT OF THAT TEST WAS WRONG AND FAILED IMMEDIATELY — and that is the useful part.** I
+asserted *"a deleted id is never re-issued"* and it minted the deleted id at once, **correctly**:
+`reservedDebtIds` is derived from *"every id the store still MENTIONS"*, so an unreferenced id is genuinely
+free. The blocker's shape is a **dangling reference**. That direction is now the explicit control, and it
+is what proves the set is the document rather than a monotonic counter — an implementation that simply
+never re-used any id would pass the positive row alone.
+
+Planted by reserving against the `debts` array instead of the document: pass 5's blocker verbatim.

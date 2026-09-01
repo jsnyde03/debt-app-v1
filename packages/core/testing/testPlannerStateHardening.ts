@@ -141,40 +141,23 @@ function runPlannerStateHardeningTests() {
     assertEqual(rolledDebt.snowballPaidThisCycle, false, "snowball paid flag resets");
     assertEqual(rolledDebt.isPaidThisCycle, false, "legacy paid flag resets");
 
-    // Backup-style JSON roundtrip preserves IDs and completed actions.
-    const backupPayload = {
-        version: 1,
-        amount: "1500",
-        payoffStrategy: "snowball",
-        requiredExpenses: expenses,
-        debts,
-        goals: [],
-        completedRecommendedActions: [
-            {
-                targetId: "paypal-2",
-                label: "Extra payment to PayPal",
-                category: "snowball",
-                recommendedAmount: 100,
-                actualAmount: 100,
-            },
-        ],
-    };
-
-    const restored = JSON.parse(JSON.stringify(backupPayload));
-
-    assertEqual(restored.amount, "1500", "backup amount roundtrip");
-    assertEqual(restored.payoffStrategy, "snowball", "backup strategy roundtrip");
-    assertEqual(restored.debts[0].id, "card", "backup debt ID roundtrip");
-    assertEqual(
-        restored.completedRecommendedActions[0].targetId,
-        "paypal-2",
-        "backup completed action target ID roundtrip"
-    );
-    assertMoney(
-        restored.completedRecommendedActions[0].actualAmount,
-        100,
-        "backup completed action amount roundtrip"
-    );
+    /**
+     * ⛔ **S1.13.7.10 [pass-6 `A3-17`] — EIGHT ASSERTIONS NAMED "backup ..." USED TO SIT HERE, AND THEY TESTED `JSON.stringify`.
+     *
+     * `JSON.parse(JSON.stringify(objectLiteral))` proves a property of the JavaScript engine. These were
+     * inside `test:regression`, inside `validate:release:rn`, reading as coverage of the one path where a
+     * defect loses a user's entire portfolio — and this package cannot import the backup code at all:
+     * its import list is `allocatePaycheck` plus the rollovers.
+     *
+     * ⚡ ** REMOVED ONLY AFTER THE REAL COVERAGE EXISTED, and the hole was real: `apps/rn/src/data/backup.test.ts`
+     * had 48 assertions and mentioned `completedRecommendedActions`, `isPaidThisCycle` and
+     * `minimumPaidThisCycle` ZERO times — the exact three properties these named. It now drives
+     * `serializeBackup` -> `parseBackup` over a store carrying all three (71 assertions).
+     *
+     * ⚠️ ** Deleted rather than replaced in place, which is the exception to this repo's usual rule: there is
+     * nothing in `packages/core` to replace them WITH, because the property is not a core property. What
+     * replaces them is the pointer above.
+     */
 
     console.log("✅ Planner state hardening tests passed.");
 }

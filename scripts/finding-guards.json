@@ -2888,5 +2888,37 @@
       "run": "test:app",
       "expect": "nothingSilentlyDropped evaluated 0/1084"
     }
+  },
+  "S1P6-A3-17-REALBACKUP": {
+    "what": "S1.13.7.10 [pass-6 A3-17] - EIGHT release-gate assertions named 'backup ...' tested JSON.parse(JSON.stringify(objectLiteral)), i.e. a property of the JavaScript engine. They sat in test:regression, inside validate:release:rn, reading as coverage of the one path where a defect loses a user's entire portfolio - and packages/core cannot import the backup code at all (its import list is allocatePaycheck plus the rollovers). AND THE HOLE THEY HID WAS REAL: measured while closing this, apps/rn/src/data/backup.test.ts had 48 assertions and mentioned completedRecommendedActions, isPaidThisCycle and minimumPaidThisCycle ZERO times - the exact three properties those eight assertions named. So the fake coverage was not merely useless, it sat on a gap. Real round-trip coverage through serializeBackup -> parseBackup added first (48 -> 71 assertions), THEN the eight removed, each site left with a pointer. Deleted rather than replaced in place, which is the exception to this repo's usual rule and is stated at both sites: there is nothing in core to replace them with, because the property is not a core property. PROVEN BY PLANTING A REAL BACKUP REGRESSION - serializeBackup drops completedRecommendedActions - which reds the new app-layer coverage while test:regression, where the eight lived, exits 0. That pair is the finding.",
+    "file": "apps/rn/src/data/backup.test.ts",
+    "token": "the completed action survives the round trip",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/backup.ts",
+          "find": "    storeVersion: store.storeVersion ?? CURRENT_STORE_VERSION,\n    store,\n  };",
+          "replace": "    storeVersion: store.storeVersion ?? CURRENT_STORE_VERSION,\n    store: { ...store, completedRecommendedActions: [] },\n  };"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the completed action survives the round trip"
+    }
+  },
+  "S1P6-B2-4-REALDELETE": {
+    "what": "S1.13.7.10 [pass-6 B2-4] - the store-action suite claimed 'comprehensive break-it coverage for the STORE ACTIONS' and had never run removeDebt, removeExpense, removeGoal or removeLivingExpense. Repo-wide, removeDebt appeared in exactly one test (sandboxStore.test.ts, asserting sandbox isolation, not what a delete leaves behind), and the other three appeared only in a COMMENT in an e2e spec. So pass 5's blocker - a deleted debt's id re-issued, $10,967.54 against a true $11,467.54, persisted - was verified against a hand-written four-key object. debtIds.test.ts names that gap in its own words and did not close it. A literal cannot disagree with the action; only the action can. All four deletes now run against a wired createDebtStore(), with the dangling completedRecommendedActions reference that IS the blocker's shape. MY FIRST DRAFT OF THIS TEST WAS WRONG AND FAILED IMMEDIATELY: I asserted a deleted id is never re-issued, and it minted the deleted id at once - correctly, because reservedDebtIds is derived from every id the store still MENTIONS, so an unreferenced id is genuinely free. The control now asserts that direction explicitly, and it is what proves the set is the document rather than a monotonic counter - an implementation that never re-used any id would pass the positive row alone. Also covers the no-op delete of an absent id, the shape a filter written the wrong way round produces. Planted by reserving against the debts array instead of the document, i.e. pass 5's blocker verbatim.",
+    "file": "apps/rn/src/store/storeActions.test.ts",
+    "token": "a STILL-REFERENCED deleted id is not re-issued",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/debtIds.ts",
+          "find": "\tfor (const m of JSON.stringify(store ?? null).matchAll",
+          "replace": "\tfor (const m of JSON.stringify((store as {debts?:unknown})?.debts ?? null).matchAll"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a STILL-REFERENCED deleted id is not re-issued"
+    }
   }
 }

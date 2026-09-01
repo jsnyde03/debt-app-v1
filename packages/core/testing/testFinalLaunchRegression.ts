@@ -198,39 +198,23 @@ function runFinalLaunchRegressionTests() {
         "rollover clears paid flag only when starting next pay cycle"
     );
 
-    const backupPayload = {
-        requiredExpenses: expenses,
-        debts,
-        completedRecommendedActions: [
-            {
-                targetId: "high-apr",
-                label: "Extra payment to High APR",
-                category: "snowball",
-                recommendedAmount: 100,
-                actualAmount: 75,
-            },
-        ],
-    };
-
-    const restored = JSON.parse(JSON.stringify(backupPayload));
-
-    assertEqual(
-        restored.requiredExpenses[0].isPaidThisCycle,
-        true,
-        "backup preserves paid expense state"
-    );
-
-    assertEqual(
-        restored.debts[0].minimumPaidThisCycle,
-        true,
-        "backup preserves paid debt minimum state"
-    );
-
-    assertMoney(
-        restored.completedRecommendedActions[0].actualAmount,
-        75,
-        "backup preserves completed recommendation amount"
-    );
+    /**
+     * ⛔ **S1.13.7.10 [pass-6 `A3-17`] — EIGHT ASSERTIONS NAMED "backup ..." USED TO SIT HERE, AND THEY TESTED `JSON.stringify`.
+     *
+     * `JSON.parse(JSON.stringify(objectLiteral))` proves a property of the JavaScript engine. These were
+     * inside `test:regression`, inside `validate:release:rn`, reading as coverage of the one path where a
+     * defect loses a user's entire portfolio — and this package cannot import the backup code at all:
+     * its import list is `allocatePaycheck` plus the rollovers.
+     *
+     * ⚡ ** REMOVED ONLY AFTER THE REAL COVERAGE EXISTED, and the hole was real: `apps/rn/src/data/backup.test.ts`
+     * had 48 assertions and mentioned `completedRecommendedActions`, `isPaidThisCycle` and
+     * `minimumPaidThisCycle` ZERO times — the exact three properties these named. It now drives
+     * `serializeBackup` -> `parseBackup` over a store carrying all three (71 assertions).
+     *
+     * ⚠️ ** Deleted rather than replaced in place, which is the exception to this repo's usual rule: there is
+     * nothing in `packages/core` to replace them WITH, because the property is not a core property. What
+     * replaces them is the pointer above.
+     */
 
     console.log("✅ Final launch regression tests passed.");
 }

@@ -6,6 +6,7 @@ import { selectAppliedTopUp, selectBillsAttestation, selectPaydayGuardian, selec
 import { recordSurpriseOutflow } from '@/store/substrateProducers';
 import { runMigrations } from '@/data/migrations';
 import { CURRENT_STORE_VERSION, type DebtStore } from '@/data/models';
+import { newDebtId, reservedDebtIds } from '@/store/debtIds';
 import { createDebtStore } from '@/store/store';
 
 /**
@@ -63,6 +64,88 @@ const emptyRecon = { expensePaid: {}, debtPaid: {} };
 
 function run() {
   console.log('Running store-action (RS.3) tests...');
+
+  /**
+   * ⛔ **S1.13.7.10 — THE FOUR ⛔ **S1.13.7.10 —ETE ACTIONS, WHICH THIS SUITE HAD NEVER RUN. [pass-6 `B2-4`]
+   *
+   * Its own docblock claims *"comprehensive break-it coverage for the STORE ACTIONS"*, and `removeDebt`,
+   * `removeExpense`, `removeGoal` and `removeLivingExpense` were in none of it. Repo-wide, `removeDebt`
+   * appeared in exactly one test — `sandboxStore.test.ts`, asserting sandbox isolation, not what a
+   * delete leaves behind.
+   *
+   * ⚡ ** AND THAT IS WHY PASS 5's BLOCKER WAS VERIFIED AGAINST A HAND-WRITTEN OBJECT. `debtIds.test.ts`
+   * says so in its own words — *"a gap is the only shape that reuses an id, and no fixture had one"* —
+   * and then built the post-delete state as a four-key literal rather than running the delete. A literal
+   * cannot disagree with the action; only the action can.
+   */
+  {
+    const s = inst({
+      debts: [
+        { id: 'debt-2026-09-01-1', name: 'Visa', balance: 1000, minimumPayment: 50, apr: 20, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly' },
+        { id: 'debt-2026-09-01-2', name: 'Store Card', balance: 500, minimumPayment: 25, apr: 25, dueDate: '2026-09-06', type: 'debt', recurrence: 'monthly' },
+      ] as DebtStore['debts'],
+      requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 350, dueDate: '2026-09-01', recurrence: 'monthly' }] as DebtStore['requiredExpenses'],
+      livingExpenses: [{ id: 'l0', name: 'Groceries', amount: 400, enabled: true }] as DebtStore['livingExpenses'],
+      goals: [{ id: 'g0', name: 'Emergency Fund', type: 'emergency', currentAmount: 500, targetAmount: 5000 }] as DebtStore['goals'],
+      // ⛔ The dangling reference is the blocker's whole shape: the user ticked an extra payment against
+      // the Store Card, and that record outlives the delete. `cycleHistory`'s snapshot is built from these
+      // at rollover, which is why lane B refused the obvious repair of purging them.
+      completedRecommendedActions: [
+        { targetId: 'debt-2026-09-01-2', label: 'Extra payment to Store Card', category: 'snowball', recommendedAmount: 500, actualAmount: 500 },
+      ] as DebtStore['completedRecommendedActions'],
+    });
+
+    s.getState().removeDebt('debt-2026-09-01-2');
+    eq(s.getState().store.debts.length, 1, 'removeDebt removes exactly the debt named');
+    eq(s.getState().store.debts[0]?.id, 'debt-2026-09-01-1', '… and leaves the other one alone');
+
+    /**
+     * ⛔ **S1.13.7.10 — PASS 5's BLOCKER, THROUGH THE REAL ACTION THIS TIME.
+     *
+     * Delete the SECOND of two debts and add another: the minter must not re-issue the dead id, because
+     * `completedRecommendedActions`, milestones, overrides and pending beats still reference it. The
+     * measured consequence was a payoff card reading `$10,967.54` against a true `$11,467.54`, persisted.
+     */
+    const minted = newDebtId('2026-09-01', reservedDebtIds(s.getState().store));
+    assert(minted !== 'debt-2026-09-01-2', `a STILL-REFERENCED deleted id is not re-issued (minted ${minted})`);
+
+    /**
+     * ⛔ **S1.13.7.10 — THE CONTROL, AND MY FIRST DRAFT OF THIS TEST FAILED FOR WANT OF IT.
+     *
+     * I asserted the deleted id is never re-issued and it minted `debt-2026-09-01-2` immediately —
+     * correctly. `reservedDebtIds` is derived from *"every id the store still MENTIONS"*, so an id nothing
+     * references is genuinely free, and re-using it is the design rather than the defect. The blocker's
+     * shape is a **dangling reference**, which is what the completed action above supplies.
+     *
+     * ⚡ ** This row is what proves the set is derived from the DOCUMENT rather than being a monotonic
+     * counter — without it, an implementation that simply never re-used any id would pass the row above.
+     */
+    const clean = inst({
+      debts: [
+        { id: 'debt-2026-09-01-1', name: 'Visa', balance: 1000, minimumPayment: 50, apr: 20, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly' },
+        { id: 'debt-2026-09-01-2', name: 'Store Card', balance: 500, minimumPayment: 25, apr: 25, dueDate: '2026-09-06', type: 'debt', recurrence: 'monthly' },
+      ] as DebtStore['debts'],
+    });
+    clean.getState().removeDebt('debt-2026-09-01-2');
+    eq(
+      newDebtId('2026-09-01', reservedDebtIds(clean.getState().store)),
+      'debt-2026-09-01-2',
+      '… with nothing referencing it, the id IS free again — the set is the document, not a counter',
+    );
+
+    s.getState().removeExpense('e0');
+    eq(s.getState().store.requiredExpenses.length, 0, 'removeExpense removes the bill');
+    s.getState().removeLivingExpense('l0');
+    eq(s.getState().store.livingExpenses.length, 0, 'removeLivingExpense removes the everyday line');
+    s.getState().removeGoal('g0');
+    eq(s.getState().store.goals.length, 0, 'removeGoal removes the goal');
+
+    // ⚠️  A delete of something that is not there must be a no-op, never a throw and never a silent wipe
+    // of the list — the shape a `filter` written the wrong way round produces.
+    const before = JSON.stringify(s.getState().store.debts);
+    s.getState().removeDebt('no-such-debt');
+    eq(JSON.stringify(s.getState().store.debts), before, 'removing an id that does not exist changes nothing');
+  }
 
   // ── capturePayday: records the cycle's actuals ──
   {

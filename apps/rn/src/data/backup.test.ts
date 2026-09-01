@@ -256,4 +256,45 @@ function storeWithDebt(): DebtStore {
   eq(generated, `debt-planner-backup-${localISO}.json`, 'the date is LOCAL, not a UTC round-trip');
 }
 
+// ── S1.13.7.10 [pass-6 A3-17] — the three fields eight "backup" assertions CLAIMED and never touched. ──
+{
+  /**
+   * ⛔ **S1.13.7.10 [pass-6 `A3-17`] — EIGHT RELEASE-GATE ASSERTIONS NAMED "backup ..." TESTED `JSON.parse(JSON.stringify(literal))`.
+   *
+   * They lived in `packages/core/testing/testPlannerStateHardening.ts` and `testFinalLaunchRegression.ts`,
+   * inside `test:regression`, inside `validate:release:rn` — proving a property of the JavaScript engine
+   * while reading as coverage of the one path where a defect loses a user's whole portfolio. Core cannot
+   * import the backup code at all; its import lists are `allocatePaycheck` + the rollovers and nothing else.
+   *
+   * ⚡ ** AND THE HOLE THEY HID WAS REAL. Measured while closing this: the genuine suite here had 48
+   * assertions and mentioned `completedRecommendedActions`, `isPaidThisCycle` and `minimumPaidThisCycle`
+   * ZERO times — the exact three properties those eight assertions named. So the fake coverage was not
+   * merely useless, it was sitting on a gap. These drive the real `serializeBackup` -> `parseBackup`.
+   */
+  const store = createDefaultStore();
+  store.completedRecommendedActions = [
+    { targetId: 'paypal-2', label: 'Extra payment to PayPal', category: 'snowball', recommendedAmount: 100, actualAmount: 100 },
+  ];
+  store.requiredExpenses = [
+    { id: 'e1', name: 'Rent', amount: 1465, dueDate: '2026-09-01', recurrence: 'monthly', isPaidThisCycle: true },
+  ];
+  store.debts = [
+    { id: 'card', name: 'Visa', balance: 4271, minimumPayment: 96, apr: 22.74, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly', minimumPaidThisCycle: true, isPaidThisCycle: true },
+  ];
+
+  const parsed = parseBackup(serializeBackup(store));
+  assert(parsed.ok, 'a store carrying paid-state and completed actions round-trips through the real envelope');
+  if (parsed.ok) {
+    const back = parsed.envelope.store;
+    eq(back.completedRecommendedActions.length, 1, 'the completed action survives the round trip');
+    eq(back.completedRecommendedActions[0]?.targetId, 'paypal-2', "...with the id the plan's next cycle reads");
+    eq(back.completedRecommendedActions[0]?.actualAmount, 100, '...and the amount the ledger is fed');
+    // ⚠️  The paid flags are the ones a user notices: restore a backup and every bill you already paid
+    // this cycle is asking to be paid again.
+    eq(back.requiredExpenses[0]?.isPaidThisCycle, true, 'a bill already paid this cycle is still paid after a restore');
+    eq(back.debts[0]?.minimumPaidThisCycle, true, "...and a debt's minimum is still marked paid");
+    eq(back.debts[0]?.isPaidThisCycle, true, '...on the legacy flag the required-action view still reads');
+  }
+}
+
 console.log(`✅ backup envelope tests passed (${passed} asserts).`);
