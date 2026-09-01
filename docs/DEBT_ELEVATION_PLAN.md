@@ -134,6 +134,20 @@ and five would have INTRODUCED one. Verify against current code before writing a
 
 ###### S1.13.7's sub-steps — the ACTIVE decomposition *(the ONLY one on this doc)*
 
+▶ **WHERE THIS SESSION LEFT OFF (2026-09-01).** Seven classes closed, **47 of 123 findings**, `lint:rn`
+**44/44**, both suites green, tree clean, everything pushed to `v1.7-dev`. ⛔ **Next is `S1.13.7.8`** — the
+*"fix reached the member, left the sibling"* class, 6 findings, 3 of them blockers.
+
+⚠️ **Read before resuming:** [`CLASSIFICATION.md`](audits/2026-08-31-s1-money-pass6/CLASSIFICATION.md) is
+the driver — every remaining finding, grouped and ordered. Four 🎯 decisions were taken this session and
+are recorded in the log: **`A2-2`** the BNPL balance is canonical · **`A3-2`** per-occurrence paid state ·
+**`A3-11`** the money is authoritative over the band · **`A2-4`** deferred to the backlog with its reason.
+
+⛔ **Two operating rules this session paid for.** **Never `git add -A` while `test:gate-plants` is running**
+— it writes fixtures into the tree and removes them, so a commit at that instant captures whichever plant
+is live *(caught twice)*. And **a guard anchor moves whenever you fix the line it pins** — five did; each
+must be re-pointed and **re-proven**, which is `D2-1`'s rule working on the session that built it.
+
 ⛔ **ONE ASSERTION PER CLASS THAT ITERATES THE CLASS**, never one that names a member — fixing ids one at a
 time produced pass 4's round, then pass 5's. ⚠️ Each class is: **verify the finding's MECHANISM against
 current code** → reproduce with a control → fix → re-run the control → **plant the original defect and
