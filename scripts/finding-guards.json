@@ -2845,7 +2845,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "so every ordering check below is vacuous"
+      "expect": "so every ordering check below is vacuous",
+      "measured": "2026-09-01",
+      "sha": "0b78096a"
     }
   },
   "S1P6-A1-9-WHATIFROW": {
@@ -2886,7 +2888,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "nothingSilentlyDropped evaluated 0/1084"
+      "expect": "nothingSilentlyDropped evaluated 0/1084",
+      "measured": "2026-09-01",
+      "sha": "0b78096a"
     }
   },
   "S1P6-A3-17-REALBACKUP": {
@@ -2902,7 +2906,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the completed action survives the round trip"
+      "expect": "the completed action survives the round trip",
+      "measured": "2026-09-01",
+      "sha": "0b78096a"
     }
   },
   "S1P6-B2-4-REALDELETE": {
@@ -2918,7 +2924,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "a STILL-REFERENCED deleted id is not re-issued"
+      "expect": "a STILL-REFERENCED deleted id is not re-issued",
+      "measured": "2026-09-01",
+      "sha": "0b78096a"
     }
   },
   "S1P6-A1-1-FIXTUREPREFS": {
@@ -2934,7 +2942,9 @@
         }
       ],
       "run": "typecheck:tests",
-      "expect": "is not assignable to type 'string[]'"
+      "expect": "is not assignable to type 'string[]'",
+      "measured": "2026-09-01",
+      "sha": "0b78096a"
     }
   }
 }
