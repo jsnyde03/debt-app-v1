@@ -160,6 +160,9 @@ export function applyRollover(store: DebtStore): DebtStore {
     requiredExpenses: rolledExpenses,
     debts: rolledDebts,
     completedRecommendedActions: [],
+    // ⛔ S1.13.7.7 [pass-6 A3-2] — occurrence ticks belong to the cycle that produced them. Cleared
+    // here with the rest of the cycle state, for the same reason completedRecommendedActions is.
+    paidOccurrences: [],
     cycleHistory: [...store.cycleHistory, snapshot],
     milestoneMaxProgress: milestoneResult.nextMaxProgressByDebt,
     portfolioMaxProgress: portfolioResult.nextMaxProgressByDebt['__portfolio__'] ?? store.portfolioMaxProgress ?? 0,

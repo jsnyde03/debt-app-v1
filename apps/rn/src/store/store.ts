@@ -630,6 +630,25 @@ export function createDebtStore(opts?: {
     },
 
     markExpensePaid(id, paid) {
+      /**
+       * ⛔ **S1.13.7.7 [pass-6 `A3-2`] · 🎯 2026-08-31 — AN OCCURRENCE ID HAS ITS OWN HOME NOW.**
+       *
+       * A weekly bill under a monthly payer expands into `${id}__occ${i}` rows, and this matched the
+       * STORED list — which holds no such id. So ticking occurrence 0 marked the PARENT (and every
+       * occurrence read paid), while ticking any other occurrence matched nothing and silently did
+       * nothing at all. `A3-3` is the same shape one level up: an id that matches no row reported success.
+       */
+      if (id.includes('__occ')) {
+        set((s) => ({
+          store: {
+            ...s.store,
+            paidOccurrences: paid
+              ? Array.from(new Set([...s.store.paidOccurrences, id]))
+              : s.store.paidOccurrences.filter((o) => o !== id),
+          },
+        }));
+        return;
+      }
       set((s) => ({
         store: {
           ...s.store,

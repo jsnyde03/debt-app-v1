@@ -147,6 +147,8 @@ type AllocatePaycheckParams = {
 	/** §2.5 D5.3 gate (2.4.7.6) — the user has an emergency buffer elsewhere, so skip the pre-debt
 	 *  starter EF and deploy to debt first (the fuller EF still funds after debt). */
 	skipStarterEmergency?: boolean;
+	/** ⛔ S1.13.7.7 [pass-6 A3-2] — occurrence ids the user has ticked paid. See the parameter default. */
+	paidOccurrenceIds?: ReadonlySet<string>;
 	/** 3.8 — the expense-reserve POT carried in from earlier cycles. Draws down against whatever falls
 	 *  due THIS cycle, in due-date order, so the money set aside earlier actually reduces this cycle's
 	 *  demand. 0 = no pot (every pre-3.8 caller). */
@@ -185,6 +187,22 @@ export function allocatePaycheck({
 	prefundedReserve = 0,
 	starterEmergencyTarget = STARTER_EMERGENCY_TARGET,
 	skipStarterEmergency = false,
+	/**
+	 * ⛔ **S1.13.7.7 [pass-6 `A3-2`] · 🎯 DECIDED 2026-08-31 — PER-OCCURRENCE PAID STATE.**
+	 *
+	 * A weekly/biweekly bill expands into one entry per occurrence below, with a distinct id — but the
+	 * PAID FLAG was copied off the parent, so ticking one occurrence marked every one of them paid, and
+	 * the other rows could not be ticked at all *(`markExpensePaid` matches the STORED list, which holds
+	 * no `__occ` id)*.
+	 *
+	 * ⚠️ 🎯 chose this over collapsing to `amount × occurrences`, which the `[A2]` note below already
+	 * argues against — a single row carrying 4× the money funds *"Groceries"* all-or-nothing. A user pays
+	 * these on separate days, so the tick is a record of a real event and needs somewhere real to live.
+	 *
+	 * Absent, behaviour is exactly what it was: occurrence 0 keeps the parent's flag and the rest read
+	 * unpaid, which is the pre-fix state for every caller that has not been taught about it yet.
+	 */
+	paidOccurrenceIds = new Set<string>(),
 	expenseReservePot = 0,
 	expenseReserveContribution = 0,
 }: AllocatePaycheckParams) {
@@ -289,10 +307,13 @@ export function allocatePaycheck({
 				when.setDate(when.getDate() + i * (expense.recurrence === "weekly" ? 7 : 14));
 				// A distinct id per occurrence: `isPaidThisCycle` and the unfunded list are keyed by it,
 				// so reusing the original would mark every occurrence paid when one of them was.
+				const occurrenceId = `${expense.id}__occ${i}`;
 				return {
 					...expense,
-					id: `${expense.id}__occ${i}`,
+					id: occurrenceId,
 					dueDate: localISODate(when),
+					// ⛔ A3-2 — its OWN paid state, never the parent's copied across.
+					isPaidThisCycle: paidOccurrenceIds.has(occurrenceId),
 				};
 			});
 		})

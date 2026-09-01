@@ -324,10 +324,31 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
         // Calm + honest (2.4.11.2): lead with "you're covered" (obligations ARE met — this is a cushion
         // dip, not a miss), and reassure that the line rebuilds — a tight cycle is a low-cushion cycle,
         // not a failure. The tap-savings action (when a lever exists) is layered by the card selector.
+        /**
+         * ⛔ **S1.13.7.7 [pass-6 `A3-11`] · 🎯 DECIDED 2026-08-31 — THE MONEY IS AUTHORITATIVE, NOT THE
+         * BAND.**
+         *
+         * `"under"` was a LITERAL, not a comparison. Hysteresis can hold the band at `tight` while
+         * headroom is genuinely **above** the floor, and this sentence then read *"$230 … a little under
+         * your $200 line"* — beside a *"To debt $30"* bar it claims does not exist.
+         *
+         * ⛔ **Hysteresis exists to stop the band FLICKERING — it is a presentation smoothing.** Letting it
+         * decide what the app asserts about figures printed next to it is the tail wagging the dog, and
+         * the alternative (zeroing `deployedToDebt` to make the copy true) would stop a user *above* their
+         * floor from paying down debt because a smoothing window had not expired.
+         *
+         * ⚠️ So the band still holds — the colour and title stay stable — and the sentence describes the
+         * real relationship between the two numbers it is naming.
+         */
         detail: `You’re covered this paycheck — ${amt(discretionary)} after everything required, ${
-          state === "at-risk" ? "under" : "a little under"
-        } your ${amt(floor)} line, so I’m holding all of it as your cushion.`,
-        safeMove: `Nothing extra goes out this paycheck — your cushion rebuilds next paycheck.`,
+          discretionary < floor ? (state === "at-risk" ? "under" : "a little under") : "just above"
+        } your ${amt(floor)} line, ${
+          deployedToDebt > 0 ? `with ${amt(deployedToDebt)} going to debt.` : `so I’m holding all of it as your cushion.`
+        }`,
+        safeMove:
+          deployedToDebt > 0
+            ? `Only ${amt(deployedToDebt)} goes out this paycheck — the rest stays as your cushion.`
+            : `Nothing extra goes out this paycheck — your cushion rebuilds next paycheck.`,
         lookahead: look,
         ...viz,
       },

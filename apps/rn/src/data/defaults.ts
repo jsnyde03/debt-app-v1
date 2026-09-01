@@ -40,6 +40,8 @@ export function createDefaultStore(): DebtStore {
     recommendationOverrides: [],
     completedRecommendedActions: [],
     milestoneMaxProgress: {},
+    // ⛔ S1.13.7.7 [pass-6 A3-2] — occurrence ids ticked paid this cycle; cleared by the rollover.
+    paidOccurrences: [],
     dataRepairs: [],
     pendingDataRepairs: [],
     portfolioMaxProgress: 0,

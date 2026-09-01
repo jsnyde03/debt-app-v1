@@ -64,6 +64,9 @@ function buildAllocation(store: DebtStore, prefundedReserve: number, steadyState
     // its effective minimum to the in-window installment count. A no-op for aligned cadences + non-BNPL.
     debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),
     goals: store.goals,
+    // ⛔ S1.13.7.7 [pass-6 A3-2] — the per-occurrence ticks, so an expanded row carries its OWN paid
+    // state instead of the parent's copied across.
+    paidOccurrenceIds: new Set(store.paidOccurrences),
     paycheckBuffer: effectivePaycheckBuffer(store),
     // §2.0.c (2.4.11.4c): a "bills complete" attestation REDUCES the discovery reserve (never skips it).
     // MF.4: the temporary cold-start reserves are dropped in a steady-state (long-horizon) allocation.

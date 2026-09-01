@@ -350,6 +350,19 @@ export interface DebtStore {
    * one number instead of inventing it. ⛔ Derived on every read, never merged forward: it describes the
    * CURRENT blob, so a field the user has since fixed stops being reported.
    */
+  /**
+   * ⛔ **S1.13.7.7 [pass-6 `A3-2`] · 🎯 2026-08-31 — PER-OCCURRENCE PAID STATE, for a bill that falls
+   * more than once in a pay cycle.**
+   *
+   * A weekly bill under a monthly payer expands into one row per occurrence with a distinct
+   * `${id}__occ${i}` id, and the paid flag used to be COPIED off the parent — so ticking one marked
+   * them all, and the other rows could not be ticked at all, because `markExpensePaid` matches the
+   * stored list and no `__occ` id lives there.
+   *
+   * ⚠️ Cleared by the rollover with the rest of the cycle's paid state: these ids are only meaningful
+   * inside the cycle that produced them.
+   */
+  paidOccurrences: string[];
   dataRepairs: DataRepair[];
   /**
    * P6.8.7c.2 (audit B4/M3-2) — repairs the user has not been TOLD about yet, held until they acknowledge.
