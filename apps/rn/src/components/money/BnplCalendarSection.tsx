@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { getNextPaycheckDate } from '@core/payCycle/getNextPaycheckDate';
 
 import { BNPL_COUNT_FIELDS } from '@core/debt/bnplInstallment';
 import { buildBnplSchedule, type BnplInstallmentEntry } from '@core/debt/bnplSchedule';
@@ -90,7 +91,17 @@ export function BnplCalendarSection({ debts, currentDate }: { debts: Debt[]; cur
    * the count — an enumeration typed at a reader is how this one went short.
    */
   const unreadPlans = debts.filter((d) => rowFieldUnread(store, 'row-figures', 'debt', d.id, ...BNPL_COUNT_FIELDS));
-  const schedule = buildBnplSchedule(debts, currentDate);
+  // ⛔ S1.13.7.7 [pass-6 A2-3] — a `per-paycheck` plan charges on PAYDAYS, a fact only the store holds.
+  // Without it the calendar drew one installment of four and captioned it "payment 1 of 4".
+  const schedule = buildBnplSchedule(debts, currentDate, (afterISO) =>
+    getNextPaycheckDate({
+      payCycle: store.paycheck.payCycle,
+      currentDate: afterISO,
+      semiMonthlyFirstDay: Number(store.paycheck.semiMonthlyFirstDay),
+      semiMonthlySecondDay: Number(store.paycheck.semiMonthlySecondDay),
+      monthlyPayDay: Number(store.paycheck.monthlyPayDay),
+    }),
+  );
   if (schedule.length === 0 && unreadPlans.length === 0) return null;
 
   const cutoff = addMonths(currentDate, HORIZON_MONTHS);

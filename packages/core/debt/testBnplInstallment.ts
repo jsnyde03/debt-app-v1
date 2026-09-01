@@ -124,7 +124,20 @@ function runBnplInstallmentTests() {
 	assertEqual(bnplInstallmentsInWindow(biweeklyBnpl, "2026-08-01", "2026-11-01"), 4, "a long window is capped at remaining payments (4, not 6)");
 	assertEqual(bnplInstallmentsInWindow(debt({ type: "bnpl", scheduledPaymentAmount: 100, remainingPayments: 1, balance: 100, minimumPayment: 100, dueDate: "2026-08-01", recurrence: "one-time" }), "2026-08-01", "2026-09-01"), 1, "a one-time BNPL charges exactly once (never advances)");
 	assertEqual(bnplInstallmentsInWindow(biweeklyBnpl, "2026-08-01", "2026-07-15"), 0, "nothing due before a window that ends before the due date");
-	assertEqual(bnplInstallmentsInWindow(debt({ type: "debt", balance: 1000, minimumPayment: 50 }), "2026-08-01", "2026-09-01"), 0, "a plain debt has no in-window installment count");
+	/**
+	 * ⛔ **S1.13.7.7 [pass-6 `A3-1`] — THIS ROW ENCODED THE TYPE GATE, AND THE TYPE GATE WAS THE DEFECT.**
+	 *
+	 * A cadence is a fact about the SCHEDULE, not about the debt's label. Gating on `type === "bnpl"`
+	 * meant a plain debt with `weekly`/`biweekly` recurrence under a monthly payer reserved **one payment
+	 * of three** — flipping one dropdown moved `totalRequired` from $300 to $100, and the engine offered
+	 * the $250 it owes as an extra payment to that same debt.
+	 *
+	 * ⚠️ Replaced with the property that actually matters, in both directions: an ALIGNED plain debt
+	 * counts one charge (so the scaler is still a no-op for it), and a SUB-WINDOW one counts the charges
+	 * it really makes.
+	 */
+	assertEqual(bnplInstallmentsInWindow(debt({ type: "debt", balance: 1000, minimumPayment: 50, dueDate: "2026-08-01", recurrence: "monthly" }), "2026-08-01", "2026-09-01"), 1, "an ALIGNED plain debt charges once in the window — the scaler stays a no-op");
+	assertEqual(bnplInstallmentsInWindow(debt({ type: "debt", balance: 1000, minimumPayment: 100, dueDate: "2026-08-01", recurrence: "weekly" }), "2026-08-01", "2026-09-01"), 5, "⛔ A3-1 — a WEEKLY plain debt charges five times before a monthly payday, and the reserve must see all five");
 
 	/**
 	 * ⛔ **S1.11.5.1 [pass-4 blocker `A-F3`] — THE OTHER SIDE OF THE WINDOW, WHICH NO ROW HERE TESTED.**

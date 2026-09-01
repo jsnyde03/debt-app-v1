@@ -112,7 +112,25 @@ export function deriveRequiredActionView(
     // 3.7.A4 — `debts` here is the UNSCALED store list, while `item.amount` came off the window-scaled
     // allocation, so the ratio between them IS the in-window installment count. Only stated when it
     // divides exactly: a balance-capped final installment has no honest "N × $X" form.
-    const scheduled = debt?.scheduledPaymentAmount;
+    /**
+     * ⛔ **S1.13.7.7 [pass-6 `A2-8`] — THE EXPLANATION WAS GATED ON A DIFFERENT FIELD THAN THE DOUBLING.**
+     *
+     * The row's amount is doubled by CADENCE — `scaleBnplMinimumForWindow` multiplies by the installments
+     * that fall in the window — but the *"2 × $100"* caption that explains it was gated on
+     * `scheduledPaymentAmount`, which a **fallback** BNPL does not carry. So a fallback plan showed the
+     * doubled amount **bare**: the row said $200 where the plan says $100 and offered no reason.
+     *
+     * ⚠️ `bnplInstallmentAmount`'s rule, stated once at its producer: an installment-native plan carries
+     * the per-charge figure in `scheduledPaymentAmount`, a fallback one carries the same number in
+     * `minimumPayment`. Both are *"what this plan charges once"*, which is exactly what this caption
+     * divides by.
+     */
+    const scheduled =
+        typeof debt?.scheduledPaymentAmount === "number" && debt.scheduledPaymentAmount > 0
+            ? debt.scheduledPaymentAmount
+            : debt?.type === "bnpl"
+              ? debt.minimumPayment
+              : undefined;
     let installments: { count: number; each: number } | undefined;
     if (typeof scheduled === "number" && scheduled > 0 && item.amount > scheduled) {
         const count = Math.round(item.amount / scheduled);

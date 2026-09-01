@@ -28,7 +28,24 @@ export interface BnplInstallmentEntry {
  * Pure + deterministic. `fromISO` (optional) drops installments dated before it (defaults to keeping
  * all) — the caller passes the current date so a past installment doesn't linger in the calendar.
  */
-export function buildBnplSchedule(debts: Debt[], fromISO?: string): BnplInstallmentEntry[] {
+/**
+ * ⛔ **S1.13.7.7 [pass-6 `A2-3`] — A `per-paycheck` BNPL SHOWED ONE INSTALLMENT OF FOUR, CAPTIONED
+ * *"payment 1 of 4"*.**
+ *
+ * `advanceDueDateOnce` returns the SAME date for `per-paycheck` — correctly, because that cadence has no
+ * calendar period of its own; it is defined by the user's pay cycle. So the loop below broke after one
+ * row while the caption kept counting to the true total, and the month subtotal was short by three
+ * quarters of the plan.
+ *
+ * ⚠️ `nextPayday` is how the caller lends this function the one fact it cannot derive. Omitted, the
+ * behaviour is exactly what it was — so every non-`per-paycheck` plan and every existing caller is
+ * unaffected.
+ */
+export function buildBnplSchedule(
+	debts: Debt[],
+	fromISO?: string,
+	nextPayday?: (afterISO: string) => string,
+): BnplInstallmentEntry[] {
 	const from = fromISO ? new Date(`${fromISO}T00:00:00`).getTime() : -Infinity;
 	const entries: BnplInstallmentEntry[] = [];
 
@@ -53,7 +70,9 @@ export function buildBnplSchedule(debts: Debt[], fromISO?: string): BnplInstallm
 						totalPayments: total,
 					});
 				}
-				const next = advanceDueDateOnce(due, d.recurrence);
+				// ⛔ A2-3 — a per-paycheck plan charges on PAYDAYS; the caller supplies that step.
+				const next =
+					d.recurrence === "per-paycheck" && nextPayday ? nextPayday(due) : advanceDueDateOnce(due, d.recurrence);
 				if (next === due) break; // one-time / per-paycheck — a single installment
 				due = next;
 			}

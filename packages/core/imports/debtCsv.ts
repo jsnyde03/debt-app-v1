@@ -36,11 +36,27 @@ type DebtType = "debt" | "bnpl";
 const allowedTypes: DebtType[] = ["debt", "bnpl"];
 
 /**
- * ⚠️ Narrower than the `Recurrence` union, deliberately. A debt is terminating by definition, so its
- * cadence describes the repayment rhythm; the quarterly/annual members exist for bills. Widening this
- * changes what a CSV can express, which is a product call and not a parser detail.
+ * ⛔ **S1.13.7.7 [pass-6 `A3-13`] — THE IMPORTER REFUSED A CADENCE THE APP'S OWN DEBT SHEET OFFERS.**
+ *
+ * This list said the quarterly/annual members *"exist for bills"* and that widening it would be *"a
+ * product call"*. ⚡ **The product call was already made and this was the only place that had not heard
+ * it:** `DebtSheet.tsx:40` offers `quarterly` and `annually` on a debt, labelled *"Every 3 months"* for
+ * an installment plan — and pass 5's `C5-4` measured a **quarterly student loan** reading *"$600/mo"*, a
+ * 12× overstatement, which is a debt that plainly exists.
+ *
+ * So a user could enter a quarterly loan by hand and then be refused the same loan on import — the
+ * two doors into one store disagreeing about what a debt can be. Aligned to the sheet, which is the
+ * surface the product decision actually lives on.
  */
-const allowedRecurrences: Recurrence[] = ["one-time", "weekly", "biweekly", "per-paycheck", "monthly"];
+const allowedRecurrences: Recurrence[] = [
+	"one-time",
+	"weekly",
+	"biweekly",
+	"per-paycheck",
+	"monthly",
+	"quarterly",
+	"annually",
+];
 
 export type DebtCsvResult = { debts: Debt[]; errors: string[] };
 

@@ -178,7 +178,19 @@ function bnplInstallmentAmount(debt: Debt): number {
  */
 export function hasKnownBnplCadence(debt: Debt): boolean {
 	return (
-		debt.type === "bnpl" &&
+		// ⛔ **S1.13.7.7 [pass-6 `A3-1`] — THE TYPE GATE WAS THE DEFECT. A cadence is a fact about the
+		// SCHEDULE, not about the debt's label**, and this read `debt.type === "bnpl"`. So a plain debt
+		// with `weekly`/`biweekly` recurrence under a monthly payer reserved ONE payment of three —
+		// flipping one dropdown moved `totalRequired` from $300 to $100, and the engine then offered the
+		// $250 it owes as an EXTRA payment to that same debt.
+		//
+		// ⚠️ Safe to widen because both consumers share one producer: the allocator's RESERVE and
+		// `applyRolloverPayment`'s PAYDOWN both read `effectiveMinimumInWindow`, so they move together
+		// or not at all — the drift AS.2 records is structurally unavailable here. And the helpers
+		// already generalise: `bnplInstallmentAmount` falls back to `minimumPayment`, and an absent
+		// `remainingPayments` is an unknown cap (`Infinity`), which is right for a plain debt.
+		//
+		// ⚠️ An aligned cadence still holds ≤1 charge per window, so every monthly-debt case is a no-op.
 		typeof debt.dueDate === "string" &&
 		debt.dueDate.length > 0 &&
 		bnplInstallmentAmount(debt) > 0

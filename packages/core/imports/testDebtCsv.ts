@@ -175,7 +175,22 @@ function runDebtCsvTests() {
 	}
 	{
 		const r = parse("name,balance,minimumPayment,apr,dueDate,recurrence\nVisa,2400,75,19.99,2026-09-01,quarterly");
-		eq(r.debts.length, 0, "a cadence outside the debt set is refused");
+		/**
+		 * ⛔ **S1.13.7.7 [pass-6 `A3-13`] — THIS ROW PINNED THE IMPORTER'S REFUSAL OF A CADENCE THE APP'S
+		 * OWN DEBT SHEET OFFERS.** `DebtSheet.tsx:40` lists `quarterly` and `annually` for a debt, and
+		 * pass 5's `C5-4` measured a **quarterly student loan** reading *"$600/mo"* — so a user could
+		 * enter one by hand and then be refused the same loan on import, two doors into one store
+		 * disagreeing about what a debt can be.
+		 *
+		 * ⚠️ Replaced, not deleted: the refusal still needs coverage, so the case moves to a cadence that
+		 * genuinely is not a `Recurrence` at all.
+		 */
+		eq(r.debts.length, 1, "⛔ A3-13 — a quarterly debt imports, because the debt sheet offers quarterly");
+		eq(r.debts[0].recurrence, "quarterly", "…and the cadence survives rather than being coerced");
+	}
+	{
+		const r = parse("name,balance,minimumPayment,apr,dueDate,recurrence\nVisa,2400,75,19.99,2026-09-01,fortnightly");
+		eq(r.debts.length, 0, "a cadence that is not a Recurrence at all is still refused");
 	}
 
 	// ── BNPL: the installment fields are canonical, and balance/minimum are DERIVED from them ──
