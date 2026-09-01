@@ -137,12 +137,23 @@ and five would have INTRODUCED one. Verify against current code before writing a
 ▶ **WHERE THIS SESSION LEFT OFF (2026-09-01).** Eight classes closed, **53 of 123 findings**, each with an
 executed proof. typecheck ×4 · three unit suites · `lint:rn` **45/45** green.
 
-⛔ **AND THE FULL E2E SUITE IS 37 RED, WHICH IS THE ACTIVE BUILD NOW — NOT `S1.13.7.9`.** Measured at the
-end of `S1.13.7.8`: **302 passed · 37 failed**, plus **1 of 10 embed**. ⚠️ **Not mine and not flake** —
-`payday-reopen` fails identically with this round's changes reverted, and `hero-date-fit` at **320pt fails
-3 of 3 while 402pt passes 3 of 3**: *"November 2026"* needs **108px in a 72px box**, so the Progress
-headline is clipped on a small device. **The last recorded full e2e run is `S1.12.5.9`**; `S1.13.7.1`–`.7`
-have not been measured against it.
+⛔ **AND THE FULL E2E SUITE IS 37 RED LOCALLY, WHICH IS THE ACTIVE BUILD NOW — NOT `S1.13.7.9`.** Measured
+at the end of `S1.13.7.8`: **302 passed · 37 failed**, plus **1 of 10 embed**.
+
+⛔ **THE CAUSE IS ALMOST CERTAINLY THAT 36 COMMITS WERE NEVER PUSHED.** CI (`web-e2e.yml`) runs
+`typecheck` · `lint:rn` · all three unit suites · **the full RN e2e** · the embed suite **on every push**,
+and its last green is **`53a64d07`, 2026-08-31 09:34**. Everything from `S1.13.7.5` through `.7` — **36
+commits** — sat unpushed behind it. ⚡ **Both defects this item found by accident live in that range**:
+`dfb5281e` (the `typecheck:core` break) and `d6fd015d` (the C3 e2e break) are each **after** CI's last
+green. ⚠️ **So the earlier note that "the last full e2e run was `S1.12.5.9`" was WRONG** — the suite runs
+constantly; it just never saw this work.
+
+⚠️ **What is established about the 37, and what is not.** `hero-date-fit` at **320pt fails 3/3 while
+402pt passes 3/3** with its own measurement — *"November 2026"* wants **108px in a 72px box** — so at
+least one is deterministic and reproducible. ⛔ **"Not this session's" is NOT established**: reverting
+`C1-1`'s seven files changed nothing and reverting `C1-6`'s file changed one flip-flopping test, but the
+other 35 commits were still in place for both measurements. ⚠️ A layout assertion can also differ between
+Windows Chrome and CI's Linux Chromium — **read the CI run on `df685975` before attributing anything.**
 
 ⛔ **THIS IS THE THIRD TIME IN ONE ITEM THAT A SUITE [D74] NAMES WAS FOUND ALREADY RED.** `typecheck:core`
 since `.3` *(a field that does not exist on `TimelineCycle` — the regression suite runs under `tsx`, which
@@ -196,11 +207,12 @@ user-facing.** Do not open this step by assuming the rest are flake; assume the 
 | # | sub-step | exit line |
 |---|---|---|
 | **S1.13.7.9.1** | **CLASSIFY ALL 37 + THE 1 EMBED BY REPRODUCIBILITY** — each spec re-run with `--repeat-each=3`. ⛔ A failure that flips is not automatically flake: record the ratio, and treat *"passes sometimes"* as a defect until something explains WHY it passes sometimes | a table of 38 rows: spec · deterministic/intermittent · the failing assertion's own message |
-| **S1.13.7.9.2** | **FIND THE FIRST BAD COMMIT for each deterministic cluster.** `tutorial-invite` alone is **17 of 37**; a single cause is likelier than seventeen. ⛔ Bisect against a committed state — a git worktree needs `node_modules`, which is a **copy** on Windows and takes minutes, so budget it or use file-level reverts between two commits | each cluster attributed to a commit, or explicitly recorded as older than `S1.12.5.9` |
+| **S1.13.7.9.0** | **READ CI ON `df685975` FIRST.** It is the same suite on Linux, and it is free — it has been running since the push. ⛔ A failure that is green there and red here is a PLATFORM difference (font metrics, animation timing), and `hero-date-fit`'s clipped-text assertion is exactly that shape. **Split the 37 by that answer before spending a bisect on any of them** | every failure labelled `both` / `local-only` / `CI-only` |
+| **S1.13.7.9.2** | **FIND THE FIRST BAD COMMIT for each deterministic `both` cluster.** `tutorial-invite` alone is **17 of 37**; a single cause is likelier than seventeen. ⚡ The search space is bounded and known: **the 36 commits in `53a64d07..d0029c2d`**, none of which CI ever saw. ⛔ Bisect against a committed state — a git worktree needs `node_modules`, which is a **copy** on Windows and takes minutes, so budget it or use file-level reverts between two commits | each cluster attributed to a commit |
 | **S1.13.7.9.3** | **FIX THE DETERMINISTIC ONES BY CAUSE, NOT BY SPEC** — starting with `hero-date-fit`'s 320pt clip, which is a real user-facing defect on the app's headline number | each cause closed once, with a plant proving the red returns |
 | **S1.13.7.9.4** | **THE INTERMITTENT REMAINDER** — ⛔ *"element is not stable" / "element was detached"* is an animation-timing signature, not a logic one. `payday-reopen` shows it. ⚠️ A retry is not a fix and `[D65]` does not accept a re-rating as a proof | each one closed, or measured never to have been a failure, with the measurement recorded |
 | **S1.13.7.9.5** | **THE EMBED FAILURE** — `entry.spec.ts`, the Today → Progress → Today walk, 1 of 10 | 10/10 |
-| **S1.13.7.9.6** | **CLOSE THE PROCESS GAP THAT LET THREE SUITES SIT RED.** ⛔ **[D74] already names every one of them** — the rule is not missing, the reading is. Decide the cheapest instrument that makes *"a suite [D74] lists is red"* impossible to not notice, and write it down as a decision either way | a named instrument, or a recorded decision not to build one and why |
+| **S1.13.7.9.6** | **CLOSE THE PROCESS GAP, AND IT IS NARROWER THAN IT LOOKED: 36 COMMITS WENT UNPUSHED.** ⛔ CI already runs every suite [D74] names, on every push — so the missing instrument is not a check, it is **pushing**. ⚠️ Note the tension before deciding: `batch-ci-builds` says do not spend a build on a single small fix, and that is about **Codemagic native builds**, not this workflow. Decide what cadence makes *"work that CI has never seen"* bounded, and record it either way | a stated cadence, or a recorded decision and why |
 | **S1.13.7.9.7** | **THE NET** — typecheck ×4 · `lint:rn` 45/45 · three unit suites · full e2e **338/338** · embed **10/10**. ⛔ No `gate:record`: [D74] writes it at convergence, and pass 6 has not converged | every command's own exit code read, tree clean, pushed |
 
 **Exit (S1.13.7.9):** the suite is green for a reason that is written down, and every failure is either

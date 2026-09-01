@@ -30174,7 +30174,17 @@ green about it. Scoped to the repairs card, which is what it was always assertin
   the same command. The failure carries its own measurement: *"November 2026"* wants **108px in a 72px
   box** — **the app's headline number is clipped on a small device.** Nothing in this item touches
   Progress or `PlanHero`.
-- **The last recorded full e2e run is `S1.12.5.9`.** `S1.13.7.1`–`.7` have not been measured against it.
+- ⛔ **AND THE REAL CAUSE, FOUND BY ASKING CI RATHER THAN THE PLAN: 36 COMMITS WERE NEVER PUSHED.**
+  `web-e2e.yml` runs `typecheck` · `lint:rn` · all three unit suites · **the full RN e2e** · the embed
+  suite **on every push**, and its last green is **`53a64d07`, 2026-08-31 09:34**. Everything from
+  `S1.13.7.5` through `.7` — **36 commits** — sat behind it. ⚡ **Both defects this item found by accident
+  are inside that range**: `dfb5281e` (`typecheck:core`) and `d6fd015d` (the C3 e2e) are each *after*
+  CI's last green. ⚠️ **My first write-up of this said "the last full e2e run was `S1.12.5.9`" and that
+  was wrong** — the suite runs constantly; it simply never saw this work. Corrected here and on the plan.
+- ⚠️ **"Not this session's" is therefore NOT established.** Reverting `C1-1`'s seven files changed
+  nothing and reverting `C1-6`'s changed one flip-flopping test — but the other 35 commits were in place
+  for both measurements, so neither revert bounded anything. **A revert that leaves most of the suspect
+  range in place is not a control.**
 
 ⚡ **`tutorial-invite.spec.ts` is 17 of the 37**, which makes one cause likelier than seventeen. The
 signatures split into two families: *"element is not stable" / "element was detached from the DOM"*
