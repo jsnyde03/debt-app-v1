@@ -30264,3 +30264,42 @@ is to change the fixture back.
 ⛔ **The `swipe-mark-paid` / `a11y-axe` cluster is NOT mine** — 3 failed with `C1-1`'s seven files reverted
 to `4d133dcf`. `swipe-mark-expense-e0` and `Mark paid` are **absent from the DOM** and `a11y-axe` counts
 **0 `[inert]`**, so it is the swipe-pane / fence mechanism. Cause still unattributed, inside the 36.
+
+### ⭐ `.9.2` — the root cause, and it was a MINOR's remedy
+
+**`git bisect` over the 36 commits CI never saw → `2c77aceb` (`S1.13.7.5 wip`), in five runs.**
+
+⛔ **`C1-18` was a MINOR: *"`RESERVE_OPACITY` is declared twice, in two files, one of which documents that
+it must match the other."* The observation was right.** Its remedy made `CushionBarChart` the owner and had
+`PaydayGuardianCard` import the number from it — and **`CushionBarChart` imports
+`@shopify/react-native-skia` at module scope.** One number's import put **CanvasKit into Today's import
+graph for every render**: Today threw `Cannot read properties of undefined (reading 'XYWHRect')` and
+rendered an **empty body**, so the swipe actions, the tutorial fence and every click target were absent.
+
+⚡ **A minor about a duplicated literal produced a suite-wide red.** The lesson is not *"do not
+de-duplicate"* — the observation was correct and the duplication was real. It is that **where a shared
+value LIVES is part of the fix**: hoisting to whichever module happens to use it first exports that
+module's dependencies along with the value. The token now lives in `theme/colors.ts`; both sides import it
+from there, so there is still exactly one producer and neither drags a renderer into the other's graph.
+
+⛔ **AND MY OWN "MULTI-CAUSE" CONCLUSION WAS WRONG, WHICH ONLY THE REAL FIX REVEALED.** `expense-reserve`
+had moved 10/11 → 11/11 when I flipped the shared fixture's due dates, and `swipe-mark-paid` had not — so I
+recorded two causes. With the renderer edge removed, **`expense-reserve` passes with the fixture
+untouched**: the date flip had changed timing enough to mask the CanvasKit failure, not fixed anything.
+⚠️ **A variable that moves the outcome is not thereby the cause.** The second cluster refuted the first
+hypothesis; the root fix refuted the second.
+
+⭐ **Measured:** `swipe-mark-paid` + `a11y-axe` + `expense-reserve` **20-failing → 24/24**, and the embed
+suite **9/1 → 10/10**. New guard in `lint:import-graph`: a plain VALUE may not be imported from a module
+that loads a renderer, discriminated by **PascalCase** — a screen importing `<TrajectoryChart/>` is
+rendering a chart and pays for it deliberately; a number must never cost CanvasKit. Population derived from
+every module whose source imports a renderer package, with a floor so the detector cannot go blind.
+
+⛔ **The new assertions were first placed BELOW the failure reporter** — so they ran after the only reader
+of `failures`, and a genuine red surfaced only as an assertion-COUNT mismatch. **That is the same
+dead-code-after-the-verdict shape found this morning in `check-finding-guards.ts`, met twice in one day.**
+
+⚠️ **The local full-suite run after the fix is NOT usable and is recorded here so nobody re-reads it as a
+regression:** 47 passed / 292 failed, almost all 60s `page.evaluate` timeouts, immediately after a full
+`lint:rn`. The prior full run was 302/37 in 29m on the same tree shape. **A machine-under-load artifact —
+CI is the arbiter, which is the whole point of the push decision.**
