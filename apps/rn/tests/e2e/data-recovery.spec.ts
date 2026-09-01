@@ -552,7 +552,7 @@ test('C3 · the full-screen finale does not fire over a balance nobody read', as
       // the `payoff-schedule` mark renders over the debt sheet's footer and its "Got it" intercepts the
       // pointer, so the test fails on the coach mark rather than on the thing it is testing. Measured
       // here as `element is not stable` on `debt-log-payment`.
-      prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: true },
+      prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
       debts: [
         { id: 'd0', name: 'Chase card', balance: 'n/a', originalBalance: 12000, minimumPayment: 300, apr: 22, dueDate: day(4), type: 'debt', recurrence: 'monthly' },
         { id: 'd1', name: 'Visa', balance: 400, originalBalance: 400, minimumPayment: 40, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
@@ -595,7 +595,7 @@ test('C1 · retyping the amount the card asked for CLEARS the suppression, and i
     scenario({
       requiredExpenses: [],
       // ⚠️ Coach marks seen — see the C3 test's note; this one drives the same sheet control.
-      prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: true },
+      prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
       debts: [{ id: 'd1', name: 'Chase card', balance: '', originalBalance: 1200, minimumPayment: 50, apr: 20, dueDate: day(4), type: 'debt', recurrence: 'monthly' }],
     }),
   );

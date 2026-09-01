@@ -26,7 +26,7 @@ const TIGHT = () =>
       { id: 'S1', name: 'Trip', type: 'savings', currentAmount: 400, targetAmount: 2000 },
       { id: 'EF', name: 'Emergency Fund', type: 'emergency', currentAmount: 900, targetAmount: 5000 },
     ],
-    prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: true },
+    prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
   });
 
 const goals = async (page: import('@playwright/test').Page) => {

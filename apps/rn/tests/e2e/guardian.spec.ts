@@ -65,7 +65,7 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
   });
 
   test('premium · intro already seen: not shown again', async ({ page }) => {
-    await seedStore(page, scenario({ prefs: { onboardingComplete: true, guardianIntroSeen: true } }));
+    await seedStore(page, scenario({ prefs: { onboardingComplete: true } }));
     await page.goto('/');
     await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
     await expect(page.getByText('Your floor is protected, starting today')).toHaveCount(0);

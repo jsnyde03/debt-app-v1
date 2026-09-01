@@ -948,3 +948,14 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   *"29 blockers · 48 majors · 47 minors"* sums to **124**. ⛔ The table totals 123 only because those two
   errors run in opposite directions. ⚠️ **CLASS XI's membership is unenumerated by design** — *"Full list
   in the lane files"* — so opening `.11` has to begin by writing the list down, exactly as `.10.1` did.
+
+### ⤵ surfaced by `S1.13.7.10.5`, 2026-09-01
+
+- **Type the WHOLE e2e fixture bag, not just `prefs`.** → **`S1.13.7.12`** *(instrument the tree)* or a
+  later pass. `scenario(over: Record<string, unknown>)` type-checks nothing; `S1.13.7.10.5` typed
+  `over.prefs` and that alone caught `coachMarksSeen: true`, 40 dead `guardianIntroSeen` seeds and a
+  `tutorialSeen: false` no lane had reported. ⚡ **Measured: typing the whole bag surfaces 91 errors** —
+  40 those, **16 array-literal widening** (`recurrence: string` not assignable to `Recurrence`), and the
+  rest **legitimately-invalid fixtures** (`data-recovery.spec.ts` seeds `balance: null` on purpose; that
+  suite exists for it). ⛔ Blanket-casting the last group would defeat the check, so it needs a deliberate
+  pass rather than a sweep — which is why it is filed rather than folded in.

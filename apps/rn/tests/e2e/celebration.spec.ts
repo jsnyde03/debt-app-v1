@@ -32,7 +32,7 @@ const base = (themeMode: 'light' | 'dark', debts: ReturnType<typeof provisional>
     genuineCycleCount: 6,
     paycheck: { amount: '2400', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
     debts,
-    prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode },
+    prefs: { onboardingComplete: true, themeMode },
     onboardedAt: '2026-01-01',
   });
 
@@ -70,7 +70,7 @@ for (const theme of ['light', 'dark'] as const) {
       genuineCycleCount: 6,
       paycheck: { amount: '2400', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
       debts: [{ id: 'car', name: 'Auto Loan', balance: 4800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' }],
-      prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },
+      prefs: { onboardingComplete: true, themeMode: theme },
       onboardedAt: '2026-01-01',
       pendingMilestone: { threshold: 50, progressPercent: 60 },
     }));
@@ -145,7 +145,6 @@ const FREE = (debts: any[]) =>
     // on the thing it is testing, which is the most expensive kind of red.
     prefs: {
       onboardingComplete: true,
-      guardianIntroSeen: true,
       coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'],
     },
     onboardedAt: '2026-01-01',

@@ -33,7 +33,6 @@ const PLAN = () =>
     paycheck: { amount: '2000', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(14) },
     prefs: {
       onboardingComplete: true,
-      guardianIntroSeen: true,
       coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'],
     },
   });

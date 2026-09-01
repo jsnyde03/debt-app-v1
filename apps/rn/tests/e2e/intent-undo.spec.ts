@@ -24,7 +24,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 const PLAN = () =>
   scenario({
     debts: [{ id: 'card', name: 'Chase Freedom', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19.9, dueDate: day(1), type: 'debt', recurrence: 'monthly' }],
-    prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: true },
+    prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
   });
 
 async function logAPayment(page: import('@playwright/test').Page) {

@@ -16,7 +16,7 @@ test('VIS-4 ack coordinator: only the top-priority ack renders', async ({ page }
         { id: 'e0', name: 'Netflix', amount: 0, fullAmount: 15.99, fullChargeDate: '2026-07-01', isTrial: true, dueDate: '2026-08-01', recurrence: 'monthly' },
       ],
       pendingMilestone: { threshold: 50 },
-      prefs: { onboardingComplete: true, guardianIntroSeen: true },
+      prefs: { onboardingComplete: true },
     }),
   );
   await page.goto('/');

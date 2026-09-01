@@ -13,7 +13,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 const PREMIUM = scenario({
   debts: [{ id: 'd0', name: 'Card', balance: 8000, minimumPayment: 100, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' }],
   paycheck: { amount: '2000', currentDate: day(0), nextPaycheckDate: day(31) },
-  prefs: { onboardingComplete: true, guardianIntroSeen: true },
+  prefs: { onboardingComplete: true },
 });
 
 test('comfortable purchase → verdict + apply-to-plan', async ({ page }) => {
@@ -42,7 +42,7 @@ for (const theme of ['light', 'dark'] as const) {
     await seedStore(page, scenario({
       debts: [{ id: 'd0', name: 'Card', balance: 8000, minimumPayment: 100, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly' }],
       paycheck: { amount: '2000', currentDate: day(0), nextPaycheckDate: day(31) },
-      prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },
+      prefs: { onboardingComplete: true, themeMode: theme },
     }));
     await page.goto('/');
     await page.getByPlaceholder('e.g. 400').fill('500');

@@ -17,7 +17,7 @@ import { scenario, seedStore } from './helpers/seed';
  */
 test.use({ viewport: { width: 402, height: 874 } });
 
-const NO_BILLS = () => scenario({ requiredExpenses: [], prefs: { onboardingComplete: true, guardianIntroSeen: true } });
+const NO_BILLS = () => scenario({ requiredExpenses: [], prefs: { onboardingComplete: true } });
 
 /**
  * ⛔ **THE DEBT-FIRST USER — and the finding's stated harm was WRONG about them.**
@@ -46,7 +46,7 @@ test('a debt-first user with no bills is PROMPTED for them', async ({ page }) =>
  * is the case where the app genuinely does make a false statement about money.
  */
 test('with nothing due and no bills, the app does not claim they are caught up', async ({ page }) => {
-  await seedStore(page, scenario({ requiredExpenses: [], debts: [], prefs: { onboardingComplete: true, guardianIntroSeen: true } }));
+  await seedStore(page, scenario({ requiredExpenses: [], debts: [], prefs: { onboardingComplete: true } }));
   await page.goto('/');
 
   await expect(page.getByText('Required actions', { exact: true })).toBeVisible({ timeout: 15_000 });
@@ -72,7 +72,7 @@ test('a user WITH bills, all handled, is still told they are caught up', async (
       requiredExpenses: [
         { id: 'e9', name: 'Rent', amount: 350, dueDate: '2027-01-01', recurrence: 'monthly', category: 'housing' },
       ],
-      prefs: { onboardingComplete: true, guardianIntroSeen: true },
+      prefs: { onboardingComplete: true },
     }),
   );
   await page.goto('/');
@@ -95,7 +95,7 @@ test('the no-bills branch keys off the PLAN, not this cycle’s rows', async ({ 
       requiredExpenses: [
         { id: 'e9', name: 'Rent', amount: 350, dueDate: '2027-01-01', recurrence: 'monthly', category: 'housing' },
       ],
-      prefs: { onboardingComplete: true, guardianIntroSeen: true },
+      prefs: { onboardingComplete: true },
     }),
   );
   await page.goto('/');
@@ -135,7 +135,7 @@ const SHORTFALL = (over: Record<string, unknown> = {}) =>
       { id: 'elec', name: 'Electric', amount: 120, dueDate: '2026-07-01', recurrence: 'monthly', category: 'utilities' },
       { id: 'phone', name: 'Phone', amount: 80, dueDate: '2026-07-01', recurrence: 'monthly', category: 'utilities' },
     ],
-    prefs: { onboardingComplete: true, guardianIntroSeen: true },
+    prefs: { onboardingComplete: true },
     ...over,
   });
 
@@ -215,7 +215,7 @@ test('the count is of OBLIGATIONS — a partially-funded bill is not counted twi
         { id: 'phone', name: 'Phone', amount: 80, dueDate: '2026-07-01', recurrence: 'monthly', category: 'utilities' },
         { id: 'water', name: 'Water', amount: 60, dueDate: '2026-07-01', recurrence: 'monthly', category: 'utilities' },
       ],
-      prefs: { onboardingComplete: true, guardianIntroSeen: true },
+      prefs: { onboardingComplete: true },
     }),
   );
   await page.goto('/');

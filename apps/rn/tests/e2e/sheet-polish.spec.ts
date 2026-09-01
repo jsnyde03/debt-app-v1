@@ -12,7 +12,7 @@ test.use({ viewport: { width: 402, height: 874 }, hasTouch: true, isMobile: true
 
 const SEED = scenario({
   debts: [{ id: 'd0', name: 'Visa', balance: 6200, originalBalance: 8000, minimumPayment: 160, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' }],
-  prefs: { onboardingComplete: true, guardianIntroSeen: true },
+  prefs: { onboardingComplete: true },
 });
 
 async function openAddSheet(page: import('@playwright/test').Page) {

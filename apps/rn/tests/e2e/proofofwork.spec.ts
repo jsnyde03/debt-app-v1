@@ -37,7 +37,7 @@ for (const theme of ['light', 'dark'] as const) {
       paycheck: { amount: '2400', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
       debts: [{ id: 'car', name: 'Auto Loan', balance: 9800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' }],
       cycleHistory: [0, 1, 2, 3, 4].map(heldCycle),
-      prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },
+      prefs: { onboardingComplete: true, themeMode: theme },
       onboardedAt: '2026-01-01',
     }));
     await page.goto('/');

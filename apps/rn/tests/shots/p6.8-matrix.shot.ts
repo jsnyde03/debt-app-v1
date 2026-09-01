@@ -1,3 +1,4 @@
+import type { ThemeMode } from '@/data/models';
 import path from 'path';
 
 import { expect, test, type Page } from '@playwright/test';
@@ -65,7 +66,7 @@ const VIEWPORTS = {
 type ViewportName = keyof typeof VIEWPORTS;
 
 /** Seeds. `themeMode` is what the app reads; every other field shapes a STATE the matrix is here to show. */
-function seed(theme: string, over: Record<string, unknown> = {}) {
+function seed(theme: ThemeMode, over: Record<string, unknown> = {}) {
   const { prefs, ...rest } = over as { prefs?: Record<string, unknown> };
   return scenario({ prefs: { onboardingComplete: true, themeMode: theme, ...(prefs ?? {}) }, ...rest });
 }

@@ -28,7 +28,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 const UNSEEN = () =>
   scenario({
     genuineCycleCount: 6,
-    prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: [] },
+    prefs: { onboardingComplete: true, coachMarksSeen: [] },
   });
 
 test('V2-6 — the trajectory coach mark does not cover the cash-flow card', async ({ page }) => {

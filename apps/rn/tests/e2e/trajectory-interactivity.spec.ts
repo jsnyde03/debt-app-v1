@@ -21,7 +21,7 @@ const PLAN = scenario({
     { id: 'd1', name: 'Klarna', balance: 900, originalBalance: 1200, minimumPayment: 75, apr: 0, dueDate: '2026-08-14', type: 'bnpl', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
     { id: 'd2', name: 'Car', balance: 11000, originalBalance: 14000, minimumPayment: 320, apr: 6, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
   ],
-  prefs: { onboardingComplete: true, guardianIntroSeen: true },
+  prefs: { onboardingComplete: true },
 });
 
 for (const theme of ['light', 'dark'] as const) {

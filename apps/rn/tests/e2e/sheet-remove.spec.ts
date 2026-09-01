@@ -19,7 +19,7 @@ const SEED = scenario({
     { id: 'd0', name: 'Visa', balance: 6200, originalBalance: 8000, minimumPayment: 160, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
     { id: 'd2', name: 'Car', balance: 11000, originalBalance: 14000, minimumPayment: 320, apr: 6, dueDate: '2026-08-20', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' },
   ],
-  prefs: { onboardingComplete: true, guardianIntroSeen: true },
+  prefs: { onboardingComplete: true },
 });
 
 // ⚠️ [P6.4.7 · L1-31] The control is "Delete" now, not "Remove" — one destroy verb app-wide. This spec

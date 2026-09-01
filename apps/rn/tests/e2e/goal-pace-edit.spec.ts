@@ -26,7 +26,6 @@ const STOOD_DOWN = () =>
     paycheck: { amount: '4000', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(28) },
     prefs: {
       onboardingComplete: true,
-      guardianIntroSeen: true,
       coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'],
     },
     goals: [{ id: 'g0', name: 'Roof', targetAmount: 3000, currentAmount: 400, type: 'savings' }],
@@ -108,7 +107,7 @@ test('the controls are absent on THE emergency fund, and present on a second one
     page,
     scenario({
       genuineCycleCount: 6,
-      prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
+      prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
       goals: [
         { id: 'g0', name: 'Emergency fund', targetAmount: 2000, currentAmount: 500, type: 'emergency' },
         { id: 'g1', name: 'Second cushion', targetAmount: 1000, currentAmount: 0, type: 'emergency' },
@@ -147,7 +146,7 @@ test('a second emergency fund is called Savings in the sheet too, and says why',
     page,
     scenario({
       genuineCycleCount: 6,
-      prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
+      prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
       goals: [
         { id: 'g0', name: 'Emergency fund', targetAmount: 2000, currentAmount: 500, type: 'emergency' },
         { id: 'g1', name: 'Second cushion', targetAmount: 1000, currentAmount: 0, type: 'emergency' },

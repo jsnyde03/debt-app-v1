@@ -100,9 +100,9 @@
     "token": "  priorityGoalIsCapped,"
   },
   "GAP-2": {
-    "what": "S0.13 GAP-2 — CLOSED S1.10.6.5.8.1. selfCheck's poisoned outcome carried `store: null` and EIGHT OF THE NINE invariants return early on a null store, so its own line — 'the invariants fire (1 on a poisoned outcome)' — was literally true and covered 1/9; the other eight could be deleted, inverted or broken with the suite green. And INVARIANTS.length was printed in two places and asserted nowhere, so removing one was silent too. Now one purpose-built poison PER invariant, each checked against its OWN function rather than through checkAll (checkAll returning something proves only that SOMETHING fired — the vacuity this exists to rule out), plus a clean-control assertion per poison, a downward-only length floor, and BOTH list directions. Plant-verified 11/11: each invariant neutered in turn while keeping its name, each red naming itself; plus an unpoisoned invariant added, and one removed",
+    "what": "S0.13 GAP-2 — CLOSED S1.10.6.5.8.1. selfCheck's poisoned outcome carried `store: null` and EIGHT OF THE NINE invariants return early on a null store, so its own line — 'the invariants fire (1 on a poisoned outcome)' — was literally true and covered 1/9; the other eight could be deleted, inverted or broken with the suite green. And INVARIANTS.length was printed in two places and asserted nowhere, so removing one was silent too. Now one purpose-built poison PER invariant, each checked against its OWN function rather than through checkAll (checkAll returning something proves only that SOMETHING fired — the vacuity this exists to rule out), plus a clean-control assertion per poison, a downward-only length floor, and BOTH list directions. Plant-verified 11/11: each invariant neutered in turn while keeping its name, each red naming itself; plus an unpoisoned invariant added, and one removed ⛔ S1.13.7.10.3 — TOKEN RE-POINTED: `D1-4` introduced a `SKIP` sentinel distinct from `null`, so this line became `if (!fired(fn(outcome)))`. The check it pins is unchanged; what moved is the spelling, because `!== null` would now read SKIP as a violation.",
     "file": "apps/rn/src/data/migrationAudit/audit.test.ts",
-    "token": "if (fn(outcome) === null) {"
+    "token": "if (!fired(fn(outcome))) {"
   },
   "GAP-3": {
     "what": "S0.13 GAP-3 — CLOSED S1.10.6.5.8.1, folded into GAP-2's harness as its remedy prescribed. GOAL_MONEY_FIELDS and the goals check(...) call catch nothing on the live corpus, so deleting them was silent — and both real goal-money defects lived behind exactly that field list. The poison is the probe C-import-bridge-backup ran once by hand: a goal whose targetAmount arrives as a string. Tracked apart from GAP-2 because it is a different link — GAP-2 proves moneyKeepsItsType fires at all, this proves it reaches GOALS",
@@ -2919,6 +2919,22 @@
       ],
       "run": "test:app",
       "expect": "a STILL-REFERENCED deleted id is not re-issued"
+    }
+  },
+  "S1P6-A1-1-FIXTUREPREFS": {
+    "what": "S1.13.7.10 [pass-6 A1-1 + A1-2] - `scenario(over: Record<string, unknown>)` meant NO fixture field was type-checked against DebtStore at any point between a spec and the browser: seedStore serialises with JSON.stringify, so a typo that changed a pref's SHAPE was invisible to tsc, to the linters and to the run, surviving for as long as nothing dereferenced it. Two measured instances: `coachMarksSeen: true` where the type is string[] (both consumers call .includes, and true.includes is a TypeError - so a spec reaching coachMarks.show() would CRASH rather than suppress, and its green would mean 'the overlay crashed'), and `guardianIntroSeen` seeded by 40 call sites while NO SUCH PREF EXISTS - v7 dropped it and migrations.ts:502 strips it before the app sees it. `over.prefs` is now typed DeepPartial<Preferences>, so the compiler catches both, proven by planting each back. AND THE TYPE FOUND A DEFECT NO LANE REPORTED: two specs seeded `tutorialSeen: false` where the type is 'free'|'premium'|null and the field's docblock says 'deliberately not a boolean' - tutorialSelectors tests `seen === null` strictly, so `false` means 'will NOT be offered the tutorial', the opposite of what the fixture reads as. FILED, NOT DONE: typing the WHOLE bag surfaces 91 errors - 40 these, 16 array-literal widening, the rest legitimately-invalid fixtures like data-recovery's deliberate `balance: null` - so it needs deliberate handling rather than a sweep.",
+    "file": "apps/rn/tests/e2e/helpers/seed.ts",
+    "token": "DeepPartial<DebtStore['prefs']>",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/tests/e2e/intent-undo.spec.ts",
+          "find": "coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub']",
+          "replace": "coachMarksSeen: true"
+        }
+      ],
+      "run": "typecheck:tests",
+      "expect": "is not assignable to type 'string[]'"
     }
   }
 }

@@ -1,3 +1,4 @@
+import type { ThemeMode } from '@/data/models';
 import path from 'path';
 
 import { test, type Page } from '@playwright/test';
@@ -42,7 +43,7 @@ const IPAD_LANDSCAPE = { width: 1194, height: 834 };
 const IPAD_PORTRAIT = { width: 834, height: 1194 };
 
 /** Every seed here is the real one plus a pinned theme — `themeMode` is what the app reads. */
-function seed(theme: string, over: Record<string, unknown> = {}) {
+function seed(theme: ThemeMode, over: Record<string, unknown> = {}) {
   const { prefs, ...rest } = over as { prefs?: Record<string, unknown> };
   return scenario({
     prefs: { onboardingComplete: true, themeMode: theme, ...(prefs ?? {}) },
@@ -50,7 +51,7 @@ function seed(theme: string, over: Record<string, unknown> = {}) {
   });
 }
 
-const shot = (page: Page, theme: string, name: string) =>
+const shot = (page: Page, theme: ThemeMode, name: string) =>
   page.screenshot({ path: path.join(OUT, theme, `${name}.png`) });
 
 /** The beat has to finish measuring → scrolling → re-measuring before a frame means anything. */

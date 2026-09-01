@@ -28,7 +28,6 @@ const PAYDAY_TODAY = () =>
     onboardedAt: '2026-01-01',
     prefs: {
       onboardingComplete: true,
-      guardianIntroSeen: true,
       coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'],
     },
   });

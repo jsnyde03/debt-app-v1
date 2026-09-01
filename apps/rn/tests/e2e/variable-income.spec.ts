@@ -35,7 +35,7 @@ const MONEY = {
 const FIXED = scenario({
   paycheck: { amount: '3000', payCycle: 'monthly', currentDate: day(0), incomeVaries: false, leanAmount: 0 },
   ...MONEY,
-  prefs: { onboardingComplete: true, guardianIntroSeen: true },
+  prefs: { onboardingComplete: true },
 });
 
 test('the paycheck sheet can turn variable income ON, and the plan starts using it', async ({ page }) => {
@@ -80,7 +80,7 @@ test('turning it back off clears the floor rather than leaving a stale one', asy
   await seedStore(page, scenario({
     paycheck: { amount: '3000', payCycle: 'monthly', currentDate: day(0), incomeVaries: true, leanAmount: 2200 },
     ...MONEY,
-    prefs: { onboardingComplete: true, guardianIntroSeen: true },
+    prefs: { onboardingComplete: true },
   }));
   await page.goto('/');
 

@@ -20,7 +20,7 @@ function windfallScenario(themeMode?: 'light' | 'dark') {
     goals: [{ id: 'g0', name: 'Emergency fund', targetAmount: 3000, currentAmount: 0, type: 'emergency' }],
     livingExpenses: [{ id: 'l0', name: 'Living', amount: 800, enabled: true }],
     paycheck: { amount: '1500', currentDate: day(0), nextPaycheckDate: day(31) },
-    prefs: { onboardingComplete: true, guardianIntroSeen: true, ...(themeMode ? { themeMode } : {}) },
+    prefs: { onboardingComplete: true, ...(themeMode ? { themeMode } : {}) },
   });
 }
 

@@ -317,7 +317,7 @@ test('a relaunch mid-demo lands on onboarding with no demo running', async ({ pa
 // COVERS: §12.2.3 — the walkthrough KEEPS its tab bar. The demo hides it (§12.2.1) and that difference is
 // deliberate; this is the assertion that says the demo-only change did not leak into the walkthrough.
 test('the walkthrough keeps its tab bar — the demo-only hide did not leak', async ({ page }) => {
-  await seedStore(page, scenario({ prefs: { onboardingComplete: true, tutorialSeen: false } }));
+  await seedStore(page, scenario({ prefs: { onboardingComplete: true, tutorialSeen: null } }));
   await page.goto('/tutorial');
 
   await expect(page.getByTestId('tutorial-progress')).toBeVisible({ timeout: 15_000 });
@@ -329,7 +329,7 @@ test('the walkthrough keeps its tab bar — the demo-only hide did not leak', as
 test('the walkthrough does not double the marker', async ({ page }) => {
   // A walkthrough renders sandbox money too, so a marker keyed on the MONEY would show alongside the
   // dock's own "Example money" line. Two disclosures is the chrome [D6] refused.
-  await seedStore(page, scenario({ prefs: { onboardingComplete: true, tutorialSeen: false } }));
+  await seedStore(page, scenario({ prefs: { onboardingComplete: true, tutorialSeen: null } }));
   await page.goto('/tutorial');
 
   await expect(page.getByTestId('tutorial-progress')).toBeVisible({ timeout: 15_000 });

@@ -28,7 +28,7 @@ test.use({ viewport: { width: 402, height: 874 } });
 const GROWN = () =>
   scenario({
     genuineCycleCount: 6,
-    prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
+    prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
     debts: [
       {
         id: 'd0',
@@ -73,7 +73,7 @@ test('C-D — and Money, on the same store, states the same remaining total', as
  * sentence for another.
  */
 test('a fresh portfolio still leads forward with its full balance', async ({ page }) => {
-  await seedStore(page, scenario({ prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] } }));
+  await seedStore(page, scenario({ prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] } }));
   await page.goto('/progress');
   await expect(page.getByTestId('progress-hero-journey')).toHaveText('$5,000 to go', { timeout: 15_000 });
 });
@@ -91,7 +91,7 @@ test('a fresh portfolio still leads forward with its full balance', async ({ pag
 test('C-D — a premium estimate does not split the two heroes apart', async ({ page }) => {
   const STALE = scenario({
     genuineCycleCount: 6,
-    prefs: { onboardingComplete: true, guardianIntroSeen: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
+    prefs: { onboardingComplete: true, coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub'] },
     debts: [
       {
         id: 'd0',

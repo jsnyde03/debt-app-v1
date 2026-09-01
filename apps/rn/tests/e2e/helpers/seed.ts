@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test';
 
+import type { DebtStore } from '@/data/models';
+
 /**
  * RS.6 e2e seed — inject a (partial) persisted store into the web app's `localStorage` BEFORE it loads,
  * so the app hydrates straight into a chosen scenario. The store's `hydrate` runs `runMigrations`, which
@@ -42,7 +44,28 @@ const BILL = { id: 'e0', name: 'Rent', amount: 350, dueDate: day(4), recurrence:
  * ⚠️ A spec that genuinely needs the empty case passes `requiredExpenses: []` explicitly — which then reads
  * as a deliberate choice rather than an accident of the default.
  */
-export function scenario(over: Record<string, unknown> = {}): Record<string, unknown> {
+/**
+ * ⛔ **S1.13.7.10 [pass-6 `A1-1` + `A1-2`] — `prefs` IS TYPE-CHECKED; THE REST OF THE BAG IS NOT (YET).**
+ *
+ * `scenario(over: Record<string, unknown>)` meant **no fixture field was checked against `DebtStore` at
+ * any point between the spec and the browser** — `seedStore` serialises with `JSON.stringify`, so a typo
+ * that changes a pref's SHAPE was invisible to `tsc`, to the linters and to the run, and survived for as
+ * long as nothing dereferenced it. ⚡ Measured: `coachMarksSeen: ['payoff-schedule', 'debt-row-actions', 'trajectory-scrub']` where the type is `string[]`
+ * (`true.includes` is a `TypeError`, so a spec that ever reached `coachMarks.show()` would crash rather
+ * than suppress), and **`guardianIntroSeen` seeded by 40 call sites while no such pref exists**.
+ *
+ * ⚠️ **Typing the WHOLE bag surfaced 91 errors and is filed as its own item** — 40 of them these two, 16
+ * array-literal widening, and the rest legitimately-invalid fixtures (`data-recovery.spec.ts` seeds
+ * `balance: null` on purpose; that suite exists for it). Blanket-casting those would defeat the check, so
+ * they need deliberate handling rather than a sweep at speed.
+ */
+type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends (infer U)[] ? DeepPartial<U>[] : T[K] extends object ? DeepPartial<T[K]> : T[K];
+};
+
+export function scenario(
+  over: Record<string, unknown> & { prefs?: DeepPartial<DebtStore['prefs']> } = {},
+): Record<string, unknown> {
   return {
     storeVersion: 5,
     subscriptionPlan: 'premium',

@@ -16,7 +16,7 @@ test('VIS-5: variable income surfaces a Safe-floor date on the trajectory', asyn
         { id: 'e0', name: 'Rent', amount: 1500, dueDate: '2026-08-01', recurrence: 'monthly' },
         { id: 'e1', name: 'Car', amount: 400, dueDate: '2026-08-10', recurrence: 'monthly' },
       ],
-      prefs: { onboardingComplete: true, guardianIntroSeen: true },
+      prefs: { onboardingComplete: true },
     }),
   );
   await page.goto('/progress');
@@ -31,7 +31,7 @@ test('VIS-5: fixed income shows no Safe-floor band', async ({ page }) => {
       paycheck: { amount: '3000', payCycle: 'monthly', currentDate: '2026-08-01', incomeVaries: false, leanAmount: 0 },
       debts: [{ id: 'd0', name: 'Visa', balance: 9000, minimumPayment: 220, apr: 21, dueDate: '2026-08-05', type: 'debt', recurrence: 'monthly', originalBalance: 11000, balanceAsOfDate: '2026-08-01' }],
       requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 1500, dueDate: '2026-08-01', recurrence: 'monthly' }],
-      prefs: { onboardingComplete: true, guardianIntroSeen: true },
+      prefs: { onboardingComplete: true },
     }),
   );
   await page.goto('/progress');

@@ -21,7 +21,7 @@ test('More hub shows an always-visible "Unlock Premium" entry that opens the pay
 });
 
 test('free Guardian invite is a tappable button that opens the paywall', async ({ page }) => {
-  await seedStore(page, free({ prefs: { onboardingComplete: true, guardianIntroSeen: true } }));
+  await seedStore(page, free({ prefs: { onboardingComplete: true } }));
   await page.goto('/');
   const invite = page.getByText(/Premium works out how much to keep back/i);
   await expect(invite).toBeVisible();
@@ -31,7 +31,7 @@ test('free Guardian invite is a tappable button that opens the paywall', async (
 });
 
 test('free Guardian invite renders in dark theme', async ({ page }) => {
-  await seedStore(page, free({ prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: 'dark' } }));
+  await seedStore(page, free({ prefs: { onboardingComplete: true, themeMode: 'dark' } }));
   await page.goto('/');
   await expect(page.getByText(/Premium works out how much to keep back/i)).toBeVisible();
   await page.screenshot({ path: 'test-results/guardian-free-invite-dark.png', fullPage: true });

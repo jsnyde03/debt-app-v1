@@ -81,10 +81,10 @@ function run() {
   {
     const s = inst({
       debts: [
-        { id: 'debt-2026-09-01-1', name: 'Visa', balance: 1000, minimumPayment: 50, apr: 20, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly' },
-        { id: 'debt-2026-09-01-2', name: 'Store Card', balance: 500, minimumPayment: 25, apr: 25, dueDate: '2026-09-06', type: 'debt', recurrence: 'monthly' },
+        { id: 'debt-2026-09-01-1', name: 'Visa', balance: 1000, minimumPayment: 50, apr: 20, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly' }, // fixture-date-ok: this test asserts round-trip / deletion identity; no branch here reads a clock
+        { id: 'debt-2026-09-01-2', name: 'Store Card', balance: 500, minimumPayment: 25, apr: 25, dueDate: '2026-09-06', type: 'debt', recurrence: 'monthly' }, // fixture-date-ok: this test asserts round-trip / deletion identity; no branch here reads a clock
       ] as DebtStore['debts'],
-      requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 350, dueDate: '2026-09-01', recurrence: 'monthly' }] as DebtStore['requiredExpenses'],
+      requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 350, dueDate: '2026-09-01', recurrence: 'monthly' }] as DebtStore['requiredExpenses'], // fixture-date-ok: this test asserts round-trip / deletion identity; no branch here reads a clock
       livingExpenses: [{ id: 'l0', name: 'Groceries', amount: 400, enabled: true }] as DebtStore['livingExpenses'],
       goals: [{ id: 'g0', name: 'Emergency Fund', type: 'emergency', currentAmount: 500, targetAmount: 5000 }] as DebtStore['goals'],
       // ⛔ The dangling reference is the blocker's whole shape: the user ticked an extra payment against
@@ -122,8 +122,8 @@ function run() {
      */
     const clean = inst({
       debts: [
-        { id: 'debt-2026-09-01-1', name: 'Visa', balance: 1000, minimumPayment: 50, apr: 20, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly' },
-        { id: 'debt-2026-09-01-2', name: 'Store Card', balance: 500, minimumPayment: 25, apr: 25, dueDate: '2026-09-06', type: 'debt', recurrence: 'monthly' },
+        { id: 'debt-2026-09-01-1', name: 'Visa', balance: 1000, minimumPayment: 50, apr: 20, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly' }, // fixture-date-ok: this test asserts round-trip / deletion identity; no branch here reads a clock
+        { id: 'debt-2026-09-01-2', name: 'Store Card', balance: 500, minimumPayment: 25, apr: 25, dueDate: '2026-09-06', type: 'debt', recurrence: 'monthly' }, // fixture-date-ok: this test asserts round-trip / deletion identity; no branch here reads a clock
       ] as DebtStore['debts'],
     });
     clean.getState().removeDebt('debt-2026-09-01-2');

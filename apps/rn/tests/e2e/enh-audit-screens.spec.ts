@@ -27,7 +27,7 @@ const rich = (themeMode: 'light' | 'dark') =>
       { id: 'phone', name: 'Phone', amount: 65, dueDate: '2026-08-15', recurrence: 'monthly' },
     ],
     goals: [{ id: 'ef', name: 'Emergency Fund', type: 'emergency', currentAmount: 600, targetAmount: 2000 }],
-    prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode },
+    prefs: { onboardingComplete: true, themeMode },
   });
 
 const SURFACES: { path: string; name: string }[] = [

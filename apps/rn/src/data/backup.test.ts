@@ -276,10 +276,10 @@ function storeWithDebt(): DebtStore {
     { targetId: 'paypal-2', label: 'Extra payment to PayPal', category: 'snowball', recommendedAmount: 100, actualAmount: 100 },
   ];
   store.requiredExpenses = [
-    { id: 'e1', name: 'Rent', amount: 1465, dueDate: '2026-09-01', recurrence: 'monthly', isPaidThisCycle: true },
+    { id: 'e1', name: 'Rent', amount: 1465, dueDate: '2026-09-01', recurrence: 'monthly', isPaidThisCycle: true }, // fixture-date-ok: this test asserts round-trip / deletion identity; no branch here reads a clock
   ];
   store.debts = [
-    { id: 'card', name: 'Visa', balance: 4271, minimumPayment: 96, apr: 22.74, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly', minimumPaidThisCycle: true, isPaidThisCycle: true },
+    { id: 'card', name: 'Visa', balance: 4271, minimumPayment: 96, apr: 22.74, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly', minimumPaidThisCycle: true, isPaidThisCycle: true }, // fixture-date-ok: this test asserts round-trip / deletion identity; no branch here reads a clock
   ];
 
   const parsed = parseBackup(serializeBackup(store));

@@ -1,3 +1,4 @@
+import type { ThemeMode } from '@/data/models';
 import path from 'path';
 
 import { test } from '@playwright/test';
@@ -22,7 +23,7 @@ const PINNED_CLOCK = new Date('2026-08-11T09:30:00');
 
 test.use({ viewport: { width: 402, height: 874 } });
 
-const COLD = (theme: string) =>
+const COLD = (theme: ThemeMode) =>
   scenario({ debts: [], paycheck: { amount: '' }, subscriptionPlan: 'free', prefs: { onboardingComplete: false, themeMode: theme } });
 
 for (const theme of ['light', 'dark'] as const) {

@@ -62,7 +62,7 @@ for (const theme of ['light', 'dark'] as const) {
       paycheck: { amount: '2400', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
       // A fresh debt: balance === originalBalance → 0% paid (the deflating case the reframe fixes).
       debts: [{ id: 'd', name: 'Card', balance: 5000, originalBalance: 5000, minimumPayment: 120, apr: 12, dueDate: '2026-08-12', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' }],
-      prefs: { onboardingComplete: true, guardianIntroSeen: true, themeMode: theme },
+      prefs: { onboardingComplete: true, themeMode: theme },
     }));
     await page.goto('/progress');
     await page.waitForTimeout(600);

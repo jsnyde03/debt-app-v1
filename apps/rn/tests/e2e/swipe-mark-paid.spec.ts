@@ -25,7 +25,7 @@ const SEED = scenario({
   requiredExpenses: [
     { id: 'e0', name: 'Power', amount: 90, dueDate: day(3), recurrence: 'monthly', category: 'utilities' },
   ],
-  prefs: { onboardingComplete: true, guardianIntroSeen: true },
+  prefs: { onboardingComplete: true },
 });
 
 const POWER_ACTION = 'swipe-mark-expense-e0';
@@ -124,7 +124,7 @@ test('a healthy autopay row has no swipe action — the same rule that hides its
       requiredExpenses: [
         { id: 'e1', name: 'Internet', amount: 70, dueDate: day(4), recurrence: 'monthly', category: 'utilities', isAutopay: true },
       ],
-      prefs: { onboardingComplete: true, guardianIntroSeen: true },
+      prefs: { onboardingComplete: true },
     }),
   );
   await page.goto('/');

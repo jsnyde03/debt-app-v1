@@ -134,7 +134,7 @@ test.describe('a11y tree invariants', () => {
         requiredExpenses: [
           { id: 'e0', name: 'Power', amount: 90, dueDate: day(3), recurrence: 'monthly', category: 'utilities' },
         ],
-        prefs: { onboardingComplete: true, guardianIntroSeen: true },
+        prefs: { onboardingComplete: true },
       }),
     );
     await page.goto('/');
