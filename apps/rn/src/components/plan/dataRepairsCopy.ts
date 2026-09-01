@@ -217,3 +217,64 @@ export function repairBlocks(repairs: DataRepair[]): RepairBlock[] {
 export function repairsA11yLabel(blocks: RepairBlock[]): string {
   return blocks.map((b) => `${b.heading}. ${b.lines.join('. ')}. ${b.detail}`).join(' ');
 }
+
+
+/**
+ * ⛔ **S1.13.7.8 [pass-6 `C1-1`] — THE CLAUSE THAT TELLS THE USER WHAT TO SET, NAMING THE FIGURE.**
+ *
+ * Three cards on Today — the Guardian, the Required list and Affordability — refused their claim and
+ * ended *"set it again **above**"*. That is a **positional** claim about `DataRepairsCard`, the only
+ * affordance that names *which* amount could not be read — and its lifetime is governed by a different
+ * predicate from theirs. It renders on `!acknowledged`; they render on `poisons`, which never reads
+ * `acknowledged` (deliberately, `A-J2-1`, and correctly). **One "Got it" tap removes the card
+ * permanently and the suppression does not clear**, so from that tap on the user reads three cards
+ * refusing to answer, all pointing at a control that is not on the screen, and none of them naming the
+ * figure to re-enter.
+ *
+ * ⚡ **The fix is to stop depending on a sibling being mounted.** The instruction names the amount, from
+ * the same `FIELD_LABEL` map the repairs card reads, so a field is never called one thing here and
+ * another there.
+ *
+ * ⛔ **AND THE UNANSWERABLE CASE IS A DIFFERENT SENTENCE, not the same one with a name in it.** A whole
+ * row or a whole list that would not read names no field and has no screen to open —
+ * `answerableByEdit` is what tells them apart, and it is the producer `repairBlocks` already uses. Telling
+ * that user to "set it again" is the false-instruction defect wearing the fix's clothes, which is why
+ * `comeback` is dropped on that branch rather than reworded.
+ *
+ * @param repairs the repairs poisoning this claim — `repairsPoisoning(store, claim)`, never re-derived
+ * @param comeback each card's own tail, e.g. "and this comes back"
+ */
+export function unreadInputsFix(repairs: readonly DataRepair[], comeback: string): string {
+  const answerable = repairs.filter(answerableByEdit);
+  if (answerable.length === 0) {
+    // ⚠️ No figure to name and nothing to open. Say what is true rather than issuing an instruction the
+    // user cannot follow.
+    return 'the rows it came from could not be read at all, so there is nothing here to set again';
+  }
+  return `set ${namedFigures(answerable)} again ${comeback}`;
+}
+
+/** "the balance on Visa", "the balance on Visa and the minimum payment on Chase", "the 4 amounts…". */
+function namedFigures(repairs: readonly DataRepair[]): string {
+  // ⚠️ Three or more and the list stops being a sentence. The count is still specific — it tells the user
+  // how many times they are about to be asked — and the rows themselves carry their own captions.
+  if (repairs.length > 2) return `the ${repairs.length} amounts that could not be read`;
+  const parts = repairs.map((r) => {
+    const field = FIELD_LABEL[r.field] ?? r.field;
+    // ⛔ `B5-7`: a repair's `name` can be `''` while the row still exists and is still editable — the
+    // condition is `answerableByEdit`, never `!!r.name`. Falls back to the entity noun so the sentence
+    // still points somewhere real.
+    //
+    // ⚠️ `answerableByEdit` already excludes `'migration'`, and `ENTITY_NOUN` is deliberately exhaustive
+    // over everything else — so `describeRepair`'s spelling is reused rather than a second noun lookup
+    // with a `?? 'item'` fallback, which is precisely what `ENTITY_NOUN`'s docblock refuses.
+    return r.name ? `${field} on ${r.name}` : `${field} on one of your ${pluralNoun(r)}`;
+  });
+  return parts.length === 1 ? parts[0] : `${parts[0]} and ${parts[1]}`;
+}
+
+/** The entity's noun, plural. ⚠️ `answerableByEdit` has already excluded `'migration'`, which has none. */
+function pluralNoun(repair: DataRepair): string {
+  if (repair.entity === 'migration') return 'records';
+  return `${ENTITY_NOUN[repair.entity]}s`;
+}

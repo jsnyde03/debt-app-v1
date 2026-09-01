@@ -27,6 +27,10 @@ async function main() {
   // layer that consumes it. Pass 5's B5-11 fixed one consumer and left the status path saying "sign in".
   await import('../storage/cloudBackup/cloudBackupUnreadable.test');
 
+  // S1.13.7.8 [pass-6 C1-1] — a refusal names the figure, never a sibling card's position. Swept over
+  // every consumer of `unreadPlanInputs`, which is how the fourth site (WindfallSheet) surfaced.
+  await import('../components/plan/unreadInputsCopy.test');
+
   // RS.2 — Guardian selectors (states × tier × regime + break-it).
   await import('../store/guardianSelectors.test');
 

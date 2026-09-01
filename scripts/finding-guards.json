@@ -2771,5 +2771,43 @@
       "measured": "2026-09-01",
       "sha": "7e2b4c74"
     }
+  },
+  "S1P6-C1-1-NAMETHEFIGURE": {
+    "what": "S1.13.7.8 [pass-6 C1-1, major] - three cards on Today refused their claim and ended 'set it again ABOVE'. That is a POSITIONAL claim about DataRepairsCard, the only affordance that names WHICH amount could not be read - and its lifetime is governed by a different predicate: it renders on !acknowledged, they render on poisons, which never reads acknowledged (deliberately, A-J2-1: making mayClaim read it restored 'every balance is cleared' over debts still owed). One 'Got it' tap removes the card permanently, the suppression does not clear, and from that tap the user reads three cards refusing to answer, pointing at a control that is not on the screen, none naming the figure. The clause now names the figure, produced once by unreadInputsFix from FIELD_LABEL - the same map the repairs card reads, so a field is never called one thing here and another there - and repairsPoisoning is exported as the single producer with mayClaim DEFINED IN TERMS OF IT, so the two cannot disagree. THE SWEEP FOUND A FOURTH SITE THE FINDING NEVER NAMED: WindfallSheet says 'set it again' with no figure and no 'above' to give it away. Population is git ls-files over apps/rn/src, comment lines stripped (the docblocks quote the banned wording), plus a HOST check that walks backwards from every unreadPlanInputs= prop in index.tsx to the element that owns it - a card handed the boolean without the clause renders the empty-string default and its sentence trails off mid-instruction. Exemptions carry reasons and a stale one reds. Four plants: the positional claim restored, the host forgetting the clause, the naive fix that instructs even when nothing can be set, and B5-7's member (a blank name read as unanswerable).",
+    "file": "apps/rn/src/components/plan/unreadInputsCopy.test.ts",
+    "token": "no refusal points",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/RequiredActionsCard.tsx",
+          "find": "so this list is incomplete — ${unreadFix}.`",
+          "replace": "so this list is incomplete — set it again above and it comes back.`"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/components/plan/unreadInputsCopy.test.ts"
+      ],
+      "expect": "no refusal points"
+    }
+  },
+  "S1P6-B1-1-UNREADSTILLLIVE": {
+    "what": "S1.13.7.8 after-scan - S1.13.7.4's B1-1 added `unreadBalanceIds` to detectPayoff (required, not defaulted, for tested-helper-is-not-a-used-helper's reason) and NOTHING covered it: every call in payoffCelebration.test.ts passed `new Set()`. Its only exercise was data-recovery.spec.ts's C3 e2e, which pinned the OLD design ('the crossing is still STAMPED; only the render waits') and HAD BEEN RED SINCE d6fd015d, unnoticed for the whole of S1.13.7.4-.7. Measured through the real app: logging the final payment on Visa with Chase's balance unread stamps `{kind:'beat', nextDebtName:'Chase card'}`, not `finale` - which is the truth, since the app has not read that balance. Coverage added at the unit level in BOTH directions plus a control: the unread debt is not a crossing, it is still live afterwards (so its neighbour clearing is a beat), the SAME states with a read balance still fire the finale, and once the balance is supplied and that debt clears the finale still arrives - the old docblock's concern ('gating detectPayoff would lose the finale for the life of the install') answered rather than ignored. The e2e assertion was REPLACED, not deleted, and now pins the beat and its nextDebtName. Proven by planting B1-1's liveAfter half away.",
+    "file": "apps/rn/src/store/payoffCelebration.test.ts",
+    "token": "an UNREAD balance repaired to $0 is still live",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/payoffCelebration.ts",
+          "find": "  const liveAfter = after.filter((d) => d.balance > 0 || unreadBalanceIds.has(d.id));",
+          "replace": "  const liveAfter = after.filter((d) => d.balance > 0);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "an UNREAD balance repaired to $0 is still live"
+    }
   }
 }

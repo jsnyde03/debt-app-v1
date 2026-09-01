@@ -12,7 +12,8 @@ import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectWindfallSplit, type WindfallBucketKey } from '@/store/guardianSelectors';
-import { mayClaim } from '@/store/trustSelectors';
+import { unreadInputsFix } from '@/components/plan/dataRepairsCopy';
+import { mayClaim, repairsPoisoning } from '@/store/trustSelectors';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
@@ -132,8 +133,12 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
         // direction that spends it. Same voice as AffordabilityCard's unread state, and it names the fix.
         <View style={styles.split}>
           <Text testID="windfall-unread-inputs" style={[textStyles.subhead, { color: c.accent.warning }]}>
+            {/* ⛔ S1.13.7.8 [pass-6 `C1-1`] — not one of the three the finding named, and the same class:
+                *"set it again"* with no figure named. It never said "above", so it was never pointing at a
+                card that had gone — it simply did not say WHICH amount. Same producer as its three
+                siblings, so the four cannot drift apart. */}
             An amount this paycheck has to cover could not be read, so I can’t say where this would land —
-            set it again and I’ll route it.
+            {' '}{unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and I’ll route it')}.
           </Text>
         </View>
       ) : !isPremium && validAmount ? (

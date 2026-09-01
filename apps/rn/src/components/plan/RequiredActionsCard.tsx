@@ -51,6 +51,7 @@ export function RequiredActionsCard({
   onAddBill,
   shortfallAdviceOwnedElsewhere = false,
   unreadPlanInputs = false,
+  unreadFix = '',
 }: {
   rows: RequiredRow[];
   /** ⛔ S1.5.2 [B5] — THE ALLOCATION'S REAL ARRAY, ALWAYS. Never an emptied one to hide the list: this
@@ -72,6 +73,8 @@ export function RequiredActionsCard({
    *  remedy is intact: the count is right about what it is given. Asked of the one owner
    *  (`trustSelectors`' `mayClaim(store, 'required-plan')`), never re-derived here. */
   unreadPlanInputs?: boolean;
+  /** ⛔ [`C1-1`] The instruction, naming the figure — see `unreadInputsFix`. */
+  unreadFix?: string;
   /** MF.6 (audit #7) — the premium Recovery Plan is on screen and IT owns the "what do I do about the
    *  shortfall" advice, so this card must not compete with a second plan of action. ⛔ It changes ONE
    *  SENTENCE. The obligations stay listed and stay counted: MF.6 was implemented by emptying `unfunded`
@@ -149,9 +152,12 @@ export function RequiredActionsCard({
         <View style={styles.pad}>
           {unreadPlanInputs ? (
             <Text testID="required-unread-inputs" style={[textStyles.subhead, { color: c.accent.warning }]}>
+              {/* ⛔ S1.13.7.8 [pass-6 `C1-1`] — "above" was a positional claim about `DataRepairsCard`,
+                  whose lifetime is governed by `!acknowledged` while this card's is governed by
+                  `poisons`. One "Got it" tap and there was nothing above. The figure is named now. */}
               {outstanding === 0
-                ? 'An amount this paycheck has to cover could not be read, so this list is incomplete — set it again above and it comes back.'
-                : 'One more amount could not be read, so this list is short of at least one thing — set it again above and it comes back.'}
+                ? `An amount this paycheck has to cover could not be read, so this list is incomplete — ${unreadFix}.`
+                : `One more amount could not be read, so this list is short of at least one thing — ${unreadFix}.`}
             </Text>
           ) : hasAnyBills ? (
             <Text style={[textStyles.subhead, { color: c.accent.success }]}>You’re caught up for this paycheck.</Text>

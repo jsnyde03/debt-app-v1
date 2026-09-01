@@ -281,7 +281,28 @@ function isWholeRowLossField(field: string): boolean {
  * better shape. This is for the sites that have no such state to return.
  */
 export function mayClaim(store: DebtStore, claim: MoneyClaim): boolean {
-  return !store.pendingDataRepairs.some((r) => poisons(r, claim));
+  return repairsPoisoning(store, claim).length === 0;
+}
+
+/**
+ * ⛔ **S1.13.7.8 [pass-6 `C1-1`] — THE SAME QUESTION, ANSWERED WITH THE RECORDS RATHER THAN A BOOLEAN.**
+ *
+ * Three cards on Today refuse a claim and then tell the user to *"set it again **above**"*, pointing at
+ * `DataRepairsCard` — a sibling whose lifetime is governed by a **different predicate**. That card is
+ * gated on `!acknowledged`; these are gated on `poisons`, which never reads `acknowledged` (deliberately —
+ * `A-J2-1`). One "Got it" tap removes the card permanently, the suppression does not clear, and from then
+ * on three cards point at a control that is no longer on the screen, none of them naming the figure.
+ *
+ * ⚡ **The copy needs the RECORDS, not the boolean**, so it can name the amount instead of a position.
+ * Exposed here rather than re-derived in the copy module: `mayClaim` is defined in terms of this, so the
+ * two can never disagree about which repairs poison a claim — the two-producers shape this file exists to
+ * refuse.
+ *
+ * ⛔ **Do NOT make either of these read `acknowledged`.** That is `A-J2-1` verbatim, and it restored
+ * *"every balance is cleared"* over debts still owed.
+ */
+export function repairsPoisoning(store: DebtStore, claim: MoneyClaim): DataRepair[] {
+  return store.pendingDataRepairs.filter((r) => poisons(r, claim));
 }
 
 /**

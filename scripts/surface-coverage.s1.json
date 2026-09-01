@@ -500,6 +500,9 @@
     "s1p4",
     "s1p6"
   ],
+  "apps/rn/src/components/plan/unreadInputsCopy.test.ts": [
+    "never"
+  ],
   "apps/rn/src/components/plan/useCaptureAutoConfirm.ts": [
     "never",
     "s1p1",

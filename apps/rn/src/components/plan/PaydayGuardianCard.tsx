@@ -58,6 +58,7 @@ export function PaydayGuardianCard({
   onReplayTutorial,
   onSetFloor,
   unreadPlanInputs = false,
+  unreadFix = '',
   attestation,
   onAttestBills,
   recovery,
@@ -141,6 +142,8 @@ export function PaydayGuardianCard({
    * brief, which removes Today's whole premium surface rather than making it honest.
    */
   unreadPlanInputs?: boolean;
+  /** ⛔ [`C1-1`] The instruction, naming the figure — `unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and this comes back')`. */
+  unreadFix?: string;
 }) {
   const c = useAppColors();
   const [barW, setBarW] = useState(0);
@@ -205,9 +208,17 @@ export function PaydayGuardianCard({
    * the shortfall-flavoured pitch is chosen by `brief.shortfall`, which is exactly the figure in doubt.
    */
   if (unreadPlanInputs) {
+    /**
+     * ⛔ **S1.13.7.8 [pass-6 `C1-1`] — IT USED TO SAY "set it again ABOVE", AND AFTER THE ACK THERE IS
+     * NOTHING ABOVE.** `DataRepairsCard` — the only affordance that names *which* amount could not be
+     * read — is gated on `!acknowledged`; this card is gated on `poisons`, which never reads
+     * `acknowledged`. One "Got it" tap removes the card permanently and this suppression does not clear,
+     * so the sentence pointed at a control that was no longer on the screen. `unreadInputsFix` names the
+     * figure instead, so the instruction does not depend on a sibling being mounted.
+     */
     const unreadBody =
       `An amount this paycheck has to cover could not be read, so I can’t say what’s spare or hold your ` +
-      `${formatWhole(brief.floor)} line against it — set it again above and this comes back.`;
+      `${formatWhole(brief.floor)} line against it — ${unreadFix}.`;
     return (
       <Card testID="payday-guardian-card">
         <View {...groupLabel(isExample ? 'Example' : undefined, 'Payday Guardian', UNREAD_TITLE, unreadBody)}>

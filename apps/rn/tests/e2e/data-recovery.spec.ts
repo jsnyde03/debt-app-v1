@@ -144,9 +144,18 @@ test('an unreadable balance is NAMED on Today, not silently filed as paid off', 
   await page.goto('/');
 
   await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
-  // ⚠️ The NAME is the assertion. A card saying "an amount could not be read" without saying which is
-  // useless — the user cannot tell a repaired balance from a real one by looking.
-  await expect(page.getByText(/Chase card/)).toBeVisible();
+  /**
+   * ⚠️ The NAME is the assertion. A card saying "an amount could not be read" without saying which is
+   * useless — the user cannot tell a repaired balance from a real one by looking.
+   *
+   * ⛔ **SCOPED TO THE REPAIRS CARD, and the reason is `S1.13.7.8 [pass-6 `C1-1`]`.** Unscoped, this was a
+   * **strict-mode violation the moment that fix landed**: the Guardian and Required cards now name the
+   * figure too, so three elements say "Chase card" on this screen at once. ⚡ The assertion was never
+   * about the page — it was about THIS card naming the row — and it only became ambiguous because the
+   * neighbouring copy got better. **A defect that exists only in the GREEN state**, which is the class no
+   * plant can see: under a plant the text is absent and the locator resolves to one element.
+   */
+  await expect(page.getByTestId('data-repairs-ack').getByText(/Chase card/)).toBeVisible();
 });
 
 test('the notice survives a reload — it is not a one-session message', async ({ page }) => {
@@ -519,9 +528,21 @@ test('C3 · the full-screen finale does not fire over a balance nobody read', as
    * correctly refusing — while the finale printed *"$12,400 paid off · 2 debts"* over a $12,000 card the
    * app could not read, three lines away. Dismissing it spends a once-ever moment.
    *
-   * ⚠️ The crossing is still STAMPED; only the render waits. Gating `detectPayoff` would lose the finale
-   * for the life of the install, which `withPayoffCelebration`'s own docblock spells out — so the
-   * assertion on the stamped record is as load-bearing as the one on the screen.
+   * ⛔ **S1.13.7.8 — THIS DOCBLOCK'S CLAIM WAS OVERTAKEN, AND THE ASSERTION UNDER IT HAD BEEN RED SINCE
+   * `d6fd015d`.** It used to read *"the crossing is still STAMPED; only the render waits"*, and required
+   * `pendingPayoff.kind === 'finale'` on the argument that gating `detectPayoff` would lose the finale
+   * for the life of the install. **`S1.13.7.4`'s `B1-1` changed exactly that** — an unread balance
+   * repaired to `$0` now counts as still LIVE, so this crossing stamps a **`beat`** naming *"Chase card"*
+   * as what comes next, which is the truth: the app has not read that balance and cannot say the user is
+   * debt-free.
+   *
+   * ⚡ **The old concern was answered rather than ignored, and that is asserted at the unit level**
+   * (`payoffCelebration.test.ts`): once the balance is supplied and that debt clears, the crossing
+   * happens THEN and the finale fires. The moment is deferred to the real event, not spent.
+   *
+   * ⚠️ **The assertion is REPLACED, not deleted.** What it defends is unchanged — the once-ever finale
+   * must not be spent on a portfolio the app could not read — and it now pins the record that actually
+   * says so. ⛔ It was also the whole of `B1-1`'s coverage; that gap is closed in the unit suite.
    */
   await seedOnce(
     page,
@@ -547,10 +568,13 @@ test('C3 · the full-screen finale does not fire over a balance nobody read', as
   await page.getByTestId('debt-log-payment').click();
   await page.getByLabel('Amount paid').fill('99999');
   await page.getByRole('button', { name: 'Log payment' }).click();
-  await waitForPersisted(page, (s) => (s.pendingPayoff?.kind ?? null) === 'finale');
+  await waitForPersisted(page, (s) => (s.pendingPayoff?.kind ?? null) === 'beat');
+  // ⛔ …and it names the unread debt as what comes NEXT. A `beat` that named nothing next would be the
+  // same refusal wearing a different word; this is the record stating that Chase is still owed.
+  await waitForPersisted(page, (s) => (s.pendingPayoff as { nextDebtName?: string } | null)?.nextDebtName === 'Chase card');
 
   await page.goto('/');
-  // ⛔ The record IS stamped — asserted above — so this is the render refusing, not the moment being lost.
+  // ⛔ A beat is stamped, not a finale — so this is detection refusing, and the render below refuses too.
   await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('You’re debt-free')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Continue' })).toHaveCount(0);

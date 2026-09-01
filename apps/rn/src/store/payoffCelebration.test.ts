@@ -63,6 +63,45 @@ export default async function run() {
     eq(detectPayoff(before, after, 'snowball', new Set())?.kind, 'finale', 'clearing the last live debt fires the FINALE');
   }
 
+  /**
+   * ⛔ **S1.13.7.8 [pass-6, after-scan] — `unreadBalanceIds` HAD NO UNIT COVERAGE AT ALL.**
+   *
+   * `S1.13.7.4`'s `B1-1` added this parameter — required, not defaulted, for the reason its own docblock
+   * gives — and **every call in this file passed `new Set()`**, so the behaviour it was added for was
+   * asserted nowhere. ⚡ The only test that exercised it was an e2e (`data-recovery.spec.ts` C3), and
+   * that test pinned the OLD design and **had been red since `d6fd015d`**. This is the sub-step's own
+   * class, one level up: the fix reached the production call site and the coverage did not follow.
+   *
+   * ⚠️ **Both directions, because the parameter changes two separate decisions**: a repaired-to-$0 unread
+   * balance is not a CROSSING (nothing to celebrate), and it is still LIVE afterwards (so clearing its
+   * neighbour is a beat, not the finale).
+   */
+  {
+    // ⛔ Chase's balance could not be read and repaired to 0. Visa clears. This is NOT debt-free.
+    const before = [debt({ id: 'chase', balance: 0, originalBalance: 12000 }), debt({ id: 'visa', balance: 400, originalBalance: 400 })];
+    const after = [before[0], { ...before[1], balance: 0 }];
+    const unread = new Set(['chase']);
+
+    const result = detectPayoff(before, after, 'snowball', unread);
+    assert(result?.kind === 'beat', '⛔ B1-1 — an UNREAD balance repaired to $0 is still live: this is a beat, not the finale');
+    if (result?.kind === 'beat') {
+      eq(result.debtName, 'Debt visa', 'named for the debt that actually crossed');
+      eq(result.nextDebtName, 'Debt chase', '…and the unread debt is what the plan says comes next, because it is not cleared');
+    }
+
+    // ⭐ THE CONTROL, and it is the assertion that makes the one above mean something: the SAME states
+    // with nothing unread give the finale. Without it, a `detectPayoff` that never fires the finale
+    // would pass the row above perfectly.
+    eq(detectPayoff(before, after, 'snowball', new Set())?.kind, 'finale', '…while the same states with a READ balance still fire it');
+
+    // ⛔ AND THE MOMENT IS NOT LOST, which is what the old design was protecting. Once the balance is
+    // supplied and that debt clears, the crossing happens then and the finale fires — deferred to the
+    // true event rather than spent on a portfolio the app could not read.
+    const supplied = [debt({ id: 'chase', balance: 12000, originalBalance: 12000 }), debt({ id: 'visa', balance: 0, originalBalance: 400 })];
+    const cleared = [{ ...supplied[0], balance: 0 }, supplied[1]];
+    eq(detectPayoff(supplied, cleared, 'snowball', new Set())?.kind, 'finale', '⭐ …and the finale still arrives when the real last debt clears');
+  }
+
   // ── ⛔ THE OVER-FIRING GUARD. Both halves of `before > 0 && after <= 0` matter. ──────────────────
   //
   // The Payday Autopilot re-verifies balances in batch, and a long-cleared debt is re-confirmed at $0

@@ -68,7 +68,8 @@ import { selectAllocation } from '@/store/selectors';
 import { TutorialFence } from '@/components/plan/TutorialFence';
 import { stageBounds } from '@/components/plan/tutorialStage';
 import { displayCushion } from '@/store/guardianSubjects';
-import { anyRowFieldUnread, mayClaim } from '@/store/trustSelectors';
+import { unreadInputsFix } from '@/components/plan/dataRepairsCopy';
+import { anyRowFieldUnread, mayClaim, repairsPoisoning } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 // ⛔ [T6.9] Today built FOUR currency strings by hand — none of them in L4-2's list, in T1's surface
 // inventory, or in T6.4's body-grep. Two were the SAME sentence rendered twice (visual + spoken) and only
@@ -365,6 +366,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // ⚠️ The honest caption on `RequiredActionsCard` does not cover it: different card, below
               // this one, and this one was still printing the wrong dollar figure above it.
               unreadPlanInputs={!mayClaim(store, 'required-plan')}
+              unreadFix={unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and this comes back')}
               isExample={isExample}
               proofOfWork={proofOfWork}
               onSeeForecast={() => router.push('/cushion-forecast')}
@@ -541,6 +543,7 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               hasAnyBills={store.requiredExpenses.length > 0}
               /* ⛔ S1.9.2 [C4] — asked of the ONE owner, never re-derived here. */
               unreadPlanInputs={!mayClaim(store, 'required-plan')}
+              unreadFix={unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and it comes back')}
               onAddBill={() => setAddBillOpen(true)}
             />
           </TutorialFence>

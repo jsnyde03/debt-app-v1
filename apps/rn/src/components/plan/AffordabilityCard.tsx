@@ -12,7 +12,8 @@ import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectAffordability, type Affordability } from '@/store/guardianSelectors';
-import { mayClaim } from '@/store/trustSelectors';
+import { unreadInputsFix } from '@/components/plan/dataRepairsCopy';
+import { mayClaim, repairsPoisoning } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { haptics } from '@/motion';
@@ -230,8 +231,10 @@ export function AffordabilityCard() {
         // ⛔ [`G-4`] — see the `unreadPlanInputs` docblock. Same voice as `RequiredActionsCard`'s unread
         // state, and it points at the same fix: the amount is re-suppliable, and setting it clears this.
         <Text testID="afford-unread-inputs" style={[textStyles.subhead, styles.hint, { color: c.accent.warning }]}>
+          {/* ⛔ S1.13.7.8 [pass-6 `C1-1`] — "above" named `DataRepairsCard`, which one "Got it" tap
+              removes for good while this suppression stays. The figure is named now. */}
           An amount this paycheck has to cover could not be read, so I’d be answering off a plan that’s
-          missing something — set it again above and I can tell you.
+          missing something — {unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and I can tell you')}.
         </Text>
       ) : !isPremium ? (
         <View style={styles.read}>
