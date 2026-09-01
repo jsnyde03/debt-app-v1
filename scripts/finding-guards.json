@@ -2791,7 +2791,9 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/components/plan/unreadInputsCopy.test.ts"
       ],
-      "expect": "no refusal points"
+      "expect": "no refusal points",
+      "measured": "2026-09-01",
+      "sha": "356d6427"
     }
   },
   "S1P6-B1-1-UNREADSTILLLIVE": {
@@ -2807,7 +2809,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "an UNREAD balance repaired to $0 is still live"
+      "expect": "an UNREAD balance repaired to $0 is still live",
+      "measured": "2026-09-01",
+      "sha": "356d6427"
     }
   }
 }
