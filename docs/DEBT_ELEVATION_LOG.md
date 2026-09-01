@@ -30231,3 +30231,36 @@ and the item close now ends with a push**, with the result read from `gh run vie
 never from a piped `watch`. ⚠️ Holding a push back does not save a spinner; it hides a red one.
 
 The portfolio memory `batch-ci-builds` carries the same distinction now.
+
+## S1.13.7.9 — the suite is 51 red, 2026-09-01 *(in flight)*
+
+⭐ **`.9.0` ANSWERED BY CI, FOR FREE.** `04e65010` on Linux: **288 passed · 51 failed**, against **302 · 37**
+locally. Same clusters in the same order — `tutorial-invite` largest in both, then `celebration` ·
+`swipe-mark-paid` · `expense-reserve` · `payday-reopen` · `a11y-axe` — plus `absorb-entry`, `recovery` and
+`premium-entry`, which did not fail locally. **Not a platform artifact, and the number is 51.**
+⭐ typecheck, `lint:rn` 45/45 and all three unit suites are GREEN in CI, confirming the local greens
+independently.
+
+⛔ **AND THE FIRST SINGLE-CAUSE HYPOTHESIS WAS REFUTED BY ITS SECOND CLUSTER, WHICH IS THE ONLY REASON IT
+IS NOT NOW A WRONG FIX.** The shared fixture `helpers/seed.ts` is in the unpushed range: `S1.13.7.1` moved
+the default debt and bill from `dueDate: '2026-07-01'` — **61 days overdue** — to `day(6)` and `day(4)`,
+which is the correct call *(43 of 63 spec files had been silently driving the OVERDUE branch)*. Flipping
+just those two literals to `day(-6)`/`day(-4)`:
+
+| cluster | with the current default | with the default overdue |
+|---|---|---|
+| `expense-reserve` | 10 passed · **1 failed** | **11 passed · 0 failed** |
+| `swipe-mark-paid` + `a11y-axe` | 9 passed · **4 failed** | 9 passed · **4 failed** |
+
+⚡ **One cluster moves and the other does not.** Had I stopped at the first, I would have reverted a
+correct fix and reported the suite as explained. `measure-agent-mechanisms`, applied to my own hypothesis.
+
+⚠️ **`expense-reserve`'s failure is a CLICK THAT NEVER LANDS**, not a missing element: the button resolves
+and Playwright reports *"attempting click action"* to timeout. A row whose bill is due in the future
+renders differently from an overdue one, and something in that state never becomes stable — **which may be
+a real defect the old fixture was hiding, and is exactly `S1.13.7.1`'s thesis.** Do not assume the repair
+is to change the fixture back.
+
+⛔ **The `swipe-mark-paid` / `a11y-axe` cluster is NOT mine** — 3 failed with `C1-1`'s seven files reverted
+to `4d133dcf`. `swipe-mark-expense-e0` and `Mark paid` are **absent from the DOM** and `a11y-axe` counts
+**0 `[inert]`**, so it is the swipe-pane / fence mechanism. Cause still unattributed, inside the 36.
