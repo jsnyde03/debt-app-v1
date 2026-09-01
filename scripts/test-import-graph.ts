@@ -14,6 +14,7 @@
  * Usage: npm run lint:import-graph
  */
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -107,6 +108,80 @@ const all = new Set([...consumers, ...siblings]);
 check(all.size < sourceFiles.length / 2, `the neighbourhood of ONE file is a neighbourhood (${all.size} of ${sourceFiles.length}), not the repo`);
 check(!all.has('apps/rn/src/app/onboarding.tsx'), 'an unrelated screen is NOT in the neighbourhood of one engine file');
 
+/**
+ * ⛔ **S1.13.7.9 — A MODULE THAT LOADS A RENDERER MAY NOT BE IMPORTED FOR A PLAIN VALUE.**
+ *
+ * ⚡ **This is the defect that turned a MINOR into 51 red e2e specs.** `C1-18` observed, correctly, that
+ * `RESERVE_OPACITY = 0.5` was declared twice with a comment telling a human to keep the two equal — two
+ * producers of one fact. Its remedy made `CushionBarChart` the owner and had `PaydayGuardianCard` import
+ * the number from it. ⛔ **`CushionBarChart` imports `@shopify/react-native-skia` at MODULE SCOPE**, so
+ * that one-number import put **CanvasKit into Today's import graph for every render**. Today threw
+ * `Cannot read properties of undefined (reading 'XYWHRect')` and rendered an **empty body** — the swipe
+ * actions, the tutorial fence and every click target simply were not there.
+ *
+ * ⚠️ **The lesson is not "do not de-duplicate", it is that WHERE a shared value lives is part of the fix.**
+ * Hoisting to whichever module happens to use it first exports that module's dependencies along with the
+ * value. The token now lives in `theme/colors.ts` and both sides import it from there.
+ *
+ * ⛔ **The population is DERIVED**, not listed: every tracked module whose own source imports a renderer
+ * package, and every module that imports one of those. An importer must either load a renderer itself —
+ * in which case it already pays that cost — or be named in `RENDERER_CONSUMERS` with a reason.
+ */
+const RENDERER_PACKAGES = ['@shopify/react-native-skia', 'canvaskit-wasm'];
+
+/**
+ * A binding a NON-renderer module may take from a renderer module.
+ *
+ * ⛔ **The discriminator is PascalCase, and it is the whole rule.** A screen importing `<TrajectoryChart/>`
+ * is rendering a chart — it wanted the renderer and pays for it deliberately. A module importing
+ * `RESERVE_OPACITY` wanted **a number**, and a number must never cost you CanvasKit. Types are PascalCase
+ * too and are erased at build, so they are correctly permitted.
+ */
+const isComponentBinding = (name: string) => /^[A-Z][a-zA-Z0-9]*$/.test(name) && name !== name.toUpperCase();
+
+/** A non-component binding taken from a renderer module, with the reason it is acceptable. */
+const RENDERER_VALUE_IMPORTS: Record<string, string> = {};
+
+{
+	const loadsRenderer = new Set<string>();
+	for (const f of sourceFiles) {
+		if (!/\.(ts|tsx)$/.test(f)) continue;
+		const src = readFileSync(resolve(REPO_ROOT, f), 'utf8');
+		if (RENDERER_PACKAGES.some((pkg) => src.includes(`from '${pkg}'`) || src.includes(`from "${pkg}"`))) {
+			loadsRenderer.add(f);
+		}
+	}
+	// ⚠️ A population floor: if the detector stops finding renderer modules the whole block passes
+	// vacuously, which is the shape `assertScanFloor` exists for elsewhere.
+	check(loadsRenderer.size >= 5, `the renderer detector sees the charts (${loadsRenderer.size} modules load one)`);
+
+	const offenders: string[] = [];
+	for (const target of loadsRenderer) {
+		for (const importer of graph.consumersOf.get(target) ?? []) {
+			if (loadsRenderer.has(importer)) continue;
+			const src = readFileSync(resolve(REPO_ROOT, importer), 'utf8');
+			for (const m of src.matchAll(/import\s*(?:type\s*)?\{([^}]*)\}\s*from\s*['"]([^'"]+)['"]/g)) {
+				if (resolveSpecifier(importer, m[2], tracked) !== target) continue;
+				for (const raw of m[1].split(',')) {
+					const name = raw.split(/\s+as\s+/)[0].replace(/\btype\b/, '').trim();
+					if (!name || isComponentBinding(name)) continue;
+					const key = `${importer} -> ${target}#${name}`;
+					if (key in RENDERER_VALUE_IMPORTS) continue;
+					offenders.push(key);
+				}
+			}
+		}
+	}
+	check(
+		offenders.length === 0,
+		`⛔ a plain VALUE is imported from a module that loads a renderer — it drags CanvasKit into the ` +
+			`importer's graph for every render (${offenders.slice(0, 4).join(' · ')})`,
+	);
+	for (const named of Object.keys(RENDERER_VALUE_IMPORTS)) {
+		check(offenders.length === 0, `RENDERER_VALUE_IMPORTS names ${named} — kept only while it still resolves`);
+	}
+}
+
 if (failures.length > 0) {
 	console.error(`\n❌ import graph: ${failures.length} failure(s).\n`);
 	for (const f of failures) console.error(`  • ${f}`);
@@ -130,7 +205,7 @@ if (failures.length > 0) {
  * ⚠️ Downward-only, and it is `!==` rather than `<` for `D2-7`'s reason: a silently ADDED assertion means
  * the pinned number and the real one have drifted in the direction nobody looks.
  */
-const MIN_ASSERTIONS = 21;
+const MIN_ASSERTIONS = 23;
 if (passed !== MIN_ASSERTIONS) {
 	console.error(`\n❌ import graph: ${passed} assertions ran, ${MIN_ASSERTIONS} expected.\n`);
 	process.exit(1);

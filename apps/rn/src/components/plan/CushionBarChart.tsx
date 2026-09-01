@@ -2,17 +2,18 @@ import { useEffect, useRef } from 'react';
 import { Canvas, Group, Rect, RoundedRect, rect, rrect } from '@shopify/react-native-skia';
 import { Easing, useDerivedValue, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { RESERVE_OPACITY } from '@/theme/colors';
 import { duration } from '@/theme/motion';
 
 /** The held "set aside" reserve renders as the cushion color at this opacity (§2.0.c — a visible-but-
  *  clearly-protected sub-zone, one calm slate language, not a second hue). */
 /**
- * ⛔ **S1.13.7.5 [pass-6 `C1-18`] — EXPORTED, because it was declared TWICE and one of the two documented
- * that it must match the other.** A constant whose correctness depends on a human keeping two literals
- * equal is two producers of one fact; the comment saying so is the tell, not the safeguard. The chart
- * that DRAWS the reserve owns the value, and the card's legend swatch imports it.
+ * ⛔ **S1.13.7.5 [pass-6 `C1-18`] — one producer, and `S1.13.7.9` MOVED IT to `@/theme/colors`.** It was
+ * declared twice with a comment telling a human to keep the two equal. Owning it *here* was the first
+ * repair, and this module imports `@shopify/react-native-skia` at module scope — so `PaydayGuardianCard`
+ * importing one number from it put **CanvasKit in Today's import graph**, and Today stopped rendering.
+ * See the token's docblock in `theme/colors.ts`; a token belongs with the tokens.
  */
-export const RESERVE_OPACITY = 0.5;
 
 export interface CushionBarChartProps {
   width: number;

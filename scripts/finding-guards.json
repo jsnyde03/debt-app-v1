@@ -2308,15 +2308,15 @@
     }
   },
   "S1P6-D2-5-ASSERTFLOOR": {
-    "what": "S1.13.7.2 [pass-6 D2-5] - test-import-graph.ts printed `passed` and never checked it, so a load-bearing control row could be DELETED and both gates stayed green. Lane D2 proved it by planting: it removed the 'hop 2 - the producer that did NOT change is routed' assertion, the one row pinning the `neighbour` origin, and this file exited 0 while lint:finding-guards also stayed green - because the registry pins a guard's TOKEN, not its COUNT. Deleting an assertion is invisible to a gate that only counts failures. MIN_ASSERTIONS is `!==` rather than `<` for D2-7's reason. Re-proven by disabling one check(): 20 assertions ran, 21 expected, exit 1.",
+    "what": "S1.13.7.2 [pass-6 D2-5] - test-import-graph.ts printed `passed` and never checked it, so a load-bearing control row could be DELETED and both gates stayed green. Lane D2 proved it by planting: it removed the 'hop 2 - the producer that did NOT change is routed' assertion, the one row pinning the `neighbour` origin, and this file exited 0 while lint:finding-guards also stayed green - because the registry pins a guard's TOKEN, not its COUNT. Deleting an assertion is invisible to a gate that only counts failures. MIN_ASSERTIONS is `!==` rather than `<` for D2-7's reason. Re-proven by disabling one check(): 20 assertions ran, 21 expected, exit 1. ⛔ S1.13.7.9 — ANCHOR RE-POINTED 21 → 23: the renderer-value assertion added two rows. ⚠️ And the addition met this entry's own lesson head-on — the new block was first placed BELOW the failure reporter, so its assertions ran after the only reader of `failures` and a real red surfaced only as a COUNT mismatch. Moved above the reporter. That is the same dead-code-after-the-verdict shape S1.13.7.8 found in check-finding-guards.ts, met twice in one day.",
     "file": "scripts/test-import-graph.ts",
     "token": "assertions ran,",
     "proof": {
       "unfix": [
         {
           "at": "scripts/test-import-graph.ts",
-          "find": "const MIN_ASSERTIONS = 21;",
-          "replace": "const MIN_ASSERTIONS = 22;"
+          "find": "const MIN_ASSERTIONS = 23;",
+          "replace": "const MIN_ASSERTIONS = 24;"
         }
       ],
       "cmd": [
@@ -2812,6 +2812,22 @@
       "expect": "an UNREAD balance repaired to $0 is still live",
       "measured": "2026-09-01",
       "sha": "356d6427"
+    }
+  },
+  "S1P6-C1-18-RENDERERVALUE": {
+    "what": "S1.13.7.9 - THE MINOR THAT COST 51 RED E2E SPECS. C1-18 observed correctly that RESERVE_OPACITY = 0.5 was declared twice with a comment telling a human to keep the two equal - two producers of one fact. Its remedy (S1.13.7.5, commit 2c77aceb) made CushionBarChart the owner and had PaydayGuardianCard import the number from it. CushionBarChart imports @shopify/react-native-skia at MODULE SCOPE, so that one-number import put CanvasKit into Today's import graph for every render: Today threw `Cannot read properties of undefined (reading XYWHRect)` and rendered an EMPTY BODY, so the swipe actions, the tutorial fence and every click target were simply absent. Found by git-bisect over the 36 commits CI never saw - 2c77aceb is the first bad commit - after a plausible single-cause hypothesis (S1.13.7.1's shared-fixture due dates) had been REFUTED by testing it on a second cluster. Measured: swipe-mark-paid + a11y-axe + expense-reserve go 20-failing to 24/24 with the token re-homed to theme/colors.ts, which both sides now import. THE GUARD'S DISCRIMINATOR IS PascalCase: a screen importing <TrajectoryChart/> is rendering a chart and pays for the renderer deliberately; a module importing RESERVE_OPACITY wanted a NUMBER, and a number must never cost CanvasKit. Population derived from every module whose source imports a renderer package, with a floor so the detector cannot go blind. The lesson is not 'do not de-duplicate' - it is that WHERE a shared value lives is part of the fix.",
+    "file": "scripts/test-import-graph.ts",
+    "token": "a plain VALUE is imported from a module that loads a renderer",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/PaydayGuardianCard.tsx",
+          "find": "import { RESERVE_OPACITY } from '@/theme/colors';",
+          "replace": "import { RESERVE_OPACITY } from '@/components/plan/CushionBarChart';"
+        }
+      ],
+      "run": "lint:import-graph",
+      "expect": "a plain VALUE is imported from a module that loads a renderer"
     }
   }
 }

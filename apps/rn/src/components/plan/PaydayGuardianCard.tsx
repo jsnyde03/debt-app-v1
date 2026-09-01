@@ -1,5 +1,5 @@
 import { CUSHION_LABEL, EMERGENCY_FUND_NOUN, SAFETY_NET_LABEL } from '@core/copy/vocabulary';
-import { RESERVE_OPACITY } from '@/components/plan/CushionBarChart';
+import { RESERVE_OPACITY } from '@/theme/colors';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 

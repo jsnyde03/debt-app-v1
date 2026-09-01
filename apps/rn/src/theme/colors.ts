@@ -123,3 +123,24 @@ export function resolveColors(scheme: ColorScheme): ResolvedColors {
   }
   return out as ResolvedColors;
 }
+
+/**
+ * ⛔ **S1.13.7.9 [pass-6 `C1-18`'s remedy, RE-HOMED] — THE RESERVE SWATCH'S DIMMING, OWNED HERE.**
+ *
+ * `C1-18` was right that this was declared twice with a comment telling a human to keep the two equal —
+ * two producers of one fact, and the comment is the tell rather than the safeguard. ⛔ **Its remedy put
+ * the owner in `CushionBarChart`, and that module imports `@shopify/react-native-skia` at module scope.**
+ * `PaydayGuardianCard` importing one number from it dragged **CanvasKit into Today's import graph for
+ * every render**, which is how a MINOR about a duplicated literal became **51 red e2e specs**: Today threw
+ * `Cannot read properties of undefined (reading 'XYWHRect')` and rendered an empty body, so the swipe
+ * actions, the tutorial fence and every click target simply were not there.
+ *
+ * ⚡ **A token belongs with the tokens.** Both the chart that draws the reserve and the card that draws its
+ * legend swatch import it from here, so there is still exactly one producer — and neither of them pulls a
+ * renderer into the other's graph to get it.
+ *
+ * ⚠️ **The lesson is not "do not de-duplicate".** It is that **where a shared value LIVES is part of the
+ * fix**: hoisting to whichever module happens to use it first exports that module's dependencies along
+ * with the value.
+ */
+export const RESERVE_OPACITY = 0.5;
