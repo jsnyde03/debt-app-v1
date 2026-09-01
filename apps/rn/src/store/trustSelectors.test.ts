@@ -248,6 +248,15 @@ export default function run(): void {
       ['goal targetAmount', 'goal-amounts is the claim about goal money; there is no second claim to decide'],
       ['goal currentAmount', 'goal-amounts is the claim about goal money; there is no second claim to decide'],
       ['goal priorityPerPaycheck', 'goal-amounts is the claim about goal money; there is no second claim to decide'],
+      // ⛔ S1.13.7.6 [pass-6 B3-1] — the store's OWN money. The catch-all is genuinely the whole answer
+      // here, for `goal-amounts`' reason: a repaired $0 in ANY of these makes the plan claim false,
+      // because they are the line it is solved against, the income it is solved from, and the money it
+      // allocates. There is no second claim to decide them against.
+      ['plan cushionFloor', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
+      ['plan leanAmount', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
+      ['plan typicalAmount', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
+      ['plan windfall', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
+      ['plan expenseReserveBalance', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
     ]);
 
     const named = new Set<string>();
@@ -265,7 +274,7 @@ export default function run(): void {
     // ⚠️ Counted by the test, not by me — my own hand count of this list was 9 and the assertion said 10.
     // ⛔ Its message no longer says "raise it": raising it clears this line and the loop below still reds,
     // because the new field is neither named by a claim nor recorded as a catch-all decision.
-    eq(repairable.length, 10, 'the fixture knows how many repairable money fields there are (a new one must ALSO be routed or recorded below)');
+    eq(repairable.length, 15, 'the fixture knows how many repairable money fields there are (a new one must ALSO be routed or recorded below)');
     for (const key of repairable) {
       if (named.has(key)) continue;
       if (CATCH_ALL_IS_THE_DECISION.has(key)) continue;

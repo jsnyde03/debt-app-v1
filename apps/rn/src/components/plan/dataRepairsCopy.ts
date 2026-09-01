@@ -26,6 +26,10 @@ const ENTITY_NOUN: Record<Exclude<DataRepair['entity'], 'migration'>, string> = 
   requiredExpense: 'bill',
   livingExpense: 'expense',
   goal: 'savings goal',
+  // ⛔ S1.13.7.6 [pass-6 B3-1] — the money on the STORE rather than in a row: the cushion line, the
+  // lean/typical paycheck, a windfall, the bills reserve. The exhaustive Record above caught this the
+  // moment `plan` joined the union, which is what it is for.
+  plan: 'plan',
 };
 
 /**
@@ -40,6 +44,11 @@ const ENTITY_NOUN: Record<Exclude<DataRepair['entity'], 'migration'>, string> = 
  * does not compile.
  */
 export const FIELD_LABEL: Record<string, string> = {
+  cushionFloor: 'your cushion line',
+  leanAmount: 'your lean paycheck',
+  typicalAmount: 'your typical paycheck',
+  windfall: 'a windfall',
+  expenseReserveBalance: 'money set aside for bills',
   balance: 'the balance',
   minimumPayment: 'the minimum payment',
   apr: 'the interest rate',

@@ -1013,15 +1013,15 @@
     }
   },
   "S1P3-C1-ROWFIGURES": {
-    "what": "pass-3 C-1 — the claim table's 'row-figures' route had ZERO production consumers (3 grep hits, all the declaration or its own test), so Money printed \"0% APR\" on a card charging 22% and \"$0/mo\" on one demanding $150. The token names the ABSENCE assertion rather than the honest-state one: verified red under the plant twice, once normally and once with the honest-state assertions relaxed, so both halves are independently load-bearing",
+    "what": "pass-3 C-1 — the claim table's 'row-figures' route had ZERO production consumers (3 grep hits, all the declaration or its own test), so Money printed \"0% APR\" on a card charging 22% and \"$0/mo\" on one demanding $150. The token names the ABSENCE assertion rather than the honest-state one: verified red under the plant twice, once normally and once with the honest-state assertions relaxed, so both halves are independently load-bearing >>> S1.13.7.6 [pass-6 B3-1]: the anchor moved when the `plan` entity joined the route — the store's OWN money (cushion line, lean/typical paycheck, windfall, bills reserve), repaired in four lists and in none of these.",
     "file": "apps/rn/tests/e2e/trust-claims.spec.ts",
     "token": "await expect(row).not.toHaveAccessibleName(/0% APR/);",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/store/trustSelectors.ts",
-          "find": "  'row-figures': { debt: 'any', requiredExpense: 'any', livingExpense: 'any', goal: 'any' },",
-          "replace": "  'row-figures': { requiredExpense: 'any', livingExpense: 'any', goal: 'any' },"
+          "find": "  'row-figures': { debt: 'any', requiredExpense: 'any', livingExpense: 'any', goal: 'any', plan: 'any' },",
+          "replace": "  'row-figures': { requiredExpense: 'any', livingExpense: 'any', goal: 'any', plan: 'any' },"
         }
       ],
       "cmd": [

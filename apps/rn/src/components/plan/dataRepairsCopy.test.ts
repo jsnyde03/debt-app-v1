@@ -196,7 +196,7 @@ export default function run() {
     for (const lists of Object.values(REPAIRABLE_MONEY_FIELDS)) {
       repairable.push(...lists.required, ...lists.optional);
     }
-    eq(repairable.length, 10, 'the fixture knows how many repairable money fields there are (raise it WITH the field)');
+    eq(repairable.length, 15, 'the fixture knows how many repairable money fields there are (raise it WITH the field)');
     for (const f of repairable) {
       assert(!!FIELD_LABEL[f], `⛔ C-m1 — "${f}" can be repaired and has no user-facing name, so the card prints the schema key`);
     }

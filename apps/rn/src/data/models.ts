@@ -259,7 +259,12 @@ export interface DataRepair {
    * union having no member for them is the cleanest proof that the omission was structural rather than a
    * dropped line. `mapLegacyStore` carries `goals: 'goals'` straight across from v1.6.
    */
-  entity: 'debt' | 'requiredExpense' | 'livingExpense' | 'goal' | 'migration';
+  /**
+   * ⛔ `plan` added at S1.13.7.6 [pass-6 B3-1]: the money that lives on the STORE rather than in a row
+   * — the cushion line, the lean/typical paycheck, a windfall, the bills reserve. Repaired in four
+   * lists and in none of these, so the same `'1,200'` was `recovered` in a debt and NOTHING here.
+   */
+  entity: 'debt' | 'requiredExpense' | 'livingExpense' | 'goal' | 'plan' | 'migration';
   id: string;
   name: string;
   field: string;

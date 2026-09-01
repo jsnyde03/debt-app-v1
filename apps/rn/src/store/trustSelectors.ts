@@ -220,11 +220,17 @@ const CLAIM_FIELDS: Record<MoneyClaim, ClaimRoute> = {
   // $300"**, with the spare reading **$550** against a true $250, because a $300 minimum stopped being
   // owed. ⚠️ `debtLiveness` cannot catch this one — both worlds are `has-debt`, so the store-level
   // question is the wrong question and the FIELD routing is the right one.
-  'required-plan': { debt: ['minimumPayment', 'balance'], requiredExpense: ['amount'], livingExpense: ['amount'] },
+  // ⛔ **S1.13.7.6 [pass-6 `B3-1`] — `plan` JOINS IT, and the reason is the claim's own definition.**
+  // `cushionFloor` is the line the plan is solved against; `leanAmount`/`typicalAmount` are the income
+  // it is solved FROM; `windfall` and the bills reserve are money it allocates. An unreadable one
+  // repairs to `$0` and the plan is then solved against a floor, an income or a pot the app never
+  // read — which is exactly what this claim exists to refuse. ⚡ Measured: Progress captioned *"your
+  // $0 line"* off a lost `cushionFloor` while `holdsLine` could never be true.
+  'required-plan': { debt: ['minimumPayment', 'balance'], requiredExpense: ['amount'], livingExpense: ['amount'], plan: 'any' },
   // Any repaired money field a row prints back to the user. ⚠️ This is where `apr` is routed and the only
   // place: it changes no obligation this cycle, but the row states it ("22% APR") and a repaired `0`
   // states 0% — the import path doing what `FORM_ERRORS.aprInvalid` exists to refuse on the form path.
-  'row-figures': { debt: 'any', requiredExpense: 'any', livingExpense: 'any', goal: 'any' },
+  'row-figures': { debt: 'any', requiredExpense: 'any', livingExpense: 'any', goal: 'any', plan: 'any' },
 };
 
 /** The table itself, for the completeness gate in `trustSelectors.test.ts`. */

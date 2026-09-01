@@ -243,11 +243,28 @@ export const WHOLE_LIST_LOSS_FIELD = '(whole list unreadable)';
 export const WHOLE_ROW_LOSS_FIELD = '(a row could not be read)';
 export const SYNTHETIC_LOSS_FIELDS = [WHOLE_LIST_LOSS_FIELD, WHOLE_ROW_LOSS_FIELD] as const;
 
+/**
+ * ⛔ **S1.13.7.6 [pass-6 `B3-1`] — the money fields that live on the STORE rather than in a row.**
+ *
+ * They are `optional` in the sense this table means — *absent is the ordinary case and not a loss* — but
+ * a PRESENT unreadable value is a loss exactly as it is in a row. Naming them here is what lets
+ * `migrationAudit`'s invariant ③ check them at all: its mutual-agreement control refuses to check a field
+ * this table does not declare, so the class was un-auditable by construction.
+ */
+const PLAN_MONEY_LABELS: Record<string, string> = {
+  cushionFloor: 'your cushion line',
+  leanAmount: 'your lean paycheck',
+  typicalAmount: 'your typical paycheck',
+  windfall: 'a windfall',
+  expenseReserveBalance: 'money set aside for bills',
+};
+
 export const REPAIRABLE_MONEY_FIELDS = {
   debt: { required: ['balance', 'minimumPayment', 'apr'], optional: ['originalBalance', 'scheduledPaymentAmount'] },
   requiredExpense: { required: ['amount'], optional: [] },
   livingExpense: { required: ['amount'], optional: [] },
   goal: { required: ['targetAmount', 'currentAmount'], optional: ['priorityPerPaycheck'] },
+  plan: { required: [], optional: ['cushionFloor', 'leanAmount', 'typicalAmount', 'windfall', 'expenseReserveBalance'] },
 } as const satisfies Record<string, { required: readonly string[]; optional: readonly string[] }>;
 
 export function runMigrations(raw: unknown): DebtStore {
@@ -257,7 +274,39 @@ export function runMigrations(raw: unknown): DebtStore {
   const base = createDefaultStore();
   const r = raw as Partial<DebtStore>;
   const repairs: DataRepair[] = [];
+  /**
+   * ⛔ **S1.13.7.6 [pass-6 `B3-1`] — MONEY WAS REPAIRED IN FOUR LISTS AND IN NONE OF THE MONEY FIELDS ON
+   * THE STORE ITSELF.**
+   *
+   * ⚡ Measured: `cushionFloor: 'abc'`, `paycheck.leanAmount: '1,200'`, `expenseReserve.balance: '1,500'`,
+   * `windfall` and `cycleTopUp.amount` all passed through `{ ...base, ...r }` **verbatim**, with
+   * `dataRepairs: []`. The same `'1,200'` is recorded as `recovered` in a debt's balance and as **nothing**
+   * in `leanAmount` — so Progress captioned *"your $0 line"* while `holdsLine` could never be true, and
+   * the user was told nothing had failed to read.
+   *
+   * ⛔ **And the harness built to prove *"a restore cannot corrupt the user's money"* was asserted shut
+   * against this class**: `audit.test.ts`'s mutual-agreement control reds if invariant ③ checks anything
+   * `REPAIRABLE_MONEY_FIELDS` does not declare, and the only v1.7-shaped fixture carries none of these
+   * keys. The declaration is what opens it.
+   *
+   * ⚠️ **Same `readMoney` as the rows**, so a comma-separated figure is *recovered* here exactly as it is
+   * there, and a genuinely unreadable one is *lost* and surfaced rather than silently zeroed.
+   */
+  const readStoreMoney = <T,>(source: T, field: string, repairField: string = field): number | undefined => {
+    const value = (source as Record<string, unknown> | undefined)?.[field];
+    if (value === undefined) return undefined; // absent is not a loss — the default stands
+    const { value: n, repair } = readMoney(value);
+    if (repair !== 'none') repairs.push({ entity: 'plan', id: '', name: PLAN_MONEY_LABELS[repairField] ?? repairField, field: repairField, kind: repair });
+    return n;
+  };
   const paycheck = { ...base.paycheck, ...(r.paycheck ?? {}) };
+  {
+    // ⚠️ Applied AFTER the spread so a repaired value replaces the raw one the spread carried through.
+    const lean = readStoreMoney(r.paycheck, 'leanAmount');
+    if (lean !== undefined) paycheck.leanAmount = lean;
+    const typical = readStoreMoney(r.paycheck, 'typicalAmount');
+    if (typical !== undefined) paycheck.typicalAmount = typical;
+  }
   // `paycheck.amount` is deliberately a STRING on both sides — it mirrors the input model and is parsed at
   // the engine boundary — so it is normalised to a string rather than to a number.
   /**
@@ -453,9 +502,24 @@ export function runMigrations(raw: unknown): DebtStore {
   const { isDemoMode: _isDemoMode, guardianIntroSeen: _guardianIntroSeen, ...incomingPrefs } = (r.prefs ??
     {}) as Record<string, unknown>;
 
+  /**
+   * ⛔ S1.13.7.6 [pass-6 `B3-1`] — the store's OWN money, read through the same door as the rows'.
+   * Applied below the spread, so a repaired value replaces the raw one `{ ...r }` carried through.
+   */
+  const cushionFloor = readStoreMoney(r, 'cushionFloor');
+  const windfall = readStoreMoney(r, 'windfall');
+  // ⚠️ Reported under the name the FIELD TABLE declares — `balance` alone would name three different
+  // things across the store and match no declaration.
+  const reserveBalance = readStoreMoney(r.expenseReserve, 'balance', 'expenseReserveBalance');
+
   return {
     ...base,
     ...r,
+    ...(cushionFloor !== undefined ? { cushionFloor } : {}),
+    ...(windfall !== undefined ? { windfall } : {}),
+    ...(reserveBalance !== undefined && r.expenseReserve
+      ? { expenseReserve: { ...r.expenseReserve, balance: reserveBalance } }
+      : {}),
     storeVersion: CURRENT_STORE_VERSION,
     debts,
     requiredExpenses,
