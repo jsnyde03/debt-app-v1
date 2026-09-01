@@ -29964,3 +29964,44 @@ live. Both reverted. **The rule is now explicit: stage named paths, or wait for 
 ⚠️ **Three guard anchors moved because the lines they pin were the lines being fixed** (`S1P3-D3-1-WIDGET`,
 `S1P5-C5-2-WIDGETPARITY`, `GAP-16`). Each was re-pointed to the line it now guards and **re-proven** —
 which is `D2-1`'s staleness rule doing its job inside the same session that built it.
+
+---
+
+## S1.13.7.6 — money written or destroyed, 2026-08-31
+
+**All 8 closed, 6 of them blockers.** `lint:rn` 44/44 · both suites green.
+
+⭐ **[DECISION `A2-2`] 🎯 2026-08-31 — THE BALANCE IS CANONICAL; the installment fields describe it.**
+`bnplInstallment.ts` answered *"which field is canonical"* two ways — its header said the installment
+fields, `bnplPaymentsRemaining` said the balance — and only one answer can be made safe. An extra payment
+leaves a balance `scheduled × remaining` **cannot represent**, so any rule deriving the balance from the
+count must round, and **rounding a balance is inventing or deleting money**. Measured on a $400 4-pay: an
+extra $60 persisted **$200** (−$40); an extra $40 persisted **$300** (+$40) — on a **rename**.
+⚠️ **The tests then found the callers that meant "declare a schedule"** — creating a BNPL and importing
+one from CSV — exactly as the new docblock predicts. Both set the balance explicitly now.
+
+| finding | what it was |
+|---|---|
+| `C3-8` | **A purchase made inside the demo was charged by Apple and dropped by the app.** The paywall modal sits inside the demo's `StoreProvider` by design, and both entitlement writes were undeclared, so `refuseRealStoreWrite` dropped them: the user paid, read *"You're on Premium"*, and stayed `free` |
+| `C3-6` | Two taps of the Lock Screen rolled the plan **two whole cycles on one payday**. ⛔ Not fixed by fixing the id — the same UUID-per-invocation shape is what `log-payment` NEEDS, so an id rule would swallow a real second payment. The guard belongs on the mutation |
+| `B3-1` | Money was repaired in four **lists** and in none of the fields on the store itself. The same `'1,200'` was `recovered` in a debt and **nothing** in `leanAmount` |
+| `A3-5` | A stale backup reported **$0 of bills due** and recommended **$1,450 of a $1,500 paycheck**. `rollPaydayToFuture` exists for exactly this and its **only caller was the legacy root `P6.11` deletes** |
+| `A3-18` | On the **last payment of every debt** the ledger charged the full stated minimum instead of the balance — **and a test asserted it**, on the exact arity |
+| `C3-10` | A queued *"payday landed"* survived *"Delete all data"* and rolled the brand-new store two weeks forward at next launch |
+| `B3-4` | The forward-incompat refusal believed the **envelope** over a payload that contradicted it; the maximum of the two is the guard now |
+
+### ⚡ What the instruments contributed, unprompted
+
+**`B3-1` was mostly enforced rather than written.** Three gates refused to let it land half-done: the
+**exhaustive `Record`** in `dataRepairsCopy` failed the build the moment `plan` joined the entity union
+*(the thing its docblock says it earned when `goal` was added)*; the **field-count fixture** demanded the
+number rise **with** the fields; and the **routing completeness check** refused a catch-all as an answer,
+requiring each field to be named or recorded in `CATCH_ALL_IS_THE_DECISION` **with a reason**.
+
+⚠️ **And declaring those fields is what OPENS the migration audit's invariant ③ on this class** — its
+mutual-agreement control refuses to check a field `REPAIRABLE_MONEY_FIELDS` does not declare, so *"a
+restore cannot corrupt the user's money"* was un-auditable for the store's own money **by construction**.
+
+⚠️ **Three guard anchors moved** because the lines they pin were the lines being fixed
+(`S1P5-C5-2-WIDGETPARITY`, `S1P3-C1-ROWFIGURES`, `S1P3-D3-1-WIDGET`); each re-pointed and re-proven.
+`lint:rounding` stayed at its downward-only cap — the new expressions use the shared `roundMoney`.

@@ -178,12 +178,26 @@ export function parseBackupValue(parsed: unknown): BackupParseResult {
   // The store's OWN version can also outrun this build even when the envelope doesn't — the envelope
   // changes rarely, the store shape changes every phase. Read it from the payload when the envelope
   // omits it, so a hand-edited file can't slip a future store past the check by deleting one field.
+  /**
+   * ⛔ **S1.13.7.6 [pass-6 `B3-4`] — THE ENVELOPE WAS BELIEVED OVER THE PAYLOAD IT DISAGREES WITH.**
+   *
+   * The comment above states the rule correctly — *"read it from the payload when the envelope omits
+   * it, so a hand-edited file can't slip a future store past the check by deleting one field"* — and
+   * the code only covered the OMISSION. When both are present and **disagree**, the envelope won: an
+   * envelope saying `8` beside a store saying `99` was accepted, and then re-stamped to the current
+   * version on the way in, so the contradiction was erased rather than refused.
+   *
+   * ⚠️ **The MAXIMUM, not a precedence.** Either number outrunning this build is a file this build
+   * cannot read, and a guard whose job is to refuse the future has no reason to prefer the smaller of
+   * two claims about it.
+   */
+  const envelopeVersion = typeof env.storeVersion === 'number' ? env.storeVersion : null;
+  const payloadVersion =
+    typeof (env.store as Partial<DebtStore>).storeVersion === 'number' ? (env.store as DebtStore).storeVersion : null;
   const storeVersion =
-    typeof env.storeVersion === 'number'
-      ? env.storeVersion
-      : typeof (env.store as Partial<DebtStore>).storeVersion === 'number'
-        ? (env.store as DebtStore).storeVersion
-        : CURRENT_STORE_VERSION;
+    envelopeVersion === null && payloadVersion === null
+      ? CURRENT_STORE_VERSION
+      : Math.max(envelopeVersion ?? Number.NEGATIVE_INFINITY, payloadVersion ?? Number.NEGATIVE_INFINITY);
 
   if (storeVersion > CURRENT_STORE_VERSION) {
     return { ok: false, reason: 'too-new', message: TOO_NEW };

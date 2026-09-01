@@ -2,6 +2,7 @@ import { createStore } from 'zustand/vanilla';
 
 import { isInstallmentNative, normalizeBnplInstallment } from '@core/debt/bnplInstallment';
 import { roundMoney } from '@core/utils/money';
+import { rollPaydayToFuture } from '@core/payCycle/rollPaydayToFuture';
 import { raiseOriginalBalance } from '@core/debt/originalBalanceHighWater';
 import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import type { GuardianBand } from '@core/storage/debtPlannerStorage';
@@ -1011,7 +1012,45 @@ export function createDebtStore(opts?: {
       // callers that already pre-migrate (JSON restore) are unaffected; it hardens the future raw
       // callers the interface advertises (iCloud restore, the Phase-D data bridge) so an unmigrated
       // blob can't land the v5 substrate fields `undefined` (NaN `genuineCycleCount`, broken staleness).
-      set({ store: runMigrations(store) });
+      /**
+       * ⛔ **S1.13.7.6 [pass-6 `A3-5`] — A BACKUP'S PAYDAY IS AS OLD AS THE BACKUP, and the RN import
+       * door never rolled it forward.**
+       *
+       * ⚡ Measured: restore a backup whose `nextPaycheckDate` has gone stale and the app reports **$0 of
+       * bills due** and recommends **$1,450 of a $1,500 paycheck** to debt — because every obligation is
+       * filtered by `isDueBeforeNextPaycheck`, and a payday in the past leaves an empty window.
+       *
+       * ⛔ **`rollPaydayToFuture` exists in `packages/core` for exactly this, and its only caller was
+       * `app/page.tsx` — the LEGACY root that `P6.11` deletes.** The helper was written against the old
+       * import path and the RN rewrite did not carry the call across; `runMigrations` never mentions
+       * `nextPaycheckDate`, and the capture sheet's 21-day staleness guard suppresses the one prompt that
+       * could have surfaced it.
+       *
+       * ⚠️ Applied AFTER the migration so it reads a normalised paycheck, and it is a no-op when the date
+       * is already on-or-after today — an ordinary same-day restore is untouched.
+       */
+      const migrated = runMigrations(store);
+      const todayISO = todayLocalISO();
+      set({
+        store: {
+          ...migrated,
+          paycheck: {
+            ...migrated.paycheck,
+            // ⚠️ The day fields are STRINGS on the store and NUMBERS in the engine config — the same
+            // conversion `payday.ts` already performs at this boundary.
+            nextPaycheckDate: rollPaydayToFuture(
+              migrated.paycheck.nextPaycheckDate,
+              {
+                payCycle: migrated.paycheck.payCycle,
+                semiMonthlyFirstDay: Number(migrated.paycheck.semiMonthlyFirstDay),
+                semiMonthlySecondDay: Number(migrated.paycheck.semiMonthlySecondDay),
+                monthlyPayDay: Number(migrated.paycheck.monthlyPayDay),
+              },
+              todayISO,
+            ),
+          },
+        },
+      });
       /**
        * ⛔ **A SUCCESSFUL IMPORT UN-DECLARES THE RESET IT DISPROVES.** [P6.8.9.7.11.12 · B-J2-1]
        * `DataResetScreen` IS the whole tree while this reads `data-reset` — `_layout` returns it instead
