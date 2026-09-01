@@ -32,3 +32,27 @@ export function parseLocalDate(iso: string): Date {
 export function todayLocalISODate(): string {
 	return toLocalISODate(new Date());
 }
+
+/**
+ * ⛔ **S1.13.7.8 [pass-6 blocker `A3-12`] — IS THIS `YYYY-MM-DD` A DAY THAT EXISTS?**
+ *
+ * ⚡ A shape check is not a calendar check. `2026-02-30` matches `\d{4}-\d{2}-\d{2}` and `day <= 31`, and
+ * `parseLocalDate` does not fail on it — it **succeeds**, returning **March 2**. Nothing downstream can
+ * detect that: the debt is not `NaN`, it is not flagged, it has simply left the month it was due in. On a
+ * monthly cycle the app then reports `$0 required` and offers the whole paycheck to the snowball while the
+ * minimum is due inside that cycle. ⚠️ **The direction is worse than a `NaN`**: a loud failure is visible.
+ *
+ * ⛔ **THIS IS THE OWNER, AND IT EXISTS BECAUSE THE SAME CHECK WAS WRITTEN AT ONE DOOR AND NOT THE OTHER.**
+ * `debtCsv` carried the round-trip inline from `P6.8.9.7.4`, with a comment naming `2026-02-30` exactly;
+ * `parseStatementText` — the scan door, whose own header names `debtCsv` as *"the precedent this mirrors"* —
+ * had a `day >= 1 && day <= 31` shape test at both of its return points. Two text→date parsers, one
+ * guarded. Collapsing the pair to a single producer is the move this repo takes on every recurrence of
+ * that shape; a second correct copy just buys the next round's third door.
+ *
+ * ⚠️ `parseLocalDate` + `toLocalISODate`, never `new Date(...).toISOString()` — the UTC form round-trips a
+ * valid date to the day BEFORE east of Greenwich and would refuse every row in Sydney and Auckland.
+ */
+export function isRealCalendarDate(iso: string): boolean {
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+	return toLocalISODate(parseLocalDate(iso)) === iso;
+}

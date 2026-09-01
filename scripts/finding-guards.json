@@ -2588,5 +2588,45 @@
       "measured": "2026-08-31",
       "sha": "5184aecc"
     }
+  },
+  "S1P6-A3-12-DATEDOORS": {
+    "what": "S1.13.7.8 [pass-6 A3-12] - the scan door's date normaliser tested `day >= 1 && day <= 31`, a SHAPE check, at both of its return points, while the CSV door two directories away carried a calendar round-trip written by P6.8.9.7.4 with `2026-02-30` named in its comment. OCR's two commonest digit errors are 0/8 and 0/1, so `02/28` reads as `02/30`. Measured: \"Payment Due Date 02/30/2026\" -> stored \"2026-02-30\" -> parseLocalDate SUCCEEDS and returns March 2, so nothing downstream can detect it - no NaN, no flag, the debt has simply left the month it is due in. Through the allocator on a monthly cycle: totalRequired $0 and $950 of a $1,000 paycheck offered to the snowball with the $45 minimum due inside that cycle. THE CHECK IS ONE FUNCTION NOW - isRealCalendarDate in localDate.ts, the declared owner of Date <-> YYYY-MM-DD - and BOTH doors call it; a second correct copy only buys the next round's third door. The guard iterates the DOOR LIST rather than naming the reported member, and asserts both directions: 2028-02-29 is on the accepted list because a hand-rolled month table with February at 28 passes the refusal half perfectly. Four plants executed, each redding for its own reason: scan door un-fixed, CSV door un-fixed, isRealCalendarDate returning false for everything, and the February-28 table.",
+    "file": "packages/core/testing/testTextDateDoors.ts",
+    "token": "is refused, not rolled into the next month",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/scan/parseStatementText.ts",
+          "find": "if (mo >= 1 && mo <= 12 && day >= 1 && day <= 31) return asRealDate(`${year}-${pad(mo)}-${pad(day)}`);",
+          "replace": "if (mo >= 1 && mo <= 12 && day >= 1 && day <= 31) return `${year}-${pad(mo)}-${pad(day)}`;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "packages/core/testing/testTextDateDoors.ts"
+      ],
+      "expect": "statement scan (parseStatementText): \"02/30/2026\" is refused"
+    }
+  },
+  "S1P6-A3-12-DATEDOORS-OVERFIX": {
+    "what": "S1.13.7.8 [pass-6 A3-12], the OPPOSITE direction. A date guard that refuses everything passes every refusal assertion, so the ACCEPTED rows are the half that can fail open in the other direction - a scan that silently stops prefilling due dates, or a CSV import that skips every row with \"dueDate is not a date\", would be a shipped regression with a fully green refusal suite. This entry plants the laziest plausible repair (isRealCalendarDate returning false unconditionally) and requires the accepted-day rows to red.",
+    "file": "packages/core/testing/testTextDateDoors.ts",
+    "token": "is a real day and still imports",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/utils/localDate.ts",
+          "find": "\treturn toLocalISODate(parseLocalDate(iso)) === iso;",
+          "replace": "\treturn false;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "packages/core/testing/testTextDateDoors.ts"
+      ],
+      "expect": "CSV import (parseDebtCsvText): \"2026-02-28\" is a real day and still imports"
+    }
   }
 }

@@ -3,7 +3,7 @@ import { roundMoney } from "@core/utils/money";
 import type { Recurrence } from "@core/types/recurrence";
 import { normalizeBnplInstallment } from "@core/debt/bnplInstallment";
 import { parseAmountField, parseOptionalAmount } from "@core/utils/amountField";
-import { parseLocalDate, toLocalISODate } from "@core/utils/localDate";
+import { isRealCalendarDate } from "@core/utils/localDate";
 
 /**
  * CSV → `Debt[]`, for the bulk import the support FAQ documents.
@@ -239,9 +239,14 @@ export function parseDebtCsvText(text: string, options: DebtCsvOptions): DebtCsv
 		 * UTC a valid date round-trips to the day BEFORE and every row would have been refused as "not a
 		 * date" for users in Sydney and Auckland — two of the four launch storefronts.
 		 * ⚡ A guard this repo already had, catching a defect written by the fix for a different one.
+		 *
+		 * ⛔ **S1.13.7.8 [pass-6 blocker `A3-12`] — THE ROUND-TRIP MOVED TO `isRealCalendarDate`, ITS OWNER.**
+		 * It lived here as the only copy, and the scan door — `parseStatementText`, whose header names this
+		 * module as *"the precedent this mirrors"* — shipped a `day <= 31` shape test instead and accepted
+		 * `02/30`. Two text→date parsers, one guarded, is the shape this round exists to stop; the check is
+		 * one function now and both doors call it.
 		 */
-		const dueDateValid =
-			!!dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate) && toLocalISODate(parseLocalDate(dueDate)) === dueDate;
+		const dueDateValid = !!dueDate && isRealCalendarDate(dueDate);
 		if (dueDate && !dueDateValid) {
 			errors.push(`Row ${rowNumber}: dueDate "${dueDate}" is not a date — use YYYY-MM-DD, e.g. 2026-09-01.`);
 			return;

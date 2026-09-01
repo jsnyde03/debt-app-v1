@@ -495,7 +495,11 @@ function testTightCycleStatesItsDipAndStillCarriesZero() {
         // ⛔ S1.13.7.3 [pass-6 D1-3] — `x < 0` is FALSE for NaN, so this printed ✅ over a NaN cycle
         // balance, which the app then renders to the user and to VoiceOver as `$0`. The guard has to
         // ask whether it is a number BEFORE it asks whether it is negative.
-        requireFinite(cycle.endingBalance, `Cycle ${cycle.cycleNumber ?? '?'} ending balance`);
+        // ⚠️ S1.13.7.8 — `cycle.cycleNumber` does not exist on `TimelineCycle` and this file broke
+        // `typecheck:core` for the whole of `S1.13.7.3`–`.7`. It survived because the regression suite is
+        // run by `tsx`, which strips types and never compiles: `test:regression` was green over a tree the
+        // compiler rejects. The cycle's identifier here is its START, which the throw below already uses.
+        requireFinite(cycle.endingBalance, `Cycle ${cycle.cycleStart} ending balance`);
         if (cycle.endingBalance < 0) {
             throw new Error(`FAIL [S1.12.9]: endingBalance must still clamp — it seeds the next cycle. cycle ${cycle.cycleStart} = ${cycle.endingBalance}`);
         }

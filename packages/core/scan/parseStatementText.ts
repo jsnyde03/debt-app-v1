@@ -7,6 +7,7 @@
  * like `debtCsv` (text → Debt), the precedent this mirrors.
  */
 import { BNPL_PROVIDER_VALUES } from "@core/debt/bnplProviders";
+import { isRealCalendarDate } from "@core/utils/localDate";
 
 export interface ParsedStatement {
 	/** The issuer / creditor name (a known issuer, else the first meaningful line). */
@@ -56,7 +57,27 @@ function pad(n: number): string {
 	return String(n).padStart(2, "0");
 }
 
-/** Normalize a recognized date to ISO. Handles "07/15/2026", "7-15-26", "July 15, 2026", "Jul 15 2026". */
+/**
+ * Normalize a recognized date to ISO. Handles "07/15/2026", "7-15-26", "July 15, 2026", "Jul 15 2026".
+ *
+ * ⛔ **S1.13.7.8 [pass-6 blocker `A3-12`] — `day <= 31` IS A SHAPE TEST AND IT LET `02/30` THROUGH.**
+ * OCR's two commonest digit confusions are 0/8 and 0/1, so `02/28` reads as `02/30` and `04/30` as
+ * `04/31`. Both were accepted, `pad()`-ed straight into a string, and became **March 2** / **May 1** at
+ * the first date comparison — the debt silently leaves the cycle it is due in, `totalRequired` drops to
+ * `$0`, and the whole paycheck is offered to the snowball with the minimum still owed inside that cycle.
+ * ⚠️ Nothing is `NaN` and nothing is flagged, which is why this outranks the loud failure `debtCsv`'s
+ * comment predicts.
+ *
+ * ⚡ **Both return points go through {@link isRealCalendarDate}, and so does `debtCsv`.** The check used
+ * to live inline at the CSV door only — this module's own header names `debtCsv` as *"the precedent this
+ * mirrors"*, and the calendar half of that precedent had not travelled. One owner, two doors; a second
+ * correct copy would only buy the next round's third door.
+ *
+ * ⚠️ **A refused date is `undefined`, which is the documented "a missing field just isn't prefilled"
+ * path, verified at both scan doors** — `money.tsx:343` gates the prefill on `balance`/`minimumPayment`/
+ * `name`, so the sheet still opens, and `DebtSheet` seeds `dueDate` to `todayLocalISO()` for the user to
+ * confirm. Refusing the date costs a prefill; accepting it costs the month.
+ */
 function toIsoDate(raw: string | undefined): string | undefined {
 	if (!raw) return undefined;
 	const s = raw.trim();
@@ -68,7 +89,7 @@ function toIsoDate(raw: string | undefined): string | undefined {
 		const day = Number(num[2]);
 		let year = Number(num[3]);
 		if (year < 100) year += 2000;
-		if (mo >= 1 && mo <= 12 && day >= 1 && day <= 31) return `${year}-${pad(mo)}-${pad(day)}`;
+		if (mo >= 1 && mo <= 12 && day >= 1 && day <= 31) return asRealDate(`${year}-${pad(mo)}-${pad(day)}`);
 	}
 
 	// "July 15, 2026" / "Jul 15 2026".
@@ -77,10 +98,15 @@ function toIsoDate(raw: string | undefined): string | undefined {
 		const mo = MONTHS[words[1].slice(0, 3).toLowerCase()];
 		const day = Number(words[2]);
 		const year = Number(words[3]);
-		if (mo && day >= 1 && day <= 31) return `${year}-${pad(mo)}-${pad(day)}`;
+		if (mo && day >= 1 && day <= 31) return asRealDate(`${year}-${pad(mo)}-${pad(day)}`);
 	}
 
 	return undefined;
+}
+
+/** A candidate ISO string, or `undefined` if it names a day that does not exist. See {@link toIsoDate}. */
+function asRealDate(iso: string): string | undefined {
+	return isRealCalendarDate(iso) ? iso : undefined;
 }
 
 export function parseStatementText(raw: string): ParsedStatement {

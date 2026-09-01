@@ -42,6 +42,8 @@ import "@core/utils/testLocalDate";
 import "@core/utils/testAddMonths";
 import "@core/utils/testAmountField";
 import "@core/imports/testDebtCsv";
+// S1.13.7.8 [pass-6 A3-12] - every text->date door over a day that does not exist, not just the one reported.
+import "./testTextDateDoors";
 import "../debt/testBuildPayoffTrajectory";
 import "../debt/testComputeInterestSaved";
 import "../debt/testFreedMinimumRoll";
