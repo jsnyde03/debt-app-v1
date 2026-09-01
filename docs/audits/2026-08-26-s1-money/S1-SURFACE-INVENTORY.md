@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**485 files on the S1 surface · 484 swept · 1 unswept.**
+**487 files on the S1 surface · 484 swept · 3 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -49,6 +49,7 @@
 | `apps/rn/src/components/entities/ImportDebtsSheet.tsx` | never · s1p1 · s1p6 |
 | `apps/rn/src/components/entities/LivingExpenseSheet.tsx` | never · s1p1 · s1p6 |
 | `apps/rn/src/components/entities/LogPaymentSheet.tsx` | s1p1 · s1p5 · s1p6 |
+| `apps/rn/src/components/entities/debtPrefill.test.ts` | ⛔ **never** |
 | `apps/rn/src/components/money/AllocationBarCanvas.tsx` | s1p3 · s1p6 |
 | `apps/rn/src/components/money/AllocationBarCanvas.web.tsx` | s1p3 · s1p6 |
 | `apps/rn/src/components/money/AllocationBarChart.tsx` | s1p3 · s1p6 |
@@ -406,6 +407,7 @@
 | `packages/core/debt/computeInterestSaved.ts` | s1p3 · s1p5 · s1p6 |
 | `packages/core/debt/computeMilestones.ts` | s1p3 · s1p5 · s1p6 |
 | `packages/core/debt/computeStreak.ts` | s1p3 · s1p5 · s1p6 |
+| `packages/core/debt/debtPrefillFromExpense.ts` | ⛔ **never** |
 | `packages/core/debt/deriveRequiredActionView.ts` | s1p3 · s1p5 · s1p6 |
 | `packages/core/debt/extraPaymentPlan.ts` | s1p3 · s1p5 · s1p6 |
 | `packages/core/debt/getDebtsWithDisplayBalances.ts` | s1p3 · s1p4 · s1p5 · s1p6 |
@@ -502,7 +504,9 @@
 
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
+- `apps/rn/src/components/entities/debtPrefill.test.ts`
+- `packages/core/debt/debtPrefillFromExpense.ts`
 - `packages/core/utils/percentComplete.ts`
 
-<!-- claims-sha256: 04deca08be8ed499 -->
+<!-- claims-sha256: 87e56f19c475a4ea -->
 

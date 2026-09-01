@@ -160,6 +160,9 @@
     "s1p5",
     "s1p6"
   ],
+  "apps/rn/src/components/entities/debtPrefill.test.ts": [
+    "never"
+  ],
   "apps/rn/src/components/money/AllocationBarCanvas.tsx": [
     "s1p3",
     "s1p6"
@@ -1807,6 +1810,9 @@
     "s1p3",
     "s1p5",
     "s1p6"
+  ],
+  "packages/core/debt/debtPrefillFromExpense.ts": [
+    "never"
   ],
   "packages/core/debt/deriveRequiredActionView.ts": [
     "s1p3",

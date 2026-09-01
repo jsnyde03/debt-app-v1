@@ -2056,8 +2056,8 @@
       ],
       "run": "test:app",
       "expect": "is not an ANSWER to an unreadable balance",
-      "measured": "2026-08-30",
-      "sha": "77168eed"
+      "measured": "2026-09-01",
+      "sha": "baed0f3d"
     }
   },
   "S1P5-D5-9-CAPWRAP": {
@@ -2079,8 +2079,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-01",
+      "sha": "baed0f3d"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2133,8 +2133,8 @@
       ],
       "run": "test:regression",
       "expect": "an \"Every paycheck\" bill is ONE row per cycle",
-      "measured": "2026-08-30",
-      "sha": "a5bec7a1"
+      "measured": "2026-09-01",
+      "sha": "baed0f3d"
     }
   },
   "S1P5-C5-4-ROWCADENCE": {
@@ -2169,8 +2169,8 @@
       ],
       "run": "test:app",
       "expect": "the widget states the app's figure",
-      "measured": "2026-08-31",
-      "sha": "2c77aceb"
+      "measured": "2026-09-01",
+      "sha": "baed0f3d"
     }
   },
   "S1P5-C5-3-SHEETBALANCE": {
@@ -2223,8 +2223,8 @@
       ],
       "run": "test:app",
       "expect": "a surprise BEFORE the hold began is not credited to it",
-      "measured": "2026-08-31",
-      "sha": "016bf441"
+      "measured": "2026-09-01",
+      "sha": "baed0f3d"
     }
   },
   "S1P5-B5-10-HELDSINCE-CLOSED": {
@@ -2241,8 +2241,8 @@
       ],
       "run": "test:app",
       "expect": "a surprise during the hold",
-      "measured": "2026-08-31",
-      "sha": "016bf441"
+      "measured": "2026-09-01",
+      "sha": "baed0f3d"
     }
   },
   "S1-ROUTE-STALE-READ": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-01",
-      "sha": "80fc0059"
+      "sha": "baed0f3d"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2513,8 +2513,8 @@
       ],
       "run": "lint:conflict-markers",
       "expect": "the population went empty",
-      "measured": "2026-08-31",
-      "sha": "87125682"
+      "measured": "2026-09-01",
+      "sha": "baed0f3d"
     }
   },
   "S1P5-B5-9-RESERVEDIDS": {
