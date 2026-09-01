@@ -2325,8 +2325,8 @@
         "scripts/test-import-graph.ts"
       ],
       "expect": "assertions ran",
-      "measured": "2026-08-31",
-      "sha": "f182d444"
+      "measured": "2026-09-01",
+      "sha": "837ab7b4"
     }
   },
   "S1P6-D2-8-SCRIPTSRUNNER": {
@@ -2827,7 +2827,9 @@
         }
       ],
       "run": "lint:import-graph",
-      "expect": "a plain VALUE is imported from a module that loads a renderer"
+      "expect": "a plain VALUE is imported from a module that loads a renderer",
+      "measured": "2026-09-01",
+      "sha": "837ab7b4"
     }
   }
 }
