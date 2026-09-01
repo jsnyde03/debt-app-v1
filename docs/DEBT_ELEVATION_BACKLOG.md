@@ -937,3 +937,14 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   has ever had to. ⚠️ Now that it can fail, a round that moves many guarded files will red the gate; the
   drain is cheap (all 31 held) but it is ~15 minutes of wall clock and should be expected, not diagnosed
   each time.
+
+### ⤵ surfaced by `S1.13.7.10.1`'s count, 2026-09-01
+
+- **`CLASSIFICATION.md`'s class table does not reconcile with its own findings, and it balances only by
+  cancellation.** → **`S1.13.7.11`** *(the minors class — fix it when that class is opened, since it is
+  that class's own membership that is wrong)*. Measured from the twelve lane files: **123 findings** at
+  `##` heading level, no duplicates. **CLASS IX names 19 ids and claims 18. CLASS XI claims 43 and holds
+  40** — 35 ids are named by no class section at all, plus its 5 notables. The header's
+  *"29 blockers · 48 majors · 47 minors"* sums to **124**. ⛔ The table totals 123 only because those two
+  errors run in opposite directions. ⚠️ **CLASS XI's membership is unenumerated by design** — *"Full list
+  in the lane files"* — so opening `.11` has to begin by writing the list down, exactly as `.10.1` did.
