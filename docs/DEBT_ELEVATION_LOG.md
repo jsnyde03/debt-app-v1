@@ -30303,3 +30303,25 @@ dead-code-after-the-verdict shape found this morning in `check-finding-guards.ts
 regression:** 47 passed / 292 failed, almost all 60s `page.evaluate` timeouts, immediately after a full
 `lint:rn`. The prior full run was 302/37 in 29m on the same tree shape. **A machine-under-load artifact —
 CI is the arbiter, which is the whole point of the push decision.**
+
+### ⭐ `S1.13.7.9` CLOSED 2026-09-01 — CI green, and all 51 had one cause
+
+`69eb0ed1`: typecheck ×4 · `lint:rn` **45/45** · three unit suites · **e2e 339/339 (6.1m)** ·
+**embed 10/10**. ⚡ **One fix and one guard closed every one of the 51 CI failures / 37 local.**
+
+⛔ **Two of my own hypotheses were refuted before the right one, and each refutation came from a
+measurement rather than from thinking harder.** ① *"the shared fixture's due dates"* — moved
+`expense-reserve` 10/11 → 11/11 and left `swipe-mark-paid` at 4-failing **both ways**; testing the second
+cluster is the only reason it was not shipped as the answer. ② *"therefore multi-cause"* — the root fix
+made `expense-reserve` pass **with the fixture untouched**, so the date flip had changed timing enough to
+mask the real failure. **A variable that moves the outcome is not thereby the cause.**
+
+⚠️ **And the local full-suite number after the fix was 47/292 — worse, not better** — almost all 60s
+`page.evaluate` timeouts, run back-to-back after a full `lint:rn` on a box that had already OOMed once
+today. **CI, on a clean Linux runner, was 339/339 on the same commit.** Recorded so nobody re-reads that
+run as a regression: it is why the push decision matters, not a contradiction of it.
+
+⚠️ **Plan hygiene, done in the same edit:** `S1.12.5`'s fully-closed sixteen-row table was the **third**
+section on the page claiming to be *"the ACTIVE decomposition (the ONLY one on this doc)"*. Collapsed to
+one line pointing here. A reader could not have told which sequence was live — which is exactly the rot
+the rule exists to stop.
