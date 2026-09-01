@@ -1034,7 +1034,9 @@
         "-g",
         "C-1"
       ],
-      "expect": "a debt row does not restate an APR"
+      "expect": "a debt row does not restate an APR",
+      "measured": "2026-09-01",
+      "sha": "f8e190e1"
     }
   },
   "S1P3-C1-GATE": {
