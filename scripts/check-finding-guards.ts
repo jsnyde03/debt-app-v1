@@ -140,7 +140,7 @@ const ids = Object.keys(registry);
  * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
-const MIN_ENTRIES = 225;
+const MIN_ENTRIES = 227;
 const MAX_UNGUARDED = 1;
 
 /**
@@ -186,7 +186,7 @@ const MAX_GUARD_ONLY = 0;
  * case this cap was never the last line of defence for. **The direction that matters — authored going UP —
  * still reds.** ⛔ Lower it whenever `prove:guards` prints the nudge; it exists to keep the gap small.
  */
-const MAX_AUTHORED = 11;
+const MAX_AUTHORED = 10;
 
 /**
  * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.

@@ -2606,7 +2606,9 @@
         "tsx",
         "packages/core/testing/testTextDateDoors.ts"
       ],
-      "expect": "statement scan (parseStatementText): \"02/30/2026\" is refused"
+      "expect": "statement scan (parseStatementText): \"02/30/2026\" is refused",
+      "measured": "2026-09-01",
+      "sha": "30079378"
     }
   },
   "S1P6-A3-12-DATEDOORS-OVERFIX": {
@@ -2626,7 +2628,9 @@
         "tsx",
         "packages/core/testing/testTextDateDoors.ts"
       ],
-      "expect": "CSV import (parseDebtCsvText): \"2026-02-28\" is a real day and still imports"
+      "expect": "CSV import (parseDebtCsvText): \"2026-02-28\" is a real day and still imports",
+      "measured": "2026-09-01",
+      "sha": "30079378"
     }
   }
 }
