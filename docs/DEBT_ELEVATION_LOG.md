@@ -30158,3 +30158,49 @@ reverted to its four-field literal, because nothing in it asserts that the conve
 ⛔ **THE GREEN STATE, AGAIN.** `getByText(/Chase card/)` became a **strict-mode violation the moment the
 `C1-1` fix landed** — three elements name the row now, because the copy got better. Every planted run was
 green about it. Scoped to the repairs card, which is what it was always asserting.
+
+### ⛔ The net — and the third suite found already red
+
+`typecheck` ×4 · `lint:rn` **45/45** · `test:regression` · `test:app` · `test:scenarios` all green.
+⛔ **`test:e2e:rn` 302 passed / 37 failed, and `test:e2e:embed` 9 / 1.**
+
+**Measured, not assumed, before writing any of that down:**
+
+- **Not this item's.** `payday-reopen` fails identically with `C1-1`'s seven files reverted to the commit
+  before them. Reverting `C1-6`'s file as well changed one of its three from red to green **and the same
+  test then went red again on a repeat with the file restored and no other change** — so that one is
+  intermittent and the revert proved nothing about it. ⚠️ Recorded as measured rather than as a cause.
+- **Not flake, at least in part.** `hero-date-fit` at **320pt fails 3/3** while **402pt passes 3/3** on
+  the same command. The failure carries its own measurement: *"November 2026"* wants **108px in a 72px
+  box** — **the app's headline number is clipped on a small device.** Nothing in this item touches
+  Progress or `PlanHero`.
+- **The last recorded full e2e run is `S1.12.5.9`.** `S1.13.7.1`–`.7` have not been measured against it.
+
+⚡ **`tutorial-invite.spec.ts` is 17 of the 37**, which makes one cause likelier than seventeen. The
+signatures split into two families: *"element is not stable" / "element was detached from the DOM"*
+(animation timing) and plain 60s timeouts.
+
+⛔ **THE PATTERN THIS ITEM ENDS ON, AND IT IS THE ITEM'S OWN CLASS TURNED ON THE PROCESS.** Three suites
+that **[D74] already lists** were found red by accident, each having stood for sub-steps: `typecheck:core`
+since `.3`, `data-recovery`'s C3 test since `.4`, and the suite as a whole. **The rule is not missing —
+the reading is.** Every one of the three was found by looking at output rather than at an exit code, or
+at an exit code rather than at a `| tail`. Promoted to `S1.13.7.9` and made the active build ahead of the
+remaining triage classes, because *"every assertion reachable and falsifiable"* is not a meaningful exit
+while 37 of them are failing.
+
+### ⤵ `S1.13.7.10`'s decomposition, authored here rather than on the plan
+
+⚠️ Retrieved at switch-in. The plan carries exactly one decomposed section and it belongs to `.9`.
+
+⛔ **The rule this class adds: a test's fix is proven by making it RED, not by making it green.** Every
+finding in it is an assertion that already passes, so a repair that leaves it passing has demonstrated
+nothing — the plant is the entire proof.
+
+| # | sub-step | exit line |
+|---|---|---|
+| `.10.1` | **COUNT THE IDS FROM THE LANE FILES**, not from the plan's list — every `###` heading across `A1` `A2` `A3` `B2` `D1`, reconciled against 18. ⛔ `F-B5` was in no list and surfaced only by counting | a reconciled count, and any id the list omits named |
+| `.10.2` | **ASSERTIONS THAT NEVER EXECUTE** — `D1-5` *(zero assertions run)*, `A1-9` *(the only assertion is satisfied BEFORE the What-If is opened)* | each made to red on the defect it names, with a checked assertion count |
+| `.10.3` | **ORACLES THAT ARE NO-OPS OVER MOST OF THEIR POPULATION** — `D1-4`: a no-op for **542 of 1,084** outcomes while printing *"all 9 invariants fire"* | the population derived, the printed claim matching what ran |
+| `.10.4` | **ASSERTIONS AGAINST A FIXTURE RATHER THAN THE APP** — `A3-17` *(eight gate assertions named "backup …" test `JSON.stringify` on an object literal)*, `B2-4` *(the store-action suite never deletes anything, so pass 5's `$10,967.54` blocker was verified against a hand-built object)* | each drives the real producer |
+| `.10.5` | **THE REMAINDER**, each verified against current code first — `A1-1` `A1-2` `A1-3` `A1-6` `A1-7` `A1-8` `A1-10` `A1-11` `A2-7` `A3-4` `A3-14`–`A3-16` `D1-6` | closed, or measured never to have been a finding |
+| `.10.6` | **RE-RUN THE EARLIER CLASSES' GUARDS THROUGH THE REPAIRED INSTRUMENTS** — this is why the class is last: a guard registered in `.1`–`.8` was proven by an instrument this step repairs | `prove:guards` green across the round, stale at 0 |

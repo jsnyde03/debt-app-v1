@@ -134,15 +134,21 @@ and five would have INTRODUCED one. Verify against current code before writing a
 
 ###### S1.13.7's sub-steps — the ACTIVE decomposition *(the ONLY one on this doc)*
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-09-01).** Eight classes closed, **53 of 123 findings**, `lint:rn`
-**45/45**, all suites green, tree clean, pushed to `v1.7-dev`. ⛔ **Next is `S1.13.7.9`** — tests and
-instruments that cannot fail, 18 findings, decomposed below.
+▶ **WHERE THIS SESSION LEFT OFF (2026-09-01).** Eight classes closed, **53 of 123 findings**, each with an
+executed proof. typecheck ×4 · three unit suites · `lint:rn` **45/45** green.
 
-⛔ **`S1.13.7.8` FOUND TWO GATES THAT HAD BEEN RED SINCE `S1.13.7.3`/`.4` AND NOBODY HAD SEEN EITHER.**
-`typecheck:core` (a field that does not exist on `TimelineCycle` — the regression suite runs under `tsx`,
-which never compiles) and `data-recovery.spec.ts`'s C3 finale test (`B1-1` correctly changed the behaviour
-it pinned). ⚠️ **[D74] already says which suites to run per fix; both of these are on that list.** Run
-them, and read each command's own exit code.
+⛔ **AND THE FULL E2E SUITE IS 37 RED, WHICH IS THE ACTIVE BUILD NOW — NOT `S1.13.7.9`.** Measured at the
+end of `S1.13.7.8`: **302 passed · 37 failed**, plus **1 of 10 embed**. ⚠️ **Not mine and not flake** —
+`payday-reopen` fails identically with this round's changes reverted, and `hero-date-fit` at **320pt fails
+3 of 3 while 402pt passes 3 of 3**: *"November 2026"* needs **108px in a 72px box**, so the Progress
+headline is clipped on a small device. **The last recorded full e2e run is `S1.12.5.9`**; `S1.13.7.1`–`.7`
+have not been measured against it.
+
+⛔ **THIS IS THE THIRD TIME IN ONE ITEM THAT A SUITE [D74] NAMES WAS FOUND ALREADY RED.** `typecheck:core`
+since `.3` *(a field that does not exist on `TimelineCycle` — the regression suite runs under `tsx`, which
+never compiles)*; `data-recovery.spec.ts`'s C3 finale test since `.4` *(`B1-1` correctly changed the
+behaviour it pinned)*; and now the suite as a whole. ⚠️ **[D74] already lists every one of these.** The
+gap is not the rule — it is running the commands and **reading each one's own exit code**.
 
 ⚠️ **Read before resuming:** [`CLASSIFICATION.md`](audits/2026-08-31-s1-money-pass6/CLASSIFICATION.md) is
 the driver — every remaining finding, grouped and ordered. Four 🎯 decisions were taken this session and
@@ -171,33 +177,34 @@ and three lanes named the obvious fix as wrong.
 | ✅ **S1.13.7.6** | **CLOSED 2026-08-31 — MONEY WRITTEN OR DESTROYED.** All 8. ⭐ **[DECISION A2-2] 🎯: the BALANCE is canonical** — deriving it from the installment count rounds real money *(a rename deleted $40)*. `C3-8`: a demo purchase was **charged by Apple and dropped**. `B3-1`: the store's own money was repaired nowhere — and the declaration is what **opens** the migration audit's invariant ③ on it. `A3-5`: `rollPaydayToFuture`'s only caller was the tree `P6.11` deletes. Detail → log | 8 *(6 blockers)* | CLOSED |
 | ✅ **S1.13.7.7** | **CLOSED 2026-08-31 — CADENCE AS A USER VARIABLE.** All 6. ⭐ Two [DECISION]s 🎯: **`A3-2` per-occurrence paid state** *(a tick is a record of a real event)* and **`A3-11` the MONEY is authoritative** *(hysteresis is a presentation smoothing; it may not make the app state a falsehood)*. ⚡ `A3-1`: the gate read `type === 'bnpl'` — **a cadence is a fact about the SCHEDULE, not the label**. Detail → log | 6 *(3 blockers)* | CLOSED |
 | ✅ **S1.13.7.8** | **CLOSED 2026-09-01 — THE FIX REACHED THE MEMBER.** All 6. ⚡ Every one was a previous round's correct fix stopping one line, one field, one hop or one consumer short — `[B4]` changed `recurrence` and left the four seeds beneath it; `B5-11` fixed `backupToCloudGuarded` and left `getCloudBackupStatus` twenty lines away. ⛔ `B3-3`'s class assertion found a site the report never named: the Restore button was `disabled={status !== 'ready'}`, so fixing what was named would have left the door **visible and dead**. ⭐ **And the FIXING found four more of the same shape, three of them already red** — `typecheck:core` since `.3`, the C3 e2e since `.4`, the guard gate's stale ceiling *(dead code; drained 31 → 0)* and `unreadBalanceIds` with zero unit coverage. New gate `lint:amount-collapse` → **45**. Detail → log | 6 *(3 blockers)* | CLOSED |
-| ▶ **S1.13.7.9** | **TESTS THAT CANNOT FAIL** — ⛔ **LAST, and fixed KNOWING what the classes above got wrong**: these are what re-verify everything, so repairing them first re-verifies against the same blind spots. Decomposed below | 18 | every assertion reachable and falsifiable |
-| **S1.13.7.10** | **THE MINORS** — copy, labels, a11y, dead code. Batched; several are one-line | 43 | — |
-| **S1.13.7.11** | **INSTRUMENT THE REST OF THE TREE** *(🎯 2026-08-31)* — **197 tracked source files sit on NO claims file**, 82 of them in `apps/rn` and 4 in `packages/core`, so no instrument can even ASK whether they have been read. S2/S3/S4 have no claims file at all. ⛔ **Measure, do not audit** — generate the claims files so the unknown becomes a number before four more surfaces are priced | 197 | every tracked source file on some surface's claims file |
-| **S1.13.7.12** | **RE-RUN PASS 7** — [D65] needs a second consecutive clean pass. Route from `s1p7`, same 12-lane shape. ⚠️ Forecast: pass 7 will find the FIXES' own defects — every prior round did — so 0/0 twice is realistically passes 8–9 | — | 0/0 twice |
+| ▶ **S1.13.7.9** | **THE SUITE IS 37 RED — MEASURE IT, THEN CLOSE IT.** Inserted at the end of `.8`, ahead of the triage classes, because *"every assertion reachable and falsifiable"* means nothing while 37 of them are failing. Decomposed below | 37 e2e + 1 embed | 338/338 + 10/10, every failure closed or measured never to have been one |
+| **S1.13.7.10** | **TESTS THAT CANNOT FAIL** — `A1-1` `A1-2` `A1-3` `A1-6`–`A1-11` `A2-7` `A3-4` `A3-14`–`A3-17` `B2-4` `D1-4` `D1-5` `D1-6`. ⛔ **LAST among the triage classes, and fixed KNOWING what the classes above got wrong** — these are what re-verify everything, so repairing them first re-verifies against the same blind spots. ⚠️ Its decomposition is in the log; retrieve it at switch-in | 18 | every assertion reachable and falsifiable |
+| **S1.13.7.11** | **THE MINORS** — copy, labels, a11y, dead code. Batched; several are one-line | 43 | — |
+| **S1.13.7.12** | **INSTRUMENT THE REST OF THE TREE** *(🎯 2026-08-31)* — **197 tracked source files sit on NO claims file**, 82 of them in `apps/rn` and 4 in `packages/core`, so no instrument can even ASK whether they have been read. S2/S3/S4 have no claims file at all. ⛔ **Measure, do not audit** — generate the claims files so the unknown becomes a number before four more surfaces are priced | 197 | every tracked source file on some surface's claims file |
+| **S1.13.7.13** | **RE-RUN PASS 7** — [D65] needs a second consecutive clean pass. Route from `s1p7`, same 12-lane shape. ⚠️ Forecast: pass 7 will find the FIXES' own defects — every prior round did — so 0/0 twice is realistically passes 8–9 | — | 0/0 twice |
 
 ###### S1.13.7.9's sub-steps — the ACTIVE decomposition *(the ONLY one on this doc)*
 
-⚠️ Same loop as every class before it: **verify the finding's MECHANISM against current code** → reproduce
-with a control → fix → re-run the control → **plant the original defect and confirm the red is FOR THE
-PLANTED REASON** → plant the laziest plausible repair → register the guard.
+⛔ **THE FIRST QUESTION IS NOT "HOW DO I FIX THESE" BUT "SINCE WHEN".** Three of this round's reds were
+found by accident and each had stood for sub-steps. A failure whose first-bad-commit is unknown gets
+"fixed" against a guess.
 
-⛔ **AND ONE RULE THIS CLASS ADDS: A TEST'S FIX IS PROVEN BY MAKING IT RED, NOT BY MAKING IT GREEN.** Every
-finding here is an assertion that already passes. A repair that leaves it passing has demonstrated
-nothing — the plant is the entire proof.
+⚠️ **`hero-date-fit` at 320pt is the worked example**: fails **3/3** while 402pt passes **3/3**, with a
+measured cause — *"November 2026"* wants 108px in a 72px box. **Deterministic, reproducible, and
+user-facing.** Do not open this step by assuming the rest are flake; assume the opposite and measure.
 
 | # | sub-step | exit line |
 |---|---|---|
-| **S1.13.7.9.1** | **COUNT THE IDS FROM THE LANE FILES**, not from the list above — enumerate every `###` heading across `A1` `A2` `A3` `B2` `D1` and reconcile against 18. ⛔ `F-B5` was in no list on this plan and surfaced only by counting | a reconciled count, and any id the list omits named |
-| **S1.13.7.9.2** | **ASSERTIONS THAT NEVER EXECUTE** — `D1-5` *(`testAllocationsAppearAfterExpensesAndDebts` runs zero assertions)*, `A1-9` *(the What-If test's only assertion is satisfied BEFORE the What-If is opened)*, and whatever `.9.1` adds to the pair | each one made to red on the defect it names, with an assertion count that is checked |
-| **S1.13.7.9.3** | **ORACLES THAT ARE NO-OPS OVER MOST OF THEIR POPULATION** — `D1-4`: the migration audit's oracle is a no-op for **542 of 1,084 outcomes** while printing *"all 9 invariants fire"* | the population is derived, the printed claim matches what ran |
-| **S1.13.7.9.4** | **ASSERTIONS AGAINST A FIXTURE RATHER THAN THE APP** — `A3-17` *(eight release-gate assertions named "backup …" test `JSON.stringify` on an object literal)*, `B2-4` *(the store-action suite never deletes anything, so pass 5's `$10,967.54` blocker was verified against a hand-built object)* | each drives the real producer, planted against the real defect |
-| **S1.13.7.9.5** | **THE REMAINDER**, each verified against current code before anything is written — `A1-1` `A1-2` `A1-3` `A1-6` `A1-7` `A1-8` `A1-10` `A1-11` `A2-7` `A3-4` `A3-14`–`A3-16` `D1-6` | every one closed or measured never to have been a finding |
-| **S1.13.7.9.6** | **RE-RUN THE EARLIER CLASSES' GUARDS THROUGH THE REPAIRED INSTRUMENTS** — ⛔ this is why the class is last. A guard registered in `.1`–`.8` was proven by an instrument this step is repairing; `prove:guards --all` after the repairs is the only thing that says those proofs still hold | `prove:guards` green across the round's entries, stale count at 0 |
-| **S1.13.7.9.7** | **THE NET** — typecheck ×4 · `lint:rn` 45/45 · three unit suites · full e2e · embed. ⛔ No `gate:record`: [D74] writes it at convergence, and pass 6 has not converged | every command's own exit code read, tree clean, pushed |
+| **S1.13.7.9.1** | **CLASSIFY ALL 37 + THE 1 EMBED BY REPRODUCIBILITY** — each spec re-run with `--repeat-each=3`. ⛔ A failure that flips is not automatically flake: record the ratio, and treat *"passes sometimes"* as a defect until something explains WHY it passes sometimes | a table of 38 rows: spec · deterministic/intermittent · the failing assertion's own message |
+| **S1.13.7.9.2** | **FIND THE FIRST BAD COMMIT for each deterministic cluster.** `tutorial-invite` alone is **17 of 37**; a single cause is likelier than seventeen. ⛔ Bisect against a committed state — a git worktree needs `node_modules`, which is a **copy** on Windows and takes minutes, so budget it or use file-level reverts between two commits | each cluster attributed to a commit, or explicitly recorded as older than `S1.12.5.9` |
+| **S1.13.7.9.3** | **FIX THE DETERMINISTIC ONES BY CAUSE, NOT BY SPEC** — starting with `hero-date-fit`'s 320pt clip, which is a real user-facing defect on the app's headline number | each cause closed once, with a plant proving the red returns |
+| **S1.13.7.9.4** | **THE INTERMITTENT REMAINDER** — ⛔ *"element is not stable" / "element was detached"* is an animation-timing signature, not a logic one. `payday-reopen` shows it. ⚠️ A retry is not a fix and `[D65]` does not accept a re-rating as a proof | each one closed, or measured never to have been a failure, with the measurement recorded |
+| **S1.13.7.9.5** | **THE EMBED FAILURE** — `entry.spec.ts`, the Today → Progress → Today walk, 1 of 10 | 10/10 |
+| **S1.13.7.9.6** | **CLOSE THE PROCESS GAP THAT LET THREE SUITES SIT RED.** ⛔ **[D74] already names every one of them** — the rule is not missing, the reading is. Decide the cheapest instrument that makes *"a suite [D74] lists is red"* impossible to not notice, and write it down as a decision either way | a named instrument, or a recorded decision not to build one and why |
+| **S1.13.7.9.7** | **THE NET** — typecheck ×4 · `lint:rn` 45/45 · three unit suites · full e2e **338/338** · embed **10/10**. ⛔ No `gate:record`: [D74] writes it at convergence, and pass 6 has not converged | every command's own exit code read, tree clean, pushed |
 
-**Exit (S1.13.7.9):** every assertion in the round's instruments reachable and falsifiable, and every
-guard from `.1`–`.8` re-proven through them.
+**Exit (S1.13.7.9):** the suite is green for a reason that is written down, and every failure is either
+closed or measured never to have been one. ⛔ **A retry is not a closure.**
 
 ⚠️ **CLASS X is NOT in this list — it is a PLAN correction that blocks `P6.11`, not a triage class.**
 `D3-1` `A3-8` `D3-2` `A2-9` `D2-9` `D2-14`: **the legacy root is LIVE** — `packages/core` imports **7 files

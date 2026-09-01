@@ -19,18 +19,6 @@ async function main() {
   await import('../store/projectedIncome.test');
   await import('../store/guardianPrediction.test');
 
-  // S1.13.7.8 [pass-6 C2-3] — bill → debt: the carried/dropped partition, and that DebtSheet seeds from
-  // `seed` rather than `editing`. Both hops of the conversion, asserted as a class.
-  await import('../components/entities/debtPrefill.test');
-
-  // S1.13.7.8 [pass-6 B3-3] — one condition (a backup whose mtime will not read), walked through every
-  // layer that consumes it. Pass 5's B5-11 fixed one consumer and left the status path saying "sign in".
-  await import('../storage/cloudBackup/cloudBackupUnreadable.test');
-
-  // S1.13.7.8 [pass-6 C1-1] — a refusal names the figure, never a sibling card's position. Swept over
-  // every consumer of `unreadPlanInputs`, which is how the fourth site (WindfallSheet) surfaced.
-  await import('../components/plan/unreadInputsCopy.test');
-
   // RS.2 — Guardian selectors (states × tier × regime + break-it).
   await import('../store/guardianSelectors.test');
 
@@ -334,6 +322,23 @@ async function main() {
   // ⚠️ `paywallLead.test` now runs EARLIER, above `requiredPlanTrust.test` — see the note there (D5-4).
   await import('../premium/introOffer.test');
   await import('../store/glossary.test');
+
+  /**
+   * ⛔ **S1.13.7.8's three new suites run LAST, and the order is load-bearing rather than tidy.**
+   *
+   * Each of them is a **second, independent guard on a defect an existing registry entry already pins** —
+   * `cloudBackupUnreadable` on `S1P4-F-B1-MECHANISM`'s throwing `stat`, `unreadInputsCopy` on
+   * `S1P4-C4-7-SURFACES`' mount and on `S1P5-B5-7-ANSWERABLEID`'s blank-name repair. Imported earlier,
+   * they redded FIRST under those entries' plants, so `prove:guards` reported **`reason=WRONG`** three
+   * times: the red was real, correct and simply not attributable to the token being measured.
+   *
+   * ⚠️ `plant-that-reds-early-hides-assertions`, met with a SECOND guard rather than a broken one. The
+   * repair is the ORDER — never relaxing either assertion, and never narrowing a proof's command, which
+   * was tried first and would have shrunk what the older entry measures.
+   */
+  await import('../storage/cloudBackup/cloudBackupUnreadable.test');
+  await import('../components/entities/debtPrefill.test');
+  await import('../components/plan/unreadInputsCopy.test');
 
   // (RS.6+ app-layer suites are appended here as they land.)
 

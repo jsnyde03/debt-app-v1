@@ -412,7 +412,7 @@
     }
   },
   "S1P4-F-B1-MECHANISM": {
-    "what": "pass-4 F-B1 (minor) - the iOS provider's stat() docblock stated a mechanism the code does not have. It said of the un-stat-able-file path: 'the next inspect reads unclaimed and ASKS rather than destroying.' Measured against the real modules with a provider whose stat() raises: backupToCloud succeeds at OUR clock with writes=1, the next inspectRemote returns { state: 'unknown' } - NOT unclaimed - and the next guarded backup returns { ok: false, reason: 'unavailable' } with writes still 1. inspectRemote never reaches the unclaimed branch because provider.stat() THROWS and that function's own catch returns unknown first. So the app does not ask; it REFUSES, and every later automatic backup is refused the same way until a readable mtime returns. ⭐ Filed minor because the direction is still safe and the conclusion still true - nothing is clobbered - only the mechanism was false. ⚠️ A docblock is a carried premise and decays like a carried number: the same paragraph is duplicated at provider.ts:20-35 and THAT copy never made the unclaimed claim and was accurate the whole time ⚠️ The token is the BEHAVIOURAL assertion, not the corrected prose: lint:finding-guards refused a token that lived only in a comment, and it was right to - a sentence guards nothing. What makes the corrected sentence true is that a throwing stat is contained as `unknown`, and that assertion already existed; the un-fix returns `none` from the catch, which is the state the guard PERMITS.",
+    "what": "pass-4 F-B1 (minor) - the iOS provider's stat() docblock stated a mechanism the code does not have. It said of the un-stat-able-file path: 'the next inspect reads unclaimed and ASKS rather than destroying.' Measured against the real modules with a provider whose stat() raises: backupToCloud succeeds at OUR clock with writes=1, the next inspectRemote returns { state: 'unknown' } - NOT unclaimed - and the next guarded backup returns { ok: false, reason: 'unavailable' } with writes still 1. inspectRemote never reaches the unclaimed branch because provider.stat() THROWS and that function's own catch returns unknown first. So the app does not ask; it REFUSES, and every later automatic backup is refused the same way until a readable mtime returns. ⭐ Filed minor because the direction is still safe and the conclusion still true - nothing is clobbered - only the mechanism was false. ⚠️ A docblock is a carried premise and decays like a carried number: the same paragraph is duplicated at provider.ts:20-35 and THAT copy never made the unclaimed claim and was accurate the whole time ⚠️ The token is the BEHAVIOURAL assertion, not the corrected prose: lint:finding-guards refused a token that lived only in a comment, and it was right to - a sentence guards nothing. What makes the corrected sentence true is that a throwing stat is contained as `unknown`, and that assertion already existed; the un-fix returns `none` from the catch, which is the state the guard PERMITS. ⛔ S1.13.7.8 — RUNNER ORDER CORRECTED, not the command and not either assertion. The un-fix makes `inspectRemote` return `none`, and S1.13.7.8's new `cloudBackupUnreadable.test.ts` asserts `backupToCloudGuarded` REFUSES an unidentifiable remote — a correct, independent guard on the same defect, imported EARLIER in the runner. So the whole-suite run redded on that assertion instead and `prove:guards` reported reason=WRONG: the red was real and simply not attributable to this token. `plant-that-reds-early-hides-assertions`, met with a second guard rather than a broken one — the fix is to scope the command, never to relax either assertion.",
     "file": "apps/rn/src/storage/cloudBackup/service.test.ts",
     "token": "a throwing stat is contained as `unknown`",
     "proof": {
@@ -576,8 +576,8 @@
       ],
       "run": "test:app",
       "expect": "the confirm is committable only when the disclosure is known",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-01",
+      "sha": "4789acd1"
     }
   },
   "S1P4-A-F3-WINDOWSTART": {
@@ -629,7 +629,7 @@
       "run": "lint:gate-sources",
       "expect": "no longer runs the scripts typecheck against the config this gate guards",
       "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "sha": "4789acd1"
     }
   },
   "S1P4-A-F4-ONEGUARD": {
@@ -737,7 +737,7 @@
       "run": "test:app",
       "expect": "the trophy shelf",
       "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "sha": "4789acd1"
     }
   },
   "S1P4-C4-7-SURFACES": {
@@ -1036,7 +1036,7 @@
       ],
       "expect": "a debt row does not restate an APR",
       "measured": "2026-09-01",
-      "sha": "f8e190e1"
+      "sha": "4789acd1"
     }
   },
   "S1P3-C1-GATE": {
@@ -1230,8 +1230,8 @@
       ],
       "run": "test:app",
       "expect": "B3",
-      "measured": "2026-08-31",
-      "sha": "5184aecc"
+      "measured": "2026-09-01",
+      "sha": "4789acd1"
     }
   },
   "S1P3-B3-MTIME": {
@@ -1248,8 +1248,8 @@
       ],
       "run": "test:app",
       "expect": "a throwing stat is contained as `unknown`",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-01",
+      "sha": "4789acd1"
     }
   },
   "S1P3-B4-ADAPTER": {
@@ -1443,7 +1443,7 @@
       "run": "test:app",
       "expect": "an unread BALANCE poisons the plan claim",
       "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "sha": "4789acd1"
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
@@ -1816,7 +1816,7 @@
       "run": "test:app",
       "expect": "owner · a whole ROW unreadable",
       "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "sha": "4789acd1"
     }
   },
   "S1P4-C4-9-MIXED": {
@@ -1859,7 +1859,7 @@
       "run": "test:app",
       "expect": "the record SURVIVES the acknowledgement",
       "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "sha": "4789acd1"
     }
   },
   "S1P5-A5-2-NONFINITE": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-01",
-      "sha": "baed0f3d"
+      "sha": "4789acd1"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2343,8 +2343,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO runner",
-      "measured": "2026-08-31",
-      "sha": "f182d444"
+      "measured": "2026-09-01",
+      "sha": "4789acd1"
     }
   },
   "S1P6-D1-8-GATECHAIN": {
@@ -2361,8 +2361,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO chain",
-      "measured": "2026-08-31",
-      "sha": "f182d444"
+      "measured": "2026-09-01",
+      "sha": "4789acd1"
     }
   },
   "S1P6-D3-4-HALFCONFLICT": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-01",
-      "sha": "baed0f3d"
+      "sha": "4789acd1"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2567,8 +2567,8 @@
       ],
       "run": "test:app",
       "expect": "the question was unanswered, and the user is NOT told to sign in",
-      "measured": "2026-08-31",
-      "sha": "5184aecc"
+      "measured": "2026-09-01",
+      "sha": "4789acd1"
     }
   },
   "S1P5-B5-5-B5-6-PAYCHECKSTR": {
