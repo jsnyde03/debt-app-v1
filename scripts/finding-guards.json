@@ -3427,7 +3427,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the held cash is named among what is replaced"
+      "expect": "the held cash is named among what is replaced",
+      "measured": "2026-09-02",
+      "sha": "c76753d6"
     }
   }
 }
