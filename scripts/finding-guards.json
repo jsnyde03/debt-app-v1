@@ -3161,5 +3161,37 @@
       "measured": "2026-09-02",
       "sha": "a8fbb179"
     }
+  },
+  "S1P6-C1-4-GROSSROW": {
+    "what": "S1.13.7.11 [pass-6 C1-4] - the payday sheet rendered `formatCurrency(row.item.amount)`, which is what THIS PAYCHECK puts in, not what the biller is owed (`amount + reserveCovered`, per allocatePaycheck.ts:101-104). A $350 rent the expense reserve fully covers has amount === 0, so the sheet printed $0.00 for it while RequiredActionsCard printed $350.00 twelve inches above - that card has headlined the gross figure since [T6.6 L4-6] and the fix stopped at the reported card, while this sheet consumes the SAME RequiredRow[] from the same selectRequiredRows call. The row now headlines gross and carries the same `$X from your reserve` caption. ⛔ GROSS FOR THE SENTENCES, NET FOR capturedTotal: allocatePaycheck.ts:330-353 nets the reserve draw out of totalRequired too, so subtracting a gross carry from a net total under-reports the capture by the reserve share - the mirror of this same bug, and the reason selectRequiredSplit returns both.",
+    "file": "apps/rn/src/components/payday/PaydayCaptureSheet.tsx",
+    "token": "formatCurrency(row.item.amount + Math.max(0, row.item.reserveCovered ?? 0))",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payday/PaydayCaptureSheet.tsx",
+          "find": "{formatCurrency(row.item.amount + Math.max(0, row.item.reserveCovered ?? 0))}",
+          "replace": "{formatCurrency(row.item.amount)}"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the row headlines the BILL"
+    }
+  },
+  "S1P6-C1-4-VERDICT": {
+    "what": "S1.13.7.11 [pass-6 C1-4], the half that is a rule rather than a number: a verdict about the USER'S OWN ANSWERS must not be derived from money. `All confirmed paid` was gated on `carryForward > 0`, and a bill the expense reserve fully covers carries $0 whatever the user answered - so the sheet announced `All confirmed paid` one tap after the user marked that bill `Didn't pay`, and the `$X carries to next cycle` line did not render at all. Both now read `anyUnpaid`, which selectRequiredSplit derives from the requiredPaid map. ⚠️ The DATA was always correct - decisionsFrom writes expensePaid[id] off requiredPaid, not off carryForward - so the reconciliation carried the right bill forward and only the sentences were false. That is why nothing reconciliation-tested caught it.",
+    "file": "apps/rn/src/components/payday/PaydayCaptureSheet.tsx",
+    "token": "? anyUnpaid",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payday/PaydayCaptureSheet.tsx",
+          "find": "    ? anyUnpaid",
+          "replace": "    ? carryForward > 0"
+        }
+      ],
+      "run": "test:app",
+      "expect": "no sentence is gated on a dollar sum"
+    }
   }
 }
