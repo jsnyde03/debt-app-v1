@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-02",
-      "sha": "7984364d"
+      "sha": "12ed10dd"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3283,7 +3283,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "an unmatched updateExpense writes nothing"
+      "expect": "an unmatched updateExpense writes nothing",
+      "measured": "2026-09-02",
+      "sha": "12ed10dd"
     }
   }
 }
