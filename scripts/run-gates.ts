@@ -51,6 +51,9 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // its coverage being recorded, which is what keeps "first look" a lookup rather than a claim.
     'lint:s0-coverage',
     'lint:s1-coverage',
+    'lint:s2-coverage',
+    'lint:s3-coverage',
+    'lint:s4-coverage',
     'lint:surface-complete',
     // ⛔ S1.10.6.5.8.4 [GAP-13] — the same completeness argument, applied to what [D49] FINGERPRINTS.
     // `gateSources.ts`'s header argues that scope must be an exclusion list because an inclusion list

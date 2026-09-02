@@ -31202,3 +31202,65 @@ started looking for two.
 those was **red — 2 of 46** — while `TYPECHECK_EXIT=0` beside it was genuinely clean. That is this file's
 own standing warning landing on its author: **read the gate's own summary line for the run you are
 reporting, never a neighbouring signal and never the pipeline's status.**
+
+---
+
+## 2026-09-02 — `S1.13.7.12.1`: S2/S3/S4 exist, and they are DERIVED rather than rooted
+
+🎯 approved the recommendation: **derive their membership from S1's routing table rather than giving them
+roots of their own.**
+
+### ⛔ Why roots were refused, using this file's own argument against itself
+
+A surface in `surface-coverage.ts` is `roots` + an `excluded` routing. Giving S2/S3/S4 roots means an
+**inclusion list** — and that file's docblock already says an inclusion list *fails silent*: *"a surface
+file nobody thought to enumerate is simply absent."* ⚡ It is also, precisely, how the roots there were
+wrong **five times** — M9 (files hand-named inside `roots`) · [D73] (the whole test tree) · `packages/core`
+· `apps/rn/src` entire — **each correction adding a narrower list, and each followed by another gap.**
+
+⚡ **Derived membership is not a list, so it cannot be short.** Every file S1 hands to `s3` **is** S3's
+population, and completeness is guaranteed one level up: S0/S1's roots cover the tree and
+`--completeness` refuses any tracked source file under none of them. A file cannot reach a derived surface
+by being remembered, and cannot be missed by being forgotten.
+
+⭐ **And it removes the [D73] trap by construction.** That trap is *a routing to a surface that EXISTS but
+does not WALK the file*, which deletes the file from the sender and adds it to nothing — the silent hole
+[D73] was written about, re-created while closing it. **A surface that RECEIVES cannot be in that state:
+if a routing names it, it has it.**
+
+⚠️ **The cost, stated rather than glossed:** S2/S3/S4 are defined *relative to* S0/S1 — they are the
+remainder those surfaces declined. That is exactly what they are today, and when one opens for real its
+population is a decision to be made then, not a list to be trusted now.
+
+### What shipped
+
+**1 · 39 · 46 = 86**, reconciling exactly with the routing counts — three claims files with every entry
+`never`, three inventories under `docs/audits/surfaces/`, three gates on the `lint:rn` chain
+(**46 → 49**). The claims were generated **from the gate's own `UNCLASSIFIED` output**, not from a second
+enumeration of the routings — the same reason the file list is walked rather than parsed.
+
+**Both plants red, so the gates are load-bearing in both directions:**
+
+| plant | result |
+|---|---|
+| route a new file (`apps/rn/src/utils/format.ts`) to `s3` | ❌ `UNCLASSIFIED apps/rn/src/utils/format.ts` |
+| break the derivation (`if (true \|\| sender.derived) continue`) | ❌ `STALE` ×39 — an empty surface cannot pass |
+
+The second is the one that matters: without it, a derivation that quietly returned nothing would report a
+clean, empty surface. Both restores verified byte-identical.
+
+### ⚠️ The before-scan finding, filed rather than fixed
+
+**S2 receives exactly one file — a spec — and every date-bearing source stays on S1.** `DateField.tsx`,
+`DateField.web.tsx`, `hero-date-fit.spec.ts`, `localDate.ts`, `getNextPaycheckDate.ts` and
+`testRolloverDueDates.ts` are all S1, swept `s1p6`; only `date-field.spec.ts` is routed to `s2`.
+
+⛔ **So the only e2e guard for a control S1 owns sits on a surface that does not open until after S1
+converges** — [D73]'s stated failure exactly. ⚠️ **Not fixed here, deliberately:** re-routing it to S1 adds
+a `never` file to S1's population *during pass-7 prep*, changing what `audit:read-coverage` demands pass 7
+read. That is a scope call. ⚡ **The routing is legitimate, not a typo** — the phase order declares **S2
+dates**; this is under-population, and a derived surface's count is what has been ROUTED, never what the
+surface will eventually own. Filed to the backlog with the `SWEPT_CLAIMS` vocabulary note beside it.
+
+**Captured atomically:** `.12.1` closed on the plan · the class row's remaining steps named (`.12.4`–`.12.6`)
+· both after-scan findings filed to `DEBT_ELEVATION_BACKLOG.md` under their own dated heading.

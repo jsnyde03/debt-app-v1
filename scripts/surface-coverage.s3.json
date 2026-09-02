@@ -1,0 +1,119 @@
+{
+  "apps/rn/src/data/backup.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/backup.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/backupFile.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/backupFile.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/cloudBackup.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/cloudBackup.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/cloudBackupMessages.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/cloudBackupMessages.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/csvImportFile.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/csvImportFile.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/detectBackupFormat.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/detectBackupFormat.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/formatBackupTime.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/decodeCandidates.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/decodeCandidates.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/findLegacyStores.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/findLegacyStores.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/mapLegacyStore.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/mapLegacyStore.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/migrateFromLegacy.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/migrateFromLegacy.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/originalBalance.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/readLegacyStores.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/readLegacyStores.web.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/realContainer.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/report.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/webkitLocalStorage.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/legacyBridge/webkitLocalStorage.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/readBackup.test.ts": [
+    "never"
+  ],
+  "apps/rn/src/data/readBackup.ts": [
+    "never"
+  ],
+  "apps/rn/tests/e2e/backup.spec.ts": [
+    "never"
+  ],
+  "apps/rn/tests/e2e/csv-import.spec.ts": [
+    "never"
+  ],
+  "apps/rn/tests/e2e/data-recovery.spec.ts": [
+    "never"
+  ],
+  "apps/rn/tests/e2e/delete-all-data.spec.ts": [
+    "never"
+  ],
+  "apps/rn/tests/e2e/scan.spec.ts": [
+    "never"
+  ],
+  "packages/core/imports/debtCsv.ts": [
+    "never"
+  ],
+  "packages/core/imports/testDebtCsv.ts": [
+    "never"
+  ],
+  "packages/core/scan/parseStatementText.ts": [
+    "never"
+  ],
+  "packages/core/scan/testParseStatementText.ts": [
+    "never"
+  ]
+}

@@ -1052,3 +1052,23 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   declaration both the pre-overwrite sentence and the repair pass derive from, after which a new money
   field joins them by construction instead of by somebody remembering.
 
+
+### ⤵ surfaced by `S1.13.7.12.1`'s before-scan, 2026-09-02 — routed per bullet
+
+- ⚠️ **`date-field.spec.ts` is an ORPHANED GUARD, and S2 is where it went. → S2's opening, or an earlier
+  🎯 call.** S1 routes it to `s2` *("the date control — the dates surface")*, while the control itself —
+  `DateField.tsx` and `DateField.web.tsx` — plus the sibling spec `hero-date-fit.spec.ts`,
+  `localDate.ts`, `getNextPaycheckDate.ts` and `testRolloverDueDates.ts` **all remain on S1, swept by
+  `s1p6`.** ⛔ So **the only e2e guard for a control S1 owns sits on a surface that does not open until
+  after S1 converges**, which is [D73]'s stated reason for putting the test tree on a surface at all:
+  *"every surface audit re-verifies the previous surfaces' guards"* pointed auditors at files they were
+  never given. ⚠️ **Not fixed in `.12.1` on purpose** — re-routing it to S1 adds a `never` file to S1's
+  population **during pass-7 prep**, which changes what `audit:read-coverage` demands pass 7 read. That is
+  a scope call, not a mechanical correction. ⚡ Note the routing is *legitimate*: the phase order declares
+  **S2 dates**, so this is under-population, not a typo.
+
+- ⚠️ **`SWEPT_CLAIMS` carries no `s2p*` / `s3p*` / `s4p*` values yet. → whichever surface opens first.**
+  The first pass on a derived surface that records `s2p1` will red the vocabulary check — correctly, since
+  the list is an allow-list and a typo there silently converts an unread file into a read one. Recorded so
+  the session that meets that red reads it as an unfinished edit rather than a broken gate, exactly as
+  `MAX_AUTHORED`'s nudge does for `prove:guards`.

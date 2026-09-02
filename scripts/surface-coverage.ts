@@ -75,6 +75,30 @@ interface Surface {
   title: string;
   /** directories walked recursively, and single files, both repo-relative with forward slashes */
   roots: string[];
+  /**
+   * ⛔ **S1.13.7.12.1 — A DERIVED SURFACE OWNS EXACTLY WHAT THE OTHERS ROUTE TO IT, and that is the
+   * whole point.**
+   *
+   * ⚠️ **The obvious alternative was refused, by this file's own argument.** Giving S2/S3/S4 their own
+   * `roots` means an INCLUSION list — and the docblock above says an inclusion list *fails silent*: a
+   * surface file nobody thought to enumerate is simply absent. That is also how the roots here were
+   * wrong **five times** (M9 · [D73] · `packages/core` · `apps/rn/src` entire), each correction adding a
+   * narrower list and each followed by another gap.
+   *
+   * ⚡ **Membership derived from the routings cannot fail silent, because it is not a list.** Every file
+   * S1 hands to `s3` IS S3's population, and completeness is already guaranteed one level up: S0/S1's
+   * roots cover the tree and `--completeness` refuses any tracked source file under none of them. A file
+   * cannot reach a derived surface by being remembered, and cannot be missed by being forgotten.
+   *
+   * ⛔ **It also removes the [D73] trap by construction.** That trap is *a routing to a surface that
+   * exists but does not WALK the file* — which deletes the file from the sender and adds it to nothing.
+   * A surface that RECEIVES rather than walks cannot be in that state: if a routing names it, it has it.
+   *
+   * ⚠️ **The honest cost, stated:** S2/S3/S4 are defined relative to S0/S1 rather than standing alone.
+   * They are the remainder those surfaces declined, which is exactly what they are today — and when one
+   * of them opens for real, its population is a decision to be made then, not a list to be trusted now.
+   */
+  derived?: true;
   claims: string;
   inventory: string;
   /**
@@ -354,6 +378,55 @@ const SURFACES: Record<string, Surface> = {
       return null;
     },
   },
+  /**
+   * ⛔ **S1.13.7.12.1 — THE THREE DERIVED SURFACES, so the 86 files already routed to them stop landing
+   * nowhere.** 🎯 2026-08-31: *"measure, do not audit."* These carry a claims file and a number; they do
+   * NOT open a pass.
+   *
+   * ⚡ **What `.12.2` measured, and why this is smaller than the item first said.** The plan read *"197
+   * tracked source files sit on NO claims file."* Re-measured: **209**, splitting with no remainder into
+   * **86** routed here by name with a reason, and **123** inside the eleven trees `--completeness` skips
+   * by name. ⛔ *"No instrument can even ASK whether they have been read"* was **false** — that gate is
+   * green and rides `lint:rn`. Nothing was invisible; the **destination** was missing.
+   *
+   * ⚠️ **Every entry starts `never`, and that is a measurement rather than a placeholder.** No pass has
+   * read these files. The claims files say so in the one vocabulary [D69] reads, which is what makes a
+   * finding in them provably *first-look* instead of an auditor's own claim.
+   *
+   * ⛔ **THE COUNTS ARE NOT THESE SURFACES' REAL SCOPE, and S2 is the proof.** S2 is declared as *dates*
+   * in the phase order, and it receives exactly **one** file — a spec — while `DateField.tsx`, its
+   * `.web` twin, `hero-date-fit.spec.ts`, `localDate.ts`, `getNextPaycheckDate.ts` and
+   * `testRolloverDueDates.ts` all remain on S1. That is this file's *"when the owner is arguable the file
+   * stays"* rule working as written. **A derived surface's population is what has been ROUTED, never what
+   * the surface will eventually own** — that is decided when it opens.
+   */
+  s2: {
+    gate: 's2-coverage',
+    title: 'S2 surface inventory — dates',
+    roots: [],
+    derived: true,
+    claims: 'scripts/surface-coverage.s2.json',
+    inventory: 'docs/audits/surfaces/S2-DATES-INVENTORY.md',
+    excluded: commonExcluded,
+  },
+  s3: {
+    gate: 's3-coverage',
+    title: 'S3 surface inventory — backup · restore · import',
+    roots: [],
+    derived: true,
+    claims: 'scripts/surface-coverage.s3.json',
+    inventory: 'docs/audits/surfaces/S3-IMPORT-INVENTORY.md',
+    excluded: commonExcluded,
+  },
+  s4: {
+    gate: 's4-coverage',
+    title: 'S4 surface inventory — discovery · tutorial · demo',
+    roots: [],
+    derived: true,
+    claims: 'scripts/surface-coverage.s4.json',
+    inventory: 'docs/audits/surfaces/S4-DISCOVERY-INVENTORY.md',
+    excluded: commonExcluded,
+  },
 };
 
 /**
@@ -479,7 +552,7 @@ if (!SURFACE) {
  */
 const CLAIMS_FILE = join(REPO_ROOT, process.argv.find((a) => a.startsWith('--claims='))?.split('=')[1] ?? SURFACE.claims);
 const INVENTORY = join(REPO_ROOT, SURFACE.inventory);
-const ROOTS = SURFACE.roots;
+
 const excluded = SURFACE.excluded;
 
 function walk(dir: string, out: string[]): void {
@@ -499,21 +572,47 @@ function walk(dir: string, out: string[]): void {
   }
 }
 
-const surface: string[] = [];
-for (const r of ROOTS) {
-  const abs = join(REPO_ROOT, r);
-  let isDir: boolean;
-  try {
-    isDir = statSync(abs).isDirectory();
-  } catch {
-    // ⛔ A root that does not exist is a CONFIGURATION error, not an empty surface. Skipping it silently
-    // is how a whole directory drops off a surface and every finding in it reads as first-look.
-    console.error(`\n❌ ${SURFACE.gate}: root "${r}" does not exist. Fix SURFACES in scripts/surface-coverage.ts.\n`);
-    process.exit(1);
+/** Every source file under a surface's own roots, before its `excluded` routings are applied. */
+function walkRoots(sf: Surface): string[] {
+  const out: string[] = [];
+  for (const r of sf.roots) {
+    const abs = join(REPO_ROOT, r);
+    let isDir: boolean;
+    try {
+      isDir = statSync(abs).isDirectory();
+    } catch {
+      // ⛔ A root that does not exist is a CONFIGURATION error, not an empty surface. Skipping it silently
+      // is how a whole directory drops off a surface and every finding in it reads as first-look.
+      console.error(`\n❌ ${sf.gate}: root "${r}" does not exist. Fix SURFACES in scripts/surface-coverage.ts.\n`);
+      process.exit(1);
+    }
+    if (isDir) walk(abs, out);
+    else out.push(r);
   }
-  if (isDir) walk(abs, surface);
-  else surface.push(r);
+  return out;
 }
+
+/**
+ * ⛔ **S1.13.7.12.1 — A DERIVED SURFACE IS THE SET OF FILES THE ROOTED SURFACES HAND IT.** See the
+ * `derived` field's note for why this is not an inclusion list.
+ *
+ * ⚠️ **Deduped across senders on purpose.** A file both S0 and S1 route to the same place is one file on
+ * one surface, not two entries — and the claims file is keyed by path, so a duplicate would read as a
+ * second, permanently-`never` member that nothing could ever sweep.
+ */
+function filesRoutedTo(key: string): string[] {
+  const out = new Set<string>();
+  for (const sender of Object.values(SURFACES)) {
+    if (sender.derived) continue;
+    for (const f of new Set(walkRoots(sender))) {
+      const r = sender.excluded(f);
+      if (r && r.to === key) out.add(f);
+    }
+  }
+  return [...out];
+}
+
+const surface: string[] = SURFACE.derived ? filesRoutedTo(requested) : walkRoots(SURFACE);
 // ⛔ S1.5.4 [M9-C] — every routing is validated as it is applied, so a mis-typed owner reds instead of
 // silently removing a file from every surface there is.
 const routed = new Map<string, Routing>();
