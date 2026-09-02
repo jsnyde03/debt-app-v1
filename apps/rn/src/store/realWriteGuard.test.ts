@@ -1,3 +1,4 @@
+import { toLocalISODate } from '@core/utils/localDate';
 import { appStore } from '@/store/appStore';
 import {
   __resetSandboxScopesForTest,
@@ -33,11 +34,16 @@ function eq<T>(a: T, b: T, label: string) {
   assert(a === b, `${label} (expected ${JSON.stringify(b)}, got ${JSON.stringify(a)})`);
 }
 
-/** A date relative to the run, so no fixture in this file can age into a different branch. */
+/**
+ * A date relative to the run, so no fixture in this file can age into a different branch.
+ *
+ * ⚠️ `toLocalISODate`, not `toISOString().slice(0, 10)` — `lint:local-dates` caught the first draft. A
+ * calendar date routed through UTC is off by one east of it, which for a DUE DATE is the overdue branch.
+ */
 function daysFromToday(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 function run() {

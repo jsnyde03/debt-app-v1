@@ -30798,3 +30798,79 @@ that file's own floor asks for it in the failure message, which is why adding a 
 
 **Verified:** `typecheck` ×4 · `test:app` exit 0 · `readBackup.test` 111 asserts · the cloud walk 28.
 
+---
+
+## 2026-09-02 — `S1.13.7.11` CLOSED: all 13 gating findings, and what the class cost to close
+
+**40 findings · 5 blockers · 8 majors · 27 minors.** The 13 that gate [D65] are closed; the 27 minors stay
+untouched by design, swept inline when a later class already has the file open.
+
+### The four the class re-rated before it fixed anything
+
+⛔ **The enumeration was wrong in every number, and correcting it changed the work.** The class was opened
+as *35 · 3 blockers · 5 majors · 7 unrated*. Membership is **40**, derived two independent ways that agree,
+and **nothing was unrated** — all 40 state a severity, in three formats, and the first pass's pattern read
+one of them. `D3-5`'s conditional rating resolved to **blocker** on measurement; `D1-1` turned out to be
+`D3-4` found by a second lane and closed already. **13 gate, not 8.**
+
+### Every fix, and the one sentence that survives it
+
+| | |
+|---|---|
+| `D3-5` | The caption printed **`-$250 paid`** — a negative number labelled as money the user paid. ⛔ Fixed at the **population**, not with a clamp: `Math.max(0, …)` is what `formatCurrency`'s header forbids |
+| `C1-4` | A reserve-covered $350 rent rendered **$0.00** and the sheet said *"All confirmed paid"* one tap after the user marked it *didn't*. ⛔ **Gross for the sentences, NET for `capturedTotal`** — the mirror bug is a real one |
+| `B3-2` | An unreadable `exportedAt` read *"Saved recently."* above an irreversible restore. ⛔ **The check is the string's SHAPE**: `new Date("0")` is *valid*, so a NaN guard prints a confident wrong date |
+| `C1-15` | *"Expenses & essentials"* was back-solved from the value it explains. ⚡ A two-producer disagreement **visible only from the side that did not move** |
+| `C3-7` | Siri claimed a payment was **logged** when it was only queued — and said it when the write failed. Three files carried the queue-wipe; the finding named one |
+| `A3-3` | The finding named 2 sites; there were **8**. Closed as a gate, not eight edits |
+| `B1-4` `B2-1` `B2-2` | Three claims that decayed into falsehoods. **A comment is a carried premise and decays like a carried number** |
+| `C2-1` | *"the order they clear in changes"* fired on a condition that says nothing about order |
+| `C3-12` | One failed widget write froze the Home Screen and Siri **for the session** |
+| `B3-5` | The pre-overwrite sentence never named the cash the app is holding. ⛔ A category, **not an amount** |
+
+### ⚡ What this class measured that outlives it
+
+⛔ **A GUARD IS ONLY AS CURRENT AS THE LAST COMMIT THAT TOUCHED ITS FILE.** Building `C1-4` on top of
+`D3-5` **voided both of `D3-5`'s guards one commit after they were proven** — one token gone, one un-fix
+anchor void. The `B3-2` build then left **ten** executed proofs stale against a ceiling of 8, and the
+`A3-3` gate wiring left four more. The standing rule re-verifies guards **per surface**; the real period is
+per commit. Filed as a protocol question rather than decided.
+
+⛔ **THE INSTRUMENTS FOUND MY WORK, REPEATEDLY, AND READING NEVER DID.**
+
+- `lint:store-id-writes` — **the gate I had just written failed open on its own first plant.** Its
+  population came from `git ls-files`; the plant is untracked; it printed a clean tree over the exact
+  defect it names. ⚠️ Not only a harness artifact — **a store file is untracked until someone runs
+  `git add`**, which is the window a new bare id write is most likely to appear in.
+- `lint:copy` — I had typed *"from your reserve"* a second time. **`C1-4` IS two surfaces disagreeing about
+  one row**, so a second copy of the sentence would have fixed the symptom and re-created the condition.
+- `lint:fixture-dates` — caught a date fuse **the day I wrote it**, in `A3-3`'s own fixture.
+- `lint:cap-literals`, `lint:comments`, `lint:rounding`, `eslint` — one correction each.
+- `lint:finding-guards` **refused a token I aimed at a declaration** rather than a use. A declaration
+  survives its use being deleted; that is `D3-3`'s lesson and the reason the check exists.
+- `prove:guards` **refused an un-fix as VOID rather than failing** — one anchor, two sites, so the plant
+  would have restored half the defect and the verdict would have been about that half.
+
+⛔ **AND A PLANT CAUGHT A TEST THAT COULD NOT FAIL.** `B3-5`'s amount-disclosing plant redded on the
+full-phrase check, leaving the assertion *about amounts* never exercised. Loosened the first check so an
+amount-bearing sentence reaches the one that is about amounts. Same shape, one file over: `C3-12`'s async
+case **did not run at all** — `runAppTests` had a bare `await import`, which executes a file's synchronous
+blocks and silently skips its exported runner, and `test:app` printed **ALL PASSED** with it unwired. That
+is `D5-12` at one-function granularity, caught only by reading the output for the case's own line.
+
+⚠️ **Twice the harness reported `exit 0` over a RED `lint:rn`.** Both were my own shell chains ending in
+`tail` and `echo` — `shell-is-a-participant`, not the harness — and both were caught by reading the gate's
+own summary line, which is what [D49] says to do.
+
+⚠️ **`prove:guards` printed a ✅ and then failed to persist it** — a transient Windows write error at the
+final write. Nine stamps landed, the tenth did not, and the run still printed its success summary. **The
+tick is not the record**, inside the instrument built so closures would carry evidence rather than tokens.
+Filed with the fix named: a persist failure must red the run.
+
+### One residual, stated rather than hidden
+
+⚠️ **`C3-7` is a SOURCE SCAN.** Nothing in this repo builds the Swift target — the finding's own author
+said the same and ran neither half. What is pinned is the structure that makes the false claim impossible;
+**whether Siri speaks the new sentence is a device row for `P6.14`.** A green run here is not a green run
+on hardware.
+

@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**492 files on the S1 surface · 484 swept · 8 unswept.**
+**494 files on the S1 surface · 484 swept · 10 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -37,6 +37,7 @@
 | `apps/rn/src/appIntents/pendingActionBridge.types.ts` | s1p3 |
 | `apps/rn/src/appIntents/pendingActions.test.ts` | s1p3 · s1p6 |
 | `apps/rn/src/appIntents/pendingActions.ts` | s1p3 · s1p6 |
+| `apps/rn/src/appIntents/siriClaims.test.ts` | ⛔ **never** |
 | `apps/rn/src/components/AppLockGate.tsx` | s1p3 · s1p6 |
 | `apps/rn/src/components/DataResetScreen.tsx` | s1p3 · s1p6 |
 | `apps/rn/src/components/SaveFailedBanner.tsx` | s1p3 · s1p6 |
@@ -290,6 +291,7 @@
 | `apps/rn/src/store/recoverySelectors.ts` | s1p2 · s1p6 |
 | `apps/rn/src/store/requiredPlanTrust.test.ts` | partial · s1p6 |
 | `apps/rn/src/store/selectors.ts` | s1p2 · s1p6 |
+| `apps/rn/src/store/staleClaims.test.ts` | ⛔ **never** |
 | `apps/rn/src/store/steadyStateProjection.test.ts` | never · partial · s1p6 |
 | `apps/rn/src/store/store.ts` | s1p1 · s1p2 · s1p5 · s1p6 |
 | `apps/rn/src/store/storeActions.test.ts` | s1p2 · s1p6 |
@@ -509,14 +511,16 @@
 
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
+- `apps/rn/src/appIntents/siriClaims.test.ts`
 - `apps/rn/src/components/entities/debtPrefill.test.ts`
 - `apps/rn/src/components/plan/cashRunwayReceipt.test.ts`
 - `apps/rn/src/components/plan/unreadInputsCopy.test.ts`
 - `apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts`
 - `apps/rn/src/store/paydayRequiredSplit.test.ts`
+- `apps/rn/src/store/staleClaims.test.ts`
 - `packages/core/debt/debtPrefillFromExpense.ts`
 - `packages/core/utils/percentComplete.ts`
 - `packages/core/utils/updateById.ts`
 
-<!-- claims-sha256: bfd37ceb1747640c -->
+<!-- claims-sha256: a34dad40aa09308b -->
 

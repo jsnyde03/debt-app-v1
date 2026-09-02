@@ -150,15 +150,21 @@ fix, and a batch pays that 27 times with no class context to amortise it.
 
 | gating finding | state |
 |---|---|
-| ✅ **`D3-5`** *(blocker)* | **CLOSED 2026-09-02** — the caption printed a NEGATIVE amount as money the user PAID. Fixed at the population, not with a clamp: `selectRequiredSplit` reduces `paid` and `carries` off **one** array. ⛔ `Math.max(0, …)` is the remedy `formatCurrency`'s header forbids. The clamped sibling at `capturedTotal` went with it — it reported `$150` where the user confirmed `$400`. 3 plants · 2 guards executed |
-| ✅ **`C1-4`** *(blocker)* | **CLOSED 2026-09-02** — a reserve-covered $350 rent rendered **$0.00**, carried $0, and the sheet said **“All confirmed paid”** one tap after the user marked it *didn't*. Row headlines the BILL now; **gross for the sentences, NET for `capturedTotal`** *(the mirror bug)*; and the verdict reads `anyUnpaid`, **not a dollar sum**. 3 plants · 2 guards executed |
-| ✅ **`D1-1`** *(major)* | **CLOSED — not work.** `D3-4` found by a second lane; fixed in `S1.13.7.2`, proven by executing its guard |
-| ▶ **`C1-15`** *(blocker)* | ⚠️ **Carries a [DECISION] for 🎯** — once `essentials` is READ rather than back-solved, the receipt's three rows correctly stop summing, so it needs a fourth line naming the moved cash *(or an `Income` row that says it includes it)*. Wording is 🎯's |
-| ✅ **`B3-2`** *(blocker)* | **CLOSED 2026-09-02** — an unreadable `exportedAt` rendered as **“Saved recently.”** one line above *Replace my data · It can't be undone*, so a 2019 backup and an hour-old one read identically. ⛔ **The check is the string's SHAPE, not whether `Date` accepted it** — `new Date("0")` is VALID (1 Jan 2000), so a NaN guard prints a confident wrong date. The iCloud half takes `B3-3`'s own honest line rather than a new one. 5 plants · 2 guards executed |
-| **`C3-7`** *(blocker)* | Not started — it was in the bucket labelled *"cheap, do them last"* |
-| **7 majors** | `A3-3` `B1-4` `B2-1` `B2-2` `B3-5` `C2-1` `C3-12` |
+| ✅ **`D3-5`** *(blocker)* | The caption printed a **NEGATIVE** amount as money the user PAID. Fixed at the population, not with a clamp — `selectRequiredSplit` reduces both figures off **one** array |
+| ✅ **`C1-4`** *(blocker)* | A reserve-covered $350 rent rendered **$0.00** and the sheet said **“All confirmed paid”** one tap after the user marked it *didn't*. Gross for the sentences, NET for `capturedTotal`; the verdict reads the user's answers, not a dollar sum |
+| ✅ **`B3-2`** *(blocker)* | An unreadable `exportedAt` rendered **“Saved recently.”** above an irreversible restore. ⛔ The check is the string's SHAPE — `new Date("0")` is VALID, so a NaN guard prints a confident wrong date |
+| ✅ **`C1-15`** *(blocker)* | *"Expenses & essentials"* was back-solved from the value it explains, so it understated the bill by the top-up. Read now, with 🎯's fourth row naming the moved cash |
+| ✅ **`C3-7`** *(blocker)* | Siri said **“Logged $200.00 toward Chase”** for a payment only QUEUED, and said it when the write failed. ⚠️ **Source scan only — the spoken half is a device row** |
+| ✅ **`D1-1`** *(major)* | **Not work** — `D3-4` found by a second lane, closed in `S1.13.7.2`, proven by executing its guard |
+| ✅ **`A3-3`** *(major)* | The finding named 2 sites; there were **8**. Closed as a **gate** — `lint:store-id-writes`, cap 0, one owner. ⚡ It was load-bearing for `realWriteGuard`, whose test went red |
+| ✅ **`B1-4` · `B2-1` · `B2-2`** *(majors)* | Three claims that decayed into falsehoods. `lint:trust-claims` LEDGERS re-derivations rather than banning them; what fences `/paywall` is **[D9]**, not terminal exits |
+| ✅ **`C2-1`** *(major)* | *"the order they clear in changes"* fired on `firstWinSooner === 0`, which says nothing about order. Gated on the names actually differing |
+| ✅ **`C3-12`** *(major)* | One failed widget write froze the Home Screen and Siri for the session. The writer reports success now; `lastKey` is stamped only when it landed |
+| ✅ **`B3-5`** *(major)* | The pre-overwrite sentence never named the **cash the app is holding**. ⛔ A category, not an amount — `backup.ts`'s own rule is *"counts, never money"* |
 
-**13 gating → 4 closed, 9 open** *(2 blockers · 7 majors)*. The 27 minors are untouched by design.
+⛔ **13 gating → 13 CLOSED.** The 27 minors are untouched by design — swept inline when a later class has
+the file open. ⚡ **Two gates added** *(`lint:store-id-writes`, and the widget writer's success contract)*;
+**14 guards registered and executed**; every fix plant-verified with the restore checked byte-identical.
 
 ⭐ **`S1.13.7.9` — all 51 CI e2e failures had ONE cause**, found by `git bisect` over the 36 commits CI had
 never seen: `C1-18`, a **minor** about a literal declared twice, whose remedy made a Skia-importing module
