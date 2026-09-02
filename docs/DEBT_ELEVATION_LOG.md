@@ -30621,3 +30621,93 @@ queue write did not happen)*. Both were sitting in a bucket labelled *"cheap, do
 **Captured atomically:** the plan's CLASS XI block and the `S1.13.7.11` queue row both re-stated, and
 `S1.13.7.10`'s seven closed sub-steps collapsed to one line — it was still headed *"the ACTIVE
 decomposition (the ONLY one on this doc)"* while `.11` was live, the exact rot `S1.12.5` was collapsed for.
+
+---
+
+## 2026-09-02 — `S1.13.7.11`: `D3-5` and `C1-4` CLOSED, `D1-1` closed as not-work
+
+Three of the class's thirteen gating findings. All three turned on the same thing — **a figure that does
+not mean what the sentence built on it says** — and two of the three ratings were wrong before measurement.
+
+### `D1-1` — closed by measurement, not by work
+
+It is `D3-4` found by a second lane: `check-conflict-markers` required the open **and** close marker, so a
+half-resolved conflict read green. `D3-4`'s fix landed in `S1.13.7.2` and line 86 is now an **OR**.
+⛔ Confirmed by *executing* `S1P6-D3-4-HALFCONFLICT` — plant, red for the named reason, restore — rather
+than by reading its token. That is [D65]'s *"measured never to have been one"* branch, and it cost one run.
+
+### `D3-5` — the conditional rating resolved: it IS a blocker
+
+Its own severity line read *"`major`, and `blocker` if the reachability hypothesis below is confirmed"*,
+with the author writing *"I did not build the store that produces it, so I am not claiming `blocker` on my
+own authority."* They also named the exact exit: *"whether a required item can hold `isPaidThisCycle ===
+true` while `isDueBeforeNextPaycheck(dueDate) === false`. **That is one fixture, and it is the whole
+finding.**"*
+
+**Built it, on the real producers.** Store with rent $350 due 6/06 and two bills marked paid due 6/20 and
+6/25 against a 6/15 payday: `selectAllocation().totalRequired` is **350** while `selectRequiredRows()`
+totals **600**, so the retired expression gives **`-$250 paid · $600 carries`** — a negative number
+labelled as money the user paid.
+
+⚡ **And the user gesture is ordinary.** The rollover always resets `isPaidThisCycle`, and
+`reconcileAutopayForRollover` only presumes paid once `dueDate <= asOfDate`, so neither produces it. What
+does: **mark a bill paid, then edit the pay date earlier.** `PaycheckSheet` writes `nextPaycheckDate`
+straight through `updatePaycheck`, which touches no paid flag. A bill that was due-before becomes
+due-after with its paid flag intact.
+
+⛔ **The fix is one population, not a clamp.** `selectRequiredSplit` reduces `paid` and `carries` off the
+same array, so `paid` is a real sum and non-negativity holds **by construction**. `Math.max(0, …)` is what
+`formatCurrency`'s own header forbids — it would read *"$0 paid"* while the user looks at rows they marked
+paid. The clamped sibling at `capturedTotal` was fixed with it: it reported **$150** captured where the
+user confirmed **$400**, because it hid the same cross-population subtraction rather than fixing it.
+
+### `C1-4` — the row's number was wrong in the other direction
+
+`item.amount` is what THIS PAYCHECK puts in; the biller is owed `amount + reserveCovered`. A $350 rent the
+expense reserve fully covers has `amount === 0`, so the sheet rendered **$0.00** for it, carried **$0**
+when the user marked it *"Didn't pay"*, the *"carries to next cycle"* line did not render at all, and the
+verdict — gated on `carryForward > 0` — announced **"All confirmed paid"** about the bill they had just
+said they had not paid. ⚠️ **The DATA was always correct**: `decisionsFrom` writes `expensePaid[id]` off
+`requiredPaid`, never off `carryForward`, so the reconciliation carried the right bill forward. Only the
+sentences were false — which is why nothing reconciliation-tested caught it.
+
+`RequiredActionsCard` has headlined the gross figure since `[T6.6 · L4-6]`, and its comment states the
+rule. **This sheet consumes the SAME `RequiredRow[]` from the same `selectRequiredRows` call and was never
+visited** — pass 4's measured class verbatim.
+
+Three parts, and the finding was right that they must go together:
+
+1. the row headlines `amount + reserveCovered` and carries `RequiredActionsCard`'s own *"$X from your
+   reserve"* caption, so the gross figure is explained rather than bare;
+2. ⛔ **gross for the sentences, NET for `capturedTotal`.** `allocatePaycheck.ts:330-353` nets the reserve
+   draw out of `totalRequired` too, so a gross carry against a net total under-reports the capture by the
+   reserve share — **the mirror of this same bug**. Both figures come off one selector now;
+3. *"All confirmed paid"* reads `anyUnpaid`. **A verdict about the user's own answers is not derived from
+   money at all.**
+
+### What was proven, and how
+
+Six plants across the two findings, **each red for its named reason, each restore verified
+byte-identical** *(against a saved copy — the tree was uncommitted, so `git checkout --` would have thrown
+the fix away with the plant)*: the original subtraction · the forbidden `Math.max(0, …)` clamp · the
+selector's complement arithmetic · the net row headline · the dollar-sum verdict gate · collapsing gross
+onto net. **Four guards registered and all four executed**, `MIN_ENTRIES` 250 → 254.
+
+⛔ **Nine of the 34 assertions pin the CALL SITE by source scan, in both directions.** Everything else
+proves `selectRequiredSplit` is right and none of it proves the sheet calls it — which is the exact shape
+of this defect: a correct clamp at `capturedTotal` and an un-clamped sibling twelve lines below it, in the
+same file. ⚠️ Comments are stripped before the absence scan, because the file's own docblocks name the
+retired expression and a scan that reads them cannot tell a warning about the defect from the defect.
+
+### Two things the round cost that were not in either finding
+
+- ⚠️ **`lint:rounding` caught a private `Math.round(n * 100) / 100` in the new test** — cap 93,
+  downward-only, and the new file made it 94. `roundMoney` in `packages/core/utils/money.ts` is the one
+  owner. Fixed in place; the copy I had inherited from `expenseReserve.test.ts`, which is one of the 93.
+- ⚠️ **The harness reported the first `lint:rn` run as exit 0 while the gate's own summary said
+  `❌ 1 of 45 gates FAILED`.** My shell chain ended in `tail`, so the exit code was `tail`'s — the
+  `shell-is-a-participant` failure mode, not the harness. ⛔ Read the gate's summary line, never the
+  pipeline's status; [D49] says this and it still caught me.
+
+**Verified:** `typecheck` ×4 exit 0 · `test:app` exit 0 · the new file 34 assertions · four proofs
+executed. Commits `a8fbb179`, `26130ec0`.

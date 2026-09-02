@@ -116,7 +116,8 @@ it** — which is why the classes are ordered the way they are.
 Tree clean, nothing unpushed.
 
 ⛔ **`S1.13.7.11` IS NOT A CLASS OF MINORS. RE-ENUMERATED MECHANICALLY 2026-09-02 — IT IS 40 FINDINGS ·
-4 BLOCKERS · 9 MAJORS · 27 MINORS, AND NOTHING WAS UNRATED.** ⚡ **All three of the first enumeration's
+4 BLOCKERS · 9 MAJORS · 27 MINORS, AND NOTHING WAS UNRATED** — then `D3-5`'s conditional rating was
+measured and it moved, so the class is **5 blockers · 8 majors**. ⚡ **All three of the first enumeration's
 numbers were wrong** *(35 · 3 · 5, with "7 unrated")*, and `CLASSIFICATION.md`'s own header says **43**.
 Membership derived **two independent ways that agree** — set-difference over the lane files, and
 first-cell/inline-list extraction from every class section. ⛔ **Nothing was unrated: all 40 state a
@@ -125,27 +126,38 @@ severity, in THREE formats** — `## id — \`major\` ·` · `- **Severity:** **
 
 | | |
 |---|---|
-| **blocker ×4** | `C1-4` payday sheet says **“All confirmed paid”** about a bill just marked *didn't* · `C1-15` the Cash Runway receipt **understates “Expenses & essentials” by exactly the top-up entered** · `B3-2` an unreadable export timestamp renders **“Saved recently.”** on the screen before an irreversible restore · `C3-7` Siri says **“Logged $200.00 toward Chase”** in the past tense for a payment only QUEUED — and says it when the queue write did not happen |
-| **major ×9** | `A3-3` `B1-4` `B2-1` `B2-2` `B3-5` `C2-1` `C3-12` `D1-1` `D3-5` |
+| **blocker ×4** *(+`D3-5`, measured)* | `C1-4` payday sheet says **“All confirmed paid”** about a bill just marked *didn't* · `C1-15` the Cash Runway receipt **understates “Expenses & essentials” by exactly the top-up entered** · `B3-2` an unreadable export timestamp renders **“Saved recently.”** on the screen before an irreversible restore · `C3-7` Siri says **“Logged $200.00 toward Chase”** in the past tense for a payment only QUEUED — and says it when the queue write did not happen |
+| **major ×9** | `A3-3` `B1-4` `B2-1` `B2-2` `B3-5` `C2-1` `C3-12` · ⛔ `D1-1` *(already closed)* · ⛔ `D3-5` *(measured → blocker)* |
 | **minor ×27** | the remainder — swept inline, never batched |
 
-⛔ **Two corrections the re-enumeration forces before anything is scheduled.** **`D3-5` is NOT a blocker** —
-its own line reads *`major`, and `blocker` if the reachability hypothesis is confirmed*, and its author
-explicitly declined to claim blocker on their own authority. **Measure the reachability; that decides the
-rating.** ⚠️ **`D1-1` looks like `D3-4` found by a second lane** *(`check-conflict-markers` needs both
-markers, so a half-resolved conflict reads green)* — and `D3-4` closed in `S1.13.7.2`. **Verify before
-scheduling it as work.**
+✅ **Both corrections the re-enumeration forced are now MEASURED, and both moved.** **`D3-5` IS a
+blocker** — its own line said *`major`, and `blocker` if the reachability hypothesis is confirmed*, its
+author declined to claim it on their own authority, and the fixture they named as *"the whole finding"*
+confirms it: **`-$250 paid · $600 carries`** on the real producers, reached by marking a bill paid then
+moving the pay date earlier in `PaycheckSheet`. So the class is **5 blockers · 8 majors**. ⛔ **`D1-1` is
+CLOSED, not work** — it is `D3-4` found by a second lane, fixed in `S1.13.7.2`, and proven by *executing*
+`S1P6-D3-4-HALFCONFLICT` rather than reading its token.
 
 ⚠️ **The undercount class, two levels up now:** `.10.1` caught that a class's COUNT was wrong · `.11` caught
 that its SEVERITIES were · and **re-rating caught that "unrated" was itself an artifact of the reading.**
 ⛔ **Never schedule a class off its label, and never off one pass's extraction either.**
 
-▶ **The sequence this forces:** ✅ rating DONE *(mechanical, above)* → promote the blockers + majors into the convergence path and
-fix them as their own class → the 20 genuine minors are **swept inline when a later class already has the
-file open, never batched** *(🎯 2026-09-02)*. Why: this round measured that **more than half of
-pre-authored remedies do not survive contact** and four findings' defects were already closed — the cost
-of a minor is re-verifying a weeks-old premise, not the fix, and a batch pays that 20 times with no class
-context to amortise it.
+▶ **The sequence:** ✅ rating DONE *(mechanical)* → fix the 13 gating findings as their own class → the 27
+minors are **swept inline when a later class already has the file open, never batched** *(🎯 2026-09-02)*.
+Why: this round measured that **more than half of pre-authored remedies do not survive contact** and four
+findings' defects were already closed — the cost of a minor is re-verifying a weeks-old premise, not the
+fix, and a batch pays that 27 times with no class context to amortise it.
+
+| gating finding | state |
+|---|---|
+| ✅ **`D3-5`** *(blocker)* | **CLOSED 2026-09-02** — the caption printed a NEGATIVE amount as money the user PAID. Fixed at the population, not with a clamp: `selectRequiredSplit` reduces `paid` and `carries` off **one** array. ⛔ `Math.max(0, …)` is the remedy `formatCurrency`'s header forbids. The clamped sibling at `capturedTotal` went with it — it reported `$150` where the user confirmed `$400`. 3 plants · 2 guards executed |
+| ✅ **`C1-4`** *(blocker)* | **CLOSED 2026-09-02** — a reserve-covered $350 rent rendered **$0.00**, carried $0, and the sheet said **“All confirmed paid”** one tap after the user marked it *didn't*. Row headlines the BILL now; **gross for the sentences, NET for `capturedTotal`** *(the mirror bug)*; and the verdict reads `anyUnpaid`, **not a dollar sum**. 3 plants · 2 guards executed |
+| ✅ **`D1-1`** *(major)* | **CLOSED — not work.** `D3-4` found by a second lane; fixed in `S1.13.7.2`, proven by executing its guard |
+| ▶ **`C1-15`** *(blocker)* | ⚠️ **Carries a [DECISION] for 🎯** — once `essentials` is READ rather than back-solved, the receipt's three rows correctly stop summing, so it needs a fourth line naming the moved cash *(or an `Income` row that says it includes it)*. Wording is 🎯's |
+| **`B3-2` · `C3-7`** *(blockers)* | Not started — both were in the bucket labelled *"cheap, do them last"* |
+| **7 majors** | `A3-3` `B1-4` `B2-1` `B2-2` `B3-5` `C2-1` `C3-12` |
+
+**13 gating → 3 closed, 10 open** *(3 blockers · 7 majors)*. The 27 minors are untouched by design.
 
 ⭐ **`S1.13.7.9` — all 51 CI e2e failures had ONE cause**, found by `git bisect` over the 36 commits CI had
 never seen: `C1-18`, a **minor** about a literal declared twice, whose remedy made a Skia-importing module

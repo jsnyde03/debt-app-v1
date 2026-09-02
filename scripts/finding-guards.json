@@ -3127,39 +3127,35 @@
     }
   },
   "S1P6-D3-5-ONEPOPULATION": {
-    "what": "S1.13.7.11 [pass-6 D3-5] - the payday sheet printed a NEGATIVE amount as money the user PAID. `paid` and `carries` came from two different populations: `requiredTotal` is `allocation.totalRequired` (items due before the next paycheck) while `carryForward` summed `selectRequiredRows`, which ALSO carries the re-add block's paid-early items - required items marked paid this cycle whose due date lands AFTER the next paycheck, restored so a paid bill never silently vanishes. Each is a tappable checkbox, so unticking them drove `requiredTotal - carryForward` below zero: measured -$250 on the real producers. D3 rated it `major, and blocker if the reachability hypothesis is confirmed` and declined to claim blocker on its own authority; S1.13.7.11 built the fixture and it IS reachable, so it is a blocker. `selectRequiredSplit` now reduces BOTH figures off the same array, so `paid` is a real sum and non-negativity holds by construction. A Math.max(0,..) clamp is the FORBIDDEN remedy - formatCurrency's own header calls it the exact hide-money behaviour, and it would read $0 paid while the user looks at rows they marked paid.",
+    "what": "S1.13.7.11 [pass-6 D3-5] - the payday sheet printed a NEGATIVE amount as money the user PAID. `paid` and `carries` came from two different populations: `requiredTotal` is `allocation.totalRequired` (items due before the next paycheck) while `carryForward` summed `selectRequiredRows`, which ALSO carries the re-add block's paid-early items - required items marked paid this cycle whose due date lands AFTER the next paycheck, restored so a paid bill never silently vanishes. Each is a tappable checkbox, so unticking them drove `requiredTotal - carryForward` below zero: measured -$250 on the real producers. D3 rated it `major, and blocker if the reachability hypothesis is confirmed` and declined to claim blocker on its own authority; S1.13.7.11 built the fixture and it IS reachable, so it is a blocker. `selectRequiredSplit` now reduces BOTH figures off the same array, so `paid` is a real sum and non-negativity holds by construction. A Math.max(0,..) clamp is the FORBIDDEN remedy - formatCurrency's own header calls it the exact hide-money behaviour, and it would read $0 paid while the user looks at rows they marked paid. >>> S1.13.7.11 [C1-4]: RE-POINTED. Building C1-4 on top of this fix rewrote the very loop this entry pinned - `carries += row.item.amount` became `carries += net` beside a gross sibling - so BOTH of D3-5's guards silently stopped guarding ONE COMMIT after they were proven, and only lint:finding-guards saw it. That is `the fix reached the member, left the sibling` applied to the guards rather than the code. The token is now the accumulator line itself, and the un-fix flips the whole branch so the proof exercises the complement property rather than a spelling.",
     "file": "apps/rn/src/store/planSelectors.ts",
-    "token": "if (id && requiredPaid[id] === false) carries += row.item.amount;",
+    "token": "carries += net;",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/store/planSelectors.ts",
-          "find": "    if (id && requiredPaid[id] === false) carries += row.item.amount;\n    else paid += row.item.amount;",
-          "replace": "    if (id && requiredPaid[id] === true) paid += row.item.amount;\n    else carries += row.item.amount;"
+          "find": "    if (id && requiredPaid[id] === false) {\n      anyUnpaid = true;\n      carries += net;\n      carriesGross += gross;\n    } else {\n      paid += net;\n      paidGross += gross;\n    }",
+          "replace": "    if (id && requiredPaid[id] === true) {\n      paid += net;\n      paidGross += gross;\n    } else {\n      anyUnpaid = true;\n      carries += net;\n      carriesGross += gross;\n    }"
         }
       ],
       "run": "test:app",
-      "expect": "nothing ticked off",
-      "measured": "2026-09-02",
-      "sha": "a8fbb179"
+      "expect": "nothing ticked off"
     }
   },
   "S1P6-D3-5-SHEETCALLSITE": {
-    "what": "S1.13.7.11 [pass-6 D3-5], the OTHER direction, and it is the one the class keeps losing: a tested helper is not a used helper. Everything ONEPOPULATION proves is about `selectRequiredSplit` being right; none of it proves PaydayCaptureSheet CALLS it. That is the exact shape of this defect - the clamped sibling at `capturedTotal` existed, was correct, and the un-clamped caption twelve lines below shipped anyway. So the test scans the sheet's source with comments stripped (its own docblocks NAME the retired expression, and a scan that reads them cannot tell a warning about the defect from the defect) and asserts BOTH directions: the positive anchor that the bytes were read at all, and the absence of `requiredTotal - carryForward` in code, clamped or otherwise. Planted twice - the original subtraction and the forbidden Math.max clamp - and both red on this assertion by name.",
+    "what": "S1.13.7.11 [pass-6 D3-5], the OTHER direction, and it is the one the class keeps losing: a tested helper is not a used helper. Everything ONEPOPULATION proves is about `selectRequiredSplit` being right; none of it proves PaydayCaptureSheet CALLS it. That is the exact shape of this defect - the clamped sibling at `capturedTotal` existed, was correct, and the un-clamped caption twelve lines below shipped anyway. So the test scans the sheet's source with comments stripped (its own docblocks NAME the retired expression, and a scan that reads them cannot tell a warning about the defect from the defect) and asserts BOTH directions: the positive anchor that the bytes were read at all, and the absence of `requiredTotal - carryForward` in code, clamped or otherwise. Planted twice - the original subtraction and the forbidden Math.max clamp - and both red on this assertion by name. >>> S1.13.7.11 [C1-4]: the un-fix anchor went VOID one commit later - C1-4 moved the caption to the GROSS figures and the `anyUnpaid` verdict, so the line this proof was measured against no longer exists. Re-derived against the current caption; the TOKEN was unaffected, which is the difference between a stale proof and a dead guard.",
     "file": "apps/rn/src/components/payday/PaydayCaptureSheet.tsx",
     "token": "selectRequiredSplit(requiredRows, requiredPaid)",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/components/payday/PaydayCaptureSheet.tsx",
-          "find": "`${formatCurrency(requiredPaidTotal)} paid · ${formatCurrency(carryForward)} carries`",
+          "find": "`${formatCurrency(requiredPaidGross)} paid · ${formatCurrency(carryForwardGross)} carries`",
           "replace": "`${formatCurrency(requiredTotal - carryForward)} paid · ${formatCurrency(carryForward)} carries`"
         }
       ],
       "run": "test:app",
-      "expect": "the retired cross-population subtraction is gone",
-      "measured": "2026-09-02",
-      "sha": "a8fbb179"
+      "expect": "the retired cross-population subtraction is gone"
     }
   },
   "S1P6-C1-4-GROSSROW": {
@@ -3175,7 +3171,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the row headlines the BILL"
+      "expect": "the row headlines the BILL",
+      "measured": "2026-09-02",
+      "sha": "cc28e7d1"
     }
   },
   "S1P6-C1-4-VERDICT": {
@@ -3191,7 +3189,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "no sentence is gated on a dollar sum"
+      "expect": "no sentence is gated on a dollar sum",
+      "measured": "2026-09-02",
+      "sha": "cc28e7d1"
     }
   }
 }
