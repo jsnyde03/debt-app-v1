@@ -3391,7 +3391,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the past-tense claim is gone"
+      "expect": "the past-tense claim is gone",
+      "measured": "2026-09-02",
+      "sha": "7047252f"
     }
   },
   "S1P6-C3-7-QUEUE-NOT-WIPED": {
@@ -3407,7 +3409,25 @@
         }
       ],
       "run": "test:app",
-      "expect": "cannot tell \"absent\" from \"unreadable\""
+      "expect": "cannot tell \"absent\" from \"unreadable\"",
+      "measured": "2026-09-02",
+      "sha": "7047252f"
+    }
+  },
+  "S1P6-B3-5-HELD-CASH-NAMED": {
+    "what": "S1.13.7.11 [pass-6 B3-5, major] - the last sentence a user reads before `Replace my data - It can't be undone` named the paycheck, debts, expenses and goals (every one of the four LISTS) and never `expenseReserve.balance`: cash the app told them it was setting aside for their recurring bills. After the restore it is undefined and selectors read it as 0 from the next render on. Its own type doc is the argument - `balance deliberately does NOT clear at rollover - carrying across cycles IS the feature ... a cleared pot would be money the app took and never gave back`. Same class as B3-1: store-level money is invisible to this module's machinery. ⛔ A CATEGORY, NOT AN AMOUNT: backup.ts's rule for this family is `counts, never money - this appears on a screen a user may be sharing or reading in public`, so `the $1,500 you've set aside` would be a disclosure the surface was never asked to make; the sentence's job is to say what is replaced, not how much of it there is. ⚠️ windfall and cycleTopUp are deliberately NOT named - both cycle-keyed and arguably not losses - and the honest close for the whole class is ONE declaration of what money lives on the store outside the four lists, which is filed. ⚠️ The test's first assertion checks `set aside` rather than the full phrase, on purpose: the amount-disclosing plant redded on the full-phrase check and left the disclosure assertion below it never exercised - a plant that reds early hides what follows.",
+    "file": "apps/rn/src/data/readBackup.ts",
+    "token": "the cash you have set aside",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/readBackup.ts",
+          "find": "    heldCash ? 'the cash you have set aside' : '',\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:app",
+      "expect": "the held cash is named among what is replaced"
     }
   }
 }

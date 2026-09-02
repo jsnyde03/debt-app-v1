@@ -503,6 +503,35 @@ console.log(`✅ readBackup router tests passed (${passed} asserts).`);
   const paycheckOnly = createDefaultStore();
   paycheckOnly.paycheck = { ...paycheckOnly.paycheck, amount: '0' };
   assert(describeLocalOverwrite(paycheckOnly) === '', '⭐ control — a $0 paycheck is not something to lose');
+
+  /**
+   * ⛔ **S1.13.7.11 [pass-6 `B3-5`] — THE CASH THE APP IS HOLDING.** The sentence named the four LISTS and
+   * never `expenseReserve.balance` — money the app told the user it was setting aside for their recurring
+   * bills, which is `undefined` after the restore and reads as `0` from the next render on. Its own type
+   * doc is the argument: *"a cleared pot would be money the app took and never gave back."*
+   */
+  const withHeldCash = createDefaultStore();
+  withHeldCash.paycheck = { ...withHeldCash.paycheck, amount: '2000' };
+  withHeldCash.expenseReserve = { balance: 1500, contribution: { forCycle: '2026-06-15', amount: 220 } };
+  const heldSaid = describeLocalOverwrite(withHeldCash);
+  // ⛔ `set aside`, not the whole phrase, and that ordering is the point: a variant that DISCLOSES the
+  // amount ("the $1,500 you have set aside") must reach the next assertion rather than tripping this one.
+  // Measured — the first draft asserted the full sentence, and the amount-disclosing plant redded HERE,
+  // which left the disclosure check below it never exercised. A plant that reds early hides what follows.
+  assert(heldSaid.includes('set aside'), '⛔ B3-5 — the held cash is named among what is replaced');
+  // ⛔ A CATEGORY, NOT AN AMOUNT: `backup.ts`'s rule for this family is "counts, never money", because the
+  // screen may be shared or read in public. The fix must not become the disclosure.
+  assert(!heldSaid.includes('1,500') && !heldSaid.includes('1500'), '⛔ B3-5 — …without disclosing how much');
+  assert(!/\$/.test(heldSaid), '  …and with no amount of any kind in the sentence');
+
+  // ⭐ The control the function's own rule demands: silent at zero, like every other clause here.
+  const noHeldCash = createDefaultStore();
+  noHeldCash.paycheck = { ...noHeldCash.paycheck, amount: '2000' };
+  noHeldCash.expenseReserve = { balance: 0 };
+  assert(
+    !describeLocalOverwrite(noHeldCash).includes('set aside'),
+    '⭐ control — an empty pot is not something to lose, so the clause stays silent',
+  );
 }
 
 /**

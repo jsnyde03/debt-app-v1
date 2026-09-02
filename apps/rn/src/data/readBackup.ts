@@ -229,11 +229,32 @@ export function describeLocalOverwrite(store: DebtStore): string {
    * app's typed money goes through.
    */
   const hasPaycheck = (parseAmountField(store.paycheck.amount) ?? 0) > 0;
+  /**
+   * ⛔ **[S1.13.7.11 · pass-6 `B3-5`] — THE CASH THE APP IS HOLDING WAS NOT IN THIS LIST.** The sentence
+   * named the paycheck, debts, expenses and goals — every one of the four LISTS — and never
+   * `expenseReserve.balance`, which is money the app told the user it was setting aside for their
+   * recurring bills. After a restore it is `undefined`, and `selectors.ts` reads it as `0` from the next
+   * render on. Its own type doc is the argument: *"`balance` deliberately does NOT clear at rollover —
+   * carrying across cycles IS the feature … a cleared pot would be money the app took and never gave
+   * back."* Same class as `B3-1`: store-level money is invisible to this module's machinery.
+   *
+   * ⛔ **A CATEGORY, NOT AN AMOUNT, and that is not timidity.** `backup.ts`'s own rule for this family of
+   * sentences is *"counts, never money — this appears on a screen a user may be sharing or reading in
+   * public"*, so *"the $1,500 you've set aside"* would be a disclosure the surface was never asked to
+   * make. Naming the category loses nothing the user needs here: the sentence's job is to say what is
+   * about to be replaced, not how much of it there is.
+   *
+   * ⚠️ **`windfall` and `cycleTopUp` are deliberately NOT here.** Both are cycle-keyed and arguably not
+   * losses at all, and the honest close for the whole class is one declaration of what money lives on the
+   * store outside the four lists — filed, because guessing at it here is how the next omission gets made.
+   */
+  const heldCash = Math.max(0, store.expenseReserve?.balance ?? 0) > 0;
   const parts = [
     hasPaycheck ? 'the paycheck' : '',
     store.debts.length > 0 ? plural(store.debts.length, 'debt', 'debts') : '',
     expenses > 0 ? plural(expenses, 'expense', 'expenses') : '',
     store.goals.length > 0 ? plural(store.goals.length, 'goal', 'goals') : '',
+    heldCash ? 'the cash you have set aside' : '',
   ].filter(Boolean);
   if (parts.length === 0) return '';
   const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;

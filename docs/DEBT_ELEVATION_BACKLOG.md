@@ -1038,3 +1038,14 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   are the cadence.** Worth deciding whether `prove:guards` on the touched-file population becomes a
   **step of every fix** rather than a step of every class — `S1.13.7.10.6` already established the
   population rule, and this round measured that the interval is much shorter than a class.
+
+- ⚠️ **ONE DECLARATION OF WHAT MONEY LIVES ON THE STORE OUTSIDE THE FOUR LISTS.** → **P6.10 / S1 pass 7.**
+  *(surfaced closing `B3-5`, 2026-09-02)* `B3-1` and `B3-5` are the same gap from two sides: the backup
+  module's machinery walks `debts` · `requiredExpenses` + `livingExpenses` · `goals` · `paycheck`, and
+  every store-level money field is invisible to it. `B3-5` names `expenseReserve.balance` because it
+  **carries across cycles** and its own type doc calls a cleared pot *"money the app took and never gave
+  back"*. ⛔ **`windfall` and `cycleTopUp` were deliberately left out** — both are cycle-keyed and arguably
+  not losses — and that judgement is exactly what should not be re-made per sentence. The close is a single
+  declaration both the pre-overwrite sentence and the repair pass derive from, after which a new money
+  field joins them by construction instead of by somebody remembering.
+
