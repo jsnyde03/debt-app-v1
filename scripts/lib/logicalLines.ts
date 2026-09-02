@@ -87,13 +87,25 @@ const OPENS_BODY = /(?:\)|=>|\belse\b|\btry\b|\bdo\b|\bfinally\b)\s*\{$/;
  * @param blankStrings blank string CONTENTS in the emitted text as well as in the structure. Gates that
  * judge what is *inside* a string (copy, apostrophes) must leave this `false`; gates matching code shapes
  * should set it `true` so a banned form quoted inside a string is not a hit.
+ *
+ * @param keepComments emit the RAW source, comments included.
+ * ⛔ **Required by any gate whose subject lives in a comment.** `check-fixture-dates` carries per-line
+ * `fixture-date-ok:` exemptions written as comments beside the literal they excuse — blanking them would
+ * delete the gate's own escape hatch and red every deliberately-pinned fixture. Structure is still decided
+ * on the stripped text, so a bracket inside a string or comment still cannot open a join.
  */
 export function logicalLines(
   src: string,
-  { blankStrings = false, maxJoin = MAX_JOIN }: { blankStrings?: boolean; maxJoin?: number } = {},
+  {
+    blankStrings = false,
+    keepComments = false,
+    maxJoin = MAX_JOIN,
+  }: { blankStrings?: boolean; keepComments?: boolean; maxJoin?: number } = {},
 ): LogicalLine[] {
   const structure = stripCommentsAndStrings(src).split('\n');
-  const visible = (blankStrings ? stripCommentsAndStrings(src) : stripCommentsOnly(src)).split('\n');
+  const visible = keepComments
+    ? src.split('\n')
+    : (blankStrings ? stripCommentsAndStrings(src) : stripCommentsOnly(src)).split('\n');
 
   const out: LogicalLine[] = [];
   let i = 0;

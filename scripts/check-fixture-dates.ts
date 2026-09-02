@@ -43,6 +43,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { logicalLines } from './lib/logicalLines';
+
 const REPO_ROOT = join(import.meta.dirname, '..');
 
 /**
@@ -92,7 +94,16 @@ if (testFiles.length < MIN_TEST_FILES) {
  * ⚠️ A field whose value is COMPARED TO NOW is what ages. Matched by shape — `…Date`, `…At`, `…AsOf` —
  * rather than by a list of the eight names that happen to exist today.
  */
-const AGING_KEY = /([A-Za-z_]*(?:Date|At|AsOf))\s*:\s*$/;
+/**
+ * ⛔ **`:` OR `=`** — pass-7 `D1-7`. The key had to be an OBJECT KEY, so a fuse assigned to a variable
+ * (`const plantedDueDate = '2026-09-10';` then `{ dueDate: plantedDueDate }`) was read, matched, and then
+ * filed under `non-aging` — **the one bucket this gate never refuses**. That is worse than a population
+ * hole: the escape is reported as a feature, on the line that says `0 imminent fuses`.
+ *
+ * ⚠️ **`(?<![=!<>])` keeps a COMPARISON out** — `x.dueDate === '2026-09-10'` asserts against a date, it
+ * does not create a fuse, and reddening on assertions is what would train people to exempt-and-move-on.
+ */
+const AGING_KEY = /([A-Za-z_]*(?:Date|At|AsOf))\s*(?::|(?<![=!<>])=)\s*$/;
 const LITERAL = /'(\d{4})-(\d{2})-(\d{2})'/g;
 
 const today = new Date();
@@ -136,11 +147,20 @@ for (const f of testFiles) {
     continue;
   }
   const isPinned = CLOCK_PIN.test(text);
-  const lines = text.split('\n');
-  lines.forEach((line, i) => {
+  /**
+   * ⛔ **LOGICAL LINES, NOT PHYSICAL ONES** — pass-7 `D1-7`, the third instance of the class `D1-3` and
+   * `D1-6` are. A fuse spelled `dueDate:` at the end of one line with `'2026-09-10',` on the next was
+   * counted `non-aging` — measured, the bucket moved 115 → 116 while the gate printed `0 imminent fuses`.
+   *
+   * ⚠️ **`keepComments` is required here and nowhere else so far**: the `fixture-date-ok:` exemptions are
+   * comments beside the literal they excuse, so blanking them would delete this gate's escape hatch.
+   */
+  for (const ll of logicalLines(text, { keepComments: true })) {
+    const line = ll.text;
+    const i = ll.line - 1;
     // ⚠️ An exemption is per-line and must say why — the same idiom `secrets-exemptions.json` uses,
     // except inline, so the reason sits beside the literal rather than in a file nobody opens.
-    if (/fixture-date-ok:/.test(line)) return;
+    if (/fixture-date-ok:/.test(line)) continue;
     for (const m of line.matchAll(LITERAL)) {
       const before = line.slice(0, m.index);
       const key = AGING_KEY.exec(before)?.[1] ?? '';
@@ -158,7 +178,7 @@ for (const f of testFiles) {
       if (days < 0) aged.push(hit);
       else if (days <= IMMINENT_DAYS) imminent.push(hit);
     }
-  });
+  }
 }
 
 /**

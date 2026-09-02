@@ -93,7 +93,7 @@ fixes with instruments already measured to be blind. This is `S1.12.5`'s orderin
 | # | class | n | why here |
 |---|---|---|---|
 | **1** | **A matcher locked to a line** | 11 | every gate that will certify this round's fixes |
-| **2** | **The proof harness and the ledger** | 9 | it reports `EXECUTED` over class 1 |
+| **2** | **The proof harness and the ledger** | 10 | it reports `EXECUTED` over class 1 |
 | **3** | **The audit's own populations** | 7 | pass 8 is routed by these |
 | **4** | **The double-scaled in-window minimum** | 11 | the round's money root, found by two lanes |
 | **5** | **May a surface state a PROJECTED figure?** | 13 | 11 blockers, one question, five answers |
@@ -137,7 +137,10 @@ author and therefore share a blind spot.
 importing it — not six per-gate fixes. `A1-4` (below, class 9) is this class's measured consequence in the
 wild: `lint:fixture-dates` printed `0 imminent fuses` over five CSV dates that had **already fired**.
 
-## CLASS 2 — THE PROOF HARNESS AND THE LEDGER · 9 findings · 0 blocker · 6 major · 3 minor
+## CLASS 2 — THE PROOF HARNESS AND THE LEDGER · 10 findings · 0 blocker · 7 major · 3 minor
+
+⚠️ **10, not 9 — `D2-4b` was added 2026-09-02 by executing class 1's boundary re-proof.** The count moved
+because the work moved it, which is what a cumulative audit is for.
 
 ⛔ **This round's own repair survives its own un-fix.** `D2-1`: `MAX_SERVER_ATTEMPTS` — the `[D78]` retry
 built hours earlier — can be set to `1` and every instrument stays green.
@@ -146,6 +149,7 @@ built hours earlier — can be set to `1` and every instrument stays green.
 |---|---|
 | `D2-1` | the `[D78]` retry survives its own un-fix; every gate green |
 | `D2-4` | a registered closure's proof is **VOID and still counted as evidence** — `S1-ROUTE-STALE-READ` re-runs `reason=WRONG` and `lint:finding-guards` is green over it |
+| `D2-4b` | ⭐ **A SIBLING `D2-4` NEVER NAMED, found 2026-09-02 by EXECUTING the class rather than the member.** Re-proving the nine guards whose pinned files had moved (class 1's boundary, [D79]) returned **7 held, 2 did not** — and the second is **`S1-ROUTE-EXIT-REACHABLE`**: planted, its defect restored, and `audit-route --check` **stayed green**. Same file (`audit-route.ts`), same shape, unreported. ⛔ **`lint:finding-guards` prints `✅ 266 of 267 findings carry a standing guard` over both.** Not caused by this round's edits — all six guards on files class 1 touched MATCHED |
 | `D2-8` | `S1P1-M9-ROUTING` survives its un-fix: **11 files route to a surface that does not exist** and `lint:s1-coverage` prints `✅ 495 classified` |
 | `D1-16` | the `SKIP` fix converted 3 of 6 not-applicable returns; three still return `null` when they check nothing and are counted **EVALUATED** |
 | `D1-10` | `lint:finding-guards` prints its `✅` **before it has decided** — a green tick and a red verdict together |

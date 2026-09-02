@@ -140,7 +140,8 @@ const ids = Object.keys(registry);
  * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
-const MIN_ENTRIES = 267;
+// ⚠️ 267 → 268 at S1.13.7.12.6: `S1P7-CLASS1-LOGICALJOIN`, class 1's line-wrap escape.
+const MIN_ENTRIES = 268;
 const MAX_UNGUARDED = 1;
 
 /**
@@ -233,8 +234,58 @@ function presentInCode(text: string, token: string): boolean {
   return false;
 }
 
+/**
+ * ⛔ **TOP-LEVEL KEYS, FOUND STRUCTURALLY — NOT BY AN INDENT ANCHOR.** [pass-7 `D1-9`]
+ *
+ * This was `matchAll(/^\s{2}"([^"]+)":/gm)` — an exact-**two**-space anchor. Under a four-space indent it
+ * found **zero keys**, so the duplicate detector could never fire, and a duplicated id silently overwrites
+ * a registered closure's guard with another entry's body while the ledger still reads `CLOSED`. Measured
+ * on two byte-identical registries differing only in indent width: 2-space **exit 1** naming the dupe,
+ * 4-space **exit 0** with the duplicate not mentioned at all.
+ *
+ * ⚠️ **`\s+` would be the WRONG fix and it is the obvious one.** Every `proof` block contains nested keys
+ * (`"at"`, `"find"`, `"replace"`, `"run"`, `"expect"`), so a depth-blind pattern reports them as duplicates
+ * across entries — a remedy that introduces a defect louder than the one it describes. Depth is the thing
+ * that actually matters, so depth is what this measures.
+ *
+ * ⛔ Same family as `D1-3`/`D1-6`/`D1-7`: **a matcher pinned to how the text is LAID OUT rather than to
+ * what it MEANS.** Here the layout is indentation instead of line breaks.
+ */
+function topLevelKeys(raw: string): string[] {
+  const keys: string[] = [];
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let current = '';
+  for (let i = 0; i < raw.length; i++) {
+    const c = raw[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+        current += c;
+      } else if (c === '\\') {
+        escaped = true;
+      } else if (c === '"') {
+        inString = false;
+        let j = i + 1;
+        while (j < raw.length && /\s/.test(raw[j])) j++;
+        // A string at depth 1 followed by `:` is a key of the registry object itself.
+        if (depth === 1 && raw[j] === ':') keys.push(current);
+        current = '';
+      } else {
+        current += c;
+      }
+      continue;
+    }
+    if (c === '"') inString = true;
+    else if (c === '{' || c === '[') depth++;
+    else if (c === '}' || c === ']') depth--;
+  }
+  return keys;
+}
+
 const rawRegistry = readFileSync(REGISTRY, 'utf8');
-const keyLines = [...rawRegistry.matchAll(/^\s{2}"([^"]+)":/gm)].map((m) => m[1]);
+const keyLines = topLevelKeys(rawRegistry);
 const dupes = keyLines.filter((k, i) => keyLines.indexOf(k) !== i);
 
 const problems: string[] = [];

@@ -135,9 +135,24 @@ export function runDebtPrefillTests() {
      * defect: on an EDIT the two are identical, so every test passes and only a prefilled ADD is wrong.
      * ⚠️ Matched by text with a cap of **zero** rather than by naming the four fields — the four were
      * what was left over last time somebody named the fields.
+     *
+     * ⛔ **AND THE PATTERN ITSELF NAMED ONE SPELLING** — pass-7 `C2-9`. It was `/useState\(\s*editing\??\./g`,
+     * which sees `useState(editing.` and `useState(editing?.` and **nothing else**. Measured by planting
+     * both directions: `useState(editing?.apr)` → **exit 1**, and the identical defect written
+     * `useState(editing ? String(editing.apr) : '')` → **39 assertions passed, exit 0**. That second
+     * spelling is the one a developer copying the neighbouring sheet would write — `GoalSheet.tsx:26` and
+     * `ExpenseSheet.tsx:33` both use it. The cap of zero exists so a FUTURE field cannot slip through, and
+     * it did not cover the most likely way a future field would arrive.
+     *
+     * ⚠️ **The population stays `DebtSheet` deliberately.** The sibling sheets seed from `editing` because
+     * they have no prefill to honour — widening the file set would red on correct code, which is how a
+     * remedy introduces the defect it describes. The SPELLING is what was too narrow, not the scope.
+     *
+     * ⚠️ `[^;]*?` bounds the match to one statement, so it crosses the nested `String(…)` call and a line
+     * wrap but cannot run past the semicolon into an unrelated `editing` reference.
      */
     const sheet = readFileSync(join(__dirname, 'DebtSheet.tsx'), 'utf8');
-    const fromEditing = sheet.match(/useState\(\s*editing\??\./g) ?? [];
+    const fromEditing = sheet.match(/useState\([^;]*?\bediting\b/g) ?? [];
     eq(
       fromEditing.length,
       0,

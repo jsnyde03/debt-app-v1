@@ -486,8 +486,8 @@
         "--check"
       ],
       "expect": "reached no lane",
-      "measured": "2026-08-31",
-      "sha": "95e895e9"
+      "measured": "2026-09-02",
+      "sha": "150f8518"
     }
   },
   "S1P4-ANCHOR-ONEWORLD": {
@@ -629,7 +629,7 @@
       "run": "lint:gate-sources",
       "expect": "no longer runs the scripts typecheck against the config this gate guards",
       "measured": "2026-09-02",
-      "sha": "47225ab4"
+      "sha": "150f8518"
     }
   },
   "S1P4-A-F4-ONEGUARD": {
@@ -2038,8 +2038,8 @@
       ],
       "run": "test:gate-plants",
       "expect": "lint:runner-completeness",
-      "measured": "2026-09-01",
-      "sha": "9d8a1cc3"
+      "measured": "2026-09-02",
+      "sha": "150f8518"
     }
   },
   "S1P5-B5-7-ANSWERABLEID": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-02",
-      "sha": "cef8ac06"
+      "sha": "150f8518"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2205,8 +2205,8 @@
       ],
       "run": "lint:rounding",
       "expect": "the cap is still",
-      "measured": "2026-08-30",
-      "sha": "4f32f846"
+      "measured": "2026-09-02",
+      "sha": "150f8518"
     }
   },
   "S1P5-B5-10-HELDSINCE": {
@@ -2344,7 +2344,7 @@
       "run": "lint:runner-completeness",
       "expect": "in NO runner",
       "measured": "2026-09-02",
-      "sha": "47225ab4"
+      "sha": "150f8518"
     }
   },
   "S1P6-D1-8-GATECHAIN": {
@@ -2362,7 +2362,7 @@
       "run": "lint:runner-completeness",
       "expect": "in NO chain",
       "measured": "2026-09-02",
-      "sha": "47225ab4"
+      "sha": "150f8518"
     }
   },
   "S1P6-D3-4-HALFCONFLICT": {
@@ -3339,7 +3339,7 @@
       "run": "test:app",
       "expect": "names the decision it depends on",
       "measured": "2026-09-02",
-      "sha": "63b4c09d"
+      "sha": "150f8518"
     }
   },
   "S1P6-C2-1-ORDER-ACTUALLY-CHANGES": {
@@ -3430,6 +3430,22 @@
       "expect": "the held cash is named among what is replaced",
       "measured": "2026-09-02",
       "sha": "c76753d6"
+    }
+  },
+  "S1P7-CLASS1-LOGICALJOIN": {
+    "what": "pass-7 D1-3 / D1-4 / D1-6 / D1-7 / D1-8 / D1-11 (6 majors, one mechanism) - six gates matched their own defect per PHYSICAL line, so a call Prettier had wrapped walked past all of them. check-cap-literals found this exact escape in pass 5 (D5-9), fixed it and carries a proven guard for it - and every gate written AFTERWARDS kept the per-line split, because the lesson lived in one file's docblock instead of in the helper they all import. scripts/lib/logicalLines.ts is that helper. D1-11 is why none of it was caught: every registered proof and every test:gate-plants scenario certifying these gates planted the ONE spelling the gate already caught, so a gate and its proof shared an author and therefore a blind spot. test:wrap-escapes plants the WRAPPED spelling and DERIVES its population from which gates import the helper, so a new gate cannot join unproven. Measured while fixing: check-rounding was STILL blind after the logical-line change because Prettier adds a trailing comma when it wraps, and the harness caught that on its first run; and a real hidden site was found in the tree at packages/core/testing/testFullAppRegression.ts:59.",
+    "file": "scripts/run-gates.ts",
+    "token": "'test:wrap-escapes',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/lib/logicalLines.ts",
+          "find": "const open = depth > 0 || CONTINUES.test(structure[i] ?? '');",
+          "replace": "const open = false;"
+        }
+      ],
+      "run": "test:wrap-escapes",
+      "expect": "did not red for the WRAPPED spelling"
     }
   }
 }

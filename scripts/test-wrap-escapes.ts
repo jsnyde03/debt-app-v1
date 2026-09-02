@@ -27,10 +27,24 @@ const SCRIPTS = join(REPO_ROOT, 'scripts');
 interface Recipe {
   /** the file the plant is written into, repo-relative */
   target: string;
-  /** appended to the target — the defect, WRAPPED the way Prettier would wrap it */
-  plant: string;
+  /**
+   * appended to the target — the defect, WRAPPED the way Prettier would wrap it.
+   *
+   * ⚠️ **A function when the plant must not itself be a dated fuse.** `check-fixture-dates` only refuses a
+   * literal inside its imminent window, so a hard-coded date here would stop testing what it claims to
+   * test the moment it aged past the window — a plant that quietly becomes a no-op is the `A1-4` shape
+   * committed inside the harness written to prevent it.
+   */
+  plant: string | (() => string);
   /** the gate must red, and its output must name this */
   reason: RegExp;
+}
+
+/** A date inside `check-fixture-dates`' 21-day imminent window, computed rather than written down. */
+function imminentDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 8);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 /**
@@ -55,6 +69,13 @@ const RECIPES: Record<string, Recipe> = {
     target: 'apps/rn/src/utils/a11y.ts',
     plant: "\nimport {\n  appStore,\n} from '../store/appStore';\nexport const __wrapEscape3 = appStore;\n",
     reason: /appStore|singleton|sanctioned/i,
+  },
+  'check-fixture-dates.ts': {
+    // ⚠️ Must be TEST-SHAPED (the gate's population) and NOT clock-pinned, or the plant lands in the
+    // `pinned` bucket and is reported rather than refused — a plant that cannot fail.
+    target: 'apps/rn/src/utils/format.test.ts',
+    plant: () => `\nexport const __wrapFuse = {\n  dueDate:\n    '${imminentDate()}',\n};\n`,
+    reason: /cross into the past within \d+ days/,
   },
 };
 
@@ -116,7 +137,8 @@ for (const gate of wrapSensitive) {
 
   let verdict = 'UNKNOWN';
   try {
-    writeFileSync(abs, original + recipe.plant, 'utf8');
+    const snippet = typeof recipe.plant === 'function' ? recipe.plant() : recipe.plant;
+    writeFileSync(abs, original + snippet, 'utf8');
     const applied = readFileSync(abs, 'utf8') !== original;
     const r = runGate(gate);
     const named = recipe.reason.test(r.out);

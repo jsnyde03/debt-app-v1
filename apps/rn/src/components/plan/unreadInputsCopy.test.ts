@@ -36,7 +36,19 @@ function eq<T>(actual: T, expected: T, label: string) {
 
 const NEWLINE = String.fromCharCode(10);
 
-/** Source with whole-line comments removed — the docblocks quote the banned wording while recording it. */
+/**
+ * Source with whole-line comments removed — the docblocks quote the banned wording while recording it.
+ *
+ * ⛔ **EACH LINE IS TRIMMED BEFORE THE JOIN, and it was not** — pass-7 `C1-9`. `line.trimStart()` was used
+ * only to decide whether a line was a comment; the value joined was the **raw** line, indentation included.
+ * So a phrase split across a line break joined as `again` + `' '` + `'                    above'`, and the
+ * needle `'again above'` — a single space — never matched.
+ *
+ * ⚡ **Planted both directions in `RequiredActionsCard.tsx`:** the phrase on one line → **exit 1**, naming
+ * the card; the SAME defect wrapped across a line → **exit 0 over 30 green assertions.** That is the whole
+ * of `S1.13.7.8`'s finding — three cards saying *"set it again above"* about a card one tap removes —
+ * coming back through the guard written to stop it, because a long JSX string is exactly what gets wrapped.
+ */
 function codeLinesOnly(source: string): string {
   return source
     .split(NEWLINE)
@@ -44,6 +56,7 @@ function codeLinesOnly(source: string): string {
       const t = line.trimStart();
       return !(t.startsWith('//') || t.startsWith('*') || t.startsWith('/*'));
     })
+    .map((line) => line.trim())
     .join(' ');
 }
 
