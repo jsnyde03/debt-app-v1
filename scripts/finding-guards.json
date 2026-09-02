@@ -2950,26 +2950,111 @@
   "S1P6-A1-7-TODAYBARRIER": {
     "what": "S1.13.7.10 [pass-6 A1-7] - celebration.spec.ts's render barrier was getByText('Today').first(), and 'Today' is the TAB'S OWN LABEL ((tabs)/_layout.tsx). So the barrier was satisfied by app chrome: a Today screen that rendered `null` - the blank-route class route-smoke.spec.ts exists for - passed it, and the free-tier control it guards ('no invitation is offered, because the premium estimator is still premium') would have passed over a screen with nothing on it. A regression that blanked Today for free users left this spec green. Both barriers now wait on `payday-guardian-card`, which is Today's own CONTENT.",
     "file": "apps/rn/tests/e2e/celebration.spec.ts",
-    "token": "the barrier is Today's own CONTENT, not the word"
+    "token": "getByTestId('payday-guardian-card')",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/PaydayGuardianCard.tsx",
+          "find": "      <Card testID=\"payday-guardian-card\">",
+          "replace": "      <Card testID=\"payday-guardian-card-GONE\">"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "celebration.spec.ts"
+      ],
+      "expect": "payday-guardian-card"
+    }
   },
   "S1P6-A1-8-BANDWORDS": {
     "what": "S1.13.7.10 [pass-6 A1-8] - the a11y-tree instrument answered 'is the Guardian band announced?' with an unanchored String.includes over a HAND-TYPED list of six common words, so 'clear' matched cleared/unclear/'Clear search' and 'short' matched shortfall. The printed figure ('Guardian-band words present: 14') told a reviewer nothing, and the one warning branch (banded === 0 on today/progress) COULD NOT FIRE because those surfaces carry such strings independently of the Guardian. BAND_WORDS is now derived from GUARDIAN_STATE_LABEL - the producer PaydayGuardianCard's docblock names as the source of 'every word a user reads or hears' - and the match is a word-boundary test inside the QUOTED ACCESSIBLE NAME rather than any substring of a line. BOTH DIRECTIONS DEMONSTRATED ON REAL CAPTURES: cushion-forecast counts 6 and they are real labels ('Sep 1, Clear'), while today and progress now count 0 and EMIT THE WARNING - which is a candidate accessibility finding routed onward, not something to tune away.",
     "file": "apps/rn/tests/shots/p6.8-a11y.shot.ts",
-    "token": "GUARDIAN_STATE_LABEL"
+    "token": "DERIVED from GUARDIAN_STATE_LABEL, never typed out",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/tests/shots/p6.8-a11y.shot.ts",
+          "find": "const BAND_WORDS: string[] = Object.values(GUARDIAN_STATE_LABEL).map((w: string) => w.toLowerCase());",
+          "replace": "const BAND_WORDS: string[] = ['clear', 'tight', 'at risk', 'at-risk', 'covered', 'short'];"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.shots.config.ts",
+        "p6.8-a11y.shot.ts"
+      ],
+      "expect": "DERIVED from GUARDIAN_STATE_LABEL"
+    }
   },
   "S1P6-D1-6-BIGBACKUP": {
     "what": "S1.13.7.10 [pass-6 D1-6] - the 'Import/export abuse' block in testAbuseScenarios.ts built 100 debts by hand, ran JSON.parse(JSON.stringify(x)) over them and asserted 'backup preserves debt ID'. The file imports exactly two symbols (allocatePaycheck, projectDebtPayoff) so it cannot reach the backup path at all, and the block could never red for any change to this repo - while being the only import/export coverage in a file whose whole subject is abuse. Same shape as A3-17 one file over. The property it gestured at was kept and made real: backup.test.ts now round-trips a 100-debt portfolio through serializeBackup -> parseBackup with EVERY ROW NAMED 'Duplicate Name', so nothing but the id can tell row 88 from row 87 - which is the condition under which an identity bug is invisible on screen.",
     "file": "apps/rn/src/data/backup.test.ts",
-    "token": "the 88th row is still the 88th row"
+    "token": "the 88th row is still the 88th row",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/backup.ts",
+          "find": "    storeVersion: store.storeVersion ?? CURRENT_STORE_VERSION,\n    store,\n  };",
+          "replace": "    storeVersion: store.storeVersion ?? CURRENT_STORE_VERSION,\n    store: { ...store, debts: store.debts.slice(0, 50) },\n  };"
+        }
+      ],
+      "run": "test:app",
+      "expect": "all 100 debts survive"
+    }
   },
   "S1P6-A1-11-DIALOGSAYS": {
     "what": "S1.13.7.10 [pass-6 A1-11] - the Notifications 'never fails in silence' test asserted messages.length > 0: that A dialog fired, never what it said. An empty dialog, a raw error or a message about something else keeps that green, and a user meeting any of those is one step from the silent snap-back the test exists for. It now asserts the message is non-trivial AND names the reason - web reaches the `unsupported` branch, which more.tsx speaks as 'Not available here / Reminders are a feature of the iPhone app.' - so the invariant the file pins (every non-granted outcome is SPOKEN) is checked against the branch web actually reaches, exactly as its header says.",
     "file": "apps/rn/tests/e2e/enh-audit-screens.spec.ts",
-    "token": "NAMES the reason rather than merely appearing"
+    "token": "NAMES the reason rather than merely appearing",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/more.tsx",
+          "find": "    notify('Not available here', 'Reminders are a feature of the iPhone app.');",
+          "replace": "    notify('', '');"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "enh-audit-screens.spec.ts",
+        "-g",
+        "Notifications toggle"
+      ],
+      "expect": "NAMES the reason rather than merely appearing"
+    }
   },
   "S1P6-A1-3-CENTSARITY": {
     "what": "S1.13.7.10 [pass-6 A1-3] - the paycheck-conservation instrument compares four independently-formatWhole'd display strings, and BOTH fixtures used whole dollars - the one arity where four roundings are lossless - so it could not see a non-conservation under about $2. A cents arity is covered now. ⚠️ THE FINDING'S SECOND CLAIM DID NOT REPRODUCE, and that is recorded rather than quietly dropped: it predicted a real cents plan's hero ALREADY speaks four numbers that do not add up. Measured on two arities - .33/.33/.34 rounds up then down ('Required $667, Spoken for $333') and conserves; .60/.60/.60 lands in the shortfall branch ('Required $666, Spoken for $334') and conserves. The segments are a PARTITION of the headline, not four free numbers. Coverage gap real; predicted defect absent.",
     "file": "apps/rn/tests/e2e/plan-hero-conserves.spec.ts",
-    "token": "four roundings, one headline"
+    "token": "four roundings, one headline",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/PlanHero.tsx",
+          "find": "`This paycheck ${formatWhole(paycheck)}.`,",
+          "replace": "`This paycheck ${formatWhole(paycheck + 1)}.`,"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "plan-hero-conserves.spec.ts"
+      ],
+      "expect": "must add up"
+    }
   }
 }

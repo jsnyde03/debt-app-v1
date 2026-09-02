@@ -977,3 +977,13 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   (`"Sep 1, Clear"`). ⚠️ **Two explanations and this does not distinguish them**: the band genuinely is
   colour-only there, or the capture caught a partially-rendered screen (29 nodes is small for Today).
   ⛔ Do not tune the instrument until that is measured — the warning firing is the fix working.
+
+- **Nothing tests the shipping app's paywall gate.** → **`P6.11`, beside `D3-2`.** Surfaced by `A3-16`:
+  `testSubscriptionGating.ts` is the only suite in `validate:release:rn` whose subject is *"what does a
+  paying user get"*, and it tests `hasFeatureAccess` / `PremiumFeature` from the **legacy root tree**.
+  ⚡ **Measured: `grep -rn "hasFeatureAccess\|PremiumFeature" apps/rn/src` returns zero lines** — the
+  shipping app gates with `store.subscriptionPlan === 'premium'` at **11 non-test sites**, and no test
+  asserts any of them. ⛔ The legacy suite is annotated rather than deleted: it is live coverage of a tree
+  `typecheck:core` and `test:regression` still compile and execute (class X `D3-1`), so removing it is
+  `P6.11`'s call. ⚠️ Whoever does `P6.11` must add the RN-side coverage in the same step, or the deletion
+  removes the last thing that looked like paywall coverage and replaces it with nothing.

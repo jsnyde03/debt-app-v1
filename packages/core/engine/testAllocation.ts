@@ -327,6 +327,47 @@ function runAllocationRegressionTests() {
         "[A2] a weekly bill inside a monthly cycle is reserved for EVERY occurrence"
     );
 
+    /**
+     * ⛔ **S1.13.7.10 — THE SAME CLASS ON THE OTHER BRANCH — all three fixtures above pass `debts: []`. [pass-6 `A3-4`]
+     *
+     * The block's header states the claim at CLASS scope (*"sub-cycle obligations occur MORE THAN ONCE
+     * inside one pay cycle"*), and `recurrence` is on `Debt` too. So this is the instrument that would
+     * have caught `A3-1` — a plain weekly debt under a monthly payer reserving ONE payment of three,
+     * moving `totalRequired` from $300 to $100 — and it could not, because it never handed the allocator
+     * a debt at all.
+     *
+     * ⚠️ ** A DEBT, not a BNPL: `A3-1`'s defect was a gate reading `type === 'bnpl'`, and a cadence is a
+     * fact about the SCHEDULE rather than the label. A `bnpl` fixture here would pass over that defect.
+     */
+    const weeklyDebtUnderMonthly = allocatePaycheck({
+        paycheckAmount: 3000,
+        currentDate: "2026-05-01",
+        nextPaycheckDate: "2026-06-01", // the same 31-day cycle
+        strategy: "snowball",
+        expenses: [],
+        debts: [
+            {
+                id: "debt-weekly",
+                name: "Weekly loan",
+                balance: 2000,
+                minimumPayment: 50,
+                apr: 12,
+                dueDate: "2026-05-04",
+                type: "debt",
+                recurrence: "weekly",
+                isPaidThisCycle: false,
+            },
+        ],
+        goals: [],
+    });
+
+    // May 4, 11, 18, 25 — four occurrences, exactly as the bill above.
+    assertMoney(
+        weeklyDebtUnderMonthly.totalRequired,
+        200,
+        "[A2/A3-1] a weekly DEBT inside a monthly cycle reserves every occurrence too"
+    );
+
     // Biweekly: May 4 and May 18 → two occurrences.
     const biweeklyUnderMonthly = allocatePaycheck({
         paycheckAmount: 3000,

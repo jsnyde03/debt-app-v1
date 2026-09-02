@@ -18,7 +18,63 @@ function assertMoney(actual: number, expected: number, label: string) {
 	if (a !== e) throw new Error(`FAIL [${label}]: expected $${e}, got $${a}`);
 }
 
-const DISCRETIONARY_BUCKETS = [...PROTECTED_CUSHION_CATEGORIES, ...PUT_TO_WORK_CATEGORIES] as AllocationCategory[];
+/**
+ * ⛔ **S1.13.7.10 — EVERY CATEGORY, CLASSIFIED — AND THE COMPILER KEEPS IT COMPLETE. [pass-6 `A3-15`]
+ *
+ * `DISCRETIONARY_BUCKETS` used to be `[...PROTECTED, ...PUT_TO_WORK]` — **the subject derived from the
+ * object**. So the reconciliation asserted that the union of two lists equals the union of two lists, and
+ * a category in NEITHER list was invisible to it: it simply was not in `DISCRETIONARY_BUCKETS` either.
+ * `allocatePaycheck.ts:70-77` states the claim this was supposed to enforce — *"a category in neither
+ * list silently breaks the partition"* — and for `optional_goal`, **every savings goal in the app**, no
+ * such guard existed.
+ *
+ * ⚠️ ** A `Record<AllocationCategory, ...>` is exhaustive by construction: adding a member to the union
+ * fails `typecheck:core` right here until somebody says which side it belongs on. That is the same
+ * compiler-as-gate move `ENTITY_NOUN` earned, and it is the only shape that cannot go one short.
+ */
+const CATEGORY_SIDE: Record<AllocationCategory, "protected" | "put-to-work" | "obligation"> = {
+	expense: "obligation",
+	minimum_debt: "obligation",
+	autopay_expense: "obligation",
+	autopay_debt: "obligation",
+	cushion_buffer: "protected",
+	prefunded_reserve: "protected",
+	expense_reserve: "protected",
+	discovery_holdback: "protected",
+	true_leftover: "protected",
+	starter_emergency: "put-to-work",
+	emergency: "put-to-work",
+	snowball: "put-to-work",
+	optional_goal: "put-to-work",
+};
+
+const DISCRETIONARY_BUCKETS = (Object.keys(CATEGORY_SIDE) as AllocationCategory[]).filter(
+	(c) => CATEGORY_SIDE[c] !== "obligation",
+);
+
+{
+	// ⛔ [`A3-15`] The two published lists must MATCH the classification above, in both directions. This is the
+	// assertion the old derived set could not make: a category dropped from a list, or added to the union
+	// and forgotten, reds here rather than silently leaving the partition.
+	const inList = new Set<string>([...PROTECTED_CUSHION_CATEGORIES, ...PUT_TO_WORK_CATEGORIES]);
+	for (const c of DISCRETIONARY_BUCKETS) {
+		if (!inList.has(c)) {
+			throw new Error(
+				`FAIL [A3-15]: "${c}" is discretionary but is in NEITHER PROTECTED_CUSHION_CATEGORIES nor ` +
+					"PUT_TO_WORK_CATEGORIES — the partition silently drops it, which is what allocatePaycheck's own note warns about",
+			);
+		}
+	}
+	for (const c of PROTECTED_CUSHION_CATEGORIES) {
+		if (CATEGORY_SIDE[c] !== "protected") throw new Error(`FAIL [A3-15]: "${c}" is listed PROTECTED but classified ${CATEGORY_SIDE[c]}`);
+	}
+	for (const c of PUT_TO_WORK_CATEGORIES) {
+		if (CATEGORY_SIDE[c] !== "put-to-work") throw new Error(`FAIL [A3-15]: "${c}" is listed PUT_TO_WORK but classified ${CATEGORY_SIDE[c]}`);
+	}
+	if (inList.size !== DISCRETIONARY_BUCKETS.length) {
+		throw new Error(`FAIL [A3-15]: the two lists hold ${inList.size} categories, the classification says ${DISCRETIONARY_BUCKETS.length}`);
+	}
+}
 
 function alloc({ paycheckAmount, required = 0, living = 0, buffer = 0, debtBalance = 0, discoveryFrac = 0, coldStartFrac = 0, prefunded = 0, variableRequired = 0, variableFrac = 0 }: {
 	paycheckAmount: number;

@@ -1,3 +1,4 @@
+import { effectiveMinimumInWindow } from "@core/debt/bnplInstallment";
 import { fundsAsSinkingFund, primaryEmergencyGoal } from "@core/engine/emergencyFund";
 import { combinedHoldback } from "@core/guardian/holdbackComposition";
 import type { LivingExpense } from "@core/types/livingExpense";
@@ -174,6 +175,7 @@ function clampFraction(f: number): number {
 
 export function allocatePaycheck({
 	paycheckAmount,
+	currentDate,
 	nextPaycheckDate,
 	expenses,
 	livingExpenses = [],
@@ -364,8 +366,33 @@ export function allocatePaycheck({
 		0
 	);
 
+	/**
+	 * ⛔ **S1.13.7.10 — THE RESERVE READS THE SAME PRODUCER AS THE PAYDOWN. [pass-6 `A3-4`, and it is `A3-1`'s other half]
+	 *
+	 * `S1.13.7.7`'s `A3-1` removed the `type === "bnpl"` gate from `effectiveMinimumInWindow` and its
+	 * comment states the safety argument: *"the allocator's RESERVE and `applyRolloverPayment`'s PAYDOWN
+	 * both read `effectiveMinimumInWindow`, so they move together or not at all."* ⛔ **The allocator did
+	 * not read it.** `grep` for the symbol returned `applyRolloverPayment` and `buildCycleSnapshot` — and
+	 * this file computed `Math.min(debt.minimumPayment, debt.balance)` at five sites instead.
+	 *
+	 * ⚡ **Measured on one weekly debt in one window: RESERVE $50, PAYDOWN $200.** The Guardian calls the
+	 * paycheck clear having held $50, the rollover then takes $200, and the user is **$150 short** — which
+	 * is verbatim the consequence the `[A2]` block's header describes for bills.
+	 *
+	 * ⚠️ **An aligned cadence holds at most one charge per window, so every monthly debt is a no-op** —
+	 * the same argument `A3-1` made for widening the gate, now applied to the side that was missed.
+	 *
+	 * ⛔ **AND IT MUST BE *THIS* PRODUCER, NOT THE BILLS' `occurrencesThisCycle`.** That was the first cut,
+	 * and `bnplCadence.test.ts` refused it: on Aug 1 → Sep 1 the bill counter says **4** biweekly charges
+	 * where `effectiveMinimumInWindow` says **3**. Two counters over one window is the very shape this
+	 * fix exists to remove, so reserving from the bill counter would have swapped one disagreement for
+	 * another — and a test that already knew the right answer is what caught it.
+	 */
+	const minimumDueInWindow = (debt: Debt): number =>
+		Math.min(effectiveMinimumInWindow(debt, currentDate, nextPaycheckDate), debt.balance);
+
 	const debtMinimumRequiredTotal = upcomingMinimums.reduce(
-		(sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance),
+		(sum, debt) => sum + minimumDueInWindow(debt),
 		0
 	);
 
@@ -386,7 +413,7 @@ export function allocatePaycheck({
 	const paidDebtMinimumTotal = upcomingMinimums
 		.filter((debt) => debt.minimumPaidThisCycle ?? debt.isPaidThisCycle)
 		.reduce(
-			(sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance),
+			(sum, debt) => sum + minimumDueInWindow(debt),
 			0
 		);
 
@@ -421,7 +448,7 @@ export function allocatePaycheck({
 	const unpaidRequiredTotal = roundMoney(
 		unpaidExpenses.reduce((sum, expense) => sum + owedFromPaycheck(expense), 0) +
 		unpaidMinimums.reduce(
-			(sum, debt) => sum + Math.min(debt.minimumPayment, debt.balance),
+			(sum, debt) => sum + minimumDueInWindow(debt),
 			0
 		)
 	);
@@ -436,7 +463,7 @@ export function allocatePaycheck({
 
 		const paidMinimumAmount =
 			alreadyPaidMinimum && debt
-				? Math.min(debt.minimumPayment, debt.balance)
+				? minimumDueInWindow(debt)
 				: 0;
 
 		const allocatedAmount = allocations

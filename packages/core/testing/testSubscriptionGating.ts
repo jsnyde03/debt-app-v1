@@ -1,3 +1,22 @@
+/**
+ * ⛔ **S1.13.7.10 — WHAT THIS SUITE COVERS, AND WHAT IT DOES NOT. [pass-6 `A3-16`]
+ *
+ * ⛔ **It tests a gating mechanism `apps/rn` does not use.** Measured:
+ * `grep -rn "hasFeatureAccess\|PremiumFeature" apps/rn/src` returns **zero lines**. The shipping app
+ * gates with a plain boolean on the store — `store.subscriptionPlan === 'premium'`, at 11 non-test sites.
+ * Everything below imports from `@/lib/subscription/...`, the **legacy root tree `P6.11` deletes**.
+ *
+ * ⚠️ **It is read as more than it is, and that is why this note exists.** `test:regression` runs inside
+ * `validate:release:rn`, and this is the only suite in that gate whose subject is *"what does a paying
+ * user get"* — so a reviewer counting subscription coverage counts evidence about a surface that is being
+ * removed. **It proves the legacy matrix is internally consistent. It proves nothing about the shipping
+ * app's paywall.**
+ *
+ * ⛔ **NOT deleted here, deliberately.** It is live coverage of a tree that is still compiled and executed
+ * by `typecheck:core` and `test:regression` (class X, `D3-1`), and deleting it is `P6.11`'s call, not this
+ * step's. The RN-side gap — no test anywhere asserts the 11 real `subscriptionPlan === 'premium'` sites —
+ * is filed to `P6.11` beside `D3-2`.
+ */
 import { hasFeatureAccess } from "@/lib/subscription/hasFeatureAccess";
 import { premiumPlusOnlyFeatures, type PremiumFeature } from "@/lib/subscription/features";
 

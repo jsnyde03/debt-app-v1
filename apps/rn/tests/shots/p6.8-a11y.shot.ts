@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 
-import { test, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 import { GUARDIAN_STATE_LABEL } from '@core/copy/vocabulary';
 import { scenario, seedStore } from '../e2e/helpers/seed';
@@ -88,6 +88,17 @@ for (const s of SURFACES) {
     await seedStore(page, seed(s.seedOver));
     await page.goto(s.goto);
     await page.waitForTimeout(900);
+
+    /**
+     * ⛔ **S1.13.7.10 [pass-6 `A1-8`] — THIS FILE PRINTED AND ASSERTED NOTHING, WHICH IS WHY THE BAND
+     * COUNT COULD ROT UNNOTICED.** It writes artifacts for a human to read; the one property that must
+     * hold for those artifacts to MEAN anything is that the band words are the app's real ones. Derived
+     * from `GUARDIAN_STATE_LABEL`, so a hand-typed list — the defect — reds here.
+     */
+    expect(BAND_WORDS, 'the band words are DERIVED from GUARDIAN_STATE_LABEL, never typed out').toEqual(
+      Object.values(GUARDIAN_STATE_LABEL).map((w: string) => w.toLowerCase()),
+    );
+    expect(BAND_WORDS.length, 'and the producer is non-empty, so the count below is not vacuous').toBeGreaterThan(0);
 
     const yaml = await page.locator('body').ariaSnapshot();
     const lines = yaml.split('\n');
