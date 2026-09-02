@@ -30874,3 +30874,25 @@ said the same and ran neither half. What is pinned is the structure that makes t
 **whether Siri speaks the new sentence is a device row for `P6.14`.** A green run here is not a green run
 on hardware.
 
+### ⚡ Two more the close-out itself produced
+
+⛔ **`lint:finding-guards` REFUSED THREE OF THIS CLASS'S OWN TOKENS, each by name and each correctly.**
+Two of them — `B1-4` and `B2-1` — are findings whose defect **is a comment**, and I pointed their tokens at
+the corrected sentences. The gate's answer: *"the guard token appears ONLY IN A COMMENT."* It is right;
+a comment token is a description, not a guard, and for a comment-defect the only standing guard available
+is the **executable check over it**. Both now point at `staleClaims.test.ts`'s assertions. The third named
+a **declaration** (`let raw = …`) rather than a use — `D3-3`'s rule, which the gate exists to enforce.
+
+⚠️ **`lint:local-dates` caught a UTC round-trip in `A3-3`'s own fixture helper.** `toISOString().slice(0, 10)`
+is off by one east of UTC, and for a **due date** that is the overdue branch — the `A1-4` family one layer
+down, in the helper written to avoid the `A1-4` family.
+
+⚠️ **And a batched `prove:guards` run returned `reason=WRONG` for a guard that passes solo.** Re-run alone,
+`S1P3-C1-ROWFIGURES` is `MATCHED`. Whatever the batch did to the tree between plants, the verdict it gave
+was not about that guard's defect — **a batched proof run is not equivalent to N single runs**, which is
+worth knowing before trusting one.
+
+⛔ **The shell ate a commit message for the third time this session.** Backticks and `$` inside
+`git commit -m "…"` are executed and expanded; every other commit here used a quoted heredoc, which is
+safe. Amended. `shell-is-a-participant`, and knowing the rule is evidently not the same as applying it.
+
