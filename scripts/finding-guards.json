@@ -2870,7 +2870,9 @@
         "apps/rn/playwright.config.ts",
         "trajectory-interactivity.spec.ts"
       ],
-      "expect": "traj-legend-with-extra"
+      "expect": "traj-legend-with-extra",
+      "measured": "2026-09-02",
+      "sha": "2f4b2be7"
     }
   },
   "S1P6-D1-4-INVARIANTCOVERAGE": {
