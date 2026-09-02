@@ -30470,3 +30470,52 @@ rather than tuned away — the warning firing is the fix working.
 decision. Measured now that `A2-1` has landed: the projection reports **$889.87** for the portfolio while
 the non-focus debt's drawn schedule reports **$8,678.34 over 137 months**, because that schedule never
 models the freed minimum rolling over. **A product call, raised as a [DECISION] with its measurement.**
+
+
+---
+
+## 2026-09-02 — `S1.13.7.11` opened: the class labelled "the minors" holds 3 blockers and 5 majors
+
+🎯 Jason, after the session was buttoned up: *"Is it worth us fixing all of the minors during each fix
+session?"* — a process question. Answering it needed the membership, and CLASS XI's membership had never
+been written down (*"Full list in the lane files"*), so the enumeration `.10.1` had filed as future work
+ran first, before any fixing and before any recommendation.
+
+**Method.** The same move as `.10.1`: parse every `##` heading id out of the twelve lane files, subtract
+every id named by any class section in `CLASSIFICATION.md`, and read the **severity token in each
+survivor's own heading** rather than trusting the class label.
+
+**Result — 35 findings, and the label is wrong about what is in them:**
+
+| severity | n | ids |
+|---|---|---|
+| **blocker** | **3** | `C1-4` `C1-15` `D3-5` |
+| **major** | **5** | `A3-3` `B2-1` `B2-2` `C2-1` `D1-1` |
+| minor | 20 | `A2-5` `A3-6` `A3-7` `A3-10` `B2-3` `C1-2` `C1-7` `C1-8` `C1-9` `C1-12` `C1-14` `C1-16` `C1-17` `C1-20` `C1-21` `C2-4` `C2-6` `C2-8` `D1-7` `D2-12` |
+| unrated | 7 | `B1-4` `B3-2` `B3-5` `C3-7` `C3-12` `C3-13` `C3-14` |
+
+⛔ **[D65] exits on 0 blockers / 0 majors, so eight of these gate S1** — and they were parked in the
+queue as *"copy, labels, a11y, dead code. Batched; several are one-line."* The three blockers are
+user-facing money statements on the surface under audit: `C1-4`, the payday sheet reading **"All
+confirmed paid"** about a bill the user just marked *didn't*; `C1-15`, the Cash Runway receipt
+**understating "Expenses & essentials" by exactly the top-up the user entered**; `D3-5`, the payday
+caption subtracting two totals **built from different populations**. That last one is the shape of the
+reserve-vs-paydown defect `S1.13.7.10` found — two producers of one number — on the same surface.
+
+⚡ **THE LESSON, AND IT IS ONE LEVEL UP FROM `.10.1`'s.** `.10.1` caught that a class's **count** was
+wrong. It structurally could not catch that the **severities inside it** were wrong, because a class
+table carries a *label* — "THE MINORS" — and never a split. **A class label is an authored summary of
+its members, and it decays exactly like every other authored claim in this audit.** ⛔ **Never schedule,
+prioritise or defer a class off its label; read the members' own severity lines.** Both errors were free
+to find *(one parse each)* and both were sitting in front of every session that read the queue.
+
+**The answer to the question, given the data.** For the 20 genuine minors: **sweep them inline when a
+later class already has the file open — do not batch them.** Not because batching is slow, but because
+this round measured that **more than half of pre-authored remedies do not survive contact with the tree**
+and four findings' defects were already closed by the time they were reached. The cost of a minor is
+**re-verifying a weeks-old premise**, not applying the fix; a 20-item batch pays that cost 20 times with
+no class context to amortise it, while a file-local sweep pays it once per file while the context is
+already loaded and free.
+
+**Captured atomically:** plan §ACTIVE re-headed and re-decomposed, the `.11` queue row corrected
+*(43 → 35, with the split)*, and the `.10.1` backlog row closed with the result.

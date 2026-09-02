@@ -948,6 +948,12 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   *"29 blockers · 48 majors · 47 minors"* sums to **124**. ⛔ The table totals 123 only because those two
   errors run in opposite directions. ⚠️ **CLASS XI's membership is unenumerated by design** — *"Full list
   in the lane files"* — so opening `.11` has to begin by writing the list down, exactly as `.10.1` did.
+  ✅ **DONE 2026-09-02, and it found worse than a bad count.** Enumerated by elimination: **35 findings**,
+  whose own severity lines read **3 blockers *(`C1-4` `C1-15` `D3-5`)* · 5 majors *(`A3-3` `B2-1` `B2-2`
+  `C2-1` `D1-1`)* · 20 minors · 7 unrated.** ⛔ **The class labelled “the minors” gates [D65],
+  which exits on 0 blockers / 0 majors.** ⚡ **The undercount class one level up:** `.10.1` could only
+  catch the wrong COUNT, because a class table carries a label and never a split — **never schedule a
+  class off its label.** → carried into `S1.13.7.11`'s decomposition in the plan.
 
 ### ⤵ surfaced by `S1.13.7.10.5`, 2026-09-01
 

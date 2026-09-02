@@ -26,7 +26,7 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.13.7.11 · THE MINORS — 43 findings, and CLASS XI's own membership is unwritten**
+## ▶ RIGHT NOW — **S1.13.7.11 · CLASS XI — “THE MINORS” HOLDS 3 BLOCKERS AND 5 MAJORS**
 
 **Surface S1 · money · goals · plan cards.** Passes 1–3 run and fully fixed. **Pass 4 run at `e65f9c7` by four fresh agents → 8 blockers · 19 majors · 7 minors across 217 files** ([`SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md)). ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next first-candidate and a clean pass 5 still owes a pass 6.** ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
@@ -113,9 +113,31 @@ it** — which is why the classes are ordered the way they are.
 
 ▶ **WHERE THIS SESSION LEFT OFF (2026-09-02).** **Ten classes closed, 84 of 123 findings.** CI **GREEN on
 `e5687865`**: typecheck ×4 · `lint:rn` **45/45** · three unit suites · **e2e 339/339** · **embed 10/10**.
-Tree clean, nothing unpushed. ▶ **Next is `S1.13.7.11` — the minors (43)**, and its first job is writing
-down its own membership: **CLASS XI is unenumerated** *("full list in the lane files")* and by count it
-holds **40, not 43** — see the backlog.
+Tree clean, nothing unpushed.
+
+⛔ **`S1.13.7.11` IS NOT A CLASS OF MINORS — ENUMERATED 2026-09-02, BEFORE ANY FIXING.** CLASS XI was
+unenumerated *("full list in the lane files")*; counted from the lane files by elimination it is **35
+findings**, and their own severity lines read **3 blockers · 5 majors · 20 minors · 7 unrated**:
+
+| | |
+|---|---|
+| **blocker** | `C1-4` the payday sheet says **“All confirmed paid”** about a bill the user just marked *didn't* · `C1-15` the Cash Runway receipt **understates “Expenses & essentials” by exactly the top-up the user entered** · `D3-5` the payday “confirm what you paid” caption subtracts two totals built from **different populations** |
+| **major** | `A3-3` `B2-1` `B2-2` `C2-1` `D1-1` |
+| unrated | `B1-4` `B3-2` `B3-5` `C3-7` `C3-12` `C3-13` `C3-14` — rate these before scheduling |
+
+⚡ **[D65] exits on 0 blockers / 0 majors, so eight of these GATE S1 and were parked in the bucket
+labelled “cheap, do them last.”** ⚠️ **The undercount class, one level up:** `.10.1` caught that the
+class's COUNT was wrong and could not catch that the SEVERITIES inside it were, because the class table
+carries a label and not a split. ⛔ **Never schedule a class off its label — read the members' own
+severity lines first.** The three blockers are the same shape as the reserve-vs-paydown defect, on the
+same surface.
+
+▶ **The sequence this forces:** rate the 7 → promote the blockers + majors into the convergence path and
+fix them as their own class → the 20 genuine minors are **swept inline when a later class already has the
+file open, never batched** *(🎯 2026-09-02)*. Why: this round measured that **more than half of
+pre-authored remedies do not survive contact** and four findings' defects were already closed — the cost
+of a minor is re-verifying a weeks-old premise, not the fix, and a batch pays that 20 times with no class
+context to amortise it.
 
 ⭐ **`S1.13.7.9` — all 51 CI e2e failures had ONE cause**, found by `git bisect` over the 36 commits CI had
 never seen: `C1-18`, a **minor** about a literal declared twice, whose remedy made a Skia-importing module
@@ -168,7 +190,7 @@ and three lanes named the obvious fix as wrong.
 | ✅ **S1.13.7.8** | **CLOSED 2026-09-01 — THE FIX REACHED THE MEMBER.** All 6. ⚡ Every one was a previous round's correct fix stopping one line, one field, one hop or one consumer short — `[B4]` changed `recurrence` and left the four seeds beneath it; `B5-11` fixed `backupToCloudGuarded` and left `getCloudBackupStatus` twenty lines away. ⛔ `B3-3`'s class assertion found a site the report never named: the Restore button was `disabled={status !== 'ready'}`, so fixing what was named would have left the door **visible and dead**. ⭐ **And the FIXING found four more of the same shape, three of them already red** — `typecheck:core` since `.3`, the C3 e2e since `.4`, the guard gate's stale ceiling *(dead code; drained 31 → 0)* and `unreadBalanceIds` with zero unit coverage. New gate `lint:amount-collapse` → **45**. Detail → log | 6 *(3 blockers)* | CLOSED |
 | ✅ **S1.13.7.9** | **CLOSED 2026-09-01 — THE SUITE IS GREEN IN CI.** All 51 CI failures / 37 local had **one cause**, found by `git bisect`: `2c77aceb`, where `C1-18`'s remedy put a Skia-importing module in Today's graph. ⚡ **Two hypotheses were refuted along the way** — the shared-fixture due dates *(moved one cluster and not another)* and then "multi-cause" itself *(the root fix made that cluster pass with the fixture untouched)*. New guard in `lint:import-graph`, proven. Detail → log | 51 | CLOSED |
 | ✅ **S1.13.7.10** | **CLOSED 2026-09-02 — TESTS THAT CANNOT FAIL, 18 of 19** *(19, not 18 — see `.10.1`)* — `A1-1` `A1-2` `A1-3` `A1-6`–`A1-11` `A2-7` `A3-4` `A3-14`–`A3-17` `B2-4` `D1-4` `D1-5` `D1-6`. ⛔ **LAST among the triage classes, and fixed KNOWING what the classes above got wrong** — these are what re-verify everything, so repairing them first re-verifies against the same blind spots. Decomposed below | 18 | every assertion reachable and falsifiable |
-| ▶ **S1.13.7.11** | **THE MINORS** — copy, labels, a11y, dead code. Batched; several are one-line | 43 | — |
+| ▶ **S1.13.7.11** | ⛔ **MIS-LABELLED — IT IS 3 BLOCKERS · 5 MAJORS · 20 minors · 7 unrated**, enumerated 2026-09-02 before fixing *(claimed 43, holds 35)*. Rate the 7, fix the blockers/majors as their own class, sweep the minors inline. ⚡ **Eight of these gate [D65].** Decomposed above | 35 | 0 blockers / 0 majors; every minor either fixed or on the backlog with a named carrier class |
 | **S1.13.7.12** | **INSTRUMENT THE REST OF THE TREE** *(🎯 2026-08-31)* — **197 tracked source files sit on NO claims file**, 82 of them in `apps/rn` and 4 in `packages/core`, so no instrument can even ASK whether they have been read. S2/S3/S4 have no claims file at all. ⛔ **Measure, do not audit** — generate the claims files so the unknown becomes a number before four more surfaces are priced | 197 | every tracked source file on some surface's claims file |
 | **S1.13.7.13** | **RE-RUN PASS 7** — [D65] needs a second consecutive clean pass. Route from `s1p7`, same 12-lane shape. ⚠️ Forecast: pass 7 will find the FIXES' own defects — every prior round did — so 0/0 twice is realistically passes 8–9 | — | 0/0 twice |
 
