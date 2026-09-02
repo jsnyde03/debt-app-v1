@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-02",
-      "sha": "cdda1d3a"
+      "sha": "bad8580f"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -3157,7 +3157,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the retired cross-population subtraction is gone"
+      "expect": "the retired cross-population subtraction is gone",
+      "measured": "2026-09-02",
+      "sha": "bad8580f"
     }
   },
   "S1P6-C1-4-GROSSROW": {
@@ -3175,7 +3177,7 @@
       "run": "test:app",
       "expect": "the row headlines the BILL",
       "measured": "2026-09-02",
-      "sha": "cc28e7d1"
+      "sha": "bad8580f"
     }
   },
   "S1P6-C1-4-VERDICT": {
@@ -3193,7 +3195,7 @@
       "run": "test:app",
       "expect": "no sentence is gated on a dollar sum",
       "measured": "2026-09-02",
-      "sha": "cc28e7d1"
+      "sha": "bad8580f"
     }
   }
 }

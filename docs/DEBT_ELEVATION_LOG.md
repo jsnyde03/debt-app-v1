@@ -30711,3 +30711,42 @@ retired expression and a scan that reads them cannot tell a warning about the de
 
 **Verified:** `typecheck` ×4 exit 0 · `test:app` exit 0 · the new file 34 assertions · four proofs
 executed. Commits `a8fbb179`, `26130ec0`.
+
+### ⚡ And then the net reddened five gates — four of them my own, one of them the important one
+
+⛔ **`lint:finding-guards` caught something nothing else could: building `C1-4` on top of `D3-5` VOIDED
+BOTH of `D3-5`'s guards, one commit after they were proven.** `C1-4` rewrote the exact loop
+`S1P6-D3-5-ONEPOPULATION`'s token pinned (`carries += row.item.amount` became `carries += net` beside a
+gross sibling) and moved the caption line `S1P6-D3-5-SHEETCALLSITE`'s un-fix had been measured against.
+The gate distinguished the two failure modes precisely — *"the file survived; the assertion inside it did
+not"* for the first, and *"the proof is VOID, not merely stale: it was measured against a line this file
+no longer has exactly once"* for the second.
+
+⚡ **That is *"the fix reached the member, left the sibling"* applied to the GUARDS rather than the code**,
+at one-commit granularity, in the same session that closed two findings of that shape. The standing rule —
+*every surface audit re-verifies the previous surfaces' guards* — turns out to have a much shorter period
+than a surface: **a guard is only as current as the last commit that touched its file.**
+
+⛔ **`lint:copy` caught the one that matters for the finding itself.** I had typed *"from your reserve"* a
+second time, into `PaydayCaptureSheet`, to match `RequiredActionsCard`. **`C1-4` IS those two surfaces
+disagreeing about one row** — so a second copy of the sentence would have fixed the symptom while
+re-creating the condition. Extracted to `FROM_RESERVE_CAPTION` in `@core/copy/vocabulary`, whose own
+`EVERYDAY_SPENDING_LABEL` records the identical catch: *"the strings gate caught the duplication as it was
+being created."* The test now pins that **both** components read the constant rather than a literal.
+
+⚠️ **`eslint` surfaced a real consequence rather than a lint nit:** after `C1-4` the **net carry has no
+reader at all** — the sentences take gross and `capturedTotal` takes the complementary net *paid* figure.
+Removing it then made `SHEETCALLSITE`'s planted defect reference an out-of-scope name, so the un-fix now
+subtracts from the gross carry: **a plant must be compilable code, or it only proves the scan reads text.**
+
+⚠️ `lint:comments` — a docblock annotated what the code *"said"* rather than what it did; `[D17]` wants the
+correction, not the annotation.
+
+⛔ **And twice this session the harness reported `exit 0` over a RED `lint:rn`.** Both were my own shell
+chains ending in `tail` and `echo` — the `shell-is-a-participant` mode, not the harness — but the outcome
+is identical to the nine recorded instances: **read the gate's own summary line, never the pipeline's
+status.**
+
+**Re-proven after the repairs:** all four `D3-5`/`C1-4` guards plus the two entries my `MIN_ENTRIES` edit
+left stale, each `plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED`.
+
