@@ -50,19 +50,44 @@ export function requiredRowId(row: RequiredRow): string | undefined {
  *
  * A row with no id cannot be checked off, so it counts as paid — matching the `?? true` default the
  * sheet's own checkbox state uses.
+ *
+ * ⛔ **[S1.13.7.11 · pass-6 C1-4] NET AND GROSS ARE BOTH RETURNED, AND THEY ARE NOT INTERCHANGEABLE.**
+ * `item.amount` is what THIS PAYCHECK puts in; the biller is owed `amount + reserveCovered`
+ * (`allocatePaycheck.ts:101-104`). A sentence ABOUT THE BILL must use **gross** — a $350 rent fully
+ * covered by the reserve has `amount === 0`, so the sheet announced *"All confirmed paid"* about a bill
+ * the user had just marked *"Didn't pay"*, and showed **$0.00** for it. ⛔ But `capturedTotal` must keep
+ * **net**: `allocatePaycheck.ts:330-353` nets the reserve draw out of `totalRequired` too, so subtracting
+ * a gross carry from a net total would under-report the capture by the reserve share — the mirror of the
+ * same bug. `RequiredActionsCard` already got this right at `[T6.6 · L4-6]`; the fix stopped at the
+ * reported card while this sheet consumed the SAME `RequiredRow[]` from the same `selectRequiredRows`.
+ *
+ * ⛔ **`anyUnpaid` exists because a verdict about the user's own answers must not be derived from money.**
+ * The sheet keyed *"All confirmed paid"* on `carryForward > 0`, which is zero for a fully-covered bill
+ * whatever the user answered. It reads the `requiredPaid` map now.
  */
 export function selectRequiredSplit(
   rows: RequiredRow[],
   requiredPaid: Record<string, boolean>,
-): { paid: number; carries: number } {
+): { paid: number; carries: number; paidGross: number; carriesGross: number; anyUnpaid: boolean } {
   let paid = 0;
   let carries = 0;
+  let paidGross = 0;
+  let carriesGross = 0;
+  let anyUnpaid = false;
   for (const row of rows) {
     const id = requiredRowId(row);
-    if (id && requiredPaid[id] === false) carries += row.item.amount;
-    else paid += row.item.amount;
+    const net = row.item.amount;
+    const gross = net + Math.max(0, row.item.reserveCovered ?? 0);
+    if (id && requiredPaid[id] === false) {
+      anyUnpaid = true;
+      carries += net;
+      carriesGross += gross;
+    } else {
+      paid += net;
+      paidGross += gross;
+    }
   }
-  return { paid, carries };
+  return { paid, carries, paidGross, carriesGross, anyUnpaid };
 }
 
 /** Sum of one or more allocation categories. */

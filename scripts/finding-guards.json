@@ -3139,7 +3139,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "nothing ticked off"
+      "expect": "nothing ticked off",
+      "measured": "2026-09-02",
+      "sha": "a8fbb179"
     }
   },
   "S1P6-D3-5-SHEETCALLSITE": {
@@ -3155,7 +3157,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the retired cross-population subtraction is gone"
+      "expect": "the retired cross-population subtraction is gone",
+      "measured": "2026-09-02",
+      "sha": "a8fbb179"
     }
   }
 }
