@@ -187,6 +187,50 @@ export async function runCloudBackupUnreadableTests() {
       },
     },
     {
+      /**
+       * ⛔ **S1.13.7.11 [pass-6 blocker `B3-2`] — the SAME state through a different door.** `B3-3`'s
+       * `'ready-unreadable'` is *"the provider will not report a timestamp"*. `B3-2` is *"the timestamp is
+       * PRESENT and cannot be read"* — an `exportedAt` from a file the user found somewhere. Both must
+       * produce a line that claims no date; neither may fall through to `STATUS_NEVER` over a container
+       * that holds a backup. `formatTime` returns `null` for the unreadable case, which is what the real
+       * `formatBackupTime` now does.
+       */
+      name: 'cloudBackupStatusLine — a PRESENT but unreadable stamp',
+      check: () => {
+        const unreadable = cloudBackupStatusLine({
+          status: 'ready',
+          unclaimedRemoteAt: null,
+          lastBackupAt: 'banana',
+          formatTime: () => null,
+        });
+        eq(unreadable.kind, 'unreadable', 'an unreadable stamp lands on the honest line, not on "last backed up"');
+        assert(unreadable.text !== STATUS_NEVER, '⛔ …and NOT "Not backed up yet" over a container that HAS one');
+        assert(!/recently/i.test(unreadable.text), '⛔ …and never the word "recently"');
+
+        const unclaimed = cloudBackupStatusLine({
+          status: 'ready',
+          unclaimedRemoteAt: 'banana',
+          lastBackupAt: null,
+          formatTime: () => null,
+        });
+        eq(unclaimed.kind, 'unclaimed', '⚠️ [B3] still outranks it — an unaccounted copy stays unaccounted');
+        assert(
+          /another device/i.test(unclaimed.text),
+          '…and the "not from this device" half SURVIVES the missing date, because the next tap deletes it',
+        );
+        assert(!/recently|undefined|null/i.test(unclaimed.text), '⛔ …with no invented date and no leaked placeholder');
+
+        const good = cloudBackupStatusLine({
+          status: 'ready',
+          unclaimedRemoteAt: null,
+          lastBackupAt: '2019-03-04T10:00:00.000Z',
+          formatTime: () => '3/4/2019 at 5:00 AM',
+        });
+        eq(good.kind, 'last-backup', 'control: a readable stamp still reads "Last backed up"');
+        assert(good.text.includes('2019'), '  …carrying the date it was given');
+      },
+    },
+    {
       name: 'restoreFromCloud — the door itself',
       check: async () => {
         const out = await restoreFromCloud(provider);
@@ -235,7 +279,7 @@ export async function runCloudBackupUnreadableTests() {
     await layer.check();
   }
 
-  eq(LAYERS.length, 7, 'every layer that consumes this condition is walked — adding one means adding it here');
+  eq(LAYERS.length, 8, 'every layer that consumes this condition is walked — adding one means adding it here');
 
   console.log(`\n✅ cloud backup, unreadable timestamp: ${passed} assertions passed\n`);
 }

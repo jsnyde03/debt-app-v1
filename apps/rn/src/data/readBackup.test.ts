@@ -332,6 +332,41 @@ function realV16Backup(): Record<string, unknown> {
   }
 }
 
+/**
+ * ⛔ **S1.13.7.11 [pass-6 blocker `B3-2`] — THE THIRD MEMBER: present and UNREADABLE.**
+ *
+ * The two blocks above cover *present and valid* and *absent*. The member the code got wrong is the one
+ * with no fixture — an `exportedAt` the build cannot parse rendered as **"Saved recently."**, one line
+ * above *Replace my data · It can’t be undone*. A backup from 2019 and one from an hour ago produced
+ * the same sentence, which is the whole thing `exportedAt` was plumbed through to prevent.
+ *
+ * ⚠️ **`"0"` is the worse half of the class.** `new Date("0")` is a VALID Date (1 Jan 2000), so a
+ * NaN guard never fires and the screen prints a specific, confident date the file never carried. That is
+ * why the check is on the SHAPE of the string, not on whether `Date` accepted it.
+ */
+{
+  const withStamp = (value: unknown) => {
+    const env = JSON.parse(serializeBackup(createDefaultStore(), { now: AT })) as Record<string, unknown>;
+    env.exportedAt = value;
+    return readBackup(JSON.stringify(env));
+  };
+  for (const junk of ['banana', '2026-13-45', '', 'Invalid Date', '0']) {
+    const result = withStamp(junk);
+    assert(result.ok, `read an envelope stamped ${JSON.stringify(junk)}`);
+    if (result.ok) {
+      const text = describeBackup(result);
+      assert(
+        !text.includes('Saved'),
+        `  ⛔ ${JSON.stringify(junk)} → the sentence claims NO date — "${text}"`,
+      );
+      assert(!text.includes('recently'), `  …and never the word "recently" — "${text}"`);
+    }
+  }
+  // the control: a real instant still reaches the sentence, so the guard did not simply swallow everything
+  const good = withStamp('2019-03-04T10:00:00.000Z');
+  assert(good.ok && describeBackup(good).includes('2019'), '  control: a readable stamp still reaches the sentence');
+}
+
 console.log(`✅ readBackup router tests passed (${passed} asserts).`);
 
 // ── ⛔ THE ONBOARDING GATE (found on a real device, 🎯 2026-08-19). ───────────────────────────────

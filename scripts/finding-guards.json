@@ -3197,5 +3197,37 @@
       "measured": "2026-09-02",
       "sha": "bad8580f"
     }
+  },
+  "S1P6-B3-2-UNREADABLE-STAMP": {
+    "what": "S1.13.7.11 [pass-6 B3-2, blocker] - formatBackupTime returned the string 'recently' for an instant it could not parse, so an unreadable `exportedAt` rendered as `Saved recently.` ONE LINE ABOVE `Replace my data - It can't be undone`. A backup from 2019 and one from an hour ago produced the same sentence, which is the entire reason exportedAt was plumbed through (B-J2-2). readBackup.ts already stated the rule for the ABSENT case - 'inventing one would be a claim about a file nothing knows anything about, on the screen where being wrong is least recoverable' - and enforced it only for missing, not for unreadable. It returns null now and every caller omits its clause. ⛔ THE CHECK IS ON THE STRING'S SHAPE, NOT ON WHETHER Date ACCEPTED IT: `new Date(\"0\")` is a VALID Date (1 Jan 2000), so a NaN-only guard never fires and the screen prints a specific confident date the file never carried - the worse half of the class, and the half a NaN guard cannot reach. The test's third member (present-and-unreadable) had no fixture; readBackup.test.ts's own comment forbade exactly what the code did.",
+    "file": "apps/rn/src/data/formatBackupTime.ts",
+    "token": "ISO_DATE_HEAD",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/formatBackupTime.ts",
+          "find": "  if (!ISO_DATE_HEAD.test(iso)) return null;\n  const at = new Date(iso);\n  if (Number.isNaN(at.getTime())) return null;",
+          "replace": "  const at = new Date(iso);\n  if (Number.isNaN(at.getTime())) return 'recently';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the sentence claims NO date"
+    }
+  },
+  "S1P6-B3-2-ICLOUD-FALLTHROUGH": {
+    "what": "S1.13.7.11 [pass-6 B3-2], the iCloud half. With formatBackupTime returning null, the `lastBackupAt` branch had to route somewhere, and the branch below it is STATUS_NEVER - 'Not backed up yet' over a container that HOLDS a backup. That is the exact fall-through B3-3's docblock warned about one round earlier ('replacing one false statement with a different false statement'), so an unreadable stamp takes B3-3's own honest line, STATUS_UNREADABLE, rather than a new one: it is the SAME state reached through a different door - B3-3 is 'the provider will not report a timestamp', B3-2 is 'the timestamp is present and cannot be read'. ⚠️ The unclaimed branch could NOT reuse it: dropping the date from 'A backup from ___ is in iCloud - not from this device' leaves a sentence that no longer parses, and [B3]'s whole job is that a copy this device has not accounted for is never presented as its own work, so the 'another device' half has to survive. STATUS_UNCLAIMED_UNREADABLE carries it.",
+    "file": "apps/rn/src/data/cloudBackupMessages.ts",
+    "token": "STATUS_UNCLAIMED_UNREADABLE",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/cloudBackupMessages.ts",
+          "find": "    return at ? { kind: 'last-backup', text: `Last backed up ${at}` } : { kind: 'unreadable', text: STATUS_UNREADABLE };",
+          "replace": "    if (at) return { kind: 'last-backup', text: `Last backed up ${at}` };"
+        }
+      ],
+      "run": "test:app",
+      "expect": "an unreadable stamp lands on the honest line"
+    }
   }
 }

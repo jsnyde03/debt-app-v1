@@ -148,7 +148,12 @@ export function describeBackup(result: ReadBackupSuccess): string {
    * irreversible overwrite of a live portfolio. ⚠️ Omitted entirely when the file does not say — see
    * `ReadBackupSuccess.exportedAt`.
    */
-  const saved = result.exportedAt ? ` Saved ${formatBackupTime(result.exportedAt)}.` : '';
+  // ⛔ [S1.13.7.11 · pass-6 B3-2] `formatBackupTime` returns `null` for an instant it cannot read, and
+  // this omits its clause for that exactly as it already does for an ABSENT one — the rule stated forty
+  // lines up. An unreadable stamp used to render as "Saved recently.", one line above an irreversible
+  // overwrite.
+  const savedAt = result.exportedAt ? formatBackupTime(result.exportedAt) : null;
+  const saved = savedAt ? ` Saved ${savedAt}.` : '';
   return `${SOURCE[result.kind]} has ${contents}.${saved}${skipped}${describeLosses(result.store)}`;
 }
 

@@ -150,25 +150,44 @@ export const STATUS_CHECKING = 'Checking iCloud…';
 export const STATUS_NEVER = 'Not backed up yet';
 export const STATUS_UNREADABLE =
   'There is a backup in iCloud, but it isn’t reporting when it was written. You can still restore from it.';
+/**
+ * ⛔ **S1.13.7.11 [pass-6 blocker `B3-2`] — the unclaimed copy's own unreadable line.** `B3-3` gave this
+ * module an honest sentence for *"there is a backup and no timestamp"*, and `B3-2` is the same state
+ * arriving through a different door: a timestamp that is PRESENT and cannot be read. The `lastBackupAt`
+ * path reuses `STATUS_UNREADABLE` verbatim; the unclaimed path cannot, because dropping the date from
+ * *"A backup from ___ is in iCloud — not from this device"* leaves a sentence that no longer parses —
+ * and ⚠️ [B3] this branch's whole job is that a copy this device has not accounted for is never presented
+ * as its own work, so the *"not from this device"* half has to survive.
+ */
+export const STATUS_UNCLAIMED_UNREADABLE =
+  'There is a backup in iCloud from another device, and it isn’t reporting when it was written.';
 
 export function cloudBackupStatusLine(input: {
   status: 'loading' | 'unavailable' | 'ready' | 'ready-unreadable';
   unclaimedRemoteAt: string | null;
   lastBackupAt: string | null;
-  formatTime: (iso: string) => string;
+  /** ⛔ B3-2 — `null` when the instant cannot be read; every branch below omits its date rather than inventing one. */
+  formatTime: (iso: string) => string | null;
 }): CloudBackupStatusLine {
   if (input.status === 'loading') return { kind: 'loading', text: STATUS_CHECKING };
   if (input.unclaimedRemoteAt) {
+    const at = input.formatTime(input.unclaimedRemoteAt);
     return {
       kind: 'unclaimed',
-      text: `A backup from ${input.formatTime(input.unclaimedRemoteAt)} is in iCloud — not from this device`,
+      text: at
+        ? `A backup from ${at} is in iCloud — not from this device`
+        : STATUS_UNCLAIMED_UNREADABLE,
     };
   }
   // ⛔ ABOVE the `lastBackupAt` fallbacks, not below them: this state HAS a backup and no timestamp, so
   // every line under here is false about it.
   if (input.status === 'ready-unreadable') return { kind: 'unreadable', text: STATUS_UNREADABLE };
   if (input.lastBackupAt) {
-    return { kind: 'last-backup', text: `Last backed up ${input.formatTime(input.lastBackupAt)}` };
+    const at = input.formatTime(input.lastBackupAt);
+    // ⛔ B3-2 — an unreadable stamp is the state `B3-3` already named, reached by a different door. It
+    // takes that line rather than a new one, and it must NOT fall through to "Not backed up yet" below:
+    // this container holds a backup, and what is missing is the timestamp.
+    return at ? { kind: 'last-backup', text: `Last backed up ${at}` } : { kind: 'unreadable', text: STATUS_UNREADABLE };
   }
   return { kind: 'never', text: STATUS_NEVER };
 }
