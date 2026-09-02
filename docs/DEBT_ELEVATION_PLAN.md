@@ -111,21 +111,33 @@ it** — which is why the classes are ordered the way they are.
 
 ###### S1.13.7's classes — the ACTIVE item's sub-steps *(its live one is decomposed below)*
 
-▶ **WHERE THIS SESSION LEFT OFF (2026-09-01).** Eight classes closed, **53 of 123 findings**, each with an
-executed proof. typecheck ×4 · three unit suites · `lint:rn` **45/45** green.
+▶ **WHERE THIS SESSION LEFT OFF (2026-09-02).** **Ten classes closed, 84 of 123 findings.** CI **GREEN on
+`e5687865`**: typecheck ×4 · `lint:rn` **45/45** · three unit suites · **e2e 339/339** · **embed 10/10**.
+Tree clean, nothing unpushed. ▶ **Next is `S1.13.7.11` — the minors (43)**, and its first job is writing
+down its own membership: **CLASS XI is unenumerated** *("full list in the lane files")* and by count it
+holds **40, not 43** — see the backlog.
 
-⭐ **`S1.13.7.9` CLOSED 2026-09-01 — THE SUITE IS GREEN IN CI, AND ALL 51 FAILURES HAD ONE CAUSE.**
-`69eb0ed1`: typecheck ×4 · `lint:rn` **45/45** · three unit suites · **e2e 339/339** · **embed 10/10**.
-⛔ **The cause was a MINOR's remedy.** `C1-18` correctly observed a literal declared twice; its fix made
-the Skia-importing `CushionBarChart` the owner, so `PaydayGuardianCard` taking one number from it put
-**CanvasKit in Today's import graph** and Today rendered an empty body. Found by `git bisect` in five runs
-over the 36 commits CI had never seen.
+⭐ **`S1.13.7.9` — all 51 CI e2e failures had ONE cause**, found by `git bisect` over the 36 commits CI had
+never seen: `C1-18`, a **minor** about a literal declared twice, whose remedy made a Skia-importing module
+the owner — so `PaydayGuardianCard` taking one number from it put **CanvasKit in Today's import graph** and
+Today rendered an empty body. `lint:import-graph` now refuses a plain VALUE imported from a module that
+loads a renderer.
 
-⛔ **THIS IS THE THIRD TIME IN ONE ITEM THAT A SUITE [D74] NAMES WAS FOUND ALREADY RED.** `typecheck:core`
-since `.3` *(a field that does not exist on `TimelineCycle` — the regression suite runs under `tsx`, which
-never compiles)*; `data-recovery.spec.ts`'s C3 finale test since `.4` *(`B1-1` correctly changed the
-behaviour it pinned)*; and now the suite as a whole. ⚠️ **[D74] already lists every one of these.** The
-gap is not the rule — it is running the commands and **reading each one's own exit code**.
+⛔ **`S1.13.7.10` FOUND A LIVE MONEY DEFECT WHILE FIXING A TEST.** `A3-4`'s missing debt arity measured
+**RESERVE $50 against PAYDOWN $200** on one weekly debt: `A3-1` argued its widening was safe because *"the
+allocator's RESERVE and the PAYDOWN both read `effectiveMinimumInWindow`"* — **the allocator did not read
+it.** The Guardian called a paycheck clear having held $50 while the rollover took $200. Both sides share
+the producer now.
+
+⛔ **THREE SUITES [D74] NAMES WERE FOUND ALREADY RED**, each having stood for sub-steps: `typecheck:core`
+since `.3`, `data-recovery`'s C3 test since `.4`, and the whole e2e suite. ⭐ **[DECISION 🎯 2026-09-01] —
+the item close now ENDS WITH A PUSH.** The gap was never a missing check: CI runs every suite on every
+push, and **36 commits had never reached it.**
+
+⚠️ **Two 🔴 items are open and both want a human**: **`A2-7`** — what should the per-debt schedule DRAW for
+a **non-focus** debt (measured: projection $889.87 vs a drawn $8,678.34 over 137 months, because the
+schedule never models the freed minimum rolling over); and the **a11y warning `A1-8`'s repair now fires** —
+Today and Progress report **zero Guardian-band words** in the accessible tree. Both in the backlog.
 
 ⚠️ **Read before resuming:** [`CLASSIFICATION.md`](audits/2026-08-31-s1-money-pass6/CLASSIFICATION.md) is
 the driver — every remaining finding, grouped and ordered. Four 🎯 decisions were taken this session and
