@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**494 files on the S1 surface · 484 swept · 10 unswept.**
+**495 files on the S1 surface · 484 swept · 11 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -348,6 +348,7 @@
 | `apps/rn/tests/e2e/bnpl.spec.ts` | never · s1p4 · s1p6 |
 | `apps/rn/tests/e2e/celebration.spec.ts` | never · partial · s1p6 |
 | `apps/rn/tests/e2e/cushion-forecast.spec.ts` | s1p2 · s1p6 |
+| `apps/rn/tests/e2e/date-field.spec.ts` | ⛔ **never** |
 | `apps/rn/tests/e2e/earlyjourney.spec.ts` | never · partial · s1p6 |
 | `apps/rn/tests/e2e/enh-audit-screens.spec.ts` | never · s1p4 · s1p6 |
 | `apps/rn/tests/e2e/expense-reserve.spec.ts` | s1p3 · s1p6 |
@@ -518,9 +519,10 @@
 - `apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts`
 - `apps/rn/src/store/paydayRequiredSplit.test.ts`
 - `apps/rn/src/store/staleClaims.test.ts`
+- `apps/rn/tests/e2e/date-field.spec.ts`
 - `packages/core/debt/debtPrefillFromExpense.ts`
 - `packages/core/utils/percentComplete.ts`
 - `packages/core/utils/updateById.ts`
 
-<!-- claims-sha256: a34dad40aa09308b -->
+<!-- claims-sha256: 63be06da7b0057f7 -->
 

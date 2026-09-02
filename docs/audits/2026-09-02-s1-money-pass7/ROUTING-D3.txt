@@ -1,0 +1,12 @@
+app/page.tsx
+components/AmortizationCalendar.tsx
+components/PaydayCaptureSheet.tsx
+components/PayoffInterestSavedCard.tsx
+components/RequiredActionItem.tsx
+components/Results/CompletedActionsList.tsx
+components/Results/OptionalGoalsList.tsx
+components/ResultsSection.tsx
+components/SnowballSection.tsx
+components/SwipeActionCard.tsx
+components/TimelineSection.tsx
+lib/hooks/useDebts.ts

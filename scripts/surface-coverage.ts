@@ -145,7 +145,7 @@ const KNOWN_SURFACES = new Set([
  * appears in neither claims file. Documented and enforced are now the same list, by construction.
  */
 const UNSWEPT_CLAIMS = ['never', 'unknown', 'partial'] as const;
-const SWEPT_CLAIMS = ['p1', 'p2', 'p3', 'p4', 'g4', 'r10', 'r17', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6'] as const;
+const SWEPT_CLAIMS = ['p1', 'p2', 'p3', 'p4', 'g4', 'r10', 'r17', 's1p1', 's1p2', 's1p3', 's1p4', 's1p5', 's1p6', 's1p7'] as const;
 const VALID_CLAIMS = new Set<string>([...UNSWEPT_CLAIMS, ...SWEPT_CLAIMS]);
 
 const SOURCE_EXT = new Set(['.ts', '.tsx', '.mjs', '.cjs', '.json', '.sh']);
@@ -373,8 +373,19 @@ const SURFACES: Record<string, Surface> = {
         return { to: 's3', why: 'backup / restore / CSV import / scan — the import surface' };
       if (/^apps\/rn\/tests\/e2e\/(coach-marks|coach-mark-neighbour|tutorial-invite|demo-containment|probe-mark-ipad-rail|probe-mark-route-push)\.spec\.ts$/.test(rel))
         return { to: 's4', why: 'tutorial / demo / coach marks — the discovery surface' };
-      if (/^apps\/rn\/tests\/e2e\/date-field\.spec\.ts$/.test(rel))
-        return { to: 's2', why: 'the date control — the dates surface' };
+      /**
+       * ⛔ **S1.13.7.12.4 — THIS SPEC WAS ROUTED TO `s2` AND IS BACK, because it is the ONLY e2e
+       * guard for a control S1 owns.** `DateField.tsx`, `DateField.web.tsx` and the sibling spec
+       * `hero-date-fit.spec.ts` are all on S1 and were swept by `s1p6`; so are `localDate.ts`,
+       * `getNextPaycheckDate.ts` and `testRolloverDueDates.ts`. ⚡ Only this one file went to a
+       * surface that does not open until after S1 converges — which is **[D73]'s failure exactly**:
+       * *every surface audit re-verifies the previous surfaces' guards*, and this one could not be
+       * handed to anybody.
+       *
+       * ⚠️ **The routing was legitimate, not a typo** — the phase order does declare **S2 dates**.
+       * It failed this file's own standard instead: *when the owner is arguable the file stays.*
+       * The owner is arguable, so it stays, and S2 decides its real population when it opens.
+       */
       return null;
     },
   },

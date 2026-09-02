@@ -1529,6 +1529,9 @@
     "s1p2",
     "s1p6"
   ],
+  "apps/rn/tests/e2e/date-field.spec.ts": [
+    "never"
+  ],
   "apps/rn/tests/e2e/earlyjourney.spec.ts": [
     "never",
     "partial",

@@ -108,6 +108,19 @@ const INVENTORY: Record<string, string> = {
 const CLAIMS: Record<string, string> = {
   s0: 'scripts/surface-coverage.s0.json',
   s1: 'scripts/surface-coverage.s1.json',
+  /**
+   * ⛔ **S1.13.7.12.4 — S2/S3/S4 ARE HERE BECAUSE `.12.1` BUILT THEM AND THIS CONSUMER WAS NOT
+   * POINTED AT THEM.** The block below said *"the standing fix is S1.10.6.10 — S2/S3/S4 have no
+   * claims file at all"*; they now do, and the homeless count kept reporting them anyway.
+   *
+   * ⚡ **Found by ROUTING pass 7, not by building `.12.1`** — the artifact existed, was green in its
+   * own gate, and its reader still asked the old question. *A tested helper is not a used helper.*
+   * ⚠️ Routing FROM these surfaces is a separate thing and is not enabled by this: they have no
+   * `INVENTORY` entry, so `readInventory` still refuses `--surface=s2`.
+   */
+  s2: 'scripts/surface-coverage.s2.json',
+  s3: 'scripts/surface-coverage.s3.json',
+  s4: 'scripts/surface-coverage.s4.json',
 };
 
 /**
@@ -690,7 +703,21 @@ function main(): void {
    * surface's setup, not this route's job. What belongs here is the COUNT, printed every run, so the hole
    * is a number a dispatch reads rather than something a synthesis has to rediscover.
    */
-  const claimed = new Set([...inv.files, ...s0.files]);
+  /**
+   * ⛔ **S1.13.7.12.4 — EVERY CLAIMS FILE, not just the two surfaces this route reads inventories
+   * for.** The question is *"is there anywhere that records whether anyone read this file"*, and
+   * that is answered by the claims JSONs themselves — a file owned by S3's claims file has a home
+   * even though this route never walks S3.
+   *
+   * ⚠️ Read from the JSON rather than through `readInventory`, deliberately: the stamp check exists
+   * to refuse routing FROM a stale inventory, and this is not routing from anything.
+   */
+  const claimed = new Set<string>([...inv.files, ...s0.files]);
+  for (const rel of Object.values(CLAIMS)) {
+    for (const f of Object.keys(JSON.parse(readFileSync(join(REPO_ROOT, rel), 'utf8')) as Record<string, string[]>)) {
+      claimed.add(f);
+    }
+  }
   const homeless = [...origin.keys()].filter((f) => !claimed.has(f)).sort();
   if (homeless.length) {
     console.log(
