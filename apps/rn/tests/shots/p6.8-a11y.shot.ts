@@ -3,6 +3,7 @@ import path from 'path';
 
 import { test, type Page } from '@playwright/test';
 
+import { GUARDIAN_STATE_LABEL } from '@core/copy/vocabulary';
 import { scenario, seedStore } from '../e2e/helpers/seed';
 
 /**
@@ -64,8 +65,21 @@ const SURFACES: { name: string; goto: string; seedOver?: Record<string, unknown>
 /**
  * The Guardian band words. ⛔ If none of these reaches the a11y tree on Today, the app's central signal
  * is conveyed by colour alone — which is both an accessibility failure and a product one.
+ *
+ * ⛔ **S1.13.7.10 [pass-6 `A1-8`] — DERIVED FROM THE PRODUCER, AND MATCHED AS A WHOLE PHRASE.**
+ *
+ * This was a hand-typed list — `['clear', 'tight', 'at risk', 'at-risk', 'covered', 'short']` — tested
+ * with an unanchored `String.includes` on a lower-cased line. So `'clear'` matched **cleared**,
+ * **unclear** and **Clear search**; `'short'` matched **shortfall** and **short of**. The printed figure
+ * *"Guardian-band words present: 14"* told a reviewer nothing about the band, and the one warning branch
+ * — `banded === 0` on Today or Progress — **could not fire**, because those surfaces carry such strings
+ * independently of the Guardian.
+ *
+ * ⚡ `GUARDIAN_STATE_LABEL` is the producer: `PaydayGuardianCard`'s own docblock says *"EVERY WORD A USER
+ * READS OR HEARS IS KEYED OFF THIS FIELD"*. Deriving from it means a renamed band updates this check on
+ * the same commit, and the match is now the quoted accessible NAME rather than any substring of a line.
  */
-const BAND_WORDS = ['clear', 'tight', 'at risk', 'at-risk', 'covered', 'short'];
+const BAND_WORDS: string[] = Object.values(GUARDIAN_STATE_LABEL).map((w: string) => w.toLowerCase());
 
 test.use({ viewport: PHONE });
 
@@ -82,7 +96,17 @@ for (const s of SURFACES) {
     // A node emitted with a role and no quoted name is a control a screen reader announces as its role
     // alone — "button", with nothing to say which button.
     const unnamed = lines.filter((l) => /^\s*-\s*(button|link|checkbox|switch|textbox|slider)\s*$/.test(l)).length;
-    const banded = lines.filter((l) => BAND_WORDS.some((w) => l.toLowerCase().includes(w))).length;
+    /**
+     * ⛔ [`A1-8`] Matched inside the QUOTED NAME and on a word boundary. A tree line is
+     * `- text: "Clear"`, so the band's own label is a quoted token — while `cleared`, `unclear` and
+     * `Clear search` are not. Both halves matter: dropping the quotes re-admits every substring, and
+     * dropping the boundary re-admits `shortfall` for `short`.
+     */
+    const banded = lines.filter((l) => {
+      const quoted = /"([^"]*)"/.exec(l)?.[1]?.toLowerCase();
+      if (!quoted) return false;
+      return BAND_WORDS.some((w) => new RegExp(`(^|[^a-z])${w.replace(/[-]/g, '[- ]')}([^a-z]|$)`).test(quoted));
+    }).length;
 
     const header = [
       `# a11y tree — ${s.name}  (${s.goto})`,

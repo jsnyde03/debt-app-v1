@@ -188,7 +188,11 @@ test('a FREE user who clears one debt gets the beat', async ({ page }) => {
   // ⛔ The control case FIRST: no invitation is offered, because the premium estimator is still premium.
   // Without this the test could pass by having quietly made a paid feature free.
   await page.goto('/');
-  await expect(page.getByText('Today', { exact: false }).first()).toBeVisible({ timeout: 10_000 });
+  // ⛔ S1.13.7.10 [pass-6 `A1-7`] — the barrier is Today's own CONTENT, not the word "Today". That string
+  // is the TAB'S label (`(tabs)/_layout.tsx`), so a Today screen that rendered `null` — the blank-route
+  // class `route-smoke.spec.ts` exists for — satisfied it, and the control below would have passed over a
+  // screen with nothing on it. A regression that blanked Today for free users left this test green.
+  await expect(page.getByTestId('payday-guardian-card')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('button', { name: /Confirm.*paid off/i })).toHaveCount(0);
 
   await clearDebtByPaying(page, 'Chase Freedom');
@@ -227,6 +231,10 @@ test('the celebration survives a reload, and is cleared once acknowledged', asyn
   await page.getByRole('button', { name: 'Keep going' }).click();
   await expect(page.getByRole('button', { name: 'Keep going' })).toHaveCount(0);
   await page.reload();
-  await expect(page.getByText('Today', { exact: false }).first()).toBeVisible({ timeout: 10_000 });
+  // ⛔ S1.13.7.10 [pass-6 `A1-7`] — the barrier is Today's own CONTENT, not the word "Today". That string
+  // is the TAB'S label (`(tabs)/_layout.tsx`), so a Today screen that rendered `null` — the blank-route
+  // class `route-smoke.spec.ts` exists for — satisfied it, and the control below would have passed over a
+  // screen with nothing on it. A regression that blanked Today for free users left this test green.
+  await expect(page.getByTestId('payday-guardian-card')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('button', { name: 'Keep going' })).toHaveCount(0);
 });

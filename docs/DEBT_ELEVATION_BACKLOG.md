@@ -968,3 +968,12 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   `toBeHidden()` in the e2e tree should appear somewhere in app source, or be named as a deliberate
   never-rendered sentinel. ⚠️ Not folded in here because the population needs measuring first — a sweep
   would likely find more, and a gate whose first run reds on twenty sites needs its own step.
+
+- 🔴 **The Guardian band may not reach the accessible tree on Today or Progress at all.** → **P6.9 / the
+  a11y half of P6.10**, and it wants a device pass. Surfaced by `A1-8`'s repair: with the band words
+  derived from `GUARDIAN_STATE_LABEL` and matched inside the quoted accessible NAME, `today.txt` reports
+  **29 nodes and ZERO band words**, and the instrument's warning — *"the state may be COLOUR-ONLY"* —
+  fires for the first time. ⚡ The positive control works: `cushion-forecast.txt` counts **6**, all real
+  (`"Sep 1, Clear"`). ⚠️ **Two explanations and this does not distinguish them**: the band genuinely is
+  colour-only there, or the capture caught a partially-rendered screen (29 nodes is small for Today).
+  ⛔ Do not tune the instrument until that is measured — the warning firing is the fix working.
