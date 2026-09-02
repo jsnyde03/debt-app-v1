@@ -2079,8 +2079,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "cdda1d3a"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2115,8 +2115,8 @@
       ],
       "run": "test:app",
       "expect": "every money field a DEBT declares is checked",
-      "measured": "2026-08-30",
-      "sha": "5a68a174"
+      "measured": "2026-09-02",
+      "sha": "cdda1d3a"
     }
   },
   "S1P5-CADENCE-IDENTITY": {
@@ -2133,8 +2133,8 @@
       ],
       "run": "test:regression",
       "expect": "an \"Every paycheck\" bill is ONE row per cycle",
-      "measured": "2026-09-01",
-      "sha": "baed0f3d"
+      "measured": "2026-09-02",
+      "sha": "cdda1d3a"
     }
   },
   "S1P5-C5-4-ROWCADENCE": {
@@ -2397,8 +2397,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "STALE",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "cdda1d3a"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2415,8 +2415,8 @@
       ],
       "run": "lint:fixture-dates",
       "expect": "calendar literal",
-      "measured": "2026-08-31",
-      "sha": "cd402a23"
+      "measured": "2026-09-02",
+      "sha": "cdda1d3a"
     }
   },
   "S1-ROUTE-EXIT-REACHABLE": {
