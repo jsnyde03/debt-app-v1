@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**129 files on the S0 surface · 75 swept · 54 unswept.**
+**130 files on the S0 surface · 75 swept · 55 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -100,6 +100,7 @@
 | `scripts/check-runner-completeness.ts` | ⛔ **never** |
 | `scripts/check-sandbox-writes.ts` | p1 · p3 |
 | `scripts/check-scan-floors.ts` | never · s1p4 |
+| `scripts/check-store-id-writes.ts` | ⛔ **never** |
 | `scripts/check-trust-claims.ts` | s1p4 · s1p5 |
 | `scripts/check-type-scale.ts` | p4 · s1p1 · s1p2 |
 | `scripts/check-webkit-flex-controls.ts` | r17 · partial |
@@ -188,6 +189,7 @@
 - `scripts/check-pass-coverage.ts`
 - `scripts/check-rounding.ts`
 - `scripts/check-runner-completeness.ts`
+- `scripts/check-store-id-writes.ts`
 - `scripts/collect-lane-diagnostics.mjs`
 - `scripts/compare-ios-screenshots.mjs`
 - `scripts/conform-app-preview.sh`
@@ -201,5 +203,5 @@
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
 
-<!-- claims-sha256: 1e438df3e5c5da9d -->
+<!-- claims-sha256: 6cd594cd645dc44a -->
 

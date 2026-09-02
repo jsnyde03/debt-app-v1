@@ -306,6 +306,9 @@
     "never",
     "s1p4"
   ],
+  "scripts/check-store-id-writes.ts": [
+    "never"
+  ],
   "scripts/check-trust-claims.ts": [
     "s1p4",
     "s1p5"

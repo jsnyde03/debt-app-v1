@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**490 files on the S1 surface · 484 swept · 6 unswept.**
+**492 files on the S1 surface · 484 swept · 8 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -117,6 +117,7 @@
 | `apps/rn/src/components/plan/ShareCard.tsx` | s1p1 · s1p2 · s1p4 · s1p5 · s1p6 |
 | `apps/rn/src/components/plan/SpokenForSheet.tsx` | s1p1 · s1p2 · s1p6 |
 | `apps/rn/src/components/plan/WindfallSheet.tsx` | partial · s1p1 · s1p2 · s1p6 |
+| `apps/rn/src/components/plan/cashRunwayReceipt.test.ts` | ⛔ **never** |
 | `apps/rn/src/components/plan/dataRepairsCopy.test.ts` | r17 · s1p6 |
 | `apps/rn/src/components/plan/dataRepairsCopy.ts` | r17 · s1p2 · s1p4 · s1p6 |
 | `apps/rn/src/components/plan/unreadInputsCopy.test.ts` | ⛔ **never** |
@@ -504,15 +505,18 @@
 | `packages/core/utils/testAddMonths.ts` | s1p3 · s1p6 |
 | `packages/core/utils/testAmountField.ts` | s1p3 · s1p4 · s1p6 |
 | `packages/core/utils/testLocalDate.ts` | s1p3 · s1p6 |
+| `packages/core/utils/updateById.ts` | ⛔ **never** |
 
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
 - `apps/rn/src/components/entities/debtPrefill.test.ts`
+- `apps/rn/src/components/plan/cashRunwayReceipt.test.ts`
 - `apps/rn/src/components/plan/unreadInputsCopy.test.ts`
 - `apps/rn/src/storage/cloudBackup/cloudBackupUnreadable.test.ts`
 - `apps/rn/src/store/paydayRequiredSplit.test.ts`
 - `packages/core/debt/debtPrefillFromExpense.ts`
 - `packages/core/utils/percentComplete.ts`
+- `packages/core/utils/updateById.ts`
 
-<!-- claims-sha256: 13383d3877cbdcf4 -->
+<!-- claims-sha256: bfd37ceb1747640c -->
 

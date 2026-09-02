@@ -25,9 +25,8 @@
  *
  * Usage: npm run lint:store-id-writes
  */
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, relative, sep } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { stripCommentsOnly } from './lib/stripCode';
@@ -48,11 +47,28 @@ const BY_ID = /\b\w+\.id\s*===\s*id\b/;
 /** A lookup is allowed: it can branch on the result, which is the property this gate is about. */
 const IS_LOOKUP = /\.(find|findIndex|some|filter)\s*\(/;
 
-const tracked = execFileSync('git', ['ls-files', 'apps/rn/src/store/*.ts'], { cwd: REPO_ROOT, encoding: 'utf8' })
-  .split('\n')
-  .map((l) => l.trim())
-  .filter(Boolean)
-  .filter((rel) => !rel.endsWith('.test.ts'));
+/**
+ * ⛔ **A DIRECTORY WALK, NOT `git ls-files` — AND THE PLANT IS WHY.** The first cut of this gate took its
+ * population from the index, and `test:gate-plants` measured it **`planted=exit 0`**: the scenario's file
+ * is untracked, so the gate never read it and printed a clean tree over the exact defect it names.
+ * ⚠️ Not only a harness artifact — **a store file is untracked until someone runs `git add`**, so the
+ * window in which a new bare id write is easiest to catch is precisely the window an index-derived
+ * population is blind to. `check-cap-literals` carries the same correction in its own header, and this
+ * gate reproduced it on its first run rather than inheriting the lesson.
+ */
+function walk(dir: string): string[] {
+  const out: string[] = [];
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === 'node_modules' || e.name.startsWith('.')) continue;
+    const abs = join(dir, e.name);
+    if (e.isDirectory()) out.push(...walk(abs));
+    else if (e.name.endsWith('.ts') && !e.name.endsWith('.test.ts')) {
+      out.push(relative(REPO_ROOT, abs).split(sep).join('/'));
+    }
+  }
+  return out;
+}
+const tracked = walk(join(REPO_ROOT, 'apps/rn/src/store'));
 
 const sites: string[] = [];
 for (const rel of tracked) {
