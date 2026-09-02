@@ -2948,7 +2948,7 @@
     }
   },
   "S1P6-A1-7-TODAYBARRIER": {
-    "what": "S1.13.7.10 [pass-6 A1-7] - celebration.spec.ts's render barrier was getByText('Today').first(), and 'Today' is the TAB'S OWN LABEL ((tabs)/_layout.tsx). So the barrier was satisfied by app chrome: a Today screen that rendered `null` - the blank-route class route-smoke.spec.ts exists for - passed it, and the free-tier control it guards ('no invitation is offered, because the premium estimator is still premium') would have passed over a screen with nothing on it. A regression that blanked Today for free users left this spec green. Both barriers now wait on `payday-guardian-card`, which is Today's own CONTENT.",
+    "what": "S1.13.7.10 [pass-6 A1-7] - celebration.spec.ts's render barrier was getByText('Today').first(), and 'Today' is the TAB'S OWN LABEL ((tabs)/_layout.tsx). So the barrier was satisfied by app chrome: a Today screen that rendered `null` - the blank-route class route-smoke.spec.ts exists for - passed it, and the free-tier control it guards ('no invitation is offered, because the premium estimator is still premium') would have passed over a screen with nothing on it. A regression that blanked Today for free users left this spec green. Both barriers now wait on `payday-guardian-card`, which is Today's own CONTENT. ⚠️ THE FIRST PLANT FAILED OPEN AND THE HARNESS WAS RIGHT TO SAY SO: PaydayGuardianCard renders the testID at TWO sites (the unread-inputs card and the ordinary one) and the un-fix renamed one, so the barrier still resolved and the spec stayed green. A plant that reaches one of two producers measures nothing — the same undercount class this round keeps meeting, this time inside a proof block. Both sites are renamed now.",
     "file": "apps/rn/tests/e2e/celebration.spec.ts",
     "token": "getByTestId('payday-guardian-card')",
     "proof": {
@@ -2957,6 +2957,11 @@
           "at": "apps/rn/src/components/plan/PaydayGuardianCard.tsx",
           "find": "      <Card testID=\"payday-guardian-card\">",
           "replace": "      <Card testID=\"payday-guardian-card-GONE\">"
+        },
+        {
+          "at": "apps/rn/src/components/plan/PaydayGuardianCard.tsx",
+          "find": "    <Card testID=\"payday-guardian-card\">",
+          "replace": "    <Card testID=\"payday-guardian-card-GONE\">"
         }
       ],
       "cmd": [
@@ -2990,7 +2995,9 @@
         "apps/rn/playwright.shots.config.ts",
         "p6.8-a11y.shot.ts"
       ],
-      "expect": "DERIVED from GUARDIAN_STATE_LABEL"
+      "expect": "DERIVED from GUARDIAN_STATE_LABEL",
+      "measured": "2026-09-02",
+      "sha": "1099c693"
     }
   },
   "S1P6-D1-6-BIGBACKUP": {
@@ -3058,7 +3065,9 @@
         "apps/rn/playwright.config.ts",
         "plan-hero-conserves.spec.ts"
       ],
-      "expect": "must add up"
+      "expect": "must add up",
+      "measured": "2026-09-02",
+      "sha": "1099c693"
     }
   }
 }
