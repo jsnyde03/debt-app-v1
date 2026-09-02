@@ -1930,8 +1930,8 @@
       ],
       "run": "test:regression",
       "expect": "so the projected minimum is $300, never the unscaled $100",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-02",
+      "sha": "10b93614"
     }
   },
   "S1P5-A5-7-CLAMPHONEST": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-02",
-      "sha": "7984364d"
+      "sha": "10b93614"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -3267,7 +3267,7 @@
       "run": "test:app",
       "expect": "rendered only when there is some",
       "measured": "2026-09-02",
-      "sha": "ed2d39ee"
+      "sha": "10b93614"
     }
   },
   "S1P6-A3-3-UPDATE-BY-ID": {
@@ -3278,8 +3278,8 @@
       "unfix": [
         {
           "at": "apps/rn/src/store/store.ts",
-          "find": "        if (!matched) return s;\n        return { store: stampInputsFresh({ ...s.store, requiredExpenses: next }) };",
-          "replace": "        return { store: stampInputsFresh({ ...s.store, requiredExpenses: next }) };"
+          "find": "        const { next, matched } = updateById(s.store.requiredExpenses, id, (e) => ({ ...e, ...updates }));\n        // ⛔ **[S1.13.7.11 · pass-6 `A3-3`] — an id that matches nothing must not stamp read-freshness.**\n        // `realWriteGuard.test.ts:83-86` had already written this down as a KNOWN hole: *\"`.map()` returns\n        // a new array either way — so 'no matching id' was never the same thing as 'no harm done'.\"*\n        // ⚠️ And it is load-bearing beyond this action: with the array now reference-stable on a miss,\n        // `inputsAsOf` would be the ONLY changed field, and it is not in the forbidden set — so the\n        // sandbox refusal that used to catch this write would stop firing. Returning `s` is what keeps\n        // that guard's premise true rather than quietly relocating it.\n        if (!matched) return s;\n",
+          "replace": "        const { next, matched } = updateById(s.store.requiredExpenses, id, (e) => ({ ...e, ...updates }));\n        // ⛔ **[S1.13.7.11 · pass-6 `A3-3`] — an id that matches nothing must not stamp read-freshness.**\n        // `realWriteGuard.test.ts:83-86` had already written this down as a KNOWN hole: *\"`.map()` returns\n        // a new array either way — so 'no matching id' was never the same thing as 'no harm done'.\"*\n        // ⚠️ And it is load-bearing beyond this action: with the array now reference-stable on a miss,\n        // `inputsAsOf` would be the ONLY changed field, and it is not in the forbidden set — so the\n        // sandbox refusal that used to catch this write would stop firing. Returning `s` is what keeps\n        // that guard's premise true rather than quietly relocating it.\n"
         }
       ],
       "run": "test:app",
