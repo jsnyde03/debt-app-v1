@@ -576,8 +576,8 @@
       ],
       "run": "test:app",
       "expect": "the confirm is committable only when the disclosure is known",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "7984364d"
     }
   },
   "S1P4-A-F3-WINDOWSTART": {
@@ -664,8 +664,8 @@
       ],
       "run": "test:app",
       "expect": "opposite-sized losses no longer produce the identical clause",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-02",
+      "sha": "7984364d"
     }
   },
   "S1P4-C4-5-ARITY": {
@@ -1309,8 +1309,8 @@
       ],
       "run": "test:app",
       "expect": "counts it",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-02",
+      "sha": "7984364d"
     }
   },
   "S1P3-C7B-CLOUDDOOR": {
@@ -1327,8 +1327,8 @@
       ],
       "run": "test:app",
       "expect": "C-7b",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-02",
+      "sha": "7984364d"
     }
   },
   "S1P3-B2-APRBOUND": {
@@ -1966,8 +1966,8 @@
       ],
       "run": "test:app",
       "expect": "nine lost rows say NINE, not one",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-02",
+      "sha": "7984364d"
     }
   },
   "S1P5-B5-2-FRESHWINS": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-02",
-      "sha": "bad8580f"
+      "sha": "7984364d"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-02",
-      "sha": "c00af00d"
+      "sha": "7984364d"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2585,8 +2585,8 @@
       ],
       "run": "test:app",
       "expect": "a grouped amount still names the paycheck",
-      "measured": "2026-08-31",
-      "sha": "5184aecc"
+      "measured": "2026-09-02",
+      "sha": "7984364d"
     }
   },
   "S1P6-A3-12-DATEDOORS": {
@@ -2699,7 +2699,7 @@
       "run": "lint:amount-collapse",
       "expect": "PaydayCaptureSheet.tsx",
       "measured": "2026-09-02",
-      "sha": "c00af00d"
+      "sha": "7984364d"
     }
   },
   "S1P6-B3-3-UNREADABLEMTIME": {
@@ -2792,8 +2792,8 @@
         "apps/rn/src/components/plan/unreadInputsCopy.test.ts"
       ],
       "expect": "no refusal points",
-      "measured": "2026-09-01",
-      "sha": "356d6427"
+      "measured": "2026-09-02",
+      "sha": "7984364d"
     }
   },
   "S1P6-B1-1-UNREADSTILLLIVE": {
