@@ -1005,3 +1005,36 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   non-focus debt never models the freed minimum rolling over when the focus debt clears. ⚠️ Either the
   schedule should model rollover, or the screen should say what it is showing — **a product call**, and
   [D65] says a major exits by being fixed or measured never to have been one, so this stays open.
+
+### ⤵ surfaced by `S1.13.7.11`'s work, 2026-09-02 — routed per bullet
+
+- 🔴 **`prove:guards` PRINTS ITS ✅ BEFORE IT PERSISTS, so a failed write leaves a green tick and no
+  record.** → **Tooling / hygiene, and it is the `D4-6` family.** *(measured 2026-09-02, re-running ten
+  stale proofs in one batch)*. The run printed
+  `✅ S1P6-C1-1-NAMETHEFIGURE plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED`
+  and then threw `Error: UNKNOWN: unknown error, open …/finding-guards.json` at `prove-guards.ts:489` —
+  a transient Windows write lock. **Nine stamps landed, the tenth did not**, and the only reason it was
+  caught is that `lint:finding-guards` still reported that entry stale afterwards. ⚠️ **The tick is not
+  the record**, which is the whole premise of the ledger: `S1.11.3` built `prove:guards` precisely so a
+  closure would carry evidence rather than a token. ⛔ **Two things to fix, and the second is the real
+  one:** the write should be attempted per-entry with a retry, **and a persist failure must red the run**
+  — the process printed its success summary after the throw. ⚡ Also worth checking whether `--all` has
+  ever silently lost a stamp this way; the symptom is indistinguishable from *"nobody ran it"*.
+
+- ⚠️ **`expenseReserve.test.ts` carries one of `lint:rounding`'s 93 private `Math.round(n * 100) / 100`
+  copies, and it is the one new test files get copied from.** → **Tooling / hygiene.** *(surfaced
+  2026-09-02: `paydayRequiredSplit.test.ts` inherited it and made the cap 94.)* `roundMoney` in
+  `packages/core/utils/money.ts` is the owner. ⛔ Not a defect — the cap is deliberately a cap and not a
+  ban, because *"collapsing 93 sites mechanically is what this repo's own record warns about."* Filed
+  because **the copy is being propagated by imitation**, which the cap alone does not stop: each new test
+  starts by reading a neighbouring one. Collapsing the test-tree subset alone would lower the cap and
+  remove the template.
+
+- ⚠️ **A guard is only as current as the last commit that touched its file, and the standing rule's period
+  is a SURFACE.** → **S1 pass 7 / the convergence protocol.** *(measured 2026-09-02)* Building `C1-4` on
+  top of `D3-5` voided **both** of `D3-5`'s guards **one commit** after they were proven — one token gone,
+  one un-fix anchor void — and `lint:finding-guards` was the only thing that saw it. The `B3-2` build then
+  left **ten** executed proofs stale against a ceiling of 8. ⛔ **Neither is a defect in the guards; both
+  are the cadence.** Worth deciding whether `prove:guards` on the touched-file population becomes a
+  **step of every fix** rather than a step of every class — `S1.13.7.10.6` already established the
+  population rule, and this round measured that the interval is much shorter than a class.
