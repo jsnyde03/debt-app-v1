@@ -1,4 +1,4 @@
-import { GUARDIAN_STATE_LABEL } from '@core/copy/vocabulary';
+import { EMERGENCY_FUND_NOUN, GUARDIAN_STATE_LABEL } from '@core/copy/vocabulary';
 import { useRef, useState } from 'react';
 import { type GestureResponderEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -98,7 +98,19 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
 
   const cy = cycles[sel];
   const income = cy.paycheckAmount;
-  const essentials = Math.max(0, cy.paycheckAmount - cy.net);
+  /**
+   * ⛔ [S1.13.7.11 · pass-6 blocker `C1-15`] **READ, not back-solved.** This was
+   * `Math.max(0, cy.paycheckAmount - cy.net)` — the one line naming what the money goes OUT on, derived
+   * from the value it is supposed to explain. The three rows reconciled because of that, not because they
+   * were each true. `[D2-1]` then folded the applied top-up into cycle 0's `net`, and after the Guardian's
+   * *"Move $50 from your emergency fund"* one-tap the receipt read *"Expenses & essentials −$1,800"*
+   * against a $1,850 rent — low by exactly what the user had just moved.
+   *
+   * ⛔ **Do NOT close this by taking the surplus back out of `net`** — that re-opens `D2-1`, whose whole
+   * finding was that the card and this timeline disagreed about the band.
+   */
+  const essentials = cy.essentials;
+  const movedIn = cy.movedIn;
   const room = cy.net;
   const under = room < floor - 1 ? floor - room : 0;
   const stateColor = cy.guardianState === 'at-risk' ? c.accent.danger : cy.guardianState === 'tight' ? c.accent.warning : c.text.secondary;
@@ -205,6 +217,19 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
           </View>
         </View>
         <DetailRow label="Income" value={`+${formatWhole(income)}`} color={c.text.secondary} valueColor={c.text.primary} />
+        {/* ⛔ C1-15 — with `essentials` read rather than back-solved, income − essentials no longer equals
+            the total below it, and the difference is money the user moved out of their emergency fund.
+            🎯 2026-09-02 chose to NAME it rather than fold it into Income: a receipt whose rows do not add
+            up is a receipt with a missing row, and restating Income as $2,050 would make the moved cash
+            invisible on the one screen that exists to explain where the money went. */}
+        {movedIn > 0 ? (
+          <DetailRow
+            label={`+ moved from ${EMERGENCY_FUND_NOUN}`}
+            value={`+${formatWhole(movedIn)}`}
+            color={c.text.secondary}
+            valueColor={c.text.primary}
+          />
+        ) : null}
         <DetailRow label="Expenses & essentials" value={`−${formatWhole(essentials)}`} color={c.text.secondary} valueColor={c.text.primary} />
         <View style={[styles.divider, { backgroundColor: c.border.subtle }]} />
         <DetailRow

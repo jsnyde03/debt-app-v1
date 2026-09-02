@@ -36,6 +36,29 @@ export type TimelineCycle = {
      *  front of a person, it is this one. */
     guardianState: GuardianState;
     isProjected: boolean;
+    /**
+     * ⛔ **S1.13.7.11 [pass-6 blocker `C1-15`] — `required + living`, CARRIED rather than back-solved.**
+     *
+     * `CashRunwayChart` used to render this as `Math.max(0, paycheckAmount - net)`, deriving the one line
+     * that names what the user's money is going OUT on from the value it is supposed to explain. That
+     * held until `[D2-1]` folded the applied top-up into cycle 0's `net` — correctly, because the money
+     * genuinely is in checking and `net` is what the band reads. **This consumer never read `net` as
+     * headroom; it read it as the third term of an accounting identity and back-solved the second.** So
+     * after the Guardian's *"Move $50 from your emergency fund"* one-tap, the receipt reported *"Expenses
+     * & essentials −$1,800"* against a $1,850 rent — understated by exactly the amount the user moved.
+     *
+     * ⚠️ **Non-negative by construction**, both operands being sums of amounts — so the display clamp
+     * that used to hide the extreme case is gone rather than relocated.
+     */
+    essentials: number;
+    /**
+     * Cash moved INTO this cycle that is not the paycheck — today only `[D2-1]`'s applied top-up, and only
+     * on cycle 0 (`:86-88` documents why projected cycles deliberately carry none). ⛔ **It is a field
+     * rather than a derivation because the receipt has to NAME it:** with `essentials` read, `income −
+     * essentials` no longer equals `net`, and the difference is this. Hiding it would trade a wrong number
+     * for three that do not add up.
+     */
+    movedIn: number;
     // v1.7 Guardian cross-cycle carry (2.4.D.6) — the substrate for §2.5 water-fill smoothing.
     // `net` = income − required − living for THIS cycle, UN-CLAMPED (negative on a lumpy-bill cycle;
     // the plain per-cycle flow, before any buffer/deploy). `carriedBalance` = the running balance at
@@ -157,6 +180,9 @@ export function buildMultiCycleTimeline({
         cushionStatus: toCushionStatus(cycle0State),
         guardianState: cycle0State,
         isProjected: false,
+        // ⛔ C1-15 — READ, not `paycheckAmount - net`: cycle 0's net carries the applied top-up.
+        essentials: result.totalRequired + result.livingExpenseReserve,
+        movedIn: Math.max(0, appliedTopUpSurplus),
         net: cycle0Net,
         carriedBalance,
     });
@@ -232,6 +258,10 @@ export function buildMultiCycleTimeline({
             cushionStatus: toCushionStatus(projState),
             guardianState: projState,
             isProjected: true,
+            essentials: projResult.totalRequired + projResult.livingExpenseReserve,
+            // ⚠️ Projected cycles carry no surplus by design (`:86-88`), so this is 0 rather than absent —
+            // an optional field would let a consumer read "no data" as "no money moved".
+            movedIn: 0,
             net: projNet,
             carriedBalance,
         });

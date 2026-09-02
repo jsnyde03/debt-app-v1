@@ -3233,5 +3233,37 @@
       "measured": "2026-09-02",
       "sha": "769cf076"
     }
+  },
+  "S1P6-C1-15-ESSENTIALS-READ": {
+    "what": "S1.13.7.11 [pass-6 C1-15, blocker] - the Cash Runway receipt's `Expenses & essentials` row was `Math.max(0, cy.paycheckAmount - cy.net)`: the one line naming what the user's money goes OUT on, back-solved from the value it is supposed to explain. The three rows reconciled because of that, not because each was true. [D2-1] then folded the applied top-up into cycle 0's `net` - correctly, the money genuinely is in checking and `net` is what the band reads - and after the Guardian's one-tap `Move $50 from your emergency fund` the receipt reported `Expenses & essentials -$1,800` against a $1,850 rent, low by exactly what the user had just moved. ⚡ A two-producer disagreement visible only from the side that did NOT move: buildMultiCycleTimeline changed, CashRunwayChart did not, and the symptom appeared in CashRunwayChart. TimelineCycle now CARRIES `essentials` (= totalRequired + livingExpenseReserve, non-negative by construction, so the display clamp that hid the extreme case is gone rather than relocated). ⛔ Do NOT close this by taking the surplus back out of `net` - that re-opens D2-1, whose whole finding was that the card and this timeline disagreed about the band.",
+    "file": "packages/core/timeline/buildMultiCycleTimeline.ts",
+    "token": "essentials: result.totalRequired + result.livingExpenseReserve,",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/timeline/buildMultiCycleTimeline.ts",
+          "find": "        essentials: result.totalRequired + result.livingExpenseReserve,",
+          "replace": "        essentials: Math.max(0, result.paycheckAmount - cycle0Net),"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "essentials names the rent"
+    }
+  },
+  "S1P6-C1-15-NAMES-THE-MOVED-CASH": {
+    "what": "S1.13.7.11 [pass-6 C1-15], the consumer half, and the half a core test cannot reach. With `essentials` READ rather than back-solved, `income - essentials` no longer equals the total below it and the difference is money the user moved out of their emergency fund. 🎯 2026-09-02 chose to NAME it in a fourth row rather than fold it into Income: a receipt whose rows do not add up is a receipt with a MISSING ROW, and restating Income as $2,050 would make the moved cash invisible on the one screen that exists to say where the money went. The row renders on `movedIn > 0`, so an ordinary cycle is unchanged, and it names its source through EMERGENCY_FUND_NOUN rather than a second literal - lint:copy's lesson applied before the gate had to teach it. ⛔ Pinned by SOURCE SCAN on the component, because proving the engine carries the field proves nothing about the screen reading it, and the screen is the entire finding.",
+    "file": "apps/rn/src/components/plan/CashRunwayChart.tsx",
+    "token": "const movedIn = cy.movedIn;",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/CashRunwayChart.tsx",
+          "find": "        {movedIn > 0 ? (",
+          "replace": "        {false ? ("
+        }
+      ],
+      "run": "test:app",
+      "expect": "rendered only when there is some"
+    }
   }
 }

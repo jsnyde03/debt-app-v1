@@ -600,6 +600,95 @@ function testNetEqualsPaycheckMinusRequiredMinusLiving() {
     assertMoney(cycles[0].net, 750, "cycle 0 net = paycheck − required − living");
 }
 
+/**
+ * ⛔ **S1.13.7.11 [pass-6 blocker `C1-15`] — `essentials` is CARRIED, and the old derivation is the defect.**
+ *
+ * `CashRunwayChart` rendered *"Expenses & essentials"* as `paycheckAmount - net`, so the one line naming
+ * what the money goes OUT on was back-solved from the value it explains. The three rows reconciled because
+ * of that, not because each was true. `[D2-1]` then folded the applied top-up into cycle 0's `net` —
+ * correctly; the money genuinely is in checking and `net` is what the band reads — and the receipt started
+ * understating the user's own rent by exactly what they had just moved out of their emergency fund.
+ */
+function testEssentialsIsReadNotDerivedFromNet() {
+    const expenses: RequiredExpense[] = [
+        { id: "e1", name: "Rent", amount: 1850, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
+    ];
+    const result = allocatePaycheck({
+        paycheckAmount: 2000, expenses, debts: [], goals: [], livingExpenses: [],
+        currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15",
+        strategy: "snowball", paycheckBuffer: 0,
+    });
+    const cycles = buildMultiCycleTimeline({
+        result, requiredExpenses: expenses, debts: [], goals: [], livingExpenses: [],
+        completedRecommendedActions: [], currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15",
+        payCycleConfig: { payCycle: "biweekly" }, strategy: "snowball", paycheckBuffer: 0, maxCycles: 2,
+        appliedTopUpSurplus: 50,
+    });
+    const c0 = cycles[0];
+
+    // the figures are D2-1's own: premium, $2,000, rent $1,850, a $50 top-up applied
+    assertMoney(c0.essentials, 1850, "essentials names the rent, not the rent minus the moved cash");
+    assertMoney(c0.movedIn, 50, "and the moved cash is a field the receipt can name");
+    assertMoney(c0.net, 200, "net still carries the surplus — D2-1 stays closed");
+
+    // ⛔ the defect, as the expression that produced it: this is what the screen used to print
+    assertMoney(
+        c0.paycheckAmount - c0.net,
+        1800,
+        "the RETIRED derivation understates the bill by exactly the top-up",
+    );
+    if (c0.paycheckAmount - c0.net === c0.essentials) {
+        throw new Error("FAIL [the fixture does not reproduce C1-15 — derivation and truth agree here]");
+    }
+
+    // the identity the fourth row restores: income + moved − essentials = left after essentials
+    assertMoney(c0.paycheckAmount + c0.movedIn - c0.essentials, c0.net, "the four rows add up again");
+    if (c0.essentials < 0) throw new Error("FAIL [essentials is non-negative by construction, so no display clamp]");
+}
+
+/**
+ * ⚠️ Projected cycles carry no surplus by design (`buildMultiCycleTimeline:86-88`), so `movedIn` is **0
+ * rather than absent** — an optional field would let a consumer read *"no data"* as *"no money moved"*,
+ * and the receipt renders the row on `> 0`.
+ */
+function testMovedInNamesTheAppliedTopUp() {
+    const expenses: RequiredExpense[] = [
+        { id: "e1", name: "Rent", amount: 850, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
+    ];
+    const build = (appliedTopUpSurplus: number) => {
+        const result = allocatePaycheck({
+            paycheckAmount: 2000, expenses, debts: [], goals: [], livingExpenses: [],
+            currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15",
+            strategy: "snowball", paycheckBuffer: 0,
+        });
+        return buildMultiCycleTimeline({
+            result, requiredExpenses: expenses, debts: [], goals: [], livingExpenses: [],
+            completedRecommendedActions: [], currentDate: "2026-06-01", nextPaycheckDate: "2026-06-15",
+            payCycleConfig: { payCycle: "biweekly" }, strategy: "snowball", paycheckBuffer: 0, maxCycles: 3,
+            appliedTopUpSurplus,
+        });
+    };
+    const none = build(0);
+    assertMoney(none[0].movedIn, 0, "no top-up ⇒ nothing to name, and the row does not render");
+    assertMoney(none[0].essentials, 850, "  …and essentials is unchanged by the presence of a surplus");
+
+    const moved = build(50);
+    assertMoney(moved[0].essentials, 850, "essentials is the SAME with a top-up applied — that is the point");
+    assertMoney(moved[1].movedIn, 0, "a projected cycle carries none, stated as 0 rather than left absent");
+    /**
+     * ⚡ **And this is why the defect was only ever visible on cycle 0** — the finding says so and it is
+     * worth pinning rather than repeating: with no surplus folded in, the retired derivation and the
+     * carried truth AGREE. ⚠️ Not asserted against a literal: the monthly rent has rolled out of the
+     * projected biweekly window, so this cycle's essentials is legitimately its own number, and a literal
+     * here would pin the fixture's calendar rather than the property.
+     */
+    assertMoney(
+        moved[1].paycheckAmount - moved[1].net,
+        moved[1].essentials,
+        "a projected cycle's derivation and its carried essentials agree — cycle 0 is the only one that moved",
+    );
+}
+
 function testCarriedBalanceIsCumulativeFromStartingBalance() {
     // No bills → net = 2000 every cycle; startingBalance defaults to paycheckBuffer (200 here).
     const cycles = buildTimeline({ paycheckAmount: 2000, paycheckBuffer: 200, maxCycles: 3 });
@@ -698,6 +787,10 @@ export function runMultiCycleTimelineRegressionTests() {
     testCarriedBalanceIsCumulativeFromStartingBalance();
     testCarriedBalanceRecurrenceHolds();
     testNegativeNetLumpyCyclePreservedUnclamped();
+
+    // S1.13.7.11 [pass-6 C1-15] — the receipt's middle row is READ, not back-solved
+    testEssentialsIsReadNotDerivedFromNet();
+    testMovedInNamesTheAppliedTopUp();
 
     console.log("✅ Multi-cycle timeline regression tests passed.");
 }
