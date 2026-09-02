@@ -3355,7 +3355,25 @@
         }
       ],
       "run": "test:app",
-      "expect": "must NOT claim the order changes"
+      "expect": "must NOT claim the order changes",
+      "measured": "2026-09-02",
+      "sha": "1cdab6f9"
+    }
+  },
+  "S1P6-C3-12-RETRY-ON-FAILED-WRITE": {
+    "what": "S1.13.7.11 [pass-6 C3-12, major] - the widget change-gate stamped `lastKey` BEFORE calling `write`, and the writer returned void while swallowing its own errors, so one transient App-Group fault froze the Home Screen widget and Siri on the PREVIOUS figures for the rest of the session: every later sync computed the same material payload, matched the key and returned before writing. The user saw a debt total silently out of date on the one surface they never open the app to check. ⛔ The finding said the obvious move (`move lastKey = key after the write`) does NOT work as written, and it was right: `succeeded` was not observable at that seam, so the close is a CONTRACT change - writeWidgetSnapshot returns boolean on both platforms, and the sync stamps only on success. The writer still never throws into the app; swallowing an error and REPORTING SUCCESS are two different things and only the second was the defect. ⚠️ EXPECT NAMES AN EARLIER ASSERTION THAN THE HEADLINE ONE, deliberately: under the plant the launch mirror's failed write is already treated as success, so the round trips out one assertion sooner than `a FAILED write leaves the key unstamped`. Pinning the string that actually reds is the point of measuring the plant rather than predicting it. ⚠️ The debounce is injectable now for the same reason `write` and `now` are - the retry is only observable ACROSS syncs.",
+    "file": "apps/rn/src/widget/widgetSync.ts",
+    "token": "if (write(snapshot)) lastKey = key;",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/widget/widgetSync.ts",
+          "find": "      if (write(snapshot)) lastKey = key;",
+          "replace": "      lastKey = key;\n      write(snapshot);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the changed payload is attempted"
     }
   }
 }

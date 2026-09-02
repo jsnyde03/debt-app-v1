@@ -23,8 +23,15 @@ const started = new WeakSet<object>();
 
 export function startWidgetSync(
   store: DebtStoreInstance = appStore,
-  write: (snapshot: WidgetSnapshot) => void = writeWidgetSnapshot,
+  /** ⛔ C3-12 — returns whether the write LANDED; `lastKey` is stamped only when it did. */
+  write: (snapshot: WidgetSnapshot) => boolean = writeWidgetSnapshot,
   now: () => number = () => Date.now(),
+  /**
+   * ⛔ [S1.13.7.11 · pass-6 `C3-12`] — injectable for the same reason `write` and `now` are: the retry
+   * this finding is about is only observable ACROSS syncs, and a 1s debounce is not something a
+   * synchronous unit test can wait out. The default is the production policy and no caller passes it.
+   */
+  debounceMs: number = SYNC_DEBOUNCE_MS,
 ): void {
   // 3.5.0.6 — the tutorial's scripted money must never reach the user's Home Screen widget.
   if (isSandboxStore(store)) {
@@ -46,8 +53,12 @@ export function startWidgetSync(
       const { updatedAt: _omit, ...material } = snapshot;
       const key = JSON.stringify(material);
       if (key === lastKey) return;
-      lastKey = key;
-      write(snapshot);
+      // ⛔ [S1.13.7.11 · pass-6 C3-12] — STAMP ONLY ON SUCCESS. This used to stamp first and then write,
+      // so one failed App-Group write froze the widget and Siri on the previous figures for the rest of
+      // the session: every later sync computed the same material payload, matched `lastKey` and returned
+      // before writing. The user saw a debt total silently out of date on the one surface they never open
+      // the app to check. A miss now simply leaves the key unstamped, so the next sync retries.
+      if (write(snapshot)) lastKey = key;
     } catch (error) {
       reportError(error, { subsystem: 'widget', operation: 'sync' });
     }
@@ -62,6 +73,6 @@ export function startWidgetSync(
     timer = setTimeout(() => {
       timer = null;
       sync();
-    }, SYNC_DEBOUNCE_MS);
+    }, debounceMs);
   });
 }

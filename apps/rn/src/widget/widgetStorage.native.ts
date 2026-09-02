@@ -46,15 +46,28 @@ function getStorage(): ExtensionStorageType | null {
   return storage;
 }
 
-export function writeWidgetSnapshot(snapshot: WidgetSnapshot): void {
+/**
+ * ⛔ **[S1.13.7.11 · pass-6 `C3-12`] — RETURNS WHETHER THE WRITE LANDED, and that return is the finding.**
+ * It used to be `void`, so `widgetSync`'s change-gate had nothing to consult: it stamped `lastKey` and
+ * then called this, and every subsequent sync computed the same material payload, matched the key and
+ * returned before writing. **One transient App-Group fault froze the Home Screen widget and Siri on the
+ * previous figures for the rest of the session, with no further attempt.**
+ *
+ * ⚠️ **Still never throws into the app** — that contract is unchanged and is why the failure was invisible
+ * in the first place. Swallowing an error and *reporting success* are two different things, and only the
+ * second one was the defect.
+ */
+export function writeWidgetSnapshot(snapshot: WidgetSnapshot): boolean {
   try {
     const store = getStorage();
-    if (!store) return;
+    if (!store) return false;
     // `set` routes a plain object through `setObject` → JSONSerialization into the shared suite.
     store.set(WIDGET_SNAPSHOT_KEY, snapshot as unknown as Record<string, string | number>);
     targets().ExtensionStorage.reloadWidget(WIDGET_KIND);
+    return true;
   } catch (error) {
     // A widget write (incl. the lazy construct) must NEVER affect the app — swallow + report.
     reportError(error, { subsystem: 'widget', operation: 'write' });
+    return false;
   }
 }

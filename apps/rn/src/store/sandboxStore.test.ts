@@ -107,11 +107,11 @@ async function run() {
 
   // ── 3.5.0.6 — every native sync seam REFUSES a sandbox outright. ──────────────────────────────
   let widgetWrites = 0;
-  startWidgetSync(sandbox, () => { widgetWrites++; }, () => 0);
+  startWidgetSync(sandbox, () => { widgetWrites++; return true; }, () => 0);
   eq(widgetWrites, 0, 'startWidgetSync refuses a sandbox (scripted money never reaches the widget)');
   // A normal store still syncs — the guard is targeted, not a blanket disable.
   let realWidgetWrites = 0;
-  startWidgetSync(createDebtStore(), () => { realWidgetWrites++; }, () => 0);
+  startWidgetSync(createDebtStore(), () => { realWidgetWrites++; return true; }, () => 0);
   assert(realWidgetWrites > 0, '…while a NON-sandbox store still mirrors normally');
 
   let laStarted = 0;

@@ -177,7 +177,10 @@ async function main() {
   await import('../premium/premiumKind.test');
 
   // §3.5.1 — the iOS widget App-Group bridge (snapshot builder + startWidgetSync mirror/idempotency).
-  await import('../widget/widgetSync.test');
+  // ⛔ `.default()` — S1.13.7.11 [C3-12] added an ASYNC case to this file. A bare `await import` runs its
+  // synchronous blocks and silently skips the exported runner, which is `D5-12` (a test in the tree and in
+  // no runner) at one-function granularity. Measured: `test:app` printed ALL PASSED with it unwired.
+  await (await import('../widget/widgetSync.test')).default();
 
   // 3.5.0.1 — the tutorial/demo SANDBOX store: frozen-clock determinism + the three isolation
   // guarantees (no durable write · no real-store disturbance · shipped logic runs verbatim). ASYNC →

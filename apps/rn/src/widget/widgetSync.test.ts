@@ -96,10 +96,10 @@ console.log('\n▶ widget snapshot + sync (3.5.1)');
 {
   const store = createDebtStore();
   const writes: WidgetSnapshot[] = [];
-  startWidgetSync(store, (w) => writes.push(w), () => 111);
+  startWidgetSync(store, (w) => { writes.push(w); return true; }, () => 111);
   eq(writes.length, 1, 'initial mirror fires synchronously at start');
   eq(writes[0].updatedAt, 111, 'initial mirror uses the injected clock');
-  startWidgetSync(store, (w) => writes.push(w), () => 222);
+  startWidgetSync(store, (w) => { writes.push(w); return true; }, () => 222);
   eq(writes.length, 1, 'a second startWidgetSync on the same store is a no-op (idempotent)');
 }
 
@@ -248,4 +248,64 @@ function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
   );
 }
 
-console.log(`✅ widget snapshot + sync — ${passed} assertions passed\n`);
+console.log(`✅ widget snapshot + sync — ${passed} assertions passed
+`);
+
+/**
+ * ⛔ **S1.13.7.11 [pass-6 `C3-12`] — A FAILED WRITE MUST RETRY, AND IT NEVER DID.**
+ *
+ * The change-gate stamped `lastKey` and *then* called `write`, so one transient App-Group fault froze the
+ * Home Screen widget and Siri on the previous figures **for the rest of the session**: every later sync
+ * computed the same material payload, matched the key, and returned before writing. The user saw a debt
+ * total silently out of date on the one surface they never open the app to check.
+ *
+ * ⚠️ The writer still never throws into the app — that contract is unchanged and is exactly why the
+ * failure was invisible. **Swallowing an error and reporting success are two different things**, and only
+ * the second one was the defect.
+ *
+ * ⛔ **ASYNC, and that is forced rather than stylistic:** the retry is only observable ACROSS syncs, and
+ * every sync after the launch mirror runs from a debounced `setTimeout`. A synchronous block asserts
+ * before the sync it is about has run — `absence-assertions-pass-before-render` wearing a timer.
+ */
+export default async function runWidgetRetryCase(): Promise<void> {
+  const tick = () => new Promise((r) => setTimeout(r, 5));
+  const store = createDebtStore();
+  let allow = false;
+  const writes: WidgetSnapshot[] = [];
+  const write = (w: WidgetSnapshot) => {
+    writes.push(w);
+    return allow;
+  };
+  startWidgetSync(store, write, () => 1, 0);
+  eq(writes.length, 1, 'the launch mirror is attempted');
+
+  store.getState().setCushionFloor(125);
+  await tick();
+  const afterFirstFail = writes.length;
+  assert(afterFirstFail > 1, 'the changed payload is attempted');
+
+  // Back to a payload already seen. Under the defect its key was stamped by the FAILED write, so this
+  // was gated out and the widget never recovered for the rest of the session.
+  store.getState().setCushionFloor(100);
+  await tick();
+  store.getState().setCushionFloor(125);
+  await tick();
+  assert(
+    writes.length > afterFirstFail + 1,
+    '⛔ a FAILED write leaves the key unstamped, so the SAME payload is attempted again',
+  );
+
+  const beforeSuccess = writes.length;
+  allow = true;
+  store.getState().setCushionFloor(150);
+  await tick();
+  assert(writes.length > beforeSuccess, 'the retry that succeeds does write');
+
+  // …and once it has landed the gate holds again — an unconditional retry loop is not the fix either.
+  const afterSuccess = writes.length;
+  store.getState().setCushionFloor(150);
+  await tick();
+  eq(writes.length, afterSuccess, '…after which an unchanged payload is gated as before');
+  console.log(`✅ C3-12 — the widget retry, ${passed} assertions total
+`);
+}
