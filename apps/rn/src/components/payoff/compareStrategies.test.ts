@@ -171,6 +171,52 @@ function run() {
     eq(cmp.snowball.firstWinMonth, 4, 'a month-0 clear is not counted as the first win');
   }
 
+  /**
+   * ⛔ **S1.13.7.11 [pass-6 `C2-1`] — THE SAME DEBTS, THE SAME SEQUENCE, A DIFFERENT LAST MONTH.**
+   *
+   * The takeaway's third arm fired on `firstWinSooner === 0` alone — *"the first debt clears in the same
+   * month"* — which says nothing about the ORDER. So this user, whose two strategies clear Visa then Car
+   * loan under both, was told *"and the order they clear in changes"*: the one sentence on that card whose
+   * whole job is to name what actually differs, naming a difference that is not there.
+   *
+   * ⚠️ These are the finding's own measured figures, driven through the real module.
+   */
+  {
+    const cmp = buildStrategyComparison({
+      snowball: curve(30),
+      avalanche: curve(28),
+      snowballClears: clears(['Visa', 5], ['Car loan', 30]),
+      avalancheClears: clears(['Visa', 5], ['Car loan', 28]),
+    });
+    assert(cmp.differs, 'the plans DO differ — the last debt lands two months apart');
+    eq(cmp.firstWinSooner, 0, 'and the first win is the same month, which is what used to trigger the arm');
+    eq(
+      cmp.snowball.clears.map((c) => c.name).join('|'),
+      cmp.avalanche.clears.map((c) => c.name).join('|'),
+      '⛔ …while the ORDER is identical — Visa then Car loan under both',
+    );
+    const takeaway = comparisonTakeaway(cmp);
+    assert(
+      !takeaway.includes('the order they clear in changes'),
+      `⛔ so the takeaway must NOT claim the order changes — "${takeaway}"`,
+    );
+    eq(takeaway, 'Avalanche finishes 2 months sooner.', '…and it states the difference that IS there');
+  }
+  {
+    // The control: a genuinely different order still says so, so the fix is a gate and not a deletion.
+    const cmp = buildStrategyComparison({
+      snowball: curve(30),
+      avalanche: curve(30),
+      snowballClears: clears(['Visa', 5], ['Car loan', 30]),
+      avalancheClears: clears(['Car loan', 5], ['Visa', 30]),
+    });
+    eq(cmp.firstWinSooner, 0, 'same first-win month');
+    assert(
+      comparisonTakeaway(cmp).includes('order'),
+      'a REAL order change is still named — the arm is gated, not removed',
+    );
+  }
+
   console.log(`\n✅ strategy comparison: ${passed} assertions passed\n`);
 }
 

@@ -85,6 +85,23 @@ export function buildStrategyComparison(args: {
  * genuinely produce the same date and the same order, and a comparison that manufactures a distinction in
  * that case is the app arguing for a choice that does not exist.
  */
+/**
+ * ⛔ **[S1.13.7.11 · pass-6 `C2-1`] — DOES THE SEQUENCE ACTUALLY CHANGE?** The takeaway's third arm used
+ * to fire on `firstWinSooner === 0` alone, which is *"the first debt clears in the same month"* and says
+ * nothing about the order. So a user whose two strategies clear **the same debts in the same sequence**,
+ * differing only in the month the LAST one lands, was told *"and the order they clear in changes"* — the
+ * one sentence on that card whose whole job is to name what actually differs, naming a difference that is
+ * not there.
+ *
+ * ⚠️ **NAMES ONLY, and deliberately.** `differs` compares `name@month`, so it is true when the same
+ * sequence lands on different months — which is a real difference and is what the `finishSooner` clause
+ * above already says. This arm is about the ORDER, so it compares the order.
+ */
+function orderDiffers(cmp: StrategyComparison): boolean {
+  const names = (x: StrategySummary) => x.clears.map((c) => c.name).join('|');
+  return names(cmp.snowball) !== names(cmp.avalanche);
+}
+
 export function comparisonTakeaway(cmp: StrategyComparison): string {
   if (!cmp.differs) return 'On your debts, these two produce exactly the same plan.';
 
@@ -115,7 +132,7 @@ export function comparisonTakeaway(cmp: StrategyComparison): string {
     parts.push(`snowball clears your first debt ${plural(cmp.firstWinSooner, 'month')} sooner`);
   } else if (cmp.firstWinSooner != null && cmp.firstWinSooner < 0) {
     parts.push(`avalanche clears your first debt ${plural(-cmp.firstWinSooner, 'month')} sooner`);
-  } else if (parts.length > 0) {
+  } else if (parts.length > 0 && orderDiffers(cmp)) {
     parts.push('and the order they clear in changes');
   }
 

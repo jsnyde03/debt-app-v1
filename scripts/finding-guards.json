@@ -3341,5 +3341,21 @@
       "measured": "2026-09-02",
       "sha": "63b4c09d"
     }
+  },
+  "S1P6-C2-1-ORDER-ACTUALLY-CHANGES": {
+    "what": "S1.13.7.11 [pass-6 C2-1, major] - the snowball-vs-avalanche takeaway told a user `and the order they clear in changes` when it does not. The third arm fired on `firstWinSooner === 0` alone, which means `the first debt clears in the same month` and says NOTHING about the order, so a portfolio clearing the same debts in the same sequence - differing only in the month the LAST one lands - got the one sentence on that card whose job is to name what actually differs, naming a difference that is not there. Measured through the real module: snowball [Visa@5, Car loan@30] vs avalanche [Visa@5, Car loan@28] -> `Avalanche finishes 2 months sooner, and the order they clear in changes`, with both orders IDENTICAL. ⚠️ THE GATE COMPARES NAMES ONLY, and that is the whole subtlety: `differs` compares `name@month`, which is true whenever the same sequence lands on different months - a real difference, and the one the finishSooner clause above already states. Planted both ways: ungating the arm, and gating it on `name@month` (a no-op gate that looks right).",
+    "file": "apps/rn/src/components/payoff/compareStrategies.ts",
+    "token": "parts.length > 0 && orderDiffers(cmp)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/payoff/compareStrategies.ts",
+          "find": "  } else if (parts.length > 0 && orderDiffers(cmp)) {",
+          "replace": "  } else if (parts.length > 0) {"
+        }
+      ],
+      "run": "test:app",
+      "expect": "must NOT claim the order changes"
+    }
   }
 }
