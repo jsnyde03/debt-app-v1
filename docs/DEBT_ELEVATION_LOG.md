@@ -31112,3 +31112,93 @@ where the measurement provably did not happen, or uphold [D74]'s never-retry rul
 **Captured atomically:** `.12.3a` closed on the plan with both refutations · **`.12.3b`** promoted (neither
 repair carries a re-runnable guard — the *"119 rest on a token alone"* shape inside the instrument that
 measures it) · **`.12.3c`** promoted as the [DECISION].
+
+---
+
+## 2026-09-02 — `S1.13.7.12.3b` / `.3c`: the retry [D74] does not cover, and both repairs guarded
+
+### `.12.3c` → **[D78]**, the narrow retry
+
+`.12.3a` left `prove:guards` **honest but not runnable**: it now faults on a killed web server instead of
+issuing a false `reason=WRONG`, and at p ≈ ⅓ per invocation that means `--all` faults out rather than
+completing. `.12.4`–`.12.6` lean on that ledger.
+
+⛔ **The rule it appears to violate, and why it does not.** [D74] says *an OOM is a FINDING and never a
+retry* — because an OOM is **a true signal about the workload**, and retrying discards the signal. ⚡ A
+server killed **before any assertion ran** is the provable opposite: there is no result to discard, only a
+setup that never occurred. The predicate is exactly that — non-zero exit **and** Playwright's own
+`config.webServer` marker — so every other failure, red included, is still a finding and is never retried.
+
+⚠️ **The cap is six because of arithmetic, and the arithmetic is in the code so the next reader can
+re-derive it instead of trusting it.** With p ≈ ⅓, 2 invocations per proof and 17 playwright proofs, the
+chance a full `--all` hits an unrecoverable kill is `1 − (1 − 2p^k)^17`:
+
+| k | 1 | 3 | 5 | 6 |
+|---|---|---|---|---|
+| P(`--all` faults) | ~100% | ~78% | ~16% | **~6%** |
+
+⚡ **The tail is expensive; the expectation is not.** Expected attempts per run is `1/(1−p)` ≈ **1.5**, so a
+cap of six costs ~50% more wall-clock on average and rarely more. A low cap buys nothing back.
+
+⛔ **Every retry prints.** A retry that smooths the rate out of view converts a measured environmental
+fault into folklore — and the rate is the only thing that says whether this is still the intermittent kill
+or something new. Six consecutive kills is no longer plausibly intermittent (`p^6` ≈ 0.14%) and the fault
+says so, pointing at the environment rather than the guard.
+
+**Verified both directions** — the second is the one that matters, because a retry that only ever gives up
+is a slower fault:
+
+| fixture | result |
+|---|---|
+| server always dies under the plant | 5 retry lines (2/6 … 6/6), then **faults** with `in 6 attempt(s)` |
+| dies twice, then comes up | 2 retry lines, then **scores `reason=MATCHED`** — it genuinely recovers |
+
+### `.12.3b` — both repairs guarded, in the harness's own self-test
+
+Neither `.12.3a` repair carried a re-runnable proof. That is the *"119 entries rest on a token alone"*
+shape **occurring inside the instrument built to measure it**, which is why it was not deferred.
+
+`prove:guards --selftest` was the right home — it already rides `run-gates.ts`, so it runs on every push
+and in CI. ⛔ **Both new cases run as SUBPROCESSES**, because both repairs end in `process.exit` and an
+in-process case would have had to be written as a comment instead. `--selftest` is **3 cases → 5**.
+
+⚠️ **The persist fixture forces its failure with a DIRECTORY at `<registry>.tmp`, not a read-only file.**
+`chmod 0o444` does not stop **root**, and CI containers routinely run as root — so a permissions-based
+fixture would pass locally and prove nothing where it matters. `EISDIR` is refused for every user on every
+platform.
+
+⭐ **Both cases proven load-bearing, and proven INDEPENDENT** — the check that makes them worth having:
+
+| plant | case D (dead server) | case P (persist) |
+|---|---|---|
+| dead-server detector disabled | ❌ **reds** — `MISSING ["HARNESS FAULT", …]` | ✅ green |
+| atomic write reverted to in-place | ✅ green | ❌ **reds** — exit 0, want 1 |
+
+Each reds only for its own repair; neither can be satisfied by the other. Both restores verified
+byte-identical.
+
+⚠️ **One plant reported `plant-applied=NO` and its run was discarded, not read.** A multi-line anchor
+passed through the shell matched **0×**, and the self-test that followed printed green — which is exactly
+what a working guard and a never-applied plant look like from the outside. Re-done with single-line string
+surgery, which is the standing advice for this reason. ⛔ **And a claim I made in the same minute was
+wrong**: `cat -A` through a pipe read as bare LF and I wrote that the file had mixed line endings. Measured
+on the bytes, it is **756 CRLF, 0 bare LF** — uniformly CRLF, and the anchor failed for another reason.
+
+**Captured atomically:** `[D78]` in the decisions ledger · `.12.3b` and `.12.3c` closed on the plan.
+
+### ⚠️ The after-scan finding: `lint:cap-literals` caught the new cap, and I read the wrong signal first
+
+`MAX_SERVER_ATTEMPTS` is a **cap constant**, so it joined the population `check-cap-literals.ts` pins —
+27 against a `MIN_CAPS` of 26. [D4-4]: *a cap derived from the list it caps can never be exceeded*, so the
+count is PINNED, not floored, and must be raised in the same edit. ⭐ **The gate did exactly its job on a
+cap added by the work that was fixing another instrument.** Raised to 27 with the reason on the line.
+
+⛔ **`test:gate-plants` went red too, and it was NOT independent** — its `lint:cap-literals` scenario read
+`planted=exit 1 · control=exit 1`, i.e. **`control-red`**: the command was red with *and* without the
+plant, because of the stale pin. **One cause, two red gates** — and a reader counting failures would have
+started looking for two.
+
+⚠️ **I reported "all 46 gates pass" from the PREVIOUS run**, before `.12.3b`/`.12.3c` landed. The chain for
+those was **red — 2 of 46** — while `TYPECHECK_EXIT=0` beside it was genuinely clean. That is this file's
+own standing warning landing on its author: **read the gate's own summary line for the run you are
+reporting, never a neighbouring signal and never the pipeline's status.**

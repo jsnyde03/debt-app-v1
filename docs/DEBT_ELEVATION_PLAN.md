@@ -180,8 +180,8 @@ are untouched by design. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG
 | ✅ **.12.2** | **CLOSED 2026-09-02 — the 197 is wrong and the SHAPE was wrong.** Measured **209** *(224 raw − 15 the gate's own `commonExcluded` drops)*, splitting with no remainder into **86** routed to unbuilt surfaces + **123** in the 11 trees `lint:surface-complete` skips by name. ⛔ *"No instrument can even ASK"* is **refuted** — that gate is green and rides `lint:rn`. ⚡ Control came back clean: **0** files routed to a LIVE surface are missing from its claims file. Detail → log | CLOSED |
 | ✅ **.12.3** | **[DECISION] ANSWERED 🎯 2026-09-02 — [D77].** Re-proving stays BATCHED *(per-fix is strictly more plants: one file, five touches, one re-proof)*; **`lint:finding-guards` runs after each fix** — 24s, and its staleness half is static | ANSWERED |
 | ✅ **.12.3a** | **CLOSED 2026-09-02 — both repaired; ⛔ BOTH STATED MECHANISMS WERE WRONG.** *(a)* it already redded — the "still printed its success summary" is false, and the direction is **inverted**: the ledger under-claims *(`MAX_AUTHORED` is a **ceiling**, so a drained registry reads GREEN)*. Real defect = a non-atomic in-place rewrite + total silence about what landed → **temp+rename, and a diagnosis naming stamped / discarded / never-run.** *(b)* ⛔ **batching is not the variable** — the same id read `WRONG` **solo** and `MATCHED` **batched**, the stated direction inverted, and 3 identical hermetic entries agree both ways. The variable is a **webServer killed ~1 in 3**; it now **faults instead of scoring `reason=WRONG`**. 4 controls incl. the fix disabled. `lint:rn` **46/46**. Detail → log | CLOSED |
-| **.12.3b** | **GUARD BOTH REPAIRS** — neither carries a re-runnable proof, which is the *"119 rest on a token alone"* shape in the instrument that measures it. Home is `prove:guards --selftest` *(already on the gate chain)*, as subprocess cases: a persist failure is **named**, and a dead webServer **faults** rather than scoring | both cases in `--selftest`, each proven to red with the repair disabled |
-| **.12.3c** | ⚠️ **[DECISION] THE FLAKE IS ENVIRONMENTAL AND `--all` STILL CANNOT COMPLETE.** ~1 in 3 per invocation × 2 per proof × **17** playwright proofs — the harness is now honest but not runnable, and `.12.5` leans on it. Retry-when-no-assertion-ran, or not? ⛔ Four causes measured and **refuted** *(export · port · `maxBuffer` · tsx env)*; the server is **killed** with two different Windows abnormal-termination codes | a yes/no, with [D74]'s never-retry rule either upheld or explicitly narrowed |
+| ✅ **.12.3b** | **CLOSED 2026-09-02 — both repairs GUARDED**, as subprocess cases in `prove:guards --selftest` *(3 → **5**, and it rides `lint:rn` + CI)*. ⭐ **Each proven to red with its OWN repair disabled and to stay green under the other's** — detector off → case D reds alone; atomic write reverted → case P reds alone. ⚠️ The persist fixture forces the failure with a **directory at `<registry>.tmp`**, not a read-only file: `chmod 0o444` does not stop **root**, so a permissions fixture would pass locally and prove nothing in CI. Detail → log | CLOSED |
+| ✅ **.12.3c** | **[DECISION] ANSWERED 🎯 2026-09-02 — [D78].** Retry **only** where the measurement provably did not happen *(server killed before any assertion ran)*, cap **6** from written-down arithmetic, **every retry printed**. ⛔ [D74] is **narrowed, not broken** — an OOM is a true signal and is still never retried. Verified both ways: always-dead → 5 retries then fault; dies-twice-then-recovers → **scores `MATCHED`** | ANSWERED |
 | **.12.4** | **ROUTE PASS 7** from `s1p7`, same 12-lane shape, and write the brief | 0 unrouted · 0 owed · the origin split printed |
 | **.12.5** | **RUN PASS 7 with fresh agents** ([D68]) | recorded and classified |
 | **.12.6** | **TRIAGE TO 0/0** — then the second consecutive clean pass [D65] requires | 0 blockers / 0 majors, every closure proven to red |
@@ -619,6 +619,17 @@ appeared **nowhere** in the log, so this page was their only copy — found by g
 id rather than trusting the sentence above. The whole ledger is now mirrored there verbatim.
 
 **Phase 6 — launch**
+
+- **[D78]** ✅ 2026-09-02 — **[D74]'s NEVER-RETRY RULE IS NARROWED, NOT BROKEN: retry ONLY where the
+  measurement provably did not happen.** ⛔ [D74] refuses a retry because an **OOM is a true signal about
+  the workload**, and re-running discards it. ⚡ **A web server killed before any assertion ran is the
+  provable opposite** — there is no result to discard, only a setup that never occurred. The predicate is
+  exactly that: a non-zero exit **and** Playwright's own `config.webServer` marker. Every other failure,
+  red included, is still a finding and is never retried. ⚠️ **Cap 6, from arithmetic that is written into
+  the code:** at the measured p ≈ ⅓ with 2 invocations per proof and 17 playwright proofs,
+  `1 − (1 − 2p^k)^17` gives **~100% at k=1, ~78% at k=3, ~6% at k=6** — while expected attempts per run is
+  `1/(1−p)` ≈ **1.5**, so the tail is what costs and a low cap buys nothing. ⛔ **Every retry is printed** —
+  a retry that smooths the rate out of view turns a measured fault into folklore. Reasoning → log.
 
 - **[D77]** ✅ 2026-09-02 *(🎯: "Agree")* — **RE-PROVING GUARDS STAYS BATCHED; DETECTING STALENESS GOES
   PER-FIX.** ⛔ **No** to `prove:guards` as a step of every fix: a file touched five times in a class needs

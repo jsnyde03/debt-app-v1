@@ -126,7 +126,8 @@ for (const rel of files) {
  * ⚠️ **The two-line-edit friction is deliberate.** `check-finding-guards.ts`'s `MIN_ENTRIES` documents it
  * as a feature: adding a cap costs a number here, and that is the moment the addition is visible.
  */
-const MIN_CAPS = 26;
+// ⚠️ 26 → 27 at S1.13.7.12.3c: `MAX_SERVER_ATTEMPTS` in `prove-guards.ts`, the [D78] retry cap.
+const MIN_CAPS = 27;
 
 if (caps !== MIN_CAPS) {
   problems.push(

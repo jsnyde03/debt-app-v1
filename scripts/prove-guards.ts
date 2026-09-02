@@ -33,7 +33,7 @@
  *   npm run prove:guards -- --list            # proven · guard-only · never tested
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { type Failure, verdict } from './lib/verdict';
@@ -195,18 +195,73 @@ function run(p: Proof): { status: number; out: string } {
 const webServerNeverStarted = (r: { status: number; out: string }): boolean =>
   r.status !== 0 && /config\.webServer/.test(r.out);
 
-const faultOnDeadServer = (id: string, phase: 'planted' | 'control', r: { status: number; out: string }): void => {
+/**
+ * ⛔ **[D78] — THE ONE RETRY [D74]'s NEVER-RETRY RULE DOES NOT COVER, AND WHY THE LINE IS HERE.**
+ *
+ * [D74]: *"an OOM is a FINDING and never a retry"* — because an OOM is a **true signal about the
+ * workload**, and retrying it discards the signal. ⚡ **This is provably the opposite case:** the server
+ * was killed *before any assertion ran*, so there is no measurement to discard. Retrying does not re-roll
+ * a result I did not like; it re-attempts a setup that never happened. ⛔ **The rule is NARROWED, not
+ * broken** — every other failure, including a red one, is still a finding and is never retried. The
+ * predicate is exactly `webServerNeverStarted`, which requires a non-zero exit AND Playwright's own
+ * `config.webServer` marker.
+ *
+ * ⚠️ **THE CAP IS SIX BECAUSE OF ARITHMETIC, NOT COMFORT**, and the arithmetic is written down so the
+ * next person can re-derive it instead of trusting it. At the measured p ≈ ⅓ per invocation, with 2
+ * invocations per proof and **17** playwright-backed proofs in the registry, the chance that a full
+ * `--all` hits an unrecoverable kill is `1 − (1 − 2p^k)^17`:
+ *
+ *     k=1 (no retry) → ~100%     k=3 → ~78%     k=5 → ~16%     k=6 → ~6%
+ *
+ * ⚡ **The tail is what is expensive; the expectation is cheap.** Expected attempts per run is
+ * `1/(1−p)` ≈ **1.5**, so a cap of six costs ~50% more wall-clock on average and only rarely more —
+ * a low cap buys nothing back and leaves `--all` unable to finish, which is the state this repairs.
+ *
+ * ⛔ **EVERY RETRY IS PRINTED.** A retry that smooths the rate out of view would turn a measured
+ * environmental fault into folklore — and the rate is the thing that says whether this is still the
+ * intermittent kill or something new. Six consecutive kills is no longer plausibly intermittent
+ * (`p^6` ≈ 0.14%) and the fault says so.
+ */
+const MAX_SERVER_ATTEMPTS = 6;
+
+/**
+ * Runs until the web server actually comes up, or the cap is reached. ⚠️ **It never faults** — the
+ * planted run happens with the plant ON DISK, and `fault()` exits the process, which would strand the
+ * plant and leave the next run's pre-flight refusing a dirty target. The caller faults after the restore.
+ */
+function runUntilServed(id: string, phase: 'planted' | 'control', p: Proof): { status: number; out: string; attempts: number } {
+  let r = run(p);
+  let attempts = 1;
+  while (webServerNeverStarted(r) && attempts < MAX_SERVER_ATTEMPTS) {
+    attempts++;
+    console.log(
+      `       ⚠️ ${id}: the ${phase} run's web server was killed before any assertion ran — ` +
+        `re-attempting (${attempts}/${MAX_SERVER_ATTEMPTS}).`,
+    );
+    r = run(p);
+  }
+  return { ...r, attempts };
+}
+
+const faultOnDeadServer = (
+  id: string,
+  phase: 'planted' | 'control',
+  r: { status: number; out: string; attempts: number },
+): void => {
   if (!webServerNeverStarted(r)) return;
   const line = r.out.split('\n').find((l) => /config\.webServer/.test(l))?.trim() ?? '(message not found)';
   fault(
     id,
-    `the ${phase} run never got its web server up, so no assertion in it ever ran:\n` +
+    `the ${phase} run never got its web server up in ${r.attempts} attempt(s), so no assertion ever ran:\n` +
       `   ${line.slice(0, 200)}\n` +
       '   ⛔ This is NOT a verdict about the guard. Left to score, it reads as `reason=WRONG` —\n' +
       '   "it redded, but not for your defect" — about a run in which nothing redded at all.\n' +
       '   ⚠️ Measured intermittent at ~1 in 3 on this machine, and NOT caused by anything here:\n' +
       '   the export, the port, `maxBuffer` and the tsx env were each measured and refuted. The\n' +
-      '   server is killed with a Windows abnormal-termination code. Re-run the id.',
+      `   server is killed with a Windows abnormal-termination code.\n` +
+      `   ⛔ ${r.attempts} CONSECUTIVE kills is no longer plausibly that (p^${r.attempts} ≈ 0.1%) —\n` +
+      '   check the environment before re-running: an occupied port, a broken config, or an AV\n' +
+      '   rule that has started killing every spawn rather than the occasional one.',
   );
 };
 
@@ -320,7 +375,7 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
   };
 
   let planted = true;
-  let withPlant: { status: number; out: string };
+  let withPlant: { status: number; out: string; attempts: number };
   try {
     const working = new Map(originals);
     for (const u of p.unfix) {
@@ -351,7 +406,7 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
     for (const [rel, text] of originals) {
       if (readFileSync(join(REPO_ROOT, rel), 'utf8') === text) planted = false;
     }
-    withPlant = run(p);
+    withPlant = runUntilServed(id, 'planted', p);
   } finally {
     restore();
   }
@@ -370,7 +425,7 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
   // would hand the next run a dirty target — which its own pre-flight would then refuse.
   faultOnDeadServer(id, 'planted', withPlant);
 
-  const withoutPlant = run(p);
+  const withoutPlant = runUntilServed(id, 'control', p);
   // ⚠️ The control gets the same check. Left to score it reads as `control-red` — "the command is red
   // with or without the plant" — which is a claim about the COMMAND, and equally untrue here.
   faultOnDeadServer(id, 'control', withoutPlant);
@@ -459,14 +514,91 @@ function selfTest(): never {
     console.log(`  ${ok ? '✅' : '❌'} ${c.id.padEnd(34)} expected [${c.want.join(', ')}] · got [${got.failed.join(', ')}]`);
     if (!ok) broken++;
   }
+  /**
+   * ⛔ **S1.13.7.12.3b — THE TWO `.12.3a` REPAIRS, GUARDED. THESE RUN AS SUBPROCESSES BECAUSE BOTH END
+   * IN `process.exit`**, and a case that cannot be reached in-process is a case that would have been
+   * written as a comment instead.
+   *
+   * ⚡ **Why they exist at all:** `.12.3a` fixed two ways this harness could speak about something that
+   * never happened, and both fixes shipped resting on nothing — the *"119 entries rest on a token
+   * alone"* shape, occurring **inside the instrument built to measure it.**
+   *
+   * ⚠️ **The registry is a REAL FILE under a gitignored name and is removed afterwards**, the same idiom
+   * `test:gate-plants` uses — `--registry=` is resolved against the repo root, so a path in the OS temp
+   * directory cannot be addressed.
+   */
+  const subprocessCases: { id: string; what: string; wantExit: number; wantAll: string[] }[] = [
+    {
+      id: 'selftest:a dead web server faults, never scores',
+      what: 'deadserver',
+      wantExit: 1,
+      wantAll: ['HARNESS FAULT', 'never got its web server up'],
+    },
+    {
+      id: 'selftest:an unrecordable pass is NAMED',
+      what: 'persist',
+      wantExit: 1,
+      wantAll: ['could NOT be recorded', 'registry is INTACT', 'Measured and DISCARDED'],
+    },
+  ];
+
+  const REL = 'scripts/__gate_plant_selftest-registry.json';
+  const ABS = join(REPO_ROOT, REL);
+  for (const c of subprocessCases) {
+    const probe = `scripts/__fixtures__/prove-guards-${c.what}-probe.mjs`;
+    const entry: Entry = {
+      what: `self-test fixture — ${c.what}`,
+      proof: {
+        unfix: [
+          {
+            at: 'scripts/__fixtures__/prove-guards-target.ts',
+            find: "MARKER = 'the guard holds'",
+            replace: "MARKER = 'the guard is gone'",
+          },
+        ],
+        cmd: ['node', probe],
+        expect: 'PROBE: the guard is gone',
+      },
+    };
+    let out = '';
+    let status = -1;
+    try {
+      writeFileSync(ABS, `${JSON.stringify({ FIXTURE: entry }, null, 2)}\n`, 'utf8');
+      // ⛔ The persist case needs the WRITE to fail, for every user including root — so the temp path
+      // the record write renames from is made a DIRECTORY. See the probe's own note.
+      if (c.what === 'persist') mkdirSync(`${ABS}.tmp`, { recursive: true });
+      const res = spawnSync('npx', ['tsx', 'scripts/prove-guards.ts', `--registry=${REL}`, '--id=FIXTURE'], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        shell: true,
+      });
+      status = res.status ?? -1;
+      out = `${res.stdout ?? ''}${res.stderr ?? ''}`;
+    } finally {
+      rmSync(`${ABS}.tmp`, { recursive: true, force: true });
+      rmSync(ABS, { force: true });
+    }
+    const missing = c.wantAll.filter((s) => !out.includes(s));
+    const ok = status === c.wantExit && missing.length === 0;
+    console.log(
+      `  ${ok ? '✅' : '❌'} ${c.id.padEnd(34)} exit ${status} (want ${c.wantExit})` +
+        `${missing.length ? ` · MISSING ${JSON.stringify(missing)}` : ' · said all of it'}`,
+    );
+    if (!ok) broken++;
+  }
+
   if (broken) {
     console.error(
-      `\n❌ prove:guards --selftest — ${broken} of ${cases.length} controls wrong. ⛔ No proof this harness\n` +
-        '   has ever recorded means anything: it can no longer tell a guard that holds from one that does not.\n',
+      `\n❌ prove:guards --selftest — ${broken} of ${cases.length + subprocessCases.length} controls wrong.\n` +
+        '   ⛔ No proof this harness has ever recorded means anything: it can no longer tell a guard that\n' +
+        '   holds from one that does not, or a real red from a run in which nothing ever executed.\n',
     );
     process.exit(1);
   }
-  console.log('\n✅ prove:guards --selftest — a guard that holds reads ✅, and one that does not reads failed-open.\n');
+  console.log(
+    '\n✅ prove:guards --selftest — a guard that holds reads ✅, one that does not reads failed-open,\n' +
+      '   a dead web server faults instead of scoring, and an unrecordable pass says so.\n',
+  );
   process.exit(0);
 }
 
