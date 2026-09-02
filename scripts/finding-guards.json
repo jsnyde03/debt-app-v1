@@ -3445,7 +3445,9 @@
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "did not red for the WRAPPED spelling"
+      "expect": "did not red for the WRAPPED spelling",
+      "measured": "2026-09-02",
+      "sha": "46d5ca99"
     }
   }
 }
