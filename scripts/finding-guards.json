@@ -3085,7 +3085,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "is discretionary but is in NEITHER"
+      "expect": "is discretionary but is in NEITHER",
+      "measured": "2026-09-02",
+      "sha": "c450d891"
     }
   },
   "S1P6-A3-4-DEBTCADENCE": {
@@ -3101,7 +3103,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "a weekly DEBT inside a monthly cycle reserves every occurrence too"
+      "expect": "a weekly DEBT inside a monthly cycle reserves every occurrence too",
+      "measured": "2026-09-02",
+      "sha": "c450d891"
     }
   }
 }
