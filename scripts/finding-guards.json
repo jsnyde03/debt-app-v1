@@ -3247,13 +3247,15 @@
         }
       ],
       "run": "test:regression",
-      "expect": "essentials names the rent"
+      "expect": "essentials names the rent",
+      "measured": "2026-09-02",
+      "sha": "ed2d39ee"
     }
   },
   "S1P6-C1-15-NAMES-THE-MOVED-CASH": {
-    "what": "S1.13.7.11 [pass-6 C1-15], the consumer half, and the half a core test cannot reach. With `essentials` READ rather than back-solved, `income - essentials` no longer equals the total below it and the difference is money the user moved out of their emergency fund. 🎯 2026-09-02 chose to NAME it in a fourth row rather than fold it into Income: a receipt whose rows do not add up is a receipt with a MISSING ROW, and restating Income as $2,050 would make the moved cash invisible on the one screen that exists to say where the money went. The row renders on `movedIn > 0`, so an ordinary cycle is unchanged, and it names its source through EMERGENCY_FUND_NOUN rather than a second literal - lint:copy's lesson applied before the gate had to teach it. ⛔ Pinned by SOURCE SCAN on the component, because proving the engine carries the field proves nothing about the screen reading it, and the screen is the entire finding.",
+    "what": "S1.13.7.11 [pass-6 C1-15], the consumer half, and the half a core test cannot reach. With `essentials` READ rather than back-solved, `income - essentials` no longer equals the total below it and the difference is money the user moved out of their emergency fund. 🎯 2026-09-02 chose to NAME it in a fourth row rather than fold it into Income: a receipt whose rows do not add up is a receipt with a MISSING ROW, and restating Income as $2,050 would make the moved cash invisible on the one screen that exists to say where the money went. The row renders on `movedIn > 0`, so an ordinary cycle is unchanged, and it names its source through EMERGENCY_FUND_NOUN rather than a second literal - lint:copy's lesson applied before the gate had to teach it. ⛔ Pinned by SOURCE SCAN on the component, because proving the engine carries the field proves nothing about the screen reading it, and the screen is the entire finding. >>> The token was re-pointed from the DECLARATION (`const movedIn = cy.movedIn;`) to the USE, because lint:finding-guards refused it by name: a declaration survives its use being deleted, which is D3-3's own lesson and the reason that check exists.",
     "file": "apps/rn/src/components/plan/CashRunwayChart.tsx",
-    "token": "const movedIn = cy.movedIn;",
+    "token": "movedIn > 0 ?",
     "proof": {
       "unfix": [
         {
@@ -3263,7 +3265,25 @@
         }
       ],
       "run": "test:app",
-      "expect": "rendered only when there is some"
+      "expect": "rendered only when there is some",
+      "measured": "2026-09-02",
+      "sha": "ed2d39ee"
+    }
+  },
+  "S1P6-A3-3-UPDATE-BY-ID": {
+    "what": "S1.13.7.11 [pass-6 A3-3, major] - every id-keyed row edit in store.ts was `list.map(x => x.id === id ? patch(x) : x)` with no `find` first and no branch for zero matches. `.map` over an array holding no such id returns a NEW element-wise identical array: `set` fires, subscribers re-render, and no return value distinguishes a miss from a hit, so the user taps, the row does not change and nothing says why. A3-2 was the live instance and was invisible for exactly this reason. ⚠️ THE FINDING NAMED TWO SITES AND THERE WERE EIGHT - markExpensePaid, deferExpense, setDeferability, markDebtMinimumPaid, updateExpense, updateGoal, updateLivingExpense, verifyDebtBalance - so the close is a GATE (lint:store-id-writes, cap 0) rather than eight edits. ⚡ AND IT WAS LOAD-BEARING FOR A SECOND GUARD: realWriteGuard refuses a sandbox write by DIFFING the store, so an unmatched write used to be refused only because the copied array changed reference. updateById returning the ORIGINAL array on a miss removes that accident, which is why the actions also skip the write and why realWriteGuard.test.ts now aims its refusal at an id the real plan genuinely holds - previously it proved refusal on a write that would have been a no-op anyway. >>> THE UN-FIX IS THE EARLY RETURN, NOT THE HELPER. Removing updateById's original-array return does NOT red this test - the action still reads `matched` and still skips the write - so a plant aimed there would prove the scan reads text rather than that the defect is reachable. The property the finding is about is `reports success on an id that matches no row`, and the early return is what makes that false.",
+    "file": "apps/rn/src/store/store.ts",
+    "token": "if (!matched) return s;",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/store.ts",
+          "find": "        if (!matched) return s;\n        return { store: stampInputsFresh({ ...s.store, requiredExpenses: next }) };",
+          "replace": "        return { store: stampInputsFresh({ ...s.store, requiredExpenses: next }) };"
+        }
+      ],
+      "run": "test:app",
+      "expect": "an unmatched updateExpense writes nothing"
     }
   }
 }

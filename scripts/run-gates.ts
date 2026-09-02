@@ -97,6 +97,7 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // exported owner. They agree today; the class (two producers of one fact) is what A1, A2 and A-F4
     // each were. Downward-only, so the copies cannot grow while the collapse is scheduled.
     'lint:rounding',
+    'lint:store-id-writes',
     // ⛔ S1.12.11 — five tracked files carried unresolved conflict markers for 177 commits. The root Next
     // app could not parse, so its whole e2e suite was un-runnable, and forty-two gates read ✅ over it
     // because not one of them looks at `app/`. Scheduled-for-deletion is not deleted. Population is

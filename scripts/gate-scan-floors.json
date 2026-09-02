@@ -71,5 +71,11 @@
     "measured": "2026-09-01",
     "measuredCount": 59169,
     "why": "S1.13.7.8 [pass-6 C1-6]. This gate STRIPS comments — load-bearing, because both its own docblock and PaydayCaptureSheet's quote the banned form while recording the defect, and a guard that reds on its own documentation gets deleted rather than obeyed. Stripping is therefore exactly the blinding mode GAP-8 describes: a stripper that returns blanks makes the sweep find zero collapses and exit 0, indistinguishable from a clean tree. Population is `git ls-files` over apps/rn + packages/core + scripts. Margin per the _README."
+  },
+  "store-id-writes": {
+    "floor": 3589,
+    "measured": "2026-09-02",
+    "measuredCount": 3778,
+    "why": "S1.13.7.11 [pass-6 A3-3]. Wired on the gate's first run, which lint:scan-floors refused for having no floor - GAP-8, a gate that strips can report a pass while reading nothing. It matters more than usual here because the cap is 0: a scan that reads nothing finds no bare id writes and prints the same green line as a clean tree. 5% margin per the _README."
   }
 }

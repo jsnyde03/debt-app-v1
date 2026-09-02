@@ -1,0 +1,90 @@
+/**
+ * ⛔ **S1.13.7.11 [pass-6 `A3-3`] — A STORE ACTION MAY NOT EDIT A ROW BY ID WITH A BARE `.map`.**
+ *
+ * ⚡ **Why this is a gate and not eight edits.** `A3-3` reported two sites — `markExpensePaid` and
+ * `deferExpense`. There were **eight**: those two plus `setDeferability`, `markDebtMinimumPaid`,
+ * `updateExpense`, `updateGoal`, `updateLivingExpense` and `verifyDebtBalance`. Every count of a class in
+ * this repo has come in short, including the ones taken while deliberately trying not to, and the standing
+ * rule is *budget the enumeration, not the list*. A ninth is one paste away; this is what sees it.
+ *
+ * ⛔ **The defect the shape carries.** `list.map(x => x.id === id ? patch(x) : x)` over an array holding no
+ * such id returns a NEW, element-wise identical array. `set` fires, every subscriber re-renders, and no
+ * return value distinguishes a miss from a hit — so the user taps, the row does not change, and nothing
+ * anywhere says why. `A3-2` was the live instance and was invisible for exactly this reason.
+ *
+ * ⚡ **And it was load-bearing for a SECOND guard.** `realWriteGuard` refuses a real-store write from
+ * inside a sandbox by DIFFING the store, so an unmatched write used to be refused only because the copied
+ * array changed reference. `updateById` returning the original array on a miss removes that accident —
+ * which is why the actions must also skip the write, and why `realWriteGuard.test.ts` now aims its
+ * refusal case at an id the real plan genuinely holds. *"What actually holds the line is an unrelated
+ * flag"* is `B2-1`, one file over.
+ *
+ * ⚠️ **A `.find` is exempt and a `.map` is not**, because the question is whether the action can tell a
+ * miss from a hit. `updateDebt` looks its row up first and branches on `existing`; that is the same
+ * property spelled differently, so its one comparison stays.
+ *
+ * Usage: npm run lint:store-id-writes
+ */
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
+import { stripCommentsOnly } from './lib/stripCode';
+
+const REPO_ROOT = join(import.meta.dirname, '..');
+
+/**
+ * ⛔ **[GAP-8] A GATE THAT STRIPS CAN REPORT A PASS WHILE READING NOTHING.** Registered with
+ * `lint:scan-floors` so a scan that suddenly reads zero bytes reds rather than reporting a clean tree.
+ */
+const SCAN_GATE = 'store-id-writes';
+
+/** The owner every id-keyed row edit must go through. */
+const OWNER = 'packages/core/utils/updateById.ts';
+
+/** `x.id === id` — the comparison, however the row variable is spelled. */
+const BY_ID = /\b\w+\.id\s*===\s*id\b/;
+/** A lookup is allowed: it can branch on the result, which is the property this gate is about. */
+const IS_LOOKUP = /\.(find|findIndex|some|filter)\s*\(/;
+
+const tracked = execFileSync('git', ['ls-files', 'apps/rn/src/store/*.ts'], { cwd: REPO_ROOT, encoding: 'utf8' })
+  .split('\n')
+  .map((l) => l.trim())
+  .filter(Boolean)
+  .filter((rel) => !rel.endsWith('.test.ts'));
+
+const sites: string[] = [];
+for (const rel of tracked) {
+  const code = scanned(SCAN_GATE, stripCommentsOnly(readFileSync(join(REPO_ROOT, rel), 'utf8')));
+  code.split('\n').forEach((line, i) => {
+    if (!BY_ID.test(line)) return;
+    if (IS_LOOKUP.test(line)) return;
+    sites.push(`${rel}:${i + 1}: ${line.trim().slice(0, 110)}`);
+  });
+}
+
+const observed = assertScanFloor(SCAN_GATE);
+
+/**
+ * ⛔ **DOWNWARD-ONLY.** Raising this to make a run pass is the defect the ratchet exists to catch. There is
+ * no legitimate remaining site: every row edit goes through `updateById`, and every lookup uses `.find`.
+ */
+const MAX_BARE_ID_WRITES = 0;
+
+if (sites.length > MAX_BARE_ID_WRITES) {
+  console.error(
+    `\n❌ store id writes: ${sites.length} bare \`x.id === id\` comparison(s) outside a lookup; the cap is ${MAX_BARE_ID_WRITES} and it only goes DOWN.\n`,
+  );
+  for (const s of sites) console.error(`  ${s}`);
+  console.error(
+    `\n  ⛔ Use \`updateById\` from ${OWNER}. It reports whether a row MATCHED, and returns the original\n` +
+      '  array by reference when none did — so the action can skip the write instead of firing `set` over\n' +
+      '  an element-wise identical copy. [S1.13.7.11 · pass-6 A3-3]\n',
+  );
+  process.exit(1);
+}
+
+console.log(
+  `✅ store id writes: no bare id-keyed row edits across ${tracked.length} store file(s); \`updateById\` is the owner. ${scanNote(SCAN_GATE, observed)}`,
+);

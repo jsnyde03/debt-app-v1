@@ -2,6 +2,7 @@ import { createStore } from 'zustand/vanilla';
 
 import { isInstallmentNative, normalizeBnplInstallment } from '@core/debt/bnplInstallment';
 import { roundMoney } from '@core/utils/money';
+import { updateById } from '@core/utils/updateById';
 import { rollPaydayToFuture } from '@core/payCycle/rollPaydayToFuture';
 import { raiseOriginalBalance } from '@core/debt/originalBalanceHighWater';
 import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
@@ -517,7 +518,7 @@ export function createDebtStore(opts?: {
             ? raiseOriginalBalance({ ...merged, lastVerifiedDate: updates.lastVerifiedDate ?? now, balanceAsOfDate: updates.balanceAsOfDate ?? now })
             : merged
           : null;
-        const next = { ...s.store, debts: s.store.debts.map((d) => (d.id === id && stamped ? stamped : d)) };
+        const next = { ...s.store, debts: stamped ? updateById(s.store.debts, id, () => stamped).next : s.store.debts };
         // Field-discriminated read-freshness stamp: a balance edit is a genuine input edit (2.4.D.3a);
         // other debt edits (name, APR, due date) are not.
         // P6.8.7e.1 [B2] — a balance typed straight to $0 is a payoff too. This is the path a FREE user
@@ -546,9 +547,9 @@ export function createDebtStore(opts?: {
           // repair wrote. See `answerBalanceRepairs`.
           answerBalanceRepairs(stampInputsFresh({
             ...s.store,
-            debts: s.store.debts.map((d) =>
-              d.id === id ? raiseOriginalBalance({ ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate }) : d
-            ),
+            debts: updateById(s.store.debts, id, (d) =>
+              raiseOriginalBalance({ ...d, balance, lastVerifiedDate: verifiedDate, balanceAsOfDate: verifiedDate })
+            ).next,
           }), [id]),
         ),
       }));
@@ -579,12 +580,18 @@ export function createDebtStore(opts?: {
       set((s) => ({ store: stampInputsFresh({ ...s.store, requiredExpenses: [...s.store.requiredExpenses, expense] }) }));
     },
     updateExpense(id, updates) {
-      set((s) => ({
-        store: stampInputsFresh({
-          ...s.store,
-          requiredExpenses: s.store.requiredExpenses.map((e) => (e.id === id ? { ...e, ...updates } : e)),
-        }),
-      }));
+      set((s) => {
+        const { next, matched } = updateById(s.store.requiredExpenses, id, (e) => ({ ...e, ...updates }));
+        // ⛔ **[S1.13.7.11 · pass-6 `A3-3`] — an id that matches nothing must not stamp read-freshness.**
+        // `realWriteGuard.test.ts:83-86` had already written this down as a KNOWN hole: *"`.map()` returns
+        // a new array either way — so 'no matching id' was never the same thing as 'no harm done'."*
+        // ⚠️ And it is load-bearing beyond this action: with the array now reference-stable on a miss,
+        // `inputsAsOf` would be the ONLY changed field, and it is not in the forbidden set — so the
+        // sandbox refusal that used to catch this write would stop firing. Returning `s` is what keeps
+        // that guard's premise true rather than quietly relocating it.
+        if (!matched) return s;
+        return { store: stampInputsFresh({ ...s.store, requiredExpenses: next }) };
+      });
     },
     removeExpense(id) {
       set((s) => ({
@@ -609,9 +616,11 @@ export function createDebtStore(opts?: {
       set((s) => ({ store: { ...s.store, goals: [...s.store.goals, goal] } }));
     },
     updateGoal(id, updates) {
-      set((s) => ({
-        store: { ...s.store, goals: s.store.goals.map((g) => (g.id === id ? { ...g, ...updates } : g)) },
-      }));
+      set((s) => {
+        const { next, matched } = updateById(s.store.goals, id, (g) => ({ ...g, ...updates }));
+        if (!matched) return s; // A3-3
+        return { store: { ...s.store, goals: next } };
+      });
     },
     removeGoal(id) {
       set((s) => ({ store: { ...s.store, goals: s.store.goals.filter((g) => g.id !== id) } }));
@@ -621,9 +630,11 @@ export function createDebtStore(opts?: {
       set((s) => ({ store: stampInputsFresh({ ...s.store, livingExpenses: [...s.store.livingExpenses, expense] }) }));
     },
     updateLivingExpense(id, updates) {
-      set((s) => ({
-        store: stampInputsFresh({ ...s.store, livingExpenses: s.store.livingExpenses.map((e) => (e.id === id ? { ...e, ...updates } : e)) }),
-      }));
+      set((s) => {
+        const { next, matched } = updateById(s.store.livingExpenses, id, (e) => ({ ...e, ...updates }));
+        if (!matched) return s; // A3-3 — no match, no stamp
+        return { store: stampInputsFresh({ ...s.store, livingExpenses: next }) };
+      });
     },
     removeLivingExpense(id) {
       set((s) => ({ store: stampInputsFresh({ ...s.store, livingExpenses: s.store.livingExpenses.filter((e) => e.id !== id) }) }));
@@ -649,58 +660,60 @@ export function createDebtStore(opts?: {
         }));
         return;
       }
-      set((s) => ({
-        store: {
-          ...s.store,
-          // Marking paid also clears a reported autopay failure, exactly as the payday checkpoint's
-          // `applyRequiredReconciliation` does — an item the user is now confirming paid is no longer a
-          // reported failure. Nothing else clears it (the rollover doesn't), so leaving it set kept the
-          // row "Overdue" while struck through and permanently blocked `isAutopayPresumedPaid`.
-          // Un-marking does NOT re-flag: reporting a failed autopay is the checkpoint's job, not an undo's.
-          requiredExpenses: s.store.requiredExpenses.map((e) =>
-            e.id === id ? { ...e, isPaidThisCycle: paid, ...(paid ? { autopayFailedThisCycle: false } : {}) } : e,
-          ),
-        },
-      }));
+      set((s) => {
+        // Marking paid also clears a reported autopay failure, exactly as the payday checkpoint's
+        // `applyRequiredReconciliation` does — an item the user is now confirming paid is no longer a
+        // reported failure. Nothing else clears it (the rollover doesn't), so leaving it set kept the
+        // row "Overdue" while struck through and permanently blocked `isAutopayPresumedPaid`.
+        // Un-marking does NOT re-flag: reporting a failed autopay is the checkpoint's job, not an undo's.
+        const { next, matched } = updateById(s.store.requiredExpenses, id, (e) => ({
+          ...e,
+          isPaidThisCycle: paid,
+          ...(paid ? { autopayFailedThisCycle: false } : {}),
+        }));
+        // ⛔ A3-3 — an id that matches nothing writes NOTHING. See `updateById`.
+        if (!matched) return s;
+        return { store: { ...s.store, requiredExpenses: next } };
+      });
     },
     deferExpense(id) {
       set((s) => {
         // Move the due date to the next payday → it belongs to next cycle (a bill due ON the next
         // payday is not "due before" it, so it drops out of this cycle's obligations). Honest defer.
         const nextPayday = s.store.paycheck.nextPaycheckDate;
-        return {
-          store: stampInputsFresh({
-            ...s.store,
-            requiredExpenses: s.store.requiredExpenses.map((e) =>
-              e.id === id ? { ...e, dueDate: nextPayday, isPaidThisCycle: false } : e,
-            ),
-          }),
-        };
+        const { next, matched } = updateById(s.store.requiredExpenses, id, (e) => ({
+          ...e,
+          dueDate: nextPayday,
+          isPaidThisCycle: false,
+        }));
+        // ⛔ A3-3 — deferring a bill that is not there must not stamp read-freshness on the whole store.
+        if (!matched) return s;
+        return { store: stampInputsFresh({ ...s.store, requiredExpenses: next }) };
       });
     },
     setDeferability(id, deferability) {
       // MF.1: a pure classification toggle — NO stampInputsFresh (a deferability change must not make a
       // stale read look fresh and silence the §2.0 staleness hedge).
-      set((s) => ({
-        store: {
-          ...s.store,
-          requiredExpenses: s.store.requiredExpenses.map((e) => (e.id === id ? { ...e, deferability } : e)),
-        },
-      }));
+      set((s) => {
+        const { next, matched } = updateById(s.store.requiredExpenses, id, (e) => ({ ...e, deferability }));
+        if (!matched) return s; // A3-3
+        return { store: { ...s.store, requiredExpenses: next } };
+      });
     },
     markDebtMinimumPaid(id, paid) {
-      set((s) => ({
-        store: {
-          ...s.store,
-          // Clears a reported autopay failure on mark-paid — see `markExpensePaid` for why.
-          // ⚠️ Deliberately does NOT set `isPaidThisCycle`: [D2] reserves that for paid IN FULL, and a
-          // covered minimum is not that. Core's bulk paths still set both (pre-[D2] semantics, inert —
-          // no debt reader keys on `isPaidThisCycle` alone) → the Phase-6 financial-correctness gate.
-          debts: s.store.debts.map((d) =>
-            d.id === id ? { ...d, minimumPaidThisCycle: paid, ...(paid ? { autopayFailedThisCycle: false } : {}) } : d,
-          ),
-        },
-      }));
+      set((s) => {
+        // Clears a reported autopay failure on mark-paid — see `markExpensePaid` for why.
+        // ⚠️ Deliberately does NOT set `isPaidThisCycle`: [D2] reserves that for paid IN FULL, and a
+        // covered minimum is not that. Core's bulk paths still set both (pre-[D2] semantics, inert —
+        // no debt reader keys on `isPaidThisCycle` alone) → the Phase-6 financial-correctness gate.
+        const { next, matched } = updateById(s.store.debts, id, (d) => ({
+          ...d,
+          minimumPaidThisCycle: paid,
+          ...(paid ? { autopayFailedThisCycle: false } : {}),
+        }));
+        if (!matched) return s; // A3-3
+        return { store: { ...s.store, debts: next } };
+      });
     },
     toggleRecommendedDone(action, done) {
       set((s) => {

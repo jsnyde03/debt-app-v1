@@ -43,6 +43,7 @@
     "lint:finding-guards": "tsx scripts/check-finding-guards.ts",
     "lint:cap-literals": "tsx scripts/check-cap-literals.ts",
     "lint:runner-completeness": "tsx scripts/check-runner-completeness.ts",
+    "lint:store-id-writes": "tsx scripts/check-store-id-writes.ts",
     "lint:rounding": "tsx scripts/check-rounding.ts",
     "lint:conflict-markers": "tsx scripts/check-conflict-markers.ts",
     "lint:fixture-dates": "tsx scripts/check-fixture-dates.ts",

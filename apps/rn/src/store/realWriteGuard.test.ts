@@ -56,6 +56,18 @@ function run() {
   // Onboard first, so the `onboardingComplete: false` case below is a real CHANGE. Against the default
   // store that write is a no-op, and a no-op is indistinguishable from a refusal.
   appStore.getState().updatePrefs({ onboardingComplete: true });
+  // ⛔ S1.13.7.11 [A3-3] — a bill the REAL plan genuinely holds, added before the scope opens. Without it
+  // the only `updateExpense` this file could make was one no id matched, and after A3-3 that write does
+  // not happen at all — so the refusal it was meant to prove had nothing to refuse.
+  appStore.getState().addExpense({
+    id: 'real-bill-0',
+    name: 'Rent',
+    amount: 850,
+    dueDate: '2026-03-01',
+    recurrence: 'monthly',
+    category: 'housing',
+    isPaidThisCycle: false,
+  });
 
   // ── A sandbox is mounted: the SAME call is refused. ──────────────────────────────────────────────
   const leave = enterSandboxScope();
@@ -80,11 +92,27 @@ function run() {
   eq(appStore.getState().store.requiredExpenses.length, blobBefore.requiredExpenses.length, 'addExpense from a sandboxed subtree appends NOTHING to the real plan');
   eq(reports, 2, '…and that refusal was reported too');
 
-  // ⚠️ `updateExpense` on an id the real plan does not hold still re-stamps read-freshness — `.map()`
-  // returns a new array either way — so "no matching id" was never the same thing as "no harm done".
+  /**
+   * ⛔ **S1.13.7.11 [pass-6 `A3-3`] — THIS BLOCK USED TO PROVE R4 WITH AN INPUT THAT WOULD HAVE BEEN A
+   * NO-OP ANYWAY, and the comment that stood here named the reason without treating it as one:**
+   * *"`updateExpense` on an id the real plan does not hold still re-stamps read-freshness — `.map()`
+   * returns a new array either way."* `A3-3` closed that: an unmatched id now writes nothing at all, so
+   * there is no attempt for the guard to refuse and `reports` cannot move.
+   *
+   * ⚠️ **Removing the refusal assertion here would have quietly weakened R4** — the guard's own finding
+   * `B2-1` is *"what actually holds the line is an unrelated flag"*, and this is that shape aimed at the
+   * test. So the case is SPLIT rather than dropped: the unmatched id proves `A3-3`, and a **matched** id
+   * — one the real plan genuinely holds, so the write would otherwise land — proves the refusal.
+   */
   appStore.getState().updateExpense('sbx-bill-0', { amount: 999 });
-  assert(appStore.getState().store === blobBefore, 'a non-matching updateExpense cannot re-stamp inputsAsOf either');
-  eq(reports, 3, '…and it is REFUSED rather than passing as harmless');
+  assert(appStore.getState().store === blobBefore, 'an unmatched updateExpense writes nothing at all (A3-3)');
+  eq(reports, 2, '…so there is no attempt to refuse, and nothing new is reported');
+
+  const realBillId = blobBefore.requiredExpenses[0]?.id;
+  assert(!!realBillId, 'the fixture holds a real bill to aim a MATCHED write at');
+  appStore.getState().updateExpense(realBillId!, { amount: 999 });
+  assert(appStore.getState().store === blobBefore, '⛔ a MATCHED write from inside a sandbox is refused — the plan never moved');
+  eq(reports, 3, '…and THAT is the refusal, on a write that would otherwise have landed');
 
   // ── A bounded run's own resume bookkeeping is still allowed. ─────────────────────────────────────
   // [B3]: the walkthrough persists its position to the REAL store on every step, by design. Refusing

@@ -548,11 +548,32 @@ const SCENARIOS: Scenario[] = [
     expect: 'authoring-plant-target.md',
     why: 'a credential typed into a file that has been in the repo for months — the more likely half, and the one no scenario covered',
   },
+  /**
+   * ⛔ **S1.13.7.11 [pass-6 `A3-3`] — THE NINTH BARE ID WRITE.** `A3-3` reported two sites and there were
+   * eight; the gate exists because a ninth is one paste away. Its cap is **0**, and a cap of zero is the
+   * shape most able to pass for the wrong reason — a scan that reads nothing finds no bare writes and
+   * prints the same green line as a clean tree. The scan floor covers the blind case; this covers the
+   * other direction, that it still REFUSES the thing it names.
+   */
+  {
+    gate: 'lint:store-id-writes',
+    script: 'check-store-id-writes.ts',
+    at: 'apps/rn/src/store/__gate_plant_id_write__.ts',
+    body: [
+      'type Row = { id: string; n: number };',
+      'export function bump(list: Row[], id: string) {',
+      '  return list.map((r) => (r.id === id ? { ...r, n: r.n + 1 } : r));',
+      '}',
+      '',
+    ].join('\n'),
+    expect: 'bare `x.id === id`',
+    why: 'a row edit that cannot tell a miss from a hit — the shape A3-2 hid inside for a whole pass',
+  },
 ];
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 24;
+const MIN_SCENARIOS = 25;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 
