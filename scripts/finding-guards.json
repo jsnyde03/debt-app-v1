@@ -3287,5 +3287,53 @@
       "measured": "2026-09-02",
       "sha": "12ed10dd"
     }
+  },
+  "S1P6-B1-4-LEDGER-NOT-BAN": {
+    "what": "S1.13.7.11 [pass-6 B1-4, major] - `liveDebts`' own docblock told the next author that `lint:trust-claims` REDS on a re-derivation of `balance > 0`, so re-spelling the expression was safe to assume caught. The gate deliberately does the opposite: the obvious ban was written, MEASURED (git grep found 40+, most of them correct packages/core amortization loops) and thrown away, and what shipped is a LEDGER - LIVENESS_OPEN, 15 files / 22 sites, MAX_LIVENESS_SITES = 22, whose own contract says `a row here is NOT a verdict of defect`. It reds only when a file's count CHANGES. B1-1 and B1-3 were both re-derivations and both shipped. ⚡ The sentence described the ABANDONED design and stayed inside the owner module: a comment is a carried premise and decays like a carried number.",
+    "file": "apps/rn/src/store/trustSelectors.ts",
+    "token": "LEDGERS re-derivations; it does not ban them",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/trustSelectors.ts",
+          "find": "LEDGERS re-derivations; it does not ban them",
+          "replace": "reds on a re-derivation"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the owner docblock states what"
+    }
+  },
+  "S1P6-B2-1-D9-FENCES-PAYWALL": {
+    "what": "S1.13.7.11 [pass-6 B2-1, major] - THREE places stated, as the reason the user's plan is safe during a bounded run, that `every demo exit is terminal - the session ends BEFORE the destination renders`. False for the explore demo: useNavigationHeld() is `inTutorial || (inDemo && demoMode === 'scripted')`, and `exitDemo(` has 2 call sites repo-wide against 6 for '/paywall', 4 of them ordinary pushes. ⚡ Nothing bad follows TODAY, for a reason none of the three mentioned: [D9], the sandbox runs PREMIUM for every audience (demoRun.ts:149, tutorialSession.ts:144-146), so no paywall entry point renders inside a bounded run at all. ⛔ Its author chased this as a blocker and CORRECTED THEMSELVES - the correction is the finding. Revert or narrow [D9] and a purchase made from inside a demo is silently dropped and reported to Sentry as real-plan corruption: an alert for a working checkout. The remedy is deliberately NOT to narrow refuseRealStoreWrite or to fix an unreachable defect - it is to state the true coupling where the next person to touch [D9] will meet it.",
+    "file": "apps/rn/src/store/demoExit.ts",
+    "token": "four of those are ordinary pushes that never come through here",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/demoExit.ts",
+          "find": "four of those are ordinary pushes that never come through here",
+          "replace": "its exits tear the session down BEFORE navigating"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the terminal-exit claim is gone"
+    }
+  },
+  "S1P6-B2-2-EXEMPTION-REASON": {
+    "what": "S1.13.7.11 [pass-6 B2-2, major] - lint:sandbox, whose stated job is `makes it IMPOSSIBLE to add a sandbox leak silently`, exempted paywall.tsx on B2-1's expired premise. Read end to end the checker does exactly two things - regex-match the appStore import, and look the path up in ALLOWED - with one staleness check (does the file still import the singleton) and NONE for whether the stated reason still holds. ⛔ AN ALLOW-LIST KEYED ON A PATH WITH A PROSE REASON CAN DETECT A CHANGED PATH AND NEVER A CHANGED WORLD: 3.5.10 changed neither the path nor the string, only what the string describes. The file is still correctly exempt, by [D9] rather than by the exit sequence, and the entry now names the decision it is coupled to so a change to [D9] has somewhere to land. ⚠️ The four onboarding entries share the retired premise; their FIRST clause (onboarding runs before any plan exists) holds on its own, and whether an explore run can reach onboarding by a route other than exitDemo is UNMEASURED and filed.",
+    "file": "scripts/check-sandbox-writes.ts",
+    "token": "coupled to [D9], NOT to the exit sequence",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-sandbox-writes.ts",
+          "find": "coupled to [D9], NOT to the exit sequence",
+          "replace": "unconditional"
+        }
+      ],
+      "run": "test:app",
+      "expect": "names the decision it depends on"
+    }
   }
 }

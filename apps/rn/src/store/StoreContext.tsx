@@ -55,10 +55,17 @@ export function StoreProvider({ store, children }: { store: DebtStoreInstance; c
  * a sandbox is mounted" only means LEAK because the run holds the tabs and withholds More, so nothing
  * reachable can legitimately write.
  *
- * [D18] keeps that premise true for the demo as well as the walkthrough: a demo is a KIOSK, both share
- * `useInBoundedRun`, and its exits tear the session down BEFORE navigating — so `/more` and `/paywall`
- * are never reached with a demo provider above them. The guard therefore stays strict for both, and needs
- * no per-caller scope flag.
+ * ⛔ **[S1.13.7.11 · pass-6 `B2-1`] — WHAT HOLDS THAT LINE FOR `/paywall` IS [D9], NOT [D18].** The
+ * sentence here used to say the demo's exits are TERMINAL, so `/paywall` is never reached with a demo
+ * provider above it. **That is false for the explore demo:** `useNavigationHeld()` is
+ * `inTutorial || (inDemo && demoMode === 'scripted')`, `exitDemo(` has 2 call sites against 6 for
+ * `'/paywall'`, and 4 of those are ordinary pushes. What actually keeps a purchase from landing under a
+ * sandbox is **[D9]: the sandbox runs PREMIUM for every audience** (`demoRun.ts:149`,
+ * `tutorialSession.ts:144-146`), so no paywall entry point renders inside a bounded run at all.
+ *
+ * ⚠️ **The coupling is the point of writing it down.** Narrow or revert [D9] and a purchase made from
+ * inside a demo is silently dropped, reported to Sentry as the plan corruption the guard exists to catch —
+ * a real-plan-corruption alert for a working checkout. `/more` is still fenced by the tab hold.
  *
  * ⚠️ What would break it: mounting this provider around a subtree that can navigate to a real-store
  * writer. If a future run is ever admitted without the fence, the answer is a report scope on the

@@ -61,12 +61,20 @@ const ALLOWED: Record<string, string> = {
   'apps/rn/src/app/more.tsx': 'More is withheld while a bounded run is on screen (`more-button` disables + aria-hides it)',
   'apps/rn/src/components/more/BackupSheets.tsx': 'lives under More, which is fenced',
   'apps/rn/src/components/more/LiveActivityQA.tsx': 'lives under More, which is fenced',
-  'apps/rn/src/app/onboarding.tsx': 'runs before any plan exists, and a demo exit tears the session down before landing here',
+  // ⚠️ [S1.13.7.11 · pass-6 B2-2] — these four share the premise that expired for `paywall.tsx` above.
+  // The FIRST clause still holds on its own (onboarding runs before any plan exists, so there is no real
+  // plan to corrupt); the exit-sequence clause is the one that decayed, and whether an explore run can
+  // reach onboarding by any route OTHER than `exitDemo` is UNMEASURED — filed rather than assumed.
+  'apps/rn/src/app/onboarding.tsx': 'runs before any plan exists — the load-bearing half. ⚠️ The "a demo exit tears the session down" half is [D18]-era and unverified for the explore demo; see B2-2',
   'apps/rn/src/components/onboarding/CompletionStep.tsx': 'onboarding, as above',
   'apps/rn/src/components/onboarding/FirstDebtOrBillStep.tsx': 'onboarding, as above',
   'apps/rn/src/components/onboarding/PaycheckStep.tsx': 'onboarding, as above',
   'apps/rn/src/app/paywall.tsx':
-    '[D18] the demo exits are TERMINAL — the session ends BEFORE /paywall renders, so `setSubscriptionPlan` never runs under a sandbox provider',
+    // ⛔ [S1.13.7.11 · pass-6 B2-2] — this entry used to rest on [D18]'s terminal-exit rule, and that
+    // premise expired: `exitDemo(` has 2 call sites against 6 for '/paywall', 4 of them ordinary pushes.
+    // The file is still correctly exempt, for a DIFFERENT reason — which is the whole finding, because an
+    // allow-list keyed on a path with a prose reason can detect a changed path and never a changed world.
+    '[D9] the SANDBOX RUNS PREMIUM for every audience (demoRun.ts:149, tutorialSession.ts:144-146), so no paywall entry point renders inside a bounded run and `setSubscriptionPlan` is unreachable under a sandbox provider. ⚠️ This exemption is coupled to [D9], NOT to the exit sequence — narrow [D9] and re-audit this entry',
   'apps/rn/src/components/plan/ExampleCanvasMarker.tsx':
     'deliberately asks about the REAL user (does a plan exist?) while rendering inside the sandbox — the whole point of the marker',
   'apps/rn/src/components/plan/TutorialCoach.tsx':

@@ -94,9 +94,14 @@ export function debtLiveness(store: DebtStore): DebtLiveness {
 }
 
 /**
- * The debts with money still on them. ⛔ **THE ONLY PLACE THIS EXPRESSION IS WRITTEN.** Every other site
- * asks the owner, and `lint:trust-claims` reds on a re-derivation — it prints the live count of what is
- * still outstanding, which is the number to read rather than one typed here.
+ * The debts with money still on them — **the owner of the liveness expression, and the site to ask.**
+ *
+ * ⚠️ **`lint:trust-claims` LEDGERS re-derivations; it does not ban them.** The gate reds when a file's
+ * count of `balance > 0` **changes**, not when one exists: `LIVENESS_OPEN` is a ledger of 15 files / 22
+ * sites at `MAX_LIVENESS_SITES = 22`, and its own contract says *"a row here is NOT a verdict of
+ * 'defect'"*. ⛔ **So re-spelling the expression is NOT caught for you** — `B1-1` and `B1-3` were both
+ * re-derivations and both shipped. Ask the owner because two producers of one fact is the shape this repo
+ * has paid for repeatedly, not because a gate will stop you.
  *
  * ⚠️ **A caller that needs the ARRAY still owes the liveness question.** This returns rows, and rows are
  * silent about what could not be read — a portfolio that is entirely unread returns `[]` here exactly as a

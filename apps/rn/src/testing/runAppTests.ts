@@ -100,6 +100,11 @@ async function main() {
   // VIS-6 — the Windfall Autopilot split (marginal diff · money conservation · multi-bucket routing).
   await import('../store/windfallSplit.test');
 
+  // S1.13.7.11 [pass-6 B1-4 · B2-1 · B2-2] — three claims that decayed into falsehoods. Both directions:
+  // the correction present AND the expired sentence gone, because [D17] says a false comment is DELETED
+  // rather than annotated, and only the absence half can check that.
+  await import('../store/staleClaims.test');
+
   // S1.13.7.11 [pass-6 C1-15] — the Cash Runway receipt reads `essentials` rather than back-solving it
   // from `net`, and names the moved cash the difference exposes. Pins the CONSUMER: the engine was never
   // wrong here, and a two-producer disagreement is only visible from the side that did not move.

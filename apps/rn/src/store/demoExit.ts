@@ -17,11 +17,17 @@ export type DemoExit = '/onboarding' | '/paywall' | '/';
 /**
  * 3.5.4.7 — leave the demo. [D18]'s terminal-exit rule, in one place so no caller can get the order wrong.
  *
- * `end()` BEFORE `replace()`, and that sequence is the whole point: the destination must never render
- * with the sandbox still mounted above it. `/paywall` writes the real store by design, and
- * `useNoRealWritesGuard` is deliberately strict for a bounded run — so a purchase made from a
- * still-mounted demo would be reported as the exact thing the guard exists to catch, and at Phase 6 that
- * lands in Sentry as a real-plan-corruption alert for a working checkout.
+ * `end()` BEFORE `replace()`, and that sequence is the whole point *for the callers that come through
+ * here*: the destination must never render with the sandbox still mounted above it. `/paywall` writes the
+ * real store by design, and `useNoRealWritesGuard` is deliberately strict for a bounded run — so a
+ * purchase made from a still-mounted demo would be reported as the exact thing the guard exists to catch,
+ * and at Phase 6 that lands in Sentry as a real-plan-corruption alert for a working checkout.
+ *
+ * ⛔ **[S1.13.7.11 · pass-6 `B2-1`] — THIS FUNCTION IS NOT WHAT MAKES THAT TRUE, AND THE SENTENCE ABOVE
+ * USED TO IMPLY IT WAS.** `exitDemo(` has **2** call sites repo-wide against **6** for `'/paywall'`, and
+ * four of those are ordinary pushes that never come through here. What actually holds the line is **[D9]:
+ * the sandbox runs PREMIUM for every audience**, so no paywall entry point renders inside a bounded run.
+ * ⚠️ Revert or narrow [D9] and the exposure is real, whatever this function does.
  *
  * `replace`, not `push`: the demo is over, and leaving it on the stack lets a back gesture resurrect a
  * torn-down run — a screen of sandbox figures with no session behind it and no marker in its dock.
