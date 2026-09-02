@@ -665,7 +665,7 @@
       "run": "test:app",
       "expect": "opposite-sized losses no longer produce the identical clause",
       "measured": "2026-09-02",
-      "sha": "7984364d"
+      "sha": "cef8ac06"
     }
   },
   "S1P4-C4-5-ARITY": {
@@ -736,8 +736,8 @@
       ],
       "run": "test:app",
       "expect": "the trophy shelf",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "cef8ac06"
     }
   },
   "S1P4-C4-7-SURFACES": {
@@ -1310,7 +1310,7 @@
       "run": "test:app",
       "expect": "counts it",
       "measured": "2026-09-02",
-      "sha": "7984364d"
+      "sha": "cef8ac06"
     }
   },
   "S1P3-C7B-CLOUDDOOR": {
@@ -1328,7 +1328,7 @@
       "run": "test:app",
       "expect": "C-7b",
       "measured": "2026-09-02",
-      "sha": "7984364d"
+      "sha": "cef8ac06"
     }
   },
   "S1P3-B2-APRBOUND": {
@@ -1442,8 +1442,8 @@
       ],
       "run": "test:app",
       "expect": "an unread BALANCE poisons the plan claim",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "cef8ac06"
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
@@ -1815,8 +1815,8 @@
       ],
       "run": "test:app",
       "expect": "owner · a whole ROW unreadable",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "cef8ac06"
     }
   },
   "S1P4-C4-9-MIXED": {
@@ -1858,8 +1858,8 @@
       ],
       "run": "test:app",
       "expect": "the record SURVIVES the acknowledgement",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "cef8ac06"
     }
   },
   "S1P5-A5-2-NONFINITE": {
@@ -1967,7 +1967,7 @@
       "run": "test:app",
       "expect": "nine lost rows say NINE, not one",
       "measured": "2026-09-02",
-      "sha": "7984364d"
+      "sha": "cef8ac06"
     }
   },
   "S1P5-B5-2-FRESHWINS": {
@@ -2056,8 +2056,8 @@
       ],
       "run": "test:app",
       "expect": "is not an ANSWER to an unreadable balance",
-      "measured": "2026-09-01",
-      "sha": "20a14f06"
+      "measured": "2026-09-02",
+      "sha": "cef8ac06"
     }
   },
   "S1P5-D5-9-CAPWRAP": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-02",
-      "sha": "10b93614"
+      "sha": "cef8ac06"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -3289,9 +3289,9 @@
     }
   },
   "S1P6-B1-4-LEDGER-NOT-BAN": {
-    "what": "S1.13.7.11 [pass-6 B1-4, major] - `liveDebts`' own docblock told the next author that `lint:trust-claims` REDS on a re-derivation of `balance > 0`, so re-spelling the expression was safe to assume caught. The gate deliberately does the opposite: the obvious ban was written, MEASURED (git grep found 40+, most of them correct packages/core amortization loops) and thrown away, and what shipped is a LEDGER - LIVENESS_OPEN, 15 files / 22 sites, MAX_LIVENESS_SITES = 22, whose own contract says `a row here is NOT a verdict of defect`. It reds only when a file's count CHANGES. B1-1 and B1-3 were both re-derivations and both shipped. ⚡ The sentence described the ABANDONED design and stayed inside the owner module: a comment is a carried premise and decays like a carried number.",
-    "file": "apps/rn/src/store/trustSelectors.ts",
-    "token": "LEDGERS re-derivations; it does not ban them",
+    "what": "S1.13.7.11 [pass-6 B1-4, major] - `liveDebts`' own docblock told the next author that `lint:trust-claims` REDS on a re-derivation of `balance > 0`, so re-spelling the expression was safe to assume caught. The gate deliberately does the opposite: the obvious ban was written, MEASURED (git grep found 40+, most of them correct packages/core amortization loops) and thrown away, and what shipped is a LEDGER - LIVENESS_OPEN, 15 files / 22 sites, MAX_LIVENESS_SITES = 22, whose own contract says `a row here is NOT a verdict of defect`. It reds only when a file's count CHANGES. B1-1 and B1-3 were both re-derivations and both shipped. ⚡ The sentence described the ABANDONED design and stayed inside the owner module: a comment is a carried premise and decays like a carried number. >>> THE TOKEN POINTS AT THE ASSERTION, NOT AT THE COMMENT, and lint:finding-guards refused the first attempt by name: a token that appears ONLY IN A COMMENT is a description rather than a guard. For a finding whose defect IS a comment, the standing guard can only be the executable check over it - staleClaims.test.ts, which asserts BOTH directions (the correction present and the expired sentence gone).",
+    "file": "apps/rn/src/store/staleClaims.test.ts",
+    "token": "the owner docblock states what `lint:trust-claims` DOES",
     "proof": {
       "unfix": [
         {
@@ -3307,9 +3307,9 @@
     }
   },
   "S1P6-B2-1-D9-FENCES-PAYWALL": {
-    "what": "S1.13.7.11 [pass-6 B2-1, major] - THREE places stated, as the reason the user's plan is safe during a bounded run, that `every demo exit is terminal - the session ends BEFORE the destination renders`. False for the explore demo: useNavigationHeld() is `inTutorial || (inDemo && demoMode === 'scripted')`, and `exitDemo(` has 2 call sites repo-wide against 6 for '/paywall', 4 of them ordinary pushes. ⚡ Nothing bad follows TODAY, for a reason none of the three mentioned: [D9], the sandbox runs PREMIUM for every audience (demoRun.ts:149, tutorialSession.ts:144-146), so no paywall entry point renders inside a bounded run at all. ⛔ Its author chased this as a blocker and CORRECTED THEMSELVES - the correction is the finding. Revert or narrow [D9] and a purchase made from inside a demo is silently dropped and reported to Sentry as real-plan corruption: an alert for a working checkout. The remedy is deliberately NOT to narrow refuseRealStoreWrite or to fix an unreachable defect - it is to state the true coupling where the next person to touch [D9] will meet it.",
-    "file": "apps/rn/src/store/demoExit.ts",
-    "token": "four of those are ordinary pushes that never come through here",
+    "what": "S1.13.7.11 [pass-6 B2-1, major] - THREE places stated, as the reason the user's plan is safe during a bounded run, that `every demo exit is terminal - the session ends BEFORE the destination renders`. False for the explore demo: useNavigationHeld() is `inTutorial || (inDemo && demoMode === 'scripted')`, and `exitDemo(` has 2 call sites repo-wide against 6 for '/paywall', 4 of them ordinary pushes. ⚡ Nothing bad follows TODAY, for a reason none of the three mentioned: [D9], the sandbox runs PREMIUM for every audience (demoRun.ts:149, tutorialSession.ts:144-146), so no paywall entry point renders inside a bounded run at all. ⛔ Its author chased this as a blocker and CORRECTED THEMSELVES - the correction is the finding. Revert or narrow [D9] and a purchase made from inside a demo is silently dropped and reported to Sentry as real-plan corruption: an alert for a working checkout. The remedy is deliberately NOT to narrow refuseRealStoreWrite or to fix an unreachable defect - it is to state the true coupling where the next person to touch [D9] will meet it. >>> THE TOKEN POINTS AT THE ASSERTION, NOT AT THE COMMENT, and lint:finding-guards refused the first attempt by name: a token that appears ONLY IN A COMMENT is a description rather than a guard. For a finding whose defect IS a comment, the standing guard can only be the executable check over it - staleClaims.test.ts, which asserts BOTH directions (the correction present and the expired sentence gone).",
+    "file": "apps/rn/src/store/staleClaims.test.ts",
+    "token": "names [D9] — the sandbox running premium — as what fences /paywall",
     "proof": {
       "unfix": [
         {
@@ -3397,9 +3397,9 @@
     }
   },
   "S1P6-C3-7-QUEUE-NOT-WIPED": {
-    "what": "S1.13.7.11 [pass-6 C3-7], the quieter half - and it DESTROYS DATA rather than merely lying about it. `defaults.array(forKey:)` returns nil both for `absent` and for `present but not an array`, so `?? []` replaced an unreadable queue with an empty one and wrote it straight back: an already-queued payday-landed was DELETED by a later log-payment. That is the exact failure PaydayLandedIntent's own comment says the [String: Any] element type was chosen to prevent - the type was widened on both sides and the `?? []` that does the wiping was left in place on both sides too. ⚠️ THE FINDING NAMED ONE FILE; THERE ARE THREE, because PaydayLandedIntent is duplicated byte-for-byte (AppIntents route by TYPE NAME, so a fix to one copy that misses the other ships the defect in the target that actually runs). All three read the raw value first now, and the test asserts the two copies are still identical - drift between them is two behaviours under one name.",
+    "what": "S1.13.7.11 [pass-6 C3-7], the quieter half - and it DESTROYS DATA rather than merely lying about it. `defaults.array(forKey:)` returns nil both for `absent` and for `present but not an array`, so `?? []` replaced an unreadable queue with an empty one and wrote it straight back: an already-queued payday-landed was DELETED by a later log-payment. That is the exact failure PaydayLandedIntent's own comment says the [String: Any] element type was chosen to prevent - the type was widened on both sides and the `?? []` that does the wiping was left in place on both sides too. ⚠️ THE FINDING NAMED ONE FILE; THERE ARE THREE, because PaydayLandedIntent is duplicated byte-for-byte (AppIntents route by TYPE NAME, so a fix to one copy that misses the other ships the defect in the target that actually runs). All three read the raw value first now, and the test asserts the two copies are still identical - drift between them is two behaviours under one name. >>> The token was re-pointed off `let raw = ...` because lint:finding-guards refused it by name: a DECLARATION survives its use being deleted (D3-3). It now names the refusal itself - the branch that returns rather than overwriting a queue it merely failed to read.",
     "file": "apps/rn/plugins/app-intents-swift/LogPaymentIntent.swift",
-    "token": "let raw = defaults.object(forKey: key)",
+    "token": "raw as? [[String: Any]] == nil {",
     "proof": {
       "unfix": [
         {
