@@ -1035,8 +1035,8 @@
         "C-1"
       ],
       "expect": "a debt row does not restate an APR",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "d3518ac5"
     }
   },
   "S1P3-C1-GATE": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-02",
-      "sha": "12ed10dd"
+      "sha": "9b3af98a"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2586,7 +2586,7 @@
       "run": "test:app",
       "expect": "a grouped amount still names the paycheck",
       "measured": "2026-09-02",
-      "sha": "7984364d"
+      "sha": "9b3af98a"
     }
   },
   "S1P6-A3-12-DATEDOORS": {
@@ -3303,7 +3303,7 @@
       "run": "test:app",
       "expect": "the owner docblock states what",
       "measured": "2026-09-02",
-      "sha": "63b4c09d"
+      "sha": "9b3af98a"
     }
   },
   "S1P6-B2-1-D9-FENCES-PAYWALL": {
@@ -3321,7 +3321,7 @@
       "run": "test:app",
       "expect": "the terminal-exit claim is gone",
       "measured": "2026-09-02",
-      "sha": "63b4c09d"
+      "sha": "9b3af98a"
     }
   },
   "S1P6-B2-2-EXEMPTION-REASON": {
@@ -3411,7 +3411,7 @@
       "run": "test:app",
       "expect": "cannot tell \"absent\" from \"unreadable\"",
       "measured": "2026-09-02",
-      "sha": "7047252f"
+      "sha": "9b3af98a"
     }
   },
   "S1P6-B3-5-HELD-CASH-NAMED": {
