@@ -3121,7 +3121,9 @@
         }
       ],
       "run": "test:regression",
-      "expect": "the money is authoritative: headroom ABOVE the floor"
+      "expect": "the money is authoritative: headroom ABOVE the floor",
+      "measured": "2026-09-02",
+      "sha": "92a9d7c7"
     }
   }
 }
