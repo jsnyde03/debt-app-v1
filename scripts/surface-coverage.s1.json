@@ -1172,6 +1172,9 @@
     "s1p5",
     "s1p6"
   ],
+  "apps/rn/src/store/paydayRequiredSplit.test.ts": [
+    "never"
+  ],
   "apps/rn/src/store/payoffCelebration.test.ts": [
     "never",
     "partial",

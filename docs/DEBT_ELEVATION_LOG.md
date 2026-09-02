@@ -30519,3 +30519,105 @@ already loaded and free.
 
 **Captured atomically:** plan §ACTIVE re-headed and re-decomposed, the `.11` queue row corrected
 *(43 → 35, with the split)*, and the `.10.1` backlog row closed with the result.
+
+---
+
+## 2026-09-02 — P6.9 and P6.10 re-verified against the surface program *(🎯 asked; agreed)*
+
+🎯: *"Are P6.9 and P6.10 going to be necessary after I get through the comprehensive surface audit?"*
+Both rows were authored **2026-08-19/21**, before the S0–S4 surface program existed in its current form,
+so they are pre-authored plan items and were treated as hypotheses rather than read.
+
+**P6.9 — privacy / egress — SURVIVES WHOLE.** Egress is not one of the six surfaces
+(`S0 instruments → S1 money → S2 dates → S3 import → S4 discovery → cross-surface`), so no lane is
+looking for it. And its real payload is not code findings at all: **[D41]'s `PRIVACY_CLAIM.body` rewrite**
+*(still says "stays on this device", which the iCloud toggle P6.3 shipped makes false — a live
+ship-blocker)* · the **ASC privacy label** declaring RevenueCat and Sentry → Diagnostics → Crash Data ·
+retiring the *"100% private"* marketing line, which lives cross-repo in `jsnyde03/debt-planner-site` —
+and **A2-5 already measured that the ASC-registered marketing URL was audited by NO lens.** None of that
+is produced by reading source files on a surface.
+
+**P6.10 — the money lens — THE SWEEP HALF IS ABSORBED, THE GATE IS NOT.** Its written boundary-input list
+*(zero/negative income · date-boundary/leap-year/timezone · rounding drift · month-vs-cycle stepping ·
+cross-cadence BNPL · huge/partial portfolios)* is **S1 + S2 + S3 almost line for line**, and S1 alone is
+now reading **446/446 money-bearing files across 12 lanes** — far past anything P6.10 was scoped to do.
+⛔ **Re-running it as written after cross-surface would be a pass that cannot fail** — the exact shape
+[D70] retired S0's pass 5 for. Three things survive regardless:
+
+1. **FEATURE LOCK ([D52]) is a governance line, not an audit.** R5's Plan surface, the CSV import *(g.2)*
+   and P1-10's tier change are each explicitly required to *clear P6.10*. The boundary must exist even if
+   it finds zero.
+2. **The 16 filed backlog items — and the load-bearing ones are open money-semantics DECISIONS, not
+   defects.** `minimumPaidThisCycle` vs `isPaidThisCycle` *(uniformity already **refused by measurement**:
+   it reds `testGetDebtsWithDisplayBalances` with "expected 950, received 1000")* · `actualIncome` capture,
+   deferred by 🎯, which is why `LeanSuggestionCard` is unreachable by construction. ⛔ **A seventh audit
+   pass cannot close a decision.**
+3. **The classes every instrument is structurally blind to.** `check-webkit-flex-controls` returns
+   *"no NEW flex/grid controls"* over `apps/rn/src` because it matches CSS classes and RN source has none;
+   the class is device-only and Chromium + Playwright-WebKit both render it fine. No lane will ever see it.
+
+⚡ **The rule that comes out of this:** at switch-in, **re-derive P6.10's residual sweep from
+`audit:read-coverage` against what S1–S4 actually read — never from the row's prose.** Same for P6.9's
+*code* half; its deliverables half is untouched either way.
+
+⚠️ **Not acted on now, by design.** The plan's own ordering note says *"getting P6.9 early turns a settled
+decision into a discovery mid-audit"*, so this is a switch-in correction, not work to pull forward. And
+there is real runway first: **S2/S3/S4 have no claims file at all**, and `S1.13.7.12` counts **197 tracked
+source files on no surface**.
+
+**Captured atomically:** the P6.9 and P6.10 rows in the Phase 6 order both carry the re-verification
+marker; no scope was moved and no item was closed.
+
+---
+
+## 2026-09-02 — `S1.13.7.11` re-enumerated: 40 findings, 4 blockers, 9 majors, and NOTHING was unrated
+
+The class was opened this morning with the split **35 findings · 3 blockers · 5 majors · 20 minors ·
+7 unrated**. The switch-in scan re-derived it mechanically before touching any of it. ⛔ **All four
+numbers were wrong.**
+
+**Membership is 40**, derived **two independent ways that agree**: (a) set-difference — every `##` heading
+across the thirteen lane files (**129 headings, 6 non-findings → 123**, matching the recorded total) minus
+every id declared a member by classes I–X; (b) direct extraction of the class sections' own membership
+notation — the first table cell for I–VIII and X, and CLASS IX's inline backticked list. Both return **40**.
+⚠️ `CLASSIFICATION.md`'s own header still says **43**, and `.10.1` had already recorded 40 against it —
+so the 35 was a third number, from a third reading.
+
+⚡ **Nothing was unrated. All 40 state a severity — in THREE different formats**, and the first pass's
+pattern read only one of them:
+
+| format | example | lanes |
+|---|---|---|
+| in the heading | ``## C1-4 — `blocker` · …`` | A2 A3 B1 B2 C1 D1 |
+| a `Severity:` **bullet** | `- **Severity:** **blocker** (…)` | B3 |
+| a `Severity:` **inline bold** | `**Severity: major.**` | C2 C3 D2 D3 |
+
+⛔ **So "unrated" was an artifact of the reading, not a property of the findings.** That is the undercount
+class two levels up: `.10.1` caught a class's COUNT was wrong · `.11` caught its SEVERITIES were · and the
+rating step caught that the *absence* of a severity was also a measurement error.
+
+**The corrected split — and 13 gate [D65], not 8:**
+
+- **blocker ×4** — `C1-4` `C1-15` `B3-2` `C3-7`
+- **major ×9** — `A3-3` `B1-4` `B2-1` `B2-2` `B3-5` `C2-1` `C3-12` `D1-1` `D3-5`
+- **minor ×27** — the remainder
+
+**Two corrections that change what gets scheduled:**
+
+1. ⛔ **`D3-5` is not a blocker.** The first enumeration listed it as one; its own line reads *"`major`, and
+   `blocker` if the reachability hypothesis below is confirmed"*, and its author wrote *"I did not build the
+   store that produces it, so I am not claiming `blocker` on my own authority."* **The reachability is the
+   measurement that decides the rating**, and it is owed before the finding is scheduled at either weight.
+2. ⚠️ **`D1-1` appears to be `D3-4` found by a second lane** — both say `check-conflict-markers` requires the
+   open **and** close marker, so a half-resolved conflict reads green. **`D3-4` closed in `S1.13.7.2`.**
+   Verify against current code before scheduling it as work; this round has already had four findings whose
+   defects were closed before the fixer arrived.
+
+⚡ **Two blockers were promoted out of the "unrated" bucket** — `B3-2` *(an unreadable export timestamp
+renders as "Saved recently." on the screen immediately before an irreversible restore)* and `C3-7` *(Siri
+says "Logged $200.00 toward Chase" in the past tense for a payment only QUEUED — and says it even when the
+queue write did not happen)*. Both were sitting in a bucket labelled *"cheap, do them last."*
+
+**Captured atomically:** the plan's CLASS XI block and the `S1.13.7.11` queue row both re-stated, and
+`S1.13.7.10`'s seven closed sub-steps collapsed to one line — it was still headed *"the ACTIVE
+decomposition (the ONLY one on this doc)"* while `.11` was live, the exact rot `S1.12.5` was collapsed for.

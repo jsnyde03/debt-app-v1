@@ -100,6 +100,11 @@ async function main() {
   // VIS-6 — the Windfall Autopilot split (marginal diff · money conservation · multi-bucket routing).
   await import('../store/windfallSplit.test');
 
+  // S1.13.7.11 [pass-6 D3-5] — the payday sheet's "paid · carries" split reads ONE population. The
+  // caption used to subtract `allocation.totalRequired` from a sum over `selectRequiredRows`, which
+  // also carries paid-early items the allocation never counted, and printed `-$250 paid`.
+  await import('../store/paydayRequiredSplit.test');
+
   // 3.8 — the expense reserve above the engine: the cycle-keyed contribution, the hero's "set aside right
   // now" figure, the capped offer [A3.6], the rollover fold, and the category-list memberships.
   await import('../store/expenseReserve.test');

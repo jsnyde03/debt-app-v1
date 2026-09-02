@@ -26,6 +26,7 @@ import { CountUp, haptics, useReduceMotion } from '@/motion';
 import { elevation } from '@/theme/elevation';
 import { parseNonNegativeAmount, sanitizeAmountInput } from '@core/utils/amountField';
 import type { DebtBalanceView } from '@/store/balanceSelectors';
+import { requiredRowId, selectRequiredSplit } from '@/store/planSelectors';
 import type { ActiveRecommendedAction, RequiredRow } from '@/store/planSelectors';
 import { spring } from '@/theme/motion';
 import { layout, spacing } from '@/theme/spacing';
@@ -41,8 +42,9 @@ function shortDate(iso?: string): string {
 function isExpenseRow(row: RequiredRow): boolean {
   return row.item.category === 'expense' || row.item.category === 'autopay_expense';
 }
+/** ⛔ D3-5 — delegates, so the checkbox and `selectRequiredSplit` cannot disagree about a row's id. */
 function rowId(row: RequiredRow): string | undefined {
-  return isExpenseRow(row) ? row.item.targetId : (row.item.debtId ?? row.item.targetId);
+  return requiredRowId(row);
 }
 
 /**
@@ -165,10 +167,18 @@ export function PaydayCaptureSheet({
   }
 
   const requiredCount = requiredRows.length;
-  const carryForward = requiredRows.reduce((sum, row) => {
-    const id = rowId(row);
-    return id && requiredPaid[id] === false ? sum + row.item.amount : sum;
-  }, 0);
+  /**
+   * ⛔ [S1.13.7.11 · pass-6 D3-5] **BOTH figures come off `requiredRows`, and that is the fix.**
+   * The caption used to print `requiredTotal - carryForward`, and those are two populations:
+   * `requiredTotal` is `allocation.totalRequired` (items due before the next paycheck), while
+   * `requiredRows` is that set **plus** `selectRequiredRows`' re-add block — required items marked
+   * paid this cycle whose due date lands AFTER the next paycheck. Each is a tappable checkbox, so
+   * unticking them drove the subtraction negative and the sheet said **`-$250 paid`** about the
+   * user's own money. Reachable by marking a bill paid, then moving the pay date earlier in
+   * `PaycheckSheet` — it writes `nextPaycheckDate` and resets no paid flag. Measured on the real
+   * producers in `paydayRequiredSplit.test.ts`. ⛔ `Math.max(0, …)` is the forbidden remedy.
+   */
+  const { paid: requiredPaidTotal, carries: carryForward } = selectRequiredSplit(requiredRows, requiredPaid);
   const plannedTotal = activeRecommendedActions.reduce((sum, a) => {
     const o = overrides[captureKey(a)] ?? {};
     return o.skipped ? sum : sum + (o.actualAmount ?? a.actualAmount);
@@ -179,7 +189,11 @@ export function PaydayCaptureSheet({
   });
   // Mirror the capture decision: "I followed the plan" (no adjustment) marks all required paid;
   // once adjusted, only the confirmed-paid portion counts (the rest carries forward).
-  const capturedTotal = (hasAdjustedRequired ? Math.max(0, requiredTotal - carryForward) : requiredTotal) + plannedTotal;
+  // ⛔ D3-5's clamped SIBLING, and it is in this same file. The `Math.max(0, …)` here was the author of
+  // the un-clamped `:227` being told by the type system nothing and by the populations everything — it
+  // hid the same cross-population subtraction rather than fixing it, reporting `$150` captured where the
+  // user confirmed `$400`. Both figures now come off `requiredRows`.
+  const capturedTotal = (hasAdjustedRequired ? requiredPaidTotal : requiredTotal) + plannedTotal;
 
   function setOverride(key: string, patch: Partial<PaydayCaptureOverride>) {
     setOverrides((cur) => ({ ...cur, [key]: { ...cur[key], ...patch } }));
@@ -245,7 +259,7 @@ export function PaydayCaptureSheet({
 
   const requiredSub = hasAdjustedRequired
     ? carryForward > 0
-      ? `${formatCurrency(requiredTotal - carryForward)} paid · ${formatCurrency(carryForward)} carries`
+      ? `${formatCurrency(requiredPaidTotal)} paid · ${formatCurrency(carryForward)} carries`
       : 'All confirmed paid'
     : `${requiredCount} due this paycheck`;
 

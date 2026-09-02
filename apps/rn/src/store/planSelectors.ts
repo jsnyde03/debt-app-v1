@@ -26,6 +26,45 @@ export interface RequiredRow {
   dueDate?: string;
 }
 
+/** The id a required row is checked off by — the same key the payday sheet's checkbox writes. */
+export function requiredRowId(row: RequiredRow): string | undefined {
+  const isExpense = row.item.category === 'expense' || row.item.category === 'autopay_expense';
+  return isExpense ? row.item.targetId : (row.item.debtId ?? row.item.targetId);
+}
+
+/**
+ * Split the payday sheet's required rows into what the user confirmed paid and what carries.
+ *
+ * ⛔ **[S1.13.7.11 · pass-6 D3-5] BOTH FIGURES COME OFF THE SAME ARRAY, and that is the whole point.**
+ * The sheet used to print `allocation.totalRequired - carryForward`, and those are two different
+ * populations: `totalRequired` sums the items due before the next paycheck, while `selectRequiredRows`
+ * above adds the re-add block — required items marked paid this cycle whose due date lands AFTER the
+ * next paycheck, restored so a paid bill never silently vanishes. Each is a tappable checkbox, so
+ * unticking them drove the subtraction negative and the sheet said **`-$250 paid`** about the user's
+ * own money (measured on real producers in `paydayRequiredSplit.test.ts`).
+ *
+ * ⛔ **A `Math.max(0, …)` clamp is the forbidden remedy** — `formatCurrency`'s own header calls that
+ * "the exact hide-money behaviour", and it would read *"$0 paid"* while the user looks at rows they
+ * just marked paid. Reducing the complement over the same array makes `paid` a real sum: non-negative
+ * by construction, and `paid + carries` is identically the rows' total.
+ *
+ * A row with no id cannot be checked off, so it counts as paid — matching the `?? true` default the
+ * sheet's own checkbox state uses.
+ */
+export function selectRequiredSplit(
+  rows: RequiredRow[],
+  requiredPaid: Record<string, boolean>,
+): { paid: number; carries: number } {
+  let paid = 0;
+  let carries = 0;
+  for (const row of rows) {
+    const id = requiredRowId(row);
+    if (id && requiredPaid[id] === false) carries += row.item.amount;
+    else paid += row.item.amount;
+  }
+  return { paid, carries };
+}
+
 /** Sum of one or more allocation categories. */
 export function sumCategory(allocation: Allocation, ...categories: string[]): number {
   const set = new Set(categories);
