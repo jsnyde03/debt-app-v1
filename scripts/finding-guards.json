@@ -2851,7 +2851,7 @@
     }
   },
   "S1P6-A1-9-WHATIFROW": {
-    "what": "S1.13.7.10 [pass-6 A1-9] - the What-If e2e's ONLY assertion was getByText(/sooner|saved|less interest/).first(), and the trajectory legend's 'Your plan' row emits those same words from the same deltaSuffix helper AT REST and EARLIER IN THE DOM. So .first() resolved to a row that is on screen before the tool is opened: deleting the entire What-If legend row, or making the extra-payment field a no-op, left the test green - a premium user typing '$300 extra' and being shown no outcome at all was a regression the suite could not see. The two rows are independent BY DESIGN (TrajectoryChart:180-182: the plan-vs-minimums line is 'NEVER overridden'), which is exactly why a text matcher cannot tell them apart and a testID can. The What-If's own row now carries `traj-legend-with-extra`, and THE CONTROL IS THE HALF THAT MAKES IT AN ASSERTION: the row is asserted ABSENT before anything is typed, which is what ties it to the tool - asserting it visible afterwards proves nothing on its own. Planted by gating the row to `false`, i.e. the exact defect the old test stayed green over; it reds `element(s) not found`.",
+    "what": "S1.13.7.10 [pass-6 A1-9] - the What-If e2e's ONLY assertion was getByText(/sooner|saved|less interest/).first(), and the trajectory legend's 'Your plan' row emits those same words from the same deltaSuffix helper AT REST and EARLIER IN THE DOM. So .first() resolved to a row that is on screen before the tool is opened: deleting the entire What-If legend row, or making the extra-payment field a no-op, left the test green - a premium user typing '$300 extra' and being shown no outcome at all was a regression the suite could not see. The two rows are independent BY DESIGN (TrajectoryChart:180-182: the plan-vs-minimums line is 'NEVER overridden'), which is exactly why a text matcher cannot tell them apart and a testID can. The What-If's own row now carries `traj-legend-with-extra`, and THE CONTROL IS THE HALF THAT MAKES IT AN ASSERTION: the row is asserted ABSENT before anything is typed, which is what ties it to the tool - asserting it visible afterwards proves nothing on its own. Planted by gating the row to `false`, i.e. the exact defect the old test stayed green over; it reds `element(s) not found`. ⚠️ THE PROOF RUNS THE WHOLE SPEC FILE, NOT `-g What-If`, AND THAT IS NOT COSMETIC: the What-If test waits a fixed 1500ms for CanvasKit's lazy-load and draw-on, and a filtered single-test run starts COLD. Two prove:guards runs with `-g` failed environmentally - one `webServer was not able to start`, one with the CONTROL red - while the same spec passes 3/3 standalone, because its two earlier tests warm the renderer. A proof command that cannot reliably reach the assertion measures nothing, which is the same class as the finding it guards.",
     "file": "apps/rn/tests/e2e/trajectory-interactivity.spec.ts",
     "token": "traj-legend-with-extra",
     "proof": {
@@ -2868,9 +2868,7 @@
         "test",
         "--config",
         "apps/rn/playwright.config.ts",
-        "trajectory-interactivity.spec.ts",
-        "-g",
-        "What-If"
+        "trajectory-interactivity.spec.ts"
       ],
       "expect": "traj-legend-with-extra"
     }
