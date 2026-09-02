@@ -2,7 +2,7 @@
 
 **Surface:** S1 (money, goals, plan cards) + S0's instruments, per the LOOP rule.
 **Pin:** `4c0f7689` (pass 6's own tree) → HEAD.
-**Route:** generated, never typed — `scripts/audit-route.ts`. **640 files · 0 unrouted · 0 owed.**
+**Route:** generated, never typed — `scripts/audit-route.ts`. **639 files · 0 unrouted · 0 owed.**
 **Split:** `scripts/audit-sublanes.ts` — **12 sub-lanes · 106.0k lines**, asserted total against the four
 parent manifests. **All 457 exit-bearing files are in a sub-lane.**
 
@@ -77,7 +77,7 @@ reds.
 
 ⛔ **AN ARTIFACT THAT EXISTS IS NOT AN ARTIFACT THAT IS READ.** `S1.13.7.12.1` created S2/S3/S4's claims
 files; `audit-route.ts` kept asking the old question and reported **87** files owned by no claims file.
-Pointing it at the new files took that to **26**. *A tested helper is not a used helper* — check the call
+Pointing it at the new files took that to **25**. *A tested helper is not a used helper* — check the call
 site, not the definition.
 
 ⛔ **A REMEDY IS A HYPOTHESIS. A PREMISE IS NOT.** Measured in every round: premises reproduce, remedies do
@@ -114,13 +114,13 @@ hides the app improving while the instruments regress.
 | **`fix-churn`** | 99 | swept, then rewritten. The recorded sweep describes bytes that are gone. **This round's repairs live here.** |
 | **`neighbour`** | 77 | did not change, but imports or shares a consumer with something that did. **Where a two-producer disagreement is visible from the side that did not move** — pass 5's largest bucket carried 4 of 9 blockers. |
 | **`instrument`** | 46 | the checking code the fixing itself wrote. |
-| **`off-surface`** | 31 | changed and on no inventory at all. |
+| **`off-surface`** | 30 | changed and on no inventory at all. |
 | **`s0-first-look`** | 26 | never swept by any pass, S0. |
 | **`first-look`** | 11 | never swept by any pass. [D69] exempts these from the convergence count. ⚠️ **Exempt from the count is NOT exempt from the fix.** |
 
 ⛔ **Known blind spot, stated so you do not have to rediscover it:** **9 files** sit in the import
 neighbourhood of a never-swept file and reached no lane — the neighbourhood is seeded from *changed* only
-([D5-8]). **26 more** are owned by no claims file at all; they are listed in `UNSEEN-NEIGHBOURS.txt`.
+([D5-8]). **25 more** are owned by no claims file at all; they are listed in `UNSEEN-NEIGHBOURS.txt`.
 
 ---
 

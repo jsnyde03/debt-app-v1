@@ -3,7 +3,6 @@ path	lane	origin
 app/page.tsx	D	neighbour
 apps/rn/app.json	D	s0-first-look
 apps/rn/eslint.config.mjs	D	s0-first-look
-apps/rn/m.default())	D	off-surface
 apps/rn/modules/live-activity/ios/PaydayLandedIntent.swift	D	off-surface
 apps/rn/plugins/app-intents-swift/LogPaymentIntent.swift	D	off-surface
 apps/rn/plugins/app-intents-swift/SiriQueryIntents.swift	D	off-surface

@@ -2,7 +2,6 @@
 app/page.tsx
 apps/rn/app.json
 apps/rn/eslint.config.mjs
-apps/rn/m.default())
 apps/rn/modules/live-activity/ios/PaydayLandedIntent.swift
 apps/rn/plugins/app-intents-swift/LogPaymentIntent.swift
 apps/rn/plugins/app-intents-swift/SiriQueryIntents.swift

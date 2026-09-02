@@ -31264,3 +31264,66 @@ surface will eventually own. Filed to the backlog with the `SWEPT_CLAIMS` vocabu
 
 **Captured atomically:** `.12.1` closed on the plan · the class row's remaining steps named (`.12.4`–`.12.6`)
 · both after-scan findings filed to `DEBT_ELEVATION_BACKLOG.md` under their own dated heading.
+
+---
+
+## 2026-09-02 — `S1.13.7.12.4`: pass 7 routed and briefed, and the routing found what building could not
+
+**`docs/audits/2026-09-02-s1-money-pass7/`** — **639 routed · 0 unrouted · 0 owed**, 12 sub-lanes ·
+**106.0k lines**, and ⭐ **all 457 exit-bearing files are already in a sub-lane**, so the coverage exit is
+reachable in one wave. Pin `4c0f7689` (pass 6's own tree) → HEAD, following `s1p6`, dispatched for `s1p7`.
+
+| origin | n | |
+|---|---|---|
+| `stale-read` | **350** | money-bearing and **not read by pass 6** — over half the route |
+| `fix-churn` | 99 | **where this round's repairs live** |
+| `neighbour` | 77 | pass 5's largest bucket carried 4 of 9 blockers |
+| `instrument` | 46 | the checking code the fixing itself wrote |
+| `off-surface` | 30 · `s0-first-look` 26 · `first-look` 11 | |
+
+### ⚡ Routing found two things that building `.12.1` structurally could not
+
+⛔ **`audit-route.ts` was still asking the old question.** `.12.1` created S2/S3/S4's claims files and this
+consumer kept a hardcoded two-entry map — its own docblock even said *"the standing fix is S1.10.6.10 —
+S2/S3/S4 have no claims file at all, and creating them is that."* They now do. It reported **87** routed
+files owned by no claims file; pointing it at all five took that to **25**. ⚠️ **The artifact existed, was
+green in its own gate, and its reader still asked the old question** — *a tested helper is not a used
+helper*, and only running the NEXT step surfaced it. The remaining 25 are correctly homeless: the legacy
+root (12), Swift sources and `apps/rn/modules` (5), manifests and this gate's own records (7),
+`.gitignore` and `package.json`.
+
+⛔ **`apps/rn/m.default())` — a tracked, committed, zero-byte file.** It is the artifact of a shell parsing
+the `>` in `m=>m.default()` as a redirect, and it was **created and committed three separate times**: in
+`ab7daf34` *(the commit titled "my plant harness was lying to me" — the session that first hit this exact
+shell bug)*, in `a933e9be`, and again this round in `4512bbe4`. Removed.
+
+⚠️ **And removing it red the route, correctly.** `audit-route` refuses a manifest naming a file not on
+disk; `--diff-filter=d` excludes only **committed** deletions, so a staged one leaves the path in
+`since..HEAD`. The deletion was committed first, then the route regenerated — **639**, down from 640.
+
+### ⚠️ What was corrected before the record was trusted
+
+**Ten typed figures went stale the moment the route regenerated** (640 → 639, off-surface 31 → 30,
+homeless 26 → 25, lane D2 41 → 40). Every one was corrected and then **reconciled against the generator's
+own summary line**, not against the previous draft. ⛔ **And the DISPATCH's "verify before acting" block
+had told the next session that `audit:route-check` was still pinned to pass 6** — it was, and then it was
+re-pointed, so the instruction became the stale thing. `audit:route-check`, `audit:record-reads` and
+`audit:sublanes` now all name pass 7. ⚡ **A verify-before-acting step pinned to the previous round
+silently verifies the previous round.**
+
+### The brief
+
+`BRIEF.md` carries what the **pass-6 triage measured about its own work** — the pattern every brief in
+this series follows. Its load-bearing entries: a class's own COUNT, SEVERITIES and even "unrated" are
+unreliable *(40 · 5 · 8 · 27 measured against a recorded 35 · 3 · 5 · 7-unrated — all four wrong)* · a
+guard is only as current as the last commit that touched its file · **every defect in the fixer's own work
+was found by an instrument, never by reading** · severity does not predict blast radius *(a **minor's**
+remedy took down all 51 CI e2e tests)* · a live money defect was found while fixing a test · **a harness
+fault wears a finding's face** *(a killed web server scoring `reason=WRONG`)* · an artifact that exists is
+not an artifact that is read.
+
+⚠️ **One new instruction, from this round's own cost:** severity is stated **once, in the `##` heading, in
+one form** — three formats are what forced the re-enumeration.
+
+**Captured atomically:** `.12.4` closed on the plan · `.12.5` promoted to ▶ and marked **FRESH SESSION**
+with the START HERE block named · the three audit npm scripts re-pointed.
