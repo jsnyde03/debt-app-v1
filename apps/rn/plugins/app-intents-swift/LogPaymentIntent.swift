@@ -83,11 +83,33 @@ struct LogPaymentIntent: AppIntent {
         }
         // A Siri intent can't touch the JS/MMKV store, so queue it for the app to apply on next
         // foreground (drains via `logManualPayment`, with Undo).
-        if let defaults = UserDefaults(suiteName: SnapshotStore.appGroup) {
-            var actions = defaults.array(forKey: "pendingActions") as? [[String: Any]] ?? []
-            actions.append(["kind": "log-payment", "id": UUID().uuidString, "debtId": debt.id, "amount": amount])
-            defaults.set(actions, forKey: "pendingActions")
+        //
+        // ⛔ [S1.13.7.11 · pass-6 C3-7] — THE DIALOG USED TO BE OUTSIDE THIS BLOCK, in the past tense.
+        // The `if let` had no `else` and the `return` sat below it, so after the two guards there was
+        // exactly one exit and it asserted success unconditionally. Two ways the body can fail to record
+        // were both silent and both kept the sentence: the suite failing to open, and the cast below.
+        // The user heard "Logged $200.00 toward Chase" — as a completed fact, about their own money —
+        // with no record of it on any surface.
+        guard let defaults = UserDefaults(suiteName: SnapshotStore.appGroup) else {
+            return .result(dialog: "I couldn’t save that. Open Debt Planner and log it there.")
         }
-        return .result(dialog: "Logged \(amount.formatted(.currency(code: "USD"))) toward \(debt.name). Open Debt Planner to see it.")
+        let key = "pendingActions"
+        let raw = defaults.object(forKey: key)
+        // ⛔ THE QUIETER HALF, and it destroys data rather than merely lying about it. `?? []` replaced an
+        // unreadable queue with an empty array and wrote it straight back, so a queued `payday-landed`
+        // was DELETED by a later log-payment. That is the exact failure `PaydayLandedIntent`'s own comment
+        // says the `[String: Any]` element type was chosen to prevent — the type was widened on both
+        // sides and the `?? []` that does the wiping was left in place on both sides too.
+        if raw != nil, raw as? [[String: Any]] == nil {
+            return .result(dialog: "I couldn’t save that. Open Debt Planner and log it there.")
+        }
+        var actions = raw as? [[String: Any]] ?? []
+        actions.append(["kind": "log-payment", "id": UUID().uuidString, "debtId": debt.id, "amount": amount])
+        defaults.set(actions, forKey: key)
+        // ⛔ PRESENT TENSE. Nothing is logged at the moment this is spoken — the action sits in the App
+        // Group until the app is next foregrounded — so "Logged" was a claim about the user's money that
+        // was not yet true and might never become true. `PaydayLandedIntent` is the control: same
+        // architecture, bare `.result()`, claims nothing.
+        return .result(dialog: "Got it — \(amount.formatted(.currency(code: "USD"))) toward \(debt.name). Open Debt Planner to record it.")
     }
 }

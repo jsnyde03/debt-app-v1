@@ -102,6 +102,9 @@
     "s1p3",
     "s1p6"
   ],
+  "apps/rn/src/appIntents/siriClaims.test.ts": [
+    "never"
+  ],
   "apps/rn/src/components/AppLockGate.tsx": [
     "s1p3",
     "s1p6"

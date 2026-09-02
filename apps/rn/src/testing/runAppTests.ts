@@ -28,6 +28,11 @@ async function main() {
   // 3.5.3.5 — the AppIntent → store bridge core (defensive parse · apply-dispatch · drain).
   await import('../appIntents/pendingActions.test');
 
+  // S1.13.7.11 [pass-6 blocker C3-7] — Siri claims only what has happened, and no queue writer replaces
+  // an unreadable queue with an empty one. ⚠️ SOURCE SCAN: nothing here builds the Swift target, so the
+  // spoken half is a device row.
+  await import('../appIntents/siriClaims.test');
+
   // 3.6.6 — the ⌘N add-debt bus latch (held-then-delivered-once).
   await import('../keyCommands/keyCommandBus.test');
 

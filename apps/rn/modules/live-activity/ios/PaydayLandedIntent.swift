@@ -20,9 +20,19 @@ struct PaydayLandedIntent: LiveActivityIntent {
         if let defaults = UserDefaults(suiteName: suite) {
             // `[String: Any]` (not `[String: String]`) so this queue can also hold the log-payment action
             // (which carries a numeric amount) — a `[String: String]` cast would fail + wipe those. (3.5.5)
-            var actions = defaults.array(forKey: key) as? [[String: Any]] ?? []
-            actions.append(["kind": "payday-landed", "id": UUID().uuidString])
-            defaults.set(actions, forKey: key)
+            //
+            // ⛔ [S1.13.7.11 · pass-6 C3-7] — AND THE `?? []` THAT DOES THE WIPING WAS STILL HERE. The
+            // element type was widened on both sides; this was not. An unreadable queue was replaced by an
+            // empty array and written straight back, deleting whatever was already in it — the very
+            // failure the comment above says the widening prevents. A queue that is present and will not
+            // read is left ALONE: this action is lost, which is recoverable, rather than taking the
+            // others with it, which is not.
+            let raw = defaults.object(forKey: key)
+            if raw == nil || raw as? [[String: Any]] != nil {
+                var actions = raw as? [[String: Any]] ?? []
+                actions.append(["kind": "payday-landed", "id": UUID().uuidString])
+                defaults.set(actions, forKey: key)
+            }
         }
         return .result()
     }

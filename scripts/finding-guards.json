@@ -3373,7 +3373,41 @@
         }
       ],
       "run": "test:app",
-      "expect": "the changed payload is attempted"
+      "expect": "the changed payload is attempted",
+      "measured": "2026-09-02",
+      "sha": "4512bbe4"
+    }
+  },
+  "S1P6-C3-7-SIRI-PRESENT-TENSE": {
+    "what": "S1.13.7.11 [pass-6 C3-7, blocker] - Siri said `Logged $200.00 toward Chase` - past tense, as a completed fact - for a payment that has only been QUEUED, and said it even when the queue write did not happen. The `if let` had no `else` and the `return` sat below it, so after the two guards there was exactly ONE exit from perform() and it asserted success unconditionally; both failure modes (the suite not opening, the cast failing) were silent and both kept the sentence. Now: two guards that return a failure dialog, and a present-tense success line that says what is true at that instant plus what the user must still do. PaydayLandedIntent is the control - same architecture, bare .result(), claims nothing. ⛔ SOURCE SCAN ONLY: nothing in this repo builds the Swift target, which the finding's own author also stated, so the SPOKEN half is a device row filed with P6.14. A green run here is not a green run on hardware.",
+    "file": "apps/rn/plugins/app-intents-swift/LogPaymentIntent.swift",
+    "token": "Open Debt Planner to record it.",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/plugins/app-intents-swift/LogPaymentIntent.swift",
+          "find": "dialog: \"Got it — \\(amount",
+          "replace": "dialog: \"Logged \\(amount"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the past-tense claim is gone"
+    }
+  },
+  "S1P6-C3-7-QUEUE-NOT-WIPED": {
+    "what": "S1.13.7.11 [pass-6 C3-7], the quieter half - and it DESTROYS DATA rather than merely lying about it. `defaults.array(forKey:)` returns nil both for `absent` and for `present but not an array`, so `?? []` replaced an unreadable queue with an empty one and wrote it straight back: an already-queued payday-landed was DELETED by a later log-payment. That is the exact failure PaydayLandedIntent's own comment says the [String: Any] element type was chosen to prevent - the type was widened on both sides and the `?? []` that does the wiping was left in place on both sides too. ⚠️ THE FINDING NAMED ONE FILE; THERE ARE THREE, because PaydayLandedIntent is duplicated byte-for-byte (AppIntents route by TYPE NAME, so a fix to one copy that misses the other ships the defect in the target that actually runs). All three read the raw value first now, and the test asserts the two copies are still identical - drift between them is two behaviours under one name.",
+    "file": "apps/rn/plugins/app-intents-swift/LogPaymentIntent.swift",
+    "token": "let raw = defaults.object(forKey: key)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/plugins/app-intents-swift/LogPaymentIntent.swift",
+          "find": "        let raw = defaults.object(forKey: key)",
+          "replace": "        let raw = defaults.array(forKey: key)"
+        }
+      ],
+      "run": "test:app",
+      "expect": "cannot tell \"absent\" from \"unreadable\""
     }
   }
 }
