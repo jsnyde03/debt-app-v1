@@ -154,10 +154,11 @@ fix, and a batch pays that 27 times with no class context to amortise it.
 | ✅ **`C1-4`** *(blocker)* | **CLOSED 2026-09-02** — a reserve-covered $350 rent rendered **$0.00**, carried $0, and the sheet said **“All confirmed paid”** one tap after the user marked it *didn't*. Row headlines the BILL now; **gross for the sentences, NET for `capturedTotal`** *(the mirror bug)*; and the verdict reads `anyUnpaid`, **not a dollar sum**. 3 plants · 2 guards executed |
 | ✅ **`D1-1`** *(major)* | **CLOSED — not work.** `D3-4` found by a second lane; fixed in `S1.13.7.2`, proven by executing its guard |
 | ▶ **`C1-15`** *(blocker)* | ⚠️ **Carries a [DECISION] for 🎯** — once `essentials` is READ rather than back-solved, the receipt's three rows correctly stop summing, so it needs a fourth line naming the moved cash *(or an `Income` row that says it includes it)*. Wording is 🎯's |
-| **`B3-2` · `C3-7`** *(blockers)* | Not started — both were in the bucket labelled *"cheap, do them last"* |
+| ✅ **`B3-2`** *(blocker)* | **CLOSED 2026-09-02** — an unreadable `exportedAt` rendered as **“Saved recently.”** one line above *Replace my data · It can't be undone*, so a 2019 backup and an hour-old one read identically. ⛔ **The check is the string's SHAPE, not whether `Date` accepted it** — `new Date("0")` is VALID (1 Jan 2000), so a NaN guard prints a confident wrong date. The iCloud half takes `B3-3`'s own honest line rather than a new one. 5 plants · 2 guards executed |
+| **`C3-7`** *(blocker)* | Not started — it was in the bucket labelled *"cheap, do them last"* |
 | **7 majors** | `A3-3` `B1-4` `B2-1` `B2-2` `B3-5` `C2-1` `C3-12` |
 
-**13 gating → 3 closed, 10 open** *(3 blockers · 7 majors)*. The 27 minors are untouched by design.
+**13 gating → 4 closed, 9 open** *(2 blockers · 7 majors)*. The 27 minors are untouched by design.
 
 ⭐ **`S1.13.7.9` — all 51 CI e2e failures had ONE cause**, found by `git bisect` over the 36 commits CI had
 never seen: `C1-18`, a **minor** about a literal declared twice, whose remedy made a Skia-importing module

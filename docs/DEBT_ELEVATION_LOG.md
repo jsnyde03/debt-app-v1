@@ -30750,3 +30750,51 @@ status.**
 **Re-proven after the repairs:** all four `D3-5`/`C1-4` guards plus the two entries my `MIN_ENTRIES` edit
 left stale, each `plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED`.
 
+---
+
+## 2026-09-02 — `S1.13.7.11` `B3-2` CLOSED: an unreadable timestamp claims no date at all
+
+**The third member of a class whose other two members had fixtures.** `readBackup.test.ts` covered
+*present and valid* and *absent*; the member with no fixture — **present and UNREADABLE** — is the one the
+code got wrong, and the absent-case block's own comment states the rule it broke: *"Inventing 'recently'
+here would be a statement about a file we know nothing about, on the screen where being wrong is least
+recoverable."*
+
+A backup whose `exportedAt` this build cannot parse rendered as **"This backup has 1 debt, 0 expenses and
+0 goals. Saved recently."** — one line above *Replace my data · It can't be undone*. A backup from 2019
+and one from an hour ago produced the same sentence, which is the entire reason `exportedAt` was plumbed
+through in the first place (`B-J2-2`).
+
+⛔ **The check is on the string's SHAPE, not on whether `Date` accepted it — and that is the half a NaN
+guard could never reach.** `new Date("0")` is a **valid** Date (1 Jan 2000), so the old guard did not fire
+and the screen printed a specific, confident date the file never carried. Planted both ways to prove the
+shape check is load-bearing rather than decorative:
+
+| plant | what redded |
+|---|---|
+| the original `'recently'` fallback | `"banana"` → *"Saved recently."* |
+| **a NaN-only guard** | `"0"` → **"Saved 1/1/2000 at 12:00 AM."** — a confident wrong date |
+
+⚡ **The iCloud half needed no new sentence for its main path.** `S1.13.7.8`'s blocker `B3-3` had already
+given this module `STATUS_UNREADABLE` — *"There is a backup in iCloud, but it isn't reporting when it was
+written. You can still restore from it."* — for the state *"signed in, and the timestamp will not read."*
+**`B3-2` is that same state arriving through a different door**: a timestamp that is present and cannot be
+parsed. It takes `B3-3`'s line rather than a new one.
+
+⛔ **And it must NOT fall through to the branch below**, which is `STATUS_NEVER` — *"Not backed up yet"* —
+over a container that holds a backup. That is the exact trap `B3-3`'s own docblock named one round
+earlier: *"replacing one false statement with a different false statement."* Planted, and it redded with
+`expected "unreadable", got "never"`.
+
+⚠️ **The unclaimed branch could not reuse that line.** Dropping the date from *"A backup from ___ is in
+iCloud — not from this device"* leaves a sentence that no longer parses, and **[B3]'s whole job is that a
+copy this device has not accounted for is never presented as its own work — because the next tap deletes
+it.** So the *"another device"* half has to survive: `STATUS_UNCLAIMED_UNREADABLE` carries it, and the
+test asserts that half explicitly rather than just asserting no date appears.
+
+**Five plants, each red for its named reason, each restore verified byte-identical.** Two guards
+registered and executed; `MIN_ENTRIES` 254 → 256. The unreadable-timestamp layer walk goes **7 → 8** —
+that file's own floor asks for it in the failure message, which is why adding a layer could not be silent.
+
+**Verified:** `typecheck` ×4 · `test:app` exit 0 · `readBackup.test` 111 asserts · the cloud walk 28.
+

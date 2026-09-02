@@ -3211,7 +3211,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the sentence claims NO date"
+      "expect": "the sentence claims NO date",
+      "measured": "2026-09-02",
+      "sha": "769cf076"
     }
   },
   "S1P6-B3-2-ICLOUD-FALLTHROUGH": {
@@ -3227,7 +3229,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "an unreadable stamp lands on the honest line"
+      "expect": "an unreadable stamp lands on the honest line",
+      "measured": "2026-09-02",
+      "sha": "769cf076"
     }
   }
 }
