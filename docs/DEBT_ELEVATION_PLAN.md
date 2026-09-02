@@ -12,7 +12,7 @@
 > [2026-08-26](archive/DEBT_ELEVATION_PLAN_2026-08-26-precleanup2.md) *(1,434 → 641 lines)* — every
 > predecessor verbatim in `archive/`.
 >
-> **How to read this file.** **§1 [RIGHT NOW](#-right-now--s110--pass-3)** — the one thing being
+> **How to read this file.** **§1 [RIGHT NOW](#-right-now--s1137125--run-pass-7--fresh-session)** — the one thing being
 > built, decomposed · **§2 [OPEN, but NOT being built](#-open-but-not-being-built)** — the only other live
 > queue · **everything after that is REFERENCE**: where v1.7 is · the Phase 6 order to submission · what is
 > waiting on Jason · the decisions ledger.
@@ -26,16 +26,29 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.13.7.12 · INSTRUMENT THE REST OF THE TREE, THEN PASS 7**
+## ▶ RIGHT NOW — **S1.13.7.12.5 · RUN PASS 7. ⛔ FRESH SESSION.**
 
-**Surface S1 · money · goals · plan cards.** ✅ **`S1.13.7.11` CLOSED 2026-09-02 — all 13 gating findings**
-*(the class was re-enumerated first: 40 findings · 5 blockers · 8 majors, and NOTHING was unrated)*. Net
-green locally — **`lint:rn` all 46 gates**, typecheck ×4, three unit suites — and pushed. ⛔ **Do not type
-the CI result here**: read it from `gh run list --branch v1.7-dev`, per [D49]'s rule for the gate record.
+> ### ▶ START HERE, COLD
+> **`docs/audits/2026-09-02-s1-money-pass7/DISPATCH.md`** — routed, briefed, re-verified at **`259c0177`**
+> and pushed. **639 routed · 0 unrouted · 0 owed · 457 exit-bearing, every one in a lane.** 12 sub-lanes ·
+> 106.0k lines. **~3–5M tokens.** Hand every lane `BRIEF.md`; it deliberately contains no verdicts.
+> ⚠️ **Verify before acting** — `npm run lint:rn` (**49** gates) and `npm run audit:route-check`, and read
+> each command's OWN summary line, never the pipeline's status.
+
+**Surface S1 · money · goals · plan cards.** ✅ **`S1.13.7.12` — the INSTRUMENTING half CLOSED 2026-09-02**
+(`.12.1` `.12.2` `.12.3` `.12.3a` `.12.3b` `.12.3c` `.12.4`). ⛔ **Do not type the CI result here**: read it
+from `gh run list --branch v1.7-dev`, per [D49]'s rule for the gate record.
 
 ⛔ **S1 STILL DOES NOT CONVERGE.** [D65] exits on 0/0 **twice consecutively** and pass 6 was **123
 findings**, so pass 7 is the next first-candidate and a clean pass 7 still owes a pass 8. ⛔ Everything
 below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⚡ **What the 2026-09-02 session measured, and it is why the brief reads as it does.** Of the pre-authored
+claims it checked, **most were right that something was there and wrong about WHAT** — the *"197 files"*
+was wrong in its number **and** its shape (209 = 86 routed + 123 already skipped by name); *"no instrument
+can even ASK"* was **false**; the persist failure's stated mechanism was false **and its direction
+inverted**; and *"batched returns WRONG, solo MATCHED"* was **inverted**, with batching not the variable at
+all. ⛔ **Reliable about WHERE, unreliable about WHAT — a fifth consecutive round of the same result.**
 
 ⚡ **What `S1.13.7.11` measured, and it sets pass 7's shape.** **A guard is only as current as the last
 commit that touched its file** — building `C1-4` on `D3-5` voided both of `D3-5`'s guards *one commit*
@@ -52,10 +65,13 @@ caught a fuse the day it was written, and `lint:finding-guards` refused three to
 
 ⛔ **THERE IS NO CURRENT GATE RECORD, AND MID-AUDIT THAT IS THE EXPECTED STATE** ([D74]). ⚠️ **Do not type the fingerprint or the file count here** — this block has carried a decayed one twice, which is why [D49] says quote `npm run lint:gate-freshness` and read `gate-status.json`. ⛔ **The harness reports exit 0 over a RED gate** — read the gate's own summary line, never the pipeline's status.
 
-### ⏭ WHAT THE NEXT SESSION PICKS UP
+### 📜 LESSONS FROM PASSES 4–5 — kept because they still govern. ⛔ NOT A QUEUE.
 
-✅ **`S1.11.1`, `S1.11.2` and `S1.11.3` are CLOSED.** Pass 4 recorded *(29 of 34 count, **all eight blockers**)*; all seven instruments repaired; and the guard ledger now carries **evidence rather than tokens** — 40 entries with executed proofs, ⛔ **119 still resting on a token alone.**
-▶ **`S1.11.4` — CLASS 1, the 13 partial-fix members.** ⛔ **One assertion per class that ITERATES the class**, never one that names a member: fixing these one id at a time is what produced this round. Decomposed below.
+⛔ **THIS SECTION IS ARCHAEOLOGY.** It was headed *"what the next session picks up"* and pointed at
+**`S1.11.4`** — a pass-4-era step, closed 2026-08-29 — for four rounds after that stopped being true.
+**The live pointer is the `▶ RIGHT NOW` block at the top of this file, and nothing else.** *(Corrected
+2026-09-02 while writing the pass-7 handoff: a stale "next" line beside a current one is worse than no
+line, because a cold session cannot tell which is live.)*
 
 ⛔ **A finding's MECHANISM is a hypothesis; its site list is a floor.** Measured repeatedly here — in one cluster **4 of 4** stated mechanisms were wrong while all four observations stood, and **three of the proposed fixes would not have closed the defect.** Verify what a finding says to DO against the current code before writing anything.
 
@@ -242,7 +258,7 @@ and three lanes named the obvious fix as wrong.
 | ✅ **S1.13.7.9** | **CLOSED 2026-09-01 — THE SUITE IS GREEN IN CI.** All 51 CI failures / 37 local had **one cause**, found by `git bisect`: `2c77aceb`, where `C1-18`'s remedy put a Skia-importing module in Today's graph. ⚡ **Two hypotheses were refuted along the way** — the shared-fixture due dates *(moved one cluster and not another)* and then "multi-cause" itself *(the root fix made that cluster pass with the fixture untouched)*. New guard in `lint:import-graph`, proven. Detail → log | 51 | CLOSED |
 | ✅ **S1.13.7.10** | **CLOSED 2026-09-02 — TESTS THAT CANNOT FAIL, 18 of 19** *(19, not 18 — see `.10.1`)* — `A1-1` `A1-2` `A1-3` `A1-6`–`A1-11` `A2-7` `A3-4` `A3-14`–`A3-17` `B2-4` `D1-4` `D1-5` `D1-6`. ⛔ **LAST among the triage classes, and fixed KNOWING what the classes above got wrong** — these are what re-verify everything, so repairing them first re-verifies against the same blind spots. Decomposed below | 18 | every assertion reachable and falsifiable |
 | ✅ **S1.13.7.11** | **CLOSED 2026-09-02 — all 13 gating findings.** Re-enumerated first: **40 · 5 blockers · 8 majors · 27 minors**, nothing unrated *(the first pass said 35/3/5/7-unrated — all four wrong)*. 2 gates added · 14 guards executed. Collapsed above; detail → log | 40 | CLOSED |
-| ▶ **S1.13.7.12** | **INSTRUMENT THE REST OF THE TREE, THEN PASS 7** *(🎯 2026-08-31)* — ✅ **the instrumenting half is DONE**: the 197 re-measured to **209** *(86 routed + 123 already skipped by name)*, **S2/S3/S4 now exist as DERIVED surfaces** carrying all 86, and both `prove:guards` repairs landed with [D78]. ▶ **Remaining: `.12.4` route pass 7 · `.12.5` run it · `.12.6` triage to 0/0.** Decomposed above | 86 | every routed file on a claims file ✅ |
+| ▶ **S1.13.7.12** | **INSTRUMENT THE REST OF THE TREE, THEN PASS 7** *(🎯 2026-08-31)* — ✅ **the instrumenting half is DONE**: the 197 re-measured to **209** *(86 routed + 123 already skipped by name)*, **S2/S3/S4 now exist as DERIVED surfaces** carrying all 86, and both `prove:guards` repairs landed with [D78]. ▶ **Remaining: `.12.5` RUN pass 7 (routed + briefed, fresh session) · `.12.6` triage to 0/0.** Decomposed above | 86 | every routed file on a claims file ✅ |
 | **S1.13.7.13** | **RE-RUN PASS 7** — [D65] needs a second consecutive clean pass. Route from `s1p7`, same 12-lane shape. ⚠️ Forecast: pass 7 will find the FIXES' own defects — every prior round did — so 0/0 twice is realistically passes 8–9 | — | 0/0 twice |
 
 ✅ **`S1.13.7.10`'s seven sub-steps — CLOSED 2026-09-02, collapsed here.** 18 of 19 *(the class is 19, not
