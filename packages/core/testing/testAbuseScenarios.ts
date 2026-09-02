@@ -281,32 +281,19 @@ toxicProjection.estimatedDebtFreeDate,
 "toxic projection unable to estimate"
 );
 
-// Import/export abuse: JSON roundtrip with many IDs preserves identity.
-const bigBackup = {
-debts: Array.from({ length: 100 }, (_, index) => ({
-id: `debt-${index + 1}`,
-name: "Duplicate Name",
-balance: 100 + index,
-})),
-completedRecommendedActions: [
-{
-targetId: "debt-88",
-label: "Extra payment to Duplicate Name",
-category: "snowball",
-recommendedAmount: 25,
-actualAmount: 25,
-},
-],
-};
-
-const restoredBackup = JSON.parse(JSON.stringify(bigBackup));
-
-assertEqual(restoredBackup.debts[87].id, "debt-88", "backup preserves debt ID");
-assertEqual(
-restoredBackup.completedRecommendedActions[0].targetId,
-"debt-88",
-"backup preserves completed action target ID"
-);
+// ⛔ **S1.13.7.10 [pass-6 `D1-6`] — AN "IMPORT/EXPORT ABUSE" BLOCK STOOD HERE AND TOUCHED NO PRODUCT CODE.**
+//
+// It built 100 debts by hand, ran `JSON.parse(JSON.stringify(x))` over them, and asserted "backup
+// preserves debt ID". This file imports exactly two symbols — `allocatePaycheck` and `projectDebtPayoff` —
+// so it cannot reach the backup path at all, and the block could never red for any change to this repo.
+// A reader auditing what covers the restore door would have counted it.
+//
+// ⚡ **The property it gestured at was worth keeping and is now REAL**: `apps/rn/src/data/backup.test.ts`
+// round-trips a 100-debt portfolio through `serializeBackup` → `parseBackup`, with every row named
+// "Duplicate Name" so that nothing but the id can tell row 88 from row 87.
+//
+// ⚠️ Removed rather than repaired in place, for `A3-17`'s reason: there is nothing in `packages/core` to
+// repair it WITH, because the property is not a core property.
 
 console.log("✅ Abuse scenario tests passed.");
 }

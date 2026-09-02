@@ -73,4 +73,18 @@ test('the Notifications toggle explains itself when it cannot be turned on', asy
   await page.waitForTimeout(500);
 
   expect(messages.length, 'a failed enable says something (was: silent snap-back)').toBeGreaterThan(0);
+
+  /**
+   * ⛔ **S1.13.7.10 — AND IT MUST SAY WHAT WENT WRONG, NOT MERELY SAY SOMETHING. [pass-6 `A1-11`]
+   *
+   * `messages.length > 0` alone is satisfied by an EMPTY dialog, a raw error, or a message about
+   * something else entirely — a user meeting any of those is one step from the silent snap-back this
+   * test exists for. ⚠️ The web outcome is `unsupported` (`notifications.web.ts`: there is nothing to
+   * grant), and `more.tsx` speaks it as *"Not available here / Reminders are a feature of the iPhone
+   * app."* — so the invariant this file pins (**every non-granted outcome is spoken**) is checked here
+   * against the branch web actually reaches, exactly as the header says.
+   */
+  const spoken = messages.join(' | ');
+  expect(spoken.trim().length, `the dialog is not empty (got ${JSON.stringify(spoken)})`).toBeGreaterThan(10);
+  expect(spoken, 'the dialog NAMES the reason rather than merely appearing').toMatch(/Not available here|iPhone app/);
 });

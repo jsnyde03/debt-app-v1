@@ -50,11 +50,51 @@ const SHORT = scenario({
   livingExpenses: [{ id: 'liv', name: 'Everyday', amount: 300, enabled: true }],
 });
 
+/**
+ * ⛔ **S1.13.7.10 — THE ARITY BOTH FIXTURES AVOIDED: money with CENTS. [pass-6 `A1-3`]
+ *
+ * The hero's a11y label composes FOUR independently-`formatWhole`'d numbers, and both fixtures above use
+ * whole dollars — the one arity where four independent roundings are lossless. So the instrument that
+ * exists to stop *"a partition that does not conserve"* could not see a non-conservation of less than
+ * about $2. ⚡ A real plan carries cents, and a screen-reader user hears all four.
+ *
+ * ⚠️ **AND THE FINDING'S SECOND CLAIM DID NOT REPRODUCE, WHICH IS WORTH AS MUCH AS THE FIRST.** It
+ * predicted that a real cents plan's hero *already* speaks four numbers that do not add up. Measured on
+ * two arities: `.33/.33/.34` rounds **up then down** (`Required $667, Spoken for $333`) and conserves;
+ * `.60/.60/.60` lands in the shortfall branch (`Required $666, Spoken for $334`) and conserves. The
+ * segments are a **partition of the headline**, not four free numbers — so the coverage gap was real and
+ * the predicted defect is not there. The arity is covered now either way.
+ */
+const CENTS = scenario({
+  paycheck: { amount: '1000', nextPaycheckDate: day(10) },
+  debts: [],
+  requiredExpenses: [
+    { id: 'e-a', name: 'Rent', amount: 333.33, dueDate: day(3), recurrence: 'monthly', category: 'housing' },
+    { id: 'e-b', name: 'Power', amount: 333.33, dueDate: day(4), recurrence: 'monthly', category: 'utilities' },
+  ],
+  livingExpenses: [{ id: 'liv', name: 'Everyday', amount: 333.34, enabled: true }],
+});
+
 const HEALTHY = scenario({
   paycheck: { amount: '2000', nextPaycheckDate: day(10) },
   debts: [],
   requiredExpenses: [{ id: 'e-rent', name: 'Rent', amount: 950, dueDate: day(3), recurrence: 'monthly', category: 'housing' }],
   livingExpenses: [{ id: 'liv', name: 'Everyday', amount: 400, enabled: true }],
+});
+
+test('A1-3 · the split conserves when the money carries CENTS — four roundings, one headline', async ({ page }) => {
+  await seedStore(page, CENTS);
+  await page.goto('/');
+  const p = await heroParts(page);
+
+  expect(p.headline, `headline missing from: ${p.label}`).not.toBeNull();
+  expect(p.required, `Required missing from: ${p.label}`).not.toBeNull();
+
+  const sum = (p.required ?? 0) + (p.spokenFor ?? 0) + (p.flexible ?? 0);
+  expect(
+    sum,
+    `a screen-reader user hears these four numbers — they must add up: got ${sum} of ${p.headline} in: ${p.label}`,
+  ).toBe(p.headline);
 });
 
 test('the paycheck split conserves in a SHORTFALL — the state the hero matters most in', async ({ page }) => {

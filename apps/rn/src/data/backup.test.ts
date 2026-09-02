@@ -297,4 +297,42 @@ function storeWithDebt(): DebtStore {
   }
 }
 
+// ── S1.13.7.10 [pass-6 D1-6] — a LARGE portfolio, with duplicate names, through the real envelope. ──
+{
+  /**
+   * ⛔ **S1.13.7.10 [pass-6 `D1-6`] — `testAbuseScenarios.ts`'s "Import/export abuse" block asserted `JSON.parse(JSON.stringify(x))`
+   * over 100 hand-built debts — the only import/export coverage in a file whose whole subject is abuse,
+   * and it could never red for any change to this repo. The one property it was gesturing at is worth
+   * keeping: identity survives at SCALE, with names that do not distinguish rows.
+   *
+   * ⚠️ ** Duplicate names are the point. Every debt here is called "Duplicate Name", so nothing but the ID
+   * can tell row 88 from row 87 — which is exactly the condition under which an identity bug is
+   * invisible on screen.
+   */
+  const big = createDefaultStore();
+  big.debts = Array.from({ length: 100 }, (_, i) => ({
+    id: `debt-${i + 1}`,
+    name: 'Duplicate Name',
+    balance: 100 + i,
+    minimumPayment: 25,
+    apr: 19.99,
+    dueDate: '2026-09-04', // fixture-date-ok: identity at scale; no branch here reads a clock
+    type: 'debt' as const,
+    recurrence: 'monthly' as const,
+  }));
+  big.completedRecommendedActions = [
+    { targetId: 'debt-88', label: 'Extra payment to Duplicate Name', category: 'snowball', recommendedAmount: 25, actualAmount: 25 },
+  ];
+
+  const round = parseBackup(serializeBackup(big));
+  assert(round.ok, 'a 100-debt portfolio round-trips through the real envelope');
+  if (round.ok) {
+    const back = round.envelope.store;
+    eq(back.debts.length, 100, 'all 100 debts survive');
+    eq(back.debts[87]?.id, 'debt-88', '⚡  the 88th row is still the 88th row — ORDER carries the identity here');
+    eq(back.debts[87]?.balance, 187, '...with its own balance, not a neighbour’s');
+    eq(back.completedRecommendedActions[0]?.targetId, 'debt-88', '...and the action still points at it');
+  }
+}
+
 console.log(`✅ backup envelope tests passed (${passed} asserts).`);
