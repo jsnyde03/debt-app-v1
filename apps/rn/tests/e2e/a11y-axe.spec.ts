@@ -39,8 +39,18 @@ const RULES = [
   'aria-allowed-attr',
 ];
 
+/**
+ * ⛔ **S1.13.7.10 [pass-6 `A1-6`] — THE `prefs` MERGE WAS DISCARDED BY THE SPREAD THAT FOLLOWED IT.**
+ *
+ * `{ prefs: {...merged}, ...over }` puts `over.prefs` **after** the merge, so the merged object was built
+ * and then overwritten wholesale. The helper's contract is *"an onboarded user, plus your overrides"*, and
+ * the next caller passing a `prefs` override without re-stating `onboardingComplete: true` would get a
+ * store that is **not onboarded** — the route guard renders onboarding, and an a11y scan written for Today
+ * would silently scan a different screen and still return `[]`. ⚠️ Currently masked by every caller
+ * restating it, which is why nothing was red.
+ */
 const newUser = (over: Record<string, unknown> = {}) =>
-  scenario({ prefs: { onboardingComplete: true, ...(over.prefs as object) }, ...over });
+  scenario({ ...over, prefs: { onboardingComplete: true, ...(over.prefs as object) } });
 
 async function violations(page: import('@playwright/test').Page) {
   // `[inert]` excluded: axe does not model the attribute, so it reports an inert subtree that still

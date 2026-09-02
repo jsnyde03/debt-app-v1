@@ -959,3 +959,12 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   rest **legitimately-invalid fixtures** (`data-recovery.spec.ts` seeds `balance: null` on purpose; that
   suite exists for it). ⛔ Blanket-casting the last group would defeat the check, so it needs a deliberate
   pass rather than a sweep — which is why it is filed rather than folded in.
+
+- **A `toHaveCount(0)` over a string the app never renders can never fail — gate it.** → **`S1.13.7.11`**
+  or a later instrument pass. Found closing `A1-10`: **three** tests asserted the absence of *"Your floor
+  is protected, starting today"*, a string that appears **nowhere in `apps/rn/src`** (5.6 removed the
+  static intro). `absence-assertions-pass-before-render` in its purest form — the assertion was not merely
+  passing early, its subject did not exist. ⚡ **Checkable:** every literal inside a `toHaveCount(0)` /
+  `toBeHidden()` in the e2e tree should appear somewhere in app source, or be named as a deliberate
+  never-rendered sentinel. ⚠️ Not folded in here because the population needs measuring first — a sweep
+  would likely find more, and a gate whose first run reds on twenty sites needs its own step.

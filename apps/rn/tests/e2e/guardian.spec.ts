@@ -60,22 +60,27 @@ test.describe('Payday Guardian — surfaces + trouble-flows', () => {
     // decision: the old copy must stay gone, and the teaching surface must be the invitation.
     await seedStore(page, scenario());
     await page.goto('/');
-    await expect(page.getByText('Your floor is protected, starting today')).toHaveCount(0);
     await expect(page.getByTestId('tutorial-invite')).toBeVisible();
   });
 
-  test('premium · intro already seen: not shown again', async ({ page }) => {
-    await seedStore(page, scenario({ prefs: { onboardingComplete: true } }));
-    await page.goto('/');
-    await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
-    await expect(page.getByText('Your floor is protected, starting today')).toHaveCount(0);
-  });
+  /**
+   * ⛔ **S1.13.7.10 [pass-6 `A1-10`] — "premium - intro already seen: not shown again" STOOD HERE AND COULD NOT FAIL. [pass-6 `A1-10`]
+   *
+   * It seeded `guardianIntroSeen: true` — a pref **v7 deletes** (`migrations.ts` strips it before the
+   * app ever sees it) — and then asserted the absence of *"Your floor is protected, starting today"*,
+   * a string that **appears nowhere in `apps/rn/src`**. Both halves were inert: it manipulated a field
+   * with no reader and asserted an absence that is trivially true. With the dead pref removed by
+   * `A1-2`'s sweep it became a byte-for-byte duplicate of the free-tier test below.
+   *
+   * ⚠️ ** Deleted rather than repaired because its SUBJECT was removed: 5.6 dropped the static intro
+   * entirely, and `tutorialSeen` replaced it. The property worth guarding — that the Guardian renders
+   * for premium — is asserted by the tests around it.
+   */
 
   test('free · no first-run intro (premium-only)', async ({ page }) => {
     await seedStore(page, scenario({ subscriptionPlan: 'free' }));
     await page.goto('/');
     await expect(page.getByText('PAYDAY GUARDIAN')).toBeVisible();
-    await expect(page.getByText('Your floor is protected, starting today')).toHaveCount(0);
   });
 
   test('no plan: Today prompts for a paycheck, and the Guardian card does not appear', async ({ page }) => {
