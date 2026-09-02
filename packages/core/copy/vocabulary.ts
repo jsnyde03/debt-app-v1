@@ -87,6 +87,19 @@ export const EMERGENCY_FUND_NOUN = "your emergency fund";
 export const EVERYDAY_SPENDING_LABEL = "Everyday spending";
 
 /**
+ * The caption under a required row whose bill the expense reserve part-funds, following the formatted
+ * amount: *"$350.00 from your reserve"*.
+ *
+ * ⚠️ **Added at `S1.13.7.11` [pass-6 `C1-4`], and the strings gate caught the duplication as it was being
+ * created** — the same way `EVERYDAY_SPENDING_LABEL` arrived. ⛔ **That is not incidental here.** `C1-4`
+ * IS these two surfaces disagreeing: `RequiredActionsCard` headlined `amount + reserveCovered` from
+ * `[T6.6 · L4-6]` while `PaydayCaptureSheet` rendered `amount` alone and printed **$0.00** for a
+ * fully-covered $350 rent. Typing the caption a second time to fix that would have re-created the exact
+ * condition — two surfaces, one sentence, agreeing only until somebody edits one.
+ */
+export const FROM_RESERVE_CAPTION = "from your reserve";
+
+/**
  * The Guardian's three cash states, as the user reads them (T4.5 / audit L1-7). The engine's states are
  * `clear` | `tight` | `at-risk`; "Crunch" was a fourth name for the third one.
  *

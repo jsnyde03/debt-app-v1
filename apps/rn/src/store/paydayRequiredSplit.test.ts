@@ -208,8 +208,14 @@ assert(
   'and no row renders this paycheck\u2019s share alone — the $0.00-for-$350-rent render is gone',
 );
 assert(
-  sheetCode.includes('row.item.reserveCovered ?? 0) > 0 ?') && sheetCode.includes('from your reserve'),
-  'the row carries the "from your reserve" caption, so the gross headline is explained',
+  sheetCode.includes('row.item.reserveCovered ?? 0) > 0 ?') && sheetCode.includes('{FROM_RESERVE_CAPTION}'),
+  'the row carries the reserve caption, so the gross headline is explained rather than bare',
+);
+// ⛔ And it is the SHARED caption, not a second copy of the sentence. C1-4 IS these two surfaces
+// disagreeing; typing the caption again here would have re-created the condition while fixing the symptom.
+assert(
+  /import \{[^}]*FROM_RESERVE_CAPTION[^}]*\} from '@core\/copy\/vocabulary'/.test(sheetCode),
+  'the caption comes from the one owner in @core/copy/vocabulary, not a second literal',
 );
 assert(
   !/carryForward > 0/.test(sheetCode),

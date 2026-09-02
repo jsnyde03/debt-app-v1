@@ -1,4 +1,4 @@
-import { PAYCHECK_SEGMENT } from '@core/copy/vocabulary';
+import { FROM_RESERVE_CAPTION, PAYCHECK_SEGMENT } from '@core/copy/vocabulary';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -180,7 +180,6 @@ export function PaydayCaptureSheet({
    */
   const {
     paid: requiredPaidTotal,
-    carries: carryForward,
     paidGross: requiredPaidGross,
     carriesGross: carryForwardGross,
     anyUnpaid,
@@ -265,10 +264,10 @@ export function PaydayCaptureSheet({
 
   /**
    * ⛔ [S1.13.7.11 · pass-6 C1-4] **The verdict reads the user's ANSWERS (`anyUnpaid`), never a dollar
-   * sum**, and the sentence states the BILL (gross), not this paycheck's share of it. Keyed on
-   * `carryForward > 0` this said *"All confirmed paid"* about a $350 rent the user had just marked
-   * *"Didn't pay"* — a bill the expense reserve fully covers has `item.amount === 0`, so the money
-   * carried was $0 whatever the user answered.
+   * sum**, and the sentence states the BILL (gross), not this paycheck's share of it. Gated on
+   * `carryForward > 0`, this line used to render *"All confirmed paid"* about a $350 rent the user had
+   * just marked *"Didn't pay"* — a bill the expense reserve fully covers has `item.amount === 0`, so the
+   * money carried was $0 whatever the user answered.
    */
   const requiredSub = hasAdjustedRequired
     ? anyUnpaid
@@ -355,7 +354,7 @@ export function PaydayCaptureSheet({
                             gross figure above would silently disagree with the paycheck's own arithmetic. */}
                         {(row.item.reserveCovered ?? 0) > 0 ? (
                           <Text style={[textStyles.caption, { color: c.accent.primary }]}>
-                            {formatCurrency(row.item.reserveCovered ?? 0)} from your reserve
+                            {formatCurrency(row.item.reserveCovered ?? 0)} {FROM_RESERVE_CAPTION}
                           </Text>
                         ) : null}
                       </View>

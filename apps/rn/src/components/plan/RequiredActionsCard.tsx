@@ -1,4 +1,4 @@
-import { OVERDUE_LABEL } from '@core/copy/vocabulary';
+import { FROM_RESERVE_CAPTION, OVERDUE_LABEL } from '@core/copy/vocabulary';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -383,7 +383,7 @@ function RequiredRowView({
               headline states the BILL and this says where it comes from. */}
           {reserveCovered > 0 ? (
             <Text style={[textStyles.caption, { color: c.accent.primary }]}>
-              {formatCurrency(reserveCovered)} from your reserve
+              {formatCurrency(reserveCovered)} {FROM_RESERVE_CAPTION}
             </Text>
           ) : null}
         </View>
