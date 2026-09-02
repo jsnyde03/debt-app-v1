@@ -240,11 +240,29 @@
   imports FROM the dying tree in four places** — `history/selectVisibleHistory.ts` *(production code, and it
   has **zero callers in `apps/rn`**, so it is dead core code)* plus `testSafeStorage`,
   `testSubscriptionGating` and `runRegressionTests`'s `@/lib/storage/testMigrateOriginalBalance`. They rest
-  on **five root modules totalling 293 lines** (`lib/subscription/{plans,hasFeatureAccess,features}` ·
+  on ~~**five root modules totalling 293 lines**~~ (`lib/subscription/{plans,hasFeatureAccess,features}` ·
   `lib/storage/{safeStorage,migrateState}`). ⚡ **Different failure shape from C8:** the parser would have
   gone *silent*; these break `test:regression` **loudly** — which is why they need moving, not rescuing.
   ⚠️ `packages/core/tsconfig.json`'s own `@/*` alias comment already routes them here; **the P6.11 row lists
   what to REMOVE and never what must MOVE FIRST.** *(g.1)*
+  ⛔ **CORRECTED 2026-09-02 by pass 7's `D3-1` — this row's number and the plan's BOTH undercount.** The
+  closure is **7 files · 12 edges · 351 lines**, not *"5 modules · 293 lines"* here nor *"7 files · 8 edges"*
+  on the plan. **Both lists were built by ONE-HOP greps** and miss **`lib/analytics/track.ts`**, reached at
+  hop 2 via `lib/storage/safeStorage.ts:1`. Measured two independent ways that agree — `tsc --listFiles` on
+  `packages/core` and a closure runner *(kept at `docs/audits/2026-09-02-s1-money-pass7/d3-closure.mjs`)*.
+  ⚠️ **`typecheck:core` exits 0 over these today**, so deleting the tree from either list breaks `typecheck`
+  and `test:regression` — steps of `validate:release:rn` *and* of `web-e2e.yml`, which runs on every push.
+  **Re-derive the closure mechanically at `P6.11` switch-in; do not trust either written list.**
+- **`preflight:xcuitest` reads its only fixture out of the tree `P6.11` deletes**
+  (`ios/App/App.xcodeproj/project.pbxproj`), and `P6.11`'s written scope never names it. Its own comment says
+  to vendor a copy — but says so against **`5.5.1`**, the retired number, ⛔ **as do four other instrument
+  comments, so a `grep P6.11` over `scripts/` misses all five.** → **`P6.11`**, surfaced by pass 7 `D3-2`.
+- ⚠️ **The legacy root is NOT inert, though it does not ship.** Pass 7 `D3` verified nothing builds or serves
+  it *(codemagic builds `apps/rn`; `web-e2e.yml` dropped `build`/`serve out`; `legacy-container-capture.yml`'s
+  trigger is retired; `validate:release:legacy` has zero call sites)* — **but the release gate compiles and
+  executes it through `packages/core`.** ⭐ **`S1.12.11`'s conflict-marker precedent does NOT recur**: no
+  markers anywhere in `app/`, `components/`, `lib/`, `tests/`, and every gate that skips the tree declares the
+  skip with a reason.
 - **Split `DEBT_ELEVATION_LOG.md`** (18.4k lines, well past one-pass readability). ⚠️ Its ordering is mixed —
   newest-first at the top, but f.1–f.5 and [D58] appended at the **end**; the split should settle one order.
 
@@ -1072,3 +1090,64 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   the list is an allow-list and a typo there silently converts an unread file into a read one. Recorded so
   the session that meets that red reads it as an unfinished edit rather than a broken gate, exactly as
   `MAX_AUTHORED`'s nudge does for `prove:guards`.
+
+### ⤵ filed by **[D80]** from S1 pass 7, 2026-09-02 — ⛔ WON'T FIX unless a class opens the file
+
+🎯 *"we should not fix all minor findings. Unless they directly break or hinder the user then they should be
+backlogged. Fixing everything is not sustainable."*
+
+⛔ **These are not "later" — they are won't-fix-unless-adjacent.** With 125 items already deferred, a queue
+nobody will schedule is a won't-fix list wearing a later label, so the honest label is used. **The trigger
+that revives one is a triage class opening its file for another reason** — the cost of a minor is
+re-verifying a weeks-old premise, not the fix, so it is only cheap while the file is already open.
+
+⚠️ **17 of pass 7's 48 minors were KEPT** and live on the plan at `.12.6.10`/`.12.6.11`, because they reach
+the user *(a11y hindrance counts)* or are money-shaped and owed a severity re-check. Everything below is the
+remainder. Full text for every id → the lane files in
+[`docs/audits/2026-09-02-s1-money-pass7/`](audits/2026-09-02-s1-money-pass7/).
+
+**Stale comments and carried premises — a docblock decays like a carried number.**
+- `A3-3` · `D2-2` · `B3-4` — the same false instruction in three places: `prove:guards` prints that draining
+  the authored ratchet reds `lint:finding-guards`. **It does not** — that counter is a deliberate ceiling.
+  ⚠️ **Three lanes found this independently**; it survives because it is printed on a **success** path.
+- `A2-7` `A3-10` — `debtPlannerStorage.ts` and the `Debt` type both still state the `originalBalance` BNPL
+  carve-out that **the same commit measured false and removed**; every live writer stamps it.
+- `A3-8` — `GUARDIAN_STATE_LABEL`'s rule *"A SHORTFALL IS NOT ONE OF THESE"* is orphaned onto `PRIVACY_CLAIM`,
+  65 lines from the constant it governs.
+- `A3-13` — `testEngineFuzz` documents `suggestLean`'s fallback as *"the MAX of the actuals"*, which was pass
+  6's **blocker `A3-9`**, already fixed — ⚠️ **and its assertion cannot tell the two apart.**
+- `A1-3` `A1-13` `C1-12` `C1-14` `B3-6` `D2-3` `C2-10` — docblocks and comments asserting properties that are
+  false of the code beside them *(a spec docblock, a neighbour's premise, a retired discriminator, a prop doc
+  naming a field the wrapper does not pass, "`lint:money` keeps it at two" against three formatters, a
+  `--record` flag that no longer exists, an inert wrapper with a false stated mechanism)*.
+- `B2-7` — a botched mechanical edit left **four garbled docblock headings** in the store's main instrument,
+  one unreadable at the exact word naming its subject. ⚠️ *Prefer the Edit tool over scripts.*
+- `A2-10` — `buildAmortizationSchedule` is a **third** copy of the negative-amortization guard, in the same
+  directory as the fix whose comment says a third copy must not exist.
+- `A2-4` — the safety argument that justified pass-6 `A3-1`'s widening, now measurably false.
+
+**Instrument cosmetics and vacuous checks with no user-facing consequence.**
+- `A1-6` — `route-smoke.spec.ts` claims *"every route"* and walks a hand-typed list of **10** against an app
+  with **13**. ⚠️ *An enumerated scope list, undercounting — the recurring shape.*
+- `A1-8` — ten assertion-free screenshot rows inside the release gate, and the config written to keep them out
+  states they are not there.
+- `C1-10` `C1-11` — a fixture building repairs with a `kind` that is not a member of the type; an
+  "opposite direction" case never covering the fourth producer.
+- `C1-8` — a word removed from a heading survives 38 lines below it, in the same component.
+- `D1-10` — `lint:finding-guards` prints its `✅` **before it has decided**, so a failing run emits a green
+  tick and a red verdict together.
+- `D1-14` — `lint:contrast` enforces *"a token nothing paints is arithmetic about nothing"* for exactly one
+  token; `text.inverse` has zero consumers and is named nowhere in the grid.
+- `D2-5` — `audit-route --surface=s0` is dead by construction: reports all 130 S0 files double-owned and sends
+  the operator to fix a config error that does not exist.
+- `D2-6` — `audit-sublanes`' per-parent count assertion cannot fail, **and its docblock says the opposite in
+  the same breath** — the `D4-11` shape committed a fifth time.
+- `D2-9` — the iOS visual-regression comparator is wired to nothing, and its bootstrap turns a wiped baseline
+  set into a green run. ⚠️ **`P6.11` deleting `tests/` will do exactly that** — check at `P6.11` switch-in.
+- `D2-11` — two byte-identical Swift copies of the payday-rollover queue kept in sync **by a comment**; every
+  gate stays green over a divergence, and the pass-6 fix that landed here already recurred once.
+- `B3-9` — the *"field-for-field from `origin/v1.6-dev`"* fixture is field-for-field at the top level only;
+  its debt row omits `apr`, which v1.6 declares required.
+
+⚠️ **`D3-2` `D3-3` `D3-4` are NOT here** — they are filed above under **`→ P6.11`**, with `D3-1`'s corrected
+move-set, because they belong to that phase's scope rather than to S1 triage.

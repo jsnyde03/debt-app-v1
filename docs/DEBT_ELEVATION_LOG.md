@@ -31327,3 +31327,223 @@ one form** — three formats are what forced the re-enumeration.
 
 **Captured atomically:** `.12.4` closed on the plan · `.12.5` promoted to ▶ and marked **FRESH SESSION**
 with the START HERE block named · the three audit npm scripts re-pointed.
+
+
+---
+
+## ▶ S1.13.7.12.5 — PASS 7 RUN, RECORDED AND CLASSIFIED (2026-09-02)
+
+**137 findings · 34 `blocker` · 55 `major` · 48 `minor`.** 12 fresh lane agents, two waves of six, no
+sub-agents, heap 1536 MB, **no OOM in any lane**. Record →
+[`CLASSIFICATION.md`](audits/2026-09-02-s1-money-pass7/CLASSIFICATION.md); the twelve lane files and their
+read-lists sit beside it, with re-runnable probes in five `*-probes/` directories.
+
+### The verification that preceded the dispatch — and the one number in it that is now disputed
+
+Read off **each command's own summary line**, never the pipeline's status: the tree was **source-identical
+to the dispatch pin `259c0177`** *(two intervening commits, both docs-only)* · `audit:route-check` **639
+routed · 0 missing · 0 owed · 457 exit-bearing, all in a lane** · `lint:rn` **all 49 gates pass** ·
+`test:gate-plants` **all 25 gates fail closed on a planted defect** · and the pass-7 directory held no
+`READ-*.txt` or `*-findings.md`, so the round had genuinely not started.
+
+⚠️ **`D1-12` then measured that one of those figures does not mean what it says.** `audit:route-check`
+printed *"no claims file owns **25** routed file(s)"* and `DISPATCH.md` recorded 25; `D1-12` measures
+`UNSEEN-NEIGHBOURS.txt` as holding **9**, the true population as **86**, and the **intersection as 0** —
+three numbers where there should be one. ⛔ **The green coverage exit below was computed by the instrument
+under dispute, so class 3 measures this before pass 7's coverage claim is trusted.**
+
+### The exit — GREEN in one wave, at a 45% larger route
+
+```
+✅ lint:s1-coverage: 495 surface files classified · 0 unswept.
+✅ pass-coverage [s1 · s1p7]: all 457 money-bearing file(s) read;
+   38 classified as carrying no money vocabulary (on the surface, not pruned).
+```
+
+⭐ **Every lane read its ENTIRE manifest — 639/639.** Passes 4 and 5 read **103** and **86** of ~446; pass 6
+was the first to hit its own exit, and pass 7 repeated it on a route **45% larger**. ⚡ **`0 unswept` on the
+surface inventory is a first.** The 12-lane split at ~8k lines each is now measured twice and holds; *"the
+lanes read about a third"* is retired as a live risk.
+
+### ⭐ The enumeration agreed with itself, for the first time in this project
+
+Mechanical extraction over `^## <lane>-<n> ` headings matched **all twelve** lanes' self-reported counts
+exactly, and every lane's `blocker+major+minor` summed to its total. **Nothing was unrated; no lane drifted
+from the heading form.** The previous round re-enumerated a class recorded as *"35 · 3 · 5 · 7-unrated"* and
+measured **40 · 5 · 8 · 27** — all four numbers wrong, because severities were stated in three formats and
+the first pattern read only one. ⚡ **The fix was one line in the brief — state severity ONCE, in the `##`
+heading — and it is the cheapest instrument this audit has added.**
+
+### What the round measured
+
+⚡ **The forecast held.** The plan said before dispatch: *"pass 7 will find the FIXES' own defects — every
+prior round did, and this one shipped two new gates and 14 guards of its own to be wrong about."*
+**C1's blockers are 5 of 5 `fix-churn`** · C3's `fix-churn` is 15% of its files and **60% of its findings**
+· B3's is 5 of 10 · C2's is 11% of files and 27% of findings including 2 of 3 blockers. ⛔ **`D2-1` closes
+the loop inside a single day: the `[D78]` retry built that morning survives its own un-fix.**
+
+⭐ **Two lanes that never spoke found the same money root.** `A2-1` (engine) and `A3-1` (cashflow): the
+in-window minimum is scaled **twice** — `selectors.ts:65` scales, and `S1.13.7.10`'s new `minimumDueInWindow`
+re-applies the same multiplier. On one weekly debt at $50, on a $500 paycheck that covers everything:
+`totalRequired = $1,250`, **`shortfall = $750`**, printed on the Guardian card, the Live Activity, the widget
+and the paywall lead. ⛔ **Created by pass 6's own `A3-4` fix, reproducing `A3-4`'s RESERVE/PAYDOWN defect
+mirrored at 1000/500.**
+
+⚡ **The largest single class is one mechanism: a matcher locked to a line.** Six gates
+(`lint:amount-collapse`, `lint:rounding`, `lint:fixture-dates`, `lint:sandbox`, `lint:finding-guards`,
+`lint:runner-completeness`) miss a Prettier-wrapped spelling of their own defect. ⛔ **`check-cap-literals`
+documents this exact escape, fixes it, and carries a proven guard for it** — and every gate written
+afterwards kept the per-line split, **because the lesson lives in one file's docblock instead of in the
+shared scanning helper they all import.** `D1-11` is why nothing caught it: **every proof certifying those
+gates plants the one spelling the gate already catches.** A gate and its proof share an author, and
+therefore share a blind spot. `A1-4` is the consequence in the wild — `lint:fixture-dates` printed
+`0 imminent fuses` over five CSV dates that had **already fired**.
+
+⚡ **One question with five different answers, and the correct answer was already in the codebase.** Ten
+blockers ask *may this surface state a figure from the projection?* — Today, Money's hero, Progress, the
+Cushion Forecast, the Lock Screen, Siri. **The widget refuses this exact claim by design and says so in a
+comment**; pass 6's `C3-5` widened the widget's guard and nothing else.
+
+### ⚠️ Recorded about the dispatch itself
+
+1. **The lane prompt told C2 and C3 to weight `instrument`-origin files heavily. Neither manifest contains
+   one.** Both lanes said so plainly instead of inventing coverage. The instruction came from a template
+   rather than from each lane's own origin split. ⛔ **C3 found four instrument defects anyway, and routing
+   by file origin did not find them** — which is a finding about the router, not about C3.
+2. **`prove:guards` rewrites the tracked `scripts/finding-guards.json` by default.** Two wave-1 lanes hit it
+   before wave 2 was warned; both restored and `cmp`-verified. Wave 2's prompt carried the warning.
+3. **A Python restore silently converted CRLF→LF while `git diff --stat` showed no content diff** (C2). Only
+   `cmp`/`file` caught it. ⚠️ **`git diff` is not a restore check on this repo.**
+4. **Concurrent lanes see each other's live plants** — C2 observed `surface-coverage.ts` carrying `to: 's9'`
+   and a modified `RequiredActionsCard.tsx` mid-run. Nothing was committed while any lane was live, and the
+   final `git status` showed **no tracked file modified** across ~45 plants in 12 lanes.
+5. **Four lanes recorded measured NEGATIVES** — hypotheses checked and found sound, with the control stated
+   (C1 four, C2 seven, D1 ten, D2 four). Kept deliberately, so pass 8 does not re-spend the time.
+
+### ⛔ Two defects found in the CLASSIFICATION while verifying it, not after
+
+Both caught by checking the document against the mechanical enumeration rather than re-reading it:
+
+- **Five findings reached no class — four of them blockers** (`B1-1` `B1-2` `C1-2` `C3-3` `A3-13`). This is
+  the *audit site lists undercount* result again, measured for the sixth consecutive time: **budget the
+  enumeration, not the list.** All five are now placed.
+- **Pass-6 ids COLLIDE with pass-7 ids.** `A3-1`, `A2-1`, `C3-1`, `C2-1`, `C2-3`, `C3-5`, `C3-10`, `C3-12`,
+  `B3-1`, `B3-3`, `B2-5`, `A1-6`, `A2-8` and `D3-2` are each **a live pass-7 finding AND a closed pass-6
+  finding cited as the cause of one.** A naive extraction resolved 16 to the wrong pass. Every prior-pass
+  citation is now written `pass-6 <id>`, and the file says a bare id always means pass 7. ⚡ **This is the
+  audit's own recurring finding — an identifier that means two things — committed by the audit's own record.**
+
+### Convergence position
+
+⛔ **[D65] exits on 0 blockers / 0 majors twice consecutively. Pass 7 is 34 / 55.** Pass 8 is owed, and a
+clean pass 8 would still owe a pass 9. ⚠️ **Stated rather than hoped:** pass 8 will find defects in the
+fixes for these 137, because every round has.
+
+**Captured atomically:** `.12.1`–`.12.5` collapsed to one ✅ line on the plan · `.12.6` promoted to ▶ and
+decomposed into its 12 classes · the `▶ RIGHT NOW` block re-pointed at `CLASSIFICATION.md` · `D3-1`'s
+corrected `P6.11` move-set filed to class 12 and routed to `P6.11`, not to this triage.
+
+
+---
+
+## [D79] + [D80] — the convergence method changed, 2026-09-02
+
+**Reasoning for both ledger entries, mirrored here per the rule that the plan's "reasoning → log" pointer
+must actually resolve** *(it was false for [D29], [D56] and [D64], found by grepping rather than trusting)*.
+
+### What prompted it
+
+🎯, on being shown pass 7's 137: *"It looks like we made no headway at all on the last round. Finding counts
+increased."* ⛔ **Correct, and the obvious defence failed on measurement.**
+
+| | pass 5 | pass 6 | pass 7 |
+|---|---|---|---|
+| money files read | 86 | 446 | **457** |
+| findings | 39 | 123 | **137** |
+| blockers | 9 | 29 | **34** |
+
+**Coverage rose 2.5% while blockers rose 17%** — so *"we read more code"* does not explain it. And measured
+against the lane files: **51 of 137 findings, and 19 of 34 blockers, cite a prior round's fix as the cause.**
+
+### ⛔ The diagnosis that mattered was 🎯's, not mine
+
+I proposed changing the *fixing contract* (one owner + derived populations, enforced by a gate). 🎯 redirected:
+*"Fixes exposing defects is not new. What's concerning me is that the surface area grows at every pass. Until
+we get a stable number there we will never be able to close out S1."*
+
+⚡ **Measured, and the surface DEFINITION turned out not to be the problem.** Every change to the S1 inventory
+since it was created:
+
+```
+2026-08-26   72 -> 137 -> 188 -> 470     three structural corrections, the last being [D73]'s test tree
+2026-08-27 .. 2026-09-02   470 -> 495    +1 or +2 at a time, never more
+```
+
+**The last time the surface was discovered wrong was 2026-08-26.** Decomposing what pass 6 had not read,
+against pass 6's own pin: **23 files, 10 of which did not exist at that pin** — `siriClaims.test.ts`,
+`debtPrefill.test.ts`, `cashRunwayReceipt.test.ts`, `staleClaims.test.ts`, `percentComplete.ts`,
+`updateById.ts` and four more. ⭐ **They are the triage's own guards.**
+
+⛔ **So the growth is arithmetic, not drift — and [D65] was self-defeating by construction.** Every fix writes
+a guard, every guard is a new file, every new file is owed a read by the next pass. Pass 6 shipped 14 guards
+and 2 gates; pass 7 was then owed all ~16. **A criterion asking for two clean passes over a surface that grows
+by exactly the amount of work done cannot terminate.**
+
+⚠️ **The route figure looks like the same problem and is not.** 393 → 639 came from pass 6 deliberately adding
+the `stale-read` origin after finding the router retired files on *"swept once, ever"* — a one-time correction
+that re-opened 350 files.
+
+### [D79] — the loop, and why cumulative
+
+I proposed pinning the convergence population. 🎯 proposed something better: **converge per class** — fix a
+class, audit what was just fixed, repeat until that class is clean, then move on. ⚡ **This is the portfolio's
+own measured rule one level finer** *(`converge-per-surface-not-per-round`: batching fixes cost 7 self-inflicted
+defects)*, and it dissolves the growth problem rather than working around it — **the guards a class writes are
+audited inside the loop that wrote them**, so they never reach the next full pass unread.
+
+🎯 then added the half I had not: **the audits must be CUMULATIVE**, each class re-checking every class already
+closed, so cross-class defects surface as the work proceeds instead of waiting for a final pass. ⭐ **This is
+aimed at a measured recurring defect, not a hypothetical**: building `C1-4` on `D3-5` voided both of `D3-5`'s
+guards **one commit** after they were proven, and five guard anchors moved in a single session.
+
+⚠️ **Two frictions raised before agreeing, both resolved rather than waved past:**
+1. **[D77] said re-proving stays batched** *(one file, five touches, one re-proof — per-fix is strictly more
+   plants)*. Not overturned: **batch inside a class, re-execute at the boundary.**
+2. **The naive cumulative audit is quadratic and slow** — every prior proof at all 12 boundaries is ~10
+   Playwright-backed entries at ~3m40s, twelve times. ✅ **Resolved by targeting**: re-execute only guards whose
+   pinned files moved since they were proven, which is the project's own staleness rule made mechanical. Full
+   `--all` belongs to the final pass.
+
+✅ **The final full pass survives** (🎯: *"Agree on final pass"*) — a class-scoped audit is structurally blind
+to blast radius. `C1-18` was a **minor** about a duplicated literal whose remedy put Skia in Today's import
+graph and took down all 51 CI e2e tests. It should be much smaller, because `fix-churn` will already be clean.
+
+⛔ **A class's exit is "zero new defects FROM THIS CLASS'S FIXES", not "zero findings"** — a cumulative audit
+keeps surfacing reservoir defects in files it passes through. Those file to their own class or the backlog, or
+class 1 never closes.
+
+### [D80] — minors are backlogged by default
+
+🎯: *"we should not fix all minor findings. Unless they directly break or hinder the user then they should be
+backlogged. Fixing everything is not sustainable."*
+
+Applied to pass 7: **31 of 48 filed, 17 kept.** Reconciled mechanically — 31 + 17 = 48, nothing unaccounted,
+nothing double-filed. It collapses classes 10 and 11 from 37 findings to 16 + 3.
+
+⚠️ **Two carve-outs argued and accepted:**
+- **A11y hindrance IS hindrance** — `C2-5` and `C2-11` kept. A screen-reader user who cannot hear which
+  recurrence is set is hindered. ⛔ **And the round's a11y-adjacent blocker `A1-5` hid in exactly this seam:**
+  `C4-9`'s guard went on the Progress ring and not on the sentence the ring *speaks*, so a screen-reader user
+  is told *"no milestones reached yet"* about a portfolio the app has just said it cannot read.
+- **A money-shaped minor gets a severity re-check BEFORE filing** — `B2-6` *(an older build silently rewriting
+  a newer blob's version marker)*, `B3-10` *(`""` reading as empty on web, corrupt on native)*, `B2-4` *(two
+  more live `Math.max(0, NaN)` members)*. ⚡ Last round a `major` moved to **blocker** the moment its fixture
+  was run; a label is not a measurement.
+
+⛔ **Filed minors are labelled "won't fix unless a class opens the file"**, not "later". With 125 items already
+deferred, a queue nobody will schedule is a won't-fix list wearing a later label, and the honest label is what
+lets the backlog stay a real queue.
+
+**Captured atomically:** [D79] and [D80] on the plan's ledger · `.12.6` restructured with the four-step loop ·
+classes 10/11 rewritten to the 16 + 3 that survive [D80] · the 31 filed to the backlog under their own heading
+· this reasoning mirrored here.

@@ -14,9 +14,13 @@ It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, 
 backlog and the decision log. **Read it before touching anything.**
 
 ⛔ **EVERY `▶ ACTIVE:` LINE FURTHER DOWN THIS FILE IS A SESSION HANDOFF NOTE AND GOES STALE.** As of
-**2026-09-01** the active item is **`S1.13.7.9`** — pass 6 triage, class IX, decomposed on the plan. The
-lines below naming `S1.11.4` and `S1.12.4` are archaeology; **ask the plan, never this file, what is
-being built.** Their *lessons* are current and are why they are kept.
+**2026-09-02** the active item is **`S1.13.7.12.6`** — **PASS 7's triage**, 137 findings in 12 classes,
+decomposed on the plan and driven by
+[`docs/audits/2026-09-02-s1-money-pass7/CLASSIFICATION.md`](docs/audits/2026-09-02-s1-money-pass7/CLASSIFICATION.md).
+The lines below naming `S1.11.4`, `S1.12.4` and `S1.13.7.9` are archaeology; **ask the plan, never this
+file, what is being built.** Their *lessons* are current and are why they are kept.
+⛔ **Pass-6 and pass-7 finding ids COLLIDE** — 14 ids name one live finding and one closed one. A bare id in
+pass 7's record always means pass 7.
 
 ⭐ **THE AUDIT GATE IS CLOSED (2026-08-19). T1–T8 + T3B are all done, and the [D37] exit check PASSES:
 55 of 55 blocker/major findings trace to a closure or a recorded refutation** — now enforced every push by
