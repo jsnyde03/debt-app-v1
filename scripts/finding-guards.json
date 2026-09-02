@@ -3301,7 +3301,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the owner docblock states what"
+      "expect": "the owner docblock states what",
+      "measured": "2026-09-02",
+      "sha": "63b4c09d"
     }
   },
   "S1P6-B2-1-D9-FENCES-PAYWALL": {
@@ -3317,7 +3319,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the terminal-exit claim is gone"
+      "expect": "the terminal-exit claim is gone",
+      "measured": "2026-09-02",
+      "sha": "63b4c09d"
     }
   },
   "S1P6-B2-2-EXEMPTION-REASON": {
@@ -3333,7 +3337,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "names the decision it depends on"
+      "expect": "names the decision it depends on",
+      "measured": "2026-09-02",
+      "sha": "63b4c09d"
     }
   }
 }
