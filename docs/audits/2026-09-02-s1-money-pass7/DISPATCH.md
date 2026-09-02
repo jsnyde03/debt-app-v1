@@ -57,7 +57,8 @@
 > deliberately does **not** contain answers. `audits-always-use-fresh-agents`: the session that wrote or
 > fixed the code carries its premises and re-reads its own reasoning instead of the code.
 
-**Route generated:** 2026-09-02 · **Target tree:** `c823e3ee` (`v1.7-dev`) *(plus this round's own commit)*.
+**Route generated:** 2026-09-02 · **Target tree:** `259c0177` (`v1.7-dev`) — **re-verified at that exact
+sha**: `audit:route-check` exit 0, **639 routed · 0 missing · 0 owed · 457 exit-bearing, all in a lane**.
 **Pin:** `4c0f7689` → HEAD — pass 6's target tree.
 **Followed pass:** `s1p6`, via `--unread-pass=s1p6`. **Dispatched for:** `s1p7`, via `--exit-pass=s1p7`.
 
