@@ -987,3 +987,15 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   `typecheck:core` and `test:regression` still compile and execute (class X `D3-1`), so removing it is
   `P6.11`'s call. ⚠️ Whoever does `P6.11` must add the RN-side coverage in the same step, or the deletion
   removes the last thing that looked like paywall coverage and replaces it with nothing.
+
+- 🔴 **[DECISION] `A2-7` — what should the per-debt schedule DRAW for a NON-FOCUS debt?** → **`S1.13.7.11`
+  or `P6.10`**, and it needs an answer before a test can be written. ⛔ **Left OPEN deliberately at
+  `S1.13.7.10.5`**, the only one of that class's 14 not closed: its own remedy says *"adding a two-debt
+  case would red the suite immediately … the test change and the engine decision have to land together."*
+  ⚡ **Measured now that `A2-1` has landed** — two debts, snowball, $300 extra, focus = the $800 debt:
+  `projectDebtPayoff.totalInterestPaid` = **$889.87** for the portfolio, while the non-focus debt's drawn
+  schedule at its own minimum = **$8,678.34 over 137 months**. They are not comparable, and that IS the
+  question: `selectDebtAmortization` gives the extra to `isFocus` only, so the schedule a user opens on a
+  non-focus debt never models the freed minimum rolling over when the focus debt clears. ⚠️ Either the
+  schedule should model rollover, or the screen should say what it is showing — **a product call**, and
+  [D65] says a major exits by being fixed or measured never to have been one, so this stays open.

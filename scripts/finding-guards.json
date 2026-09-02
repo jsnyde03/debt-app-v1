@@ -3107,5 +3107,21 @@
       "measured": "2026-09-02",
       "sha": "c450d891"
     }
+  },
+  "S1P6-A3-14-HYSTERESIS": {
+    "what": "S1.13.7.10 [pass-6 A3-14] - testBuildGuardianBrief never passed a priorBand, and its one tight fixture (deployedToDebt: 0) is the single member of the class where BOTH of the tight branch's claims are true, so it could not fail. priorBand is a parameter of buildGuardianBrief that no fixture in the file supplied - which is why this is the instrument that let A3-11 ship. The missing arity is now covered: floor 200 gives an at-risk line of 100 and a hysteresis band of 50, so priorBand 'tight' with discretionary 230 holds the band at TIGHT while the money sits ABOVE the floor and $30 is really deployed. A3-11's rule is the assertion - hysteresis is a presentation smoothing and may never make the app state something false about figures printed beside it - so the sentence must read 'just above', never 'a little under'. Planted by making the band decide the wording instead of the money, i.e. A3-11's defect verbatim; it reds.",
+    "file": "packages/core/guardian/testBuildGuardianBrief.ts",
+    "token": "the money is authoritative: headroom ABOVE the floor",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/guardian/buildGuardianBrief.ts",
+          "find": "discretionary < floor ? (state === \"at-risk\" ? \"under\" : \"a little under\") : \"just above\"",
+          "replace": "state === \"at-risk\" ? \"under\" : \"a little under\""
+        }
+      ],
+      "run": "test:regression",
+      "expect": "the money is authoritative: headroom ABOVE the floor"
+    }
   }
 }

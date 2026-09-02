@@ -53,6 +53,36 @@ function runGuardianTests() {
   assertTrue(/holding all of it as your cushion/i.test(tight.detail), "tight premium keeps everything, deploys nothing");
   assertTrue(/covered this paycheck/i.test(tight.detail) && /rebuilds next paycheck/i.test(tight.safeMove ?? ""), "tight reads CALM — 'covered' + 'rebuilds next paycheck' (2.4.11.2)");
 
+  /**
+   * ⛔ **S1.13.7.10 — THE ARITY THIS FILE NEVER REACHED: the band HELD BY HYSTERESIS while the money is ABOVE the floor.
+   * [pass-6 `A3-14`]
+   *
+   * The tight case above passes `deployedToDebt: 0` and **no `priorBand`** — the single member of the
+   * class where both of the tight branch's claims are true, so it *cannot* fail. `priorBand` is a
+   * parameter of `buildGuardianBrief` that no fixture in this file supplied, which is why this is the
+   * instrument that let `A3-11` ship.
+   *
+   * ⚡ ** `computeState`: floor 200 → at-risk line 100, hysteresis band 50. With `priorBand: "tight"` and
+   * discretionary **230**, `d > f + 50` is `230 > 250` — false — so the band is held at **tight** while
+   * the money sits **above** the floor, and $30 really is deployed.
+   *
+   * ⚠️ ** `A3-11`'s rule is the assertion: **hysteresis is a presentation smoothing, and a smoothing may
+   * never make the app state something false about figures printed beside it.** The sentence must say
+   * *"just above"*, not *"a little under"*, because the MONEY is authoritative over the band.
+   */
+  const heldTight = buildGuardianBrief(
+    input({ priorBand: "tight", discretionary: 230, kept: 200, deployedToDebt: 30, floor: 200 }),
+  );
+  assertEqual(heldTight.state, "tight", "hysteresis holds the band at tight even though headroom is above the line");
+  assertTrue(
+    /just above/i.test(heldTight.detail),
+    "[A3-11] the money is authoritative: headroom ABOVE the floor reads 'just above', never 'a little under'",
+  );
+  assertTrue(
+    !/a little under|under your/i.test(heldTight.detail),
+    "[A3-11] …and the brief does not claim a shortfall the figures beside it contradict",
+  );
+
   // ── Acute shortfall → at-risk, extra paused (obligations never cut) ──
   const short = buildGuardianBrief(input({ shortfall: 180, discretionary: 0 }));
   assertEqual(short.state, "at-risk", "a shortfall → at-risk");
