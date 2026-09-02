@@ -371,6 +371,9 @@
   "scripts/lib/importGraph.ts": [
     "partial"
   ],
+  "scripts/lib/logicalLines.ts": [
+    "never"
+  ],
   "scripts/lib/moneyClaim.ts": [
     "never"
   ],
@@ -463,6 +466,9 @@
   "scripts/test-strip-code.ts": [
     "never",
     "s1p4"
+  ],
+  "scripts/test-wrap-escapes.ts": [
+    "never"
   ],
   "scripts/webkit-flex-controls-baseline.json": [
     "p4"

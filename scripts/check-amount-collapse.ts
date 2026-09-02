@@ -33,6 +33,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
+import { logicalLines } from './lib/logicalLines';
 import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -49,13 +50,19 @@ const COLLAPSE = /\b(parseAmountField|parseNonNegativeAmount|parseOptionalAmount
  * ⚠️ A site absent from this map is a FAILURE, not a default — and a map entry whose site no longer
  * matches is a failure too, so a stale permission cannot sit here granting cover to nothing.
  */
-const ALLOWED: Record<string, string> = {
-  'apps/rn/src/components/plan/WindfallSheet.tsx':
-    'a PREDICATE: `const n = parse(...) ?? 0` is consumed by `validAmount = n > 0` on the next line, and ' +
-    'the sheet refuses to compute a split without it. Nothing stores `n` while it is zero.',
-  'apps/rn/src/data/readBackup.ts':
-    'a PREDICATE: `(parse(...) ?? 0) > 0` decides whether the pre-overwrite sentence names "the ' +
-    'paycheck". Unreadable and absent both mean "do not name it", which is the same answer.',
+const ALLOWED: Record<string, { sites: number; why: string }> = {
+  'apps/rn/src/components/plan/WindfallSheet.tsx': {
+    sites: 1,
+    why:
+      'a PREDICATE: `const n = parse(...) ?? 0` is consumed by `validAmount = n > 0` on the next line, and ' +
+      'the sheet refuses to compute a split without it. Nothing stores `n` while it is zero.',
+  },
+  'apps/rn/src/data/readBackup.ts': {
+    sites: 1,
+    why:
+      'a PREDICATE: `(parse(...) ?? 0) > 0` decides whether the pre-overwrite sentence names "the ' +
+      'paycheck". Unreadable and absent both mean "do not name it", which is the same answer.',
+  },
 };
 
 const tracked = execFileSync('git', ['ls-files', 'apps/rn', 'packages/core', 'scripts'], {
@@ -69,20 +76,51 @@ const tracked = execFileSync('git', ['ls-files', 'apps/rn', 'packages/core', 'sc
 const problems: string[] = [];
 const found: string[] = [];
 
+/**
+ * ⛔ **LOGICAL LINES, NOT PHYSICAL ONES** — pass-7 `D1-3`. `COLLAPSE` used to run against
+ * `text.split('\n')`, so a call Prettier had wrapped left the population entirely while this gate printed
+ * a smaller count beside a ✅. That is pass-5 `D5-9`'s escape, **in a gate written after `D5-9` was
+ * fixed** — the lesson lived in `check-cap-literals`'s docblock instead of in the shared helper. The regex
+ * is deliberately unchanged: a joined logical line contains no newline, so `[^\n]*?` still bounds it.
+ *
+ * ⛔ **AND EVERY SITE, NOT THE FIRST** — pass-7 `D1-4`. The loop `break`'d on the first hit per file, so a
+ * second collapse in the same file was invisible and `found` under-counted.
+ */
+const perFile = new Map<string, number>();
 for (const rel of tracked) {
-  const text = scanned(SCAN_GATE, stripCommentsOnly(readFileSync(join(REPO_ROOT, rel), 'utf8')));
-  const lines = text.split('\n');
-  for (let i = 0; i < lines.length; i++) {
-    if (!COLLAPSE.test(lines[i])) continue;
+  const src = readFileSync(join(REPO_ROOT, rel), 'utf8');
+  // ⚠️ `scanned` counts NON-BLANK lines, so it must keep seeing the STRIPPED text: handing it the raw
+  // source counts comment lines as read and inflates the floor — measured, 60,671 → 95,693 — which blunts
+  // the one instrument that notices this gate going blind. `logicalLines` strips again internally, by
+  // design: the accounting and the matching are different questions about the same file.
+  scanned(SCAN_GATE, stripCommentsOnly(src));
+  for (const ll of logicalLines(src, { blankStrings: true })) {
+    if (!COLLAPSE.test(ll.text)) continue;
     found.push(rel);
+    perFile.set(rel, (perFile.get(rel) ?? 0) + 1);
     if (!(rel in ALLOWED)) {
       problems.push(
-        `${rel}:${i + 1} collapses a parsed amount to 0.\n` +
+        `${rel}:${ll.line} collapses a parsed amount to 0.\n` +
           '        `null` is BLANK OR UNPARSEABLE, and neither is a payment of zero. Branch on it, or add\n' +
           '        this file to ALLOWED in scripts/check-amount-collapse.ts with the reason zero is honest here.',
       );
     }
-    break;
+  }
+}
+
+/**
+ * ⛔ **A FILE-GRANULAR PERMISSION WITH A LINE-SPECIFIC REASON IS A HOLE** — pass-7 `D1-4`. Each `ALLOWED`
+ * entry argues why *one particular* collapse is honest; without a count, a SECOND collapse added to that
+ * file later inherits the permission and is never reported. The count is the ratchet.
+ */
+for (const [rel, entry] of Object.entries(ALLOWED)) {
+  const n = perFile.get(rel) ?? 0;
+  if (n > entry.sites) {
+    problems.push(
+      `${rel} has ${n} collapse(s) and ALLOWED permits ${entry.sites}.\n` +
+        '        The permission argues why ONE site is honest; it does not cover a new one. Branch on the\n' +
+        '        null, or raise `sites` here with the reason the new site is honest too.',
+    );
   }
 }
 

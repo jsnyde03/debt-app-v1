@@ -2199,8 +2199,8 @@
       "unfix": [
         {
           "at": "scripts/check-rounding.ts",
-          "find": "const MAX_INLINE_ROUNDING = 93;",
-          "replace": "const MAX_INLINE_ROUNDING = 94;"
+          "find": "const MAX_INLINE_ROUNDING = 94;",
+          "replace": "const MAX_INLINE_ROUNDING = 95;"
         }
       ],
       "run": "lint:rounding",

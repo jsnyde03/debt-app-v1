@@ -22,7 +22,7 @@
  *
  * Usage: npm run lint:sandbox   ·   runs inside `lint:rn` → `validate:release:rn`
  */
-import { stripCommentsOnly } from './lib/stripCode';
+import { logicalLines } from './lib/logicalLines';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 
@@ -118,23 +118,23 @@ for (const file of walk(ROOT)) {
   const rel = relative(REPO_ROOT, file).split(sep).join('/');
   if (rel === DEFINITION) continue;
   const source = readFileSync(file, 'utf8');
-  const lines = source.split(/\r?\n/);
   /**
    * ⛔ **COMMENTS ONLY — this gate matches the import PATH, which is a string literal.** Blanking string
    * contents turned `from '@/store/appStore'` into `from '                  '` and reported all 24
    * allow-list entries stale. Caught by `lint:rn` on the first run after the change.
+   *
+   * ⛔ **LOGICAL LINES, NOT PHYSICAL ONES** — pass-7 `D1-8`. `IMPORT` is anchored with `^` and was tested
+   * against one physical line, so a Prettier-wrapped `import {\n  appStore,\n} from '…/appStore'` — the
+   * spelling Prettier produces the moment the specifier list grows — **leaked the real store past this
+   * guard entirely**. Several files DISCUSS the singleton in prose explaining a fixed defect, and a guard
+   * that reds on its own postmortem is noise, so comments are still blanked first.
    */
-  const code = stripCommentsOnly(source).split(/\r?\n/);
-  lines.forEach((raw, i) => {
-    // Several files DISCUSS the singleton in prose explaining a defect that was fixed, and a guard that
-    // reds on its own postmortem is noise. ⛔ [S0.3b · REVERIFY-1 finding 4] one stateful scanner — the
-    // regex pair this replaces truncated at a `//` inside a string AND no-oped entirely on CRLF.
-    const line = code[i] ?? '';
-    if (!IMPORT.test(line)) return;
+  for (const ll of logicalLines(source)) {
+    if (!IMPORT.test(ll.text)) continue;
     seen.add(rel);
-    if (ALLOWED[rel]) return;
-    offenders.push({ file: rel, line: i + 1, text: raw.trim() });
-  });
+    if (ALLOWED[rel]) continue;
+    offenders.push({ file: rel, line: ll.line, text: ll.text.trim().slice(0, 160) });
+  }
 }
 
 // An allow-list entry whose file no longer imports the singleton is worse than useless: it silently

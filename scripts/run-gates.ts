@@ -152,6 +152,11 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // ⚠️ Last, and it costs ~50s: it plants into a scratch file and runs five gates, so it is the most
     // expensive link here. It does not recurse — it invokes named gates, never `lint:rn`.
     'test:gate-plants',
+    // ⛔ [S1.13.7.12.6 class 1 · pass-7 `D1-11`] Plants the WRAPPED spelling of each wrap-sensitive gate's
+    // own defect. `test:gate-plants` above plants the SAME-LINE spelling — which is the half that was never
+    // broken — so six gates were certified green while a Prettier line-wrap walked past all of them. Its
+    // population is derived from which gates import `lib/logicalLines`, so a new one cannot join unproven.
+    'test:wrap-escapes',
   ].map((name) => ({ name, cmd: 'npm', args: ['run', name] })),
 ];
 

@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**130 files on the S0 surface · 75 swept · 55 unswept.**
+**132 files on the S0 surface · 75 swept · 57 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -118,6 +118,7 @@
 | `scripts/lib/anchor.ts` | s1p5 |
 | `scripts/lib/guardBuckets.ts` | ⛔ **never** |
 | `scripts/lib/importGraph.ts` | ⛔ **partial** |
+| `scripts/lib/logicalLines.ts` | ⛔ **never** |
 | `scripts/lib/moneyClaim.ts` | ⛔ **never** |
 | `scripts/lib/scanFloor.ts` | never · s1p4 |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
@@ -142,6 +143,7 @@
 | `scripts/test-line-endings.ts` | never · s1p4 |
 | `scripts/test-stamp-coverage.ts` | s1p5 |
 | `scripts/test-strip-code.ts` | never · s1p4 |
+| `scripts/test-wrap-escapes.ts` | ⛔ **never** |
 | `scripts/webkit-flex-controls-baseline.json` | p4 |
 | `scripts/write-gate-status.ts` | p4 · s1p1 · s1p2 |
 
@@ -195,6 +197,7 @@
 - `scripts/conform-app-preview.sh`
 - `scripts/lib/guardBuckets.ts`
 - `scripts/lib/importGraph.ts`
+- `scripts/lib/logicalLines.ts`
 - `scripts/lib/moneyClaim.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/preflight-xcuitest-target.ts`
@@ -202,6 +205,7 @@
 - `scripts/surface-inventory.ts`
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
+- `scripts/test-wrap-escapes.ts`
 
-<!-- claims-sha256: 6cd594cd645dc44a -->
+<!-- claims-sha256: 07657546e44dcb85 -->
 

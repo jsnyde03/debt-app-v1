@@ -29,8 +29,10 @@ const LEDGER = join(SCRIPTS, 'gate-scan-floors.json');
 const EXEMPT: Record<string, string> = {
   'check-destructive-writes.ts':
     'ALLOWED declares a per-file call count and the gate reds on drift, so reading nothing reports 0 against a non-zero declaration. Verified red under a blanked stripper 2026-08-27.',
-  'check-sandbox-writes.ts':
-    'Same shape — a stale allow-list entry reds. Verified red under a blanked stripper 2026-08-27 (24 stale entries reported).',
+  'check-runner-completeness.ts':
+    'Not a tree sweep — it reads three NAMED files (two runners + package.json) and asserts SET INCLUSION against a git-derived population, and it already reds explicitly when a pathspec matches nothing. Verified red under a blanked stripper 2026-09-02 (exit 1): blanking the runner text empties `imported`, so every tracked test file reports unwired. [S1.13.7.12.6, pass-7 D1-1/D1-2 added the stripper here]',
+  'lib/logicalLines.ts':
+    'NOT A GATE — it is the shared line-joining helper the wrap-sensitive gates import, so it has no population of its own to floor; its consumers floor theirs. Its correctness under a blind stripper is asserted by `test:wrap-escapes`, which plants the WRAPPED spelling into every gate that imports it. Verified red under a blanked stripper 2026-09-02 (exit 1, control green at exit 0). [S1.13.7.12.6 class 1]',
   'check-trust-claims.ts':
     'Every claim route must have a caller; reading nothing removes every caller. Verified red under a blanked stripper 2026-08-27 (15 problems).',
   'test-strip-code.ts':

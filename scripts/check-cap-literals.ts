@@ -127,7 +127,8 @@ for (const rel of files) {
  * as a feature: adding a cap costs a number here, and that is the moment the addition is visible.
  */
 // ⚠️ 26 → 27 at S1.13.7.12.3c: `MAX_SERVER_ATTEMPTS` in `prove-guards.ts`, the [D78] retry cap.
-const MIN_CAPS = 27;
+// ⚠️ 27 → 28 at S1.13.7.12.6: `MAX_JOIN` in `lib/logicalLines.ts`, the join runaway stop (class 1).
+const MIN_CAPS = 28;
 
 if (caps !== MIN_CAPS) {
   problems.push(

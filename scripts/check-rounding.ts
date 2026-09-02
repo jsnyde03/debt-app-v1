@@ -34,6 +34,7 @@ import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { stripCommentsOnly } from './lib/stripCode';
+import { logicalLines } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -52,8 +53,16 @@ const OWNER = 'packages/core/utils/money.ts';
  */
 const SCAN_GATE = 'rounding';
 
-/** `Math.round(<anything> * 100) / 100`, with any spacing — the money-rounding idiom, however spelled. */
-const ROUNDING = /Math\.round\([^;]*?\*\s*100\s*\)\s*\/\s*100/g;
+/**
+ * `Math.round(<anything> * 100) / 100`, with any spacing — the money-rounding idiom, however spelled.
+ *
+ * ⛔ **THE `,?` IS LOAD-BEARING AND WAS MISSING** — found by `test:wrap-escapes` on its first run, not by
+ * reading. Joining physical lines is only half of `D1-6`: **when Prettier wraps a call it also adds a
+ * TRAILING COMMA**, so its real output is `Math.round(\n  x * 100,\n) / 100` and a pattern demanding
+ * `* 100` immediately before `)` still misses it. The gate was green over the very spelling the fix was
+ * written for.
+ */
+const ROUNDING = /Math\.round\([^;]*?\*\s*100\s*,?\s*\)\s*\/\s*100/g;
 
 const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx'], { cwd: REPO_ROOT, encoding: 'utf8' })
   .split('\n')
@@ -65,19 +74,38 @@ const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx'], { cwd: REPO_R
 const sites: string[] = [];
 for (const rel of tracked) {
   if (rel === OWNER) continue;
+  const source = readFileSync(join(REPO_ROOT, rel), 'utf8');
   // Comments are blanked first: this file's own docblock quotes the expression it exists to count.
-  const code = scanned(SCAN_GATE, stripCommentsOnly(readFileSync(join(REPO_ROOT, rel), 'utf8')));
-  for (const line of code.split('\n')) {
-    ROUNDING.lastIndex = 0;
-    if (ROUNDING.test(line)) sites.push(`${rel}: ${line.trim().slice(0, 100)}`);
+  scanned(SCAN_GATE, stripCommentsOnly(source));
+  /**
+   * ⛔ **LOGICAL LINES, NOT PHYSICAL ONES** — pass-7 `D1-6`. `ROUNDING` was tested against one physical
+   * line, so a wrapped `Math.round(\n  x * 100,\n) / 100` **grew the population without moving the
+   * number** — the cap below stayed satisfied while the thing it caps went up. A ratchet that cannot see
+   * a new member is not a ratchet.
+   */
+  for (const ll of logicalLines(source, { blankStrings: true })) {
+    for (const m of ll.text.matchAll(ROUNDING)) {
+      sites.push(`${rel}:${ll.line}: ${m[0].trim().slice(0, 100)}`);
+    }
   }
 }
 
 /**
  * ⛔ **DOWNWARD-ONLY, the `MAX_UNGUARDED` idiom.** Raising this to make a run pass is the defect the
  * ratchet exists to catch. Lower it in the same edit that removes a copy.
+ *
+ * ⚡ **93 → 94 at S1.13.7.12.6 [pass-7 `D1-6`], and this is the ONE sanctioned reason to raise it: the
+ * instrument got sharper, the code did not change.** Two things moved together — the matcher now runs over
+ * LOGICAL lines, and it counts **expressions** rather than matching physical lines. ⛔ **The delta was
+ * measured before this number was touched, not after**
+ * (`docs/audits/2026-09-02-s1-money-pass7/class1-probes/p4-rounding-delta.ts`): exactly one file moved,
+ * `packages/core/testing/testFullAppRegression.ts` 3 → 4, and the new member is real —
+ * **`:59`, a `Math.round(` wrapped onto three lines**, which is `D1-6`'s escape sitting in the tree.
+ *
+ * ⚠️ **A raise justified by "the gate changed" is the exact sentence a slackened ratchet would also carry**,
+ * so the justification is a probe that names the site, not this comment.
  */
-const MAX_INLINE_ROUNDING = 93;
+const MAX_INLINE_ROUNDING = 94;
 
 if (sites.length > MAX_INLINE_ROUNDING) {
   console.error(

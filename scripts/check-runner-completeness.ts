@@ -31,6 +31,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -134,7 +135,14 @@ for (const r of RUNNERS) {
     .map((l) => l.trim())
     .filter(Boolean)
     .filter((p) => r.match(p));
-  const imported = r.imports(readFileSync(join(REPO_ROOT, r.runner), 'utf8'), r.runner);
+  /**
+   * ⛔ **COMMENTS ARE BLANKED BEFORE THE IMPORTS ARE EXTRACTED** — pass-7 `D1-2`. The runner was read raw,
+   * so a suite commented out of it stayed in `imported` and this gate reported every file wired. Measured:
+   * `// import "./testAbuseScenarios";` left **301 lines of break-it money assertions unexecuted**, and
+   * both `test:regression` and this gate printed green. The gate's own premise — *"a test file in the tree
+   * and in NO runner is silently unexecuted"* — was satisfied by a `//`.
+   */
+  const imported = r.imports(stripCommentsOnly(readFileSync(join(REPO_ROOT, r.runner), 'utf8')), r.runner);
   // A runner names a module without its extension; compare on the stem so `.ts`/`.tsx` cannot disagree.
   const stem = (p: string) => p.replace(/\.(ts|tsx)$/, '');
   const importedStems = new Set([...imported].map(stem));
@@ -185,7 +193,17 @@ const EXEMPT_FROM_CHAIN: Record<string, string> = {
 };
 
 const pkg = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8')) as { scripts: Record<string, string> };
-const runGates = readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8');
+/**
+ * ⛔ **COMMENTS BLANKED FIRST** — pass-7 `D1-1`. This was `readFileSync` raw, and membership was
+ * `String.includes("'lint:money'")` over the whole text, so **commenting a gate out of `GATES` left it
+ * counted as chained**: `lint:rn` then printed `✅ all 47 gates pass` while the 48th — the money-format
+ * gate — did not run. Measured: baseline exit 0, `// 'lint:money',` exit 0 with a byte-identical success
+ * line, and the control (line deleted) exit 1 naming it.
+ *
+ * ⚠️ **This also makes the check STRICTER in a second way, deliberately:** a gate named only inside a
+ * docblock no longer counts as chained. That is the correct reading — a mention is not an execution.
+ */
+const runGates = stripCommentsOnly(readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8'));
 const unchained = Object.keys(pkg.scripts)
   .filter((n) => n.startsWith('lint:'))
   .filter((n) => !(n in EXEMPT_FROM_CHAIN))

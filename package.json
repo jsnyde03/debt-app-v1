@@ -42,6 +42,7 @@
     "lint:s4-coverage": "tsx scripts/surface-coverage.ts --surface=s4",
   "lint:surface-complete": "tsx scripts/surface-coverage.ts --completeness",
     "test:gate-plants": "tsx scripts/test-gate-plants.ts",
+    "test:wrap-escapes": "tsx scripts/test-wrap-escapes.ts",
     "test:conform-assertions": "bash scripts/test-conform-assertions.sh",
     "lint:finding-guards": "tsx scripts/check-finding-guards.ts",
     "lint:cap-literals": "tsx scripts/check-cap-literals.ts",
