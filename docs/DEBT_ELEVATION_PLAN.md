@@ -26,9 +26,23 @@
 
 ---
 
-## ▶ RIGHT NOW — **S1.13.7.11 · CLASS XI — “THE MINORS” HOLDS 3 BLOCKERS AND 5 MAJORS**
+## ▶ RIGHT NOW — **S1.13.7.12 · INSTRUMENT THE REST OF THE TREE, THEN PASS 7**
 
-**Surface S1 · money · goals · plan cards.** Passes 1–3 run and fully fixed. **Pass 4 run at `e65f9c7` by four fresh agents → 8 blockers · 19 majors · 7 minors across 217 files** ([`SYNTHESIS.md`](audits/2026-08-28-s1-money-pass4/SYNTHESIS.md)). ⛔ **S1 does NOT converge** — [D65] exits on 0/0 **twice consecutively**, so **pass 5 is the next first-candidate and a clean pass 5 still owes a pass 6.** ⛔ Everything below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+**Surface S1 · money · goals · plan cards.** ✅ **`S1.13.7.11` CLOSED 2026-09-02 — all 13 gating findings**
+*(the class was re-enumerated first: 40 findings · 5 blockers · 8 majors, and NOTHING was unrated)*. Net
+green locally — **`lint:rn` all 46 gates**, typecheck ×4, three unit suites — and pushed. ⛔ **Do not type
+the CI result here**: read it from `gh run list --branch v1.7-dev`, per [D49]'s rule for the gate record.
+
+⛔ **S1 STILL DOES NOT CONVERGE.** [D65] exits on 0/0 **twice consecutively** and pass 6 was **123
+findings**, so pass 7 is the next first-candidate and a clean pass 7 still owes a pass 8. ⛔ Everything
+below the ACTIVE block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⚡ **What `S1.13.7.11` measured, and it sets pass 7's shape.** **A guard is only as current as the last
+commit that touched its file** — building `C1-4` on `D3-5` voided both of `D3-5`'s guards *one commit*
+after they were proven, and three further rounds of staleness followed. ⛔ **And every defect in my own
+work was found by an INSTRUMENT, never by reading**: the new gate failed open on its own first plant,
+`lint:copy` caught the sentence being duplicated *while fixing a duplication finding*, `lint:fixture-dates`
+caught a fuse the day it was written, and `lint:finding-guards` refused three tokens by name.
 
 ⛔ **PASS 4's RESULT IS NOT A DEFECT — IT IS THAT THE LEDGER CANNOT BE CASHED.** `lint:finding-guards` exited 0 over **every** un-fix auditor D performed. It is a **deletion detector** — it proves a token string still exists — and it has been read for three passes as a **closure proof**. **Eight registered guards were proven to survive their own un-fix** by four auditors independently, and **35 more entries in lanes A/B/C have never been tested by anyone.** ⚠️ **Until a guard is proven to red, `CLOSED` and `OPEN` are indistinguishable in the record** — which invalidates counts rather than adding to them.
 
@@ -51,7 +65,10 @@
 
 ⛔ **Eleven defects went into the instruments across the two fixing sessions, and pass 4 found more.** **Every one was found by PLANTING, none by reading.** Report pass 5 split by origin, or a flat total hides both halves moving.
 
-### 🔨 THE ACTIVE DECOMPOSITION — S1 *(the ONLY decomposed section on this doc)*
+### 📜 S1's CLOSED SUB-STEPS — the record, not a queue
+
+⛔ **This is not the active decomposition and it stopped being one on 2026-08-29.** Every row below is
+closed. The live sequence is `S1.13.7.12`, decomposed further down and the only such section on this page.
 
 | # | sub-step | exit line |
 |---|---|---|
@@ -148,23 +165,27 @@ Why: this round measured that **more than half of pre-authored remedies do not s
 findings' defects were already closed — the cost of a minor is re-verifying a weeks-old premise, not the
 fix, and a batch pays that 27 times with no class context to amortise it.
 
-| gating finding | state |
-|---|---|
-| ✅ **`D3-5`** *(blocker)* | The caption printed a **NEGATIVE** amount as money the user PAID. Fixed at the population, not with a clamp — `selectRequiredSplit` reduces both figures off **one** array |
-| ✅ **`C1-4`** *(blocker)* | A reserve-covered $350 rent rendered **$0.00** and the sheet said **“All confirmed paid”** one tap after the user marked it *didn't*. Gross for the sentences, NET for `capturedTotal`; the verdict reads the user's answers, not a dollar sum |
-| ✅ **`B3-2`** *(blocker)* | An unreadable `exportedAt` rendered **“Saved recently.”** above an irreversible restore. ⛔ The check is the string's SHAPE — `new Date("0")` is VALID, so a NaN guard prints a confident wrong date |
-| ✅ **`C1-15`** *(blocker)* | *"Expenses & essentials"* was back-solved from the value it explains, so it understated the bill by the top-up. Read now, with 🎯's fourth row naming the moved cash |
-| ✅ **`C3-7`** *(blocker)* | Siri said **“Logged $200.00 toward Chase”** for a payment only QUEUED, and said it when the write failed. ⚠️ **Source scan only — the spoken half is a device row** |
-| ✅ **`D1-1`** *(major)* | **Not work** — `D3-4` found by a second lane, closed in `S1.13.7.2`, proven by executing its guard |
-| ✅ **`A3-3`** *(major)* | The finding named 2 sites; there were **8**. Closed as a **gate** — `lint:store-id-writes`, cap 0, one owner. ⚡ It was load-bearing for `realWriteGuard`, whose test went red |
-| ✅ **`B1-4` · `B2-1` · `B2-2`** *(majors)* | Three claims that decayed into falsehoods. `lint:trust-claims` LEDGERS re-derivations rather than banning them; what fences `/paywall` is **[D9]**, not terminal exits |
-| ✅ **`C2-1`** *(major)* | *"the order they clear in changes"* fired on `firstWinSooner === 0`, which says nothing about order. Gated on the names actually differing |
-| ✅ **`C3-12`** *(major)* | One failed widget write froze the Home Screen and Siri for the session. The writer reports success now; `lastKey` is stamped only when it landed |
-| ✅ **`B3-5`** *(major)* | The pre-overwrite sentence never named the **cash the app is holding**. ⛔ A category, not an amount — `backup.ts`'s own rule is *"counts, never money"* |
+✅ **`S1.13.7.11` — all 13 gating findings CLOSED 2026-09-02, collapsed here.** 5 blockers *(`D3-5` `C1-4`
+`B3-2` `C1-15` `C3-7`)* · 8 majors *(`D1-1` `A3-3` `B1-4` `B2-1` `B2-2` `C2-1` `C3-12` `B3-5`)*. **2 gates
+added** · **14 guards registered and executed** · every fix plant-verified with the restore checked
+byte-identical. ⚠️ **`D1-1` closed as NOT WORK** *(`D3-4` by a second lane)* and **`C3-7` is a SOURCE SCAN**
+— nothing here builds the Swift target, so the spoken half is a **device row for `P6.14`**. The 27 minors
+are untouched by design. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
-⛔ **13 gating → 13 CLOSED.** The 27 minors are untouched by design — swept inline when a later class has
-the file open. ⚡ **Two gates added** *(`lint:store-id-writes`, and the widget writer's success contract)*;
-**14 guards registered and executed**; every fix plant-verified with the restore checked byte-identical.
+### 🔨 THE ACTIVE DECOMPOSITION — `S1.13.7.12` *(the ONLY decomposed section on this doc)*
+
+| # | sub-step | exit line |
+|---|---|---|
+| **.12.1** | **MEASURE, DO NOT AUDIT** *(🎯 2026-08-31)* — generate the claims files so the unknown becomes a number. **197 tracked source files sit on NO claims file**, 82 in `apps/rn` and 4 in `packages/core`; **S2/S3/S4 have none at all**, so no instrument can even ASK whether they have been read | every tracked source file on some surface's claims file, and the count printed |
+| **.12.2** | ⚠️ **Re-verify that 197 against the CURRENT tree before acting on it** — it was counted 2026-08-31 and this session alone added five files to S1. A pre-authored number is a hypothesis | the number re-measured, not quoted |
+| **.12.3** | ⛔ **[DECISION] Does `prove:guards` over the touched-file population become a step of EVERY FIX?** `S1.13.7.11` measured that a guard is only as current as the last commit that touched its file — it voided two guards one commit after proving them, then went stale three more times. The standing rule's period is a SURFACE. This is a protocol call, and it is 🎯's | a yes/no recorded here |
+| **.12.4** | **ROUTE PASS 7** from `s1p7`, same 12-lane shape, and write the brief | 0 unrouted · 0 owed · the origin split printed |
+| **.12.5** | **RUN PASS 7 with fresh agents** ([D68]) | recorded and classified |
+| **.12.6** | **TRIAGE TO 0/0** — then the second consecutive clean pass [D65] requires | 0 blockers / 0 majors, every closure proven to red |
+
+⚠️ **Forecast, stated rather than hoped:** pass 7 will find the FIXES' own defects — every prior round did,
+and this one shipped **two new gates and 14 guards** of its own to be wrong about. ⛔ **0/0 twice is
+realistically passes 8–9**, which is what the plan should be budgeted against.
 
 ⭐ **`S1.13.7.9` — all 51 CI e2e failures had ONE cause**, found by `git bisect` over the 36 commits CI had
 never seen: `C1-18`, a **minor** about a literal declared twice, whose remedy made a Skia-importing module
@@ -217,8 +238,8 @@ and three lanes named the obvious fix as wrong.
 | ✅ **S1.13.7.8** | **CLOSED 2026-09-01 — THE FIX REACHED THE MEMBER.** All 6. ⚡ Every one was a previous round's correct fix stopping one line, one field, one hop or one consumer short — `[B4]` changed `recurrence` and left the four seeds beneath it; `B5-11` fixed `backupToCloudGuarded` and left `getCloudBackupStatus` twenty lines away. ⛔ `B3-3`'s class assertion found a site the report never named: the Restore button was `disabled={status !== 'ready'}`, so fixing what was named would have left the door **visible and dead**. ⭐ **And the FIXING found four more of the same shape, three of them already red** — `typecheck:core` since `.3`, the C3 e2e since `.4`, the guard gate's stale ceiling *(dead code; drained 31 → 0)* and `unreadBalanceIds` with zero unit coverage. New gate `lint:amount-collapse` → **45**. Detail → log | 6 *(3 blockers)* | CLOSED |
 | ✅ **S1.13.7.9** | **CLOSED 2026-09-01 — THE SUITE IS GREEN IN CI.** All 51 CI failures / 37 local had **one cause**, found by `git bisect`: `2c77aceb`, where `C1-18`'s remedy put a Skia-importing module in Today's graph. ⚡ **Two hypotheses were refuted along the way** — the shared-fixture due dates *(moved one cluster and not another)* and then "multi-cause" itself *(the root fix made that cluster pass with the fixture untouched)*. New guard in `lint:import-graph`, proven. Detail → log | 51 | CLOSED |
 | ✅ **S1.13.7.10** | **CLOSED 2026-09-02 — TESTS THAT CANNOT FAIL, 18 of 19** *(19, not 18 — see `.10.1`)* — `A1-1` `A1-2` `A1-3` `A1-6`–`A1-11` `A2-7` `A3-4` `A3-14`–`A3-17` `B2-4` `D1-4` `D1-5` `D1-6`. ⛔ **LAST among the triage classes, and fixed KNOWING what the classes above got wrong** — these are what re-verify everything, so repairing them first re-verifies against the same blind spots. Decomposed below | 18 | every assertion reachable and falsifiable |
-| ▶ **S1.13.7.11** | ⛔ **MIS-LABELLED — RE-ENUMERATED MECHANICALLY 2026-09-02: 40 findings · 4 BLOCKERS · 9 MAJORS · 27 minors, NOTHING unrated** *(the label claims 43; the first pass said 35/3/5/7-unrated and all four numbers were wrong)*. ✅ Rating done. Fix the 13 gating findings as their own class, sweep the minors inline. ⚡ **13 gate [D65], not 8.** Decomposed above | 40 | 0 blockers / 0 majors; every minor either fixed or on the backlog with a named carrier class |
-| **S1.13.7.12** | **INSTRUMENT THE REST OF THE TREE** *(🎯 2026-08-31)* — **197 tracked source files sit on NO claims file**, 82 of them in `apps/rn` and 4 in `packages/core`, so no instrument can even ASK whether they have been read. S2/S3/S4 have no claims file at all. ⛔ **Measure, do not audit** — generate the claims files so the unknown becomes a number before four more surfaces are priced | 197 | every tracked source file on some surface's claims file |
+| ✅ **S1.13.7.11** | **CLOSED 2026-09-02 — all 13 gating findings.** Re-enumerated first: **40 · 5 blockers · 8 majors · 27 minors**, nothing unrated *(the first pass said 35/3/5/7-unrated — all four wrong)*. 2 gates added · 14 guards executed. Collapsed above; detail → log | 40 | CLOSED |
+| ▶ **S1.13.7.12** | **INSTRUMENT THE REST OF THE TREE, THEN PASS 7** *(🎯 2026-08-31)* — **197 tracked source files sit on NO claims file** and S2/S3/S4 have none at all, so no instrument can even ASK whether they have been read. ⛔ **Measure, do not audit.** Decomposed above | 197 | every tracked source file on some surface's claims file |
 | **S1.13.7.13** | **RE-RUN PASS 7** — [D65] needs a second consecutive clean pass. Route from `s1p7`, same 12-lane shape. ⚠️ Forecast: pass 7 will find the FIXES' own defects — every prior round did — so 0/0 twice is realistically passes 8–9 | — | 0/0 twice |
 
 ✅ **`S1.13.7.10`'s seven sub-steps — CLOSED 2026-09-02, collapsed here.** 18 of 19 *(the class is 19, not
