@@ -3006,7 +3006,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "all 100 debts survive"
+      "expect": "all 100 debts survive",
+      "measured": "2026-09-02",
+      "sha": "20de17cc"
     }
   },
   "S1P6-A1-11-DIALOGSAYS": {
@@ -3031,7 +3033,9 @@
         "-g",
         "Notifications toggle"
       ],
-      "expect": "NAMES the reason rather than merely appearing"
+      "expect": "NAMES the reason rather than merely appearing",
+      "measured": "2026-09-02",
+      "sha": "20de17cc"
     }
   },
   "S1P6-A1-3-CENTSARITY": {
