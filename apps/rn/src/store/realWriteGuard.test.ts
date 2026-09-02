@@ -33,6 +33,13 @@ function eq<T>(a: T, b: T, label: string) {
   assert(a === b, `${label} (expected ${JSON.stringify(b)}, got ${JSON.stringify(a)})`);
 }
 
+/** A date relative to the run, so no fixture in this file can age into a different branch. */
+function daysFromToday(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 function run() {
   console.log('[R4] real-store write veto (a demo cannot write the user\'s plan)...');
   __resetSandboxScopesForTest();
@@ -63,7 +70,10 @@ function run() {
     id: 'real-bill-0',
     name: 'Rent',
     amount: 850,
-    dueDate: '2026-03-01',
+    // ⛔ RELATIVE, per `lint:fixture-dates` / [A1-4]. A literal here is a fuse: this fixture's date is
+    // irrelevant to what it proves, so a hard-coded one would sit in the ledger forever waiting to cross
+    // a branch boundary. The gate caught the first draft of this line the day it was written.
+    dueDate: daysFromToday(14),
     recurrence: 'monthly',
     category: 'housing',
     isPaidThisCycle: false,
