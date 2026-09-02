@@ -30896,3 +30896,53 @@ worth knowing before trusting one.
 `git commit -m "…"` are executed and expanded; every other commit here used a quoted heredoc, which is
 safe. Amended. `shell-is-a-participant`, and knowing the rule is evidently not the same as applying it.
 
+---
+
+## 2026-09-02 — **[D77]** re-proving stays batched; detecting staleness goes per-fix
+
+🎯 asked for the recommendation on `S1.13.7.12.3` and agreed with it. The question `S1.13.7.11` raised:
+**should `prove:guards` over the touched-file population become a step of every FIX rather than every
+CLASS?** The class had voided two guards one commit after proving them, then gone stale three more times.
+
+### ⛔ The answer is NO, and the reasoning inverted my own assumption
+
+**Per-fix re-proving is strictly MORE expensive, not less.** A file touched five times in a class needs
+**one** re-proof, not five. `readBackup.ts` was touched by `B3-2` and `B3-5` and carries 5 proof entries:
+batched that is 5 executions, per-fix it is 10. Each execution runs `test:app`. Across the class,
+per-fix would have run more plants than the ~32 actually run.
+
+⚡ **And the hole never got out.** All four staleness batches were caught by `lint:finding-guards`, which
+rides `lint:rn`, which runs before every push and again in CI. **Nothing shipped unguarded.** What the
+class paid was rework, not risk — and the distinction is the whole decision.
+
+### ✅ What the evidence DOES argue for
+
+The real cost was **finding out late** — twice I had moved on to the next finding before learning I had
+voided a guard behind me, so the batch was largest exactly when the context was coldest.
+
+That gap closes for **24 seconds, measured**: a full `lint:finding-guards` over all 267 entries. Its
+staleness half is **static** — a recorded sha against the file's last-touching commit, no plants, no
+suites. So the two halves separate cleanly: **detection per fix, execution per class.** It is the same
+split `lint:gate-freshness` already uses — a one-second probe answering whether the expensive record still
+describes the tree.
+
+### ⛔ The precondition, and it is not optional
+
+**The two `prove:guards` repairs land BEFORE pass 7**, promoted out of the backlog to `S1.13.7.12.3a`:
+
+1. **A persist failure must RED the run.** It printed `✅ S1P6-C1-1-NAMETHEFIGURE … reason=MATCHED` and
+   then threw `UNKNOWN: unknown error` on the final registry write — nine stamps landed, the tenth did
+   not, **and it still printed its success summary.** Caught only because `lint:finding-guards` reported
+   that entry stale afterwards.
+2. **A batched run is not N single runs.** `S1P3-C1-ROWFIGURES` returned `reason=WRONG` in a 12-id batch
+   and `MATCHED` when re-run alone.
+
+⚠️ Pass 7 leans on this ledger heavily. **An instrument that can report success it did not achieve is the
+one direction that must not be taken**, and leaning harder on it before repairing it is how `D4-6` got
+made — a harness printing `reason=WRONG` beside a green tick and then announcing all gates fail closed.
+
+**Captured atomically:** [D77] in the decisions ledger · the live-rules block carries the per-fix step ·
+`.12.3` marked answered and `.12.3a` promoted ahead of pass 7 · both backlog rows resolved **in place with
+a pointer** rather than deleted, because a row that silently vanishes is indistinguishable from one nobody
+did.
+

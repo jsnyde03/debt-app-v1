@@ -1008,8 +1008,10 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
 
 ### ⤵ surfaced by `S1.13.7.11`'s work, 2026-09-02 — routed per bullet
 
-- 🔴 **`prove:guards` PRINTS ITS ✅ BEFORE IT PERSISTS, so a failed write leaves a green tick and no
-  record.** → **Tooling / hygiene, and it is the `D4-6` family.** *(measured 2026-09-02, re-running ten
+- ✅ **PROMOTED OUT OF THE BACKLOG 2026-09-02 — it is now `S1.13.7.12.3a`, ahead of pass 7, as [D77]'s
+  precondition.** Left here as a pointer rather than deleted, because a backlog row that silently vanishes
+  is indistinguishable from one nobody did. ⤵ **`prove:guards` PRINTS ITS ✅ BEFORE IT PERSISTS, so a
+  failed write leaves a green tick and no record.** → **`S1.13.7.12.3a`, and it is the `D4-6` family.** *(measured 2026-09-02, re-running ten
   stale proofs in one batch)*. The run printed
   `✅ S1P6-C1-1-NAMETHEFIGURE plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED`
   and then threw `Error: UNKNOWN: unknown error, open …/finding-guards.json` at `prove-guards.ts:489` —
@@ -1030,8 +1032,9 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   starts by reading a neighbouring one. Collapsing the test-tree subset alone would lower the cap and
   remove the template.
 
-- ⚠️ **A guard is only as current as the last commit that touched its file, and the standing rule's period
-  is a SURFACE.** → **S1 pass 7 / the convergence protocol.** *(measured 2026-09-02)* Building `C1-4` on
+- ✅ **ANSWERED 2026-09-02 by [D77]** — re-proving stays BATCHED *(per-fix is strictly more plants)*, and
+  **`lint:finding-guards` runs after each fix** for the detection half *(24s, static)*. ⤵ **A guard is only
+  as current as the last commit that touched its file, and the standing rule's period is a SURFACE.** *(measured 2026-09-02)* Building `C1-4` on
   top of `D3-5` voided **both** of `D3-5`'s guards **one commit** after they were proven — one token gone,
   one un-fix anchor void — and `lint:finding-guards` was the only thing that saw it. The `B3-2` build then
   left **ten** executed proofs stale against a ceiling of 8. ⛔ **Neither is a defect in the guards; both

@@ -178,7 +178,8 @@ are untouched by design. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG
 |---|---|---|
 | **.12.1** | **MEASURE, DO NOT AUDIT** *(🎯 2026-08-31)* — generate the claims files so the unknown becomes a number. **197 tracked source files sit on NO claims file**, 82 in `apps/rn` and 4 in `packages/core`; **S2/S3/S4 have none at all**, so no instrument can even ASK whether they have been read | every tracked source file on some surface's claims file, and the count printed |
 | **.12.2** | ⚠️ **Re-verify that 197 against the CURRENT tree before acting on it** — it was counted 2026-08-31 and this session alone added five files to S1. A pre-authored number is a hypothesis | the number re-measured, not quoted |
-| **.12.3** | ⛔ **[DECISION] Does `prove:guards` over the touched-file population become a step of EVERY FIX?** `S1.13.7.11` measured that a guard is only as current as the last commit that touched its file — it voided two guards one commit after proving them, then went stale three more times. The standing rule's period is a SURFACE. This is a protocol call, and it is 🎯's | a yes/no recorded here |
+| ✅ **.12.3** | **[DECISION] ANSWERED 🎯 2026-09-02 — [D77].** Re-proving stays BATCHED *(per-fix is strictly more plants: one file, five touches, one re-proof)*; **`lint:finding-guards` runs after each fix** — 24s, and its staleness half is static | ANSWERED |
+| 🔴 **.12.3a** | **THE TWO `prove:guards` REPAIRS — [D77]'s precondition, ahead of pass 7.** *(a)* a **persist failure must RED the run** — it printed ✅ and then threw on the final write, nine stamps landing and the tenth not, and still printed its success summary; *(b)* a **batched run returned `reason=WRONG`** for a guard that passes solo, so N ids in one invocation is not N invocations. ⛔ Pass 7 leans on this ledger heavily, and an instrument that can report success it did not achieve is the one direction that must not be taken | both repaired and plant-verified; the batch case proven equivalent to N single runs |
 | **.12.4** | **ROUTE PASS 7** from `s1p7`, same 12-lane shape, and write the brief | 0 unrouted · 0 owed · the origin split printed |
 | **.12.5** | **RUN PASS 7 with fresh agents** ([D68]) | recorded and classified |
 | **.12.6** | **TRIAGE TO 0/0** — then the second consecutive clean pass [D65] requires | 0 blockers / 0 majors, every closure proven to red |
@@ -295,6 +296,12 @@ outside the app**: the Home Screen, the Lock Screen, Siri and the Live Activity.
 - **THE LOOP:** fix a surface → re-verify it in the background against a **PINNED SHA** → repeat until **TWO
   CONSECUTIVE CLEAN PASSES.** Order **S0 instruments ✅ → S1 money ▶ → S2 dates → S3 import → S4 discovery →
   cross-surface.** ⛔ Per-surface convergence is not sufficient — blocker 1 spans two surfaces.
+- **[D77] `lint:finding-guards` RUNS AFTER EVERY FIX — the DETECTION half, not the re-proving.** 24s, and
+  its staleness check is static *(a recorded sha against the file's last-touching commit)*. ⛔ **Re-proving
+  stays BATCHED at the class boundary**: one file touched five times needs ONE re-proof, so per-fix is
+  strictly more plants and each executes `test:app`. ⚡ `S1.13.7.11` voided two guards **one commit** after
+  proving them and went stale three more times — the gate caught all four, so what this buys is finding out
+  while the file is still open, not preventing an escape.
 - **EVERY SURFACE AUDIT RE-VERIFIES THE PREVIOUS SURFACES' GUARDS** *(🎯 2026-08-26)* — that is what makes
   findings ratchet the way coverage already does. A guard nobody re-checks is a guard nobody has confirmed exists.
 - **EVERY FIX IS PLANT-VERIFIED**, the plant confirmed to have **LANDED**, and re-run with the earlier
@@ -610,6 +617,17 @@ appeared **nowhere** in the log, so this page was their only copy — found by g
 id rather than trusting the sentence above. The whole ledger is now mirrored there verbatim.
 
 **Phase 6 — launch**
+
+- **[D77]** ✅ 2026-09-02 *(🎯: "Agree")* — **RE-PROVING GUARDS STAYS BATCHED; DETECTING STALENESS GOES
+  PER-FIX.** ⛔ **No** to `prove:guards` as a step of every fix: a file touched five times in a class needs
+  **one** re-proof, not five, so per-fix is strictly MORE plants — and each executes `test:app`. ⚡ And the
+  hole never got out: all four of `S1.13.7.11`'s staleness batches were caught by `lint:finding-guards`,
+  which rides `lint:rn` and CI. The cost was rework, not risk. ✅ **Yes** to running `lint:finding-guards`
+  after each fix — **24s measured**, and its staleness half is static *(a recorded sha against the file's
+  last-touching commit; no plants)*. Same split `lint:gate-freshness` already uses. ⛔ **Precondition:
+  the two `prove:guards` repairs land BEFORE pass 7** — it printed ✅ and then failed to persist, and a
+  batched run returned `reason=WRONG` for a guard that passes solo. Leaning harder on an instrument that
+  can report success it did not achieve is the one direction that must not be taken. Reasoning → log.
 
 - **[D76]** ✅ 2026-08-28 *(🎯: "I approve your rec for S0")* — **S0'S CONVERGENCE STANDS; THE UNSWEPT
   REMAINDER IS A ROUTING BUG, NOT A REOPENING.** Pass 4's `D4-7` reported that `audit-route.ts` emits
