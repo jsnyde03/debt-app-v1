@@ -628,8 +628,8 @@
       ],
       "run": "lint:gate-sources",
       "expect": "no longer runs the scripts typecheck against the config this gate guards",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "47225ab4"
     }
   },
   "S1P4-A-F4-ONEGUARD": {
@@ -2002,8 +2002,8 @@
       ],
       "run": "typecheck:scripts",
       "expect": "test-gate-plants.ts",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-02",
+      "sha": "47225ab4"
     }
   },
   "S1P5-D5-13-DERIVEDPOP": {
@@ -2343,8 +2343,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO runner",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "47225ab4"
     }
   },
   "S1P6-D1-8-GATECHAIN": {
@@ -2361,8 +2361,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO chain",
-      "measured": "2026-09-01",
-      "sha": "4789acd1"
+      "measured": "2026-09-02",
+      "sha": "47225ab4"
     }
   },
   "S1P6-D3-4-HALFCONFLICT": {
