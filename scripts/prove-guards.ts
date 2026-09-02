@@ -33,7 +33,7 @@
  *   npm run prove:guards -- --list            # proven · guard-only · never tested
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { type Failure, verdict } from './lib/verdict';
@@ -156,6 +156,59 @@ function run(p: Proof): { status: number; out: string } {
   const res = spawnSync(argv[0], argv.slice(1), { cwd: REPO_ROOT, encoding: 'utf8', shell: true });
   return { status: res.status ?? 1, out: `${res.stdout ?? ''}${res.stderr ?? ''}` };
 }
+
+/**
+ * ⛔ **S1.13.7.12.3a — A RUN WHOSE WEB SERVER NEVER CAME UP HAS NO VERDICT IN IT, AND THIS FILE WAS
+ * ISSUING ONE.**
+ *
+ * ⚡ **Measured, and it is why `.12.3a` was written against the wrong cause.** The plan recorded a guard
+ * reading `reason=WRONG` batched and `MATCHED` solo, and asked for the batch case to be proven equivalent
+ * to N single runs. Reproduced with the real ids: `S1P3-C1-ROWFIGURES` read **`WRONG` SOLO and `MATCHED`
+ * BATCHED** — the stated direction inverted — while three identical hermetic entries gave identical
+ * verdicts both ways. ⛔ **Batching is not the variable.** In every anomaly the planted run's output
+ * carried `Process from config.webServer was not able to start`.
+ *
+ * ⚡ **What that produces is the dangerous shape:** planted red + control green + the expected string
+ * absent = **`reason=WRONG`**, which reads as *"your guard redded, but not for your defect"* — a finding
+ * against the guard. Nothing redded. The server never started, so no assertion ever ran.
+ *
+ * ⛔ **AND THE VERDICT IS RECORDED.** In the batch that read `MATCHED`, a `measured`/`sha` stamp was
+ * persisted for a guard that had just read `WRONG` — so the ledger's evidence turns on whether a server
+ * happened to come up.
+ *
+ * ⚠️ **The cause is NOT in this repo, and four hypotheses were measured and refuted before saying so:**
+ * `expo export --clear` (3/3 clean standalone) · the port not being released (`:4319` free at **t=+1s**,
+ * two back-to-back runs both passed) · `spawnSync`'s 1 MB `maxBuffer` (real output **618 bytes**) · `tsx`
+ * injecting loader env (`NODE_OPTIONS` unset under both). Reproduced at **1 in 3** through `run()`'s exact
+ * shape, with the spawned server dying on **two different Windows abnormal-termination codes**
+ * (`0xC0000409` STATUS_STACK_BUFFER_OVERRUN, `0x80000003` STATUS_BREAKPOINT) — it is being killed, not
+ * exiting. This machine carries `NODE_EXTRA_CA_CERTS` pointing at Norton.
+ *
+ * ⛔ **So this does not try to prevent it. It refuses to MISREPORT it** — the same move the netstat
+ * pre-flight above makes, extended from *before the planted run* to *after every run*.
+ *
+ * ⚠️ **ONE ANCHOR, NOT A SPELLING LIST.** Playwright's two failures here — `Process from config.webServer
+ * was not able to start` and `Timed out waiting …ms from config.webServer` — share the config KEY, which
+ * cannot drift without the config drifting with it. An enumeration of messages is the move that has
+ * failed eight times in this repo.
+ */
+const webServerNeverStarted = (r: { status: number; out: string }): boolean =>
+  r.status !== 0 && /config\.webServer/.test(r.out);
+
+const faultOnDeadServer = (id: string, phase: 'planted' | 'control', r: { status: number; out: string }): void => {
+  if (!webServerNeverStarted(r)) return;
+  const line = r.out.split('\n').find((l) => /config\.webServer/.test(l))?.trim() ?? '(message not found)';
+  fault(
+    id,
+    `the ${phase} run never got its web server up, so no assertion in it ever ran:\n` +
+      `   ${line.slice(0, 200)}\n` +
+      '   ⛔ This is NOT a verdict about the guard. Left to score, it reads as `reason=WRONG` —\n' +
+      '   "it redded, but not for your defect" — about a run in which nothing redded at all.\n' +
+      '   ⚠️ Measured intermittent at ~1 in 3 on this machine, and NOT caused by anything here:\n' +
+      '   the export, the port, `maxBuffer` and the tsx env were each measured and refuted. The\n' +
+      '   server is killed with a Windows abnormal-termination code. Re-run the id.',
+  );
+};
 
 const ids = Object.keys(registry);
 // ⛔ D5-2 — the buckets come from ONE producer. This file used to compute its own, and it had never been
@@ -313,7 +366,14 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
     if (dirty) fault(id, `${rel} is dirty after the restore: ${dirty}`);
   }
 
+  // ⚠️ AFTER the restore, never before it: a fault exits the process, and leaving the plant on disk
+  // would hand the next run a dirty target — which its own pre-flight would then refuse.
+  faultOnDeadServer(id, 'planted', withPlant);
+
   const withoutPlant = run(p);
+  // ⚠️ The control gets the same check. Left to score it reads as `control-red` — "the command is red
+  // with or without the plant" — which is a claim about the COMMAND, and equally untrue here.
+  faultOnDeadServer(id, 'control', withoutPlant);
 
   /**
    * ⚠️ **THE REST OF THE TREE, because the restore check only covers the files this proof edits.** Some
@@ -486,7 +546,49 @@ for (const id of selected) {
     const rp = raw[id].proof as Proof;
     rp.measured = new Date().toISOString().slice(0, 10);
     rp.sha = sha;
-    writeFileSync(REGISTRY, `${JSON.stringify(raw, null, 2)}\n`, 'utf8');
+    /**
+     * ⛔ **S1.13.7.12.3a — THE WRITE IS ATOMIC, AND ITS FAILURE IS NAMED. Measured, not reasoned.**
+     *
+     * ⚡ Reproduced by locking the registry between records in a three-id batch: the guard printed
+     * `✅ PROBE-B … reason=MATCHED`, the write threw, and the run died on a raw `EPERM` stack from
+     * `node:fs`. Verified on the file afterwards — **the first id's stamp was on disk, the second's was
+     * not, and the third never ran.**
+     *
+     * ⛔ **NOTHING DETECTS THAT GAP.** `MAX_AUTHORED` in `check-finding-guards.ts` is a **CEILING**
+     * (`authored.length > MAX_AUTHORED`) and deliberately so — see its own note. A crash that drains the
+     * count pushes it further UNDER the cap, so `lint:finding-guards` stays **green** over a registry
+     * that just lost measurements. ⚠️ The direction is the safe one — the ledger under-claims rather
+     * than over-claims — but the evidence is gone and nothing says which ids lost it.
+     *
+     * ⛔ **AND `writeFileSync` REWRITES THE REGISTRY IN PLACE.** `EPERM` fails before the open and does
+     * no damage; a failure *after* it truncates the one file 267 entries rest on. Temp + rename removes
+     * that direction entirely: a reader sees the old file or the new one, never a half-written one.
+     */
+    const tmp = `${REGISTRY}.tmp`;
+    try {
+      writeFileSync(tmp, `${JSON.stringify(raw, null, 2)}\n`, 'utf8');
+      renameSync(tmp, REGISTRY);
+    } catch (err) {
+      // ⚠️ Best-effort: if the temp survived a failed rename it is untracked litter, and the next
+      // `git add -A` is what would commit it. A failure to clean up must not mask the real error.
+      try {
+        rmSync(tmp, { force: true });
+      } catch {
+        /* the original error below is the one that matters */
+      }
+      const rest = selected.slice(selected.indexOf(id) + 1);
+      console.error(
+        `\n❌ prove:guards — ${id} HELD, but its measurement could NOT be recorded:\n` +
+          `   ${err instanceof Error ? err.message : String(err)}\n\n` +
+          `   ⛔ The registry is INTACT — the write is temp-then-rename, so nothing was half-written.\n` +
+          `   ⛔ Stamped before this and still on disk: ${recorded.length ? recorded.join(', ') : '(none)'}\n` +
+          `   ⛔ Measured and DISCARDED (re-run it): ${id}\n` +
+          `   ⛔ Never run: ${rest.length ? rest.join(', ') : '(none)'}\n\n` +
+          '   ⚠️ `lint:finding-guards` will NOT red over this — its authored count is a ceiling, so a\n' +
+          '   drained registry reads green. This message is the only notice you get.\n',
+      );
+      process.exit(1);
+    }
     recorded.push(id);
   }
 }

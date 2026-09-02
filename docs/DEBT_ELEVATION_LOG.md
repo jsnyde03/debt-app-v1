@@ -30946,3 +30946,169 @@ made — a harness printing `reason=WRONG` beside a green tick and then announci
 a pointer** rather than deleted, because a row that silently vanishes is indistinguishable from one nobody
 did.
 
+
+---
+
+## 2026-09-02 — `S1.13.7.12.2`: the 197 re-measured, and the item's SHAPE was the error
+
+`.12.2` exists because a pre-authored number is a hypothesis. It was, twice over — the count is wrong
+*and* the flat count is the wrong instrument.
+
+### What was measured
+
+`git ls-files` → **1,356 tracked**, **848 of them source** by the gate's own `SOURCE_EXT`
+(`.ts .tsx .mjs .cjs .json .sh`). **624** sit on `surface-coverage.s0.json` or `.s1.json`. Residual
+**224**, of which **15** are dropped by the gate's own `commonExcluded` (manifests, `__fixtures__`, the
+claims files themselves). **RESIDUAL = 209.**
+
+⛔ **The plan's sub-split was double-counting.** It read *"82 in `apps/rn` and 4 in `packages/core`"*;
+measured it is **86 + 4**, and the four `packages/core` files (`scan/`, `imports/`) are *inside* the 39
+routed to `s3` — so the second number was a subset of the first stated as a sibling of it.
+
+### ⚡ The number decomposes with NO remainder, and only one half is work
+
+| n | class | state |
+|---|---|---|
+| **86** | routed **by name, with a reason**, to `s2` (1) · `s3` (39) · `s4` (46) | classified; **the destination surface has no claims file** |
+| **123** | inside the 11 trees `runCompleteness`'s `NOT_SOURCE` skips by name — `docs` `assets` `public` `site` `.github` `ios` `apps/rn/modules` and the four legacy Next trees `app` `components` `lib` `tests` — plus repo-root config files | already a recorded decision, each with a `why`, and the legacy four carry an expiry that reds when P6.11 deletes them |
+
+**86 + 123 = 209.** The reconciliation is exact, which is what makes the split trustworthy rather than a
+second reading of the same prose.
+
+### ⛔ The item's own premise is refuted
+
+*"S2/S3/S4 have none at all, so no instrument can even ASK whether they have been read."* — the second
+clause is false. **`lint:surface-complete` is green and rides `lint:rn`**: `✅ every tracked source file is
+under a surface root (1356 tracked, 11 trees skipped by name)`. Nothing is invisible. What is missing is
+not classification and not visibility — it is **the destination**. The honest one-line statement is:
+**86 files are classified onto three surfaces that do not exist yet.**
+
+### ⭐ The control came back clean, and that is worth recording
+
+The failure mode this family keeps producing is [D73]'s: *a routing to a surface that EXISTS but whose
+roots do not walk the file* — which removes the file from the sender and adds it to nothing. Checked
+every routing in both reports (**138 parsed: `none` 8 · `s0` 44 · `s2` 1 · `s3` 39 · `s4` 46**, each
+bucket reconciled against its own header count) against both claims files:
+
+> **0 files routed to a live surface (`s0`/`s1`) are absent from that surface's claims file.**
+
+A negative result, deliberately recorded — an unrecorded clean control is indistinguishable from one
+nobody ran.
+
+### What this does to `.12.1`
+
+It shrinks from *"classify 197 files"* to *"build claims files for `s2`/`s3`/`s4` and land the 86 routed
+files on them"*, and it raises a design question the old wording hid: **a surface defined by `roots` +
+`excluded` needs an inclusion list for s2/s3/s4, and an inclusion list fails silent** — the exact defect
+`surface-coverage.ts`'s own docblock says an exclusion list exists to avoid. The membership that cannot
+fail silent is **s1's routing table itself**: every file s1 routes to `s3` IS s3's population, guaranteed
+complete by s1's roots plus the completeness gate. Recorded here; `.12.1` decides it against the code.
+
+**Captured atomically:** `.12.2` closed on the plan with the measured numbers · `.12.1` rewritten to the
+86 · the `S1.13.7.12` class row's `197` corrected to `86` with the 123 named.
+
+---
+
+## 2026-09-02 — `S1.13.7.12.3a`: both `prove:guards` repairs built, and both stated mechanisms refuted
+
+`.12.3a` was authored last session from two observations. Both observations were real. **Both mechanisms
+written beside them were wrong, and one was wrong in the direction that decides how bad it is** — the
+`preauthored-items-fail-two-ways` shape, on same-session claims, again.
+
+### (a) The persist failure — it already redded, and it under-claims
+
+Reproduced by driving the real harness over a hermetic fixture registry with a probe that flips the
+registry read-only on its control run:
+
+```
+✅ PROBE-A  plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+✅ PROBE-B  plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+Error: EPERM … open '…probe-registry.json'      EXIT=1
+```
+
+⛔ **"It still printed its success summary" is false.** The final `✅ prove:guards — N guard(s) red on
+their own defect` never printed and the run exits **1**. The exit line *"a persist failure must RED the
+run"* was **already satisfied** before any work.
+
+⛔ **And the stated direction is inverted.** The plan called it *"an instrument that can report success it
+did not achieve — the one direction that must not be taken."* Measured, `MAX_AUTHORED` in
+`check-finding-guards.ts` is `authored.length > MAX_AUTHORED` — a **CEILING**, and
+[deliberately so](../scripts/check-finding-guards.ts): strict equality kept the gate red for the whole
+interval between running a proof and editing the line, *"measured twice in one session."* So a crash that
+drains the count pushes it **further under** the cap and `lint:finding-guards` stays **green**. The ledger
+**under**-claims. ⚠️ I asserted the opposite from `prove-guards.ts`'s own advisory text before opening
+`check-finding-guards.ts` — a docstring cited as evidence, which is its own standing lesson.
+
+**What is real, and what was built:** ① `writeFileSync` rewrote the registry **in place**, so a failure
+after the open truncates the one file 267 entries rest on → now **temp + rename**. ② `recorded.push` sits
+after the write and the `📌` advisory after the loop, so a partial drain was **completely silent** → now a
+caught error naming **stamped / measured-and-discarded / never-run**, and saying plainly that
+`lint:finding-guards` will not red over it. `scripts/*.json.tmp` gitignored as the hard-kill backstop.
+
+**Verified both directions:** plant → the diagnosis, registry parses, no `.tmp` litter; unlocked → 3/3
+record and the green summary. `--selftest` still passes its own 2×2.
+
+### (b) ⛔ Batching is not the variable — the stated direction is inverted here too
+
+The claim: `S1P3-C1-ROWFIGURES` reads `reason=WRONG` in a 12-id batch and `MATCHED` alone. Measured with
+the real ids:
+
+| run | id | verdict |
+|---|---|---|
+| **solo** | `S1P3-C1-ROWFIGURES` | ❌ `reason=WRONG` — red was `config.webServer was not able to start` |
+| **solo** | `S1P3-C2-SUMS` | ❌ `control-red` |
+| **batch** | `S1P3-C1-ROWFIGURES` | ✅ `reason=MATCHED` — **and a `measured`/`sha` stamp persisted** |
+| **batch** | `S1P3-C2-SUMS` | ❌ `reason=WRONG` — same webServer error |
+
+**The same id read `WRONG` SOLO and `MATCHED` BATCHED.** And three identical hermetic entries returned
+identical verdicts solo and batched, so the plant/restore/verdict loop is not where anything diverges.
+⛔ **The remedy the plan asked for — "prove the batch case equivalent to N single runs" — would have fixed
+nothing.**
+
+⚡ **The variable is a webServer that never starts, and the verdict it produces is a FALSE FINDING:**
+planted red + control green + expected string absent = **`reason=WRONG`**, which reads as *"your guard
+redded, but not for your defect."* Nothing redded; no assertion ever ran. Worse, when it *does* start the
+run scores ✅ and **records** — so the ledger's evidence turns on whether a server came up.
+
+#### Four causes measured and refuted before naming it environmental
+
+| hypothesis | measured | |
+|---|---|---|
+| `expo export --clear` fails intermittently | **3/3** exit 0 standalone | ⛔ refuted |
+| `serve` does not release `:4319` between runs | free at **t=+1s**; 2 back-to-back runs both passed | ⛔ refuted |
+| `spawnSync`'s 1 MB `maxBuffer` kills the child | real output **618 bytes** | ⛔ refuted |
+| `tsx` injects loader env into children | `NODE_OPTIONS` unset under tsx **and** plain node | ⛔ refuted |
+
+⚠️ **The port hypothesis was mine, written into a message before it was run.** Reproduced at **1 in 3**
+through `run()`'s exact `spawnSync` shape; the spawned server dies on **two different Windows
+abnormal-termination codes** — `0xC0000409` STATUS_STACK_BUFFER_OVERRUN and `0x80000003`
+STATUS_BREAKPOINT. It is **killed, not exiting**; this machine carries `NODE_EXTRA_CA_CERTS` pointing at
+Norton. **Nothing here causes it and nothing here can prevent it — so the harness refuses to misreport it**,
+the same move the netstat pre-flight makes, extended from *before the planted run* to *after every run*.
+
+⚠️ **One anchor, not a spelling list:** both Playwright failures share the config KEY `config.webServer`,
+which cannot drift without the config drifting with it. An enumeration of messages is the move that has
+failed eight times in this repo.
+
+**Four controls, because a detector that cannot tell the two apart is worse than none:**
+
+| control | result |
+|---|---|
+| dead server on the **planted** run | ✅ faults |
+| dead server on the **control** run | ✅ faults |
+| a **genuine** wrong-reason | ✅ still scores `reason=WRONG` — not swallowed |
+| **the fix disabled**, same plant | ⛔ scores `reason=WRONG` — the false finding returns |
+
+The fourth is the one that proves the fix changed the outcome rather than the plant never applying.
+Restore verified byte-identical. **`lint:rn` — all 46 gates pass**; `test:gate-plants` — all 25 fail closed.
+
+### ⛔ What this does NOT fix, stated rather than left implicit
+
+The harness is now **honest**, not **runnable**. At ~1 in 3 per invocation × **2 invocations per proof** ×
+**17** playwright-backed proofs, `prove:guards --all` will fault out rather than lie — better, and still
+unable to complete. `.12.4`–`.12.6` lean on that ledger. Promoted as **`.12.3c` [DECISION]**: retry only
+where the measurement provably did not happen, or uphold [D74]'s never-retry rule and pay it elsewhere.
+
+**Captured atomically:** `.12.3a` closed on the plan with both refutations · **`.12.3b`** promoted (neither
+repair carries a re-runnable guard — the *"119 rest on a token alone"* shape inside the instrument that
+measures it) · **`.12.3c`** promoted as the [DECISION].

@@ -60,3 +60,8 @@ apps/rn/dist-embed/
 # ⛔ test:gate-plants writes these INTO scripts/ while it runs and removes them after (S1.10.6.1).
 # A `git add -A` that races the gate commits them. They are transient by construction — never tracked.
 scripts/__gate_plant_*
+
+# ⛔ prove:guards writes the registry temp-then-rename (S1.13.7.12.3a), so a hard kill between the two
+# can leave this behind. The catch removes it; this is the backstop, since an untracked file beside the
+# registry is exactly what a `git add -A` would commit.
+scripts/*.json.tmp
