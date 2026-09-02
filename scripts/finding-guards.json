@@ -2972,7 +2972,9 @@
         "apps/rn/playwright.config.ts",
         "celebration.spec.ts"
       ],
-      "expect": "payday-guardian-card"
+      "expect": "payday-guardian-card",
+      "measured": "2026-09-02",
+      "sha": "11c50d65"
     }
   },
   "S1P6-A1-8-BANDWORDS": {
@@ -3068,6 +3070,38 @@
       "expect": "must add up",
       "measured": "2026-09-02",
       "sha": "1099c693"
+    }
+  },
+  "S1P6-A3-15-PARTITIONSIDE": {
+    "what": "S1.13.7.10 [pass-6 A3-15] - testGuardianPartition derived DISCRETIONARY_BUCKETS from [...PROTECTED, ...PUT_TO_WORK] - the subject derived from the object - so it asserted that the union of two lists equals the union of two lists, and a category in NEITHER list was invisible to it. allocatePaycheck.ts:70-77 states the claim it was supposed to enforce ('a category in neither list silently breaks the partition') and for optional_goal, every savings goal in the app, no such guard existed. Replaced by an exhaustive Record<AllocationCategory, 'protected'|'put-to-work'|'obligation'>: adding a member to the union fails typecheck:core until somebody says which side it is on, and the two published lists are reconciled against that classification in BOTH directions. Planted by dropping optional_goal from PUT_TO_WORK_CATEGORIES; it reds naming the category.",
+    "file": "packages/core/guardian/testGuardianPartition.ts",
+    "token": "is discretionary but is in NEITHER",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/engine/allocatePaycheck.ts",
+          "find": "\t\"snowball\",\n\t\"optional_goal\",\n] as const satisfies readonly AllocationCategory[];",
+          "replace": "\t\"snowball\",\n] as const satisfies readonly AllocationCategory[];"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "is discretionary but is in NEITHER"
+    }
+  },
+  "S1P6-A3-4-DEBTCADENCE": {
+    "what": "S1.13.7.10 [pass-6 A3-4] - all three [A2] sub-cycle fixtures passed debts: [], so the block green-lit a class it exercised on ONE branch: it is the instrument that would have caught A3-1 and could not. ADDING THE DEBT ARITY EXPOSED A LIVE MONEY DEFECT, measured on one weekly debt in one window: RESERVE (allocatePaycheck.totalRequired) $50 against PAYDOWN (effectiveMinimumInWindow) $200. S1.13.7.7's A3-1 removed the type === 'bnpl' gate and argued it was safe because 'the allocator's RESERVE and applyRolloverPayment's PAYDOWN both read effectiveMinimumInWindow, so they move together or not at all' - and grep for that symbol returns applyRolloverPayment and buildCycleSnapshot only. The allocator computed Math.min(debt.minimumPayment, debt.balance) at five sites. So the Guardian called a paycheck clear having held $50 while the rollover took $200, leaving the user $150 short - verbatim the consequence the [A2] header describes for bills. The reserve reads the shared producer now. ⚠️ AND THE FIRST CUT USED THE BILLS' occurrencesThisCycle INSTEAD, which bnplCadence.test.ts refused: on Aug 1 -> Sep 1 it counts 4 biweekly charges where effectiveMinimumInWindow counts 3. Two counters over one window is the shape this fix exists to remove, and an existing test that already knew the right answer is what caught it.",
+    "file": "packages/core/engine/testAllocation.ts",
+    "token": "a weekly DEBT inside a monthly cycle reserves every occurrence too",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/engine/allocatePaycheck.ts",
+          "find": "\t\tMath.min(effectiveMinimumInWindow(debt, currentDate, nextPaycheckDate), debt.balance);",
+          "replace": "\t\tMath.min(debt.minimumPayment, debt.balance);"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "a weekly DEBT inside a monthly cycle reserves every occurrence too"
     }
   }
 }
