@@ -30433,3 +30433,40 @@ is what proves the set is the document rather than a monotonic counter — an im
 never re-used any id would pass the positive row alone.
 
 Planted by reserving against the `debts` array instead of the document: pass 5's blocker verbatim.
+
+### `S1.13.7.10` CLOSED 2026-09-02 — 18 of 19, and the class found a live money defect
+
+typecheck ×4 · `lint:rn` **45/45** · three unit suites green. **`A2-7` is the one left open**, deliberately.
+
+⛔ **THE RESULT THAT MATTERS IS NOT A TEST FIX.** `A3-4` said the `[A2]` sub-cycle block passed
+`debts: []` in every case — *"the instrument that would have caught `A3-1` and cannot"*. Adding the debt
+arity measured, on one weekly debt in one window: **RESERVE $50, PAYDOWN $200.** `S1.13.7.7`'s `A3-1`
+removed the `type === "bnpl"` gate and argued it was safe because *"the allocator's RESERVE and
+`applyRolloverPayment`'s PAYDOWN both read `effectiveMinimumInWindow`, so they move together or not at
+all"* — **the allocator did not read it**, and computed `Math.min(minimumPayment, balance)` at five sites.
+The Guardian called a paycheck clear having held $50 while the rollover took $200.
+
+⚠️ **And the first repair used the BILLS' counter**, which `bnplCadence.test.ts` refused: on Aug 1 → Sep 1
+it counts **4** biweekly charges where `effectiveMinimumInWindow` counts **3**. Two counters over one
+window is the shape the fix exists to remove — **an existing test that already knew the right answer is
+what caught it.**
+
+⚡ **Six of the nineteen were instruments that could not fail at all**, and each was found by asking what
+its assertion is actually satisfied by: a barrier matching the **tab's own label** (`A1-7`); a band count
+that was an unanchored substring test over six common words (`A1-8`); a `toHaveCount(0)` over a string
+absent from the whole app (`A1-10`); a partition test deriving its subject from its object (`A3-15`); an
+oracle that could not tell *"held"* from *"never ran"* (`D1-4`); and a test whose body sat behind a
+condition that was always false (`D1-5`).
+
+⭐ **`scenario()` type-checked nothing**, and typing just `prefs` caught 40 seeds of a pref v7 deletes, a
+boolean where an array was required, **and a `tutorialSeen: false` no lane had reported** — where the
+consumer tests `=== null`, so it meant *"will not be offered"*.
+
+⚠️ **`A1-8`'s repair fires a real warning**: with the band words derived from `GUARDIAN_STATE_LABEL`,
+Today and Progress report **zero** band words in the accessible tree. Filed as a candidate a11y finding
+rather than tuned away — the warning firing is the fix working.
+
+⛔ **`A2-7` left OPEN, and it is the honest outcome.** Its own remedy forbids the test without an engine
+decision. Measured now that `A2-1` has landed: the projection reports **$889.87** for the portfolio while
+the non-focus debt's drawn schedule reports **$8,678.34 over 137 months**, because that schedule never
+models the freed minimum rolling over. **A product call, raised as a [DECISION] with its measurement.**
