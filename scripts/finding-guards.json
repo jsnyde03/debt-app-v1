@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-03",
-      "sha": "e5b6a120"
+      "sha": "257a950e"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-03",
-      "sha": "06e1f922"
+      "sha": "257a950e"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3465,7 +3465,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-03",
-      "sha": "cb2c6b93"
+      "sha": "257a950e"
     }
   }
 }
