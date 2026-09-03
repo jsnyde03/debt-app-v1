@@ -29,6 +29,9 @@ import { existsSync, readFileSync } from 'node:fs';
 // ⛔ S1.11.6.0 — ONE producer for anchor matching, shared with prove-guards.ts. See lib/anchor.ts for
 // what a per-file normaliser cost: this gate was red in CI for six pushes while reading green locally.
 import { anchorCount } from './lib/anchor';
+// ⛔ `U11` — the same producer `unreadInputsCopy.test.ts` uses. A guard token is a sentence, and a
+// sentence is the most wrappable thing in the repo; asking one physical line was the whole defect.
+import { joinAllLines, joinCodeLines, normaliseFragment } from './lib/joinedCode';
 import { join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -216,23 +219,22 @@ const MAX_AUTHORED = 10;
  */
 const isCommentLine = (l: string) => /^\s*(?:\/\/|\*|\/\*)/.test(l);
 
+/**
+ * ⛔ **ASKED OF THE FILE, NOT OF ONE PHYSICAL LINE — a wrapped guard used to report as a DELETED guard.**
+ * [class-1 re-audit 4 `U11`, major]
+ *
+ * ⚡ **Measured on `S1P1-B1-OWNER`.** Its token is a sentence —
+ * `Today must NOT reach the debt-free celebration` — and a guard token is the single most wrappable
+ * thing in this repo. Prettier's ordinary output for that assertion, `'… debt-free ' + 'celebration'`,
+ * left the assertion intact and this gate said **`the guard is gone`**, `267 → 266` guarded. The noisy
+ * direction, in the instrument that decides whether every finding in the audit is closed, with
+ * `MAX_UNGUARDED` capped at 1 and no allow-list to absorb it.
+ *
+ * ⚠️ The block-comment scan that used to live here moved into {@link joinCodeLines} intact — it is the
+ * stronger of the two producers that were answering this question separately, and it is now the only one.
+ */
 function presentInCode(text: string, token: string): boolean {
-  let inBlock = false;
-  for (const raw of text.split('\n')) {
-    const line = raw.trim();
-    // ⚠️ A block OPENS only when the line begins one. The first cut asked `line.includes('/*')`, and this
-    // file's own source broke it: `const opens = line.includes('/*')` contains the delimiter as a STRING
-    // LITERAL, so the scanner entered a block that never closed and every line below it — including the
-    // code this gate was pointed at — read as comment. ⚡ Found by this check failing on its own new
-    // guard entry. A delimiter inside a literal is not a comment; a line that starts with one is.
-    const startsBlock = line.startsWith('/*') && !line.includes('*/');
-    const wasInBlock = inBlock;
-    if (startsBlock) inBlock = true;
-    else if (wasInBlock && line.includes('*/')) inBlock = false;
-    if (wasInBlock || startsBlock || line.startsWith('//') || line.startsWith('*')) continue;
-    if (present(raw, token)) return true;
-  }
-  return false;
+  return present(joinCodeLines(text).text, normaliseFragment(token));
 }
 
 /**
@@ -365,7 +367,9 @@ for (const [id, e] of Object.entries(registry)) {
     continue;
   }
   const text = readFileSync(abs, 'utf8');
-  if (!present(text, e.token)) {
+  // ⛔ `U11` - welded, comments KEPT: this asks whether the token is in the file at all, and the
+  // *next* check is the one that decides comment-versus-code. A wrapped token failed HERE first.
+  if (!present(joinAllLines(text).text, normaliseFragment(e.token))) {
     problems.push(
       `${id} — the guard is gone from ${e.file}: no ${JSON.stringify(e.token)}  (${e.what})\n` +
         '        the file survived; the assertion inside it did not, which is the shape this gate exists for',
@@ -389,8 +393,16 @@ for (const [id, e] of Object.entries(registry)) {
    * one is simply zero**, because unlike a coverage backlog there is no such thing as a legitimately
    * mis-pointed token.
    */
-  const declLine =
-    text.split(/\r?\n/).find((l) => present(l, e.token!) && !isCommentLine(l)) ?? '';
+  /**
+   * ⛔ `U11` — THE TOKEN IS LOCATED IN THE JOINED TEXT AND MAPPED BACK, because a wrapped token is on no
+   * single physical line and `find` then returned `''`, silently skipping this check entirely. The
+   * declaration test itself still runs against the ORIGINAL line: `^\s*(?:export\s+)?const` is an anchor,
+   * and an anchor means nothing in text that has had its line breaks welded out.
+   */
+  const joined = joinCodeLines(text);
+  const tokenAt = joined.text.indexOf(normaliseFragment(e.token!));
+  const sourceLines = text.split(/\r?\n/);
+  const declLine = tokenAt < 0 ? '' : (sourceLines[joined.lineAt(tokenAt) - 1] ?? '');
   const decl = /^\s*(?:export\s+)?(?:const|let|var|(?:async\s+)?function)\s+([A-Za-z_$][\w$]*)/.exec(declLine);
   if (decl) {
     const name = decl[1];

@@ -154,7 +154,9 @@ for (const rel of tracked) {
     perFile.set(rel, [...(perFile.get(rel) ?? []), norm(m[0])]);
     if (!(rel in ALLOWED)) {
       problems.push(
-        `${rel}:${lines.lineAt(m.index)} collapses a parsed amount to 0.\n` +
+        // ⛔ `call.index`, not `m.index`: `m` is a hand-built `RegExpMatchArray` whose `index` is typed
+        // `number | undefined`, and `typecheck:scripts` was RED on the committed tree because of it.
+        `${rel}:${lines.lineAt(call.index)} collapses a parsed amount to 0.\n` +
           '        `null` is BLANK OR UNPARSEABLE, and neither is a payment of zero. Branch on it, or add\n' +
           '        branch on the `null` explicitly instead — one line, and it leaves nothing to game (R10).',
       );

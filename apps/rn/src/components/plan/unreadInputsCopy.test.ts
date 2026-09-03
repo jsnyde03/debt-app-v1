@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+// ⛔ `U11` — the shared normaliser. Its header says why there is exactly one of it.
+import { codeText } from '../../../../../scripts/lib/joinedCode';
 import { unreadInputsFix } from '@/components/plan/dataRepairsCopy';
 import type { DataRepair } from '@/data/models';
 
@@ -37,65 +39,18 @@ function eq<T>(actual: T, expected: T, label: string) {
 const NEWLINE = String.fromCharCode(10);
 
 /**
- * Source with whole-line comments removed — the docblocks quote the banned wording while recording it.
+ * ⛔ **ONE PRODUCER, and it lives in `scripts/lib/joinedCode.ts`** — class-1 re-audit 4 `U11`.
  *
- * ⛔ **EACH LINE IS TRIMMED BEFORE THE JOIN, and it was not** — pass-7 `C1-9`. `line.trimStart()` was used
- * only to decide whether a line was a comment; the value joined was the **raw** line, indentation included.
- * So a phrase split across a line break joined as `again` + `' '` + `'                    above'`, and the
- * needle `'again above'` — a single space — never matched.
+ * ⚡ `check-finding-guards` needed exactly this fact — *"is this sentence in the code, however the
+ * formatter broke it up"* — and was answering it per PHYSICAL LINE, so wrapping a guard's token made it
+ * report `the guard is gone` over an intact assertion, `267 → 266` guarded. Two answers to one question
+ * is a shape this repo has paid for repeatedly, so the normaliser this file spent four findings getting
+ * right (`C1-9`, `R12`, `N-7` twice) is now the only copy — and the fixtures below hold IT, not a twin.
  *
- * ⚡ **Planted both directions in `RequiredActionsCard.tsx`:** the phrase on one line → **exit 1**, naming
- * the card; the SAME defect wrapped across a line → **exit 0 over 30 green assertions.** That is the whole
- * of `S1.13.7.8`'s finding — three cards saying *"set it again above"* about a card one tap removes —
- * coming back through the guard written to stop it, because a long JSX string is exactly what gets wrapped.
+ * ⚠️ The shared version also tracks BLOCK-COMMENT state, which the copy here did not: a docblock whose
+ * continuation lines are not starred used to read as code.
  */
-function codeLinesOnly(source: string): string {
-  return source
-    .split(NEWLINE)
-    .filter((line) => {
-      const t = line.trimStart();
-      return !(t.startsWith('//') || t.startsWith('*') || t.startsWith('/*'));
-    })
-    .map((line) => line.trim())
-    .join(' ')
-    /**
-     * ⛔ **CONCATENATION JUNCTIONS ARE REMOVED, because the READER never sees them** — class-1 re-audit
-     * `R12`. Trimming fixed the wrap and normalised nothing between the two words, so the same sentence
-     * written `… set it again ` + `above.` rendered identically and passed **30 assertions, exit 0** —
-     * the same count as the green run, which is the "a check that cannot fail" signature.
-     *
-     * ⚠️ This deliberately also welds two genuinely separate adjacent literals together. That is the
-     * correct direction: they are adjacent **on screen**, which is the only place the refusal matters.
-     */
-    /**
-     * ⛔ **EVERY JUNCTION BETWEEN TWO LITERALS, not just the one the finding exhibited** — `R12`, then
-     * `N-7`. R12's own mechanism paragraph listed three things that can land between the two words — *"a
-     * quote, a `+`, a `{' '}` JSX separator"* — and the first fix normalised two of them. The third then
-     * shipped the banned sentence past **33 green assertions**, which is the same count as the clean run.
-     *
-     * ⚠️ **The reader sees none of these.** `{'…'}{' '}{'…'}` renders as one sentence, so the detector has
-     * to read it as one sentence — the junctions are an artefact of how JSX is written, exactly as the line
-     * break and the `+` were.
-     */
-    /**
-     * ⛔ **`${' '}` AND `+ SEP +`** — [class-1 re-audit 3 · `N-7`]. Two more junctions, both ordinary:
-     * a space held in a template INTERPOLATION rather than a JSX expression, and two literals joined by a
-     * named separator constant. Neither is visible to the reader, and both shipped the banned sentence.
-     *
-     * ⚠️ **Order matters and the first attempt got it wrong:** `{' '}` is a SUBSTRING of `${' '}`, so
-     * running the JSX rule first left a stray `$` between the words — `again$ above` — and the fixture
-     * caught it. The interpolation is consumed first.
-     *
-     * ⚠️ A named separator collapses to a SPACE rather than to nothing: its value is unknown here, and
-     * over-joining reads as one sentence (noisy) while under-joining misses the refusal (blind).
-     */
-    .replace(/\$\{\s*(['"`])\s*\1\s*\}/g, ' ')
-    .replace(/\{\s*(['"`])\s*\1\s*\}/g, ' ')
-    .replace(/(['"`])\s*\+\s*[A-Za-z_$][\w$]*\s*\+\s*(['"`])/g, ' ')
-    .replace(/['"`]\s*\}\s*\{\s*['"`]/g, ' ')
-    .replace(/['"`]\s*\+\s*['"`]/g, '')
-    .replace(/[ \t]+/g, ' ');
-}
+const codeLinesOnly = codeText;
 
 const repair = (over: Partial<DataRepair> = {}): DataRepair =>
   ({ entity: 'debt', id: 'd1', name: 'Visa', field: 'balance', kind: 'repaired', acknowledged: false, ...over }) as DataRepair;
