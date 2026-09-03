@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "sha": "4d37d963"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "sha": "4d37d963"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3465,7 +3465,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "sha": "4d37d963"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3624,7 +3624,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "sha": "4d37d963"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
