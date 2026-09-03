@@ -43,12 +43,22 @@ const SCAN_GATE = 'store-id-writes';
 /** The owner every id-keyed row edit must go through. */
 const OWNER = 'packages/core/utils/updateById.ts';
 
-/** `x.id === id` — the comparison, however the row variable is spelled. */
-const BY_ID = /\b\w+\.id\s*===\s*id\b/;
-/** A lookup is allowed: it can branch on the result, which is the property this gate is about. */
-const BY_ID_G = new RegExp(BY_ID.source, 'g');
+/**
+ * `x.id === id` — the comparison, however the row variable is spelled.
+ *
+ * ⚠️ **One declaration, `g` and all** — [class-1 re-audit 4 `U3`]. It used to be written twice, a
+ * non-global `BY_ID` whose only consumer was `new RegExp(BY_ID.source, 'g')` one line below it.
+ */
+const BY_ID_G = /\b\w+\.id\s*===\s*id\b/g;
+/**
+ * A lookup is allowed: it can branch on the result, which is the property this gate is about.
+ *
+ * ⛔ **`IS_LOOKUP` USED TO SIT HERE WITH ZERO CONSUMERS** — [`U3`], and it is `T4`'s exact shape recurring
+ * in the commit that closed `T4`: a replacement export left un-swept, still named in a mechanism paragraph
+ * as the thing doing the work. It listed **four** names against this set's six, so the paragraph both
+ * named the wrong constant and understated the exemption.
+ */
 const LOOKUP_NAMES = new Set(['find', 'findIndex', 'some', 'filter', 'findLast', 'findLastIndex']);
-const IS_LOOKUP = /\.(find|findIndex|some|filter)\s*\(/;
 
 /**
  * ⛔ **A DIRECTORY WALK, NOT `git ls-files` — AND THE PLANT IS WHY.** The first cut of this gate took its
@@ -81,7 +91,8 @@ for (const rel of tracked) {
    * ⛔ **THE TWO PATTERNS ARE JUDGED OVER THE SAME STATEMENT, NOT THE SAME PHYSICAL LINE.**
    * [class-1 re-audit `N-5`]
    *
-   * `BY_ID` says "this compares an id" and `IS_LOOKUP` says "…as part of a find/filter, which is fine".
+   * `BY_ID_G` says "this compares an id" and `LOOKUP_NAMES` says "…as part of a `find`, `findIndex`,
+   * `some`, `filter`, `findLast` or `findLastIndex`, which is fine".
    * Requiring both on one line meant **Prettier wrapping an ordinary `findIndex` split them**, so the
    * exemption vanished and correct code redded — at `MAX_BARE_ID_WRITES = 0`, with no allow-list, so the
    * only ways out were to un-wrap the code or weaken the gate.

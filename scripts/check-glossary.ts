@@ -25,7 +25,6 @@ const SCAN_GATE = 'glossary';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative, basename } from 'node:path';
 
-const SEP = /[\/]/;
 import { lineMap } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
