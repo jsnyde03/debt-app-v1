@@ -66,20 +66,23 @@ const COLLAPSE = /\b(parseAmountField|parseNonNegativeAmount|parseOptionalAmount
  * ⚠️ A site absent from this map is a FAILURE, not a default — and a map entry whose site no longer
  * matches is a failure too, so a stale permission cannot sit here granting cover to nothing.
  */
-const ALLOWED: Record<string, { sites: number; why: string }> = {
+const ALLOWED: Record<string, { expect: string[]; why: string }> = {
   'apps/rn/src/components/plan/WindfallSheet.tsx': {
-    sites: 1,
+    expect: ['parseAmountField(amount) ?? 0'],
     why:
       'a PREDICATE: `const n = parse(...) ?? 0` is consumed by `validAmount = n > 0` on the next line, and ' +
       'the sheet refuses to compute a split without it. Nothing stores `n` while it is zero.',
   },
   'apps/rn/src/data/readBackup.ts': {
-    sites: 1,
+    expect: ['parseAmountField(store.paycheck.amount) ?? 0'],
     why:
       'a PREDICATE: `(parse(...) ?? 0) > 0` decides whether the pre-overwrite sentence names "the ' +
       'paycheck". Unreadable and absent both mean "do not name it", which is the same answer.',
   },
 };
+
+/** Whitespace-normalised, so a reflow of a permitted site is not read as a different site. */
+const norm = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
 const tracked = execFileSync('git', ['ls-files', 'apps/rn', 'packages/core', 'scripts'], {
   cwd: REPO_ROOT,
@@ -101,7 +104,7 @@ const found: string[] = [];
  * ⛔ **AND EVERY SITE, NOT THE FIRST** — pass-7 `D1-4`. The loop `break`'d on the first hit per file, so a
  * second collapse in the same file was invisible and `found` under-counted.
  */
-const perFile = new Map<string, number>();
+const perFile = new Map<string, string[]>();
 for (const rel of tracked) {
   const src = readFileSync(join(REPO_ROOT, rel), 'utf8');
   // ⚠️ `scanned` counts NON-BLANK lines, so it must keep seeing the STRIPPED text: handing it the raw
@@ -121,7 +124,7 @@ for (const rel of tracked) {
   const flat = flattenContinuations(src);
   for (const m of flat.text.matchAll(COLLAPSE)) {
     found.push(rel);
-    perFile.set(rel, (perFile.get(rel) ?? 0) + 1);
+    perFile.set(rel, [...(perFile.get(rel) ?? []), norm(m[0])]);
     if (!(rel in ALLOWED)) {
       problems.push(
         `${rel}:${flat.lineAt(m.index)} collapses a parsed amount to 0.\n` +
@@ -134,16 +137,27 @@ for (const rel of tracked) {
 
 /**
  * ⛔ **A FILE-GRANULAR PERMISSION WITH A LINE-SPECIFIC REASON IS A HOLE** — pass-7 `D1-4`. Each `ALLOWED`
- * entry argues why *one particular* collapse is honest; without a count, a SECOND collapse added to that
- * file later inherits the permission and is never reported. The count is the ratchet.
+ * entry argues why *one particular* collapse is honest; without pinning it, a SECOND collapse added to that
+ * file later inherits the permission and is never reported.
+ *
+ * ⛔ **AND A COUNT IS NOT ENOUGH** — class-1 re-audit `R10`. The first fix pinned how MANY collapses a file
+ * may hold, which ratchets against **addition only**: delete the permitted honest collapse, write a
+ * dishonest one in its place, and the count is still 1 and the gate is still green. **What the reason
+ * argues about is the EXPRESSION, so the expression is what is pinned.**
+ *
+ * ⚠️ Whitespace-normalised, so Prettier reflowing a permitted site is not read as a substitution.
  */
 for (const [rel, entry] of Object.entries(ALLOWED)) {
-  const n = perFile.get(rel) ?? 0;
-  if (n > entry.sites) {
+  const got = (perFile.get(rel) ?? []).slice().sort();
+  const want = entry.expect.map(norm).slice().sort();
+  // ⚠️ Compared as JSON so there is no separator to collide with the expressions themselves.
+  if (JSON.stringify(got) !== JSON.stringify(want)) {
     problems.push(
-      `${rel} has ${n} collapse(s) and ALLOWED permits ${entry.sites}.\n` +
-        '        The permission argues why ONE site is honest; it does not cover a new one. Branch on the\n' +
-        '        null, or raise `sites` here with the reason the new site is honest too.',
+      `${rel}'s collapses are not the ones ALLOWED argues for.\n` +
+        `        permitted: ${JSON.stringify(want)}\n` +
+        `        found    : ${JSON.stringify(got)}\n` +
+        '        The reason on file argues about a SPECIFIC expression. A different one is not covered by\n' +
+        '        it, however many there are. Branch on the null, or pin the new expression with its reason.',
     );
   }
 }

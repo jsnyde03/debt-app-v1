@@ -203,7 +203,68 @@ const pkg = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8')) as
  * ⚠️ **This also makes the check STRICTER in a second way, deliberately:** a gate named only inside a
  * docblock no longer counts as chained. That is the correct reading — a mention is not an execution.
  */
-const runGates = stripCommentsOnly(readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8'));
+/**
+ * ⛔ **ONLY THE `GATES` ARRAY COUNTS AS THE CHAIN** — class-1 re-audit `R13`. Blanking comments was half
+ * the fix; membership was still `String.includes` over the **whole file**, so a gate deleted from `GATES`
+ * but named anywhere else still live — an error message, a docstring's code sample, another array — counted
+ * as chained. The subject is the array, so the array is what is read.
+ *
+ * ⚠️ **Both bounds are asserted.** A rename that made either marker unfindable would otherwise leave this
+ * searching an empty string, and every gate would read as unchained — or, worse, a `slice` that silently
+ * returned the whole file would restore exactly the defect being fixed.
+ */
+/** The `GATES` array literal region of `run-gates.ts`, or `null` if its bounds cannot be found. */
+function chainRegion(src: string): string | null {
+  const start = src.indexOf('const GATES');
+  if (start === -1) return null;
+  const end = src.indexOf('\n];', start);
+  if (end === -1) return null;
+  return src.slice(start, end);
+}
+
+/**
+ * ⛔ **BOTH HALVES ASSERTED ON FIXTURES EVERY RUN** — class-1 re-audit `R14`. Each was measured green over
+ * a real defect: a gate commented out of the chain (`D1-1`), a suite commented out of its runner (`D1-2`),
+ * and a gate deleted from `GATES` but still named elsewhere in the file (`R13`). A membership test that
+ * finds everything wired looks identical when it is simply not reading the right text.
+ */
+{
+  const region = chainRegion("const GATES = [\n  'lint:in',\n];\nconst note = 'lint:outside';\n");
+  if (region === null || !region.includes("'lint:in'") || region.includes("'lint:outside'")) {
+    console.error(
+      '\n❌ runner completeness: the chain region is not bounded to the GATES array.\n' +
+        `  Got: ${JSON.stringify(region)}\n` +
+        '  ⛔ R13 — a gate named anywhere else in the file would count as chained.\n',
+    );
+    process.exit(1);
+  }
+  const reg = RUNNERS.find((r) => r.gate === 'test:regression');
+  if (reg) {
+    const live = reg.imports(stripCommentsOnly('import "./testThing";'), reg.runner);
+    const commented = reg.imports(stripCommentsOnly('// import "./testThing";'), reg.runner);
+    if (live.size !== 1 || commented.size !== 0) {
+      console.error(
+        '\n❌ runner completeness: a COMMENTED-OUT import is still counted as wired.\n' +
+          `  live=${live.size} (want 1) · commented=${commented.size} (want 0)\n` +
+          '  ⛔ D1-2 — a suite can leave its runner behind a `//` while this gate reports every file wired.\n',
+      );
+      process.exit(1);
+    }
+  }
+}
+
+const runGatesRaw = stripCommentsOnly(readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8'));
+const gatesStart = runGatesRaw.indexOf('const GATES');
+const gatesEnd = gatesStart === -1 ? -1 : runGatesRaw.indexOf('\n];', gatesStart);
+if (gatesStart === -1 || gatesEnd === -1) {
+  console.error(
+    '\n❌ runner completeness: could not find the bounds of `GATES` in scripts/run-gates.ts.\n' +
+      '  ⛔ Without them this check would search the whole file and count a gate as chained because its\n' +
+      '  name appears in a message. Fix the markers rather than widening the search.\n',
+  );
+  process.exit(1);
+}
+const runGates = runGatesRaw.slice(gatesStart, gatesEnd);
 const unchained = Object.keys(pkg.scripts)
   .filter((n) => n.startsWith('lint:'))
   .filter((n) => !(n in EXEMPT_FROM_CHAIN))

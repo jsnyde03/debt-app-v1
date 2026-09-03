@@ -1,4 +1,7 @@
 import { readFileSync } from 'node:fs';
+// ⚠️ ONE stripper for the whole repo — a second copy here would be the two-producers shape this
+// project has paid for repeatedly. Reached by relative path because scripts/ is outside the app aliases.
+import { stripCommentsOnly } from '../../../../../scripts/lib/stripCode';
 import { join } from 'node:path';
 
 import { EXPENSE_FIELDS_DROPPED, debtPrefillFromExpense } from '@core/debt/debtPrefillFromExpense';
@@ -151,8 +154,64 @@ export function runDebtPrefillTests() {
      * ⚠️ `[^;]*?` bounds the match to one statement, so it crosses the nested `String(…)` call and a line
      * wrap but cannot run past the semicolon into an unrelated `editing` reference.
      */
-    const sheet = readFileSync(join(__dirname, 'DebtSheet.tsx'), 'utf8');
-    const fromEditing = sheet.match(/useState\([^;]*?\bediting\b/g) ?? [];
+    /**
+     * ⛔ **COMMENTS BLANKED, AND A HOISTED INITIALISER COUNTS** — class-1 re-audit `R11`, which measured
+     * both directions of the widened pattern:
+     *
+     * - **False positive.** Correct code reds when Prettier wraps the call and an explanatory comment sits
+     *   inside it — `useState(\n  // an editing debt reaches this through \`seed\`\n  seed?.apr …\n)`. Its
+     *   only fix would be deleting the comment, and *"a guard that reds on its own documentation gets
+     *   deleted rather than obeyed"*. This file's own class fixed exactly that in two other gates
+     *   (`D1-1`, `D1-2`) and did not apply it here.
+     * - **False negative.** Hoisting the initialiser walks straight past:
+     *   `const x = editing ? String(editing.apr) : ''; useState(x);` — 39 assertions green.
+     *
+     * ⚠️ **`seed` is excluded by name, and that is not a hole:** `const seed = editing ?? prefill ?? null`
+     * is the sanctioned merge, and the assertion below pins that exact declaration, so the one identifier
+     * allowed to derive from `editing` is itself guarded.
+     */
+    /** Every `useState` initialiser in `src` that derives from `editing`, directly or via a hoisted const. */
+    const seedsFromEditing = (raw: string): string[] => {
+      const src = stripCommentsOnly(raw);
+      const direct = src.match(/useState\([^;]*?\bediting\b/g) ?? [];
+      const hoisted = [...src.matchAll(/const\s+(\w+)\s*=\s*[^;]*\bediting\b[^;]*;/g)]
+        .map((m) => m[1])
+        .filter((name) => name !== 'seed')
+        .filter((name) => new RegExp(`useState\\(\\s*${name}\\b`).test(src));
+      return [...direct, ...hoisted];
+    };
+
+    /**
+     * ⛔ **THE DETECTOR IS ASSERTED ON FIXTURES, NOT INFERRED FROM `DebtSheet` PASSING.**
+     * [class-1 re-audit `R11`/`R14`]
+     *
+     * A sweep that finds nothing cannot tell "the sheet is clean" from "the pattern is blind" — and this
+     * pattern has now been blind twice, each spelling measured GREEN over a real defect: the ternary
+     * (`C2-9`) and the hoisted initialiser (`R11`). ⚠️ **The last row is the one that matters most**: it
+     * asserts correct code stays CLEAN, because a detector that reds on a comment inside a wrapped
+     * `useState` gets its comment deleted rather than obeyed.
+     */
+    eq(seedsFromEditing('const [a, setA] = useState(editing?.apr);').length, 1, 'detector: `useState(editing?.x)`');
+    eq(
+      seedsFromEditing("const [a, setA] = useState(editing ? String(editing.apr) : '');").length,
+      1,
+      'detector: the sibling-sheet ternary spelling (C2-9)',
+    );
+    eq(
+      seedsFromEditing("const x = editing ? String(editing.apr) : '';\nconst [a, setA] = useState(x);").length,
+      1,
+      'detector: a HOISTED initialiser (R11)',
+    );
+    eq(
+      seedsFromEditing(
+        "const seed = editing ?? prefill ?? null;\nconst [a, setA] = useState(\n  // reaches this through `seed`\n  seed?.apr != null ? String(seed.apr) : '',\n);",
+      ).length,
+      0,
+      'detector: correct code with a comment inside a wrapped useState is NOT a hit (R11 false positive)',
+    );
+
+    const sheet = stripCommentsOnly(readFileSync(join(__dirname, 'DebtSheet.tsx'), 'utf8'));
+    const fromEditing = seedsFromEditing(sheet);
     eq(
       fromEditing.length,
       0,

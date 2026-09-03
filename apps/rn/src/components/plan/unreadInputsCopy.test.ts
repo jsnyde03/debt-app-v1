@@ -57,7 +57,17 @@ function codeLinesOnly(source: string): string {
       return !(t.startsWith('//') || t.startsWith('*') || t.startsWith('/*'));
     })
     .map((line) => line.trim())
-    .join(' ');
+    .join(' ')
+    /**
+     * ⛔ **CONCATENATION JUNCTIONS ARE REMOVED, because the READER never sees them** — class-1 re-audit
+     * `R12`. Trimming fixed the wrap and normalised nothing between the two words, so the same sentence
+     * written `… set it again ` + `above.` rendered identically and passed **30 assertions, exit 0** —
+     * the same count as the green run, which is the "a check that cannot fail" signature.
+     *
+     * ⚠️ This deliberately also welds two genuinely separate adjacent literals together. That is the
+     * correct direction: they are adjacent **on screen**, which is the only place the refusal matters.
+     */
+    .replace(/['"`]\s*\+\s*['"`]/g, '');
 }
 
 const repair = (over: Partial<DataRepair> = {}): DataRepair =>
@@ -147,6 +157,29 @@ export function runUnreadInputsCopyTests() {
 
     // ⛔ A pathspec that matches nothing makes this block vacuous — `check-runner-completeness`'s lesson.
     assert(tracked.length > 300, `the sweep sees the app tree (${tracked.length} files)`);
+
+    /**
+     * ⛔ **THE NORMALISER IS ASSERTED ON A FIXTURE, NOT INFERRED FROM THE TREE PASSING.**
+     * [class-1 re-audit `R12`/`R14`]
+     *
+     * The sweep below can only ever say *"no card in the tree says this today"* — it is silent on whether
+     * the detector could still SEE the sentence if one did. Both spellings that defeated it were measured
+     * green over a card that rendered the phrase: the wrapped one (`C1-9`) and the concatenated one
+     * (`R12`). ⚡ **These three rows are the standing guard**: revert either normalisation and this reds
+     * immediately, with no plant in production code and no dependence on what the tree happens to contain.
+     */
+    const WRAPPED_FIXTURE = ['const a = `... incomplete — set it again', '      above.`;'].join('\n');
+    const CONCAT_FIXTURE = 'const a = `... incomplete — set it again ` + `above.`;';
+    const PLAIN_FIXTURE = 'const a = `... incomplete — set it again above.`;';
+    assert(codeLinesOnly(PLAIN_FIXTURE).includes('again above'), 'the detector sees the phrase written plainly');
+    assert(
+      codeLinesOnly(WRAPPED_FIXTURE).includes('again above'),
+      'the detector sees the phrase WRAPPED across a source line (C1-9)',
+    );
+    assert(
+      codeLinesOnly(CONCAT_FIXTURE).includes('again above'),
+      'the detector sees the phrase CONCATENATED across two literals (R12)',
+    );
 
     const consumers: string[] = [];
     for (const rel of tracked) {

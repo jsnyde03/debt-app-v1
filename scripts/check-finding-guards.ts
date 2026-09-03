@@ -260,17 +260,32 @@ function topLevelKeys(raw: string): string[] {
   for (let i = 0; i < raw.length; i++) {
     const c = raw[i];
     if (inString) {
+      /**
+       * ⛔ **THE RAW TEXT IS KEPT AND DECODED BY `JSON.parse`, NOT BY THIS LOOP** — class-1 re-audit `R8`.
+       * The first version dropped the backslash and appended the next character, so `"A"` became the
+       * five characters `u0041` where `JSON.parse` gives `A`. A duplicate id spelled with an escape was
+       * therefore invisible — **`D1-9`'s defect in a third spelling, inside `D1-9`'s own fix.**
+       */
       if (escaped) {
         escaped = false;
         current += c;
       } else if (c === '\\') {
         escaped = true;
+        current += c;
       } else if (c === '"') {
         inString = false;
         let j = i + 1;
         while (j < raw.length && /\s/.test(raw[j])) j++;
         // A string at depth 1 followed by `:` is a key of the registry object itself.
-        if (depth === 1 && raw[j] === ':') keys.push(current);
+        if (depth === 1 && raw[j] === ':') {
+          try {
+            keys.push(JSON.parse(`"${current}"`) as string);
+          } catch {
+            // Undecodable text is not a key JSON.parse would accept either; keep it raw so a malformed
+            // registry surfaces as a mismatch rather than being silently dropped.
+            keys.push(current);
+          }
+        }
         current = '';
       } else {
         current += c;
@@ -282,6 +297,39 @@ function topLevelKeys(raw: string): string[] {
     else if (c === '}' || c === ']') depth--;
   }
   return keys;
+}
+
+/**
+ * ⛔ **THE DETECTOR IS ASSERTED ON FIXTURES EVERY RUN** — class-1 re-audit `R14`.
+ *
+ * A duplicate detector that finds nothing looks identical whether the registry is clean or the detector is
+ * blind, and this one has been blind twice: under a **four-space indent** (`D1-9`, the two-space anchor)
+ * and under a **`\uXXXX`-escaped key** (`R8`, decoding differently from `JSON.parse`). Both were measured
+ * green over a registry holding a real duplicate. These rows cost microseconds and fail closed.
+ */
+{
+  const body = '{"a":1}';
+  const cases: [string, string][] = [
+    ['two-space', `{\n  "X": ${body},\n  "X": ${body}\n}`],
+    ['four-space', `{\n    "X": ${body},\n    "X": ${body}\n}`],
+    ['tab', `{\n\t"X": ${body},\n\t"X": ${body}\n}`],
+    ['escaped key', `{\n  "\\u0058": ${body},\n  "X": ${body}\n}`],
+    ['nested keys must NOT count', `{\n  "X": {"at": 1, "find": 2},\n  "Y": {"at": 3, "find": 4}\n}`],
+  ];
+  for (const [label, text] of cases) {
+    const ks = topLevelKeys(text);
+    const dupe = ks.filter((k, i) => ks.indexOf(k) !== i).length > 0;
+    const want = label !== 'nested keys must NOT count';
+    if (dupe !== want) {
+      console.error(
+        `\n❌ finding-guards: the duplicate detector is BLIND to the "${label}" case.\n` +
+          `  Expected a duplicate to be ${want ? 'FOUND' : 'NOT found'}; keys were ${JSON.stringify(ks)}.\n` +
+          '  ⛔ A detector that finds nothing reads the same whether the registry is clean or the check is\n' +
+          '  broken — which is exactly how D1-9 and R8 each survived a pass.\n',
+      );
+      process.exit(1);
+    }
+  }
 }
 
 const rawRegistry = readFileSync(REGISTRY, 'utf8');
