@@ -182,10 +182,27 @@ export function runDebtPrefillTests() {
        */
       const DECL = /(?:const|let|var)\s+(\w+)\s*=\s*([^;]*);/g;
       const bindings = [...src.matchAll(DECL)].map((m) => ({ name: m[1], init: m[2] }));
+      /**
+       * ⛔ **THE `seed` EXEMPTION IS SEEDED INTO THE CLOSURE, NOT FILTERED AFTER IT.**
+       * [class-1 re-audit 4 `U9`, major]
+       *
+       * ⚡ `N-8` replaced a one-hop rule with a transitive closure and left the exemption a single name
+       * filter applied to the RESULT. So `seed` entered `derived` (its initialiser mentions `editing`),
+       * `apr` entered because its initialiser mentions `seed`, and only `seed` itself was filtered out —
+       * **the exemption was one hop deep while the detector had become unbounded.**
+       *
+       * ⛔ `DebtSheet.tsx`'s sanctioned shape is `const seed = editing ?? prefill ?? null;`. Hoisting the
+       * initialiser off it — an ordinary refactor of CORRECT code that still honours the prefill — was
+       * reported as a defect by a release gate with `eq(fromEditing.length, 0)` and no allow-list.
+       *
+       * ⚠️ **Not a hole.** `seed` is still pinned by the assertion below, so the one identifier allowed to
+       * derive from `editing` is itself guarded; what changes is that deriving FROM it no longer counts.
+       */
+      const EXCLUDED = new Set(['seed']);
       const derived = new Set<string>();
       for (let hop = 0; hop < 3; hop++) {
         for (const b of bindings) {
-          if (derived.has(b.name)) continue;
+          if (derived.has(b.name) || EXCLUDED.has(b.name)) continue;
           const fromEditingDirectly = /\bediting\b/.test(b.init);
           const fromDerived = [...derived].some((d) => new RegExp(`\\b${d}\\b`).test(b.init));
           if (fromEditingDirectly || fromDerived) derived.add(b.name);
@@ -207,7 +224,8 @@ export function runDebtPrefillTests() {
       return [
         ...direct,
         ...[...hoisted, ...destructured]
-          .filter((name) => name !== 'seed')
+          // ⛔ `U9` — `seed` is handled in the closure above; a name filter here was one hop deep.
+          .filter((name) => !EXCLUDED.has(name))
           .filter((name) => new RegExp(`useState\\(\\s*${name}\\b`).test(src)),
       ];
     };
@@ -254,6 +272,41 @@ export function runDebtPrefillTests() {
       ).length,
       0,
       'detector: correct code with a comment inside a wrapped useState is NOT a hit (R11 false positive)',
+    );
+    /**
+     * ⛔ **THE SANCTIONED SHAPE, ONE AND TWO HOPS OUT** — [class-1 re-audit 4 `U9`].
+     *
+     * ⚡ The row above writes `useState(seed?.apr …)` INLINE, so it never crosses a hop — and that is why
+     * nothing caught the exemption being one hop deep while `N-8` made the detector unbounded. `R11`'s own
+     * lesson (*"the last row is the one that matters most: it asserts correct code stays CLEAN"*) was
+     * carried forward as one row rather than re-derived for the new mechanism.
+     *
+     * ⚠️ Both of these are ordinary refactors of CORRECT code that still honour the prefill.
+     */
+    eq(
+      seedsFromEditing(
+        "const seed = editing ?? prefill ?? null;\nconst apr = seed?.apr != null ? String(seed.apr) : '';\nconst [a, setA] = useState(apr);",
+      ).length,
+      0,
+      'detector: the sanctioned `seed` merge, hoisted ONE hop, is NOT a hit (U9)',
+    );
+    eq(
+      seedsFromEditing(
+        "const seed = editing ?? prefill ?? null;\nconst apr = seed?.apr;\nconst text = apr != null ? String(apr) : '';\nconst [a, setA] = useState(text);",
+      ).length,
+      0,
+      'detector: …and TWO hops out is still not a hit (U9)',
+    );
+    /**
+     * ⛔ **AND THE DEFECT DIRECTION IS UNCHANGED BY THE EXEMPTION.** Excluding `seed` must not exempt
+     * anything that reaches `editing` WITHOUT it — `R11`'s hoist, which is what this detector exists for.
+     */
+    eq(
+      seedsFromEditing(
+        "const seed = editing ?? prefill ?? null;\nconst apr = editing ? String(editing.apr) : '';\nconst [a, setA] = useState(apr);",
+      ).length,
+      1,
+      'detector: a hoist off `editing` in a file that ALSO has `seed` is still a hit (U9 — the exemption is not a blanket)',
     );
 
     const sheet = stripCommentsOnly(readFileSync(join(__dirname, 'DebtSheet.tsx'), 'utf8'));
