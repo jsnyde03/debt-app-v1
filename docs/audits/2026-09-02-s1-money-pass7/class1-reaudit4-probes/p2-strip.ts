@@ -1,0 +1,11 @@
+import { stripCommentsAndStrings, stripCommentsOnly } from '../../../../scripts/lib/stripCode';
+const s = "const s = `v ${parseAmountField(raw) ?? 0}`;";
+console.log('RAW    :', s);
+console.log('ALL    :', stripCommentsAndStrings(s));
+console.log('CMTONLY:', stripCommentsOnly(s));
+const j = "const t = <Text>{a}/{b}</Text>;";
+console.log('JSX RAW :', j);
+console.log('JSX ALL :', stripCommentsAndStrings(j));
+const j2 = "const t = <Text>{a} / {b} ({c})</Text>;";
+console.log('JSX2 RAW:', j2);
+console.log('JSX2 ALL:', stripCommentsAndStrings(j2));

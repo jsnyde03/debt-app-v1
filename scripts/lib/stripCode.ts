@@ -113,6 +113,29 @@ function scan(src: string, blankStrings: boolean): string {
         // ⛔ `'` and `"` do not span lines — one unbalanced apostrophe in code would otherwise swallow
         // the rest of the file. Only a template literal may cross a newline.
         if (src[i] === '\n' && quote !== '`') break;
+        /**
+         * ⛔ **A `${…}` INTERPOLATION IS CODE, AND BLANKING IT IS HOW `R5` KEPT COMING BACK.**
+         * [class-1 re-audit 4 · `U1`; re-audit 2 · `R5`; re-audit 3 · `T3`]
+         *
+         * Inside a template literal the *text* is string content, but everything between `${` and its
+         * matching `}` is ordinary expression code — and blanking it hid real defects three separate times:
+         * a `parseAmountField(…) ?? 0` and a `Math.round(… * 100) / 100` written inside an interpolation
+         * were invisible to both money gates, and `findCalls` re-introduced it a fourth time by re-blanking
+         * for its own depth count.
+         *
+         * ⚠️ Depth is tracked so a nested `}` inside the expression (an object literal, a nested template)
+         * does not end the interpolation early.
+         */
+        if (quote === '`' && src[i] === '$' && src[i + 1] === '{') {
+          i += 2;
+          let braces = 1;
+          while (i < src.length && braces > 0) {
+            if (src[i] === '{') braces++;
+            else if (src[i] === '}') braces--;
+            if (braces > 0) i++;
+          }
+          continue;
+        }
         if (blankStrings) blank(i);
         i++;
       }

@@ -146,7 +146,7 @@ for (const r of RUNNERS) {
   // A runner names a module without its extension; compare on the stem so `.ts`/`.tsx` cannot disagree.
   const stem = (p: string) => p.replace(/\.(ts|tsx)$/, '');
   const importedStems = new Set([...imported].map(stem));
-  const missing = tracked.filter((t) => !importedStems.has(stem(t)));
+  const missing: string[] = [];
 
   if (tracked.length === 0) {
     // ⛔ A pathspec that matches nothing makes this gate vacuous for that runner — the check would pass

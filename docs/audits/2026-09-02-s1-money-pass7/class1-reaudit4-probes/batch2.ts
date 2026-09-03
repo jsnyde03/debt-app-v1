@@ -1,0 +1,14 @@
+import { runCases } from './driver';
+runCases([
+  { id: 'D1-7a', target: 'apps/rn/src/utils/format.test.ts', append: '\nexport const __f1 = {\n  dueDate:\n    \'2026-09-11\',\n};\n', cmd: ['npx', 'tsx', 'scripts/check-fixture-dates.ts'], want: /cross into the past within/, wantExit: 1 },
+  { id: 'D1-7b', target: 'apps/rn/src/utils/format.test.ts', append: '\nconst __dueDate =\n  \'2026-09-11\';\n', cmd: ['npx', 'tsx', 'scripts/check-fixture-dates.ts'], want: /cross into the past within/, wantExit: 1 },
+  { id: 'R6', target: 'apps/rn/src/utils/format.test.ts', append: '\nexport const __f2 = {\n  aDate: \'2026-09-11\', // fixture-date-ok: the subject of the test\n  bDate: \'2026-09-11\',\n};\n', cmd: ['npx', 'tsx', 'scripts/check-fixture-dates.ts'], want: /cross into the past within/, wantExit: 1 },
+  { id: 'R7', target: 'apps/rn/src/utils/format.test.ts', append: '\n// dueDate:\nexport const __f3 = \'2026-09-11\';\n', cmd: ['npx', 'tsx', 'scripts/check-fixture-dates.ts'], want: /non-aging fields/, wantExit: 0 },
+  { id: 'N-2', target: 'apps/rn/src/utils/format.test.ts', append: '\n// a docblock describing a pin that was REMOVED: currentDate: \'2020-01-01\'\nexport const __f4 = { dueDate: \'2026-09-11\' };\n', cmd: ['npx', 'tsx', 'scripts/check-fixture-dates.ts'], want: /cross into the past within/, wantExit: 1 },
+  { id: 'D1-8', target: 'apps/rn/src/utils/a11y.ts', append: '\nimport {\n  appStore,\n} from \'../store/appStore\';\nexport const __s1 = appStore;\n', cmd: ['npx', 'tsx', 'scripts/check-sandbox-writes.ts'], want: /appStore/, wantExit: 1 },
+  { id: 'R9', target: 'apps/rn/src/utils/a11y.ts', append: '\nimport * as __ns from \'../store/appStore\';\nexport const __s2 = __ns;\n', cmd: ['npx', 'tsx', 'scripts/check-sandbox-writes.ts'], want: /appStore/, wantExit: 1 },
+  { id: 'N-6', target: 'apps/rn/src/utils/a11y.ts', append: '\n/**\n * a docblock\n * three lines long\n */\nimport { appStore } from \'../store/appStore\';\nexport const __s3 = appStore;\n', cmd: ['npx', 'tsx', 'scripts/check-sandbox-writes.ts'], want: /a11y.ts:/, wantExit: 1 },
+  { id: 'N-4a', target: 'packages/core/utils/percentComplete.ts', append: '\nexport const __u1 = (d: Date) =>\n  d\n    .toISOString()\n    .slice(0, 10);\n', cmd: ['npx', 'tsx', 'scripts/check-local-dates.ts'], want: /routed through UTC/, wantExit: 1 },
+  { id: 'N-4b', target: 'packages/core/utils/percentComplete.ts', append: '\nexport const __u2 = (d: Date) =>\n  d.toISOString().slice(\n    0,\n    10,\n  );\n', cmd: ['npx', 'tsx', 'scripts/check-local-dates.ts'], want: /routed through UTC/, wantExit: 1 },
+  { id: 'N-4c', target: 'packages/core/utils/percentComplete.ts', append: '\nexport const __u3 = (d: Date) =>\n  d.toISOString().split(\n    \'T\',\n  )[0];\n', cmd: ['npx', 'tsx', 'scripts/check-local-dates.ts'], want: /routed through UTC/, wantExit: 1 },
+]);

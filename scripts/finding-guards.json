@@ -540,8 +540,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "apps/rn/src/store/guardianSelectors.ts is ledgered and re-derives nothing any more",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-03",
+      "sha": "fcd954d6"
     }
   },
   "S1P4-C4-4-POPULATION": {
@@ -558,8 +558,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "[population] the ledger considered",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-03",
+      "sha": "fcd954d6"
     }
   },
   "S1P4-C4-6-RACE": {
@@ -1212,8 +1212,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "not a literal",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-03",
+      "sha": "fcd954d6"
     }
   },
   "S1P3-B3-UNKNOWN": {
@@ -1488,8 +1488,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "not a literal",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-03",
+      "sha": "fcd954d6"
     }
   },
   "S1P3-G6-SCRIPTSREACH": {
@@ -2206,7 +2206,7 @@
       "run": "lint:rounding",
       "expect": "the cap is still",
       "measured": "2026-09-03",
-      "sha": "40122b91"
+      "sha": "fcd954d6"
     }
   },
   "S1P5-B5-10-HELDSINCE": {
@@ -3441,13 +3441,11 @@
         {
           "at": "scripts/lib/logicalLines.ts",
           "find": "      if (structure[i] === '(') depth++;",
-          "replace": "      if (structure[i] === '\n') break;\n      if (structure[i] === '(') depth++;"
+          "replace": "      if (structure[i] === '\\n') break;\n      if (structure[i] === '(') depth++;"
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "did not red for the WRAPPED spelling",
-      "measured": "2026-09-03",
-      "sha": "9c526e4b"
+      "expect": "FAILED-OPEN"
     }
   }
 }
