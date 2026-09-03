@@ -141,7 +141,8 @@ const ids = Object.keys(registry);
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
 // ⚠️ 267 → 268 at S1.13.7.12.6: `S1P7-CLASS1-LOGICALJOIN`, class 1's line-wrap escape.
-const MIN_ENTRIES = 268;
+// ⚠️ 268 → 269 at S1.13.7.12.6 round 5: `S1P7-U7-VERDICT-MARK`, the guard on this file's own verdict mark.
+const MIN_ENTRIES = 269;
 const MAX_UNGUARDED = 1;
 
 /**
@@ -574,8 +575,30 @@ function reportProblems(): void {
   process.exit(1);
 }
 
-console.log(
-  `✅ finding-guards: ${guarded} of ${ids.length} findings carry a standing guard; ` +
+/**
+ * ⛔ **S1.13.7.12.6 [class-1 re-audit 4 `U7` · pass-7 `D1-10`] — THE `✅` USED TO BE PRINTED BEFORE THE
+ * VERDICT WAS KNOWN, AND THAT IS HOW A RED GATE WAS READ AS GREEN.**
+ *
+ * ⚡ **Measured, on this repo, by me.** Round 4's own commits made **11 executed proofs stale against a
+ * ceiling of 8**. The gate did exactly its job — `problems.push`, `exit 1`. But the summary block above
+ * the verdict opened with `✅ finding-guards: 267 of 268 …`, so the run was read as green and *"all 50
+ * gates pass"* was reported to Jason over a gate that was exiting 1. The number and the verdict
+ * contradicted each other, eighty lines apart, and the tick won.
+ *
+ * ⚠️ **Same shape as the dead-`reportProblems` defect this file already records one docblock up** — there
+ * the ceiling could not fail, here it could fail and could not be *seen* failing. So the informational
+ * block is now BUFFERED: nothing reaches stdout until every check has run, and the leading mark is
+ * chosen from `problems.length` rather than asserted in advance.
+ *
+ * ⚠️ The mark on the red path is `⛔`, not `❌` — `❌` belongs to {@link reportProblems}, which stays the
+ * single exit and the last statement in the file. A reader grepping for `✅` finds nothing on a red run,
+ * which is the whole point.
+ */
+const report: string[] = [];
+const note = (line: string) => report.push(line);
+
+note(
+  `finding-guards: ${guarded} of ${ids.length} findings carry a standing guard; ` +
     `${unguarded.length} unguarded (cap ${MAX_UNGUARDED}, downward-only).`,
 );
 /**
@@ -635,7 +658,7 @@ for (const id of proven) {
   }
 }
 
-console.log(
+note(
   `   proof: ${proven.length} EXECUTED · ${stale.length} of them STALE (cap ${MAX_STALE_PROOFS}) · ` +
     `${authored.length} authored but never run (cap ${MAX_AUTHORED}) · ` +
     `${guardOnly.length} guard-only (cap ${MAX_GUARD_ONLY}) · ${unproven.length} never tested (cap ${MAX_UNPROVEN})\n` +
@@ -644,7 +667,7 @@ console.log(
 );
 // ⚠️ Named, not just counted. A count nobody can act on is a count nobody drains — the same reason the
 // unguarded list prints on the green path.
-for (const s of stale) console.log(`     stale: ${s}`);
+for (const s of stale) note(`     stale: ${s}`);
 if (stale.length > MAX_STALE_PROOFS) {
   problems.push(
     `${stale.length} executed proof(s) were measured against a tree their target has since left, and the ceiling is ${MAX_STALE_PROOFS}.\n` +
@@ -654,7 +677,47 @@ if (stale.length > MAX_STALE_PROOFS) {
 }
 // ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
 // number nobody sees is a number nobody drains.
-for (const id of unguarded) console.log(`     unguarded: ${id} — ${registry[id].unguarded}`);
+for (const id of unguarded) note(`     unguarded: ${id} — ${registry[id].unguarded}`);
+
+/**
+ * ⛔ **A NAMED FUNCTION WITH A SELF-TEST, not an inline ternary, and the reason is `U5`.**
+ *
+ * The obvious registry guard for `U7` would plant *"force a problem"* and expect `✅ finding-guards` in
+ * the output — but that string is also what the GREEN run prints, so the proof would match its own
+ * control. That is exactly `U5`: six of nine plant recipes whose `reason` regex matched the gate's
+ * success line, making `RED-FOR-THE-WRONG-REASON` unreachable. A guard that cannot distinguish red from
+ * green is not a guard.
+ *
+ * So the invariant is extracted to a pure function and asserted directly, the way this file already
+ * asserts its duplicate detector. The plant target is one line, the failure message is unique to it, and
+ * the control cannot produce it.
+ */
+const MARK_OK = '✅';
+const MARK_BAD = '⛔';
+function verdictMark(problemCount: number): string {
+  // ⚠️ The two marks are named constants so the registry's un-fix for this line is pure ASCII — an
+  // emoji inside a JSON `find` string is one more escape layer between the plant and the file.
+  return problemCount ? MARK_BAD : MARK_OK;
+}
+for (const [n, want] of [
+  [0, MARK_OK],
+  [1, MARK_BAD],
+  [9, MARK_BAD],
+] as const) {
+  if (verdictMark(n) !== want) {
+    console.error(
+      `\n❌ finding-guards: the verdict mark is WRONG for ${n} problem(s) — got "${verdictMark(n)}", want "${want}".\n` +
+        '  ⛔ U7: a ✅ printed while problems exist is how a red gate gets read as green — measured, on the\n' +
+        '  round-4 tree, where 11 stale proofs against a ceiling of 8 exited 1 under a green tick.\n',
+    );
+    process.exit(1);
+  }
+}
+
+// ⛔ `U7` — the buffered block is flushed HERE, once every check has run, and its leading mark is derived
+// from `problems.length`. Printing it any earlier is asserting a verdict that is not yet knowable.
+console.log(`${verdictMark(problems.length)} ${report[0]}`);
+for (const line of report.slice(1)) console.log(line);
 
 // ⛔ THE VERDICT, and it is the LAST statement in the file for the reason above: everything that can find
 // a problem has now run. A `problems.push` below this line would be dead, and there is nothing below it.

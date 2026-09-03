@@ -3449,5 +3449,21 @@
       "measured": "2026-09-03",
       "sha": "e5b6a120"
     }
+  },
+  "S1P7-U7-VERDICT-MARK": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U7, blocker] - lint:finding-guards printed its summary block opening with a green tick BEFORE the staleness scan and the verdict had run, so a run that exited 1 read as green. Measured on the round-4 tree: 11 executed proofs stale against a ceiling of 8, the gate correctly exited 1, and 'all 50 gates pass' was reported over it. Same shape as this file's earlier dead-reportProblems defect - there the ceiling could not fail, here it could fail and could not be SEEN failing. The informational block is now buffered and flushed only after every check has run, with the leading mark derived from problems.length. THE GUARD IS ON A PURE FUNCTION WITH A SELF-TEST RATHER THAN ON THE OUTPUT, because the obvious plant - force a problem, expect the tick in the output - would match its own green control, which is U5 exactly: six of nine wrap-escape recipes had reason regexes matching the gate's success line, making RED-FOR-THE-WRONG-REASON unreachable.",
+    "file": "scripts/check-finding-guards.ts",
+    "token": "verdictMark",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-finding-guards.ts",
+          "find": "  return problemCount ? MARK_BAD : MARK_OK;",
+          "replace": "  return MARK_OK;"
+        }
+      ],
+      "run": "lint:finding-guards",
+      "expect": "the verdict mark is WRONG"
+    }
   }
 }
