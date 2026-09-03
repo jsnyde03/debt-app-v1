@@ -136,6 +136,37 @@ function dateArgs(line: string, from: number): string[] | null {
   return null; // unbalanced on this line — a multi-line call, not judged here
 }
 
+/**
+ * ⛔ **A `getDate()` THAT IS AN ARGUMENT OF A CALL IS CLAMPED, AND THE GATE USED TO REFUSE IT.**
+ * [class-1 re-audit 4 `U6`]
+ *
+ * ⚡ `getNextPaycheckDate.ts` uses `clampDay`, which this file's own docblock calls *"the same trick that
+ * makes `addMonths` correct"*. Inline that trick — `Math.min(d.getDate(), lastDayOfTargetMonth)` — and
+ * the gate redded, because `DAY_CARRIES_SOURCE` is a substring test with no notion of what encloses the
+ * call. No cap, no allow-list, so correct code was simply unshippable.
+ *
+ * ⚠️ **The four non-defects the docblock already names are all avoided because the day slot is a bare
+ * identifier or a helper CALL.** The shape it never considered is the clamp written INLINE, where
+ * `getDate()` is present but bounded — which is the written definition of *"clamped to the target month
+ * before construction"*.
+ *
+ * ⚠️ **The enclosing `(` must be preceded by an identifier character — a CALL, not a grouping.** A bare
+ * `(d.getDate())` is the same unclamped day wearing parentheses, and exempting it would be the blind
+ * direction. `Math.min(`, `clampDay(`, `Math.max(` all qualify; `(` alone does not.
+ */
+function clampedDay(day: string): boolean {
+  const opens: number[] = [];
+  for (let i = 0; i < day.length; i++) {
+    if (day[i] === '(') opens.push(i);
+    else if (day[i] === ')') opens.pop();
+    else if (day.startsWith('getDate', i) && opens.length > 0) {
+      const before = day[opens[opens.length - 1] - 1] ?? '';
+      if (/[\w$]/.test(before)) return true;
+    }
+  }
+  return false;
+}
+
 /** `new Date(y, m ± n, day)` / `new Date(y ± n, m, day)` with a day that can overflow. */
 function constructorOverflow(line: string): boolean {
   for (const m of line.matchAll(/new\s+Date\s*\(/g)) {
@@ -146,6 +177,8 @@ function constructorOverflow(line: string): boolean {
     // into it. Both halves are required — see `DAY_CARRIES_SOURCE` for the four false positives that
     // proved the month slot alone is not enough.
     if (!DAY_CARRIES_SOURCE.test(day)) continue;
+    // ⛔ `U6` — bounded by a call is CLAMPED, and this gate's own docblock endorses that idiom.
+    if (clampedDay(day)) continue;
     if (/[+\-]/.test(month) || /[+\-]/.test(year)) return true;
   }
   return false;

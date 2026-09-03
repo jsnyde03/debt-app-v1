@@ -135,7 +135,11 @@ for (const rel of files) {
  */
 // ⚠️ 27 → 28 at S1.13.7.12.6 round 4: `MAX_UNREVIEWED` in `test-wrap-escapes.ts`, pinning the census's
 // unreviewed list so it can only shrink (`N-10` — it could previously grow with the run still green).
-const MIN_CAPS = 28;
+// ⚠️ 28 → 29 at S1.13.7.12.6 round 5: `MAX_JSX_FRAGMENT_LINES` in `check-glossary.ts`, the `U2` bound on
+// how far a JSX text fragment may span before it stops being a sentence and starts being a weld.
+// ⛔ It went in one commit LATE, and this gate is what said so — `test:gate-plants` scored
+// `control=exit 1` on the very next run, which is `R1`'s rule doing its job: a red baseline is a FAULT.
+const MIN_CAPS = 29;
 
 if (caps !== MIN_CAPS) {
   problems.push(
