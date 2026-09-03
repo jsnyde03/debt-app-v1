@@ -77,7 +77,21 @@ function codeLinesOnly(source: string): string {
      * to read it as one sentence — the junctions are an artefact of how JSX is written, exactly as the line
      * break and the `+` were.
      */
+    /**
+     * ⛔ **`${' '}` AND `+ SEP +`** — [class-1 re-audit 3 · `N-7`]. Two more junctions, both ordinary:
+     * a space held in a template INTERPOLATION rather than a JSX expression, and two literals joined by a
+     * named separator constant. Neither is visible to the reader, and both shipped the banned sentence.
+     *
+     * ⚠️ **Order matters and the first attempt got it wrong:** `{' '}` is a SUBSTRING of `${' '}`, so
+     * running the JSX rule first left a stray `$` between the words — `again$ above` — and the fixture
+     * caught it. The interpolation is consumed first.
+     *
+     * ⚠️ A named separator collapses to a SPACE rather than to nothing: its value is unknown here, and
+     * over-joining reads as one sentence (noisy) while under-joining misses the refusal (blind).
+     */
+    .replace(/\$\{\s*(['"`])\s*\1\s*\}/g, ' ')
     .replace(/\{\s*(['"`])\s*\1\s*\}/g, ' ')
+    .replace(/(['"`])\s*\+\s*[A-Za-z_$][\w$]*\s*\+\s*(['"`])/g, ' ')
     .replace(/['"`]\s*\}\s*\{\s*['"`]/g, ' ')
     .replace(/['"`]\s*\+\s*['"`]/g, '')
     .replace(/[ \t]+/g, ' ');
@@ -197,6 +211,26 @@ export function runUnreadInputsCopyTests() {
     assert(
       codeLinesOnly(JSX_SEPARATOR_FIXTURE).includes('again above'),
       "the detector sees the phrase split by a {' '} JSX separator (N-7)",
+    );
+    const INTERP_FIXTURE = "const a = `... incomplete — set it again${' '}above.`;";
+    assert(
+      codeLinesOnly(INTERP_FIXTURE).includes('again above'),
+      "the detector sees the phrase split by a ${' '} template interpolation (N-7)",
+    );
+    const SEP_FIXTURE = "const a = '... incomplete — set it again' + SEP + 'above.';";
+    assert(
+      codeLinesOnly(SEP_FIXTURE).includes('again above'),
+      'the detector sees the phrase split by a named separator constant (N-7)',
+    );
+    /**
+     * ⛔ **THE NEGATIVE ROW** — [class-1 re-audit 3 · `T14`]. Every fixture above is positive, so a
+     * normalisation that welded *every* sentence together would pass all of them. This one must NOT match:
+     * two unrelated sentences that merely end and begin with those words.
+     */
+    const UNRELATED = "const a = 'try again'; const b = 'above the fold';";
+    assert(
+      !codeLinesOnly(UNRELATED).includes('again above'),
+      'the detector does NOT weld two unrelated sentences together (T14)',
     );
 
     const consumers: string[] = [];

@@ -52,12 +52,6 @@ const SCAN_GATE = 'amount-collapse';
  */
 const SELF = new Set(['scripts/check-amount-collapse.ts', 'scripts/test-wrap-escapes.ts']);
 
-/**
- * ⚠️ **`[^\n]*?` still means "within one statement", and that is only true because the scan FLATTENS
- * rather than JOINS** — a statement-ending newline survives, so this cannot reach across two statements.
- * The class-1 re-audit (`R4`) measured what joining did instead: two correct statements five lines apart
- * reported as one collapse.
- */
 /** The callee plus its opening paren — `findCalls` balances the rest, so no bound is guessed. */
 const PARSER_CALL = /\b(?:parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*\(/g;
 /** What must follow the call's closing paren for it to be a collapse. */
@@ -85,6 +79,25 @@ const AFTER = /^\s*\?\?\s*0\b/;
  * branch on the null instead — that is what both of these did, at a cost of one line.
  */
 const ALLOWED: Record<string, { expect: string[]; why: string }> = {};
+
+/**
+ * ⛔ **THE BAN IS ENFORCED, NOT MERELY DESCRIBED** — [class-1 re-audit 3 · `T9`]. The docblock above says an
+ * entry here re-opens `R10`; a docblock is not a check. Both permission shapes tried were identity-free, so
+ * the only durable state for this map is empty — and that is now asserted rather than asked for.
+ */
+if (Object.keys(ALLOWED).length > 0) {
+  console.error(
+    [
+      '',
+      '❌ amount-collapse: ALLOWED is not empty.',
+      '  ⛔ R10 — a per-file COUNT ratchets against addition only, and a normalised EXPRESSION',
+      '  STRING is the same text at a different site; the re-audit kept the gate green while substituting',
+      '  a dishonest collapse for the permitted honest one. Branch on the null instead — one line.',
+      '',
+    ].join(String.fromCharCode(10)),
+  );
+  process.exit(1);
+}
 
 /** Whitespace-normalised, so a reflow of a permitted site is not read as a different site. */
 const norm = (s: string): string => s.replace(/\s+/g, ' ').trim();
@@ -117,11 +130,10 @@ for (const rel of tracked) {
   // the one instrument that notices this gate going blind.
   scanned(SCAN_GATE, stripCommentsOnly(src));
   /**
-   * ⛔ **FLATTENED IN PLACE, NOT JOINED** — pass-7 `D1-3`, corrected by the class-1 re-audit's `R3`/`R4`.
-   * The first fix joined physical lines, which reported every hit at the STATEMENT's first line (17 of 94
-   * rounding sites printed the wrong line) and **deleted the newline that bounded `[^\n]*?`**, so two
-   * unrelated correct statements were reported as one collapse. Flattening preserves length, so the offset
-   * gives the line of the MATCH and a statement-ending newline still bounds the pattern.
+   * ⛔ **NOTHING REWRITES THE SOURCE** — pass-7 `D1-3`, corrected three times before it was right. Joining
+   * physical lines reported every hit at the statement's first line and merged unrelated statements
+   * (`R3`/`R4`); flattening in place was measured **inert** (`N-1`); a `[^;{}]` bound merged siblings across
+   * a comma and hid calls behind a brace (`T2`/`T3`). The call is found by balancing its parentheses.
    *
    * ⚠️ **Strings are NOT blanked** (`R5`): `stripCommentsAndStrings` blanks `${…}` interpolations, which
    * are code, so a collapse inside a template literal was caught before the v1 fix and invisible after it.
@@ -144,7 +156,7 @@ for (const rel of tracked) {
       problems.push(
         `${rel}:${lines.lineAt(m.index)} collapses a parsed amount to 0.\n` +
           '        `null` is BLANK OR UNPARSEABLE, and neither is a payment of zero. Branch on it, or add\n' +
-          '        this file to ALLOWED in scripts/check-amount-collapse.ts with the reason zero is honest here.',
+          '        branch on the `null` explicitly instead — one line, and it leaves nothing to game (R10).',
       );
     }
   }

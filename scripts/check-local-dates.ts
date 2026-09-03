@@ -41,7 +41,15 @@ const EXEMPT = [join('packages', 'core', 'utils', 'localDate.ts')];
  * of the same conversion. Deliberately approximate: a caller that stores the ISO string first and slices
  * it two lines later is not expressible as a regex, so a green run is not proof the class is closed.
  */
-const BANNED = /toISOString\(\)\s*\.\s*(slice|substring|substr)\s*\(\s*0\s*,\s*10\s*\)|toISOString\(\)\s*\.\s*split\(\s*['"]T['"]\s*\)\s*\[\s*0\s*\]/;
+/**
+ * ⛔ **`,?` BEFORE EACH CLOSING PAREN** — [class-1 re-audit 3 · `N-4`]. Wrapping the CHAIN was only two
+ * of the three spellings; when Prettier wraps the ARGUMENT LIST it also adds a trailing comma, so
+ * `.slice(
+  0,
+  10,
+)` still escaped. Same omission `check-rounding` had, in a second gate.
+ */
+const BANNED = /toISOString\(\)\s*\.\s*(slice|substring|substr)\s*\(\s*0\s*,\s*10\s*,?\s*\)|toISOString\(\)\s*\.\s*split\(\s*['"]T['"]\s*,?\s*\)\s*\[\s*0\s*\]/;
 
 const EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.cjs', '.mjs']);
 

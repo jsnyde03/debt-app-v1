@@ -165,7 +165,7 @@ for (const f of testFiles) {
     continue;
   }
   /**
-   * ⛔ **THE EXEMPTION IS READ PER PHYSICAL LINE, AND THE MATCHING IS DONE ON FLATTENED, COMMENT-BLANKED
+   * ⛔ **THE EXEMPTION IS READ PER PHYSICAL LINE, AND THE MATCHING IS DONE ON COMMENT-BLANKED
    * TEXT.** Both halves were wrong in the first fix, and the class-1 re-audit measured both:
    *
    * - `R6` — the exemption was tested against the whole JOINED statement, so **one `fixture-date-ok:`
@@ -174,7 +174,7 @@ for (const f of testFiles) {
    * - `R7` — with comments kept, **a comment could supply the aging key** for a literal on a later line.
    *
    * ⚠️ So the source is read twice, deliberately: `srcLines` for the exemption (a comment beside the
-   * literal it excuses), and the flattened comment-blanked text for the key and the literal.
+   * literal it excuses), and the comment-blanked text for the key and the literal.
    */
   const srcLines = text.split('\n');
   const code = scanned(SCAN_GATE, stripCommentsOnly(text));
@@ -251,7 +251,10 @@ const observedScan = assertScanFloor(SCAN_GATE);
 console.log(
   `✅ fixture-dates: ${testFiles.length} test-shaped file(s) scanned · 0 imminent fuses · ` +
     `${aged.length} aged literal(s) on aging fields (cap ${MAX_AGED_FIXTURE_DATES}, downward-only) · ` +
-    `${pinned} in clock-pinned files (deterministic) · ${nonAging} on non-aging fields.`,
+    // ⚠️ **SAY WHAT WAS READ** — [class-1 re-audit 3 · `T12`]. This gate imported `scanNote` and never
+    // called it, so it was the only wrap-sensitive gate whose green line did not state its own scan size.
+    // A floor nobody sees is a floor nobody notices sliding.
+    `${pinned} in clock-pinned files (deterministic) · ${nonAging} on non-aging fields.${scanNote(SCAN_GATE, observedScan)}`,
 );
 // ⚠️ Printed on the GREEN path deliberately: the aged count is the backlog this gate exists to drain, and
 // a number nobody sees is a number nobody lowers.

@@ -270,6 +270,18 @@ const PER_LINE_UNREVIEWED = new Set([
   'check-scan-floors.ts',
 ]);
 
+/**
+ * ⛔ **THE UNREVIEWED LIST IS PINNED, NOT JUST DOWNWARD-ONLY BY CONVENTION** — [class-1 re-audit 3 · `N-10`].
+ *
+ * The census checked only the DEPARTURE half — a row naming a gate that no longer qualifies. Adding a real
+ * new per-line gate **and** a row for it kept the run green with the count silently rising 11 → 12, which is
+ * the arrival half and the one that matters: an unreviewed list that can grow is not a backlog, it is a
+ * parking space.
+ *
+ * ⚠️ Lower it in the same edit that reviews a gate. Raising it is the defect this pin exists to catch.
+ */
+const MAX_UNREVIEWED = 17;
+
 const unreviewedSeen: string[] = [];
 const knownBlindSeen: string[] = [];
 for (const gate of perLineCandidates) {
@@ -406,6 +418,16 @@ for (const gate of wrapSensitive) {
         '        same-line spelling and a formatter defeats it.',
     );
   }
+}
+
+if (unreviewedSeen.length > MAX_UNREVIEWED) {
+  problems.push(
+    [
+      `PER_LINE_UNREVIEWED holds ${unreviewedSeen.length} gate(s) and the pin is ${MAX_UNREVIEWED}.`,
+      '        It only goes DOWN. A gate leaves by being reviewed into PER_LINE_OK with a reason, or by',
+      '        being fixed onto the shared helper — never by the list growing to accommodate it.',
+    ].join(String.fromCharCode(10)),
+  );
 }
 
 for (const line of results) console.log(line);

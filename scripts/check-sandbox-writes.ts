@@ -115,10 +115,17 @@ function walk(dir: string, out: string[] = []): string[] {
  * sanctioned count unchanged at 24. ⚡ **That is class 8's shape — the fix reaching the instance in the
  * example and not the one in the same sentence — committed inside the class that exists to stop it.**
  *
- * ⚠️ `m` is required because the scan flattens rather than joins: `^` must still mean "start of a
- * statement", and a flattened import is one line.
+ * ⚠️ `m` is required because the scan runs over the whole file: `^` must still mean "start of a line".
+ * ⛔ And the leading class is `[ 	]*`, never `\s*` — see `N-6` below.
  */
-const IMPORT = /^\s*import\s*(?:\{[^}]*\bappStore\b[^}]*\}|\*\s*as\s+\w+)\s*from\s*['"][^'"]*appStore['"]/gm;
+/**
+ * ⛔ **THE LEADING `\s*` IS `[ \t]*`, AND THAT IS THE WHOLE OF `N-6`.** `\s` matches a newline, and the
+ * text this runs over has had its comments **blanked to spaces** — so `^` matched at the start of a blanked
+ * docblock line and `\s*` ran down through it to reach the real `import` several lines below. The hit was
+ * then reported at a line containing no import at all: measured, **4 of 31 live matches** pointed at `/**`
+ * or an empty line. A gate that names the wrong line sends its reader to the wrong place.
+ */
+const IMPORT = /^[ \t]*import\s*(?:\{[^}]*\bappStore\b[^}]*\}|\*\s*as\s+\w+)\s*from\s*['"][^'"]*appStore['"]/gm;
 
 const offenders: { file: string; line: number; text: string }[] = [];
 const stale: string[] = [];

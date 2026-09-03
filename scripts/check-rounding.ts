@@ -88,9 +88,9 @@ for (const rel of tracked) {
    * below stayed satisfied while the thing it caps went up. A ratchet that cannot see a new member is not
    * a ratchet.
    *
-   * ⛔ **FLATTENED, NOT JOINED** — the class-1 re-audit's `R3` measured that joining reported **17 of 94
-   * live sites at the wrong `path:line`, worst by 39 lines**, because a hit inside a joined statement was
-   * blamed on the statement's first line. Flattening preserves length, so the offset is the match's own.
+   * ⛔ **THE SOURCE IS NOT REWRITTEN** — joining reported **17 of 94 live sites at the wrong `path:line`,
+   * worst by 39 lines** (`R3`), and every later bound was another guess (`N-1`, `T2`, `T3`). The offset of
+   * a match in the unmodified text is the line it is really on.
    */
   const code = stripCommentsOnly(source);
   const lines = lineMap(code);

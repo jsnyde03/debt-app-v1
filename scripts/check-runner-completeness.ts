@@ -269,8 +269,42 @@ function chainRegion(src: string): string | null {
   }
 }
 
-const runGatesRaw = stripCommentsOnly(readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8'));
+const runGatesFile = readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8');
+const runGatesRaw = stripCommentsOnly(runGatesFile);
 const runGates = chainRegion(runGatesRaw);
+
+/**
+ * ⛔ **THESE ASSERT THE PRODUCTION VALUES, NOT THE FUNCTIONS** — [class-1 re-audit 3 · `N-3` `R14`/`D1-1`].
+ *
+ * Round 3 gave this gate fixture self-checks and made production call the same helpers. That closed one of
+ * three un-fixes and **left two green**, because a self-check that exercises `chainRegion` and `importsOf`
+ * says nothing about whether the shipping code still *uses* their results:
+ *
+ * - `const runGates = runGatesRaw` (bypass the region) → the chain search widens to the whole file, and a
+ *   gate deleted from `GATES` but named in any live string counts as chained. **`R13`, re-openable.**
+ * - `readFileSync(…)` with no strip → a gate commented out of `GATES` counts as chained. **`D1-1`.**
+ *
+ * ⚡ **So the values are checked, not the helpers.** `run-gates.ts` demonstrably contains comments, and the
+ * chain region is demonstrably a proper subset of the file — both are facts about the shipping variables,
+ * and neither can be satisfied by a helper nobody calls.
+ */
+if (runGatesRaw === runGatesFile) {
+  console.error(
+    '\n❌ runner completeness: `run-gates.ts` was read WITHOUT stripping comments.\n' +
+      '  ⛔ D1-1 — a gate commented out of GATES then counts as chained, and lint:rn silently\n' +
+      '  drops it while printing a full green. The file certainly contains comments; the stripped\n' +
+      '  text being byte-identical to the file means the strip is gone.\n',
+  );
+  process.exit(1);
+}
+if (runGates !== null && runGates.length >= runGatesRaw.length) {
+  console.error(
+    '\n❌ runner completeness: the chain region is not a proper subset of `run-gates.ts`.\n' +
+      '  ⛔ R13 — the search has widened to the whole file, so a gate named in ANY live string —\n' +
+      '  an error message, another array — counts as chained. The region must be the GATES array.\n',
+  );
+  process.exit(1);
+}
 if (runGates === null) {
   console.error(
     '\n❌ runner completeness: could not find the bounds of `GATES` in scripts/run-gates.ts.\n' +

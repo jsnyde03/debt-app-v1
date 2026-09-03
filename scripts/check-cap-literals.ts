@@ -133,7 +133,9 @@ for (const rel of files) {
  * deleted. ⛔ **The cap did not stop being seen — it stopped existing**, which is the one honest reason to
  * lower a pinned count, and the gate refused the tree until this line moved.
  */
-const MIN_CAPS = 27;
+// ⚠️ 27 → 28 at S1.13.7.12.6 round 4: `MAX_UNREVIEWED` in `test-wrap-escapes.ts`, pinning the census's
+// unreviewed list so it can only shrink (`N-10` — it could previously grow with the run still green).
+const MIN_CAPS = 28;
 
 if (caps !== MIN_CAPS) {
   problems.push(
