@@ -85,6 +85,86 @@ const wrapSensitive = readdirSync(SCRIPTS)
 
 const problems: string[] = [];
 
+/**
+ * ⛔ **THE CENSUS — because deriving the population from the IMPORT can only ever see gates that already
+ * joined.** Class-1 re-audit `R15`: this harness proves the four fixed gates do not regress, and is blind
+ * to the class **recurring in a gate written tomorrow** — which is exactly how the class grew in the first
+ * place: every member was written after `check-cap-literals` had already found and documented the escape.
+ *
+ * So: any gate that splits its input into physical lines is a wrap-sensitive CANDIDATE, and must either use
+ * the shared helper or say here why per-line is correct for it. A new gate cannot quietly opt out.
+ */
+const PER_LINE_OK: Record<string, string> = {
+  'check-apostrophes.ts': 'judges user-facing copy INSIDE a string literal, and a string does not span lines (a template literal that does is not copy). Per-line is the right unit.',
+  'check-committed-secrets.ts': 'a secret is a single token; a credential split across a line break is not a credential. Per-line matches the subject.',
+  'check-glossary.ts': 'compares one rendered sentence at a time; a wrapped sentence is not a different sentence to a reader.',
+  'check-local-dates.ts': 'matches a single call expression by name, and reports the line a human must edit; the class-1 escape needs a call ARGUMENT to wrap, which this does not read.',
+  'check-money-format.ts': 'same shape — the banned form is one identifier, not a call with arguments.',
+  'check-press-opacity.ts': 'matches a JSX prop on its own line; the prop cannot be split without the value moving with it.',
+  'check-month-arithmetic.ts': 'matches a method NAME on a date object; the argument list is not part of the subject.',
+  'check-destructive-writes.ts': 'counts declared call sites per file against a ledger, so a wrapped call still moves the count — the ledger is the check, not the line.',
+  'check-gate-freshness.ts': 'prints a recorded fingerprint line by line; it matches nothing in source.',
+  'check-comment-convention.ts': 'a comment IS a line construct — `//` runs to the newline, so the line is the subject rather than an accident of formatting.',
+  'check-conflict-markers.ts': "git writes `<<<<<<<` anchored at the start of its own line; the format is line-defined, not formatter-defined.",
+  'check-control-chars.ts': 'a control character is one character; the line is only how the position is reported to a human.',
+};
+
+const perLineCandidates = readdirSync(SCRIPTS)
+  .filter((f) => /^check-.*\.ts$/.test(f))
+  .filter((f) => {
+    const src = readFileSync(join(SCRIPTS, f), 'utf8');
+    return /\.split\((?:'\\n'|\/\\r\?\\n\/)\)/.test(src);
+  });
+
+/**
+ * ⛔ **THE CENSUS'S FIRST RUN MEASURED THE CLASS AT ~20 GATES, NOT THE 6 THE AUDIT NAMED** — and that is
+ * the finding, not a nuisance. Reviewing all of them is more than class 1 filed, so the remainder is held
+ * as an explicit **downward-only** list rather than waved through: the harness reds if it GROWS, and each
+ * entry leaves only by being reviewed into {@link PER_LINE_OK} with a reason, or fixed.
+ *
+ * ⚠️ **A silent exemption here would be the same defect as the one being fixed.** These are named, counted,
+ * and printed on every run precisely so "we never looked" cannot read as "we checked".
+ */
+const PER_LINE_UNREVIEWED = new Set([
+  'check-audit-closure.ts',
+  'check-contrast.ts',
+  'check-finding-guards.ts',
+  'check-gate-sources.ts',
+  // ⚠️ Matches JSX props, whose VALUES wrap readily — the likeliest genuine member of the class here.
+  'check-native-a11y-props.ts',
+  'check-pass-coverage.ts',
+  'check-restore-doors.ts',
+  'check-rn-style-divergence.ts',
+  'check-runner-completeness.ts',
+  'check-scan-floors.ts',
+  'check-store-id-writes.ts',
+  'check-trust-claims.ts',
+]);
+
+const unreviewedSeen: string[] = [];
+for (const gate of perLineCandidates) {
+  if (wrapSensitive.includes(gate)) continue;
+  if (gate in PER_LINE_OK) continue;
+  if (PER_LINE_UNREVIEWED.has(gate)) {
+    unreviewedSeen.push(gate);
+    continue;
+  }
+  problems.push(
+    `${gate} splits its input into physical lines, does not use lib/logicalLines, and is named in\n` +
+      '        neither PER_LINE_OK nor PER_LINE_UNREVIEWED. A per-line matcher is defeated by a formatter —\n' +
+      '        that is the whole of class 1, whose members were every gate written AFTER the escape was\n' +
+      '        already documented. Use the shared helper, or add a row saying why per-line is right here.',
+  );
+}
+for (const gate of PER_LINE_UNREVIEWED) {
+  if (!perLineCandidates.includes(gate)) {
+    problems.push(
+      `PER_LINE_UNREVIEWED names ${gate}, which no longer splits its input into physical lines.\n` +
+        '        A row covering nothing is slack — delete it.',
+    );
+  }
+}
+
 /** ⛔ A gate that declares itself wrap-sensitive and has no recipe makes this harness vacuous for it. */
 for (const gate of wrapSensitive) {
   if (!(gate in RECIPES)) {
@@ -137,6 +217,21 @@ for (const gate of wrapSensitive) {
 
   let verdict = 'UNKNOWN';
   try {
+    /**
+     * ⛔ **THE BASELINE RUN IS THE WHOLE POINT, AND IT WAS MISSING** — class-1 re-audit `R1`.
+     *
+     * Without it, a gate that was ALREADY red for an unrelated reason reds under the plant too and scores
+     * `MATCHED` — so this harness, written to close *"a check that cannot fail"*, was itself one.
+     * ⚡ Measured: `check-sandbox-writes` reverted to per-physical-line **plus** a stale `ALLOWED` entry
+     * printed `✅ 4 wrap-sensitive gate(s), each red on the WRAPPED spelling` and exited 0.
+     *
+     * A red baseline is a **FAULT**, never a verdict: there is no measurement to report.
+     */
+    const before = runGate(gate);
+    if (before.code !== 0) {
+      verdict = 'FAULT-BASELINE-ALREADY-RED';
+      throw new Error('baseline red');
+    }
     const snippet = typeof recipe.plant === 'function' ? recipe.plant() : recipe.plant;
     writeFileSync(abs, original + snippet, 'utf8');
     const applied = readFileSync(abs, 'utf8') !== original;
@@ -146,6 +241,8 @@ for (const gate of wrapSensitive) {
     else if (r.code === 0) verdict = 'FAILED-OPEN';
     else if (!named) verdict = 'RED-FOR-THE-WRONG-REASON';
     else verdict = 'MATCHED';
+  } catch {
+    if (verdict === 'UNKNOWN') verdict = 'FAULT';
   } finally {
     copyFileSync(backup, abs);
     unlinkSync(backup);
@@ -176,5 +273,7 @@ if (problems.length) {
 }
 
 console.log(
-  `\n✅ wrap-escapes: ${wrapSensitive.length} wrap-sensitive gate(s), each red on the WRAPPED spelling of its own defect.`,
+  `\n✅ wrap-escapes: ${wrapSensitive.length} wrap-sensitive gate(s), each red on the WRAPPED spelling of its own defect` +
+    ` · ${Object.keys(PER_LINE_OK).length} per-line by design` +
+    ` · ⚠️ ${unreviewedSeen.length} per-line and NOT YET REVIEWED (downward-only).`,
 );

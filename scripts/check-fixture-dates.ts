@@ -43,15 +43,21 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { logicalLines } from './lib/logicalLines';
+import { flattenContinuations } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
 /**
  * ⚠️ Downward-only. Lowering it is a fix; raising it is re-opening `A1-4`. Measured 2026-08-31 after the
  * shared default and the imminent fuses were converted.
+ *
+ * ⚡ **121 → 120 at S1.13.7.12.6.** Not a code change: the scan stopped counting calendar literals written
+ * **inside comments**. The v1 fix read the source with comments intact (`keepComments`), so a date in a
+ * docblock counted as an aged fixture — and the class-1 re-audit's `R7` showed a comment could also supply
+ * the aging KEY for a literal below it. Blanking comments for matching drops both, and the number falls
+ * with them. `pinned` moved 129 → 127 for the same reason.
  */
-const MAX_AGED_FIXTURE_DATES = 121;
+const MAX_AGED_FIXTURE_DATES = 120;
 
 /** A fuse this close to firing is refused outright — see the docblock. */
 const IMMINENT_DAYS = 21;
@@ -155,14 +161,29 @@ for (const f of testFiles) {
    * ⚠️ **`keepComments` is required here and nowhere else so far**: the `fixture-date-ok:` exemptions are
    * comments beside the literal they excuse, so blanking them would delete this gate's escape hatch.
    */
-  for (const ll of logicalLines(text, { keepComments: true })) {
-    const line = ll.text;
-    const i = ll.line - 1;
+  /**
+   * ⛔ **THE EXEMPTION IS READ PER PHYSICAL LINE, AND THE MATCHING IS DONE ON FLATTENED, COMMENT-BLANKED
+   * TEXT.** Both halves were wrong in the first fix, and the class-1 re-audit measured both:
+   *
+   * - `R6` — the exemption was tested against the whole JOINED statement, so **one `fixture-date-ok:`
+   *   comment silenced every literal in that statement**: a live 8-day fuse sat beside an exempted one and
+   *   the gate printed `0 imminent fuses`. That is a REGRESSION past the original defect, not a miss.
+   * - `R7` — with comments kept, **a comment could supply the aging key** for a literal on a later line.
+   *
+   * ⚠️ So the source is read twice, deliberately: `srcLines` for the exemption (a comment beside the
+   * literal it excuses), and the flattened comment-blanked text for the key and the literal.
+   */
+  const srcLines = text.split('\n');
+  const flat = flattenContinuations(text);
+  for (const m of flat.text.matchAll(LITERAL)) {
+    const i = flat.lineAt(m.index) - 1;
     // ⚠️ An exemption is per-line and must say why — the same idiom `secrets-exemptions.json` uses,
     // except inline, so the reason sits beside the literal rather than in a file nobody opens.
-    if (/fixture-date-ok:/.test(line)) continue;
-    for (const m of line.matchAll(LITERAL)) {
-      const before = line.slice(0, m.index);
+    if (/fixture-date-ok:/.test(srcLines[i] ?? '')) continue;
+    {
+      // The key must sit immediately before the literal; AGING_KEY is `$`-anchored, so a short window is
+      // enough and keeps this O(1) per match rather than O(file).
+      const before = flat.text.slice(Math.max(0, m.index - 160), m.index);
       const key = AGING_KEY.exec(before)?.[1] ?? '';
       if (!key) {
         nonAging += 1;

@@ -34,7 +34,7 @@ import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { stripCommentsOnly } from './lib/stripCode';
-import { logicalLines } from './lib/logicalLines';
+import { flattenContinuations } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -78,15 +78,18 @@ for (const rel of tracked) {
   // Comments are blanked first: this file's own docblock quotes the expression it exists to count.
   scanned(SCAN_GATE, stripCommentsOnly(source));
   /**
-   * ⛔ **LOGICAL LINES, NOT PHYSICAL ONES** — pass-7 `D1-6`. `ROUNDING` was tested against one physical
-   * line, so a wrapped `Math.round(\n  x * 100,\n) / 100` **grew the population without moving the
-   * number** — the cap below stayed satisfied while the thing it caps went up. A ratchet that cannot see
-   * a new member is not a ratchet.
+   * ⛔ **NOT PER PHYSICAL LINE** — pass-7 `D1-6`. `ROUNDING` was tested against one physical line, so a
+   * wrapped `Math.round(\n  x * 100,\n) / 100` **grew the population without moving the number** — the cap
+   * below stayed satisfied while the thing it caps went up. A ratchet that cannot see a new member is not
+   * a ratchet.
+   *
+   * ⛔ **FLATTENED, NOT JOINED** — the class-1 re-audit's `R3` measured that joining reported **17 of 94
+   * live sites at the wrong `path:line`, worst by 39 lines**, because a hit inside a joined statement was
+   * blamed on the statement's first line. Flattening preserves length, so the offset is the match's own.
    */
-  for (const ll of logicalLines(source, { blankStrings: true })) {
-    for (const m of ll.text.matchAll(ROUNDING)) {
-      sites.push(`${rel}:${ll.line}: ${m[0].trim().slice(0, 100)}`);
-    }
+  const flat = flattenContinuations(source);
+  for (const m of flat.text.matchAll(ROUNDING)) {
+    sites.push(`${rel}:${flat.lineAt(m.index)}: ${m[0].trim().slice(0, 100)}`);
   }
 }
 

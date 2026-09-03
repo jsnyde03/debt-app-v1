@@ -22,7 +22,7 @@
  *
  * Usage: npm run lint:sandbox   ·   runs inside `lint:rn` → `validate:release:rn`
  */
-import { logicalLines } from './lib/logicalLines';
+import { flattenContinuations } from './lib/logicalLines';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 
@@ -105,7 +105,19 @@ function walk(dir: string, out: string[] = []): string[] {
  * one line per file is exact — where matching every `appStore.` would have to model aliasing, and would
  * red on `useAppStore` (which is the CORRECT hook) unless the negative lookbehind is right every time.
  */
-const IMPORT = /^\s*import\s*\{[^}]*\bappStore\b[^}]*\}\s*from\s*['"][^'"]*appStore['"]/;
+/**
+ * ⛔ **BOTH SPELLINGS OF THE IMPORT, and `D1-8` NAMED BOTH WHILE ONLY ONE WAS FIXED.**
+ *
+ * The finding reads *"a Prettier-wrapped `import {…}` — **or a namespace import** — leaks the real store
+ * past the guard"*. The first fix closed the wrapped half and left the namespace half open; the class-1
+ * re-audit measured it (`R9`): `import * as appStoreModule from '@/store/appStore'` exited 0 with the
+ * sanctioned count unchanged at 24. ⚡ **That is class 8's shape — the fix reaching the instance in the
+ * example and not the one in the same sentence — committed inside the class that exists to stop it.**
+ *
+ * ⚠️ `m` is required because the scan flattens rather than joins: `^` must still mean "start of a
+ * statement", and a flattened import is one line.
+ */
+const IMPORT = /^\s*import\s*(?:\{[^}]*\bappStore\b[^}]*\}|\*\s*as\s+\w+)\s*from\s*['"][^'"]*appStore['"]/gm;
 
 const offenders: { file: string; line: number; text: string }[] = [];
 const stale: string[] = [];
@@ -129,11 +141,11 @@ for (const file of walk(ROOT)) {
    * guard entirely**. Several files DISCUSS the singleton in prose explaining a fixed defect, and a guard
    * that reds on its own postmortem is noise, so comments are still blanked first.
    */
-  for (const ll of logicalLines(source)) {
-    if (!IMPORT.test(ll.text)) continue;
+  const flat = flattenContinuations(source);
+  for (const m of flat.text.matchAll(IMPORT)) {
     seen.add(rel);
     if (ALLOWED[rel]) continue;
-    offenders.push({ file: rel, line: ll.line, text: ll.text.trim().slice(0, 160) });
+    offenders.push({ file: rel, line: flat.lineAt(m.index), text: m[0].trim().slice(0, 160) });
   }
 }
 

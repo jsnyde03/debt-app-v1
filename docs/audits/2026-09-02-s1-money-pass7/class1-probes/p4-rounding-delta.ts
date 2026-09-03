@@ -9,7 +9,7 @@
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
-import { logicalLines } from '../../../../scripts/lib/logicalLines';
+import { flattenContinuations } from '../../../../scripts/lib/logicalLines';
 import { stripCommentsOnly } from '../../../../scripts/lib/stripCode';
 
 const ROOT = join(import.meta.dirname, '../../../..');
@@ -25,7 +25,7 @@ const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx'], { cwd: ROOT, 
 
 /** OLD: one site per matching PHYSICAL line. */
 const oldSites: string[] = [];
-/** NEW: one site per MATCH, over logical lines. */
+/** NEW: one site per MATCH, over FLATTENED text. */
 const newSites: string[] = [];
 
 for (const rel of tracked) {
@@ -34,13 +34,12 @@ for (const rel of tracked) {
     ROUNDING.lastIndex = 0;
     if (ROUNDING.test(line)) oldSites.push(`${rel}| ${line.trim()}`);
   }
-  for (const ll of logicalLines(source, { blankStrings: true })) {
-    for (const m of ll.text.matchAll(ROUNDING)) newSites.push(`${rel}| ${m[0].trim()}`);
-  }
+  const flat = flattenContinuations(source);
+  for (const m of flat.text.matchAll(ROUNDING)) newSites.push(`${rel}| ${m[0].trim()}`);
 }
 
 console.log(`OLD (per physical line, one per line): ${oldSites.length}`);
-console.log(`NEW (per match, over logical lines)  : ${newSites.length}`);
+console.log(`NEW (per match, over flattened text) : ${newSites.length}`);
 
 const count = (xs: string[]) => {
   const m = new Map<string, number>();

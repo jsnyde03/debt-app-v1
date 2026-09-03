@@ -33,16 +33,32 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
-import { logicalLines } from './lib/logicalLines';
+import { flattenContinuations } from './lib/logicalLines';
 import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 const SCAN_GATE = 'amount-collapse';
 
-/** The parsers whose `null` carries the distinction. Named here, so this file cannot scan itself. */
-const SELF = 'scripts/check-amount-collapse.ts';
+/**
+ * Files that must CONTAIN the banned form to do their job, so the sweep does not read them.
+ *
+ * ⛔ **This is the `stripCode` argument, extended one step.** Comments are blanked because a gate that reds
+ * on its own documentation gets deleted rather than obeyed. The same is true of the harness that PROVES
+ * this gate: `test-wrap-escapes.ts` carries the wrapped collapse as a plant recipe, in a string.
+ *
+ * ⚠️ **It only became visible when `R5` was fixed.** While the scan blanked string contents, the recipe was
+ * invisible — and so was every real collapse written inside a template interpolation. Restoring the strings
+ * restored both, and this is the honest cost: two files named, rather than a whole class of code unread.
+ */
+const SELF = new Set(['scripts/check-amount-collapse.ts', 'scripts/test-wrap-escapes.ts']);
 
-const COLLAPSE = /\b(parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*\([^\n]*?\)\s*\?\?\s*0/;
+/**
+ * ⚠️ **`[^\n]*?` still means "within one statement", and that is only true because the scan FLATTENS
+ * rather than JOINS** — a statement-ending newline survives, so this cannot reach across two statements.
+ * The class-1 re-audit (`R4`) measured what joining did instead: two correct statements five lines apart
+ * reported as one collapse.
+ */
+const COLLAPSE = /\b(parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*\([^\n]*?\)\s*\?\?\s*0/g;
 
 /**
  * site → why zero is the honest answer there.
@@ -71,17 +87,16 @@ const tracked = execFileSync('git', ['ls-files', 'apps/rn', 'packages/core', 'sc
 })
   .split('\n')
   .map((l) => l.trim())
-  .filter((l) => /\.(ts|tsx)$/.test(l) && l !== SELF && !/utils\/(amountField|testAmountField)\.ts$/.test(l));
+  .filter((l) => /\.(ts|tsx)$/.test(l) && !SELF.has(l) && !/utils\/(amountField|testAmountField)\.ts$/.test(l));
 
 const problems: string[] = [];
 const found: string[] = [];
 
 /**
- * ⛔ **LOGICAL LINES, NOT PHYSICAL ONES** — pass-7 `D1-3`. `COLLAPSE` used to run against
+ * ⛔ **THE SCAN IS NOT PER PHYSICAL LINE** — pass-7 `D1-3`. `COLLAPSE` used to run against
  * `text.split('\n')`, so a call Prettier had wrapped left the population entirely while this gate printed
  * a smaller count beside a ✅. That is pass-5 `D5-9`'s escape, **in a gate written after `D5-9` was
- * fixed** — the lesson lived in `check-cap-literals`'s docblock instead of in the shared helper. The regex
- * is deliberately unchanged: a joined logical line contains no newline, so `[^\n]*?` still bounds it.
+ * fixed** — the lesson lived in `check-cap-literals`'s docblock instead of in the shared helper.
  *
  * ⛔ **AND EVERY SITE, NOT THE FIRST** — pass-7 `D1-4`. The loop `break`'d on the first hit per file, so a
  * second collapse in the same file was invisible and `found` under-counted.
@@ -91,16 +106,25 @@ for (const rel of tracked) {
   const src = readFileSync(join(REPO_ROOT, rel), 'utf8');
   // ⚠️ `scanned` counts NON-BLANK lines, so it must keep seeing the STRIPPED text: handing it the raw
   // source counts comment lines as read and inflates the floor — measured, 60,671 → 95,693 — which blunts
-  // the one instrument that notices this gate going blind. `logicalLines` strips again internally, by
-  // design: the accounting and the matching are different questions about the same file.
+  // the one instrument that notices this gate going blind.
   scanned(SCAN_GATE, stripCommentsOnly(src));
-  for (const ll of logicalLines(src, { blankStrings: true })) {
-    if (!COLLAPSE.test(ll.text)) continue;
+  /**
+   * ⛔ **FLATTENED IN PLACE, NOT JOINED** — pass-7 `D1-3`, corrected by the class-1 re-audit's `R3`/`R4`.
+   * The first fix joined physical lines, which reported every hit at the STATEMENT's first line (17 of 94
+   * rounding sites printed the wrong line) and **deleted the newline that bounded `[^\n]*?`**, so two
+   * unrelated correct statements were reported as one collapse. Flattening preserves length, so the offset
+   * gives the line of the MATCH and a statement-ending newline still bounds the pattern.
+   *
+   * ⚠️ **Strings are NOT blanked** (`R5`): `stripCommentsAndStrings` blanks `${…}` interpolations, which
+   * are code, so a collapse inside a template literal was caught before the v1 fix and invisible after it.
+   */
+  const flat = flattenContinuations(src);
+  for (const m of flat.text.matchAll(COLLAPSE)) {
     found.push(rel);
     perFile.set(rel, (perFile.get(rel) ?? 0) + 1);
     if (!(rel in ALLOWED)) {
       problems.push(
-        `${rel}:${ll.line} collapses a parsed amount to 0.\n` +
+        `${rel}:${flat.lineAt(m.index)} collapses a parsed amount to 0.\n` +
           '        `null` is BLANK OR UNPARSEABLE, and neither is a payment of zero. Branch on it, or add\n' +
           '        this file to ALLOWED in scripts/check-amount-collapse.ts with the reason zero is honest here.',
       );
