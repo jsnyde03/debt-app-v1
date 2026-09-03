@@ -2039,7 +2039,7 @@
       "run": "test:gate-plants",
       "expect": "lint:runner-completeness",
       "measured": "2026-09-03",
-      "sha": "1b8a9733"
+      "sha": "112fe64b"
     }
   },
   "S1P5-B5-7-ANSWERABLEID": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-03",
-      "sha": "f58ac041"
+      "sha": "112fe64b"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2391,14 +2391,14 @@
       "unfix": [
         {
           "at": "scripts/check-finding-guards.ts",
-          "find": "const MAX_STALE_PROOFS = 12;",
+          "find": "const MAX_STALE_PROOFS = 8;",
           "replace": "const MAX_STALE_PROOFS = -1;"
         }
       ],
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-03",
-      "sha": "a47ffb1a"
+      "sha": "112fe64b"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3465,7 +3465,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-03",
-      "sha": "a47ffb1a"
+      "sha": "112fe64b"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3524,7 +3524,7 @@
       "run": "test:wrap-escapes",
       "expect": "matches the gate's own GREEN output",
       "measured": "2026-09-03",
-      "sha": "b96afc88"
+      "sha": "112fe64b"
     }
   },
   "S1P7-U6-CLAMPED-DAY": {
@@ -3601,7 +3601,7 @@
       "run": "test:wrap-escapes",
       "expect": "FAILED-OPEN",
       "measured": "2026-09-03",
-      "sha": "36819c58"
+      "sha": "112fe64b"
     }
   },
   "S1P7-U11-WELDED-TOKEN": {
@@ -3622,7 +3622,9 @@
         }
       ],
       "run": "lint:finding-guards",
-      "expect": "ONLY IN A COMMENT"
+      "expect": "ONLY IN A COMMENT",
+      "measured": "2026-09-03",
+      "sha": "112fe64b"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -3640,7 +3642,7 @@
       "run": "test:wrap-escapes",
       "expect": "no longer imports lib/logicalLines",
       "measured": "2026-09-03",
-      "sha": "36819c58"
+      "sha": "112fe64b"
     }
   },
   "S1P7-U15-PLANT-SAFETY": {
@@ -3676,7 +3678,7 @@
       "run": "test:wrap-escapes",
       "expect": "NOTHING plants the same-line spelling",
       "measured": "2026-09-03",
-      "sha": "36819c58"
+      "sha": "112fe64b"
     }
   }
 }

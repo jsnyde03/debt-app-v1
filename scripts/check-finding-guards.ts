@@ -191,7 +191,7 @@ const MAX_GUARD_ONLY = 0;
  * case this cap was never the last line of defence for. **The direction that matters — authored going UP —
  * still reds.** ⛔ Lower it whenever `prove:guards` prints the nudge; it exists to keep the gap small.
  */
-const MAX_AUTHORED = 11;
+const MAX_AUTHORED = 10;
 
 /**
  * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.
@@ -642,7 +642,7 @@ note(
  * red every such commit and train people to re-run proofs mechanically to clear a number. The ceiling
  * catches DRIFT — staleness accumulating unnoticed across a round — and `prove:guards --id=…` drains it.
  */
-const MAX_STALE_PROOFS = 12;
+const MAX_STALE_PROOFS = 8;
 const stale: string[] = [];
 for (const id of proven) {
   const p = registry[id].proof!;
