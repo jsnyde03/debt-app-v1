@@ -260,10 +260,19 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
    * would score `MATCHED` against a gate reverted to per-physical-line and prove nothing.
    */
   'check-finding-guards.ts': {
-    target: 'apps/rn/src/store/trustSelectors.test.ts',
+    /**
+     * ⚠️ **NOT `B1-OWNER`'s token, and the collision is worth recording.** This recipe first wrapped
+     * `S1P1-B1-OWNER`'s assertion — which is also the line `S1P7-U11-WELDED-TOKEN`'s un-fix anchors on.
+     * `check-finding-guards` requires every proof's anchor to match **exactly once**, so wrapping it
+     * voided the anchor and the gate redded for a reason about the harness rather than about the defect
+     * (`FALSE-POSITIVE-ON-CORRECT-CODE`, measured). Two instruments pointed at one line, one of them
+     * requiring it intact. `S1-M9-GUARDIAN`'s token is a sentence of the same shape with no proof
+     * anchored on it.
+     */
+    target: 'apps/rn/src/store/guardianSelectors.test.ts',
     edit: {
-      find: "'⛔ B1 — Today must NOT reach the debt-free celebration')",
-      replace: "'⛔ B1 — Today must NOT reach the debt-free ' +\n      'celebration')",
+      find: "'⛔ …and it is NOT called the emergency fund — Money calls it Savings')",
+      replace: "'⛔ …and it is NOT called the emergency fund — ' +\n      'Money calls it Savings')",
     },
     expect: 'green',
     reason: /the guard is gone/,

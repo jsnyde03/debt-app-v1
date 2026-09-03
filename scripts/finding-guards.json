@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-03",
-      "sha": "b96afc88"
+      "sha": "a47ffb1a"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-03",
-      "sha": "b96afc88"
+      "sha": "a47ffb1a"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3465,7 +3465,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-03",
-      "sha": "b96afc88"
+      "sha": "a47ffb1a"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3504,7 +3504,9 @@
         }
       ],
       "run": "lint:contrast",
-      "expect": "exemption broken"
+      "expect": "exemption broken",
+      "measured": "2026-09-03",
+      "sha": "a47ffb1a"
     }
   },
   "S1P7-U5-REASON-VACUITY": {
@@ -3563,7 +3565,7 @@
       "run": "lint:runner-completeness",
       "expect": "production no longer calls",
       "measured": "2026-09-03",
-      "sha": "1b8a9733"
+      "sha": "a47ffb1a"
     }
   },
   "S1P7-U9-SEED-CLOSURE": {
@@ -3603,15 +3605,15 @@
     }
   },
   "S1P7-U11-WELDED-TOKEN": {
-    "what": "S1.13.7.12.6 [class-1 re-audit 4 U11, major] - check-finding-guards asked whether a guard token was on ONE PHYSICAL LINE. A guard token is a sentence, and a sentence is the most wrappable thing in this repo. Measured on S1P1-B1-OWNER: Prettier's ordinary output for its assertion left the assertion intact and the gate said 'the guard is gone', 267 -> 266 guarded, in the instrument that decides whether every finding in the audit is closed, with MAX_UNGUARDED capped at 1 and no allow-list. ONE PRODUCER now: lib/joinedCode, merging unreadInputsCopy's junction welds with this gate's block-comment tracking; the RN test's local copy is DELETED rather than parked. Two defects found while building it, both by measurement: for...of walks code POINTS while regex indices are code UNITS, so one emoji desynchronised lineAt and the welds ate real characters; and normalising the haystack without the needle cost 8 guards outright (268 -> 260) because registry tokens carry their own indentation on purpose. >>> THE GUARD'S UN-FIX REVERTS THE FIRST PRESENCE CHECK, NOT presentInCode, AND THE REASON IS CIRCULARITY: this entry's own token is the line inside presentInCode, so reverting THAT makes lint:finding-guards red by reporting this very guard missing - a tautology wearing a measurement's clothes, and the harness scored it FAULT-BASELINE-ALREADY-RED. Reverting the first presence check instead leaves the gate GREEN on a clean tree (measured), so the wrap-escapes recipe can actually reach its verdict: a wrapped guard token then fails there and the gate refuses correct code. >>> AND THE RUN IS lint:finding-guards, NOT test:wrap-escapes, for a SECOND circularity: an un-fix REPLACES its own anchor line, and this gate validates that every proof's anchor still matches exactly once - so routing the proof through a chain containing this gate makes its baseline red for a reason that is about the harness rather than the defect (measured: FAULT-BASELINE-ALREADY-RED, twice). The un-fix is therefore TWO edits - revert the weld AND wrap a real guard token - and the expected string names the file whose guard is falsely reported missing, which a green run cannot print. Measured: the wrap ALONE, with the fix intact, leaves the gate green at 268.",
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U11, major] - check-finding-guards asked whether a guard token was on ONE PHYSICAL LINE. A guard token is a sentence, and a sentence is the most wrappable thing in this repo. Measured on S1P1-B1-OWNER: Prettier's ordinary output for its assertion left the assertion intact and the gate said 'the guard is gone', 267 -> 266 guarded, in the instrument that decides whether every finding in the audit is closed, with MAX_UNGUARDED capped at 1 and no allow-list. ONE PRODUCER now: lib/joinedCode, merging unreadInputsCopy's junction welds with this gate's block-comment tracking; the RN test's local copy is DELETED rather than parked. Two defects found while building it, both by measurement: for...of walks code POINTS while regex indices are code UNITS, so one emoji desynchronised lineAt and the welds ate real characters; and normalising the haystack without the needle cost 8 guards outright (268 -> 260) because registry tokens carry their own indentation on purpose. >>> THE GUARD'S UN-FIX REVERTS THE FIRST PRESENCE CHECK, NOT presentInCode, AND THE REASON IS CIRCULARITY: this entry's own token is the line inside presentInCode, so reverting THAT makes lint:finding-guards red by reporting this very guard missing - a tautology wearing a measurement's clothes, and the harness scored it FAULT-BASELINE-ALREADY-RED. Reverting the first presence check instead leaves the gate GREEN on a clean tree (measured), so the wrap-escapes recipe can actually reach its verdict: a wrapped guard token then fails there and the gate refuses correct code. >>> AND THE RUN IS lint:finding-guards, NOT test:wrap-escapes, for a SECOND circularity: an un-fix REPLACES its own anchor line, and this gate validates that every proof's anchor still matches exactly once - so routing the proof through a chain containing this gate makes its baseline red for a reason that is about the harness rather than the defect (measured: FAULT-BASELINE-ALREADY-RED, twice). The un-fix is therefore TWO edits - revert the weld AND wrap a real guard token - and the expected string names the file whose guard is falsely reported missing, which a green run cannot print. Measured: the wrap ALONE, with the fix intact, leaves the gate green at 268. >>> THIRD circularity, and the fix is to SPLIT them: the guard pins ONE call site (the first presence check) and its un-fix reverts the OTHER (presentInCode), so neither the registry anchor nor the wrap-escapes recipe's control sits on the line the other needs intact. Anchoring both on one line made every attempt to observe the gate without the fix red for `anchor matches 0x` - a complaint about the harness wearing a measurement's clothes, measured three times.",
     "file": "scripts/check-finding-guards.ts",
-    "token": "joinCodeLines(text).text",
+    "token": "present(joinAllLines(text).text, normaliseFragment(e.token))",
     "proof": {
       "unfix": [
         {
           "at": "scripts/check-finding-guards.ts",
-          "find": "  if (!present(joinAllLines(text).text, normaliseFragment(e.token))) {",
-          "replace": "  if (!present(text, e.token)) {"
+          "find": "  return present(joinCodeLines(text).text, normaliseFragment(token));",
+          "replace": "  return text.split(String.fromCharCode(10)).some((l) => present(l, token));"
         },
         {
           "at": "apps/rn/src/store/trustSelectors.test.ts",
@@ -3620,9 +3622,7 @@
         }
       ],
       "run": "lint:finding-guards",
-      "expect": "the guard is gone from apps/rn/src/store/trustSelectors.test.ts",
-      "measured": "2026-09-03",
-      "sha": "34d17e5e"
+      "expect": "ONLY IN A COMMENT"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
