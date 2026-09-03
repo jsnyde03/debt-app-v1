@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-03",
-      "sha": "a47ffb1a"
+      "sha": "f58ac041"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2391,7 +2391,7 @@
       "unfix": [
         {
           "at": "scripts/check-finding-guards.ts",
-          "find": "const MAX_STALE_PROOFS = 8;",
+          "find": "const MAX_STALE_PROOFS = 12;",
           "replace": "const MAX_STALE_PROOFS = -1;"
         }
       ],

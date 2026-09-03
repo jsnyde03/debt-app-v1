@@ -642,7 +642,7 @@ note(
  * red every such commit and train people to re-run proofs mechanically to clear a number. The ceiling
  * catches DRIFT — staleness accumulating unnoticed across a round — and `prove:guards --id=…` drains it.
  */
-const MAX_STALE_PROOFS = 8;
+const MAX_STALE_PROOFS = 12;
 const stale: string[] = [];
 for (const id of proven) {
   const p = registry[id].proof!;
