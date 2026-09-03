@@ -76,12 +76,18 @@ const RECIPES: Record<string, Recipe> = {
   'check-rounding.ts': {
     target: 'packages/core/utils/percentComplete.ts',
     plant: '\nexport const __wrapEscape2 = (x: number) =>\n  Math.round(\n    x * 100,\n  ) / 100;\n',
-    reason: /inline money-rounding expressions/,
+    /**
+     * ⚠️ The one recipe whose `reason` is a COUNT CROSSING rather than a site. This gate reds on a ratchet
+     * and prints only `sites.slice(0, 12)`, so the plant's own line is not in the output at all. The
+     * discriminator is the red branch's own sentence — the green path prints `(cap 94, downward-only)`.
+     * Measured: blind leaves 94 and exits 0; seeing the wrapped `Math.round(` leaves 95 and prints this.
+     */
+    reason: /inline money-rounding expressions; the cap is/,
   },
   'check-sandbox-writes.ts': {
     target: 'apps/rn/src/utils/a11y.ts',
     plant: "\nimport {\n  appStore,\n} from '../store/appStore';\nexport const __wrapEscape3 = appStore;\n",
-    reason: /appStore|singleton|sanctioned/i,
+    reason: /a11y\.ts:\d+/,
   },
   'check-local-dates.ts': {
     target: 'packages/core/utils/percentComplete.ts',
@@ -127,7 +133,7 @@ const RECIPES: Record<string, Recipe> = {
       '  );',
       '',
     ].join(String.fromCharCode(10)),
-    reason: /overflowing|month arithmetic|setMonth/i,
+    reason: /percentComplete\.ts:\d+/,
   },
   'check-glossary.ts': {
     target: 'apps/rn/src/utils/a11y.ts',
@@ -138,7 +144,7 @@ const RECIPES: Record<string, Recipe> = {
       '  room this month`;',
       '',
     ].join(String.fromCharCode(10)),
-    reason: /retired word|breathing room/i,
+    reason: /a11y\.ts:\d+/,
   },
   'check-contrast.ts': {
     target: 'apps/rn/src/components/plan/PaydayGuardianCard.tsx',
@@ -152,7 +158,7 @@ const RECIPES: Record<string, Recipe> = {
       '};',
       '',
     ].join(String.fromCharCode(10)),
-    reason: /failing pair|never-text|contrast/i,
+    reason: /accent\.brand/,
   },
   'check-trust-claims.ts': {
     target: 'apps/rn/src/store/drift.ts',
@@ -164,7 +170,7 @@ const RECIPES: Record<string, Recipe> = {
       '  >= 0;',
       '',
     ].join(String.fromCharCode(10)),
-    reason: /liveness|re-derivation/i,
+    reason: /drift\.ts is ledgered/,
   },
   'check-fixture-dates.ts': {
     // ⚠️ Must be TEST-SHAPED (the gate's population) and NOT clock-pinned, or the plant lands in the
@@ -385,6 +391,37 @@ for (const gate of wrapSensitive) {
       verdict = 'FAULT-BASELINE-ALREADY-RED';
       throw new Error('baseline red');
     }
+    /**
+     * ⛔ **THE `reason` REGEX IS TESTED AGAINST THE GREEN RUN, AND SIX OF NINE USED TO MATCH IT.**
+     * [class-1 re-audit 4 `U5`, major]
+     *
+     * `MATCHED` requires *the gate redded* **and** *`reason` names the defect*. If `reason` also matches
+     * the gate's SUCCESS line, the second condition tests nothing — a plant that reds its gate through a
+     * side channel (a scan-floor assertion, a different check inside a multi-check gate, a parse fault)
+     * scores `MATCHED`, and `RED-FOR-THE-WRONG-REASON` becomes unreachable.
+     *
+     * ⚡ **Measured, not reasoned: `rounding` matched on `inline money-rounding expressions`,
+     * `sandbox-writes` on `sanctioned`, `month-arithmetic` on `setMonth`, `glossary` on `retired word`,
+     * `trust-claims` on `liveness`, and `contrast` on the bare word `contrast` — which is in the gate's
+     * own name and therefore in every line it prints.** Each was written by reading the failure message,
+     * and a failure message repeats its own subject.
+     *
+     * ⚠️ The narrowed regexes name the PLANT'S SITE (`percentComplete.ts:123`, `accent.brand`,
+     * `drift.ts is ledgered`) rather than the gate's subject, because the site is the half a green run
+     * cannot print. ⛔ **This is the third location of the `a check that cannot fail` class in this
+     * cluster** (`R1`'s missing baseline, `T1`'s red-only recipe, now this), so it is asserted here
+     * rather than left as a convention — the baseline output is already in hand one line up.
+     */
+    if (recipe.reason.test(before.out)) {
+      verdict = 'FAULT-REASON-MATCHES-GREEN';
+      problems.push(
+        `${gate} — its recipe's \`reason\` ${recipe.reason} matches the gate's own GREEN output.\n` +
+          '        The verdict `MATCHED` then means only "it exited non-zero", so RED-FOR-THE-WRONG-REASON\n' +
+          '        cannot be reached and any side-channel red scores as a pass. Narrow it to something only\n' +
+          "        the failure prints — the plant's own file:line, or the token it names.",
+      );
+      throw new Error('reason vacuous');
+    }
     const snippet = typeof recipe.plant === 'function' ? recipe.plant() : recipe.plant;
     writeFileSync(abs, original + snippet, 'utf8');
     const applied = readFileSync(abs, 'utf8') !== original;
@@ -432,6 +469,12 @@ if (unreviewedSeen.length > MAX_UNREVIEWED) {
 
 for (const line of results) console.log(line);
 
+// ⛔ `U14` — counted from the recipes actually exercised, not from `wrapSensitive.length`, so a recipe
+// changing direction moves the number rather than being absorbed into the wrong half.
+const exercised = wrapSensitive.filter((g) => RECIPES[g]);
+const greenRecipes = exercised.filter((g) => RECIPES[g].expect === 'green').length;
+const redRecipes = exercised.length - greenRecipes;
+
 if (problems.length) {
   console.error(`\n❌ wrap-escapes: ${problems.length} problem(s).\n`);
   for (const p of problems) console.error(`  • ${p}`);
@@ -440,7 +483,17 @@ if (problems.length) {
 }
 
 console.log(
-  `\n✅ wrap-escapes: ${wrapSensitive.length} wrap-sensitive gate(s), each red on the WRAPPED spelling of its own defect` +
+  /**
+   * ⛔ **THE COUNTS ARE SPLIT BY DIRECTION — the line used to claim all ten were `red on the WRAPPED
+   * spelling` while one is an `expect: 'green'` recipe that must NOT red.** [class-1 re-audit 4 `U14`]
+   *
+   * ⚠️ It reads as a small wording slip and it is not: `T1` measured that a red-only harness scored
+   * `MATCHED` against a gate reverted to per-physical-line, which is why the green direction was added at
+   * all. A summary that folds it back into the red count erases the distinction the recipe exists for —
+   * and this file's own `U7` neighbour is about a verdict line that said something untrue.
+   */
+  `\n✅ wrap-escapes: ${wrapSensitive.length} wrap-sensitive gate(s) — ${redRecipes} red on the WRAPPED spelling of` +
+    ` its own defect, ${greenRecipes} GREEN on correct code a formatter produced` +
     ` · ${Object.keys(PER_LINE_OK).length} per-line by design` +
     ` · ⛔ ${knownBlindSeen.length} MEASURED BLIND, awaiting fix` +
     ` · ⚠️ ${unreviewedSeen.length} per-line and NOT YET REVIEWED (downward-only).`,
