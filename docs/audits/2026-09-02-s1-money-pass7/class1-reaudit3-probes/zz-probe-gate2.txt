@@ -1,0 +1,11 @@
+import { readFileSync } from 'node:fs';
+
+/**
+ * A wrap-sensitive gate that matches over the WHOLE file with a statement bound, reports the
+ * offset rather than a line, and therefore imports nothing from lib/logicalLines and never
+ * calls .split('\n'). It is in neither the wrapSensitive population nor either census list.
+ */
+const BANNED = /zzzNeverAppears\s*\([^;{}]*?\)\s*\?\?\s*0/g;
+const src = readFileSync('package.json', 'utf8');
+for (const m of src.matchAll(BANNED)) console.log(`hit at offset ${m.index}`);
+console.log('probe gate 2: ok');

@@ -33,6 +33,8 @@
  */
 
 /** Maps offsets in a source string to 1-based line numbers. Built once per file. */
+import { stripCommentsAndStrings } from './stripCode';
+
 export interface LineMap {
   /** 1-based source line containing `index`. */
   lineAt(index: number): number;
@@ -63,11 +65,69 @@ export function lineMap(src: string): LineMap {
 }
 
 /**
- * ⛔ **THE BOUND EVERY WRAP-SENSITIVE PATTERN USES, so it is written once rather than re-derived per gate.**
+ * ⛔ **A CALL IS FOUND BY BALANCING ITS PARENTHESES, NOT BY A CHARACTER CLASS.**
+ * [class-1 re-audit 3 · `T2` `T3` `T4` `T8`]
  *
- * A defect of this class lives inside ONE statement. `;` ends a statement and `{`/`}` open or close a block
- * or an object, so a pattern that may not cross them can wrap across as many lines as Prettier likes and
- * still cannot bridge two unrelated pieces of code. ⚠️ `[^\n]` — what these gates used before — is the one
- * bound that is wrong, because a newline is exactly what a formatter is free to insert.
+ * Three bounds have now been tried on these patterns and all three were heuristics about *where a call
+ * probably ends*:
+ *
+ * | bound | measured failure |
+ * |---|---|
+ * | `[^\n]` | the original class — a formatter's line break defeats it |
+ * | joined / flattened lines | `R3` wrong line numbers · `R4` two correct statements read as one defect |
+ * | `[^;{}]` | `T2` does not stop at a **comma**, so sibling arguments merge · `T3` stops at a **brace**, so an object argument or a `${…}` interpolation hides the call — **which re-opened `R5` in the round that certified it closed** |
+ *
+ * ⚡ **A call's extent is not a guess.** `(` opens it and the matching `)` closes it, and scanning for that
+ * is exact — immune to line breaks, commas, braces and nesting alike. ⛔ **`WITHIN_STATEMENT` was the
+ * fourth heuristic and it had ZERO consumers** (`T4`): it could be replaced with a non-regex and every gate
+ * stayed green. This replaces it with something that does the work.
+ *
+ * ⚠️ **Depth is counted on STRING-BLANKED text** so a parenthesis inside a string literal cannot close a
+ * call — the offsets are identical because `stripCode` preserves length.
+ *
+ * @param code the text the caller matches against (comments already blanked by the caller)
+ * @param callee matches the callee AND its opening `(` — the `(` must be the last thing it consumes
  */
-export const WITHIN_STATEMENT = '[^;{}]*?';
+export function findCalls(code: string, callee: RegExp): { index: number; argsEnd: number; args: string }[] {
+  const structure = stripCommentsAndStrings(code);
+  const out: { index: number; argsEnd: number; args: string }[] = [];
+  const re = new RegExp(callee.source, callee.flags.includes('g') ? callee.flags : `${callee.flags}g`);
+  for (const m of code.matchAll(re)) {
+    const open = m.index + m[0].length - 1; // the `(` itself
+    if (structure[open] !== '(') continue;
+    let depth = 0;
+    let i = open;
+    for (; i < structure.length; i++) {
+      if (structure[i] === '(') depth++;
+      else if (structure[i] === ')') {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    if (depth !== 0) continue; // unbalanced — do not guess
+    out.push({ index: m.index, argsEnd: i, args: code.slice(open + 1, i) });
+  }
+  return out;
+}
+
+/**
+ * The innermost call enclosing `index`, or `null`. Used to ask *"is this comparison inside a `.find(…)`?"*
+ * without requiring the two to share a line — `T8`: a block-bodied predicate put a `{` between them and the
+ * previous bound treated that as the end of the world.
+ */
+export function enclosingCall(code: string, index: number): { callee: string; start: number } | null {
+  const structure = stripCommentsAndStrings(code);
+  let depth = 0;
+  for (let i = index; i >= 0; i--) {
+    if (structure[i] === ')') depth++;
+    else if (structure[i] === '(') {
+      if (depth === 0) {
+        const before = code.slice(Math.max(0, i - 60), i);
+        const name = /([A-Za-z_$][\w$]*)\s*$/.exec(before)?.[1] ?? '';
+        return { callee: name, start: i };
+      }
+      depth--;
+    }
+  }
+  return null;
+}

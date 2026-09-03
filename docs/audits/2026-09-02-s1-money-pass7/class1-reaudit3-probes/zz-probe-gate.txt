@@ -1,0 +1,9 @@
+import { readFileSync } from 'node:fs';
+
+/** A per-physical-line matcher, written the way all six class-1 members were. */
+const BANNED = /\bzzzNeverAppears\s*\(\s*0\s*\)/;
+const src = readFileSync('package.json', 'utf8');
+src.split('\n').forEach((line, i) => {
+  if (BANNED.test(line)) console.log(`hit at ${i + 1}`);
+});
+console.log('probe gate: ok');

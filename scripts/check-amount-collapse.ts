@@ -33,7 +33,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
-import { lineMap } from './lib/logicalLines';
+import { findCalls, lineMap } from './lib/logicalLines';
 import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -58,7 +58,10 @@ const SELF = new Set(['scripts/check-amount-collapse.ts', 'scripts/test-wrap-esc
  * The class-1 re-audit (`R4`) measured what joining did instead: two correct statements five lines apart
  * reported as one collapse.
  */
-const COLLAPSE = /\b(parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*\([^;{}]*?\)\s*\?\?\s*0/g;
+/** The callee plus its opening paren — `findCalls` balances the rest, so no bound is guessed. */
+const PARSER_CALL = /\b(?:parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*\(/g;
+/** What must follow the call's closing paren for it to be a collapse. */
+const AFTER = /^\s*\?\?\s*0\b/;
 
 /**
  * site → why zero is the honest answer there.
@@ -125,7 +128,16 @@ for (const rel of tracked) {
    */
   const code = stripCommentsOnly(src);
   const lines = lineMap(code);
-  for (const m of code.matchAll(COLLAPSE)) {
+  /**
+   * ⛔ **THE CALL IS BALANCED, NOT BOUNDED** — [class-1 re-audit 3 · `T2` `T3`]. `[^;{}]` stopped at a
+   * brace, so `parseAmountField({ raw }) ?? 0` and a `${…}` interpolation inside the arguments were
+   * invisible — **re-opening `R5` in the round that certified it closed** — and it did not stop at a comma,
+   * so two correct sibling arguments merged into one reported defect. A call ends at its matching `)`, and
+   * that is not a thing to approximate.
+   */
+  for (const call of findCalls(code, PARSER_CALL)) {
+    if (!AFTER.test(code.slice(call.argsEnd + 1))) continue;
+    const m = { index: call.index, 0: `${code.slice(call.index, call.argsEnd + 1)} ?? 0` } as unknown as RegExpMatchArray;
     found.push(rel);
     perFile.set(rel, [...(perFile.get(rel) ?? []), norm(m[0])]);
     if (!(rel in ALLOWED)) {

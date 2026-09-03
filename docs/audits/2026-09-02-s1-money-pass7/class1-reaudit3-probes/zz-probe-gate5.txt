@@ -1,0 +1,10 @@
+import { readFileSync } from 'node:fs';
+
+/**
+ * This gate does NOT cut its input into lines. The phrase below is prose describing what it
+ * deliberately avoids: an earlier draft used src.split('\n') and it was wrong to.
+ */
+const BANNED = /zzzNeverAppears/g;
+const src = readFileSync('package.json', 'utf8');
+for (const m of src.matchAll(BANNED)) console.log(`hit at offset ${m.index}`);
+console.log('probe gate 5: ok');

@@ -38,6 +38,19 @@ interface Recipe {
   plant: string | (() => string);
   /** the gate must red, and its output must name this */
   reason: RegExp;
+  /**
+   * ⛔ **`'green'` FOR A GATE WHOSE FIX WAS NOISE REDUCTION** — [class-1 re-audit 3 · `T1`].
+   *
+   * `check-store-id-writes` was fixed so that ordinary **correct** wrapped code stops redding. A red-only
+   * harness cannot measure that: its plant redded before the fix and after it, so the recipe scored
+   * `MATCHED` while proving nothing — **revert that gate to per-physical-line and this file still printed
+   * `✅ 6 wrap-sensitive gate(s), each red on the WRAPPED spelling`.** The discriminating plant for a
+   * noise fix is CORRECT code that must stay green.
+   *
+   * ⚠️ Both directions are real class-1 failures: `'red'` catches a gate going blind, `'green'` catches one
+   * going noisy — and the noisy direction is the one with no escape route at a cap of zero.
+   */
+  expect?: 'red' | 'green';
 }
 
 /** A date inside `check-fixture-dates`' 21-day imminent window, computed rather than written down. */
@@ -85,16 +98,20 @@ const RECIPES: Record<string, Recipe> = {
   },
   'check-store-id-writes.ts': {
     target: 'apps/rn/src/store/analysisSelectors.ts',
-    // The DEFECT wrapped: a bare `.map` id edit split across lines. N-5 proved the mirror - that a
-    // wrapped `findIndex`, which is CORRECT code, no longer reds.
+    /**
+     * ⛔ **CORRECT code that must stay GREEN** — this gate's fix (`N-5`, `T8`) was noise reduction, so the
+     * discriminating plant is a wrapped `findIndex` with a BLOCK body: legitimate, and refused by every
+     * earlier version of the gate. A red-only plant here scored `MATCHED` against a reverted gate (`T1`).
+     */
     plant: [
       '',
-      'export const __wrapBareId = (rows: { id: string }[], id: string) =>',
-      '  rows.map((r) =>',
-      '    r.id === id ? r : r,',
-      '  );',
+      'export const __wrapLookup = (rows: { id: string }[], id: string) =>',
+      '  rows.findIndex((r) => {',
+      '    return r.id === id;',
+      '  });',
       '',
     ].join('\n'),
+    expect: 'green',
     reason: /outside a lookup/,
   },
   'check-fixture-dates.ts': {
@@ -262,8 +279,12 @@ for (const gate of wrapSensitive) {
     const applied = readFileSync(abs, 'utf8') !== original;
     const r = runGate(gate);
     const named = recipe.reason.test(r.out);
+    const want = recipe.expect ?? 'red';
     if (!applied) verdict = 'PLANT-NOT-APPLIED';
-    else if (r.code === 0) verdict = 'FAILED-OPEN';
+    else if (want === 'green') {
+      // The plant is CORRECT code. A red here means the gate refuses a formatter's ordinary output.
+      verdict = r.code === 0 ? 'MATCHED' : 'FALSE-POSITIVE-ON-CORRECT-CODE';
+    } else if (r.code === 0) verdict = 'FAILED-OPEN';
     else if (!named) verdict = 'RED-FOR-THE-WRONG-REASON';
     else verdict = 'MATCHED';
   } catch {

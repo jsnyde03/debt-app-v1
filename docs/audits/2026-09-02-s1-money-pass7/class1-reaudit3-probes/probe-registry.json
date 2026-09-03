@@ -1,0 +1,62 @@
+{
+  "PROBE-A": {
+    "what": "hermetic probe PROBE-A",
+    "file": "packages/core/utils/percentComplete.ts",
+    "token": "export",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/utils/percentComplete.ts",
+          "find": "export",
+          "replace": "export /*PROBE_A_PLANT*/"
+        }
+      ],
+      "cmd": [
+        "node",
+        "docs/audits/2026-09-02-s1-money-pass7/class1-reaudit3-probes/probe-cmd.mjs",
+        "PROBE_A_PLANT"
+      ],
+      "expect": "PROBE_A_PLANT_EXPECTED"
+    }
+  },
+  "PROBE-C": {
+    "what": "hermetic probe PROBE-C",
+    "file": "packages/core/utils/percentComplete.ts",
+    "token": "export",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/utils/percentComplete.ts",
+          "find": "export",
+          "replace": "export /*PROBE_C_PLANT*/"
+        }
+      ],
+      "cmd": [
+        "node",
+        "docs/audits/2026-09-02-s1-money-pass7/class1-reaudit3-probes/probe-cmd.mjs",
+        "PROBE_C_PLANT"
+      ],
+      "expect": "PROBE_C_PLANT_EXPECTED"
+    }
+  },
+  "PROBE-B-FAULTS": {
+    "what": "hermetic probe B - anchor matches 0x, so proveOne faults",
+    "file": "packages/core/utils/percentComplete.ts",
+    "token": "export",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/utils/percentComplete.ts",
+          "find": "NO_SUCH_ANCHOR_HERE",
+          "replace": "x"
+        }
+      ],
+      "cmd": [
+        "node",
+        "docs/audits/2026-09-02-s1-money-pass7/class1-reaudit3-probes/probe-cmd.mjs",
+        "NOPE"
+      ],
+      "expect": "nothing"
+    }
+  }
+}

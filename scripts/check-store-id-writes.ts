@@ -30,7 +30,7 @@ import { join, relative, sep } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { stripCommentsOnly } from './lib/stripCode';
-import { lineMap } from './lib/logicalLines';
+import { enclosingCall, lineMap } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -47,6 +47,7 @@ const OWNER = 'packages/core/utils/updateById.ts';
 const BY_ID = /\b\w+\.id\s*===\s*id\b/;
 /** A lookup is allowed: it can branch on the result, which is the property this gate is about. */
 const BY_ID_G = new RegExp(BY_ID.source, 'g');
+const LOOKUP_NAMES = new Set(['find', 'findIndex', 'some', 'filter', 'findLast', 'findLastIndex']);
 const IS_LOOKUP = /\.(find|findIndex|some|filter)\s*\(/;
 
 /**
@@ -89,16 +90,32 @@ for (const rel of tracked) {
    * lets a defect through; this one makes a formatter's ordinary output unshippable.
    */
   for (const m of code.matchAll(BY_ID_G)) {
-    const before = code.lastIndexOf(';', m.index);
-    const openBrace = code.lastIndexOf('{', m.index);
-    const closeBrace = code.lastIndexOf('}', m.index);
-    const start = Math.max(before, openBrace, closeBrace) + 1;
-    const endCandidates = [code.indexOf(';', m.index), code.indexOf('{', m.index), code.indexOf('}', m.index)]
-      .filter((n) => n !== -1);
-    const end = endCandidates.length ? Math.min(...endCandidates) : code.length;
-    const statement = code.slice(start, end);
-    if (IS_LOOKUP.test(statement)) continue;
-    sites.push(`${rel}:${map.lineAt(m.index)}: ${statement.replace(/\s+/g, ' ').trim().slice(0, 110)}`);
+    /**
+     * ⛔ **THE EXEMPTION IS THE ENCLOSING CALL, not a window of text** — [class-1 re-audit 3 · `T8`].
+     * A statement window bounded by braces lost the exemption the moment the predicate had a BLOCK body —
+     * `rows.findIndex((r) => { return r.id === id; })` puts a `{` between the comparison and the call that
+     * makes it legitimate, so ordinary correct code redded at a cap of 0 with no allow-list.
+     *
+     * ⚠️ Walking OUTWARD matters: the comparison sits inside the arrow's own parens first, and the
+     * `findIndex(` that exempts it is one level further out.
+     */
+    let cursor = m.index;
+    let exempt = false;
+    for (let depth = 0; depth < 6; depth++) {
+      const enclosing = enclosingCall(code, cursor);
+      if (!enclosing) break;
+      if (LOOKUP_NAMES.has(enclosing.callee)) {
+        exempt = true;
+        break;
+      }
+      cursor = enclosing.start - 1;
+      if (cursor < 0) break;
+    }
+    if (exempt) continue;
+    const lineStart = code.lastIndexOf('\n', m.index) + 1;
+    const lineEnd = code.indexOf('\n', m.index);
+    const shown = code.slice(lineStart, lineEnd === -1 ? code.length : lineEnd);
+    sites.push(`${rel}:${map.lineAt(m.index)}: ${shown.replace(/\s+/g, ' ').trim().slice(0, 110)}`);
   }
 }
 

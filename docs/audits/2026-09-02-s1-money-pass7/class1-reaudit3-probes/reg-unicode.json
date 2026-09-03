@@ -3433,19 +3433,26 @@
     }
   },
   "S1P7-CLASS1-LOGICALJOIN": {
-    "what": "pass-7 D1-3 / D1-4 / D1-6 / D1-7 / D1-8 / D1-11 (6 majors, one mechanism) - six gates matched their own defect per PHYSICAL line, so a call Prettier had wrapped walked past all of them. THREE re-audits then measured the fixes, and each bound was a guess at where a call ends: [^\n] (a line break defeats it), joined/flattened lines (R3 wrong line numbers, R4 two correct statements read as one defect), and [^;{}] (T2 does not stop at a comma so siblings merge; T3 stops at a brace so an object argument or a ${...} interpolation hides the call, which RE-OPENED R5 in the round that certified it closed). A call's extent is not a guess: findCalls balances parentheses, and enclosingCall answers 'is this inside a lookup' without needing the two on one line (T8). test:wrap-escapes plants the WRAPPED spelling against every gate importing the helper, and carries both directions - expect:'red' for a gate going blind and expect:'green' for one going noisy, because T1 measured that a red-only recipe scored MATCHED against a gate reverted to per-physical-line.",
+    "what": "pass-7 D1-3 / D1-4 / D1-6 / D1-7 / D1-8 / D1-11 (6 majors, one mechanism) - six gates matched their own defect per PHYSICAL line, so a call Prettier had wrapped walked past all of them. TWO re-audits then measured the FIXES: v1 joined lines (R2-R5, R7), v2 flattened them in place, and the second re-audit's N-1 showed the flattening was INERT - removing it left three of four gates still catching their plants and all four live counts unchanged - while carrying R4's false positive and N-9's blind window (1,026 call expressions span >= 9 lines). So the rewriting was deleted. Each gate now matches over its own stripped text with a bound of [^;{}] - the STATEMENT, which is where the defect lives - and asks lib/logicalLines only which line an offset falls on. Reverting a bound to [^\n] reds the gate at baseline, and test:wrap-escapes refuses a verdict over a red baseline (R1) rather than scoring MATCHED.",
     "file": "scripts/run-gates.ts",
     "token": "'test:wrap-escapes',",
     "proof": {
       "unfix": [
         {
-          "at": "scripts/lib/logicalLines.ts",
-          "find": "      if (structure[i] === '(') depth++;",
-          "replace": "      if (structure[i] === '\n') break;\n      if (structure[i] === '(') depth++;"
+          "at": "scripts/check-amount-collapse.ts",
+          "find": "\\([^;{}]*?\\)\\s*\\?\\?\\s*0/g;",
+          "replace": "\\([^\n]*?\\)\\s*\\?\\?\\s*0/g;"
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "did not red for the WRAPPED spelling"
+      "expect": "did not red for the WRAPPED spelling",
+      "measured": "2026-09-03",
+      "sha": "40122b91"
     }
+  },
+  "\u00531\u00501-\u00421-\u004f\u0057\u004e\u0045\u0052": {
+    "what": "pass-1 B1 — the whole app had two trust guards, both inline in money.tsx, while selectPlanState and progress.tsx made the same 'every balance cleared' claim with none; measured on one store, Money refused while Today asserted",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "Today must NOT reach the debt-free celebration"
   }
 }

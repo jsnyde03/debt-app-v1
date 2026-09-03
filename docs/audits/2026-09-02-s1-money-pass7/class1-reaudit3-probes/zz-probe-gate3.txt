@@ -1,0 +1,11 @@
+import { readFileSync } from 'node:fs';
+
+/**
+ * A wrap-sensitive gate that matches over the WHOLE file with a statement bound, reports the
+ * offset rather than a line number, and so imports nothing from the shared helper and never
+ * cuts its input into physical lines.
+ */
+const BANNED = /zzzNeverAppears\s*\([^;{}]*?\)\s*\?\?\s*0/g;
+const src = readFileSync('package.json', 'utf8');
+for (const m of src.matchAll(BANNED)) console.log(`hit at offset ${m.index}`);
+console.log('probe gate 3: ok');

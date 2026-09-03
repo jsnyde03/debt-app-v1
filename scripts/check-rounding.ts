@@ -34,7 +34,7 @@ import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { stripCommentsOnly } from './lib/stripCode';
-import { lineMap } from './lib/logicalLines';
+import { findCalls, lineMap } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -62,7 +62,12 @@ const SCAN_GATE = 'rounding';
  * `* 100` immediately before `)` still misses it. The gate was green over the very spelling the fix was
  * written for.
  */
-const ROUNDING = /Math\.round\([^;{}]*?\*\s*100\s*,?\s*\)\s*\/\s*100/g;
+/** `Math.round(` — `findCalls` balances the rest, so nothing about the argument's shape is assumed. */
+const ROUND_CALL = /Math\.round\s*\(/g;
+/** The argument must END in `* 100` (Prettier may leave a trailing comma when it wraps). */
+const ARG_TAIL = /\*\s*100\s*,?\s*$/;
+/** …and the call must be divided by 100 immediately after. */
+const AFTER_ROUND = /^\s*\/\s*100\b/;
 
 const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx'], { cwd: REPO_ROOT, encoding: 'utf8' })
   .split('\n')
@@ -89,8 +94,16 @@ for (const rel of tracked) {
    */
   const code = stripCommentsOnly(source);
   const lines = lineMap(code);
-  for (const m of code.matchAll(ROUNDING)) {
-    sites.push(`${rel}:${lines.lineAt(m.index)}: ${m[0].replace(/\s+/g, ' ').trim().slice(0, 100)}`);
+  /**
+   * ⛔ **BALANCED, NOT BOUNDED** — [class-1 re-audit 3 · `T2` `T3`]. `[^;{}]` stopped at a brace, so
+   * `Math.round(fn({ a }) * 100) / 100` was invisible, and it did not stop at a comma, so two sibling
+   * expressions merged. A call's extent is its matching paren, which is exact rather than approximate.
+   */
+  for (const call of findCalls(code, ROUND_CALL)) {
+    if (!ARG_TAIL.test(call.args)) continue;
+    if (!AFTER_ROUND.test(code.slice(call.argsEnd + 1))) continue;
+    const text = code.slice(call.index, call.argsEnd + 1).replace(/\s+/g, ' ').trim();
+    sites.push(`${rel}:${lines.lineAt(call.index)}: ${text.slice(0, 100)} / 100`);
   }
 }
 
