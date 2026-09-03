@@ -31622,3 +31622,58 @@ recipes / 12 unreviewed**, with `RECIPES` re-keyed on **matcher** rather than fi
 `test-gate-plants.ts` through `package.json` rather than asserted in a sentence.
 
 **Owed:** re-audit 5 — a fresh agent, cumulative over all 67 class-1 findings.
+
+### Round 5's class boundary — `[D79]`'s "run the full suites" rule, and what it caught
+
+⛔ **4 of 51 gates were RED, and all four were round 5's own work.** None was reachable from a class-scoped
+audit, which is the whole argument for the rule.
+
+| gate | what it caught |
+|---|---|
+| `lint:scan-floors` | `U4` made `check-contrast` a **stripper**, and GAP-8 says a stripper can report a pass while reading nothing. It refused the tree until a floor was wired — and refused an *assumed* one. ⚡ Measured on the commit that created the exposure: with the strip blanked and the assertion removed, the gate printed `every rendered token pair clears its floor.` and exited 0 **while reading zero lines**. Floor 30,711 = 95% of 32,328 |
+| `lint:comments` | My own `U8` docblock said *"the two call sites"* — a count of code, which `[D17]` bans |
+| `lint:s0-coverage` | Three files new on the S0 surface with no recorded sweeper. Classified `never`: `[D69]` exempts a finding from the convergence count when its file is unswept, so an unclassified file makes that exemption unverifiable **in both directions**. 132 → 135 files, 57 → 60 unswept |
+| `test:wrap-escapes` | Wiring the scan floor moved the very line `U4`'s guard pins, and `lint:finding-guards` reported that guard gone **by name** — the check working: *a guard is only as current as the last commit that touched its file* |
+
+**Final state: 51/51 gates · `test:app` green · `test:regression` green · typecheck 0 · tree clean.**
+⚠️ `test:app` and `test:regression` are **not** in the `GATES` chain — verified rather than assumed.
+
+### ⛔ `S5-DEADLOCK` — the proof harness can seal itself shut. Filed to class 2.
+
+⚡ **Measured, not reasoned.** Past `MAX_STALE_PROOFS`, `lint:finding-guards` is red. `prove:guards`
+requires a **GREEN control**. So every proof whose `run` reads the ledger becomes unprovable — and the
+ceiling can never be drained back down. **8 of 9 drains failed on `control=exit 1` in one pass**; the only
+one that recorded was `S1P5-D5-9-CAPWRAP`, whose run is `lint:cap-literals` and therefore does not read
+the ledger.
+
+⛔ **The trigger is ordinary.** Every commit that touches a gate file re-stales the proofs anchored in it,
+so a round of this shape walks into the trap by construction. Escaped by raising the ceiling to 12,
+draining all 9, and putting it straight back to 8 — **recorded in the commit message as exactly that.**
+
+⚠️ **A bigger number is not the fix**, which is why this is filed to `.12.6.2` rather than patched in
+class 1. The honest candidates are a staleness scan that exempts the guard currently being proven, or a
+`prove:guards` that distinguishes *"the control is red for the thing I am fixing"* from *"the control is
+red"*. That is class 2's call.
+
+⭐ **And the property that makes a drain terminate is worth writing down: the final commit of a drain must
+touch NO gate file.** Otherwise it re-stales what it just proved.
+
+### ⚡ `U11` alone cost four circularities, each a real structural property
+
+1. The child harness's pre-flight **reverted the parent's live plant** — `U15`'s own fail-open.
+2. The un-fix **deleted its own guard token**, so reverting the fix redded the gate by reporting *this
+   guard* missing.
+3. The un-fix **deleted its own anchor**, and this gate validates that every proof's anchor matches
+   exactly once — so any attempt to observe the gate without the fix redded about the harness rather than
+   the defect. `FAULT-BASELINE-ALREADY-RED`, three times.
+4. The wrap-escapes recipe **wrapped the very line the guard anchored on** — two instruments pointed at
+   one line, each needing it intact.
+
+⛔ **Settled by splitting them across the fix's two call sites**: the guard pins the first presence check,
+the un-fix reverts `presentInCode`, the recipe wraps `S1-M9-GUARDIAN`'s token instead, and `expect` is
+`ONLY IN A COMMENT` — a string only the comment-versus-code check can print.
+
+⚠️ **Self-inflicted count for round 5: seven.** The shipped plant · the `U15` fail-open · two circular
+un-fixes · a crash-instead-of-fail assertion · and the four gate breaks. **Every one found by an
+instrument, none by reading** — a sixth consecutive round of that result, and the reason re-audit 5 is
+run by a fresh agent rather than by the session that wrote the fixes.
