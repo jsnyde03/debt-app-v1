@@ -12,8 +12,14 @@
  * helper with **no recipe here, this file FAILS**. That is the difference between a class fix and six
  * edits: a list would be prose again, and prose is what let the class recur six times.
  *
- * ⚠️ **Each plant is the WRAPPED spelling only.** The same-line spelling is already covered by
- * `test:gate-plants`; planting it again here would re-measure the half that was never broken.
+ * ⛔ **BOTH SPELLINGS, AND THE COVERAGE CLAIM IS DERIVED.** [class-1 re-audit 4 `U16`] This header used
+ * to read *"each plant is the WRAPPED spelling only — the same-line spelling is already covered by
+ * `test:gate-plants`"*. ⚡ **Measured: that was true of 4 of the 10 gates.** It was written when this
+ * harness held four recipes; rounds 3 and 4 added six more and nobody re-checked the sentence — a
+ * CARRIED PREMISE, the same shape as `T6`'s and `N-4`'s false `PER_LINE_OK` reasons.
+ *
+ * So the covered set is now READ from `test-gate-plants.ts` through `package.json`'s script map, and a
+ * gate in neither harness fails this file. The six uncovered ones carry a `sameLine` plant here.
  *
  * Usage: npm run test:wrap-escapes
  */
@@ -51,6 +57,21 @@ interface Recipe {
    * going noisy — and the noisy direction is the one with no escape route at a cap of zero.
    */
   expect?: 'red' | 'green';
+  /**
+   * ⛔ **THE ORDINARY, UNWRAPPED SPELLING — required when NO OTHER HARNESS PLANTS IT.**
+   * [class-1 re-audit 4 `U16`]
+   *
+   * ⚡ This file's header used to justify planting only the wrapped spelling by saying the same-line one
+   * *"is already covered by `test:gate-plants`"*. **Measured: true of 4 of the 10 gates.** The sentence
+   * was written when the harness held four recipes; rounds 3 and 4 added six more and nobody re-checked
+   * it — the same CARRIED PREMISE shape as `T6`'s and `N-4`'s false `PER_LINE_OK` reasons.
+   *
+   * ⚠️ So the claim is DERIVED rather than written: the covered set comes from `test-gate-plants.ts`
+   * through `package.json`'s script map, and a gate in neither harness FAILS this file. A gate that lost
+   * the ordinary spelling — a widened `AFTER`, a mis-edited callee, a second matcher going blind, which
+   * is `U10` exactly — would otherwise be caught by nothing at all.
+   */
+  sameLine?: string | (() => string);
 }
 
 /** A date inside `check-fixture-dates`' 21-day imminent window, computed rather than written down. */
@@ -71,11 +92,13 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
   'check-amount-collapse.ts': {
     target: 'packages/core/utils/percentComplete.ts',
     plant: '\nexport const __wrapEscape = (raw: string) =>\n  parseAmountField(\n    raw,\n  ) ?? 0;\n',
+    sameLine: '\nexport const __sameEscape = (raw: string) => parseAmountField(raw) ?? 0;\n',
     reason: /collapses a parsed amount to 0/,
   },
   'check-rounding.ts': {
     target: 'packages/core/utils/percentComplete.ts',
     plant: '\nexport const __wrapEscape2 = (x: number) =>\n  Math.round(\n    x * 100,\n  ) / 100;\n',
+    sameLine: '\nexport const __sameEscape2 = (x: number) => Math.round(x * 100) / 100;\n',
     /**
      * ⚠️ The one recipe whose `reason` is a COUNT CROSSING rather than a site. This gate reds on a ratchet
      * and prints only `sites.slice(0, 12)`, so the plant's own line is not in the output at all. The
@@ -87,6 +110,7 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
   'check-sandbox-writes.ts': {
     target: 'apps/rn/src/utils/a11y.ts',
     plant: "\nimport {\n  appStore,\n} from '../store/appStore';\nexport const __wrapEscape3 = appStore;\n",
+    sameLine: "\nimport { appStore } from '../store/appStore';\nexport const __sameEscape3 = appStore;\n",
     reason: /a11y\.ts:\d+/,
   },
   'check-local-dates.ts': {
@@ -164,6 +188,7 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
         '};',
         '',
       ].join(String.fromCharCode(10)),
+      sameLine: '\nexport const __sameContrast = { color: c.accent.brand };\n',
       reason: /accent\.brand/,
     },
     {
@@ -182,6 +207,7 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
         '};',
         '',
       ].join(String.fromCharCode(10)),
+      sameLine: "\nexport const __sameInk = { color: '#123456' };\n",
       reason: /paints ink as the literal '#123456'/,
     },
   ],
@@ -195,6 +221,7 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
       '  >= 0;',
       '',
     ].join(String.fromCharCode(10)),
+    sameLine: '\nexport const __sameLiveness = (balance: number) => balance >= 0;\n',
     reason: /drift\.ts is ledgered/,
   },
   'check-fixture-dates.ts': {
@@ -202,6 +229,7 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
     // `pinned` bucket and is reported rather than refused — a plant that cannot fail.
     target: 'apps/rn/src/utils/format.test.ts',
     plant: () => `\nexport const __wrapFuse = {\n  dueDate:\n    '${imminentDate()}',\n};\n`,
+    sameLine: () => `\nexport const __sameFuse = { dueDate: '${imminentDate()}' };\n`,
     reason: /cross into the past within \d+ days/,
   },
 };
@@ -366,6 +394,28 @@ const recipesFor = (gate: string): Recipe[] => {
   return r ? (Array.isArray(r) ? r : [r]) : [];
 };
 
+/**
+ * ⛔ **WHICH GATES `test:gate-plants` ACTUALLY PLANTS — DERIVED, because the written claim was false.**
+ * [class-1 re-audit 4 `U16`]
+ *
+ * The scenarios there name an npm script (`gate: 'lint:month-arithmetic'`), and `package.json` says which
+ * `scripts/check-*.ts` that script runs. Both halves are read rather than restated, so neither can go
+ * stale: renaming a script, or pointing it at a different gate file, moves this set with it.
+ */
+function sameLinePlantedElsewhere(): Set<string> {
+  const scripts = (JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8')) as { scripts: Record<string, string> })
+    .scripts;
+  const plants = readFileSync(join(SCRIPTS, 'test-gate-plants.ts'), 'utf8');
+  const covered = new Set<string>();
+  for (const m of plants.matchAll(/gate:\s*'(lint:[A-Za-z0-9:-]+)/g)) {
+    const cmd = scripts[m[1]];
+    const file = cmd && /scripts\/(check-[A-Za-z0-9._-]+\.ts)/.exec(cmd);
+    if (file) covered.add(file[1]);
+  }
+  return covered;
+}
+const sameLineCovered = sameLinePlantedElsewhere();
+
 /** ⛔ A gate that declares itself wrap-sensitive and has no recipe makes this harness vacuous for it. */
 for (const gate of wrapSensitive) {
   if (recipesFor(gate).length === 0) {
@@ -373,6 +423,21 @@ for (const gate of wrapSensitive) {
       `${gate} imports lib/logicalLines and has NO plant recipe in scripts/test-wrap-escapes.ts.\n` +
         '        A wrap-sensitive gate certified by nothing is exactly the D1-11 shape this file exists to\n' +
         '        close. Add a recipe that plants the WRAPPED spelling of the defect it catches.',
+    );
+  }
+  /**
+   * ⛔ `U16` — the ORDINARY spelling has to be planted by SOMEBODY. Four of these ten gates are covered
+   * by `test:gate-plants`; the other six were covered by a sentence in this file's header claiming they
+   * were. A `green` recipe is exempt: its plant IS correct code, so there is no defect spelling to cover.
+   */
+  for (const [n, recipe] of recipesFor(gate).entries()) {
+    if (recipe.expect === 'green' || recipe.sameLine || sameLineCovered.has(gate)) continue;
+    problems.push(
+      `${gate} #${n + 1} — NOTHING plants the same-line spelling of its defect.\n` +
+        `        test:gate-plants covers ${[...sameLineCovered].sort().join(', ') || 'nothing'}, and this\n` +
+        '        matcher is not among them. Give the recipe a `sameLine` plant, or add a scenario there.\n' +
+        '        A gate losing the ORDINARY spelling — a widened bound, a matcher going blind — would be\n' +
+        '        caught by nothing, and the reason for not covering it was a sentence that had gone false.',
     );
   }
 }
@@ -481,6 +546,19 @@ for (const gate of wrapSensitive) {
     } else if (r.code === 0) verdict = 'FAILED-OPEN';
     else if (!named) verdict = 'RED-FOR-THE-WRONG-REASON';
     else verdict = 'MATCHED';
+
+    /**
+     * ⛔ `U16` — AND THE ORDINARY SPELLING, for the six gates no other harness plants. Run second and
+     * from the ORIGINAL text, never on top of the wrapped plant: two defects in the file at once cannot
+     * tell you which one the gate saw.
+     */
+    if (verdict === 'MATCHED' && recipe.sameLine) {
+      const plain = typeof recipe.sameLine === 'function' ? recipe.sameLine() : recipe.sameLine;
+      writeFileSync(abs, original + plain, 'utf8');
+      const s = runGate(gate);
+      if (s.code === 0) verdict = 'SAME-LINE-FAILED-OPEN';
+      else if (!recipe.reason.test(s.out)) verdict = 'SAME-LINE-RED-FOR-THE-WRONG-REASON';
+    }
   } catch {
     if (verdict === 'UNKNOWN') verdict = 'FAULT';
   } finally {
@@ -542,6 +620,9 @@ console.log(
   `\n✅ wrap-escapes: ${wrapSensitive.length} wrap-sensitive gate(s) · ${exercised.length} matcher recipes —` +
     ` ${redRecipes} red on the WRAPPED spelling of their own defect, ${greenRecipes} GREEN on correct` +
     ' code a formatter produced' +
+    ` · ${exercised.filter((r) => r.sameLine).length} also planted UNWRAPPED here, ${
+      wrapSensitive.filter((g) => sameLineCovered.has(g)).length
+    } by test:gate-plants` +
     ` · ${Object.keys(PER_LINE_OK).length} per-line by design` +
     ` · ⛔ ${knownBlindSeen.length} MEASURED BLIND, awaiting fix` +
     ` · ⚠️ ${unreviewedSeen.length} per-line and NOT YET REVIEWED (downward-only).`,
