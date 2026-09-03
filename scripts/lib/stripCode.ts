@@ -54,6 +54,31 @@ export function stripCommentsOnly(src: string): string {
 }
 
 /**
+ * ⛔ **THE STRING LITERALS THEMSELVES, WITH THEIR REAL EXTENTS — because a delimiter-pair regex has none.**
+ * [S1.13.7.12.6 · class-1 re-audit 4 `U2`, major]
+ *
+ * ⚡ `check-glossary` found its copy with `/'[^']*'/g`, `/"[^"]*"/g` and `` /`[^`]*`/g ``. Per line that
+ * was survivable — the newline was an implicit terminator. `T6` moved the scan to the whole FILE (correct:
+ * four of the five retired terms are two-word phrases, and a wrap between the words defeated all of them),
+ * and the same regexes then ran to the next matching delimiter **anywhere in the file**.
+ *
+ * ⚡ **Measured: 1,818 of 10,425 fragments spanned more than one physical line, the largest 39 lines of
+ * executable code**, being matched against retired-*copy* patterns. An English contraction inside a
+ * double-quoted string opens a single-quote "fragment" that closes on the next unrelated `'`, welding
+ * everything between into one sentence — and this gate has **no cap and no allow-list**, so ordinary
+ * correct code redded a green tree. One such weld was already live in the tree with no plant at all.
+ *
+ * ⚠️ **The scanner already knows the answer**, because deciding *"is this quote inside a string"* is the
+ * one thing it does and the one thing a regex pair cannot. Delimiters are INCLUDED in `text`, matching
+ * what the old fragments returned, so callers' patterns are unaffected.
+ */
+export function stringLiterals(src: string): { text: string; index: number }[] {
+  const found: { text: string; index: number }[] = [];
+  scan(src, false, found);
+  return found;
+}
+
+/**
  * ⛔ **DOES A `/` START A REGEX OR DIVIDE?** JavaScript cannot answer that lexically — it depends on the
  * preceding token — so this uses the standard heuristic: a `/` begins a regex when the last significant
  * character cannot end an expression.
@@ -68,7 +93,7 @@ function regexMayFollow(prev: string): boolean {
 
 const KEYWORD_BEFORE_REGEX = /\b(return|typeof|instanceof|in|of|new|delete|void|throw|case|do|else|yield|await)$/;
 
-function scan(src: string, blankStrings: boolean): string {
+function scan(src: string, blankStrings: boolean, literals?: { text: string; index: number }[]): string {
   const out = src.split('');
   const blank = (i: number) => {
     if (out[i] !== '\n' && out[i] !== '\r') out[i] = ' ';
@@ -98,6 +123,7 @@ function scan(src: string, blankStrings: boolean): string {
 
     if (c === "'" || c === '"' || c === '`') {
       const quote = c;
+      const opened = i; // ⛔ `U2` — where this literal really begins, for `stringLiterals`
       i++; // keep the opening delimiter
       while (i < src.length) {
         if (src[i] === '\\') {
@@ -140,6 +166,9 @@ function scan(src: string, blankStrings: boolean): string {
         i++;
       }
       if (i < src.length && src[i] === quote) i++;
+      // ⚠️ Recorded whether or not it closed. An unterminated literal ends at the newline (see the
+      // header), and reporting the text up to there is honest — dropping it would be the blind direction.
+      literals?.push({ text: src.slice(opened, i), index: opened });
       lastSignificant = quote;
       continue;
     }

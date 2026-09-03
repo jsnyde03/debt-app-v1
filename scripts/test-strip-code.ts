@@ -23,7 +23,7 @@
  * to a `file:line`, so a stripper that shortened a line would move every reported position in eleven gates
  * at once. Asserted on every case, in both directions.
  */
-import { stripCommentsAndStrings, stripCommentsOnly } from './lib/stripCode';
+import { stringLiterals, stripCommentsAndStrings, stripCommentsOnly } from './lib/stripCode';
 
 let passed = 0;
 const failures: string[] = [];
@@ -111,6 +111,37 @@ check(
   stripCommentsAndStrings(MULTILINE) !== stripCommentsOnly(MULTILINE),
   'the two exports DIFFER on this fixture — else one of them is not being exercised at all',
 );
+
+// ── stringLiterals ──────────────────────────────────────────────────────────────────────────────────
+/**
+ * ⛔ **THE EXPORT ADDED FOR `U2`, AND ITS WHOLE POINT IS THE CASE A DELIMITER PAIR GETS WRONG.**
+ *
+ * ⚡ `check-glossary` matched copy with `/'[^']*'/` over the whole file. An English contraction inside a
+ * double-quoted string opened a single-quote "fragment" that closed on the next unrelated `'`, welding
+ * everything between into one sentence — **1,818 of 10,425 fragments spanned more than one line, the
+ * largest 39 lines of executable code**, in a gate with no cap and no allow-list. After this: **9**.
+ *
+ * ⚠️ The first assertion IS that defect. If `stringLiterals` ever returns 2 literals for it instead of 3,
+ * the weld is back.
+ */
+{
+  const q = String.fromCharCode(39);
+  const src = [`export const warn = "don${q}t stop";`, `export const other = ${q}x${q};`].join('\n');
+  const lits = stringLiterals(src);
+  check(lits.length === 2, `stringLiterals: an apostrophe inside "…" does not open a fragment (got ${lits.length}, want 2)`);
+  check(lits[0]?.text === `"don${q}t stop"`, 'stringLiterals: …and the double-quoted literal is returned whole, delimiters included');
+  check(lits[1]?.text === `${q}x${q}`, 'stringLiterals: …and the later single-quoted literal is its own fragment, not a weld');
+  check(src.slice(lits[1]!.index, lits[1]!.index + 3) === `${q}x${q}`, 'stringLiterals: `index` points at the literal in the ORIGINAL text, so a hit reports its real line');
+
+  const tpl = ['const a = `your breathing', '  room this month`;'].join('\n');
+  const t = stringLiterals(tpl);
+  check(t.length === 1 && t[0]!.text.includes('\n'), 'stringLiterals: a TEMPLATE literal legitimately spans lines and is returned whole — T6 coverage');
+
+  check(
+    stringLiterals('// a comment with a lone apostrophe: don' + q + '\nconst b = ' + q + 'real' + q + ';').length === 1,
+    'stringLiterals: a quote inside a COMMENT opens nothing — the scanner knows which construct it is in',
+  );
+}
 
 if (failures.length > 0) {
   console.error(`\n❌ stripCode: ${failures.length} failure(s).\n`);

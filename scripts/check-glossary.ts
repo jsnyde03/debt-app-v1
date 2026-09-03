@@ -17,7 +17,7 @@
  *
  * Usage: tsx scripts/check-glossary.ts
  */
-import { stripCommentsOnly } from './lib/stripCode';
+import { stringLiterals, stripCommentsOnly } from './lib/stripCode';
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 
 /** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
@@ -89,10 +89,32 @@ function stripComments(src: string): string {
  * ⚠️ These fragment patterns already cross newlines (`[^']*` and `[^<>{}]` both match one); it was the
  * per-line application that stopped them. Offsets are returned so a hit still reports its real line.
  */
+/**
+ * ⛔ **THE QUOTED FRAGMENTS COME FROM THE SCANNER, NOT FROM A DELIMITER PAIR.**
+ * [class-1 re-audit 4 `U2`, major]
+ *
+ * ⚡ `T6`'s whole-file migration was right — four of the five retired terms are two-word phrases, and an
+ * ordinary wrap between the words defeated every one of them per line. What it did not carry was that
+ * `/'[^']*'/` had been relying on the newline as an implicit terminator. Over a whole file each regex runs
+ * to the next matching delimiter ANYWHERE: **1,818 of 10,425 fragments spanned more than one line, the
+ * largest 39 lines of executable code**, and one weld was live in the tree with no plant at all.
+ *
+ * ⚡ Measured, on a green tree: three lines of ordinary code — `export const warn = "don't stop";` and a
+ * bare `crunch` identifier of the kind this gate's own docblock declares exempt — **redded it**. The
+ * apostrophe opened a fragment that closed on the next unrelated `'`, welding the identifier in.
+ * ⛔ **This gate has no cap and no allow-list**: `problems.length > 0` exits 1. Noise here is a red tree.
+ *
+ * ⚠️ The JSX rule stays a regex — the scanner does not model JSX text — but is BOUNDED to two newlines.
+ * A Prettier wrap of a two-word phrase spans one; `>` is also the comparison operator and the tail of
+ * `=>`, so unbounded it opened a "text node" that closed on the next `<` **1,809 times**.
+ */
+const MAX_JSX_FRAGMENT_LINES = 2;
+
 function copyFragments(text: string): { text: string; index: number }[] {
-  const out: { text: string; index: number }[] = [];
-  for (const re of [/'[^']*'/g, /"[^"]*"/g, /`[^`]*`/g, />[^<>{}]{2,}</g]) {
-    for (const m of text.matchAll(re)) out.push({ text: m[0], index: m.index });
+  const out: { text: string; index: number }[] = stringLiterals(text);
+  for (const m of text.matchAll(/>[^<>{}]{2,}</g)) {
+    if ((m[0].match(/\n/g)?.length ?? 0) > MAX_JSX_FRAGMENT_LINES) continue;
+    out.push({ text: m[0], index: m.index });
   }
   return out;
 }
