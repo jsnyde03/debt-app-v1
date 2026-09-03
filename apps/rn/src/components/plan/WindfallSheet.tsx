@@ -49,8 +49,16 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
   const [amount, setAmount] = useState(current > 0 ? String(current) : '');
   const [error, setError] = useState('');
 
-  const n = parseAmountField(amount) ?? 0;
-  const validAmount = n > 0;
+  /**
+   * ⛔ **BRANCHED, NOT COLLAPSED** — [class-1 re-audit `R10`]. This was `parseAmountField(amount) ?? 0`
+   * with a written permission saying the zero was harmless because the next line compares it to `> 0`.
+   * The permission was the problem: it argues about a SITE, and neither a count nor an expression string
+   * carries a location, so an edit that kept the same text elsewhere kept the permission. Branching on
+   * `null` costs one line and deletes the exemption instead of guarding it.
+   */
+  const parsed = parseAmountField(amount);
+  const n = parsed === null ? 0 : parsed;
+  const validAmount = parsed !== null && parsed > 0;
 
   // Memoize the projected store off the raw store so typing doesn't re-project balances each keystroke —
   // only the split (which genuinely depends on the amount) recomputes. Mirrors AffordabilityCard.

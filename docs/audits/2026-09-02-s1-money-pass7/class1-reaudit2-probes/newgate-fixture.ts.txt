@@ -1,0 +1,13 @@
+// A brand-new gate written exactly the way all six class-1 members were: a matcher run against
+// one PHYSICAL line at a time. Deleted again by p44-newgate.py.
+import { readFileSync } from 'node:fs';
+
+const BANNED = /forbiddenCall\([^)]*\)/;
+const text = readFileSync('package.json', 'utf8');
+for (const line of text.split('\n')) {
+  if (BANNED.test(line)) {
+    console.error('probe gate: found it');
+    process.exit(1);
+  }
+}
+console.log('probe gate: clean');

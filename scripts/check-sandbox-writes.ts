@@ -22,7 +22,8 @@
  *
  * Usage: npm run lint:sandbox   ·   runs inside `lint:rn` → `validate:release:rn`
  */
-import { flattenContinuations } from './lib/logicalLines';
+import { lineMap } from './lib/logicalLines';
+import { stripCommentsOnly } from './lib/stripCode';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 
@@ -141,11 +142,12 @@ for (const file of walk(ROOT)) {
    * guard entirely**. Several files DISCUSS the singleton in prose explaining a fixed defect, and a guard
    * that reds on its own postmortem is noise, so comments are still blanked first.
    */
-  const flat = flattenContinuations(source);
-  for (const m of flat.text.matchAll(IMPORT)) {
+  const code = stripCommentsOnly(source);
+  const lines = lineMap(code);
+  for (const m of code.matchAll(IMPORT)) {
     seen.add(rel);
     if (ALLOWED[rel]) continue;
-    offenders.push({ file: rel, line: flat.lineAt(m.index), text: m[0].trim().slice(0, 160) });
+    offenders.push({ file: rel, line: lines.lineAt(m.index), text: m[0].trim().slice(0, 160) });
   }
 }
 

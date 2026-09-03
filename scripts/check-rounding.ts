@@ -34,7 +34,7 @@ import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { stripCommentsOnly } from './lib/stripCode';
-import { flattenContinuations } from './lib/logicalLines';
+import { lineMap } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -62,7 +62,7 @@ const SCAN_GATE = 'rounding';
  * `* 100` immediately before `)` still misses it. The gate was green over the very spelling the fix was
  * written for.
  */
-const ROUNDING = /Math\.round\([^;]*?\*\s*100\s*,?\s*\)\s*\/\s*100/g;
+const ROUNDING = /Math\.round\([^;{}]*?\*\s*100\s*,?\s*\)\s*\/\s*100/g;
 
 const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx'], { cwd: REPO_ROOT, encoding: 'utf8' })
   .split('\n')
@@ -87,9 +87,10 @@ for (const rel of tracked) {
    * live sites at the wrong `path:line`, worst by 39 lines**, because a hit inside a joined statement was
    * blamed on the statement's first line. Flattening preserves length, so the offset is the match's own.
    */
-  const flat = flattenContinuations(source);
-  for (const m of flat.text.matchAll(ROUNDING)) {
-    sites.push(`${rel}:${flat.lineAt(m.index)}: ${m[0].trim().slice(0, 100)}`);
+  const code = stripCommentsOnly(source);
+  const lines = lineMap(code);
+  for (const m of code.matchAll(ROUNDING)) {
+    sites.push(`${rel}:${lines.lineAt(m.index)}: ${m[0].replace(/\s+/g, ' ').trim().slice(0, 100)}`);
   }
 }
 

@@ -142,7 +142,7 @@ for (const r of RUNNERS) {
    * both `test:regression` and this gate printed green. The gate's own premise — *"a test file in the tree
    * and in NO runner is silently unexecuted"* — was satisfied by a `//`.
    */
-  const imported = r.imports(stripCommentsOnly(readFileSync(join(REPO_ROOT, r.runner), 'utf8')), r.runner);
+  const imported = importsOf(r, readFileSync(join(REPO_ROOT, r.runner), 'utf8'));
   // A runner names a module without its extension; compare on the stem so `.ts`/`.tsx` cannot disagree.
   const stem = (p: string) => p.replace(/\.(ts|tsx)$/, '');
   const importedStems = new Set([...imported].map(stem));
@@ -213,6 +213,22 @@ const pkg = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8')) as
  * searching an empty string, and every gate would read as unchained — or, worse, a `slice` that silently
  * returned the whole file would restore exactly the defect being fixed.
  */
+/**
+ * ⛔ **THESE TWO FUNCTIONS ARE THE PRODUCTION PATH, AND THE FIXTURES BELOW CALL THEM.**
+ * [class-1 re-audit `N-3`]
+ *
+ * Round 2 added fixture self-checks and left production with its own inline copy of the same logic, so
+ * `chainRegion` had exactly ONE caller — the fixture — and the import fixture supplied its own stripping.
+ * **`D1-1`, `D1-2` and `R13` were each one-line un-fixable with this gate green**: the self-check asserted
+ * a private copy while the shipping code went unchecked. That is `R14`'s own mechanism, committed inside
+ * `R14`'s fix. One producer, called by both.
+ */
+
+/** Read a runner's declared imports the way production does - stripping comments FIRST. */
+function importsOf(r: Runner, rawSrc: string): Set<string> {
+  return r.imports(stripCommentsOnly(rawSrc), r.runner);
+}
+
 /** The `GATES` array literal region of `run-gates.ts`, or `null` if its bounds cannot be found. */
 function chainRegion(src: string): string | null {
   const start = src.indexOf('const GATES');
@@ -240,8 +256,8 @@ function chainRegion(src: string): string | null {
   }
   const reg = RUNNERS.find((r) => r.gate === 'test:regression');
   if (reg) {
-    const live = reg.imports(stripCommentsOnly('import "./testThing";'), reg.runner);
-    const commented = reg.imports(stripCommentsOnly('// import "./testThing";'), reg.runner);
+    const live = importsOf(reg, 'import "./testThing";');
+    const commented = importsOf(reg, '// import "./testThing";');
     if (live.size !== 1 || commented.size !== 0) {
       console.error(
         '\n❌ runner completeness: a COMMENTED-OUT import is still counted as wired.\n' +
@@ -254,9 +270,8 @@ function chainRegion(src: string): string | null {
 }
 
 const runGatesRaw = stripCommentsOnly(readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8'));
-const gatesStart = runGatesRaw.indexOf('const GATES');
-const gatesEnd = gatesStart === -1 ? -1 : runGatesRaw.indexOf('\n];', gatesStart);
-if (gatesStart === -1 || gatesEnd === -1) {
+const runGates = chainRegion(runGatesRaw);
+if (runGates === null) {
   console.error(
     '\n❌ runner completeness: could not find the bounds of `GATES` in scripts/run-gates.ts.\n' +
       '  ⛔ Without them this check would search the whole file and count a gate as chained because its\n' +
@@ -264,7 +279,6 @@ if (gatesStart === -1 || gatesEnd === -1) {
   );
   process.exit(1);
 }
-const runGates = runGatesRaw.slice(gatesStart, gatesEnd);
 const unchained = Object.keys(pkg.scripts)
   .filter((n) => n.startsWith('lint:'))
   .filter((n) => !(n in EXEMPT_FROM_CHAIN))

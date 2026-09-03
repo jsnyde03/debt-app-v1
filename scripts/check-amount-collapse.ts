@@ -33,7 +33,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
-import { flattenContinuations } from './lib/logicalLines';
+import { lineMap } from './lib/logicalLines';
 import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -58,7 +58,7 @@ const SELF = new Set(['scripts/check-amount-collapse.ts', 'scripts/test-wrap-esc
  * The class-1 re-audit (`R4`) measured what joining did instead: two correct statements five lines apart
  * reported as one collapse.
  */
-const COLLAPSE = /\b(parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*\([^\n]*?\)\s*\?\?\s*0/g;
+const COLLAPSE = /\b(parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*\([^;{}]*?\)\s*\?\?\s*0/g;
 
 /**
  * site → why zero is the honest answer there.
@@ -66,20 +66,22 @@ const COLLAPSE = /\b(parseAmountField|parseNonNegativeAmount|parseOptionalAmount
  * ⚠️ A site absent from this map is a FAILURE, not a default — and a map entry whose site no longer
  * matches is a failure too, so a stale permission cannot sit here granting cover to nothing.
  */
-const ALLOWED: Record<string, { expect: string[]; why: string }> = {
-  'apps/rn/src/components/plan/WindfallSheet.tsx': {
-    expect: ['parseAmountField(amount) ?? 0'],
-    why:
-      'a PREDICATE: `const n = parse(...) ?? 0` is consumed by `validAmount = n > 0` on the next line, and ' +
-      'the sheet refuses to compute a split without it. Nothing stores `n` while it is zero.',
-  },
-  'apps/rn/src/data/readBackup.ts': {
-    expect: ['parseAmountField(store.paycheck.amount) ?? 0'],
-    why:
-      'a PREDICATE: `(parse(...) ?? 0) > 0` decides whether the pre-overwrite sentence names "the ' +
-      'paycheck". Unreadable and absent both mean "do not name it", which is the same answer.',
-  },
-};
+/**
+ * ⛔ **EMPTY, AND THAT IS THE FIX** — [class-1 re-audit `R10`].
+ *
+ * Two shapes of permission were tried and both were **identity-free**: a per-file COUNT ratchets against
+ * addition only, and a normalised EXPRESSION STRING is the same text wherever it sits. The re-audit proved
+ * it by deleting the permitted honest predicate, writing a genuinely dishonest collapse in its place, and
+ * watching the gate stay green — the `expect` list saw the same string at a different site.
+ *
+ * ⚡ **The reasons argued about a SITE — what the value does next — and no text pin carries a location.**
+ * So rather than build a cleverer pin, the two sites were branched on `null` explicitly (one line each) and
+ * the exemption deleted. **A ban has nothing to game.**
+ *
+ * ⚠️ **Adding an entry here re-opens `R10` by construction.** If a genuinely honest collapse ever appears,
+ * branch on the null instead — that is what both of these did, at a cost of one line.
+ */
+const ALLOWED: Record<string, { expect: string[]; why: string }> = {};
 
 /** Whitespace-normalised, so a reflow of a permitted site is not read as a different site. */
 const norm = (s: string): string => s.replace(/\s+/g, ' ').trim();
@@ -121,13 +123,14 @@ for (const rel of tracked) {
    * ⚠️ **Strings are NOT blanked** (`R5`): `stripCommentsAndStrings` blanks `${…}` interpolations, which
    * are code, so a collapse inside a template literal was caught before the v1 fix and invisible after it.
    */
-  const flat = flattenContinuations(src);
-  for (const m of flat.text.matchAll(COLLAPSE)) {
+  const code = stripCommentsOnly(src);
+  const lines = lineMap(code);
+  for (const m of code.matchAll(COLLAPSE)) {
     found.push(rel);
     perFile.set(rel, [...(perFile.get(rel) ?? []), norm(m[0])]);
     if (!(rel in ALLOWED)) {
       problems.push(
-        `${rel}:${flat.lineAt(m.index)} collapses a parsed amount to 0.\n` +
+        `${rel}:${lines.lineAt(m.index)} collapses a parsed amount to 0.\n` +
           '        `null` is BLANK OR UNPARSEABLE, and neither is a payment of zero. Branch on it, or add\n' +
           '        this file to ALLOWED in scripts/check-amount-collapse.ts with the reason zero is honest here.',
       );

@@ -43,7 +43,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { flattenContinuations } from './lib/logicalLines';
+import { lineMap } from './lib/logicalLines';
+import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -152,15 +153,6 @@ for (const f of testFiles) {
   } catch {
     continue;
   }
-  const isPinned = CLOCK_PIN.test(text);
-  /**
-   * ⛔ **LOGICAL LINES, NOT PHYSICAL ONES** — pass-7 `D1-7`, the third instance of the class `D1-3` and
-   * `D1-6` are. A fuse spelled `dueDate:` at the end of one line with `'2026-09-10',` on the next was
-   * counted `non-aging` — measured, the bucket moved 115 → 116 while the gate printed `0 imminent fuses`.
-   *
-   * ⚠️ **`keepComments` is required here and nowhere else so far**: the `fixture-date-ok:` exemptions are
-   * comments beside the literal they excuse, so blanking them would delete this gate's escape hatch.
-   */
   /**
    * ⛔ **THE EXEMPTION IS READ PER PHYSICAL LINE, AND THE MATCHING IS DONE ON FLATTENED, COMMENT-BLANKED
    * TEXT.** Both halves were wrong in the first fix, and the class-1 re-audit measured both:
@@ -174,16 +166,28 @@ for (const f of testFiles) {
    * literal it excuses), and the flattened comment-blanked text for the key and the literal.
    */
   const srcLines = text.split('\n');
-  const flat = flattenContinuations(text);
-  for (const m of flat.text.matchAll(LITERAL)) {
-    const i = flat.lineAt(m.index) - 1;
+  const code = stripCommentsOnly(text);
+  const lines = lineMap(code);
+  /**
+   * ⛔ **THE CLOCK PIN IS READ FROM CODE, NOT FROM PROSE** — [class-1 re-audit `N-2`]. `CLOCK_PIN` was
+   * tested against the RAW source, so a `currentDate: '…'` written inside a **comment** pinned the whole
+   * file and every calendar fuse in it was filed under `pinned` — the one bucket, with `non-aging`, that
+   * is reported and never refused.
+   *
+   * ⚡ **It had a live instance**: `apps/rn/tests/e2e/bnpl.spec.ts` was pinned solely by a docblock
+   * *describing a pin it had removed*. The one file whose prose narrates this exact time bomb is the file
+   * the gate had stopped watching.
+   */
+  const isPinned = CLOCK_PIN.test(code);
+  for (const m of code.matchAll(LITERAL)) {
+    const i = lines.lineAt(m.index) - 1;
     // ⚠️ An exemption is per-line and must say why — the same idiom `secrets-exemptions.json` uses,
     // except inline, so the reason sits beside the literal rather than in a file nobody opens.
     if (/fixture-date-ok:/.test(srcLines[i] ?? '')) continue;
     {
       // The key must sit immediately before the literal; AGING_KEY is `$`-anchored, so a short window is
       // enough and keeps this O(1) per match rather than O(file).
-      const before = flat.text.slice(Math.max(0, m.index - 160), m.index);
+      const before = code.slice(Math.max(0, m.index - 160), m.index);
       const key = AGING_KEY.exec(before)?.[1] ?? '';
       if (!key) {
         nonAging += 1;

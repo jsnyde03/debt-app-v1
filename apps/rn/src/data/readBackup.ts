@@ -228,7 +228,10 @@ export function describeLocalOverwrite(store: DebtStore): string {
    * pre-overwrite and irreversible either way, so it is read through the same parser the rest of the
    * app's typed money goes through.
    */
-  const hasPaycheck = (parseAmountField(store.paycheck.amount) ?? 0) > 0;
+  // ⛔ Branched rather than collapsed — [class-1 re-audit `R10`]. Unreadable and absent both mean "do not
+  // name the paycheck", which is the same answer, but saying so explicitly removes the exemption entirely.
+  const parsedPaycheck = parseAmountField(store.paycheck.amount);
+  const hasPaycheck = parsedPaycheck !== null && parsedPaycheck > 0;
   /**
    * ⛔ **[S1.13.7.11 · pass-6 `B3-5`] — THE CASH THE APP IS HOLDING WAS NOT IN THIS LIST.** The sentence
    * named the paycheck, debts, expenses and goals — every one of the four LISTS — and never

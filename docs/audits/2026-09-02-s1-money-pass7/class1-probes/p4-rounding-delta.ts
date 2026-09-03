@@ -9,12 +9,12 @@
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
-import { flattenContinuations } from '../../../../scripts/lib/logicalLines';
+
 import { stripCommentsOnly } from '../../../../scripts/lib/stripCode';
 
 const ROOT = join(import.meta.dirname, '../../../..');
 const OWNER = 'packages/core/utils/money.ts';
-const ROUNDING = /Math\.round\([^;]*?\*\s*100\s*\)\s*\/\s*100/g;
+const ROUNDING = /Math\.round\([^;{}]*?\*\s*100\s*,?\s*\)\s*\/\s*100/g;
 
 const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx'], { cwd: ROOT, encoding: 'utf8' })
   .split('\n')
@@ -34,8 +34,7 @@ for (const rel of tracked) {
     ROUNDING.lastIndex = 0;
     if (ROUNDING.test(line)) oldSites.push(`${rel}| ${line.trim()}`);
   }
-  const flat = flattenContinuations(source);
-  for (const m of flat.text.matchAll(ROUNDING)) newSites.push(`${rel}| ${m[0].trim()}`);
+  for (const m of stripCommentsOnly(source).matchAll(ROUNDING)) newSites.push(`${rel}| ${m[0].replace(/\s+/g, ' ').trim()}`);
 }
 
 console.log(`OLD (per physical line, one per line): ${oldSites.length}`);

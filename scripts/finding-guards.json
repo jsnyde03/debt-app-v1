@@ -3433,21 +3433,19 @@
     }
   },
   "S1P7-CLASS1-LOGICALJOIN": {
-    "what": "pass-7 D1-3 / D1-4 / D1-6 / D1-7 / D1-8 / D1-11 (6 majors, one mechanism) - six gates matched their own defect per PHYSICAL line, so a call Prettier had wrapped walked past all of them. check-cap-literals found this exact escape in pass 5 (D5-9), fixed it and carries a proven guard for it - and every gate written AFTERWARDS kept the per-line split, because the lesson lived in one file's docblock instead of in the helper they all import. scripts/lib/logicalLines.ts is that helper. D1-11 is why none of it was caught: every registered proof and every test:gate-plants scenario certifying these gates planted the ONE spelling the gate already caught, so a gate and its proof shared an author and therefore a blind spot. test:wrap-escapes plants the WRAPPED spelling and DERIVES its population from which gates import the helper, so a new gate cannot join unproven. Measured while fixing: check-rounding was STILL blind after the logical-line change because Prettier adds a trailing comma when it wraps, and the harness caught that on its first run; and a real hidden site was found in the tree at packages/core/testing/testFullAppRegression.ts:59.",
+    "what": "pass-7 D1-3 / D1-4 / D1-6 / D1-7 / D1-8 / D1-11 (6 majors, one mechanism) - six gates matched their own defect per PHYSICAL line, so a call Prettier had wrapped walked past all of them. TWO re-audits then measured the FIXES: v1 joined lines (R2-R5, R7), v2 flattened them in place, and the second re-audit's N-1 showed the flattening was INERT - removing it left three of four gates still catching their plants and all four live counts unchanged - while carrying R4's false positive and N-9's blind window (1,026 call expressions span >= 9 lines). So the rewriting was deleted. Each gate now matches over its own stripped text with a bound of [^;{}] - the STATEMENT, which is where the defect lives - and asks lib/logicalLines only which line an offset falls on. Reverting a bound to [^\n] reds the gate at baseline, and test:wrap-escapes refuses a verdict over a red baseline (R1) rather than scoring MATCHED.",
     "file": "scripts/run-gates.ts",
     "token": "'test:wrap-escapes',",
     "proof": {
       "unfix": [
         {
-          "at": "scripts/lib/logicalLines.ts",
-          "find": "const open = depth > 0 || CONTINUES.test(structure[i] ?? '');",
-          "replace": "const open = false;"
+          "at": "scripts/check-amount-collapse.ts",
+          "find": "\\([^;{}]*?\\)\\s*\\?\\?\\s*0/g;",
+          "replace": "\\([^\n]*?\\)\\s*\\?\\?\\s*0/g;"
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "did not red for the WRAPPED spelling",
-      "measured": "2026-09-02",
-      "sha": "46d5ca99"
+      "expect": "did not red for the WRAPPED spelling"
     }
   }
 }
