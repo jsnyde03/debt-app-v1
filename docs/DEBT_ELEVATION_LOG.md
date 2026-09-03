@@ -31547,3 +31547,78 @@ lets the backlog stay a real queue.
 **Captured atomically:** [D79] and [D80] on the plan's ledger · `.12.6` restructured with the four-step loop ·
 classes 10/11 rewritten to the 16 + 3 that survive [D80] · the 31 filed to the backlog under their own heading
 · this reasoning mirrored here.
+
+---
+
+## S1.13.7.12.6 · class 1, ROUND 5 — 2026-09-03
+
+**Round 4's re-audit filed 16 new findings (`U1`–`U16`) and left 3 carried (`R5`, `T3`, `T13`). All 19 are
+closed.** Every one proven by planting, restore `cmp`-verified. `lint:rn` **50 → 51**.
+
+### ⚡ The round's three sharpest results, none of which came from reading
+
+**1. `e5b6a120` SHIPPED A PLANT.** `check-runner-completeness.ts:149` was committed as
+`const missing: string[] = [];`. That gate was **vacuous**: it would report every tracked test file wired,
+forever, over any hole — and 30 registered guard proofs run `test:app`, so a guard whose file quietly left
+the runner would have scored `failed-open` and been read as a *dead* guard rather than an *unexecuted* one.
+Cause: `git add -A` while a `prove:guards` plant was live on disk, compounded by two `prove:guards`
+processes running concurrently. **This is `U15`'s mechanism, filed as a minor, reaching production.**
+
+**2. `typecheck:scripts` was RED on the committed tree** — `check-amount-collapse.ts:157` passed a
+hand-built `RegExpMatchArray`'s `index` (`number | undefined`) where a `number` was required. Shipped by
+round 4's own commit `fcd954d6`, unrelated to this work. Found because it was in the way.
+
+**3. `for...of` walks code POINTS while regex indices are code UNITS.** One emoji desynchronised the new
+`joinedCode` line map and the welds ate real characters — `alignItems` came out `lignItems`. Caught because
+the guard count dropped **268 → 260**, not because anyone read the loop.
+
+### The findings
+
+| id | sev | what it was |
+|---|---|---|
+| `U1`/`R5`/`T3` | major | `findCalls` re-blanked strings inside itself, so a collapse or a rounding copy written in a `${…}` interpolation was invisible to **both** money gates. Fixed at the root in `stripCode`: an interpolation is CODE. Fourth recurrence of one defect |
+| `U7` | **blocker** | `lint:finding-guards` printed `✅` **before the verdict was knowable**. On the round-4 tree that block sat above an `exit 1` — 11 stale proofs against a ceiling of 8 — and *"all 50 gates pass"* was reported over it. The gate was working; its output asserted a verdict eighty lines early |
+| `U11` | major | A wrapped guard token read as a **deleted** guard, `267 → 266`, in the instrument that decides whether every finding is closed. One producer now (`lib/joinedCode`), merging the RN test's junction welds with the gate's block-comment tracking |
+| `U2` | major | **1,818 of 10,425** glossary fragments spanned more than one line, the largest **39 lines of executable code**, matched against retired-*copy* patterns — in a gate with no cap and no allow-list. An English contraction redded a green tree. Real string extents from the scanner: **9** |
+| `U4` | major | A **comment** painted a token; `T7`'s migration widened it to *comment line + next code line* |
+| `U5` | major | Six of nine plant recipes' `reason` regexes matched their gate's own **GREEN** output, so `RED-FOR-THE-WRONG-REASON` was unreachable for two thirds of the harness |
+| `U8` | major | The two composition call sites were unlinked, so `D1-1`/`D1-2` were each re-openable by one line. ⛔ **The obvious fix did not work** — measured |
+| `U9` | major | The `seed` exemption was **one hop deep** while `N-8` made the detector unbounded, so an ordinary refactor of correct code failed a release gate |
+| `U10` | major | `check-contrast`'s **second** matcher was still per-line, and the census could not see it because the file already counted as fixed |
+| `U12` | minor | Four gates in the "not yet reviewed" backlog are **measurably immune**; the one annotated as the likeliest member is not one, and the real member carried no annotation |
+| `U6` | minor | The gate refused the clamping idiom **its own docblock endorses** |
+| `U16` | minor | *"The same-line spelling is already covered by `test:gate-plants`"* — true of **4 of 10** gates |
+| `U15` | minor | A plant must survive the process not surviving. See result 1 above |
+| `U3` | minor | Three dead constants, one of them `T4`'s own shape recurring in the commit that closed `T4` |
+| `U13`/`U14` | major/minor | A proof whose un-fix was a **syntax error**; a summary line counting a `green` recipe as red |
+
+### ⛔ Four fixes were themselves defective, and each was caught by measuring rather than by review
+
+- **`U11`'s first cut cost 8 guards outright** (268 → 260): the haystack was normalised and the needle was
+  not. Registry tokens carry their own indentation **on purpose**.
+- **`U8`'s first cut did nothing.** After routing production through `chainedGatesFrom` / `wiredIn`, both
+  un-fixes still failed open with the real defect planted. A composition cannot be closed from inside the
+  file that composes it — and **neither standing instrument reaches it**: a `finding-guards` token pins a
+  LINE and both call sites are declarations, which `D3-3` correctly refuses; `prove:guards` needs the un-fix
+  to make something **RED**, and this un-fix's signature is that it makes something **GREEN**.
+- **`U8`'s second cut passed over both un-fixes too** — the pinned site strings are literals in the pin's own
+  array, which is code, so `includes()` was satisfied by the check itself. ⚡ *A check that cannot fail*,
+  inside the check written to close a check that could not fail. **Fourth location of that shape this round.**
+- **`U2`'s cap was one commit late.** `MAX_JSX_FRAGMENT_LINES` went in without raising `MIN_CAPS`, and
+  `lint:cap-literals` was red for one commit. Caught by `test:gate-plants` scoring `control=exit 1` — `R1`'s
+  rule working: **a red baseline is a FAULT, never a verdict.**
+
+### What is standing now
+
+**11 new registry entries**, each with an executed proof, plus **`test:plant-safety`** (11 assertions) —
+written because `U15` had nothing to plant against, and *a recovery mechanism nobody exercises is a recovery
+mechanism nobody has*. Three of the eleven needed repointing before they were sound, **all caught by
+`lint:finding-guards` itself**: two tokens sat on declaration lines (`D3-3`, correctly refusing them), and
+one anchor named a function that does not exist in its file.
+
+The wrap-escape census went from **10 gates / 10 recipes / 17 unreviewed** to **11 gates / 12 matcher
+recipes / 12 unreviewed**, with `RECIPES` re-keyed on **matcher** rather than file, both plant directions
+(`plant` appends, `edit` wraps an existing line), and same-line coverage **derived** from
+`test-gate-plants.ts` through `package.json` rather than asserted in a sentence.
+
+**Owed:** re-audit 5 — a fresh agent, cumulative over all 67 class-1 findings.
