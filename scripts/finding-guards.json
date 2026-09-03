@@ -2020,8 +2020,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "money formatter(s) derived from",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-03",
+      "sha": "e5b6a120"
     }
   },
   "S1P5-D5-12-RUNNERSET": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-03",
-      "sha": "06e1f922"
+      "sha": "e5b6a120"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -3339,7 +3339,7 @@
       "run": "test:app",
       "expect": "names the decision it depends on",
       "measured": "2026-09-03",
-      "sha": "40122b91"
+      "sha": "e5b6a120"
     }
   },
   "S1P6-C2-1-ORDER-ACTUALLY-CHANGES": {
@@ -3445,7 +3445,9 @@
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "FAILED-OPEN"
+      "expect": "FAILED-OPEN",
+      "measured": "2026-09-03",
+      "sha": "e5b6a120"
     }
   }
 }
