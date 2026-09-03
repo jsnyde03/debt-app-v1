@@ -35,6 +35,45 @@ import { join } from 'node:path';
 export const SIDECAR_SUFFIXES = ['.plant-backup', '.wrapescape-backup'] as const;
 
 /**
+ * ⛔ **A SIDECAR WHOSE OWNER IS STILL ALIVE IS NOT ABANDONED, AND RECOVERING IT IS A FAIL-OPEN.**
+ * [S1.13.7.12.6 round 5 — self-inflicted while fixing `U15`, found by `prove:guards`]
+ *
+ * ⚡ **Measured.** `prove:guards` arms a plant in `check-finding-guards.ts`, then runs
+ * `test:wrap-escapes` to see it red. That harness's own pre-flight found the parent's **live** sidecar,
+ * announced *"pre-flight restored 1 file(s) left planted by an interrupted run"*, **reverted the plant**,
+ * and then measured a clean tree — so `S1P7-U10` and `S1P7-U11` both scored `planted=exit 0` while the
+ * un-fix was still, as far as the parent knew, on disk.
+ *
+ * ⛔ **A recovery mechanism that silently undoes a live plant makes every proof run through it vacuous** —
+ * the same class as the defect `U15` was written to close, arriving inside its fix. Two independent marks,
+ * because they cover different things:
+ *
+ * - **`PLANT_SAFETY_LIVE`** is inherited by child processes, which is the parent→child case above.
+ * - **the owner PID** covers a concurrent SIBLING — two `prove:guards` processes at once, which has
+ *   already left a plant in this repo once.
+ */
+const LIVE_ENV = 'PLANT_SAFETY_LIVE';
+const OWNER_SUFFIX = '.plant-owner';
+
+function liveFromEnv(): Set<string> {
+  return new Set((process.env[LIVE_ENV] ?? '').split('\n').filter(Boolean));
+}
+
+function ownerIsAlive(backupAbs: string): boolean {
+  const ownerFile = `${backupAbs}${OWNER_SUFFIX}`;
+  if (!existsSync(ownerFile)) return false;
+  const pid = Number(readFileSync(ownerFile, 'utf8').trim());
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    // ⚠️ Signal 0 checks existence without delivering anything. Works on Windows.
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Restore anything a previous run left planted, before this run reads the tree.
  *
  * ⛔ Uses `git status` rather than a directory walk: a sidecar is untracked and can be written beside ANY
@@ -52,14 +91,18 @@ export function preflightRestore(repoRoot: string): string[] {
     return []; // not a git tree, or git is unavailable — the sidecar layers still apply
   }
   const recovered: string[] = [];
+  const live = liveFromEnv();
   for (const line of out.split('\n')) {
     const path = line.slice(3).trim().replace(/^"|"$/g, '');
+    if (path.endsWith(OWNER_SUFFIX)) continue;
     const suffix = SIDECAR_SUFFIXES.find((s) => path.endsWith(s));
     if (!suffix) continue;
     const target = path.slice(0, -suffix.length);
     const absBackup = join(repoRoot, path);
     const absTarget = join(repoRoot, target);
     if (!existsSync(absBackup)) continue;
+    // ⛔ See the note on LIVE_ENV: an ABANDONED plant is recovered, a LIVE one is left strictly alone.
+    if (live.has(absBackup) || ownerIsAlive(absBackup)) continue;
     if (existsSync(absTarget)) {
       const original = readFileSync(absBackup, 'utf8');
       if (readFileSync(absTarget, 'utf8') !== original) {
@@ -68,6 +111,9 @@ export function preflightRestore(repoRoot: string): string[] {
       }
     }
     rmSync(absBackup, { force: true });
+    // ⚠️ The owner mark goes with it, or the next `git status` still shows a stray file and the "tree is
+    // clean" claim this whole mechanism makes is false by one path.
+    rmSync(`${absBackup}${OWNER_SUFFIX}`, { force: true });
   }
   return recovered;
 }
@@ -80,6 +126,7 @@ function restoreArmed(): void {
     try {
       if (readFileSync(a.abs, 'utf8') !== a.original) writeFileSync(a.abs, a.original, 'utf8');
       rmSync(a.backup, { force: true });
+      rmSync(`${a.backup}${OWNER_SUFFIX}`, { force: true });
     } catch {
       /* best effort — the sidecar is still on disk for the next run's pre-flight */
     }
@@ -101,8 +148,13 @@ export function armPlant(files: { abs: string; original: string }[]): () => void
   for (const f of files) {
     const backup = `${f.abs}${SIDECAR_SUFFIXES[0]}`;
     writeFileSync(backup, f.original, 'utf8');
+    // ⛔ Both marks written BEFORE the plant, for the reason in LIVE_ENV's note: a child harness that
+    // recovers a live plant measures a tree its parent did not create, and reports MATCHED over it.
+    writeFileSync(`${backup}${OWNER_SUFFIX}`, String(process.pid), 'utf8');
     armed.push({ abs: f.abs, backup, original: f.original });
   }
+  // ⚠️ Inherited by every child process, which is how the gate a proof runs learns not to touch this.
+  process.env[LIVE_ENV] = [...liveFromEnv(), ...armed.map((a) => a.backup)].join('\n');
   if (!handlersInstalled) {
     handlersInstalled = true;
     for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {

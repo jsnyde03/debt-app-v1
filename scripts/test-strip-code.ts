@@ -131,11 +131,19 @@ check(
   check(lits.length === 2, `stringLiterals: an apostrophe inside "…" does not open a fragment (got ${lits.length}, want 2)`);
   check(lits[0]?.text === `"don${q}t stop"`, 'stringLiterals: …and the double-quoted literal is returned whole, delimiters included');
   check(lits[1]?.text === `${q}x${q}`, 'stringLiterals: …and the later single-quoted literal is its own fragment, not a weld');
-  check(src.slice(lits[1]!.index, lits[1]!.index + 3) === `${q}x${q}`, 'stringLiterals: `index` points at the literal in the ORIGINAL text, so a hit reports its real line');
+  /**
+   * ⚠️ **`lits[1]?.index ?? -1`, never `lits[1]!.index`** — a plant that empties `stringLiterals` used to
+   * make this line THROW, so the run died before `failures` was printed and `prove:guards` scored
+   * `reason=WRONG`: the gate redded, but not with the message that names the defect. An assertion must
+   * FAIL, not crash, or every assertion after it is unreachable and the verdict is about the crash.
+   */
+  const at = lits[1]?.index ?? -1;
+  check(src.slice(at, at + 3) === `${q}x${q}`, 'stringLiterals: `index` points at the literal in the ORIGINAL text, so a hit reports its real line');
 
   const tpl = ['const a = `your breathing', '  room this month`;'].join('\n');
   const t = stringLiterals(tpl);
-  check(t.length === 1 && t[0]!.text.includes('\n'), 'stringLiterals: a TEMPLATE literal legitimately spans lines and is returned whole — T6 coverage');
+  // ⚠️ Same shape as the note above — `?.` so an empty result FAILS the check rather than throwing past it.
+  check(t.length === 1 && (t[0]?.text ?? '').includes('\n'), 'stringLiterals: a TEMPLATE literal legitimately spans lines and is returned whole — T6 coverage');
 
   check(
     stringLiterals('// a comment with a lone apostrophe: don' + q + '\nconst b = ' + q + 'real' + q + ';').length === 1,

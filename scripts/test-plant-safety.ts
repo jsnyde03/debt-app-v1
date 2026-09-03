@@ -63,6 +63,15 @@ try {
    * ⛔ **The arming is deliberately ABANDONED here, not disarmed** — that is the state a `SIGKILL` leaves:
    * a modified tracked file and a sidecar beside it, with no process left to run a `finally`.
    */
+  /**
+   * ⛔ **ABANDONMENT HAS TO BE SIMULATED, and forgetting to is how this block first read as a pass.**
+   * `armPlant` marks the plant as LIVE — an owner PID and a `PLANT_SAFETY_LIVE` entry — precisely so a
+   * child harness cannot revert it. A killed run leaves the marks behind with **no process behind them**,
+   * so that is what is staged here: the env entry cleared, the owner PID replaced with a dead one.
+   */
+  delete process.env.PLANT_SAFETY_LIVE;
+  writeFileSync(`${sidecar}.plant-owner`, '2147483646', 'utf8');
+
   const recovered = preflightRestore(root);
   check(recovered.includes(rel), `the pre-flight names the file it recovered (got ${JSON.stringify(recovered)})`);
   check(readFileSync(abs, 'utf8') === ORIGINAL, 'the target is byte-identical to the original after recovery');
@@ -80,6 +89,46 @@ try {
   check(second.length === 0, 'a modified file with NO sidecar is not claimed as recovered');
   check(readFileSync(abs, 'utf8') !== ORIGINAL, '…and is not silently reverted either — a plant is not the only reason a file is dirty');
   writeFileSync(abs, ORIGINAL, 'utf8');
+
+  // ── A LIVE plant is left strictly alone ─────────────────────────────────────────────────────────
+  /**
+   * ⛔ **THE FAIL-OPEN THIS FIX ITSELF SHIPPED, AND IT MADE TWO PROOFS VACUOUS.**
+   *
+   * ⚡ `prove:guards` arms a plant and then runs a gate to see it red. That gate's own pre-flight found
+   * the parent's LIVE sidecar, announced *"restored 1 file(s) left planted by an interrupted run"*,
+   * reverted the plant, and measured a clean tree — so `S1P7-U10` and `S1P7-U11` both scored
+   * `planted=exit 0` while the un-fix was, as far as the parent knew, still on disk.
+   *
+   * ⚠️ Both marks are exercised separately, because they cover different things: the env var covers a
+   * CHILD process, the owner PID covers a concurrent SIBLING.
+   */
+  {
+    const liveBackup = `${abs}${SIDECAR_SUFFIXES[0]}`;
+    const planted = `${ORIGINAL}export const live = 5;\n`;
+
+    writeFileSync(liveBackup, ORIGINAL, 'utf8');
+    writeFileSync(`${liveBackup}.plant-owner`, String(process.pid), 'utf8');
+    writeFileSync(abs, planted, 'utf8');
+    check(preflightRestore(root).length === 0, 'a sidecar whose OWNER PID is alive is not recovered');
+    check(readFileSync(abs, 'utf8') === planted, '…and the live plant is still on disk, untouched');
+
+    // The same sidecar with a dead owner IS abandoned, so the PID check cannot be a blanket refusal.
+    delete process.env.PLANT_SAFETY_LIVE;
+    writeFileSync(`${liveBackup}.plant-owner`, '2147483646', 'utf8');
+    check(preflightRestore(root).includes(rel), '…while the SAME sidecar with a dead owner is recovered');
+    check(readFileSync(abs, 'utf8') === ORIGINAL, '…and restored');
+
+    writeFileSync(liveBackup, ORIGINAL, 'utf8');
+    writeFileSync(abs, planted, 'utf8');
+    const prev = process.env.PLANT_SAFETY_LIVE;
+    process.env.PLANT_SAFETY_LIVE = liveBackup;
+    check(preflightRestore(root).length === 0, 'a sidecar named in PLANT_SAFETY_LIVE is not recovered — the child-process case');
+    if (prev === undefined) delete process.env.PLANT_SAFETY_LIVE;
+    else process.env.PLANT_SAFETY_LIVE = prev;
+    rmSync(liveBackup, { force: true });
+    rmSync(`${liveBackup}.plant-owner`, { force: true });
+    writeFileSync(abs, ORIGINAL, 'utf8');
+  }
 
   // ── The legacy suffix is still honoured ─────────────────────────────────────────────────────────
   // ⚠️ `test-wrap-escapes` wrote `.wrapescape-backup` before this lib existed; a tree carrying one from

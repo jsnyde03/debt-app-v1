@@ -628,8 +628,8 @@
       ],
       "run": "lint:gate-sources",
       "expect": "no longer runs the scripts typecheck against the config this gate guards",
-      "measured": "2026-09-02",
-      "sha": "150f8518"
+      "measured": "2026-09-03",
+      "sha": "1b8a9733"
     }
   },
   "S1P4-A-F4-ONEGUARD": {
@@ -2039,7 +2039,7 @@
       "run": "test:gate-plants",
       "expect": "lint:runner-completeness",
       "measured": "2026-09-03",
-      "sha": "72d644c2"
+      "sha": "1b8a9733"
     }
   },
   "S1P5-B5-7-ANSWERABLEID": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-03",
-      "sha": "257a950e"
+      "sha": "b96afc88"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2343,8 +2343,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO runner",
-      "measured": "2026-09-02",
-      "sha": "150f8518"
+      "measured": "2026-09-03",
+      "sha": "b96afc88"
     }
   },
   "S1P6-D1-8-GATECHAIN": {
@@ -2361,8 +2361,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO chain",
-      "measured": "2026-09-02",
-      "sha": "150f8518"
+      "measured": "2026-09-03",
+      "sha": "b96afc88"
     }
   },
   "S1P6-D3-4-HALFCONFLICT": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-03",
-      "sha": "257a950e"
+      "sha": "b96afc88"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3465,7 +3465,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-03",
-      "sha": "641e2abb"
+      "sha": "b96afc88"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3480,8 +3480,10 @@
           "replace": "      void opened;"
         }
       ],
-      "run": "test:strip-code",
-      "expect": "does not open a fragment"
+      "run": "lint:strip-code",
+      "expect": "does not open a fragment",
+      "measured": "2026-09-03",
+      "sha": "b96afc88"
     }
   },
   "S1P7-U4-CONTRAST-COMMENTS": {
@@ -3502,7 +3504,9 @@
         }
       ],
       "run": "lint:contrast",
-      "expect": "exemption broken"
+      "expect": "exemption broken",
+      "measured": "2026-09-03",
+      "sha": "1b8a9733"
     }
   },
   "S1P7-U5-REASON-VACUITY": {
@@ -3518,7 +3522,9 @@
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "matches the gate's own GREEN output"
+      "expect": "matches the gate's own GREEN output",
+      "measured": "2026-09-03",
+      "sha": "b96afc88"
     }
   },
   "S1P7-U6-CLAMPED-DAY": {
@@ -3539,7 +3545,9 @@
         }
       ],
       "run": "lint:month-arithmetic",
-      "expect": "overflows a short month forward"
+      "expect": "overflows a short month forward",
+      "measured": "2026-09-03",
+      "sha": "1b8a9733"
     }
   },
   "S1P7-U8-COMPOSITION-PINNED": {
@@ -3555,7 +3563,9 @@
         }
       ],
       "run": "lint:runner-completeness",
-      "expect": "production no longer calls"
+      "expect": "production no longer calls",
+      "measured": "2026-09-03",
+      "sha": "1b8a9733"
     }
   },
   "S1P7-U9-SEED-CLOSURE": {
@@ -3571,7 +3581,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "hoisted ONE hop"
+      "expect": "hoisted ONE hop",
+      "measured": "2026-09-03",
+      "sha": "1b8a9733"
     }
   },
   "S1P7-U10-INK-WHOLE-FILE": {
@@ -3587,19 +3599,21 @@
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "FAILED-OPEN"
+      "expect": "FAILED-OPEN",
+      "measured": "2026-09-03",
+      "sha": "36819c58"
     }
   },
   "S1P7-U11-WELDED-TOKEN": {
-    "what": "S1.13.7.12.6 [class-1 re-audit 4 U11, major] - check-finding-guards asked whether a guard token was on ONE PHYSICAL LINE. A guard token is a sentence, and a sentence is the most wrappable thing in this repo. Measured on S1P1-B1-OWNER: Prettier's ordinary output for its assertion left the assertion intact and the gate said 'the guard is gone', 267 -> 266 guarded, in the instrument that decides whether every finding in the audit is closed, with MAX_UNGUARDED capped at 1 and no allow-list. ONE PRODUCER now: lib/joinedCode, merging unreadInputsCopy's junction welds with this gate's block-comment tracking; the RN test's local copy is DELETED rather than parked. Two defects found while building it, both by measurement: for...of walks code POINTS while regex indices are code UNITS, so one emoji desynchronised lineAt and the welds ate real characters; and normalising the haystack without the needle cost 8 guards outright (268 -> 260) because registry tokens carry their own indentation on purpose.",
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U11, major] - check-finding-guards asked whether a guard token was on ONE PHYSICAL LINE. A guard token is a sentence, and a sentence is the most wrappable thing in this repo. Measured on S1P1-B1-OWNER: Prettier's ordinary output for its assertion left the assertion intact and the gate said 'the guard is gone', 267 -> 266 guarded, in the instrument that decides whether every finding in the audit is closed, with MAX_UNGUARDED capped at 1 and no allow-list. ONE PRODUCER now: lib/joinedCode, merging unreadInputsCopy's junction welds with this gate's block-comment tracking; the RN test's local copy is DELETED rather than parked. Two defects found while building it, both by measurement: for...of walks code POINTS while regex indices are code UNITS, so one emoji desynchronised lineAt and the welds ate real characters; and normalising the haystack without the needle cost 8 guards outright (268 -> 260) because registry tokens carry their own indentation on purpose. >>> THE GUARD'S UN-FIX REVERTS THE FIRST PRESENCE CHECK, NOT presentInCode, AND THE REASON IS CIRCULARITY: this entry's own token is the line inside presentInCode, so reverting THAT makes lint:finding-guards red by reporting this very guard missing - a tautology wearing a measurement's clothes, and the harness scored it FAULT-BASELINE-ALREADY-RED. Reverting the first presence check instead leaves the gate GREEN on a clean tree (measured), so the wrap-escapes recipe can actually reach its verdict: a wrapped guard token then fails there and the gate refuses correct code.",
     "file": "scripts/check-finding-guards.ts",
     "token": "joinCodeLines(text).text",
     "proof": {
       "unfix": [
         {
           "at": "scripts/check-finding-guards.ts",
-          "find": "  return present(joinCodeLines(text).text, normaliseFragment(token));",
-          "replace": "  return text.split(String.fromCharCode(10)).some((l) => present(l, token));"
+          "find": "  if (!present(joinAllLines(text).text, normaliseFragment(e.token))) {",
+          "replace": "  if (!present(text, e.token)) {"
         }
       ],
       "run": "test:wrap-escapes",
@@ -3619,7 +3633,9 @@
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "no longer imports lib/logicalLines"
+      "expect": "no longer imports lib/logicalLines",
+      "measured": "2026-09-03",
+      "sha": "36819c58"
     }
   },
   "S1P7-U15-PLANT-SAFETY": {
@@ -3635,7 +3651,9 @@
         }
       ],
       "run": "test:plant-safety",
-      "expect": "the pre-flight names the file it recovered"
+      "expect": "the pre-flight names the file it recovered",
+      "measured": "2026-09-03",
+      "sha": "36819c58"
     }
   },
   "S1P7-U16-SAMELINE-DERIVED": {
@@ -3651,7 +3669,9 @@
         }
       ],
       "run": "test:wrap-escapes",
-      "expect": "NOTHING plants the same-line spelling"
+      "expect": "NOTHING plants the same-line spelling",
+      "measured": "2026-09-03",
+      "sha": "36819c58"
     }
   }
 }
