@@ -142,7 +142,7 @@ for (const r of RUNNERS) {
    * both `test:regression` and this gate printed green. The gate's own premise — *"a test file in the tree
    * and in NO runner is silently unexecuted"* — was satisfied by a `//`.
    */
-  const imported = importsOf(r, readFileSync(join(REPO_ROOT, r.runner), 'utf8'));
+  const imported = wiredIn(r);
   // A runner names a module without its extension; compare on the stem so `.ts`/`.tsx` cannot disagree.
   const stem = (p: string) => p.replace(/\.(ts|tsx)$/, '');
   const importedStems = new Set([...imported].map(stem));
@@ -224,9 +224,19 @@ const pkg = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8')) as
  * `R14`'s fix. One producer, called by both.
  */
 
-/** Read a runner's declared imports the way production does - stripping comments FIRST. */
-function importsOf(r: Runner, rawSrc: string): Set<string> {
-  return r.imports(stripCommentsOnly(rawSrc), r.runner);
+/**
+ * A runner's declared imports: **read, strip, extract — one function, and production passes no source.**
+ *
+ * ⛔ `U8` — this used to be `importsOf(r, rawSrc)` with production doing its own `readFileSync`, so
+ * `importsOf(r, readFileSync(…))` → `r.imports(readFileSync(…), r.runner)` was a one-line un-fix that
+ * dropped the strip and re-opened `D1-2` verbatim: the fixture kept passing because it called `importsOf`
+ * directly, while production no longer did. With the read INSIDE, there is no raw source in scope to hand
+ * to the wrong function.
+ *
+ * ⚠️ The `src` parameter exists only so the fixture can inject a synthetic runner; production never passes it.
+ */
+function wiredIn(r: Runner, src?: string): Set<string> {
+  return r.imports(stripCommentsOnly(src ?? readFileSync(join(REPO_ROOT, r.runner), 'utf8')), r.runner);
 }
 
 /** The `GATES` array literal region of `run-gates.ts`, or `null` if its bounds cannot be found. */
@@ -239,13 +249,56 @@ function chainRegion(src: string): string | null {
 }
 
 /**
+ * ⛔ **THE WHOLE COMPOSITION, UNDER ONE NAME — read → strip → bound.**
+ * [class-1 re-audit 4 `U8`, major]
+ *
+ * ⚡ Round 3 asserted the HELPERS; round 4 asserted two of the VALUES; neither asserted the dataflow
+ * BETWEEN them, so `D1-1` and `D1-2` were each re-openable by a one-line edit with this gate green:
+ *
+ *     const runGates = chainRegion(runGatesRaw);   →   chainRegion(runGatesFile)
+ *
+ * That drops the comment strip. A gate commented out of `GATES` then counts as chained, `lint:rn`
+ * silently stops running it — **and every round-4 assertion still held**, because `runGatesRaw` was
+ * still computed and still differed from the file. Nothing said `runGates` came out of it.
+ *
+ * ⚡ This is `N-3`'s mechanism at its FOURTH recurrence: *a self-check that exercises the helper says
+ * nothing about whether the shipping code uses its result.* Each round closed the un-fix route it had
+ * just imagined.
+ *
+ * ⛔ **A composition cannot be fully closed from inside one file** — a determined edit can always call
+ * the parts. What this does is remove the tempting intermediate (`runGatesRaw` is gone as a name to pass
+ * to `chainRegion`), put ONE path under test end to end, and hand the residue to the instrument built
+ * for un-fixes: `S1P7-U8-CHAIN-COMPOSITION` in `finding-guards.json` plants exactly the edit above,
+ * together with a real commented-out gate, and requires this gate to red.
+ */
+function chainedGatesFrom(src: string): string | null {
+  return chainRegion(stripCommentsOnly(src));
+}
+
+/**
  * ⛔ **BOTH HALVES ASSERTED ON FIXTURES EVERY RUN** — class-1 re-audit `R14`. Each was measured green over
  * a real defect: a gate commented out of the chain (`D1-1`), a suite commented out of its runner (`D1-2`),
  * and a gate deleted from `GATES` but still named elsewhere in the file (`R13`). A membership test that
  * finds everything wired looks identical when it is simply not reading the right text.
  */
 {
-  const region = chainRegion("const GATES = [\n  'lint:in',\n];\nconst note = 'lint:outside';\n");
+  /**
+   * ⛔ `U8` — the fixture is on the function PRODUCTION CALLS, and its input carries BOTH defects at once:
+   * a gate outside the array (`R13`) and a gate commented out inside it (`D1-1`). A fixture on
+   * `chainRegion` alone said nothing about the strip, which is how `D1-1` stayed re-openable.
+   */
+  const region = chainedGatesFrom(
+    "const GATES = [\n  'lint:in',\n  // 'lint:commented',\n];\nconst note = 'lint:outside';\n",
+  );
+  if (region !== null && region.includes("'lint:commented'")) {
+    console.error(
+      '\n❌ runner completeness: a gate COMMENTED OUT of GATES still counts as chained.\n' +
+        `  Got: ${JSON.stringify(region)}\n` +
+        '  ⛔ D1-1 — lint:rn then silently stops running it while printing a full green. The chain text\n' +
+        '  must be read through `stripCommentsOnly` before the region is bounded.\n',
+    );
+    process.exit(1);
+  }
   if (region === null || !region.includes("'lint:in'") || region.includes("'lint:outside'")) {
     console.error(
       '\n❌ runner completeness: the chain region is not bounded to the GATES array.\n' +
@@ -254,10 +307,59 @@ function chainRegion(src: string): string | null {
     );
     process.exit(1);
   }
+  /**
+   * ⛔ **THE CALL SITES ARE PINNED IN THIS GATE'S OWN SOURCE, AND THAT IS THE ONLY THING THAT CLOSES `U8`.**
+   * [class-1 re-audit 4 `U8`, major]
+   *
+   * ⚡ **Measured, after the composition refactor above.** Both of `U8`'s one-line un-fixes STILL fail
+   * open — with the real defect planted alongside:
+   *
+   *     const imported = r.imports(readFileSync(…), r.runner)   + a suite commented out of its runner
+   *     const runGates = chainRegion(runGatesFile)              + a gate commented out of GATES
+   *     → `✅ every tracked test file is wired into its runner`, both times
+   *
+   * ⛔ **A composition cannot be closed from inside the file that composes it**, and neither instrument
+   * this repo has can catch it either: a `finding-guards` token pins a LINE, and both call sites are
+   * declarations, so `D3-3`'s rule correctly refuses them (*a declaration survives its use being
+   * deleted*); and `prove:guards` requires the un-fix to make something RED, while this un-fix's whole
+   * signature is that it makes something GREEN.
+   *
+   * ⚡ So the gate reads its own source and requires the two call sites to be present. Naming the exact
+   * spelling is what makes the swap visible — the un-fix stops being one identifier nobody would notice
+   * and becomes an edit that reds `lint:runner-completeness` by name.
+   *
+   * ⚠️ Comments are stripped first, or the paragraph you are reading would satisfy the pin.
+   */
+  const selfSrc = stripCommentsOnly(readFileSync(join(REPO_ROOT, 'scripts/check-runner-completeness.ts'), 'utf8'));
+  for (const [site, why] of [
+    ['chainedGatesFrom(runGatesFile)', 'D1-1 — a gate COMMENTED OUT of GATES counts as chained'],
+    ['const imported = wiredIn(r);', 'D1-2 — a suite COMMENTED OUT of its runner counts as wired'],
+  ] as const) {
+    /**
+     * ⛔ **COUNTED, NOT `includes` — THE PIN SATISFIED ITSELF.** Measured on the first cut: the site
+     * strings are string literals in the array above, which is CODE, so `selfSrc.includes(site)` was true
+     * with production's call swapped out. The check passed over both un-fixes with the real defect
+     * planted, exactly as before it was written.
+     *
+     * ⚡ **`a check that cannot fail`, in the check written to close a check that could not fail** — the
+     * fourth location of that shape this round. Two occurrences are required: the pin's own literal, and
+     * the call.
+     */
+    if (selfSrc.split(site).length - 1 < 2) {
+      console.error(
+        `\n❌ runner completeness: production no longer calls \`${site}\`.\n` +
+          `  ⛔ ${why}, and this gate would print a full green over it.\n` +
+          '  ⛔ U8 — the helper being correct and tested says nothing about the shipping code using it.\n' +
+          '  Restore the call, or move the pin deliberately in the same edit.\n',
+      );
+      process.exit(1);
+    }
+  }
+
   const reg = RUNNERS.find((r) => r.gate === 'test:regression');
   if (reg) {
-    const live = importsOf(reg, 'import "./testThing";');
-    const commented = importsOf(reg, '// import "./testThing";');
+    const live = wiredIn(reg, 'import "./testThing";');
+    const commented = wiredIn(reg, '// import "./testThing";');
     if (live.size !== 1 || commented.size !== 0) {
       console.error(
         '\n❌ runner completeness: a COMMENTED-OUT import is still counted as wired.\n' +
@@ -271,7 +373,10 @@ function chainRegion(src: string): string | null {
 
 const runGatesFile = readFileSync(join(REPO_ROOT, 'scripts/run-gates.ts'), 'utf8');
 const runGatesRaw = stripCommentsOnly(runGatesFile);
-const runGates = chainRegion(runGatesRaw);
+// ⛔ `U8` - ONE call, the same function the fixture above exercises end to end. The previous spelling
+// was `chainRegion(runGatesRaw)`, one identifier away from `chainRegion(runGatesFile)` - which drops the
+// strip, re-opens `D1-1`, and satisfied every assertion below.
+const runGates = chainedGatesFrom(runGatesFile);
 
 /**
  * ⛔ **THESE ASSERT THE PRODUCTION VALUES, NOT THE FUNCTIONS** — [class-1 re-audit 3 · `N-3` `R14`/`D1-1`].
