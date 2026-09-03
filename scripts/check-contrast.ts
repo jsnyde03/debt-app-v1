@@ -379,9 +379,25 @@ const INK_EXEMPT: readonly { file: string; literal: string; why: string }[] = [
 for (const file of files) {
   const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
   if (rel.endsWith('theme/colors.ts')) continue;
-  readFileSync(file, 'utf8')
-    .split(/\r?\n/)
-    .forEach((line, i) => {
+  /**
+   * ⛔ **THE SECOND MATCHER IN THIS FILE, AND IT WAS STILL PER PHYSICAL LINE.** [class-1 re-audit 4 `U10`]
+   *
+   * ⚡ `T7` was filed against `textUses` and the fix was applied to `textUses`. This gate holds three
+   * scans; the census's unit is the FILE, so migrating one made `check-contrast.ts` count as
+   * *wrap-sensitive* and the file left the reviewable population **with this scan untouched.** Measured:
+   *
+   *     export const __ink1 = { color: '#123456' };      → `1 failing pair(s)`, names the line
+   *     the same object with the value wrapped onto      → `every rendered token pair clears its
+   *     its own line                                        floor.`  EXIT 0
+   *
+   * ⚠️ `INK_LITERAL`'s own `\s*` already crosses a newline; only the per-line application stopped it. The
+   * sentence `textUses` carries 200 lines above now applies here verbatim — *budget the enumeration, not
+   * the list*, and a file is an enumeration too.
+   */
+  {
+    const code = readFileSync(file, 'utf8');
+    const map = lineMap(code);
+    {
       /**
        * ⛔ **THE INK SCAN READS THE RAW LINE — `withoutGradients` BLINDED IT.** That helper blanks any
        * bracketed span containing a hex literal, which is precisely the shape of an inline style array:
@@ -394,15 +410,17 @@ for (const file of files) {
        * `expo-linear-gradient` and Skia's `LinearGradient`, neither of which uses a `color` key. The token
        * drift scan above keeps the exclusion, because it matches bare literals and genuinely needs it.
        */
-      for (const m of line.matchAll(INK_LITERAL)) {
+      for (const m of code.matchAll(INK_LITERAL)) {
         if (INK_EXEMPT.some((e) => rel.endsWith(e.file) && e.literal.toLowerCase() === m[1].toLowerCase())) continue;
         failures.push(
-          `${rel}:${i + 1} paints ink as the literal '${m[1]}' — a literal cannot flip with the theme, so ` +
-            'it is right in one scheme and unchecked in the other. Use a token (`text.onAccent` for an ' +
-            'accent fill), or declare an INK_EXEMPT entry saying what ground makes it correct',
+          `${rel}:${map.lineAt(m.index)} paints ink as the literal '${m[1]}' — a literal cannot flip with ` +
+            'the theme, so it is right in one scheme and unchecked in the other. Use a token ' +
+            '(`text.onAccent` for an accent fill), or declare an INK_EXEMPT entry saying what ground ' +
+            'makes it correct',
         );
       }
-    });
+    }
+  }
 }
 
 /**

@@ -67,7 +67,7 @@ function imminentDate(): string {
  * byte-identical before the run continues — `git checkout --` is not used, because it throws away an
  * uncommitted fix along with the plant.
  */
-const RECIPES: Record<string, Recipe> = {
+const RECIPES: Record<string, Recipe | Recipe[]> = {
   'check-amount-collapse.ts': {
     target: 'packages/core/utils/percentComplete.ts',
     plant: '\nexport const __wrapEscape = (raw: string) =>\n  parseAmountField(\n    raw,\n  ) ?? 0;\n',
@@ -146,20 +146,45 @@ const RECIPES: Record<string, Recipe> = {
     ].join(String.fromCharCode(10)),
     reason: /a11y\.ts:\d+/,
   },
-  'check-contrast.ts': {
-    target: 'apps/rn/src/components/plan/PaydayGuardianCard.tsx',
-    // A `color:` token use wrapped by Prettier. Unseen, the token drops out of the CHECKED SET, so a
-    // WCAG-AA failure ships behind a `never-text` exemption that is no longer true.
-    plant: [
-      '',
-      'export const __wrapContrast = {',
-      '  color:',
-      '    c.accent.brand,',
-      '};',
-      '',
-    ].join(String.fromCharCode(10)),
-    reason: /accent\.brand/,
-  },
+  /**
+   * ⛔ **TWO RECIPES, one per MATCHER — `U10`.** This gate holds three scans and had one plant, so the
+   * second per-line matcher was invisible to the census by construction: the file already counted as
+   * wrap-sensitive, so nothing asked it for a reason.
+   */
+  'check-contrast.ts': [
+    {
+      target: 'apps/rn/src/components/plan/PaydayGuardianCard.tsx',
+      // `textUses`. A `color:` token use wrapped by Prettier. Unseen, the token drops out of the CHECKED
+      // SET, so a WCAG-AA failure ships behind a `never-text` exemption that is no longer true.
+      plant: [
+        '',
+        'export const __wrapContrast = {',
+        '  color:',
+        '    c.accent.brand,',
+        '};',
+        '',
+      ].join(String.fromCharCode(10)),
+      reason: /accent\.brand/,
+    },
+    {
+      target: 'apps/rn/src/components/plan/PaydayGuardianCard.tsx',
+      /**
+       * `INK_LITERAL`. ⚡ Measured before the fix: the same object on ONE line redded and named the line;
+       * with the value wrapped onto its own line the gate printed **`every rendered token pair clears its
+       * floor.`** and exited 0. A literal ink cannot flip with the theme, so it is right in one scheme
+       * and unchecked in the other — and that shipped behind a green tick.
+       */
+      plant: [
+        '',
+        'export const __wrapInk = {',
+        '  color:',
+        "    '#123456',",
+        '};',
+        '',
+      ].join(String.fromCharCode(10)),
+      reason: /paints ink as the literal '#123456'/,
+    },
+  ],
   'check-trust-claims.ts': {
     target: 'apps/rn/src/store/drift.ts',
     // The ledger declares its per-file counts EXACT, so a wrapped comparison silently LEAVES the ledger.
@@ -324,9 +349,26 @@ for (const gate of PER_LINE_UNREVIEWED) {
   }
 }
 
+/**
+ * ⛔ **A GATE MAY HOLD MORE THAN ONE MATCHER, AND KEYING THIS MAP ON THE FILE HID ONE.**
+ * [class-1 re-audit 4 `U10`, major]
+ *
+ * ⚡ `check-contrast` holds three scans. `T7` migrated `textUses`, the file then counted as
+ * *wrap-sensitive*, and its second per-line matcher `INK_LITERAL` left the reviewable population without
+ * ever being looked at - a hard-coded ink written the way Prettier emits it walked straight past the gate
+ * that exists to refuse it, **measured**. One recipe per FILE cannot see that; one recipe per MATCHER can.
+ *
+ * ⚠️ A bare object is still accepted for the gates that genuinely have one matcher - the array form
+ * is what a second one costs, not a migration everybody has to do first.
+ */
+const recipesFor = (gate: string): Recipe[] => {
+  const r = RECIPES[gate];
+  return r ? (Array.isArray(r) ? r : [r]) : [];
+};
+
 /** ⛔ A gate that declares itself wrap-sensitive and has no recipe makes this harness vacuous for it. */
 for (const gate of wrapSensitive) {
-  if (!(gate in RECIPES)) {
+  if (recipesFor(gate).length === 0) {
     problems.push(
       `${gate} imports lib/logicalLines and has NO plant recipe in scripts/test-wrap-escapes.ts.\n` +
         '        A wrap-sensitive gate certified by nothing is exactly the D1-11 shape this file exists to\n' +
@@ -365,10 +407,14 @@ function runGate(gate: string): { code: number; out: string } {
   }
 }
 
+
 const results: string[] = [];
 for (const gate of wrapSensitive) {
-  const recipe = RECIPES[gate];
-  if (!recipe) continue;
+  const all = recipesFor(gate);
+  for (const [n, recipe] of all.entries()) {
+  // ⚠️ A gate with more than one matcher names WHICH one in its result line - `U10`'s whole point is
+  // that two scans in one file are two different things to certify.
+  const label = all.length > 1 ? `${gate} #${n + 1}` : gate;
   const abs = join(REPO_ROOT, recipe.target);
   const backup = `${abs}.wrapescape-backup`;
   const original = readFileSync(abs, 'utf8');
@@ -447,13 +493,14 @@ for (const gate of wrapSensitive) {
     console.error(`\n❌ ${gate}: RESTORE FAILED on ${recipe.target}. Repair by hand before continuing.\n`);
     process.exit(1);
   }
-  results.push(`  ${verdict === 'MATCHED' ? '✅' : '❌'} ${gate.padEnd(28)} wrapped-plant=${verdict} · restored=YES`);
+  results.push(`  ${verdict === 'MATCHED' ? '✅' : '❌'} ${label.padEnd(28)} wrapped-plant=${verdict} · restored=YES`);
   if (verdict !== 'MATCHED') {
     problems.push(
-      `${gate} did not red for the WRAPPED spelling of its defect (${verdict}).\n` +
+      `${label} did not red for the WRAPPED spelling of its defect (${verdict}).\n` +
         `        Planted into ${recipe.target}. This is the D1-3/D1-6/D1-8 escape: the gate catches the\n` +
         '        same-line spelling and a formatter defeats it.',
     );
+  }
   }
 }
 
@@ -471,8 +518,8 @@ for (const line of results) console.log(line);
 
 // ⛔ `U14` — counted from the recipes actually exercised, not from `wrapSensitive.length`, so a recipe
 // changing direction moves the number rather than being absorbed into the wrong half.
-const exercised = wrapSensitive.filter((g) => RECIPES[g]);
-const greenRecipes = exercised.filter((g) => RECIPES[g].expect === 'green').length;
+const exercised = wrapSensitive.flatMap((g) => recipesFor(g));
+const greenRecipes = exercised.filter((r) => r.expect === 'green').length;
 const redRecipes = exercised.length - greenRecipes;
 
 if (problems.length) {
@@ -492,8 +539,9 @@ console.log(
    * all. A summary that folds it back into the red count erases the distinction the recipe exists for —
    * and this file's own `U7` neighbour is about a verdict line that said something untrue.
    */
-  `\n✅ wrap-escapes: ${wrapSensitive.length} wrap-sensitive gate(s) — ${redRecipes} red on the WRAPPED spelling of` +
-    ` its own defect, ${greenRecipes} GREEN on correct code a formatter produced` +
+  `\n✅ wrap-escapes: ${wrapSensitive.length} wrap-sensitive gate(s) · ${exercised.length} matcher recipes —` +
+    ` ${redRecipes} red on the WRAPPED spelling of their own defect, ${greenRecipes} GREEN on correct` +
+    ' code a formatter produced' +
     ` · ${Object.keys(PER_LINE_OK).length} per-line by design` +
     ` · ⛔ ${knownBlindSeen.length} MEASURED BLIND, awaiting fix` +
     ` · ⚠️ ${unreviewedSeen.length} per-line and NOT YET REVIEWED (downward-only).`,
