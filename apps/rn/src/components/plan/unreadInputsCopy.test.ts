@@ -67,7 +67,20 @@ function codeLinesOnly(source: string): string {
      * ⚠️ This deliberately also welds two genuinely separate adjacent literals together. That is the
      * correct direction: they are adjacent **on screen**, which is the only place the refusal matters.
      */
-    .replace(/['"`]\s*\+\s*['"`]/g, '');
+    /**
+     * ⛔ **EVERY JUNCTION BETWEEN TWO LITERALS, not just the one the finding exhibited** — `R12`, then
+     * `N-7`. R12's own mechanism paragraph listed three things that can land between the two words — *"a
+     * quote, a `+`, a `{' '}` JSX separator"* — and the first fix normalised two of them. The third then
+     * shipped the banned sentence past **33 green assertions**, which is the same count as the clean run.
+     *
+     * ⚠️ **The reader sees none of these.** `{'…'}{' '}{'…'}` renders as one sentence, so the detector has
+     * to read it as one sentence — the junctions are an artefact of how JSX is written, exactly as the line
+     * break and the `+` were.
+     */
+    .replace(/\{\s*(['"`])\s*\1\s*\}/g, ' ')
+    .replace(/['"`]\s*\}\s*\{\s*['"`]/g, ' ')
+    .replace(/['"`]\s*\+\s*['"`]/g, '')
+    .replace(/[ \t]+/g, ' ');
 }
 
 const repair = (over: Partial<DataRepair> = {}): DataRepair =>
@@ -179,6 +192,11 @@ export function runUnreadInputsCopyTests() {
     assert(
       codeLinesOnly(CONCAT_FIXTURE).includes('again above'),
       'the detector sees the phrase CONCATENATED across two literals (R12)',
+    );
+    const JSX_SEPARATOR_FIXTURE = "<>{`... incomplete — set it again`}{' '}{`above.`}</>";
+    assert(
+      codeLinesOnly(JSX_SEPARATOR_FIXTURE).includes('again above'),
+      "the detector sees the phrase split by a {' '} JSX separator (N-7)",
     );
 
     const consumers: string[] = [];

@@ -174,11 +174,25 @@ export function runDebtPrefillTests() {
     const seedsFromEditing = (raw: string): string[] => {
       const src = stripCommentsOnly(raw);
       const direct = src.match(/useState\([^;]*?\bediting\b/g) ?? [];
-      const hoisted = [...src.matchAll(/const\s+(\w+)\s*=\s*[^;]*\bediting\b[^;]*;/g)]
-        .map((m) => m[1])
-        .filter((name) => name !== 'seed')
-        .filter((name) => new RegExp(`useState\\(\\s*${name}\\b`).test(src));
-      return [...direct, ...hoisted];
+      const hoisted = [...src.matchAll(/const\s+(\w+)\s*=\s*[^;]*\bediting\b[^;]*;/g)].map((m) => m[1]);
+      /**
+       * ⛔ **DESTRUCTURING IS A HOIST TOO** — `N-8`. `const { apr } = editing ?? {}` binds a name derived
+       * from `editing` without ever writing `editing` next to `useState`, and the first hoist rule only
+       * matched a single identifier. Third spelling of one defect, after the ternary (`C2-9`) and the
+       * plain hoist (`R11`).
+       */
+      const destructured = [...src.matchAll(/const\s*\{([^}]*)\}\s*=\s*[^;]*\bediting\b[^;]*;/g)].flatMap((m) =>
+        m[1]
+          .split(',')
+          .map((part) => part.split(':').pop()?.trim() ?? '')
+          .filter(Boolean),
+      );
+      return [
+        ...direct,
+        ...[...hoisted, ...destructured]
+          .filter((name) => name !== 'seed')
+          .filter((name) => new RegExp(`useState\\(\\s*${name}\\b`).test(src)),
+      ];
     };
 
     /**
@@ -201,6 +215,11 @@ export function runDebtPrefillTests() {
       seedsFromEditing("const x = editing ? String(editing.apr) : '';\nconst [a, setA] = useState(x);").length,
       1,
       'detector: a HOISTED initialiser (R11)',
+    );
+    eq(
+      seedsFromEditing('const { apr } = editing ?? {};\nconst [a, setA] = useState(apr);').length,
+      1,
+      'detector: a DESTRUCTURED binding off `editing` (N-8)',
     );
     eq(
       seedsFromEditing(

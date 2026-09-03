@@ -30,6 +30,7 @@ import { join, relative, sep } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { stripCommentsOnly } from './lib/stripCode';
+import { lineMap } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -45,6 +46,7 @@ const OWNER = 'packages/core/utils/updateById.ts';
 /** `x.id === id` — the comparison, however the row variable is spelled. */
 const BY_ID = /\b\w+\.id\s*===\s*id\b/;
 /** A lookup is allowed: it can branch on the result, which is the property this gate is about. */
+const BY_ID_G = new RegExp(BY_ID.source, 'g');
 const IS_LOOKUP = /\.(find|findIndex|some|filter)\s*\(/;
 
 /**
@@ -73,11 +75,31 @@ const tracked = walk(join(REPO_ROOT, 'apps/rn/src/store'));
 const sites: string[] = [];
 for (const rel of tracked) {
   const code = scanned(SCAN_GATE, stripCommentsOnly(readFileSync(join(REPO_ROOT, rel), 'utf8')));
-  code.split('\n').forEach((line, i) => {
-    if (!BY_ID.test(line)) return;
-    if (IS_LOOKUP.test(line)) return;
-    sites.push(`${rel}:${i + 1}: ${line.trim().slice(0, 110)}`);
-  });
+  const map = lineMap(code);
+  /**
+   * ⛔ **THE TWO PATTERNS ARE JUDGED OVER THE SAME STATEMENT, NOT THE SAME PHYSICAL LINE.**
+   * [class-1 re-audit `N-5`]
+   *
+   * `BY_ID` says "this compares an id" and `IS_LOOKUP` says "…as part of a find/filter, which is fine".
+   * Requiring both on one line meant **Prettier wrapping an ordinary `findIndex` split them**, so the
+   * exemption vanished and correct code redded — at `MAX_BARE_ID_WRITES = 0`, with no allow-list, so the
+   * only ways out were to un-wrap the code or weaken the gate.
+   *
+   * ⚠️ This is class 1's NOISY direction, and it is the one with no escape route. The blind direction
+   * lets a defect through; this one makes a formatter's ordinary output unshippable.
+   */
+  for (const m of code.matchAll(BY_ID_G)) {
+    const before = code.lastIndexOf(';', m.index);
+    const openBrace = code.lastIndexOf('{', m.index);
+    const closeBrace = code.lastIndexOf('}', m.index);
+    const start = Math.max(before, openBrace, closeBrace) + 1;
+    const endCandidates = [code.indexOf(';', m.index), code.indexOf('{', m.index), code.indexOf('}', m.index)]
+      .filter((n) => n !== -1);
+    const end = endCandidates.length ? Math.min(...endCandidates) : code.length;
+    const statement = code.slice(start, end);
+    if (IS_LOOKUP.test(statement)) continue;
+    sites.push(`${rel}:${map.lineAt(m.index)}: ${statement.replace(/\s+/g, ' ').trim().slice(0, 110)}`);
+  }
 }
 
 const observed = assertScanFloor(SCAN_GATE);

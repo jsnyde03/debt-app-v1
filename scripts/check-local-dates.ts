@@ -18,6 +18,7 @@
  * Usage: tsx scripts/check-local-dates.ts
  */
 import { stripCommentsOnly } from './lib/stripCode';
+import { lineMap } from './lib/logicalLines';
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 
 /** GAP-8 — this gate's key in scripts/gate-scan-floors.json. */
@@ -84,7 +85,22 @@ function stripComments(src: string): string {
  * same edit, or the ground it gained is silently re-spendable by the next author.
  */
 const HAND_PARSE = /new Date\(\s*[`'"][^`'"]*\$\{[^}]*\}T00:00:00[`'"]\s*\)|new Date\(\s*[`'"][\d-]+T00:00:00[`'"]\s*\)/;
-const HAND_PARSE_BASELINE = 39;
+/**
+ * ⚡ **39 → 43 at S1.13.7.12.6 [class-1 re-audit `N-4`], and the code did not change.** The scan counts
+ * OCCURRENCES now rather than matching lines, because the same statement-bounded fix that made `BANNED`
+ * see a wrapped method chain also stopped collapsing two hand-parses on one line into one.
+ *
+ * ⛔ **Measured before the number was touched:** per-line **39**, per-match **43**, and exactly **4 lines
+ * carry two matches each** — `deriveRequiredActionView.ts`, `buildMultiCycleTimeline.ts`,
+ * `guardianPredictionCore.ts`, `recoverySelectors.ts`. 39 + 4 = 43, with no remainder. ⚠️ Raising a
+ * downward-only baseline is otherwise the defect it exists to catch; the justification is the arithmetic
+ * above, not this sentence.
+ */
+const HAND_PARSE_BASELINE = 43;
+
+/** `g`-flagged twins: `matchAll` requires it, and the originals stay for any single-shot `.test`. */
+const BANNED_G = new RegExp(BANNED.source, 'g');
+const HAND_PARSE_G = new RegExp(HAND_PARSE.source, 'g');
 
 const hits: string[] = [];
 let handParseCount = 0;
@@ -94,12 +110,21 @@ for (const root of ROOTS) {
     if (EXEMPT.some((e) => rel === e)) continue;
     const raw = readFileSync(file, 'utf8');
     const lines = raw.split(/\r?\n/);
-    stripComments(raw)
-      .split(/\r?\n/)
-      .forEach((line, i) => {
-        if (BANNED.test(line)) hits.push(`${rel}:${i + 1}: ${lines[i]?.trim() ?? ''}`);
-        if (HAND_PARSE.test(line)) handParseCount++;
-      });
+    /**
+     * ⛔ **NOT PER PHYSICAL LINE** — [class-1 re-audit `N-4`]. `BANNED` matches a METHOD CHAIN
+     * (`toISOString().slice(0, 10)`), and Prettier wraps a chain at the dot as a matter of course, so the
+     * exact spelling this gate exists to refuse walked straight past it. ⚠️ The census row that had
+     * exempted this file claimed it *"does not read call arguments"* — it reads both the arguments and the
+     * chain, and the reason was simply wrong. **A written justification is a claim, and this one was not
+     * measured before it was believed.**
+     */
+    const code = stripComments(raw);
+    const map = lineMap(code);
+    for (const m of code.matchAll(BANNED_G)) {
+      const ln = map.lineAt(m.index);
+      hits.push(`${rel}:${ln}: ${lines[ln - 1]?.trim() ?? ''}`);
+    }
+    for (const _m of code.matchAll(HAND_PARSE_G)) handParseCount++;
   }
 }
 

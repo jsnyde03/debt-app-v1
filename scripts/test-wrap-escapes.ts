@@ -70,6 +70,33 @@ const RECIPES: Record<string, Recipe> = {
     plant: "\nimport {\n  appStore,\n} from '../store/appStore';\nexport const __wrapEscape3 = appStore;\n",
     reason: /appStore|singleton|sanctioned/i,
   },
+  'check-local-dates.ts': {
+    target: 'packages/core/utils/percentComplete.ts',
+    // ⚠️ Prettier breaks a method chain AT THE DOT — the exact spelling N-4 measured walking past this gate.
+    plant: [
+      '',
+      'export const __wrapUtc = (d: Date) =>',
+      '  d',
+      '    .toISOString()',
+      '    .slice(0, 10);',
+      '',
+    ].join('\n'),
+    reason: /routed through UTC/,
+  },
+  'check-store-id-writes.ts': {
+    target: 'apps/rn/src/store/analysisSelectors.ts',
+    // The DEFECT wrapped: a bare `.map` id edit split across lines. N-5 proved the mirror - that a
+    // wrapped `findIndex`, which is CORRECT code, no longer reds.
+    plant: [
+      '',
+      'export const __wrapBareId = (rows: { id: string }[], id: string) =>',
+      '  rows.map((r) =>',
+      '    r.id === id ? r : r,',
+      '  );',
+      '',
+    ].join('\n'),
+    reason: /outside a lookup/,
+  },
   'check-fixture-dates.ts': {
     // ⚠️ Must be TEST-SHAPED (the gate's population) and NOT clock-pinned, or the plant lands in the
     // `pinned` bucket and is reported rather than refused — a plant that cannot fail.
@@ -98,9 +125,8 @@ const PER_LINE_OK: Record<string, string> = {
   'check-apostrophes.ts': 'judges user-facing copy INSIDE a string literal, and a string does not span lines (a template literal that does is not copy). Per-line is the right unit.',
   'check-committed-secrets.ts': 'a secret is a single token; a credential split across a line break is not a credential. Per-line matches the subject.',
   'check-glossary.ts': 'compares one rendered sentence at a time; a wrapped sentence is not a different sentence to a reader.',
-  'check-local-dates.ts': 'matches a single call expression by name, and reports the line a human must edit; the class-1 escape needs a call ARGUMENT to wrap, which this does not read.',
   'check-money-format.ts': 'same shape — the banned form is one identifier, not a call with arguments.',
-  'check-press-opacity.ts': 'matches a JSX prop on its own line; the prop cannot be split without the value moving with it.',
+  'check-press-opacity.ts': 'the subject is a STATE TERNARY inside one style value (pressed/hovered/disabled), which Prettier keeps on one line because it is short; the gate deliberately does NOT match `opacity` in general, so there is no call argument to wrap. ⚠️ Its previous row here claimed the prop "cannot be split", which the docblock of that gate contradicts - N-4.',
   'check-month-arithmetic.ts': 'matches a method NAME on a date object; the argument list is not part of the subject.',
   'check-destructive-writes.ts': 'counts declared call sites per file against a ledger, so a wrapped call still moves the count — the ledger is the check, not the line.',
   'check-gate-freshness.ts': 'prints a recorded fingerprint line by line; it matches nothing in source.',
@@ -137,7 +163,6 @@ const PER_LINE_UNREVIEWED = new Set([
   'check-rn-style-divergence.ts',
   'check-runner-completeness.ts',
   'check-scan-floors.ts',
-  'check-store-id-writes.ts',
   'check-trust-claims.ts',
 ]);
 
