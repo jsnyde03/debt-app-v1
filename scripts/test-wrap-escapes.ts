@@ -24,11 +24,22 @@
  * Usage: npm run test:wrap-escapes
  */
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, readFileSync, readdirSync, writeFileSync, unlinkSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { armPlant, preflightRestore } from './lib/plantSafety';
 import { join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 const SCRIPTS = join(REPO_ROOT, 'scripts');
+
+/**
+ * ⛔ `U15` - RECOVER FIRST, then read the tree. A previous run killed outright leaves a planted defect
+ * in a tracked file, and every gate this harness then runs would be measuring that.
+ */
+const recovered = preflightRestore(REPO_ROOT);
+if (recovered.length) {
+  console.log(`⚠️  pre-flight restored ${recovered.length} file(s) left planted by an interrupted run:`);
+  for (const r of recovered) console.log(`     ${r}`);
+}
 
 interface Recipe {
   /** the file the plant is written into, repo-relative */
@@ -537,9 +548,13 @@ for (const gate of wrapSensitive) {
   // that two scans in one file are two different things to certify.
   const label = all.length > 1 ? `${gate} #${n + 1}` : gate;
   const abs = join(REPO_ROOT, recipe.target);
-  const backup = `${abs}.wrapescape-backup`;
   const original = readFileSync(abs, 'utf8');
-  copyFileSync(abs, backup);
+  /**
+   * ⛔ `U15` - the sidecar is written BEFORE the plant and interruption handlers are armed, because
+   * the `finally` below does not run on a signal. A run of THIS harness was killed at a tool timeout and
+   * left a planted defect in tracked production source, with the backup beside it and nothing to use it.
+   */
+  const disarm = armPlant([{ abs, original }]);
 
   let verdict = 'UNKNOWN';
   try {
@@ -630,8 +645,7 @@ for (const gate of wrapSensitive) {
   } catch {
     if (verdict === 'UNKNOWN') verdict = 'FAULT';
   } finally {
-    copyFileSync(backup, abs);
-    unlinkSync(backup);
+    disarm();
   }
 
   const restored = readFileSync(abs, 'utf8') === original;

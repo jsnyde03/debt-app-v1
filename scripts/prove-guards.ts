@@ -37,6 +37,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync 
 import { join } from 'node:path';
 
 import { type Failure, verdict } from './lib/verdict';
+import { armPlant, preflightRestore } from './lib/plantSafety';
 import { bucketGuards } from './lib/guardBuckets';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -301,6 +302,14 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
   const p = e.proof as Proof;
   if (!p.run && !p.cmd) fault(id, 'the proof names neither an npm script (`run`) nor an argv (`cmd`)');
 
+  /**
+   * ⛔ `U15` — RECOVER BEFORE THE CLEANLINESS CHECK, not after it. The comment below already named *"a
+   * stale plant left behind by a killed run"* as the hazard and then only REFUSED on it, which leaves the
+   * planted file in the tree for the next `git add -A` — the exact path that committed a vacuous gate.
+   */
+  for (const rel of preflightRestore(REPO_ROOT)) {
+    console.log(`  ⚠️  pre-flight restored ${rel}, left planted by an interrupted run.`);
+  }
   // ⚠️ PRE-FLIGHT. Every target must exist and be CLEAN — a dirty target makes the restore ambiguous,
   // and a stale plant left behind by a killed run would score as a real defect.
   for (const u of p.unfix) {
@@ -370,8 +379,21 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
   for (const u of p.unfix) {
     if (!originals.has(u.at)) originals.set(u.at, readFileSync(join(REPO_ROOT, u.at), 'utf8'));
   }
+  /**
+   * ⛔ **THE ORIGINALS WERE HELD IN MEMORY ONLY, AND A KILLED RUN LOST THEM.** [`U15`, from `T13`]
+   *
+   * ⚡ **This is not hypothetical and it did not stay in the working tree.** A `prove:guards` run was
+   * interrupted, its plant stayed on disk, a later `git add -A` swept it up, and
+   * `check-runner-completeness.ts` was COMMITTED as `const missing: string[] = [];` - a gate that
+   * reported every test file wired, forever, over any hole. `finally` does not run on a signal, and
+   * `fault()` here calls `process.exit`, so neither path reached this restore.
+   *
+   * `armPlant` writes a sidecar BEFORE the plant and arms signal/exit handlers; the pre-flight at the top
+   * of the run recovers anything a `SIGKILL` left behind.
+   */
+  const disarm = armPlant([...originals].map(([rel, original]) => ({ abs: join(REPO_ROOT, rel), original })));
   const restore = (): void => {
-    for (const [rel, text] of originals) writeFileSync(join(REPO_ROOT, rel), text, 'utf8');
+    disarm();
   };
 
   let planted = true;
