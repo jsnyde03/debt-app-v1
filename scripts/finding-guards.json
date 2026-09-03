@@ -3487,15 +3487,15 @@
     }
   },
   "S1P7-U4-CONTRAST-COMMENTS": {
-    "what": "S1.13.7.12.6 [class-1 re-audit 4 U4, major] - check-contrast's textUses read the RAW file, so a COMMENT painted a token: a doc comment merely NAMING the banned pairing redded the gate with 'exemption broken: accent.brand is painted as a foreground', over code that paints nothing. The noisy direction with no escape route - no cap, no allow-list - and the never-text exemption's own stated mechanism is 'the first color: CONSUMER that appears fails the gate', where a comment is not a consumer. T7's whole-file migration WIDENED it from 'a comment line' to 'a comment line plus the next code line', which the per-line matcher could not join. stripCommentsOnly before matchAll; strings survive because color=\"...\" is a real use this gate checks.",
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U4, major] - check-contrast's textUses read the RAW file, so a COMMENT painted a token: a doc comment merely NAMING the banned pairing redded the gate with 'exemption broken: accent.brand is painted as a foreground', over code that paints nothing. The noisy direction with no escape route - no cap, no allow-list - and the never-text exemption's own stated mechanism is 'the first color: CONSUMER that appears fails the gate', where a comment is not a consumer. T7's whole-file migration WIDENED it from 'a comment line' to 'a comment line plus the next code line', which the per-line matcher could not join. stripCommentsOnly before matchAll; strings survive because color=\"...\" is a real use this gate checks. >>> The token and anchor moved once, in the same round: wiring GAP-8's scan floor (which lint:scan-floors demanded the moment U4 made this gate a stripper) changed the line they pinned, and lint:finding-guards reported the guard gone by name. That is the check working - a guard is only as current as the last commit that touched its file.",
     "file": "scripts/check-contrast.ts",
-    "token": "return stripCommentsOnly(readFileSync(file, 'utf8'));",
+    "token": "scanned(SCAN_GATE, stripCommentsOnly(readFileSync(file, 'utf8')))",
     "proof": {
       "unfix": [
         {
           "at": "scripts/check-contrast.ts",
-          "find": "  return stripCommentsOnly(readFileSync(file, 'utf8'));",
-          "replace": "  return readFileSync(file, 'utf8');"
+          "find": "  return scanned(SCAN_GATE, stripCommentsOnly(readFileSync(file, 'utf8')));",
+          "replace": "  return scanned(SCAN_GATE, readFileSync(file, 'utf8'));"
         },
         {
           "at": "apps/rn/src/components/plan/PaydayGuardianCard.tsx",
@@ -3504,9 +3504,7 @@
         }
       ],
       "run": "lint:contrast",
-      "expect": "exemption broken",
-      "measured": "2026-09-03",
-      "sha": "1b8a9733"
+      "expect": "exemption broken"
     }
   },
   "S1P7-U5-REASON-VACUITY": {

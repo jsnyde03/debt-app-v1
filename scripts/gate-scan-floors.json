@@ -83,5 +83,11 @@
     "measured": "2026-09-02",
     "measuredCount": 22779,
     "why": "S1.13.7.12.6 [class-1 re-audit]. This gate began stripping comments when R7 showed a comment could supply a literal's aging key, and lint:scan-floors demanded a floor the same run. MEASURED failing open first, not assumed: against a stripper that blanks everything it printed '0 imminent fuses' and exited 0 - a gate reading nothing reporting the tree clean, which is the exact shape A1-4 shipped. MIN_TEST_FILES does not cover this: the population stays full while every literal inside it vanishes. Margin per the _README."
+  },
+  "contrast": {
+    "floor": 30711,
+    "measured": "2026-09-03",
+    "measuredCount": 32328,
+    "why": "Measured 2026-09-03 at S1.13.7.12.6 round 5, on the commit that CREATED the exposure: `U4` made this gate strip its input, and lint:scan-floors refused the tree until a floor was wired. Control run with paintableText() returning '' and the floor assertion removed - the pre-floor state - printed `check-contrast: every rendered token pair clears its floor.` and exited 0 while reading ZERO lines. Floor is 95% of the measured count, per the ledger header's note on margin."
   }
 }

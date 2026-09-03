@@ -477,5 +477,14 @@
     "p4",
     "s1p1",
     "s1p2"
+  ],
+  "scripts/lib/joinedCode.ts": [
+    "never"
+  ],
+  "scripts/lib/plantSafety.ts": [
+    "never"
+  ],
+  "scripts/test-plant-safety.ts": [
+    "never"
   ]
 }

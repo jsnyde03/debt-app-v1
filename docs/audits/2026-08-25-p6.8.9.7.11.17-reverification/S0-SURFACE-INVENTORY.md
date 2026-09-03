@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**132 files on the S0 surface · 75 swept · 57 unswept.**
+**135 files on the S0 surface · 75 swept · 60 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -118,8 +118,10 @@
 | `scripts/lib/anchor.ts` | s1p5 |
 | `scripts/lib/guardBuckets.ts` | ⛔ **never** |
 | `scripts/lib/importGraph.ts` | ⛔ **partial** |
+| `scripts/lib/joinedCode.ts` | ⛔ **never** |
 | `scripts/lib/logicalLines.ts` | ⛔ **never** |
 | `scripts/lib/moneyClaim.ts` | ⛔ **never** |
+| `scripts/lib/plantSafety.ts` | ⛔ **never** |
 | `scripts/lib/scanFloor.ts` | never · s1p4 |
 | `scripts/lib/stripCode.ts` | p2 · p3 |
 | `scripts/lib/stripMarkdown.ts` | never · s1p4 |
@@ -141,6 +143,7 @@
 | `scripts/test-gate-plants.ts` | s1p1 · s1p2 · partial |
 | `scripts/test-import-graph.ts` | ⛔ **partial** |
 | `scripts/test-line-endings.ts` | never · s1p4 |
+| `scripts/test-plant-safety.ts` | ⛔ **never** |
 | `scripts/test-stamp-coverage.ts` | s1p5 |
 | `scripts/test-strip-code.ts` | never · s1p4 |
 | `scripts/test-wrap-escapes.ts` | ⛔ **never** |
@@ -197,15 +200,18 @@
 - `scripts/conform-app-preview.sh`
 - `scripts/lib/guardBuckets.ts`
 - `scripts/lib/importGraph.ts`
+- `scripts/lib/joinedCode.ts`
 - `scripts/lib/logicalLines.ts`
 - `scripts/lib/moneyClaim.ts`
+- `scripts/lib/plantSafety.ts`
 - `scripts/maestro-results.mjs`
 - `scripts/preflight-xcuitest-target.ts`
 - `scripts/record-reads.ts`
 - `scripts/surface-inventory.ts`
 - `scripts/test-conform-assertions.sh`
 - `scripts/test-import-graph.ts`
+- `scripts/test-plant-safety.ts`
 - `scripts/test-wrap-escapes.ts`
 
-<!-- claims-sha256: 07657546e44dcb85 -->
+<!-- claims-sha256: a4411efdec62e94d -->
 

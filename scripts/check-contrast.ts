@@ -35,6 +35,13 @@ import { colors, type ColorScheme } from '../apps/rn/src/theme/colors.ts';
 import { lineMap } from './lib/logicalLines';
 // ⛔ `U4` — a comment was painting a token. Every sibling gate in this class strips first.
 import { stripCommentsOnly } from './lib/stripCode';
+// ⛔ GAP-8 - a gate that STRIPS can report a pass while reading nothing, so what survived the strip is
+// counted and floored. `U4` made this gate a stripper; `lint:scan-floors` refused the tree until it wired
+// this, which is the check doing exactly its job on the commit that created the exposure.
+import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
+
+/** GAP-8 - this gate's key in scripts/gate-scan-floors.json. */
+const SCAN_GATE = 'contrast';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 const SRC_DIR = join(REPO_ROOT, 'apps', 'rn', 'src');
@@ -168,7 +175,7 @@ function walk(dir: string, out: string[] = []): string[] {
  * survives its use being deleted, which is the whole reason that check exists.
  */
 function paintableText(file: string): string {
-  return stripCommentsOnly(readFileSync(file, 'utf8'));
+  return scanned(SCAN_GATE, stripCommentsOnly(readFileSync(file, 'utf8')));
 }
 
 function textUses(token: Foreground, files: string[]): string[] {
@@ -516,4 +523,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('check-contrast: every rendered token pair clears its floor.');
+const observedScan = assertScanFloor(SCAN_GATE);
+console.log(`check-contrast: every rendered token pair clears its floor.${scanNote(SCAN_GATE, observedScan)}`);

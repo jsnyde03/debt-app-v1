@@ -324,7 +324,7 @@ function chainedGatesFrom(src: string): string | null {
    * deleted*); and `prove:guards` requires the un-fix to make something RED, while this un-fix's whole
    * signature is that it makes something GREEN.
    *
-   * ⚡ So the gate reads its own source and requires the two call sites to be present. Naming the exact
+   * ⚡ So the gate reads its own source and requires every call site listed below to be present. The exact
    * spelling is what makes the swap visible — the un-fix stops being one identifier nobody would notice
    * and becomes an edit that reds `lint:runner-completeness` by name.
    *
