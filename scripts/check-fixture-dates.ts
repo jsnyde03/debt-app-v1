@@ -43,10 +43,21 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { lineMap } from './lib/logicalLines';
 import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
+
+/**
+ * ⛔ **[GAP-8] MEASURED FAILING OPEN, NOT ASSUMED.** This gate strips comments before matching, and
+ * `lint:scan-floors` demanded a floor for it the moment it started doing so. The probe
+ * (`class1-probes/p5-blanked-stripper.mjs`) ran it against a stripper that blanks everything: it printed
+ * **`0 imminent fuses`** and exited **0** — a gate that read nothing reporting the tree clean, which is
+ * precisely the shape `A1-4` shipped. `MIN_TEST_FILES` does not cover it: the population stays full while
+ * every literal inside it disappears.
+ */
+const SCAN_GATE = 'fixture-dates';
 
 /**
  * ⚠️ Downward-only. Lowering it is a fix; raising it is re-opening `A1-4`. Measured 2026-08-31 after the
@@ -166,7 +177,7 @@ for (const f of testFiles) {
    * literal it excuses), and the flattened comment-blanked text for the key and the literal.
    */
   const srcLines = text.split('\n');
-  const code = stripCommentsOnly(text);
+  const code = scanned(SCAN_GATE, stripCommentsOnly(text));
   const lines = lineMap(code);
   /**
    * ⛔ **THE CLOCK PIN IS READ FROM CODE, NOT FROM PROSE** — [class-1 re-audit `N-2`]. `CLOCK_PIN` was
@@ -236,6 +247,7 @@ if (aged.length > MAX_AGED_FIXTURE_DATES) {
   process.exit(1);
 }
 
+const observedScan = assertScanFloor(SCAN_GATE);
 console.log(
   `✅ fixture-dates: ${testFiles.length} test-shaped file(s) scanned · 0 imminent fuses · ` +
     `${aged.length} aged literal(s) on aging fields (cap ${MAX_AGED_FIXTURE_DATES}, downward-only) · ` +

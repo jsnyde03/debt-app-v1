@@ -77,5 +77,11 @@
     "measured": "2026-09-02",
     "measuredCount": 3778,
     "why": "S1.13.7.11 [pass-6 A3-3]. Wired on the gate's first run, which lint:scan-floors refused for having no floor - GAP-8, a gate that strips can report a pass while reading nothing. It matters more than usual here because the cap is 0: a scan that reads nothing finds no bare id writes and prints the same green line as a clean tree. 5% margin per the _README."
+  },
+  "fixture-dates": {
+    "floor": 21640,
+    "measured": "2026-09-02",
+    "measuredCount": 22779,
+    "why": "S1.13.7.12.6 [class-1 re-audit]. This gate began stripping comments when R7 showed a comment could supply a literal's aging key, and lint:scan-floors demanded a floor the same run. MEASURED failing open first, not assumed: against a stripper that blanks everything it printed '0 imminent fuses' and exited 0 - a gate reading nothing reporting the tree clean, which is the exact shape A1-4 shipped. MIN_TEST_FILES does not cover this: the population stays full while every literal inside it vanishes. Margin per the _README."
   }
 }
