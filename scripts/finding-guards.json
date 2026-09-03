@@ -3463,7 +3463,9 @@
         }
       ],
       "run": "lint:finding-guards",
-      "expect": "the verdict mark is WRONG"
+      "expect": "the verdict mark is WRONG",
+      "measured": "2026-09-03",
+      "sha": "cb2c6b93"
     }
   }
 }
