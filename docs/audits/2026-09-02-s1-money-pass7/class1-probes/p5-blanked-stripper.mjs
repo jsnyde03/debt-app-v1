@@ -40,6 +40,7 @@ const SUBJECTS = [
   ['check-runner-completeness.ts', ['npx', ['tsx', 'scripts/check-runner-completeness.ts']]],
   ['check-fixture-dates.ts', ['npx', ['tsx', 'scripts/check-fixture-dates.ts']]],
   ['check-sandbox-writes.ts', ['npx', ['tsx', 'scripts/check-sandbox-writes.ts']]],
+  ['lib/logicalLines.ts (via test:wrap-escapes)', ['npx', ['tsx', 'scripts/test-wrap-escapes.ts']]],
 ];
 
 console.log('baseline (real stripper):');

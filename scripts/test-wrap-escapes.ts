@@ -141,10 +141,8 @@ const problems: string[] = [];
 const PER_LINE_OK: Record<string, string> = {
   'check-apostrophes.ts': 'judges user-facing copy INSIDE a string literal, and a string does not span lines (a template literal that does is not copy). Per-line is the right unit.',
   'check-committed-secrets.ts': 'a secret is a single token; a credential split across a line break is not a credential. Per-line matches the subject.',
-  'check-glossary.ts': 'compares one rendered sentence at a time; a wrapped sentence is not a different sentence to a reader.',
   'check-money-format.ts': 'same shape — the banned form is one identifier, not a call with arguments.',
   'check-press-opacity.ts': 'the subject is a STATE TERNARY inside one style value (pressed/hovered/disabled), which Prettier keeps on one line because it is short; the gate deliberately does NOT match `opacity` in general, so there is no call argument to wrap. ⚠️ Its previous row here claimed the prop "cannot be split", which the docblock of that gate contradicts - N-4.',
-  'check-month-arithmetic.ts': 'matches a method NAME on a date object; the argument list is not part of the subject.',
   'check-destructive-writes.ts': 'counts declared call sites per file against a ledger, so a wrapped call still moves the count — the ledger is the check, not the line.',
   'check-gate-freshness.ts': 'prints a recorded fingerprint line by line; it matches nothing in source.',
   'check-comment-convention.ts': 'a comment IS a line construct — `//` runs to the newline, so the line is the subject rather than an accident of formatting.',
@@ -152,12 +150,43 @@ const PER_LINE_OK: Record<string, string> = {
   'check-control-chars.ts': 'a control character is one character; the line is only how the position is reported to a human.',
 };
 
-const perLineCandidates = readdirSync(SCRIPTS)
-  .filter((f) => /^check-.*\.ts$/.test(f))
-  .filter((f) => {
-    const src = readFileSync(join(SCRIPTS, f), 'utf8');
-    return /\.split\((?:'\\n'|\/\\r\?\\n\/)\)/.test(src);
-  });
+/**
+ * ⛔ **EVERY GATE IS CLASSIFIED — the census is no longer keyed on `.split('\n')`.**
+ * [class-1 re-audit 3 · `T5` `T10`]
+ *
+ * Two holes, opposite directions, in one predicate:
+ * - `T5` — a genuinely wrap-sensitive gate that never splits lines was invisible to **both** lists. The
+ *   census could only see gates that happened to use one idiom.
+ * - `T10` — the predicate read COMMENTS, so a docblock merely *mentioning* `.split('\n')` demanded a review
+ *   row for a gate that never splits a line. A census that classifies by prose is classifying prose.
+ *
+ * ⚡ So the population is now **every `check-*.ts`**, and each must land in exactly one of three places:
+ * it uses the shared helper (and therefore has a plant recipe), it is named in {@link PER_LINE_OK} with a
+ * reason, or it sits in {@link PER_LINE_UNREVIEWED}. **Silence is no longer a classification.**
+ */
+/**
+ * ⛔ **MEASURED CLASS MEMBERS, NOT YET FIXED — a different state from "not yet looked at".**
+ * [class-1 re-audit 3 · `T6` `T7`]
+ *
+ * A fresh auditor planted the wrapped spelling into each of these and watched it walk past. They are not
+ * unreviewed: they are **known blind**, and collapsing that into {@link PER_LINE_UNREVIEWED} would lose the
+ * one fact that distinguishes "we have not checked" from "we checked and it is broken".
+ *
+ * ⚠️ Downward-only. An entry leaves by being FIXED, never by being re-labelled.
+ */
+const PER_LINE_KNOWN_BLIND: Record<string, string> = {
+  'check-month-arithmetic.ts':
+    "T6 - the ORIGINAL BLOCKER this gate exists for is itself a wrapped `new Date(...)`, and the wrapped spelling escapes it. Its PER_LINE_OK row claimed the argument list 'is not part of the subject'; the subject is the argument list.",
+  'check-glossary.ts':
+    "T6 - Prettier's ordinary JSX text wrap splits a rendered sentence across lines, and the gate compares one physical line at a time, so the wrapped sentence is a different sentence to it and to nobody else.",
+  'check-contrast.ts':
+    'T7 - measured to let a WCAG-AA failure ship behind a `never-text` exemption when the pair is written across lines.',
+  'check-trust-claims.ts':
+    'T7 - measured a genuine class member by the same plant.',
+};
+
+const allGates = readdirSync(SCRIPTS).filter((f) => /^check-.*\.ts$/.test(f));
+const perLineCandidates = allGates.filter((f) => !wrapSensitive.includes(f));
 
 /**
  * ⛔ **THE CENSUS'S FIRST RUN MEASURED THE CLASS AT ~20 GATES, NOT THE 6 THE AUDIT NAMED** — and that is
@@ -169,8 +198,17 @@ const perLineCandidates = readdirSync(SCRIPTS)
  * and printed on every run precisely so "we never looked" cannot read as "we checked".
  */
 const PER_LINE_UNREVIEWED = new Set([
+  // ⚠️ Added by the INVERTED census (T5): previously invisible because they do not split lines at all.
+  // Listed rather than reasoned about — 4 of 11 reasons written from reading turned out false (T6, N-4).
+  'check-a11y-collapse.ts',
+  'check-cap-literals.ts',
+  'check-ci-chain.ts',
+  'check-copy-owners.ts',
+  'check-icon-glyphs.ts',
+  'check-maestro-selectors.ts',
+  'check-type-scale.ts',
+  'check-webkit-flex-controls.ts',
   'check-audit-closure.ts',
-  'check-contrast.ts',
   'check-finding-guards.ts',
   'check-gate-sources.ts',
   // ⚠️ Matches JSX props, whose VALUES wrap readily — the likeliest genuine member of the class here.
@@ -180,23 +218,34 @@ const PER_LINE_UNREVIEWED = new Set([
   'check-rn-style-divergence.ts',
   'check-runner-completeness.ts',
   'check-scan-floors.ts',
-  'check-trust-claims.ts',
 ]);
 
 const unreviewedSeen: string[] = [];
+const knownBlindSeen: string[] = [];
 for (const gate of perLineCandidates) {
-  if (wrapSensitive.includes(gate)) continue;
   if (gate in PER_LINE_OK) continue;
+  if (gate in PER_LINE_KNOWN_BLIND) {
+    knownBlindSeen.push(gate);
+    continue;
+  }
   if (PER_LINE_UNREVIEWED.has(gate)) {
     unreviewedSeen.push(gate);
     continue;
   }
   problems.push(
-    `${gate} splits its input into physical lines, does not use lib/logicalLines, and is named in\n` +
-      '        neither PER_LINE_OK nor PER_LINE_UNREVIEWED. A per-line matcher is defeated by a formatter —\n' +
+    `${gate} does not use lib/logicalLines and is named in NONE of PER_LINE_OK,\n` +
+      '        PER_LINE_KNOWN_BLIND or PER_LINE_UNREVIEWED. A per-line matcher is defeated by a formatter —\n' +
       '        that is the whole of class 1, whose members were every gate written AFTER the escape was\n' +
-      '        already documented. Use the shared helper, or add a row saying why per-line is right here.',
+      '        already documented. Use the shared helper, or classify it here.',
   );
+}
+for (const gate of Object.keys(PER_LINE_KNOWN_BLIND)) {
+  if (wrapSensitive.includes(gate)) {
+    problems.push(
+      `PER_LINE_KNOWN_BLIND names ${gate}, which now uses the shared helper.\n` +
+        '        It was FIXED — delete the row rather than leaving a measured defect on the books.',
+    );
+  }
 }
 for (const gate of PER_LINE_UNREVIEWED) {
   if (!perLineCandidates.includes(gate)) {
@@ -321,5 +370,6 @@ if (problems.length) {
 console.log(
   `\n✅ wrap-escapes: ${wrapSensitive.length} wrap-sensitive gate(s), each red on the WRAPPED spelling of its own defect` +
     ` · ${Object.keys(PER_LINE_OK).length} per-line by design` +
+    ` · ⛔ ${knownBlindSeen.length} MEASURED BLIND, awaiting fix` +
     ` · ⚠️ ${unreviewedSeen.length} per-line and NOT YET REVIEWED (downward-only).`,
 );

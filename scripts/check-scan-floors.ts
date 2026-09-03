@@ -29,6 +29,8 @@ const LEDGER = join(SCRIPTS, 'gate-scan-floors.json');
 const EXEMPT: Record<string, string> = {
   'check-destructive-writes.ts':
     'ALLOWED declares a per-file call count and the gate reds on drift, so reading nothing reports 0 against a non-zero declaration. Verified red under a blanked stripper 2026-08-27.',
+  'lib/logicalLines.ts':
+    'NOT A GATE — it is the shared helper the wrap-sensitive gates import (`lineMap`, `findCalls`, `enclosingCall`), so it has no population of its own to floor; its consumers floor theirs. It re-acquired the stripper at S1.13.7.12.6 round 4, when `findCalls` began counting paren depth on STRING-BLANKED text so a paren inside a string cannot close a call. Its correctness under a blind stripper is asserted by `test:wrap-escapes`, which plants the wrapped spelling into every gate importing it. Verified red under a blanked stripper 2026-09-03 (exit 1, control green at exit 0) — re-measured against the balanced-paren code, not carried over from the flattening version.',
   'check-runner-completeness.ts':
     'Not a tree sweep — it reads three NAMED files (two runners + package.json) and asserts SET INCLUSION against a git-derived population, and it already reds explicitly when a pathspec matches nothing. Verified red under a blanked stripper 2026-09-02 (exit 1): blanking the runner text empties `imported`, so every tracked test file reports unwired. [S1.13.7.12.6, pass-7 D1-1/D1-2 added the stripper here]',
   'check-sandbox-writes.ts':
