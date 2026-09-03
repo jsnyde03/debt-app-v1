@@ -157,6 +157,9 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
     // broken — so six gates were certified green while a Prettier line-wrap walked past all of them. Its
     // population is derived from which gates import `lib/logicalLines`, so a new one cannot join unproven.
     'test:wrap-escapes',
+  // ⛔ `U15` - the recovery net for a plant left behind by an interrupted harness. It has already
+  // been committed once, making lint:runner-completeness vacuous.
+  'test:plant-safety',
   ].map((name) => ({ name, cmd: 'npm', args: ['run', name] })),
 ];
 

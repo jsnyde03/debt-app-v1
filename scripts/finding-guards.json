@@ -3467,5 +3467,191 @@
       "measured": "2026-09-03",
       "sha": "641e2abb"
     }
+  },
+  "S1P7-U2-STRING-EXTENTS": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U2, major] - T6 moved check-glossary's copy scan from per-line to whole-file, which was right (four of the five retired terms are two-word phrases and a wrap between the words defeated all of them) - but /'[^']*'/ had been relying on the newline as an implicit terminator. Over a whole file each fragment regex runs to the next matching delimiter ANYWHERE: 1,818 of 10,425 fragments spanned more than one physical line, the largest 39 lines of executable code, matched against retired-COPY patterns, in a gate with NO cap and NO allow-list. Measured on a green tree: an English contraction in a double-quoted string plus a bare `crunch` identifier of the kind the gate's own docblock declares exempt REDDED it. Fixed by taking real string extents from lib/stripCode's scanner, which already tracks which construct it is inside - the one thing a delimiter pair cannot do. Population after: 9 multiline fragments, max span 4, all genuine template literals. The JSX rule stays a regex (the scanner does not model JSX text) bounded to 2 newlines.",
+    "file": "scripts/test-strip-code.ts",
+    "token": "does not open a fragment",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/lib/stripCode.ts",
+          "find": "      literals?.push({ text: src.slice(opened, i), index: opened });",
+          "replace": "      void opened;"
+        }
+      ],
+      "run": "test:strip-code",
+      "expect": "does not open a fragment"
+    }
+  },
+  "S1P7-U4-CONTRAST-COMMENTS": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U4, major] - check-contrast's textUses read the RAW file, so a COMMENT painted a token: a doc comment merely NAMING the banned pairing redded the gate with 'exemption broken: accent.brand is painted as a foreground', over code that paints nothing. The noisy direction with no escape route - no cap, no allow-list - and the never-text exemption's own stated mechanism is 'the first color: CONSUMER that appears fails the gate', where a comment is not a consumer. T7's whole-file migration WIDENED it from 'a comment line' to 'a comment line plus the next code line', which the per-line matcher could not join. stripCommentsOnly before matchAll; strings survive because color=\"...\" is a real use this gate checks.",
+    "file": "scripts/check-contrast.ts",
+    "token": "return stripCommentsOnly(readFileSync(file, 'utf8'));",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-contrast.ts",
+          "find": "  return stripCommentsOnly(readFileSync(file, 'utf8'));",
+          "replace": "  return readFileSync(file, 'utf8');"
+        },
+        {
+          "at": "apps/rn/src/components/plan/PaydayGuardianCard.tsx",
+          "find": "const styles = StyleSheet.create({",
+          "replace": "// A doc comment that merely NAMES the banned pairing: color: c.accent.brand\nconst styles = StyleSheet.create({"
+        }
+      ],
+      "run": "lint:contrast",
+      "expect": "exemption broken"
+    }
+  },
+  "S1P7-U5-REASON-VACUITY": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U5, major] - test-wrap-escapes scores MATCHED when the gate exits non-zero AND recipe.reason matches the output. Six of the nine red recipes' reason regexes also matched their gate's own GREEN output (rounding on 'inline money-rounding expressions', sandbox-writes on 'sanctioned', month-arithmetic on 'setMonth', glossary on 'retired word', trust-claims on 'liveness', contrast on the bare word 'contrast' - which is in that gate's name and therefore in every line it prints), so the second condition tested nothing and RED-FOR-THE-WRONG-REASON was unreachable for two thirds of the harness. Each had been written by reading the failure message, and a failure message repeats its own subject. The six are narrowed to the plant's SITE, and vacuity is now ASSERTED against the baseline run that already happens one line above the plant. U14 folded in: the summary claimed all ten gates were 'red on the WRAPPED spelling' while one is an expect:'green' recipe that must NOT red.",
+    "file": "scripts/test-wrap-escapes.ts",
+    "token": "FAULT-REASON-MATCHES-GREEN",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/test-wrap-escapes.ts",
+          "find": "      reason: /accent\\.brand/,",
+          "replace": "      reason: /contrast/,"
+        }
+      ],
+      "run": "test:wrap-escapes",
+      "expect": "matches the gate's own GREEN output"
+    }
+  },
+  "S1P7-U6-CLAMPED-DAY": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U6] - check-month-arithmetic refused the clamping idiom its own docblock endorses. getNextPaycheckDate.ts uses clampDay, which the gate's header calls 'the same trick that makes addMonths correct'; inline that trick - Math.min(d.getDate(), lastDayOfTargetMonth) - and the gate redded, in both the same-line and the wrapped spelling, with no cap and no allow-list, so correct code was unshippable. The four non-defects the docblock names are all avoided because the day slot is a bare identifier or a helper call; the shape it never considered is the clamp written INLINE, where getDate() is present but bounded, and DAY_CARRIES_SOURCE is a substring test with no notion of what encloses it. clampedDay exempts a getDate() that is an ARGUMENT OF A CALL - the enclosing paren must be preceded by an identifier character, because a bare (d.getDate()) is the same unclamped day wearing parentheses.",
+    "file": "scripts/check-month-arithmetic.ts",
+    "token": "clampedDay(day)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-month-arithmetic.ts",
+          "find": "    if (clampedDay(day)) continue;",
+          "replace": ""
+        },
+        {
+          "at": "packages/core/utils/percentComplete.ts",
+          "find": "export function percentCompleteLabel(",
+          "replace": "export const __clamped = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, Math.min(d.getDate(), 28));\nexport function percentCompleteLabel("
+        }
+      ],
+      "run": "lint:month-arithmetic",
+      "expect": "overflows a short month forward"
+    }
+  },
+  "S1P7-U8-COMPOSITION-PINNED": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U8, major] - check-runner-completeness asserted the HELPERS (round 3) and then two of the VALUES (round 4), never the dataflow BETWEEN them, so D1-1 and D1-2 were each re-openable by one line with the gate green: chainRegion(runGatesRaw) -> chainRegion(runGatesFile) drops the comment strip and a gate commented out of GATES counts as chained, while every round-4 assertion still held. N-3's mechanism at its FOURTH recurrence. Fixed in two steps, and the FIRST ONE DID NOT WORK - measured: after routing production through chainedGatesFrom / wiredIn, both un-fixes still failed open with the real defect planted. A composition cannot be closed from inside the file that composes it, and neither standing instrument reaches it (a finding-guards token pins a LINE and both call sites are declarations, which D3-3 correctly refuses; prove:guards needs the un-fix to make something RED and this one makes something GREEN). So the gate reads its own source and requires both call sites present - and the first cut of THAT passed over both un-fixes too, because the site strings are literals in the pin's own array, which is code. Counted, >=2 occurrences.",
+    "file": "scripts/check-runner-completeness.ts",
+    "token": "production no longer calls",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-runner-completeness.ts",
+          "find": "const runGates = chainedGatesFrom(runGatesFile);",
+          "replace": "const runGates = chainRegion(runGatesFile);"
+        }
+      ],
+      "run": "lint:runner-completeness",
+      "expect": "production no longer calls"
+    }
+  },
+  "S1P7-U9-SEED-CLOSURE": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U9, major] - N-8 replaced debtPrefill's one-hop rule with a transitive closure and left the `seed` exemption as a single name filter applied to the RESULT, so the exemption was one hop deep while the detector had become unbounded. DebtSheet's sanctioned shape is `const seed = editing ?? prefill ?? null;`; hoisting the initialiser off it - an ordinary refactor of CORRECT code that still honours the prefill - was reported as a defect by a release gate with eq(fromEditing.length, 0) and no allow-list. The exclusion is now seeded INTO the closure and does not propagate. Why no fixture caught it: the one negative row writes useState(seed?.apr ...) INLINE so it never crosses a hop - R11's own lesson ('the last row is the one that matters most: it asserts correct code stays CLEAN') carried forward as one row rather than re-derived for the new mechanism. Three rows added, including the direction that matters: a hoist off `editing` in a file that ALSO has `seed` is still a hit, so the exemption is not a blanket.",
+    "file": "apps/rn/src/components/entities/debtPrefill.test.ts",
+    "token": "hoisted ONE hop, is NOT a hit (U9)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/entities/debtPrefill.test.ts",
+          "find": "          if (derived.has(b.name) || EXCLUDED.has(b.name)) continue;",
+          "replace": "          if (derived.has(b.name)) continue;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "hoisted ONE hop"
+    }
+  },
+  "S1P7-U10-INK-WHOLE-FILE": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U10, major] - check-contrast holds three scans. T7 migrated textUses, the FILE then counted as wrap-sensitive, and its second per-line matcher INK_LITERAL left the reviewable population without ever being looked at. Measured: { color: '#123456' } on one line redded and named the line; the same value wrapped onto its own line printed 'every rendered token pair clears its floor.' and exited 0 - a hard-coded ink that cannot flip with the theme, right in one scheme and unchecked in the other, shipping behind a green tick. INK_LITERAL's own \\s* already crosses a newline; only the per-line application stopped it. The scan is now matchAll over the file with lineMap for attribution, and RECIPES is keyed on MATCHER rather than on file (Recipe | Recipe[]), because one recipe per file is structurally unable to see a second matcher.",
+    "file": "scripts/check-contrast.ts",
+    "token": "code.matchAll(INK_LITERAL)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-contrast.ts",
+          "find": "      for (const m of code.matchAll(INK_LITERAL)) {",
+          "replace": "      for (const m of (code.split(String.fromCharCode(10))[0] ?? '').matchAll(INK_LITERAL)) {"
+        }
+      ],
+      "run": "test:wrap-escapes",
+      "expect": "FAILED-OPEN"
+    }
+  },
+  "S1P7-U11-WELDED-TOKEN": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U11, major] - check-finding-guards asked whether a guard token was on ONE PHYSICAL LINE. A guard token is a sentence, and a sentence is the most wrappable thing in this repo. Measured on S1P1-B1-OWNER: Prettier's ordinary output for its assertion left the assertion intact and the gate said 'the guard is gone', 267 -> 266 guarded, in the instrument that decides whether every finding in the audit is closed, with MAX_UNGUARDED capped at 1 and no allow-list. ONE PRODUCER now: lib/joinedCode, merging unreadInputsCopy's junction welds with this gate's block-comment tracking; the RN test's local copy is DELETED rather than parked. Two defects found while building it, both by measurement: for...of walks code POINTS while regex indices are code UNITS, so one emoji desynchronised lineAt and the welds ate real characters; and normalising the haystack without the needle cost 8 guards outright (268 -> 260) because registry tokens carry their own indentation on purpose.",
+    "file": "scripts/check-finding-guards.ts",
+    "token": "joinCodeLines(text).text",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-finding-guards.ts",
+          "find": "  return present(joinCodeLines(text).text, normaliseFragment(token));",
+          "replace": "  return text.split(String.fromCharCode(10)).some((l) => present(l, token));"
+        }
+      ],
+      "run": "test:wrap-escapes",
+      "expect": "FALSE-POSITIVE-ON-CORRECT-CODE"
+    }
+  },
+  "S1P7-U12-CENSUS-BOTH-HELPERS": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U12] - the census printed '17 per-line and NOT YET REVIEWED' every run, and for five of the seventeen that was false. The gate annotated as 'the likeliest genuine member of the class here' is measurably immune (check-native-a11y-props matches a bare prop IDENTIFIER, the one construct a formatter cannot split; both plants red), three more parse with ts.createSourceFile and never split their input at all, and check-finding-guards - annotated with nothing - WAS the real member (U11). A backlog whose members are mislabelled is a backlog nobody can drain. Also: the census is now keyed on BOTH shared wrap-safe helpers, because keyed on logicalLines alone the gate measured, fixed and certified this round would have sat in PER_LINE_UNREVIEWED forever. That gave it a recipe, which needed Recipe.edit - wrapping an EXISTING line, which is what Prettier actually does - because an appended pre-wrapped block cannot express a TOLERANCE fix: the unwrapped original is still in the file answering for it. MAX_UNREVIEWED 17 -> 12.",
+    "file": "scripts/test-wrap-escapes.ts",
+    "token": "logicalLines|joinedCode",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/test-wrap-escapes.ts",
+          "find": "  .filter((f) => /from '\\.\\/lib\\/(logicalLines|joinedCode)(\\.ts)?'/.test(readFileSync(join(SCRIPTS, f), 'utf8')));",
+          "replace": "  .filter((f) => /from '\\.\\/lib\\/(logicalLines)(\\.ts)?'/.test(readFileSync(join(SCRIPTS, f), 'utf8')));"
+        }
+      ],
+      "run": "test:wrap-escapes",
+      "expect": "no longer imports lib/logicalLines"
+    }
+  },
+  "S1P7-U15-PLANT-SAFETY": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 3 T13, re-audit 4 U15] - both plant harnesses restore in a finally, a finally does not run on a signal, and neither had a pre-flight that would recover from one. T13 filed exactly this and round 4's commit recorded it closed while the remedy was never written. It then fired twice in one session and the second time it SHIPPED: a killed test:wrap-escapes run left a plant in tracked production source, and prove-guards - which held its originals IN MEMORY ONLY - lost one outright to an interruption, after which git add -A committed check-runner-completeness.ts as `const missing: string[] = [];`, a gate reporting every test file wired forever over any hole. lib/plantSafety.ts adds three layers: a sidecar written BEFORE the plant, signal/exit handlers, and a pre-flight over the whole repo found through git status rather than a list of plant sites. The pre-flight RESTORES rather than refusing, because refusing leaves the planted file in the tree for the next git add -A - the exact path that shipped one.",
+    "file": "scripts/test-plant-safety.ts",
+    "token": "the sidecar exists as soon as the plant is armed",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/lib/plantSafety.ts",
+          "find": "  const recovered: string[] = [];",
+          "replace": "  const recovered: string[] = [];\n  return recovered;"
+        }
+      ],
+      "run": "test:plant-safety",
+      "expect": "the pre-flight names the file it recovered"
+    }
+  },
+  "S1P7-U16-SAMELINE-DERIVED": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U16] - test-wrap-escapes justified planting only the WRAPPED spelling by saying the same-line one was already covered by test:gate-plants. Derived from package.json's script map, that harness plants 4 of the 10: glossary, local-dates, month-arithmetic, store-id-writes. For the other six - amount-collapse, contrast (both matchers), fixture-dates, rounding, sandbox-writes, trust-claims - NOTHING in the repo planted the ordinary spelling of their defect, so a gate losing it to a widened bound or a matcher going blind (U10 exactly) would be caught by nothing. The sentence was true when the harness held four recipes; rounds 3 and 4 added six more and nobody re-checked it - a CARRIED PREMISE, the same shape as T6's and N-4's false PER_LINE_OK reasons. The covered set is now READ from test-gate-plants.ts through package.json, and a matcher in neither harness FAILS this file; the six carry a sameLine plant, run second and from the ORIGINAL text because two defects at once cannot tell you which the gate saw.",
+    "file": "scripts/test-wrap-escapes.ts",
+    "token": "sameLinePlantedElsewhere",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/test-wrap-escapes.ts",
+          "find": "    sameLine: '\\nexport const __sameLiveness = (balance: number) => balance >= 0;\\n',",
+          "replace": ""
+        }
+      ],
+      "run": "test:wrap-escapes",
+      "expect": "NOTHING plants the same-line spelling"
+    }
   }
 }

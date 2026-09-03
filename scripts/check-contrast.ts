@@ -159,6 +159,18 @@ function walk(dir: string, out: string[] = []): string[] {
  * so this NARROWS an exemption rather than proving it — which is why every exemption also carries a written
  * reason a reader can check.
  */
+/**
+ * A file's source with COMMENTS BLANKED — the only text in which a token counts as painted.
+ *
+ * ⛔ A named function rather than an inline `const code = stripCommentsOnly(readFileSync(…))`, so the
+ * fix sits on a line that is not a declaration and `S1P7-U4-CONTRAST-COMMENTS` can pin it. `D3-3`'s rule
+ * refuses a token whose line declares an identifier used elsewhere, and it is right to: a declaration
+ * survives its use being deleted, which is the whole reason that check exists.
+ */
+function paintableText(file: string): string {
+  return stripCommentsOnly(readFileSync(file, 'utf8'));
+}
+
 function textUses(token: Foreground, files: string[]): string[] {
   const [group, name] = token.split('.');
   const pattern = new RegExp(String.raw`\bcolor\s*[:=]\s*\{?\s*(?:c|colors)\.${group}\.${name}\b`);
@@ -192,7 +204,7 @@ function textUses(token: Foreground, files: string[]): string[] {
      * ⚠️ `stripCommentsOnly`, not the string-blanking variant: `color="…"` spellings are real uses and
      * are checked here. Blanking is length- and line-preserving, so `lineMap` still reports the truth.
      */
-    const code = stripCommentsOnly(readFileSync(file, 'utf8'));
+    const code = paintableText(file);
     const map = lineMap(code);
     for (const m of code.matchAll(wide)) {
       hits.push(`${relative(REPO_ROOT, file).replace(/\\/g, '/')}:${map.lineAt(m.index)}`);
