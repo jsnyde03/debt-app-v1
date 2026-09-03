@@ -41,7 +41,19 @@ interface Recipe {
    * test the moment it aged past the window — a plant that quietly becomes a no-op is the `A1-4` shape
    * committed inside the harness written to prevent it.
    */
-  plant: string | (() => string);
+  plant?: string | (() => string);
+  /**
+   * ⛔ **WRAP AN EXISTING LINE, which is what Prettier actually does.** [class-1 re-audit 4 `U12`]
+   *
+   * Appending a pre-wrapped block is a proxy: it proves the gate sees a wrapped defect that was not there
+   * before. For a gate whose fix was **tolerating** a wrap — `check-finding-guards`, whose guard tokens
+   * are sentences — the discriminating plant is the opposite: take a line that is ALREADY correct and
+   * break it, and require the gate to stay green. An append cannot express that, because the unwrapped
+   * original is still sitting in the file answering for it.
+   *
+   * ⚠️ `find` must match exactly once; zero or many is a FAULT, not a verdict.
+   */
+  edit?: { find: string; replace: string };
   /** the gate must red, and its output must name this */
   reason: RegExp;
   /**
@@ -224,6 +236,27 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
     sameLine: '\nexport const __sameLiveness = (balance: number) => balance >= 0;\n',
     reason: /drift\.ts is ledgered/,
   },
+  /**
+   * ⛔ **THE TOLERANCE DIRECTION, and the only recipe that WRAPS AN EXISTING LINE.** [`U11` · `U12`]
+   *
+   * ⚡ A guard token is a sentence, and a sentence is the most wrappable thing in this repo. Measured
+   * before the fix: this exact edit — Prettier's ordinary output for a long string — took `267 → 266`
+   * guarded and printed `the guard is gone` over an assertion that was still there, in the instrument
+   * that decides whether every finding in the audit is closed, with `MAX_UNGUARDED` at 1 and no
+   * allow-list to absorb it.
+   *
+   * ⚠️ `expect: 'green'` for the reason `T1` established: the fix was TOLERANCE, so a red-only plant
+   * would score `MATCHED` against a gate reverted to per-physical-line and prove nothing.
+   */
+  'check-finding-guards.ts': {
+    target: 'apps/rn/src/store/trustSelectors.test.ts',
+    edit: {
+      find: "'⛔ B1 — Today must NOT reach the debt-free celebration')",
+      replace: "'⛔ B1 — Today must NOT reach the debt-free ' +\n      'celebration')",
+    },
+    expect: 'green',
+    reason: /the guard is gone/,
+  },
   'check-fixture-dates.ts': {
     // ⚠️ Must be TEST-SHAPED (the gate's population) and NOT clock-pinned, or the plant lands in the
     // `pinned` bucket and is reported rather than refused — a plant that cannot fail.
@@ -242,7 +275,16 @@ const wrapSensitive = readdirSync(SCRIPTS)
    * this census reproduced it: `check-trust-claims` imported `'./lib/logicalLines.ts'` and read as
    * unclassified, with its plant recipe reported as covering nothing. **Second instrument, same blindness.**
    */
-  .filter((f) => /from '\.\/lib\/logicalLines(\.ts)?'/.test(readFileSync(join(SCRIPTS, f), 'utf8')));
+  /**
+   * ⛔ **BOTH SHARED WRAP-SAFE HELPERS, not just the first one written.** [class-1 re-audit 4 `U12`]
+   *
+   * `lib/joinedCode` is the producer `check-finding-guards` moved onto for `U11` — a guard token is a
+   * sentence, and asking one physical line for it reported an intact assertion as a deleted guard. Keying
+   * this census on `logicalLines` alone would have left that gate sitting in `PER_LINE_UNREVIEWED`
+   * FOREVER, labelled "not yet looked at", after being measured, fixed and certified. A gate joins this
+   * harness by adopting EITHER helper.
+   */
+  .filter((f) => /from '\.\/lib\/(logicalLines|joinedCode)(\.ts)?'/.test(readFileSync(join(SCRIPTS, f), 'utf8')));
 
 const problems: string[] = [];
 
@@ -265,6 +307,23 @@ const PER_LINE_OK: Record<string, string> = {
   'check-comment-convention.ts': 'a comment IS a line construct — `//` runs to the newline, so the line is the subject rather than an accident of formatting.',
   'check-conflict-markers.ts': "git writes `<<<<<<<` anchored at the start of its own line; the format is line-defined, not formatter-defined.",
   'check-control-chars.ts': 'a control character is one character; the line is only how the position is reported to a human.',
+  /**
+   * ⛔ **THE FOUR BELOW WERE MEASURED, not read** — [class-1 re-audit 4 `U12`]. Three of them parse with
+   * the TypeScript compiler and never split their input at all; the fourth matches a bare identifier.
+   *
+   * ⚡ The row that used to sit above `check-native-a11y-props` called it *"the likeliest genuine member
+   * of the class here"* — and both plants, same-line and wrapped over five lines, redded. It is immune.
+   * Meanwhile `check-finding-guards`, annotated with nothing, WAS a genuine member (`U11`). ⛔ That note
+   * was written from reading, three lines below the note recording that 4 of 11 reasons written from
+   * reading turned out false.
+   */
+  'check-native-a11y-props.ts':
+    'matches a bare prop IDENTIFIER (`\\baccessibilityValue\\b`), and an identifier is the one construct a ' +
+    'formatter cannot split. Measured both directions: the prop on one line and the same prop wrapped over ' +
+    'five lines each red, naming the line.',
+  'check-a11y-collapse.ts': 'parses with `ts.createSourceFile` and never splits its input into lines — formatting is invisible to an AST by construction. Verified: 0 line splits in the file.',
+  'check-type-scale.ts': 'same — `ts.createSourceFile`, 0 line splits.',
+  'check-webkit-flex-controls.ts': 'same — `ts.createSourceFile`, 0 line splits.',
 };
 
 /**
@@ -309,19 +368,13 @@ const perLineCandidates = allGates.filter((f) => !wrapSensitive.includes(f));
 const PER_LINE_UNREVIEWED = new Set([
   // ⚠️ Added by the INVERTED census (T5): previously invisible because they do not split lines at all.
   // Listed rather than reasoned about — 4 of 11 reasons written from reading turned out false (T6, N-4).
-  'check-a11y-collapse.ts',
   'check-cap-literals.ts',
   'check-ci-chain.ts',
   'check-copy-owners.ts',
   'check-icon-glyphs.ts',
   'check-maestro-selectors.ts',
-  'check-type-scale.ts',
-  'check-webkit-flex-controls.ts',
   'check-audit-closure.ts',
-  'check-finding-guards.ts',
   'check-gate-sources.ts',
-  // ⚠️ Matches JSX props, whose VALUES wrap readily — the likeliest genuine member of the class here.
-  'check-native-a11y-props.ts',
   'check-pass-coverage.ts',
   'check-restore-doors.ts',
   'check-rn-style-divergence.ts',
@@ -339,7 +392,10 @@ const PER_LINE_UNREVIEWED = new Set([
  *
  * ⚠️ Lower it in the same edit that reviews a gate. Raising it is the defect this pin exists to catch.
  */
-const MAX_UNREVIEWED = 17;
+// ⚠️ 17 → 12 at S1.13.7.12.6 round 5 [`U12`]: four gates MEASURED immune moved into PER_LINE_OK
+// (three parse with the TypeScript compiler, one matches a bare identifier), and `check-finding-guards`
+// left by being FIXED onto lib/joinedCode - it is now in `wrapSensitive` with a recipe of its own.
+const MAX_UNREVIEWED = 12;
 
 const unreviewedSeen: string[] = [];
 const knownBlindSeen: string[] = [];
@@ -533,8 +589,20 @@ for (const gate of wrapSensitive) {
       );
       throw new Error('reason vacuous');
     }
-    const snippet = typeof recipe.plant === 'function' ? recipe.plant() : recipe.plant;
-    writeFileSync(abs, original + snippet, 'utf8');
+    let planted: string;
+    if (recipe.edit) {
+      // ⛔ `U12` — exactly one match, or the plant is measuring something nobody chose.
+      const n = original.split(recipe.edit.find).length - 1;
+      if (n !== 1) {
+        verdict = `PLANT-ANCHOR-MATCHED-${n}x`;
+        throw new Error('anchor');
+      }
+      planted = original.replace(recipe.edit.find, recipe.edit.replace);
+    } else {
+      const snippet = typeof recipe.plant === 'function' ? recipe.plant() : (recipe.plant ?? '');
+      planted = original + snippet;
+    }
+    writeFileSync(abs, planted, 'utf8');
     const applied = readFileSync(abs, 'utf8') !== original;
     const r = runGate(gate);
     const named = recipe.reason.test(r.out);
