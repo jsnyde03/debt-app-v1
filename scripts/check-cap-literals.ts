@@ -127,8 +127,13 @@ for (const rel of files) {
  * as a feature: adding a cap costs a number here, and that is the moment the addition is visible.
  */
 // ⚠️ 26 → 27 at S1.13.7.12.3c: `MAX_SERVER_ATTEMPTS` in `prove-guards.ts`, the [D78] retry cap.
-// ⚠️ 27 → 28 at S1.13.7.12.6: `MAX_JOIN` in `lib/logicalLines.ts`, the join runaway stop (class 1).
-const MIN_CAPS = 28;
+/**
+ * ⚠️ 27 → 28 at S1.13.7.12.6 for `MAX_JOIN` in `lib/logicalLines.ts`, then **28 → 27 in the same sub-step**
+ * when the class-1 re-audit's `N-1` showed the flattening it bounded was inert and the whole mechanism was
+ * deleted. ⛔ **The cap did not stop being seen — it stopped existing**, which is the one honest reason to
+ * lower a pinned count, and the gate refused the tree until this line moved.
+ */
+const MIN_CAPS = 27;
 
 if (caps !== MIN_CAPS) {
   problems.push(
