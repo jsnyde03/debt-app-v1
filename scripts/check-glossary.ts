@@ -26,6 +26,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative, basename } from 'node:path';
 
 const SEP = /[\/]/;
+import { lineMap } from './lib/logicalLines';
+
 const REPO_ROOT = join(import.meta.dirname, '..');
 const ROOTS = [join(REPO_ROOT, 'packages', 'core'), join(REPO_ROOT, 'apps', 'rn', 'src')];
 
@@ -76,11 +78,21 @@ function stripComments(src: string): string {
 }
 
 /** Quoted literals + JSX text nodes — the places a user can actually read a word. */
-function copyFragments(line: string): string[] {
-  const out: string[] = [];
+/**
+ * ⛔ **RUN OVER THE WHOLE FILE, NOT PER LINE** — [class-1 re-audit 3 · `T6`].
+ *
+ * Four of the five retired terms are **phrases** — `breathing room`, `cash buffer`, `living expenses`,
+ * `autopay · ran` — so an ordinary JSX text wrap between the two words defeated every one of them. The
+ * census row exempting this gate said *"a wrapped sentence is not a different sentence to a reader"*, which
+ * is exactly right about the reader and was false about the gate.
+ *
+ * ⚠️ These fragment patterns already cross newlines (`[^']*` and `[^<>{}]` both match one); it was the
+ * per-line application that stopped them. Offsets are returned so a hit still reports its real line.
+ */
+function copyFragments(text: string): { text: string; index: number }[] {
+  const out: { text: string; index: number }[] = [];
   for (const re of [/'[^']*'/g, /"[^"]*"/g, /`[^`]*`/g, />[^<>{}]{2,}</g]) {
-    const found = line.match(re);
-    if (found) out.push(...found);
+    for (const m of text.matchAll(re)) out.push({ text: m[0], index: m.index });
   }
   return out;
 }
@@ -94,17 +106,20 @@ for (const root of ROOTS) {
     // Core's suites are `testXxx.ts`; the app's are `*.test.ts`. Test NAMES quote retired words on
     // purpose ("exactly at the floor is not a crunch") and are not user-facing copy.
     if (base.endsWith('.test.ts') || /^test[A-Z]/.test(base)) continue;
-    const lines = stripComments(readFileSync(file, 'utf8')).split(/\r?\n/);
-    lines.forEach((line, i) => {
-      for (const frag of copyFragments(line)) {
-        for (const { pattern, word, use } of RETIRED) {
-          if (pattern.test(frag)) problems.push(`  ${rel}:${i + 1}  "${word}" → use ${use}\n      ${frag.trim().slice(0, 90)}`);
-        }
-        if (STATE_WORDS.test(frag)) {
-          problems.push(`  ${rel}:${i + 1}  "Crunch" → use GUARDIAN_STATE_LABEL (T4.5 / audit L1-7)\n      ${frag.trim().slice(0, 90)}`);
-        }
+    const code = stripComments(readFileSync(file, 'utf8'));
+    const map = lineMap(code);
+    for (const frag of copyFragments(code)) {
+      const ln = map.lineAt(frag.index);
+      // ⚠️ Whitespace inside a fragment is collapsed before matching: a phrase wrapped across lines is one
+      // phrase to the reader, and the patterns describe what the reader sees.
+      const flat = frag.text.replace(/\s+/g, ' ');
+      for (const { pattern, word, use } of RETIRED) {
+        if (pattern.test(flat)) problems.push(`  ${rel}:${ln}  "${word}" → use ${use}\n      ${flat.trim().slice(0, 90)}`);
       }
-    });
+      if (STATE_WORDS.test(flat)) {
+        problems.push(`  ${rel}:${ln}  "Crunch" → use GUARDIAN_STATE_LABEL (T4.5 / audit L1-7)\n      ${flat.trim().slice(0, 90)}`);
+      }
+    }
   }
 }
 

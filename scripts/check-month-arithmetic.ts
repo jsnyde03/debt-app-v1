@@ -31,6 +31,8 @@ const SCAN_GATE = 'month-arithmetic';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
+import { findCalls, lineMap } from './lib/logicalLines';
+
 const REPO_ROOT = join(import.meta.dirname, '..');
 const ROOTS = [
   join(REPO_ROOT, 'packages', 'core'),
@@ -107,10 +109,16 @@ const BANNED = /\.\s*(setMonth|setFullYear|setUTCMonth|setUTCFullYear)\s*\(/;
  * `new Date(d.getFullYear(), d.getMonth() + n, d.getDate())`, the original blocker, verbatim.
  *
  * ⚠️ **Named residual, not hidden:** a day pre-extracted into a variable (`const day = d.getDate()` on an
- * earlier line, then `new Date(y, m + n, day)`) is NOT matched — this is a line-based gate with no symbol
- * table. The `setMonth` family ban above still covers the common spelling, and `addMonths` remains the
- * owner. **If that shape ever appears, this needs a real parser, not a wider regex.**
+ * earlier line, then `new Date(y, m + n, day)`) is NOT matched — there is no symbol table here. The
+ * `setMonth` family ban above still covers the common spelling, and `addMonths` remains the owner.
+ * **If that shape ever appears, this needs a real parser, not a wider regex.**
+ *
+ * ⛔ **This is NO LONGER a line-based gate, and the claim that it was cost it the wrapped spelling.**
+ * [class-1 re-audit 3 · `T6`] The constructor check now runs over the whole stripped file via `findCalls`,
+ * because Prettier wraps a three-argument constructor as a matter of course and the argument list **is**
+ * the subject. Its census row had said the opposite, from reading rather than measuring.
  */
+const DATE_CTOR = /new\s+Date\s*\(/g;
 const DAY_CARRIES_SOURCE = /getDate\s*\(\s*\)/;
 
 /** Split `new Date(` arguments at top level — nested calls like `d.getMonth()` must not split. */
@@ -177,13 +185,26 @@ function scan(roots: string[], out: string[]): number {
       n++;
       const raw = readFileSync(file, 'utf8');
       const lines = raw.split(/\r?\n/);
-      scanLines(SCAN_GATE, stripCommentsAndStrings(raw))
-        .split(/\r?\n/)
-        .forEach((line, i) => {
-          if (BANNED.test(line) || constructorOverflow(line)) {
-            out.push(`${rel}:${i + 1}: ${lines[i]?.trim() ?? ''}`);
-          }
-        });
+      /**
+       * ⛔ **NOT PER PHYSICAL LINE** — [class-1 re-audit 3 · `T6`]. This gate's census row claimed the
+       * argument list *"is not part of the subject"*. **The subject IS the argument list**: the original
+       * blocker is a `new Date(y, m + 1, 0)` whose overflow lives in the arguments, and Prettier wraps a
+       * three-argument constructor as a matter of course — so the very spelling this gate exists to refuse
+       * escaped it. A written reason is a claim, and this one was believed rather than measured.
+       *
+       * ⚠️ `BANNED` matches a method NAME and is safe per line, but `constructorOverflow` reads arguments,
+       * so it runs over the whole stripped text with the offset mapped back to the real line.
+       */
+      const code = scanLines(SCAN_GATE, stripCommentsAndStrings(raw));
+      const map = lineMap(code);
+      code.split(/\r?\n/).forEach((line, i) => {
+        if (BANNED.test(line)) out.push(`${rel}:${i + 1}: ${lines[i]?.trim() ?? ''}`);
+      });
+      for (const call of findCalls(code, DATE_CTOR)) {
+        if (!constructorOverflow(`new Date(${call.args})`)) continue;
+        const ln = map.lineAt(call.index);
+        out.push(`${rel}:${ln}: ${lines[ln - 1]?.trim() ?? ''}`);
+      }
     }
   }
   return n;

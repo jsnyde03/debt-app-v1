@@ -114,6 +114,58 @@ const RECIPES: Record<string, Recipe> = {
     expect: 'green',
     reason: /outside a lookup/,
   },
+  'check-month-arithmetic.ts': {
+    target: 'packages/core/utils/percentComplete.ts',
+    // The ORIGINAL BLOCKER's own shape, wrapped: an unclamped `getDate()` carried across a month step.
+    plant: [
+      '',
+      'export const __wrapMonth = (d: Date) =>',
+      '  new Date(',
+      '    d.getFullYear(),',
+      '    d.getMonth() + 1,',
+      '    d.getDate(),',
+      '  );',
+      '',
+    ].join(String.fromCharCode(10)),
+    reason: /overflowing|month arithmetic|setMonth/i,
+  },
+  'check-glossary.ts': {
+    target: 'apps/rn/src/utils/a11y.ts',
+    // A retired PHRASE wrapped between its two words - four of the five retired terms are phrases.
+    plant: [
+      '',
+      'export const __wrapGlossary = `your breathing',
+      '  room this month`;',
+      '',
+    ].join(String.fromCharCode(10)),
+    reason: /retired word|breathing room/i,
+  },
+  'check-contrast.ts': {
+    target: 'apps/rn/src/components/plan/PaydayGuardianCard.tsx',
+    // A `color:` token use wrapped by Prettier. Unseen, the token drops out of the CHECKED SET, so a
+    // WCAG-AA failure ships behind a `never-text` exemption that is no longer true.
+    plant: [
+      '',
+      'export const __wrapContrast = {',
+      '  color:',
+      '    c.accent.brand,',
+      '};',
+      '',
+    ].join(String.fromCharCode(10)),
+    reason: /failing pair|never-text|contrast/i,
+  },
+  'check-trust-claims.ts': {
+    target: 'apps/rn/src/store/drift.ts',
+    // The ledger declares its per-file counts EXACT, so a wrapped comparison silently LEAVES the ledger.
+    plant: [
+      '',
+      'export const __wrapLiveness = (balance: number) =>',
+      '  balance',
+      '  >= 0;',
+      '',
+    ].join(String.fromCharCode(10)),
+    reason: /liveness|re-derivation/i,
+  },
   'check-fixture-dates.ts': {
     // ⚠️ Must be TEST-SHAPED (the gate's population) and NOT clock-pinned, or the plant lands in the
     // `pinned` bucket and is reported rather than refused — a plant that cannot fail.
@@ -125,7 +177,13 @@ const RECIPES: Record<string, Recipe> = {
 
 const wrapSensitive = readdirSync(SCRIPTS)
   .filter((f) => /^check-.*\.ts$/.test(f))
-  .filter((f) => /from '\.\/lib\/logicalLines'/.test(readFileSync(join(SCRIPTS, f), 'utf8')));
+  /**
+   * ⚠️ **THE EXTENSION IS OPTIONAL IN THE IMPORT** — `check-scan-floors.ts` documents this exact miss in its
+   * own header (*"`check-trust-claims.ts` imports `'./lib/stripCode.ts'` while the other ten omit it"*), and
+   * this census reproduced it: `check-trust-claims` imported `'./lib/logicalLines.ts'` and read as
+   * unclassified, with its plant recipe reported as covering nothing. **Second instrument, same blindness.**
+   */
+  .filter((f) => /from '\.\/lib\/logicalLines(\.ts)?'/.test(readFileSync(join(SCRIPTS, f), 'utf8')));
 
 const problems: string[] = [];
 
@@ -175,14 +233,6 @@ const PER_LINE_OK: Record<string, string> = {
  * ⚠️ Downward-only. An entry leaves by being FIXED, never by being re-labelled.
  */
 const PER_LINE_KNOWN_BLIND: Record<string, string> = {
-  'check-month-arithmetic.ts':
-    "T6 - the ORIGINAL BLOCKER this gate exists for is itself a wrapped `new Date(...)`, and the wrapped spelling escapes it. Its PER_LINE_OK row claimed the argument list 'is not part of the subject'; the subject is the argument list.",
-  'check-glossary.ts':
-    "T6 - Prettier's ordinary JSX text wrap splits a rendered sentence across lines, and the gate compares one physical line at a time, so the wrapped sentence is a different sentence to it and to nobody else.",
-  'check-contrast.ts':
-    'T7 - measured to let a WCAG-AA failure ship behind a `never-text` exemption when the pair is written across lines.',
-  'check-trust-claims.ts':
-    'T7 - measured a genuine class member by the same plant.',
 };
 
 const allGates = readdirSync(SCRIPTS).filter((f) => /^check-.*\.ts$/.test(f));

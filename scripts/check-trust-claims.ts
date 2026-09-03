@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { claimFields } from '../apps/rn/src/store/trustSelectors.ts';
 import { REPAIRABLE_MONEY_FIELDS } from '../apps/rn/src/data/migrations.ts';
 import { stripCommentsOnly } from './lib/stripCode.ts';
+import { lineMap } from './lib/logicalLines.ts';
 
 /**
  * ⛔ **S1.10.6.2 [pass-3 C-1] — A CLAIM ROUTE WITH NO CALLER IS DECORATION, AND ONE SHIPPED.**
@@ -431,11 +432,26 @@ if (Object.keys(OPEN).length > MAX_OPEN) {
  * it matters`"*. So they are rows, with that written into their `why`.
  */
 const LIVENESS_RE = /\bbalance\s*(?:>=?|<=?|={2,3}|!={1,2})\s*0\b/;
+const LIVENESS_G = new RegExp(LIVENESS_RE.source, 'g');
 const livenessCounts = new Map<string, number>();
+/** Where each re-derivation sits — a file name alone does not tell a reader what to open to. */
+const livenessLines = new Map<string, number[]>();
 for (const rel of files) {
   if (isTest(rel) || rel === TRUST_MODULE || !rel.startsWith('apps/rn/src/')) continue;
-  const n = (read.get(rel) ?? '').split('\n').filter((l) => LIVENESS_RE.test(l)).length;
-  if (n > 0) livenessCounts.set(rel, n);
+  /**
+   * ⛔ **COUNTED OVER THE WHOLE FILE, NOT PER LINE** — [class-1 re-audit 3 · `T7`]. The ledger below
+   * declares its per-file counts **EXACT**, and a comparison Prettier had wrapped —
+   * `balance\n  >= 0` — silently left the ledger: the count fell, the exact-match check passed on the
+   * lower number, and a re-derivation of liveness stopped being tracked. `\s*` in the pattern already
+   * crosses a newline; the `split('\n')` was the only thing preventing it.
+   */
+  const body = read.get(rel) ?? '';
+  const map = lineMap(body);
+  const at = [...body.matchAll(LIVENESS_G)].map((m) => map.lineAt(m.index));
+  if (at.length > 0) {
+    livenessCounts.set(rel, at.length);
+    livenessLines.set(rel, at);
+  }
 }
 
 /** file → how many re-derivations it holds, and what is known about them. ⛔ Counts are EXACT. */

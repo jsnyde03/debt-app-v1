@@ -32,6 +32,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 import { colors, type ColorScheme } from '../apps/rn/src/theme/colors.ts';
 
+import { lineMap } from './lib/logicalLines';
+
 const REPO_ROOT = join(import.meta.dirname, '..');
 const SRC_DIR = join(REPO_ROOT, 'apps', 'rn', 'src');
 const REPORT = process.argv.includes('--report');
@@ -158,13 +160,24 @@ function walk(dir: string, out: string[] = []): string[] {
 function textUses(token: Foreground, files: string[]): string[] {
   const [group, name] = token.split('.');
   const pattern = new RegExp(String.raw`\bcolor\s*[:=]\s*\{?\s*(?:c|colors)\.${group}\.${name}\b`);
+  /**
+   * ⛔ **NOT PER PHYSICAL LINE** — [class-1 re-audit 3 · `T7`]. The pattern's own `\s*` already crosses a
+   * newline; applying it per line was the only thing stopping it. Measured: `{ color: c.accent.brand }`
+   * on one line **reds**, the same prop wrapped by Prettier **exits 0**, and so does a ternary split across
+   * lines — so a **WCAG-AA failure ships** behind a token the gate never saw used as text.
+   *
+   * ⚠️ This gate's population is *"which tokens are actually rendered as text"*, so a missed use does not
+   * merely lose a hit: the token drops out of the checked set entirely.
+   */
+  const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
+  const wide = new RegExp(pattern.source, flags);
   const hits: string[] = [];
   for (const file of files) {
-    readFileSync(file, 'utf8')
-      .split(/\r?\n/)
-      .forEach((line, i) => {
-        if (pattern.test(line)) hits.push(`${relative(REPO_ROOT, file).replace(/\\/g, '/')}:${i + 1}`);
-      });
+    const code = readFileSync(file, 'utf8');
+    const map = lineMap(code);
+    for (const m of code.matchAll(wide)) {
+      hits.push(`${relative(REPO_ROOT, file).replace(/\\/g, '/')}:${map.lineAt(m.index)}`);
+    }
   }
   return hits;
 }
