@@ -3622,7 +3622,9 @@
         }
       ],
       "run": "lint:finding-guards",
-      "expect": "the guard is gone from apps/rn/src/store/trustSelectors.test.ts"
+      "expect": "the guard is gone from apps/rn/src/store/trustSelectors.test.ts",
+      "measured": "2026-09-03",
+      "sha": "34d17e5e"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -3658,7 +3660,7 @@
       "run": "test:plant-safety",
       "expect": "the pre-flight names the file it recovered",
       "measured": "2026-09-03",
-      "sha": "36819c58"
+      "sha": "34d17e5e"
     }
   },
   "S1P7-U16-SAMELINE-DERIVED": {
