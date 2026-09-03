@@ -33,6 +33,8 @@ import { join, extname, relative } from 'node:path';
 import { colors, type ColorScheme } from '../apps/rn/src/theme/colors.ts';
 
 import { lineMap } from './lib/logicalLines';
+// ⛔ `U4` — a comment was painting a token. Every sibling gate in this class strips first.
+import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 const SRC_DIR = join(REPO_ROOT, 'apps', 'rn', 'src');
@@ -173,7 +175,24 @@ function textUses(token: Foreground, files: string[]): string[] {
   const wide = new RegExp(pattern.source, flags);
   const hits: string[] = [];
   for (const file of files) {
-    const code = readFileSync(file, 'utf8');
+    /**
+     * ⛔ **COMMENTS ARE BLANKED FIRST — a COMMENT was painting a token.** [class-1 re-audit 4 `U4`]
+     *
+     * ⚡ Measured: `// A doc comment that merely NAMES the banned pairing: color: c.accent.brand` reds
+     * this gate with `✗ exemption broken … is painted as a foreground at PaydayGuardianCard.tsx:727`,
+     * over code that paints nothing. And `T7`'s whole-file migration WIDENED it — the word `color:` in a
+     * comment on one line and the real token on the NEXT now join across the newline, which the previous
+     * per-line matcher could not do. Control: reword the comment and the gate is green.
+     *
+     * ⛔ This is the noisy direction, and it has no escape route: no cap, no allow-list. The exemption's
+     * own stated mechanism is *"the first `color:` CONSUMER that appears fails the gate"* — and a comment
+     * is not a consumer. `stripCode.ts`'s header states the general rule: *a guard that reds on its own
+     * documentation gets deleted rather than obeyed.*
+     *
+     * ⚠️ `stripCommentsOnly`, not the string-blanking variant: `color="…"` spellings are real uses and
+     * are checked here. Blanking is length- and line-preserving, so `lineMap` still reports the truth.
+     */
+    const code = stripCommentsOnly(readFileSync(file, 'utf8'));
     const map = lineMap(code);
     for (const m of code.matchAll(wide)) {
       hits.push(`${relative(REPO_ROOT, file).replace(/\\/g, '/')}:${map.lineAt(m.index)}`);
