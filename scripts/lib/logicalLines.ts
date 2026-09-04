@@ -131,3 +131,41 @@ export function enclosingCall(code: string, index: number): { callee: string; st
   }
   return null;
 }
+
+/**
+ * ⛔ **THE TEXT AFTER A CALL, LOOKING THROUGH ANY *GROUPING* PARENTHESES THAT CLOSE AROUND IT.**
+ * [class-1 re-audit 5 `V1`]
+ *
+ * ⚡ `(parseAmountField(amount)) ?? 0` was invisible to `check-amount-collapse`: `findCalls` returns the
+ * INNER `)`, and the gate's `AFTER` regex is anchored, so it saw `) ?? 0` and refused to match. One
+ * ordinary pair of parentheses — the kind a formatter or a type assertion leaves behind — and the whole
+ * `D1-3` family walks past.
+ *
+ * ⚠️ **A GROUPING paren only, and the distinction is the whole reason this is a walk and not `[\s)]*`.**
+ * `wrapper(parse(x)) ?? 0` collapses *wrapper's* result, not the parsed amount, and reporting it would be
+ * the noisy direction — which these gates have no escape route for: cap 0, no allow-list. So each `)` is
+ * matched back to its `(`, and the walk stops the moment that `(` turns out to belong to a callee.
+ */
+export function afterEnclosingGroups(code: string, argsEnd: number): string {
+  const structure = stripCommentsAndStrings(code);
+  let i = argsEnd + 1;
+  for (;;) {
+    while (i < structure.length && /\s/.test(structure[i])) i++;
+    if (structure[i] !== ')') break;
+    let depth = 0;
+    let j = i;
+    for (; j >= 0; j--) {
+      if (structure[j] === ')') depth++;
+      else if (structure[j] === '(') {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    if (j < 0) break; // unbalanced — do not guess
+    const before = /\S$/.exec(structure.slice(0, j))?.[0] ?? '';
+    // ⛔ `foo(`, `x[0](`, `f()(` — an identifier, `]` or `)` before the paren means it is a CALL.
+    if (/[\w$\])]/.test(before)) break;
+    i++;
+  }
+  return code.slice(i);
+}

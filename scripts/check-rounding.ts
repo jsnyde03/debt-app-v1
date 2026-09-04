@@ -34,7 +34,7 @@ import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 import { stripCommentsOnly } from './lib/stripCode';
-import { findCalls, lineMap } from './lib/logicalLines';
+import { afterEnclosingGroups, findCalls, lineMap } from './lib/logicalLines';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -63,7 +63,7 @@ const SCAN_GATE = 'rounding';
  * written for.
  */
 /** `Math.round(` — `findCalls` balances the rest, so nothing about the argument's shape is assumed. */
-const ROUND_CALL = /Math\.round\s*\(/g;
+const ROUND_CALL = /Math\.round\s*(?:\?\.)?\s*\(/g;
 /** The argument must END in `* 100` (Prettier may leave a trailing comma when it wraps). */
 const ARG_TAIL = /\*\s*100\s*,?\s*$/;
 /** …and the call must be divided by 100 immediately after. */
@@ -101,7 +101,9 @@ for (const rel of tracked) {
    */
   for (const call of findCalls(code, ROUND_CALL)) {
     if (!ARG_TAIL.test(call.args)) continue;
-    if (!AFTER_ROUND.test(code.slice(call.argsEnd + 1))) continue;
+    // ⛔ `V1` — through GROUPING parens only, so `(Math.round(x * 100)) / 100` is seen while
+    // `wrapper(Math.round(x * 100)) / 100` — which divides wrapper's result — still is not.
+    if (!AFTER_ROUND.test(afterEnclosingGroups(code, call.argsEnd))) continue;
     const text = code.slice(call.index, call.argsEnd + 1).replace(/\s+/g, ' ').trim();
     sites.push(`${rel}:${lines.lineAt(call.index)}: ${text.slice(0, 100)} / 100`);
   }

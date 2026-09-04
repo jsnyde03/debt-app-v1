@@ -123,13 +123,39 @@ function imminentDate(): string {
  * uncommitted fix along with the plant.
  */
 const RECIPES: Record<string, Recipe | Recipe[]> = {
-  'check-amount-collapse.ts': {
-    target: 'packages/core/utils/percentComplete.ts',
-    plant: '\nexport const __wrapEscape = (raw: string) =>\n  parseAmountField(\n    raw,\n  ) ?? 0;\n',
-    sameLine: '\nexport const __sameEscape = (raw: string) => parseAmountField(raw) ?? 0;\n',
-    reason: /collapses a parsed amount to 0/,
-  },
-  'check-rounding.ts': {
+  /**
+   * ⛔ **THREE RECIPES, and the third is the one `U1`'s own remedy asked for and did not get.** [`V1`]
+   *
+   * ⚡ `R5` → `T3` → `U1`: an interpolated collapse survived **three** close/re-open cycles, and the fix
+   * that finally held was guarded by nothing — measured, all 51 gates green with it disabled. `U1` wrote
+   * *"add a `${…}`-shaped plant recipe for both money gates, since neither current recipe would have
+   * caught this"*; that half was skipped because round 5's guards were scoped from the finding LIST, and
+   * `U1` had already left it by being fixed in the round's first commit.
+   */
+  'check-amount-collapse.ts': [
+    {
+      target: 'packages/core/utils/percentComplete.ts',
+      plant: '\nexport const __wrapEscape = (raw: string) =>\n  parseAmountField(\n    raw,\n  ) ?? 0;\n',
+      sameLine: '\nexport const __sameEscape = (raw: string) => parseAmountField(raw) ?? 0;\n',
+      reason: /collapses a parsed amount to 0/,
+    },
+    {
+      target: 'packages/core/utils/percentComplete.ts',
+      // The interpolation, wrapped — `R5`'s shape after a formatter has been at it.
+      plant: '\nexport const __interpEscape = (raw: string) =>\n  `x${\n    parseAmountField(raw) ?? 0\n  }y`;\n',
+      sameLine: '\nexport const __interpSame = (raw: string) => `x${parseAmountField(raw) ?? 0}y`;\n',
+      reason: /collapses a parsed amount to 0/,
+    },
+  ],
+  /** ⛔ `V1` — the interpolated spelling here too; `R5` was invisible to BOTH money gates, not one. */
+  'check-rounding.ts': [
+    {
+      target: 'packages/core/utils/percentComplete.ts',
+      plant: '\nexport const __interpRound = (x: number) =>\n  `v${\n    Math.round(x * 100) / 100\n  }`;\n',
+      sameLine: '\nexport const __interpRoundSame = (x: number) => `v${Math.round(x * 100) / 100}`;\n',
+      reason: /inline money-rounding expressions; the cap is/,
+    },
+    {
     target: 'packages/core/utils/percentComplete.ts',
     plant: '\nexport const __wrapEscape2 = (x: number) =>\n  Math.round(\n    x * 100,\n  ) / 100;\n',
     sameLine: '\nexport const __sameEscape2 = (x: number) => Math.round(x * 100) / 100;\n',
@@ -139,8 +165,9 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
      * discriminator is the red branch's own sentence — the green path prints `(cap 94, downward-only)`.
      * Measured: blind leaves 94 and exits 0; seeing the wrapped `Math.round(` leaves 95 and prints this.
      */
-    reason: /inline money-rounding expressions; the cap is/,
-  },
+      reason: /inline money-rounding expressions; the cap is/,
+    },
+  ],
   'check-sandbox-writes.ts': {
     target: 'apps/rn/src/utils/a11y.ts',
     plant: "\nimport {\n  appStore,\n} from '../store/appStore';\nexport const __wrapEscape3 = appStore;\n",

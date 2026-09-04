@@ -33,7 +33,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
-import { findCalls, lineMap } from './lib/logicalLines';
+import { afterEnclosingGroups, findCalls, lineMap } from './lib/logicalLines';
 import { stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -53,8 +53,17 @@ const SCAN_GATE = 'amount-collapse';
 const SELF = new Set(['scripts/check-amount-collapse.ts', 'scripts/test-wrap-escapes.ts']);
 
 /** The callee plus its opening paren — `findCalls` balances the rest, so no bound is guessed. */
-const PARSER_CALL = /\b(?:parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*\(/g;
-/** What must follow the call's closing paren for it to be a collapse. */
+/**
+ * ⛔ **`?.(` AND A GENERIC ARGUMENT LIST ARE THE SAME CALL** — [class-1 re-audit 5 `V1`].
+ *
+ * `U1` named both spellings and the pattern was left byte-identical, so `parseAmountField?.(amount) ?? 0`
+ * and `parseAmountField<number>(amount) ?? 0` each printed `✅ amount-collapse: 0 site(s)`.
+ * ⚠️ **`f?.(x)` is valid TypeScript on a NON-nullable callee and compiles today**, which made it a live
+ * one-character un-fix route for the whole `D1-3` family.
+ */
+const PARSER_CALL =
+  /\b(?:parseAmountField|parseNonNegativeAmount|parseOptionalAmount)\s*(?:<[^<>()]*>)?\s*(?:\?\.)?\s*\(/g;
+/** What must follow the call's closing paren — and any GROUPING parens around it (`V1`) — to be a collapse. */
 const AFTER = /^\s*\?\?\s*0\b/;
 
 /**
@@ -148,7 +157,11 @@ for (const rel of tracked) {
    * that is not a thing to approximate.
    */
   for (const call of findCalls(code, PARSER_CALL)) {
-    if (!AFTER.test(code.slice(call.argsEnd + 1))) continue;
+    // ⛔ `V1` — `(parseAmountField(x)) ?? 0` put a `)` between the call and the `??`, and `AFTER` is
+    // anchored. `afterEnclosingGroups` looks through GROUPING parens only, so `wrapper(parse(x)) ?? 0`
+    // still does not match — that collapses wrapper's result, and reporting it would be the noisy
+    // direction, which this gate has no escape route for.
+    if (!AFTER.test(afterEnclosingGroups(code, call.argsEnd))) continue;
     const m = { index: call.index, 0: `${code.slice(call.index, call.argsEnd + 1)} ?? 0` } as unknown as RegExpMatchArray;
     found.push(rel);
     perFile.set(rel, [...(perFile.get(rel) ?? []), norm(m[0])]);

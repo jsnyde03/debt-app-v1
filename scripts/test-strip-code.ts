@@ -24,6 +24,7 @@
  * at once. Asserted on every case, in both directions.
  */
 import { stringLiterals, stripCommentsAndStrings, stripCommentsOnly } from './lib/stripCode';
+import { findCalls } from './lib/logicalLines';
 
 let passed = 0;
 const failures: string[] = [];
@@ -148,6 +149,49 @@ check(
   check(
     stringLiterals('// a comment with a lone apostrophe: don' + q + '\nconst b = ' + q + 'real' + q + ';').length === 1,
     'stringLiterals: a quote inside a COMMENT opens nothing — the scanner knows which construct it is in',
+  );
+}
+
+// ── `${…}` IS CODE, and it is the defect with the worst recurrence record here ──────────────────────
+/**
+ * ⛔ **`R5` → `T3` → `U1`: THREE CLOSE/RE-OPEN CYCLES, AND THE FIX THAT FINALLY HELD WAS GUARDED BY
+ * NOTHING.** [class-1 re-audit 5 `V1`]
+ *
+ * ⚡ A money defect written inside a template interpolation — `` `${parseAmountField(a) ?? 0}` `` — was
+ * invisible to **both** money gates, because the scanner blanked interpolations as string content. Twelve
+ * lines in `stripCode.ts` fixed it. ⛔ **Measured: disable those twelve lines and all 51 gates stay
+ * green** — `lint:strip-code`, `lint:amount-collapse`, `lint:rounding`, `lint:glossary`, every one a ✅.
+ *
+ * The `MULTILINE` fixture above contains an interpolation and asserts only length and line-count
+ * preservation over it, which the un-fix does not change. So the property itself is asserted here: the
+ * text between `${` and its matching `}` is **code**, in both exports, and a call written there is
+ * findable.
+ */
+{
+  const src = 'const s = `x${parseAmountField(a) ?? 0}y`;';
+  // ⛔ Both exports: A&S blanks string CONTENT, and an interpolation is not string content.
+  check(
+    stripCommentsAndStrings(src).includes('parseAmountField(a) ?? 0'),
+    'A&S: a `${…}` interpolation survives as CODE — this is R5/T3/U1, three close/re-open cycles',
+  );
+  check(
+    stripCommentsOnly(src).includes('parseAmountField(a) ?? 0'),
+    'ONLY: …and survives there too',
+  );
+  // ⛔ The consumer-level property, because the gates call `findCalls`, not the stripper.
+  check(
+    findCalls(src, /\bparseAmountField\s*\(/g).length === 1,
+    'findCalls finds a call written inside an interpolation — the gates ask it, not the scanner',
+  );
+  // ⚠️ The surrounding TEXT is still string content, or this would be over-restoring.
+  check(
+    !stripCommentsAndStrings('const s = `hello ${a} there`;').includes('hello'),
+    'A&S still blanks the template TEXT around an interpolation — the fix is scoped, not a retreat',
+  );
+  // ⛔ Nested braces inside the expression must not end the interpolation early.
+  check(
+    stripCommentsAndStrings('const s = `${ {a: parseAmountField(x) ?? 0} }`;').includes('parseAmountField(x) ?? 0'),
+    'an object literal inside the interpolation does not close it early — depth is tracked',
   );
 }
 

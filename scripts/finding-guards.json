@@ -3680,5 +3680,21 @@
       "measured": "2026-09-03",
       "sha": "112fe64b"
     }
+  },
+  "S1P7-U1-INTERPOLATION-IS-CODE": {
+    "what": "S1.13.7.12.6 [class-1 re-audit 1 R5, re-audit 3 T3, re-audit 4 U1, re-audit 5 V1] - a money defect written inside a template interpolation was invisible to BOTH money gates, because the shared scanner blanked interpolations as string content. THREE close/re-open cycles: filed in re-audit 1, closed in round 3, re-opened in round 4, closed for real in round 5 by 12 lines in lib/stripCode.ts. >>> AND THOSE 12 LINES WERE GUARDED BY NOTHING: measured, disable them and all 51 gates stay green - lint:strip-code, lint:amount-collapse, lint:rounding and lint:glossary every one a tick. The defect with the worst recurrence record in the cluster carried the weakest instrument. ROOT CAUSE OF THE GAP, and it is a method finding: round 5's 11 guards were scoped from round 4's FINDING LIST, and U1 had already left that list by being fixed in the round's FIRST commit - which is also the commit the re-audit brief's own range excluded. A round's guards must be derived from its DIFF. V1 also measured three spellings still blind and now closed: parseAmountField?.(a) ?? 0 (valid TypeScript on a non-nullable callee, so a one-character un-fix route for the whole D1-3 family), parseAmountField<number>(a) ?? 0, and (parseAmountField(a)) ?? 0 - the last needing afterEnclosingGroups, which walks out through GROUPING parens only so that wrapper(parse(x)) ?? 0 is still not reported.",
+    "file": "scripts/test-strip-code.ts",
+    "token": "interpolation survives as CODE",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/lib/stripCode.ts",
+          "find": "        if (quote === '`' && src[i] === '$' && src[i + 1] === '{') {",
+          "replace": "        if (false && quote === '`' && src[i] === '$' && src[i + 1] === '{') {"
+        }
+      ],
+      "run": "lint:strip-code",
+      "expect": "interpolation survives as CODE"
+    }
   }
 }
