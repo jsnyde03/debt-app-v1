@@ -31677,3 +31677,84 @@ the un-fix reverts `presentInCode`, the recipe wraps `S1-M9-GUARDIAN`'s token in
 un-fixes · a crash-instead-of-fail assertion · and the four gate breaks. **Every one found by an
 instrument, none by reading** — a sixth consecutive round of that result, and the reason re-audit 5 is
 run by a fresh agent rather than by the session that wrote the fixes.
+
+---
+
+## S1.13.7.12.6 · class 1, ROUND 6 — 2026-09-03/04
+
+**Re-audit 5 (fresh auditor) returned 66 of 67 prior findings CLOSED and 12 new: 1 blocker · 5 major ·
+6 minor.** ⭐ **`R5` and `T3` — three close/re-open cycles — are genuinely closed at last.** All 12 fixed,
+each proven by plant with `cmp`-verified restores. `lint:rn` **51 → 52**.
+
+### ⛔ `V4` (blocker) — the fix for `U15` DESTROYED UNCOMMITTED WORK
+
+Measured on a real orphan, not a synthetic one. `prove:guards` was killed mid-proof; its signal handler
+worked, so the tracked file came back CLEAN and only the sidecar was orphaned. One ordinary edit later the
+**production** pre-flight overwrote `percentComplete.ts` (2300 → 2217 bytes), reported it `recovered`, and
+deleted the sidecar in the same pass. **83 bytes of uncommitted work, gone from everywhere** — in a gate
+chained into `lint:rn` and `validate:release:rn`.
+
+⚡ **The root error, stated precisely:** `U15` inferred *"this file is planted"* from *"a sidecar exists and
+the file differs from it"*, and **those are not the same proposition** — a plant, a `git pull`, an editor
+save and a rebase satisfy it identically. The liveness marks separated a LIVE plant from an ABANDONED one;
+nothing separated an abandoned plant from an abandoned sidecar beside a file that needed nothing.
+
+Recovery now requires **two independent facts**: the target is DIRTY against `HEAD`, **and** its bytes are
+the plant `notePlant` recorded making. Anything else is **refused** — loudly, both files untouched, the
+sidecar kept because it is the only record. A refusal is FATAL in both callers. *A refusal costs a human one
+command; a wrong restore costs work that no longer exists anywhere.*
+
+### The other eleven
+
+| id | what it was |
+|---|---|
+| `V1` | **The fix with the worst recurrence record was guarded by nothing** — disable 12 lines and all 51 gates stay green. Three blind spellings closed, incl. `parseAmountField?.(a) ?? 0`, valid TS and therefore a **one-character un-fix route for the whole `D1-3` family** |
+| `V3` | `U2`'s JSX line bound **re-opened `T6`** — a two-line text node carries THREE newlines, so the bound rejected the shape its docblock said it admitted. 8 blocks of shipped prose were out of the population |
+| `V5` | `U4` recurred at `check-contrast`'s SECOND matcher **inside the same round** — `U10` migrated it without stripping |
+| `V6` | `U8`'s pin was satisfied by a **decoy string literal**; `D1-1` and `D1-2` each re-opened green in two edits. `N-3`'s mechanism at its **fifth** recurrence |
+| `V7` | A block comment opened **MID-LINE** satisfied a DELETED guard — and the file's own header claimed block state was tracked, not guessed |
+| `V8` | `clampedDay()` exempted any call, so `Math.max(1, d.getDate())` — which guards the wrong bound — passed |
+| `V9` | `U9`'s exemption was keyed on the NAME `seed`, so three real defect spellings went invisible |
+| `V10` | The `MIN_ENTRIES` ledger note was off by **eleven** |
+| `V11` | `U16`'s check was per-GATE over a per-MATCHER population — `U10`'s mistake, latent |
+| `V12` | The census's certified bucket had none of the three ratchets its siblings had |
+| `V2` | *(minor, folded into `U2`'s neighbourhood)* |
+
+### ⛔ Round 6's own defects: four, every one caught by an instrument or a failing control
+
+- **15 `.plant-hash` sidecars were COMMITTED** in `ab8cdf91`. `V4` added the fingerprint and
+  `restoreArmed` removed the backup and the owner mark and **not the hash**, so they accumulated until a
+  `git add -A` swept them — ⛔ **the same path that committed a live plant earlier in this cluster.**
+  ⚠️ Gitignoring them is the WRONG fix: the pre-flight finds abandoned sidecars through
+  `--untracked-files=all`, which does not list ignored files. Being **tracked** is what reds now.
+- **`V12`'s first control did not red**, and that exposed a second defect: the summary counted
+  `Object.keys(PER_LINE_OK)` while the check counted gates SEEN, so a row naming a nonexistent gate was
+  invisible to both.
+- **`V9`'s first repair was still wrong** — a name-keyed exempt SET let a second `seed` in a nested scope
+  inherit the sanctioned binding's exemption. Caught by the rows just written for it.
+- **`U15`'s proof crashed rather than failed** (`planted=exit 7`) because `V4` changed the return shape.
+  Second instance this cluster of *a plant that throws past the assertion*, so the verdict is about the
+  crash. Same as `U2`'s earlier.
+
+### ⭐ `S5-DEADLOCK` closed early, and BOTH ceilings had it
+
+Filed to class 2 last round; closed here because it blocked class 1 **twice a round** and the workaround
+IS the defect. Past either ceiling `lint:finding-guards` is red, `prove:guards` requires a GREEN control, so
+every proof whose run reads the ledger becomes unprovable — **8 of 9 drains failed in one pass.** The escape
+was raising a ratchet by hand, which the gate's own text calls *"the defect this pair exists to catch"*.
+
+⛔ **The second ceiling was found by fixing the first and watching the identical failure arrive one cap
+over.** `PROVE_GUARDS_DRAINING` exempts exactly those two problems, only inside a `prove:guards` process
+tree, and still prints. CI sets nothing.
+
+⭐ **And the property that makes a drain terminate: its final commit must touch NO gate file.** Otherwise it
+re-stales what it just proved. 19 proofs re-recorded across this round, all MATCHED.
+
+### ⚡ The method correction, which outranks any single fix
+
+**A round's guards must be derived from its DIFF, not from its finding list.** `V1` exists because round 5's
+guards were scoped from re-audit 4's list, and `U1` had already left that list by being fixed in the round's
+FIRST commit — which is also the commit the re-audit brief's own range excluded. The most-recurring defect
+in the cluster ended up with no guard at all, by a bookkeeping accident.
+
+**Boundary: 52/52 gates · `test:app` · `test:regression` · typecheck 0 · ledger 151 EXECUTED / 2 stale.**
