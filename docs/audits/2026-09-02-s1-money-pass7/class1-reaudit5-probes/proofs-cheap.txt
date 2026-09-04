@@ -1,0 +1,11 @@
+  ✅ S1P7-U7-VERDICT-MARK       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-U2-STRING-EXTENTS     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-U4-CONTRAST-COMMENTS  plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-U6-CLAMPED-DAY        plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-U8-COMPOSITION-PINNED plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-U9-SEED-CLOSURE       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-U11-WELDED-TOKEN      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-U15-PLANT-SAFETY      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+
+✅ prove:guards — 8 guard(s) red on their own defect, and the control is green.
+

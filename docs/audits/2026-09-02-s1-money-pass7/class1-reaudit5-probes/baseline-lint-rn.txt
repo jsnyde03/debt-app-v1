@@ -1,0 +1,702 @@
+
+> debt-app-v1@1.6.0 lint:rn
+> tsx scripts/run-gates.ts
+
+
+[1m── eslint (apps/rn) ──────────────────────────────────────────────────────[0m
+
+> debt-planner-rn@0.1.0 lint
+> eslint . --max-warnings=0
+
+
+[1m── lint:a11y-props ───────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:a11y-props
+> tsx scripts/check-native-a11y-props.ts
+
+✅ native a11y props: 7 dropped-by-RNW + 1 owned-by-a-helper + bare announce() across 5 baselined file(s) guarded, none outside the declared exemptions. [read 76324 lines, floor 66961]
+
+[1m── lint:comments ─────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:comments
+> tsx scripts/check-comment-convention.ts
+
+✅ comment convention: no meta-commentary, no counts of code.
+
+[1m── lint:rn-style ─────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:rn-style
+> tsx scripts/check-rn-style-divergence.ts
+
+✅ RN style divergence: no border ≥ 100pt is missing its clip.
+
+[1m── lint:local-dates ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:local-dates
+> tsx scripts/check-local-dates.ts
+
+✅ local dates: no UTC round-trips outside packages\core\utils\localDate.ts · 43/43 hand-written local parses (pinned, both directions). [read 52159 lines, floor 46223]
+
+[1m── lint:month-arithmetic ─────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:month-arithmetic
+> tsx scripts/check-month-arithmetic.ts
+
+
+⚠️  legacy tree (98 files, P6.11 deletes it): 2 unconverted site(s), reported not failed:
+   components\AmortizationCalendar.tsx:24: base.setMonth(base.getMonth() + monthOffset);
+   components\Onboarding\FirstDebtOrBillStep.tsx:15: d.setMonth(d.getMonth() + 1);
+✅ month arithmetic: 707 files, no setMonth/setUTCMonth/setFullYear/setUTCFullYear and no overflowing `new Date(y, m±n, day)` outside packages\core\utils\addMonths.ts. [read 74418 lines, floor 63669]
+
+[1m── lint:copy ─────────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:copy
+> tsx scripts/strings-inventory.ts --gate
+
+✅ duplicate copy: no new cross-file phrases (3 baselined).
+
+[1m── lint:glossary ─────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:glossary
+> tsx scripts/check-glossary.ts
+
+✅ glossary: no retired words in copy (6 banned). [read 26611 lines, floor 24467]
+
+[1m── lint:money ────────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:money
+> tsx scripts/check-money-format.ts
+
+✅ money-format: no hand-rolled currency formatters (4 shapes checked). [read 26073 lines, floor 23983]
+
+[1m── lint:apostrophes ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:apostrophes
+> tsx scripts/check-apostrophes.ts
+
+✅ apostrophes: no new straight-apostrophe copy (0 baselined). [read 1052 lines, floor 981]
+
+[1m── lint:closure ──────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:closure
+> tsx scripts/check-audit-closure.ts
+
+✅ [D37]: all 55 high+ findings trace to a closure or a recorded refutation.
+   ⚠️ …but 55 of 55 trace ONLY by an unmarked mention (cap 55, downward-only). 0 carry an explicit `[closes: …]` token.
+📋 P6.8 sweep: 39 of 87 high+ findings are named in NO CLOSURE ledger (plan · log · refutations). Report-only until P6.8.9 — see the note in this file.
+   ⚠️ The audit's own SYNTHESIS is deliberately NOT counted (D-J2-5) — a finding is closed by a line in the plan or log naming its LENS id, not by the audit that raised it.
+   ⚠️ Of the 48 that DO trace, 48 trace only by an unmarked mention (cap 48, downward-only) — a mention is not a closure.
+📋 P6.4 owns 62 findings (41 minor · 21 polish) — 0 of them are named in no ledger. Full inventory: REMAINING.md (regenerate with --remaining).
+
+[1m── lint:destructive ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:destructive
+> tsx scripts/check-destructive-writes.ts
+
+✅ wholesale overwrite: 7/7 `importStore` sites sanctioned across 6 files, none unaccounted for; 1 destructive-order rule(s) hold.
+
+[1m── lint:sandbox ──────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:sandbox
+> tsx scripts/check-sandbox-writes.ts
+
+✅ lint:sandbox — 24 sanctioned appStore consumers, no unsanctioned ones.
+
+[1m── lint:secrets ──────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:secrets
+> tsx scripts/check-committed-secrets.ts
+
+✅ committed secrets: none across 1594 tracked files in index+HEAD (4 shapes checked, 2 exemption(s), cap 2).
+
+[1m── lint:selectors ────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:selectors
+> tsx scripts/check-maestro-selectors.ts
+
+
+ℹ️  124 bare text selector(s). Composed-label components exist here, so a bare
+   string only matches a node whose ENTIRE text it is:
+     apps/rn/src/components/entities/AddObligationSheet.tsx
+     apps/rn/src/components/more/SettingRow.tsx
+     apps/rn/src/components/plan/CoachMarkLayer.tsx
+     apps/rn/src/components/plan/SpokenForSheet.tsx
+✅ maestro selectors: 14 flows · 140 testIDs known · no stale ids or copy.
+
+[1m── lint:coverage ─────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:coverage
+> tsx scripts/coverage-split.ts --gate
+
+✅ coverage gate: 146 checks, 46 claims, no structural defects.
+
+[1m── lint:s0-coverage ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:s0-coverage
+> tsx scripts/surface-coverage.ts --surface=s0
+
+✅ s0-coverage: 135 surface files classified · 60 unswept.
+     unswept: apps/rn/app.json
+     unswept: apps/rn/eslint.config.mjs
+     unswept: apps/rn/src/data/migrationAudit/cutoverFiles.test.ts
+     unswept: apps/rn/src/data/migrationAudit/interruption.test.ts
+     unswept: apps/rn/src/testing/runScenarioTests.ts
+     unswept: apps/rn/src/testing/scenarios/guardianColdStartLifecycle.scenario.ts
+     unswept: apps/rn/tests/shots/add-chooser.shot.ts
+     unswept: apps/rn/tests/shots/demo-beats.shot.ts
+     unswept: apps/rn/tests/shots/explore-demo.shot.ts
+     unswept: apps/rn/tests/shots/floor-impact.shot.ts
+     unswept: apps/rn/tests/shots/guardian-spacing.shot.ts
+     unswept: apps/rn/tests/shots/misfiled-hint.shot.ts
+     unswept: apps/rn/tests/shots/money-sections.shot.ts
+     unswept: apps/rn/tests/shots/p6.8-a11y.shot.ts
+     unswept: apps/rn/tests/shots/phase35-themes.shot.ts
+     unswept: packages/core/testing/assertNumeric.ts
+     unswept: packages/core/testing/seedPlannerState.ts
+     unswept: packages/core/testing/simSmokeSeed.ts
+     unswept: packages/core/testing/testAbuseScenarios.ts
+     unswept: packages/core/testing/testAprMath.ts
+     unswept: packages/core/testing/testCadenceIdentity.ts
+     unswept: packages/core/testing/testDebtMathRegression.ts
+     unswept: packages/core/testing/testDemoModeSeed.ts
+     unswept: packages/core/testing/testFinalLaunchRegression.ts
+     unswept: packages/core/testing/testForecastRegression.ts
+     unswept: packages/core/testing/testFullAppRegression.ts
+     unswept: packages/core/testing/testMultiCycleTimelineRegression.ts
+     unswept: packages/core/testing/testPlannerStateHardening.ts
+     unswept: packages/core/testing/testRecommendedActionsRegression.ts
+     unswept: packages/core/testing/testSafeStorage.ts
+     unswept: packages/core/testing/testStressScenarios.ts
+     unswept: packages/core/testing/testSubscriptionGating.ts
+     unswept: packages/core/testing/testTextDateDoors.ts
+     unswept: packages/core/testing/testTimelineRegression.ts
+     unswept: packages/core/testing/testV11Regression.ts
+     unswept: scripts/audit-sublanes.ts
+     unswept: scripts/check-amount-collapse.ts
+     unswept: scripts/check-conflict-markers.ts
+     unswept: scripts/check-fixture-dates.ts
+     unswept: scripts/check-pass-coverage.ts
+     unswept: scripts/check-rounding.ts
+     unswept: scripts/check-runner-completeness.ts
+     unswept: scripts/check-store-id-writes.ts
+     unswept: scripts/collect-lane-diagnostics.mjs
+     unswept: scripts/compare-ios-screenshots.mjs
+     unswept: scripts/conform-app-preview.sh
+     unswept: scripts/lib/guardBuckets.ts
+     unswept: scripts/lib/importGraph.ts
+     unswept: scripts/lib/joinedCode.ts
+     unswept: scripts/lib/logicalLines.ts
+     unswept: scripts/lib/moneyClaim.ts
+     unswept: scripts/lib/plantSafety.ts
+     unswept: scripts/maestro-results.mjs
+     unswept: scripts/preflight-xcuitest-target.ts
+     unswept: scripts/record-reads.ts
+     unswept: scripts/surface-inventory.ts
+     unswept: scripts/test-conform-assertions.sh
+     unswept: scripts/test-import-graph.ts
+     unswept: scripts/test-plant-safety.ts
+     unswept: scripts/test-wrap-escapes.ts
+
+[1m── lint:s1-coverage ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:s1-coverage
+> tsx scripts/surface-coverage.ts --surface=s1
+
+✅ s1-coverage: 495 surface files classified · 0 unswept.
+
+[1m── lint:s2-coverage ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:s2-coverage
+> tsx scripts/surface-coverage.ts --surface=s2
+
+✅ s2-coverage: 0 surface files classified · 0 unswept.
+
+[1m── lint:s3-coverage ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:s3-coverage
+> tsx scripts/surface-coverage.ts --surface=s3
+
+✅ s3-coverage: 39 surface files classified · 39 unswept.
+     unswept: apps/rn/src/data/backup.test.ts
+     unswept: apps/rn/src/data/backup.ts
+     unswept: apps/rn/src/data/backupFile.ts
+     unswept: apps/rn/src/data/backupFile.web.ts
+     unswept: apps/rn/src/data/cloudBackup.test.ts
+     unswept: apps/rn/src/data/cloudBackup.ts
+     unswept: apps/rn/src/data/cloudBackupMessages.test.ts
+     unswept: apps/rn/src/data/cloudBackupMessages.ts
+     unswept: apps/rn/src/data/csvImportFile.ts
+     unswept: apps/rn/src/data/csvImportFile.web.ts
+     unswept: apps/rn/src/data/detectBackupFormat.test.ts
+     unswept: apps/rn/src/data/detectBackupFormat.ts
+     unswept: apps/rn/src/data/formatBackupTime.ts
+     unswept: apps/rn/src/data/legacyBridge/decodeCandidates.test.ts
+     unswept: apps/rn/src/data/legacyBridge/decodeCandidates.ts
+     unswept: apps/rn/src/data/legacyBridge/findLegacyStores.test.ts
+     unswept: apps/rn/src/data/legacyBridge/findLegacyStores.ts
+     unswept: apps/rn/src/data/legacyBridge/mapLegacyStore.test.ts
+     unswept: apps/rn/src/data/legacyBridge/mapLegacyStore.ts
+     unswept: apps/rn/src/data/legacyBridge/migrateFromLegacy.test.ts
+     unswept: apps/rn/src/data/legacyBridge/migrateFromLegacy.ts
+     unswept: apps/rn/src/data/legacyBridge/originalBalance.ts
+     unswept: apps/rn/src/data/legacyBridge/readLegacyStores.ts
+     unswept: apps/rn/src/data/legacyBridge/readLegacyStores.web.ts
+     unswept: apps/rn/src/data/legacyBridge/realContainer.test.ts
+     unswept: apps/rn/src/data/legacyBridge/report.ts
+     unswept: apps/rn/src/data/legacyBridge/webkitLocalStorage.test.ts
+     unswept: apps/rn/src/data/legacyBridge/webkitLocalStorage.ts
+     unswept: apps/rn/src/data/readBackup.test.ts
+     unswept: apps/rn/src/data/readBackup.ts
+     unswept: apps/rn/tests/e2e/backup.spec.ts
+     unswept: apps/rn/tests/e2e/csv-import.spec.ts
+     unswept: apps/rn/tests/e2e/data-recovery.spec.ts
+     unswept: apps/rn/tests/e2e/delete-all-data.spec.ts
+     unswept: apps/rn/tests/e2e/scan.spec.ts
+     unswept: packages/core/imports/debtCsv.ts
+     unswept: packages/core/imports/testDebtCsv.ts
+     unswept: packages/core/scan/parseStatementText.ts
+     unswept: packages/core/scan/testParseStatementText.ts
+
+[1m── lint:s4-coverage ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:s4-coverage
+> tsx scripts/surface-coverage.ts --surface=s4
+
+✅ s4-coverage: 46 surface files classified · 46 unswept.
+     unswept: apps/rn/src/components/plan/AppStoreCta.tsx
+     unswept: apps/rn/src/components/plan/AppStoreCta.web.tsx
+     unswept: apps/rn/src/components/plan/CoachMarkLayer.tsx
+     unswept: apps/rn/src/components/plan/DemoAutoEntry.tsx
+     unswept: apps/rn/src/components/plan/DemoCaption.tsx
+     unswept: apps/rn/src/components/plan/DemoDirector.tsx
+     unswept: apps/rn/src/components/plan/DemoDock.tsx
+     unswept: apps/rn/src/components/plan/ExampleCanvasMarker.tsx
+     unswept: apps/rn/src/components/plan/TutorialCoach.tsx
+     unswept: apps/rn/src/components/plan/TutorialFence.tsx
+     unswept: apps/rn/src/components/plan/TutorialInviteCard.tsx
+     unswept: apps/rn/src/components/plan/TutorialOverlay.tsx
+     unswept: apps/rn/src/components/plan/tutorialStage.ts
+     unswept: apps/rn/src/store/coachMarkCopy.ts
+     unswept: apps/rn/src/store/coachMarkProbe.ts
+     unswept: apps/rn/src/store/coachMarks.test.ts
+     unswept: apps/rn/src/store/coachMarks.ts
+     unswept: apps/rn/src/store/demoExit.ts
+     unswept: apps/rn/src/store/demoRun.ts
+     unswept: apps/rn/src/store/demoSession.test.ts
+     unswept: apps/rn/src/store/demoSession.ts
+     unswept: apps/rn/src/store/sandboxBeats.test.ts
+     unswept: apps/rn/src/store/sandboxBeats.ts
+     unswept: apps/rn/src/store/sandboxHarness.test.ts
+     unswept: apps/rn/src/store/sandboxHarness.ts
+     unswept: apps/rn/src/store/sandboxRun.ts
+     unswept: apps/rn/src/store/sandboxScenarios.test.ts
+     unswept: apps/rn/src/store/sandboxScenarios.ts
+     unswept: apps/rn/src/store/sandboxStore.test.ts
+     unswept: apps/rn/src/store/sandboxStore.ts
+     unswept: apps/rn/src/store/tutorialPath.test.ts
+     unswept: apps/rn/src/store/tutorialPath.ts
+     unswept: apps/rn/src/store/tutorialSelectors.test.ts
+     unswept: apps/rn/src/store/tutorialSelectors.ts
+     unswept: apps/rn/src/store/tutorialSession.ts
+     unswept: apps/rn/src/store/tutorialShell.tsx
+     unswept: apps/rn/src/store/tutorialTargets.tsx
+     unswept: apps/rn/tests/e2e/coach-mark-neighbour.spec.ts
+     unswept: apps/rn/tests/e2e/coach-marks.spec.ts
+     unswept: apps/rn/tests/e2e/demo-containment.spec.ts
+     unswept: apps/rn/tests/e2e/probe-mark-ipad-rail.spec.ts
+     unswept: apps/rn/tests/e2e/probe-mark-route-push.spec.ts
+     unswept: apps/rn/tests/e2e/tutorial-invite.spec.ts
+     unswept: apps/rn/tests/embed/cta.spec.ts
+     unswept: apps/rn/tests/embed/entry.spec.ts
+     unswept: apps/rn/tests/embed/zero-egress.spec.ts
+
+[1m── lint:surface-complete ─────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:surface-complete
+> tsx scripts/surface-coverage.ts --completeness
+
+
+✅ surface-complete: every tracked source file is under a surface root (1595 tracked, 11 trees skipped by name).
+
+
+[1m── lint:gate-sources ─────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:gate-sources
+> tsx scripts/check-gate-sources.ts
+
+✅ gate sources: 876 of 994 tracked source files fingerprinted; the other 118 excused by 9 named entries, none stale.
+
+[1m── lint:scan-floors ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:scan-floors
+> tsx scripts/check-scan-floors.ts
+
+✅ scan floors: 22 strip-using gate(s) — 14 floored, 8 exempt by a measured reason, none stale.
+
+[1m── lint:line-endings ─────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:line-endings
+> tsx scripts/test-line-endings.ts
+
+✅ line endings: stripCode is CRLF-faithful (19 assertions, fixture holds 8 CRLF).
+
+[1m── lint:closure-stripper ─────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:closure-stripper
+> tsx scripts/test-closure-stripper.ts
+
+✅ closure stripper: 4 plain forms count, 6 quoted forms do not (26 assertions).
+
+[1m── lint:control-chars ────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:control-chars
+> tsx scripts/check-control-chars.ts
+
+✅ control chars: none in 1306 tracked text files (tab/LF/CR allowed, 0 exemptions).
+
+[1m── lint:strip-code ───────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:strip-code
+> tsx scripts/test-strip-code.ts
+
+✅ stripCode: 35 assertions over 11 constructs, length and line count preserved.
+
+[1m── lint:finding-guards ───────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:finding-guards
+> tsx scripts/check-finding-guards.ts
+
+✅ finding-guards: 279 of 280 findings carry a standing guard; 1 unguarded (cap 1, downward-only).
+   proof: 150 EXECUTED · 2 of them STALE (cap 8) · 10 authored but never run (cap 10) · 0 guard-only (cap 0) · 119 never tested (cap 119)
+          ⛔ "authored" is a plan to measure, not a measurement — `npm run prove:guards -- --id=<ID>` records it.
+          ⛔ "STALE" means the target moved since the proof was measured — re-run it; 2 of 32 did not hold.
+     stale: S1-ROUTE-STALE-READ — scripts/audit-route.ts has moved since f7e39483 (measured 2026-08-31)
+     stale: S1-ROUTE-EXIT-REACHABLE — scripts/audit-route.ts has moved since f7e39483 (measured 2026-08-31)
+     unguarded: GAP-14 — S0.13 GAP-14 — the open question is now ANSWERED, and the answer is a deliberate non-fix (S1.10.6.5.8.3). Measured rather than assumed: (1) lint:gate-freshness legitimately reds MID-AUDIT by [D74]'s own design, so gating every push would red the lane for weeks - and web-e2e.yml's header documents that exact failure killing the previous lane ('a permanently-red gate is worse than no gate - it trains you to ignore the one signal that is supposed to mean something'); (2) gate:record is deliberately NOT in CI, so there is no post-record moment to hook; (3) a freshness check run straight after gate:record is tautological - the record was just written from that tree; (4) nothing in CI CONSUMES gate-status.json, so there is no reader to protect. ⛔ What the measurement DID surface is a real unguarded claim in the same workflow, now closed by lint:ci-chain (S1P3-CI-CHAIN). Re-open this only with a named CI consumer of the record
+
+[1m── prove:guards:selftest ─────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 prove:guards:selftest
+> tsx scripts/prove-guards.ts --selftest
+
+  ✅ selftest:a guard that holds        expected [] · got []
+  ✅ selftest:a guard that does not     expected [failed-open] · got [failed-open]
+  ✅ selftest:two edits, one file       expected [] · got []
+  ✅ selftest:a dead web server faults, never scores exit 1 (want 1) · said all of it
+  ✅ selftest:an unrecordable pass is NAMED exit 1 (want 1) · said all of it
+
+✅ prove:guards --selftest — a guard that holds reads ✅, one that does not reads failed-open,
+   a dead web server faults instead of scoring, and an unrecordable pass says so.
+
+
+[1m── lint:cap-literals ─────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:cap-literals
+> tsx scripts/check-cap-literals.ts
+
+✅ cap literals: 29 downward-only cap(s) across 73 scripts are literals. [read 9680 lines, floor 6475]
+
+[1m── lint:runner-completeness ──────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:runner-completeness
+> tsx scripts/check-runner-completeness.ts
+
+✅ runner completeness: every tracked test file is wired into its runner (test:app: 84 tracked · 84 wired · test:regression: 66 tracked · 66 wired · package.json (npm script map): 9 tracked · 9 wired).
+
+[1m── lint:rounding ─────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:rounding
+> tsx scripts/check-rounding.ts
+
+✅ rounding: 94 inline money-rounding expressions (cap 94, downward-only); `roundMoney` in packages/core/utils/money.ts is the owner. [read 52239 lines, floor 47719]
+
+[1m── lint:store-id-writes ──────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:store-id-writes
+> tsx scripts/check-store-id-writes.ts
+
+✅ store id writes: no bare id-keyed row edits across 51 store file(s); `updateById` is the owner.  [read 3778 lines, floor 3589]
+
+[1m── lint:conflict-markers ─────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:conflict-markers
+> tsx scripts/check-conflict-markers.ts
+
+✅ conflict markers: none in 1219 tracked file(s) of 1595 [read 206316 lines, floor 161685]
+
+[1m── lint:fixture-dates ────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:fixture-dates
+> tsx scripts/check-fixture-dates.ts
+
+✅ fixture-dates: 220 test-shaped file(s) scanned · 0 imminent fuses · 120 aged literal(s) on aging fields (cap 120, downward-only) · 127 in clock-pinned files (deterministic) · 114 on non-aging fields. [read 22846 lines, floor 21640]
+
+[1m── lint:amount-collapse ──────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:amount-collapse
+> tsx scripts/check-amount-collapse.ts
+
+
+❌ amount-collapse: 1 problem(s).
+
+  • apps/rn/src/components/plan/AffordabilityCard.tsx:324 collapses a parsed amount to 0.
+        `null` is BLANK OR UNPARSEABLE, and neither is a payment of zero. Branch on it, or add
+        branch on the `null` explicitly instead — one line, and it leaves nothing to game (R10).
+
+
+[1m── lint:a11y-collapse ────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:a11y-collapse
+> tsx scripts/check-a11y-collapse.ts
+
+✅ a11y collapse: no `accessible` wrapper statically contains a control.
+
+[1m── lint:contrast ─────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:contrast
+> tsx scripts/check-contrast.ts
+
+check-contrast: every rendered token pair clears its floor. [read 32329 lines, floor 30711]
+
+[1m── lint:type-scale ───────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:type-scale
+> tsx scripts/check-type-scale.ts
+
+check-type-scale: every large figure carries a font-scale cap (19 checked).
+
+[1m── lint:press-opacity ────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:press-opacity
+> tsx scripts/check-press-opacity.ts
+
+✅ press opacity: 399 files, every control state on a token. [read 32299 lines, floor 28179]
+
+[1m── lint:icon-glyphs ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:icon-glyphs
+> tsx scripts/check-icon-glyphs.ts
+
+✅ icon glyphs: 44 in use · 27 mapped to SF Symbols · 17 exempt with a stated reason.
+
+[1m── lint:copy-owners ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:copy-owners
+> tsx scripts/check-copy-owners.ts
+
+✅ copy owners: 5 closure(s) still read the constant that owns their claim.
+
+[1m── lint:restore-doors ────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:restore-doors
+> tsx scripts/check-restore-doors.ts
+
+✅ restore doors: 4 door(s), every one composing its disclosure from a shared owner (floor 4) · 1 disclosing through a named pair · 2 not doors, each with a reason. [read 22516 lines, floor 20866]
+   apps/rn/src/app/_layout.tsx
+   apps/rn/src/components/DataResetScreen.tsx
+   apps/rn/src/components/more/BackupSheets.tsx
+   apps/rn/src/hooks/use-cloud-backup.ts
+
+[1m── lint:import-graph ─────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:import-graph
+> tsx scripts/test-import-graph.ts
+
+✅ import graph: 23 assertions · 2611 resolved edges across 869 source files.
+
+[1m── lint:trust-claims ─────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:trust-claims
+> tsx scripts/check-trust-claims.ts
+
+✅ trust claims: 4 claims all consumed in production (debt-balances→3 · goal-amounts→1 · required-plan→6 · row-figures→8); every asked field routed.
+   ⭐ 0 claim sites open — all 6 money-printing files that read the user's entities call the guard (floor 6; per-claim callers floored).
+   ⚠️ 22 liveness re-derivation(s) (`balance` compared against 0, either direction) across 15 file(s), cap 22 — none measured against a repaired balance yet: apps/rn/src/store/analysisSelectors.ts, apps/rn/src/store/balanceSelectors.ts, apps/rn/src/store/demoRun.ts, apps/rn/src/store/drift.ts, apps/rn/src/store/payoffCelebration.ts, apps/rn/src/store/guardianSelectors.ts, apps/rn/src/store/payday.ts, apps/rn/src/store/recoverySelectors.ts, apps/rn/src/components/payoff/TrajectoryChart.tsx, apps/rn/src/components/payoff/compareStrategies.ts, apps/rn/src/components/payoff/trajectoryDomain.ts, apps/rn/src/store/payoffSelectors.ts, apps/rn/src/store/planSelectors.ts, apps/rn/src/store/sandboxScenarios.ts, apps/rn/src/widget/snapshot.ts
+
+[1m── lint:ci-chain ─────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:ci-chain
+> tsx scripts/check-ci-chain.ts
+
+✅ ci-chain: all 8 gating links of validate:release:rn run in .github/workflows/web-e2e.yml (gate:begin, gate:record deliberately omitted, by name).
+
+[1m── lint:lane ─────────────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 lint:lane
+> tsx scripts/preflight-native-lane.ts
+
+  ✅ rn-ios-sim-build/action.yml exists
+  ✅ rn-ios-sim-build is a composite action
+  ✅ rn-ios-sim-build · "Install dependencies (root + apps/rn)" declares a shell
+  ✅ rn-ios-sim-build · "Install dependencies (root + apps/rn)" declares a working-directory
+  ✅ rn-ios-sim-build · "Select newest Xcode" declares a shell
+  ✅ rn-ios-sim-build · "Select newest Xcode" declares a working-directory
+  ✅ rn-ios-sim-build · "Link ./core so tsc can resolve @core before Metro runs" declares a shell
+  ✅ rn-ios-sim-build · "Link ./core so tsc can resolve @core before Metro runs" declares a working-directory
+  ✅ rn-ios-sim-build · "Fail fast (typecheck before the slow native build)" declares a shell
+  ✅ rn-ios-sim-build · "Fail fast (typecheck before the slow native build)" declares a working-directory
+  ✅ rn-ios-sim-build · "Compute the .app cache key" declares a shell
+  ✅ rn-ios-sim-build · "Compute the .app cache key" declares a working-directory
+  ✅ rn-ios-sim-build · "Verify the restored .app, and re-bundle the JS into it" declares a shell
+  ✅ rn-ios-sim-build · "Verify the restored .app, and re-bundle the JS into it" declares a working-directory
+  ✅ rn-ios-sim-build · "Generate the native iOS project (expo prebuild)" declares a shell
+  ✅ rn-ios-sim-build · "Generate the native iOS project (expo prebuild)" declares a working-directory
+  ✅ rn-ios-sim-build · "Install CocoaPods (fail loud — prebuild masks pod errors with exit 0)" declares a shell
+  ✅ rn-ios-sim-build · "Install CocoaPods (fail loud — prebuild masks pod errors with exit 0)" declares a working-directory
+  ✅ rn-ios-sim-build · "Build for the iOS Simulator (no signing)" declares a shell
+  ✅ rn-ios-sim-build · "Build for the iOS Simulator (no signing)" declares a working-directory
+  ✅ rn-ios-sim-build · "Build the XCUITest bundle (non-fatal — see the step comment)" declares a shell
+  ✅ rn-ios-sim-build · "Build the XCUITest bundle (non-fatal — see the step comment)" declares a working-directory
+  ✅ rn-ios-sim-build · "Surface the build error" declares a shell
+  ✅ rn-ios-sim-build · "Surface the build error" declares a working-directory
+  ✅ rn-ios-sim-build · "Stamp the .app's provenance" declares a shell
+  ✅ rn-ios-sim-build · "Stamp the .app's provenance" declares a working-directory
+  ✅ rn-ios-sim-build · "Report which binary is about to be tested" declares a shell
+  ✅ rn-ios-sim-build · "Report which binary is about to be tested" declares a working-directory
+  ✅ rn-ios-sim-products/action.yml exists
+  ✅ rn-ios-sim-products is a composite action
+  ✅ rn-ios-sim-products · "Unpack, and prove the binary survived the round trip" declares a shell
+  ✅ rn-ios-sim-products · "Unpack, and prove the binary survived the round trip" declares a working-directory
+  ✅ the build action computes a cache key
+  ✅ the cache key hashes the build action itself (rule ①)
+  ✅ the cache key does NOT hash a workflow file
+  ✅ the cache key is namespaced per lane
+  ✅ the .app cache has a restore and a save step
+  ✅ the .app restore has NO restore-keys (rule ②)
+  ✅ the restore and save path lists are identical
+  ✅ the cached set includes the XCUITest products
+  ✅ the tar packs `.xctestrun`, like the cache
+  ✅ the tar packs `-Runner.app`, like the cache
+  ✅ the tar packs `DebtPlannerRN.app`, like the cache
+  ✅ the cached paths are enumerated, not a Products glob
+  ✅ native-e2e.yml exists
+  ✅ app-preview.yml exists
+  ✅ native-e2e.yml uses the shared build action
+  ✅ native-e2e.yml carries no xcodebuild recipe of its own
+  ✅ app-preview.yml uses the shared build action
+  ✅ app-preview.yml carries no xcodebuild recipe of its own
+  ✅ native-e2e.yml parsed and has a `jobs:` map
+  ✅ native-e2e.yml has a `build` job
+  ✅ native-e2e.yml has a `iphone` job
+  ✅ native-e2e.yml has a `ipad` job
+  ✅ the iphone job needs `build`
+  ✅ the iphone job compiles nothing
+  ✅ the iphone job unpacks the shared products
+  ✅ the ipad job needs `build`
+  ✅ the ipad job compiles nothing
+  ✅ the ipad job unpacks the shared products
+  ✅ the iphone job runs the XCUITest probe
+  ✅ the iphone probe still runs after a red suite
+  ✅ the ipad job runs the XCUITest probe
+  ✅ the ipad probe still runs after a red suite
+  ✅ every `maestro test` step declares the same driver-startup timeout
+  ✅ the iphone job has a `terminal flow` step (the two rules below depend on finding it)
+  ✅ the XCUITest probe runs BEFORE the terminal flow (09)
+  ✅ the Reduce-Motion readout runs BEFORE the terminal flow (09)
+  ✅ every upload-artifact name in native-e2e.yml is unique
+  ✅ no condition is written as `inputs.scope == 'full'`
+  ✅ no condition is written as `inputs.mode == 'suite'`
+  ✅ no condition is written as `inputs.device == 'iphone'`
+  ✅ every flow the workflow names exists on disk
+  ✅ the iphone job runs maestro flows (the ordering rules below depend on it)
+  ✅ flow 01 is in the iphone job (an ordering rule names it)
+  ✅ flow 07 is in the iphone job (an ordering rule names it)
+  ✅ flow 08 is in the iphone job (an ordering rule names it)
+  ✅ flow 09 is in the iphone job (an ordering rule names it)
+  ✅ flow 10 is in the iphone job (an ordering rule names it)
+  ✅ flow 01 runs first (it seeds)
+  ✅ flow 07 precedes 08 (07 clears the state 08 needs)
+  ✅ flow 10 precedes 09
+  ✅ flow 09 runs last (it is terminal — it clears state)
+  ✅ iphone · "Upload the small diagnosis bundle" sets include-hidden-files
+  ✅ iphone · "Upload Maestro report + debug (screenshots + view hierarchy)" sets include-hidden-files
+  ✅ ipad · "Upload the small diagnosis bundle" sets include-hidden-files
+  ✅ ipad · "Upload Maestro report + debug (screenshots + view hierarchy)" sets include-hidden-files
+  ✅ native-e2e.yml has no comment lines inside a `path: |` block
+  ✅ app-preview.yml has no comment lines inside a `path: |` block
+  ✅ job `iphone` still runs on the push / schedule trigger(s), which supply NO inputs
+  ✅ job `ipad` still runs on the push / schedule trigger(s), which supply NO inputs
+  ✅ app.json declares an `icon`
+  ✅ the icon file exists (./assets/icon.png)
+  ✅ the icon is 1024×1024 (1024×1024)
+  ✅ the icon has NO alpha channel (App Store Connect rejects one)
+
+✅ native-lane pre-flight: 95 structural checks pass.
+   Remaining unknown, and only the macOS runner can answer it: whether the split actually runs.
+
+[1m── test:gate-plants ──────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 test:gate-plants
+> tsx scripts/test-gate-plants.ts
+
+
+  gate plants — 25 scenarios, each proving its gate fails CLOSED
+
+  ✅ lint:month-arithmetic      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:local-dates           plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:glossary              plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:a11y-props            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:type-scale            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:destructive           plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setUTCMonth] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setFullYear] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setUTCFullYear] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [constructorOverflow] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:copy [GAP-15-self-check] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+warning: in the working copy of 'apps/rn/src/store/__gate_plant_unwired__.test.ts', LF will be replaced by CRLF the next time Git touches it
+  ✅ lint:runner-completeness   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+warning: in the working copy of 'packages/core/__gate_plant_staged__.ts', LF will be replaced by CRLF the next time Git touches it
+  ✅ lint:secrets [D3-4-blob]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [D3-3] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [M7]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [M6]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:cap-literals          plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [S1.11.3.2-void] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [M8]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:s1-coverage [M9-vocab] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:s1-coverage [D69-inventory] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:secrets [M10-authoring] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:money [B1-multiline-intl] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:secrets [A3-modified-tracked] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:store-id-writes       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+
+✅ test:gate-plants — all 25 gates fail closed on a planted defect.
+
+
+[1m── test:wrap-escapes ─────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 test:wrap-escapes
+> tsx scripts/test-wrap-escapes.ts
+
+  ✅ check-amount-collapse.ts     wrapped-plant=MATCHED · restored=YES
+  ✅ check-contrast.ts #1         wrapped-plant=MATCHED · restored=YES
+  ✅ check-contrast.ts #2         wrapped-plant=MATCHED · restored=YES
+  ✅ check-finding-guards.ts      wrapped-plant=MATCHED · restored=YES
+  ✅ check-fixture-dates.ts       wrapped-plant=MATCHED · restored=YES
+  ✅ check-glossary.ts            wrapped-plant=MATCHED · restored=YES
+  ✅ check-local-dates.ts         wrapped-plant=MATCHED · restored=YES
+  ✅ check-month-arithmetic.ts    wrapped-plant=MATCHED · restored=YES
+  ✅ check-rounding.ts            wrapped-plant=MATCHED · restored=YES
+  ✅ check-sandbox-writes.ts      wrapped-plant=MATCHED · restored=YES
+  ✅ check-store-id-writes.ts     wrapped-plant=MATCHED · restored=YES
+  ✅ check-trust-claims.ts        wrapped-plant=MATCHED · restored=YES
+
+✅ wrap-escapes: 11 wrap-sensitive gate(s) · 12 matcher recipes — 10 red on the WRAPPED spelling of their own defect, 2 GREEN on correct code a formatter produced · 7 also planted UNWRAPPED here, 5 by test:gate-plants · 13 per-line by design · ⛔ 0 MEASURED BLIND, awaiting fix · ⚠️ 12 per-line and NOT YET REVIEWED (downward-only).
+
+[1m── test:plant-safety ─────────────────────────────────────────────────────[0m
+
+> debt-app-v1@1.6.0 test:plant-safety
+> tsx scripts/test-plant-safety.ts
+
+warning: in the working copy of 'src/target.ts', LF will be replaced by CRLF the next time Git touches it
+✅ plant safety: 16 assertions — sidecar before plant, pre-flight recovers, tree left clean.
+
+[1m════════════════════════════════════════════════════════════════════════[0m
+[31m❌ lint:rn — 1 of 51 gates FAILED:[0m
+
+  ❌ lint:amount-collapse
+
+  Every gate ran; the output for each is above, in order. Re-run one on its own with
+  `npm run <name>`. ⛔ 50 passing does not mean the tree is clean —
+  it means these 1 are what is left.
+
