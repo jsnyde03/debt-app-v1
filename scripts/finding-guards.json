@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-04",
-      "sha": "0e5cc152"
+      "sha": "bdfb9af0"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-04",
-      "sha": "0e5cc152"
+      "sha": "bdfb9af0"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3481,7 +3481,9 @@
         }
       ],
       "run": "lint:strip-code",
-      "expect": "does not open a fragment"
+      "expect": "does not open a fragment",
+      "measured": "2026-09-04",
+      "sha": "bdfb9af0"
     }
   },
   "S1P7-U4-CONTRAST-COMMENTS": {
@@ -3545,7 +3547,7 @@
       "run": "lint:month-arithmetic",
       "expect": "overflows a short month forward",
       "measured": "2026-09-04",
-      "sha": "312041c9"
+      "sha": "bdfb9af0"
     }
   },
   "S1P7-U8-COMPOSITION-PINNED": {
@@ -3563,7 +3565,7 @@
       "run": "lint:runner-completeness",
       "expect": "production no longer calls",
       "measured": "2026-09-04",
-      "sha": "312041c9"
+      "sha": "bdfb9af0"
     }
   },
   "S1P7-U9-SEED-CLOSURE": {
@@ -3581,7 +3583,7 @@
       "run": "test:app",
       "expect": "hoist off `editing` that is merely NAMED",
       "measured": "2026-09-04",
-      "sha": "620846ba"
+      "sha": "bdfb9af0"
     }
   },
   "S1P7-U10-INK-WHOLE-FILE": {
@@ -3622,7 +3624,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-04",
-      "sha": "0e5cc152"
+      "sha": "bdfb9af0"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -3658,7 +3660,7 @@
       "run": "test:plant-safety",
       "expect": "the pre-flight names the file it recovered",
       "measured": "2026-09-04",
-      "sha": "312041c9"
+      "sha": "bdfb9af0"
     }
   },
   "S1P7-U16-SAMELINE-DERIVED": {
@@ -3694,7 +3696,7 @@
       "run": "lint:strip-code",
       "expect": "interpolation survives as CODE",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "bdfb9af0"
     }
   }
 }
