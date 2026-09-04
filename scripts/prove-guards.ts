@@ -154,19 +154,10 @@ const gitStatus = (rel: string): string =>
 /** Never throws: a non-zero exit is the signal, and the output is what says WHY. */
 function run(p: Proof): { status: number; out: string } {
   const argv = p.cmd ?? ['npm', 'run', p.run as string];
-  /**
-   * ⛔ **`PROVE_GUARDS_DRAINING` — see `check-finding-guards.ts`'s note on `S5-DEADLOCK`.**
-   *
-   * Past the stale ceiling that gate is red; this harness requires a green control; so every proof whose
-   * run reads the ledger became unprovable and the ceiling could never be drained. Measured: 8 of 9
-   * drains failed in one pass. The flag downgrades **that one problem, and nothing else**, only inside
-   * this process tree — CI sets nothing, so the ceiling is enforced wherever a human reads a result.
-   */
   const res = spawnSync(argv[0], argv.slice(1), {
     cwd: REPO_ROOT,
     encoding: 'utf8',
     shell: true,
-    env: { ...process.env, PROVE_GUARDS_DRAINING: '1' },
   });
   return { status: res.status ?? 1, out: `${res.stdout ?? ''}${res.stderr ?? ''}` };
 }
@@ -473,6 +464,37 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
   // ⚠️ The control gets the same check. Left to score it reads as `control-red` — "the command is red
   // with or without the plant" — which is a claim about the COMMAND, and equally untrue here.
   faultOnDeadServer(id, 'control', withoutPlant);
+
+  /**
+   * ⛔ **THE DRAIN EXEMPTION LIVES HERE NOW, AND IT READS THE CONTROL'S OUTPUT.**
+   * [`S5-DEADLOCK`; re-audit 6 `W9`]
+   *
+   * ⚡ **The deadlock:** past either ledger ceiling `lint:finding-guards` is red, and this harness requires
+   * a GREEN control — so every proof whose `run` reads the ledger became unprovable and the ceiling could
+   * never be drained. Measured: **8 of 9 drains failed on `control=exit 1` in one pass.**
+   *
+   * ⛔ **The first fix was an env var the GATE honoured, and that was wrong** — `W9` measured it as an
+   * ambient fail-open: anything that exported `PROVE_GUARDS_DRAINING` disabled two ratchets for every
+   * reader, including `validate:release:rn`. **A gate must not be weakenable from the environment.**
+   *
+   * ⚠️ So the gate is strict again and the judgement sits here, where it belongs: *this harness decides
+   * how to read its own control.* It proceeds only when **every** problem the control reported is one of
+   * the two ceilings — the exact numbers this run exists to lower — and it says so out loud. Any other
+   * problem, and the control is red and the proof does not count.
+   */
+  if (withoutPlant.status !== 0) {
+    const problems = [...withoutPlant.out.matchAll(/^ {2}• (.+)$/gm)].map((m) => m[1]);
+    const drainable =
+      problems.length > 0 &&
+      problems.every((line) => /executed proof\(s\) were measured against a tree/.test(line) || /proof blocks have NEVER been executed/.test(line));
+    if (drainable) {
+      console.log(
+        `  ⚠️  ${id}: the control is red ONLY on the ledger ceilings this drain is lowering — proceeding.\n` +
+          problems.map((l) => `        • ${l.slice(0, 110)}`).join('\n'),
+      );
+      withoutPlant.status = 0;
+    }
+  }
 
   /**
    * ⚠️ **THE REST OF THE TREE, because the restore check only covers the files this proof edits.** Some

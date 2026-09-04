@@ -61,11 +61,34 @@ for (const [src, wantAS, wantONLY, note] of CASES) {
 }
 
 // ── The two KNOWN MISPARSES, pinned as behaviour rather than endorsed ────────────────────────────────
+/**
+ * ⛔ **THIS ROW USED TO PIN THE MISPARSE, AND A BLOCKER CAME THROUGH IT.** [class-1 re-audit 6 `W1`]
+ *
+ * It read *"a regex after `return` is NOT recognised, so its body survives"* and the header called it
+ * *"not a live defect"* — true when written. ⚡ `V7` then routed `joinedCode` through this scanner, and at
+ * `check-scan-floors.ts:82` an unrecognised `return /…/` let three backticks inside its character classes
+ * open a runaway: five comment lines came back **as code**, and `lint:finding-guards` certified a guard
+ * whose assertion had been deleted. **A pinned misparse is a live defect waiting for a new consumer.**
+ *
+ * The cause was the keyword window ENDING AT THE `/` — every real spelling puts a space there — so the
+ * whole keyword arm was dead. Both spellings are asserted now, per keyword.
+ */
 eq(
   stripCommentsAndStrings('return /a/b/;'),
-  'return /a/b/;',
-  '⚠️ KNOWN MISPARSE, pinned not endorsed: a regex after `return` is NOT recognised, so its body survives',
+  'return / /b/;',
+  'a regex after `return` IS recognised now, and its body is blanked (W1 — the arm was dead)',
 );
+for (const kw of ['return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw', 'case', 'do', 'else', 'yield', 'await']) {
+  // ⚠️ Both spellings: with the space everybody writes, and without it. The window is trimmed, so the
+  // keyword is found either way — before `W1` only the second form worked, i.e. none of them in practice.
+  for (const gap of [' ', '']) {
+    const src = `${kw}${gap}/leak/;`;
+    check(
+      !stripCommentsAndStrings(src).includes('leak'),
+      `a regex literal after \`${kw}\`${gap ? ' + a space' : ' with no space'} is recognised and blanked`,
+    );
+  }
+}
 eq(
   stripCommentsAndStrings('#!/usr/bin/env node'),
   '#!/   /bin/env node',

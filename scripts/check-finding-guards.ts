@@ -32,6 +32,8 @@ import { anchorCount } from './lib/anchor';
 // ⛔ `U11` — the same producer `unreadInputsCopy.test.ts` uses. A guard token is a sentence, and a
 // sentence is the most wrappable thing in the repo; asking one physical line was the whole defect.
 import { joinAllLines, joinCodeLines, normaliseFragment } from './lib/joinedCode';
+// ⛔ `W1` - refuse a file whose comments survived the strip; see the note at the call site.
+import { stripCommentsOnly } from './lib/stripCode';
 import { join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -376,6 +378,31 @@ for (const [id, e] of Object.entries(registry)) {
     continue;
   }
   const text = readFileSync(abs, 'utf8');
+  /**
+   * ⛔ **REFUSE A FILE THE SCANNER FAILED TO CLOSE, rather than answering the guard question over it.**
+   * [class-1 re-audit 6 `W1`, blocker]
+   *
+   * ⚡ An unrecognised regex literal opened a runaway in `check-scan-floors.ts`, so `stripCommentsOnly`
+   * returned five comment lines **as code** — and this gate certified a guard whose assertion had been
+   * deleted and whose token survived only in a `//` comment. `✅ 280 of 281`, exit 0.
+   *
+   * ⚠️ **This is defence in depth, not the fix** — `W1`'s cause is repaired in `stripCode.ts`. But the
+   * scanner is a heuristic over constructs it enumerates, and its own header says so; this gate should
+   * not be the thing that discovers the next gap by silently believing it. A surviving `//` is a cheap,
+   * unambiguous signature of a strip that did not complete.
+   */
+  const unstripped = stripCommentsOnly(text)
+    .split('\n')
+    .filter((l) => l.trim().startsWith('//')).length;
+  if (unstripped > 0) {
+    problems.push(
+      `${id} — the comment scanner did not close ${e.file}: ${unstripped} line(s) survive the strip as code.\n` +
+        '        ⛔ W1 — a guard token sitting in one of those comments would read as CODE, and this gate\n' +
+        '        would certify a deleted guard. Fix the scanner (an unrecognised regex literal opens a\n' +
+        '        runaway) rather than answering the guard question over a file it could not parse.',
+    );
+    continue;
+  }
   // ⛔ `U11` - welded, comments KEPT: this asks whether the token is in the file at all, and the
   // *next* check is the one that decides comment-versus-code. A wrapped token failed HERE first.
   if (!present(joinAllLines(text).text, normaliseFragment(e.token))) {
@@ -567,21 +594,19 @@ ratchet(
  * which is what the sentence below calls the defect this pair exists to catch. **The mechanism forced the
  * move it forbids.**
  *
- * ⚠️ Exempt during a DRAIN only, and printed either way. See the note on `DRAINING` above for why that is
- * narrow rather than a hole: CI sets nothing, and a drain is the one context in which these numbers are
- * being actively repaired rather than quietly accumulating.
+ * ⚠️ **THE DRAIN EXEMPTION IS NOT HERE, and `W9` is why.** It was an env var this gate honoured, which
+ * made it an AMBIENT FAIL-OPEN: anything exporting `PROVE_GUARDS_DRAINING` disabled both ratchets for
+ * every reader, `validate:release:rn` included. A gate must not be weakenable from the environment.
+ * The judgement now lives in `prove-guards.ts`, which reads its OWN control's output and proceeds only
+ * when every reported problem is one of these two ceilings.
  */
-const DRAINING = process.env.PROVE_GUARDS_DRAINING === '1';
-// ⚠️ Buffered like everything else - `U7`: nothing reaches stdout before the verdict is knowable.
-const drainNotes: string[] = [];
 if (authored.length > MAX_AUTHORED) {
   const detail =
     `${authored.length} proof blocks have NEVER been executed; the ceiling is ${MAX_AUTHORED} and it only ever ` +
     'goes DOWN. A proof block is a plan to measure, not a measurement — execute it with ' +
     '`npm run prove:guards -- --id=<ID>`, which records `measured` + `sha` on a pass. ' +
     'Raising this to make a run pass is the defect this pair exists to catch.';
-  if (DRAINING) drainNotes.push(`     ⚠️  OVER THE AUTHORED CEILING (${authored.length} > ${MAX_AUTHORED}) — allowed only because this run is a DRAIN.`);
-  else problems.push(detail);
+  problems.push(detail);
 }
 ratchet(
   guardOnly.length,
@@ -721,18 +746,16 @@ for (const s of stale) note(`     stale: ${s}`);
  * by hand and put it back — *"raising this to make a run pass"*, which is the exact move the pair of caps
  * here exists to catch. A mechanism whose only escape is the defect it guards against is not a ratchet.
  *
- * ⚠️ **So the drain itself is exempt, and NOTHING ELSE IS.** `prove:guards` sets `PROVE_GUARDS_DRAINING`
- * for its own child runs; only this one problem is downgraded, only for that process tree, and it still
- * PRINTS. CI sets nothing, so the ceiling is enforced everywhere a human reads a result — and a drain is
- * the one context where staleness is being actively repaired rather than accumulating unnoticed.
+ * ⚠️ **The escape is in `prove-guards.ts`, NOT here** - [`W9`]. An env-var exemption honoured by this
+ * gate was an ambient fail-open; the harness reads its own control's output instead, and this ceiling
+ * is enforced unconditionally for every other reader.
  */
 if (stale.length > MAX_STALE_PROOFS) {
   const detail =
     `${stale.length} executed proof(s) were measured against a tree their target has since left, and the ceiling is ${MAX_STALE_PROOFS}.\n` +
     '        Re-run them: `npm run prove:guards -- --id=<comma-separated>` --record. 2 of the last 32 re-runs FAILED,\n' +
     '        so a stale proof is not a formality — it is an unknown wearing an ✅.';
-  if (DRAINING) drainNotes.push(`     ⚠️  OVER THE STALE CEILING (${stale.length} > ${MAX_STALE_PROOFS}) — allowed only because this run is a DRAIN.`);
-  else problems.push(detail);
+  problems.push(detail);
 }
 // ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
 // number nobody sees is a number nobody drains.
@@ -777,7 +800,6 @@ for (const [n, want] of [
 // from `problems.length`. Printing it any earlier is asserting a verdict that is not yet knowable.
 console.log(`${verdictMark(problems.length)} ${report[0]}`);
 for (const line of report.slice(1)) console.log(line);
-for (const line of drainNotes) console.log(line);
 
 // ⛔ THE VERDICT, and it is the LAST statement in the file for the reason above: everything that can find
 // a problem has now run. A `problems.push` below this line would be dead, and there is nothing below it.

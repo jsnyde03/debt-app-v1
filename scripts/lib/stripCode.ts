@@ -91,6 +91,31 @@ function regexMayFollow(prev: string): boolean {
   return prev === '' || '=(,:[!&|?{};+-*%~^<>'.includes(prev);
 }
 
+/**
+ * ⛔ **THIS ARM WAS DEAD, AND A BLOCKER CAME THROUGH IT.** [class-1 re-audit 6 `W1`]
+ *
+ * It is tested against a window ENDING AT THE `/`, and **every real spelling puts a space there**, so the
+ * `$` anchor could never match. Measured:
+ *
+ *     window "  return "  → false     `return /a/.test(x)`   ← what everybody writes
+ *     window "  return"   → true      `return/a/.test(x)`    ← what nobody writes
+ *     window "typeof "    → false     `typeof /a/`
+ *     window "case "      → false     `case /a/:`
+ *
+ * ⚡ **What it cost:** at `check-scan-floors.ts:82` a `return /…/` regex was not recognised, the `/` fell
+ * through as an ordinary character, and **three backticks inside its character classes opened a runaway
+ * template literal** — so `stripCommentsOnly` returned five comment lines *verbatim, as code*. That file
+ * carries a registry guard, so `lint:finding-guards` printed **`✅ 280 of 281 findings carry a standing
+ * guard`, exit 0, over a guard whose assertion had been deleted** and whose token survived only in a
+ * `//` comment. Byte-for-byte the defect `V7` was written to close, at an address `V7`'s own fix created.
+ *
+ * ⚠️ **The window is trimmed AND widened.** `instanceof` alone is ten characters, so 12 could not hold a
+ * keyword plus the whitespace that always follows it.
+ *
+ * ⛔ **`test-strip-code` pinned this as a KNOWN MISPARSE and said "neither is a live defect"** — true when
+ * written, and `V7` made it live by routing `joinedCode` through this scanner. A carried premise going
+ * stale, which is this cluster's most repeated shape.
+ */
 const KEYWORD_BEFORE_REGEX = /\b(return|typeof|instanceof|in|of|new|delete|void|throw|case|do|else|yield|await)$/;
 
 function scan(src: string, blankStrings: boolean, literals?: { text: string; index: number }[]): string {
@@ -184,7 +209,10 @@ function scan(src: string, blankStrings: boolean, literals?: { text: string; ind
      * newline, so a newline ends the scan and the text is left alone — an unterminated regex is a
      * mis-guess, not a runaway.
      */
-    if (c === '/' && (regexMayFollow(lastSignificant) || KEYWORD_BEFORE_REGEX.test(src.slice(Math.max(0, i - 12), i)))) {
+    // ⛔ `W1` — TRIMMED, and the window widened from 12 to 20: the keyword is separated from the `/` by
+    // whitespace in every real spelling, and `instanceof` alone is ten characters.
+    const beforeSlash = src.slice(Math.max(0, i - 20), i).replace(/\s+$/, '');
+    if (c === '/' && (regexMayFollow(lastSignificant) || KEYWORD_BEFORE_REGEX.test(beforeSlash))) {
       let j = i + 1;
       let inClass = false;
       let closed = false;
