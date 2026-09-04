@@ -486,5 +486,8 @@
   ],
   "scripts/test-plant-safety.ts": [
     "never"
+  ],
+  "scripts/test-joined-code.ts": [
+    "never"
   ]
 }
