@@ -2079,8 +2079,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
-      "measured": "2026-09-03",
-      "sha": "4d37d963"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2205,8 +2205,8 @@
       ],
       "run": "lint:rounding",
       "expect": "the cap is still",
-      "measured": "2026-09-03",
-      "sha": "fcd954d6"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P5-B5-10-HELDSINCE": {
@@ -2397,8 +2397,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "STALE",
-      "measured": "2026-09-03",
-      "sha": "4d37d963"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3446,8 +3446,8 @@
       ],
       "run": "test:wrap-escapes",
       "expect": "FAILED-OPEN",
-      "measured": "2026-09-03",
-      "sha": "e5b6a120"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U7-VERDICT-MARK": {
@@ -3464,8 +3464,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
-      "measured": "2026-09-03",
-      "sha": "4d37d963"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3504,7 +3504,9 @@
         }
       ],
       "run": "lint:contrast",
-      "expect": "exemption broken"
+      "expect": "exemption broken",
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U5-REASON-VACUITY": {
@@ -3521,8 +3523,8 @@
       ],
       "run": "test:wrap-escapes",
       "expect": "matches the gate's own GREEN output",
-      "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U6-CLAMPED-DAY": {
@@ -3598,8 +3600,8 @@
       ],
       "run": "test:wrap-escapes",
       "expect": "FAILED-OPEN",
-      "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U11-WELDED-TOKEN": {
@@ -3621,8 +3623,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
-      "measured": "2026-09-03",
-      "sha": "4d37d963"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -3639,26 +3641,26 @@
       ],
       "run": "test:wrap-escapes",
       "expect": "no longer imports lib/logicalLines",
-      "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U15-PLANT-SAFETY": {
-    "what": "S1.13.7.12.6 [class-1 re-audit 3 T13, re-audit 4 U15] - both plant harnesses restore in a finally, a finally does not run on a signal, and neither had a pre-flight that would recover from one. T13 filed exactly this and round 4's commit recorded it closed while the remedy was never written. It then fired twice in one session and the second time it SHIPPED: a killed test:wrap-escapes run left a plant in tracked production source, and prove-guards - which held its originals IN MEMORY ONLY - lost one outright to an interruption, after which git add -A committed check-runner-completeness.ts as `const missing: string[] = [];`, a gate reporting every test file wired forever over any hole. lib/plantSafety.ts adds three layers: a sidecar written BEFORE the plant, signal/exit handlers, and a pre-flight over the whole repo found through git status rather than a list of plant sites. The pre-flight RESTORES rather than refusing, because refusing leaves the planted file in the tree for the next git add -A - the exact path that shipped one.",
+    "what": "S1.13.7.12.6 [class-1 re-audit 3 T13, re-audit 4 U15] - both plant harnesses restore in a finally, a finally does not run on a signal, and neither had a pre-flight that would recover from one. T13 filed exactly this and round 4's commit recorded it closed while the remedy was never written. It then fired twice in one session and the second time it SHIPPED: a killed test:wrap-escapes run left a plant in tracked production source, and prove-guards - which held its originals IN MEMORY ONLY - lost one outright to an interruption, after which git add -A committed check-runner-completeness.ts as `const missing: string[] = [];`, a gate reporting every test file wired forever over any hole. lib/plantSafety.ts adds three layers: a sidecar written BEFORE the plant, signal/exit handlers, and a pre-flight over the whole repo found through git status rather than a list of plant sites. The pre-flight RESTORES rather than refusing, because refusing leaves the planted file in the tree for the next git add -A - the exact path that shipped one. >>> The un-fix was repointed at round 6: V4 changed preflightRestore to return { recovered, refused }, so the old early-`return recovered;` made the caller read `.refused` off a string[] and the harness CRASHED - planted=exit 7, reason=WRONG. A plant must make an assertion FAIL, never throw past it, or the verdict is about the crash.",
     "file": "scripts/test-plant-safety.ts",
     "token": "the sidecar exists as soon as the plant is armed",
     "proof": {
       "unfix": [
         {
           "at": "scripts/lib/plantSafety.ts",
-          "find": "  const recovered: string[] = [];",
-          "replace": "  const recovered: string[] = [];\n  return recovered;"
+          "find": "  const live = liveFromEnv();",
+          "replace": "  const live = liveFromEnv();\n  return { recovered, refused };"
         }
       ],
       "run": "test:plant-safety",
       "expect": "the pre-flight names the file it recovered",
-      "measured": "2026-09-03",
-      "sha": "34d17e5e"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U16-SAMELINE-DERIVED": {
@@ -3675,8 +3677,8 @@
       ],
       "run": "test:wrap-escapes",
       "expect": "NOTHING plants the same-line spelling",
-      "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   },
   "S1P7-U1-INTERPOLATION-IS-CODE": {
@@ -3692,7 +3694,9 @@
         }
       ],
       "run": "lint:strip-code",
-      "expect": "interpolation survives as CODE"
+      "expect": "interpolation survives as CODE",
+      "measured": "2026-09-04",
+      "sha": "d27a13ca"
     }
   }
 }
