@@ -3581,7 +3581,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "hoist off `editing` that is merely NAMED"
+      "expect": "hoist off `editing` that is merely NAMED",
+      "measured": "2026-09-04",
+      "sha": "620846ba"
     }
   },
   "S1P7-U10-INK-WHOLE-FILE": {
