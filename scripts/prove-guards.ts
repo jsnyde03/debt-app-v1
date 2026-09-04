@@ -37,7 +37,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync 
 import { join } from 'node:path';
 
 import { type Failure, verdict } from './lib/verdict';
-import { armPlant, preflightRestore } from './lib/plantSafety';
+import { armPlant, notePlant, preflightRestore } from './lib/plantSafety';
 import { bucketGuards } from './lib/guardBuckets';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -307,9 +307,13 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
    * stale plant left behind by a killed run"* as the hazard and then only REFUSED on it, which leaves the
    * planted file in the tree for the next `git add -A` — the exact path that committed a vacuous gate.
    */
-  for (const rel of preflightRestore(REPO_ROOT)) {
+  const preflight = preflightRestore(REPO_ROOT);
+  for (const rel of preflight.recovered) {
     console.log(`  ⚠️  pre-flight restored ${rel}, left planted by an interrupted run.`);
   }
+  // ⛔ `V4` — a refusal is a HARNESS FAULT, never a verdict: the pre-flight has found a dirty tracked
+  // file it cannot prove it planted, and planting on top of it would put the verdict on somebody's work.
+  if (preflight.refused.length) fault(id, preflight.refused.join('\n   '));
   // ⚠️ PRE-FLIGHT. Every target must exist and be CLEAN — a dirty target makes the restore ambiguous,
   // and a stale plant left behind by a killed run would score as a real defect.
   for (const u of p.unfix) {
@@ -424,7 +428,12 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
       if (next === working.get(u.at)) fault(id, `the un-fix for ${u.at} changes nothing — its replace equals its find`);
       working.set(u.at, next);
     }
-    for (const [rel, text] of working) writeFileSync(join(REPO_ROOT, rel), text, 'utf8');
+    for (const [rel, text] of working) {
+      const absRel = join(REPO_ROOT, rel);
+      writeFileSync(absRel, text, 'utf8');
+      // ⛔ `V4` - the pre-flight recovers only bytes this mechanism recorded writing.
+      notePlant(absRel, text);
+    }
     for (const [rel, text] of originals) {
       if (readFileSync(join(REPO_ROOT, rel), 'utf8') === text) planted = false;
     }

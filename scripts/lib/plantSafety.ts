@@ -24,10 +24,19 @@
  * | `SIGINT`/`SIGTERM`/`SIGHUP`/`uncaughtException`/`exit` handlers | an interruption the runtime still sees |
  * | pre-flight over the whole repo | a run whose process was killed outright — `SIGKILL`, a crash, a reboot |
  *
- * ⚠️ **The pre-flight RESTORES rather than refusing.** A harness that merely refuses to start leaves the
- * planted file in the tree for `git add -A` to find, which is the path that actually shipped one.
+ * ⛔ **AND THE PRE-FLIGHT RESTORES ONLY WHAT IT CAN PROVE IT WROTE.** [`V4`, blocker]
+ *
+ * The first cut of this file argued *restore over refuse* - *"a harness that merely refuses to start leaves
+ * the planted file in the tree for `git add -A` to find"* - which is true, and it never measured the other
+ * side. ⚡ **Measured: it overwrote 83 bytes of uncommitted work in a tracked file, reported the file
+ * `recovered`, and deleted the sidecar that would have shown what happened.** A refusal costs a human one
+ * command; a wrong restore costs work that no longer exists anywhere.
+ *
+ * So recovery now requires two independent facts - the target is DIRTY against `HEAD`, and its bytes are
+ * the plant this mechanism recorded making. Anything else is refused, loudly, with both files untouched.
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -54,6 +63,30 @@ export const SIDECAR_SUFFIXES = ['.plant-backup', '.wrapescape-backup'] as const
  */
 const LIVE_ENV = 'PLANT_SAFETY_LIVE';
 const OWNER_SUFFIX = '.plant-owner';
+const PLANT_SUFFIX = '.plant-hash';
+
+const sha = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex');
+
+/**
+ * ⛔ **RECORD WHAT THE PLANT LOOKS LIKE, or the pre-flight is guessing — and it guessed wrong.**
+ * [class-1 re-audit 5 `V4`, **blocker**: measured destroying 83 bytes of uncommitted work]
+ *
+ * ⚡ The first cut inferred *"this file is planted"* from *"a sidecar exists and the file differs from
+ * it"*. **Those are not the same proposition.** The sidecar records the tree at plant time, so a plant, a
+ * `git pull`, an editor save and a rebase all satisfy it identically. A real orphan sidecar — left beside
+ * an ALREADY-CLEAN file by this session's own kill — plus one ordinary edit, and the production
+ * pre-flight overwrote the file, reported it *recovered*, and deleted the sidecar in the same pass.
+ *
+ * ⛔ **The liveness marks did not help**: they separate a LIVE plant from an ABANDONED one. Nothing
+ * separated an abandoned plant from an abandoned sidecar beside a file that needed nothing.
+ *
+ * So the harness now writes the plant's own fingerprint the moment it lands, and recovery happens only
+ * when the bytes on disk are **the plant this mechanism made**. Anything else is somebody's work.
+ */
+export function notePlant(abs: string, plantedText: string): void {
+  const backup = `${abs}${SIDECAR_SUFFIXES[0]}`;
+  if (existsSync(backup)) writeFileSync(`${backup}${PLANT_SUFFIX}`, sha(plantedText), 'utf8');
+}
 
 function liveFromEnv(): Set<string> {
   return new Set((process.env[LIVE_ENV] ?? '').split('\n').filter(Boolean));
@@ -80,7 +113,18 @@ function ownerIsAlive(backupAbs: string): boolean {
  * target, so enumerating the plant sites would be the same short-list mistake this cluster keeps paying
  * for. Returns the repo-relative paths it recovered, so the caller can say so out loud.
  */
-export function preflightRestore(repoRoot: string): string[] {
+/**
+ * The result of a pre-flight. ⛔ `refused` is NOT advisory - see the note at the refusal site. A caller
+ * that ignores it is back to guessing about a dirty tracked file, which is `V4`.
+ */
+export interface Preflight {
+  /** repo-relative paths whose PLANT was undone */
+  recovered: string[];
+  /** human-readable refusals: a dirty target this mechanism cannot prove it wrote */
+  refused: string[];
+}
+
+export function preflightRestore(repoRoot: string): Preflight {
   let out = '';
   try {
     out = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], {
@@ -88,13 +132,14 @@ export function preflightRestore(repoRoot: string): string[] {
       encoding: 'utf8',
     });
   } catch {
-    return []; // not a git tree, or git is unavailable — the sidecar layers still apply
+    return { recovered: [], refused: [] }; // not a git tree — the sidecar layers still apply
   }
   const recovered: string[] = [];
+  const refused: string[] = [];
   const live = liveFromEnv();
   for (const line of out.split('\n')) {
     const path = line.slice(3).trim().replace(/^"|"$/g, '');
-    if (path.endsWith(OWNER_SUFFIX)) continue;
+    if (path.endsWith(OWNER_SUFFIX) || path.endsWith(PLANT_SUFFIX)) continue;
     const suffix = SIDECAR_SUFFIXES.find((s) => path.endsWith(s));
     if (!suffix) continue;
     const target = path.slice(0, -suffix.length);
@@ -103,19 +148,69 @@ export function preflightRestore(repoRoot: string): string[] {
     if (!existsSync(absBackup)) continue;
     // ⛔ See the note on LIVE_ENV: an ABANDONED plant is recovered, a LIVE one is left strictly alone.
     if (live.has(absBackup) || ownerIsAlive(absBackup)) continue;
-    if (existsSync(absTarget)) {
-      const original = readFileSync(absBackup, 'utf8');
-      if (readFileSync(absTarget, 'utf8') !== original) {
-        writeFileSync(absTarget, original, 'utf8');
-        recovered.push(target);
-      }
+    if (!existsSync(absTarget)) {
+      dropMarks(absBackup);
+      continue;
     }
-    rmSync(absBackup, { force: true });
-    // ⚠️ The owner mark goes with it, or the next `git status` still shows a stray file and the "tree is
-    // clean" claim this whole mechanism makes is false by one path.
-    rmSync(`${absBackup}${OWNER_SUFFIX}`, { force: true });
+    const onDisk = readFileSync(absTarget, 'utf8');
+
+    /**
+     * ⛔ **`V4` — CLEAN AGAINST `HEAD` MEANS THERE IS NOTHING TO RECOVER.** The signal handlers usually
+     * win, so the commonest orphan is a sidecar beside an already-restored file. Overwriting it with the
+     * sidecar's bytes is not a recovery, it is a revert of whatever happened since — and what happened
+     * since was 83 bytes of somebody's work.
+     */
+    if (matchesHead(repoRoot, target, onDisk)) {
+      dropMarks(absBackup);
+      continue;
+    }
+
+    /**
+     * ⛔ **DIRTY: RESTORE ONLY THE BYTES THIS MECHANISM ITSELF WROTE, AND REFUSE OTHERWISE.**
+     *
+     * ⚠️ **Refusing is the safe direction here, and that is a reversal of `U15`'s reasoning.** `U15`
+     * argued restore-over-refuse because *"a harness that merely refuses to start leaves the planted file
+     * in the tree for `git add -A`"* — true, and it never measured the other side. A refusal costs a
+     * human one command; a wrong restore costs work that no longer exists anywhere. So the refusal is
+     * LOUD and the caller fails on it: an unexplained dirty target is not something to guess about.
+     */
+    const expected = existsSync(`${absBackup}${PLANT_SUFFIX}`)
+      ? readFileSync(`${absBackup}${PLANT_SUFFIX}`, 'utf8').trim()
+      : '';
+    if (expected && expected === sha(onDisk)) {
+      writeFileSync(absTarget, readFileSync(absBackup, 'utf8'), 'utf8');
+      recovered.push(target);
+      dropMarks(absBackup);
+      continue;
+    }
+    // ⛔ Nothing is written and NOTHING IS DELETED — the sidecar is the only record of what happened.
+    refused.push(
+      `${target} is modified and its content is NOT the plant this harness would have made.\n` +
+        `        sidecar: ${path}\n` +
+        '        ⛔ Left untouched, both files. Restoring here would discard uncommitted work — measured\n' +
+        '        doing exactly that (`V4`, 83 bytes). Inspect the two, then delete the sidecar by hand.',
+    );
   }
-  return recovered;
+  return { recovered, refused };
+}
+
+/** The sidecar and its marks, gone together — a stray one makes the "tree is clean" claim false. */
+function dropMarks(absBackup: string): void {
+  for (const s of ['', OWNER_SUFFIX, PLANT_SUFFIX]) rmSync(`${absBackup}${s}`, { force: true });
+}
+
+/** Is `text` exactly what `HEAD` holds for `repoRelative`? A missing blob counts as NOT clean. */
+function matchesHead(repoRoot: string, repoRelative: string, text: string): boolean {
+  try {
+    const head = execFileSync('git', ['show', `HEAD:${repoRelative}`], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    return head === text;
+  } catch {
+    return false;
+  }
 }
 
 let armed: { abs: string; backup: string; original: string }[] = [];

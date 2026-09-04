@@ -25,7 +25,7 @@
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { armPlant, preflightRestore } from './lib/plantSafety';
+import { armPlant, notePlant, preflightRestore } from './lib/plantSafety';
 import { join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
@@ -35,10 +35,21 @@ const SCRIPTS = join(REPO_ROOT, 'scripts');
  * ⛔ `U15` - RECOVER FIRST, then read the tree. A previous run killed outright leaves a planted defect
  * in a tracked file, and every gate this harness then runs would be measuring that.
  */
-const recovered = preflightRestore(REPO_ROOT);
-if (recovered.length) {
-  console.log(`⚠️  pre-flight restored ${recovered.length} file(s) left planted by an interrupted run:`);
-  for (const r of recovered) console.log(`     ${r}`);
+const preflight = preflightRestore(REPO_ROOT);
+if (preflight.recovered.length) {
+  console.log(`⚠️  pre-flight restored ${preflight.recovered.length} file(s) left planted by an interrupted run:`);
+  for (const r of preflight.recovered) console.log(`     ${r}`);
+}
+/**
+ * ⛔ **A REFUSAL IS FATAL, not a warning** — [`V4`]. The pre-flight has found a dirty tracked file it
+ * cannot prove it planted. Running anyway would plant on top of somebody's uncommitted work and then
+ * "restore" the file to a state that was never theirs, which is how 83 bytes went missing once already.
+ */
+if (preflight.refused.length) {
+  console.error(`\n❌ wrap-escapes: the pre-flight REFUSED ${preflight.refused.length} sidecar(s).\n`);
+  for (const r of preflight.refused) console.error(`  • ${r}`);
+  console.error('');
+  process.exit(1);
 }
 
 interface Recipe {
@@ -627,6 +638,8 @@ for (const gate of wrapSensitive) {
       planted = original + snippet;
     }
     writeFileSync(abs, planted, 'utf8');
+    // ⛔ `V4` - record WHAT the plant looks like, so a later pre-flight recovers only these bytes.
+    notePlant(abs, planted);
     const applied = readFileSync(abs, 'utf8') !== original;
     const r = runGate(gate);
     const named = recipe.reason.test(r.out);
@@ -647,6 +660,7 @@ for (const gate of wrapSensitive) {
     if (verdict === 'MATCHED' && recipe.sameLine) {
       const plain = typeof recipe.sameLine === 'function' ? recipe.sameLine() : recipe.sameLine;
       writeFileSync(abs, original + plain, 'utf8');
+      notePlant(abs, original + plain);
       const s = runGate(gate);
       if (s.code === 0) verdict = 'SAME-LINE-FAILED-OPEN';
       else if (!recipe.reason.test(s.out)) verdict = 'SAME-LINE-RED-FOR-THE-WRONG-REASON';
