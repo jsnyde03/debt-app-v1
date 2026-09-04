@@ -139,7 +139,10 @@ for (const rel of files) {
 // how far a JSX text fragment may span before it stops being a sentence and starts being a weld.
 // ⛔ It went in one commit LATE, and this gate is what said so — `test:gate-plants` scored
 // `control=exit 1` on the very next run, which is `R1`'s rule doing its job: a red baseline is a FAULT.
-const MIN_CAPS = 29;
+// ⚠️ 29 → 28 at round 6 [`V3`]: `MAX_JSX_FRAGMENT_LINES` is DELETED, not renamed. It rejected the
+// exact shape its docblock said it admitted, and a code-punctuation test replaced it - so the cap did
+// not stop being seen, it stopped existing, which is the one honest reason to lower this number.
+const MIN_CAPS = 28;
 
 if (caps !== MIN_CAPS) {
   problems.push(

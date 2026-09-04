@@ -107,15 +107,66 @@ function stripComments(src: string): string {
  * A Prettier wrap of a two-word phrase spans one; `>` is also the comparison operator and the tail of
  * `=>`, so unbounded it opened a "text node" that closed on the next `<` **1,809 times**.
  */
-const MAX_JSX_FRAGMENT_LINES = 2;
+/**
+ * ⛔ **CODE PUNCTUATION, NOT A LINE COUNT — the line bound RE-OPENED `T6`.**
+ * [class-1 re-audit 5 `V3`, major]
+ *
+ * ⚡ `U2` bounded a JSX fragment at two newlines, reasoning *"a Prettier wrap of a two-word phrase spans
+ * one"*. **That arithmetic is wrong**: a `>…<` match around a two-line text node carries **three**
+ * newlines — one after the opening tag, one between the text lines, one before the closing tag — so the
+ * bound rejected exactly the shape it claimed to admit. `T6`'s own motivating case, *a retired phrase
+ * wrapped between its two words*, went green again, and **eight blocks of shipped prose left the
+ * population** — including `RequiredActionsCard.tsx`, the file `C1-9` and `R12` were filed against.
+ *
+ * ⛔ **The bound was chosen against the NOISE and never checked against the SIGNAL.** Measured both ways:
+ *
+ * | rule | code welds rejected | of the 8 prose blocks kept |
+ * |---|---|---|
+ * | `> 2 newlines` | 120 | **0** |
+ * | code punctuation | **332** | **8** |
+ *
+ * ⚠️ And the bound was not even load-bearing: the tree is green with it removed entirely. The 1,809 welds
+ * `U2` measured came from `>` being the comparison operator and the tail of `=>` — a property of the
+ * CONTENT, which is what this now tests. Prose does not contain `;` `=` `(` `)` `` ` `` or `&&`.
+ */
+const CODE_PUNCTUATION = /[;=(){}`]|=>|\|\||&&/;
 
 function copyFragments(text: string): { text: string; index: number }[] {
   const out: { text: string; index: number }[] = stringLiterals(text);
   for (const m of text.matchAll(/>[^<>{}]{2,}</g)) {
-    if ((m[0].match(/\n/g)?.length ?? 0) > MAX_JSX_FRAGMENT_LINES) continue;
+    if (CODE_PUNCTUATION.test(m[0])) continue;
     out.push({ text: m[0], index: m.index });
   }
   return out;
+}
+
+/**
+ * ⛔ **THE JSX RULE IS SELF-CHECKED, because `V3` is what an unchecked narrowing costs.**
+ *
+ * Both directions, on synthetic input, every run: the shape `T6` exists for must be IN the population,
+ * and a code weld must be OUT. A future narrowing that loses the wrapped phrase reds here by name.
+ */
+{
+  const wrapped = '<Text>\n  your breathing\n  room this month\n</Text>';
+  const weld = '<View>{items.filter((x) => x.n > 0).length}</View>';
+  const has = (src: string, needle: string): boolean =>
+    copyFragments(src).some((f) => f.text.replace(/\s+/g, ' ').includes(needle));
+  if (!has(wrapped, 'your breathing room this month')) {
+    console.error(
+      '\n❌ glossary: a JSX text node WRAPPED between two words is not in the population.\n' +
+        '  ⛔ V3 — that is `T6`\'s own motivating case, and a two-line text node carries THREE newlines\n' +
+        '  inside the `>…<` match. A line bound rejects the shape it claims to admit.\n',
+    );
+    process.exit(1);
+  }
+  if (copyFragments(weld).some((f) => f.text.includes('filter'))) {
+    console.error(
+      '\n❌ glossary: a code weld is being read as user-facing copy.\n' +
+        '  ⛔ U2 — `>` is also the comparison operator and the tail of `=>`, so an unbounded `>…<` opens a\n' +
+        '  "text node" that closes on the next `<`. This gate has no cap and no allow-list.\n',
+    );
+    process.exit(1);
+  }
 }
 
 const problems: string[] = [];
