@@ -628,8 +628,8 @@
       ],
       "run": "lint:gate-sources",
       "expect": "no longer runs the scripts typecheck against the config this gate guards",
-      "measured": "2026-09-03",
-      "sha": "1b8a9733"
+      "measured": "2026-09-04",
+      "sha": "312041c9"
     }
   },
   "S1P4-A-F4-ONEGUARD": {
@@ -2038,8 +2038,8 @@
       ],
       "run": "test:gate-plants",
       "expect": "lint:runner-completeness",
-      "measured": "2026-09-03",
-      "sha": "112fe64b"
+      "measured": "2026-09-04",
+      "sha": "312041c9"
     }
   },
   "S1P5-B5-7-ANSWERABLEID": {
@@ -2080,7 +2080,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "312041c9"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2343,8 +2343,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO runner",
-      "measured": "2026-09-03",
-      "sha": "b96afc88"
+      "measured": "2026-09-04",
+      "sha": "312041c9"
     }
   },
   "S1P6-D1-8-GATECHAIN": {
@@ -2361,8 +2361,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO chain",
-      "measured": "2026-09-03",
-      "sha": "b96afc88"
+      "measured": "2026-09-04",
+      "sha": "312041c9"
     }
   },
   "S1P6-D3-4-HALFCONFLICT": {
@@ -2398,7 +2398,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "312041c9"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3465,7 +3465,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "312041c9"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3524,7 +3524,7 @@
       "run": "test:wrap-escapes",
       "expect": "matches the gate's own GREEN output",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "312041c9"
     }
   },
   "S1P7-U6-CLAMPED-DAY": {
@@ -3546,8 +3546,8 @@
       ],
       "run": "lint:month-arithmetic",
       "expect": "overflows a short month forward",
-      "measured": "2026-09-03",
-      "sha": "1b8a9733"
+      "measured": "2026-09-04",
+      "sha": "312041c9"
     }
   },
   "S1P7-U8-COMPOSITION-PINNED": {
@@ -3564,8 +3564,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "production no longer calls",
-      "measured": "2026-09-03",
-      "sha": "a47ffb1a"
+      "measured": "2026-09-04",
+      "sha": "312041c9"
     }
   },
   "S1P7-U9-SEED-CLOSURE": {
@@ -3622,7 +3622,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "312041c9"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -3640,7 +3640,7 @@
       "run": "test:wrap-escapes",
       "expect": "no longer imports lib/logicalLines",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "312041c9"
     }
   },
   "S1P7-U15-PLANT-SAFETY": {
@@ -3658,7 +3658,7 @@
       "run": "test:plant-safety",
       "expect": "the pre-flight names the file it recovered",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "312041c9"
     }
   },
   "S1P7-U16-SAMELINE-DERIVED": {
@@ -3676,7 +3676,7 @@
       "run": "test:wrap-escapes",
       "expect": "NOTHING plants the same-line spelling",
       "measured": "2026-09-04",
-      "sha": "d27a13ca"
+      "sha": "312041c9"
     }
   },
   "S1P7-U1-INTERPOLATION-IS-CODE": {
