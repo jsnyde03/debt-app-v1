@@ -31758,3 +31758,93 @@ FIRST commit — which is also the commit the re-audit brief's own range exclude
 in the cluster ended up with no guard at all, by a bookkeeping accident.
 
 **Boundary: 52/52 gates · `test:app` · `test:regression` · typecheck 0 · ledger 151 EXECUTED / 2 stale.**
+
+---
+
+## S1.13.7.12.6 · class 1, ROUND 7 — 2026-09-04 · and the DECISION to leave class 1
+
+**Re-audit 6 returned 15 new findings — 1 blocker · 10 major · 4 minor — and, for the first time,
+`9 of 79` prior findings NOT closed:** eight re-open by planting, and `V2` was never fixed at all.
+
+### 🎯 THE DECISION — 2026-09-04, and the numbers it was made on
+
+Three `[D79]` rounds on ONE class of twelve:
+
+| round | prior findings | not closed | new |
+|---|---|---|---|
+| re-audit 4 | 51 | — | 16 (`U`) |
+| re-audit 5 | 67 | 1 | 12 (`V`) |
+| re-audit 6 | 79 | **9** | 15 (`W`) |
+
+⛔ **New findings flat, re-opens 1 → 9, and the SUBJECT had drifted.** Rounds 4–5 were money gates
+missing a wrapped line — real, user-facing, and now demonstrably fixed. Rounds 6–7 were almost entirely
+instruments-about-instruments; `W9` is literally *"the proof that the proof-staleness check works is
+itself vacuous."* **There is no bottom to that recursion**, and each round's fixes were more
+self-referential than the last, which is why they kept generating defects.
+
+🎯 **Chosen: fix what has reach OUTSIDE the instrument stack, route the rest to class 9, open class 4.**
+⚠️ Applied to the *principle* rather than the letter — **12 of the 15 were fixed**, because seven more met
+that test than the three the decision named:
+
+| id | why it was NOT instrument-recursion |
+|---|---|
+| `W1` **blocker** | a DELETED guard read as present — this undermines every closure claim in all 12 classes |
+| `W6` | **LIVE and self-perpetuating**: `core.autocrlf=true` made a clean file read as dirty, the pre-flight refused *fatally*, and the refusal path deletes nothing — every later `lint:rn` would fail identically, with no way out but hand-deleting the file the message says to preserve |
+| `W2` | a MONEY gate going blind: `parseAmountField(a)! ?? 0` is a **one-character** un-fix |
+| `W3` `W4` `W12` `W15` | four gates **falsely redding correct code**, each with cap 0 and no allow-list |
+| `W5` `W7` | the recovery mechanism failing at its own core case — when the plant was COMMITTED it silently deleted the only copy of the original bytes |
+| `W11` | `T6`/`C1-9`/`R12` re-opened for any sentence with `(` or an HTML entity |
+| `W14` | a message that said the **opposite** of what happened |
+
+**Routed to class 9 (`a check that cannot fail`):** `W8`, `W10`, `W13`, plus the narrowed deadlock note.
+
+### ⛔ `W1` — the blocker, and the shape that produced it
+
+`lint:finding-guards` printed `✅ 280 of 281 findings carry a standing guard`, exit 0, over a guard whose
+assertion was **deleted** and whose token survived only in a `//` comment.
+
+⚡ **Cause:** `KEYWORD_BEFORE_REGEX` was tested against a window **ending at the `/`**, and every real
+spelling puts a space there — so the `$` anchor could never match and **the entire keyword arm was dead**.
+One unrecognised `return /…/` let three backticks inside its character classes open a runaway, and
+`stripCommentsOnly` handed back five comment lines *as code*.
+
+⭐ **And `test-strip-code` had PINNED this as a known misparse and called it "not a live defect."** True
+when written. `V7` made it live by routing `joinedCode` through the scanner. **A pinned misparse is a live
+defect waiting for a new consumer** — the cluster's most repeated shape, in its purest form.
+
+Measured after: comments surviving as code **1 → 0** across 698 files, and the blind direction did not
+regress — the four long blanked runs are each exactly one string literal's content, verified structurally
+rather than against my own threshold.
+
+### ⭐ `W11` — four heuristics, then the instrument that knows
+
+`V3`'s punctuation rule dropped **240 of 1,871** spans, including the two commonest prose habits here: a
+parenthetical, and `&rsquo;` — because every HTML entity ends in a semicolon, and `lint:apostrophes`
+actively pushes copy *toward* `&rsquo;`. **The two gates worked against each other.**
+
+⛔ Every rule before this was chosen against a sample and never measured against the population — `T2`,
+`T3`, `U2`, `V3`, four in a row. I tried three more and measured each one down (tag-close backtracking:
+generics defeat it; drop-parens: 137 ternary-glue spans; two-adjacent-words: loses *"Not a debt"*). The
+answer was the TypeScript parser, already used by three gates here: **3,010 `JsxText` nodes, 225 carrying
+letters, 397 files, 1.2 s.**
+
+### ⛔ Round 7's own defects — three, all caught by re-running someone else's rows
+
+- **`W15`'s fix regressed a TRUE positive.** Blanking `${…}` spans also lost `` `state=${'crunch'}` `` — a
+  string literal inside an interpolation, which reaches the user and which `V2`'s own third row records as
+  correct. Found by re-running **all three** of `V2`'s rows, not just the one being fixed.
+- **The `W6` control was too weak** — I substituted a function that also normalises line endings, so it
+  proved nothing. Redone with the actual defect.
+- **A two-pass drain**, not a defect: `W9b`'s drainable check reads `lint:finding-guards`' own problem
+  lines, so it un-blocks a proof that runs *that gate* but not one running a harness that uses it as a
+  BASELINE. Narrower deadlock, noted for class 9.
+
+### ⚡ `W9b` — the fix for `S5-DEADLOCK` was itself a fail-open
+
+The exemption was an **env var the GATE honoured**, so anything exporting `PROVE_GUARDS_DRAINING` disabled
+two ratchets for every reader, `validate:release:rn` included. ⛔ **A gate must not be weakenable from the
+environment.** The variable is gone; the gate is strict unconditionally; the judgement moved into
+`prove-guards`, which reads its own control's output and proceeds only when every reported problem is one
+of the two ceilings the drain exists to lower.
+
+**Boundary: 52/52 gates · `test:app` · `test:regression` · typecheck 0 · 151 proofs / 2 stale · tree clean.**
