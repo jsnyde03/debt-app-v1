@@ -220,8 +220,15 @@ function restoreArmed(): void {
   for (const a of armed) {
     try {
       if (readFileSync(a.abs, 'utf8') !== a.original) writeFileSync(a.abs, a.original, 'utf8');
-      rmSync(a.backup, { force: true });
-      rmSync(`${a.backup}${OWNER_SUFFIX}`, { force: true });
+      /**
+       * ⛔ **ALL THREE MARKS, and missing one leaked 15 files into a COMMIT.** [round 6, self-inflicted]
+       *
+       * ⚡ `V4` added the plant fingerprint and this line removed the backup and the owner mark only. The
+       * hashes accumulated silently — they are tiny and nobody looks — until a `git add -A` swept
+       * **fifteen** of them into `ab8cdf91`. That is the same path that committed a live plant earlier in
+       * this cluster: a harness artifact nobody was watching, plus a broad add.
+       */
+      dropMarks(a.backup);
     } catch {
       /* best effort — the sidecar is still on disk for the next run's pre-flight */
     }

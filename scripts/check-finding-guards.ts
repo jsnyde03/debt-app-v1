@@ -144,8 +144,16 @@ const ids = Object.keys(registry);
  * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
  */
 // ⚠️ 267 → 268 at S1.13.7.12.6: `S1P7-CLASS1-LOGICALJOIN`, class 1's line-wrap escape.
-// ⚠️ 268 → 269 at S1.13.7.12.6 round 5: `S1P7-U7-VERDICT-MARK`, the guard on this file's own verdict mark.
-// ⚠️ 280 → 281 at round 6: `S1P7-U1-INTERPOLATION-IS-CODE`, the guard `V1` found missing.
+/**
+ * ⚠️ **268 → 280 at round 5** — the twelve class-1 re-audit-4 guards, landed as a batch.
+ * **280 → 281 at round 6** — `S1P7-U1-INTERPOLATION-IS-CODE`, the guard `V1` found missing.
+ *
+ * ⛔ **This note is what the floor is FOR, and it was off by eleven.** [`V10`] It was written on the
+ * first raise, when the count really was 269, and the remaining eleven raises moved the number and not
+ * the sentence — the same *edit the value, leave the sentence* shape as `U14` and `U16`, in the file
+ * that carries those findings' neighbours. `check-cap-literals` reads cap LITERALS, not the prose
+ * beside them, so nothing mechanical compared the two. One line per ROUND now, not per commit.
+ */
 const MIN_ENTRIES = 281;
 const MAX_UNGUARDED = 1;
 

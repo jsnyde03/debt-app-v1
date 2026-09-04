@@ -3569,21 +3569,19 @@
     }
   },
   "S1P7-U9-SEED-CLOSURE": {
-    "what": "S1.13.7.12.6 [class-1 re-audit 4 U9, major] - N-8 replaced debtPrefill's one-hop rule with a transitive closure and left the `seed` exemption as a single name filter applied to the RESULT, so the exemption was one hop deep while the detector had become unbounded. DebtSheet's sanctioned shape is `const seed = editing ?? prefill ?? null;`; hoisting the initialiser off it - an ordinary refactor of CORRECT code that still honours the prefill - was reported as a defect by a release gate with eq(fromEditing.length, 0) and no allow-list. The exclusion is now seeded INTO the closure and does not propagate. Why no fixture caught it: the one negative row writes useState(seed?.apr ...) INLINE so it never crosses a hop - R11's own lesson ('the last row is the one that matters most: it asserts correct code stays CLEAN') carried forward as one row rather than re-derived for the new mechanism. Three rows added, including the direction that matters: a hoist off `editing` in a file that ALSO has `seed` is still a hit, so the exemption is not a blanket.",
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U9, major] - N-8 replaced debtPrefill's one-hop rule with a transitive closure and left the `seed` exemption as a single name filter applied to the RESULT, so the exemption was one hop deep while the detector had become unbounded. DebtSheet's sanctioned shape is `const seed = editing ?? prefill ?? null;`; hoisting the initialiser off it - an ordinary refactor of CORRECT code that still honours the prefill - was reported as a defect by a release gate with eq(fromEditing.length, 0) and no allow-list. The exclusion is now seeded INTO the closure and does not propagate. Why no fixture caught it: the one negative row writes useState(seed?.apr ...) INLINE so it never crosses a hop - R11's own lesson ('the last row is the one that matters most: it asserts correct code stays CLEAN') carried forward as one row rather than re-derived for the new mechanism. Three rows added, including the direction that matters: a hoist off `editing` in a file that ALSO has `seed` is still a hit, so the exemption is not a blanket. >>> V9: the exemption was keyed on the NAME `seed`, so three real defect spellings went invisible - a hoist off `editing` merely NAMED seed, a SECOND seed in a nested scope, and a destructure off `editing` RENAMED to seed. And the first repair was still wrong: a name-keyed exempt SET let the nested case inherit the outer binding's exemption, measured while writing the rows. The exemption is a BINDING's own initialiser now, because this detector has no scope model and that is the only honest unit.",
     "file": "apps/rn/src/components/entities/debtPrefill.test.ts",
-    "token": "hoisted ONE hop, is NOT a hit (U9)",
+    "token": "SANCTIONED_MERGE.test(b.init)",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/components/entities/debtPrefill.test.ts",
-          "find": "          if (derived.has(b.name) || EXCLUDED.has(b.name)) continue;",
-          "replace": "          if (derived.has(b.name)) continue;"
+          "find": "          if (SANCTIONED_MERGE.test(b.init)) continue;",
+          "replace": "          if (b.name === 'seed') continue;"
         }
       ],
       "run": "test:app",
-      "expect": "hoisted ONE hop",
-      "measured": "2026-09-03",
-      "sha": "1b8a9733"
+      "expect": "hoist off `editing` that is merely NAMED"
     }
   },
   "S1P7-U10-INK-WHOLE-FILE": {

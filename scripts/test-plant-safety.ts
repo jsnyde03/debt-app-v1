@@ -41,6 +41,7 @@ const check = (cond: boolean, label: string) => {
   else failures.push(label);
 };
 
+const NL = String.fromCharCode(10);
 const root = mkdtempSync(join(tmpdir(), 'plant-safety-'));
 const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
 
@@ -61,6 +62,32 @@ function reset(): void {
   for (const s of ['', '.plant-owner', '.plant-hash']) rmSync(`${sidecar}${s}`, { force: true });
   rmSync(`${abs}.wrapescape-backup`, { force: true });
   writeFileSync(abs, ORIGINAL, 'utf8');
+}
+
+/**
+ * ⛔ **NO SIDECAR MAY BE TRACKED — measured after fifteen of them were COMMITTED.**
+ * [round 6, self-inflicted while fixing `V4`]
+ *
+ * ⚡ `V4` added the plant fingerprint; `restoreArmed` removed the backup and the owner mark and **not the
+ * hash**. They are tiny and nobody looks, so they accumulated until a `git add -A` swept **fifteen** into
+ * `ab8cdf91`. ⛔ **That is the same path that committed a live plant earlier in this cluster**: a harness
+ * artifact nobody was watching, plus a broad add.
+ *
+ * ⚠️ **Gitignoring them would be the wrong fix** and it is worth writing down: the pre-flight finds
+ * abandoned sidecars through `git status --untracked-files=all`, which does **not** list ignored files.
+ * Hiding them would blind the recovery mechanism. So they stay visible, and being TRACKED is what reds.
+ *
+ * ⛔ This runs against the REAL repo, before the scratch fixture, because it is a fact about this tree.
+ */
+{
+  const tracked = execFileSync('git', ['ls-files'], { cwd: join(import.meta.dirname, '..'), encoding: 'utf8' })
+    .split(NL)
+    .map((l) => l.trim())
+    .filter((l) => /\.(plant-backup|plant-owner|plant-hash|wrapescape-backup)$/.test(l));
+  check(
+    tracked.length === 0,
+    `no plant sidecar is tracked in git (found ${tracked.length}: ${tracked.slice(0, 3).join(', ')})`,
+  );
 }
 
 try {

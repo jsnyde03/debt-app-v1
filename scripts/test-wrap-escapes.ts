@@ -470,10 +470,39 @@ const PER_LINE_UNREVIEWED = new Set([
 // left by being FIXED onto lib/joinedCode - it is now in `wrapSensitive` with a recipe of its own.
 const MAX_UNREVIEWED = 12;
 
+/**
+ * ⛔ **THE CERTIFIED BUCKET IS PINNED TOO** — [`V12`], and it is `!==` for the same reason
+ * `MIN_CAPS` is: a row LEAVING must be as visible as one arriving. Reviewing a gate onto the shared
+ * helper reds until this number moves down, which is the two-line-edit friction that makes the move
+ * deliberate rather than incidental.
+ */
+const PER_LINE_OK_PINNED = 13;
+
 const unreviewedSeen: string[] = [];
+/**
+ * ⛔ **THE CERTIFIED BUCKET IS RATCHETED TOO** — [`V12`]. `N-10` pinned the HONEST bucket, on the ground
+ * that *"an unreviewed list that can grow is not a backlog, it is a parking space"*, and left the
+ * CERTIFIED one with no cap, no departure check and no measurement requirement.
+ *
+ * ⚡ **Measured: the cheapest way to make this harness green over a new per-line gate is to write a
+ * sentence about it.** A gate classified nowhere reds correctly; add one `PER_LINE_OK` row reading
+ * *"no reason at all, just a sentence nobody measured"* and the count moves `13 → 14` on the green path
+ * with nothing objecting.
+ *
+ * ⛔ **And this cluster has already priced the reasons: 4 of 11 written reasons false (`T6`, `N-4`),
+ * then 4 more of 17 (`U12`)** — the last of them written three lines below the note recording the first
+ * four. A hatch whose contents are wrong 40% of the time needs the same friction as the backlog beside it.
+ *
+ * ⚠️ A row still LEAVES freely: the pin is `!==`, so reviewing a gate onto the shared helper reds until
+ * this number moves down, which is the two-line-edit friction `MIN_ENTRIES` is named for.
+ */
+const perLineOkSeen: string[] = [];
 const knownBlindSeen: string[] = [];
 for (const gate of perLineCandidates) {
-  if (gate in PER_LINE_OK) continue;
+  if (gate in PER_LINE_OK) {
+    perLineOkSeen.push(gate);
+    continue;
+  }
   if (gate in PER_LINE_KNOWN_BLIND) {
     knownBlindSeen.push(gate);
     continue;
@@ -488,6 +517,27 @@ for (const gate of perLineCandidates) {
       '        that is the whole of class 1, whose members were every gate written AFTER the escape was\n' +
       '        already documented. Use the shared helper, or classify it here.',
   );
+}
+/**
+ * ⛔ **THE DEPARTURE HALF FOR THE CERTIFIED BUCKET, which is the half it never had.** [`V12`]
+ *
+ * Its two siblings each check that their rows still describe a real gate. `PER_LINE_OK` did not, so a row
+ * naming a deleted or renamed gate — or a gate since moved onto the shared helper — sat there certifying
+ * nothing, and its reason kept being counted as coverage. ⚠️ This cluster has already measured **8 of 28
+ * of these sentences false**; a stale one is the cheapest kind to leave behind.
+ */
+for (const gate of Object.keys(PER_LINE_OK)) {
+  if (wrapSensitive.includes(gate)) {
+    problems.push(
+      `PER_LINE_OK names ${gate}, which now uses the shared helper.\n` +
+        '        It was FIXED — delete the row, so "per-line by design" keeps meaning that.',
+    );
+  } else if (!perLineCandidates.includes(gate)) {
+    problems.push(
+      `PER_LINE_OK names ${gate}, which is not a gate in scripts/ any more.\n` +
+        '        A row certifying a file that does not exist is a reason nobody can check.',
+    );
+  }
 }
 for (const gate of Object.keys(PER_LINE_KNOWN_BLIND)) {
   if (wrapSensitive.includes(gate)) {
@@ -560,7 +610,20 @@ for (const gate of wrapSensitive) {
    * were. A `green` recipe is exempt: its plant IS correct code, so there is no defect spelling to cover.
    */
   for (const [n, recipe] of recipesFor(gate).entries()) {
-    if (recipe.expect === 'green' || recipe.sameLine || sameLineCovered.has(gate)) continue;
+    /**
+     * ⚠️ **THE FILE-LEVEL FACT IS ACCEPTED ONLY FOR A SINGLE-MATCHER GATE.** [`V11`]
+     *
+     * `sameLinePlantedElsewhere()` can only return gate FILES — that is what `package.json` maps a script
+     * to — and this loop walks MATCHERS. ⛔ That is `U10`'s exact mistake, latent: *one recipe per file
+     * cannot see a second matcher*, whose fix made this population per-matcher in the same round. One
+     * `test:gate-plants` scenario would otherwise silence the requirement for every matcher in its file.
+     *
+     * ⚡ Nothing is waved through today — the only multi-matcher gates are `check-contrast`,
+     * `check-amount-collapse` and `check-rounding`, none of them in that set — which is why this is
+     * written before it costs anything rather than after.
+     */
+    const oneMatcher = recipesFor(gate).length === 1;
+    if (recipe.expect === 'green' || recipe.sameLine || (oneMatcher && sameLineCovered.has(gate))) continue;
     problems.push(
       `${gate} #${n + 1} — NOTHING plants the same-line spelling of its defect.\n` +
         `        test:gate-plants covers ${[...sameLineCovered].sort().join(', ') || 'nothing'}, and this\n` +
@@ -729,6 +792,17 @@ for (const gate of wrapSensitive) {
   }
 }
 
+if (perLineOkSeen.length !== PER_LINE_OK_PINNED) {
+  problems.push(
+    [
+      `PER_LINE_OK holds ${perLineOkSeen.length} gate(s) and the pin is ${PER_LINE_OK_PINNED}.`,
+      '        ⛔ V12 — this bucket is the census escape hatch, and this cluster has priced its',
+      '        contents: 4 of 11 written reasons false (T6, N-4), then 4 more of 17 (U12). The cheapest',
+      '        way to make this harness green over a new per-line gate is to write a sentence about it,',
+      '        so adding one costs a number here - which is the moment the claim is visible.',
+    ].join(String.fromCharCode(10)),
+  );
+}
 if (unreviewedSeen.length > MAX_UNREVIEWED) {
   problems.push(
     [
@@ -770,7 +844,7 @@ console.log(
     ` · ${exercised.filter((r) => r.sameLine).length} also planted UNWRAPPED here, ${
       wrapSensitive.filter((g) => sameLineCovered.has(g)).length
     } by test:gate-plants` +
-    ` · ${Object.keys(PER_LINE_OK).length} per-line by design` +
+    ` · ${perLineOkSeen.length} per-line by design` +
     ` · ⛔ ${knownBlindSeen.length} MEASURED BLIND, awaiting fix` +
     ` · ⚠️ ${unreviewedSeen.length} per-line and NOT YET REVIEWED (downward-only).`,
 );
