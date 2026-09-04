@@ -179,8 +179,15 @@ export function afterEnclosingGroups(code: string, argsEnd: number): string {
     }
     if (j < 0) break; // unbalanced — do not guess
     const before = /\S$/.exec(structure.slice(0, j))?.[0] ?? '';
-    // ⛔ `foo(`, `x[0](`, `f()(` — an identifier, `]` or `)` before the paren means it is a CALL.
-    if (/[\w$\])]/.test(before)) break;
+    /**
+     * ⛔ `foo(`, `x[0](`, `f()(` — an identifier, `]` or `)` before the paren means it is a CALL.
+     *
+     * ⚠️ **`.` is in the class too, and `W3` is why.** `f?.(parse(x)) ?? 0` puts a `.` immediately before
+     * the paren, so the walk read it as a GROUPING paren, stepped out of an OPTIONAL CALL, and reported a
+     * collapse of `parse(x)` when what collapses is `f?.(…)`. That is the noisy direction in a gate with
+     * cap 0 and no allow-list — the same asymmetry `V1` weighed when this walk was written.
+     */
+    if (/[\w$\]).]/.test(before)) break;
     i++;
   }
   return code.slice(i);

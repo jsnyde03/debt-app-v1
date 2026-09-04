@@ -361,12 +361,23 @@ function chainedGatesFrom(src: string): string | null {
      * fourth location of that shape this round. Two occurrences are required: the pin's own literal, and
      * the call.
      */
-    if (selfSrc.split(site).length - 1 !== 1) {
+    /**
+     * ⚠️ **ZERO AND MANY ARE DIFFERENT FACTS, and saying so is `W14`.** `!== 1` reported a SECOND
+     * legitimate call with the message *"production no longer calls…"* — the opposite of what happened,
+     * sending the reader to restore a call that is already there twice.
+     */
+    const seen = selfSrc.split(site).length - 1;
+    if (seen !== 1) {
       console.error(
-        `\n❌ runner completeness: production no longer calls \`${site}\`.\n` +
-          `  ⛔ ${why}, and this gate would print a full green over it.\n` +
-          '  ⛔ U8 — the helper being correct and tested says nothing about the shipping code using it.\n' +
-          '  Restore the call, or move the pin deliberately in the same edit.\n',
+        seen === 0
+          ? `\n❌ runner completeness: production no longer calls \`${site}\`.\n` +
+            `  ⛔ ${why}, and this gate would print a full green over it.\n` +
+            '  ⛔ U8 — the helper being correct and tested says nothing about the shipping code using it.\n' +
+            '  Restore the call, or move the pin deliberately in the same edit.\n'
+          : `\n❌ runner completeness: \`${site}\` appears ${seen}× in this file, and the pin expects one.\n` +
+            '  ⚠️ W14 — a SECOND call is not the defect this pin exists for; it just leaves the pin unable\n' +
+            '  to say whether the FIRST one is still there. Name the two sites separately, or route the\n' +
+            '  second through the first.\n',
       );
       process.exit(1);
     }
