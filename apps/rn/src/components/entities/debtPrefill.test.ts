@@ -198,11 +198,36 @@ export function runDebtPrefillTests() {
        * ⚠️ **Not a hole.** `seed` is still pinned by the assertion below, so the one identifier allowed to
        * derive from `editing` is itself guarded; what changes is that deriving FROM it no longer counts.
        */
-      const EXCLUDED = new Set(['seed']);
+      /**
+       * ⛔ **THE SANCTIONED SHAPE, NOT THE NAME.** [class-1 re-audit 5 `V9`]
+       *
+       * ⚡ `U9` excluded the identifier `seed`, and the docblock said *"not a hole — `seed` is still
+       * pinned by the assertion below"*. The pin asserts the **presence of one declaration**; it says
+       * nothing about a SECOND binding of that name, and nothing at all about scope. Measured, three real
+       * defect spellings going invisible:
+       *
+       *     const seed = editing ? String(editing.apr) : '';   // hoisted off editing, NAMED seed
+       *     { const seed = editing?.apr; useState(seed); }      // a second seed in a NESTED scope
+       *     const { apr: seed } = editing ?? {};                // destructured off editing, RENAMED
+       *
+       * ⚠️ The third is the one most likely to be written by accident — renaming a binding to `seed`
+       * while still reading `editing` is exactly the half-finished refactor the old advice invited.
+       *
+       * ⛔ So the exemption tests the INITIALISER: only the merge `editing ?? prefill` is sanctioned. A
+       * binding called `seed` that reads `editing` alone is a hit again, whatever it is called.
+       */
+      /**
+       * ⚠️ **PER BINDING, NOT PER NAME — measured while writing the rows below.** A name-keyed set still
+       * missed the nested-scope case: the sanctioned outer `seed` put the NAME in the exempt set, and a
+       * second `seed` reading `editing` inside a function inherited the exemption. This detector has no
+       * scope model, so the only honest unit is the binding's own initialiser.
+       */
+      const SANCTIONED_MERGE = /\bediting\s*\?\?\s*prefill\b/;
       const derived = new Set<string>();
       for (let hop = 0; hop < 3; hop++) {
         for (const b of bindings) {
-          if (derived.has(b.name) || EXCLUDED.has(b.name)) continue;
+          if (SANCTIONED_MERGE.test(b.init)) continue;
+          if (derived.has(b.name)) continue;
           const fromEditingDirectly = /\bediting\b/.test(b.init);
           const fromDerived = [...derived].some((d) => new RegExp(`\\b${d}\\b`).test(b.init));
           if (fromEditingDirectly || fromDerived) derived.add(b.name);
@@ -224,8 +249,9 @@ export function runDebtPrefillTests() {
       return [
         ...direct,
         ...[...hoisted, ...destructured]
-          // ⛔ `U9` — `seed` is handled in the closure above; a name filter here was one hop deep.
-          .filter((name) => !EXCLUDED.has(name))
+          // ⛔ `V9` — no name filter at all. The exemption is a binding's OWN initialiser, applied in the
+          // closure above; a filter here could not tell two bindings sharing a name apart, and that is
+          // exactly how a second `seed` in a nested scope inherited the sanctioned one's exemption.
           .filter((name) => new RegExp(`useState\\(\\s*${name}\\b`).test(src)),
       ];
     };
@@ -307,6 +333,28 @@ export function runDebtPrefillTests() {
       ).length,
       1,
       'detector: a hoist off `editing` in a file that ALSO has `seed` is still a hit (U9 — the exemption is not a blanket)',
+    );
+    /**
+     * ⛔ **THE EXEMPTION'S NEGATIVE CASES — `V9`.** `U9` keyed it on the NAME, so all three of these went
+     * invisible in a release gate with no allow-list. `R11`'s lesson is that the rows asserting what must
+     * STILL be caught are the ones that matter, and one round later it needed re-deriving again.
+     */
+    eq(
+      seedsFromEditing("const seed = editing ? String(editing.apr) : '';\nconst [a, setA] = useState(seed);").length,
+      1,
+      'detector: a hoist off `editing` that is merely NAMED `seed` is still a hit (V9)',
+    );
+    eq(
+      seedsFromEditing(
+        "const seed = editing ?? prefill ?? null;\nfunction inner() {\n  const seed = editing?.apr;\n  const [a, setA] = useState(seed);\n}",
+      ).length,
+      1,
+      'detector: a SECOND `seed` in a nested scope, reading `editing`, is still a hit (V9)',
+    );
+    eq(
+      seedsFromEditing('const { apr: seed } = editing ?? {};\nconst [a, setA] = useState(seed);').length,
+      1,
+      'detector: a destructure off `editing` RENAMED to `seed` is still a hit (V9)',
     );
 
     const sheet = stripCommentsOnly(readFileSync(join(__dirname, 'DebtSheet.tsx'), 'utf8'));

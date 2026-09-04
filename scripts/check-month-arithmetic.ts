@@ -154,14 +154,36 @@ function dateArgs(line: string, from: number): string[] | null {
  * `(d.getDate())` is the same unclamped day wearing parentheses, and exempting it would be the blind
  * direction. `Math.min(`, `clampDay(`, `Math.max(` all qualify; `(` alone does not.
  */
+/**
+ * ⛔ **THE CALLEE, NOT THE PRESENCE OF ONE.** [class-1 re-audit 5 `V8`]
+ *
+ * ⚡ The first cut exempted a `getDate()` inside **any** call, and `U6`'s remedy as filed is where that
+ * came from — *"an argument of `Math.min` **(or of any call)**"*. The parenthesis was the whole finding.
+ * The docblock then argued for it by name — *"`Math.min(`, `clampDay(`, `Math.max(` all qualify"* —
+ * **without noticing that `Math.max` does not clamp the direction this gate checks.** Measured, three
+ * genuinely unclamped day slots passing:
+ *
+ * | day slot | before | now |
+ * |---|---|---|
+ * | `Math.max(1, d.getDate())` — guards the LOWER bound, overflows the upper | ✅ green | reds |
+ * | `Number(d.getDate())` | ✅ green | reds |
+ * | `__id(d.getDate())` | ✅ green | reds |
+ * | `Math.min(d.getDate(), 28)` — the real clamp | green | green |
+ *
+ * `Math.max(1, …)` is the realistic one: guarding the lower bound is an ordinary thing to write and does
+ * nothing about the overflow. **A contingent choice written in as a law — Law III.**
+ */
+const CLAMPING_CALLEE = /(?:^|[^\w$.])(?:Math\.min|[\w$]*clamp[\w$]*)$/i;
+
 function clampedDay(day: string): boolean {
   const opens: number[] = [];
   for (let i = 0; i < day.length; i++) {
     if (day[i] === '(') opens.push(i);
     else if (day[i] === ')') opens.pop();
     else if (day.startsWith('getDate', i) && opens.length > 0) {
-      const before = day[opens[opens.length - 1] - 1] ?? '';
-      if (/[\w$]/.test(before)) return true;
+      // ⚠️ The text immediately before the innermost open paren IS the callee — a grouping paren has no
+      // identifier there and is correctly not a clamp (`(d.getDate())` is the same unclamped day).
+      if (CLAMPING_CALLEE.test(day.slice(0, opens[opens.length - 1]))) return true;
     }
   }
   return false;
