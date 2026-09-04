@@ -742,9 +742,10 @@ for (const gate of wrapSensitive) {
       const snippet = typeof recipe.plant === 'function' ? recipe.plant() : (recipe.plant ?? '');
       planted = original + snippet;
     }
-    writeFileSync(abs, planted, 'utf8');
-    // ⛔ `V4` - record WHAT the plant looks like, so a later pre-flight recovers only these bytes.
+    // ⛔ `W5` - the fingerprint goes down BEFORE the plant. A kill in the one-statement window between
+    // them turned a recoverable orphan into a FATAL refusal, with the plant still on disk.
     notePlant(abs, planted);
+    writeFileSync(abs, planted, 'utf8');
     const applied = readFileSync(abs, 'utf8') !== original;
     const r = runGate(gate);
     const named = recipe.reason.test(r.out);
@@ -764,8 +765,8 @@ for (const gate of wrapSensitive) {
      */
     if (verdict === 'MATCHED' && recipe.sameLine) {
       const plain = typeof recipe.sameLine === 'function' ? recipe.sameLine() : recipe.sameLine;
-      writeFileSync(abs, original + plain, 'utf8');
       notePlant(abs, original + plain);
+      writeFileSync(abs, original + plain, 'utf8');
       const s = runGate(gate);
       if (s.code === 0) verdict = 'SAME-LINE-FAILED-OPEN';
       else if (!recipe.reason.test(s.out)) verdict = 'SAME-LINE-RED-FOR-THE-WRONG-REASON';

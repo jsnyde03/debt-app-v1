@@ -434,9 +434,10 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
     }
     for (const [rel, text] of working) {
       const absRel = join(REPO_ROOT, rel);
-      writeFileSync(absRel, text, 'utf8');
-      // ⛔ `V4` - the pre-flight recovers only bytes this mechanism recorded writing.
+      // ⛔ `W5` - fingerprint FIRST: a kill between the write and the note leaves an unattributable
+      // plant, which the pre-flight must then refuse rather than recover.
       notePlant(absRel, text);
+      writeFileSync(absRel, text, 'utf8');
     }
     for (const [rel, text] of originals) {
       if (readFileSync(join(REPO_ROOT, rel), 'utf8') === text) planted = false;

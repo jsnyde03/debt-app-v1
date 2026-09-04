@@ -109,9 +109,16 @@ try {
     check(existsSync(sidecar), 'the sidecar exists as soon as the plant is armed, BEFORE anything is written');
     check(readFileSync(sidecar, 'utf8') === ORIGINAL, '…and it holds the original bytes');
 
-    writeFileSync(abs, PLANTED, 'utf8');
+    /**
+     * ⛔ **THE FINGERPRINT GOES DOWN BEFORE THE PLANT** - [`W5`]. A kill in the one-statement window
+     * between the write and the note leaves a plant nothing can attribute, so the next pre-flight
+     * REFUSES it - turning a recoverable orphan into a fatal, self-perpetuating stop with the planted
+     * defect still on disk. `notePlant` hashes a string the caller already holds; it needs nothing
+     * from the filesystem, so there is no reason for it to run second.
+     */
     notePlant(abs, PLANTED);
-    check(existsSync(`${sidecar}.plant-hash`), 'the plant FINGERPRINT is recorded — without it recovery is a guess (V4)');
+    check(existsSync(`${sidecar}.plant-hash`), 'W5: the fingerprint exists BEFORE the plant is written');
+    writeFileSync(abs, PLANTED, 'utf8');
     check(readFileSync(abs, 'utf8') !== ORIGINAL, 'the plant is actually on disk — else the rest of this file is vacuous');
 
     // ── Layer 3: an ABANDONED plant is recovered ────────────────────────────────────────────────
@@ -207,6 +214,49 @@ try {
     process.env.PLANT_SAFETY_LIVE = sidecar;
     check(preflightRestore(root).recovered.length === 0, 'a sidecar named in PLANT_SAFETY_LIVE is not recovered — the child-process case');
     delete process.env.PLANT_SAFETY_LIVE;
+  }
+  reset();
+
+  // ── `W6`: a CLEAN file under `core.autocrlf=true` is clean ─────────────────────────────────────
+  /**
+   * ⛔ **THE LIVE ONE.** The first cut compared `git show HEAD:<path>` — an UNFILTERED blob — against the
+   * FILTERED working tree, and this repo sets `core.autocrlf=true`. So on a CRLF checkout a byte-identical
+   * file read as dirty, the commonest orphan of all became a **fatal refusal**, and because the refusal
+   * path deletes nothing it **never cleared itself**: every later `lint:rn` failed the same way.
+   */
+  {
+    git('config', 'core.autocrlf', 'true');
+    writeFileSync(abs, ORIGINAL.replace(/\n/g, '\r\n'), 'utf8'); // what a CRLF checkout looks like
+    writeFileSync(sidecar, ORIGINAL, 'utf8');
+    abandon();
+    const r = preflightRestore(root);
+    check(r.refused.length === 0, 'W6: a file that git calls CLEAN is not refused under core.autocrlf=true');
+    check(r.recovered.length === 0, 'W6: …and nothing is "recovered" from it either');
+    check(!existsSync(sidecar), 'W6: …the stale marks are dropped, so the refusal cannot perpetuate');
+    git('config', 'core.autocrlf', 'false');
+  }
+  reset();
+
+  // ── `W7`: when the plant was COMMITTED, HEAD is the plant ───────────────────────────────────────
+  /**
+   * ⛔ **THE SCENARIO THIS WHOLE MECHANISM EXISTS FOR.** A plant that reached a commit leaves the target
+   * CLEAN against `HEAD` — because `HEAD` *is* the plant — and the clean branch silently deleted the
+   * sidecar, which is the only surviving copy of the original bytes. The mechanism destroying its own
+   * evidence at exactly the case it was built for.
+   */
+  {
+    writeFileSync(abs, PLANTED, 'utf8');
+    git('add', '-A');
+    git('-c', 'commit.gpgsign=false', 'commit', '-qm', 'a commit that carries the plant');
+    writeFileSync(sidecar, ORIGINAL, 'utf8'); // the sidecar still holds the PRE-plant bytes
+    abandon();
+    const r = preflightRestore(root);
+    check(r.refused.length === 1, 'W7: a sidecar that does not match HEAD is REFUSED, because HEAD may BE the plant');
+    check(existsSync(sidecar), 'W7: …and the sidecar SURVIVES — it is the only copy of the original');
+    // ⚠️ Undo the planted commit so later blocks still compare against the ORIGINAL as HEAD. This is
+    // a throwaway repo under the OS temp dir, created and deleted by this file.
+    git('reset', '--hard', '-q', 'HEAD~1');
+    for (const s of ['', '.plant-owner', '.plant-hash']) rmSync(`${sidecar}${s}`, { force: true });
   }
   reset();
 

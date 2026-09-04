@@ -160,7 +160,24 @@ export function preflightRestore(repoRoot: string): Preflight {
      * sidecar's bytes is not a recovery, it is a revert of whatever happened since — and what happened
      * since was 83 bytes of somebody's work.
      */
-    if (matchesHead(repoRoot, target, onDisk)) {
+    if (isCleanVsHead(repoRoot, target)) {
+      /**
+       * ⛔ **`W7` — IF THE SIDECAR DOES NOT MATCH `HEAD`, `HEAD` IS NOT THE PRE-PLANT STATE.**
+       *
+       * ⚡ The scenario this whole mechanism exists for is a plant that got COMMITTED. Then the target is
+       * clean against `HEAD` — because `HEAD` *is* the plant — and the branch above silently deleted the
+       * sidecar, which is the only copy of the original bytes. The mechanism destroying its own evidence
+       * at exactly the case it was built for.
+       */
+      if (!sidecarMatchesHead(repoRoot, target, readFileSync(absBackup, 'utf8'))) {
+        refused.push(
+          `${target} is clean against HEAD, but its sidecar does NOT match HEAD.\n` +
+            `        sidecar: ${path}\n` +
+            '        ⛔ W7 — that means HEAD may BE the plant: a planted commit leaves exactly this state.\n' +
+            '        Nothing deleted. Compare the two by hand before doing anything else.',
+        );
+        continue;
+      }
       dropMarks(absBackup);
       continue;
     }
@@ -199,15 +216,44 @@ function dropMarks(absBackup: string): void {
   for (const s of ['', OWNER_SUFFIX, PLANT_SUFFIX]) rmSync(`${absBackup}${s}`, { force: true });
 }
 
-/** Is `text` exactly what `HEAD` holds for `repoRelative`? A missing blob counts as NOT clean. */
-function matchesHead(repoRoot: string, repoRelative: string, text: string): boolean {
+/**
+ * ⛔ **ASK GIT THE QUESTION GIT CAN ANSWER — do not compare text.** [class-1 re-audit 6 `W6`, LIVE]
+ *
+ * ⚡ The first cut compared `git show HEAD:<path>` against the bytes on disk. **`git show` emits the blob
+ * unfiltered; the working tree is filtered** — and this repo sets `core.autocrlf=true`, so on every CRLF
+ * checkout a byte-identical file read as DIRTY. Measured in four scratch repos:
+ *
+ *     orphan beside a CLEAN file · autocrlf=false → recovered=0 refused=0 · sidecar dropped
+ *     orphan beside a CLEAN file · autocrlf=true  → recovered=0 refused=1 · sidecar KEPT
+ *
+ * ⛔ **And that is the self-perpetuating shape.** The commonest orphan of all — a sidecar beside an
+ * already-restored file, which this file's own note calls the common case — became a **fatal refusal**,
+ * telling the reader *"Restoring here would discard uncommitted work"* about a file identical to `HEAD`.
+ * The refusal path deliberately deletes nothing, so **it never clears itself**: every later `lint:rn`
+ * fails the same way, with no way out but hand-deleting a file the message tells you to preserve.
+ *
+ * ⚠️ `git diff --quiet` applies exactly the filters the working tree has, which is the whole point. One
+ * oracle, not two differently-filtered ones.
+ */
+function isCleanVsHead(repoRoot: string, repoRelative: string): boolean {
+  try {
+    execFileSync('git', ['diff', '--quiet', 'HEAD', '--', repoRelative], { cwd: repoRoot, stdio: 'ignore' });
+    return true;
+  } catch {
+    return false; // non-zero exit = differs from HEAD (or the path is unknown to HEAD)
+  }
+}
+
+/** Is the SIDECAR the pre-plant state — i.e. does it match what `HEAD` holds? [`W7`] */
+function sidecarMatchesHead(repoRoot: string, repoRelative: string, sidecar: string): boolean {
   try {
     const head = execFileSync('git', ['show', `HEAD:${repoRelative}`], {
       cwd: repoRoot,
       encoding: 'utf8',
       maxBuffer: 64 * 1024 * 1024,
     });
-    return head === text;
+    // ⚠️ Compared with line endings normalised, for `W6`'s reason: `git show` is unfiltered.
+    return head.replace(/\r\n/g, '\n') === sidecar.replace(/\r\n/g, '\n');
   } catch {
     return false;
   }
