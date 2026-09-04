@@ -31848,3 +31848,57 @@ environment.** The variable is gone; the gate is strict unconditionally; the jud
 of the two ceilings the drain exists to lower.
 
 **Boundary: 52/52 gates · `test:app` · `test:regression` · typecheck 0 · 151 proofs / 2 stale · tree clean.**
+
+---
+
+## S1.13.7.12.6 · CLASS 4 — `.4.1` premise verified, `.4.2` begun — 2026-09-04
+
+### ✅ `.4.1` — the double-scaling is REAL, and the mechanism is exactly as filed
+
+Run, not read — the assertion is about a computed value:
+
+```
+stored minimumPayment              50
+after selectors.ts scaling        200     ← correct: 4 weekly installments in a monthly window
+effectiveMinimumInWindow(again)   800     ← what the allocator reserves
+effectiveMinimumInWindow(raw)     200     ← one application only
+```
+
+**A 4× over-reservation.** `scaleBnplMinimumsForWindow` rewrites `minimumPayment` to `n × installment`,
+and `bnplInstallmentAmount` then *falls back to `minimumPayment`* — so `effectiveMinimumInWindow` multiplies
+the already-scaled figure by `n` a second time.
+
+End to end through the real allocator, one weekly debt, $50 minimum, $500 paycheck, no expenses:
+
+| fixture | `totalRequired` | `shortfall` |
+|---|---|---|
+| **weekly** | **$800** | **$300** |
+| monthly control | $50 | $0 |
+| *correct* | *$200* | *$0* |
+
+⚠️ **Correction to the class:** its headline figures — `totalRequired $1,250`, `shortfall $750` — are
+**fixture-bound** (they include expenses I do not have). The mechanism, the direction and the 4× factor
+reproduce exactly; the printed numbers depend on the rest of the fixture. Reliable about where, precise
+about the mechanism, fixture-specific about the amounts.
+
+### ⚡ `.4.2` — `A3-7` CONFIRMED, and its stated reason is INCOMPLETE
+
+The class says five instruments are blind *"for ONE reason: `minimumPayment: 0` fixtures."* Measured on
+`testGuardianPartition`: **necessary, but not sufficient.**
+
+- Non-zero minimum + weekly cadence alone → the invariant assertion still **passed**; what failed was a
+  hard-coded `750` written for a zero-minimum world. **A fixture change breaking an arithmetic constant is
+  not the invariant breaking**, and stopping there would have recorded a false confirmation.
+- Its window is `2026-06-01 → 2026-06-15` with a due date of `2026-06-10` — **one** weekly installment
+  falls inside it, so `effectiveMinimumInWindow` returns `50`, the unscaled figure. Measured directly:
+  the same debt returns `50` in that window and `200` in a monthly one.
+
+⛔ **With BOTH conditions — a non-zero minimum AND a window spanning ≥2 installments — the invariant
+itself fails:** `FAIL [normal: buckets sum to discretionary]: expected $550, got $700`. A **$150** gap,
+which is exactly the difference between the $200 in-window reservation and the $50 the buckets account
+for. **The §2.2 partition does not reconcile when a debt charges more than once in the window.**
+
+⭐ **So the fixture rule for this class is two-part, not one:** a debt fixture must carry a **non-zero
+minimum** *and* sit in a **window that holds more than one of its installments**. A fixture meeting only
+the first still cannot see this class of defect — and five instruments were filed as blind for the first
+reason alone.
