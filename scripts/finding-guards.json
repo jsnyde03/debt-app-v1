@@ -3469,21 +3469,19 @@
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
-    "what": "S1.13.7.12.6 [class-1 re-audit 4 U2, major] - T6 moved check-glossary's copy scan from per-line to whole-file, which was right (four of the five retired terms are two-word phrases and a wrap between the words defeated all of them) - but /'[^']*'/ had been relying on the newline as an implicit terminator. Over a whole file each fragment regex runs to the next matching delimiter ANYWHERE: 1,818 of 10,425 fragments spanned more than one physical line, the largest 39 lines of executable code, matched against retired-COPY patterns, in a gate with NO cap and NO allow-list. Measured on a green tree: an English contraction in a double-quoted string plus a bare `crunch` identifier of the kind the gate's own docblock declares exempt REDDED it. Fixed by taking real string extents from lib/stripCode's scanner, which already tracks which construct it is inside - the one thing a delimiter pair cannot do. Population after: 9 multiline fragments, max span 4, all genuine template literals. The JSX rule stays a regex (the scanner does not model JSX text) bounded to 2 newlines.",
+    "what": "S1.13.7.12.6 [class-1 re-audit 4 U2, major] - T6 moved check-glossary's copy scan from per-line to whole-file, which was right (four of the five retired terms are two-word phrases and a wrap between the words defeated all of them) - but /'[^']*'/ had been relying on the newline as an implicit terminator. Over a whole file each fragment regex runs to the next matching delimiter ANYWHERE: 1,818 of 10,425 fragments spanned more than one physical line, the largest 39 lines of executable code, matched against retired-COPY patterns, in a gate with NO cap and NO allow-list. Measured on a green tree: an English contraction in a double-quoted string plus a bare `crunch` identifier of the kind the gate's own docblock declares exempt REDDED it. Fixed by taking real string extents from lib/stripCode's scanner, which already tracks which construct it is inside - the one thing a delimiter pair cannot do. Population after: 9 multiline fragments, max span 4, all genuine template literals. The JSX rule stays a regex (the scanner does not model JSX text) bounded to 2 newlines. >>> The anchor moved at round 7 (`W15`): the recorded text now has its ${...} spans blanked, because check-glossary reads these fragments as COPY and an interpolation is code. Both facts hold - U1 needs the interpolation to be CODE for the money gates, which read scan's OUTPUT; this is only what stringLiterals REPORTS.",
     "file": "scripts/test-strip-code.ts",
     "token": "does not open a fragment",
     "proof": {
       "unfix": [
         {
           "at": "scripts/lib/stripCode.ts",
-          "find": "      literals?.push({ text: src.slice(opened, i), index: opened });",
-          "replace": "      void opened;"
+          "find": "        literals.push({ text, index: opened });",
+          "replace": "        void text;"
         }
       ],
       "run": "lint:strip-code",
-      "expect": "does not open a fragment",
-      "measured": "2026-09-03",
-      "sha": "b96afc88"
+      "expect": "does not open a fragment"
     }
   },
   "S1P7-U4-CONTRAST-COMMENTS": {
