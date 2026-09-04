@@ -31,7 +31,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { stripCommentsOnly } from './lib/stripCode';
+import { stripCommentsAndStrings, stripCommentsOnly } from './lib/stripCode';
 
 const REPO_ROOT = join(import.meta.dirname, '..');
 
@@ -330,7 +330,23 @@ function chainedGatesFrom(src: string): string | null {
    *
    * ⚠️ Comments are stripped first, or the paragraph you are reading would satisfy the pin.
    */
-  const selfSrc = stripCommentsOnly(readFileSync(join(REPO_ROOT, 'scripts/check-runner-completeness.ts'), 'utf8'));
+  /**
+   * ⛔ **COMMENTS *AND* STRINGS ARE BLANKED, AND THAT IS WHAT CLOSES `V6`.**
+   *
+   * ⚡ The first cut counted occurrences in comment-stripped text and required **at least two** — *"the
+   * pin's own literal, and the call"*. A **string literal is an occurrence**, so
+   * `const __decoy = 'chainedGatesFrom(runGatesFile)';` restores the count, and both un-fixes re-open with
+   * this gate GREEN in two edits each. Measured; `D1-1` and `D1-2` both. **`N-3`'s mechanism at its fifth
+   * recurrence, inside the fix written for its fourth.**
+   *
+   * ⛔ **A count nobody bounds is slack** — this file's own `D5-9` lesson, applied to the pin. Blanking
+   * strings removes the pin's own array literal from the text too, so the honest requirement is **exactly
+   * one**: the call itself. A decoy in a string is no longer an occurrence, and a decoy written as CODE
+   * makes it two and reds in the NOISY direction, which is the safe one.
+   */
+  const selfSrc = stripCommentsAndStrings(
+    readFileSync(join(REPO_ROOT, 'scripts/check-runner-completeness.ts'), 'utf8'),
+  );
   for (const [site, why] of [
     ['chainedGatesFrom(runGatesFile)', 'D1-1 — a gate COMMENTED OUT of GATES counts as chained'],
     ['const imported = wiredIn(r);', 'D1-2 — a suite COMMENTED OUT of its runner counts as wired'],
@@ -345,7 +361,7 @@ function chainedGatesFrom(src: string): string | null {
      * fourth location of that shape this round. Two occurrences are required: the pin's own literal, and
      * the call.
      */
-    if (selfSrc.split(site).length - 1 < 2) {
+    if (selfSrc.split(site).length - 1 !== 1) {
       console.error(
         `\n❌ runner completeness: production no longer calls \`${site}\`.\n` +
           `  ⛔ ${why}, and this gate would print a full green over it.\n` +

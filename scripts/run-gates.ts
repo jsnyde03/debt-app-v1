@@ -160,6 +160,8 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
   // ⛔ `U15` - the recovery net for a plant left behind by an interrupted harness. It has already
   // been committed once, making lint:runner-completeness vacuous.
   'test:plant-safety',
+  // ⛔ `V7` - lib/joinedCode has two consumers, one of them a release gate, and nothing tested it.
+  'test:joined-code',
   ].map((name) => ({ name, cmd: 'npm', args: ['run', name] })),
 ];
 

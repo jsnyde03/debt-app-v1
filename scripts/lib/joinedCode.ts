@@ -22,6 +22,8 @@
  * character carries the source line it came from, so a wrapped match reports the line it STARTS on.
  */
 
+import { stripCommentsOnly } from './stripCode';
+
 const NEWLINE = String.fromCharCode(10);
 
 export interface JoinedCode {
@@ -34,26 +36,6 @@ export interface JoinedCode {
 interface Ch {
   c: string;
   l: number;
-}
-
-/**
- * ⛔ **BLOCK-COMMENT STATE IS TRACKED, not guessed from the line's first characters.**
- *
- * `unreadInputsCopy`'s own version filtered lines starting with `//`, `*` or `/*` — which misses the
- * interior of a block comment whose continuation lines are not starred. `check-finding-guards` already
- * carried the stronger scan, so the merged producer takes it.
- *
- * ⚠️ **A block OPENS only when the line BEGINS one**, and that is not fussiness: the first cut asked
- * `line.includes('/*')`, and `check-finding-guards`' own source broke it — a line holding the delimiter
- * as a STRING LITERAL opened a block that never closed, and every line below it read as comment.
- */
-function isCode(line: string, state: { inBlock: boolean }): boolean {
-  const t = line.trim();
-  const startsBlock = t.startsWith('/*') && !t.includes('*/');
-  const wasInBlock = state.inBlock;
-  if (startsBlock) state.inBlock = true;
-  else if (wasInBlock && t.includes('*/')) state.inBlock = false;
-  return !(wasInBlock || startsBlock || t.startsWith('//') || t.startsWith('*'));
 }
 
 /** Apply one global regex, carrying each replacement character's line from the match's first character. */
@@ -90,12 +72,29 @@ const JUNCTIONS: [RegExp, string][] = [
 ];
 
 function build(source: string, dropComments: boolean): JoinedCode {
-  const state = { inBlock: false };
+  /**
+   * ⛔ **COMMENTS GO THROUGH THE REAL SCANNER, NOT A LINE-PREFIX GUESS.** [re-audit 5 `V7`, major]
+   *
+   * ⚡ The predicate here decided *"am I inside a block comment"* from each line's FIRST CHARACTERS, so a
+   * `/*` opening after any other token on its line was never seen, `inBlock` stayed false, and the whole
+   * comment body read as CODE. Measured on `S1-M9-GUARDIAN`: delete the guard, re-introduce its token
+   * inside `const __x = 1; /* opens a block mid-line ... *` + `/`, and `lint:finding-guards` prints
+   * **`✅ 279 of 280 findings carry a standing guard`** over a guard that is gone. The ordinary-block
+   * control reds correctly, so the comment-vs-code distinction was right for every spelling but one.
+   *
+   * ⛔ **And this file's own header claimed the opposite** - *"BLOCK-COMMENT STATE IS TRACKED, not
+   * guessed from the line's first characters."* It was guessed from the line's first characters.
+   *
+   * ⚠️ `stripCommentsOnly` is length- and line-count-preserving, so `lineAt` is unaffected: a blanked
+   * comment line simply trims to nothing and contributes its separator. It also removes the reason the old
+   * predicate existed - a string literal holding `/*` broke the first cut, and a scanner knows the
+   * difference. **One producer, one level down**, which is the argument that created this file.
+   */
+  const scanned = dropComments ? stripCommentsOnly(source) : source;
   let chars: Ch[] = [];
-  const lines = source.split(NEWLINE);
+  const lines = scanned.split(NEWLINE);
   for (let n = 0; n < lines.length; n++) {
     const raw = lines[n];
-    if (dropComments && !isCode(raw, state)) continue;
     const l = n + 1;
     // ⚠️ Indexed by CODE UNIT, not `for...of`, which walks code POINTS. A single emoji then made
     // `chars` shorter than the string it renders, every later regex index pointed one place left, and the
