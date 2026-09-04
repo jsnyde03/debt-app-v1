@@ -17,6 +17,8 @@
  *
  * Usage: tsx scripts/check-glossary.ts
  */
+import ts from 'typescript';
+
 import { stringLiterals, stripCommentsOnly } from './lib/stripCode';
 import { assertScanFloor, scanNote, scanned } from './lib/scanFloor';
 
@@ -129,15 +131,45 @@ function stripComments(src: string): string {
  * `U2` measured came from `>` being the comparison operator and the tail of `=>` — a property of the
  * CONTENT, which is what this now tests. Prose does not contain `;` `=` `(` `)` `` ` `` or `&&`.
  */
-const CODE_PUNCTUATION = /[;=(){}`]|=>|\|\||&&/;
+/**
+ * ⛔ **JSX TEXT IS PARSED, NOT PATTERN-MATCHED — the fourth attempt, and the first that is not a guess.**
+ * [class-1 re-audit 6 `W11`; after `T2`, `T3`, `U2`, `V3`]
+ *
+ * ⚡ **`V3`'s punctuation rule dropped 240 of 1,871 spans**, and the two commonest prose habits in this
+ * app were among them: a parenthetical (`(` 109 · `)` 83) and `&rsquo;` — because **every HTML entity ends
+ * in a semicolon**, and this repo has a gate (`lint:apostrophes`) that pushes copy *toward* `&rsquo;`.
+ * The two gates worked against each other. Measured, same file, same line, same phrase:
+ *
+ *     "…handle it with the biller (pay it late, or cancel it)."  + a retired word → GREEN
+ *     the same sentence with the parenthetical removed          + a retired word → RED
+ *
+ * ⛔ **Every previous rule here was chosen against a sample and never measured against the population.**
+ * `V3`'s own commit table counted *"of the 8 prose blocks kept: 8"* — the blocks it was looking for, not
+ * the population. Three heuristics in a row got this wrong in one direction or the other.
+ *
+ * ⚡ So the question — *"is this a JSX text node?"* — is answered by the thing that knows: the TypeScript
+ * parser, already used by three gates in this directory. **Measured: 3,010 `JsxText` nodes, 225 carrying
+ * letters, across 397 files in 1.2 s.** The regex admitted 1,644 spans, most of them code.
+ *
+ * ⚠️ Entities are decoded before matching, so a phrase is not split by one.
+ * ⚠️ The RAW source is parsed, not the stripped text — `stripCommentsOnly` is length-preserving, so the
+ * offsets still line up with the caller's `lineMap`, and a JSX text node cannot be inside a comment.
+ */
+const decodeEntities = (s: string): string => s.replace(/&[a-zA-Z]+;|&#\d+;/g, "'");
 
-function copyFragments(text: string): { text: string; index: number }[] {
-  const out: { text: string; index: number }[] = stringLiterals(text);
-  for (const m of text.matchAll(/>[^<>{}]{2,}</g)) {
-    if (CODE_PUNCTUATION.test(m[0])) continue;
-    out.push({ text: m[0], index: m.index });
-  }
+function jsxText(raw: string, file: string): { text: string; index: number }[] {
+  const out: { text: string; index: number }[] = [];
+  const sf = ts.createSourceFile(file, raw, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const visit = (n: ts.Node): void => {
+    if (n.kind === ts.SyntaxKind.JsxText) out.push({ text: decodeEntities(n.getText()), index: n.getStart() });
+    n.forEachChild(visit);
+  };
+  sf.forEachChild(visit);
   return out;
+}
+
+function copyFragments(text: string, raw = text, file = 'inline.tsx'): { text: string; index: number }[] {
+  return [...stringLiterals(text), ...jsxText(raw, file)];
 }
 
 /**
@@ -149,6 +181,14 @@ function copyFragments(text: string): { text: string; index: number }[] {
 {
   const wrapped = '<Text>\n  your breathing\n  room this month\n</Text>';
   const weld = '<View>{items.filter((x) => x.n > 0).length}</View>';
+  /**
+   * ⛔ **THE PARENTHETICAL AND THE ENTITY — the two shapes `V3`'s rule silently dropped.** [`W11`]
+   * Both are ordinary habits in this app's copy, and the second is one another gate actively pushes
+   * toward: `lint:apostrophes` prefers `&rsquo;`, and every HTML entity ends in a semicolon, so the two
+   * gates worked against each other — the more `&rsquo;` in a sentence, the less this one could see it.
+   */
+  const parenthetical = '<Text>handle it with the biller (pay it late), your breathing room stays</Text>';
+  const entity = '<Text>your breathing room couldn&rsquo;t be read</Text>';
   const has = (src: string, needle: string): boolean =>
     copyFragments(src).some((f) => f.text.replace(/\s+/g, ' ').includes(needle));
   if (!has(wrapped, 'your breathing room this month')) {
@@ -158,6 +198,20 @@ function copyFragments(text: string): { text: string; index: number }[] {
         '  inside the `>…<` match. A line bound rejects the shape it claims to admit.\n',
     );
     process.exit(1);
+  }
+  for (const [label, src] of [
+    ['a sentence containing a PARENTHETICAL', parenthetical],
+    ['a sentence containing an HTML ENTITY', entity],
+  ] as const) {
+    if (!has(src, 'your breathing room')) {
+      console.error(
+        `\n❌ glossary: ${label} is not in the population.\n` +
+          '  ⛔ W11 — V3\'s punctuation rule dropped 240 of 1,871 spans this way, including the two\n' +
+          '  commonest prose habits in this app. The population question is answered by the TypeScript\n' +
+          '  parser now; a rule that starts guessing at it again reds here.\n',
+      );
+      process.exit(1);
+    }
   }
   if (copyFragments(weld).some((f) => f.text.includes('filter'))) {
     console.error(
@@ -178,9 +232,10 @@ for (const root of ROOTS) {
     // Core's suites are `testXxx.ts`; the app's are `*.test.ts`. Test NAMES quote retired words on
     // purpose ("exactly at the floor is not a crunch") and are not user-facing copy.
     if (base.endsWith('.test.ts') || /^test[A-Z]/.test(base)) continue;
-    const code = stripComments(readFileSync(file, 'utf8'));
+    const rawSrc = readFileSync(file, 'utf8');
+    const code = stripComments(rawSrc);
     const map = lineMap(code);
-    for (const frag of copyFragments(code)) {
+    for (const frag of copyFragments(code, rawSrc, file)) {
       const ln = map.lineAt(frag.index);
       // ⚠️ Whitespace inside a fragment is collapsed before matching: a phrase wrapped across lines is one
       // phrase to the reader, and the patterns describe what the reader sees.

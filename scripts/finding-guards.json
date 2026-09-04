@@ -3465,7 +3465,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-04",
-      "sha": "0e5cc152"
+      "sha": "37859271"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
