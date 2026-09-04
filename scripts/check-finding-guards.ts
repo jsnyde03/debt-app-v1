@@ -549,13 +549,31 @@ ratchet(
  */
 // ⛔ A CEILING, not the strict-equality `ratchet()` above — see `MAX_AUTHORED`'s note for why this one
 // differs from its siblings, and for exactly what that gives up.
+/**
+ * ⛔ **BOTH CEILINGS SEAL THE DRAIN SHUT, NOT ONE** — the second half of `S5-DEADLOCK`, found by fixing
+ * the first half and watching the identical failure arrive one cap over.
+ *
+ * ⚡ A guard on a gate that reads this ledger cannot be proven while its own arrival is what reds the
+ * gate: `prove:guards` needs a green control, and an authored-not-yet-executed proof is not green. The
+ * workaround was to raise this number by hand and lower it after — *"raising this to make a run pass"*,
+ * which is what the sentence below calls the defect this pair exists to catch. **The mechanism forced the
+ * move it forbids.**
+ *
+ * ⚠️ Exempt during a DRAIN only, and printed either way. See the note on `DRAINING` above for why that is
+ * narrow rather than a hole: CI sets nothing, and a drain is the one context in which these numbers are
+ * being actively repaired rather than quietly accumulating.
+ */
+const DRAINING = process.env.PROVE_GUARDS_DRAINING === '1';
+// ⚠️ Buffered like everything else - `U7`: nothing reaches stdout before the verdict is knowable.
+const drainNotes: string[] = [];
 if (authored.length > MAX_AUTHORED) {
-  problems.push(
+  const detail =
     `${authored.length} proof blocks have NEVER been executed; the ceiling is ${MAX_AUTHORED} and it only ever ` +
-      'goes DOWN. A proof block is a plan to measure, not a measurement — execute it with ' +
-      '`npm run prove:guards -- --id=<ID>`, which records `measured` + `sha` on a pass. ' +
-      'Raising this to make a run pass is the defect this pair exists to catch.',
-  );
+    'goes DOWN. A proof block is a plan to measure, not a measurement — execute it with ' +
+    '`npm run prove:guards -- --id=<ID>`, which records `measured` + `sha` on a pass. ' +
+    'Raising this to make a run pass is the defect this pair exists to catch.';
+  if (DRAINING) drainNotes.push(`     ⚠️  OVER THE AUTHORED CEILING (${authored.length} > ${MAX_AUTHORED}) — allowed only because this run is a DRAIN.`);
+  else problems.push(detail);
 }
 ratchet(
   guardOnly.length,
@@ -681,12 +699,32 @@ note(
 // ⚠️ Named, not just counted. A count nobody can act on is a count nobody drains — the same reason the
 // unguarded list prints on the green path.
 for (const s of stale) note(`     stale: ${s}`);
+/**
+ * ⛔ **`S5-DEADLOCK` — THIS CEILING COULD SEAL ITSELF SHUT, AND IT DID, TWICE IN ONE ROUND.**
+ * [class-1 round 5/6; filed to class 2 `.12.6.2`]
+ *
+ * ⚡ **Measured.** Past the ceiling this gate is red. `prove:guards` requires a GREEN CONTROL — so every
+ * proof whose `run` reads this ledger becomes unprovable, and the ceiling **can never be drained back
+ * down**. In one pass, **8 of 9 drains failed on `control=exit 1`**; the only one that recorded was
+ * `S1P5-D5-9-CAPWRAP`, whose run is `lint:cap-literals` and therefore does not read the ledger.
+ *
+ * ⛔ **And the trigger is ordinary**: every commit that touches a gate file re-stales the proofs anchored
+ * in it, so an ordinary fixing round walks into it by construction. The escape was to raise the ceiling
+ * by hand and put it back — *"raising this to make a run pass"*, which is the exact move the pair of caps
+ * here exists to catch. A mechanism whose only escape is the defect it guards against is not a ratchet.
+ *
+ * ⚠️ **So the drain itself is exempt, and NOTHING ELSE IS.** `prove:guards` sets `PROVE_GUARDS_DRAINING`
+ * for its own child runs; only this one problem is downgraded, only for that process tree, and it still
+ * PRINTS. CI sets nothing, so the ceiling is enforced everywhere a human reads a result — and a drain is
+ * the one context where staleness is being actively repaired rather than accumulating unnoticed.
+ */
 if (stale.length > MAX_STALE_PROOFS) {
-  problems.push(
+  const detail =
     `${stale.length} executed proof(s) were measured against a tree their target has since left, and the ceiling is ${MAX_STALE_PROOFS}.\n` +
-      '        Re-run them: `npm run prove:guards -- --id=<comma-separated>` --record. 2 of the last 32 re-runs FAILED,\n' +
-      '        so a stale proof is not a formality — it is an unknown wearing an ✅.',
-  );
+    '        Re-run them: `npm run prove:guards -- --id=<comma-separated>` --record. 2 of the last 32 re-runs FAILED,\n' +
+    '        so a stale proof is not a formality — it is an unknown wearing an ✅.';
+  if (DRAINING) drainNotes.push(`     ⚠️  OVER THE STALE CEILING (${stale.length} > ${MAX_STALE_PROOFS}) — allowed only because this run is a DRAIN.`);
+  else problems.push(detail);
 }
 // ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
 // number nobody sees is a number nobody drains.
@@ -731,6 +769,7 @@ for (const [n, want] of [
 // from `problems.length`. Printing it any earlier is asserting a verdict that is not yet knowable.
 console.log(`${verdictMark(problems.length)} ${report[0]}`);
 for (const line of report.slice(1)) console.log(line);
+for (const line of drainNotes) console.log(line);
 
 // ⛔ THE VERDICT, and it is the LAST statement in the file for the reason above: everything that can find
 // a problem has now run. A `problems.push` below this line would be dead, and there is nothing below it.

@@ -271,6 +271,21 @@ const RECIPES: Record<string, Recipe | Recipe[]> = {
       sameLine: "\nexport const __sameInk = { color: '#123456' };\n",
       reason: /paints ink as the literal '#123456'/,
     },
+    {
+      target: 'apps/rn/src/components/plan/PaydayGuardianCard.tsx',
+      /**
+       * ⛔ **THE COMMENT DIRECTION, for the ink matcher.** [`V5`] `U4` closed *a comment must not paint a
+       * token* at `textUses`, and `U10` migrated THIS matcher in the same round without stripping — so the
+       * defect recurred at the second address inside one commit. ⚡ Measured: a comment merely NAMING a
+       * hex ink redded the gate, and so did `color:` in a comment with the hex on the next line.
+       *
+       * ⚠️ `expect: 'green'` — the plant is a COMMENT, which is correct code. A red-only recipe cannot
+       * measure a comment-blindness fix, which is `T1`'s rule applied to `U4`'s direction.
+       */
+      plant: "\nconst __palV5 = [\n  // the CTA fill color:\n  '#123456',\n];\n",
+      expect: 'green',
+      reason: /paints ink as the literal/,
+    },
   ],
   'check-trust-claims.ts': {
     target: 'apps/rn/src/store/drift.ts',

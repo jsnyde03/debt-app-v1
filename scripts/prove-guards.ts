@@ -154,7 +154,20 @@ const gitStatus = (rel: string): string =>
 /** Never throws: a non-zero exit is the signal, and the output is what says WHY. */
 function run(p: Proof): { status: number; out: string } {
   const argv = p.cmd ?? ['npm', 'run', p.run as string];
-  const res = spawnSync(argv[0], argv.slice(1), { cwd: REPO_ROOT, encoding: 'utf8', shell: true });
+  /**
+   * ⛔ **`PROVE_GUARDS_DRAINING` — see `check-finding-guards.ts`'s note on `S5-DEADLOCK`.**
+   *
+   * Past the stale ceiling that gate is red; this harness requires a green control; so every proof whose
+   * run reads the ledger became unprovable and the ceiling could never be drained. Measured: 8 of 9
+   * drains failed in one pass. The flag downgrades **that one problem, and nothing else**, only inside
+   * this process tree — CI sets nothing, so the ceiling is enforced wherever a human reads a result.
+   */
+  const res = spawnSync(argv[0], argv.slice(1), {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+    shell: true,
+    env: { ...process.env, PROVE_GUARDS_DRAINING: '1' },
+  });
   return { status: res.status ?? 1, out: `${res.stdout ?? ''}${res.stderr ?? ''}` };
 }
 

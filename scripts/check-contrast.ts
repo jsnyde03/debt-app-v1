@@ -174,8 +174,21 @@ function walk(dir: string, out: string[] = []): string[] {
  * refuses a token whose line declares an identifier used elsewhere, and it is right to: a declaration
  * survives its use being deleted, which is the whole reason that check exists.
  */
+const paintableCache = new Map<string, string>();
 function paintableText(file: string): string {
-  return scanned(SCAN_GATE, stripCommentsOnly(readFileSync(file, 'utf8')));
+  /**
+   * ⚠️ **MEMOISED, because `scanned()` ACCUMULATES.** [`V5`] Two matchers now read through this, and the
+   * second call re-counted every line: the gate went from `read 32328 lines` to `read 64587` without
+   * reading anything new. The floor still held, but the figure it prints beside the tick would have been
+   * a count of calls rather than of lines — and this gate's floor exists precisely so that number means
+   * something.
+   */
+  // ⚠️ The strip sits on a `.set(` rather than a `const`, so `S1P7-U4-CONTRAST-COMMENTS` can pin it:
+  // `D3-3` refuses a token whose line declares an identifier used elsewhere, and it is right to.
+  if (!paintableCache.has(file)) {
+    paintableCache.set(file, scanned(SCAN_GATE, stripCommentsOnly(readFileSync(file, 'utf8'))));
+  }
+  return paintableCache.get(file) as string;
 }
 
 function textUses(token: Foreground, files: string[]): string[] {
@@ -433,7 +446,19 @@ for (const file of files) {
    * the list*, and a file is an enumeration too.
    */
   {
-    const code = readFileSync(file, 'utf8');
+    /**
+     * ⛔ **`V5` — `U4` RECURRED HERE, IN THE SAME COMMIT THAT MIGRATED THIS SCAN.** `U4` fixed the comment
+     * blindness in `textUses`; `U10` moved this matcher to whole-file `matchAll` 240 lines below without
+     * stripping, so a **comment** naming a hex literal redded the gate — and the widened form too, with
+     * `color:` in a comment on one line and the hex on the next.
+     *
+     * ⚠️ **The docblock below explains why the ink scan drops `withoutGradients`, and that reason is about
+     * GRADIENTS, not about comments.** The two are independent transforms: `stripCommentsOnly` is length-
+     * and line-preserving and leaves a gradient array untouched. The stated reason for reading raw was
+     * carried into the migration as though it forbade stripping. `U10`'s own lesson, missed at its own
+     * site: *budget the enumeration, not the list — and a file is an enumeration too.*
+     */
+    const code = paintableText(file);
     const map = lineMap(code);
     {
       /**
