@@ -149,6 +149,7 @@ function scan(src: string, blankStrings: boolean, literals?: { text: string; ind
     if (c === "'" || c === '"' || c === '`') {
       const quote = c;
       const opened = i; // ⛔ `U2` — where this literal really begins, for `stringLiterals`
+      const interpolations: [number, number][] = [];
       i++; // keep the opening delimiter
       while (i < src.length) {
         if (src[i] === '\\') {
@@ -178,12 +179,27 @@ function scan(src: string, blankStrings: boolean, literals?: { text: string; ind
          * does not end the interpolation early.
          */
         if (quote === '`' && src[i] === '$' && src[i + 1] === '{') {
+          const interpStart = i;
           i += 2;
           let braces = 1;
           while (i < src.length && braces > 0) {
             if (src[i] === '{') braces++;
             else if (src[i] === '}') braces--;
             if (braces > 0) i++;
+          }
+          // ⛔ `V2`/`W15` - the span is CODE, and `stringLiterals` reports COPY. Recorded so the text
+          // handed to a copy gate has it blanked; the scanner itself still treats it as code.
+          interpolations.push([interpStart, i + 1]);
+          /**
+           * ⚠️ **BUT A STRING LITERAL *INSIDE* THE INTERPOLATION IS STILL COPY** — measured while fixing
+           * `V2`: blanking the span wholesale lost `` `state=${'crunch'}` ``, which renders to the user
+           * and which `V2`'s own third row records as a TRUE positive. The span is scanned for its own
+           * literals, which are reported at their real offsets.
+           */
+          if (literals) {
+            const inner: { text: string; index: number }[] = [];
+            scan(src.slice(interpStart + 2, i), false, inner);
+            for (const l of inner) literals.push({ text: l.text, index: interpStart + 2 + l.index });
           }
           continue;
         }
@@ -193,7 +209,25 @@ function scan(src: string, blankStrings: boolean, literals?: { text: string; ind
       if (i < src.length && src[i] === quote) i++;
       // ⚠️ Recorded whether or not it closed. An unterminated literal ends at the newline (see the
       // header), and reporting the text up to there is honest — dropping it would be the blind direction.
-      literals?.push({ text: src.slice(opened, i), index: opened });
+      /**
+       * ⛔ **A `${…}` SPAN IS BLANKED IN THE REPORTED TEXT.** [re-audit 5 `V2`, re-audit 6 `W15`]
+       *
+       * ⚡ `check-glossary` reads these fragments as user-facing COPY, and an interpolation is not copy —
+       * it is code. Measured: `` (s: { crunch: boolean }) => `state=${s.crunch}` `` redded the gate, which
+       * has no cap and no allow-list, over a PROPERTY NAME the gate's own docblock declares exempt.
+       *
+       * ⚠️ Both facts hold at once and they are not in tension: `U1` needs an interpolation to be CODE
+       * for the money gates, which read `scan`'s OUTPUT; this blanks it only in what `stringLiterals`
+       * REPORTS, which is the copy view. `V2` was filed for this and round 6 recorded it closed without
+       * a fix, which is what `W15` is.
+       */
+      if (literals) {
+        let text = src.slice(opened, i);
+        for (const [a, b] of interpolations) {
+          text = text.slice(0, a - opened) + ' '.repeat(Math.min(b, i) - a) + text.slice(Math.min(b, i) - opened);
+        }
+        literals.push({ text, index: opened });
+      }
       lastSignificant = quote;
       continue;
     }

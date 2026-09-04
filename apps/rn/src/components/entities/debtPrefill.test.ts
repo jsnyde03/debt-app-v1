@@ -240,12 +240,23 @@ export function runDebtPrefillTests() {
        * matched a single identifier. Third spelling of one defect, after the ternary (`C2-9`) and the
        * plain hoist (`R11`).
        */
-      const destructured = [...src.matchAll(/const\s*\{([^}]*)\}\s*=\s*[^;]*\bediting\b[^;]*;/g)].flatMap((m) =>
-        m[1]
-          .split(',')
-          .map((part) => part.split(':').pop()?.trim() ?? '')
-          .filter(Boolean),
-      );
+      /**
+       * ⛔ **THE EXEMPTION APPLIES TO BOTH PATHS THAT PRODUCE NAMES.** [class-1 re-audit 6 `W12`]
+       *
+       * ⚡ `V9` moved the exemption onto the binding's own initialiser and applied it in the hoist closure
+       * only. The DESTRUCTURE path builds names through a separate regex, so
+       * `const { apr } = editing ?? prefill ?? null;` — a destructure off the **sanctioned** merge — was
+       * reported as a defect by a release gate with `eq(fromEditing.length, 0)` and no allow-list.
+       * Correct code, failing CI. Two paths, one exemption, applied to one of them.
+       */
+      const destructured = [...src.matchAll(/const\s*\{([^}]*)\}\s*=\s*([^;]*\bediting\b[^;]*);/g)]
+        .filter((m) => !SANCTIONED_MERGE.test(m[2]))
+        .flatMap((m) =>
+          m[1]
+            .split(',')
+            .map((part) => part.split(':').pop()?.trim() ?? '')
+            .filter(Boolean),
+        );
       return [
         ...direct,
         ...[...hoisted, ...destructured]
@@ -355,6 +366,15 @@ export function runDebtPrefillTests() {
       seedsFromEditing('const { apr: seed } = editing ?? {};\nconst [a, setA] = useState(seed);').length,
       1,
       'detector: a destructure off `editing` RENAMED to `seed` is still a hit (V9)',
+    );
+    /**
+     * ⛔ **THE SANCTIONED MERGE, DESTRUCTURED** — [`W12`]. `V9` applied its exemption to the hoist path
+     * and not to this one, so correct code failed a release gate with no allow-list.
+     */
+    eq(
+      seedsFromEditing('const { apr } = editing ?? prefill ?? null;\nconst [a, setA] = useState(apr);').length,
+      0,
+      'detector: a destructure off the SANCTIONED merge is NOT a hit (W12)',
     );
 
     const sheet = stripCommentsOnly(readFileSync(join(__dirname, 'DebtSheet.tsx'), 'utf8'));

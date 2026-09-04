@@ -173,7 +173,15 @@ function dateArgs(line: string, from: number): string[] | null {
  * `Math.max(1, …)` is the realistic one: guarding the lower bound is an ordinary thing to write and does
  * nothing about the overflow. **A contingent choice written in as a law — Law III.**
  */
-const CLAMPING_CALLEE = /(?:^|[^\w$.])(?:Math\.min|[\w$]*clamp[\w$]*)$/i;
+/**
+ * ⚠️ **A CLAMP REACHED THROUGH A PROPERTY IS STILL A CLAMP.** [class-1 re-audit 6 `W4`]
+ *
+ * `V8`'s `(?:^|[^\w$.])` excluded a preceding dot — written to stop `Math.min` matching loosely — and so
+ * `dateUtils.clampDay(d.getDate(), 28)` and `this.clampDay(…)` redded `lint:month-arithmetic` over
+ * correct code. This gate has no cap and no allow-list, so the only ways out were to un-namespace the
+ * helper or weaken the gate. The final segment of a dotted callee is what names the operation.
+ */
+const CLAMPING_CALLEE = /(?:^|[^\w$])(?:[\w$]+\.)*(?:Math\.min|min|[\w$]*clamp[\w$]*)$/i;
 
 function clampedDay(day: string): boolean {
   const opens: number[] = [];

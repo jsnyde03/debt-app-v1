@@ -142,7 +142,9 @@ for (const rel of files) {
 // ⚠️ 29 → 28 at round 6 [`V3`]: `MAX_JSX_FRAGMENT_LINES` is DELETED, not renamed. It rejected the
 // exact shape its docblock said it admitted, and a code-punctuation test replaced it - so the cap did
 // not stop being seen, it stopped existing, which is the one honest reason to lower this number.
-const MIN_CAPS = 28;
+// ⚠️ 28 → 29 at round 7 [`W2`]: `MIN_PARSER_CALLS` in `check-amount-collapse.ts` — the population pin
+// that answers the NEXT callee spelling, rather than enumerating a fourth one.
+const MIN_CAPS = 29;
 
 if (caps !== MIN_CAPS) {
   problems.push(

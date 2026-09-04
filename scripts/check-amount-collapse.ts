@@ -121,6 +121,21 @@ const tracked = execFileSync('git', ['ls-files', 'apps/rn', 'packages/core', 'sc
 
 const problems: string[] = [];
 const found: string[] = [];
+/**
+ * ⛔ **THE POPULATION IS RATCHETED, because enumerating spellings is what keeps failing.**
+ * [class-1 re-audit 6 `W2`]
+ *
+ * ⚡ `V1` widened the callee pattern to admit `?.(` and a generic argument list — and the enumeration
+ * became the menu: **`parseAmountField(a)! ?? 0`** is a ONE-CHARACTER un-fix that walks straight past,
+ * and so do `as number` and `satisfies`. **Third instance in this one matcher** (`T2`, `V1`, now this),
+ * which is Law II: *any enumerated list becomes the list somebody orders from.*
+ *
+ * ⚠️ So rather than extend the list a fourth time, the COUNT OF CALLS FOUND is pinned. Any spelling
+ * that removes a call from the population moves this number — whatever the spelling turns out to be —
+ * and the gate reds asking why, instead of printing a smaller count beside a tick. Same instrument
+ * `check-rounding` already carries, and `D5-9`'s lesson: a count with slack cannot see a member leave.
+ */
+let parserCalls = 0;
 
 /**
  * ⛔ **THE SCAN IS NOT PER PHYSICAL LINE** — pass-7 `D1-3`. `COLLAPSE` used to run against
@@ -157,6 +172,7 @@ for (const rel of tracked) {
    * that is not a thing to approximate.
    */
   for (const call of findCalls(code, PARSER_CALL)) {
+    parserCalls++;
     // ⛔ `V1` — `(parseAmountField(x)) ?? 0` put a `)` between the call and the `??`, and `AFTER` is
     // anchored. `afterEnclosingGroups` looks through GROUPING parens only, so `wrapper(parse(x)) ?? 0`
     // still does not match — that collapses wrapper's result, and reporting it would be the noisy
@@ -211,6 +227,23 @@ for (const site of Object.keys(ALLOWED)) {
         '        A permission covering nothing is slack the next collapse can hide in — delete the entry.',
     );
   }
+}
+
+/**
+ * ⚠️ **PINNED with `!==`, not floored** — the `D5-9` idiom. A floor sees the population collapse; it
+ * cannot see ONE member walk away, which is exactly what a new callee spelling does. Move it in the same
+ * edit that adds or removes a real call site.
+ */
+const MIN_PARSER_CALLS = 31;
+if (parserCalls !== MIN_PARSER_CALLS) {
+  problems.push(
+    `${parserCalls} parser call(s) found; MIN_PARSER_CALLS is ${MIN_PARSER_CALLS}, and this is PINNED.\n` +
+      (parserCalls < MIN_PARSER_CALLS
+        ? '        ⛔ W2 — a call LEFT the population. Either a site was deleted, or a spelling stopped\n' +
+          '        matching: `!`, `as number`, `satisfies`, a new wrapper. The second is a silent un-fix\n' +
+          '        for the whole D1-3 family, and it is why this is a pin rather than another enumeration.'
+        : `        A call site was added: raise MIN_PARSER_CALLS to ${parserCalls} in the same edit.`),
+  );
 }
 
 const read = assertScanFloor(SCAN_GATE);

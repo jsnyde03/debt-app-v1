@@ -173,6 +173,32 @@ check(
     stringLiterals('// a comment with a lone apostrophe: don' + q + '\nconst b = ' + q + 'real' + q + ';').length === 1,
     'stringLiterals: a quote inside a COMMENT opens nothing — the scanner knows which construct it is in',
   );
+
+  /**
+   * ⛔ **AN INTERPOLATION IS CODE IN THE COPY VIEW, AND ITS OWN LITERALS ARE STILL COPY.**
+   * [class-1 re-audit 5 `V2`, re-audit 6 `W15`]
+   *
+   * ⚡ `check-glossary` reads these fragments as user-facing copy, so a PROPERTY NAME inside `${…}` redded
+   * a gate with no cap and no allow-list — over an identifier that gate's own docblock declares exempt.
+   * ⚠️ **Both facts hold and are not in tension:** `U1` needs the interpolation to be CODE for the money
+   * gates, which read `scan`'s output; this is only what `stringLiterals` REPORTS.
+   *
+   * ⛔ The second row is the one that caught a regression while fixing the first: blanking the span
+   * wholesale also lost a string literal INSIDE it, which does reach the user.
+   */
+  {
+    const tpl = 'const a = `state=${s.crunch}`;';
+    check(!stringLiterals(tpl).some((l) => l.text.includes('crunch')), 'stringLiterals: a PROPERTY inside `${…}` is not reported as copy (V2)');
+    const nested = 'const a = `state=${' + q + 'crunch' + q + '}`;';
+    check(
+      stringLiterals(nested).some((l) => l.text.includes('crunch')),
+      'stringLiterals: …but a STRING LITERAL inside `${…}` still is — it renders to the user (W15)',
+    );
+    check(
+      stringLiterals('const a = `your breathing room`;').some((l) => l.text.includes('breathing room')),
+      'stringLiterals: …and ordinary template TEXT is copy as before',
+    );
+  }
 }
 
 // ── `${…}` IS CODE, and it is the defect with the worst recurrence record here ──────────────────────

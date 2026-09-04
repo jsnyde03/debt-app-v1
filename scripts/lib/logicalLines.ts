@@ -151,6 +151,22 @@ export function afterEnclosingGroups(code: string, argsEnd: number): string {
   let i = argsEnd + 1;
   for (;;) {
     while (i < structure.length && /\s/.test(structure[i])) i++;
+    /**
+     * ⛔ **POSTFIX TYPE SYNTAX IS NOT PART OF THE VALUE.** [class-1 re-audit 6 `W2`]
+     *
+     * ⚡ `parseAmountField(a)! ?? 0` is a **one-character un-fix**: the `!` sits between the call and the
+     * `??`, `AFTER` is anchored, and the collapse walks past. `as number` and `satisfies` do the same.
+     * ⛔ **Third instance in this one matcher** — `T2`, then `V1`'s `?.(`/`<T>` widening, now this — which
+     * is Law II: *an enumerated list becomes the list somebody orders from.* The pin on the call count in
+     * `check-amount-collapse` is the answer to the NEXT spelling; this is the answer to these three.
+     */
+    const postfix = /^(?:!|\bas\s+[\w$.<>[\]|\s]+?|\bsatisfies\s+[\w$.<>[\]|\s]+?)(?=\s*(?:\?\?|\/|\)|,|;|$))/.exec(
+      structure.slice(i),
+    );
+    if (postfix) {
+      i += postfix[0].length;
+      continue;
+    }
     if (structure[i] !== ')') break;
     let depth = 0;
     let j = i;
