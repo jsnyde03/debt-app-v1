@@ -2406,7 +2406,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-05",
-      "sha": "9a177510"
+      "sha": "b17b3a48"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3474,7 +3474,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-05",
-      "sha": "9a177510"
+      "sha": "b17b3a48"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3633,7 +3633,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-05",
-      "sha": "9a177510"
+      "sha": "b17b3a48"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
