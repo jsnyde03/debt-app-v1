@@ -99,6 +99,11 @@ async function main() {
   // §2.7.4 — the in-window BNPL cadence scaling flows through the allocation + the lookahead timeline.
   await import('../store/bnplCadence.test');
 
+  // ⛔ class 4 - the in-window minimum has ONE owner. Iterates cadence × debt-type through the
+  // PRODUCTION entry point, because five instruments missed a 4× money defect for four different
+  // reasons and the decisive one was an entry point, not a fixture.
+  await import('../store/inWindowMinimum.test');
+
   // §2.9 — the Can-I-Afford-This? selectors (verdict + honest impact + save-for-it options).
   await import('../store/affordability.test');
 
