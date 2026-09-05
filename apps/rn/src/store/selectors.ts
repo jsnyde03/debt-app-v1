@@ -1,4 +1,3 @@
-import { scaleBnplMinimumsForWindow } from '@core/debt/bnplInstallment';
 import { allocatePaycheck } from '@core/engine/allocatePaycheck';
 import { resolveTrialAmounts } from '@core/obligations/effectiveObligationAmount';
 import { waterFill, type WaterFillResult } from '@core/cashflow/waterFill';
@@ -59,10 +58,31 @@ function buildAllocation(store: DebtStore, prefundedReserve: number, steadyState
     // allocation (and the forecast's cycle-0 base) plans on the price that will actually be charged.
     expenses: resolveTrialAmounts(store.requiredExpenses),
     livingExpenses: store.livingExpenses,
-    // §2.7.4 Guardian-aware cadence: reflect the FULL in-window BNPL outflow — a biweekly BNPL that
-    // charges ~2× before a monthly paycheck is counted once by the single-due-date allocator, so scale
-    // its effective minimum to the in-window installment count. A no-op for aligned cadences + non-BNPL.
-    debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),
+    /**
+     * ⛔ **THE STORE LIST, UNSCALED — the in-window minimum has exactly ONE owner and it is not here.**
+     * [S1.13.7.12.6 class 4 · `A2-1` / `A3-1`, blockers]
+     *
+     * ⚡ This used to hand the engine `scaleBnplMinimumsForWindow(...)`, which rewrites `minimumPayment`
+     * to `n × installment`. But `bnplInstallmentAmount` **falls back to `minimumPayment`**, so
+     * `effectiveMinimumInWindow` — which the allocator applies at `allocatePaycheck.ts` — multiplied the
+     * already-scaled figure by `n` a SECOND time. Measured, one weekly debt with a $50 minimum in a
+     * monthly window:
+     *
+     *     stored 50  →  selectors 200 (correct)  →  allocator 800  (4× over-reserved)
+     *
+     * ⛔ **Three consequences, all measured.** A $500 paycheck that covers everything printed
+     * `totalRequired 800` and a phantom `shortfall`; RESERVE (800) and PAYDOWN (200) fell **4× out of
+     * lockstep**, which is the `AS.2` drift `applyRolloverPayment`'s own comment calls *"structurally
+     * unavailable here"*; and the required-action caption divides `item.amount` by the per-installment
+     * figure, so it would have read **16 × $50** where the truth is 4.
+     *
+     * ⚠️ **The engine keeps the job, not this boundary** — a correction to the finding as filed, which
+     * said to delete the second application. `effectiveMinimumInWindow` is the declared ONE PRODUCER
+     * (`S1P3-A2`), read by the allocator's RESERVE *and* `applyRolloverPayment`'s PAYDOWN precisely so
+     * they move together. Removing it here restores that, and it also closes `A3-2`: every test that
+     * calls `allocatePaycheck` directly was measuring a path production no longer takes.
+     */
+    debts: store.debts,
     goals: store.goals,
     // ⛔ S1.13.7.7 [pass-6 A3-2] — the per-occurrence ticks, so an expanded row carries its OWN paid
     // state instead of the parent's copied across.
