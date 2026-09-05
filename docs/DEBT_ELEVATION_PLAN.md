@@ -282,7 +282,9 @@ reason"* is **four reasons**, of which the decisive one is an entry point, not a
 | # | step | exit line |
 |---|---|---|
 | ✅ **.11.1–.11.6** | **ALL 8 CLOSED 2026-09-05**, plus a **9th** my own 365-day walk found (`debtFreeBand.test.ts`, the same fuse mirrored — a pinned `currentDate` against a clock-derived `nextPaycheckDate`). ⚡ **One lesson, four times: a window is a PAIR, and pinning one end is not pinning the window.** ⛔ **And the class's own defect twice INSIDE the fix for it** — `F4`'s repair wrote a second producer of an owned month-step, which *would have passed every run and been wrong anyway*; only a gate caught it. Detail → log | ✅ |
-| ▶ **.11.7** | **`[D79]` ROUND-2 RE-AUDIT** — fresh agent, cumulative, guards from **the diff**. ⚠️ Brief must carry: **instrument-repair findings prove green-before/red-after**, and **a plant only exercises a suite to its first red** | 0 new defects attributable to these fixes |
+| ✅ **.11.7** | **ROUND-2 RE-AUDIT DONE 2026-09-05** — 6 findings: 1 blocker · 4 major · 1 minor | ✅ |
+| ✅ **.4.12–.4.14** | **ALL 6 CLOSED 2026-09-05.** ⛔ The blocker was a **regression `F7` itself introduced** — a gate doing two jobs, of which only one was visible. ⛔ `lint:rn` was **red at HEAD** while I had recorded 52/52. ⛔ `R2-5` was **four** sites, not the two named. ⛔ `R2-6` found a guard **green under its own defect** and one that **never held**. Boundary: exit 0 · 52/52 · both suites · typecheck 0 · **15/15 class-4 guards**. Detail → log | ✅ |
+| ▶ **.4.15** | **`[D79]` ROUND-3 RE-AUDIT** — fresh agent, cumulative over **114**. ⚠️ Brief carries: `expect` now defaults to the token · the drain is two-pass · an instrument-repair finding proves **green-before/red-after** | 0 new defects attributable to round 2's fixes |
 
 ⛔ **Then `.12.7` — PASS 8**, the next first-candidate. [D65] is unchanged: **0/0 twice consecutively.**
 

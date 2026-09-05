@@ -38,7 +38,7 @@ table while the log's severity ledger lists it `minor`. **Never schedule or dism
 | file | ids | n |
 |---|---|---|
 | `CLASSIFICATION.md` §CLASS 4 + `A2-findings.md`, `A3-findings.md` | `A2-1` `A2-2` `A2-3` `A2-4` `A2-8` `A3-1` `A3-2` `A3-4` `A3-7` `A3-12` `A3-14` | 11 |
-| class 1: `D1`/`C1`/`C2` originals + `CLASS1-REAUDIT{,-2,-3,-4,-5}.md` | the 11 + `R1`–`R15` `N-1`–`N-11` `T1`–`T14` `U1`–`U16` `V1`–`V12` | 79 |
+| class 1: `D1`/`C1`/`C2` originals + `CLASS1-REAUDIT{,-2,-3,-4,-5}.md` | **class 1's own 11** + `R1`–`R15` `N-1`–`N-11` `T1`–`T14` `U1`–`U16` `V1`–`V12` | 79 |
 | class 1 round 6: `CLASS1-REAUDIT-6.md` | `W1`–`W15` | 15 |
 | class 1 round 6, **recorded only in `DEBT_ELEVATION_LOG.md`** | `W9b` | 1 |
 | | **total** | **106** |

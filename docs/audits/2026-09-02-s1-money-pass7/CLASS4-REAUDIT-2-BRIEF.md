@@ -18,10 +18,14 @@ git diff --stat 24a444cc..HEAD -- apps packages scripts
 git log --oneline 24a444cc..HEAD
 ```
 
-**Cumulative scope — `[D79]` step c.** Everything already closed stays under audit: class 1 (94, incl.
-`W9b`) + class 4's 11 + round 1's 8 = **113**. ⚠️ **That number is a claim; derive it yourself.** It has
-been wrong twice already — once by forgetting a whole round, once because **`W9b` exists nowhere in this
-directory** and lives only in `DEBT_ELEVATION_LOG.md`. A file-driven enumeration cannot find it.
+**Cumulative scope — `[D79]` step c.** Everything already closed stays under audit: **class 1's 95**
+*(11 + `R`15 + `N-`11 + `T`14 + `U`16 + `V`12 + `W`15 + **`W9b`**)* + class 4's 11 + round 1's 8 = **114**.
+
+⛔ **THAT NUMBER HAS NOW BEEN WRONG IN THREE CONSECUTIVE BRIEFS — 90, 105, 113 — and each correction failed
+to survive into the next one.** `W9b` is why: it is a real finding with its own remedy and its own fix, and
+it exists **nowhere in this directory**, only in `DEBT_ELEVATION_LOG.md`. **A file-driven enumeration of the
+round files structurally cannot find it.** ⚠️ **Derive the count yourself, two ways, and treat a
+disagreement as a finding.**
 
 ## The two questions, and nothing else
 

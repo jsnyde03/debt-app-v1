@@ -32116,3 +32116,80 @@ it**, which is why a count gets derived two ways or not at all.
 
 ⚠️ **A hand-assembled JSON edit left the registry UNPARSEABLE** (whole file). Restored, rebuilt with
 `json.dumps`: a clean 206-line insert. **Fourth time a mechanical edit here did more than intended.**
+
+---
+
+## S1.13.7.12.6 · `.4.12`–`.4.14` — THE ROUND-2 RE-AUDIT'S 6 FINDINGS, CLOSED — 2026-09-05
+
+**Boundary: `lint:rn` exit 0 · 52/52 · `test:app` · `test:regression` · typecheck 0 · 15/15 class-4
+guards hold.**
+
+| | finding | what it was |
+|---|---|---|
+| `R2-1` | blocker | **a regression `F7` itself introduced** — a **$1** debt announced **$200** of incoming payments |
+| `R2-2` | major | round 1's **three** production fixes shipped with **no guard**; all three revert green |
+| `R2-3` | major | **`lint:rn` was RED at `HEAD`** while I had recorded 52/52 |
+| `R2-5` | major | the projection rated debts **by label** — plain **$4,450** vs BNPL **$2,616.63** |
+| `R2-6` | major | a guard proven by a **neighbour's** red, and one **green under its own defect** |
+| `R2-4` | minor | the cumulative count — **114**, wrong in three consecutive briefs |
+
+### ⛔ `R2-1` — A GATE WAS DOING TWO JOBS AND ONLY ONE WAS VISIBLE
+
+`F7` widened `isInstallmentNative` → `hasKnownBnplCadence`. ⚡ **`isInstallmentNative` requires
+`remainingPayments > 0`, and that field is also THE CAP `bnplInstallmentsInWindow` uses.** The widening
+kept the gating job and dropped the capping job: the shapes it admits carry no `remainingPayments`, so the
+cap became `Infinity`. **No type error, no test, both suites green.** The count derives from
+`effectiveMinimumInWindow` now — which caps at the balance and is what the allocator reserves against — so
+the sentence agrees with the money **by construction** rather than via a second cap that can drift.
+
+### ⛔ `R2-3` — MY OWN GREEN WAS A FACT ABOUT A TREE I HAD STOPPED MEASURING
+
+I recorded **52/52** and `lint:rn` **exits 1 at HEAD**. Seven of the nine stale proofs were made stale by
+my own `F7`/`F8` commits, **which landed after the run I quoted**. ⭐ *A remembered gate result is an unrun
+one*, and this is the sharpest instance yet: the gate was green when measured and the measurement was
+obsolete before it was reported. ⚠️ **I also mis-corrected myself mid-round** — read `49 passing … these 3`
+as an offender list and told Jason it was one gate, when it meant three.
+
+### ⛔ `R2-5` — FOUR SITES, AND EVERY ONE STATED THE RETIRED RULE IN A COMMENT
+
+Two debts identical but for `type`: **$4,450 vs $2,616.63** at 12 months, **May 2034 vs January 2028**
+debt-free — while the helper hands both the same **$216.67**. All four carried *"Non-BNPL minimums are
+already monthly"*, **a premise that died with pass-6 `A3-1`**. ⚠️ **The audit named two; grepping the
+helper's CALLERS found four** — fifth undercount in this class. The `apr` gate beside each stays
+label-based and is correct.
+
+### ⛔ `R2-6` — THE LEDGER'S TWO CHECKS WERE DISJOINT
+
+`lint:finding-guards` proves the token exists; `prove:guards` proves the run printed `expect`. **Nothing
+asserted the line that redded is the line the token names**, so `expect: "reserves"` was satisfied by a
+**sibling's** label. ⛔ **`A3-1`'s assertion was GREEN under `A3-1`'s own defect** — a $3,000 fixture
+covers the inflated $800 as easily as the true $200, so a guard for a finding about a printed *shortfall*
+could not print one.
+
+**`expect` now defaults to the entry's own token.** With that tie in place four entries lost their red,
+and each needed a different answer:
+
+- ⛔ **`A2-4`'s plant was wrong for it** — an app-seam plant against a token in a **core** file:
+  `planted=exit 0`, suite **green with the defect restored**. A guard that never held, reading as proven.
+- **`A3-1`/`A3-2`** are real and *measured* (`shortfall $500`; `$800 vs $200`), masked only because
+  `A2-1`'s assertion precedes them and **the three are one defect** by the classification's own words.
+  One defect, one plant, one first red — written down rather than papered over.
+- **`A3-14` was re-checked** rather than assumed sound: its own assertion is the one that reds.
+
+⚠️ **AND THE AUDIT'S REMEDY DID NOT SURVIVE THE CORPUS.** It asked for a gate refusing any `expect` that
+does not overlap its token. Implemented and measured: **90 problems, nearly all legitimate** — a lint-gate
+guard's token is a line of *source* while its `expect` is the message the gate *prints*. **A gate that
+reds on 90 sound entries is the permanently-red gate this repo calls worse than no gate.** Reverted.
+
+### ⭐ THE DRAIN IS TWO-PASS BY CONSTRUCTION
+
+Three guards run `lint:finding-guards` as their own command, so while that gate is red **their control is
+red and they measure nothing**. Draining the others drops staleness under the ceiling, which is what makes
+those three measurable. Attempting them first yields three false failures every time.
+
+### ⛔ `R2-4` — THE COUNT HAS BEEN WRONG IN THREE CONSECUTIVE BRIEFS
+
+90 → 105 → 113, against a true **114**, and **each correction failed to survive into the next brief.**
+`W9b` is why: a real finding with its own remedy and fix, living **only in this log**. **A file-driven
+enumeration structurally cannot find it** — the same shape as `A3-7`. Both briefs corrected; deriving the
+count mechanically is filed to `.12.6.9` rather than built mid-round.

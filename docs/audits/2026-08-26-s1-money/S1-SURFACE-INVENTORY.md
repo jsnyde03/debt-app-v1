@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**496 files on the S1 surface · 495 swept · 1 unswept.**
+**497 files on the S1 surface · 495 swept · 2 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -258,6 +258,7 @@
 | `apps/rn/src/store/guardianTrust.test.ts` | never · s1p4 · s1p6 · s1p7 |
 | `apps/rn/src/store/historySelectors.ts` | s1p2 · s1p4 · s1p6 · s1p7 |
 | `apps/rn/src/store/inWindowMinimum.test.ts` | ⛔ **never** |
+| `apps/rn/src/store/inWindowReaders.test.ts` | ⛔ **never** |
 | `apps/rn/src/store/incomeLearning.ts` | s1p2 · s1p6 · s1p7 |
 | `apps/rn/src/store/journeySelectors.test.ts` | r17 · s1p6 · s1p7 |
 | `apps/rn/src/store/journeySelectors.ts` | r17 · s1p1 · s1p6 · s1p7 |
@@ -514,6 +515,7 @@
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
 - `apps/rn/src/store/inWindowMinimum.test.ts`
+- `apps/rn/src/store/inWindowReaders.test.ts`
 
-<!-- claims-sha256: 15b218da0c5c5eb6 -->
+<!-- claims-sha256: 8a352ac07aee6c8d -->
 
