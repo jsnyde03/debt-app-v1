@@ -646,8 +646,8 @@
       ],
       "run": "test:regression",
       "expect": "they are one fact",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-05",
+      "sha": "10dc0c5a"
     }
   },
   "S1P4-F-B3-TWOEVENTS": {
@@ -683,7 +683,7 @@
       "run": "test:app",
       "expect": "does not depend on there being an offer",
       "measured": "2026-09-05",
-      "sha": "39e122e1"
+      "sha": "10dc0c5a"
     }
   },
   "S1P4-C4-1-COUNT": {
@@ -972,8 +972,8 @@
       ],
       "run": "test:regression",
       "expect": "S1P3-A1",
-      "measured": "2026-08-31",
-      "sha": "d1c4de30"
+      "measured": "2026-09-05",
+      "sha": "10dc0c5a"
     }
   },
   "S1P3-A2-INWINDOW": {
@@ -1396,7 +1396,7 @@
       "run": "test:app",
       "expect": "an unread balance grades NOTHING rather than the wrong regime",
       "measured": "2026-09-05",
-      "sha": "39e122e1"
+      "sha": "10dc0c5a"
     }
   },
   "S1P3-G2-RESERVETARGET": {
@@ -1414,7 +1414,7 @@
       "run": "test:app",
       "expect": "an unread balance takes the existing",
       "measured": "2026-09-05",
-      "sha": "39e122e1"
+      "sha": "10dc0c5a"
     }
   },
   "S1P3-G3-GUARDIANREGIME": {
@@ -1432,7 +1432,7 @@
       "run": "test:app",
       "expect": "does NOT graduate the headline",
       "measured": "2026-09-05",
-      "sha": "39e122e1"
+      "sha": "10dc0c5a"
     }
   },
   "S1P3-G4-PLANROUTE": {
@@ -1473,7 +1473,7 @@
       "run": "test:app",
       "expect": "the caption survives the offer being null",
       "measured": "2026-09-05",
-      "sha": "39e122e1"
+      "sha": "10dc0c5a"
     }
   },
   "S1P3-G6-SCRIPTSTYPES": {
@@ -2087,7 +2087,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-05",
-      "sha": "39e122e1"
+      "sha": "10dc0c5a"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
