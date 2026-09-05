@@ -195,9 +195,25 @@ export function hasKnownBnplCadence(debt: Debt): boolean {
 		//
 		// ⚠️ Safe to widen because both consumers share one producer: the allocator's RESERVE and
 		// `applyRolloverPayment`'s PAYDOWN both read `effectiveMinimumInWindow`, so they move together
-		// or not at all — the drift AS.2 records is structurally unavailable here. And the helpers
-		// already generalise: `bnplInstallmentAmount` falls back to `minimumPayment`, and an absent
-		// `remainingPayments` is an unknown cap (`Infinity`), which is right for a plain debt.
+		// or not at all. And the helpers already generalise: `bnplInstallmentAmount` falls back to
+		// `minimumPayment`, and an absent `remainingPayments` is an unknown cap (`Infinity`), which is
+		// right for a plain debt.
+		//
+		// ⛔ **THAT SENTENCE USED TO END "— the drift AS.2 records is STRUCTURALLY UNAVAILABLE here",
+		// AND IT WAS FALSE FOR THREE PASSES.** [class 4 · `A2-4`, and `A2-1`/`A3-1` are what it hid]
+		//
+		// ⚡ It was true of the SYMBOLS — both sides do call `effectiveMinimumInWindow` — and false of the
+		// VALUES, because two seams rewrote one side's input on the way in: `selectors.ts` and
+		// `buildMultiCycleTimeline` each handed the allocator a list whose `minimumPayment` had already
+		// been multiplied by `n`. Measured: **RESERVE $800 · PAYDOWN $200**, on the exact shape the
+		// widening admitted. The claim was checkable by grep and was checked that way; it was not
+		// checkable by grep and was not checked by measurement.
+		//
+		// ⚠️ **It is true again, and it is CONDITIONAL — say the condition out loud.** Lockstep holds
+		// only while **no caller pre-scales `minimumPayment`**. Both seams now pass the store list
+		// through untouched, and `inWindowMinimum.test.ts` is what keeps it that way: it iterates
+		// cadence × debt-type through the production entry point, in both the current and projected
+		// cycles. Re-introduce a pre-scaling seam and that test reds by name.
 		//
 		// ⚠️ An aligned cadence still holds ≤1 charge per window, so every monthly-debt case is a no-op.
 		typeof debt.dueDate === "string" &&
