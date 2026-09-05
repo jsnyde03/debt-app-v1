@@ -66,8 +66,20 @@ export interface Proof {
   run?: string;
   /** or a raw argv, for a check that is not an npm script */
   cmd?: string[];
-  /** the planted run's output must contain this, so the red is attributable to THIS defect */
-  expect: string;
+  /**
+   * The planted run's output must contain this, so the red is attributable to THIS defect.
+   *
+   * ⛔ **OMIT IT AND IT DEFAULTS TO THE ENTRY'S OWN `token`, which is the correct choice almost
+   * always.** [class 4 round-2 `R2-6`] `lint:finding-guards` proves the `token` exists in the named
+   * file; this proves the planted run printed `expect`. **Nothing joined the two**, so an entry could be
+   * "proven" by a red on a NEIGHBOUR'S assertion: three class-4 entries shared one plant and one red, and
+   * two of them registered an `expect` that was merely a substring of a sibling's label. Defaulting to
+   * the token makes them the same string by construction.
+   *
+   * ⚠️ A value that is not a substring of the token is refused by `check-finding-guards` unless the
+   * entry carries a `proofNote` saying why — some findings genuinely have no assertion of their own.
+   */
+  expect?: string;
   /** ISO date the proof last passed, and the sha it passed on — written by `--record` */
   measured?: string;
   sha?: string;
@@ -509,7 +521,9 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
     for (const f of strays.slice(0, 6)) console.log(`          ${f}`);
   }
 
-  return { ...verdict(id, p.expect, planted, withPlant, withoutPlant), plantedStatus: withPlant.status, plantedOut: withPlant.out };
+  // ⛔ [R2-6] The token IS the expectation unless the entry deliberately says otherwise.
+  const expected = p.expect ?? e.token ?? '';
+  return { ...verdict(id, expected, planted, withPlant, withoutPlant), plantedStatus: withPlant.status, plantedOut: withPlant.out };
 }
 
 /**
@@ -710,7 +724,7 @@ for (const id of selected) {
     // Saying "it redded, but not for X" over an exit 0 is the harness contradicting the line beside it,
     // which is `D4-6` in miniature.
     if (v.failed.includes('wrong-reason') && v.plantedStatus !== 0) {
-      console.log(`       ⛔ it redded, but not for ${JSON.stringify(p.expect)} — the red is not attributable to this defect.`);
+      console.log(`       ⛔ it redded, but not for ${JSON.stringify(p.expect ?? registry[id]?.token ?? '')} — the red is not attributable to this defect.`);
       // ⚠️ The red it DID produce is printed, because the usual cause is an earlier assertion firing
       // first and hiding the one being measured — and a verdict with no output to read sends you
       // hand-reproducing the plant to find that out (`plant-that-reds-early-hides-assertions`).

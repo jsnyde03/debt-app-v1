@@ -3721,7 +3721,6 @@
         }
       ],
       "run": "test:regression",
-      "expect": "the buckets reconcile when a debt charges more than once in the window",
       "measured": "2026-09-05",
       "sha": "3df5614b"
     }
@@ -3744,15 +3743,14 @@
         }
       ],
       "run": "test:app",
-      "expect": "reserves",
       "measured": "2026-09-05",
       "sha": "86bf6536"
     }
   },
   "S1-CLASS4-A3-1": {
-    "what": "blocker — the same seam measured to the printed shortfall on four surfaces (Guardian card, Live Activity, widget, paywall lead). D1's plant.",
+    "what": "blocker — the same seam measured to the printed shortfall on four surfaces (Guardian card, Live Activity, widget, paywall lead). D1's plant. ⛔ R2-6: the assertion first registered here was GREEN under this very defect — its $3,000 fixture covered the inflated $800 as comfortably as the true $200, so a guard for a finding about a printed SHORTFALL could not print one. It is a $300 paycheck now: covers the true $200, not the 4× $800.",
     "file": "apps/rn/src/store/inWindowMinimum.test.ts",
-    "token": "no phantom shortfall on a paycheck that covers it",
+    "token": "declares NO shortfall on a $300 paycheck",
     "proof": {
       "unfix": [
         {
@@ -3767,16 +3765,15 @@
         }
       ],
       "run": "test:app",
-      "expect": "not a multiple of it (got",
       "measured": "2026-09-05",
       "sha": "86bf6536",
       "proofNote": "⚠️ SHARES A2-1's RED, deliberately. CLASSIFICATION.md says these two 'are the same defect' found by two lanes that never spoke, and one plant cannot produce two distinguishable reds from one defect. The totalRequired assertion precedes the shortfall one in the same file, so it fires first; manufacturing a separate expect would be bookkeeping, not evidence."
     }
   },
   "S1-CLASS4-A3-2": {
-    "what": "major — A3-4's guard called allocatePaycheck DIRECTLY, a path production did not take: guard $200, production $800 on the same fixture. Closed by .4.3 making production pass RAW debts, so the guard's path IS production's. D1's plant.",
+    "what": "major — A3-4's guard called allocatePaycheck DIRECTLY, a path production did not take: guard $200, production $800 on the same fixture. Closed by .4.3 making production pass RAW debts, so the guard's path IS production's. D1's plant. ⛔ R2-6: the assertion first registered here checked only that the allocation was non-null. The claim is the CONVERGENCE of the two paths, and that is what is asserted now.",
     "file": "apps/rn/src/store/inWindowMinimum.test.ts",
-    "token": "— the allocation resolves",
+    "token": "the production path and a direct allocator call on the SAME debts agree",
     "proof": {
       "unfix": [
         {
@@ -3791,7 +3788,6 @@
         }
       ],
       "run": "test:app",
-      "expect": "reserves",
       "measured": "2026-09-05",
       "sha": "86bf6536"
     }
@@ -3809,7 +3805,6 @@
         }
       ],
       "run": "test:app",
-      "expect": "projected cycle",
       "measured": "2026-09-05",
       "sha": "86bf6536"
     }
@@ -3833,7 +3828,6 @@
         "tsconfig.json",
         "packages/core/debt/testBnplInstallment.ts"
       ],
-      "expect": "A2-2",
       "proofNote": "⛔ THE FIRST PLANT CHOSEN FOR THIS WAS WRONG and the harness caught it: under the effectiveMinimumInWindow gate plant, this file was ALREADY RED BEFORE THE REPAIR, so that plant tested a defect the file could always see. Verified on the pre-repair file (git show bc336cfd): this plant is GREEN before the repair and RED after, which is the finding — 'the controls varied ALIGNMENT, not type' — demonstrated rather than asserted.",
       "measured": "2026-09-05",
       "sha": "86bf6536"
@@ -3858,7 +3852,6 @@
         "tsconfig.json",
         "packages/core/testing/testPayCycleHistoryRegression.ts"
       ],
-      "expect": "A3-14",
       "proofNote": "Same correction as A2-2: verified GREEN on the pre-repair file and RED after. The BNPL control was never the blind one — the plain-debt weekly sibling this repair added is, which is why the plant spares BNPL.",
       "measured": "2026-09-05",
       "sha": "86bf6536"
@@ -3895,7 +3888,6 @@
         }
       ],
       "run": "test:regression",
-      "expect": "multiplied row",
       "measured": "2026-09-05",
       "sha": "39e122e1"
     }
@@ -3912,7 +3904,6 @@
           "replace": "Math.min(debt.minimumPayment, remainingDebtBalance)"
         }
       ],
-      "expect": "debt matrix",
       "measured": "2026-09-05",
       "sha": "86bf6536",
       "cmd": [
@@ -3942,10 +3933,10 @@
           "replace": "    debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),"
         }
       ],
-      "run": "test:app",
-      "expect": "reserves",
       "measured": "2026-09-05",
-      "sha": "86bf6536"
+      "sha": "86bf6536",
+      "run": "test:regression",
+      "proofNote": "⛔ R2-6: this ran `test:app`, which does not execute the core file the token lives in — so the expectation could only ever have been met by a NEIGHBOUR's output. The runner is the suite that actually runs the guard now."
     }
   },
   "S1-CLASS4-F3-PAIDROW": {
@@ -3967,7 +3958,6 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "expect": "F3",
       "measured": "2026-09-05",
       "sha": "68c348f9",
       "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
@@ -3992,7 +3982,6 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "expect": "F6",
       "measured": "2026-09-05",
       "sha": "68c348f9",
       "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
@@ -4017,7 +4006,6 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "expect": "F7",
       "measured": "2026-09-05",
       "sha": "39e122e1",
       "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
@@ -4047,7 +4035,6 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "expect": "R2-1",
       "measured": "2026-09-05",
       "sha": "9e9d92fc",
       "proofNote": "TWO-PART UNFIX, and the reason is the finding's own shape. Deriving the count from the capped reserve left bnplInstallmentsInWindow unused, which eslint refuses — so the plant restores the import as well as the line. Without that the plant would fail to COMPILE and the run would red for a syntax error rather than for the defect: a plant must make an assertion fail, never throw past it."

@@ -377,6 +377,7 @@ for (const [id, e] of Object.entries(registry)) {
     problems.push(`${id} — guard file is GONE: ${e.file}  (${e.what})`);
     continue;
   }
+
   const text = readFileSync(abs, 'utf8');
   /**
    * ⛔ **REFUSE A FILE THE SCANNER FAILED TO CLOSE, rather than answering the guard question over it.**

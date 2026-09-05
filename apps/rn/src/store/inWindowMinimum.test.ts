@@ -1,6 +1,7 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { Debt, DebtStore } from '@/data/models';
 import { selectAllocation } from '@/store/selectors';
+import { allocatePaycheck } from '@core/engine/allocatePaycheck';
 import { selectCashTimeline } from '@/store/payoffSelectors';
 
 /**
@@ -144,6 +145,64 @@ export function runInWindowMinimumTests(): void {
         `${shape.kind} · ${recurrence} — no phantom shortfall on a paycheck that covers it (got $${alloc!.shortfall})`,
       );
     }
+  }
+
+  /**
+   * ⛔ **`A3-1` — A PAYCHECK THAT COVERS THE TRUE RESERVE AND NOT THE INFLATED ONE.**
+   * [round-2 `R2-6`: the assertion registered for `A3-1` was GREEN under `A3-1`'s own defect]
+   *
+   * ⚡ `A3-1` is *"the same seam measured to the printed **shortfall** on four surfaces"* — the Guardian
+   * card, the Live Activity, the widget and the paywall lead. The guard registered for it asserted *"no
+   * phantom shortfall on a paycheck that covers it"* over a **$3,000** fixture, where the inflated $800
+   * is covered just as comfortably as the true $200. **Measured with the defect planted: `totalRequired
+   * $800`, `shortfall $0`.** The assertion could not print a shortfall, so it could not fail.
+   *
+   * ⛔ **A guard for a finding about a NUMBER must be able to see that number move.** $300 covers the
+   * true $200 and not the 4× $800, so the defect surfaces as the **$500 phantom shortfall** the finding
+   * describes — money the app says you are missing while you are holding it.
+   */
+  for (const shape of SHAPES) {
+    const tight = selectAllocation({
+      ...storeWith(shape.of('weekly')),
+      paycheck: { ...storeWith(shape.of('weekly')).paycheck, amount: '300' },
+    })!;
+    assert(
+      tight.totalRequired === MINIMUM * CHARGES.weekly,
+      `⛔ A3-1 · ${shape.kind} — a tight paycheck reserves the same in-window $${MINIMUM * CHARGES.weekly} (got $${tight.totalRequired})`,
+    );
+    assert(
+      tight.shortfall === 0,
+      `⛔ A3-1 · ${shape.kind} — and declares NO shortfall on a $300 paycheck that covers it (got $${tight.shortfall})`,
+    );
+  }
+
+  /**
+   * ⛔ **`A3-2` — THE PRODUCTION PATH AND THE DIRECT-CALL PATH ARE THE SAME PATH.**
+   * [round-2 `R2-6`: the assertion registered for `A3-2` checked only that the allocation was non-null]
+   *
+   * ⚡ `A3-2` is *"`A3-4`'s guard calls `allocatePaycheck` DIRECTLY, a path production never takes"* —
+   * measured at the time as **guard $200, production $800 on the same fixture**. It was closed by making
+   * production hand the engine RAW debts, so the two paths converge. ⚠️ **That convergence is the claim,
+   * and it needs asserting**: re-introduce any pre-scaling at the seam and these two diverge again, which
+   * is precisely how a green guard came to describe a path nobody ran.
+   */
+  for (const shape of SHAPES) {
+    const store = storeWith(shape.of('weekly'));
+    const viaProduction = selectAllocation(store)!;
+    const viaDirectCall = allocatePaycheck({
+      paycheckAmount: Number(store.paycheck.amount),
+      currentDate: CURRENT,
+      nextPaycheckDate: NEXT,
+      expenses: [],
+      debts: store.debts,
+      goals: [],
+      strategy: store.payoffStrategy,
+      paycheckBuffer: 0,
+    } as never);
+    assert(
+      viaProduction.totalRequired === viaDirectCall.totalRequired,
+      `⛔ A3-2 · ${shape.kind} — the production path and a direct allocator call on the SAME debts agree ($${viaProduction.totalRequired} vs $${viaDirectCall.totalRequired})`,
+    );
   }
 
   /**
