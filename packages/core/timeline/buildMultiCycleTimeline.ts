@@ -228,7 +228,26 @@ export function buildMultiCycleTimeline({
             nextPaycheckDate: projNextDate,
             expenses: projExpenses,
             livingExpenses,
-            debts: scaledProjDebts,
+            /**
+             * ⛔ **RAW, not `scaledProjDebts` — the allocator scales for itself.**
+             * [S1.13.7.12.6 class 4 · `A3-4`, blocker]
+             *
+             * ⚡ `effectiveMinimumInWindow` is the allocator's own in-window owner, and
+             * `bnplInstallmentAmount` **falls back to `minimumPayment`** — so handing it a list whose
+             * `minimumPayment` was already multiplied by `n` applied the multiplier a SECOND time.
+             * Measured, a $50 weekly debt in a ~4-week cycle, after the `selectors.ts` seam was fixed:
+             *
+             *     cycle 0  $200 ✓        cycle 1+  $800  ✗   (4×, projection only)
+             *
+             * ⛔ **That is `A3-4`'s consequence in a site the finding did not name** — `essentials`, `net`
+             * and `carriedBalance` feed the cash-runway receipt and the crunch detector, so every
+             * projected cycle predicted a crunch out of money the user has.
+             *
+             * ⚠️ **The ITEMS below still take the scaled list, and that is correct**: `buildTimelineItems`
+             * reads `debt.minimumPayment` directly and has no window of its own. Two consumers, two
+             * different needs — which is exactly what one shared pre-scaled list could not express.
+             */
+            debts: projDebts,
             goals: projGoals,
             strategy,
             paycheckBuffer,

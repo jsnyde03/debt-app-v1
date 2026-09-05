@@ -1,6 +1,7 @@
 import { createDefaultStore } from '@/data/defaults';
 import type { Debt, DebtStore } from '@/data/models';
 import { selectAllocation } from '@/store/selectors';
+import { selectCashTimeline } from '@/store/payoffSelectors';
 
 /**
  * ⛔ **THE IN-WINDOW MINIMUM HAS ONE OWNER, AND THIS ITERATES CADENCE × DEBT-TYPE TO PROVE IT.**
@@ -134,6 +135,33 @@ export function runInWindowMinimumTests(): void {
    */
   const monthly = selectAllocation(storeWith(SHAPES[2].of('monthly')))!;
   assert(monthly.totalRequired === MINIMUM, `⛔ control — a monthly debt is reserved ONCE ($${MINIMUM}), never scaled`);
+
+  /**
+   * ⛔ **AND EVERY PROJECTED CYCLE, because the seam had a THIRD site the finding never named.**
+   * [`A3-4`, blocker]
+   *
+   * ⚡ After the `selectors.ts` seam was fixed, cycle 0 was correct and **cycle 1 onward was still 4×**:
+   * `buildMultiCycleTimeline` scaled its own `projDebts` and handed the same list to *both* the allocator
+   * and `buildTimelineItems`. Measured, a $50 weekly debt:
+   *
+   *     fallback BNPL   c0 $200 ✓   c1 $800 ✗
+   *
+   * ⛔ `essentials` feeds `net` and `carriedBalance` — the cash-runway receipt and the crunch detector —
+   * so every projected cycle predicted a crunch out of money the user is holding.
+   *
+   * ⚠️ The ITEMS still take the scaled list and that is right: `buildTimelineItems` reads
+   * `debt.minimumPayment` directly and has no window. Two consumers, two needs.
+   */
+  for (const shape of SHAPES) {
+    const timeline = selectCashTimeline(storeWith(shape.of('weekly')), 2);
+    assert(timeline.length >= 2, `${shape.kind} — the projection builds at least two cycles`);
+    for (const cycle of [0, 1]) {
+      assert(
+        timeline[cycle].essentials === MINIMUM * CHARGES.weekly,
+        `${shape.kind} · projected cycle ${cycle} — essentials are the in-window $${MINIMUM * CHARGES.weekly}, not a multiple (got $${timeline[cycle].essentials})`,
+      );
+    }
+  }
 
   console.log(`\n✅ in-window minimum: ${passed} assertions across ${SHAPES.length} debt shapes × ${Object.keys(CHARGES).length} cadences\n`);
 }
