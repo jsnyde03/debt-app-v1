@@ -1,4 +1,4 @@
-import { bnplInstallmentsInWindow, isInstallmentNative } from '@core/debt/bnplInstallment';
+import { bnplInstallmentAmount, bnplInstallmentsInWindow, hasKnownBnplCadence } from '@core/debt/bnplInstallment';
 import { primaryEmergencyGoal } from '@core/engine/emergencyFund';
 import { computeAffordability, type AffordabilityVerdict } from '@core/guardian/affordability';
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
@@ -416,11 +416,31 @@ export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
   const end = store.paycheck.nextPaycheckDate;
   if (!end) return null;
   let best: { provider: string; amount: number; count: number } | null = null;
+  /**
+   * ⛔ **THE RESERVE WAS WIDENED PAST THIS GATE TWICE AND THE LINE THAT EXPLAINS IT WAS NOT.**
+   * [class 4 re-audit `F7`]
+   *
+   * ⚡ Pass-6 `A3-1` widened the in-window reserve from installment-native BNPLs to **any** debt with a
+   * known cadence; class 4 then widened the row's caption the same way. This gate stayed on
+   * `isInstallmentNative`, so the two shapes that widening admitted — a **fallback BNPL** and a **plain
+   * weekly debt** — got the multiplied reserve with the Guardian **silent about why**. Measured, one $50
+   * weekly debt in a monthly window: all three shapes reserved $250 and captioned `5 × $50`; only the
+   * installment-native one got a heads-up.
+   *
+   * ⚠️ **The per-charge figure is the one producer, not `scheduledPaymentAmount`** — a fallback BNPL has
+   * no such field, which is the whole reason it was invisible here.
+   */
   for (const d of store.debts) {
-    if (d.balance <= 0 || !isInstallmentNative(d)) continue;
+    if (d.balance <= 0 || !hasKnownBnplCadence(d)) continue;
     const count = bnplInstallmentsInWindow(d, start, end);
     if (count < 2) continue;
-    if (!best || count > best.count) best = { provider: d.bnplProvider || 'BNPL', amount: d.scheduledPaymentAmount as number, count };
+    /**
+     * ⚠️ **A plain debt has no provider, so the line names the DEBT.** Keeping the BNPL noun for a debt
+     * the user did not enter as a BNPL would be a second false statement in a line whose whole job is
+     * explaining an unexpected number honestly.
+     */
+    const label = d.bnplProvider || d.name;
+    if (!best || count > best.count) best = { provider: label, amount: bnplInstallmentAmount(d), count };
   }
   if (!best) return null;
   // ⛔ [T6.4] Was a ninth hand-rolled money formatter, inline. Found by grepping the formatter BODY rather

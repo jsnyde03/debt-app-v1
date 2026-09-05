@@ -3,6 +3,8 @@ import { bnplMonthlyEquivalentMinimum } from "@core/debt/bnplPayoffPace";
 import { payCyclesPerMonth } from "@core/payCycle/payCyclesPerMonth";
 import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import type { Recurrence } from "@core/types/recurrence";
+import { addMonthsISO } from "@core/utils/addMonths";
+import { parseLocalDate, toLocalISODate } from "@core/utils/localDate";
 
 /**
  * ⛔ **S1.12.5.5 [pass-5 `A5-1` · `A5-5` · `C5-4`] — ONE IDENTITY OVER EVERY CADENCE PAIR.**
@@ -57,22 +59,34 @@ const RECURRENCES: Recurrence[] = ["one-time", "weekly", "biweekly", "per-payche
  * The window is half-open, matching the engine: a charge landing exactly on `start` counts, one landing
  * on `end` does not. `per-paycheck` is one charge per cycle by definition — that is what the label means
  * and it is the whole subject of `A5-5` above.
+ *
+ * ⛔ **The month step goes through `addMonthsISO`, and the first draft of this did not.** It used
+ * `setUTCMonth(+1)`, which **overflows a short month forward** — Jan 31 + 1 month is **Mar 3**, not
+ * Feb 28 — so the count would have been wrong for any month-end anchor. `check-month-arithmetic` caught
+ * it: `addMonths.ts` is the only place a bare `setMonth` may live. ⚠️ **A second producer of an owned
+ * operation, written inside the fix for a class about second producers** — and the fixture date
+ * (`2026-08-03`) meant it would have passed every run while staying wrong.
  */
 function chargesInWindow(recurrence: Recurrence, startISO: string, endISO: string): number {
     if (recurrence === "per-paycheck") return 1;
-    const start = new Date(`${startISO}T00:00:00Z`);
-    const end = new Date(`${endISO}T00:00:00Z`);
-    // The fixtures below are all due exactly on `start`, so the walk begins there.
-    const cursor = new Date(start);
+    // The fixtures below are all due exactly on `start`, so the walk begins there. ISO dates compare
+    // lexicographically in calendar order, which is why the loop needs no Date objects of its own.
+    const anchorDay = parseLocalDate(startISO).getDate();
+    const addDays = (iso: string, days: number): string => {
+        const d = parseLocalDate(iso);
+        d.setDate(d.getDate() + days);
+        return toLocalISODate(d);
+    };
+    let cursor = startISO;
     let n = 0;
-    while (cursor < end) {
+    while (cursor < endISO) {
         n += 1;
         if (recurrence === "one-time") break;
-        if (recurrence === "weekly") cursor.setUTCDate(cursor.getUTCDate() + 7);
-        else if (recurrence === "biweekly") cursor.setUTCDate(cursor.getUTCDate() + 14);
-        else if (recurrence === "monthly") cursor.setUTCMonth(cursor.getUTCMonth() + 1);
-        else if (recurrence === "quarterly") cursor.setUTCMonth(cursor.getUTCMonth() + 3);
-        else if (recurrence === "annually") cursor.setUTCFullYear(cursor.getUTCFullYear() + 1);
+        if (recurrence === "weekly") cursor = addDays(cursor, 7);
+        else if (recurrence === "biweekly") cursor = addDays(cursor, 14);
+        else if (recurrence === "monthly") cursor = addMonthsISO(cursor, 1, anchorDay);
+        else if (recurrence === "quarterly") cursor = addMonthsISO(cursor, 3, anchorDay);
+        else if (recurrence === "annually") cursor = addMonthsISO(cursor, 12, anchorDay);
         else break;
     }
     return n;

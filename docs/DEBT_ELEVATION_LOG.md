@@ -32052,3 +32052,67 @@ entries), so a byte-anchored edit must match the block it is actually editing.
 ⛔ **And a mechanical edit put a note on the WRONG entry** — `b.find('S1-ROUTE-EXIT-REACHABLE')` matched a
 **mention of that id inside another entry's prose** before reaching the key. Anchor on `"<id>": {`, never
 on the bare id. *(Third time a script in this project has edited more, or other, than intended.)*
+
+---
+
+## S1.13.7.12.6 · `.4.11` — THE CLASS-4 RE-AUDIT'S 8 FINDINGS, CLOSED — 2026-09-05
+
+**Boundary: 52/52 gates · `test:app` · `test:regression` · typecheck 0.** ⭐ **Nothing earlier was
+broken** — all 11 guards pinned to files this class touched re-proved `MATCHED`, and the auditor refuted
+**three** of the brief's own leads by measurement.
+
+| | finding | what it was |
+|---|---|---|
+| `F2` | blocker | **`test:app` was five days from red and I wrote it** — my own guard passed on 21% of dates |
+| `F3` | major | **the SEVENTH site** — the ticked-minimum row: $200 before the tap, **$50 after** |
+| `F4` | major | my `A3-12` repair asserted a **divisibility**, satisfied by 50, 200 **and** 800 |
+| `F5` | major | **one guard for eleven findings**; all three blockers carried none |
+| `F6` | minor | a second in-window expression disagreeing **$80 vs $50**, missed by a plural-name grep |
+| `F7` | minor | the reserve widened twice, the Guardian line explaining it not at all |
+| `F8` | minor | a docblock describing a mechanism that runs on **no path** producing the value |
+| `F1` | minor | the brief's cumulative count — **106**, not 105 |
+
+### ⛔ THE ONE LESSON, AND IT RECURRED FOUR TIMES IN ONE ITEM
+
+**A window is a PAIR, and pinning one end is not pinning the window.**
+
+`F2`: `day(0)`/`day(28)` pin the window you *hand over*. Cycle 1's is **derived** — `today+28` to the 1st
+of the next month, **1 to 31 days** — so a weekly debt charged 0–5 times and the suite redded on **288 of
+365 days**. The class closed on one of the 77 that pass.
+
+⭐ **And it was the second time in one class.** `lint:fixture-dates` refused this file's FIRST cut for a
+hard-coded date two days from firing; the clock-relative rewrite that replaced it hid a **worse** fuse,
+invisible to that gate because *the fuse is not a date in the file at all*.
+
+⛔ **A NINTH FINDING, from my own 365-day walk and not in the audit — the same defect mirrored.**
+`debtFreeBand.test.ts` pins `currentDate` to `2026-08-01` and inherits `nextPaycheckDate` from
+`createDefaultStore()`, **which derives it from the clock**: the window widened a day per day until the
+lean run went unpayable. `test:app` red from ~**2027-04-21**. Both ends pinned now.
+
+### ⛔ AND THE CLASS'S OWN DEFECT, COMMITTED INSIDE THE FIX FOR IT — TWICE
+
+1. **`F4`'s repair wrote a second producer of an owned operation.** `chargesInWindow` stepped months with
+   `setUTCMonth`, where `addMonths.ts` is the declared ONE OWNER precisely because **Jan 31 + 1 month is
+   Mar 3, not Feb 28**. ⚠️ The fixture is `2026-08-03`, so **it would have passed every run and been wrong
+   anyway** — a check that cannot fail, one level below the one I was fixing. **Only `check-month-arithmetic`
+   caught it; reading found nothing and both suites were green.**
+2. **`F8`'s shape, recreated within the hour** — two stacked docblocks on `chargesInWindow`, merged.
+
+### ⚠️ WHAT PROVING `F5` MEASURED — four of ten first proofs were wrong
+
+**A plant only exercises a suite up to its first red** *(recorded in `.4.9`, then walked into four times)*.
+Two were scoping; two were worse. ⛔ **`A2-2` and `A3-14` are INSTRUMENT-REPAIR findings**, so the only
+honest proof is *green before the repair, red after*. Measured against `git show bc336cfd`, **my first
+plant was RED on the pre-repair file for both** — it tested a defect those files could always see, and
+would have recorded a ✅ over no evidence. The real plants are verified pre-GREEN/post-RED.
+
+⭐ **`lint:finding-guards` refuses a comment as a guard** — 5 of 10 first-draft tokens were docblock prose,
+plus one that was a *declaration* used elsewhere. **A comment cannot fail.** And a token anchored on the
+`$` of a template interpolation never matches: `W15`'s scanner blanks those spans, met from the other side.
+
+⛔ **`F1` is `A3-7`'s failure again.** `W9b` appears **nowhere in the audit directory** — a real finding
+with its own remedy and fix, living only in this log. **A file-driven enumeration structurally cannot find
+it**, which is why a count gets derived two ways or not at all.
+
+⚠️ **A hand-assembled JSON edit left the registry UNPARSEABLE** (whole file). Restored, rebuilt with
+`json.dumps`: a clean 206-line insert. **Fourth time a mechanical edit here did more than intended.**
