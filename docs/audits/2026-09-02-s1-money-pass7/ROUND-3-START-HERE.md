@@ -6,18 +6,31 @@
 
 | | |
 |---|---|
-| branch | `v1.7-dev`, HEAD `2673fd4b` |
+| branch | `v1.7-dev` |
 | tree | **clean** (`git status --porcelain --untracked-files=all` empty) |
 | `lint:rn` | **exit 0 · 52/52** |
 | `typecheck` · `test:app` · `test:regression` | **0 errors · green · green** |
 | registry | **296 entries · 15/15 class-4 guards hold · 2 stale (cap 8)** |
-| pushed | ✅ **`origin/v1.7-dev` is at `2673fd4b`**, the same SHA as local. 0 unpushed. |
+| pushed | ✅ local and `origin/v1.7-dev` matched at the close of round 2. ⚠️ **No SHA is quoted here on purpose — see below.** |
 
-⛔ **RE-RUN THE BOUNDARY BEFORE TRUSTING THAT TABLE.** It was measured at `ae64325d`, and the two commits
-after it are documentation only — **which is the exact reasoning `R2-3` proved unsound.** *"No source
-touched by me"* is not *"no source touched since the last green."* This is
-failure `R2-3` recorded: a gate result from before the last commit is an unrun gate. Two commits after a
-green run made seven proofs stale and `lint:rn` was red while the previous session was reporting 52/52.
+⛔ **RE-RUN THE BOUNDARY BEFORE TRUSTING THAT TABLE. Do not take a single row of it on trust.**
+
+That is `R2-3`: a gate result from before the last commit is an **unrun** gate. Two commits after a green
+run made seven proofs stale, and `lint:rn` was **red at HEAD** while the session was still reporting
+52/52. ⚠️ The tempting excuse — *"the commits since were documentation only"* — is the precise reasoning
+that failure was built on. **"No source touched by me" is not "no source touched since the last green."**
+
+⭐ **And this table proved the point about itself.** Its first draft said *"102 commits unpushed"*, which
+the push falsified minutes later; the correction then quoted the pushed SHA, **which the commit containing
+that very line immediately superseded.** A document that records its own revision is stale the moment it
+is written. **So: no SHAs here. Run the commands.**
+
+```
+git status --porcelain --untracked-files=all     # expect empty
+git log --oneline -1 ; git rev-list --count origin/v1.7-dev..HEAD
+npm run lint:rn ; npm run typecheck ; npm run test:app ; npm run test:regression
+npm run lint:finding-guards
+```
 
 ## What to do
 
