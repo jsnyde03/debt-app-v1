@@ -4031,6 +4031,11 @@
       "unfix": [
         {
           "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "import { bnplInstallmentAmount, effectiveMinimumInWindow, hasKnownBnplCadence } from '@core/debt/bnplInstallment';",
+          "replace": "import { bnplInstallmentAmount, bnplInstallmentsInWindow, effectiveMinimumInWindow, hasKnownBnplCadence } from '@core/debt/bnplInstallment';"
+        },
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
           "find": "    const count = Math.round(reserved / each);",
           "replace": "    const count = bnplInstallmentsInWindow(d, start, end);"
         }
@@ -4045,7 +4050,7 @@
       "expect": "R2-1",
       "measured": "2026-09-05",
       "sha": "39e122e1",
-      "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
+      "proofNote": "TWO-PART UNFIX, and the reason is the finding's own shape. Deriving the count from the capped reserve left bnplInstallmentsInWindow unused, which eslint refuses — so the plant restores the import as well as the line. Without that the plant would fail to COMPILE and the run would red for a syntax error rather than for the defect: a plant must make an assertion fail, never throw past it."
     }
   }
 }

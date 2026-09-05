@@ -1,4 +1,4 @@
-import { bnplInstallmentAmount, bnplInstallmentsInWindow, effectiveMinimumInWindow, hasKnownBnplCadence } from '@core/debt/bnplInstallment';
+import { bnplInstallmentAmount, effectiveMinimumInWindow, hasKnownBnplCadence } from '@core/debt/bnplInstallment';
 import { primaryEmergencyGoal } from '@core/engine/emergencyFund';
 import { computeAffordability, type AffordabilityVerdict } from '@core/guardian/affordability';
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
