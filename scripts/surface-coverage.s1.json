@@ -2758,5 +2758,8 @@
   ],
   "apps/rn/src/store/inWindowMinimum.test.ts": [
     "never"
+  ],
+  "apps/rn/src/store/inWindowReaders.test.ts": [
+    "never"
   ]
 }

@@ -103,6 +103,7 @@ async function main() {
   // PRODUCTION entry point, because five instruments missed a 4× money defect for four different
   // reasons and the decisive one was an entry point, not a fixture.
   await import('../store/inWindowMinimum.test');
+  await import('../store/inWindowReaders.test');
 
   // §2.9 — the Can-I-Afford-This? selectors (verdict + honest impact + save-for-it options).
   await import('../store/affordability.test');

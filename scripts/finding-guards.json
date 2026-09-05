@@ -3947,5 +3947,105 @@
       "measured": "2026-09-05",
       "sha": "86bf6536"
     }
+  },
+  "S1-CLASS4-F3-PAIDROW": {
+    "what": "major (round 1 `F3`) — the SEVENTH site: planSelectors re-adds a debt whose minimum is ticked and built that row from the RAW minimumPayment. Measured $200 before the tap and $50 after — same debt, same window, same screen. Registered because the round-2 audit reverted this fix and all four suites stayed green.",
+    "file": "apps/rn/src/store/inWindowReaders.test.ts",
+    "token": "the row is the in-window $",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/planSelectors.ts",
+          "find": "          amount: Math.min(\n            effectiveMinimumInWindow(d, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),\n            d.balance,\n          ),",
+          "replace": "          amount: d.minimumPayment,"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/store/inWindowReaders.test.ts"
+      ],
+      "expect": "F3",
+      "measured": "2026-09-05",
+      "sha": "68c348f9",
+      "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
+    }
+  },
+  "S1-CLASS4-F6-RECOVERY": {
+    "what": "minor by severity, money on screen in fact (round 1 `F6`) — the recovery plan called scaleBnplMinimumForWindow, the boundary TRANSFORM, which short-circuits at one charge and so yields the stored minimum where the declared producer returns the debt's own per-charge figure. Owner $80, recovery $50. It survived every grep in class 4 because the class searched the PLURAL helper name and this call is the singular.",
+    "file": "apps/rn/src/store/inWindowReaders.test.ts",
+    "token": "recovery covers the in-window $",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/recoverySelectors.ts",
+          "find": "    const amount = Math.min(effectiveMinimumInWindow(d, windowStart, nextPayday), d.balance);",
+          "replace": "    const amount = Math.min(d.minimumPayment, d.balance);"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/store/inWindowReaders.test.ts"
+      ],
+      "expect": "F6",
+      "measured": "2026-09-05",
+      "sha": "68c348f9",
+      "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
+    }
+  },
+  "S1-CLASS4-F7-HEADSUP": {
+    "what": "minor (round 1 `F7`) — the reserve was widened past isInstallmentNative twice and the Guardian line explaining it was not, so a fallback BNPL and a plain weekly debt got the multiplied reserve with the Guardian silent about why.",
+    "file": "apps/rn/src/store/inWindowReaders.test.ts",
+    "token": "the heads-up names",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "    if (d.balance <= 0 || !hasKnownBnplCadence(d)) continue;",
+          "replace": "    if (d.balance <= 0 || !hasKnownBnplCadence(d) || d.scheduledPaymentAmount == null) continue;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/store/inWindowReaders.test.ts"
+      ],
+      "expect": "F7",
+      "measured": "2026-09-05",
+      "sha": "68c348f9",
+      "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
+    }
+  },
+  "S1-CLASS4-R2-1-CAP": {
+    "what": "BLOCKER (round 2 `R2-1`) — a regression introduced by F7 itself. The gate it replaced, isInstallmentNative, requires remainingPayments > 0, and that field is ALSO the cap bnplInstallmentsInWindow uses: the gate was doing two jobs and the widening kept one. The shapes it admitted carry no remainingPayments, so the cap became Infinity. Measured on a $1 balance: 'Heads up - 4 Car Loan payments (about $50 each) land before your next paycheck' - $200 announced against $1 the app itself reserves, on Today. The count is derived from effectiveMinimumInWindow now, which caps at the balance, so the sentence agrees with the money by construction.",
+    "file": "apps/rn/src/store/inWindowReaders.test.ts",
+    "token": "cannot fund two charges says NOTHING",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "    const count = Math.round(reserved / each);",
+          "replace": "    const count = bnplInstallmentsInWindow(d, start, end);"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/store/inWindowReaders.test.ts"
+      ],
+      "expect": "R2-1",
+      "measured": "2026-09-05",
+      "sha": "68c348f9",
+      "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
+    }
   }
 }

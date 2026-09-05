@@ -1,4 +1,4 @@
-import { bnplInstallmentAmount, bnplInstallmentsInWindow, hasKnownBnplCadence } from '@core/debt/bnplInstallment';
+import { bnplInstallmentAmount, bnplInstallmentsInWindow, effectiveMinimumInWindow, hasKnownBnplCadence } from '@core/debt/bnplInstallment';
 import { primaryEmergencyGoal } from '@core/engine/emergencyFund';
 import { computeAffordability, type AffordabilityVerdict } from '@core/guardian/affordability';
 import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
@@ -432,7 +432,27 @@ export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
    */
   for (const d of store.debts) {
     if (d.balance <= 0 || !hasKnownBnplCadence(d)) continue;
-    const count = bnplInstallmentsInWindow(d, start, end);
+    const each = bnplInstallmentAmount(d);
+    if (!(each > 0)) continue;
+    /**
+     * ⛔ **THE COUNT IS DERIVED FROM THE RESERVE, NOT FROM THE CADENCE — and widening the gate above is
+     * exactly what made that necessary.** [round-2 `R2-1`, blocker: a regression in this round's `F7`]
+     *
+     * ⚡ The old gate was `isInstallmentNative`, which requires `remainingPayments > 0` — and that field
+     * is also **the cap** `bnplInstallmentsInWindow` uses. The gate was silently doing two jobs, and
+     * widening it kept the first and dropped the second: the two shapes now admitted carry no
+     * `remainingPayments`, so the cap became `Infinity` and the count was pure cadence.
+     *
+     * ⚠️ **Measured on a debt with a $1 balance:** *"Heads up — 4 Car Loan payments (about $50 each) land
+     * before your next paycheck"* — **$200 announced against $1 the app itself reserves**, on Today.
+     *
+     * ⛔ **`effectiveMinimumInWindow` already caps at the balance**, and it is what the allocator reserves
+     * against, so deriving the count from it makes this sentence agree with the money by construction
+     * rather than by a second cap that can drift. A nearly-paid debt now funds fewer than two charges and
+     * correctly says nothing at all.
+     */
+    const reserved = Math.min(effectiveMinimumInWindow(d, start, end), d.balance);
+    const count = Math.round(reserved / each);
     if (count < 2) continue;
     /**
      * ⚠️ **A plain debt has no provider, so the line names the DEBT.** Keeping the BNPL noun for a debt
@@ -440,7 +460,7 @@ export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
      * explaining an unexpected number honestly.
      */
     const label = d.bnplProvider || d.name;
-    if (!best || count > best.count) best = { provider: label, amount: bnplInstallmentAmount(d), count };
+    if (!best || count > best.count) best = { provider: label, amount: each, count };
   }
   if (!best) return null;
   // ⛔ [T6.4] Was a ninth hand-rolled money formatter, inline. Found by grepping the formatter BODY rather
