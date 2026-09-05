@@ -31938,3 +31938,76 @@ one of four causes. The assertion this class owes must:
 
 ⚠️ The fourth is the one no fixture rule expresses, and it is the one that let a 4× money defect ship
 behind a green guard. `.4.6` is re-scoped accordingly.
+
+---
+
+## S1.13.7.12.6 · CLASS 4 — the money root, FIXED — 2026-09-05
+
+**All 11 findings addressed. Boundary: 52/52 gates · `test:app` · `test:regression` · typecheck 0.**
+
+### The defect, in one line
+
+`selectors.ts` handed the engine `scaleBnplMinimumsForWindow(...)`, which rewrites `minimumPayment` to
+`n × installment` — and `bnplInstallmentAmount` **falls back to `minimumPayment`**, so
+`effectiveMinimumInWindow` multiplied the already-scaled figure by `n` a second time.
+
+| | before | after |
+|---|---|---|
+| `totalRequired`, weekly debt on a $500 paycheck | **$800** | **$200** |
+| `shortfall` (the paycheck covers everything) | **$300** | **$0** |
+| RESERVE vs PAYDOWN | **4× apart** | lockstep |
+| required-action caption | *"16 × $50"* | *"4 × $50"* |
+| projected cycles 1+ (`essentials`) | **$800** | **$200** |
+
+### ⛔ Three corrections to the class as filed — each measured, none read
+
+1. **THE SITE LIST WAS SHORT.** It named two sites; there were **three**. `buildMultiCycleTimeline` scaled
+   its own `projDebts` and handed the same list to *both* the allocator and `buildTimelineItems`, so after
+   the selectors seam was fixed **cycle 0 was correct and every projected cycle was still 4×** — feeding
+   `essentials` → `net` → `carriedBalance`, the cash-runway receipt and the crunch detector. Found only
+   because `.4.4` re-measured instead of assuming the root fix had covered its own consequence.
+   *(Sixth consecutive item where the site list undercounted.)*
+2. **THE REMEDY POINTED THE WRONG WAY.** It said *"delete the second application, not the first"*. Deleting
+   the **first** is correct: `effectiveMinimumInWindow` is the declared ONE PRODUCER (`S1P3-A2`) read by
+   the allocator's RESERVE *and* `applyRolloverPayment`'s PAYDOWN, and `payday.ts` passes RAW debts to the
+   paydown — so scaling at the seam is exactly what put them 4× apart. It also closes `A3-2` for free.
+3. **"FIVE INSTRUMENTS BLIND FOR ONE REASON" IS FOUR REASONS**, and the decisive one is not a fixture
+   problem: `A3-2`'s guard calls `allocatePaycheck` **directly**, a path production did not take. On its
+   own fixture — guard `200` (asserted, green), production `800` (what shipped).
+
+### ⭐ Why the ONE well-written test could not see it
+
+`bnplCadence.test.ts` goes through `selectAllocation`, asserts exact values, and its comment claims the
+exactness *"locks out BOTH a removed scaling and a doubled one."* **It passed before and after a 4×
+change.** Measured:
+
+```
+installment-native BNPL   200 → 200   not affected
+fallback BNPL (no sched)  200 → 800   DOUBLE-SCALED
+plain debt, weekly        200 → 800   DOUBLE-SCALED
+```
+
+⚡ **`bnplInstallmentAmount` PREFERS `scheduledPaymentAmount`**, so an installment-native fixture never
+reads the corrupted `minimumPayment`. Every fixture in the five blind instruments — plus the one good
+test — either carried its own per-charge figure, carried no debt at all, or sat in a window where the
+scaling never engaged. **That is the axis the new assertion iterates.**
+
+### What now stands
+
+**`apps/rn/src/store/inWindowMinimum.test.ts`** — 37 assertions, **3 debt shapes × 3 cadences**, through
+`selectAllocation` *and* the projected cycles, each row checking the reserve **and** a zero shortfall,
+plus a monthly control so a *"reserve more"* fix cannot pass. Controls: restore either scaling site and it
+reds by name.
+
+⚠️ **The honest limit, measured.** With both sites restored the **regression suite stays green** — this
+defect lives at a seam the core instruments do not cross. They catch the opposite direction: invert the
+in-window predicate and the suite reds with *"[A2/A3-1] a weekly DEBT … Expected $200, received $50"*.
+**Core instruments catch a DELETED scaling; `inWindowMinimum` catches a DOUBLED one. Neither covers the
+other.**
+
+### ⛔ And I wrote a dated fuse into class 4's own guard
+
+`lint:fixture-dates` refused it: `dueDate: '2026-09-07'` was **two days** from firing, after which the
+branch those fixtures exercise would change **silently, with no code edit**. A fixture that quietly stops
+testing what it claims is the whole subject of this class. Clock-relative now — `day(0) → day(28)`, first
+charge three days in. **The shape is the subject, never the calendar.**
