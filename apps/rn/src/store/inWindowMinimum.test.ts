@@ -52,9 +52,26 @@ function assert(cond: boolean, label: string) {
   console.log(`  ✓ ${label}`);
 }
 
-/** A window of exactly four weeks, so a weekly debt charges 4× and a biweekly one 2×. */
-const CURRENT = '2026-09-04';
-const NEXT = '2026-10-02';
+/**
+ * A window of exactly four weeks, so a weekly debt charges 4× and a biweekly one 2×.
+ *
+ * ⚠️ **Clock-relative, not literal dates** - `lint:fixture-dates` refused the first cut, correctly: a
+ * hard-coded `2026-09-07` was two days from firing, and on that date the branch these fixtures exercise
+ * would change **silently, with no code edit**. That is the `A1-4` dated-fuse class, and a fixture that
+ * quietly stops testing what it claims is exactly what this whole class is about.
+ *
+ * The SHAPE is what matters here, never the calendar: four weeks holds four weekly charges whenever it
+ * is run. The first charge sits three days in so the window opens before it, as a real cycle does.
+ */
+const day = (offset: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+const CURRENT = day(0);
+const NEXT = day(28);
+const DUE = day(3);
 const MINIMUM = 50;
 
 /**
@@ -67,7 +84,7 @@ const SHAPES = [
     kind: 'installment-native BNPL',
     of: (recurrence: string): Debt =>
       ({
-        id: 'd1', name: 'Klarna', balance: 5000, minimumPayment: MINIMUM, apr: 0, dueDate: '2026-09-07',
+        id: 'd1', name: 'Klarna', balance: 5000, minimumPayment: MINIMUM, apr: 0, dueDate: DUE,
         type: 'bnpl', bnplProvider: 'Klarna', scheduledPaymentAmount: MINIMUM, remainingPayments: 40, recurrence,
       }) as unknown as Debt,
   },
@@ -75,7 +92,7 @@ const SHAPES = [
     kind: 'fallback BNPL',
     of: (recurrence: string): Debt =>
       ({
-        id: 'd1', name: 'Afterpay', balance: 5000, minimumPayment: MINIMUM, apr: 0, dueDate: '2026-09-07',
+        id: 'd1', name: 'Afterpay', balance: 5000, minimumPayment: MINIMUM, apr: 0, dueDate: DUE,
         type: 'bnpl', bnplProvider: 'Afterpay', recurrence,
       }) as unknown as Debt,
   },
@@ -83,7 +100,7 @@ const SHAPES = [
     kind: 'plain debt',
     of: (recurrence: string): Debt =>
       ({
-        id: 'd1', name: 'Weekly loan', balance: 5000, minimumPayment: MINIMUM, apr: 10, dueDate: '2026-09-07',
+        id: 'd1', name: 'Weekly loan', balance: 5000, minimumPayment: MINIMUM, apr: 10, dueDate: DUE,
         type: 'debt', recurrence,
       }) as unknown as Debt,
   },

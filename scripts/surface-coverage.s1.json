@@ -2755,5 +2755,8 @@
   "packages/core/utils/updateById.ts": [
     "never",
     "s1p7"
+  ],
+  "apps/rn/src/store/inWindowMinimum.test.ts": [
+    "never"
   ]
 }
