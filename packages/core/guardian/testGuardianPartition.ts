@@ -148,6 +148,67 @@ function discretionaryOf(result: ReturnType<typeof allocatePaycheck>): number {
 	assertMoney(sumBuckets(r, DISCRETIONARY_BUCKETS), 0, "shortfall: all discretionary buckets 0");
 }
 
+/**
+ * ⛔ **THE PARTITION OVER A SUB-CYCLE CADENCE — every fixture above is `minimumPayment: 0`, monthly, in a
+ * 14-day window.** [class 4 `A3-7`]
+ *
+ * ⚡ **Three properties had to hold at once before this file could see the defect it was written to
+ * refuse**, and it had none of them: a **non-zero minimum**, a **cadence that charges more than once**,
+ * and a **window wide enough to hold more than one charge**. A fixture meeting only the first still
+ * passes over a broken partition — measured, `.4.2`.
+ *
+ * ⚠️ **It is asserted as an identity over the cadences, not as one row.** Naming `weekly` closes the
+ * finding; walking the cadences closes the class, and it is the shape that caught `A5-1`/`A5-5` in
+ * `testCadenceIdentity` without either being named.
+ *
+ * ⛔ **What it refuses:** `discretionary` is `paycheck − totalRequired − living`, so any installment
+ * `totalRequired` counts and the `minimum_debt` ROW does not is money the plan both hands to `snowball`
+ * and declares spent. On HEAD before the fix: buckets **$700** against a discretionary of **$500**.
+ */
+for (const { recurrence, charges } of [
+	{ recurrence: "weekly" as const, charges: 5 },
+	{ recurrence: "biweekly" as const, charges: 3 },
+	{ recurrence: "monthly" as const, charges: 1 },
+]) {
+	const r = allocatePaycheck({
+		paycheckAmount: 2000,
+		currentDate: "2026-06-01",
+		// ⚠️ A THIRTY-DAY window. The `alloc()` helper's is 14 days, which holds one monthly charge and
+		// two weekly ones — enough to break the partition, not enough to separate the cadences.
+		nextPaycheckDate: "2026-07-01",
+		expenses: [{ id: "e1", name: "Rent", amount: 850, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false }],
+		livingExpenses: [{ id: "l1", name: "Groceries", amount: 400, enabled: true }],
+		debts: [{ id: "d1", name: "Visa", balance: 5000, minimumPayment: 50, apr: 20, dueDate: "2026-06-02", type: "debt", recurrence, isPaidThisCycle: false }],
+		goals: [],
+		strategy: "snowball",
+		paycheckBuffer: 200,
+	});
+
+	// ⛔ The invariant itself. This is the assertion that failed $700 vs $500.
+	assertMoney(
+		sumBuckets(r, DISCRETIONARY_BUCKETS),
+		discretionaryOf(r),
+		`⛔ A3-7 · ${recurrence} — the buckets reconcile when a debt charges more than once in the window`,
+	);
+
+	// ⛔ And the reason, stated directly: the ROW that holds the money must be the in-window figure, not
+	// one installment. Without this, "reserve nothing at all" reconciles perfectly.
+	const reserved = sumBuckets(r, ["minimum_debt"] as never);
+	assertMoney(
+		reserved,
+		50 * charges,
+		`⛔ A3-7 · ${recurrence} — the plan RESERVES every charge in the window (${charges} × $50), which is what applyRolloverPayment then takes`,
+	);
+
+	// ⭐ The control that makes the two rows above a claim rather than an artefact: a monthly debt holds
+	// exactly one charge, so if the cadences did not differ, nothing here would be measuring cadence.
+	assertMoney(
+		r.totalRequired,
+		850 + 50 * charges,
+		`⭐ A3-7 · ${recurrence} — totalRequired and the row agree, and the cadences differ from each other`,
+	);
+}
+
 // ── §2.0.b holdback WIRED INTO the allocation (2.4.6.1.3): it dampens deploy + stays protected ──
 {
 	// Discovery holdback 40% of above-floor headroom. discretionary 750, floor 200 → aboveFloor 550 →

@@ -3698,5 +3698,10 @@
       "measured": "2026-09-04",
       "sha": "bdfb9af0"
     }
+  },
+  "S1-CLASS4-A3-7": {
+    "what": "class 4 A3-7 — pass 6 replaced Math.min(debt.minimumPayment, debt.balance) at five sites and left a SIXTH: the one that emits the minimum_debt ROW. totalRequired counted every in-window installment while the plan reserved one. Measured on a $50 weekly debt in a 30-day window: totalRequired attributed $250, the row held $50, applyRolloverPayment then took $250 — verbatim the consequence the pass-6 block says it fixed. The §2.2 partition is the same gap from the other end: buckets $700 against a discretionary of $500, money handed to snowball AND declared spent.",
+    "file": "packages/core/guardian/testGuardianPartition.ts",
+    "token": "the plan RESERVES every charge in the window"
   }
 }

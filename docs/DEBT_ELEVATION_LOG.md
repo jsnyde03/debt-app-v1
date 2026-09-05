@@ -31945,6 +31945,12 @@ behind a green guard. `.4.6` is re-scoped accordingly.
 
 **All 11 findings addressed. Boundary: 52/52 gates · `test:app` · `test:regression` · typecheck 0.**
 
+> ⛔ **CORRECTED AT THE BOUNDARY — that sentence was WRONG when written. Ten were addressed; `A3-7` was
+> confirmed in `.4.2`, corrected in its stated reason, and then never fixed.** It appears in no commit
+> message in the range, and I dispatched nothing that would have caught it: the re-audit brief I was
+> about to write would have inherited the same list. **The class's own membership table was the only
+> thing that named it, and I checked it only because a re-audit brief has to quote a count.** See `.4.9`.
+
 ### The defect, in one line
 
 `selectors.ts` handed the engine `scaleBnplMinimumsForWindow(...)`, which rewrites `minimumPayment` to

@@ -374,6 +374,8 @@ export function allocatePaycheck({
 	 * both read `effectiveMinimumInWindow`, so they move together or not at all."* ⛔ **The allocator did
 	 * not read it.** `grep` for the symbol returned `applyRolloverPayment` and `buildCycleSnapshot` — and
 	 * this file computed `Math.min(debt.minimumPayment, debt.balance)` at five sites instead.
+	 * ⛔ **There were SIX, and the sixth shipped for another pass — see `A3-7` at the `requiredMinimum`
+	 * below.** This sentence is left standing because the count it states is the finding.
 	 *
 	 * ⚡ **Measured on one weekly debt in one window: RESERVE $50, PAYDOWN $200.** The Guardian calls the
 	 * paycheck clear having held $50, the rollover then takes $200, and the user is **$150 short** — which
@@ -542,8 +544,32 @@ export function allocatePaycheck({
 			Math.max(0, debt.balance - paidTowardDebt(debt.id))
 		);
 
+		/**
+		 * ⛔ **S1.13.7.12.6 [class 4 `A3-7`] — THE SIXTH SITE. The block above says pass 6 replaced
+		 * `Math.min(debt.minimumPayment, debt.balance)` "at five sites". There were six, and the one it
+		 * missed is the one that HOLDS THE MONEY.**
+		 *
+		 * ⚡ Pass 6 converted every site that computes a *total* and left the site that emits the
+		 * *row*, so `totalRequired` reported the in-window figure while the plan reserved a single
+		 * installment. **Measured on HEAD, one $50 weekly debt in a 30-day window:**
+		 *
+		 *     totalRequired attributes   $250        the row RESERVES   $50        the rollover TAKES  $250
+		 *
+		 * ⛔ **That is verbatim the consequence the block above says it fixed** — *"RESERVE $50,
+		 * PAYDOWN $200 … the user is $150 short"* — still shipping, one screen away from a timeline
+		 * item printing **$250** for the same obligation, because `buildTimelineItems`' callers pre-scale
+		 * and this one did not.
+		 *
+		 * ⚠️ The §2.2 partition is the same gap seen from the other end: discretionary is
+		 * `paycheck − totalRequired − living`, so every extra installment `totalRequired` counted and
+		 * this row did not was handed to `snowball` **and** declared spent. Measured, same fixture:
+		 * buckets $700 against a discretionary of $500.
+		 *
+		 * ⚠️ **The cap stays `remainingDebtBalance`, not `debt.balance`** — `minimumDueInWindow` caps at
+		 * the raw balance and this loop must also net off what is already paid this cycle.
+		 */
 		const requiredMinimum = roundMoney(
-			Math.min(debt.minimumPayment, remainingDebtBalance)
+			Math.min(minimumDueInWindow(debt), remainingDebtBalance)
 		);
 
 		const coveredAmount = roundMoney(Math.min(requiredMinimum, remaining));
