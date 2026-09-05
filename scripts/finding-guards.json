@@ -3725,5 +3725,227 @@
       "measured": "2026-09-05",
       "sha": "3df5614b"
     }
+  },
+  "S1-CLASS4-A2-1": {
+    "what": "blocker — the double-scaling at the selectors seam: store debts were pre-scaled AND effectiveMinimumInWindow scaled again, so a $50 weekly debt was reserved at $800. Shares D1's plant with A3-1 and A3-2 — one defect reached from three directions.",
+    "file": "apps/rn/src/store/inWindowMinimum.test.ts",
+    "token": "not a multiple of it (got",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/selectors.ts",
+          "find": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';",
+          "replace": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';\nimport { scaleBnplMinimumsForWindow } from '@core/debt/bnplInstallment';"
+        },
+        {
+          "at": "apps/rn/src/store/selectors.ts",
+          "find": "    debts: store.debts,",
+          "replace": "    debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),"
+        }
+      ],
+      "run": "test:app",
+      "expect": "reserves",
+      "measured": "2026-09-05",
+      "sha": "86bf6536"
+    }
+  },
+  "S1-CLASS4-A3-1": {
+    "what": "blocker — the same seam measured to the printed shortfall on four surfaces (Guardian card, Live Activity, widget, paywall lead). D1's plant.",
+    "file": "apps/rn/src/store/inWindowMinimum.test.ts",
+    "token": "no phantom shortfall on a paycheck that covers it",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/selectors.ts",
+          "find": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';",
+          "replace": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';\nimport { scaleBnplMinimumsForWindow } from '@core/debt/bnplInstallment';"
+        },
+        {
+          "at": "apps/rn/src/store/selectors.ts",
+          "find": "    debts: store.debts,",
+          "replace": "    debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),"
+        }
+      ],
+      "run": "test:app",
+      "expect": "not a multiple of it (got",
+      "measured": "2026-09-05",
+      "sha": "86bf6536",
+      "proofNote": "⚠️ SHARES A2-1's RED, deliberately. CLASSIFICATION.md says these two 'are the same defect' found by two lanes that never spoke, and one plant cannot produce two distinguishable reds from one defect. The totalRequired assertion precedes the shortfall one in the same file, so it fires first; manufacturing a separate expect would be bookkeeping, not evidence."
+    }
+  },
+  "S1-CLASS4-A3-2": {
+    "what": "major — A3-4's guard called allocatePaycheck DIRECTLY, a path production did not take: guard $200, production $800 on the same fixture. Closed by .4.3 making production pass RAW debts, so the guard's path IS production's. D1's plant.",
+    "file": "apps/rn/src/store/inWindowMinimum.test.ts",
+    "token": "— the allocation resolves",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/selectors.ts",
+          "find": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';",
+          "replace": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';\nimport { scaleBnplMinimumsForWindow } from '@core/debt/bnplInstallment';"
+        },
+        {
+          "at": "apps/rn/src/store/selectors.ts",
+          "find": "    debts: store.debts,",
+          "replace": "    debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),"
+        }
+      ],
+      "run": "test:app",
+      "expect": "reserves",
+      "measured": "2026-09-05",
+      "sha": "86bf6536"
+    }
+  },
+  "S1-CLASS4-A3-4": {
+    "what": "blocker — the THIRD site the finding never named: buildMultiCycleTimeline handed its scaled projDebts to the ALLOCATOR as well as to buildTimelineItems, so cycle 0 was correct and every projected cycle stayed 4x — feeding essentials, net, carriedBalance, the cash-runway receipt and the crunch detector.",
+    "file": "apps/rn/src/store/inWindowMinimum.test.ts",
+    "token": "essentials are the in-window",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/timeline/buildMultiCycleTimeline.ts",
+          "find": "            debts: projDebts,",
+          "replace": "            debts: scaledProjDebts,"
+        }
+      ],
+      "run": "test:app",
+      "expect": "projected cycle",
+      "measured": "2026-09-05",
+      "sha": "86bf6536"
+    }
+  },
+  "S1-CLASS4-A2-2": {
+    "what": "major — the two 'a plain debt is never scaled' controls varied ALIGNMENT, not type: true only of a fixture with no sub-cycle cadence. A plain weekly debt scales 50 -> 200 exactly like a BNPL.",
+    "file": "packages/core/debt/testBnplInstallment.ts",
+    "token": "a PLAIN debt with a weekly cadence IS scaled",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/bnplInstallment.ts",
+          "find": "\tif (!hasKnownBnplCadence(debt)) return debt;",
+          "replace": "\tif (!hasKnownBnplCadence(debt) || debt.type !== \"bnpl\") return debt;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "tsconfig.json",
+        "packages/core/debt/testBnplInstallment.ts"
+      ],
+      "expect": "A2-2",
+      "proofNote": "⛔ THE FIRST PLANT CHOSEN FOR THIS WAS WRONG and the harness caught it: under the effectiveMinimumInWindow gate plant, this file was ALREADY RED BEFORE THE REPAIR, so that plant tested a defect the file could always see. Verified on the pre-repair file (git show bc336cfd): this plant is GREEN before the repair and RED after, which is the finding — 'the controls varied ALIGNMENT, not type' — demonstrated rather than asserted.",
+      "measured": "2026-09-05",
+      "sha": "86bf6536"
+    }
+  },
+  "S1-CLASS4-A3-14": {
+    "what": "major — History's 'unchanged by in-window scaling' control ran with the scaling switched off by its own dates: fixture due 2026-06-01 against a 2026-01-01..2026-02-01 window, five months outside it. A weekly sibling now asserts the full in-window paydown.",
+    "file": "packages/core/testing/testPayCycleHistoryRegression.ts",
+    "token": "a WEEKLY debt reports its full in-window paydown",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/history/buildCycleSnapshot.ts",
+          "find": "                    effectiveMinimumInWindow(debt, windowStartISO, windowEndISO),",
+          "replace": "                    debt.type === \"bnpl\" ? effectiveMinimumInWindow(debt, windowStartISO, windowEndISO) : debt.minimumPayment,"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "tsconfig.json",
+        "packages/core/testing/testPayCycleHistoryRegression.ts"
+      ],
+      "expect": "A3-14",
+      "proofNote": "Same correction as A2-2: verified GREEN on the pre-repair file and RED after. The BNPL control was never the blind one — the plain-debt weekly sibling this repair added is, which is why the plant spares BNPL.",
+      "measured": "2026-09-05",
+      "sha": "86bf6536"
+    }
+  },
+  "S1-CLASS4-A2-8": {
+    "what": "major — the plain-debt half was pinned by an assertion stating the UN-FIXED behaviour as the requirement ('a plain debt has no installments to break down'), over a fixture that is a 4x row. It redded on the fix, exactly as filed.",
+    "file": "packages/core/debt/testDeriveRequiredActionView.ts",
+    "token": "a PLAIN debt's multiplied row explains itself as 4",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/deriveRequiredActionView.ts",
+          "find": "    const scheduled = debt ? bnplInstallmentAmount(debt) : undefined;",
+          "replace": "    const scheduled = debt && debt.type === \"bnpl\" ? bnplInstallmentAmount(debt) : undefined;"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "multiplied row",
+      "measured": "2026-09-05",
+      "sha": "86bf6536"
+    }
+  },
+  "S1-CLASS4-A2-3": {
+    "what": "minor — the caption fix iterated to fallback BNPLs and not to the plain debts pass-6 A3-1 widened the RESERVE into, so a plain weekly debt's row said $200 where the plan says $50 with no reason given. Shares A2-8's plant: one gate, two halves.",
+    "file": "packages/core/debt/testDeriveRequiredActionView.ts",
+    "token": "a 2-installment window → '2 × $100'",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/deriveRequiredActionView.ts",
+          "find": "    const scheduled = debt ? bnplInstallmentAmount(debt) : undefined;",
+          "replace": "    const scheduled = debt && debt.type === \"bnpl\" ? bnplInstallmentAmount(debt) : undefined;"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "multiplied row",
+      "measured": "2026-09-05",
+      "sha": "86bf6536"
+    }
+  },
+  "S1-CLASS4-A3-12": {
+    "what": "major — the cadence-identity matrix, built to close the cadence CLASS, walked 28 pairs and passed debts:[] to every one. The repair then asserted only divisibility by 50, which 50, 200 AND 800 all satisfy (re-audit F4); it computes the expected charge count independently now, and asserts the ROW as well as the total.",
+    "file": "packages/core/testing/testCadenceIdentity.ts",
+    "token": "the total and the money held disagree",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/engine/allocatePaycheck.ts",
+          "find": "Math.min(minimumDueInWindow(debt), remainingDebtBalance)",
+          "replace": "Math.min(debt.minimumPayment, remainingDebtBalance)"
+        }
+      ],
+      "expect": "debt matrix",
+      "measured": "2026-09-05",
+      "sha": "86bf6536",
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "tsconfig.json",
+        "packages/core/testing/testCadenceIdentity.ts"
+      ],
+      "proofNote": "SCOPED TO ONE FILE. Under test:regression this plant reds testGuardianPartition's A3-7 assertion first ($500 vs $700) — a different finding, so the verdict read WRONG-reason. A plant only exercises a suite up to its first red."
+    }
+  },
+  "S1-CLASS4-A2-4": {
+    "what": "minor — the safety argument justifying pass-6 A3-1's widening was a carried premise and measurably false; the docblock states it conditionally now and NAMES inWindowMinimum.test.ts as the enforcer. The claim holds only while that enforcement stands, which is what this plant removes.",
+    "file": "packages/core/testing/testPayCycleHistoryRegression.ts",
+    "token": "History reports the money the rollover actually deducted (S1P3-A2)",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/selectors.ts",
+          "find": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';",
+          "replace": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';\nimport { scaleBnplMinimumsForWindow } from '@core/debt/bnplInstallment';"
+        },
+        {
+          "at": "apps/rn/src/store/selectors.ts",
+          "find": "    debts: store.debts,",
+          "replace": "    debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),"
+        }
+      ],
+      "run": "test:app",
+      "expect": "reserves",
+      "measured": "2026-09-05",
+      "sha": "86bf6536"
+    }
   }
 }
