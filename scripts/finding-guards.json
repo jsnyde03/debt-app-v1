@@ -2086,8 +2086,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
-      "measured": "2026-09-04",
-      "sha": "bdfb9af0"
+      "measured": "2026-09-05",
+      "sha": "8e670844"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2405,8 +2405,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "STALE",
-      "measured": "2026-09-04",
-      "sha": "bdfb9af0"
+      "measured": "2026-09-05",
+      "sha": "8e670844"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3149,8 +3149,8 @@
       ],
       "run": "test:app",
       "expect": "nothing ticked off",
-      "measured": "2026-09-02",
-      "sha": "c00af00d"
+      "measured": "2026-09-05",
+      "sha": "8e670844"
     }
   },
   "S1P6-D3-5-SHEETCALLSITE": {
@@ -3473,8 +3473,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
-      "measured": "2026-09-04",
-      "sha": "37859271"
+      "measured": "2026-09-05",
+      "sha": "8e670844"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3632,8 +3632,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
-      "measured": "2026-09-04",
-      "sha": "bdfb9af0"
+      "measured": "2026-09-05",
+      "sha": "8e670844"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
