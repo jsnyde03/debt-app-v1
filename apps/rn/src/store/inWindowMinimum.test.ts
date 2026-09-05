@@ -169,15 +169,55 @@ export function runInWindowMinimumTests(): void {
    * ⚠️ The ITEMS still take the scaled list and that is right: `buildTimelineItems` reads
    * `debt.minimumPayment` directly and has no window. Two consumers, two needs.
    */
+  /**
+   * ⛔ **THE PROJECTION RUNS ON A FIXED-LENGTH PAY CADENCE, AND THE REASON IS A DEFECT THIS FILE
+   * SHIPPED.** [class 4 re-audit `F2`, blocker]
+   *
+   * ⚡ The rows above pass `currentDate`/`nextPaycheckDate` explicitly, so **cycle 0's window is 28 days
+   * whenever it runs** — measured date-stable across 365 consecutive start dates. ⛔ **Cycle 1's window
+   * is not passed in; the projection DERIVES it**, and under the `monthly` pay cycle this file first used
+   * it ran from `today + 28` to **the 1st of the following month** — anywhere from **1 to 31 days**. A
+   * weekly debt therefore charged **0–5 times**, and `essentials` was measured at $0, $50, $100, $150,
+   * $200 and $250 depending on nothing but the calendar.
+   *
+   * ⚠️ **It redded `test:app` on 288 of 365 days, and the class was closed on one of the 77 that pass** —
+   * five days before the next red. ⭐ **The first cut of this file was refused by `lint:fixture-dates`
+   * for a hard-coded date; the clock-relative rewrite that replaced it then hid a WORSE fuse, because
+   * `day(28)` pins the window you hand over and says nothing about the one that is computed for you.**
+   *
+   * ⛔ **So the projection is driven by a cadence whose period is a constant number of days.** `biweekly`
+   * steps 14 days from any date, so **every** projected window is 14 days and a weekly debt charges
+   * exactly twice — by construction, not by where the month happens to end.
+   */
+  const PROJ_NEXT = day(14);
+  const PROJ_CHARGES = 2;
+  const projStoreWith = (debt: Debt): DebtStore => {
+    const s = storeWith(debt);
+    return { ...s, paycheck: { ...s.paycheck, payCycle: 'biweekly', nextPaycheckDate: PROJ_NEXT } };
+  };
+
   for (const shape of SHAPES) {
-    const timeline = selectCashTimeline(storeWith(shape.of('weekly')), 2);
+    const timeline = selectCashTimeline(projStoreWith(shape.of('weekly')), 2);
     assert(timeline.length >= 2, `${shape.kind} — the projection builds at least two cycles`);
     for (const cycle of [0, 1]) {
       assert(
-        timeline[cycle].essentials === MINIMUM * CHARGES.weekly,
-        `${shape.kind} · projected cycle ${cycle} — essentials are the in-window $${MINIMUM * CHARGES.weekly}, not a multiple (got $${timeline[cycle].essentials})`,
+        timeline[cycle].essentials === MINIMUM * PROJ_CHARGES,
+        `${shape.kind} · projected cycle ${cycle} — essentials are the in-window $${MINIMUM * PROJ_CHARGES}, not a multiple (got $${timeline[cycle].essentials})`,
       );
     }
+  }
+
+  /**
+   * ⭐ **THE CONTROL, and without it a projection returning a CONSTANT passes every row above.** A
+   * biweekly debt charges **once** in the same 14-day windows the weekly one charges twice in. If the
+   * projection stopped distinguishing cadence — the exact failure `A3-4` was — these two would agree.
+   */
+  for (const cycle of [0, 1]) {
+    const bi = selectCashTimeline(projStoreWith(SHAPES[2].of('biweekly')), 2);
+    assert(
+      bi[cycle].essentials === MINIMUM,
+      `⭐ control · projected cycle ${cycle} — a BIWEEKLY debt charges ONCE ($${MINIMUM}) where the weekly one charges twice (got $${bi[cycle].essentials})`,
+    );
   }
 
   console.log(`\n✅ in-window minimum: ${passed} assertions across ${SHAPES.length} debt shapes × ${Object.keys(CHARGES).length} cadences\n`);

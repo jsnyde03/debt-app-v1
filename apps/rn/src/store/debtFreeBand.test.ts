@@ -19,7 +19,22 @@ function storeWith(over: Partial<DebtStore['paycheck']>): DebtStore {
     debts: [
       { id: 'd0', name: 'Card', balance: 12000, minimumPayment: 200, apr: 22, dueDate: '2026-08-01', type: 'debt', recurrence: 'monthly', originalBalance: 12000, balanceAsOfDate: '2026-08-01', lastVerifiedDate: '2026-08-01' },
     ],
-    paycheck: { ...s.paycheck, amount: '3000', currentDate: '2026-08-01', payCycle: 'monthly', ...over },
+    /**
+     * ⛔ **A WINDOW IS A PAIR, AND PINNING ONE END IS NOT PINNING THE WINDOW.**
+     * [S1.13.7.12.6 `.4.11` — found by a 365-day walk while fixing the same defect in `F2`]
+     *
+     * ⚡ `currentDate` was pinned to `2026-08-01` and `nextPaycheckDate` was left to come from
+     * `createDefaultStore()`, **which derives it from the clock.** The window between them therefore
+     * **widened by one day per day**: 49 days at the time of writing, growing without bound. Measured by
+     * running this suite under a pinned clock — green through 2027-04-09, then **red every sampled date
+     * after it**, on `variable income yields both dates`, because the lean run's payoff eventually goes
+     * `DEBT_FREE_DATE_UNPAYABLE` and `selectDebtFreeDate` maps that to `null`.
+     *
+     * ⚠️ **`lint:fixture-dates` cannot see this and is not wrong to miss it** — it looks for a literal
+     * date about to arrive, and this literal is in the PAST. The fuse is the *unpinned other end*, which
+     * is not a date in this file at all. Both ends are pinned now.
+     */
+    paycheck: { ...s.paycheck, amount: '3000', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01', payCycle: 'monthly', ...over },
   };
 }
 

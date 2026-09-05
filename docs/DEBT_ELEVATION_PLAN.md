@@ -274,7 +274,20 @@ reason"* is **four reasons**, of which the decisive one is an entry point, not a
 | ✅ **.4.1–.4.7** | **DONE 2026-09-05.** The double-scaling closed at **three** sites *(the class named two)*, one owner for the in-window minimum, both vacuous-control repairs and both minors. New instrument `inWindowMinimum.test.ts` — 3 debt shapes × 3 cadences through the production path. Detail → log | ✅ |
 | ✅ **.4.8** | **BOUNDARY CLEAN 2026-09-05** — 52/52 gates · `test:app` · `test:regression` · typecheck 0. ⚠️ `lint:fixture-dates` refused **my own new test**: a `dueDate` two days from firing. Clock-relative now | ✅ |
 | ✅ **.4.9** | ⛔ **`A3-7` WAS NEVER FIXED — I recorded "all 11 addressed" and it was false.** Pass 6's block says it replaced the raw minimum *"at five sites"*; there were **six**, and the missed one **emits the row that holds the money**. Measured: `totalRequired` $250 · row reserves **$50** · rollover takes $250. ⚠️ **Both suites green before and after.** Guard + proof registered | ✅ |
-| ▶ **.4.10** | **`[D79]` RE-AUDIT** — a FRESH agent, cumulative over classes 1 + 4, with guards derived from **the diff, not the finding list**, and **membership re-derived two ways** *(`.4.9` is what one-way membership costs)* | 0 new defects attributable to this class's fixes |
+| ✅ **.4.10** | **RE-AUDIT DONE 2026-09-05** — fresh agent, cumulative. **8 findings: 1 blocker · 3 major · 4 minor.** ⭐ **Nothing earlier was broken** — all 11 guards on files this class touched re-proved `MATCHED`, and 3 of the brief's leads were refuted by measurement. Detail → log | ✅ |
+| ▶ **.4.11** | **THE RE-AUDIT'S FINDINGS** — decomposed below | `test:app` date-stable across a year, and every blocker guarded |
+
+### 🔨 `.4.11` — the re-audit's 8 findings
+
+| # | step | exit line |
+|---|---|---|
+| ▶ **.11.1** | ⛔ **`F2` BLOCKER — `test:app` reds on 2026-09-10, five days out, with no code change.** My own new guard. `day(28)` pins the window you HAND OVER and says nothing about the one the projection COMPUTES: cycle 1 ran `today+28 → the 1st`, **1–31 days**, so a weekly debt charged 0–5× | the suite green on a 365-day walk, not a spot check |
+| **.11.2** | **`F3` major — THE SEVENTH SITE.** `planSelectors.ts:255` prints the raw minimum on the re-added *paid* row. ⚠️ **Measured: $200 before the tap, $50 after** — same obligation, same window | one producer, and the figure does not move on the tap |
+| **.11.3** | **`F4` major — my `A3-12` repair asserts nothing that can fail.** `% 50 === 0` is satisfied by 50, 200 **and** 800; green under all three directions of its own defect | the matrix reds on a doubled AND a deleted scaling |
+| **.11.4** | **`F5` major — one guard for eleven findings**, and all three blockers carry none | every blocker in the class refused by planting |
+| **.11.5** | **`F6` + `F7` minors that reach the USER** — a second live in-window expression disagreeing $50 vs $80, and the Guardian line explaining a reserve it no longer matches. ⚠️ Verify before fixing | each measured, then fixed or filed with a reason |
+| **.11.6** | **`F8` + `F1`** — a docblock that is now false, and the brief's count | corrected |
+| **.11.7** | **BOUNDARY + round-2 re-audit** | 0 new defects attributable to these fixes |
 
 ⛔ **Then `.12.7` — PASS 8**, the next first-candidate. [D65] is unchanged: **0/0 twice consecutively.**
 
