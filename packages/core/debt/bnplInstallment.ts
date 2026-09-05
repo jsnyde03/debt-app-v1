@@ -151,7 +151,16 @@ export function bnplPaymentsTotal(debt: Debt): number | null {
  * `recurrence` + `dueDate` but no installment fields, which the CSV importer and a pre-2.7.2 backup
  * both produce — carries the same number in `minimumPayment`. Both are "what this plan charges once".
  */
-function bnplInstallmentAmount(debt: Debt): number {
+/**
+ * ⛔ **THE PER-CHARGE FIGURE, and it is a fact about the PLAN rather than the label.** An
+ * installment-native plan carries it in `scheduledPaymentAmount`; every other debt carries the same
+ * number in `minimumPayment`.
+ *
+ * ⚠️ **Exported at class 4 `A2-3`/`A2-8`**, because `deriveRequiredActionView` had re-implemented this
+ * rule with a `type === "bnpl"` gate still on it - so a plain weekly debt, whose row `A3-1` had just
+ * made multipliable, showed the multiplied amount BARE. One producer, stated once.
+ */
+export function bnplInstallmentAmount(debt: Debt): number {
 	return typeof debt.scheduledPaymentAmount === "number" && debt.scheduledPaymentAmount > 0
 		? debt.scheduledPaymentAmount
 		: debt.minimumPayment;

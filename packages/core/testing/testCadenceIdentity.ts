@@ -145,7 +145,51 @@ export function runCadenceIdentityTests(): void {
         }
     }
 
-    console.log("✅ Cadence identity tests passed (7 recurrences × 4 pay cycles).");
+    /**
+     * ⛔ **THE SAME MATRIX, OVER DEBTS — because every pair above passes `debts: []`.** [class 4 `A3-12`]
+     *
+     * ⚡ This file is *"the cadence-identity matrix, built to close the cadence CLASS"*, and `recurrence`
+     * is on `Debt` as much as on an expense — but all 28 pairs handed the allocator **no debt at all**.
+     * So the instrument written to close the class could not see the half of it that shipped a 4×
+     * over-reservation on the Guardian card, the Live Activity, the widget and the paywall lead.
+     *
+     * ⚠️ **A PLAIN DEBT, and a FALLBACK BNPL, never an installment-native one.** `bnplInstallmentAmount`
+     * prefers `scheduledPaymentAmount`, so a fixture carrying one cannot detect a `minimumPayment` that
+     * has been multiplied — measured: installment-native 200 → 200, the other two 200 → 800.
+     */
+    for (const { payCycle, next } of CYCLES) {
+        for (const recurrence of RECURRENCES) {
+            for (const type of ["debt", "bnpl"] as const) {
+                const r = allocatePaycheck({
+                    paycheckAmount: 5000,
+                    currentDate: "2026-08-03",
+                    nextPaycheckDate: next,
+                    expenses: [],
+                    debts: [
+                        {
+                            id: "d1", name: "Loan", balance: 100000, minimumPayment: 50, apr: 10,
+                            dueDate: "2026-08-03", type, recurrence, isPaidThisCycle: false,
+                        } as never,
+                    ],
+                    goals: [],
+                    strategy: "snowball",
+                    paycheckBuffer: 0,
+                });
+                const label = `⭐ debt matrix · ${type} · ${recurrence} × ${payCycle}`;
+                // ⛔ The balance is huge on purpose, so a cap can never be what makes this pass.
+                if (r.totalRequired % 50 !== 0) {
+                    throw new Error(`FAIL [${label}]: reserved $${r.totalRequired}, not a whole multiple of the $50 charge`);
+                }
+                // ⛔ The user-facing half: the paycheck covers every one of these, so a shortfall here is
+                // money the app says you are missing while you are holding it.
+                if (r.shortfall !== 0) {
+                    throw new Error(`FAIL [${label}]: phantom shortfall $${r.shortfall} on a paycheck that covers it`);
+                }
+            }
+        }
+    }
+
+    console.log("✅ Cadence identity tests passed (7 recurrences × 4 pay cycles, expenses AND debts).");
 }
 
 runCadenceIdentityTests();

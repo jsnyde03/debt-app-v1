@@ -1,4 +1,5 @@
 import type { Debt, RequiredExpense } from "@core/storage/debtPlannerStorage";
+import { bnplInstallmentAmount } from "./bnplInstallment";
 import { isAutopayPresumedPaid } from "./reconcileAutopay";
 
 /**
@@ -125,12 +126,19 @@ export function deriveRequiredActionView(
      * `minimumPayment`. Both are *"what this plan charges once"*, which is exactly what this caption
      * divides by.
      */
-    const scheduled =
-        typeof debt?.scheduledPaymentAmount === "number" && debt.scheduledPaymentAmount > 0
-            ? debt.scheduledPaymentAmount
-            : debt?.type === "bnpl"
-              ? debt.minimumPayment
-              : undefined;
+    /**
+     * ⛔ **THE PRODUCER, not a re-implementation of it — and the `type` gate is gone.**
+     * [S1.13.7.12.6 class 4 · `A2-3` / `A2-8`]
+     *
+     * ⚡ This fell back to `minimumPayment` **only for `type === "bnpl"`**. But pass-6 `A3-1` removed
+     * exactly that gate from `hasKnownBnplCadence` — *"a cadence is a fact about the SCHEDULE, not about
+     * the debt's label"* — so a plain **weekly** debt became multipliable while the caption that explains
+     * the multiple stayed BNPL-only. The row said *"$200"* where the plan says $50 and offered no reason.
+     *
+     * ⚠️ `bnplInstallmentAmount` already states this rule at its owner, and is now exported rather than
+     * copied: **a second copy is what let the two halves drift apart in the first place.**
+     */
+    const scheduled = debt ? bnplInstallmentAmount(debt) : undefined;
     let installments: { count: number; each: number } | undefined;
     if (typeof scheduled === "number" && scheduled > 0 && item.amount > scheduled) {
         const count = Math.round(item.amount / scheduled);

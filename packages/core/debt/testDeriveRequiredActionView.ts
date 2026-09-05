@@ -186,9 +186,29 @@ function testBnplInstallmentBreakdown() {
     // The final installment is capped at the remaining balance, so there is no clean N × $X to state —
     // and inventing one would be the inverse of the defect being fixed.
     assert(row(250).installments === undefined, "a balance-capped amount that doesn't divide → no claim");
+    /**
+     * ⛔ **THIS ROW USED TO STATE THE UN-FIXED BEHAVIOUR AS THE REQUIREMENT.** [class 4 · `A2-8` / `A2-3`]
+     *
+     * It read *"a plain debt has no installments to break down"* over a fixture that is a **4× row** —
+     * `amount: 400` against `minimumPayment: 100`. When it was written no producer could put a multiplied
+     * amount on a plain debt's row, so that input was impossible and the assertion was free. ⚡ Pass-6
+     * `A3-1` then removed the `type === "bnpl"` gate from the cadence predicate, and a plain **weekly**
+     * debt became exactly how a row reaches 4× — so the assertion had come to pin the bare figure as
+     * correct, and a triage fixing `A2-3` would have read its red as a regression.
+     *
+     * ⚠️ **A count of 4 is only claimable because it DIVIDES exactly.** The two rows above still hold: a
+     * single installment says nothing extra, and a balance-capped amount that does not divide makes no
+     * claim — inventing one would be the inverse of the defect being fixed.
+     */
+    const plainMultiplied = deriveRequiredActionView(
+        { category: "minimum_debt", targetId: "d1", debtId: "d1", label: "Pay minimum on Card", amount: 400 },
+        [],
+        [debtItem({ id: "d1", minimumPayment: 100 })],
+        NOW,
+    ).installments;
     assert(
-        deriveRequiredActionView({ category: "minimum_debt", targetId: "d1", debtId: "d1", label: "Pay minimum on Card", amount: 400 }, [], [debtItem({ id: "d1", minimumPayment: 100 })], NOW).installments === undefined,
-        "a plain debt has no installments to break down",
+        plainMultiplied?.count === 4 && plainMultiplied.each === 100,
+        `a PLAIN debt's multiplied row explains itself as 4 × $100 (got ${JSON.stringify(plainMultiplied)})`,
     );
 }
 

@@ -149,7 +149,16 @@ function testBuildSnapshot_crossCadenceBnplUsesTheInWindowMinimum() {
     );
 
     // ⚠️ The non-BNPL path must be untouched by the scaling — the control for the opposite direction.
-    const monthly: Debt = { ...debt("card", 1000), minimumPaidThisCycle: true, minimumPayment: 100 };
+    /**
+     * ⛔ **THE CONTROL USED TO EXERCISE NOTHING.** [class 4 · `A3-14`] Its fixture is due `2026-06-01`
+     * while the window is `2026-01-01 → 2026-02-01` — **five months outside it** — so no installment
+     * fell inside and the in-window scaling never engaged. A row named *"unchanged by in-window
+     * scaling"* that ran with the scaling switched off by its own dates.
+     *
+     * ⚠️ The due date is inside the window now, and a WEEKLY sibling is asserted beside it — without
+     * one, "unchanged" is indistinguishable from "never reached".
+     */
+    const monthly: Debt = { ...debt("card", 1000), dueDate: WINDOW_START, minimumPaidThisCycle: true, minimumPayment: 100 };
     const monthlySnapshot = buildCycleSnapshot({
         cycleEndDate: WINDOW_END,
         debts: [monthly],
@@ -160,6 +169,36 @@ function testBuildSnapshot_crossCadenceBnplUsesTheInWindowMinimum() {
         windowEndISO: WINDOW_END,
     });
     assertEqual(monthlySnapshot.totalPaidThisCycle, 100, "a monthly debt is unchanged by in-window scaling");
+
+    /**
+     * ⛔ **THE SIBLING THAT MAKES THE ROW ABOVE MEAN SOMETHING.** [class 4 · `A3-14`]
+     *
+     * *"Unchanged"* is only a claim if something else in the same shape DOES change. A weekly debt in the
+     * same window charges every week, so History must report the full in-window paydown — the `S1P3-A2`
+     * rule that reserve and paydown are one producer. Without this row the control above passes equally
+     * well over a scaling that has been deleted.
+     */
+    const weekly: Debt = {
+        ...debt("weekly-loan", 1000),
+        dueDate: WINDOW_START,
+        recurrence: "weekly",
+        minimumPaidThisCycle: true,
+        minimumPayment: 25,
+    };
+    const weeklySnapshot = buildCycleSnapshot({
+        cycleEndDate: WINDOW_END,
+        debts: [weekly],
+        completedRecommendedActions: [],
+        payoffStrategy: "snowball",
+        allRequiredMet: true,
+        windowStartISO: WINDOW_START,
+        windowEndISO: WINDOW_END,
+    });
+    assertEqual(
+        weeklySnapshot.totalPaidThisCycle,
+        125,
+        "⛔ A3-14 — a WEEKLY debt reports its full in-window paydown (5 × $25 in a 31-day window), so 'unchanged' above is a claim rather than an artefact",
+    );
 }
 
 function roundTo2(n: number) {

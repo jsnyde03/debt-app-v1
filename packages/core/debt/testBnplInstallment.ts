@@ -192,7 +192,24 @@ function runBnplInstallmentTests() {
 	assertEqual(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-28").minimumPayment, 200, "2-charge window → effective minimum scales to 2 × the installment");
 	assertTrue(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-08-15") === biweeklyBnpl, "aligned window (1 charge) → no-op, same reference");
 	assertEqual(scaleBnplMinimumForWindow(biweeklyBnpl, "2026-08-01", "2026-12-01").minimumPayment, 400, "a long window's scaled minimum is capped at the balance (never over-pays)");
-	assertTrue(scaleBnplMinimumForWindow(plain, "2026-08-01", "2026-09-01") === plain, "a plain debt is never scaled");
+	/**
+	 * ⛔ **THIS PAIR USED TO VARY ALIGNMENT AND CALL IT TYPE.** [class 4 · `A2-2`]
+	 *
+	 * *"A plain debt is never scaled"* was true of `plain` only because that fixture carries **no
+	 * sub-cycle cadence** — so the row proved a fact about the WINDOW while claiming one about the TYPE.
+	 * ⚡ Pass-6 `A3-1` removed the `type === "bnpl"` gate on purpose: *a cadence is a fact about the
+	 * SCHEDULE, not about the debt's label.* Measured — a `type: "debt"` weekly debt scales 50 → 200.
+	 *
+	 * ⚠️ So both directions are stated: a plain debt with no sub-cycle cadence is untouched, and a plain
+	 * debt WITH one is scaled exactly like a BNPL. A row asserting only the first re-opens `A3-1`.
+	 */
+	assertTrue(scaleBnplMinimumForWindow(plain, "2026-08-01", "2026-09-01") === plain, "a plain debt with NO sub-cycle cadence is untouched (alignment, not type)");
+	const plainWeekly = debt({ type: "debt", balance: 5000, minimumPayment: 50, apr: 20, dueDate: "2026-08-04", recurrence: "weekly" });
+	assertEqual(
+		scaleBnplMinimumForWindow(plainWeekly, "2026-08-01", "2026-08-29").minimumPayment,
+		200,
+		"⛔ A2-2 — a PLAIN debt with a weekly cadence IS scaled (4 × $50): cadence is a fact about the schedule, not the label",
+	);
 
 	// ── S1P3-A4 — A FALLBACK BNPL IS RESERVED AT ITS CADENCE, NOT AT ONE INSTALLMENT (🎯 2026-08-26) ──
 	// `type: 'bnpl'` + `recurrence` + `dueDate` but NO installment fields. Reachable in the shipping app:
