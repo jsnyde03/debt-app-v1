@@ -38,8 +38,13 @@ table while the log's severity ledger lists it `minor`. **Never schedule or dism
 | file | ids | n |
 |---|---|---|
 | `CLASSIFICATION.md` §CLASS 4 + `A2-findings.md`, `A3-findings.md` | `A2-1` `A2-2` `A2-3` `A2-4` `A2-8` `A3-1` `A3-2` `A3-4` `A3-7` `A3-12` `A3-14` | 11 |
-| class 1: `D1`/`C1`/`C2` originals + `CLASS1-REAUDIT{,-2,-3,-4,-5,-6}.md` | the 11 + `R*` `N-*` `T*` `U*` `V*` `W*` | 79 |
-| | **total** | **90** |
+| class 1: `D1`/`C1`/`C2` originals + `CLASS1-REAUDIT{,-2,-3,-4,-5}.md` | the 11 + `R1`–`R15` `N-1`–`N-11` `T1`–`T14` `U1`–`U16` `V1`–`V12` | 79 |
+| class 1 round 6: `CLASS1-REAUDIT-6.md` | `W1`–`W15` *(incl. `W9b`)* | 15 |
+| | **total** | **105** |
+
+⚠️ **That 105 is my count, derived from the files above — treat it as a claim to check, not a given.** The
+first draft of this table said 90 because it stopped at `V*` and forgot round 6 existed. **If your own
+enumeration disagrees with 105, yours is the one to trust, and the disagreement is itself a finding.**
 
 ## The two questions, and nothing else
 
@@ -92,6 +97,18 @@ is a hypothesis, and this project has measured **2 of 4** wrong while all four o
 - ⛔ **Plant BOTH directions.** A two-class defect needs a plant per class: this class's instruments catch
   a **deleted** scaling and its new one catches a **doubled** one, and neither covers the other. A fixture
   proving one direction leaves the other vacuous.
+- ⛔ **A PLANT ONLY EXERCISES A SUITE UP TO ITS FIRST RED — and this round proved it costs a proof.**
+  Class 4 added an assertion upstream of `S1P3-A4`'s in the same suite, and `A4`'s plant thereafter tripped
+  `[A2/A3-1] Expected $200, received $50` instead: **`reason=WRONG`, no code changed, no guard deleted,
+  `lint:finding-guards` green throughout.** ⚠️ **When a plant reds, read WHICH assertion redded** — a red
+  is not a verdict until it names your defect. If it names a different one, scope the run to the file that
+  owns the assertion you are proving. **Adding an assertion can void an existing proof.**
+- ⚠️ **`proof.run` in `finding-guards.json` is an npm SCRIPT NAME**, not a command line — it is executed as
+  `npm run <it>`. A command string there is red unconditionally and reads as *"the control redded too, so
+  this run measured nothing."* The argv form is **`proof.cmd`**. ⚠️ That file also has **mixed line
+  endings** (CRLF at the head, LF in later entries): a byte-anchored edit must match its own block. And
+  anchor on `"<id>": {`, never the bare id — a `find` on the id matches **mentions inside other entries'
+  prose** first, which this round put a note on the wrong entry.
 - ⛔ **Verify every restore with `cmp`**, never `git diff`, and never `git checkout --`.
 - ⚠️ **Plant in BYTE mode** (`'rb'`/`'wb'`). This repo is CRLF and text mode silently rewrites line endings.
 - ⚠️ **Backslashes do not survive a shell heredoc here** — write probes through a `chr(92)` placeholder.
