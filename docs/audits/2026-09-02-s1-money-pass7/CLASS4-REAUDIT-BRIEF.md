@@ -1,4 +1,4 @@
-# Class 4 — the re-audit: the brief
+# Class 4 — the re-audit: the brief *(round 1 — see `CLASS4-REAUDIT-2-BRIEF.md` for round 2)*
 
 > ⛔ **You are a FRESH auditor.** The session that wrote class 4's fixes is not writing this audit, because
 > a fixer re-reads its own premises instead of the code. That is `[D79]` step **b**, and across class 1 it

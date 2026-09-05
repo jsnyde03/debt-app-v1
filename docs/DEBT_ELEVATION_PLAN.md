@@ -281,13 +281,8 @@ reason"* is **four reasons**, of which the decisive one is an entry point, not a
 
 | # | step | exit line |
 |---|---|---|
-| ▶ **.11.1** | ⛔ **`F2` BLOCKER — `test:app` reds on 2026-09-10, five days out, with no code change.** My own new guard. `day(28)` pins the window you HAND OVER and says nothing about the one the projection COMPUTES: cycle 1 ran `today+28 → the 1st`, **1–31 days**, so a weekly debt charged 0–5× | the suite green on a 365-day walk, not a spot check |
-| **.11.2** | **`F3` major — THE SEVENTH SITE.** `planSelectors.ts:255` prints the raw minimum on the re-added *paid* row. ⚠️ **Measured: $200 before the tap, $50 after** — same obligation, same window | one producer, and the figure does not move on the tap |
-| **.11.3** | **`F4` major — my `A3-12` repair asserts nothing that can fail.** `% 50 === 0` is satisfied by 50, 200 **and** 800; green under all three directions of its own defect | the matrix reds on a doubled AND a deleted scaling |
-| **.11.4** | **`F5` major — one guard for eleven findings**, and all three blockers carry none | every blocker in the class refused by planting |
-| **.11.5** | **`F6` + `F7` minors that reach the USER** — a second live in-window expression disagreeing $50 vs $80, and the Guardian line explaining a reserve it no longer matches. ⚠️ Verify before fixing | each measured, then fixed or filed with a reason |
-| **.11.6** | **`F8` + `F1`** — a docblock that is now false, and the brief's count | corrected |
-| **.11.7** | **BOUNDARY + round-2 re-audit** | 0 new defects attributable to these fixes |
+| ✅ **.11.1–.11.6** | **ALL 8 CLOSED 2026-09-05**, plus a **9th** my own 365-day walk found (`debtFreeBand.test.ts`, the same fuse mirrored — a pinned `currentDate` against a clock-derived `nextPaycheckDate`). ⚡ **One lesson, four times: a window is a PAIR, and pinning one end is not pinning the window.** ⛔ **And the class's own defect twice INSIDE the fix for it** — `F4`'s repair wrote a second producer of an owned month-step, which *would have passed every run and been wrong anyway*; only a gate caught it. Detail → log | ✅ |
+| ▶ **.11.7** | **`[D79]` ROUND-2 RE-AUDIT** — fresh agent, cumulative, guards from **the diff**. ⚠️ Brief must carry: **instrument-repair findings prove green-before/red-after**, and **a plant only exercises a suite to its first red** | 0 new defects attributable to these fixes |
 
 ⛔ **Then `.12.7` — PASS 8**, the next first-candidate. [D65] is unchanged: **0/0 twice consecutively.**
 
