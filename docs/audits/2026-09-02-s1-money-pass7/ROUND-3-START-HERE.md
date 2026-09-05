@@ -6,14 +6,16 @@
 
 | | |
 |---|---|
-| branch | `v1.7-dev`, HEAD `ae64325d` |
+| branch | `v1.7-dev`, HEAD `2673fd4b` |
 | tree | **clean** (`git status --porcelain --untracked-files=all` empty) |
 | `lint:rn` | **exit 0 · 52/52** |
 | `typecheck` · `test:app` · `test:regression` | **0 errors · green · green** |
 | registry | **296 entries · 15/15 class-4 guards hold · 2 stale (cap 8)** |
-| ⚠️ **unpushed** | **102 commits.** Nothing has been pushed and no push has been authorised. |
+| pushed | ✅ **`origin/v1.7-dev` is at `2673fd4b`**, the same SHA as local. 0 unpushed. |
 
-⛔ **RE-RUN THE BOUNDARY BEFORE TRUSTING THAT TABLE.** It was true at `ae64325d` and this is exactly the
+⛔ **RE-RUN THE BOUNDARY BEFORE TRUSTING THAT TABLE.** It was measured at `ae64325d`, and the two commits
+after it are documentation only — **which is the exact reasoning `R2-3` proved unsound.** *"No source
+touched by me"* is not *"no source touched since the last green."* This is
 failure `R2-3` recorded: a gate result from before the last commit is an unrun gate. Two commits after a
 green run made seven proofs stale and `lint:rn` was red while the previous session was reporting 52/52.
 
