@@ -1,4 +1,5 @@
 import { EMERGENCY_FUND_NOUN, GOALS_DESTINATION, OVERDUE_LABEL } from '@core/copy/vocabulary';
+import { effectiveMinimumInWindow } from '@core/debt/bnplInstallment';
 import { computeStreak } from '@core/debt/computeStreak';
 import { deriveRequiredActionView, type RequiredActionView, type RequiredAllocationItem } from '@core/debt/deriveRequiredActionView';
 import { PROTECTED_CUSHION_CATEGORIES, type UnfundedRequiredItem } from '@core/engine/allocatePaycheck';
@@ -252,7 +253,36 @@ export function selectRequiredRows(store: DebtStore, allocation: Allocation): Re
     // a debt and this re-add declines to restore it, so the paid row vanishes instead of striking out.
     ...store.debts
       .filter((d) => (d.minimumPaidThisCycle ?? d.isPaidThisCycle) && d.balance > 0 && !shownDebts.has(d.id))
-      .map((d) => build({ category: 'minimum_debt', targetId: d.id, debtId: d.id, label: `Pay minimum on ${d.name}`, amount: d.minimumPayment })),
+      /**
+       * ⛔ **THE SEVENTH SITE — and the figure moved ON THE TAP.** [class 4 re-audit `F3`]
+       *
+       * ⚡ This row re-adds a debt the allocator dropped because its minimum is already paid, so the user
+       * can see it struck through rather than vanished. It built the amount from the **raw**
+       * `minimumPayment` while every other reader of the same obligation uses the in-window figure.
+       * Measured, one $50 weekly debt in a 28-day window:
+       *
+       *     not ticked   allocator $200   the row the user reads  $200
+       *     ticked       allocator $200   the row the user reads   $50
+       *
+       * ⛔ **Same debt, same window, same screen — the number fell 4× the instant it was tapped**, which
+       * reads as "you owed less than it said" at exactly the moment the app is confirming you paid.
+       *
+       * ⚠️ `.4.9` corrected the site count from five to six and this was the **seventh**; the enumeration
+       * has now been short three times in one class. It is `effectiveMinimumInWindow` here — the declared
+       * ONE PRODUCER — capped at the balance, which is what the allocator's own row does.
+       */
+      .map((d) =>
+        build({
+          category: 'minimum_debt',
+          targetId: d.id,
+          debtId: d.id,
+          label: `Pay minimum on ${d.name}`,
+          amount: Math.min(
+            effectiveMinimumInWindow(d, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),
+            d.balance,
+          ),
+        }),
+      ),
   ];
 
   return [...rows, ...paidRows];

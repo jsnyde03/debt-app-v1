@@ -46,6 +46,38 @@ const CYCLES: { payCycle: PayCycle; next: string }[] = [
 
 const RECURRENCES: Recurrence[] = ["one-time", "weekly", "biweekly", "per-paycheck", "monthly", "quarterly", "annually"];
 
+/**
+ * ⛔ **AN INDEPENDENT COUNT OF THE CHARGES IN `[start, end)`, written from the CADENCE'S DEFINITION.**
+ * [class 4 re-audit `F4`]
+ *
+ * ⚠️ **It deliberately does not call `effectiveMinimumInWindow`.** The assertion below exists to
+ * contradict that producer when it is wrong, and a check that asks the producer what the answer should be
+ * agrees with it by construction — including when both are wrong together.
+ *
+ * The window is half-open, matching the engine: a charge landing exactly on `start` counts, one landing
+ * on `end` does not. `per-paycheck` is one charge per cycle by definition — that is what the label means
+ * and it is the whole subject of `A5-5` above.
+ */
+function chargesInWindow(recurrence: Recurrence, startISO: string, endISO: string): number {
+    if (recurrence === "per-paycheck") return 1;
+    const start = new Date(`${startISO}T00:00:00Z`);
+    const end = new Date(`${endISO}T00:00:00Z`);
+    // The fixtures below are all due exactly on `start`, so the walk begins there.
+    const cursor = new Date(start);
+    let n = 0;
+    while (cursor < end) {
+        n += 1;
+        if (recurrence === "one-time") break;
+        if (recurrence === "weekly") cursor.setUTCDate(cursor.getUTCDate() + 7);
+        else if (recurrence === "biweekly") cursor.setUTCDate(cursor.getUTCDate() + 14);
+        else if (recurrence === "monthly") cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+        else if (recurrence === "quarterly") cursor.setUTCMonth(cursor.getUTCMonth() + 3);
+        else if (recurrence === "annually") cursor.setUTCFullYear(cursor.getUTCFullYear() + 1);
+        else break;
+    }
+    return n;
+}
+
 export function runCadenceIdentityTests(): void {
     /**
      * ⛔ **IDENTITY 1 — `per-paycheck` IS EXACTLY ONE OCCURRENCE PER CYCLE, ON EVERY PAY CYCLE.**
@@ -176,9 +208,43 @@ export function runCadenceIdentityTests(): void {
                     paycheckBuffer: 0,
                 });
                 const label = `⭐ debt matrix · ${type} · ${recurrence} × ${payCycle}`;
-                // ⛔ The balance is huge on purpose, so a cap can never be what makes this pass.
-                if (r.totalRequired % 50 !== 0) {
-                    throw new Error(`FAIL [${label}]: reserved $${r.totalRequired}, not a whole multiple of the $50 charge`);
+                /**
+                 * ⛔ **THIS ASSERTED A DIVISIBILITY AND DIVISIBILITY CANNOT FAIL HERE.**
+                 * [class 4 re-audit `F4`]
+                 *
+                 * ⚡ The first version asked `r.totalRequired % 50 !== 0`. **50, 200 and 800 all satisfy
+                 * it** — the reserve is an integer multiple of the charge whatever multiplier is applied,
+                 * so the test was structurally satisfiable by the defect it was written for. Proven: the
+                 * re-audit planted the class's defect in **three** directions (the row site reverted, the
+                 * scaling deleted, the scaling doubled) and this matrix stayed **green through all
+                 * three**, each plant proven live by `testGuardianPartition` reddening on the same tree.
+                 *
+                 * ⛔ **`A3-12` therefore moved from *"passes no debts"* to *"passes debts and asks them
+                 * nothing"*, which is the same finding one level in.**
+                 *
+                 * ⚠️ **The expected count is computed HERE, by stepping the cadence's own period across
+                 * the window** — deliberately not by calling `effectiveMinimumInWindow`, because a test
+                 * that asks the producer what the producer should say cannot disagree with it.
+                 */
+                const expected = 50 * chargesInWindow(recurrence, "2026-08-03", next);
+                if (r.totalRequired !== expected) {
+                    throw new Error(`FAIL [${label}]: reserved $${r.totalRequired}, expected $${expected} (${expected / 50} charge(s) of $50 in this window)`);
+                }
+                /**
+                 * ⛔ **AND THE ROW THAT HOLDS THE MONEY, not only the total that reports it.**
+                 * [class 4 `A3-7` · re-audit `F4`]
+                 *
+                 * ⚡ Measured while repairing the assertion above: with the total asserted and the row not,
+                 * **reverting the row site left this file green** — because `totalRequired` reads
+                 * `minimumDueInWindow` and the row read the raw minimum, which is the exact split `A3-7`
+                 * was. The paycheck here is $5,000 against a $50 charge, so every obligation is funded and
+                 * the rows must account for the whole of `totalRequired`.
+                 */
+                const reserved = r.allocations
+                    .filter((a) => a.category === "minimum_debt" || a.category === "autopay_debt")
+                    .reduce((s, a) => s + a.amount, 0);
+                if (reserved !== expected) {
+                    throw new Error(`FAIL [${label}]: the ROW reserves $${reserved} where totalRequired says $${expected} — the total and the money held disagree`);
                 }
                 // ⛔ The user-facing half: the paycheck covers every one of these, so a shortfall here is
                 // money the app says you are missing while you are holding it.

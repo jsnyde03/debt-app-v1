@@ -1,4 +1,4 @@
-import { scaleBnplMinimumForWindow } from '@core/debt/bnplInstallment';
+import { effectiveMinimumInWindow } from '@core/debt/bnplInstallment';
 import { classifyDeferability } from '@core/obligations/classifyDeferability';
 import { resolveTrialAmounts } from '@core/obligations/effectiveObligationAmount';
 import { buildRecoveryPlan, type RecoveryCandidate, type RecoveryPlan } from '@core/recovery/buildRecoveryPlan';
@@ -47,8 +47,25 @@ export function selectRecoveryPlan(store: DebtStore): RecoveryPlan | null {
     if (minPaid || d.balance <= 0 || !dueThisCycle(d.dueDate, nextPayday)) continue;
     // Debt minimums are always essential (missing one hits credit) — cover-now, never deferred. Window-scale
     // a cross-cadence BNPL so the essential amount matches the (window-scaled) gap it's covering (AS.4).
-    const scaled = scaleBnplMinimumForWindow(d, windowStart, nextPayday);
-    essential.push({ id: d.id, name: d.name, amount: Math.min(scaled.minimumPayment, scaled.balance) });
+    /**
+     * ⛔ **THE ONE PRODUCER, not a second expression of it.** [class 4 re-audit `F6`]
+     *
+     * `effectiveMinimumInWindow`'s own docblock says *"do not re-derive this expression at a third site
+     * — call this."* This called `scaleBnplMinimumForWindow` instead, which is the **boundary transform**,
+     * not the producer, and the two **disagree at one charge**: the transform short-circuits
+     * `if (n <= 1) return debt`, yielding the stored `minimumPayment`, while the producer returns
+     * `bnplInstallmentAmount(debt)` — the debt's own per-charge figure. Measured:
+     *
+     *     plain weekly, n=4                              owner $250   here $250   agree
+     *     installment-native MONTHLY, n=1,
+     *       scheduledPaymentAmount 80 ≠ minimumPayment 50 owner  $80   here  $50   DISAGREE
+     *
+     * ⚠️ **It survived every grep in this class because the class searched the PLURAL name**
+     * (`scaleBnplMinimum` **s** `ForWindow`, the list wrapper) and this call is the singular. A search
+     * that names one spelling finds one spelling.
+     */
+    const amount = Math.min(effectiveMinimumInWindow(d, windowStart, nextPayday), d.balance);
+    essential.push({ id: d.id, name: d.name, amount });
   }
 
   return buildRecoveryPlan({ gap, deferrable, essential });
