@@ -32017,3 +32017,38 @@ other.**
 branch those fixtures exercise would change **silently, with no code edit**. A fixture that quietly stops
 testing what it claims is the whole subject of this class. Clock-relative now — `day(0) → day(28)`, first
 charge three days in. **The shape is the subject, never the calendar.**
+
+### ⚡ `.4.9`'s after-scan — the proof ledger, and what a stale proof was hiding
+
+Class 4 moved `bnplInstallment.ts`, `buildMultiCycleTimeline.ts` and `allocatePaycheck.ts`, which took the
+stale-proof count to **10 against a ceiling of 8**. Re-ran all ten. **Three did not hold**, and the three
+split into three different causes — none of them "the guard is wrong."
+
+| id | verdict | cause |
+|---|---|---|
+| `S1P3-A4-CADENCE` | ❌ → ✅ **fixed** | **class 4's own new assertion reds FIRST.** Under `test:regression` the plant now trips `[A2/A3-1] … Expected $200, received $50` — a different defect — so the run read `WRONG-reason`. Scoped to the file that owns the assertion and it matches again |
+| `S1-ROUTE-STALE-READ` | ❌ **filed → class 9** | plant applies, gate stays **green** |
+| `S1-ROUTE-EXIT-REACHABLE` | ❌ **filed → class 9** | same |
+
+⛔ **The two route guards are not broken — they are UNFALSIFIABLE ON A SWEPT TREE.** `audit-route --check`
+reports **`0 stale-read`** files, so the seeding logic both plants remove is a **no-op**, and removing a
+no-op cannot change a count. ⚡ **That is `a pass that cannot fail` again, and it is the name of the class
+they were just filed into.** They become measurable at **pass 8 switch-in**, when the route opens with
+unswept files. Recorded as a `runNote` on both, because the next reader's default move — "the guard failed,
+repair the guard" — would be wrong here and expensive.
+
+⭐ **`S1P3-A4-CADENCE` is the one worth generalising**: a plant only exercises a suite **up to its first
+red**. Class 4 added an assertion upstream of `A4`'s in the same suite, and in doing so it silently
+converted a working proof into an unreadable one — no code changed, no guard deleted, and
+`lint:finding-guards` was green throughout. **Adding an assertion can void a proof that runs the same
+suite.** The staleness ceiling is what caught it, one round later.
+
+⚠️ **And the harness's own contract bit twice while fixing it:** `proof.run` is an **npm script name**
+(`npm run <it>`), not a command line — a full command there becomes `npm run "npx tsx …"`, which is red
+unconditionally and reads as *"the control redded too, so this run measured nothing."* The argv form is
+`proof.cmd`. ⚠️ Also measured: **the registry has mixed line endings** (CRLF at the head, LF in later
+entries), so a byte-anchored edit must match the block it is actually editing.
+
+⛔ **And a mechanical edit put a note on the WRONG entry** — `b.find('S1-ROUTE-EXIT-REACHABLE')` matched a
+**mention of that id inside another entry's prose** before reaching the key. Anchor on `"<id>": {`, never
+on the bare id. *(Third time a script in this project has edited more, or other, than intended.)*

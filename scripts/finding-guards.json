@@ -594,8 +594,8 @@
       ],
       "run": "test:regression",
       "expect": "the window counts what is charged INSIDE it",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
     }
   },
   "S1P4-A-F5-PATHS": {
@@ -700,8 +700,8 @@
       ],
       "run": "test:app",
       "expect": "include the one that was lost",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
     }
   },
   "S1P4-C4-11-DOORS": {
@@ -1006,10 +1006,17 @@
           "replace": "\tif (isInstallmentNative(debt) && windowStartISO && windowEndISO) {"
         }
       ],
-      "run": "test:regression",
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "tsconfig.json",
+        "packages/core/debt/testBnplInstallment.ts"
+      ],
       "expect": "S1P3-A4",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "runNote": "SCOPED TO ONE FILE, 2026-09-05. Under test:regression this plant now reds FIRST on class 4 [A2/A3-1] (expected $200, received $50) - a different defect - so the verdict was WRONG-reason, not a failure. A plant only exercises a suite up to its first red.",
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
     }
   },
   "S1P3-C1-ROWFIGURES": {
@@ -1930,8 +1937,8 @@
       ],
       "run": "test:regression",
       "expect": "so the projected minimum is $300, never the unscaled $100",
-      "measured": "2026-09-02",
-      "sha": "10b93614"
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
     }
   },
   "S1P5-A5-7-CLAMPHONEST": {
@@ -2133,8 +2140,8 @@
       ],
       "run": "test:regression",
       "expect": "an \"Every paycheck\" bill is ONE row per cycle",
-      "measured": "2026-09-02",
-      "sha": "cdda1d3a"
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
     }
   },
   "S1P5-C5-4-ROWCADENCE": {
@@ -2259,6 +2266,7 @@
       ],
       "run": "audit:route-check",
       "expect": "reached NO origin",
+      "runNote": "⛔ RE-RUN 2026-09-05: the plant applied and the gate stayed GREEN — but the guard is not broken, it is UNFALSIFIABLE ON A SWEPT TREE. audit-route --check currently reports `0 stale-read` files, so the seeding logic this plant removes is a no-op and its removal cannot change any count. Measurable again only when a pass opens with unswept files. Do not \"fix\" it against a swept route; re-measure at pass 8 switch-in.",
       "measured": "2026-08-31",
       "sha": "f7e39483"
     }
@@ -2441,6 +2449,7 @@
         "--check"
       ],
       "expect": "reached NO LANE",
+      "runNote": "⛔ RE-RUN 2026-09-05: the plant applied and the gate stayed GREEN — but the guard is not broken, it is UNFALSIFIABLE ON A SWEPT TREE. audit-route --check currently reports `0 stale-read` files, so the seeding logic this plant removes is a no-op and its removal cannot change any count. Measurable again only when a pass opens with unswept files. Do not \"fix\" it against a swept route; re-measure at pass 8 switch-in.",
       "measured": "2026-08-31",
       "sha": "f7e39483"
     }
@@ -3086,8 +3095,8 @@
       ],
       "run": "test:regression",
       "expect": "is discretionary but is in NEITHER",
-      "measured": "2026-09-02",
-      "sha": "c450d891"
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
     }
   },
   "S1P6-A3-4-DEBTCADENCE": {
@@ -3104,8 +3113,8 @@
       ],
       "run": "test:regression",
       "expect": "a weekly DEBT inside a monthly cycle reserves every occurrence too",
-      "measured": "2026-09-02",
-      "sha": "c450d891"
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
     }
   },
   "S1P6-A3-14-HYSTERESIS": {
@@ -3248,8 +3257,8 @@
       ],
       "run": "test:regression",
       "expect": "essentials names the rent",
-      "measured": "2026-09-02",
-      "sha": "ed2d39ee"
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
     }
   },
   "S1P6-C1-15-NAMES-THE-MOVED-CASH": {
@@ -3702,6 +3711,19 @@
   "S1-CLASS4-A3-7": {
     "what": "class 4 A3-7 — pass 6 replaced Math.min(debt.minimumPayment, debt.balance) at five sites and left a SIXTH: the one that emits the minimum_debt ROW. totalRequired counted every in-window installment while the plan reserved one. Measured on a $50 weekly debt in a 30-day window: totalRequired attributed $250, the row held $50, applyRolloverPayment then took $250 — verbatim the consequence the pass-6 block says it fixed. The §2.2 partition is the same gap from the other end: buckets $700 against a discretionary of $500, money handed to snowball AND declared spent.",
     "file": "packages/core/guardian/testGuardianPartition.ts",
-    "token": "the plan RESERVES every charge in the window"
+    "token": "the plan RESERVES every charge in the window",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/engine/allocatePaycheck.ts",
+          "find": "Math.min(minimumDueInWindow(debt), remainingDebtBalance)",
+          "replace": "Math.min(debt.minimumPayment, remainingDebtBalance)"
+        }
+      ],
+      "run": "test:regression",
+      "expect": "the buckets reconcile when a debt charges more than once in the window",
+      "measured": "2026-09-05",
+      "sha": "3df5614b"
+    }
   }
 }
