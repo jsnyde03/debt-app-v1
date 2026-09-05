@@ -3744,7 +3744,7 @@
       ],
       "run": "test:app",
       "measured": "2026-09-05",
-      "sha": "86bf6536"
+      "sha": "2560ddec"
     }
   },
   "S1-CLASS4-A3-1": {
@@ -3766,8 +3766,9 @@
       ],
       "run": "test:app",
       "measured": "2026-09-05",
-      "sha": "86bf6536",
-      "proofNote": "⚠️ SHARES A2-1's RED, deliberately. CLASSIFICATION.md says these two 'are the same defect' found by two lanes that never spoke, and one plant cannot produce two distinguishable reds from one defect. The totalRequired assertion precedes the shortfall one in the same file, so it fires first; manufacturing a separate expect would be bookkeeping, not evidence."
+      "sha": "2560ddec",
+      "proofNote": "⛔ SHARES A2-1's RED, and that is a fact about the FINDINGS, not a gap in the ledger. CLASSIFICATION.md records A2-1 and A3-1 as 'the same defect' reached by two lanes that never spoke, and A3-2 is the same seam seen from the guard's entry point — one defect, one plant, and a suite stops at its first red. ⚠️ WHAT R2-6 WAS ACTUALLY RIGHT ABOUT IS FIXED AND MEASURED: this entry's own assertion is no longer vacuous. With the plant live, measured directly: A3-1's $300 row gives required $800 / shortfall $500 (it FAILS), and A3-2's row gives production $800 against direct-call $200 (it FAILS). Both would red on their own token if reached; A2-1's assertion simply precedes them in the same file.",
+      "expect": "not a multiple of it (got"
     }
   },
   "S1-CLASS4-A3-2": {
@@ -3789,7 +3790,9 @@
       ],
       "run": "test:app",
       "measured": "2026-09-05",
-      "sha": "86bf6536"
+      "sha": "2560ddec",
+      "expect": "not a multiple of it (got",
+      "proofNote": "⛔ SHARES A2-1's RED, and that is a fact about the FINDINGS, not a gap in the ledger. CLASSIFICATION.md records A2-1 and A3-1 as 'the same defect' reached by two lanes that never spoke, and A3-2 is the same seam seen from the guard's entry point — one defect, one plant, and a suite stops at its first red. ⚠️ WHAT R2-6 WAS ACTUALLY RIGHT ABOUT IS FIXED AND MEASURED: this entry's own assertion is no longer vacuous. With the plant live, measured directly: A3-1's $300 row gives required $800 / shortfall $500 (it FAILS), and A3-2's row gives production $800 against direct-call $200 (it FAILS). Both would red on their own token if reached; A2-1's assertion simply precedes them in the same file."
     }
   },
   "S1-CLASS4-A3-4": {
@@ -3806,7 +3809,7 @@
       ],
       "run": "test:app",
       "measured": "2026-09-05",
-      "sha": "86bf6536"
+      "sha": "2560ddec"
     }
   },
   "S1-CLASS4-A2-2": {
@@ -3830,7 +3833,7 @@
       ],
       "proofNote": "⛔ THE FIRST PLANT CHOSEN FOR THIS WAS WRONG and the harness caught it: under the effectiveMinimumInWindow gate plant, this file was ALREADY RED BEFORE THE REPAIR, so that plant tested a defect the file could always see. Verified on the pre-repair file (git show bc336cfd): this plant is GREEN before the repair and RED after, which is the finding — 'the controls varied ALIGNMENT, not type' — demonstrated rather than asserted.",
       "measured": "2026-09-05",
-      "sha": "86bf6536"
+      "sha": "2560ddec"
     }
   },
   "S1-CLASS4-A3-14": {
@@ -3854,7 +3857,7 @@
       ],
       "proofNote": "Same correction as A2-2: verified GREEN on the pre-repair file and RED after. The BNPL control was never the blind one — the plain-debt weekly sibling this repair added is, which is why the plant spares BNPL.",
       "measured": "2026-09-05",
-      "sha": "86bf6536"
+      "sha": "2560ddec"
     }
   },
   "S1-CLASS4-A2-8": {
@@ -3889,7 +3892,9 @@
       ],
       "run": "test:regression",
       "measured": "2026-09-05",
-      "sha": "39e122e1"
+      "sha": "2560ddec",
+      "expect": "a PLAIN debt's multiplied row explains itself as 4",
+      "proofNote": "⛔ SHARES A2-8's RED. One gate, two halves: A2-8 is the assertion that PINNED the un-fixed behaviour and A2-3 is the caption that did not iterate to plain debts. Removing the `type === \"bnpl\"` gate reds A2-8's assertion first, in the same file. Recorded rather than borrowed — R2-6's own remedy: where a finding has no assertion distinct from its sibling's, say so."
     }
   },
   "S1-CLASS4-A3-12": {
@@ -3905,7 +3910,7 @@
         }
       ],
       "measured": "2026-09-05",
-      "sha": "86bf6536",
+      "sha": "2560ddec",
       "cmd": [
         "npx",
         "tsx",
@@ -3923,20 +3928,22 @@
     "proof": {
       "unfix": [
         {
-          "at": "apps/rn/src/store/selectors.ts",
-          "find": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';",
-          "replace": "import { allocatePaycheck } from '@core/engine/allocatePaycheck';\nimport { scaleBnplMinimumsForWindow } from '@core/debt/bnplInstallment';"
-        },
-        {
-          "at": "apps/rn/src/store/selectors.ts",
-          "find": "    debts: store.debts,",
-          "replace": "    debts: scaleBnplMinimumsForWindow(store.debts, store.paycheck.currentDate, store.paycheck.nextPaycheckDate),"
+          "at": "packages/core/debt/bnplInstallment.ts",
+          "find": "\tif (hasKnownBnplCadence(debt) && windowStartISO && windowEndISO) {",
+          "replace": "\tif (isInstallmentNative(debt) && windowStartISO && windowEndISO) {"
         }
       ],
       "measured": "2026-09-05",
-      "sha": "86bf6536",
-      "run": "test:regression",
-      "proofNote": "⛔ R2-6: this ran `test:app`, which does not execute the core file the token lives in — so the expectation could only ever have been met by a NEIGHBOUR's output. The runner is the suite that actually runs the guard now."
+      "sha": "2560ddec",
+      "proofNote": "⛔ SHARES A3-14 RED, in the same file, and its FIRST plant was simply wrong for it. A2-4 is a carried-premise correction: the claim was that the allocator RESERVE and applyRolloverPayment PAYDOWN both read effectiveMinimumInWindow, so they move together. Its token therefore lives in a CORE file, and the seam plant first registered here (apps/rn/src/store/selectors.ts) cannot be seen by test:regression at all - measured, planted=exit 0, the suite stayed GREEN and the guard did not hold. The plant is the one that breaks the shared producer; scoped to this file, the first assertion it reds is A3-14 immediately above A2-4 own. R2-6 asked for exactly this to be SAID rather than borrowed silently.",
+      "expect": "a WEEKLY debt reports its full in-window paydown",
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "tsconfig.json",
+        "packages/core/testing/testPayCycleHistoryRegression.ts"
+      ]
     }
   },
   "S1-CLASS4-F3-PAIDROW": {
@@ -3959,7 +3966,7 @@
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
       "measured": "2026-09-05",
-      "sha": "68c348f9",
+      "sha": "2560ddec",
       "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
     }
   },
@@ -3983,7 +3990,7 @@
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
       "measured": "2026-09-05",
-      "sha": "68c348f9",
+      "sha": "2560ddec",
       "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
     }
   },
@@ -4007,7 +4014,7 @@
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
       "measured": "2026-09-05",
-      "sha": "39e122e1",
+      "sha": "2560ddec",
       "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
     }
   },
@@ -4036,7 +4043,7 @@
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
       "measured": "2026-09-05",
-      "sha": "9e9d92fc",
+      "sha": "2560ddec",
       "proofNote": "TWO-PART UNFIX, and the reason is the finding's own shape. Deriving the count from the capped reserve left bnplInstallmentsInWindow unused, which eslint refuses — so the plant restores the import as well as the line. Without that the plant would fail to COMPILE and the run would red for a syntax error rather than for the defect: a plant must make an assertion fail, never throw past it."
     }
   }
