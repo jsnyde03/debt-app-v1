@@ -69,9 +69,22 @@ export function projectCurrentBalance(debt: ProjectableDebt, asOfDate: string, c
   if (totalMonths <= 0) return anchor; // asOf at/before the anchor → nothing to project
 
   const apr = debt.type === "bnpl" ? 0 : debt.apr;
-  // BNPL pays per-installment at its cadence → use the monthly equivalent so a biweekly plan pays down
-  // ~2.17× its installment per month, matching the payoff trajectory (AS.1). Non-BNPL is unchanged.
-  const monthlyPayment = debt.type === "bnpl" ? bnplMonthlyEquivalentMinimum(debt, cyclesPerMonth) : debt.minimumPayment;
+  /**
+   * ⛔ **RATED BY CADENCE, NOT BY LABEL.** [class 4 round-2 `R2-5`]
+   *
+   * ⚡ This read `debt.type === "bnpl" ? monthlyEquivalent : debt.minimumPayment` under a
+   * comment saying *"Non-BNPL minimums are already monthly."* **That premise died with pass-6
+   * `A3-1`**, which removed exactly this gate from the reserve on the ground that *a cadence is
+   * a fact about the SCHEDULE, not about the debt's label*. A plain **weekly** debt was rated at
+   * its installment PER MONTH.
+   *
+   * ⚠️ **Measured, two debts identical but for `type`, $50 weekly, apr 0, over 12 months:**
+   * plain **$4,450** against BNPL **$2,616.63** — while the helper hands both the same $216.67.
+   *
+   * ⚠️ **The `apr` gate below stays label-based and is correct**: a BNPL is interest-free by
+   * definition, and a plain debt keeps the APR the user entered. Only the RATE was mis-gated.
+   */
+  const monthlyPayment = bnplMonthlyEquivalentMinimum(debt, cyclesPerMonth);
   const wholeMonths = Math.floor(totalMonths);
   const frac = totalMonths - wholeMonths;
 

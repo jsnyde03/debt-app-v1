@@ -1,6 +1,8 @@
 import { allocatePaycheck } from "@core/engine/allocatePaycheck";
 import { bnplMonthlyEquivalentMinimum } from "@core/debt/bnplPayoffPace";
 import { payCyclesPerMonth } from "@core/payCycle/payCyclesPerMonth";
+import { projectCurrentBalance } from "@core/debt/projectCurrentBalance";
+import { projectDebtPayoff } from "@core/debt/projectDebtPayoff";
 import type { PayCycle } from "@core/payCycle/getNextPaycheckDate";
 import type { Recurrence } from "@core/types/recurrence";
 import { addMonthsISO } from "@core/utils/addMonths";
@@ -269,7 +271,53 @@ export function runCadenceIdentityTests(): void {
         }
     }
 
-    console.log("✅ Cadence identity tests passed (7 recurrences × 4 pay cycles, expenses AND debts).");
+    /**
+     * ⛔ **IDENTITY 3 — THE PROJECTION RATES BY CADENCE, NOT BY LABEL.** [class 4 round-2 `R2-5`]
+     *
+     * ⚡ **Four sites** picked a monthly payment with `debt.type === "bnpl" ? monthlyEquivalent :
+     * debt.minimumPayment`, each under a comment saying *"Non-BNPL minimums are already monthly."*
+     * **That premise died with pass-6 `A3-1`** — the finding that removed exactly this gate from the
+     * reserve, because *a cadence is a fact about the SCHEDULE, not about the debt's label*. The audit
+     * named two of the four; the class has now undercounted a site list five times.
+     *
+     * ⚠️ **Measured, two debts identical but for `type`, $50 weekly, apr 0:** projected balance after 12
+     * months **$4,450 plain against $2,616.63 BNPL**, and a debt-free date of **May 2034 against January
+     * 2028** — six years apart, on the same money.
+     */
+    {
+        const at = (over: Record<string, unknown>) =>
+            ({
+                id: "d1", name: "Loan", balance: 5000, minimumPayment: 50, apr: 0,
+                dueDate: "2026-01-01", balanceAsOfDate: "2026-01-01", recurrence: "weekly", ...over,
+            }) as never;
+        const plainWeekly = at({ type: "debt" });
+        const bnplWeekly = at({ type: "bnpl", bnplProvider: "Klarna" });
+        const plainMonthly = at({ type: "debt", recurrence: "monthly" });
+        const payoff = (d: never) =>
+            projectDebtPayoff({ debts: [d], monthlyExtraPayment: 0, strategy: "snowball", startDate: "2026-01-01", cyclesPerMonth: 2 })
+                .estimatedDebtFreeDate;
+
+        assertMoney(
+            projectCurrentBalance(plainWeekly, "2027-01-01", 2),
+            projectCurrentBalance(bnplWeekly, "2027-01-01", 2),
+            "⛔ R2-5 — a PLAIN weekly debt projects exactly like an identical weekly BNPL",
+        );
+        assertEqual(
+            payoff(plainWeekly),
+            payoff(bnplWeekly),
+            "⛔ R2-5 — …and reaches the same debt-free date, because the label is not the cadence",
+        );
+        /**
+         * ⭐ **THE CONTROL, and without it "rate everything by cadence" is indistinguishable from "rate
+         * everything faster."** A plain MONTHLY debt charges once a month and must be unchanged — if this
+         * moved with the rows above, the fix would be flattening cadence rather than reading it.
+         */
+        if (projectCurrentBalance(plainMonthly, "2027-01-01", 2) <= projectCurrentBalance(plainWeekly, "2027-01-01", 2)) {
+            throw new Error("FAIL [⭐ R2-5 control — a MONTHLY debt still pays down more slowly than a weekly one]");
+        }
+    }
+
+    console.log("✅ Cadence identity tests passed (7 recurrences × 4 pay cycles, expenses AND debts, and the projection).");
 }
 
 runCadenceIdentityTests();

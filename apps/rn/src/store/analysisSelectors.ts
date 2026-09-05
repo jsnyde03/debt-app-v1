@@ -175,10 +175,23 @@ export function selectDebtAmortization(store: DebtStore, debtId: string): DebtAm
   const debt = liveDebts.find((d) => d.id === debtId);
   if (!debt) return null;
   const isFocus = rankDebts(liveDebts, strategy)[0]?.id === debt.id;
-  // Only the focus debt receives the recommended extra; others amortize at their minimum. A BNPL pays
-  // per-installment at its cadence → use the monthly equivalent so this per-debt schedule agrees with the
-  // headline debt-free date, the payoff chart, and the BNPL calendar (after-scan AS.5).
-  const baseMonthly = debt.type === 'bnpl' ? bnplMonthlyEquivalentMinimum(debt, cyclesPerMonth) : debt.minimumPayment;
+  // Only the focus debt receives the recommended extra; others amortize at their minimum.
+  /**
+   * ⛔ **RATED BY CADENCE, NOT BY LABEL.** [class 4 round-2 `R2-5`]
+   *
+   * ⚡ This read `debt.type === "bnpl" ? monthlyEquivalent : debt.minimumPayment` under a
+   * comment saying *"Non-BNPL minimums are already monthly."* **That premise died with pass-6
+   * `A3-1`**, which removed exactly this gate from the reserve on the ground that *a cadence is
+   * a fact about the SCHEDULE, not about the debt's label*. A plain **weekly** debt was rated at
+   * its installment PER MONTH.
+   *
+   * ⚠️ **Measured, two debts identical but for `type`, $50 weekly, apr 0, over 12 months:**
+   * plain **$4,450** against BNPL **$2,616.63** — while the helper hands both the same $216.67.
+   *
+   * ⚠️ **The `apr` gate below stays label-based and is correct**: a BNPL is interest-free by
+   * definition, and a plain debt keeps the APR the user entered. Only the RATE was mis-gated.
+   */
+  const baseMonthly = bnplMonthlyEquivalentMinimum(debt, cyclesPerMonth);
   const monthlyPayment = baseMonthly + (isFocus ? monthlyExtra : 0);
   const schedule = buildAmortizationSchedule({
     balance: debt.balance,

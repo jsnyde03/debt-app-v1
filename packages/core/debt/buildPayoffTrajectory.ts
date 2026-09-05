@@ -48,9 +48,22 @@ export function simulatePayoff({ debts, monthlyExtraPayment, strategy, cyclesPer
             meta.push({ id: d.id, name: d.name });
             return {
                 balance: d.balance,
-                // Rate BNPL by cadence (monthly-equivalent), the same as projectDebtPayoff, so the chart and
-                // the debt-free date agree (R2.1). Non-BNPL minimums are unchanged.
-                minimumPayment: d.type === "bnpl" ? bnplMonthlyEquivalentMinimum(d, cyclesPerMonth) : d.minimumPayment,
+                /**
+                 * ⛔ **RATED BY CADENCE, NOT BY LABEL.** [class 4 round-2 `R2-5`]
+                 *
+                 * ⚡ This read `debt.type === "bnpl" ? monthlyEquivalent : debt.minimumPayment` under a
+                 * comment saying *"Non-BNPL minimums are already monthly."* **That premise died with pass-6
+                 * `A3-1`**, which removed exactly this gate from the reserve on the ground that *a cadence is
+                 * a fact about the SCHEDULE, not about the debt's label*. A plain **weekly** debt was rated at
+                 * its installment PER MONTH.
+                 *
+                 * ⚠️ **Measured, two debts identical but for `type`, $50 weekly, apr 0, over 12 months:**
+                 * plain **$4,450** against BNPL **$2,616.63** — while the helper hands both the same $216.67.
+                 *
+                 * ⚠️ **The `apr` gate below stays label-based and is correct**: a BNPL is interest-free by
+                 * definition, and a plain debt keeps the APR the user entered. Only the RATE was mis-gated.
+                 */
+                minimumPayment: bnplMonthlyEquivalentMinimum(d, cyclesPerMonth),
                 apr: d.type === "bnpl" ? 0 : (d.apr ?? 0),
                 oneTimeLump: isOneTimeBnplLump(d),
             };
