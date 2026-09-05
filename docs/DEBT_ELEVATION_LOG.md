@@ -31902,3 +31902,39 @@ for. **The §2.2 partition does not reconcile when a debt charges more than once
 minimum** *and* sit in a **window that holds more than one of its installments**. A fixture meeting only
 the first still cannot see this class of defect — and five instruments were filed as blind for the first
 reason alone.
+
+### ✅ `.4.2` COMPLETE — five instruments, and **four** distinct blindnesses, not one
+
+The class says all five are blind *"for ONE reason: `minimumPayment: 0` fixtures."* Measured, every one:
+
+| id | why it is blind | how confirmed |
+|---|---|---|
+| `A3-7` | zero minimum **AND** a 14-day window holding ONE weekly installment | measured — the invariant fails only when both are fixed |
+| `A3-14` | fixture `dueDate: 2026-06-01`, window `2026-01-01 → 2026-02-01` — **five months out**, so the scaling never engages | read |
+| `A3-12` | **`debts: []` at all three call sites** — a matrix built to close the cadence CLASS never hands the allocator a debt | structural |
+| `A2-2` | *"a plain debt is never scaled"* is true **only of a fixture with no sub-cycle cadence** — a `type: 'debt'` weekly debt scales 50 → 200 | measured |
+| `A3-2` | **the wrong ENTRY POINT** — see below | measured |
+
+⛔ **`A3-2` IS THE ROOT REASON THIS CLASS SHIPPED, and no fixture change would have caught it.** Its guard
+calls `allocatePaycheck` **directly** with unscaled debts; production goes through `selectors.ts`, which
+runs `scaleBnplMinimumsForWindow` first. On the guard's own fixture:
+
+```
+THE GUARD   allocatePaycheck(raw debts)          totalRequired = 200   ← asserted, green
+PRODUCTION  allocatePaycheck(selectors-scaled)   totalRequired = 800   ← what ships
+```
+
+**The instrument written to catch `A3-1` asserts the correct answer on a path production never takes.**
+Its own docblock says it *"is the instrument that would have caught `A3-1`"* — and it cannot, for a reason
+its fixture cannot express.
+
+⭐ **So the class's exit changes.** *"Fixtures with a non-zero `minimumPayment`"* is necessary and covers
+one of four causes. The assertion this class owes must:
+
+1. carry a **non-zero minimum**, **and**
+2. sit in a **window holding more than one installment**, **and**
+3. actually **pass a debt**, and
+4. ⛔ **enter through the PRODUCTION path** — the selectors boundary — not `allocatePaycheck` directly.
+
+⚠️ The fourth is the one no fixture rule expresses, and it is the one that let a 4× money defect ship
+behind a green guard. `.4.6` is re-scoped accordingly.
