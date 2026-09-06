@@ -684,8 +684,8 @@
       ],
       "run": "test:app",
       "expect": "does not depend on there being an offer",
-      "measured": "2026-09-05",
-      "sha": "10dc0c5a"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P4-C4-1-COUNT": {
@@ -1397,8 +1397,8 @@
       ],
       "run": "test:app",
       "expect": "an unread balance grades NOTHING rather than the wrong regime",
-      "measured": "2026-09-05",
-      "sha": "10dc0c5a"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P3-G2-RESERVETARGET": {
@@ -1415,8 +1415,8 @@
       ],
       "run": "test:app",
       "expect": "an unread balance takes the existing",
-      "measured": "2026-09-05",
-      "sha": "10dc0c5a"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P3-G3-GUARDIANREGIME": {
@@ -1433,8 +1433,8 @@
       ],
       "run": "test:app",
       "expect": "does NOT graduate the headline",
-      "measured": "2026-09-05",
-      "sha": "10dc0c5a"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P3-G4-PLANROUTE": {
@@ -1474,8 +1474,8 @@
       ],
       "run": "test:app",
       "expect": "the caption survives the offer being null",
-      "measured": "2026-09-05",
-      "sha": "10dc0c5a"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P3-G6-SCRIPTSTYPES": {
@@ -2011,8 +2011,8 @@
       ],
       "run": "typecheck:scripts",
       "expect": "test-gate-plants.ts",
-      "measured": "2026-09-02",
-      "sha": "47225ab4"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P5-D5-13-DERIVEDPOP": {
@@ -2088,8 +2088,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
-      "measured": "2026-09-05",
-      "sha": "10dc0c5a"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2821,8 +2821,8 @@
       ],
       "run": "test:app",
       "expect": "an UNREAD balance repaired to $0 is still live",
-      "measured": "2026-09-01",
-      "sha": "356d6427"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P6-C1-18-RENDERERVALUE": {
@@ -3295,8 +3295,8 @@
       ],
       "run": "test:app",
       "expect": "an unmatched updateExpense writes nothing",
-      "measured": "2026-09-02",
-      "sha": "12ed10dd"
+      "measured": "2026-09-06",
+      "sha": "6bda8efa"
     }
   },
   "S1P6-B1-4-LEDGER-NOT-BAN": {
@@ -4015,8 +4015,8 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "measured": "2026-09-05",
-      "sha": "2560ddec",
+      "measured": "2026-09-06",
+      "sha": "6bda8efa",
       "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
     }
   },
@@ -4033,7 +4033,7 @@
         },
         {
           "at": "apps/rn/src/store/guardianSelectors.ts",
-          "find": "    const count = Math.round(reserved / each);",
+          "find": "    const count = Math.ceil(reserved / each);",
           "replace": "    const count = bnplInstallmentsInWindow(d, start, end);"
         }
       ],
@@ -4094,7 +4094,7 @@
   "S1P7-R3-2-HEADSUPTOTAL": {
     "what": "class 4 round-3 R3-2 - the Guardian heads-up said '2 Car Loan payments (about $50 each)' against a $75 balance. MEASURED against the charges that actually land, the audit's mechanism was half right: 2 charges DO land ($50+$25), so the count was never the defect and its proposed Math.floor goes silent over a real $75 reserve and is wrong on all 8 non-exact balances. Math.round was ALSO wrong in the under direction at $110/$124, which the audit did not look for. Count is ceil now; the sentence states the TOTAL, so it no longer multiplies out to more than the app holds back. Fixtures were [1,20,49] - all below one charge - so the whole interval where the defect lived was unsampled.",
     "file": "apps/rn/src/store/inWindowReaders.test.ts",
-    "token": "the line states the $",
+    "token": "the line states the",
     "proof": {
       "unfix": [
         {
@@ -4115,7 +4115,7 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "proofNote": "TWO-PART UN-FIX because the defect had two halves and each is caught by a different row: reverting the count to Math.round reds the $110 row (3 charges land, round says 2), and reverting the sentence to per-charge reds the $75 money row. Either alone leaves the other half green.",
+      "proofNote": "TWO-PART UN-FIX because the defect had two halves and each is caught by a different row: reverting the count to Math.round reds the $110 row (3 charges land, round says 2), and reverting the sentence to per-charge reds the $75 money row. Either alone leaves the other half green. TOKEN CORRECTED: it originally ended at the literal `$` that immediately precedes ${reserved}, and the shared scanner blanks interpolation spans, so lint:finding-guards could not find it - registered broken and caught by the gate, not by reading. A token must stop before any ${.",
       "measured": "2026-09-06",
       "sha": "b36fbff0"
     }
