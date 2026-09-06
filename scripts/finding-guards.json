@@ -2822,7 +2822,7 @@
       "run": "test:app",
       "expect": "an UNREAD balance repaired to $0 is still live",
       "measured": "2026-09-06",
-      "sha": "6bda8efa"
+      "sha": "42c7504c"
     }
   },
   "S1P6-C1-18-RENDERERVALUE": {
@@ -4135,7 +4135,7 @@
       "run": "test:app",
       "proofNote": "The earlier assertion at payoffCelebration.test.ts:54 also reads `freed`, but on a MONTHLY debt, so it is green under this un-fix and does not pre-empt the red. The row that fires is this entry's own weekly one. The monthly row inside the R3-4 block is the CONTROL - exact under both the old and new producer - so it is what proves the error axis is cadence.",
       "measured": "2026-09-06",
-      "sha": "383444a6"
+      "sha": "42c7504c"
     }
   }
 }

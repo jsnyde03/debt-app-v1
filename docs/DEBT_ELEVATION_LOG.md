@@ -32393,3 +32393,101 @@ appears twice in the producer (`effectiveMinimumInWindow` and `scaleBnplMinimumF
 stale one commit after being proven, which is `S1.13.7.11`'s lesson exactly. The money fixes will stale
 **10 more** (pinned to `guardianSelectors.ts`, `payoffCelebration.ts`, `inWindowReaders.test.ts`), so the
 drain is batched into the boundary rather than run twice.
+
+### `.16.3` — `R3-2`, and the audit's remedy was worse than the bug
+
+⛔ **THE FINDING WAS RIGHT, ITS MECHANISM WAS HALF RIGHT, AND ITS REMEDY WOULD HAVE SHIPPED A DEFECT.**
+The report read *"$100 announced against $75"* as an overstated **count** and proposed `Math.floor`.
+Measured against the charges that actually land — full ones until the balance runs out, then a short
+final one:
+
+| balance | reserved | what lands | `round` *(was)* | `floor` *(proposed)* | `ceil` |
+|---|---|---|---|---|---|
+| $75 | $75 | $50 + $25 → **2** | 2 ✅ | **1 — silent over a real $75 reserve** ⛔ | 2 ✅ |
+| $110 | $110 | $50+$50+$10 → **3** | **2** ⛔ | 2 ⛔ | 3 ✅ |
+| $199 | $199 | $50+$50+$50+$49 → **4** | 4 ✅ | 3 ⛔ | 4 ✅ |
+
+⚡ **Two charges really do land on a $75 balance, so the count was never the defect** — and `Math.floor`
+is wrong on all **8** non-exact balances. ⛔ **`Math.round` was also wrong in a direction the audit never
+looked for**: at $110 and $124 three charges land and it said two. Looking only for overstatement is what
+hid it.
+
+⭐ **The false half was `about $X each`**, which multiplies out past what the app holds back whenever the
+final charge is short. 🎯 **2026-09-05 chose to state the total**: *"Heads up — 2 Car Loan payments
+totalling about $75 land before your next paycheck."* — exact at every balance, on **both** readings the
+sentence makes, and it deletes the per-charge term, which was the only part that could be false.
+
+⛔ **The docblock directly above the defect claimed the opposite of what the code did** — *"a nearly-paid
+debt now funds fewer than two charges and correctly says nothing at all."* **Fifth comment-as-expired-claim
+in this workstream.** Deleted, not annotated.
+
+⚠️ **And the probe I wrote to measure it went stale the moment the fix landed** — its residue column
+computed `said × $50`, a claim the sentence had stopped making. **A check that keeps reporting a defect the
+code no longer has reads exactly like a check.** Corrected in the same step; the cosmetic remainder is filed.
+
+### `.16.4` — `R3-4`, and REQUIRED is what turned one fix into eighteen
+
+`freed: subject.minimumPayment` is a **per-installment** figure rendered **per month** — *"Freed $50/mo"*
+on screen, spoken to a screen reader, and on a **ShareCard**, against a true **$216.67** for a weekly debt.
+
+⚡ **Why six rounds of site lists missed it:** `bnplMonthlyEquivalentMinimum` is the declared producer of
+*cost per month*, and every call site of it is a **projection engine**. A celebration is not a projection,
+so it was never in any enumerated population. ⚠️ **The field name carries no unit** — `freed` — and `/mo`
+appears two files away in `PaidOffBeat`.
+
+⭐ **`cyclesPerMonth` is REQUIRED, per `A5-1`, and that is the whole value of the change**: **18 call sites
+became typecheck errors** rather than silently assuming monthly. A default would have preserved the defect
+at every caller that forgot — `tested-helper-is-not-a-used-helper`, where the clamp existed and was correct
+while the defect shipped.
+
+⚠️ **The guard iterates cadence × shape and the MONTHLY row is the control**, because monthly is exact
+under both the old producer and the new: a row that passes everywhere proves nothing on its own, and the
+control is what says the error axis is *cadence* rather than arithmetic.
+
+⛔ **Deferred, deliberately, and filed rather than folded in:** `bnplPayoffPace` rates the monthly
+equivalent off `minimumPayment` rather than the installment. Its local `BnplShape` carries no
+`scheduledPaymentAmount`, so the fix needs a widened type plus a cross-module import into a standalone math
+module and changes behaviour at four projection sites — and the audit itself grades the shape
+near-unreachable. **Scope creep into the projection engines is not a bug fix.**
+
+### `.16.5` — the boundary went RED, and all three reds were MINE
+
+⛔ **A class-scoped check is structurally blind to blast radius, which is why this rule exists.**
+
+| gate | what it caught |
+|---|---|
+| `lint:comments` | `[count-of-code]` — I wrote *"its four call sites"* twice. **State the rule; let a query count the members.** |
+| `typecheck` | `result?.freed` unnarrowed against the `finale` arm. I ran `test:app` after adding the block and **never re-ran typecheck** — `R2-3`'s lesson, committed by hand |
+| `prove:guards --selftest` | ⛔ **MY OWN NEW REFUSAL BROKE TWO OF THIS HARNESS'S FIVE CONTROLS** |
+
+⭐ **The third is the real correction, and it is the same over-reach shape as the audit's `Math.floor`.**
+I made `token` required whenever a `proof` exists; **the hole needs BOTH `expect` and `token` absent** —
+with an `expect` present the reason check runs whatever the token is. The selftest fixtures carry an
+explicit `expect` and no `file`/`token` **deliberately**, so both subprocess controls faulted before
+reaching what they check. ⚠️ **The narrowed fault is itself unguarded** — deleting it would go unnoticed.
+Stated rather than papered over; a sixth selftest case was declined as instrument-about-instrument work.
+
+#### ⛔ TWO MORE FAULTS OF MINE, BOTH FOUND BY AN INSTRUMENT AND NEITHER BY READING
+
+- **`R3-2`'s fix VOIDED an existing guard.** `S1-CLASS4-R2-1-CAP`'s un-fix anchors on
+  `const count = Math.round(reserved / each);` — the exact line I changed to `ceil`. It would have sat in
+  the ledger as evidence for a plant it can no longer perform. **The `C1-4`-voids-`D3-5` shape, one round
+  later.** Anchor re-derived and the proof **re-run**, not merely re-anchored.
+- **`R3-2`'s own guard token was unfindable from the moment I registered it.** It ended at the literal `$`
+  immediately preceding `${reserved}`, and the shared scanner blanks interpolation spans. ⚠️ **My own
+  verification passed because `grep -F` does not blank interpolation** — I checked with an instrument that
+  does not model the one that gates. **A token must stop before any `${`**, which this cluster has now
+  corrected four times.
+
+⭐ **Boundary, re-run at HEAD after the fixes** — `lint:rn` **52/52** *(`test:gate-plants` **26/26** fail
+closed)* · typecheck **0** · `test:app` · `test:regression` · `lint:finding-guards` **299 of 300 guarded,
+171 EXECUTED**. ⚠️ **Ledger drained across three passes, 16 stale → 2** — and the 2 that remain are the
+deliberate route pair, unfalsifiable on a swept tree and deferred to pass 8.
+
+#### ⚡ THE ROUND'S RESULT, STATED BY ORIGIN
+
+**Audit findings: 4, all closed and proven.** **My own defects introduced while closing them: 3, plus 2
+collateral faults in the ledger — every one found by an instrument.** ⛔ **Two of the audit's four remedies
+would have introduced a defect**, one of them strictly worse than the bug it described. **Fifth
+consecutive round in which the findings were reliable about WHERE and unreliable about WHAT TO DO** — and
+the only thing that caught it both times was measuring before writing.
