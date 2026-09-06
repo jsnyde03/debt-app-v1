@@ -2822,7 +2822,7 @@
       "run": "test:app",
       "expect": "an UNREAD balance repaired to $0 is still live",
       "measured": "2026-09-06",
-      "sha": "9b251b3b"
+      "sha": "c7df99c2"
     }
   },
   "S1P6-C1-18-RENDERERVALUE": {
