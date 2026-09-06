@@ -1,0 +1,13 @@
+       ⚠️ this run left 1 other file(s) modified — check them before committing:
+          scripts/finding-guards.json
+  ❌ S1P7-R3-3-BORROW           plant-applied=YES · planted=exit 1 · control=exit 0 · reason=WRONG
+       ⛔ class 4 round-3 R3-3 - R2-6's remedy shipped half as a docblock claim: prove-guards.ts documented a check that existed NOWHERE, and building it as doc
+       ⛔ it redded, but not for "lint:finding-guards [R3-3-borrow]" — the red is not attributable to this defect.
+         │   ❌ lint:finding-guards [D3-3] plant-applied=YES · planted=exit 1 · control=exit 1 · reason=MATCHED
+         │   ❌ lint:finding-guards [M7]   plant-applied=YES · planted=exit 1 · control=exit 1 · reason=MATCHED
+         │   ❌ lint:finding-guards [M6]   plant-applied=YES · planted=exit 1 · control=exit 1 · reason=MATCHED
+         │   ❌ lint:finding-guards [M8]   plant-applied=YES · planted=exit 1 · control=exit 1 · reason=MATCHED
+
+❌ prove:guards — 1 of 1 guard(s) did not hold.
+
+EXIT=1

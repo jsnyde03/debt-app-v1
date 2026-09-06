@@ -4136,7 +4136,7 @@
       "run": "test:app",
       "proofNote": "The earlier assertion at payoffCelebration.test.ts:54 also reads `freed`, but on a MONTHLY debt, so it is green under this un-fix and does not pre-empt the red. The row that fires is this entry's own weekly one. The monthly row inside the R3-4 block is the CONTROL - exact under both the old and new producer - so it is what proves the error axis is cadence.",
       "measured": "2026-09-06",
-      "sha": "9b251b3b"
+      "sha": "2df9ece8"
     }
   },
   "S1P7-R4-1-ONETIMELUMP": {
@@ -4155,7 +4155,7 @@
       "expect": "· one-time",
       "proofNote": "ONE line, ONE guard, TWO findings (R4-1 and R5-1) - a second entry would duplicate the un-fix and re-enter the authored-headroom deadlock. The un-fix removes the exclusion entirely; the first row to red is debt/one-time, and `expect` is the shared '· one-time' label so the red is attributable to this entry either way. The un-fix leaves no unused import because R5-1's fix removed it.",
       "measured": "2026-09-06",
-      "sha": "affb8a01"
+      "sha": "2df9ece8"
     }
   },
   "S1P7-R4-2-EMPTYEXPECT": {

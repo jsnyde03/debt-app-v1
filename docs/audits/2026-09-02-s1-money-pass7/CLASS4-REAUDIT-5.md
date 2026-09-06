@@ -399,9 +399,11 @@ round 4's own recorded deferral, and `R5-1`'s remedy carries the row.
 `{type} × {recurrence}` product still has an unvisited cell — and it is the **fifth consecutive round** in
 which the round's own fix carried a member of the class it closed.
 
-**Round 4's three findings are all genuinely closed** — every guard re-run rather than remembered, each
-red for the reason that names it, and `R4-2`'s refusal measured correct in both directions with **0** live
-entries lost. Nothing round 4 changed broke anything already closed: no reader of `freed` mishandles `0`,
+**Round 4's three findings are all genuinely closed** — `R4-1` and `R4-2`'s guards re-run rather than
+remembered, each red for the reason that names it; `R4-3`'s naming requirement demonstrated load-bearing
+by my own targeted plant on a clean tree; and `R4-2`'s refusal measured correct in both directions with
+**0** live entries lost. ⚠️ **The registry's own recorded proof for `S1P7-R3-3-BORROW` could not be
+re-run** — see the addendum. Nothing round 4 changed broke anything already closed: no reader of `freed` mishandles `0`,
 no registry entry became unprovable, `MIN_ENTRIES` matches the registry exactly, and the two stale route
 proofs are untouched at 2 of a cap of 8.
 
@@ -413,5 +415,88 @@ the correct discriminator, which is why the finding is against the comment and n
 
 **Cumulative scope after this round: 130** (127 + 3).
 
-**Tree:** `git status --short` shows only `CLASS4-REAUDIT-5.md` and `class4-reaudit5-probes/`.
-**Nothing committed.**
+**Tree:** see the addendum — it is no longer mine to describe. **I committed nothing.**
+
+---
+
+# ⛔ ADDENDUM — the tree moved **under this audit**, and one measurement is contaminated
+
+## What happened
+
+I was dispatched against a verified boundary at **`8ccae93f`** with the instruction *"the moment YOU
+commit anything, that green is an UNRUN gate."* **I committed nothing.** A **concurrent session** did:
+
+```
+2df9ece8  R5-1: the question is the SCHEDULE, not the label     Sun Sep 6 03:09:26 2026
+8ccae93f  Round 5's brief                                        <- the boundary I was dispatched against
+```
+
+`2df9ece8` is **a fix for `R5-1`, the finding above, authored while this audit was still running.** It
+also committed this report file mid-write (417 lines at the time) and my entire probes directory. Its
+message says the fix was *"Scoped to the celebration, NOT by widening `isOneTimeBnplLump`"* and that the
+shapes population is now **derived from `Record<Recurrence, number>` — 7 recurrences × 2 types = 48
+asserts** — i.e. it adopted `R5-1`'s remedy and generalised past it.
+
+⛔ **The dispatch's own boundary premise no longer holds.** `lint:rn`, `typecheck`, `test:app`,
+`test:regression` and `lint:finding-guards` were green at `8ccae93f`; `apps/rn/src/store/payoffCelebration.ts`,
+`payoffCelebration.test.ts` and `scripts/finding-guards.json` have all changed since. **That green is now
+an unrun gate** — by the dispatch's own rule, and not through anything I did.
+
+## The contaminated measurement — reported, not counted
+
+`npx tsx scripts/prove-guards.ts --id=S1P7-R3-3-BORROW --no-record`, run in the background, **finished
+after `2df9ece8` landed** and reported:
+
+```
+❌ S1P7-R3-3-BORROW  plant-applied=YES · planted=exit 1 · control=exit 0 · reason=WRONG
+   ⛔ it redded, but not for "lint:finding-guards [R3-3-borrow]"
+     │  ❌ lint:finding-guards [D3-3] … planted=exit 1 · control=exit 1 · reason=MATCHED
+     │  ❌ lint:finding-guards [M7]   … planted=exit 1 · control=exit 1 · reason=MATCHED
+     │  ❌ lint:finding-guards [M6]   … planted=exit 1 · control=exit 1 · reason=MATCHED
+     │  ❌ lint:finding-guards [M8]   … planted=exit 1 · control=exit 1 · reason=MATCHED
+```
+
+⛔ **This is NOT a finding against round 4.** Four inner scenarios report **`control=exit 1`** — a red
+*control*, which is the signature of a tree that changed underneath the run, and the run's own warning
+line says so: *"this run left 1 other file(s) modified."* The registry was being rewritten by the other
+session while the harness held it. ⚠️ **A `reason=WRONG` produced over a moving tree is unfalsifiable**,
+and recording it as evidence would be exactly the `run-the-control-on-the-verifier` failure. **It must be
+re-run on a still tree before anyone believes either outcome.**
+
+⭐ **`R4-3` is nevertheless demonstrated closed by a cleaner measurement taken earlier on a still tree** —
+`r5-plant-borrow-scenario.py` (see `R5-3`), which plants the *specific* revert of the naming requirement
+rather than the registry's broader `if (false && …)` un-fix, and which the harness reported as
+`reason=WRONG` at exit 1. That measurement predates `2df9ece8` and stands.
+
+## Tree state as I leave it
+
+`git status --short`:
+
+```
+ M docs/audits/2026-09-02-s1-money-pass7/class4-reaudit5-probes/r5-prove-borrow.txt
+ M scripts/finding-guards.json
+```
+
+- **`r5-prove-borrow.txt`** is mine — the background run appended its output after the other session had
+  already committed the empty file.
+- ⛔ **`scripts/finding-guards.json` is NOT mine and I did not restore it.** It differs from `HEAD` only in
+  two `sha` fields (`S1P7-R3-4-FREEDPERMONTH` and `S1P7-R4-1-ONETIMELUMP`, both `→ 2df9ece8`) — the
+  signature of the other session's `prove:guards` **recording** run, still uncommitted. All three of my own
+  `prove:guards` invocations used `--no-record`, and the two that completed on a still tree were verified
+  byte-identical afterwards. **Restoring it from my pre-plant copy would have thrown away another
+  session's uncommitted work** — the `verify-the-restore-not-just-the-plant` trap — so I left it alone.
+  ⚠️ **Whoever owns that session must commit or discard it; I will not.**
+- **Removed before finishing:** the five byte-level restore-verification snapshots I created
+  (`finding-guards.PRE.json`, `finding-guards.PRE2.json`, `reg.PRE4.json`,
+  `check-finding-guards.PRE.ts`, `check-finding-guards.PRE3.ts`). ⚠️ They were scratch — their only job,
+  verifying each restore, is done and recorded above — but `2df9ece8` committed them, so **~1.3 MB of
+  duplicated registry and script snapshots are now in the history** and their deletion is staged in the
+  working tree for whoever commits next.
+
+## What this costs, stated plainly
+
+⛔ **`[D79]` step b assumes the fixer and the auditor are serialised.** They were not this round. The
+concrete losses: one measurement destroyed, a verified boundary invalidated, my scratch files committed,
+and a fix landed against a finding **before its report was finished** — so nobody re-read `R5-1`'s
+"Remedy (UNVERIFIED)" caveat against the code that shipped for it. ⚠️ **Round 6 must audit `2df9ece8` as
+an unaudited fix**, and must re-run the full boundary before trusting any gate.
