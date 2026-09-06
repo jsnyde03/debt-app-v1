@@ -4050,7 +4050,7 @@
     }
   },
   "S1P7-R3-3-BORROW": {
-    "what": "class 4 round-3 R3-3 - R2-6's remedy shipped half as a docblock claim: prove-guards.ts documented a check that existed NOWHERE, and building it as documented reds 84 legitimate entries (the token is a code fragment, the expect is the message a run prints). The check now refuses the DEFECT rather than a proxy for it: an expect that is not in this entry's own token and IS in another entry's - a red on a NEIGHBOUR's assertion. proofNote exempts.",
+    "what": "class 4 round-3 R3-3 - R2-6's remedy shipped half as a docblock claim: prove-guards.ts documented a check that existed NOWHERE, and building it as documented reds 84 legitimate entries (the token is a code fragment, the expect is the message a run prints). The check now refuses the DEFECT rather than a proxy for it: an expect that is not in this entry's own token and IS in another entry's - a red on a NEIGHBOUR's assertion. proofNote exempts. R4-3 (round 4): the waiver was tested BEFORE the lenders were computed, so any non-empty proofNote skipped the check unconditionally. Exposure was 4 entries, not the 10 the report states - the other notes sit on entries with no explicit expect, which can never enter this branch. The note must NAME a lender now; fire-count measured at 0 before the rule was written. This entry's gate-plant fixture carries a NON-NAMING note so the requirement is load-bearing: measured, reverting `waived` to 'has a note' makes the scenario report reason=WRONG and test:gate-plants exit 1.",
     "file": "scripts/check-finding-guards.ts",
     "token": "if (expect !== undefined && !e.token.includes(expect)) {",
     "proof": {
@@ -4172,7 +4172,9 @@
       ],
       "run": "prove:guards:selftest",
       "expect": "selftest:a blank expect is refused",
-      "proofNote": "The un-fix is ?? -> ||, which restores the OLD semantics exactly: '' falls through to the token, the entry is not refused, and the blank-expect control then fails on its missing message. A one-operator un-fix rather than reverting the block, so the plant cannot fail to compile and throw past the assertion it exists to exercise."
+      "proofNote": "The un-fix is ?? -> ||, which restores the OLD semantics exactly: '' falls through to the token, the entry is not refused, and the blank-expect control then fails on its missing message. A one-operator un-fix rather than reverting the block, so the plant cannot fail to compile and throw past the assertion it exists to exercise.",
+      "measured": "2026-09-06",
+      "sha": "c984300c"
     }
   }
 }

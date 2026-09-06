@@ -330,7 +330,13 @@ const B1_SCENARIOS: Scenario[] = [
           '  "PLANT-BORROWER": {\n    "what": "an entry whose expect names the LENDER\'s assertion, not its own",\n' +
           '    "file": "scripts/__gate_plant_guard__.ts",\n    "token": "export const plantedBorrower = 42;",\n' +
           '    "proof": {\n      "unfix": [{ "at": "scripts/__gate_plant_guard__.ts", "find": "export const plantedBorrower = 42;", "replace": "x" }],\n' +
-          '      "run": "lint:finding-guards",\n      "expect": "at most one may survive"\n    }\n  }\n}\n',
+          // ⛔ [round-4 `R4-3`] A `proofNote` that does NOT name the lender. The waiver used to be tested
+          // BEFORE the lenders were computed, so any non-empty note skipped the check unconditionally.
+          // This fixture is what makes the naming requirement load-bearing rather than merely written:
+          // revert `waived` to "has a note" and this scenario goes GREEN under its own plant, which
+          // `test:gate-plants` reports as failed-open.
+          '      "run": "lint:finding-guards",\n      "expect": "at most one may survive",\n' +
+          '      "proofNote": "shares a red"\n    }\n  }\n}\n',
       },
     ],
     expect: 'NEIGHBOUR',
