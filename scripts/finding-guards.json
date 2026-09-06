@@ -354,7 +354,9 @@
         }
       ],
       "run": "test:e2e:trust-claims",
-      "expect": "1 cycle"
+      "expect": "1 cycle",
+      "measured": "2026-09-06",
+      "sha": "9c210a0d"
     }
   },
   "S1P4-D4-12-LEDGERCLAIM": {
