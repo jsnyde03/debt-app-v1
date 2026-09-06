@@ -4066,5 +4066,27 @@
       "measured": "2026-09-06",
       "sha": "5069ca35"
     }
+  },
+  "S1P7-R3-1-ANCHOR": {
+    "what": "class 4 round-3 R3-1 - inWindowReaders.test.ts was the SOLE guard for F3/F6/F7/R2-1 and every one of its 15 assertions was written against effectiveMinimumInWindow, the one producer they all read. Under a 2x defect planted in it the suite printed 'the heads-up names 8 payments' and exited 0. Assert-against-the-producer is right for a WIRING claim and wrong for a MONEY claim; R2-1's own fix had removed the last independent term. Literal anchors added: 8 rows now red on that plant where 0 did.",
+    "file": "apps/rn/src/store/inWindowReaders.test.ts",
+    "token": "R3-1 anchor — the producer owes",
+    "proof": {
+      "unfix": [
+        {
+          "at": "packages/core/debt/bnplInstallment.ts",
+          "find": "windowEndISO)) *\n\t\t\t\t\tbnplInstallmentAmount(debt),",
+          "replace": "windowEndISO)) *\n\t\t\t\t\tbnplInstallmentAmount(debt) * 2,"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "tsx",
+        "--tsconfig",
+        "apps/rn/tsconfig.json",
+        "apps/rn/src/store/inWindowReaders.test.ts"
+      ],
+      "proofNote": "The bare token bnplInstallmentAmount(debt), appears TWICE in the producer file - line 321 in effectiveMinimumInWindow and line 341 in scaleBnplMinimumForWindow - so the un-fix anchor carries the preceding line. Doubling both would have been a different defect."
+    }
   }
 }

@@ -44,6 +44,30 @@ const NEXT = day(28);
 const DUE = day(3);
 const EACH = 50;
 
+/**
+ * ⛔ **THE LITERAL ANCHORS — [class 4 round-3 `R3-1`].**
+ *
+ * ⚡ Every assertion in this file was written against `effectiveMinimumInWindow` and **never against a
+ * literal**. That is the right rule for a **wiring** claim (*this reader calls that producer*) and the
+ * wrong one for a **money** claim (*the sentence states what the app holds back*) — it makes the row an
+ * equation with the same expression on both sides. Measured: with a 2× defect planted in the producer,
+ * **all 15 rows stayed green** and the suite printed *"the heads-up names 8 payments"* as a pass.
+ *
+ * ⛔ **`R2-1`'s own fix is what removed the last independent term.** Before it the reader counted with
+ * `bnplInstallmentsInWindow` while this file expected `effectiveMinimumInWindow / each` — two producers,
+ * a real cross-check. Collapsing them into one is right for the product and left nothing here to disagree.
+ *
+ * ⚠️ **These are clock-safe, and the reason is arithmetic rather than luck:** both ends of the window are
+ * the same offset from one `new Date()`, so it is always `[D, D+28]` with the charge due at `D+3` —
+ * charges at +3/+10/+17/+24 and the next at +31. Four on every day of the year, no month-length or DST
+ * dependence, because every offset is in whole days. ⛔ **The file header's claim was true and the
+ * conclusion drawn from it was not:** "nothing depends on when it runs" does not mean "no literal is
+ * needed", and that elision is what left the producer unguarded.
+ */
+const CHARGES_IN_WINDOW = 4;
+const OWED_WEEKLY = CHARGES_IN_WINDOW * EACH;
+const SCHED_MONTHLY = 80;
+
 const weeklyDebt = (over: Partial<Debt> = {}): Debt =>
   ({
     id: 'd1', name: 'Weekly loan', balance: 5000, minimumPayment: EACH, apr: 10,
@@ -68,6 +92,28 @@ const owed = (debt: Debt): number => Math.min(effectiveMinimumInWindow(debt, CUR
 
 export function runInWindowReaderTests(): void {
   console.log('\n💵 the in-window minimum: every reader agrees with the one producer\n');
+
+  /**
+   * ⛔ **THE ANCHOR RUNS FIRST**, so a defect in the producer reds here instead of being echoed,
+   * agreed with, and printed as a pass by every row below it. [`R3-1`]
+   */
+  {
+    const got = owed(weeklyDebt());
+    assert(
+      got === OWED_WEEKLY,
+      `⛔ R3-1 anchor — the producer owes $${OWED_WEEKLY}: ${CHARGES_IN_WINDOW} × $${EACH} in this window (got $${got})`,
+    );
+    const sched = owed(
+      weeklyDebt({
+        name: 'Klarna', type: 'bnpl', bnplProvider: 'Klarna', recurrence: 'monthly',
+        apr: 0, scheduledPaymentAmount: SCHED_MONTHLY, remainingPayments: 40,
+      } as Partial<Debt>),
+    );
+    assert(
+      sched === SCHED_MONTHLY,
+      `⛔ R3-1 anchor — an installment-native MONTHLY plan owes its own $${SCHED_MONTHLY}, not the stored minimum (got $${sched})`,
+    );
+  }
 
   /**
    * ⛔ **`F3` — THE FIGURE MUST NOT MOVE ON THE TAP.**
@@ -139,9 +185,16 @@ export function runInWindowReaderTests(): void {
     ];
     for (const [label, debt] of shapes) {
       const line = selectBnplBetweenPaycheck(storeWith(debt));
+      // ⛔ [R3-1] The LITERAL, not `owed(debt) / EACH`. Derived, this row agreed with the producer by
+      // construction and read "names 8 payments" as a pass under a 2× defect in it.
       assert(
-        line != null && line.includes(`${owed(debt) / EACH} `),
-        `⛔ F7 · ${label} — the heads-up names ${owed(debt) / EACH} payments, matching the reserve (got ${line ?? 'null'})`,
+        line != null && line.includes(`${CHARGES_IN_WINDOW} `),
+        `⛔ F7 · ${label} — the heads-up names ${CHARGES_IN_WINDOW} payments (got ${line ?? 'null'})`,
+      );
+      // …and the wiring claim the derived form was actually making, kept and stated as its own row.
+      assert(
+        owed(debt) / EACH === CHARGES_IN_WINDOW,
+        `⛔ F7 · ${label} — and the reserve the line explains is the producer's ${CHARGES_IN_WINDOW} charges (got ${owed(debt) / EACH})`,
       );
     }
   }
