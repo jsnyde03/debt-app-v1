@@ -32193,3 +32193,119 @@ those three measurable. Attempting them first yields three false failures every 
 `W9b` is why: a real finding with its own remedy and fix, living **only in this log**. **A file-driven
 enumeration structurally cannot find it** — the same shape as `A3-7`. Both briefs corrected; deriving the
 count mechanically is filed to `.12.6.9` rather than built mid-round.
+
+---
+
+## `S1.13.7.12.6.4.15` — `[D79]` ROUND-3 RE-AUDIT · 2026-09-05
+
+Fresh agent, cumulative over **120**, base `68c348f9` → `1cebd764`. Brief:
+[`CLASS4-REAUDIT-3-BRIEF.md`](audits/2026-09-02-s1-money-pass7/CLASS4-REAUDIT-3-BRIEF.md) ·
+report: [`CLASS4-REAUDIT-3.md`](audits/2026-09-02-s1-money-pass7/CLASS4-REAUDIT-3.md).
+
+**4 findings — 0 blocker · 4 major.** ⭐ **Nothing earlier was broken**, and three of the brief's own
+leads were refuted by measurement.
+
+| id | severity | |
+|---|---|---|
+| `R3-1` | major | the sole guard for `F3`/`F6`/`F7`/`R2-1` is **green under a 2× defect in the one producer all 15 of its assertions are written against** |
+| `R3-2` | major | `R2-1`'s `Math.round` announces **2 payments of $50 against a $75 balance**; 7 of 19 sampled balances overstate by up to +$25 |
+| `R3-3` | major | `R2-6`'s remedy shipped **half as a docblock claim** describing a check that exists nowhere and would fire on **84 legitimate entries** |
+| `R3-4` | major | the payoff celebration says *"Freed $50/mo"* where a weekly debt frees **$216.67** — on screen, in speech, and on a ShareCard |
+
+### ⛔ THE ASSERT-AGAINST-THE-PRODUCER RULE IS RIGHT FOR WIRING AND WRONG FOR MONEY
+
+`inWindowReaders.test.ts`'s header states the design: *"every assertion is written against
+`effectiveMinimumInWindow`, never against a literal."* That makes all 15 rows **an equation with the same
+expression on both sides**. Under a 2× plant in that producer the suite **prints the false sentence and
+calls it a pass** — *"the heads-up names 8 payments"*, exit 0.
+
+⚡ **And `R2-1`'s own fix is what removed the last independent term.** Before it, the reader counted with
+`bnplInstallmentsInWindow` while the test expected `effectiveMinimumInWindow / each` — two producers, a
+real cross-check. Measured: with the 2× plant live **and** `R2-1` un-fixed, the same row reds. Collapsing
+two producers into one is right for the product and destroys the guard as a side effect nobody looked for.
+
+⭐ **The class is not uncovered** — the round-**1** sibling `inWindowMinimum.test.ts` reds on its own
+literal. It is the file round 2 wrote *for these four findings* that cannot fail.
+
+### ⛔ A COMMENT IS A CLAIM WITH NO EXPIRY — FIFTH TIME IN THIS WORKSTREAM
+
+`guardianSelectors.ts` states, directly above the defect: *"A nearly-paid debt now funds fewer than two
+charges and correctly says nothing at all."* At **$75** it says *"2 Car Loan payments (about $50 each)"*.
+`effectiveMinimumInWindow` caps at the balance, so `reserved / each` is an exact integer **except** when
+the cap bites — and exactly then `Math.round` rounds a half-charge up. *"Agrees by construction"* holds
+only over the uncapped range, which is the range the finding was not about.
+⚠️ **The guard could not reach it by fixture choice**: it samples `[1, 20, 49]`, all below one charge, and
+its control sits exactly on the `2 × each` boundary. The whole interval where the defect lives is unsampled.
+
+### ⛔ ROUND 2 DECLINED TO BUILD A GATE, THEN DOCUMENTED IT AS BUILT
+
+`prove-guards.ts:78-80` states a `check-finding-guards` refusal that **exists nowhere**: `proofNote` has
+exactly one occurrence in all of `scripts/` — that sentence. Census over the live registry:
+`entries=296 · expectNotSubstringOfToken=88 · ofWhichNoProofNote=84`. **Implemented as written it reds 84
+correct entries** — the `token` is a code fragment that must survive in the file, the `expect` is the
+message the run prints, and they are different kinds of string by design.
+
+⚡ **This is `R2-6`'s own recorded failure mode repeating one level up**: round 2 measured the gate firing
+on 90 legitimate entries, declined to build it — and wrote it into the harness's documentation anyway.
+**A check that cannot fail reads exactly like a check; a check that was never built reads exactly like one too.**
+
+⚠️ **Two live residuals.** `expect` is optional in `prove-guards.ts` and still `expect: string` in
+`check-finding-guards.ts:82` — the *"one shape, two hand-written types"* defect that file's own docblock
+records for `measured`/`sha`, re-created in the other direction by the same round. And
+`p.expect ?? e.token ?? ''` makes a **no-reason-check state representable**, reopening `S1P5-D5-7`
+(*"being optional is what let it spread"*) in the sibling harness while `D5-7`'s own guard stays green.
+
+### ⛔ THE SIXTH CONSECUTIVE UNDERCOUNT OF ONE SITE LIST — 5 → 6 → 7 → 8 → 9 → 10
+
+`payoffCelebration.ts:78` sets `freed: subject.minimumPayment` and the beat renders it as
+**"Freed $50/mo"**. Measured through `detectPayoff` itself: weekly **4.33×** off, biweekly **2.17×**,
+monthly control **exact** — so the error axis is *cadence*, not arithmetic.
+
+⚠️ **It is not an `R2-5` regression** — the BNPL row was wrong before round 2 touched anything. It is in
+scope because `A3-1`'s stated rule (*a cadence is a fact about the SCHEDULE, not the debt's label*) and
+`R2-5`'s enumeration are **both false here**. `bnplMonthlyEquivalentMinimum` is the declared producer of
+*"cost per month"* and has 4 call sites, **all projection engines**; the celebration is not a projection,
+so it was never in the population anybody enumerated. ⚡ **The field name carries no unit** — `freed` — and
+the unit appears two files away, in the prop `freedPerMonth` and the string `/mo`.
+
+### ⭐ REFUTED BY MEASUREMENT — three of the brief's own leads
+
+- **`R2-6`'s repair of `A3-1`/`A3-2` is real.** Re-measured by replacing the `assert` throw with a
+  non-throwing `WOULD-FAIL` log so every row evaluates instead of stopping at the first red: both own
+  assertions fail ($500 shortfall; $800 vs $200). The $3,000 → $300 fixture cut is a genuine repair.
+- **`R2-5`'s widening pairs correctly with the `apr` gate at all four sites**, including `one-time`,
+  `per-paycheck` and absent-`recurrence`.
+- **The `expect` default changed nothing for passes 1–7.** All 10 entries with no explicit `expect` are
+  class-4's; the 166 explicit values are preserved. Sound for a **label-shaped** token because the green
+  run prints a tick beside the label and the planted run prints `FAIL [label]` — a line the plant introduced.
+- **`buildSmartInsights` carries the `R3-4` defect and is NOT a finding** — intentionally unrendered since
+  🎯 2026-07-22, mount checked before writing it up, because the sibling site *is* mounted and the two look
+  identical in a grep.
+
+### ⚠️ A STRUCTURAL ENUMERATION FAILED SILENTLY, AGAIN, IN THE SAME DIRECTION
+
+Both derivations of the cumulative count agree at **120** (**124** with this round) — but the file-driven
+one **took two attempts and the first was silently short**: counting heading-shaped finding ids returns
+**0** for four of the class-1 rounds, which head their findings differently. Zero findings over four
+files, no error. ⛔ **And derivation B is only reachable because the brief told the auditor `W9b` exists**
+— a file-driven enumeration of that directory returns 119 and reports no error. **The two derivations
+share an out-of-band fact, so their agreement is weaker evidence than it looks.** `.12.6.9` remains the
+real fix.
+
+### The dispatch itself
+
+Boundary verified green **before** dispatch at `1cebd764` — `lint:rn` 52/52 · typecheck 0 · `test:app` ·
+`test:regression` · `lint:finding-guards` 296/295, 166 EXECUTED, 2 stale (the two known route proofs).
+Auditor committed nothing, so that green still stands. Six plants across seven files, **every restore
+`cmp`-verified against a pre-plant copy** — never `git diff`, never `git checkout --`. Probes outside
+`apps/rn/`. `prove:guards` run `--no-record`.
+
+⚠️ **Independently re-verified by this session before acting**: `proofNote`'s single occurrence,
+`freed: subject.minimumPayment`, `Math.round(reserved / each)`, and `expect: string` required in one
+harness while optional in the other. All four hold. *(The report's `guardianSelectors.ts:454` is `:455`.)*
+
+**[DECISION] 🎯 2026-09-05 — all four fixed, `R3-3` IN FULL.** I recommended scoping `R3-3` to deleting
+the false claim; 🎯 chose to build the refusal. ⛔ **The guardrail kept: measure the fire-count BEFORE the
+rule is written**, so it ships firing on 0 legitimate entries rather than 84. ⚡ **This reorders the round**
+— `R3-3` is the proof harness that certifies the money guards, so by `[D79]`'s own rule it is repaired
+**first**, not last.

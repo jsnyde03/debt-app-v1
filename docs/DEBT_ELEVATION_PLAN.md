@@ -284,7 +284,27 @@ reason"* is **four reasons**, of which the decisive one is an entry point, not a
 | ✅ **.11.1–.11.6** | **ALL 8 CLOSED 2026-09-05**, plus a **9th** my own 365-day walk found (`debtFreeBand.test.ts`, the same fuse mirrored — a pinned `currentDate` against a clock-derived `nextPaycheckDate`). ⚡ **One lesson, four times: a window is a PAIR, and pinning one end is not pinning the window.** ⛔ **And the class's own defect twice INSIDE the fix for it** — `F4`'s repair wrote a second producer of an owned month-step, which *would have passed every run and been wrong anyway*; only a gate caught it. Detail → log | ✅ |
 | ✅ **.11.7** | **ROUND-2 RE-AUDIT DONE 2026-09-05** — 6 findings: 1 blocker · 4 major · 1 minor | ✅ |
 | ✅ **.4.12–.4.14** | **ALL 6 CLOSED 2026-09-05.** ⛔ The blocker was a **regression `F7` itself introduced** — a gate doing two jobs, of which only one was visible. ⛔ `lint:rn` was **red at HEAD** while I had recorded 52/52. ⛔ `R2-5` was **four** sites, not the two named. ⛔ `R2-6` found a guard **green under its own defect** and one that **never held**. Boundary: exit 0 · 52/52 · both suites · typecheck 0 · **15/15 class-4 guards**. Detail → log | ✅ |
-| ▶ **.4.15** | **`[D79]` ROUND-3 RE-AUDIT** — fresh agent, cumulative over **120**. ▶ **`docs/audits/2026-09-02-s1-money-pass7/ROUND-3-START-HERE.md`** is the switch-in; the brief is written and the tree is clean at `ae64325d`. ⚠️ **Re-run the boundary before trusting the recorded one** — `R2-3` | 0 new defects attributable to round 2's fixes |
+| ✅ **.4.15** | **ROUND-3 RE-AUDIT DONE 2026-09-05** — fresh agent, cumulative over **120**, boundary re-run green before dispatch and nothing committed by it. **4 findings: 0 blocker · 4 major.** ⭐ **Nothing earlier was broken**; three of the brief's leads refuted by measurement. Detail → log | ✅ |
+| ▶ **.4.16** | **THE ROUND-3 FINDINGS** — decomposed below | every blocker/major guarded by an assertion that reds on its own defect |
+
+### 🔨 `.4.16` — round 3's 4 findings *(the ONLY decomposed section on this doc)*
+
+⛔ **[DECISION] 🎯 2026-09-05 — all four fixed, and `R3-3` IN FULL.** I recommended scoping `R3-3` to
+deleting the false claim; 🎯 chose to build the refusal it describes. ⚠️ **Guardrail kept: measure the
+fire-count BEFORE writing the rule** — as written it reds **84 legitimate entries**, which is round 2's
+own recorded failure mode.
+
+⛔ **`R3-3` IS FIRST, NOT LAST.** It is the proof harness that will certify the money guards, and `[D79]`'s
+ordering rule is that instruments are repaired **before** anything is proven with them.
+
+| # | step | exit line |
+|---|---|---|
+| ▶ **.16.1** | **`R3-3` — the proof harness.** Delete the docblock claim that describes a check existing nowhere · **census the fire-count first**, then build the refusal in the only form that survives the 84 *(label-shaped `token` only)* · unify `expect`'s type across both harnesses · make `token` required when `proof` is present, so `?? ''` is unreachable | the rule reds **0** legitimate entries, measured; no representable no-reason-check state |
+| **.16.2** | **`R3-1` — the guard that cannot fail.** `inWindowReaders.test.ts` keeps its producer-derived rows as the *wiring* check and gains **one literal anchor per block**; the window is clock-relative today, so the dates pin first | the 2× plant in `effectiveMinimumInWindow` **reds** this file, not only its round-1 sibling |
+| **.16.3** | **`R3-2` — the heads-up rounding.** Fix the count at `guardianSelectors.ts:455`, **delete the false docblock above it**, and add the `$75` row the fixture set never sampled | a balance funding fewer than two charges says nothing, asserted over the capped interval |
+| **.16.4** | **`R3-4` — "Freed $50/mo".** `freed` through `bnplMonthlyEquivalentMinimum` with `cyclesPerMonth` **required** per `A5-1`, plus the `bnplPayoffPace.ts:69` rider | one assertion iterating cadence × debt shape, monthly as the control |
+| **.16.5** | **BOUNDARY + COMMIT** — full gates, both suites, typecheck, at HEAD | `lint:rn` 52/52 read from its own summary line · net green · pushed |
+| **.16.6** | **`[D79]` ROUND-4 RE-AUDIT** — fresh agent, cumulative over **124** | 0 new defects attributable to round 3's fixes |
 
 ⛔ **Then `.12.7` — PASS 8**, the next first-candidate. [D65] is unchanged: **0/0 twice consecutively.**
 
