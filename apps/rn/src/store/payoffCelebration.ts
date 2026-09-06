@@ -1,3 +1,5 @@
+import { bnplMonthlyEquivalentMinimum } from '@core/debt/bnplPayoffPace';
+
 import type { Debt, PendingPayoff, PayoffStrategy } from '@/data/models';
 
 import { rankDebts } from './payoffSelectors';
@@ -43,6 +45,22 @@ export function detectPayoff(
    * while the defect shipped, because what was missing was the call.
    */
   unreadBalanceIds: ReadonlySet<string>,
+  /**
+   * ⛔ **[class 4 round-3 `R3-4`] `freed` IS A PER-MONTH FIGURE AND WAS BUILT FROM THE PER-INSTALLMENT
+   * MINIMUM.** The beat read **"Freed $50/mo"** where a weekly debt frees **$216.67** — on screen, in
+   * speech, and on a ShareCard, understating the user's own win by 4.33× on the one moment the product
+   * is built toward.
+   *
+   * ⚡ **Why nobody's site list caught it:** `bnplMonthlyEquivalentMinimum` is the declared producer of
+   * *this debt's cost per month* and its four call sites are all **projection engines**. A celebration
+   * is not a projection, so it was never in the population anyone enumerated — the sixth consecutive
+   * undercount of that list. ⚠️ **The field name carries no unit**; `/mo` appears two files away.
+   *
+   * ⚠️ **REQUIRED, not defaulted** — `A5-1`, and the same reasoning as `unreadBalanceIds` above: a
+   * default would leave every caller that forgot it silently assuming a monthly cadence, which is the
+   * exact defect. Every call site is a typecheck error until it passes a real value.
+   */
+  cyclesPerMonth: number,
 ): PendingPayoff | null {
   const liveBefore = before.filter((d) => d.balance > 0);
   if (liveBefore.length === 0) return null;
@@ -75,7 +93,7 @@ export function detectPayoff(
     debtName: subject.name,
     debtId: subject.id,
     amount: subject.originalBalance ?? null,
-    freed: subject.minimumPayment,
+    freed: bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),
     nextDebtName: next?.name ?? null,
   };
 }

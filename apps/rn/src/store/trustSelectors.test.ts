@@ -348,7 +348,7 @@ export default function run(): void {
   {
     const store = migrated(['n/a', 400]);
     const after = store.debts.map((d) => (d.id === 'd1' ? { ...d, balance: 0 } : d));
-    const pending = { ...store, debts: after, pendingPayoff: detectPayoff(store.debts, after, store.payoffStrategy, unreadIdsOf(store)) };
+    const pending = { ...store, debts: after, pendingPayoff: detectPayoff(store.debts, after, store.payoffStrategy, unreadIdsOf(store), 1) };
     /**
      * ⛔ **S1.13.7.4 [pass-6 `B1-1`] — THIS ROW ASSERTED `finale` AND THAT WAS THE DEFECT.**
      *
@@ -375,14 +375,14 @@ export default function run(): void {
       pendingDataRepairs: [],
     };
     eq(
-      detectPayoff(pending.debts, repaired.debts, repaired.payoffStrategy, unreadIdsOf(repaired))?.kind ?? null,
+      detectPayoff(pending.debts, repaired.debts, repaired.payoffStrategy, unreadIdsOf(repaired), 1)?.kind ?? null,
       null,
       '⛔ B1-1 — answering the repair reveals a LIVE debt; nothing about that is a debt-free finale',
     );
     // ⭐ THE CONTROL: the same crossing with every balance read must still celebrate.
     const clean = migrated([400]);
     const cleanAfter = clean.debts.map((d) => ({ ...d, balance: 0 }));
-    const celebrating = { ...clean, debts: cleanAfter, pendingPayoff: detectPayoff(clean.debts, cleanAfter, clean.payoffStrategy, unreadIdsOf(clean)) };
+    const celebrating = { ...clean, debts: cleanAfter, pendingPayoff: detectPayoff(clean.debts, cleanAfter, clean.payoffStrategy, unreadIdsOf(clean), 1) };
     eq(selectCelebration(celebrating)?.kind, 'finale', '⭐ control — a real debt-free moment is NOT withheld');
   }
 
@@ -394,12 +394,12 @@ export default function run(): void {
   {
     const store = migrated(['n/a', 400, 900]);
     const after = store.debts.map((d) => (d.id === 'd1' ? { ...d, balance: 0 } : d));
-    const beat = { ...store, debts: after, pendingPayoff: detectPayoff(store.debts, after, store.payoffStrategy, unreadIdsOf(store)) };
+    const beat = { ...store, debts: after, pendingPayoff: detectPayoff(store.debts, after, store.payoffStrategy, unreadIdsOf(store), 1) };
     eq(beat.pendingPayoff?.kind, 'beat', 'clearing one of several live debts is a beat');
     eq(selectCelebration(beat)?.kind, 'beat', '⭐ C3 — a beat about a READ debt survives another debt being unread');
     // …and the same beat about the unread debt does not.
     const own = store.debts.map((d) => (d.id === 'd0' ? { ...d, balance: 0 } : d));
-    const ownBeat = { ...store, debts: own, pendingPayoff: detectPayoff(store.debts, own, store.payoffStrategy, unreadIdsOf(store)) };
+    const ownBeat = { ...store, debts: own, pendingPayoff: detectPayoff(store.debts, own, store.payoffStrategy, unreadIdsOf(store), 1) };
     eq(ownBeat.pendingPayoff?.kind, undefined, 'a debt repaired to 0 never CROSSES, so no beat is stamped for it');
   }
 

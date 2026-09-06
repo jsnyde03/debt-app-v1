@@ -4119,5 +4119,21 @@
       "measured": "2026-09-06",
       "sha": "b36fbff0"
     }
+  },
+  "S1P7-R3-4-FREEDPERMONTH": {
+    "what": "class 4 round-3 R3-4 - payoffCelebration stamped freed: subject.minimumPayment, a per-INSTALLMENT figure, and the beat rendered it as 'Freed $50/mo' where a weekly debt frees $216.67 - on screen, spoken, and on a ShareCard, understating the user's own win by 4.33x on the product's payoff moment. bnplMonthlyEquivalentMinimum is the declared producer of cost per month and its four call sites are all projection engines, so a celebration was never in the population anyone enumerated: the SIXTH consecutive undercount of that site list. cyclesPerMonth is REQUIRED per A5-1, so all 18 call sites became typecheck errors rather than silent monthly assumptions.",
+    "file": "apps/rn/src/store/payoffCelebration.test.ts",
+    "token": "the beat states the money freed per MONTH",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/payoffCelebration.ts",
+          "find": "freed: bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),",
+          "replace": "freed: subject.minimumPayment,"
+        }
+      ],
+      "run": "test:app",
+      "proofNote": "The earlier assertion at payoffCelebration.test.ts:54 also reads `freed`, but on a MONTHLY debt, so it is green under this un-fix and does not pre-empt the red. The row that fires is this entry's own weekly one. The monthly row inside the R3-4 block is the CONTROL - exact under both the old and new producer - so it is what proves the error axis is cadence."
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 
+import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { isInstallmentNative, normalizeBnplInstallment } from '@core/debt/bnplInstallment';
 import { roundMoney } from '@core/utils/money';
 import { updateById } from '@core/utils/updateById';
@@ -73,6 +74,9 @@ function withPayoffCelebration(before: DebtStore, next: DebtStore): DebtStore {
     next.debts,
     next.payoffStrategy,
     new Set(partitionDebts(next).unreadBalance.map((d) => d.id)),
+    // ⛔ [R3-4] The user's real cadence. `freed` is stated per MONTH and was built from the
+    // per-installment minimum, so a weekly debt's win read $50 instead of $216.67.
+    payCyclesPerMonth(next.paycheck.payCycle),
   );
   if (!payoff) return next;
   // Keep what is already pending UNLESS this transition is the finale and the pending one is not.
