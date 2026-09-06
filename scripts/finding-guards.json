@@ -4115,7 +4115,9 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "proofNote": "TWO-PART UN-FIX because the defect had two halves and each is caught by a different row: reverting the count to Math.round reds the $110 row (3 charges land, round says 2), and reverting the sentence to per-charge reds the $75 money row. Either alone leaves the other half green."
+      "proofNote": "TWO-PART UN-FIX because the defect had two halves and each is caught by a different row: reverting the count to Math.round reds the $110 row (3 charges land, round says 2), and reverting the sentence to per-charge reds the $75 money row. Either alone leaves the other half green.",
+      "measured": "2026-09-06",
+      "sha": "b36fbff0"
     }
   }
 }
