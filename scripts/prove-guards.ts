@@ -724,9 +724,16 @@ for (const id of selected) {
    * run printed ✅ with no `reason=` field and the entry counted as proven off nothing but an exit code.
    * **Not currently instantiated (0 such entries), which is exactly when to make it unrepresentable**
    * rather than after one is written. This is `S1P5-D5-7`'s own lesson: *being optional is what let it spread.*
+   *
+   * ⛔ **THE FIRST CUT OF THIS REFUSED ANY PROOF WITHOUT A `token`, WHICH IS BROADER THAN THE HOLE AND
+   * BROKE THIS HARNESS'S OWN SELFTEST.** The `--selftest` fixtures carry an explicit `expect` and no
+   * `file`/`token` deliberately, so both subprocess controls faulted before reaching what they check.
+   * ⚡ **The hole needs BOTH absent** — with an `expect` present the reason check runs whatever the
+   * token is. Caught by `prove:guards --selftest`, not by reading: the fix for a fail-open carrying
+   * its own defect, for the fifth time in this cluster.
    */
-  if (registry[id].proof && !registry[id].token) {
-    fault(id, 'carries a proof but no `token` — there would be nothing to attribute the red to');
+  if (registry[id].proof && !registry[id].proof.expect && !registry[id].token) {
+    fault(id, 'carries a proof with neither `expect` nor `token` — there would be nothing to attribute the red to');
   }
 }
 

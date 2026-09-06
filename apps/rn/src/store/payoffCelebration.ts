@@ -52,7 +52,7 @@ export function detectPayoff(
    * is built toward.
    *
    * ⚡ **Why nobody's site list caught it:** `bnplMonthlyEquivalentMinimum` is the declared producer of
-   * *this debt's cost per month* and its four call sites are all **projection engines**. A celebration
+   * *this debt's cost per month* and every call site of it is a **projection engine**. A celebration
    * is not a projection, so it was never in the population anyone enumerated — the sixth consecutive
    * undercount of that list. ⚠️ **The field name carries no unit**; `/mo` appears two files away.
    *

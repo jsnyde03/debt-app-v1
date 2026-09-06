@@ -168,7 +168,7 @@ export default async function run() {
    * **4.33×** on the one screen the product is built toward.
    *
    * ⛔ **Why no site list caught it, six rounds running:** `bnplMonthlyEquivalentMinimum` is the declared
-   * producer of *this debt's cost per month*, and its four call sites are all **projection engines**. A
+   * producer of *this debt's cost per month*, and every call site of it is a **projection engine**. A
    * celebration is not a projection, so it was never in the population anybody enumerated. ⚠️ **The field
    * name carries no unit** — `freed` — and `/mo` only appears two files away in `PaidOffBeat`.
    *
@@ -196,8 +196,9 @@ export default async function run() {
       const after = [{ ...cleared, balance: 0 }, before[1]];
       const result = detectPayoff(before, after, 'avalanche', new Set(), 1);
       eq(result?.kind, 'beat', `⛔ R3-4 · ${label} — clearing one of two debts is the per-debt beat`);
+      // `freed` lives only on the beat arm; the finale carries no figures at all.
       eq(
-        result?.freed,
+        result?.kind === 'beat' ? result.freed : null,
         freedPerMonth,
         `⛔ R3-4 · ${label} — the beat states the money freed per MONTH, $${freedPerMonth}`,
       );
