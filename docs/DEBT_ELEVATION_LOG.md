@@ -32662,3 +32662,64 @@ population the compiler maintains. ⚠️ **What is unproven and worth saying: w
 found a fourth defect in my own work.** On this record it probably would have — and the question the
 decision answers is whether that defect would have reached a user, which for two rounds running it did
 only by way of the previous fix.
+
+### `.12.6.5.1` — CLASS 5's 13 PREMISES RE-DERIVED AGAINST THE CODE · 2026-09-06
+
+**13 of 13 checked. All 13 observations stand. FIVE corrections, two of which change what gets built.**
+⚡ **Fifth consecutive round of the same result: reliable about WHERE, unreliable about WHAT.**
+
+#### ⭐ 1. "Five different answers" is real, but the AXIS is which SUBSET of two claims a surface consults
+
+The correct answer exists at `widget/snapshot.ts:216` — `mayClaim(store, 'debt-balances') && mayClaim(store,
+'row-figures')` — and its docblock already explains **why both**: `projectCurrentBalance` reads `apr` and
+`minimumPayment`, which route to `'row-figures'` **and only there**, so pass-5's fix *"changed what the
+number is computed FROM without changing what the guard is computed OVER."*
+
+| surface | `debt-balances` | `row-figures` | |
+|---|---|---|---|
+| `widget/snapshot.ts` | ✅ | ✅ | the answer, already written |
+| `(tabs)/progress.tsx` | ✅ | ✗ | `C3-9` — the APR it projects from is unchecked |
+| `(tabs)/money.tsx` | ✗ | ✗ **(see 2)** | `C3-8` |
+| `app/cushion-forecast.tsx` | ✗ | ✗ | `C3-11` |
+| `plan/PlanHero.tsx` | ✗ | ✗ | `C1-5` — its only `mayClaim` is inside a **comment** |
+| `plan/CashRunwayChart.tsx` | ✗ | ✗ | `C1-6` |
+
+#### ⛔ 2. `money.tsx` DOES NOT CONSULT `mayClaim` AT ALL — and that changes the remedy
+
+It calls `rowFieldUnread(store, 'row-figures', 'debt', debt.id, …)` — a **per-row, per-field** check on
+individual debt rows. So the hero is not "guarded on the wrong claim"; **the row guards are fine and the
+HERO has no whole-claim guard at all.** ⚠️ A remedy written as *"add the missing claim to money.tsx"*
+would edit the wrong layer and leave the hero exactly as wrong.
+
+#### ⛔ 3. `C1-1`'s population is 8 SITES ACROSS 2 SPELLINGS, and they erase DIFFERENT sentinels
+
+The finding names *"`cushionFloor`'s `|| 200`"*. Measured: **one** `|| 200`
+(`buildGuardianBrief.ts:178`, `safeAmount(input.floor) || 200`) and **seven** `?? 200`. ⚡ **`??` erases
+only null/undefined; `||` also swallows a legitimate `0`** — which *is* `C1-6`'s *"at `$0` no cycle can
+ever read as a crunch."* **The two findings are the two spellings of one sub-sweep.**
+
+#### ⭐ 4. `C3-2` and `D2-12` ARE ONE ROOT — two findings, one fix
+
+`buildGuardianSpoken` returns `''` at **line 68** for *"not premium"* and at **line 82** for *"cannot
+claim `required-plan`"*. Siri's Swift side routes `''` to the value-led Premium upsell
+(`SiriQueryIntents.swift:75-78`), so **a paying user whose obligations could not be read is told the
+Payday Guardian is a Premium feature.** One overloaded value. ⚠️ The classification files them as a major
+and a blocker in separate rows; **they are merged into one sub-step**, because fixing either alone leaves
+the overload.
+
+#### ⛔ 5. `C3-13`'s guard CANNOT live inside `selectPlanState` — the projection is the ARGUMENT
+
+`index.tsx:141-143`: `engineStore = withProjectedBalances(store, isPremium)` and then
+`selectPlanState(engineStore, allocation)`. The selector is handed the projected store and **cannot tell
+projected from real**. The findings file says so — *"no guard could have helped"* — and it is right: the
+guard belongs at the **call site**, which is where the `isPremium` projection decision is made.
+
+#### Confirmed without correction
+
+`C3-5` — the twin is genuinely unfixed: `widgetSync.ts:61` is `if (write(snapshot)) lastKey = key;` while
+`liveActivitySync.ts` still does `bridge.update(action.content); lastKey = action.key;` — **stamp before
+verify, no success check**, on `start` and `update` both. · `C3-14` — `targetUnread ? 'saved — one target
+could not be read'`, the word *"one"* hardcoded regardless of count. · `C1-6` — `effectivePaycheckBuffer`
+returns `cushionFloor ?? 200` for premium and `BASE_PAYCHECK_BUFFER` for free, and `CashRunwayChart` reads
+neither. · `B1-1` — `selectSaveForItOptions` paces off `selectDiscretionary(selectAllocation(store))`;
+the disagreement with what the card prints is measured in `.5.5`.
