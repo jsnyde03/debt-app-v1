@@ -1151,3 +1151,28 @@ remainder. Full text for every id → the lane files in
 
 ⚠️ **`D3-2` `D3-3` `D3-4` are NOT here** — they are filed above under **`→ P6.11`**, with `D3-1`'s corrected
 move-set, because they belong to that phase's scope rather than to S1 triage.
+
+### ⤵ surfaced by `S1.13.7.12.6.4.16`'s work — class 4 round-3 fixes, 2026-09-05
+
+- **`bnplPayoffPace.ts` rates the monthly equivalent off `minimumPayment`, not the installment.**
+  `bnplMonthlyEquivalentMinimum` returns `debt.minimumPayment * factor`, so an installment-native plan
+  whose `scheduledPaymentAmount` differs is under-read — measured **$50 where the per-charge figure is
+  $80**. ⛔ **Deliberately NOT folded into `R3-4`**: the module's local `BnplShape` type carries no
+  `scheduledPaymentAmount`, so the fix needs a widened type plus a cross-module import into a standalone
+  math module, and it changes behaviour at **four projection call sites**. The round-3 audit graded the
+  shape near-unreachable *(the normaliser equalises the two fields on any ordinary write)* and recorded
+  rather than claimed it. ⚠️ **Re-check before dismissing**: this file's own header names the class it
+  belongs to — *"one debt, two screens, 2× apart"*. → **`.12.6.5`** (the projection class) or pass 8.
+
+- **`prove:guards`' drain exemption is blind to a control one harness removed.** It parses
+  `lint:finding-guards`' own `• problem` lines, so a proof whose `run` is a harness that merely *uses*
+  that gate as a baseline — `test:gate-plants` — reads as `control-red` and cannot record. ⛔ **Hit in
+  anger in `.16.1`** and worked around with the documented two-pass drain (record an unrelated authored
+  proof to free the ceiling slot). ⚠️ **A bigger ceiling is not the fix** and neither is a scenario
+  filter, which would be an instrument built to unblock an instrument fix. → **`.12.6.9`**, whose exit
+  line already says *a drain must be possible from any state*.
+
+- **The `R3-2` probe's own residue.** `class4-fix-probes/r3-2-what-lands.ts` prints `under -$49` for the
+  two balances where the line is correctly silent, because `delta` is computed against a stated total of
+  `0`. Cosmetic in a probe, but it is the same shape as the finding it was written for — a column that
+  reports a defect the code no longer has. → tooling/hygiene.
