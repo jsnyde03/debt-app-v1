@@ -4046,5 +4046,21 @@
       "sha": "2560ddec",
       "proofNote": "TWO-PART UNFIX, and the reason is the finding's own shape. Deriving the count from the capped reserve left bnplInstallmentsInWindow unused, which eslint refuses — so the plant restores the import as well as the line. Without that the plant would fail to COMPILE and the run would red for a syntax error rather than for the defect: a plant must make an assertion fail, never throw past it."
     }
+  },
+  "S1P7-R3-3-BORROW": {
+    "what": "class 4 round-3 R3-3 - R2-6's remedy shipped half as a docblock claim: prove-guards.ts documented a check that existed NOWHERE, and building it as documented reds 84 legitimate entries (the token is a code fragment, the expect is the message a run prints). The check now refuses the DEFECT rather than a proxy for it: an expect that is not in this entry's own token and IS in another entry's - a red on a NEIGHBOUR's assertion. proofNote exempts.",
+    "file": "scripts/check-finding-guards.ts",
+    "token": "if (expect !== undefined && !e.token.includes(expect) && !e.proof.proofNote?.trim()) {",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-finding-guards.ts",
+          "find": "if (expect !== undefined && !e.token.includes(expect) && !e.proof.proofNote?.trim()) {",
+          "replace": "if (false && expect !== undefined) {"
+        }
+      ],
+      "run": "test:gate-plants",
+      "expect": "lint:finding-guards [R3-3-borrow]"
+    }
   }
 }

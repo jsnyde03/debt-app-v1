@@ -79,7 +79,19 @@ interface Entry {
     unfix: { at: string; find: string; replace: string }[];
     run?: string;
     cmd?: string[];
-    expect: string;
+    /**
+     * ⛔ **OPTIONAL, and it was `string` here while `prove-guards.ts` made it optional — the SAME
+     * "one shape, two hand-written types" defect recorded above for `measured`/`sha`, re-created in the
+     * other direction one round later.** [class 4 round-3 `R3-3`] The two halves must agree or an entry
+     * type-checks in the harness that runs it and not in the gate that audits it.
+     */
+    expect?: string;
+    /**
+     * ⛔ **WHY THIS ENTRY'S RED IS A NEIGHBOUR'S.** [class 4 round-3 `R3-3`] Carried by 11 entries and
+     * **declared in no type at all** until now — it lived only inside a sentence describing it, so the
+     * gate could not have read it. Its absence is what the borrow check below refuses.
+     */
+    proofNote?: string;
     /** ISO date the proof last PASSED, and the sha it passed on — written by a passing `prove:guards` run */
     measured?: string;
     sha?: string;
@@ -156,7 +168,7 @@ const ids = Object.keys(registry);
  * that carries those findings' neighbours. `check-cap-literals` reads cap LITERALS, not the prose
  * beside them, so nothing mechanical compared the two. One line per ROUND now, not per commit.
  */
-const MIN_ENTRIES = 296;
+const MIN_ENTRIES = 297;
 const MAX_UNGUARDED = 1;
 
 /**
@@ -500,6 +512,44 @@ for (const [id, e] of Object.entries(registry)) {
         void_ = true;
       }
     }
+    /**
+     * ⛔ **AN ENTRY "PROVEN" BY A RED ON A NEIGHBOUR'S ASSERTION.** [class 4 round-3 `R3-3`]
+     *
+     * `lint:finding-guards` proves the `token` still exists in the named file; `prove:guards` proves the
+     * planted run printed `expect`. **Nothing joined the two**, so three class-4 entries shared one plant
+     * and one red while two of them registered an `expect` that was merely a substring of a SIBLING's
+     * label. Round 2 defaulted `expect` to the entry's own token, which fixes the entries that omit it —
+     * and then documented a refusal for the ones that do not, **which was never built.**
+     *
+     * ⛔ **THE DOCUMENTED RULE — "refuse an `expect` that is not a substring of the token" — REDS 84
+     * LEGITIMATE ENTRIES**, measured. For most of the registry the `token` is a *code fragment* that must
+     * survive in a file and the `expect` is the *message a run prints*: two different kinds of string by
+     * design, and the token can never appear in run output at all.
+     * ⚠️ **The proposed narrowing — "only when the token is label-shaped" — still reds 30**, also measured.
+     * A shape heuristic cannot separate them because the shapes genuinely overlap.
+     *
+     * ⭐ **So refuse the DEFECT rather than a proxy for it.** A borrow is mechanically derivable: the
+     * `expect` is not in this entry's own token **and is** in another entry's. That is exactly the thing
+     * `R2-6` described, it needs no heuristic, and it reds **4** entries — the four known borrows, all of
+     * which already disclose it in `proofNote`. **0 undisclosed today, and a new borrow reds the moment
+     * it is written.**
+     */
+    const expect = e.proof.expect;
+    if (expect !== undefined && !e.token.includes(expect) && !e.proof.proofNote?.trim()) {
+      const lenders = Object.entries(registry)
+        .filter(([other, oe]) => other !== id && oe.token?.includes(expect))
+        .map(([other]) => other);
+      if (lenders.length) {
+        problems.push(
+          `${id} — its proof's \`expect\` is not in its own token, and IS in ${lenders.join(', ')}.\n` +
+            `        ${JSON.stringify(expect)}\n` +
+            '        That is a red on a NEIGHBOUR\'S assertion: the plant fires, the sibling fails, and this\n' +
+            '        entry is recorded proven without its own assertion ever being reached. Either point\n' +
+            '        `expect` at this entry\'s own assertion, or state in `proofNote` why the finding has none.',
+        );
+      }
+    }
+
     // ⛔ **S1.12.5.1 [pass-5 D5-1] — AUTHORED IS NOT EXECUTED, AND THIS GATE COUNTED THEM AS ONE.**
     // A proof block whose anchor still matches is a *plan to measure*. `measured`/`sha` are the only
     // evidence it was ever RUN — and when pass 5 looked, **66 of 66 read `never run`**, because the

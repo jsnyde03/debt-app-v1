@@ -76,10 +76,24 @@ export interface Proof {
    * two of them registered an `expect` that was merely a substring of a sibling's label. Defaulting to
    * the token makes them the same string by construction.
    *
-   * ⚠️ A value that is not a substring of the token is refused by `check-finding-guards` unless the
-   * entry carries a `proofNote` saying why — some findings genuinely have no assertion of their own.
+   * ⛔ **WHAT IS ACTUALLY ENFORCED, and the sentence that stood here described a check that existed
+   * NOWHERE.** [class 4 round-3 `R3-3`] It claimed `check-finding-guards` refuses any `expect` that is
+   * not a substring of the token. Measured against the live registry, that rule reds **84 legitimate
+   * entries** — for most of the registry the token is a *code fragment* and the `expect` is the *message
+   * a run prints*, so the token can never appear in run output. Round 2 measured that misfire at 90,
+   * declined to build the gate, and wrote it into this docblock as though it had been built.
+   *
+   * ✅ **The real rule, built 2026-09-05:** `check-finding-guards` refuses an `expect` that is not in this
+   * entry's own token **and IS in another entry's** — a *borrow*, which is precisely the defect above and
+   * needs no shape heuristic. `proofNote` exempts it, for the findings that genuinely have no assertion
+   * of their own. It reds **4** entries today, all four already disclosed.
    */
   expect?: string;
+  /**
+   * Why this entry's red is a NEIGHBOUR's. Exempts it from the borrow refusal — a disclosure, not a
+   * waiver: it must say which entry's assertion fires and why this finding has none of its own.
+   */
+  proofNote?: string;
   /** ISO date the proof last passed, and the sha it passed on — written by `--record` */
   measured?: string;
   sha?: string;
@@ -521,8 +535,10 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
     for (const f of strays.slice(0, 6)) console.log(`          ${f}`);
   }
 
-  // ⛔ [R2-6] The token IS the expectation unless the entry deliberately says otherwise.
-  const expected = p.expect ?? e.token ?? '';
+  // ⛔ [R2-6] The token IS the expectation unless the entry deliberately says otherwise. The `?? ''`
+  // that used to close this expression is gone: a proof with no token is refused at selection now, so
+  // there is no path here that reaches `verdict()` with nothing to attribute the red to [R3-3].
+  const expected = p.expect ?? e.token!;
   return { ...verdict(id, expected, planted, withPlant, withoutPlant), plantedStatus: withPlant.status, plantedOut: withPlant.out };
 }
 
@@ -701,6 +717,16 @@ for (const id of selected) {
   if (!registry[id]) fault(id, 'no such entry in the registry');
   if (!registry[id].proof) {
     fault(id, `carries no proof block${registry[id].guardOnly ? ' — it is marked guardOnly' : ''}`);
+  }
+  /**
+   * ⛔ **A PROOF WITH NO `token` HAD NO REASON CHECK AT ALL.** [class 4 round-3 `R3-3`] `expected` fell
+   * through to `''`, and `verdict()` skips the attributability check entirely on a falsy expect — so the
+   * run printed ✅ with no `reason=` field and the entry counted as proven off nothing but an exit code.
+   * **Not currently instantiated (0 such entries), which is exactly when to make it unrepresentable**
+   * rather than after one is written. This is `S1P5-D5-7`'s own lesson: *being optional is what let it spread.*
+   */
+  if (registry[id].proof && !registry[id].token) {
+    fault(id, 'carries a proof but no `token` — there would be nothing to attribute the red to');
   }
 }
 

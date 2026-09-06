@@ -300,6 +300,42 @@ const B1_SCENARIOS: Scenario[] = [
     expect: 'VOID',
     why: 'a proof is evidence about bytes; when the anchor stops matching, the entry is unevidenced rather than green',
   },
+  /**
+   * ⛔ **S1.13.7.12.6.4.16.1 [class 4 round-3 `R3-3`] — AN ENTRY PROVEN BY A NEIGHBOUR'S RED.**
+   *
+   * `PLANT-BORROWER`'s `expect` is a substring of `PLANT-LENDER`'s token and of nothing in its own. That
+   * is the whole defect: the plant fires, the sibling's assertion fails, and the borrower is recorded
+   * proven without its own assertion ever being reached.
+   *
+   * ⚠️ **The rule this replaced was documented but never built, and building it as documented reds 84
+   * legitimate entries** — for most of the registry the token is a code fragment and the `expect` is the
+   * message a run prints, which can never be a substring of it. Detecting the *borrow* needs no shape
+   * heuristic and reds 4, all four disclosed. **The exemption is `proofNote`, and removing it from a real
+   * entry reds too** — measured both directions before this scenario was written.
+   */
+  {
+    gate: 'lint:finding-guards [R3-3-borrow]',
+    script: 'check-finding-guards.ts',
+    args: ['--registry=scripts/__gate_plant_registry__.json'],
+    controlArgs: [],
+    at: 'scripts/__gate_plant_guard__.ts',
+    body: "export const plantedLender = 'at most one may survive';\nexport const plantedBorrower = 42;\n",
+    also: [
+      {
+        at: 'scripts/__gate_plant_registry__.json',
+        body:
+          '{\n  "PLANT-LENDER": {\n    "what": "the entry whose assertion actually reds",\n' +
+          '    "file": "scripts/__gate_plant_guard__.ts",\n' +
+          '    "token": "export const plantedLender = \'at most one may survive\';"\n  },\n' +
+          '  "PLANT-BORROWER": {\n    "what": "an entry whose expect names the LENDER\'s assertion, not its own",\n' +
+          '    "file": "scripts/__gate_plant_guard__.ts",\n    "token": "export const plantedBorrower = 42;",\n' +
+          '    "proof": {\n      "unfix": [{ "at": "scripts/__gate_plant_guard__.ts", "find": "export const plantedBorrower = 42;", "replace": "x" }],\n' +
+          '      "run": "lint:finding-guards",\n      "expect": "at most one may survive"\n    }\n  }\n}\n',
+      },
+    ],
+    expect: 'NEIGHBOUR',
+    why: 'nothing joined "the token still exists" to "the planted run printed expect", so a sibling\'s red proved both',
+  },
   {
     gate: 'lint:finding-guards [M8]',
     script: 'check-finding-guards.ts',
@@ -573,7 +609,7 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 25;
+const MIN_SCENARIOS = 26;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 
