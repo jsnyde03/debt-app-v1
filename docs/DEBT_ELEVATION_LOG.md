@@ -32309,3 +32309,87 @@ the false claim; 🎯 chose to build the refusal. ⛔ **The guardrail kept: meas
 rule is written**, so it ships firing on 0 legitimate entries rather than 84. ⚡ **This reorders the round**
 — `R3-3` is the proof harness that certifies the money guards, so by `[D79]`'s own rule it is repaired
 **first**, not last.
+
+### `.16.1` — `R3-3`, and the remedy was the trap for the FIFTH time
+
+🎯 **2026-09-05 chose to BUILD the refusal** rather than delete the false claim, over my recommendation to
+scope it. ⛔ **The guardrail I kept is the only reason this did not repeat round 2 verbatim: measure the
+fire-count BEFORE writing the rule.**
+
+| rule form | reds |
+|---|---|
+| **as the docblock described it** — `expect` not a substring of `token`, no `proofNote` | **84 legitimate entries** |
+| **the audit's proposed narrowing** — only when the `token` is *label-shaped* | **30**, still mostly legitimate |
+| ⭐ **detect the BORROW** — `expect` not in its own token **and IS in another entry's** | **4**, all four already disclosed → **0 undisclosed** |
+
+⚡ **A shape heuristic cannot separate them because the shapes genuinely overlap** — `"This cap only goes
+DOWN."` is a code line and reads as prose; `"? anyUnpaid"` is prose-free and is code. **The borrow is
+mechanically derivable and needs no heuristic**, it names the exact defect `R2-6` described, and it would
+have caught the original before round 2 disclosed it.
+
+⛔ **Proven BOTH DIRECTIONS before it was registered**, because a rule that reds nothing today and a rule
+that cannot red are indistinguishable: strip a real entry's `proofNote` → reds naming the lender; write a
+**fresh** borrow into a clean entry → reds naming the lender; control green. Registry restored from a byte
+copy and `cmp`-verified at 393,065 bytes both times. New gate-plant scenario `[R3-3-borrow]`, **25 → 26**,
+`plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED`.
+
+⚡ **A third residual the report did not name: `proofNote` is carried by ELEVEN entries and was declared in
+no TypeScript type at all** — it existed only inside the sentence describing it, so the gate could not have
+read it even had the check been built. Declared in both harnesses now, along with `expect` unified to
+optional (it was `string` in the gate and optional in the harness — *"one shape, two hand-written types"*,
+the defect `check-finding-guards.ts`'s own docblock records for `measured`/`sha`, re-created one round later
+in the other direction).
+
+⛔ **And a proof with no `token` had NO reason check at all** — `p.expect ?? e.token ?? ''`, and `verdict()`
+skips attribution on a falsy expect, so the run printed ✅ with no `reason=` and counted as proven off an
+exit code. **0 such entries exist, which is exactly when to make it unrepresentable**; refused at selection
+now. *(`S1P5-D5-7`'s own lesson: being optional is what let it spread.)*
+
+⚠️ **I duplicated a comment line while writing this and caught it by re-reading** — the same slip
+`lint:copy` caught last round *while fixing a duplication finding.*
+
+#### ⛔ THE DEADLOCK IS REAL AND IT COST A DRAIN
+
+Recording the proof needs a green control. The new proof block made `authored` 11 against a cap of 10 →
+`lint:finding-guards` red → `test:gate-plants` runs its finding-guards scenarios' controls against the
+**real** registry → red → `prove:guards` refuses. **The thing that would drop the count is the recording
+the red prevents.**
+
+`prove:guards` has a drain exemption, and it **could not see this one**: it parses `lint:finding-guards`'
+own `• problem` lines, and my control ran a harness that merely *uses* that gate as a baseline. ⛔ **That is
+`.12.6.9`'s filed narrowing, hit for the first time in anger** — *"a two-pass drain today."*
+⚠️ **A bigger number is not the fix** and neither is a scenario filter — inventing an instrument to unblock
+an instrument fix is the recursion 🎯 stopped on 2026-09-04. **Took the two-pass drain**: recorded
+`S1P4-C4-8-SINGULAR` (a real Playwright-backed proof off the never-executed backlog), which freed the slot.
+
+### `.16.2` — `R3-1`, and the header's claim was true while its conclusion was false
+
+The file states *"every assertion is written against `effectiveMinimumInWindow`, never against a literal"*
+— correct for a **wiring** claim (*this reader calls that producer*), wrong for a **money** claim (*the
+sentence states what the app holds back*), and it makes every row an equation with the same expression on
+both sides.
+
+⛔ **Its header also argued no literal was NEEDED**, because both window ends are the same offset
+arithmetic so nothing depends on when it runs. ⚡ **The invariance is true** — `[D, D+28]` with the charge
+at `D+3` puts charges at +3/+10/+17/+24 and the next at +31, four on every day of the year, no month-length
+or DST dependence — **and "nothing depends on when it runs" is not "no literal is needed."** That elision
+is what left the producer unguarded.
+
+⛔ **Measured with the `assert` made non-throwing, so a plant exercises every row instead of stopping at the
+first red** — the auditor's technique, and the only way to know which rows the anchor is masking:
+
+| | rows red under a 2× plant in `effectiveMinimumInWindow` |
+|---|---|
+| before | **0 of 15** — and the suite printed *"the heads-up names 8 payments"* as a pass |
+| after | **8 of 20** — both anchors and all six `F7` rows |
+
+`F3` and `F6` stay producer-derived on purpose: those two **are** wiring claims, and the anchor now carries
+the money half. ⚠️ **The un-fix anchor had to carry its preceding line** — `bnplInstallmentAmount(debt),`
+appears twice in the producer (`effectiveMinimumInWindow` and `scaleBnplMinimumForWindow`) and the plant
+**refused rather than doubling both**, which would have been a different defect. Recorded in the entry's
+`proofNote`.
+
+⚠️ **Ledger state carried into `.16.5`:** stale went **2 → 8 against a cap of 8** — my own `R3-3` proof
+stale one commit after being proven, which is `S1.13.7.11`'s lesson exactly. The money fixes will stale
+**10 more** (pinned to `guardianSelectors.ts`, `payoffCelebration.ts`, `inWindowReaders.test.ts`), so the
+drain is batched into the boundary rather than run twice.

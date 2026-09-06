@@ -4086,7 +4086,9 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "proofNote": "The bare token bnplInstallmentAmount(debt), appears TWICE in the producer file - line 321 in effectiveMinimumInWindow and line 341 in scaleBnplMinimumForWindow - so the un-fix anchor carries the preceding line. Doubling both would have been a different defect."
+      "proofNote": "The bare token bnplInstallmentAmount(debt), appears TWICE in the producer file - line 321 in effectiveMinimumInWindow and line 341 in scaleBnplMinimumForWindow - so the un-fix anchor carries the preceding line. Doubling both would have been a different defect.",
+      "measured": "2026-09-06",
+      "sha": "5b65da76"
     }
   }
 }
