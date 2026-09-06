@@ -1176,3 +1176,20 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   two balances where the line is correctly silent, because `delta` is computed against a stated total of
   `0`. Cosmetic in a probe, but it is the same shape as the finding it was written for — a column that
   reports a defect the code no longer has. → tooling/hygiene.
+
+### ⤵ surfaced by `S1.13.7.12.6.4.16.6` — round-4 re-audit, 2026-09-06
+
+- **`MAX_AUTHORED` sits at 9 with 9 authored — headroom ZERO.** The next registered proof pushes the
+  count over the cap, reds `lint:finding-guards`, and any proof whose `run` reads the ledger then has a
+  red control — `.16.1`'s record-deadlock, re-entered. ⚠️ **Round 4 avoided it only by guarding `R4-3`
+  inside an existing scenario instead of a new entry.** The 9 authored are all Playwright e2e, so the
+  drain that creates headroom is expensive. → **`.12.6.9`**, beside the drain-exemption gap.
+- **`cyclesPerMonth`'s only live effect is asserted nowhere.** All 18 test call sites pass a literal `1`,
+  so the suite agrees with a monthly assumption by construction; the one production seam passes
+  `payCyclesPerMonth(...)`, and `per-paycheck` — the sole recurrence the parameter changes — has no
+  coverage. Round 4 verified the seam is correct and folded the gap into `R4-1`'s remedy without closing
+  it. → **`.12.6.5`** or pass 8.
+- **The cumulative-count derivations are still not independent.** Both reach 124 (127 with round 4) only
+  because `W9b` is known out-of-band; a file-driven enumeration of the audit directory returns **123** and
+  reports no error, and the heading-shaped control is silently zero on **five of six** class-1 rounds —
+  **worse than round 3 measured**. → **`.12.6.9`**, which already owns deriving the count mechanically.

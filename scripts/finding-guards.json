@@ -2012,7 +2012,7 @@
       "run": "typecheck:scripts",
       "expect": "test-gate-plants.ts",
       "measured": "2026-09-06",
-      "sha": "6bda8efa"
+      "sha": "cef40934"
     }
   },
   "S1P5-D5-13-DERIVEDPOP": {
@@ -2089,7 +2089,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-06",
-      "sha": "9b251b3b"
+      "sha": "cef40934"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2408,7 +2408,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-06",
-      "sha": "9b251b3b"
+      "sha": "cef40934"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3476,7 +3476,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-06",
-      "sha": "9b251b3b"
+      "sha": "cef40934"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-06",
-      "sha": "9b251b3b"
+      "sha": "cef40934"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -4064,7 +4064,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [R3-3-borrow]",
       "measured": "2026-09-06",
-      "sha": "9b251b3b",
+      "sha": "cef40934",
       "proofNote": "ANCHOR RE-DERIVED in round 4: R4-3's fix rewrote this very line, voiding both the token and the un-fix - the same shape as R3-2 voiding R2-1-CAP one round earlier. Re-RUN, not merely re-anchored: a recorded measurement must describe the plant the entry now performs."
     }
   },

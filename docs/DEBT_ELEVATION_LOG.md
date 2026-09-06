@@ -32491,3 +32491,91 @@ collateral faults in the ledger — every one found by an instrument.** ⛔ **Tw
 would have introduced a defect**, one of them strictly worse than the bug it described. **Fifth
 consecutive round in which the findings were reliable about WHERE and unreliable about WHAT TO DO** — and
 the only thing that caught it both times was measuring before writing.
+
+### `.16.6` — `[D79]` ROUND-4 RE-AUDIT · 2026-09-06
+
+Fresh agent, cumulative over **124**, base `1cebd764` → `bc2151ff`. Brief:
+[`CLASS4-REAUDIT-4-BRIEF.md`](audits/2026-09-02-s1-money-pass7/CLASS4-REAUDIT-4-BRIEF.md) ·
+report: [`CLASS4-REAUDIT-4.md`](audits/2026-09-02-s1-money-pass7/CLASS4-REAUDIT-4.md).
+
+**3 findings — 1 blocker · 1 major · 1 minor. ⛔ ALL THREE LAND ON ROUND 3's OWN FIXES**, which makes the
+fixer the highest-yield place to look for the **seventh** consecutive round.
+
+### ⛔ `R4-1`, BLOCKER — I CREATED THE FIFTH CALL SITE OF A PAIRING I HAD JUST VERIFIED AT FOUR
+
+`bnplMonthlyEquivalentMinimum` returns a one-time lump's **whole balance** by design, and its own header
+says every caller must exclude it with `isOneTimeBnplLump`. `R3-4` wired the celebration to it without the
+pairing: a **$600** Pay-in-30 whose minimum is $50 announced **"Freed $600/mo"** — **12×**, on screen, in
+speech, and on the **ShareCard**, on the one moment the product is built toward. *(The old code said $50 —
+wrong, but by 1×.)*
+
+⛔ **Round 3's own report contains the sentence `R2-5`'s widening "pairs correctly at all four sites",
+including `one-time`.** I read that pairing, checked it, and then wrote the site that lacks it. ⚡ **My
+guard iterated monthly / weekly / biweekly / BNPL-weekly and the suite was green at 28 asserts with the
+defect present** — *iterating four shapes is not iterating the class*, which is exactly what `.12.6.8`
+exists for, committed inside a fix for one of its members.
+
+⭐ **`freed` is 0 now**, because clearing a one-shot frees no *recurring* money — and every surface already
+omits the clause at 0 (`showCascade` gates the text and the utterance; `ShareCard` gates the badge).
+
+### ⛔ `R4-2` — MY FIX LEFT ITS OWN HOLE HALF OPEN, AND MY COMMENT SAID IT DIDN'T
+
+`expect: ""` **with** a token still reached `verdict()`: measured in a subprocess as **exit 0, a green
+tick, and no `reason=` field at all** — an entry recorded proven off nothing but an exit code. `??` keeps
+the empty string and `verdict()` gates attributability on truthiness, while `R3-3`'s selection fault tested
+the two fields **separately** and this shape has one of each.
+
+⛔ **The comment above it claimed *"there is no path here that reaches `verdict()` with nothing to
+attribute the red to"*** — **the sixth comment-as-expired-claim in this workstream, inside a comment
+written to replace one.** Refused on the **resolved** expectation now, which is the value `verdict()`
+actually reads, and guarded by a **sixth `--selftest` control** whose fixture carries a token on purpose.
+
+### `R4-3` — a waiver that did not name what it waived
+
+The borrow refusal tested `proofNote` **before** computing the lenders, so any non-empty note skipped the
+check unconditionally. ⚠️ **The report says 10 entries hold that waiver; measured, it is 4** — the other
+notes sit on entries with **no explicit `expect`**, whose expectation defaults to their own token, so they
+can never enter that branch. **Right about the defect, wrong about the exposure.**
+
+⭐ **No new registry entry.** The `[R3-3-borrow]` gate-plant fixture now carries a **non-naming** note,
+which makes the requirement load-bearing rather than merely written — **measured**: revert `waived` to
+*"has a note"* and the scenario reports `reason=WRONG` and `test:gate-plants` exits 1, so `lint:rn` reds on
+every push. ⚠️ This also avoided buying ceiling headroom with a Playwright drain — `authored` sits at
+**9 against a cap of 9**, and the report flagged that zero headroom re-enters `.16.1`'s record-deadlock for
+the next registered proof.
+
+### ⭐ WHAT THE AUDIT REFUTED, INCLUDING MY OWN STRONGEST SUSPICION
+
+⛔ **The brief's highest-value lead was mine and it was WRONG.** I predicted `formatWhole` would break the
+exact-money claim at fractional balances. Measured across **40 edge cases** — 8 fractional `each` values,
+cents balances, `each` > balance, one-time, native `scheduled ≠ minimum`, `remainingPayments` capping —
+**0 counts wrong, 0 totals wrong**, and the float attack (`150.00000000000003 / 50`) **cannot occur**
+because `effectiveMinimumInWindow` already returns `roundMoney(…)`. ⚡ **Clock-safety verified by walking
+730 days** plus all three midnight-skew patterns: `[[4, 730]]` every time. Also refuted: a silently-deleted
+registry `expect`, a stale `R2-1-CAP` `what`, a caption contradiction, a crash on token-less entries — and
+**the auditor's own first matcher**, which falsely reported all four disclosed borrows as not naming their
+lenders.
+
+### ⛔ AND TWO MORE ANCHORS MY OWN FIXES VOIDED
+
+`R4-3` rewrote the line `R3-3`'s **token and un-fix** both point at; `R4-1` rewrote the line `R3-4`'s
+un-fix points at. **Third and fourth time in this cluster that a fix invalidated a neighbouring guard**,
+and both were caught by `lint:finding-guards`, not by reading. Re-derived and **re-RUN**, never merely
+re-anchored: a recorded measurement must describe the plant the entry now performs.
+
+### ⚠️ THE HARNESS AROUND MY OWN VERIFICATION FAILED FOUR TIMES, AND THE TREE SURVIVED ON ONE HABIT
+
+A 10-minute tool timeout **stranded a plant on disk** mid-measurement; `subprocess` decoded the gate's
+emoji as cp1252; `print` re-encoded it as cp1252; and the working directory reset into another repo. ⭐
+**Every one was caught, and the tree was clean after each, because the restore is verified with `cmp`
+against a pre-plant copy rather than assumed** — and because the retry put the restore in a `finally`.
+⛔ **Three of the four were invisible in the exit code.**
+
+### The boundary and the ledger
+
+`lint:rn` **52/52** *(`test:gate-plants` **26/26** fail closed)* · typecheck **0** · `test:app` ·
+`test:regression` · `lint:finding-guards` **301 of 302 guarded, 173 EXECUTED**. Registry **300 → 302**.
+Stale drained to the deliberate route pair.
+
+⛔ **CLASS 4 DOES NOT CLOSE HERE.** `[D79]` step **d** exits at *zero new defects attributable to this
+class's fixes*, and round 4 found **three**. **Round 5 is owed.**
