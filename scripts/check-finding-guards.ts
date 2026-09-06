@@ -168,7 +168,7 @@ const ids = Object.keys(registry);
  * that carries those findings' neighbours. `check-cap-literals` reads cap LITERALS, not the prose
  * beside them, so nothing mechanical compared the two. One line per ROUND now, not per commit.
  */
-const MIN_ENTRIES = 298;
+const MIN_ENTRIES = 299;
 const MAX_UNGUARDED = 1;
 
 /**

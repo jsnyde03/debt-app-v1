@@ -231,6 +231,43 @@ export function runInWindowReaderTests(): void {
     );
   }
 
+  /**
+   * ⛔ **`R3-2` — THE SENTENCE MUST NOT MULTIPLY OUT TO MORE THAN THE APP HOLDS BACK.**
+   *
+   * ⚠️ **`R2-1`'s fixtures were `[1, 20, 49]` — every one below a single charge — and its control sat
+   * exactly on the `2 × each` boundary. The whole interval where the defect lived was unsampled**, which
+   * is why a check that looked complete found nothing. These three balances are inside it.
+   *
+   * ⛔ **The audit's mechanism was half right and its remedy would have made it worse.** It read the
+   * defect as an overstated COUNT and proposed `Math.floor`; measured against the charges that actually
+   * land, `floor` is wrong on all 8 non-exact balances and goes **silent over a real $75 reserve**. The
+   * count wants `ceil` — and `Math.round` was also wrong in the *under* direction at $110 and $124, which
+   * the audit never looked for. **The defect was `about $X each`**, false whenever the last charge is
+   * short. 🎯 2026-09-05: state the total.
+   *
+   * ⚠️ **Literals, per `R3-1`** — deriving these from the producer is what made the file above blind.
+   */
+  {
+    const cases: [number, number, number][] = [
+      // balance · charges that land · the money the app reserves
+      [75, 2, 75], // $50 + $25 — the row the old fixtures could not reach
+      [110, 3, 110], // $50 + $50 + $10 — `Math.round` said 2
+      [199, 4, 199], // $50 + $50 + $50 + $49 — `Math.floor` would have said 3
+    ];
+    for (const [balance, charges, reserved] of cases) {
+      const line = selectBnplBetweenPaycheck(storeWith(weeklyDebt({ name: 'Car Loan', balance })));
+      assert(line != null, `⛔ R3-2 · $${balance} balance — the line speaks about a reserve this size`);
+      assert(
+        line!.includes(`— ${charges} `),
+        `⛔ R3-2 · $${balance} balance — ${charges} charges land and the line names ${charges} (got ${line})`,
+      );
+      assert(
+        line!.includes(`totalling about $${reserved}`),
+        `⛔ R3-2 · $${balance} balance — the line states the $${reserved} the app actually holds back (got ${line})`,
+      );
+    }
+  }
+
   console.log(`\n✅ in-window readers: ${passed} assertions across the plan row, the recovery plan and the Guardian line\n`);
 }
 

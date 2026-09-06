@@ -415,7 +415,7 @@ export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
   const start = store.paycheck.currentDate;
   const end = store.paycheck.nextPaycheckDate;
   if (!end) return null;
-  let best: { provider: string; amount: number; count: number } | null = null;
+  let best: { provider: string; reserved: number; count: number } | null = null;
   /**
    * ⛔ **THE RESERVE WAS WIDENED PAST THIS GATE TWICE AND THE LINE THAT EXPLAINS IT WAS NOT.**
    * [class 4 re-audit `F7`]
@@ -447,12 +447,30 @@ export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
      * before your next paycheck"* — **$200 announced against $1 the app itself reserves**, on Today.
      *
      * ⛔ **`effectiveMinimumInWindow` already caps at the balance**, and it is what the allocator reserves
-     * against, so deriving the count from it makes this sentence agree with the money by construction
-     * rather than by a second cap that can drift. A nearly-paid debt now funds fewer than two charges and
-     * correctly says nothing at all.
+     * against, so the count and the money come from **one** figure rather than from a second cap that can
+     * drift.
+     *
+     * ⛔ **THE PARAGRAPH THAT STOOD HERE CLAIMED THE OPPOSITE OF WHAT THE CODE DID.** [round-3 `R3-2`] It
+     * said *"a nearly-paid debt now funds fewer than two charges and correctly says nothing at all"*; at a
+     * **$75** balance it said *"2 Car Loan payments (about $50 each)"*. **A comment is a claim with no
+     * expiry, and this is the fifth in this workstream.**
+     *
+     * ⛔ **`Math.round` was wrong in BOTH directions, and the audit only looked for one.** Measured
+     * against the charges that actually land — full ones until the balance runs out, then a short final
+     * one:
+     *
+     *     $75  → $50+$25       2 land · round 2 ✅ · floor 1 ⛔ (silent over a real $75 reserve)
+     *     $110 → $50+$50+$10   3 land · round 2 ⛔ understates · ceil 3 ✅
+     *     $199 → $50+$50+$50+$49  4 land · round 4 ✅ · floor 3 ⛔
+     *
+     * ⚡ **So the COUNT was never the defect — `ceil` is simply the number of charges that land, correct
+     * on every balance — and the audit's proposed `Math.floor` would have gone silent on a real reserve.**
+     * ⛔ **The defect was `about $X each`**, which multiplies out to more than the app holds back whenever
+     * the final charge is short. The sentence states the **total** now: true on both readings it makes,
+     * with no residue at any balance. 🎯 2026-09-05.
      */
     const reserved = Math.min(effectiveMinimumInWindow(d, start, end), d.balance);
-    const count = Math.round(reserved / each);
+    const count = Math.ceil(reserved / each);
     if (count < 2) continue;
     /**
      * ⚠️ **A plain debt has no provider, so the line names the DEBT.** Keeping the BNPL noun for a debt
@@ -460,14 +478,14 @@ export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
      * explaining an unexpected number honestly.
      */
     const label = d.bnplProvider || d.name;
-    if (!best || count > best.count) best = { provider: label, amount: each, count };
+    if (!best || count > best.count) best = { provider: label, reserved, count };
   }
   if (!best) return null;
   // ⛔ [T6.4] Was a ninth hand-rolled money formatter, inline. Found by grepping the formatter BODY rather
   // than the name `money` — which is why neither L4-2 nor T1's surface inventory saw it: there is no
   // function declaration here to count. `lint:money` (T6.9) matches the body for exactly this reason.
-  const each = formatWhole(best.amount);
-  return `Heads up — ${best.count} ${best.provider} payments (about ${each} each) land before your next paycheck.`;
+  const total = formatWhole(best.reserved);
+  return `Heads up — ${best.count} ${best.provider} payments totalling about ${total} land before your next paycheck.`;
 }
 
 export interface Affordability {
