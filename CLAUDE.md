@@ -14,9 +14,21 @@ It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, 
 backlog and the decision log. **Read it before touching anything.**
 
 ⛔ **EVERY `▶ ACTIVE:` LINE FURTHER DOWN THIS FILE IS A SESSION HANDOFF NOTE AND GOES STALE.** As of
-**2026-09-02** the active item is **`S1.13.7.12.6`** — **PASS 7's triage**, 137 findings in 12 classes,
-decomposed on the plan and driven by
-[`docs/audits/2026-09-02-s1-money-pass7/CLASSIFICATION.md`](docs/audits/2026-09-02-s1-money-pass7/CLASSIFICATION.md).
+**2026-09-06** the active item is **`S1.13.7.12.6.5.2`** — **class 5 of PASS 7's triage**, and the cold
+switch-in is
+▶ **[`docs/audits/2026-09-02-s1-money-pass7/CLASS5-START-HERE.md`](docs/audits/2026-09-02-s1-money-pass7/CLASS5-START-HERE.md)**.
+**Read it before touching anything**: it carries the verify-first commands, the five corrections `.5.1`
+measured against the code, the traps that cost class 4 five rounds, and one open item (`R5-2`) that is
+filed rather than fixed. The triage as a whole is 137 findings in 12 classes, driven by
+[`CLASSIFICATION.md`](docs/audits/2026-09-02-s1-money-pass7/CLASSIFICATION.md).
+
+✅ **CLASS 4 CLOSED 2026-09-06** after five `[D79]` re-audit rounds. ⛔ **The loop was STOPPED by 🎯 rather
+than exhausted** — the same call made for class 1: findings reaching *outside* the instrument stack went
+**2 → 1 → 1**, and the last two rounds found **only** defects the previous round's fixes had created.
+⚡ **The three that reached users are fixed and guarded**: a heads-up claiming **$100** against a **$75**
+reserve · *"Freed $50/mo"* where a weekly debt frees **$216.67** · *"Freed $600/mo"* for a one-time plan
+that frees nothing recurring. ⛔ **One line was wrong three times** because its guard was a LIST; its
+population is now **derived from `Record<Recurrence, number>`**, so a new member is a typecheck error.
 The lines below naming `S1.11.4`, `S1.12.4` and `S1.13.7.9` are archaeology; **ask the plan, never this
 file, what is being built.** Their *lessons* are current and are why they are kept.
 ⛔ **Pass-6 and pass-7 finding ids COLLIDE** — 14 ids name one live finding and one closed one. A bare id in
