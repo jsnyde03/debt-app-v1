@@ -2089,7 +2089,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-06",
-      "sha": "6bda8efa"
+      "sha": "9b251b3b"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2408,7 +2408,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-06",
-      "sha": "8876c349"
+      "sha": "9b251b3b"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2822,7 +2822,7 @@
       "run": "test:app",
       "expect": "an UNREAD balance repaired to $0 is still live",
       "measured": "2026-09-06",
-      "sha": "42c7504c"
+      "sha": "9b251b3b"
     }
   },
   "S1P6-C1-18-RENDERERVALUE": {
@@ -3476,7 +3476,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-06",
-      "sha": "8876c349"
+      "sha": "9b251b3b"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-06",
-      "sha": "8876c349"
+      "sha": "9b251b3b"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -4064,7 +4064,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [R3-3-borrow]",
       "measured": "2026-09-06",
-      "sha": "8876c349",
+      "sha": "9b251b3b",
       "proofNote": "ANCHOR RE-DERIVED in round 4: R4-3's fix rewrote this very line, voiding both the token and the un-fix - the same shape as R3-2 voiding R2-1-CAP one round earlier. Re-RUN, not merely re-anchored: a recorded measurement must describe the plant the entry now performs."
     }
   },
@@ -4136,7 +4136,7 @@
       "run": "test:app",
       "proofNote": "The earlier assertion at payoffCelebration.test.ts:54 also reads `freed`, but on a MONTHLY debt, so it is green under this un-fix and does not pre-empt the red. The row that fires is this entry's own weekly one. The monthly row inside the R3-4 block is the CONTROL - exact under both the old and new producer - so it is what proves the error axis is cadence.",
       "measured": "2026-09-06",
-      "sha": "42c7504c"
+      "sha": "9b251b3b"
     }
   },
   "S1P7-R4-1-ONETIMELUMP": {
