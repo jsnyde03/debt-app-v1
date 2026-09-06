@@ -1,0 +1,869 @@
+/**
+ * [D67] — A CLOSED FINDING NEEDS A STANDING GUARD, OR IT IS NOT CLOSED.
+ *
+ * ⚡ **Why this exists.** 🎯 2026-08-26 asked whether each audit pass handles **all** prior findings. It
+ * did not: **coverage ratcheted forward in this project and findings did not** — a pass only ever
+ * re-checked the pass before it, while one intervening commit edited **nine gates**. Several S0 closures
+ * were proven by **a plant that ran once and was deleted**, which leaves nothing behind. Pass 4's guard
+ * inventory then measured the backlog: **37 findings · 11 guarded · 18 gaps · 8 n/a.**
+ *
+ * ⛔ **THE SHAPE IS `check-copy-owners`, APPLIED TO FINDINGS.** That gate pins *"this file must still
+ * reference this owner"*; this one pins *"this finding must still have this guard."* A registry that only
+ * grows, and a finding with no guard needs a **written reason** rather than silence.
+ *
+ * ⚠️ **A GUARD IS NAMED BY A TOKEN, NOT BY A FILE PATH — and the difference is the whole gate.** "The file
+ * still exists" is worth nothing: the assertion inside it is what guards the finding, and deleting the
+ * assertion leaves the file in place. So each entry names a distinctive string that must still be present,
+ * chosen to be the thing that makes it a guard — a floor constant, a diagnostic sentence, a function name.
+ * ⛔ **This is the `tested-helper-is-not-a-used-helper` lesson**: the clamp existed, was correct, and was
+ * tested while the defect shipped, because what was missing was the *call*.
+ *
+ * ⚠️ **`unguarded` is a first-class state, deliberately.** 18 of pass 4's 37 findings have no standing
+ * guard, and a gate that refused to acknowledge that would simply be turned off. Each carries a reason
+ * and a pointer; **the count of them may only go DOWN.**
+ *
+ * Usage: npm run lint:finding-guards
+ */
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+// ⛔ S1.11.6.0 — ONE producer for anchor matching, shared with prove-guards.ts. See lib/anchor.ts for
+// what a per-file normaliser cost: this gate was red in CI for six pushes while reading green locally.
+import { anchorCount } from './lib/anchor';
+// ⛔ `U11` — the same producer `unreadInputsCopy.test.ts` uses. A guard token is a sentence, and a
+// sentence is the most wrappable thing in the repo; asking one physical line was the whole defect.
+import { joinAllLines, joinCodeLines, normaliseFragment } from './lib/joinedCode';
+// ⛔ `W1` - refuse a file whose comments survived the strip; see the note at the call site.
+import { stripCommentsOnly } from './lib/stripCode';
+import { join } from 'node:path';
+
+const REPO_ROOT = join(import.meta.dirname, '..');
+/**
+ * ⛔ **S1.9.4 [pass-2 B-1] — THE REGISTRY IS AN INPUT, so that this gate can be PLANTED like any other.**
+ *
+ * ⚡ Seven registry entries were pinned by an identifier inside a gate script's own logic, and **all seven
+ * stayed green with the defect restored** — three of them the fixes to THIS file, the gate that certifies
+ * all of them. A token proves an identifier is present; it cannot prove the gate still refuses anything.
+ * `test-gate-plants` is what proves that, and it needs to hand this script an input of its own.
+ *
+ * ⚠️ **A flag, not an environment variable**, deliberately: it is visible in the command line a human or a
+ * CI log shows, and `--working-tree` / `--surface=` already established the idiom here. The npm script
+ * passes nothing, so the real registry is what CI reads.
+ */
+const REGISTRY = join(
+  REPO_ROOT,
+  process.argv.find((a) => a.startsWith('--registry='))?.split('=')[1] ?? 'scripts/finding-guards.json',
+);
+
+interface Entry {
+  /** what the finding was, in one line — so a failure explains itself without opening the audit */
+  what: string;
+  /** repo-relative file holding the guard */
+  file?: string;
+  /** the string that must still be in that file — the assertion, not the filename */
+  token?: string;
+  /** set instead of file/token when nothing guards it yet; must say why and where it is tracked */
+  unguarded?: string;
+  /**
+   * ⛔ **S1.11.3.2 — THE TOKEN IS A DELETION DETECTOR AND THIS IS THE CLOSURE PROOF.** `prove:guards`
+   * plants the finding's own defect and requires the named command to red for the named reason. What is
+   * checked HERE is only the half a static gate can check: that the un-fix's anchor still matches the
+   * file **exactly once**, so a recorded measurement cannot outlive the line it was measured against.
+   */
+  /**
+   * ⚠️ **`measured`/`sha` were absent from THIS declaration while `prove-guards.ts` declared them** — one
+   * shape, two hand-written types, and the half that gates was the half that could not see the evidence
+   * fields. That is why the ratchet here counted authored blocks as proven for three passes (D5-1): the
+   * gate could not have read `measured` even if it had wanted to.
+   */
+  proof?: {
+    unfix: { at: string; find: string; replace: string }[];
+    run?: string;
+    cmd?: string[];
+    /**
+     * ⛔ **OPTIONAL, and it was `string` here while `prove-guards.ts` made it optional — the SAME
+     * "one shape, two hand-written types" defect recorded above for `measured`/`sha`, re-created in the
+     * other direction one round later.** [class 4 round-3 `R3-3`] The two halves must agree or an entry
+     * type-checks in the harness that runs it and not in the gate that audits it.
+     */
+    expect?: string;
+    /**
+     * ⛔ **WHY THIS ENTRY'S RED IS A NEIGHBOUR'S.** [class 4 round-3 `R3-3`] Carried by 11 entries and
+     * **declared in no type at all** until now — it lived only inside a sentence describing it, so the
+     * gate could not have read it. Its absence is what the borrow check below refuses.
+     */
+    proofNote?: string;
+    /** ISO date the proof last PASSED, and the sha it passed on — written by a passing `prove:guards` run */
+    measured?: string;
+    sha?: string;
+  };
+  /**
+   * ⚠️ **NOT PROVEN TO RED — stated rather than implied.** Either the guard was measured to survive its
+   * own un-fix, or nothing here can plant it. Both are the same fact about the record: this entry's
+   * `CLOSED` rests on a token. The text must carry the measurement, and **the count only goes DOWN.**
+   */
+  guardOnly?: string;
+}
+
+/**
+ * Is the guard token still present — as a WHOLE identifier, not as a substring?
+ *
+ * ⛔ **THIS GATE FAILED OPEN ON ITS OWN CORE CASE, and the catch is recorded rather than tidied away.**
+ * The first cut used `text.includes(token)`. Plant-verified by renaming `MIN_SCENARIOS` →
+ * `MIN_SCENARIOS_RENAMED`: the guard was gone, **and the gate passed**, because the old name is still a
+ * substring of the new one. ⚡ **The fix for the fail-open class carried the fail-open class** — which is
+ * the standing warning *"expect the fixer's own work to carry the defect it was closing,"* now observed
+ * for the fourth time in this cluster and the first time in my own.
+ *
+ * ⚠️ An identifier-shaped token is matched on word boundaries; a sentence token (which cannot be renamed
+ * into a longer identifier) keeps plain containment.
+ */
+/**
+ * ⛔ S1.5.4 [M6] — THE BOUNDARY IS PER-END, NOT PER-TOKEN-SHAPE, and the old rule fixed only half its own
+ * registry.
+ *
+ * The word-boundary branch was reached **only** when the WHOLE token matched `/^[\w$]+$/`. A token holding
+ * a space or a hyphen fell back to `text.includes` — the exact implementation the paragraph above records
+ * this gate already failing open on. Measured on three live entries, all identifier-PREFIXED (a keyword
+ * plus a name that can grow):
+ *
+ *     `function isClamp`          → `function isClampLegacy`   GREEN, guard gone
+ *     `export function selfCheck` → `export function selfCheckAll`  GREEN, guard gone
+ *     `cat-file`                  → `cat-file-batched`         GREEN
+ *
+ * ⚠️ **The question is not "does the token contain a space."** It is *"could this token still be a
+ * substring of the renamed thing"* — which is a property of each END. A token that ENDS in a name
+ * character needs a trailing boundary; one that BEGINS with a name character needs a leading one. A
+ * sentence token gets neither and keeps plain containment, which is correct: a sentence cannot be renamed
+ * into a longer identifier.
+ *
+ * ⚠️ **A kebab-case name grows across a hyphen**, so for a token containing one the name charset must
+ * include `-` — otherwise `cat-file` still matches `cat-file-batched`, since `-` is not a `\w`.
+ */
+function present(text: string, token: string): boolean {
+  const nameChars = token.includes('-') ? '\\w$\\-' : '\\w$';
+  const startsWithName = new RegExp(`^[${nameChars}]`).test(token);
+  const endsWithName = new RegExp(`[${nameChars}]$`).test(token);
+  if (!startsWithName && !endsWithName) return text.includes(token);
+  const lead = startsWithName ? `(?<![${nameChars}])` : '';
+  const tail = endsWithName ? `(?![${nameChars}])` : '';
+  return new RegExp(`${lead}${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${tail}`).test(text);
+}
+
+const registry = JSON.parse(readFileSync(REGISTRY, 'utf8')) as Record<string, Entry>;
+const ids = Object.keys(registry);
+
+/**
+ * ⛔ **BOTH FLOORS MOVE ONE WAY ONLY.** `MIN_ENTRIES` may only rise — a finding dropping out of the
+ * registry is how a closure stops being tracked. `MAX_UNGUARDED` may only fall — it is the S0.13 backlog
+ * draining. ⚠️ Raising `MAX_UNGUARDED` to make a run pass is the defect this file exists to catch.
+ */
+// ⚠️ 267 → 268 at S1.13.7.12.6: `S1P7-CLASS1-LOGICALJOIN`, class 1's line-wrap escape.
+/**
+ * ⚠️ **268 → 280 at round 5** — the twelve class-1 re-audit-4 guards, landed as a batch.
+ * **280 → 281 at round 6** — `S1P7-U1-INTERPOLATION-IS-CODE`, the guard `V1` found missing.
+ *
+ * ⛔ **This note is what the floor is FOR, and it was off by eleven.** [`V10`] It was written on the
+ * first raise, when the count really was 269, and the remaining eleven raises moved the number and not
+ * the sentence — the same *edit the value, leave the sentence* shape as `U14` and `U16`, in the file
+ * that carries those findings' neighbours. `check-cap-literals` reads cap LITERALS, not the prose
+ * beside them, so nothing mechanical compared the two. One line per ROUND now, not per commit.
+ */
+const MIN_ENTRIES = 302;
+const MAX_UNGUARDED = 1;
+
+/**
+ * ⛔ **S1.11.3.2 — THE TWO NUMBERS THAT SAY HOW MUCH OF THIS REGISTRY IS EVIDENCE.**
+ *
+ * ⚡ Pass 4's result was not a defect: it was that **this gate exited 0 over every un-fix four auditors
+ * performed.** Eight registered guards were proven to survive their own un-fix and 35 more had never been
+ * tested by anyone — so `CLOSED` and `OPEN` were indistinguishable in the record, which invalidates
+ * counts rather than adding to them.
+ *
+ * `MAX_UNPROVEN` — nobody has ever made this guard red. `MAX_GUARD_ONLY` — somebody tried and it did not.
+ * ⛔ **Both only go DOWN, strictly**, the `MIN_ENTRIES` idiom: a new closure that arrives without a proof
+ * pushes the count over its cap and reds *at the moment it is written*, which is the only moment the
+ * un-fix is cheap to derive. ⚠️ **Raising either to make a run pass is the defect this pair exists to
+ * catch** — and it is the same move as raising `MAX_UNGUARDED`.
+ */
+const MAX_UNPROVEN = 119;
+const MAX_GUARD_ONLY = 0;
+/**
+ * ⛔ **D5-1's ratchet: proof blocks that have never been executed. Only ever goes DOWN.**
+ *
+ * ⚠️ **THIS ONE DRAINS MECHANICALLY, AND THAT MAKES IT DIFFERENT FROM ITS SIBLINGS.** `MAX_UNPROVEN` and
+ * `MAX_UNGUARDED` change only when a human edits JSON, so strict equality costs nothing. This count falls
+ * whenever `prove:guards` **passes** — so the first successful run after the cap is set reds this gate,
+ * and every gate that invokes it as a control reds with it.
+ *
+ * ⚡ **Measured, not predicted: it happened on the first batch.** Draining 66 → 17 turned
+ * `lint:finding-guards` red mid-run, and `test:gate-plants` — which runs it as a control in four
+ * scenarios — reported `control=exit 1`, which surfaced as a **false `control-red`** on
+ * `S1P4-D4-12-LEDGERCLAIM`: a sound proof reported broken by a gate reacting to its own siblings' success.
+ *
+ * ⛔ **SO THIS ONE IS A CEILING, AND THE DEVIATION IS DELIBERATE.** Its siblings are strict-equality
+ * because *"a cap above its own count is slack the next un-evidenced entry hides in"* — and that argument
+ * still holds for a counter a human moves. It does not survive a counter that a **command** moves: strict
+ * equality here means the gate is red for the whole interval between running a proof and editing this
+ * line, and during a fixing session that is most of the time. ⚡ **Measured twice in one session** — first
+ * the 66 → 17 batch, then again at 17 → 13, where it surfaced as a nested `control=exit 1` inside
+ * `test:gate-plants` and read as a defect in an unrelated proof.
+ *
+ * ⚠️ **What is given up, stated exactly:** a NEW authored entry can hide in the gap between this cap and
+ * the drained count. What still catches it: `MAX_UNPROVEN` is strict and downward-only, so a new closure
+ * arriving without a proof reds at the moment it is written — and a new closure arriving WITH one is the
+ * case this cap was never the last line of defence for. **The direction that matters — authored going UP —
+ * still reds.** ⛔ Lower it whenever `prove:guards` prints the nudge; it exists to keep the gap small.
+ */
+const MAX_AUTHORED = 9;
+
+/**
+ * ⛔ S1.5.4 [M8] — DUPLICATE KEYS, because `JSON.parse` silently keeps the LAST of any repeated id.
+ *
+ * Two entries sharing an id drop one and lower the count with nothing to show for it. That was invisible
+ * while the floor carried slack; under strict equality it would red for the wrong reason, and a gate that
+ * reds with a misleading message is worse than one that does not red at all. Counted off the raw text,
+ * because the parsed object is exactly what cannot see this.
+ */
+/**
+ * ⛔ S1.5.4 [M7] — THE TOKEN MUST SURVIVE ON A LINE OF CODE, not on a comment about the code.
+ *
+ * Measured across the whole registry, not sampled: delete every non-comment line carrying the token and
+ * **five entries stayed GREEN**, each held up by a docstring sentence alone. `GUARDED-5` was the sharpest
+ * — `GAP-2` already records that deleting an invariant from `INVARIANTS` is silent, so the two holes
+ * composed into a fully silent removal of an invariant, with `lint:rn` green throughout.
+ *
+ * ⚠️ **A comment is a claim; an assertion is a guard.** The gate exists because *"the file survived; the
+ * assertion inside it did not"* — and prose describing an assertion is exactly the shape that survives
+ * the assertion's deletion.
+ *
+ * ⚠️ **Line-based, and honest about it:** a `//` line, a `*` continuation, and anything inside a `/* … *​/`
+ * block are comments. That misses a token trailing real code on the same line as a comment — but it errs
+ * toward calling a line CODE, so the check never reds a genuine guard.
+ */
+const isCommentLine = (l: string) => /^\s*(?:\/\/|\*|\/\*)/.test(l);
+
+/**
+ * ⛔ **ASKED OF THE FILE, NOT OF ONE PHYSICAL LINE — a wrapped guard used to report as a DELETED guard.**
+ * [class-1 re-audit 4 `U11`, major]
+ *
+ * ⚡ **Measured on `S1P1-B1-OWNER`.** Its token is a sentence —
+ * `Today must NOT reach the debt-free celebration` — and a guard token is the single most wrappable
+ * thing in this repo. Prettier's ordinary output for that assertion, `'… debt-free ' + 'celebration'`,
+ * left the assertion intact and this gate said **`the guard is gone`**, `267 → 266` guarded. The noisy
+ * direction, in the instrument that decides whether every finding in the audit is closed, with
+ * `MAX_UNGUARDED` capped at 1 and no allow-list to absorb it.
+ *
+ * ⚠️ The block-comment scan that used to live here moved into {@link joinCodeLines} intact — it is the
+ * stronger of the two producers that were answering this question separately, and it is now the only one.
+ */
+function presentInCode(text: string, token: string): boolean {
+  return present(joinCodeLines(text).text, normaliseFragment(token));
+}
+
+/**
+ * ⛔ **TOP-LEVEL KEYS, FOUND STRUCTURALLY — NOT BY AN INDENT ANCHOR.** [pass-7 `D1-9`]
+ *
+ * This was `matchAll(/^\s{2}"([^"]+)":/gm)` — an exact-**two**-space anchor. Under a four-space indent it
+ * found **zero keys**, so the duplicate detector could never fire, and a duplicated id silently overwrites
+ * a registered closure's guard with another entry's body while the ledger still reads `CLOSED`. Measured
+ * on two byte-identical registries differing only in indent width: 2-space **exit 1** naming the dupe,
+ * 4-space **exit 0** with the duplicate not mentioned at all.
+ *
+ * ⚠️ **`\s+` would be the WRONG fix and it is the obvious one.** Every `proof` block contains nested keys
+ * (`"at"`, `"find"`, `"replace"`, `"run"`, `"expect"`), so a depth-blind pattern reports them as duplicates
+ * across entries — a remedy that introduces a defect louder than the one it describes. Depth is the thing
+ * that actually matters, so depth is what this measures.
+ *
+ * ⛔ Same family as `D1-3`/`D1-6`/`D1-7`: **a matcher pinned to how the text is LAID OUT rather than to
+ * what it MEANS.** Here the layout is indentation instead of line breaks.
+ */
+function topLevelKeys(raw: string): string[] {
+  const keys: string[] = [];
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let current = '';
+  for (let i = 0; i < raw.length; i++) {
+    const c = raw[i];
+    if (inString) {
+      /**
+       * ⛔ **THE RAW TEXT IS KEPT AND DECODED BY `JSON.parse`, NOT BY THIS LOOP** — class-1 re-audit `R8`.
+       * The first version dropped the backslash and appended the next character, so `"A"` became the
+       * five characters `u0041` where `JSON.parse` gives `A`. A duplicate id spelled with an escape was
+       * therefore invisible — **`D1-9`'s defect in a third spelling, inside `D1-9`'s own fix.**
+       */
+      if (escaped) {
+        escaped = false;
+        current += c;
+      } else if (c === '\\') {
+        escaped = true;
+        current += c;
+      } else if (c === '"') {
+        inString = false;
+        let j = i + 1;
+        while (j < raw.length && /\s/.test(raw[j])) j++;
+        // A string at depth 1 followed by `:` is a key of the registry object itself.
+        if (depth === 1 && raw[j] === ':') {
+          try {
+            keys.push(JSON.parse(`"${current}"`) as string);
+          } catch {
+            // Undecodable text is not a key JSON.parse would accept either; keep it raw so a malformed
+            // registry surfaces as a mismatch rather than being silently dropped.
+            keys.push(current);
+          }
+        }
+        current = '';
+      } else {
+        current += c;
+      }
+      continue;
+    }
+    if (c === '"') inString = true;
+    else if (c === '{' || c === '[') depth++;
+    else if (c === '}' || c === ']') depth--;
+  }
+  return keys;
+}
+
+/**
+ * ⛔ **THE DETECTOR IS ASSERTED ON FIXTURES EVERY RUN** — class-1 re-audit `R14`.
+ *
+ * A duplicate detector that finds nothing looks identical whether the registry is clean or the detector is
+ * blind, and this one has been blind twice: under a **four-space indent** (`D1-9`, the two-space anchor)
+ * and under a **`\uXXXX`-escaped key** (`R8`, decoding differently from `JSON.parse`). Both were measured
+ * green over a registry holding a real duplicate. These rows cost microseconds and fail closed.
+ */
+{
+  const body = '{"a":1}';
+  const cases: [string, string][] = [
+    ['two-space', `{\n  "X": ${body},\n  "X": ${body}\n}`],
+    ['four-space', `{\n    "X": ${body},\n    "X": ${body}\n}`],
+    ['tab', `{\n\t"X": ${body},\n\t"X": ${body}\n}`],
+    ['escaped key', `{\n  "\\u0058": ${body},\n  "X": ${body}\n}`],
+    ['nested keys must NOT count', `{\n  "X": {"at": 1, "find": 2},\n  "Y": {"at": 3, "find": 4}\n}`],
+  ];
+  for (const [label, text] of cases) {
+    const ks = topLevelKeys(text);
+    const dupe = ks.filter((k, i) => ks.indexOf(k) !== i).length > 0;
+    const want = label !== 'nested keys must NOT count';
+    if (dupe !== want) {
+      console.error(
+        `\n❌ finding-guards: the duplicate detector is BLIND to the "${label}" case.\n` +
+          `  Expected a duplicate to be ${want ? 'FOUND' : 'NOT found'}; keys were ${JSON.stringify(ks)}.\n` +
+          '  ⛔ A detector that finds nothing reads the same whether the registry is clean or the check is\n' +
+          '  broken — which is exactly how D1-9 and R8 each survived a pass.\n',
+      );
+      process.exit(1);
+    }
+  }
+}
+
+const rawRegistry = readFileSync(REGISTRY, 'utf8');
+const keyLines = topLevelKeys(rawRegistry);
+const dupes = keyLines.filter((k, i) => keyLines.indexOf(k) !== i);
+
+const problems: string[] = [];
+let guarded = 0;
+const unguarded: string[] = [];
+/** ⭐ carries a proof that HAS BEEN EXECUTED — `measured` + `sha` written by a passing `prove:guards` run */
+const proven: string[] = [];
+/** ⛔ carries a proof block that has NEVER been run. A plan to measure is not a measurement (D5-1). */
+const authored: string[] = [];
+/** the token stands and nothing proves it reds — measured, or unplantable; both are the same hole */
+const guardOnly: string[] = [];
+/** nobody has ever made this guard red */
+const unproven: string[] = [];
+
+for (const [id, e] of Object.entries(registry)) {
+  if (e.unguarded) {
+    if (!e.unguarded.trim()) problems.push(`${id} — marked unguarded with an empty reason`);
+    unguarded.push(id);
+    continue;
+  }
+  if (!e.file || !e.token) {
+    problems.push(`${id} — neither a guard (file + token) nor a written reason for having none`);
+    continue;
+  }
+  const abs = join(REPO_ROOT, e.file);
+  if (!existsSync(abs)) {
+    problems.push(`${id} — guard file is GONE: ${e.file}  (${e.what})`);
+    continue;
+  }
+
+  const text = readFileSync(abs, 'utf8');
+  /**
+   * ⛔ **REFUSE A FILE THE SCANNER FAILED TO CLOSE, rather than answering the guard question over it.**
+   * [class-1 re-audit 6 `W1`, blocker]
+   *
+   * ⚡ An unrecognised regex literal opened a runaway in `check-scan-floors.ts`, so `stripCommentsOnly`
+   * returned five comment lines **as code** — and this gate certified a guard whose assertion had been
+   * deleted and whose token survived only in a `//` comment. `✅ 280 of 281`, exit 0.
+   *
+   * ⚠️ **This is defence in depth, not the fix** — `W1`'s cause is repaired in `stripCode.ts`. But the
+   * scanner is a heuristic over constructs it enumerates, and its own header says so; this gate should
+   * not be the thing that discovers the next gap by silently believing it. A surviving `//` is a cheap,
+   * unambiguous signature of a strip that did not complete.
+   */
+  const unstripped = stripCommentsOnly(text)
+    .split('\n')
+    .filter((l) => l.trim().startsWith('//')).length;
+  if (unstripped > 0) {
+    problems.push(
+      `${id} — the comment scanner did not close ${e.file}: ${unstripped} line(s) survive the strip as code.\n` +
+        '        ⛔ W1 — a guard token sitting in one of those comments would read as CODE, and this gate\n' +
+        '        would certify a deleted guard. Fix the scanner (an unrecognised regex literal opens a\n' +
+        '        runaway) rather than answering the guard question over a file it could not parse.',
+    );
+    continue;
+  }
+  // ⛔ `U11` - welded, comments KEPT: this asks whether the token is in the file at all, and the
+  // *next* check is the one that decides comment-versus-code. A wrapped token failed HERE first.
+  if (!present(joinAllLines(text).text, normaliseFragment(e.token))) {
+    problems.push(
+      `${id} — the guard is gone from ${e.file}: no ${JSON.stringify(e.token)}  (${e.what})\n` +
+        '        the file survived; the assertion inside it did not, which is the shape this gate exists for',
+    );
+    continue;
+  }
+  /**
+   * ⛔ **S1.10.6.5.4 [pass-3 D3-3] — A TOKEN THAT *DECLARES* A VALUE SURVIVES THE LINE THAT *USES* IT.**
+   *
+   * ⚡ `S1P2-B1-REASON` guarded `B-1`'s own fix and was **green with that fix's defect restored**: its token
+   * named `const rightReason = …`, and the un-fix is deleting `&& rightReason` from the line below, which
+   * leaves the declaration untouched. ⛔ **[M7] cannot see this** — the token IS on a line of code, just
+   * not the line that would have to change.
+   *
+   * ⚠️ **Swept registry-wide rather than repaired one entry at a time — the finding's own instruction —
+   * and the sweep returned THIRTEEN**, two of them written the same day as this check: the liveness cap in
+   * `check-trust-claims.ts`, and the guard for `A3` three sub-steps earlier.
+   *
+   * The rule is mechanical and exact: if the token line declares an identifier that appears on any other
+   * code line in the same file, the declaration can outlive every use. ⛔ **No cap and no ledger — this
+   * one is simply zero**, because unlike a coverage backlog there is no such thing as a legitimately
+   * mis-pointed token.
+   */
+  /**
+   * ⛔ `U11` — THE TOKEN IS LOCATED IN THE JOINED TEXT AND MAPPED BACK, because a wrapped token is on no
+   * single physical line and `find` then returned `''`, silently skipping this check entirely. The
+   * declaration test itself still runs against the ORIGINAL line: `^\s*(?:export\s+)?const` is an anchor,
+   * and an anchor means nothing in text that has had its line breaks welded out.
+   */
+  const joined = joinCodeLines(text);
+  const tokenAt = joined.text.indexOf(normaliseFragment(e.token!));
+  const sourceLines = text.split(/\r?\n/);
+  const declLine = tokenAt < 0 ? '' : (sourceLines[joined.lineAt(tokenAt) - 1] ?? '');
+  const decl = /^\s*(?:export\s+)?(?:const|let|var|(?:async\s+)?function)\s+([A-Za-z_$][\w$]*)/.exec(declLine);
+  if (decl) {
+    const name = decl[1];
+    const usedElsewhere = text
+      .split(/\r?\n/)
+      .some((l) => !present(l, e.token!) && !isCommentLine(l) && new RegExp(`\\b${name}\\b`).test(l));
+    if (usedElsewhere) {
+      problems.push(
+        `${id} — the token DECLARES ${JSON.stringify(name)} and another line USES it: ${JSON.stringify(e.token)}\n` +
+        '        a declaration outlives its use, so an un-fix that deletes the USE leaves this token in place.\n' +
+        '        Point it at the line that would have to change — the comparison, the call, the assertion.',
+      );
+      continue;
+    }
+  }
+  // ⛔ S1.5.4 [M7] — present, but only in prose. See `presentInCode`.
+  if (!presentInCode(text, e.token)) {
+    problems.push(
+      `${id} — the guard token appears in ${e.file} ONLY IN A COMMENT: ${JSON.stringify(e.token)}  (${e.what})\n` +
+        '        a comment describing an assertion survives that assertion being deleted, so it guards nothing.\n' +
+        '        Point the token at the assertion itself — the line that would have to change for the defect to return.',
+    );
+    continue;
+  }
+  guarded++;
+
+  /**
+   * ⛔ **S1.11.3.2 — A PROOF IS VOID WHEN ITS ANCHOR IS GONE, and that is the ONE part of it a static
+   * gate can decide.** `prove:guards` re-runs the plant; this only asks whether the un-fix it recorded
+   * still describes this file. ⚡ An anchor matching **zero** times is a measurement about bytes that no
+   * longer exist — `remembered-gate-result-is-unrun` with a JSON wrapper. Matching **twice** is worse
+   * than useless: the plant would restore one of two sites and the verdict would be about that.
+   */
+  if (e.proof && e.guardOnly) {
+    problems.push(`${id} — carries BOTH a proof and a guardOnly note. It is one or the other: proven to red, or not.`);
+    continue;
+  }
+  if (e.proof) {
+    let void_ = false;
+    for (const u of e.proof.unfix) {
+      const target = join(REPO_ROOT, u.at);
+      if (!existsSync(target)) {
+        problems.push(`${id} — its proof un-fixes ${u.at}, which no longer exists. The proof is VOID.`);
+        void_ = true;
+        continue;
+      }
+      // ⛔ S1.11.6.0 — NORMALISED ON BOTH SIDES. A multi-line anchor carrying CRLF matched on a Windows
+      // working tree and 0× in CI's LF checkout, so this gate was red in CI for six consecutive pushes
+      // while reading green locally — and it reds as "the proof is VOID", which looks like staleness.
+      // `prove-guards.ts` normalises identically; the two must agree or a proof passes one and not the other.
+      const n = anchorCount(readFileSync(target, 'utf8'), u.find);
+      if (n !== 1) {
+        problems.push(
+          `${id} — its proof's anchor matches ${n}× in ${u.at}: ${JSON.stringify(u.find)}\n` +
+            '        the proof is VOID, not merely stale: it was measured against a line this file no longer has\n' +
+            '        exactly once. Re-derive the un-fix, re-run `npm run prove:guards -- --id=' + id + '`.',
+        );
+        void_ = true;
+      }
+    }
+    /**
+     * ⛔ **AN ENTRY "PROVEN" BY A RED ON A NEIGHBOUR'S ASSERTION.** [class 4 round-3 `R3-3`]
+     *
+     * `lint:finding-guards` proves the `token` still exists in the named file; `prove:guards` proves the
+     * planted run printed `expect`. **Nothing joined the two**, so three class-4 entries shared one plant
+     * and one red while two of them registered an `expect` that was merely a substring of a SIBLING's
+     * label. Round 2 defaulted `expect` to the entry's own token, which fixes the entries that omit it —
+     * and then documented a refusal for the ones that do not, **which was never built.**
+     *
+     * ⛔ **THE DOCUMENTED RULE — "refuse an `expect` that is not a substring of the token" — REDS 84
+     * LEGITIMATE ENTRIES**, measured. For most of the registry the `token` is a *code fragment* that must
+     * survive in a file and the `expect` is the *message a run prints*: two different kinds of string by
+     * design, and the token can never appear in run output at all.
+     * ⚠️ **The proposed narrowing — "only when the token is label-shaped" — still reds 30**, also measured.
+     * A shape heuristic cannot separate them because the shapes genuinely overlap.
+     *
+     * ⭐ **So refuse the DEFECT rather than a proxy for it.** A borrow is mechanically derivable: the
+     * `expect` is not in this entry's own token **and is** in another entry's. That is exactly the thing
+     * `R2-6` described, it needs no heuristic, and it reds **4** entries — the four known borrows, all of
+     * which already disclose it in `proofNote`. **0 undisclosed today, and a new borrow reds the moment
+     * it is written.**
+     */
+    /**
+     * ⛔ **THE WAIVER MUST NAME WHAT IT WAIVES.** [round-4 `R4-3`] The first cut tested `proofNote`
+     * *before* computing the lenders, so **any** non-empty note waived the check unconditionally — and a
+     * borrow introduced into such an entry later would never red, because a borrowed `expect` returns
+     * `reason=MATCHED` by construction in the other harness too. ⚠️ **Exposure was 4 entries, not the 10
+     * the report states**: the other notes sit on entries with no explicit `expect`, whose expectation
+     * defaults to their own token and so can never enter this branch. **Fire-count of the tightening,
+     * measured before it was written: 0** — all four real borrows already name their lender.
+     */
+    const expect = e.proof.expect;
+    if (expect !== undefined && !e.token.includes(expect)) {
+      const lenders = Object.entries(registry)
+        .filter(([other, oe]) => other !== id && oe.token?.includes(expect))
+        .map(([other]) => other);
+      const note = e.proof.proofNote ?? '';
+      const waived = lenders.some((l) => note.includes(l) || note.includes(l.replace(/^S1[A-Z0-9]*-/, '').replace(/^CLASS4-/, '')));
+      if (lenders.length && !waived) {
+        problems.push(
+          `${id} — its proof's \`expect\` is not in its own token, and IS in ${lenders.join(', ')}.\n` +
+            `        ${JSON.stringify(expect)}\n` +
+            '        That is a red on a NEIGHBOUR\'S assertion: the plant fires, the sibling fails, and this\n' +
+            '        entry is recorded proven without its own assertion ever being reached. Either point\n' +
+            '        `expect` at this entry\'s own assertion, or NAME the lender in `proofNote` and say why\n' +
+            '        this finding has no assertion of its own. A note that does not name it does not waive it.',
+        );
+      }
+    }
+
+    // ⛔ **S1.12.5.1 [pass-5 D5-1] — AUTHORED IS NOT EXECUTED, AND THIS GATE COUNTED THEM AS ONE.**
+    // A proof block whose anchor still matches is a *plan to measure*. `measured`/`sha` are the only
+    // evidence it was ever RUN — and when pass 5 looked, **66 of 66 read `never run`**, because the
+    // only writer was a `--record` flag nothing invoked. So `MAX_UNPROVEN` drained as JSON was written.
+    // ⚠️ The two counts are ratcheted separately below; collapsing them again restores the hole.
+    if (!void_) (e.proof.measured ? proven : authored).push(id);
+  } else if (e.guardOnly) {
+    if (!e.guardOnly.trim()) problems.push(`${id} — marked guardOnly with an empty measurement`);
+    guardOnly.push(id);
+  } else {
+    unproven.push(id);
+  }
+}
+
+if (dupes.length) {
+  problems.push(
+    `duplicate id(s) in the registry: ${[...new Set(dupes)].join(', ')} — JSON.parse keeps only the LAST, ` +
+      'so one finding is silently untracked and the count is short by one.',
+  );
+}
+
+/**
+ * ⛔ S1.5.4 [M8] — BOTH FLOORS ARE STRICT EQUALITY NOW, and the slack was ten entries wide.
+ *
+ * `MIN_ENTRIES` was 24 against a 34-entry registry, checked with `<`. All six S1 guard entries — blocker
+ * #1 among them — plus four `REVERIFY4-*` could be deleted in one edit with the gate green. The docstring
+ * above already said the floor may only rise; nothing made it rise, and nothing redded when the count
+ * exceeded it. ⚠️ `MAX_UNGUARDED` was `>`, so it acquires the identical slack the moment one backlog entry
+ * is guarded.
+ *
+ * ⚡ **Its sibling in the same commit range does this correctly, which is what made it a defect rather
+ * than a style choice:** `check-committed-secrets.ts` uses `!==` on `MAX_EXEMPT` and reds in BOTH
+ * directions, with a message telling the human to lower the cap.
+ *
+ * ⚠️ Strict equality means adding a guard is a two-line edit — the entry, and the number. That friction is
+ * the feature: it is the moment a human confirms the registry grew on purpose.
+ */
+if (ids.length !== MIN_ENTRIES) {
+  problems.push(
+    ids.length < MIN_ENTRIES
+      ? `the registry holds ${ids.length} findings; ${MIN_ENTRIES} are expected. Entries were REMOVED — ` +
+        'a finding dropping out is how a closure stops being tracked. Do not lower the floor.'
+      : `the registry holds ${ids.length} findings and MIN_ENTRIES is ${MIN_ENTRIES}. Raise it to ` +
+        `${ids.length} in the same edit that added the entr${ids.length - MIN_ENTRIES === 1 ? 'y' : 'ies'} — ` +
+        'a floor that trails the count is slack a deletion can hide in.',
+  );
+}
+if (unguarded.length !== MAX_UNGUARDED) {
+  problems.push(
+    unguarded.length > MAX_UNGUARDED
+      ? `${unguarded.length} findings are unguarded; the cap is ${MAX_UNGUARDED} and it only ever goes DOWN. ` +
+        'Raising it to make this pass is the defect this gate exists to catch.'
+      : `${unguarded.length} findings are unguarded and the cap is still ${MAX_UNGUARDED}. Lower it to ` +
+        `${unguarded.length} — the cap is the high-water mark, and leaving it above the count is room for ` +
+        'a guard to disappear unnoticed.',
+  );
+}
+
+/** ⛔ S1.11.3.2 — the same ratchet, over evidence rather than existence. See `MAX_UNPROVEN`. */
+const ratchet = (count: number, cap: number, label: string, drains: string): void => {
+  if (count === cap) return;
+  problems.push(
+    count > cap
+      ? `${count} findings are ${label}; the cap is ${cap} and it only ever goes DOWN. ${drains}`
+      : `${count} findings are ${label} and the cap is still ${cap}. Lower it to ${count} in the same edit — ` +
+        'a cap above its own count is slack the next un-evidenced entry hides in.',
+  );
+};
+ratchet(
+  unproven.length,
+  MAX_UNPROVEN,
+  'unproven — nobody has ever made their guard red',
+  'A new closure ships with a `proof` block, or it is not a closure: run `npm run prove:guards -- --id=<ID>`.',
+);
+/**
+ * ⛔ **S1.12.5.1 [pass-5 D5-1] — THE SECOND RATCHET, AND IT IS THE ONE THAT WAS MISSING.**
+ *
+ * `MAX_UNPROVEN` drains when a `proof` block is **written**. Nothing anywhere drained when a proof was
+ * **run**, so all 66 sat at `never run` while the gate's green line said *"66 carry a re-runnable proof"*
+ * and three passes read that as 66 closures. ⚡ **Authoring is cheap and executing is the evidence** — two
+ * facts, so two counters, each downward-only. ⚠️ Raising this to make a run pass is the same move as
+ * raising `MAX_UNGUARDED`, and it is the defect the pair exists to catch.
+ */
+// ⛔ A CEILING, not the strict-equality `ratchet()` above — see `MAX_AUTHORED`'s note for why this one
+// differs from its siblings, and for exactly what that gives up.
+/**
+ * ⛔ **BOTH CEILINGS SEAL THE DRAIN SHUT, NOT ONE** — the second half of `S5-DEADLOCK`, found by fixing
+ * the first half and watching the identical failure arrive one cap over.
+ *
+ * ⚡ A guard on a gate that reads this ledger cannot be proven while its own arrival is what reds the
+ * gate: `prove:guards` needs a green control, and an authored-not-yet-executed proof is not green. The
+ * workaround was to raise this number by hand and lower it after — *"raising this to make a run pass"*,
+ * which is what the sentence below calls the defect this pair exists to catch. **The mechanism forced the
+ * move it forbids.**
+ *
+ * ⚠️ **THE DRAIN EXEMPTION IS NOT HERE, and `W9` is why.** It was an env var this gate honoured, which
+ * made it an AMBIENT FAIL-OPEN: anything exporting `PROVE_GUARDS_DRAINING` disabled both ratchets for
+ * every reader, `validate:release:rn` included. A gate must not be weakenable from the environment.
+ * The judgement now lives in `prove-guards.ts`, which reads its OWN control's output and proceeds only
+ * when every reported problem is one of these two ceilings.
+ */
+if (authored.length > MAX_AUTHORED) {
+  const detail =
+    `${authored.length} proof blocks have NEVER been executed; the ceiling is ${MAX_AUTHORED} and it only ever ` +
+    'goes DOWN. A proof block is a plan to measure, not a measurement — execute it with ' +
+    '`npm run prove:guards -- --id=<ID>`, which records `measured` + `sha` on a pass. ' +
+    'Raising this to make a run pass is the defect this pair exists to catch.';
+  problems.push(detail);
+}
+ratchet(
+  guardOnly.length,
+  MAX_GUARD_ONLY,
+  'guard-only — measured NOT to red on their own defect',
+  'A guard-only entry is an OPEN finding wearing a closure. Fix the guard rather than raising the cap.',
+);
+
+/**
+ * ⛔ **S1.13.7.8 — THE VERDICT USED TO BE HERE, AND EVERYTHING BELOW IT PUSHED INTO A LIST NOBODY READ
+ * AGAIN.** `MAX_STALE_PROOFS` and the staleness scan's own error handler both `problems.push(…)` about
+ * eighty lines further down — **after** the only reader of `problems`. So the stale ceiling was dead
+ * code: it printed `31 of them STALE (cap 8)` beside a green tick and exited 0, and the scan's
+ * *"could not run against"* branch — the fail-open guard written for the `ReferenceError` that once
+ * reported *"nothing is stale"* over 86 proofs — could not fail either.
+ *
+ * ⚡ **A check that cannot fail, in the gate whose own docblock is about checks that cannot fail.** Same
+ * class as `lint:trust-claims`' `Object.keys(X).length` caps and `audit-route.ts`' unreachable
+ * duplicate-bucket `die()`. ⛔ **Reading has never found this class here; it surfaced because a summary
+ * line said `31 (cap 8)` next to `EXIT=0`** — the number and the verdict contradicting each other on one
+ * line.
+ *
+ * {@link reportProblems} is the single exit, and it is the LAST statement in the file.
+ */
+function reportProblems(): void {
+  if (!problems.length) return;
+  console.error(`\n❌ finding-guards: ${problems.length} problem(s).\n`);
+  for (const p of problems) console.error(`  • ${p}`);
+  console.error('\n  [D67]: a closed finding needs a standing guard, or it is not closed.\n');
+  process.exit(1);
+}
+
+/**
+ * ⛔ **S1.13.7.12.6 [class-1 re-audit 4 `U7` · pass-7 `D1-10`] — THE `✅` USED TO BE PRINTED BEFORE THE
+ * VERDICT WAS KNOWN, AND THAT IS HOW A RED GATE WAS READ AS GREEN.**
+ *
+ * ⚡ **Measured, on this repo, by me.** Round 4's own commits made **11 executed proofs stale against a
+ * ceiling of 8**. The gate did exactly its job — `problems.push`, `exit 1`. But the summary block above
+ * the verdict opened with `✅ finding-guards: 267 of 268 …`, so the run was read as green and *"all 50
+ * gates pass"* was reported to Jason over a gate that was exiting 1. The number and the verdict
+ * contradicted each other, eighty lines apart, and the tick won.
+ *
+ * ⚠️ **Same shape as the dead-`reportProblems` defect this file already records one docblock up** — there
+ * the ceiling could not fail, here it could fail and could not be *seen* failing. So the informational
+ * block is now BUFFERED: nothing reaches stdout until every check has run, and the leading mark is
+ * chosen from `problems.length` rather than asserted in advance.
+ *
+ * ⚠️ The mark on the red path is `⛔`, not `❌` — `❌` belongs to {@link reportProblems}, which stays the
+ * single exit and the last statement in the file. A reader grepping for `✅` finds nothing on a red run,
+ * which is the whole point.
+ */
+const report: string[] = [];
+const note = (line: string) => report.push(line);
+
+note(
+  `finding-guards: ${guarded} of ${ids.length} findings carry a standing guard; ` +
+    `${unguarded.length} unguarded (cap ${MAX_UNGUARDED}, downward-only).`,
+);
+/**
+ * ⛔ **PRINTED ON THE GREEN PATH, because the number this gate could not see is the number that matters.**
+ * `guarded` counts tokens that are present. `proven` counts guards that have been made to RED. For three
+ * passes those were read as the same figure and they are not — a backlog nobody sees is a backlog nobody
+ * drains, which is why `lint:s0-coverage` prints its unswept list here too.
+ */
+// ⚠️ **"carry a proof", not "are proven"** — and the distinction is this gate's own limit. It can check
+// that a proof exists and that its anchor still matches; it cannot RUN one. A proof that has started
+// failing looks identical here, which is why the line names the command that executes them.
+/**
+ * ⛔ **S1.13.7.2 [pass-6 `D2-1`] — `measured`/`sha` NEVER EXPIRED, so 32 of 86 "EXECUTED" proofs described
+ * a tree their target file had already left.**
+ *
+ * ⚡ The pass-4 defect one level up. `lint:finding-guards` was read as a closure proof for three passes;
+ * `prove:guards` fixed that by writing `measured`/`sha` — **and then `measured`/`sha` became the thing
+ * that decays.** The anchor check is a substring test on ONE line, so a file can be rewritten around a
+ * surviving anchor while the assertion it guards moves, weakens, or loses its consumer, and the entry
+ * keeps its `EXECUTED` badge. Nothing compared `proof.sha` to the target's last-touched commit.
+ *
+ * ⛔ **AND RE-RUNNING THE 32 IS WHAT PROVED IT MATTERS: 30 still held, and 2 DID NOT.** Both were guards
+ * written earlier the same day, and one of them — `S1-ROUTE-EXIT-REACHABLE` — was red because its own
+ * assertion had a real defect that only appeared once the pass recorded its reads. **A proof describes
+ * the tree it was measured on and nothing else**, and that is no longer a claim in a document.
+ *
+ * ⚠️ **This is a PINNED ceiling, not a downward-only ratchet, and the difference is deliberate.** Ordinary
+ * development moves a guarded file and legitimately makes its proof stale; a downward-only floor would
+ * red every such commit and train people to re-run proofs mechanically to clear a number. The ceiling
+ * catches DRIFT — staleness accumulating unnoticed across a round — and `prove:guards --id=…` drains it.
+ */
+const MAX_STALE_PROOFS = 8;
+const stale: string[] = [];
+for (const id of proven) {
+  const p = registry[id].proof!;
+  for (const t of [...new Set((p.unfix ?? []).map((u) => u.at))]) {
+    try {
+      if (execFileSync('git', ['log', '--oneline', `${p.sha}..HEAD`, '--', t], { cwd: REPO_ROOT, encoding: 'utf8' }).trim()) {
+        stale.push(`${id} — ${t} has moved since ${p.sha} (measured ${p.measured})`);
+        break;
+      }
+    } catch (err) {
+      /**
+       * ⛔ **NARROW ON PURPOSE — the first cut of this block swallowed EVERYTHING and reported `0 of them
+       * STALE` over 86 proofs, because `execFileSync` was never imported.** A bare `catch` turned a
+       * `ReferenceError` into *"nothing is stale"*: the fail-open class, inside the check written to
+       * close a fail-open, caught within the hour by reading the number instead of trusting the ✅.
+       *
+       * An unresolvable sha is a legitimate skip — the anchor half reports it. Anything else is a broken
+       * scan and has to be loud.
+       */
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!/unknown revision|bad revision|ambiguous argument/i.test(msg)) {
+        problems.push(`${id} — the staleness scan could not run against ${t}: ${msg}`);
+      }
+    }
+  }
+}
+
+note(
+  `   proof: ${proven.length} EXECUTED · ${stale.length} of them STALE (cap ${MAX_STALE_PROOFS}) · ` +
+    `${authored.length} authored but never run (cap ${MAX_AUTHORED}) · ` +
+    `${guardOnly.length} guard-only (cap ${MAX_GUARD_ONLY}) · ${unproven.length} never tested (cap ${MAX_UNPROVEN})\n` +
+    '          ⛔ "authored" is a plan to measure, not a measurement — `npm run prove:guards -- --id=<ID>` records it.\n' +
+    '          ⛔ "STALE" means the target moved since the proof was measured — re-run it; 2 of 32 did not hold.',
+);
+// ⚠️ Named, not just counted. A count nobody can act on is a count nobody drains — the same reason the
+// unguarded list prints on the green path.
+for (const s of stale) note(`     stale: ${s}`);
+/**
+ * ⛔ **`S5-DEADLOCK` — THIS CEILING COULD SEAL ITSELF SHUT, AND IT DID, TWICE IN ONE ROUND.**
+ * [class-1 round 5/6; filed to class 2 `.12.6.2`]
+ *
+ * ⚡ **Measured.** Past the ceiling this gate is red. `prove:guards` requires a GREEN CONTROL — so every
+ * proof whose `run` reads this ledger becomes unprovable, and the ceiling **can never be drained back
+ * down**. In one pass, **8 of 9 drains failed on `control=exit 1`**; the only one that recorded was
+ * `S1P5-D5-9-CAPWRAP`, whose run is `lint:cap-literals` and therefore does not read the ledger.
+ *
+ * ⛔ **And the trigger is ordinary**: every commit that touches a gate file re-stales the proofs anchored
+ * in it, so an ordinary fixing round walks into it by construction. The escape was to raise the ceiling
+ * by hand and put it back — *"raising this to make a run pass"*, which is the exact move the pair of caps
+ * here exists to catch. A mechanism whose only escape is the defect it guards against is not a ratchet.
+ *
+ * ⚠️ **The escape is in `prove-guards.ts`, NOT here** - [`W9`]. An env-var exemption honoured by this
+ * gate was an ambient fail-open; the harness reads its own control's output instead, and this ceiling
+ * is enforced unconditionally for every other reader.
+ */
+if (stale.length > MAX_STALE_PROOFS) {
+  const detail =
+    `${stale.length} executed proof(s) were measured against a tree their target has since left, and the ceiling is ${MAX_STALE_PROOFS}.\n` +
+    '        Re-run them: `npm run prove:guards -- --id=<comma-separated>` --record. 2 of the last 32 re-runs FAILED,\n' +
+    '        so a stale proof is not a formality — it is an unknown wearing an ✅.';
+  problems.push(detail);
+}
+// ⚠️ Printed green, like the S0 coverage gate: the unguarded list is S0.13's remaining backlog, and a
+// number nobody sees is a number nobody drains.
+for (const id of unguarded) note(`     unguarded: ${id} — ${registry[id].unguarded}`);
+
+/**
+ * ⛔ **A NAMED FUNCTION WITH A SELF-TEST, not an inline ternary, and the reason is `U5`.**
+ *
+ * The obvious registry guard for `U7` would plant *"force a problem"* and expect `✅ finding-guards` in
+ * the output — but that string is also what the GREEN run prints, so the proof would match its own
+ * control. That is exactly `U5`: six of nine plant recipes whose `reason` regex matched the gate's
+ * success line, making `RED-FOR-THE-WRONG-REASON` unreachable. A guard that cannot distinguish red from
+ * green is not a guard.
+ *
+ * So the invariant is extracted to a pure function and asserted directly, the way this file already
+ * asserts its duplicate detector. The plant target is one line, the failure message is unique to it, and
+ * the control cannot produce it.
+ */
+const MARK_OK = '✅';
+const MARK_BAD = '⛔';
+function verdictMark(problemCount: number): string {
+  // ⚠️ The two marks are named constants so the registry's un-fix for this line is pure ASCII — an
+  // emoji inside a JSON `find` string is one more escape layer between the plant and the file.
+  return problemCount ? MARK_BAD : MARK_OK;
+}
+for (const [n, want] of [
+  [0, MARK_OK],
+  [1, MARK_BAD],
+  [9, MARK_BAD],
+] as const) {
+  if (verdictMark(n) !== want) {
+    console.error(
+      `\n❌ finding-guards: the verdict mark is WRONG for ${n} problem(s) — got "${verdictMark(n)}", want "${want}".\n` +
+        '  ⛔ U7: a ✅ printed while problems exist is how a red gate gets read as green — measured, on the\n' +
+        '  round-4 tree, where 11 stale proofs against a ceiling of 8 exited 1 under a green tick.\n',
+    );
+    process.exit(1);
+  }
+}
+
+// ⛔ `U7` — the buffered block is flushed HERE, once every check has run, and its leading mark is derived
+// from `problems.length`. Printing it any earlier is asserting a verdict that is not yet knowable.
+console.log(`${verdictMark(problems.length)} ${report[0]}`);
+for (const line of report.slice(1)) console.log(line);
+
+// ⛔ THE VERDICT, and it is the LAST statement in the file for the reason above: everything that can find
+// a problem has now run. A `problems.push` below this line would be dead, and there is nothing below it.
+reportProblems();

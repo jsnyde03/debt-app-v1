@@ -1,0 +1,36 @@
+
+  gate plants — 26 scenarios, each proving its gate fails CLOSED
+
+  ✅ lint:month-arithmetic      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:local-dates           plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:glossary              plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:a11y-props            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:type-scale            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:destructive           plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setUTCMonth] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setFullYear] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setUTCFullYear] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [constructorOverflow] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:copy [GAP-15-self-check] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:runner-completeness   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:secrets [D3-4-blob]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [D3-3] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [M7]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [M6]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:cap-literals          plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [S1.11.3.2-void] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ❌ lint:finding-guards [R3-3-borrow] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=WRONG
+       ⛔ nothing joined "the token still exists" to "the planted run printed expect", so a sibling's red proved both
+       ⛔ it redded for the WRONG REASON — expected output containing "NEIGHBOUR".
+  ✅ lint:finding-guards [M8]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:s1-coverage [M9-vocab] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:s1-coverage [D69-inventory] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:secrets [M10-authoring] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:money [B1-multiline-intl] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:secrets [A3-modified-tracked] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:store-id-writes       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+warning: in the working copy of 'apps/rn/src/store/__gate_plant_unwired__.test.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/core/__gate_plant_staged__.ts', LF will be replaced by CRLF the next time Git touches it
+
+❌ test:gate-plants — 1 of 26 scenarios failed.
+

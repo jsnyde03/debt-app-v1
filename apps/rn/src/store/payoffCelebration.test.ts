@@ -1,3 +1,5 @@
+import type { Recurrence } from '@core/types/recurrence';
+
 import type { Debt } from '@/data/models';
 import { detectPayoff } from '@/store/payoffCelebration';
 
@@ -177,36 +179,49 @@ export default async function run() {
    * says the error axis is **cadence** rather than arithmetic. Flatten the producer back to
    * `minimumPayment` and the three non-monthly rows red while this one stays green.
    *
-   * ⚠️ **Iterated, not sampled** — `.12.6.8`'s standing rule, and this class's fourth consecutive round.
+   * ⛔ **THIS TABLE HAS BEEN WRONG THREE TIMES, EACH TIME BY BEING A LIST.** `R3-4` sampled three
+   * cadences and shipped `R4-1` (a one-time BNPL's whole balance, **12×**). `R4-1` added **one row** and
+   * shipped `R5-1` (a `type:'debt'` one-time debt announcing phantom recurring cash, reachable by CSV
+   * import and by switching a Klarna plan's type to Debt). **Adding a row is what failed, twice.**
+   *
+   * ⭐ **So the POPULATION IS DERIVED FROM THE TYPE and only the EXPECTATIONS are literal.**
+   * `CADENCE_SUFFIX` is `Record<Recurrence, string>`, total by construction — its own docblock exists so
+   * *"a new `Recurrence` member cannot be added without the compiler asking what it is called on
+   * screen."* `FREED_PER_MONTH` below is typed the same way, so **a new member is a typecheck error until
+   * someone states what it frees.** That is `[D79]` step a's rule — *an assertion whose population is
+   * derived from the code, never hand-enumerated* — applied to the thing that kept escaping it.
+   *
+   * ⚠️ **The expectations stay LITERAL on purpose** (`R3-1`): computing them from
+   * `bnplMonthlyEquivalentMinimum` would make every row agree with the producer by construction, which is
+   * exactly how the in-window guard went green under a 2× defect.
+   *
+   * ⭐ **`monthly` is the control** — exact under every version of this code, so it is what says the error
+   * axis is *cadence* rather than arithmetic. **`one-time` is 0** because clearing a one-shot frees no
+   * recurring money, and every surface already omits the clause at 0 (`showCascade`; `ShareCard`'s `> 0`).
    */
   {
-    const cases: [string, Partial<Debt>, number][] = [
-      ['monthly · CONTROL', { recurrence: 'monthly' }, 50],
-      ['weekly', { recurrence: 'weekly' }, 216.67],
-      ['biweekly', { recurrence: 'biweekly' }, 108.33],
-      [
-        'BNPL · weekly',
-        { recurrence: 'weekly', type: 'bnpl', bnplProvider: 'Klarna', apr: 0 } as Partial<Debt>,
-        216.67,
-      ],
-      /**
-       * ⛔ **THE ROW THIS TABLE WAS MISSING, AND ITS ABSENCE SHIPPED A BLOCKER.** [round-4 `R4-1`]
-       *
-       * ⚡ `bnplMonthlyEquivalentMinimum` returns a one-time lump's **whole balance** by design, so the
-       * beat announced **"Freed $600/mo"** for a $600 Pay-in-30 whose minimum is $50 — **12×**, on
-       * screen, in speech, and on the ShareCard. ⛔ **The producer's own header says every caller must
-       * exclude the lump; `R3-4` verified that pairing at four sites and then wrote the fifth without
-       * it.** Iterating three cadences and a BNPL was not iterating the class.
-       *
-       * ⚠️ **0, because clearing a one-shot frees no RECURRING money** — and every surface already
-       * omits the clause at 0 (`showCascade`, and `ShareCard`'s own `> 0`).
-       */
-      [
-        'BNPL · one-time lump',
-        { recurrence: 'one-time', type: 'bnpl', bnplProvider: 'Klarna', apr: 0, balance: 600 } as Partial<Debt>,
-        0,
-      ],
-    ];
+    // minimum $50, balance $600, cyclesPerMonth 1 — literals, never derived from the producer.
+    const FREED_PER_MONTH: Record<Recurrence, number> = {
+      'one-time': 0,
+      monthly: 50,
+      weekly: 216.67,
+      biweekly: 108.33,
+      'per-paycheck': 50,
+      quarterly: 16.67,
+      annually: 4.17,
+    };
+    const cases: [string, Partial<Debt>, number][] = [];
+    for (const recurrence of Object.keys(FREED_PER_MONTH) as Recurrence[]) {
+      for (const type of ['debt', 'bnpl'] as const) {
+        cases.push([
+          `${type} · ${recurrence}${recurrence === 'monthly' ? ' · CONTROL' : ''}`,
+          (type === 'bnpl'
+            ? { recurrence, type, bnplProvider: 'Klarna', apr: 0 }
+            : { recurrence, type }) as Partial<Debt>,
+          FREED_PER_MONTH[recurrence],
+        ]);
+      }
+    }
     for (const [label, shape, freedPerMonth] of cases) {
       const cleared = debt({ id: 'a', balance: 600, minimumPayment: 50, ...shape });
       const before = [cleared, debt({ id: 'b', balance: 3000 })];

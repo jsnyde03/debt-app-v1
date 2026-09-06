@@ -1,0 +1,24 @@
+{
+  "PLANT-LENDER": {
+    "what": "the entry whose assertion actually reds",
+    "file": "scripts/__gate_plant_guard__.ts",
+    "token": "export const plantedLender = 'at most one may survive';"
+  },
+  "PLANT-BORROWER": {
+    "what": "an entry whose expect names the LENDER's assertion, not its own",
+    "file": "scripts/__gate_plant_guard__.ts",
+    "token": "export const plantedBorrower = 42;",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/__gate_plant_guard__.ts",
+          "find": "export const plantedBorrower = 42;",
+          "replace": "x"
+        }
+      ],
+      "run": "lint:finding-guards",
+      "expect": "at most one may survive",
+      "proofNote": "shares a red"
+    }
+  }
+}

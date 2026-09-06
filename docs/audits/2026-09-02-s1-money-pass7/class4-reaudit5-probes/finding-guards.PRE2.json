@@ -4129,7 +4129,7 @@
       "unfix": [
         {
           "at": "apps/rn/src/store/payoffCelebration.ts",
-          "find": "freed: subject.recurrence === 'one-time' ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),",
+          "find": "freed: isOneTimeBnplLump(subject) ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),",
           "replace": "freed: subject.minimumPayment,"
         }
       ],
@@ -4140,20 +4140,20 @@
     }
   },
   "S1P7-R4-1-ONETIMELUMP": {
-    "what": "class 4 round-4 R4-1, BLOCKER and a regression R3-4 introduced - the payoff beat announced a one-time BNPL's whole balance as recurring monthly cash: 'Freed $600/mo' on a $600 Pay-in-30 whose minimum is $50, a 12x overstatement, on screen, spoken, and on the ShareCard. bnplMonthlyEquivalentMinimum returns roundMoney(balance) for a lump BY DESIGN and its own header says every caller must exclude it with isOneTimeBnplLump. R3-4 verified that pairing at four sites, wrote 'pairs correctly at all four', and created the fifth without it - the class's own defect inside the fix for a member of it. freed is 0 now, because clearing a one-shot frees no recurring money, and every surface already omits the clause at 0. R5-1 (round 5): the fix was keyed on isOneTimeBnplLump, which is type==='bnpl' && recurrence==='one-time', so a type:'debt' one-time debt STILL announced a recurring $50/mo that does not exist - reachable by CSV import (parseDebtCsvText accepts the pair with no cross-check) and in-app by switching a Klarna plan's type to Debt. That is A3-1's own rule broken by the fixer: a cadence is a fact about the SCHEDULE, not the debt's label. Keyed on recurrence now, scoped to the celebration - NOT by widening isOneTimeBnplLump, which projectDebtPayoff and buildPayoffTrajectory read as the month-1 clearing-payment flag. THIRD time this one line was wrong, so the guard's population is now DERIVED from Record<Recurrence, ...> rather than listed: a new Recurrence member is a typecheck error until someone states what it frees.",
+    "what": "class 4 round-4 R4-1, BLOCKER and a regression R3-4 introduced - the payoff beat announced a one-time BNPL's whole balance as recurring monthly cash: 'Freed $600/mo' on a $600 Pay-in-30 whose minimum is $50, a 12x overstatement, on screen, spoken, and on the ShareCard. bnplMonthlyEquivalentMinimum returns roundMoney(balance) for a lump BY DESIGN and its own header says every caller must exclude it with isOneTimeBnplLump. R3-4 verified that pairing at four sites, wrote 'pairs correctly at all four', and created the fifth without it - the class's own defect inside the fix for a member of it. freed is 0 now, because clearing a one-shot frees no recurring money, and every surface already omits the clause at 0.",
     "file": "apps/rn/src/store/payoffCelebration.test.ts",
-    "token": "'one-time': 0,",
+    "token": "BNPL · one-time lump",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/store/payoffCelebration.ts",
-          "find": "freed: subject.recurrence === 'one-time' ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),",
+          "find": "freed: isOneTimeBnplLump(subject) ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),",
           "replace": "freed: bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),"
         }
       ],
       "run": "test:app",
-      "expect": "· one-time",
-      "proofNote": "ONE line, ONE guard, TWO findings (R4-1 and R5-1) - a second entry would duplicate the un-fix and re-enter the authored-headroom deadlock. The un-fix removes the exclusion entirely; the first row to red is debt/one-time, and `expect` is the shared '· one-time' label so the red is attributable to this entry either way. The un-fix leaves no unused import because R5-1's fix removed it.",
+      "expect": "BNPL · one-time lump",
+      "proofNote": "The un-fix leaves isOneTimeBnplLump imported and unused. That is deliberate and safe here because the run is test:app, which executes through tsx and does not lint or typecheck - a second part removing the import would be needed only if the run were eslint (the R2-1-CAP shape).",
       "measured": "2026-09-06",
       "sha": "affb8a01"
     }

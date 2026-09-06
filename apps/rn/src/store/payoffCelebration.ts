@@ -1,4 +1,4 @@
-import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from '@core/debt/bnplPayoffPace';
+import { bnplMonthlyEquivalentMinimum } from '@core/debt/bnplPayoffPace';
 
 import type { Debt, PendingPayoff, PayoffStrategy } from '@/data/models';
 
@@ -106,7 +106,18 @@ export function detectPayoff(
      * ⚠️ **0 is the honest figure, not the stored minimum.** Every surface already omits the clause
      * at 0 — `showCascade` gates the text and the utterance, and `ShareCard` gates the badge.
      */
-    freed: isOneTimeBnplLump(subject) ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),
+    // ⛔ [round-5 `R5-1`] THE QUESTION IS THE SCHEDULE, NOT THE LABEL. `R4-1` reached for
+    // `isOneTimeBnplLump`, which is `type === 'bnpl' && recurrence === 'one-time'`, so a plain debt
+    // with a one-time schedule still announced a recurring $50/mo that does not exist — reachable by
+    // CSV import and by switching a Klarna plan's type to Debt. ⚡ **This is `A3-1`'s own rule, which
+    // this workstream established and I then broke: a cadence is a fact about the SCHEDULE, not the
+    // debt's label.** Third time this line has been wrong.
+    //
+    // ⚠️ Scoped HERE rather than by widening `isOneTimeBnplLump`, which `projectDebtPayoff` and
+    // `buildPayoffTrajectory` read as the flag driving a month-1 clearing payment: widening it would
+    // move the debt-free date and the chart for every non-BNPL one-time debt at once. Separate
+    // question, filed, and it must not ride in on a celebration fix.
+    freed: subject.recurrence === 'one-time' ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),
     nextDebtName: next?.name ?? null,
   };
 }
