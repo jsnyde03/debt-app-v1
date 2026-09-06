@@ -205,7 +205,9 @@ byte-identical. ⚠️ **`D1-1` closed as NOT WORK** *(`D3-4` by a second lane)*
 — nothing here builds the Swift target, so the spoken half is a **device row for `P6.14`**. The 27 minors
 are untouched by design. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
-### 🔨 THE ACTIVE DECOMPOSITION — `S1.13.7.12.6` *(the ONLY decomposed section on this doc)*
+### 📋 THE 12 CLASSES OF `S1.13.7.12.6` — the fixing ORDER, one terse row each
+
+⚠️ **This is the parent item's class list, not a decomposition.** Exactly one class is decomposed at a time, below.
 
 ✅ **`.12.1`–`.12.5` — ALL CLOSED 2026-09-02, collapsed here.** S2/S3/S4 built as **derived** surfaces
 (`lint:rn` 46 → 49) · the *"197"* measured as **209** and *"no instrument can even ASK"* refuted · **[D77]**
@@ -250,8 +252,8 @@ hindrance counts)*. **~31 of 48 filed.** Classes 10 and 11 below are what surviv
 | ✅ **.12.6.1** | **A MATCHER LOCKED TO A LINE — CLOSED 2026-09-04 after four rounds.** All 16 `U*`, all 12 `V*`, and **12 of 15 `W*`** fixed and proven by planting; 3 routed to `.12.6.9`. ⚡ **The user-facing half was delivered in rounds 4–5**; rounds 6–7 had drifted to instruments-about-instruments, where the recursion has no floor — re-opens went 1 → 9 while new findings stayed flat. 🎯 **2026-09-04: fix only what reaches OUTSIDE the instrument stack, then open class 4.** Detail → log. *(Original scope, for the record:)* Rounds 5–6: **all 16 `U*` + all 12 `V*` closed**, 14 guards, `test:plant-safety` + `test:joined-code` added *(`lint:rn` 50 → 52)*. ✅ **Boundary CLEAN**: 52/52 · `test:app` · `test:regression` · typecheck 0 · ledger **151 proofs / 2 stale**. ⚠️ **re-audit 5 found 66 of 67 closed and 12 new — incl. a BLOCKER where `U15`'s own fix destroyed 83 bytes of uncommitted work.** ⚡ **The method correction: a round's guards come from its DIFF, not its finding list.** ▶ **re-audit 6 owed.** Detail → log | 11 | the escape closed **in the shared helper**, one assertion iterating every gate that imports it |
 | **.12.6.2** | **THE PROOF HARNESS AND THE LEDGER** — `D2-1` the `[D78]` retry survives its un-fix · `D2-4` a VOID proof still counted as evidence · `D2-8` `S1P1-M9-ROUTING` survives its un-fix while 11 files route to a surface that does not exist. ✅ **`S5-DEADLOCK` CLOSED 2026-09-04 in round 6** *(it blocked class 1 twice a round, and the workaround WAS the defect — both ceilings had it)*: was past the stale ceiling `lint:finding-guards` is red, `prove:guards` requires a GREEN control, so **every proof whose run reads the ledger becomes unprovable and the ceiling can never be drained** — 8 of 9 drains failed in one pass. ⚠️ **A bigger number is not the fix.** Detail → log | 10 | no entry counts as evidence unless its proof re-runs and MATCHES at the current sha — **and a drain must be possible from any state** |
 | **.12.6.3** | **THE AUDIT'S OWN POPULATIONS** — `D1-12` route ≠ exit: **76 money-bearing routed files in no claims file** · `D2-7` **128 real import edges silently do not exist** · `D1-19` nothing lints `packages/core`, `scripts/` or `apps/rn/tests` | 7 | one population, derived once, shared by route and exit — **fixed before pass 8 is routed** |
-| ▶ **.12.6.4** | **THE DOUBLE-SCALED IN-WINDOW MINIMUM — ACTIVE 2026-09-04.** The round's money root, found by **two lanes independently**; created by pass 6's own `A3-4` fix and mirroring its defect. ⚠️ **Five instruments in this class are blind for ONE reason: `minimumPayment: 0` fixtures.** Decomposed below | 11 | one owner of the in-window minimum; an assertion iterating cadence × debt-type, on non-zero fixtures |
-| **.12.6.5** | **MAY A SURFACE STATE A PROJECTED FIGURE?** — one question, **five different answers**, 11 blockers. ⭐ **The correct answer already exists**: the widget refuses this claim by design and says so in a comment; pass 6's `C3-5` widened the widget's guard and nothing else | 13 | one predicate, called by every surface, asserted by **iterating the surfaces** |
+| ✅ **.12.6.4** | **THE DOUBLE-SCALED IN-WINDOW MINIMUM — CLOSED 2026-09-06 after five `[D79]` rounds.** The round's money root, found by **two lanes independently**; created by pass 6's own `A3-4` fix and mirroring its defect. ⚠️ **Five instruments in this class are blind for ONE reason: `minimumPayment: 0` fixtures.** Decomposed below | 11 | one owner of the in-window minimum; an assertion iterating cadence × debt-type, on non-zero fixtures |
+| ▶ **.12.6.5** | **MAY A SURFACE STATE A PROJECTED FIGURE? — ACTIVE 2026-09-06.** Decomposed below. — one question, **five different answers**, 11 blockers. ⭐ **The correct answer already exists**: the widget refuses this claim by design and says so in a comment; pass 6's `C3-5` widened the widget's guard and nothing else | 13 | one predicate, called by every surface, asserted by **iterating the surfaces** |
 | **.12.6.6** | **MONEY WRITTEN OR DESTROYED** — `B2-1` batch keeps the `Math.max(0, NaN)` shape repaired twelve lines above · `B2-3` the finale never fires on the app's own primary payoff path, **unrecoverably** · `B3-2` one `stat` failure ends automatic backup forever | 12 | every money write through one normaliser; the class asserted over the **actions**, not the callers |
 | **.12.6.7** | **THE SUB-CYCLE CADENCE CLASS** — `A3-6` an un-ticked sub-cycle bill is carried forward un-advanced, so its reserve grows **without bound**: $250 → $450 → $650 | 5 | the reserve bounded, and the ledger rows adding up to the totals printed beside them |
 | **.12.6.8** | **THE FIX REACHED THE MEMBER, NOT THE CLASS** — pass 4's *13 of 34* class, recurring a **fourth** round. ⛔ `C3-7`: **turning iCloud backup ON takes no backup and says nothing** | 12 | one assertion per class that ITERATES it |
@@ -260,52 +262,39 @@ hindrance counts)*. **~31 of 48 filed.** Classes 10 and 11 below are what surviv
 | **.12.6.11** | **SEVERITY RE-CHECK, THEN FILE OR FIX** — the three money-shaped "minors", one question each *(does it misstate or destroy money?)*: `B2-6` an older build silently rewriting a newer blob's version marker · `B3-10` `""` reading as empty on web and corrupt on native · `B2-4` two more live `Math.max(0, NaN)` members. ⛔ **Re-checked BEFORE filing** — last round a `major` moved to `blocker` the moment its fixture was run | 3 | rated on measurement, then filed or fixed |
 | **.12.6.12** | **THE LEGACY ROOT** — ⛔ **routes to `P6.11`, NOT to this triage.** `D3-1`: both written move-set enumerations are SHORT — measured **7 files · 12 edges · 351 lines**, not *"7 · 8"* or *"5 modules · 293 lines"*; both were built by one-hop greps | 4 | filed to `P6.11`'s scope, not fixed here |
 
-### 🔨 `.12.6.4` — THE ACTIVE DECOMPOSITION *(the only one on this doc)*
+### 🔨 `.12.6.5` — MAY A SURFACE STATE A PROJECTED FIGURE? *(the ONLY decomposed section on this doc)*
 
-⛔ **Read before starting:** the money root is **one multiplier applied twice** — `selectors.ts:65` scales a
-debt's `minimumPayment` to the in-window total, and `S1.13.7.10`'s `minimumDueInWindow`
-(`allocatePaycheck.ts:391`) applies the same multiplier again. ⚠️ **It was created by pass 6's own `A3-4`
-fix and reproduces `A3-4`'s defect mirrored.** ⛔ **Two of this header's premises were WRONG and are
-corrected in the log:** the remedy pointed at the wrong application, and *"five instruments blind for ONE
-reason"* is **four reasons**, of which the decisive one is an entry point, not a fixture.
+✅ **`.12.6.4` — CLASS 4 CLOSED 2026-09-06, after FIVE `[D79]` rounds.** All 11 class findings plus 8 + 6 +
+4 + 3 + 3 re-audit findings closed, each with a proof that reds on its own defect. Registry **296 → 302**,
+proofs **166 → 175**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
 
-| # | step | exit line |
-|---|---|---|
-| ✅ **.4.1–.4.7** | **DONE 2026-09-05.** The double-scaling closed at **three** sites *(the class named two)*, one owner for the in-window minimum, both vacuous-control repairs and both minors. New instrument `inWindowMinimum.test.ts` — 3 debt shapes × 3 cadences through the production path. Detail → log | ✅ |
-| ✅ **.4.8** | **BOUNDARY CLEAN 2026-09-05** — 52/52 gates · `test:app` · `test:regression` · typecheck 0. ⚠️ `lint:fixture-dates` refused **my own new test**: a `dueDate` two days from firing. Clock-relative now | ✅ |
-| ✅ **.4.9** | ⛔ **`A3-7` WAS NEVER FIXED — I recorded "all 11 addressed" and it was false.** Pass 6's block says it replaced the raw minimum *"at five sites"*; there were **six**, and the missed one **emits the row that holds the money**. Measured: `totalRequired` $250 · row reserves **$50** · rollover takes $250. ⚠️ **Both suites green before and after.** Guard + proof registered | ✅ |
-| ✅ **.4.10** | **RE-AUDIT DONE 2026-09-05** — fresh agent, cumulative. **8 findings: 1 blocker · 3 major · 4 minor.** ⭐ **Nothing earlier was broken** — all 11 guards on files this class touched re-proved `MATCHED`, and 3 of the brief's leads were refuted by measurement. Detail → log | ✅ |
-| ▶ **.4.11** | **THE RE-AUDIT'S FINDINGS** — decomposed below | `test:app` date-stable across a year, and every blocker guarded |
+⛔ **[DECISION] 🎯 2026-09-06 — THE RE-AUDIT LOOP STOPS HERE**, the same call made for class 1. The
+measured basis: findings reaching **outside** the instrument stack went **2 → 1 → 1**, and rounds 4 and 5
+found *only* defects the previous round's fixes had created — **both on the same line**, which was wrong
+three times running (`R3-4` → `R4-1` → `R5-1`). ⭐ **That line's root cause is fixed, not patched**: the
+guard's population is now **derived from `Record<Recurrence, number>`**, so a new member is a typecheck
+error until someone states what it frees. **Adding one row is what failed, twice.**
 
-### 🔨 `.4.11` — the re-audit's 8 findings
+⚠️ **`R5-2` and `R5-3` filed to `.12.6.9`, not fixed** — per the decision. ⛔ **Read the note on `R5-2`
+there before pass 8**: it is a live permissiveness in a gate shipped 2026-09-05, and its remedy is already
+measured at fire-count 0.
 
-| # | step | exit line |
-|---|---|---|
-| ✅ **.11.1–.11.6** | **ALL 8 CLOSED 2026-09-05**, plus a **9th** my own 365-day walk found (`debtFreeBand.test.ts`, the same fuse mirrored — a pinned `currentDate` against a clock-derived `nextPaycheckDate`). ⚡ **One lesson, four times: a window is a PAIR, and pinning one end is not pinning the window.** ⛔ **And the class's own defect twice INSIDE the fix for it** — `F4`'s repair wrote a second producer of an owned month-step, which *would have passed every run and been wrong anyway*; only a gate caught it. Detail → log | ✅ |
-| ✅ **.11.7** | **ROUND-2 RE-AUDIT DONE 2026-09-05** — 6 findings: 1 blocker · 4 major · 1 minor | ✅ |
-| ✅ **.4.12–.4.14** | **ALL 6 CLOSED 2026-09-05.** ⛔ The blocker was a **regression `F7` itself introduced** — a gate doing two jobs, of which only one was visible. ⛔ `lint:rn` was **red at HEAD** while I had recorded 52/52. ⛔ `R2-5` was **four** sites, not the two named. ⛔ `R2-6` found a guard **green under its own defect** and one that **never held**. Boundary: exit 0 · 52/52 · both suites · typecheck 0 · **15/15 class-4 guards**. Detail → log | ✅ |
-| ✅ **.4.15** | **ROUND-3 RE-AUDIT DONE 2026-09-05** — fresh agent, cumulative over **120**, boundary re-run green before dispatch and nothing committed by it. **4 findings: 0 blocker · 4 major.** ⭐ **Nothing earlier was broken**; three of the brief's leads refuted by measurement. Detail → log | ✅ |
-| ▶ **.4.16** | **THE ROUND-3 FINDINGS** — decomposed below | every blocker/major guarded by an assertion that reds on its own defect |
-
-### 🔨 `.4.16` — round 3's 4 findings *(the ONLY decomposed section on this doc)*
-
-⛔ **[DECISION] 🎯 2026-09-05 — all four fixed, and `R3-3` IN FULL.** I recommended scoping `R3-3` to
-deleting the false claim; 🎯 chose to build the refusal it describes. ⚠️ **Guardrail kept: measure the
-fire-count BEFORE writing the rule** — as written it reds **84 legitimate entries**, which is round 2's
-own recorded failure mode.
-
-⛔ **`R3-3` IS FIRST, NOT LAST.** It is the proof harness that will certify the money guards, and `[D79]`'s
-ordering rule is that instruments are repaired **before** anything is proven with them.
+⛔ **SWITCH-IN CORRECTION, measured before decomposing — the class understates its own population.**
+`C1-1` names *"`cushionFloor`'s `|| 200`"*. Measured: **one** `|| 200` (`buildGuardianBrief.ts:178`) and
+**seven** `?? 200`, and **the two spellings erase DIFFERENT sentinels** — `??` only null/undefined, `||`
+also a legitimate `0`, which is `C1-6`'s *"at `$0` no cycle can ever read as a crunch"*. **8 sites, 2
+spellings, one finding naming one of them.** The site-lists-undercount pattern, caught before building.
 
 | # | step | exit line |
 |---|---|---|
-| ✅ **.16.1** | **`R3-3` CLOSED 2026-09-05.** ⛔ **The audit's remedy was wrong and measuring first caught it** — as documented the rule reds **84** legitimate entries, its proposed narrowing still **30**. Built instead as *detect the borrow* (`expect` not in its own token, **and in another's**): reds **4**, all disclosed, **0 undisclosed**. Proven both directions, `[R3-3-borrow]` scenario 25 → 26, proof recorded. ⚡ **`proofNote` was carried by 11 entries and declared in no type at all.** Detail → log | ✅ |
-| ✅ **.16.2** | **`R3-1` CLOSED 2026-09-05.** Literal anchors added; measured with the `assert` made non-throwing so every row is reached — **8 rows red on the 2× plant where 0 did.** F3/F6 stay derived, because those are *wiring* claims. Proof recorded. Detail → log | ✅ |
-| ✅ **.16.3** | **`R3-2` CLOSED 2026-09-05.** ⛔ **The remedy would have been worse than the bug** — two charges DO land on $75, so the count was never the defect and `Math.floor` goes **silent over a real reserve**, wrong on all 8 non-exact balances. `Math.round` was also wrong *under* at $110/$124, unlooked-for. The false half was `about $X each`; 🎯 chose **state the total**. Fifth expired-comment. Detail → log | ✅ |
-| ✅ **.16.4** | **`R3-4` CLOSED 2026-09-05.** `freed` through `bnplMonthlyEquivalentMinimum`; `cyclesPerMonth` **required** per `A5-1` turned **18 call sites into typecheck errors**. Guard iterates cadence × shape, monthly as the control. ⛔ The `bnplPayoffPace` rider **deferred and filed** — a widened type + cross-module import into a standalone math module is scope creep, not a bug fix. Detail → log | ✅ |
-| ✅ **.16.5** | **BOUNDARY GREEN 2026-09-05, on the second run.** ⛔ **The first was RED and all three reds were mine** — `lint:comments`, an unnarrowed `freed`, and **my own new refusal breaking 2 of `prove:guards`' 5 self-test controls** *(the rule was broader than the hole)*. Plus **2 collateral ledger faults**: a guard my fix **VOIDED**, and a token unfindable from registration. **52/52 · 26/26 fail closed · typecheck 0 · both suites · 171 proofs EXECUTED · stale 16 → 2.** Detail → log | ✅ |
-| ✅ **.16.6** | **ROUND-4 RE-AUDIT DONE + ALL 3 FIXED 2026-09-06.** **1 blocker · 1 major · 1 minor, ⛔ all three on round 3's own fixes.** `R4-1` **blocker**: `R3-4` created the **fifth** call site of a pairing it had just verified at four — a one-time lump announced as *"Freed $600/mo"*, **12×**, on screen/speech/ShareCard. `R4-2`: `expect: ""` **with** a token still reached `verdict()` — exit 0, no `reason=` — and the comment claimed that path did not exist *(**sixth** expired-comment, inside one written to replace one)*. `R4-3`: the waiver did not name what it waived *(exposure **4**, not the report's 10)*. ⭐ **My own strongest lead was REFUTED** — `formatWhole` correct across 40 edge cases. Boundary **52/52 · 26/26 · 173 proofs**. Detail → log | ✅ |
-| ▶ **.16.7** | **`[D79]` ROUND-5 RE-AUDIT** — fresh agent, cumulative over **127**. ⛔ **Class 4 does NOT close at round 4**: step **d** exits at *zero new defects attributable to this class's fixes* and round 4 found **three** | 0 new defects attributable to round 4's fixes |
+| ▶ **.5.1** | **RE-DERIVE ALL 13 AGAINST THE CODE** and correct the class on the spot — pre-authored premises drift, and this class's first one already did | every finding's premise confirmed or corrected in writing, before anything is fixed |
+| **.5.2** | **THE SENTINEL-ERASING FALLBACK SUB-SWEEP** — `C1-1` · `C1-6`. Both spellings, all 8 sites, derived by a query rather than listed | a fallback cannot turn "could not be read" into a confident figure; the population is derived, not enumerated |
+| **.5.3** | **BUILD THE ONE PREDICATE** — *may this surface state a figure derived from the projection?* ⭐ **The correct answer already exists**: the widget refuses this claim by design and says so in a comment | one owner, and an assertion that **ITERATES the surfaces** rather than walking a hand-written list |
+| **.5.4** | **THE SURFACES, BY THAT PREDICATE** — `C3-13` · `C3-8` · `C3-9` · `C3-11` · `C3-5` · `C3-1` · `C1-5` · `D2-12` · `C3-2`. ⚠️ Six were walked in one list last round and **`C4-4` was the measured hole a finding came through** | every surface routed through the predicate, proven by planting at each |
+| **.5.5** | **`B1-1`** — the save plan paced off the **partition total** while the card printed **spendable**: an **$835/paycheck promise out of $675**, *and that number is written to the store as the goal's pace* | the pace and the printed figure share one producer; the stored goal cannot outlive a wrong one |
+| **.5.6** | **`C3-14`** *(minor, swept inline — the file is already open)* | "one target could not be read" counts the targets |
+| **.5.7** | **BOUNDARY + LEDGER DRAIN** | 52/52 read from its own summary line · both suites · typecheck 0 · stale drained · pushed |
+| **.5.8** | **`[D79]` RE-AUDIT** — fresh agent, cumulative | 0 new defects attributable to class 5's fixes |
 
 ⛔ **Then `.12.7` — PASS 8**, the next first-candidate. [D65] is unchanged: **0/0 twice consecutively.**
 

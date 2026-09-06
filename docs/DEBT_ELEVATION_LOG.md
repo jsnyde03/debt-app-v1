@@ -32579,3 +32579,86 @@ Stale drained to the deliberate route pair.
 
 ⛔ **CLASS 4 DOES NOT CLOSE HERE.** `[D79]` step **d** exits at *zero new defects attributable to this
 class's fixes*, and round 4 found **three**. **Round 5 is owed.**
+
+### `.16.7` — `[D79]` ROUND-5 RE-AUDIT · 2026-09-06 · **and CLASS 4 CLOSES**
+
+Fresh agent, cumulative over **127**, base `8ccae93f`. **3 findings — 0 blocker · 1 major · 2 minor.**
+Report: [`CLASS4-REAUDIT-5.md`](audits/2026-09-02-s1-money-pass7/CLASS4-REAUDIT-5.md).
+
+⭐ **The brief asked for a split the previous rounds had not measured: does a finding reach OUTSIDE the
+instrument stack, or is it about the instruments?** **1 (a) · 2 (b)** — and that number is what closed
+the class.
+
+### ⛔ `R5-1` — THE SAME LINE, WRONG A THIRD TIME, AND IT WAS MY RULE I BROKE
+
+`R4-1` keyed the one-time exclusion on `isOneTimeBnplLump` — `type === 'bnpl' && recurrence ===
+'one-time'` — so a **`type:'debt'`** one-time debt still announced *"Freed $50/mo now flows to X"* for
+money that never recurs (`rolloverPayCycle` never advances its due date). Screen, VoiceOver, ShareCard.
+
+⚡ **Reachable two ways, both measured, neither hypothetical:** `parseDebtCsvText` accepts
+`debt,one-time` with `errors: []` and nothing cross-checks the pair; and `DebtSheet`'s type switch
+normalises only the other direction, so editing a Klarna plan to **type → Debt** commits it.
+
+⛔ **This is `A3-1`'s rule — *a cadence is a fact about the SCHEDULE, not the debt's label* — established
+by this workstream and then broken by its fixer.** Keyed on `recurrence` now, and **scoped to the
+celebration**: widening `isOneTimeBnplLump` itself would move the debt-free date and the chart, because
+two projection engines read it as the month-1 clearing-payment flag. Filed separately rather than ridden
+in on a celebration fix.
+
+⭐ **THE ROOT CAUSE WAS THE GUARD'S SHAPE, AND THAT IS WHAT GOT FIXED.** `R3-4` sampled three cadences and
+shipped `R4-1`. `R4-1` added **one row** and shipped `R5-1`. **Adding a row is what failed, twice.** The
+population is now **derived from `Record<Recurrence, number>`** — 7 recurrences × 2 types, **48 asserts**
+— so a new `Recurrence` member is a **typecheck error** until someone states what it frees. Expectations
+stay literal, per `R3-1`.
+
+### The two instrument minors — filed to `.12.6.9`, per 🎯
+
+- **`R5-2`** — `R4-3`'s waiver matches by **substring**, so a note saying *"shares A3-14's red"* silently
+  waives a borrow from **`A3-1`**; **20 of 302 short ids collide**. ⚠️ **Its remedy is already MEASURED**
+  (word-boundary matcher, fire-count **0**, attack reds, legitimate waiver still honoured). ⛔ **This is a
+  live permissiveness in a gate shipped the day before** — read it before pass 8.
+- **`R5-3`** — round 4's comment says the scenario *"goes GREEN … reports as failed-open"*; measured, it
+  reports `planted=exit 1 · reason=WRONG`, because the fixture registry reds on `MIN_ENTRIES` regardless.
+  **`failed-open` is dead for all six fixture-registry scenarios.** **Seventh** expired-comment claim —
+  mine, about a scenario I wrote.
+
+### ⭐ What it refuted, including the lead I was most confident about
+
+The persisted-`pendingPayoff` exposure is **zero** (the bad producer lived <1 day on unreleased
+`v1.7-dev`); `freed: 0` is safe at **every** reader, enumerated rather than sampled; `R4-2`'s refusal is
+correct in **both** directions with **0** live entries lost and all six self-test controls green; `R4-1`
+and `R4-2`'s guards re-run `MATCHED`. Cumulative count **127**, two derivations, ⚠️ **and their agreement
+is still not confirmation** — both rest on the out-of-band `W9b` fact.
+
+### ⛔ A COLLISION I CAUSED, AND WHAT IT COST
+
+**I committed `2df9ece8` while this auditor was still working**, because I read its "finished"
+notification as proof it had exited. `git add -A` swept its in-progress report, its probes and **~1.3 MB
+of scratch snapshots** into that commit; the snapshots are deleted now but remain in history, because
+rewriting a pushed branch is worse.
+
+⚠️ **What it cost, in its own words and fairly stated:** the dispatch boundary became an **unrun gate**
+through no act of its own, and **one measurement was contaminated** — `control=exit 1` across four inner
+scenarios, the signature of a moving tree — which it **correctly refused to count**. ⭐ **And it did NOT
+restore `finding-guards.json` when it found my uncommitted recording there**, because that would have
+destroyed my work. The right call, and better judgement than my own that hour.
+
+⛔ **THE LESSON: AN AGENT NOTIFICATION MEANS IT STOPPED, NOT THAT IT IS GONE.** Never write to a tree an
+agent may still hold. It also **stranded a plant on disk** when it stopped — recovered from its
+`.plant-backup`, byte-identical to HEAD, `cmp`-verified. ⚠️ **`prove:guards --list` printed a clean
+302-entry summary over that planted tree**; the pre-flight does not fire on `--list`.
+
+### ⛔ WHY CLASS 4 CLOSES HERE — the measured basis, not a feeling
+
+| round | findings | **(a) reaches the user** | (b) instruments | caused by the previous round's fix |
+|---|---|---|---|---|
+| 3 | 4 | 2 | 2 | partly |
+| 4 | 3 | **1 blocker** | 2 | **all 3** |
+| 5 | 3 | **1 major** | 2 | **all 3** |
+
+🎯 **2026-09-06: stop, and open class 5** — the same call made for class 1 at round 7. ⭐ **The specific
+recursion is closed rather than abandoned**: the one line that was wrong three times now has a guard whose
+population the compiler maintains. ⚠️ **What is unproven and worth saying: whether a round 6 would have
+found a fourth defect in my own work.** On this record it probably would have — and the question the
+decision answers is whether that defect would have reached a user, which for two rounds running it did
+only by way of the previous fix.

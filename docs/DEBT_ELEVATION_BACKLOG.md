@@ -1193,3 +1193,26 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   because `W9b` is known out-of-band; a file-driven enumeration of the audit directory returns **123** and
   reports no error, and the heading-shaped control is silently zero on **five of six** class-1 rounds —
   **worse than round 3 measured**. → **`.12.6.9`**, which already owns deriving the count mechanically.
+
+### ⤵ filed from `S1.13.7.12.6.4.16.7` — round-5 re-audit, 2026-09-06 · 🎯 stopped the loop here
+
+- ⛔ **`R5-2` — the borrow waiver matches by SUBSTRING, so a note naming a different, longer id waives a
+  real borrow.** Planted and measured: a `proofNote` saying *"shares A3-14's red"* silently waives a
+  borrow from **`A3-1`**; **20 of 302 short ids collide**. ⚠️ **The remedy is already MEASURED, not
+  proposed** — a word-boundary matcher, fire-count **0** on the live registry, the attack reds, the
+  legitimate waiver is still honoured. ⛔ **This is a live permissiveness in `lint:finding-guards`,
+  shipped 2026-09-05, and the gate it weakens is the one that certifies closures.** Read this before
+  pass 8 trusts a borrow waiver. → **`.12.6.9`**.
+- **`R5-3` — `failed-open` is dead for all six fixture-registry gate-plant scenarios.** Their fixture
+  registries red on `MIN_ENTRIES` regardless, so a scenario that goes green under its plant reports
+  `reason=WRONG`, never `failed-open`. Round 4's comment beside `[R3-3-borrow]` states the dead outcome;
+  the registry's own `proofNote` is right. **Seventh expired-comment claim.** ⚠️ The discriminator still
+  works — the question is whether the *stated* one does. → **`.12.6.9`**.
+- **`isOneTimeBnplLump` is read by two projection engines as the month-1 clearing-payment flag**, so a
+  non-BNPL one-time debt is treated as a recurring minimum by `projectDebtPayoff` and
+  `buildPayoffTrajectory` — the same leak `R5-1` closed at the celebration, still open at the debt-free
+  date and the chart. ⛔ **Deliberately NOT ridden in on a celebration fix**: widening the predicate moves
+  both engines at once. → **`.12.6.5`** (the projection class) or pass 8.
+- **~1.3 MB of an auditor's scratch snapshots are in git history** (`2df9ece8`), swept in by a concurrent
+  `git add -A`. Deleted from the tree; not rewritten out, because rewriting a pushed branch is worse.
+  → tooling/hygiene, only if repo size ever matters.
