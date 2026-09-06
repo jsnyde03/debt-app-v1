@@ -1,4 +1,4 @@
-import { bnplMonthlyEquivalentMinimum } from '@core/debt/bnplPayoffPace';
+import { bnplMonthlyEquivalentMinimum, isOneTimeBnplLump } from '@core/debt/bnplPayoffPace';
 
 import type { Debt, PendingPayoff, PayoffStrategy } from '@/data/models';
 
@@ -93,7 +93,20 @@ export function detectPayoff(
     debtName: subject.name,
     debtId: subject.id,
     amount: subject.originalBalance ?? null,
-    freed: bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),
+    /**
+     * ⛔ **A ONE-TIME LUMP FREES NO RECURRING MONTHLY CASH, AND `bnplMonthlyEquivalentMinimum`
+     * RETURNS ITS WHOLE BALANCE.** [round-4 `R4-1`, blocker — a regression `R3-4` introduced]
+     *
+     * ⚡ Measured: a $600 Pay-in-30 whose minimum is $50 announced **"Freed $600/mo"** — 12×, on
+     * screen, in speech and on the ShareCard. The producer's own header says every caller must
+     * exclude the lump with `isOneTimeBnplLump`; ⛔ **`R3-4` read that pairing at four sites, wrote
+     * "pairs correctly at all four", and then created the fifth without it.** The class's own defect,
+     * inside the fix for a member of it.
+     *
+     * ⚠️ **0 is the honest figure, not the stored minimum.** Every surface already omits the clause
+     * at 0 — `showCascade` gates the text and the utterance, and `ShareCard` gates the badge.
+     */
+    freed: isOneTimeBnplLump(subject) ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),
     nextDebtName: next?.name ?? null,
   };
 }

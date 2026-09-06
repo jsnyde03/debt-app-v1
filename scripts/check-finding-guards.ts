@@ -168,7 +168,7 @@ const ids = Object.keys(registry);
  * that carries those findings' neighbours. `check-cap-literals` reads cap LITERALS, not the prose
  * beside them, so nothing mechanical compared the two. One line per ROUND now, not per commit.
  */
-const MIN_ENTRIES = 300;
+const MIN_ENTRIES = 301;
 const MAX_UNGUARDED = 1;
 
 /**
@@ -534,18 +534,30 @@ for (const [id, e] of Object.entries(registry)) {
      * which already disclose it in `proofNote`. **0 undisclosed today, and a new borrow reds the moment
      * it is written.**
      */
+    /**
+     * ⛔ **THE WAIVER MUST NAME WHAT IT WAIVES.** [round-4 `R4-3`] The first cut tested `proofNote`
+     * *before* computing the lenders, so **any** non-empty note waived the check unconditionally — and a
+     * borrow introduced into such an entry later would never red, because a borrowed `expect` returns
+     * `reason=MATCHED` by construction in the other harness too. ⚠️ **Exposure was 4 entries, not the 10
+     * the report states**: the other notes sit on entries with no explicit `expect`, whose expectation
+     * defaults to their own token and so can never enter this branch. **Fire-count of the tightening,
+     * measured before it was written: 0** — all four real borrows already name their lender.
+     */
     const expect = e.proof.expect;
-    if (expect !== undefined && !e.token.includes(expect) && !e.proof.proofNote?.trim()) {
+    if (expect !== undefined && !e.token.includes(expect)) {
       const lenders = Object.entries(registry)
         .filter(([other, oe]) => other !== id && oe.token?.includes(expect))
         .map(([other]) => other);
-      if (lenders.length) {
+      const note = e.proof.proofNote ?? '';
+      const waived = lenders.some((l) => note.includes(l) || note.includes(l.replace(/^S1[A-Z0-9]*-/, '').replace(/^CLASS4-/, '')));
+      if (lenders.length && !waived) {
         problems.push(
           `${id} — its proof's \`expect\` is not in its own token, and IS in ${lenders.join(', ')}.\n` +
             `        ${JSON.stringify(expect)}\n` +
             '        That is a red on a NEIGHBOUR\'S assertion: the plant fires, the sibling fails, and this\n' +
             '        entry is recorded proven without its own assertion ever being reached. Either point\n' +
-            '        `expect` at this entry\'s own assertion, or state in `proofNote` why the finding has none.',
+            '        `expect` at this entry\'s own assertion, or NAME the lender in `proofNote` and say why\n' +
+            '        this finding has no assertion of its own. A note that does not name it does not waive it.',
         );
       }
     }

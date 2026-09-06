@@ -189,6 +189,23 @@ export default async function run() {
         { recurrence: 'weekly', type: 'bnpl', bnplProvider: 'Klarna', apr: 0 } as Partial<Debt>,
         216.67,
       ],
+      /**
+       * ⛔ **THE ROW THIS TABLE WAS MISSING, AND ITS ABSENCE SHIPPED A BLOCKER.** [round-4 `R4-1`]
+       *
+       * ⚡ `bnplMonthlyEquivalentMinimum` returns a one-time lump's **whole balance** by design, so the
+       * beat announced **"Freed $600/mo"** for a $600 Pay-in-30 whose minimum is $50 — **12×**, on
+       * screen, in speech, and on the ShareCard. ⛔ **The producer's own header says every caller must
+       * exclude the lump; `R3-4` verified that pairing at four sites and then wrote the fifth without
+       * it.** Iterating three cadences and a BNPL was not iterating the class.
+       *
+       * ⚠️ **0, because clearing a one-shot frees no RECURRING money** — and every surface already
+       * omits the clause at 0 (`showCascade`, and `ShareCard`'s own `> 0`).
+       */
+      [
+        'BNPL · one-time lump',
+        { recurrence: 'one-time', type: 'bnpl', bnplProvider: 'Klarna', apr: 0, balance: 600 } as Partial<Debt>,
+        0,
+      ],
     ];
     for (const [label, shape, freedPerMonth] of cases) {
       const cleared = debt({ id: 'a', balance: 600, minimumPayment: 50, ...shape });

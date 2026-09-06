@@ -4052,19 +4052,20 @@
   "S1P7-R3-3-BORROW": {
     "what": "class 4 round-3 R3-3 - R2-6's remedy shipped half as a docblock claim: prove-guards.ts documented a check that existed NOWHERE, and building it as documented reds 84 legitimate entries (the token is a code fragment, the expect is the message a run prints). The check now refuses the DEFECT rather than a proxy for it: an expect that is not in this entry's own token and IS in another entry's - a red on a NEIGHBOUR's assertion. proofNote exempts.",
     "file": "scripts/check-finding-guards.ts",
-    "token": "if (expect !== undefined && !e.token.includes(expect) && !e.proof.proofNote?.trim()) {",
+    "token": "if (expect !== undefined && !e.token.includes(expect)) {",
     "proof": {
       "unfix": [
         {
           "at": "scripts/check-finding-guards.ts",
-          "find": "if (expect !== undefined && !e.token.includes(expect) && !e.proof.proofNote?.trim()) {",
+          "find": "if (expect !== undefined && !e.token.includes(expect)) {",
           "replace": "if (false && expect !== undefined) {"
         }
       ],
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [R3-3-borrow]",
       "measured": "2026-09-06",
-      "sha": "8876c349"
+      "sha": "8876c349",
+      "proofNote": "ANCHOR RE-DERIVED in round 4: R4-3's fix rewrote this very line, voiding both the token and the un-fix - the same shape as R3-2 voiding R2-1-CAP one round earlier. Re-RUN, not merely re-anchored: a recorded measurement must describe the plant the entry now performs."
     }
   },
   "S1P7-R3-1-ANCHOR": {
@@ -4128,7 +4129,7 @@
       "unfix": [
         {
           "at": "apps/rn/src/store/payoffCelebration.ts",
-          "find": "freed: bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),",
+          "find": "freed: isOneTimeBnplLump(subject) ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),",
           "replace": "freed: subject.minimumPayment,"
         }
       ],
@@ -4136,6 +4137,23 @@
       "proofNote": "The earlier assertion at payoffCelebration.test.ts:54 also reads `freed`, but on a MONTHLY debt, so it is green under this un-fix and does not pre-empt the red. The row that fires is this entry's own weekly one. The monthly row inside the R3-4 block is the CONTROL - exact under both the old and new producer - so it is what proves the error axis is cadence.",
       "measured": "2026-09-06",
       "sha": "42c7504c"
+    }
+  },
+  "S1P7-R4-1-ONETIMELUMP": {
+    "what": "class 4 round-4 R4-1, BLOCKER and a regression R3-4 introduced - the payoff beat announced a one-time BNPL's whole balance as recurring monthly cash: 'Freed $600/mo' on a $600 Pay-in-30 whose minimum is $50, a 12x overstatement, on screen, spoken, and on the ShareCard. bnplMonthlyEquivalentMinimum returns roundMoney(balance) for a lump BY DESIGN and its own header says every caller must exclude it with isOneTimeBnplLump. R3-4 verified that pairing at four sites, wrote 'pairs correctly at all four', and created the fifth without it - the class's own defect inside the fix for a member of it. freed is 0 now, because clearing a one-shot frees no recurring money, and every surface already omits the clause at 0.",
+    "file": "apps/rn/src/store/payoffCelebration.test.ts",
+    "token": "BNPL · one-time lump",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/payoffCelebration.ts",
+          "find": "freed: isOneTimeBnplLump(subject) ? 0 : bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),",
+          "replace": "freed: bnplMonthlyEquivalentMinimum(subject, cyclesPerMonth),"
+        }
+      ],
+      "run": "test:app",
+      "expect": "BNPL · one-time lump",
+      "proofNote": "The un-fix leaves isOneTimeBnplLump imported and unused. That is deliberate and safe here because the run is test:app, which executes through tsx and does not lint or typecheck - a second part removing the import would be needed only if the run were eslint (the R2-1-CAP shape)."
     }
   }
 }

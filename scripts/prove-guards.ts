@@ -535,9 +535,9 @@ function proveOne(id: string, e: Entry): { ok: boolean; line: string; failed: Fa
     for (const f of strays.slice(0, 6)) console.log(`          ${f}`);
   }
 
-  // ⛔ [R2-6] The token IS the expectation unless the entry deliberately says otherwise. The `?? ''`
-  // that used to close this expression is gone: a proof with no token is refused at selection now, so
-  // there is no path here that reaches `verdict()` with nothing to attribute the red to [R3-3].
+  // ⛔ [R2-6] The token IS the expectation unless the entry deliberately says otherwise. Selection
+  // refuses an entry whose resolved expectation is empty [R3-3, corrected by R4-2], so what reaches
+  // `verdict()` here is always something a red can be attributed to.
   const expected = p.expect ?? e.token!;
   return { ...verdict(id, expected, planted, withPlant, withoutPlant), plantedStatus: withPlant.status, plantedOut: withPlant.out };
 }
@@ -732,8 +732,15 @@ for (const id of selected) {
    * token is. Caught by `prove:guards --selftest`, not by reading: the fix for a fail-open carrying
    * its own defect, for the fifth time in this cluster.
    */
-  if (registry[id].proof && !registry[id].proof.expect && !registry[id].token) {
-    fault(id, 'carries a proof with neither `expect` nor `token` — there would be nothing to attribute the red to');
+  if (registry[id].proof) {
+    // ⛔ [round-4 `R4-2`] Refuse on the RESOLVED expectation, which is the value `verdict()` actually
+    // gates on. Checking the two fields separately left `expect: ""` with a token reachable: `??` keeps
+    // the empty string, `verdict()` skips the reason check on anything falsy, and the run printed ✅ with
+    // no `reason=` field at all — proven off nothing but an exit code.
+    const resolved = registry[id].proof.expect ?? registry[id].token ?? '';
+    if (!resolved.trim()) {
+      fault(id, 'carries a proof whose expectation resolves to empty — there would be nothing to attribute the red to');
+    }
   }
 }
 
