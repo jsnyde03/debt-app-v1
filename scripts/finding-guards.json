@@ -4062,7 +4062,9 @@
         }
       ],
       "run": "test:gate-plants",
-      "expect": "lint:finding-guards [R3-3-borrow]"
+      "expect": "lint:finding-guards [R3-3-borrow]",
+      "measured": "2026-09-06",
+      "sha": "5069ca35"
     }
   }
 }
