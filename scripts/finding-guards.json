@@ -2407,8 +2407,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "STALE",
-      "measured": "2026-09-05",
-      "sha": "b17b3a48"
+      "measured": "2026-09-06",
+      "sha": "8876c349"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3475,8 +3475,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
-      "measured": "2026-09-05",
-      "sha": "b17b3a48"
+      "measured": "2026-09-06",
+      "sha": "8876c349"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3634,8 +3634,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
-      "measured": "2026-09-05",
-      "sha": "b17b3a48"
+      "measured": "2026-09-06",
+      "sha": "8876c349"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -4044,8 +4044,8 @@
         "apps/rn/tsconfig.json",
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
-      "measured": "2026-09-05",
-      "sha": "2560ddec",
+      "measured": "2026-09-06",
+      "sha": "8876c349",
       "proofNote": "TWO-PART UNFIX, and the reason is the finding's own shape. Deriving the count from the capped reserve left bnplInstallmentsInWindow unused, which eslint refuses — so the plant restores the import as well as the line. Without that the plant would fail to COMPILE and the run would red for a syntax error rather than for the defect: a plant must make an assertion fail, never throw past it."
     }
   },
@@ -4064,7 +4064,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [R3-3-borrow]",
       "measured": "2026-09-06",
-      "sha": "5069ca35"
+      "sha": "8876c349"
     }
   },
   "S1P7-R3-1-ANCHOR": {
