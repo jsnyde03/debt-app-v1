@@ -4153,7 +4153,9 @@
       ],
       "run": "test:app",
       "expect": "BNPL · one-time lump",
-      "proofNote": "The un-fix leaves isOneTimeBnplLump imported and unused. That is deliberate and safe here because the run is test:app, which executes through tsx and does not lint or typecheck - a second part removing the import would be needed only if the run were eslint (the R2-1-CAP shape)."
+      "proofNote": "The un-fix leaves isOneTimeBnplLump imported and unused. That is deliberate and safe here because the run is test:app, which executes through tsx and does not lint or typecheck - a second part removing the import would be needed only if the run were eslint (the R2-1-CAP shape).",
+      "measured": "2026-09-06",
+      "sha": "affb8a01"
     }
   }
 }
