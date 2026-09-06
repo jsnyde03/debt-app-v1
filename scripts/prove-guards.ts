@@ -637,14 +637,37 @@ function selfTest(): never {
       wantExit: 1,
       wantAll: ['could NOT be recorded', 'registry is INTACT', 'Measured and DISCARDED'],
     },
+    /**
+     * ⛔ **[round-4 `R4-2`] A BLANK `expect` WITH A TOKEN REACHED `verdict()` WITH NO REASON CHECK.**
+     *
+     * ⚡ Measured before the fix: **exit 0, a green tick, and no `reason=` field at all** — an entry
+     * recorded as proven off nothing but an exit code. `??` keeps `''`, and `verdict()` gates the
+     * attributability check on truthiness. ⛔ **`R3-3`'s own selection fault missed it** because it tested
+     * the two fields separately and this shape has one of each; the refusal is on the **resolved**
+     * expectation now, which is the value `verdict()` actually reads.
+     *
+     * ⚠️ **This fixture carries a `token` on purpose** — without one it would be refused for the other
+     * reason and prove nothing about this hole.
+     */
+    {
+      id: 'selftest:a blank expect is refused',
+      what: 'emptyexpect',
+      wantExit: 1,
+      wantAll: ['resolves to empty'],
+    },
   ];
 
   const REL = 'scripts/__gate_plant_selftest-registry.json';
   const ABS = join(REPO_ROOT, REL);
   for (const c of subprocessCases) {
     const probe = `scripts/__fixtures__/prove-guards-${c.what}-probe.mjs`;
+    // ⛔ [R4-2] The blank-expect case needs a `token`, or it is refused for the OTHER reason and says
+    // nothing about the hole it exists for. The rest carry neither, deliberately — an explicit `expect`
+    // is a legitimate shape and refusing it is what broke these two controls in round 3.
+    const blank = c.what === 'emptyexpect';
     const entry: Entry = {
       what: `self-test fixture — ${c.what}`,
+      ...(blank ? { file: 'scripts/__fixtures__/prove-guards-target.ts', token: "MARKER = 'the guard holds'" } : {}),
       proof: {
         unfix: [
           {
@@ -654,7 +677,7 @@ function selfTest(): never {
           },
         ],
         cmd: ['node', probe],
-        expect: 'PROBE: the guard is gone',
+        expect: blank ? '' : 'PROBE: the guard is gone',
       },
     };
     let out = '';

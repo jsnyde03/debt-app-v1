@@ -4157,5 +4157,22 @@
       "measured": "2026-09-06",
       "sha": "affb8a01"
     }
+  },
+  "S1P7-R4-2-EMPTYEXPECT": {
+    "what": "class 4 round-4 R4-2 - R3-3 left its own hole half open. expect:'' WITH a token still reached verdict(): measured in a subprocess as exit 0, a green tick, and NO reason= field at all - an entry recorded proven off nothing but an exit code. ?? keeps the empty string and verdict() gates the attributability check on truthiness, while R3-3's selection fault tested the two fields separately and this shape has one of each. Refused on the RESOLVED expectation now, which is the value verdict() actually reads. The comment above it claimed no such path existed - the sixth comment-as-expired-claim here, inside a comment written to replace one.",
+    "file": "scripts/prove-guards.ts",
+    "token": "selftest:a blank expect is refused",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/prove-guards.ts",
+          "find": "const resolved = registry[id].proof.expect ?? registry[id].token ?? '';",
+          "replace": "const resolved = registry[id].proof.expect || registry[id].token || '';"
+        }
+      ],
+      "run": "prove:guards:selftest",
+      "expect": "selftest:a blank expect is refused",
+      "proofNote": "The un-fix is ?? -> ||, which restores the OLD semantics exactly: '' falls through to the token, the entry is not refused, and the blank-expect control then fails on its missing message. A one-operator un-fix rather than reverting the block, so the plant cannot fail to compile and throw past the assertion it exists to exercise."
+    }
   }
 }
