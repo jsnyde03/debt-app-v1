@@ -2840,7 +2840,7 @@
       "run": "lint:import-graph",
       "expect": "a plain VALUE is imported from a module that loads a renderer",
       "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "sha": "71ab1686"
     }
   },
   "S1P6-D1-5-VACUOUSORDER": {
@@ -3080,7 +3080,7 @@
       ],
       "expect": "must add up",
       "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "sha": "71ab1686"
     }
   },
   "S1P6-A3-15-PARTITIONSIDE": {
@@ -3517,7 +3517,7 @@
       "run": "lint:contrast",
       "expect": "exemption broken",
       "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "sha": "71ab1686"
     }
   },
   "S1P7-U5-REASON-VACUITY": {
