@@ -1386,3 +1386,41 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   having to correct for. ⚠️ The same gap almost certainly applies to `C3-9`'s Progress guard, which has no
   free-tier fixture either. **Fix by fixture, not by deleting the conjunct.** → **`.5.7`** *(boundary — add
   a free-tier case to both screens)*.
+
+### ⤵ surfaced by `.5.4`'s `C3-11` before-scan, 2026-09-13 — routed per bullet
+
+- ⛔ **`'row-figures'` SUBSUMES EVERY OTHER CLAIM, SO ANY CONJUNCTION WITH IT IS VACUOUS — and nothing says
+  so.** Its route is `{ debt: 'any', requiredExpense: 'any', livingExpense: 'any', goal: 'any', plan: 'any' }`,
+  a superset of all three other claims' routes for every entity they name. ⚡ **Measured, not deduced**: 54
+  entity×field×kind cases, and in **0** of them does `mayClaim('debt-balances')` differ in a way that changes
+  `A && B`. ⛔ So `mayStateProjectedFigure`'s first conjunct was dead on arrival, and **any future guard
+  written as `mayClaim(X) && mayClaim('row-figures')` is dead the same way** — the shape reads as thorough
+  and is a no-op. ⚠️ **A test cannot catch this by asserting outcomes**: the outcomes are all correct; it is
+  the *reason* that is false. `lint:trust-claims` should assert the subsumption RELATION between routes, so
+  that narrowing `'row-figures'` reds every predicate that was silently relying on it. → **`.5.7`**
+  *(instrument — assert the route lattice, not just the table's completeness)*.
+- ⛔ **`lint:trust-claims` CANNOT SEE A SURFACE THAT ASKS THE CLASS'S OWN PREDICATE.** Two mechanisms, both
+  measured: `ASKS_GUARD` (`check-trust-claims.ts:308`) lists six helper names and **not**
+  `mayStateProjectedFigure`; and check 1's consumer census matches the **literal string** `'row-figures'`
+  (`:124`), which a file calling only the predicate never contains. ⚡ So `C3-8`'s fix moved **no** counter —
+  `debt-balances→4 · row-figures→9`, unchanged — and `CLAIM_CONSUMER_FLOOR` is `actual !== declared`, exact in
+  both directions, so it cannot drift-detect what it cannot see. ⛔ **Today nothing reds only by luck**:
+  `money.tsx` still holds 14 `rowFieldUnread` calls and `progress.tsx` still asks `mayClaim` at `:288`. A
+  future surface adopting **only** the predicate reads as unguarded, and one DROPPING it lowers no floor —
+  the exact loss-detection the gate exists for. ⚠️ **Distinct from the split-across-two-files gap above**
+  *(`PRINTS_MONEY` and `READS_ENTITIES` must co-occur)*: this one is about the ASK, that one about the
+  POPULATION. → **`.5.7`**.
+
+### ⤵ surfaced by `.5.4a`'s switch-in, 2026-09-13
+
+- ⚠️ **`plan.typicalAmount` poisons `'required-plan'` and nothing that plans reads it.** `plan: 'any'` routes
+  it; measured across six shapes it moves **no** projected figure, and its one reader is `incomeLearning`'s
+  lean suggestion. So every `'required-plan'` surface refuses over a loss that changes nothing it states —
+  `.5.4a`'s over-suppression, one claim over. → **`.5.7`** *(name the plan fields; re-run the variant sweep
+  against the required-plan figures)*.
+- ⛔ **A lost pace is recorded under a SENTENCE, never under `priorityPerPaycheck`** (`migrations.ts:481`),
+  while `REPAIRABLE_MONEY_FIELDS` declares the field name — so the completeness gate reads a name the record
+  never carries when lost. Every goal route is `'any'` today and no consumer asks for the field by name
+  *(measured)*, so nothing is open; ⚠️ **the first NAMED goal route or `rowFieldUnread(…, 'priorityPerPaycheck')`
+  is silently blind to it.** → **`.5.7`** *(instrument — assert each LOST variant's recorded field is one the
+  table can name)*.

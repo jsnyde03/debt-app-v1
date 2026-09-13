@@ -33239,3 +33239,58 @@ went green because `:111`'s gag hid the defect. Here the branches above are `all
 `hasUnreadDebtBalances` is field-specific), so nothing can mask it and a single-branch revert is faithful.
 ⚡ And the guard had no test at all: every Money fixture poisons `balance`, exactly as on Progress, so the
 existing hero guard fired for the right reason by accident.
+
+### `.12.6.5.4a` — SWITCH-IN: the predicate over-suppresses, and every carried figure re-measured · 2026-09-13
+
+⚠️ **The previous session filed `.5.4a` onto the plan and the backlog, uncommitted, with "Detail → log" and no
+log entry — and no probe on disk.** Its figures (*54 cases*, *4 of 7*, *3 of 7*, *three months EARLIER*) were
+therefore carried numbers with no instrument behind them. Re-measured before anything was built on them.
+
+| carried | measured | verdict |
+|---|---|---|
+| `'debt-balances'` decides the conjunction in 0 of 54 | **0 of 102** — and it is structural: `'row-figures'` routes `'any'` for every entity, a superset of every other claim | ✅ stands |
+| Money's hero over-suppresses 4 of 7 | **15 of 19** refusals move nothing *(47 variants × 6 fixtures)* | ⚠️ direction stands, population was not recoverable |
+| Progress over-suppresses 3 of 7 | the solved family *(date · view · what-if · cushion)* refuses on variants that move none of it | ⚠️ same |
+| a lost `requiredExpense.amount` moves the date three months EARLIER | **June 2030 → January 2028** on a tight fixture, November → October 2026 on a loose one | ✅ direction · ⛔ the magnitude is the fixture's |
+
+⛔ **MY FIRST PROBE WAS VACUOUS IN ONE DIRECTION, AND ITS CONTROLS COULD NOT SAY SO.** `nextPaycheckDate` was
+`currentDate` — a **zero-length pay window**, so rent was never due inside it — the living expense had no
+`enabled`, and the goal no `priority`. Every *"does not move"* result was the fixture. ⚡ The recovered-variant
+controls all passed and a lost balance still moved every figure, so the probe **looked** discriminating. What
+caught it was the result contradicting a carried direction: a lost rent moved nothing. ⭐ Rebuilt with six
+shapes *(tight/loose × fixed/variable/no-pace)*, each base allocation printed to show every input consumed,
+and "moves" taken as the **union** across shapes — goal fields move only where spare money reaches the goal,
+`leanAmount` only on variable income, `goal.currentAmount` on exactly one shape.
+
+#### The design — two CLAIMS in the table, not two predicates
+
+- **`'projected-balance'`** = `debt: ['balance', 'apr', 'minimumPayment']` — what `projectCurrentBalance`
+  reads. Money's hero total, the journey line's *"to go"* arm, the widget's `remaining`.
+- **`'solved-projection'`** = that + `scheduledPaymentAmount` · `requiredExpense.amount` ·
+  `livingExpense.amount` · `goal: 'any'` · `plan: ['cushionFloor', 'leanAmount', 'windfall',
+  'expenseReserveBalance']` — what the allocation the payoff is solved from reads. The debt-free date, the
+  payoff view, the what-if, the cash timeline.
+
+⚡ **Why the table and not a function:** a claim is covered by the completeness gate, and
+`lint:trust-claims` counts callers by the **literal claim name** — which is exactly why `C3-8`'s fix moved no
+counter (the backlog's *"cannot see a surface that asks the class's own predicate"*). Routing the question
+through `mayClaim` closes that by construction.
+
+⭐ **Validated before writing: 0 mismatches** over 47 variants × 6 shapes, both directions, and each route's
+verdict identical on every shape.
+
+#### Three traps the probing found
+
+- ⛔ **`goal: 'any'` is REQUIRED, not lazy.** A lost pace is recorded under a *sentence* —
+  `'the per-paycheck amount could not be read…'` (`migrations.ts:481`) — never under `priorityPerPaycheck`.
+  A named goal list opens a hole on exactly that loss. ⚠️ No live consumer asks for the field by name
+  *(measured)*, so it is a trap rather than a defect → backlog.
+- ⚠️ **`PayoffView.order` carries whole debt objects**, so a lost `originalBalance` changed its JSON and not
+  its ranking. Compared by id — the first reading of it was a false hole.
+- ⚠️ **`plan.typicalAmount` moves no projected figure on any shape** — its only reader is `incomeLearning`'s
+  suggestion. Excluded from both claims; ⛔ `'required-plan'` still refuses on it through `plan: 'any'` →
+  backlog.
+
+⚠️ **Baseline before building, read from each gate's own line:** typecheck 0 · `lint:rn` exit 0 ·
+`test:gate-plants` 27/27 fail closed · `test:app` + `test:regression` green · `lint:finding-guards` 301/302,
+**5 stale** (cap 8) — up from the handoff's 2, the three new ones being files `C3-8`/`C3-9` moved.
