@@ -75,11 +75,14 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
    * plan it knows is missing an obligation, and then offers a **Confirm that routes it that way.** The
    * hero merely stated a wrong verdict; this acts on one.
    *
-   * ⚠️ The routing is computed from the same `required-plan` inputs the card twenty lines up refuses on,
-   * so the split is not just uncertain — a lost obligation means MORE looks spare, and the itemisation
-   * sends it somewhere.
+   * ⚠️ The routing is computed from the same inputs the Guardian card refuses on, so the split is not just
+   * uncertain — a lost obligation means MORE looks spare, and the itemisation sends it somewhere.
+   *
+   * ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] `'paycheck-plan'`: the split moves on every goal field and an autopay
+   * amount. Zero holes on 22 plan shapes; it over-suppresses on the stored windfall, since the split takes the
+   * new amount as its argument.
    */
-  const unreadPlanInputs = !mayClaim(store, 'required-plan');
+  const unreadPlanInputs = !mayClaim(store, 'paycheck-plan');
   const hasSplit = split != null && split.items.length > 0 && !unreadPlanInputs;
 
   function submit() {
@@ -146,7 +149,7 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
                 card that had gone — it simply did not say WHICH amount. Same producer as its three
                 siblings, so the four cannot drift apart. */}
             An amount this paycheck has to cover could not be read, so I can’t say where this would land —
-            {' '}{unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and I’ll route it')}.
+            {' '}{unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and I’ll route it')}.
           </Text>
         </View>
       ) : !isPremium && validAmount ? (

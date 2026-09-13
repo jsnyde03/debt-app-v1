@@ -133,7 +133,11 @@ export function PlanHero({
     { key: 'spokenFor', label: PAYCHECK_SEGMENT.spokenFor, value: spokenFor, color: onNavy.essential, ring: true, fill: 0.5 },
     // T4.2 — the words live in @core/copy/vocabulary, which also states the cushion/safety-net disjointness rule.
     { key: 'free', label: PAYCHECK_SEGMENT.flexible, value: free, color: onNavy.free, ring: true, fill: 0.5 },
-  ].filter((seg) => seg.value > 0);
+    // ⛔ [pass-7 `C1-5` · `.5.4d`] WITHHELD over an unread input, not only the verdict below. Every segment is
+    // carved out of the allocation the unread figure corrupted, so the card used to hold back *"On track"* and
+    // still draw the split that sentence was about. The paycheck total above is kept: it is the user's own
+    // income, which nothing repaired.
+  ].filter((seg) => !unreadPlanInputs && seg.value > 0);
 
   // The recommendation is a SUGGESTED use of the safe money — shown as its real (small) self, from
   // the actual recommended action, not derived from the allocation cushion.
@@ -160,10 +164,13 @@ export function PlanHero({
       ? `${statusLabel} · debt-free by ${summary.debtFreeDate}`
       : statusLabel;
 
+  // ⛔ [pass-7 `C1-5` · `.5.4d`] The suggested move is spent out of the same corrupted allocation — withheld with
+  // the split, and so is its voice-over line; an empty split is not announced as a bare ".".
+  const showSuggest = !unreadPlanInputs && !!suggestLabel && suggestTotal > 0;
   const a11y = [
     `This paycheck ${formatWhole(paycheck)}.`,
-    segments.map((seg) => `${seg.label} ${formatWhole(seg.value)}`).join(', ') + '.',
-    suggestLabel ? `Suggested: ${suggestLabel}, ${formatWhole(suggestTotal)}.` : '',
+    segments.length > 0 ? segments.map((seg) => `${seg.label} ${formatWhole(seg.value)}`).join(', ') + '.' : '',
+    showSuggest ? `Suggested: ${suggestLabel}, ${formatWhole(suggestTotal)}.` : '',
     reassurance,
   ]
     .filter(Boolean)

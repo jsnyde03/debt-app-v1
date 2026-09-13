@@ -342,8 +342,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               onEditPaycheck={() => setPaycheckSheet(true)}
               onOpenSpokenFor={() => setSpokenForSheet(true)}
               // ⛔ S1.13.7.4 [pass-6 C1-3] — the hero is the FIRST and loudest claim on this screen and was
-              // the one card here not asking. The two cards below already pass this exact expression.
-              unreadPlanInputs={!mayClaim(store, 'required-plan')}
+              // the one card here not asking.
+              // ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] `'solved-projection'`: the hero prints a debt-free DATE, which
+              // moves on a lost APR — measured on 22 plan shapes, where `'required-plan'` had 9 holes here.
+              unreadPlanInputs={!mayClaim(store, 'solved-projection')}
             />
           </TutorialFence>
         </Motion>
@@ -365,8 +367,11 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // anything while this card said "Apply the spare $1,800 toward Visa" against a true $300.
               // ⚠️ The honest caption on `RequiredActionsCard` does not cover it: different card, below
               // this one, and this one was still printing the wrong dollar figure above it.
-              unreadPlanInputs={!mayClaim(store, 'required-plan')}
-              unreadFix={unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and this comes back')}
+              // ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] `'paycheck-plan'`: the brief states this paycheck SOLVED — the
+              // spare, the band, the deploy target — and on 22 plan shapes it moves on every goal field and on an
+              // autopay amount, which `'required-plan'` never routed. Measured exact for the brief's own figures.
+              unreadPlanInputs={!mayClaim(store, 'paycheck-plan')}
+              unreadFix={unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and this comes back')}
               isExample={isExample}
               proofOfWork={proofOfWork}
               onSeeForecast={() => router.push('/cushion-forecast')}

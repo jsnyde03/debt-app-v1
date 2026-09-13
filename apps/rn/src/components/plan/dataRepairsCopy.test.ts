@@ -188,9 +188,9 @@ export default function run() {
    *
    * ⚡ Measured before these were written: across all 8 files that construct repairs, the entities used
    * were **debt 24 · goal 6 · migration 4 · requiredExpense 2 · livingExpense 1 · plan 0** — while
-   * `migrations.ts:299` emits plan repairs in production and `CLAIM_FIELDS['required-plan'].plan` routes
-   * them wholesale. **The whole plan-money trust path was exercised by nothing**, which is how `C1-2`
-   * stayed open: no test could have failed.
+   * `migrations.ts:299` emits plan repairs in production and the claim table routes them *(then through
+   * `'required-plan'` wholesale; since `.5.4d`, `'paycheck-plan'` names the cushion line)*. **The whole
+   * plan-money trust path was exercised by nothing**, which is how `C1-2` stayed open: no test could have failed.
    */
   {
     const floorLost: DataRepair = { entity: 'plan', id: '', name: 'your cushion line', field: 'cushionFloor', kind: 'lost' };

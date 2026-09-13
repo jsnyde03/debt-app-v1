@@ -152,7 +152,9 @@ export function AffordabilityCard() {
    * ⚠️ **The free-tier line is gated by the same flag**, because `discretionaryNow` is the identical
    * inflated figure with the verdict stripped off, and it is the one number the free tier gets.
    */
-  const unreadPlanInputs = !mayClaim(store, 'required-plan');
+  // ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] `'paycheck-plan'` — the verdict is this paycheck solved with the purchase
+  // in it, and it moves on every goal field and an autopay amount. Measured exact for this card's own result.
+  const unreadPlanInputs = !mayClaim(store, 'paycheck-plan');
 
   const verdictLine =
     result && isPremium && !unreadPlanInputs
@@ -234,7 +236,7 @@ export function AffordabilityCard() {
           {/* ⛔ S1.13.7.8 [pass-6 `C1-1`] — "above" named `DataRepairsCard`, which one "Got it" tap
               removes for good while this suppression stays. The figure is named now. */}
           An amount this paycheck has to cover could not be read, so I’d be answering off a plan that’s
-          missing something — {unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and I can tell you')}.
+          missing something — {unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and I can tell you')}.
         </Text>
       ) : !isPremium ? (
         <View style={styles.read}>

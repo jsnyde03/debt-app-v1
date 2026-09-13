@@ -116,9 +116,11 @@ export function PaydayGuardianCard({
    *  mid-lesson. Undefined outside a tutorial, which is every real use. */
   coachLine?: string;
   /**
-   * ⛔ **S1.11.4.2 [pass-4 blocker `C4-7`] — could the app read every amount this paycheck is obliged to
-   * cover?** Same question, same owner and same prop name as `RequiredActionsCard` and `AffordabilityCard`
-   * carry (`trustSelectors`' `mayClaim(store, 'required-plan')`), never re-derived here.
+   * ⛔ **S1.11.4.2 [pass-4 blocker `C4-7`] — could the app read every amount this paycheck is solved from?**
+   * Same prop name as `RequiredActionsCard` and `AffordabilityCard`, answered by the claim owner and never
+   * re-derived here — `mayClaim(store, 'paycheck-plan')` since `.5.4d`, which `AffordabilityCard` also asks.
+   * ⚠️ `RequiredActionsCard` asks the NARROWER `'required-plan'`: its rows do not move on goals or the cushion
+   * line, and this card's spare and band do.
    *
    * ⚡ **Why this card needed it too.** A `minimumPayment` or bill `amount` the app could not read repairs
    * to **$0**, so the obligation leaves the plan entirely and every figure downstream of the allocation is
@@ -142,7 +144,7 @@ export function PaydayGuardianCard({
    * brief, which removes Today's whole premium surface rather than making it honest.
    */
   unreadPlanInputs?: boolean;
-  /** ⛔ [`C1-1`] The instruction, naming the figure — `unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and this comes back')`. */
+  /** ⛔ [`C1-1`] The instruction, naming the figure — `unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and this comes back')`. */
   unreadFix?: string;
 }) {
   const c = useAppColors();
@@ -227,7 +229,7 @@ export function PaydayGuardianCard({
      * an amount could not be read. Measured: the user had set `$350`.
      *
      * ⚠️ **Gated on `floorUnread`, NOT on `unreadPlanInputs`** — and the difference is the whole point.
-     * This branch fires whenever ANY `required-plan` field is lost, so a lost BILL amount must still
+     * This branch fires whenever ANY `'paycheck-plan'` field is lost, so a lost BILL amount must still
      * print the user's real line. Only the repair record for `cushionFloor` says the figure is a
      * substitute, which is why it had to be carried here rather than inferred from the value: a repaired
      * line and a legitimately-set `$0` are byte-identical.

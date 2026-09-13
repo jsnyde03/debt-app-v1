@@ -750,8 +750,8 @@
       "unfix": [
         {
           "at": "apps/rn/src/app/(tabs)/index.tsx",
-          "find": "              unreadPlanInputs={!mayClaim(store, 'required-plan')}\n              unreadFix={unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and this comes back')}\n              isExample={isExample}",
-          "replace": "              unreadFix={unreadInputsFix(repairsPoisoning(store, 'required-plan'), 'and this comes back')}\n              isExample={isExample}"
+          "find": "              unreadPlanInputs={!mayClaim(store, 'paycheck-plan')}\n              unreadFix={unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and this comes back')}\n              isExample={isExample}",
+          "replace": "              unreadFix={unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and this comes back')}\n              isExample={isExample}"
         }
       ],
       "run": "test:app",
@@ -1197,8 +1197,8 @@
       "unfix": [
         {
           "at": "apps/rn/src/liveActivity/paydayActivityContent.ts",
-          "find": "  if (!mayClaim(store, 'required-plan')) return null;",
-          "replace": "  if (false && !mayClaim(store, 'required-plan')) return null;"
+          "find": "  if (!mayClaim(store, 'paycheck-plan')) return null;",
+          "replace": "  if (false && !mayClaim(store, 'paycheck-plan')) return null;"
         }
       ],
       "run": "test:app",
@@ -1445,8 +1445,8 @@
       "unfix": [
         {
           "at": "apps/rn/src/store/trustSelectors.ts",
-          "find": "'required-plan': { debt: ['minimumPayment', 'balance']",
-          "replace": "'required-plan': { debt: ['minimumPayment']"
+          "find": "    debt: ['minimumPayment', 'balance', 'scheduledPaymentAmount'],",
+          "replace": "    debt: ['minimumPayment', 'scheduledPaymentAmount'],"
         }
       ],
       "run": "test:app",

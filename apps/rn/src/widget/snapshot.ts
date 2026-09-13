@@ -75,12 +75,14 @@ function buildGuardianSpoken(store: DebtStore): string {
      * **$1,080**, and *the sentence around it does not change at all*. The $900 gap is the obligation the
      * app knows it failed to read, while Today refuses to say the user is caught up.
      *
-     * ⚠️ The brief is honest about the arrays it was handed; the arrays are wrong. `'required-plan'` is the
-     * claim that names exactly this — its route is `debt: ['minimumPayment']` — and the in-app consumers
-     * already ask it. ⛔ **The `''` return already existed and Siri already routes it to the value-led
+     * ⚠️ The brief is honest about the arrays it was handed; the arrays are wrong. The claim that names this is
+     * the one the in-app Guardian card asks — `'paycheck-plan'` since `.5.4d`, which routes the minimum along
+     * with every other field the brief is solved from. ⛔ **The `''` return already existed and Siri already routes it to the value-led
      * upsell** (`SiriQueryIntents.swift:75-78`); what was missing was the call.
      */
-    if (!mayClaim(store, 'required-plan')) return '';
+    // ⛔ [`.5.4d`] `'paycheck-plan'` — the spoken line is the Guardian brief, and the brief moves on goals and an
+    // autopay amount the narrowed `'required-plan'` does not route.
+    if (!mayClaim(store, 'paycheck-plan')) return '';
     const brief = selectPaydayGuardian(withProjectedBalances(store, true));
     if (!brief) return '';
     if (brief.shortfall && brief.shortfall > 0) {

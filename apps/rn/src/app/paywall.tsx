@@ -140,10 +140,12 @@ export default function PaywallScreen() {
   const store = useAppStore((s) => s.store);
   const allocation = selectAllocation(store);
   const summary = allocation ? selectPlanSummary(store, allocation, selectRequiredRows(store, allocation)) : null;
-  // ⛔ S1.10.6.2 [C-5] — the lead states a personalised dollar fact about this user's money, so it asks
-  // the same owner Today's plan card asks. An obligation the app could not read leaves the allocation
-  // arrays entirely, and every figure derived from them is short by it.
-  const lead = paywallLead(summary, effectivePaycheckBuffer(store), mayClaim(store, 'required-plan'), from);
+  // ⛔ S1.10.6.2 [C-5] — the lead states a personalised dollar fact about this user's money. An obligation the
+  // app could not read leaves the allocation arrays entirely, and every figure derived from them is short by it.
+  // ⚠️ [`.5.4d` · DECISION 🎯 2026-09-13] `'paycheck-plan'`: the lead renders this paycheck's shortfall, cushion
+  // and line, which move on the cushion line and an autopay amount the narrowed `'required-plan'` does not route.
+  // Zero holes on 22 plan shapes; it over-suppresses on the minimums and goal fields, which it never reads.
+  const lead = paywallLead(summary, effectivePaycheckBuffer(store), mayClaim(store, 'paycheck-plan'), from);
 
   const [plans, setPlans] = useState<PlanView[]>(STATIC_PLANS);
   const [selectedKey, setSelectedKey] = useState<PlanKey>('annual');

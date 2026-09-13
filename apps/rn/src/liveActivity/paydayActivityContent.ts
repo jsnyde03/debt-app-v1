@@ -79,7 +79,8 @@ export function buildPaydayActivityContent(store: DebtStore): PaydayActivityCont
    * what was missing. That is `tested-helper-is-not-a-used-helper` in its usual shape, which is why the
    * remedy is one condition rather than a new mechanism.
    */
-  if (!mayClaim(store, 'required-plan')) return null;
+  // ⛔ [`.5.4d`] `'paycheck-plan'` — the line is the Guardian brief, which moves on goals and an autopay amount.
+  if (!mayClaim(store, 'paycheck-plan')) return null;
   const brief = selectPaydayGuardian(withProjectedBalances(store, true));
   if (!brief) return null;
 

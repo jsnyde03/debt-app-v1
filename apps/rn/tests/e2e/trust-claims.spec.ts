@@ -306,8 +306,8 @@ test('C-6 control · a BNPL plan the app read still lists every installment', as
 
 /**
  * ⛔ **S1.11.4.2 [pass-4 blocker `C4-7`] — THE RENDER HALF.** `requiredPlanTrust.test.ts` walks every
- * surface that states the `'required-plan'` claim and proves this mount ASKS it; a passed prop is not a
- * suppressed figure, so the screen itself is asserted here.
+ * surface that must refuse over an unread obligation and proves this mount ASKS its claim — `'paycheck-plan'`
+ * since `.5.4d`; a passed prop is not a suppressed figure, so the screen itself is asserted here.
  *
  * ⚡ **The store is one variable from its own control.** The debt's `minimumPayment` is a value the
  * reader cannot parse — `migrations.ts` repairs it to `$0` and records the loss — so the obligation

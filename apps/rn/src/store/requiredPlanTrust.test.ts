@@ -121,11 +121,12 @@ const REQUIRED_PLAN_SURFACES: Surface[] = [
     kind: 'pure',
     // ⛔ pass-3 `C-5`: the one surface where the app asks for money. `mayStatePlanFigures` is a REQUIRED
     // parameter there by design, so this row exercises the caller's answer, not the module's default.
+    // ⚠️ [`.5.4d`] Off the RAW store and asking `'paycheck-plan'`, exactly as `paywall.tsx` does — this row built
+    // its summary off the projected store while the caller used the raw one.
     states: (s) => {
-      const engine = withProjectedBalances(s, true);
-      const allocation = selectAllocation(engine);
-      const summary = allocation ? selectPlanSummary(engine, allocation, selectRequiredRows(engine, allocation)) : null;
-      return paywallLead(summary, effectivePaycheckBuffer(s), mayClaim(s, 'required-plan'), null)?.fact ?? null;
+      const allocation = selectAllocation(s);
+      const summary = allocation ? selectPlanSummary(s, allocation, selectRequiredRows(s, allocation)) : null;
+      return paywallLead(summary, effectivePaycheckBuffer(s), mayClaim(s, 'paycheck-plan'), null)?.fact ?? null;
     },
   },
   {
@@ -134,7 +135,8 @@ const REQUIRED_PLAN_SURFACES: Surface[] = [
     file: 'app/(tabs)/index.tsx',
     // The mount, then the claim, within one JSX element — a file-wide grep for the claim is what `C4-4`
     // proved is satisfied by an import.
-    gate: /<PaydayGuardianCard[\s\S]{0,2000}?unreadPlanInputs=\{!mayClaim\(store, 'required-plan'\)\}/,
+    // ⚠️ [`.5.4d` · DECISION 🎯 2026-09-13] `'paycheck-plan'` — the brief is this paycheck solved, not its obligations.
+    gate: /<PaydayGuardianCard[\s\S]{0,2000}?unreadPlanInputs=\{!mayClaim\(store, 'paycheck-plan'\)\}/,
     e2e: 'tests/e2e/trust-claims.spec.ts · "C4-7 · the Payday Guardian card"',
   },
   {
@@ -149,7 +151,8 @@ const REQUIRED_PLAN_SURFACES: Surface[] = [
     kind: 'component',
     // Self-gating: it takes the store, not a prop, so its own source carries the call.
     file: 'components/plan/AffordabilityCard.tsx',
-    gate: /const unreadPlanInputs = !mayClaim\(store, 'required-plan'\);/,
+    // ⚠️ [`.5.4d`] `'paycheck-plan'` — the verdict is this paycheck solved with the purchase in it.
+    gate: /const unreadPlanInputs = !mayClaim\(store, 'paycheck-plan'\);/,
     e2e: 'tests/e2e/trust-claims.spec.ts · pass-3 [G-4]',
   },
 ];

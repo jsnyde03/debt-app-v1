@@ -44,9 +44,10 @@ export interface PaywallLead {
  * ⚡ Measured: a user whose imported file lost one card's $400 minimum was told **"This paycheck comes up
  * $100 short."** on a cycle that is **$500** short — and then sold a Recovery Plan sized against a number
  * wrong by 4×, on the one surface where the app asks for their money. Both branches print a figure derived
- * from allocation arrays that a repaired `$0` obligation silently leaves, which is exactly what
- * `'required-plan'` exists to gate. ⚠️ The milder reading understates it: the `cushion` branch runs on the
- * non-shortfall path too, so the same store can promise a cushion while the plan is missing an obligation.
+ * from allocation arrays that a repaired `$0` obligation silently leaves, which is exactly what the caller's
+ * claim exists to gate — `'paycheck-plan'` since `.5.4d`. ⚠️ The milder reading understates it: the `cushion`
+ * branch runs on the non-shortfall path too, so the same store can promise a cushion while the plan is missing
+ * an obligation.
  *
  * ⛔ **`mayStatePlanFigures` is a REQUIRED parameter, not an internal check, and that is the fix.** The
  * pass-2 remedy wired `mayClaim(store,'required-plan')` to precisely one consumer (`index.tsx:529`) and

@@ -569,7 +569,11 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
    * *reachable* from guarded callers; what was missing was the QUESTION, not the file. The same limit
    * `C1-3` recorded above — a file can be counted here and still leave a claim ungated.
    */
-  'required-plan': 7,
+  // ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] 7 → 1: `'required-plan'` was narrowed to what the required rows read,
+  // and its other askers moved to the claim measured exact for their own figures — the Guardian card, paywall,
+  // affordability, windfall routing, Live Activity, widget line and `cushionLine` to `'paycheck-plan'`, the plan
+  // hero to `'solved-projection'`. The notes above record why each joined; none of them measured what it RENDERS.
+  'required-plan': 1, // (tabs)/index.tsx — Required actions
   /**
    * ⛔ **6 at S1.12.5.6 [pass-5 `C5-3`]: `logPaymentCopy.ts` joined them, and the direction is the point.**
    * `'row-figures'` was created as *"a single row restating its own money"* and wired into the LIST row,
@@ -615,7 +619,13 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
   'projected-balance': 2, // money.tsx (the hero total) + progress.tsx (the journey line's "to go" arm)
   // ⚠️ 2 → 3 at `.5.4b` [pass-7 `C3-11`]: `cushion-forecast.tsx` asked no trust question at all, and its runway
   // is a plan solved forward. Measured exact against the forecast's own figures, not only the family's.
-  'solved-projection': 3, // progress.tsx (date · payoff view · what-if) + widget/snapshot.ts (the date) + cushion-forecast.tsx (the runway)
+  // ⚠️ 3 → 4 at `.5.4d`: `(tabs)/index.tsx` joined for Today's plan hero, whose debt-free DATE moves on a lost APR.
+  'solved-projection': 4, // progress.tsx (date · payoff view · what-if) + widget/snapshot.ts (the date) + cushion-forecast.tsx (the runway) + (tabs)/index.tsx (the plan hero)
+  /**
+   * ⛔ **Added at `.5.4d` [DECISION 🎯 2026-09-13].** This paycheck, solved — each asker measured exact for its own
+   * rendered figures on 22 plan shapes, asserted per surface in `trustSelectors.test.ts`.
+   */
+  'paycheck-plan': 7, // (tabs)/index.tsx (the Guardian card) + paywall.tsx + AffordabilityCard.tsx + WindfallSheet.tsx + paydayActivityContent.ts + widget/snapshot.ts (the spoken line) + selectors.ts (cushionLine)
 };
 for (const claim of claims) {
   const actual = consumers.get(claim)!.length;
