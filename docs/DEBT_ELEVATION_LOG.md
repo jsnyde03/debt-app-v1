@@ -34072,3 +34072,51 @@ the value it asserts is right, and Siri says the upsell.
 is spoken by the producer. The Swift branch becomes true by construction and the fix reaches the binary already
 shipped, where a Swift change would need a native build and still meet old snapshots without the key. A Swift
 `isPremium` read stays defence in depth → backlog.
+
+### `.12.6.5.4h.2`–`.4` — `''` means one thing, planted, `.5.4h` CLOSED · `.5.4` CLOSED · 2026-09-13
+
+✅ **Built.** `buildGuardianSpoken` returns `''` for exactly one reason — not premium — and speaks each premium one:
+`SPOKEN_UNREAD_PLAN` *(led by `UNREAD_PLAN_LEAD`, Today's card's words)*, `SPOKEN_NO_PLAN`, `SPOKEN_READ_FAILED`. The
+premium check moved above the `try`, so a thrown read can no longer reach the free answer. **No Swift change** —
+`PaycheckCheckIntent`'s one branch is true by construction and the fix reaches the binary already shipped.
+
+✅ **Two false statements corrected, one each side of the seam:** `snapshot.ts`'s D3-2 docblock *(it offered the
+`''` → upsell routing as the reason the refusal was right)* and `widgetSync.test.ts`'s D3-2 label *("Siri says
+nothing")*. ⚠️ **A third consumer the switch-in did not name** — `requiredPlanTrust.test.ts`'s Siri row read `''` as
+"refuses"; it went red on the fix *(measured, not assumed)* and now treats the spoken refusal as "states no figure".
+
+✅ **Tests:** each premium reason BY NAME · the invariant the Swift branch relies on — no premium store writes `''`,
+over an unread input, no plan and a readable plan · the thrown branch pinned by SOURCE *(no fixture reaches it without
+stubbing a selector)* · D3-2's own claim kept: the refusal names no figure. typecheck 0 · eslint clean ·
+`lint:import-graph` ✅ *(widget → `components/plan/dataRepairsCopy`, which imports no React Native)*.
+
+⭐ **Planted — 5 of 5 caught; control green; restored byte-identical by sha256:**
+
+| plant | red on |
+|---|---|
+| **Q1** un-fix: an unread input → `''` | D3-2 — Siri says what could not be read *(got `""`)* |
+| **Q2** un-fix: no plan → `''` | C3-2 — a PREMIUM user with no plan yet is told to set one up *(got `""`)* |
+| **Q3** un-fix: a thrown read → `''` | D2-12 — a thrown Guardian read is spoken for premium |
+| **Q4** over-fix: a FREE user is spoken to | ⚠️ **the pre-existing 3.5.5 line** *"free tier → guardianSpoken empty"* — judged by hand: same claim, an earlier line. The duplicate free control I had added could never be reached first, so it was removed |
+| **Q5** over-fix: every premium read is the canned sentence | ⭐ control — a premium plan the app read still speaks the Guardian read |
+
+✅ **The `.5.4g` lesson, applied before the commit this time.** `lint:finding-guards` on the uncommitted tree: no anchor
+voided. ⚡ **And the staleness it cannot see was projected by hand**: committing `snapshot.ts` stales the four proofs
+anchored there, and the floor edit the five in `check-finding-guards.ts` — 9 over a baseline of 5, past the cap of 8 —
+so the two new proofs and those nine were re-run **in the same pass**: **11 of 11 `reason=MATCHED`, control exit 0** — the stale count holds at the pre-existing **5** (179 executed).
+
+✅ **Gates, each from its own summary line:** typecheck 0 · `lint:rn` **52/52** · `test:app` ALL PASSED · `test:regression` ALL PASSED — **green on the first close-out run**, which the two before it were not.
+
+#### After-scan
+
+- 📋 **Defence in depth, not this step:** `SiriQueryIntents.swift` could read `isPremium` so that `''` from an OLD
+  snapshot cannot upsell a subscriber either. → backlog *(native change; one dispatch with the native-e2e repair)*.
+- ⚡ **The consumer census was short by one, again.** The switch-in named the Swift intent and the widget test; a
+  third file normalised `''` to mean "refused". **A sentinel's consumers are found by querying for the FIELD, not by
+  reading the finding** — `grep guardianSpoken` found it in one line.
+- ✅ **`.5.4` CLOSED** — every surface on its list is routed and planted: `C3-9` · `C3-8` · `C3-11` · `C3-13` · the
+  Guardian card · save-for-it · `C3-5` · `C3-1` · `C3-2`+`D2-12` *(`C1-5` folded into `.5.4d`)*.
+- ✅ **Replenished** — **`.5.5` `B1-1`**: the save plan paced off the partition total while the card printed
+  spendable. ⚠️ **The red native flows go to `.5.7`, first, not ahead of `.5.5`**: nothing in `.5.5` or `.5.6` touches
+  native code, so no change is left unverified meanwhile, and inserting a step would renumber every `→ .5.7` pointer the
+  backlog already carries.

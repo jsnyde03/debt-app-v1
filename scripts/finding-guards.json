@@ -1186,7 +1186,7 @@
       "run": "test:app",
       "expect": "D3-1 — the Home Screen does not say \"Debt-free\" over balances the app refused to claim",
       "measured": "2026-09-13",
-      "sha": "9a540259"
+      "sha": "e0479262"
     }
   },
   "S1P3-D3-2-SPOKEN": {
@@ -1653,7 +1653,7 @@
       "run": "test:app",
       "expect": "remaining = current total balance, as a STRING the test does not compute",
       "measured": "2026-09-13",
-      "sha": "9a540259"
+      "sha": "e0479262"
     }
   },
   "S1P3-D3-8": {
@@ -2089,7 +2089,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-13",
-      "sha": "9a540259"
+      "sha": "e0479262"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2179,7 +2179,7 @@
       "run": "test:app",
       "expect": "the widget states the app's figure",
       "measured": "2026-09-13",
-      "sha": "9a540259"
+      "sha": "e0479262"
     }
   },
   "S1P5-C5-3-SHEETBALANCE": {
@@ -2408,7 +2408,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-13",
-      "sha": "9a540259"
+      "sha": "e0479262"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3476,7 +3476,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-13",
-      "sha": "9a540259"
+      "sha": "e0479262"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-13",
-      "sha": "9a540259"
+      "sha": "e0479262"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -4064,7 +4064,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [R3-3-borrow]",
       "measured": "2026-09-13",
-      "sha": "9a540259",
+      "sha": "e0479262",
       "proofNote": "ANCHOR RE-DERIVED in round 4: R4-3's fix rewrote this very line, voiding both the token and the un-fix - the same shape as R3-2 voiding R2-1-CAP one round earlier. Re-RUN, not merely re-anchored: a recorded measurement must describe the plant the entry now performs."
     }
   },
@@ -4246,7 +4246,7 @@
       "run": "test:app",
       "expect": "C3-1 — Siri lists the unread debt as \"balance not read\", never \"$0\"",
       "measured": "2026-09-13",
-      "sha": "566bd7d5"
+      "sha": "e0479262"
     }
   },
   "S1P7-C3-2-SIRI-PREMIUM-UPSELL": {
@@ -4264,7 +4264,7 @@
       "run": "test:app",
       "expect": "D3-2 — Siri says what could not be read rather than naming money free over an obligation nobody read",
       "measured": "2026-09-13",
-      "sha": "a692ff7a"
+      "sha": "e0479262"
     }
   },
   "S1P7-D2-12-SIRI-NO-PLAN-UPSELL": {
@@ -4282,7 +4282,7 @@
       "run": "test:app",
       "expect": "C3-2 — a PREMIUM user with no plan yet is told to set one up, not to buy what they own",
       "measured": "2026-09-13",
-      "sha": "a692ff7a"
+      "sha": "e0479262"
     }
   }
 }
