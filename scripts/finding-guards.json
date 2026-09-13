@@ -543,7 +543,7 @@
       "run": "lint:trust-claims",
       "expect": "apps/rn/src/store/guardianSelectors.ts is ledgered and re-derives nothing any more",
       "measured": "2026-09-13",
-      "sha": "f0f1d36a"
+      "sha": "a6017abc"
     }
   },
   "S1P4-C4-4-POPULATION": {
@@ -561,7 +561,7 @@
       "run": "lint:trust-claims",
       "expect": "[population] the ledger considered",
       "measured": "2026-09-13",
-      "sha": "f0f1d36a"
+      "sha": "a6017abc"
     }
   },
   "S1P4-C4-6-RACE": {
@@ -739,7 +739,7 @@
       "run": "test:app",
       "expect": "the trophy shelf",
       "measured": "2026-09-13",
-      "sha": "e695f6c5"
+      "sha": "a6017abc"
     }
   },
   "S1P4-C4-7-SURFACES": {
@@ -756,8 +756,8 @@
       ],
       "run": "test:app",
       "expect": "the mount in app/(tabs)/index.tsx asks the claim owner",
-      "measured": "2026-09-01",
-      "sha": "20a14f06"
+      "measured": "2026-09-13",
+      "sha": "a6017abc"
     }
   },
   "S1P4-C4-10-NAMEDONLY": {
@@ -1142,8 +1142,8 @@
       ],
       "run": "test:app",
       "expect": "C-5 — a shortfall derived from arrays missing an unread obligation is not stated",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-09-13",
+      "sha": "a6017abc"
     }
   },
   "S1P3-C6-CALENDAR": {
@@ -1186,7 +1186,7 @@
       "run": "test:app",
       "expect": "D3-1 — the Home Screen does not say \"Debt-free\" over balances the app refused to claim",
       "measured": "2026-09-13",
-      "sha": "2575f8b6"
+      "sha": "a6017abc"
     }
   },
   "S1P3-D3-2-SPOKEN": {
@@ -1203,8 +1203,8 @@
       ],
       "run": "test:app",
       "expect": "D3-2 — the Lock Screen shows nothing rather than naming money free over an obligation nobody read",
-      "measured": "2026-08-30",
-      "sha": "995946ca"
+      "measured": "2026-09-13",
+      "sha": "a6017abc"
     }
   },
   "S1P3-D3-CAPS": {
@@ -1222,7 +1222,7 @@
       "run": "lint:cap-literals",
       "expect": "not a literal",
       "measured": "2026-09-13",
-      "sha": "f0f1d36a"
+      "sha": "a6017abc"
     }
   },
   "S1P3-B3-UNKNOWN": {
@@ -1452,7 +1452,7 @@
       "run": "test:app",
       "expect": "an unread BALANCE poisons the plan claim",
       "measured": "2026-09-13",
-      "sha": "e695f6c5"
+      "sha": "a6017abc"
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
@@ -1498,7 +1498,7 @@
       "run": "lint:cap-literals",
       "expect": "not a literal",
       "measured": "2026-09-13",
-      "sha": "f0f1d36a"
+      "sha": "a6017abc"
     }
   },
   "S1P3-G6-SCRIPTSREACH": {
@@ -1653,7 +1653,7 @@
       "run": "test:app",
       "expect": "remaining = current total balance, as a STRING the test does not compute",
       "measured": "2026-09-13",
-      "sha": "2575f8b6"
+      "sha": "a6017abc"
     }
   },
   "S1P3-D3-8": {
@@ -1825,7 +1825,7 @@
       "run": "test:app",
       "expect": "owner · a whole ROW unreadable",
       "measured": "2026-09-13",
-      "sha": "e695f6c5"
+      "sha": "a6017abc"
     }
   },
   "S1P4-C4-9-MIXED": {
@@ -1868,7 +1868,7 @@
       "run": "test:app",
       "expect": "the record SURVIVES the acknowledgement",
       "measured": "2026-09-13",
-      "sha": "e695f6c5"
+      "sha": "a6017abc"
     }
   },
   "S1P5-A5-2-NONFINITE": {
@@ -2030,7 +2030,7 @@
       "run": "lint:trust-claims",
       "expect": "money formatter(s) derived from",
       "measured": "2026-09-13",
-      "sha": "f0f1d36a"
+      "sha": "a6017abc"
     }
   },
   "S1P5-D5-12-RUNNERSET": {
@@ -2066,7 +2066,7 @@
       "run": "test:app",
       "expect": "is not an ANSWER to an unreadable balance",
       "measured": "2026-09-13",
-      "sha": "e695f6c5"
+      "sha": "a6017abc"
     }
   },
   "S1P5-D5-9-CAPWRAP": {
@@ -2179,7 +2179,7 @@
       "run": "test:app",
       "expect": "the widget states the app's figure",
       "measured": "2026-09-13",
-      "sha": "2575f8b6"
+      "sha": "a6017abc"
     }
   },
   "S1P5-C5-3-SHEETBALANCE": {
@@ -2840,7 +2840,7 @@
       "run": "lint:import-graph",
       "expect": "a plain VALUE is imported from a module that loads a renderer",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "a6017abc"
     }
   },
   "S1P6-D1-5-VACUOUSORDER": {
@@ -3079,8 +3079,8 @@
         "plan-hero-conserves.spec.ts"
       ],
       "expect": "must add up",
-      "measured": "2026-09-02",
-      "sha": "1099c693"
+      "measured": "2026-09-13",
+      "sha": "a6017abc"
     }
   },
   "S1P6-A3-15-PARTITIONSIDE": {
@@ -3314,7 +3314,7 @@
       "run": "test:app",
       "expect": "the owner docblock states what",
       "measured": "2026-09-13",
-      "sha": "e695f6c5"
+      "sha": "a6017abc"
     }
   },
   "S1P6-B2-1-D9-FENCES-PAYWALL": {
@@ -3517,7 +3517,7 @@
       "run": "lint:contrast",
       "expect": "exemption broken",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "a6017abc"
     }
   },
   "S1P7-U5-REASON-VACUITY": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-13",
-      "sha": "e695f6c5"
+      "sha": "a6017abc"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -3746,7 +3746,7 @@
       ],
       "run": "test:app",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "a6017abc"
     }
   },
   "S1-CLASS4-A3-1": {
@@ -3768,7 +3768,7 @@
       ],
       "run": "test:app",
       "measured": "2026-09-13",
-      "sha": "5692ca41",
+      "sha": "a6017abc",
       "proofNote": "⛔ SHARES A2-1's RED, and that is a fact about the FINDINGS, not a gap in the ledger. CLASSIFICATION.md records A2-1 and A3-1 as 'the same defect' reached by two lanes that never spoke, and A3-2 is the same seam seen from the guard's entry point — one defect, one plant, and a suite stops at its first red. ⚠️ WHAT R2-6 WAS ACTUALLY RIGHT ABOUT IS FIXED AND MEASURED: this entry's own assertion is no longer vacuous. With the plant live, measured directly: A3-1's $300 row gives required $800 / shortfall $500 (it FAILS), and A3-2's row gives production $800 against direct-call $200 (it FAILS). Both would red on their own token if reached; A2-1's assertion simply precedes them in the same file.",
       "expect": "not a multiple of it (got"
     }
@@ -3792,7 +3792,7 @@
       ],
       "run": "test:app",
       "measured": "2026-09-13",
-      "sha": "5692ca41",
+      "sha": "a6017abc",
       "expect": "not a multiple of it (got",
       "proofNote": "⛔ SHARES A2-1's RED, and that is a fact about the FINDINGS, not a gap in the ledger. CLASSIFICATION.md records A2-1 and A3-1 as 'the same defect' reached by two lanes that never spoke, and A3-2 is the same seam seen from the guard's entry point — one defect, one plant, and a suite stops at its first red. ⚠️ WHAT R2-6 WAS ACTUALLY RIGHT ABOUT IS FIXED AND MEASURED: this entry's own assertion is no longer vacuous. With the plant live, measured directly: A3-1's $300 row gives required $800 / shortfall $500 (it FAILS), and A3-2's row gives production $800 against direct-call $200 (it FAILS). Both would red on their own token if reached; A2-1's assertion simply precedes them in the same file."
     }
