@@ -33781,3 +33781,21 @@ spare and an autopay amount, per `.5.4d.1`'s per-surface probe)*.
 ungated. A second door added later, or state that turns unread while the sheet is open, would reach the options over a
 loss with every test green. ⭐ **The step shrinks to match**: gate the mount on `!unreadPlanInputs`, pin the conjunct in
 `requiredPlanTrust.test.ts`, plant it out. No new claim, and no e2e *(the render is unreachable by the only door there is)*.
+
+### `.12.6.5.4e.2` — the mount gated, pinned, planted · `.5.4e` CLOSED · 2026-09-13
+
+✅ `AffordabilityCard.tsx`'s `SaveForItSheet` mount now carries `&& !unreadPlanInputs`, and `requiredPlanTrust.test.ts`
+gains a component row — **7 surfaces, 22 assertions** — whose source gate requires that conjunct on the mount.
+typecheck 0 · eslint clean.
+
+⭐ **Planted on the committed card**: the conjunct removed → `FAIL [⛔ Affordability · the save-for-it sheet — the mount
+in components/plan/AffordabilityCard.tsx asks the claim owner]`, exit 1 · restored byte-identical from a copy taken after
+the fix · control green.
+
+#### After-scan
+
+- ✅ **Nothing new surfaced.** The one lesson is the premise's own shape: *"asks no trust question"* was a true statement
+  about a file and a false one about the app — the gate sat one component up, at the only door. ⚠️ A finding that names
+  a FILE is a hypothesis about a SURFACE until the path to it is walked.
+- ✅ **Replenished** — `.5.4` stays the active build; next is **`C3-5`**, the `liveActivitySync` twin that stamps
+  `lastKey` before verifying the write, where `widgetSync` already reads `if (write(snapshot)) lastKey = key;`.
