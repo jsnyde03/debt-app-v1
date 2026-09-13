@@ -72,3 +72,66 @@ test('the scorecard claims no record it has not earned [L1-13]', async ({ page }
   // …and the record stays honestly unearned.
   await expect(page.getByText(/track record once I.ve seen a few more paychecks/)).toBeVisible();
 });
+
+/**
+ * ⛔ **S1.13.7.12.6.5.4b [pass-7 `C3-11`] — AN UNREAD MINIMUM MAY NOT DRAW A CALMER RUNWAY.**
+ *
+ * The screen computed its runway off the projected plan and asked no trust question: a minimum payment the app
+ * could not read repairs to `0`, the obligation leaves the plan, and the chart showed a cushion comfortably
+ * above the line where the true plan dips below it. It asks `'solved-projection'` now.
+ *
+ * ⭐ **Asserted in both directions.** The first test is the finding; the second is the over-suppression a
+ * wide claim would commit — a paycheck figure nothing that solves the plan reads must leave the runway drawn.
+ * ⚠️ The scorecard is stored history and must survive the refusal.
+ */
+const UNREAD_BASE = {
+  cushionFloor: 400,
+  paycheck: { amount: '1650', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
+  debts: [
+    { id: 'd0', name: 'Visa', balance: 6200, originalBalance: 8000, minimumPayment: 160, apr: 22, dueDate: day(10), type: 'debt', recurrence: 'monthly' },
+    { id: 'd2', name: 'Car', balance: 11000, originalBalance: 14000, minimumPayment: 320, apr: 6, dueDate: day(20), type: 'debt', recurrence: 'monthly' },
+  ],
+  prefs: { onboardingComplete: true },
+};
+
+test('C3-11 · an unread minimum withholds the runway and keeps the scorecard', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      ...UNREAD_BASE,
+      // `minimumPayment: ''` on Visa is the one unreadable field.
+      debts: [{ ...UNREAD_BASE.debts[0], minimumPayment: '' }, UNREAD_BASE.debts[1]],
+    }),
+  );
+  await page.goto('/cushion-forecast');
+
+  // The positive assertion first — a page that never rendered satisfies every negative one below.
+  await expect(page.getByTestId('cushion-forecast-unread')).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByTestId('cushion-forecast-unread'),
+    'the instruction names the figure to set, not a position on another screen',
+  ).toContainText('minimum payment on Visa');
+  await expect(
+    page.getByText('CUSHION BY PAYCHECK', { exact: true }),
+    'a runway solved from a minimum the app could not read is the claim this screen exists to make',
+  ).toHaveCount(0);
+  await expect(page.getByText('GUARDIAN ACCURACY'), 'the scorecard is stored history, not a projection').toBeVisible();
+});
+
+test('C3-11 · a lost typical paycheck keeps the runway drawn', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      ...UNREAD_BASE,
+      // Nothing that solves the plan reads `typicalAmount` — measured across eight plan shapes.
+      paycheck: { ...UNREAD_BASE.paycheck, typicalAmount: 'abc' },
+    }),
+  );
+  await page.goto('/cushion-forecast');
+
+  await expect(
+    page.getByText('CUSHION BY PAYCHECK', { exact: true }),
+    'a paycheck figure the plan never reads says nothing about the runway — withholding it is over-suppression',
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('cushion-forecast-unread')).toHaveCount(0);
+});

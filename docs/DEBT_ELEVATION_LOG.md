@@ -33389,3 +33389,81 @@ fixture-dates gate). ⚠️ **The dates were fixed by the file's own convention,
 every fixture date is now `DAY`, the store's own `currentDate`, so nothing in the block ages against the run
 date. ⚠️ Renaming the literals into a constant would have passed the gate and hidden the same fuse. Changing a
 fixture changes what it can move, so the suite and all six unit plants were re-run on the new dates.
+
+### `.12.6.5.4b.1` — `C3-11` SWITCH-IN: the forecast's claim, measured against its own figures · 2026-09-13
+
+✅ **The observation stands on current code**: `cushion-forecast.tsx` computes `selectCashTimeline`,
+`selectWaterFillPlan` and `effectivePaycheckBuffer` off `withProjectedBalances` and asks no trust question;
+neither `CashRunwayChart` nor `GuardianScorecard` takes a trust prop.
+
+⛔ **The obvious remedy was `.5.4a`'s error one level down, and it had to be measured, not assumed.**
+`'solved-projection'` was validated against the solved FAMILY — date, chart, what-if and runway together. A
+surface showing only the runway could be over-suppressed by a repair that moves the date and not the cash. The
+first probe said exactly that: **2 over-suppressions — a lost `apr` and a lost `goal.currentAmount`.**
+
+⚡ **And both were the fixture.** An APR reaches the runway only when a debt CLEARS inside the six cycles (its
+minimum stops); a saved amount only when a goal FILLS inside them (its pace stops). None of the six `.5.4a`
+shapes does either. Two shapes added — a $420 debt that clears in-horizon, a goal $70 short with no pace cap:
+
+| claim, against the forecast's own figures | over-suppressed | holes |
+|---|---|---|
+| `'solved-projection'` | **0** | **0** |
+| `'required-plan'` *(what Today's Guardian card asks)* | 1 *(`typicalAmount`)* | **7** — `apr` · `scheduledPaymentAmount` · every goal variant |
+
+⚠️ **`.5.4a`'s iterating assertion has the same blind spot** — green, but only because the date carried the APR
+and the goal fields across the family. It gets both shapes, and the forecast's own figure, at `.5.4b.2`.
+
+✅ **The scorecard is NOT a projection.** `selectCalibrationScore` grades stored past reads against what
+happened, and its balance hole was closed at `G-1`. Gagging it over a lost minimum would withhold a true
+record — over-suppression.
+
+#### ⤵ Surfaced by the switch-in, and routed to `.5.4` rather than folded — TODAY'S GUARDIAN CARD
+
+⚠️ The 7 `'required-plan'` holes above are against the FORECAST. The same selector draws **Today's Payday
+Guardian card** — `selectPaydayGuardian(engineStore)` at `index.tsx:149`, on the **projected** store — and that
+card refuses on `unreadPlanInputs={!mayClaim(store, 'required-plan')}`. Measured against the card's own brief,
+same eight shapes:
+
+| claim | over-suppressed | holes |
+|---|---|---|
+| `'required-plan'` *(what the card asks today)* | 3 | **6** — `scheduledPaymentAmount` · `goal.targetAmount` · `goal.currentAmount` · `goal.priorityPerPaycheck` · goal whole-row · goal whole-list |
+| `'solved-projection'` | 3 | **0** |
+
+⛔ **So Today's loudest card speaks over a lost goal target or autopay amount** — the brief moves and the guard
+says yes. Same class, a different surface, and `selectPaydayGuardian` also feeds `use-notification-sync.ts` and
+`paydayActivityContent.ts`, both claims that leave the app. **Routed as its own `.5.4` member, not folded into
+`C3-11`.**
+⚠️ **Its over-suppressions are suspect before anyone acts on them**: a lost `minimumPayment` moves nothing in
+eight shapes, and the corrupted debt carries a `scheduledPaymentAmount` that very likely shadows the minimum —
+the fixture again. Re-verify the whole row on a fixture whose corrupted debt has no autopay amount.
+
+⚠️ **And one reading to settle before `.5.4b.2`**: on the two new shapes a lost `originalBalance` moved the
+payoff family, which `'solved-projection'` does not route. ✅ **Settled — not a hole.** The only key that moved
+is `view.focus`, on the `clearing` shape alone, and it carries the whole focus DEBT OBJECT: once the small debt
+clears, the focus is `d0`, whose repaired `originalBalance` differs while the focus itself does not. The same
+artifact as `order`, so `focus` is compared by id too.
+
+### `.12.6.5.4b.2`–`.3` — the assertion per SURFACE, and the forecast withholds its runway · 2026-09-13
+
+✅ **`.2`** — `trustSelectors.test.ts` gains the `clearing` and `filling` shapes and asserts **per surface**, not
+per claim: Money's total on `'projected-balance'`; the payoff family and **the cushion forecast's own figures**
+*(runway · water-fill plan · floor)* each on `'solved-projection'`. `focus` joins `order` as compared by id. Green
+over eight shapes; the six unit plants and `C2` re-run against the surface-keyed reasons, all `MATCHED`.
+
+⛔ **PLANT G'S PREMISE WAS WRONG, AND IT READ `WRONG` FOR THAT REASON.** It dropped `expenseReserveBalance` from the
+solved route, expecting a hole on the forecast alone — but the payoff FAMILY contains the runway's figures, so
+the family surface reds first on every hole the forecast could show. ⚡ **So a per-surface assertion over a
+sub-family can only ever add OVER-SUPPRESSION detection**, and today no route field separates the two: every
+forecast mover also moves the family. Its liveness was proven the only way left — **G′ made the forecast's
+figure constant**, and it redded as `OVER-SUPPRESSION — solved-projection · the cushion forecast · debt.balance
+LOST`, on that surface alone.
+
+✅ **`.3`** — `cushion-forecast.tsx` asks `mayClaim(store, 'solved-projection')`. Refused, the runway gives way to
+`ForecastUnread` — *"Your forecast is on hold"*, the Guardian card's shape and warning colour, ending in
+`unreadInputsFix(repairsPoisoning(store, 'solved-projection'), 'and your forecast comes back')` so it names the
+figure to set. ⭐ **The scorecard renders in both branches.** ⚠️ The free branch's `T3B` comment — the reason
+that branch must never render empty — is kept verbatim; my first draft had replaced it with a placeholder.
+`lint:copy` green on the new wording · typecheck 0 · `lint:trust-claims` floor `solved-projection` 2 → 3, raised
+deliberately with the caller named.
+⚠️ **eslint's first exit 1 was my invocation, not the code** — the spec is on the ignore list, and passing an
+ignored file explicitly is a warning against `--max-warnings 0`. The screen alone lints clean.

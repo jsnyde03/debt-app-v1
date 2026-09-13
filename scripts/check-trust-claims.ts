@@ -613,7 +613,9 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
    * `trustSelectors.test.ts` to refuse exactly when its figure moves.
    */
   'projected-balance': 2, // money.tsx (the hero total) + progress.tsx (the journey line's "to go" arm)
-  'solved-projection': 2, // progress.tsx (date · payoff view · what-if) + widget/snapshot.ts (the date)
+  // ⚠️ 2 → 3 at `.5.4b` [pass-7 `C3-11`]: `cushion-forecast.tsx` asked no trust question at all, and its runway
+  // is a plan solved forward. Measured exact against the forecast's own figures, not only the family's.
+  'solved-projection': 3, // progress.tsx (date · payoff view · what-if) + widget/snapshot.ts (the date) + cushion-forecast.tsx (the runway)
 };
 for (const claim of claims) {
   const actual = consumers.get(claim)!.length;

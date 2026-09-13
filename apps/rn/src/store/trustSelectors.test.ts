@@ -662,7 +662,7 @@ export default function run(): void {
    * and why "moves" is the union across six shapes rather than one.
    */
   {
-    type Shape = { name: string; income: number; variable: boolean; big: boolean; pace: boolean };
+    type Shape = { name: string; income: number; variable: boolean; big: boolean; pace: boolean; clearing?: boolean; filling?: boolean };
     const SHAPES: Shape[] = [
       { name: 'tight-fixed', income: 1400, variable: false, big: true, pace: true },
       { name: 'tight-var', income: 1400, variable: true, big: true, pace: true },
@@ -670,6 +670,10 @@ export default function run(): void {
       { name: 'loose-fixed', income: 2400, variable: false, big: false, pace: true },
       { name: 'loose-nopace', income: 2400, variable: false, big: false, pace: false },
       { name: 'loose-var', income: 2400, variable: true, big: false, pace: true },
+      // ⛔ [`.5.4b` · `C3-11`] A runway only feels an APR when a debt CLEARS inside it, and a saved amount only
+      // when a goal FILLS inside it. Without these two, the forecast read both as over-suppression.
+      { name: 'clearing', income: 1800, variable: false, big: false, pace: true, clearing: true },
+      { name: 'filling', income: 2400, variable: false, big: false, pace: false, filling: true },
     ];
     const NEXT = '2026-09-09';
     const ANCHOR = '2026-03-01';
@@ -683,11 +687,11 @@ export default function run(): void {
         paycheck: { amount: String(sh.income), currentDate: DAY, nextPaycheckDate: NEXT, incomeVaries: sh.variable, leanAmount: Math.round(sh.income * 0.75), typicalAmount: sh.income },
         debts: [
           { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: 6000 * b, minimumPayment: 150 * b, scheduledPaymentAmount: 200 * b, apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
-          { id: 'd1', name: 'Visa', balance: 3000 * b, originalBalance: 3500 * b, minimumPayment: 90 * b, apr: 18, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+          { id: 'd1', name: 'Visa', balance: sh.clearing ? 420 : 3000 * b, originalBalance: 3500 * b, minimumPayment: 90 * b, apr: 18, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
         ],
         requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 600, dueDate: DAY, recurrence: 'monthly', category: 'housing' }],
         livingExpenses: [{ id: 'l0', name: 'Groceries', amount: 150, enabled: true }],
-        goals: [{ id: 'g0', name: 'Trip', targetAmount: 1000, currentAmount: 200, ...(sh.pace ? { priorityPerPaycheck: 40 } : {}), priority: true, type: 'savings' }],
+        goals: [{ id: 'g0', name: 'Trip', targetAmount: 1000, currentAmount: sh.filling ? 930 : 200, ...(sh.pace ? { priorityPerPaycheck: 40 } : {}), priority: true, type: 'savings' }],
         cushionFloor: 250,
         windfall: 300,
         expenseReserve: { balance: 300 },
@@ -704,20 +708,41 @@ export default function run(): void {
       else r[field] = to(r[field]);
     };
 
-    /** The figures each claim licenses — what a surface asking it goes on to print. */
-    const FIGURE: Record<'projected-balance' | 'solved-projection', (s: DebtStore) => string> = {
-      'projected-balance': (s) => {
-        const cpm = payCyclesPerMonth(s.paycheck.payCycle);
-        return String(s.debts.filter((d) => d.balance > 0).reduce((t, d) => t + selectDebtBalanceView(d, s.paycheck.currentDate, true, cpm).currentBalance, 0));
+    /**
+     * The figures each claim licenses — what a surface asking it goes on to print. ⛔ [`.5.4b` · `C3-11`] Asserted
+     * PER SURFACE, not per claim: `'solved-projection'` was first validated against its whole family, and a
+     * surface drawing only part of that family can be over-suppressed by a repair that moves the rest.
+     */
+    const SURFACES: { claim: 'projected-balance' | 'solved-projection'; name: string; figure: (s: DebtStore) => string }[] = [
+      {
+        claim: 'projected-balance',
+        name: "Money's total",
+        figure: (s) => {
+          const cpm = payCyclesPerMonth(s.paycheck.payCycle);
+          return String(s.debts.filter((d) => d.balance > 0).reduce((t, d) => t + selectDebtBalanceView(d, s.paycheck.currentDate, true, cpm).currentBalance, 0));
+        },
       },
-      'solved-projection': (s) => {
-        const engine = withProjectedBalances(s, true);
-        // ⚠️ `order` carries whole debt objects, so a lost `originalBalance` changes its JSON without changing
-        // the ranking — measured. Compared by id, which is what a surface prints.
-        const { order, ...view } = selectPayoffView(engine);
-        return JSON.stringify([view, order.map((d) => d.id), selectWhatIf(engine, 100), selectCashTimeline(engine, 6), selectWaterFillPlan(engine), effectivePaycheckBuffer(engine)]);
+      {
+        claim: 'solved-projection',
+        name: 'the payoff family',
+        figure: (s) => {
+          const engine = withProjectedBalances(s, true);
+          // ⚠️ `order` and `focus` carry whole debt objects, so a lost `originalBalance` changes their JSON without
+          // changing the ranking — measured on both. Compared by id, which is what a surface prints.
+          const { order, focus, ...view } = selectPayoffView(engine);
+          return JSON.stringify([view, order.map((d) => d.id), focus?.id, selectWhatIf(engine, 100), selectCashTimeline(engine, 6), selectWaterFillPlan(engine), effectivePaycheckBuffer(engine)]);
+        },
       },
-    };
+      {
+        claim: 'solved-projection',
+        name: 'the cushion forecast',
+        // Exactly what `cushion-forecast.tsx` draws. The scorecard beside it is stored history and asks nothing.
+        figure: (s) => {
+          const engine = withProjectedBalances(s, true);
+          return JSON.stringify([selectCashTimeline(engine, 6), selectWaterFillPlan(engine), effectivePaycheckBuffer(engine)]);
+        },
+      },
+    ];
 
     type Variant = { name: string; lost: boolean; mutate: (r: Raw) => void };
     const variants: Variant[] = [];
@@ -744,19 +769,20 @@ export default function run(): void {
       }
       eq((alloc?.livingExpenseReserve ?? 0) > 0, true, `${sh.name} — the plan consumes the living expense`);
       if (selectPayoffView(withProjectedBalances(base, true)).lean.length > 0) sawBand = true;
+      const baseFigures = SURFACES.map((surface) => surface.figure(base));
 
       for (const v of variants) {
         const r = rawShape(sh);
         v.mutate(r);
         const s = premium(r);
         eq(s.pendingDataRepairs.some((x) => x.kind === 'lost'), v.lost, `${sh.name} · ${v.name} — the variant records ${v.lost ? 'a LOST' : 'no lost'} repair`);
-        for (const claim of ['projected-balance', 'solved-projection'] as const) {
-          const key = `${claim} · ${v.name}`;
+        SURFACES.forEach((surface, i) => {
+          const key = `${surface.claim} · ${surface.name} · ${v.name}`;
           const at = verdict.get(key) ?? { refused: new Set<boolean>(), moved: false };
-          at.refused.add(!mayClaim(s, claim));
-          if (FIGURE[claim](s) !== FIGURE[claim](base)) at.moved = true;
+          at.refused.add(!mayClaim(s, surface.claim));
+          if (surface.figure(s) !== baseFigures[i]) at.moved = true;
           verdict.set(key, at);
-        }
+        });
       }
     }
     eq(sawBand, true, 'at least one shape draws the variable-income band, so a lost lean paycheck can move it');
