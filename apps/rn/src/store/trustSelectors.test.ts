@@ -2,10 +2,10 @@ import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { REPAIRABLE_MONEY_FIELDS, runMigrations } from '@/data/migrations';
 import { selectWhatIf } from '@/store/analysisSelectors';
 import { selectDebtBalanceView, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
-import { selectPaydayGuardian, selectReserveRelease } from '@/store/guardianSelectors';
+import { selectAffordability, selectPaydayGuardian, selectReserveRelease, selectWindfallSplit } from '@/store/guardianSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { DEFAULT_CUSHION_FLOOR, cushionLine, effectivePaycheckBuffer, selectAllocation, selectWaterFillPlan } from '@/store/selectors';
-import { selectPlanState } from '@/store/planSelectors';
+import { selectPlanState, selectPlanSummary, selectRequiredRows } from '@/store/planSelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
 import { detectPayoff } from '@/store/payoffCelebration';
 
@@ -256,7 +256,7 @@ export default function run(): void {
       // allocates. There is no second claim to decide them against.
       // ⚠️ [.5.4a] Measured across six plan shapes: a lost `typicalAmount` moves no projected figure — its one
       // reader is `incomeLearning`'s lean suggestion — so no projection claim names it.
-      ['plan typicalAmount', 'required-plan routes the plan entity wholesale; nothing that solves the plan reads it, so no projection claim names it'],
+      ['plan typicalAmount', 'row-figures routes the plan entity wholesale; nothing that solves or requires the plan reads it, so no other claim names it'],
     ]);
 
     const named = new Set<string>();
@@ -592,10 +592,11 @@ export default function run(): void {
      * default. The findings' remedy — *"make `??` catch the repaired 0"* — was unbuildable.
      */
     eq(lost.cushionFloor, 0, 'an unreadable line is repaired to 0…');
-    eq(rowFieldUnread(lost, 'required-plan', 'plan', '', 'cushionFloor'), true, '…and the REPAIR RECORD is what says so');
+    // ⚠️ [`.5.4d`] Asked of `'paycheck-plan'`, the claim `cushionLine` asks now — `'required-plan'` no longer routes the line.
+    eq(rowFieldUnread(lost, 'paycheck-plan', 'plan', '', 'cushionFloor'), true, '…and the REPAIR RECORD is what says so');
     eq(zero.cushionFloor, 0, '⛔ a LEGITIMATE $0 line holds the same value as the lost one…');
-    eq(rowFieldUnread(zero, 'required-plan', 'plan', '', 'cushionFloor'), false, '⛔ …and is NOT unread — the pair the whole fix rests on');
-    eq(rowFieldUnread(real, 'required-plan', 'plan', '', 'cushionFloor'), false, '⭐ control — a readable line is not unread');
+    eq(rowFieldUnread(zero, 'paycheck-plan', 'plan', '', 'cushionFloor'), false, '⛔ …and is NOT unread — the pair the whole fix rests on');
+    eq(rowFieldUnread(real, 'paycheck-plan', 'plan', '', 'cushionFloor'), false, '⭐ control — a readable line is not unread');
 
     // The owner reports both halves, and substitutes the default ONLY when the line was lost.
     eq(cushionLine(lost).unread, true, 'the owner reports the loss…');
@@ -663,8 +664,8 @@ export default function run(): void {
    * and why "moves" is the union across six shapes rather than one.
    */
   {
-    type Shape = { name: string; income: number; variable: boolean; big: boolean; pace: boolean; clearing?: boolean; filling?: boolean };
-    const SHAPES: Shape[] = [
+    type Shape = { name: string; income: number; variable: boolean; big: boolean; pace: boolean; clearing?: boolean; filling?: boolean; capping?: boolean; autopay?: boolean };
+    const BASE_SHAPES: Shape[] = [
       { name: 'tight-fixed', income: 1400, variable: false, big: true, pace: true },
       { name: 'tight-var', income: 1400, variable: true, big: true, pace: true },
       { name: 'tight-nopace', income: 1400, variable: false, big: true, pace: false },
@@ -675,7 +676,14 @@ export default function run(): void {
       // when a goal FILLS inside it. Without these two, the forecast read both as over-suppression.
       { name: 'clearing', income: 1800, variable: false, big: false, pace: true, clearing: true },
       { name: 'filling', income: 2400, variable: false, big: false, pace: false, filling: true },
+      // ⛔ [`.5.4d`] A capped snowball, a short paycheck and one at the floor — each found movers the shapes above
+      // could not show: groceries move the required rows only on a short paycheck.
+      { name: 'capping', income: 2600, variable: false, big: false, pace: false, capping: true },
+      { name: 'short', income: 900, variable: false, big: true, pace: true },
+      { name: 'at-floor', income: 1250, variable: false, big: true, pace: false },
     ];
+    // ⚠️ Every shape twice — an autopay amount SHADOWS the minimum, so a lost minimum is invisible on the half that has one.
+    const SHAPES: Shape[] = [...BASE_SHAPES.map((s) => ({ ...s, autopay: true })), ...BASE_SHAPES.map((s) => ({ ...s, name: `${s.name}+noautopay`, autopay: false }))];
     const NEXT = '2026-09-09';
     const ANCHOR = '2026-03-01';
     const LIST: Record<string, string> = { debt: 'debts', requiredExpense: 'requiredExpenses', livingExpense: 'livingExpenses', goal: 'goals' };
@@ -687,8 +695,8 @@ export default function run(): void {
         version: 8,
         paycheck: { amount: String(sh.income), currentDate: DAY, nextPaycheckDate: NEXT, incomeVaries: sh.variable, leanAmount: Math.round(sh.income * 0.75), typicalAmount: sh.income },
         debts: [
-          { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: 6000 * b, minimumPayment: 150 * b, scheduledPaymentAmount: 200 * b, apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
-          { id: 'd1', name: 'Visa', balance: sh.clearing ? 420 : 3000 * b, originalBalance: 3500 * b, minimumPayment: 90 * b, apr: 18, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+          { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: 6000 * b, minimumPayment: 150 * b, ...(sh.autopay ? { scheduledPaymentAmount: 200 * b } : {}), apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+          { id: 'd1', name: 'Visa', balance: sh.clearing ? 420 : sh.capping ? 900 : 3000 * b, originalBalance: 3500 * b, minimumPayment: sh.capping ? 25 : 90 * b, ...(sh.autopay ? { scheduledPaymentAmount: 120 * b } : {}), apr: sh.capping ? 29 : 18, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
         ],
         requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 600, dueDate: DAY, recurrence: 'monthly', category: 'housing' }],
         livingExpenses: [{ id: 'l0', name: 'Groceries', amount: 150, enabled: true }],
@@ -702,11 +710,15 @@ export default function run(): void {
     const premium = (raw: unknown): DebtStore => ({ ...runMigrations(raw), subscriptionPlan: 'premium' });
 
     /** Where each repairable field lives in a raw file, keyed by the names `REPAIRABLE_MONEY_FIELDS` declares. */
-    const setField = (r: Raw, entity: string, field: string, to: (old: unknown) => unknown): void => {
-      if (LIST[entity]) r[LIST[entity]][0][field] = to(r[LIST[entity]][0][field]);
+    const setField = (r: Raw, entity: string, row: number, field: string, to: (old: unknown) => unknown): void => {
+      if (LIST[entity]) r[LIST[entity]][row][field] = to(r[LIST[entity]][row][field]);
       else if (field === 'leanAmount' || field === 'typicalAmount') r.paycheck[field] = to(r.paycheck[field]);
       else if (field === 'expenseReserveBalance') r.expenseReserve.balance = to(r.expenseReserve.balance);
       else r[field] = to(r[field]);
+    };
+    const summaryOf = (e: DebtStore) => {
+      const a = selectAllocation(e);
+      return a ? selectPlanSummary(e, a, selectRequiredRows(e, a)) : null;
     };
 
     /**
@@ -714,7 +726,7 @@ export default function run(): void {
      * PER SURFACE, not per claim: `'solved-projection'` was first validated against its whole family, and a
      * surface drawing only part of that family can be over-suppressed by a repair that moves the rest.
      */
-    const SURFACES: { claim: 'projected-balance' | 'solved-projection'; name: string; figure: (s: DebtStore) => string }[] = [
+    const SURFACES: { claim: 'projected-balance' | 'solved-projection' | 'paycheck-plan' | 'required-plan'; name: string; figure: (s: DebtStore) => string }[] = [
       {
         claim: 'projected-balance',
         name: "Money's total",
@@ -743,14 +755,66 @@ export default function run(): void {
           return JSON.stringify([selectCashTimeline(engine, 6), selectWaterFillPlan(engine), effectivePaycheckBuffer(engine)]);
         },
       },
+      /**
+       * ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] The askers of the old `'required-plan'`, each on the claim measured exact
+       * for its RENDERED fields — never the whole selector result, which carries debt objects a surface does not print.
+       */
+      {
+        claim: 'solved-projection',
+        name: "Today's plan hero",
+        figure: (s) => {
+          const m = summaryOf(withProjectedBalances(s, true));
+          return m ? JSON.stringify([m.billsReserve, m.debtFreeDate, m.everydayHeld, m.remainingAfterRequired, m.requiredTotal, m.shortfall, m.status]) : 'null';
+        },
+      },
+      {
+        claim: 'required-plan',
+        name: 'Required actions',
+        figure: (s) => {
+          const e = withProjectedBalances(s, true);
+          const a = selectAllocation(e);
+          return a ? JSON.stringify(selectRequiredRows(e, a).map((r) => [r.item.amount, r.item.category, r.item.label, r.item.reserveCovered, r.item.targetId, r.isAutopay, r.dueDate, r.view.isPaid, r.view.overdue, r.view.presumedPaid, r.view.autopayFailed])) : 'null';
+        },
+      },
+      { claim: 'paycheck-plan', name: 'the Guardian brief', figure: (s) => JSON.stringify(selectPaydayGuardian(withProjectedBalances(s, true))) },
+      { claim: 'paycheck-plan', name: 'Affordability', figure: (s) => JSON.stringify(selectAffordability(withProjectedBalances(s, true), 500)) },
+      { claim: 'paycheck-plan', name: 'Windfall routing', figure: (s) => JSON.stringify(selectWindfallSplit(withProjectedBalances(s, true), 1000)) },
+      {
+        claim: 'paycheck-plan',
+        name: 'the paywall lead',
+        // `paywall.tsx` builds this summary off the RAW store.
+        figure: (s) => {
+          const m = summaryOf(s);
+          return m ? JSON.stringify([m.shortfall, m.cushion, effectivePaycheckBuffer(s)]) : 'null';
+        },
+      },
     ];
+
+    /**
+     * ⚠️ **The over-suppressions the decision accepted, by exact key.** Each is asserted to STILL be one — a listed
+     * key whose figure starts moving would otherwise be a hole the list hides — and any over-suppression NOT
+     * listed reds as before. The paywall lead's seven are stated in the log: the only exact alternative was a
+     * fifth claim for one pitch sentence.
+     */
+    const ACCEPTED_OVER = new Set<string>([
+      "solved-projection · Today's plan hero · plan.leanAmount LOST",
+      'paycheck-plan · Windfall routing · plan.windfall LOST',
+      ...['debt[0].minimumPayment', 'debt[1].minimumPayment', 'goal.targetAmount', 'goal.currentAmount', 'goal.priorityPerPaycheck', 'goal WHOLE-ROW', 'goal WHOLE-LIST'].map(
+        (v) => `paycheck-plan · the paywall lead · ${v}${v.includes('WHOLE') ? '' : ' LOST'}`,
+      ),
+    ]);
 
     type Variant = { name: string; lost: boolean; mutate: (r: Raw) => void };
     const variants: Variant[] = [];
     for (const [entity, lists] of Object.entries(REPAIRABLE_MONEY_FIELDS)) {
+      // ⚠️ Every debt in turn: the debt that clears in-horizon is the SECOND one, and a first-debt-only sweep never reaches it.
+      const rows = entity === 'debt' ? [0, 1] : [0];
       for (const field of [...lists.required, ...lists.optional]) {
-        variants.push({ name: `${entity}.${field} LOST`, lost: true, mutate: (r) => setField(r, entity, field, () => 'abc') });
-        variants.push({ name: `${entity}.${field} recovered`, lost: false, mutate: (r) => setField(r, entity, field, (o) => (o === undefined ? o : Number(o).toLocaleString('en-US'))) });
+        for (const row of rows) {
+          const label = entity === 'debt' ? `debt[${row}].${field}` : `${entity}.${field}`;
+          variants.push({ name: `${label} LOST`, lost: true, mutate: (r) => setField(r, entity, row, field, () => 'abc') });
+          variants.push({ name: `${label} recovered`, lost: false, mutate: (r) => setField(r, entity, row, field, (o) => (o === undefined ? o : Number(o).toLocaleString('en-US'))) });
+        }
       }
       if (LIST[entity]) {
         variants.push({ name: `${entity} WHOLE-ROW`, lost: true, mutate: (r) => { r[LIST[entity]][0] = 'garbage'; } });
@@ -759,16 +823,16 @@ export default function run(): void {
     }
 
     let sawBand = false;
+    // ⚠️ A UNION, not per shape: a short paycheck funds no goal, and that is the shape's point. What the proof needs
+    // is that SOME shape consumes each input, so its loss can be seen moving something.
+    const consumed = new Set<string>();
     const verdict = new Map<string, { refused: Set<boolean>; moved: boolean }>();
     for (const sh of SHAPES) {
       const base = premium(rawShape(sh));
       eq(base.pendingDataRepairs.length, 0, `${sh.name} — the base fixture reads clean`);
       const alloc = selectAllocation(base);
-      const cats = new Set<string>(alloc?.allocations.map((a) => a.category) ?? []);
-      for (const c of ['expense', 'minimum_debt', 'optional_goal']) {
-        eq(cats.has(c), true, `${sh.name} — the plan CONSUMES a ${c} (a fixture that ignores an input cannot show it moving)`);
-      }
-      eq((alloc?.livingExpenseReserve ?? 0) > 0, true, `${sh.name} — the plan consumes the living expense`);
+      for (const a of alloc?.allocations ?? []) consumed.add(a.category);
+      if ((alloc?.livingExpenseReserve ?? 0) > 0) consumed.add('living-expense');
       if (selectPayoffView(withProjectedBalances(base, true)).lean.length > 0) sawBand = true;
       const baseFigures = SURFACES.map((surface) => surface.figure(base));
 
@@ -786,14 +850,22 @@ export default function run(): void {
         });
       }
     }
+    for (const c of ['expense', 'minimum_debt', 'optional_goal', 'living-expense']) {
+      eq(consumed.has(c), true, `some shape CONSUMES ${c} — a fixture set that ignores an input cannot show it moving`);
+    }
     eq(sawBand, true, 'at least one shape draws the variable-income band, so a lost lean paycheck can move it');
 
     for (const [key, { refused, moved }] of verdict) {
       eq(refused.size, 1, `⛔ ${key} — a route's verdict is a property of the REPAIR, never of the fixture`);
       const refuses = [...refused][0];
+      if (ACCEPTED_OVER.has(key)) {
+        eq(refuses && !moved, true, `⛔ .5.4d — ${key} is listed as an ACCEPTED over-suppression and is no longer one`);
+        continue;
+      }
       if (refuses && !moved) fail(`⛔ .5.4a OVER-SUPPRESSION — ${key}: the claim refuses and no shape's figure moves`);
       if (!refuses && moved) fail(`⛔ .5.4a HOLE — ${key}: the figure moves and the claim still says yes`);
     }
+    for (const key of ACCEPTED_OVER) eq(verdict.has(key), true, `⛔ .5.4d — ACCEPTED_OVER names ${key}, which no surface × variant produces`);
 
     // ⚠️ The split `C3-9` rests on: a lost APR moves every projection and says nothing about the balances.
     eq(mayClaim(withApr('n/a'), 'debt-balances'), true, '`debt-balances` still says YES on an unread APR — the confirmed figures survive');

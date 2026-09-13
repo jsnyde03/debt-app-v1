@@ -205,7 +205,9 @@ export type MoneyClaim =
   /** A balance carried forward to today: Money's total, "$X to go", the widget's remaining. */
   | 'projected-balance'
   /** A plan solved forward: the debt-free date, the payoff chart, the what-if, the cash runway. */
-  | 'solved-projection';
+  | 'solved-projection'
+  /** THIS paycheck, solved: the Guardian's spare and band, affordability, windfall routing, the paywall lead. */
+  | 'paycheck-plan';
 
 /** `'any'` = every field of that entity. A named list = exactly those fields. */
 type ClaimRoute = Partial<Record<DataRepair['entity'], 'any' | readonly string[]>>;
@@ -240,7 +242,18 @@ const CLAIM_FIELDS: Record<MoneyClaim, ClaimRoute> = {
   // repairs to `$0` and the plan is then solved against a floor, an income or a pot the app never
   // read — which is exactly what this claim exists to refuse. ⚡ Measured: Progress captioned *"your
   // $0 line"* off a lost `cushionFloor` while `holdsLine` could never be true.
-  'required-plan': { debt: ['minimumPayment', 'balance'], requiredExpense: ['amount'], livingExpense: ['amount'], plan: 'any' },
+  // ⛔ **[`.5.4d` · DECISION 🎯 2026-09-13] NARROWED to what the REQUIRED ROWS read, measured on 22 plan shapes.**
+  // The notes above explain why `balance` and the plan joined; what they did not measure is that most askers
+  // of this claim state a SOLVED paycheck, not an obligation — the Guardian card, affordability and windfall
+  // routing now ask `'paycheck-plan'`, the plan hero `'solved-projection'`. ⚠️ The plan entity no longer joins
+  // wholesale: the rows move on the windfall and the bill reserve only, and `scheduledPaymentAmount` joins —
+  // an autopay amount IS the obligation the row prints. Groceries stay: on a short paycheck they move the rows.
+  'required-plan': {
+    debt: ['minimumPayment', 'balance', 'scheduledPaymentAmount'],
+    requiredExpense: ['amount'],
+    livingExpense: ['amount'],
+    plan: ['windfall', 'expenseReserveBalance'],
+  },
   // Any repaired money field a row prints back to the user. ⚠️ `apr` changes no obligation this cycle, so
   // `'required-plan'` does not route it — but the row states it ("22% APR") and a repaired `0` states 0%,
   // the import path doing what `FORM_ERRORS.aprInvalid` exists to refuse on the form path.
@@ -261,6 +274,18 @@ const CLAIM_FIELDS: Record<MoneyClaim, ClaimRoute> = {
     livingExpense: ['amount'],
     goal: 'any',
     plan: ['cushionFloor', 'leanAmount', 'windfall', 'expenseReserveBalance'],
+  },
+  // ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] THIS PAYCHECK, SOLVED — what the Guardian brief, affordability, windfall
+  // routing and the paywall lead render from, measured on 22 plan shapes with every debt corrupted in turn.
+  // ⚠️ Not `'solved-projection'`: a lost APR or lean paycheck reaches none of them, and asking that claim blanked
+  // the Guardian card over a loss it never reads. Not `'required-plan'`: the spare and the band move on every goal
+  // field and on the cushion line, which the obligations do not. `goal: 'any'` for the reason recorded above.
+  'paycheck-plan': {
+    debt: ['balance', 'minimumPayment', 'scheduledPaymentAmount'],
+    requiredExpense: ['amount'],
+    livingExpense: ['amount'],
+    goal: 'any',
+    plan: ['cushionFloor', 'windfall', 'expenseReserveBalance'],
   },
 };
 

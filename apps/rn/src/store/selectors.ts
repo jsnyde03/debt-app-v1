@@ -59,9 +59,12 @@ export interface CushionLine {
  */
 export function cushionLine(store: DebtStore): CushionLine {
   // ⛔ The first `plan`-entity trust call in the tree. `migrations.ts` records these as
-  // `{ entity: 'plan', id: '', field }` and `CLAIM_FIELDS['required-plan'].plan` routes `'any'`, so the
-  // machinery was recorded and routed and never once consulted — which is why a lost line was invisible.
-  const unread = rowFieldUnread(store, 'required-plan', 'plan', '', 'cushionFloor');
+  // `{ entity: 'plan', id: '', field }`; the machinery was recorded and routed and never once consulted —
+  // which is why a lost line was invisible.
+  // ⛔ [`.5.4d`] `'paycheck-plan'`, not `'required-plan'`: that claim was narrowed to what the required rows read,
+  // which excludes the cushion line, and asking it here made a lost line read as READABLE — caught by `C1-1`'s
+  // own guard in `trustSelectors.test.ts`, not by reading.
+  const unread = rowFieldUnread(store, 'paycheck-plan', 'plan', '', 'cushionFloor');
   const stored = store.cushionFloor;
   return {
     value: unread || !Number.isFinite(stored) ? DEFAULT_CUSHION_FLOOR : stored,
