@@ -4230,5 +4230,23 @@
       "measured": "2026-09-13",
       "sha": "1cb8c0b7"
     }
+  },
+  "S1P7-C3-1-SIRI-DEBTSJSON-UNREAD": {
+    "what": ".5.4g [pass-7 C3-1, blocker] - Siri's log-a-payment list offered the debt whose balance the app could not read as 'Chase · $0': debtsJson formatted the repaired stored 0, and LogPaymentIntent.swift shows that string verbatim as the row's subtitle, beside four fields of the same payload that refused the figure. The in-app Log payment sheet refused it in pass 5 (C5-3) and this voice door was never routed through the same owner. ⛔ Fixed at the owner, not the site: logPaymentCopy asks the question and words the refusal once, and both doors call it - two spellings of one refusal is how this recurred.",
+    "file": "apps/rn/src/widget/widgetSync.test.ts",
+    "token": "Siri lists the unread debt as \"balance not read\", never \"$0\"",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/widget/snapshot.ts",
+          "find": "        balance: logPaymentBalanceUnread(store, d) ? BALANCE_NOT_READ : formatWhole(d.balance),",
+          "replace": "        balance: formatWhole(d.balance),"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C3-1 — Siri lists the unread debt as \"balance not read\", never \"$0\"",
+      "measured": "2026-09-13",
+      "sha": "566bd7d5"
+    }
   }
 }

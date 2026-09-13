@@ -168,8 +168,9 @@ const ids = Object.keys(registry);
  * that carries those findings' neighbours. `check-cap-literals` reads cap LITERALS, not the prose
  * beside them, so nothing mechanical compared the two. One line per ROUND now, not per commit.
  * **302 → 305 at `.5.4f`** — `C3-5`'s update and start stamps, `C3-6`'s end stamp.
+ * **305 → 306 at `.5.4g`** — `C3-1`, Siri's `$0` over an unread balance.
  */
-const MIN_ENTRIES = 305;
+const MIN_ENTRIES = 306;
 const MAX_UNGUARDED = 1;
 
 /**
