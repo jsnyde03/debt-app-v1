@@ -44,8 +44,8 @@ import type { Debt, Goal, RequiredExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { useActiveStore } from '@/store/StoreContext';
-import { selectDebtBalanceView, buildEstimateCaption, mayStateProjectedFigure, withProjectedBalances } from '@/store/balanceSelectors';
-import { anyRowFieldUnread, hasUnreadDebtBalances, partitionDebts, rowFieldUnread, unreadFieldsFor } from '@/store/trustSelectors';
+import { selectDebtBalanceView, buildEstimateCaption, withProjectedBalances } from '@/store/balanceSelectors';
+import { anyRowFieldUnread, hasUnreadDebtBalances, mayClaim, partitionDebts, rowFieldUnread, unreadFieldsFor } from '@/store/trustSelectors';
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL, resolveBillCategory } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
 import { selectPayoffView } from '@/store/payoffSelectors';
@@ -427,14 +427,18 @@ function DebtsSection({
    * `:418-420` records the owner being made FIELD-SPECIFIC so an absent `apr` would stop suppressing
    * *"Every balance cleared"* — correct, since an APR says nothing about whether the balances were read.
    * ⚡ But `totalBal` is summed from `selectDebtBalanceView(…).currentBalance`, which on premium is
-   * `projectCurrentBalance` — and that reads **`apr`** (`projectCurrentBalance.ts:71`), which routes to
-   * `'row-figures'` and only there. So a readable portfolio with an unreadable RATE printed a confident
+   * `projectCurrentBalance` — and that reads **`apr`** (`projectCurrentBalance.ts:71`), which
+   * `'debt-balances'` does not route. So a readable portfolio with an unreadable RATE printed a confident
    * projected total. `B1`'s rule widened once and missed a new direction, again.
+   *
+   * ⛔ **[`.5.4a`] `'projected-balance'`, and deliberately NOT the plan-solved claim.** The total is a sum of
+   * balances carried forward — it reads no bill, goal or plan field — so refusing it over a lost goal target
+   * blanked a figure nothing had moved. That was the first cut of this fix.
    *
    * ⚠️ **Gated on `isPremium` too**: a free total is the raw anchor sum with no APR in it, and refusing
    * that would be the over-suppression `snapshot.ts` calls a second false statement.
    */
-  const mayStateProjected = mayStateProjectedFigure(store);
+  const mayStateProjected = mayClaim(store, 'projected-balance');
 
   const list = (
     <View style={styles.flex}>

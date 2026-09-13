@@ -703,7 +703,7 @@ test('C2’s debts-hero control · a portfolio the app fully read still states i
  * guard fires for the right reason. **Nothing covered the case where the balances read perfectly and the
  * RATE does not** — and `totalBal` is summed from `selectDebtBalanceView(…).currentBalance`, which on
  * premium is `projectCurrentBalance`. That reads **`apr`** (`projectCurrentBalance.ts:71`), and `apr`
- * routes to `'row-figures'` **and only there**.
+ * is a field `'debt-balances'` **does not route**.
  *
  * ⛔ **The narrowing that made the celebration guard correct is what opened this.** `money.tsx:418-420`
  * records `hasUnreadDebtBalances` being made field-specific so an absent `apr` would stop suppressing
@@ -738,4 +738,36 @@ test('C3-8 · an unread APR withholds the projected total, with every balance re
   // statement. The same correction `UNREAD_REMAINING_LINE` makes on Progress.
   await expect(page.getByText('Some balances unread')).toHaveCount(0);
   await expect(page.getByText('Every balance cleared')).toHaveCount(0);
+});
+
+/**
+ * ⛔ **S1.13.7.12.6.5.4a [pass-7 class 5] — A LOST GOAL TARGET MAY NOT BLANK THE DEBT TOTAL.**
+ *
+ * `C3-8`'s first fix asked `'debt-balances' && 'row-figures'`, and `'row-figures'` routes every field of every
+ * entity — so a goal whose target could not be read withheld a projected debt total that reads no goal field
+ * at all. ⚡ The total asks `'projected-balance'` now, which routes exactly what `projectCurrentBalance` reads.
+ *
+ * ⚠️ **Green here is evidence only if the goal repair is really recorded.** Planting Money back onto the wide
+ * claim must turn this red — that plant, not this pass, is the proof.
+ */
+test('.5.4a · a lost goal target keeps the debt total', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'd0', name: 'Chase card', balance: 8000, originalBalance: 8000, minimumPayment: 100, apr: 22, dueDate: day(4), type: 'debt', recurrence: 'monthly' },
+        { id: 'd1', name: 'Visa', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+      // `targetAmount: ''` is the one unreadable field, and it is a GOAL field — nothing the total reads.
+      goals: [{ id: 'g0', name: 'Trip', targetAmount: '', currentAmount: 200, type: 'savings' }],
+    }),
+  );
+  await page.goto('/money');
+  await expect(page.getByText('Visa')).toBeVisible({ timeout: 15_000 });
+
+  await expect(
+    page.getByTestId('money-hero-debts-value'),
+    'a goal the app could not read says nothing about what is owed — withholding the total is over-suppression',
+  ).toHaveText('$12,000');
 });

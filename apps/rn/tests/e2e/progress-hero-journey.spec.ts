@@ -227,7 +227,7 @@ test('C4-9 · one unread balance beside a live one suppresses every figure deriv
  * ⚡ **Every other fixture on this screen poisons `balance`**, so `mayClaim('debt-balances')` is false and
  * the gag fires for the right reason by accident. `C3-9` is the case nothing covered: the balances read
  * perfectly and the **APR** does not — and `projectCurrentBalance` reads `apr`/`minimumPayment`, which
- * route to `'row-figures'` **and only there**. So `gagBalanceDerived` worked perfectly on the wrong claim,
+ * `'debt-balances'` **does not route**. So `gagBalanceDerived` worked perfectly on the wrong claim,
  * and Progress promised a debt-free date off a rate it had just failed to read.
  *
  * ⭐ **This asserts the SPLIT, not suppression, and that is the whole point.** 2.4's standing rule keeps
@@ -244,8 +244,8 @@ test('C3-9 · an unread APR withholds the projected figures and KEEPS the confir
       genuineCycleCount: 6,
       debts: [
         // ⚠️ `balance` and `originalBalance` are both READABLE — the point of the fixture. `apr: ''` is the
-        // single unreadable field, and it routes to `'row-figures'` alone. `readMoney('')` repairs to 0
-        // and records the loss, through the same door a restored backup comes in by.
+        // single unreadable field: it poisons the two projection claims and not `'debt-balances'`.
+        // `readMoney('')` repairs to 0 and records the loss, through the same door a restored backup comes in by.
         { id: 'd1', name: 'Chase card', balance: 4000, originalBalance: 6000, minimumPayment: 120, apr: '', dueDate: day(3), type: 'debt', recurrence: 'monthly' },
       ],
     }),
@@ -270,5 +270,39 @@ test('C3-9 · an unread APR withholds the projected figures and KEEPS the confir
     page.getByText('Some balances couldn’t be read'),
     'naming balances when the balances read perfectly would be a second false statement',
   ).toHaveCount(0);
+});
+
+/**
+ * ⛔ **S1.13.7.12.6.5.4a [pass-7 class 5] — A REPAIR THE PLAN NEVER READS MAY NOT BLANK THE DATE.**
+ *
+ * The date asked `'debt-balances' && 'row-figures'`, and `'row-figures'` routes every field of every entity —
+ * so a lost `typicalAmount` withheld a debt-free date the allocation never reads it for. ⚡ Measured across six
+ * plan shapes: a lost `typicalAmount` moves no projected figure; its one reader is `incomeLearning`'s lean
+ * suggestion. The date asks `'solved-projection'` now, which names only what the solve reads.
+ *
+ * ⚠️ **Green here is evidence only if the repair is really recorded.** Planting the date back onto the wide
+ * claim must turn this red — that plant, not this pass, is the proof.
+ */
+test('.5.4a · a lost typical paycheck keeps the debt-free date', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      genuineCycleCount: 6,
+      // `typicalAmount: 'abc'` is the one unreadable field, and nothing that solves the plan reads it.
+      paycheck: { amount: '2000', typicalAmount: 'abc' },
+      debts: [
+        { id: 'd1', name: 'Chase card', balance: 4000, originalBalance: 6000, minimumPayment: 120, apr: 19, dueDate: day(3), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/progress');
+
+  // The positive assertion first — a page that never rendered satisfies a negative one.
+  await expect(page.getByTestId('progress-hero-journey')).toBeVisible({ timeout: 15_000 });
+
+  await expect(
+    page.getByTestId('progress-hero-date'),
+    'a paycheck figure the plan never reads says nothing about when the debt clears — withholding the date is over-suppression',
+  ).toHaveText(/^[A-Z][a-z]+ \d{4}$/);
 });
 

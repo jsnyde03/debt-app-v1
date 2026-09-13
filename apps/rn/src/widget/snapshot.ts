@@ -198,7 +198,7 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
    *
    * `'debt-balances'` routes `balance` and `originalBalance`. But `C5-2` correctly moved these figures
    * onto the **PROJECTED** store, and `projectCurrentBalance` reads **`apr` and `minimumPayment`** — which
-   * route to `'row-figures'`, and only there. So the pass-5 fix changed what the number is computed FROM
+   * `'debt-balances'` does not route. So the pass-5 fix changed what the number is computed FROM
    * without changing what the guard is computed OVER.
    *
    * ⚡ Measured, one variable: a premium user whose imported **APR** was unreadable reads **$6,500** on the
@@ -212,8 +212,13 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
    * ⚠️ Both claims, not a widened route: `'debt-balances'` must keep meaning *"the balances are readable"*
    * for the surfaces that show a RAW balance, or the fix becomes over-suppression — *a suppression that
    * never lets the good state through is a second false statement, not a fix.*
+   *
+   * ⛔ **[`.5.4a`] The second claim was `'row-figures'`, which routes every field of every entity** — so
+   * the widget went blank over a lost goal target. `'solved-projection'` is the date's own question and
+   * contains `'projected-balance'`, the one `remaining` asks; `'debt-balances'` carries `pct`. All four still
+   * degrade together, per the rule below.
    */
-  const mayStateBalances = mayClaim(store, 'debt-balances') && mayClaim(store, 'row-figures');
+  const mayStateBalances = mayClaim(store, 'debt-balances') && mayClaim(store, 'solved-projection');
 
   // Has debts but none live → they've cleared everything. Otherwise the projected payoff date (or —).
   const cleared = debts.length > 0 && live.length === 0 && mayStateBalances;

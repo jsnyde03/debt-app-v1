@@ -196,7 +196,11 @@ export type MoneyClaim =
   /** "You're caught up for this paycheck" — what this cycle is obliged to cover. */
   | 'required-plan'
   /** A single row restating its own money: "$0.00/mo", "0% APR", "$1,000.00 left". */
-  | 'row-figures';
+  | 'row-figures'
+  /** A balance carried forward to today: Money's total, "$X to go", the widget's remaining. */
+  | 'projected-balance'
+  /** A plan solved forward: the debt-free date, the payoff chart, the what-if, the cash runway. */
+  | 'solved-projection';
 
 /** `'any'` = every field of that entity. A named list = exactly those fields. */
 type ClaimRoute = Partial<Record<DataRepair['entity'], 'any' | readonly string[]>>;
@@ -232,10 +236,27 @@ const CLAIM_FIELDS: Record<MoneyClaim, ClaimRoute> = {
   // read — which is exactly what this claim exists to refuse. ⚡ Measured: Progress captioned *"your
   // $0 line"* off a lost `cushionFloor` while `holdsLine` could never be true.
   'required-plan': { debt: ['minimumPayment', 'balance'], requiredExpense: ['amount'], livingExpense: ['amount'], plan: 'any' },
-  // Any repaired money field a row prints back to the user. ⚠️ This is where `apr` is routed and the only
-  // place: it changes no obligation this cycle, but the row states it ("22% APR") and a repaired `0`
-  // states 0% — the import path doing what `FORM_ERRORS.aprInvalid` exists to refuse on the form path.
+  // Any repaired money field a row prints back to the user. ⚠️ `apr` changes no obligation this cycle, so
+  // `'required-plan'` does not route it — but the row states it ("22% APR") and a repaired `0` states 0%,
+  // the import path doing what `FORM_ERRORS.aprInvalid` exists to refuse on the form path.
   'row-figures': { debt: 'any', requiredExpense: 'any', livingExpense: 'any', goal: 'any', plan: 'any' },
+  // ⛔ [S1.13.7.12.6.5.4a · pass-7 class 5] What `projectCurrentBalance` reads, and nothing else. It replaced
+  // `'debt-balances' && 'row-figures'`, whose second half routes every field of every entity — so a lost
+  // goal target blanked the user's debt total. Measured per repair variant: this refuses exactly when the
+  // projected total moves.
+  'projected-balance': { debt: ['balance', 'apr', 'minimumPayment'] },
+  // ⛔ What the allocation a payoff is solved FROM reads. ⚠️ Narrowing to the debt fields is the opposite
+  // error: a lost rent frees money that is not spare, and the date moves EARLIER.
+  // ⚠️ `goal: 'any'` is required, not lazy — a lost pace is recorded under a sentence, never under
+  // `priorityPerPaycheck`, so a named goal list is blind to it. `typicalAmount` is absent because nothing
+  // that solves the plan reads it.
+  'solved-projection': {
+    debt: ['balance', 'apr', 'minimumPayment', 'scheduledPaymentAmount'],
+    requiredExpense: ['amount'],
+    livingExpense: ['amount'],
+    goal: 'any',
+    plan: ['cushionFloor', 'leanAmount', 'windfall', 'expenseReserveBalance'],
+  },
 };
 
 /** The table itself, for the completeness gate in `trustSelectors.test.ts`. */

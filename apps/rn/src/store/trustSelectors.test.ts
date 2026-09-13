@@ -1,6 +1,9 @@
+import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { REPAIRABLE_MONEY_FIELDS, runMigrations } from '@/data/migrations';
-import { mayStateProjectedFigure } from '@/store/balanceSelectors';
-import { DEFAULT_CUSHION_FLOOR, cushionLine, selectAllocation } from '@/store/selectors';
+import { selectWhatIf } from '@/store/analysisSelectors';
+import { selectDebtBalanceView, withProjectedBalances } from '@/store/balanceSelectors';
+import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
+import { DEFAULT_CUSHION_FLOOR, cushionLine, effectivePaycheckBuffer, selectAllocation, selectWaterFillPlan } from '@/store/selectors';
 import { selectPlanState } from '@/store/planSelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
 import { detectPayoff } from '@/store/payoffCelebration';
@@ -238,12 +241,9 @@ export default function run(): void {
      * `REPAIRABLE_MONEY_FIELDS` now fails this test until someone chooses one or the other.
      */
     const CATCH_ALL_IS_THE_DECISION = new Map<string, string>([
-      // `apr` changes no obligation this cycle — it is stated by the row and nothing else, which is
-      // exactly `row-figures`. `trustSelectors.ts` already records this as its only routing.
-      ['debt apr', 'stated by the row and by nothing else — row-figures IS the decision'],
-      // Autopay's scheduled amount is displayed on the row; it is not what the plan requires this
-      // cycle (that is `minimumPayment`, which `required-plan` names).
-      ['debt scheduledPaymentAmount', 'a displayed figure, not an obligation — required-plan names minimumPayment instead'],
+      // ⛔ [.5.4a] `debt apr`, `debt scheduledPaymentAmount`, and the plan's cushionFloor · leanAmount ·
+      // windfall · expenseReserveBalance are NAMED now, by `projected-balance` / `solved-projection`. Each
+      // was recorded here as having no claim but the catch-all, and each moves a projected figure.
       // `goal-amounts` routes the goal entity wholesale and is the claim ABOUT goal money, so a goal
       // money field has no second claim to be decided against.
       ['goal targetAmount', 'goal-amounts is the claim about goal money; there is no second claim to decide'],
@@ -253,11 +253,9 @@ export default function run(): void {
       // here, for `goal-amounts`' reason: a repaired $0 in ANY of these makes the plan claim false,
       // because they are the line it is solved against, the income it is solved from, and the money it
       // allocates. There is no second claim to decide them against.
-      ['plan cushionFloor', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
-      ['plan leanAmount', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
-      ['plan typicalAmount', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
-      ['plan windfall', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
-      ['plan expenseReserveBalance', 'required-plan routes the plan entity wholesale — every one of these is money the plan is solved FROM or AGAINST'],
+      // ⚠️ [.5.4a] Measured across six plan shapes: a lost `typicalAmount` moves no projected figure — its one
+      // reader is `incomeLearning`'s lean suggestion — so no projection claim names it.
+      ['plan typicalAmount', 'required-plan routes the plan entity wholesale; nothing that solves the plan reads it, so no projection claim names it'],
     ]);
 
     const named = new Set<string>();
@@ -650,35 +648,130 @@ export default function run(): void {
   }
 
   /**
-   * ⛔ **`.5.3` — THE ONE PREDICATE, AND THE CLAIM PAIR IS THE WHOLE POINT.** [class 5]
+   * ⛔ **`.5.4a` — A PROJECTION CLAIM REFUSES EXACTLY WHEN ITS FIGURE MOVES.** [pass-7 class 5]
    *
-   * The class is *"one question, five different answers"*, and the measurable axis `.5.1` found is **which
-   * SUBSET of two claims a surface consults**. `projectCurrentBalance` reads `apr` and `minimumPayment`,
-   * which route to `'row-figures'` **and only there** — so asking `'debt-balances'` alone is guarded
-   * against a lost balance and blind to a lost APR. ⚡ That is `C3-9`: Progress promised a debt-free date
-   * five months early with `gagBalanceDerived` working perfectly, on the wrong claim.
+   * `.5.3`'s predicate was `mayClaim('debt-balances') && mayClaim('row-figures')`, and `'row-figures'` routes
+   * `'any'` for every entity — so the first conjunct never decided anything and a lost GOAL target blanked
+   * the user's debt total. ⚡ The obvious narrowing to debt fields is the opposite error: a lost rent amount
+   * moves the debt-free date EARLIER and a debt-only route states it.
    *
-   * ⚠️ Asserted as the two DIRECTIONS, not as one true case — a predicate that only ever returns `false`
-   * would pass a one-sided test and suppress every good state, which `snapshot.ts` names as a second false
-   * statement rather than a fix.
+   * ⭐ **So the claim is asserted against the figure, per repair variant, in both directions.** A route that
+   * refuses on a variant no fixture can move is over-suppression; a variant that moves the figure on any
+   * fixture while the route says yes is a hole. ⚠️ The fixture set is part of the proof — the first probe's
+   * zero-length pay window moved nothing a plan reads, which is why each input below is shown to be consumed
+   * and why "moves" is the union across six shapes rather than one.
    */
   {
-    eq(mayStateProjectedFigure(withApr(22)), true, '⭐ control — everything readable, so the projection may be stated');
-    eq(
-      mayStateProjectedFigure(withApr('n/a')),
-      false,
-      '⛔ C3-9 — an unread APR routes to `row-figures` ONLY, and the projection reads APR: it may not be stated',
-    );
-    eq(
-      mayClaim(withApr('n/a'), 'debt-balances'),
-      true,
-      '⛔ …and `debt-balances` alone says YES on that very store — which is why one claim was not enough',
-    );
-    eq(
-      mayStateProjectedFigure(migrated(['abc'])),
-      false,
-      '⛔ …and an unread BALANCE refuses it too, so neither claim is redundant',
-    );
+    type Shape = { name: string; income: number; variable: boolean; big: boolean; pace: boolean };
+    const SHAPES: Shape[] = [
+      { name: 'tight-fixed', income: 1400, variable: false, big: true, pace: true },
+      { name: 'tight-var', income: 1400, variable: true, big: true, pace: true },
+      { name: 'tight-nopace', income: 1400, variable: false, big: true, pace: false },
+      { name: 'loose-fixed', income: 2400, variable: false, big: false, pace: true },
+      { name: 'loose-nopace', income: 2400, variable: false, big: false, pace: false },
+      { name: 'loose-var', income: 2400, variable: true, big: false, pace: true },
+    ];
+    const NEXT = '2026-09-09';
+    const ANCHOR = '2026-03-01';
+    const LIST: Record<string, string> = { debt: 'debts', requiredExpense: 'requiredExpenses', livingExpense: 'livingExpenses', goal: 'goals' };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- a raw file off disk, mutated by field name
+    type Raw = Record<string, any>;
+    const rawShape = (sh: Shape): Raw => {
+      const b = sh.big ? 3 : 1;
+      return {
+        version: 8,
+        paycheck: { amount: String(sh.income), currentDate: DAY, nextPaycheckDate: NEXT, incomeVaries: sh.variable, leanAmount: Math.round(sh.income * 0.75), typicalAmount: sh.income },
+        debts: [
+          { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: 6000 * b, minimumPayment: 150 * b, scheduledPaymentAmount: 200 * b, apr: 22, dueDate: '2026-09-02', type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+          { id: 'd1', name: 'Visa', balance: 3000 * b, originalBalance: 3500 * b, minimumPayment: 90 * b, apr: 18, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+        ],
+        requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 600, dueDate: '2026-09-01', recurrence: 'monthly', category: 'housing' }],
+        livingExpenses: [{ id: 'l0', name: 'Groceries', amount: 150, enabled: true }],
+        goals: [{ id: 'g0', name: 'Trip', targetAmount: 1000, currentAmount: 200, ...(sh.pace ? { priorityPerPaycheck: 40 } : {}), priority: true, type: 'savings' }],
+        cushionFloor: 250,
+        windfall: 300,
+        expenseReserve: { balance: 300 },
+        prefs: { onboardingComplete: true, hasSavingsElsewhere: true },
+      };
+    };
+    const premium = (raw: unknown): DebtStore => ({ ...runMigrations(raw), subscriptionPlan: 'premium' });
+
+    /** Where each repairable field lives in a raw file, keyed by the names `REPAIRABLE_MONEY_FIELDS` declares. */
+    const setField = (r: Raw, entity: string, field: string, to: (old: unknown) => unknown): void => {
+      if (LIST[entity]) r[LIST[entity]][0][field] = to(r[LIST[entity]][0][field]);
+      else if (field === 'leanAmount' || field === 'typicalAmount') r.paycheck[field] = to(r.paycheck[field]);
+      else if (field === 'expenseReserveBalance') r.expenseReserve.balance = to(r.expenseReserve.balance);
+      else r[field] = to(r[field]);
+    };
+
+    /** The figures each claim licenses — what a surface asking it goes on to print. */
+    const FIGURE: Record<'projected-balance' | 'solved-projection', (s: DebtStore) => string> = {
+      'projected-balance': (s) => {
+        const cpm = payCyclesPerMonth(s.paycheck.payCycle);
+        return String(s.debts.filter((d) => d.balance > 0).reduce((t, d) => t + selectDebtBalanceView(d, s.paycheck.currentDate, true, cpm).currentBalance, 0));
+      },
+      'solved-projection': (s) => {
+        const engine = withProjectedBalances(s, true);
+        // ⚠️ `order` carries whole debt objects, so a lost `originalBalance` changes its JSON without changing
+        // the ranking — measured. Compared by id, which is what a surface prints.
+        const { order, ...view } = selectPayoffView(engine);
+        return JSON.stringify([view, order.map((d) => d.id), selectWhatIf(engine, 100), selectCashTimeline(engine, 6), selectWaterFillPlan(engine), effectivePaycheckBuffer(engine)]);
+      },
+    };
+
+    type Variant = { name: string; lost: boolean; mutate: (r: Raw) => void };
+    const variants: Variant[] = [];
+    for (const [entity, lists] of Object.entries(REPAIRABLE_MONEY_FIELDS)) {
+      for (const field of [...lists.required, ...lists.optional]) {
+        variants.push({ name: `${entity}.${field} LOST`, lost: true, mutate: (r) => setField(r, entity, field, () => 'abc') });
+        variants.push({ name: `${entity}.${field} recovered`, lost: false, mutate: (r) => setField(r, entity, field, (o) => (o === undefined ? o : Number(o).toLocaleString('en-US'))) });
+      }
+      if (LIST[entity]) {
+        variants.push({ name: `${entity} WHOLE-ROW`, lost: true, mutate: (r) => { r[LIST[entity]][0] = 'garbage'; } });
+        variants.push({ name: `${entity} WHOLE-LIST`, lost: true, mutate: (r) => { r[LIST[entity]] = 'garbage'; } });
+      }
+    }
+
+    let sawBand = false;
+    const verdict = new Map<string, { refused: Set<boolean>; moved: boolean }>();
+    for (const sh of SHAPES) {
+      const base = premium(rawShape(sh));
+      eq(base.pendingDataRepairs.length, 0, `${sh.name} — the base fixture reads clean`);
+      const alloc = selectAllocation(base);
+      const cats = new Set<string>(alloc?.allocations.map((a) => a.category) ?? []);
+      for (const c of ['expense', 'minimum_debt', 'optional_goal']) {
+        eq(cats.has(c), true, `${sh.name} — the plan CONSUMES a ${c} (a fixture that ignores an input cannot show it moving)`);
+      }
+      eq((alloc?.livingExpenseReserve ?? 0) > 0, true, `${sh.name} — the plan consumes the living expense`);
+      if (selectPayoffView(withProjectedBalances(base, true)).lean.length > 0) sawBand = true;
+
+      for (const v of variants) {
+        const r = rawShape(sh);
+        v.mutate(r);
+        const s = premium(r);
+        eq(s.pendingDataRepairs.some((x) => x.kind === 'lost'), v.lost, `${sh.name} · ${v.name} — the variant records ${v.lost ? 'a LOST' : 'no lost'} repair`);
+        for (const claim of ['projected-balance', 'solved-projection'] as const) {
+          const key = `${claim} · ${v.name}`;
+          const at = verdict.get(key) ?? { refused: new Set<boolean>(), moved: false };
+          at.refused.add(!mayClaim(s, claim));
+          if (FIGURE[claim](s) !== FIGURE[claim](base)) at.moved = true;
+          verdict.set(key, at);
+        }
+      }
+    }
+    eq(sawBand, true, 'at least one shape draws the variable-income band, so a lost lean paycheck can move it');
+
+    for (const [key, { refused, moved }] of verdict) {
+      eq(refused.size, 1, `⛔ ${key} — a route's verdict is a property of the REPAIR, never of the fixture`);
+      const refuses = [...refused][0];
+      if (refuses && !moved) fail(`⛔ .5.4a OVER-SUPPRESSION — ${key}: the claim refuses and no shape's figure moves`);
+      if (!refuses && moved) fail(`⛔ .5.4a HOLE — ${key}: the figure moves and the claim still says yes`);
+    }
+
+    // ⚠️ The split `C3-9` rests on: a lost APR moves every projection and says nothing about the balances.
+    eq(mayClaim(withApr('n/a'), 'debt-balances'), true, '`debt-balances` still says YES on an unread APR — the confirmed figures survive');
+    eq(mayClaim(withApr('n/a'), 'projected-balance'), false, '⛔ C3-8 — …and the projected total may not be stated');
+    eq(mayClaim(withApr('n/a'), 'solved-projection'), false, '⛔ C3-9 — …nor the debt-free date');
   }
 }
 
