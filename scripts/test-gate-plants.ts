@@ -342,6 +342,50 @@ const B1_SCENARIOS: Scenario[] = [
     expect: 'NEIGHBOUR',
     why: 'nothing joined "the token still exists" to "the planted run printed expect", so a sibling\'s red proved both',
   },
+  /**
+   * ⛔ **S1.13.7.12.6.5.2 [class 4 round-5 `R5-2`] — THE WAIVER MATCHED BY SUBSTRING.**
+   *
+   * ⚠️ **The scenario ABOVE cannot exercise this, in either direction — which is why this one exists.**
+   * Its fixture ids are `PLANT-LENDER` and `PLANT-BORROWER`, and neither short form is a substring of the
+   * other, so it stays green whether the matcher is `includes` or word-boundary. It proves *"a note naming
+   * NOTHING does not waive"*; this proves *"a note naming the WRONG, LONGER sibling does not waive
+   * either"*. ⛔ **Coverage of a rule is not coverage of its matcher.**
+   *
+   * ⚡ The lender's short form is `A3-1` and the note names `A3-14` — a DIFFERENT entry, in which `A3-1`
+   * appears only as the first four characters. Measured on the real registry: **20 of 302 short ids
+   * collide**, and `A3-1` alone has seven descendants, so this is the NORMAL id shape here rather than a
+   * contrived one. Revert `namesIt` to `note.includes(l)` and the borrow is waived, the NEIGHBOUR
+   * complaint never prints, and this scenario reds as `reason=WRONG`.
+   *
+   * ⚠️ **The fixture reds on `MIN_ENTRIES` in BOTH worlds, and that is deliberate** — the exit code
+   * cannot discriminate here, so the whole discriminating power sits in `expect`. `'NEIGHBOUR'` is chosen
+   * because it appears ONLY in the borrow complaint: the lender carries no `expect` of its own, so no
+   * other entry in this fixture can reach that branch and print it.
+   */
+  {
+    gate: 'lint:finding-guards [R5-2-boundary]',
+    script: 'check-finding-guards.ts',
+    args: ['--registry=scripts/__gate_plant_boundary_registry__.json'],
+    controlArgs: [],
+    at: 'scripts/__gate_plant_boundary__.ts',
+    body: "export const boundaryLender = 'only the lender may survive';\nexport const boundaryBorrower = 7;\n",
+    also: [
+      {
+        at: 'scripts/__gate_plant_boundary_registry__.json',
+        body:
+          '{\n  "S1-CLASS4-A3-1": {\n    "what": "the lender — its short form A3-1 is a PREFIX of the id the borrower names",\n' +
+          '    "file": "scripts/__gate_plant_boundary__.ts",\n' +
+          '    "token": "export const boundaryLender = \'only the lender may survive\';"\n  },\n' +
+          '  "PLANT-BOUNDARY-BORROWER": {\n    "what": "its expect names the LENDER\'s assertion; its note names A3-14, which is a DIFFERENT entry",\n' +
+          '    "file": "scripts/__gate_plant_boundary__.ts",\n    "token": "export const boundaryBorrower = 7;",\n' +
+          '    "proof": {\n      "unfix": [{ "at": "scripts/__gate_plant_boundary__.ts", "find": "export const boundaryBorrower = 7;", "replace": "x" }],\n' +
+          '      "run": "lint:finding-guards",\n      "expect": "only the lender may survive",\n' +
+          '      "proofNote": "shares A3-14\'s red"\n    }\n  }\n}\n',
+      },
+    ],
+    expect: 'NEIGHBOUR',
+    why: 'a substring waiver lets a note naming a longer sibling silently waive a real borrow — 20 of 302 short ids collide',
+  },
   {
     gate: 'lint:finding-guards [M8]',
     script: 'check-finding-guards.ts',
@@ -615,7 +659,8 @@ const SCENARIOS: Scenario[] = [
 
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
-const MIN_SCENARIOS = 26;
+// ⚠️ 26 → 27 at S1.13.7.12.6.5.2: `lint:finding-guards [R5-2-boundary]`, the waiver's word-boundary rule.
+const MIN_SCENARIOS = 27;
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 

@@ -549,7 +549,30 @@ for (const [id, e] of Object.entries(registry)) {
         .filter(([other, oe]) => other !== id && oe.token?.includes(expect))
         .map(([other]) => other);
       const note = e.proof.proofNote ?? '';
-      const waived = lenders.some((l) => note.includes(l) || note.includes(l.replace(/^S1[A-Z0-9]*-/, '').replace(/^CLASS4-/, '')));
+      /**
+       * ⛔ **THE WAIVER MATCHED BY SUBSTRING, SO A NOTE NAMING A LONGER SIBLING WAIVED THE BORROW.**
+       * [class 4 round-5 `R5-2`] Registry ids are a hierarchical `<pass>-<lane><n>-<m>[-SUFFIX]` scheme in
+       * which a shorter id is **by construction** a prefix of its descendants, so `includes` cannot tell
+       * *"names this entry"* from *"names a descendant of its number"*. ⚡ Measured by planting into the
+       * real registry: a `proofNote` reading *"shares A3-14's red"* silently waived a borrow from
+       * **`A3-1`**, which appears in that note only as the first four characters of a different entry.
+       * **20 of 302 short ids collide** — `A3-1` alone has seven descendants, so the collision is the
+       * NORMAL shape here rather than a contrived one.
+       *
+       * ⚠️ **Round 4 fire-counted its own tightening at 0 and stopped.** A fire-count answers *"does this
+       * refuse anything legitimate"*; it cannot answer *"does this accept anything illegitimate"*, and
+       * that second question is the one this branch exists for.
+       *
+       * ⚡ **Word-boundary, measured before it was written: 4 entries enter the branch, 0 newly refused.**
+       * The attack reds, the control still reds, and all four legitimate waivers are still honoured.
+       * ⛔ **The template interpolates an id, so the id alphabet is a PREMISE of this line** — re-measured
+       * against the live registry: 302 ids, 0 outside `[A-Za-z0-9-]`, 0 whose short form is empty (an
+       * empty needle would match almost any note). If that alphabet ever widens, this becomes an
+       * injection and the needle must be escaped.
+       */
+      const namesIt = (n: string, needle: string) =>
+        new RegExp(`(^|[^A-Za-z0-9-])${needle}([^A-Za-z0-9-]|$)`).test(n);
+      const waived = lenders.some((l) => namesIt(note, l) || namesIt(note, l.replace(/^S1[A-Z0-9]*-/, '').replace(/^CLASS4-/, '')));
       if (lenders.length && !waived) {
         problems.push(
           `${id} — its proof's \`expect\` is not in its own token, and IS in ${lenders.join(', ')}.\n` +

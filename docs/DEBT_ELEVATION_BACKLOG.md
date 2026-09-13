@@ -1216,3 +1216,62 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
 - **~1.3 MB of an auditor's scratch snapshots are in git history** (`2df9ece8`), swept in by a concurrent
   `git add -A`. Deleted from the tree; not rewritten out, because rewriting a pushed branch is worse.
   → tooling/hygiene, only if repo size ever matters.
+
+### ⤵ surfaced by `S1.13.7.12.6.5.2`'s before-scan, 2026-09-12 — routed per bullet
+
+- ⛔ **A lost `cushionFloor` is FROZEN INTO CYCLE HISTORY as a confident `$200`, and no `??` can ever fire
+  on it.** `guardianPrediction.ts:45` stamps `floor: brief.floor` — the value *after*
+  `buildGuardianBrief`'s `|| 200` — and `calibrationScore.ts:96` then grades the scorecard against it with
+  `p.floor ?? 200`. ⚡ **That site is NOT the defect and must not be swept**: its `??` is legitimately about
+  pre-2.4.9 predictions that stored no floor at all. The defect is upstream, at the stamp. The forward fix
+  flows from `.5.2`'s single owner; **the already-written history does not**, and neither `C1-1` nor `C1-6`
+  names it. → **pass 8** *(the residue; the forward half closes in `.12.6.5.2`)*.
+- ⚠️ **`prove-guards.ts:97` says `measured`/`sha` are *"written by `--record`"*, and that has been false
+  since pass 5.** Line 806-812 of the same file records the change — *"RECORDING IS THE DEFAULT NOW,
+  BECAUSE `--record` WAS INVOKED BY NOTHING"* — so the type comment describes the world the fix replaced.
+  **Eighth expired-comment claim in this cluster**, and it sits beside `R5-3`, which is itself an expired
+  comment in this file's sibling. ⛔ Correcting a false comment means DELETING it. → **`.12.6.9`**.
+- ⚠️ **`r5-remedy-waiver.py`'s plant anchor is stale and the probe would abort rather than measure.** Its
+  `OLD` constant carries **4** leading spaces; `R4-3` moved the waiver inside the `if` block and the line
+  is at **6**. Harmless here — `.5.2`'s fix makes that remedy permanent, and `r5-plant-waiver.py` plants
+  only the registry so it carries no source anchor — but the probe is committed and reads as re-runnable.
+  → **`.12.6.9`** *(retire it, or re-anchor it)*.
+- ⚠️ **`[R3-3-borrow]` in `test:gate-plants` is BLIND to the waiver's matching rule, in both directions —
+  MEASURED, not inferred.** Its fixture registry uses `PLANT-LENDER` / `PLANT-BORROWER`, neither short form
+  a substring of the other. ⚡ Under the word-boundary un-fix it scored **`reason=MATCHED`** while the new
+  `[R5-2-boundary]` scored **`reason=WRONG`** — so it stays green whether the matcher is `includes` or
+  word-boundary. ⛔ **It is not coverage for `R5-2`**, which is why `R5-2` needed a scenario of its own.
+  Consistent with `R5-3`'s finding about the same scenario. → **`.12.6.9`**.
+
+### ⤵ surfaced by `S1.13.7.12.6.5.2`'s `R5-2` fix, 2026-09-12 — routed per bullet
+
+- ⛔ **`R5-2`'s REGISTRY ENTRY IS STILL OWED — the fix and its proof shipped, the ledger row did not**
+  *(🎯 2026-09-12: ride the `.12.6.9` drain batch)*. The fix is not unproven: `[R5-2-boundary]` is standing
+  coverage inside `lint:rn`, executed on every push. ⚠️ **What blocks the row is `authored` 9/9**: adding an
+  entry makes it 10 and reds `lint:finding-guards`, and it cannot be proven out of that state.
+  ⛔ **`prove:guards`' drain exemption does NOT cover this proof, and the reason is measured**:
+  `prove-guards.ts:513` parses the control's output for `  • ` problem lines, which is
+  `lint:finding-guards`' own format — but this proof's `run` is **`test:gate-plants`**, which emits none, so
+  `problems.length` is 0, `drainable` is false and the control stays red. **The narrowing un-blocks a proof
+  running the gate DIRECTLY and not one running a harness that uses it as a baseline.** ⚡ Entry is ready to
+  write: `token` `const namesIt = (n: string, needle: string) =>` · `run` `test:gate-plants` · `unfix`
+  reverts `namesIt(note, …)` to `note.includes(…)`. **Drain one authored proof first, then add it — never
+  raise `MAX_AUTHORED`.** → **`.12.6.9`**.
+- ⛔ **`lint:trust-claims` CANNOT SEE A CLAIM SPLIT ACROSS TWO FILES, and that is the seam `C1-6` came
+  through.** Line 333 requires `PRINTS_MONEY` **and** `READS_ENTITIES` in the SAME file. Measured on
+  `C1-6`'s own pair: `cushion-forecast.tsx` reads the store and calls **no** formatter; `CashRunwayChart.tsx`
+  calls `formatWhole` **7×** and reads **zero** entity lists — it takes `floor` as a prop. **Both escape the
+  population, so neither is ever considered**, and the gate truthfully reports *"0 claim sites open"*.
+  ⚡ **`C4-4`'s shape one level down**: the population was fixed to count itself, never to see a host that
+  hands a figure to a child that prints it. ⚠️ The file's own docblock names ONE blind spot it cannot see
+  (hand-interpolated numbers, routed to `lint:money`) and **not this one**. → **`.12.6.9`**
+  *(instrument repair; `.5.2` closes the C1-6 instance itself)*.
+- ⚠️ **Nothing in the codebase has EVER asked the field-level trust question about a `plan` entity.** All
+  ~20 `rowFieldUnread` / `anyRowFieldUnread` / `unreadFieldsFor` call sites pass `debt`,
+  `requiredExpense`, `livingExpense` or `goal`. `migrations.ts:299` records plan repairs as
+  `{ entity: 'plan', id: '', field }` and `CLAIM_FIELDS['required-plan'].plan` routes `'any'` — so the
+  machinery is **recorded and routed and never consulted**, which is why a lost cushion line is invisible at
+  every one of `.5.2`'s 11 sites. ⚡ `.5.2` will be the first caller. **Check whether the other four plan
+  fields** — `leanAmount` · `typicalAmount` · `windfall` · `expenseReserveBalance` — **have the same hole**;
+  `B3-1` routed them and no site asks about any of them either. → **pass 8** *(`cushionFloor` closes in
+  `.5.2`)*.

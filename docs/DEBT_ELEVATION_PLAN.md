@@ -275,20 +275,25 @@ three times running (`R3-4` → `R4-1` → `R5-1`). ⭐ **That line's root cause
 guard's population is now **derived from `Record<Recurrence, number>`**, so a new member is a typecheck
 error until someone states what it frees. **Adding one row is what failed, twice.**
 
-⚠️ **`R5-2` and `R5-3` filed to `.12.6.9`, not fixed** — per the decision. ⛔ **Read the note on `R5-2`
-there before pass 8**: it is a live permissiveness in a gate shipped 2026-09-05, and its remedy is already
-measured at fire-count 0.
+✅ **`R5-2` FIXED 2026-09-12** *(`.5.2`'s precursor — the gate that certifies closures was permissive, and
+class 5 is about to write proofs through it)*. Word-boundary matcher; `test:gate-plants` **26 → 27** with
+`[R5-2-boundary]`, which reds on the un-fix while `[R3-3-borrow]` stays green. ⛔ **Its REGISTRY ROW is
+still owed and rides `.12.6.9`** *(🎯)* — `authored` is 9/9 and `prove:guards`' drain exemption does not
+cover a proof whose `run` is a harness. Detail → log. ⚠️ **`R5-3` remains filed to `.12.6.9`, not fixed.**
 
-⛔ **SWITCH-IN CORRECTION, measured before decomposing — the class understates its own population.**
-`C1-1` names *"`cushionFloor`'s `|| 200`"*. Measured: **one** `|| 200` (`buildGuardianBrief.ts:178`) and
-**seven** `?? 200`, and **the two spellings erase DIFFERENT sentinels** — `??` only null/undefined, `||`
-also a legitimate `0`, which is `C1-6`'s *"at `$0` no cycle can ever read as a crunch"*. **8 sites, 2
-spellings, one finding naming one of them.** The site-lists-undercount pattern, caught before building.
+⛔ **SWITCH-IN CORRECTION — THE POPULATION WAS UNDERCOUNTED TWICE, AND THE REMEDY IS UNBUILDABLE AS
+WRITTEN.** The finding said **1** site; `.5.1` corrected it to **8 / 2 spellings**; derived by query it is
+**11 fallback sites across 4 spellings** — the two `?? 200` / `|| 200` spellings plus `floor > 0 ? floor :
+200` (`computeState.ts:32,44`) and `isFinite(floor) ? floor : 200` (`CushionFloorSheet.tsx:42`, the *repair
+affordance*, which opens showing **$0**). ⛔ **No spelling can discriminate**: `setCushionFloor` clamps via
+`Math.max(0, …)`, so a legitimate `$0` line is user-reachable and byte-identical to `readMoney`'s lost `0`.
+**The discriminator is the repair record, not the value.** ⚠️ `calibrationScore.ts:96` is a READ of stored
+history and is not swept; `projectForecast.ts` is P6.11's dead tree. Detail → log.
 
 | # | step | exit line |
 |---|---|---|
 | ✅ **.5.1** | **DONE 2026-09-06 — 13 of 13 re-derived. All observations stand; FIVE corrections, two of which change the build.** ⛔ **`money.tsx` consults `mayClaim` NOWHERE** — it uses per-row `rowFieldUnread`, so the row guards are fine and the **hero** has no whole-claim guard; *"add the missing claim"* would edit the wrong layer. ⛔ **`C3-2` + `D2-12` are ONE root** — `''` overloaded in `buildGuardianSpoken` for *not-premium* and *cannot-claim*, merged below. ⛔ **`C1-1` is 8 sites / 2 spellings** erasing different sentinels. ⛔ **`C3-13`'s guard cannot live in `selectPlanState`** — the projection is the argument. Detail → log | ✅ |
-| ▶ **.5.2** | **THE SENTINEL-ERASING FALLBACK SUB-SWEEP** — `C1-1` · `C1-6`, now measured as **8 sites across 2 spellings**: `||` swallows a legitimate `0` where `??` does not, and that `0` is `C1-6`'s *"no cycle can ever read as a crunch"* | a fallback cannot turn "could not be read" into a confident figure; the population **derived by query**, never listed |
+| ▶ **.5.2** | **THE SENTINEL-ERASING FALLBACK SUB-SWEEP** — `C1-1` · `C1-6`, derived by query as **11 sites across 4 spellings**. One owner returning `{ value, unread }`; `unread` = `rowFieldUnread(store, 'required-plan', 'plan', '', 'cushionFloor')`, the first `plan`-entity caller in the tree; `DEFAULT_CUSHION_FLOOR` named once — it exists nowhere today, which is the root | a fallback cannot turn "could not be read" into a confident figure; the population **derived by query**, never listed |
 | **.5.3** | **BUILD THE ONE PREDICATE** — *may this surface state a figure derived from the projection?* ⭐ **The correct answer already exists**: the widget refuses this claim by design and says so in a comment | one owner, and an assertion that **ITERATES the surfaces** rather than walking a hand-written list |
 | **.5.4** | **THE SURFACES, BY THAT PREDICATE** — `C3-13` *(guard at the CALL SITE — the projection is the argument)* · `C3-8` *(the HERO, not the rows)* · `C3-9` · `C3-11` · `C3-5` *(the unfixed `liveActivitySync` twin: stamp-before-verify)* · `C3-1` · `C1-5` · **`C3-2`+`D2-12` as ONE step** *(the overloaded `''`)*. ⚠️ Six were walked in one list last round and **`C4-4` was the measured hole a finding came through** | every surface routed through the predicate, proven by planting at each |
 | **.5.5** | **`B1-1`** — the save plan paced off the **partition total** while the card printed **spendable**: an **$835/paycheck promise out of $675**, *and that number is written to the store as the goal's pace* | the pace and the printed figure share one producer; the stored goal cannot outlive a wrong one |

@@ -32723,3 +32723,94 @@ could not be read'`, the word *"one"* hardcoded regardless of count. · `C1-6` �
 returns `cushionFloor ?? 200` for premium and `BASE_PAYCHECK_BUFFER` for free, and `CashRunwayChart` reads
 neither. · `B1-1` — `selectSaveForItOptions` paces off `selectDiscretionary(selectAllocation(store))`;
 the disagreement with what the card prints is measured in `.5.5`.
+
+### `.12.6.5.2` — `R5-2` FIXED: the borrow waiver now matches on a WORD BOUNDARY · 2026-09-12
+
+**Done first, deliberately** *(🎯 2026-09-12)*: class 5 is about to register proofs through
+`lint:finding-guards`, and its borrow waiver — the branch that decides whether an entry may be recorded
+closed on a *sibling's* red — matched by substring. Fixing it after would mean trusting proofs written
+through a gate known to be permissive.
+
+#### The premises were re-measured against the live registry, not carried
+
+`R5-2` was written 2026-09-06 and its figures were six days old. All three reproduced:
+
+| claim | as written | re-measured 2026-09-12 |
+|---|---|---|
+| ids are `[A-Za-z0-9-]` only, so no escaping is needed | prose **and** a code comment; measured nowhere | ✅ 302 ids, **0** outside it; the only non-alphanumeric char in the whole registry is `-` |
+| 20 of 302 short ids collide | census | ✅ **302 entries, 20 collisions** — did not decay |
+| the tightening refuses nothing legitimate | remedy measurement | ✅ **4 entries enter the branch, 0 newly refused** |
+
+⚡ **The escaping premise is load-bearing and was asserted in two places and measured in neither** — the
+remedy's prose and `r5-waiver-attack.mjs:22`. It is now checked, and the check includes a degenerate case
+the write-up never named: **an id whose SHORT form is empty** would build
+`(^|[^A-Za-z0-9-])([^A-Za-z0-9-]|$)` and match almost any note. **0 such ids** — latent, but measured
+rather than assumed. ⛔ If the id alphabet ever widens, the template becomes an injection.
+
+#### The fix, and the proof that it can fail
+
+`check-finding-guards.ts:552` — `note.includes(l)` → a word-boundary `namesIt(note, l)`.
+
+⛔ **`run: lint:finding-guards` COULD NOT BE THE PROOF.** On the live registry the gate exits 0 under both
+matchers — the fire-count is 0 in either direction, because no real note currently collides. A proof
+whose `run` was the bare gate would have been **a proof that cannot red**, which is the class this whole
+triage is named for. So the fix needed a `test:gate-plants` scenario carrying a fixture that *does*
+collide — the same move `R4-3` used to make its naming requirement load-bearing.
+
+**`[R5-2-boundary]`** — lender `S1-CLASS4-A3-1` (short form `A3-1`), borrower whose `proofNote` reads
+*"shares A3-14's red"*. Under `includes`, `A3-1` matches inside `A3-14` and the borrow is waived; under the
+boundary rule the trailing `4` defeats it. `MIN_SCENARIOS` **26 → 27**.
+
+| run | `[R5-2-boundary]` | `[R3-3-borrow]` |
+|---|---|---|
+| fix in place | ✅ `reason=MATCHED` | ✅ `reason=MATCHED` |
+| word-boundary reverted to substring | **❌ `reason=WRONG`** | ✅ `reason=MATCHED` |
+
+⭐ **The second column is a control on my own finding, and it held.** `[R3-3-borrow]` stayed green under
+the same un-fix, so *"the existing scenario is blind to the matcher"* is **measured, not asserted** — its
+fixture ids `PLANT-LENDER` / `PLANT-BORROWER` cannot collide by construction, so it proves *"a note naming
+NOTHING does not waive"* and can never reach *"a note naming the WRONG, LONGER sibling"*.
+⛔ **Coverage of a rule is not coverage of its matcher.**
+
+⚠️ **The exit code could not discriminate and that is by design.** A fixture registry always reds on
+`MIN_ENTRIES`, so the whole discriminating power sits in `expect`. `'NEIGHBOUR'` was chosen because it
+appears ONLY in the borrow complaint — the lender carries no `expect`, so no other entry in the fixture
+can reach that branch and print it. Picking the borrower's id instead would have matched the gate's own
+unproven listings in **both** worlds: a check that cannot fail, built while closing that exact class.
+
+#### ⛔ The registry row is owed, and the deadlock that defers it is MEASURED
+
+Adding the entry takes `authored` **9 → 10** past its ceiling, and it cannot be proven out of that state.
+`prove:guards`' drain exemption (`prove-guards.ts:513`) parses the control's output for `  • ` problem
+lines — **`lint:finding-guards`' own format**. This proof's `run` is `test:gate-plants`, which emits none,
+so `problems.length` is 0 and `drainable` is false. **The narrowing un-blocks a proof running the gate
+DIRECTLY, not one running a harness that uses it as a baseline** — exactly what `CLASS5-START-HERE`
+predicted, now confirmed in code. 🎯 **ride the `.12.6.9` drain batch**: all nine authored candidates are
+Playwright runs on a harness measured dying **1 in 3** and recording a false verdict when it does.
+⚡ **The fix is not unproven** — `[R5-2-boundary]` runs inside `lint:rn` on every push, where a ledger row
+is only a record that someone once ran a proof.
+
+#### Two things the work surfaced that no finding names
+
+⛔ **`lint:trust-claims` cannot see a claim split across two files.** Line 333 requires `PRINTS_MONEY`
+**and** `READS_ENTITIES` in the same file. On `C1-6`'s own pair: `cushion-forecast.tsx` reads the store and
+calls no formatter; `CashRunwayChart.tsx` calls `formatWhole` 7× and reads zero entity lists. **Both escape
+the population**, and the gate truthfully reports *"0 claim sites open"*. `C4-4`'s shape one level down.
+
+⚠️ **Nothing has ever asked the field-level trust question about a `plan` entity.** All ~20 call sites pass
+`debt`, `requiredExpense`, `livingExpense` or `goal`. Plan repairs are **recorded** (`migrations.ts:299`,
+`{ entity: 'plan', id: '', field }`) and **routed** (`CLAIM_FIELDS['required-plan'].plan = 'any'`) and never
+consulted — which is why a lost cushion line is invisible at all 11 of `.5.2`'s sites.
+
+#### Operating notes
+
+- ⚠️ **`r5-remedy-waiver.py`'s plant anchor is stale** — 4 leading spaces against the line's actual 6,
+  because `R4-3` moved the waiver inside the `if`. It would abort rather than measure. Unused here:
+  `r5-plant-waiver.py` plants only the **registry** and carries no source anchor.
+- ⚠️ **Two greps reported "no matches" over code that exists** — `verdict()` (a truncated 40-result list)
+  and `readStoreMoney` (a `const` arrow, not a `function`). Both were nearly filed as expired-comment
+  findings. **A narrow anchor and a truncated result read identically to absence.**
+- ⚠️ **Caps that must move in the same edit, found by query before touching anything:** `MIN_SCENARIOS`
+  (moved, 26 → 27) · `MIN_ENTRIES` (not moved — no registry row) · `MIN_CAPS` (**not** moved: it pins how
+  many cap *declarations* exist, not their values) · `lint:trust-claims` check 2 (no obligation — line 165
+  already drops `rowFieldUnread`'s positional id before testing fields).
