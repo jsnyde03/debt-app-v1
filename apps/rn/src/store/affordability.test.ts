@@ -1,6 +1,10 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { createDefaultStore } from '@/data/defaults';
 import type { DebtStore } from '@/data/models';
-import { selectAffordability, selectAppliedTopUp, selectSaveForItOptions } from '@/store/guardianSelectors';
+import { selectAffordability, selectAppliedTopUp, selectPriorityGoalCapacity, selectSaveForItOptions } from '@/store/guardianSelectors';
 import { selectDiscretionary, selectPlanSummary, selectRequiredRows, selectSpendable } from '@/store/planSelectors';
 import { selectAllocation } from '@/store/selectors';
 
@@ -129,6 +133,56 @@ function run() {
   assert(opts.some((o) => o.key === 'fast' && o.prioritize && (o.perPaycheck ?? 0) > 0 && o.paychecks != null), 'a prioritized "fast" option with a real per-paycheck pace + ready date');
   assert(opts.some((o) => o.key === 'debtFirst' && !o.prioritize && o.readyBy == null), 'a debt-first option (no priority, no firm date)');
   assert(opts.length >= 2, 'at least fast + debt-first are offered');
+
+  /**
+   * ⛔ **[.5.5 · pass-7 `B1-1`] — EVERY DATED OPTION IS A PROMISE THE ENGINE KEEPS ONCE IT IS STORED.**
+   *
+   * The sheet paced `Save fast` off `selectDiscretionary` (the partition total) and `Balanced` off half of it, while
+   * the priority-goal rung funds only what is left after the cushion buffer, the expense reserve and any priority goal
+   * already there. Measured before the fix: `fast` broke its promise on 4 of 4 shapes and `Balanced` on 2 of 4 —
+   * and the finding's own remedy (pace off `selectSpendable`) broke too. So the assertion is the round trip the user
+   * makes: take each option, STORE it as `SaveForItSheet` does, re-allocate, and check the engine funds that pace
+   * within that many paychecks.
+   */
+  const PURCHASE = 2500;
+  const { currentDate, nextPaycheckDate } = s.paycheck;
+  const SHAPES: [string, DebtStore][] = [
+    ['one debt, nothing held', s],
+    ['a held expense reserve', { ...s, requiredExpenses: [{ id: 'rent', name: 'Rent', amount: 900, dueDate: currentDate, recurrence: 'monthly' }], expenseReserve: { balance: 0, contribution: { forCycle: nextPaycheckDate, amount: 400 } } } as DebtStore],
+    ['a priority goal already on the rung', { ...s, goals: [{ id: 'trip', name: 'Trip', type: 'savings', targetAmount: 3000, currentAmount: 0, priority: true, priorityPerPaycheck: 600 }] } as DebtStore],
+    ['variable income', { ...s, paycheck: { ...s.paycheck, incomeVaries: true, leanAmount: 1400, typicalAmount: 2000 } } as DebtStore],
+    // ⚠️ A capacity OFF the $5 grid ($1,698.75), so a pace rounded UP to $5 promises more than the engine funds. Every
+    // other shape here lands on the grid. Measured, not guessed: an uneven LEAN paycheck does not move capacity at
+    // all ($1,400 and $1,403 both give $1,275) — the first attempt at this shape was vacuous and the check below said so.
+    ['a minimum payment off the $5 grid', { ...s, debts: [{ ...s.debts[0], minimumPayment: 101.25 }] } as DebtStore],
+  ];
+  assert(selectPriorityGoalCapacity(SHAPES[4][1], 2500) % 5 !== 0, '⭐ the off-grid shape really has a capacity off the $5 grid (or the rounding is unexercised)');
+  const fundedAt = (store_: DebtStore, pace: number) => {
+    const stored = { ...store_, goals: [...store_.goals, { id: 'buy', name: 'Buy', type: 'savings', targetAmount: PURCHASE, currentAmount: 0, priority: true, priorityPerPaycheck: pace }] } as DebtStore;
+    return (selectAllocation(stored)?.allocations ?? []).filter((a) => a.goalId === 'buy').reduce((n, a) => n + a.amount, 0);
+  };
+  let dated = 0;
+  for (const [label, shape] of SHAPES) {
+    const capacity = selectPriorityGoalCapacity(shape, PURCHASE);
+    for (const o of selectSaveForItOptions(shape, PURCHASE)) {
+      if (o.perPaycheck == null || o.paychecks == null) continue;
+      dated++;
+      const funded = fundedAt(shape, o.perPaycheck);
+      assert(o.perPaycheck <= capacity, `⛔ B1-1 — ${label}: "${o.title}" promises ${o.perPaycheck}/paycheck, within the ${capacity} the engine can fund`);
+      assert(funded >= o.perPaycheck, `⛔ B1-1 — ${label}: "${o.title}" stored at ${o.perPaycheck} is funded ${funded} — the pace is kept`);
+      assert(Math.ceil(PURCHASE / funded) <= o.paychecks, `⛔ B1-1 — ${label}: "${o.title}" is ready in ${o.paychecks} paychecks at the rate the engine funds — the date is kept`);
+    }
+  }
+  assert(dated >= SHAPES.length, `⭐ the shapes really produced dated options to check (${dated}) — or the loop proves nothing`);
+
+  // BY NAME — the figure, not only the relation: a held $400 reserve leaves the goal rung $400 a paycheck.
+  const heldFast = selectSaveForItOptions(SHAPES[1][1], PURCHASE).find((o) => o.key === 'fast');
+  assert(heldFast?.perPaycheck === 400 && heldFast?.paychecks === 7, `⛔ B1-1 — with a $400 reserve held, "Save fast" is $400 a paycheck over 7 (got ${heldFast?.perPaycheck} over ${heldFast?.paychecks})`);
+
+  // The sheet's "Set your own" date is a component, unreachable here — its source is pinned instead: the date must be
+  // computed from what the plan funds, never from the typed pace alone.
+  const sheetSrc = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'components', 'plan', 'SaveForItSheet.tsx'), 'utf8');
+  assert(/Math\.min\(customPace, capacity\)/.test(sheetSrc) && /Math\.ceil\(amount \/ customFunded\)/.test(sheetSrc), '⛔ B1-1 — the sheet dates a typed pace from what the plan can fund, not from the pace as typed');
 
   console.log(`✅ Affordability selectors (2.9) tests passed (${passed} asserts).`);
 }

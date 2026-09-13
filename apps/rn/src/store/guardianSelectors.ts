@@ -772,29 +772,59 @@ export interface SaveOption {
   detail: string;
 }
 
+/** The id a prospective save-for-it goal carries while the engine is asked what it would fund. Never stored. */
+const PROSPECTIVE_GOAL_ID = '__save-for-it-prospective__';
+
+/**
+ * ⛔ **[.5.5 · pass-7 `B1-1`] — WHAT THE ENGINE WOULD ACTUALLY FUND to a new priority goal of `amount`, each paycheck.**
+ *
+ * The one producer for every pace and ready-by the save-for-it sheet may promise. It allocates the store WITH the
+ * prospective goal, pace uncapped, and reads that goal's `optional_goal` share — because that rung funds
+ * `min(remaining, needed, pace)` AFTER the cushion buffer, the expense reserve and any priority goal already there
+ * (`allocatePaycheck.ts`). ⚡ Measured on the finding's store: `selectDiscretionary` 850, `selectSpendable` 675, and
+ * the engine funds **475**. Pacing off either selector promised a date the engine does not keep — 835 (the defect)
+ * and 625 (the finding's own remedy) both fund 475 once stored. An existing priority goal and variable income
+ * shrink the rung further, which is why the old `Balanced` broke too.
+ */
+export function selectPriorityGoalCapacity(store: DebtStore, amount: number): number {
+  if (!(amount > 0)) return 0;
+  const prospective: Goal = { id: PROSPECTIVE_GOAL_ID, name: '', type: 'savings', targetAmount: amount, currentAmount: 0, priority: true };
+  const allocation = selectAllocation({ ...store, goals: [...store.goals, prospective] });
+  if (!allocation) return 0;
+  return allocation.allocations.filter((a) => a.goalId === PROSPECTIVE_GOAL_ID).reduce((sum, a) => sum + a.amount, 0);
+}
+
+/** A pace the engine can fund: whole $5 steps, rounded DOWN — rounding up is a broken promise by rounding. */
+function fundablePace(perPaycheck: number): number {
+  return Math.floor(perPaycheck / 5) * 5;
+}
+
 /**
  * §2.9.6 the save-for-it options for a SHORT purchase — the user picks a path (and signs off) rather than
  * a single false-promise plan. Prioritized paces (fund before debt → a real "ready by" date, with the
  * debt cost owned) + a debt-first path (normal post-debt goal, no debt-free-date hit, no firm date).
  * Precise savings math; the debt-free-date cost stays qualitative (no false precision) at the sign-off.
+ *
+ * ⛔ [.5.5 · `B1-1`] Every dated option is paced off `selectPriorityGoalCapacity`, never off a selector's
+ * headroom — `Save fast` broke its promise on 4 of 4 measured shapes and `Balanced` on 2 while they were.
  */
 export function selectSaveForItOptions(store: DebtStore, amount: number): SaveOption[] {
-  const base = selectAllocation(store);
-  const discretionary = base ? selectDiscretionary(base) : 0;
+  const capacity = selectPriorityGoalCapacity(store, amount);
   const payCycle = store.paycheck.payCycle;
   const today = store.paycheck.currentDate;
   const opts: SaveOption[] = [];
 
-  if (discretionary > 0 && amount > 0) {
-    // Save fast — set aside (about) all this paycheck's spare, so it's ready soonest.
-    const fastN = Math.max(1, Math.ceil(amount / discretionary));
-    const fastPer = Math.ceil((amount / fastN) / 5) * 5;
+  // A goal smaller than one paycheck's capacity is funded whole; otherwise the fastest pace is the capacity itself.
+  const fastPer = capacity >= amount ? amount : fundablePace(capacity);
+  if (fastPer > 0 && amount > 0) {
+    // Save fast — everything the plan can set aside for it, so it's ready soonest.
+    const fastN = Math.max(1, Math.ceil(amount / fastPer));
     opts.push({ key: 'fast', title: 'Save fast', prioritize: true, perPaycheck: fastPer, paychecks: fastN, readyBy: addPaychecks(today, payCycle, fastN), detail: 'Funds before debt — pauses most of your extra debt payoff while you save.' });
 
     // Balanced — a lighter pace (~half), so debt payoff keeps moving.
-    const balPer = Math.max(5, Math.ceil((fastPer / 2) / 5) * 5);
-    const balN = Math.max(1, Math.ceil(amount / balPer));
-    if (balN > fastN) {
+    const balPer = fundablePace(fastPer / 2);
+    const balN = balPer > 0 ? Math.max(1, Math.ceil(amount / balPer)) : 0;
+    if (balPer > 0 && balN > fastN) {
       opts.push({ key: 'balanced', title: 'Balanced', prioritize: true, perPaycheck: balPer, paychecks: balN, readyBy: addPaychecks(today, payCycle, balN), detail: 'A lighter set-aside — eases off your debt payoff a little, takes longer.' });
     }
   }

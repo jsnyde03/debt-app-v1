@@ -9,7 +9,7 @@ import { FormSheet } from '@/components/ui/FormSheet';
 import { TextField } from '@/components/ui/TextField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
-import { selectSaveForItOptions, type SaveOption } from '@/store/guardianSelectors';
+import { selectPriorityGoalCapacity, selectSaveForItOptions, type SaveOption } from '@/store/guardianSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { spacing } from '@/theme/spacing';
@@ -60,6 +60,8 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
   // balances or rebuild the options on every interaction.
   const engineStore = useMemo(() => withProjectedBalances(store, isPremium), [store, isPremium]);
   const options = useMemo(() => selectSaveForItOptions(engineStore, amount), [engineStore, amount]);
+  // ⛔ [.5.5 · `B1-1`] What the engine will actually fund to this goal each paycheck — the same producer the options use.
+  const capacity = useMemo(() => selectPriorityGoalCapacity(engineStore, amount), [engineStore, amount]);
   const [selected, setSelected] = useState<SaveOption['key'] | 'custom'>(options[0]?.key ?? 'debtFirst');
   const [customPer, setCustomPer] = useState('');
   const goalLabel = name.trim() || 'this purchase';
@@ -75,7 +77,14 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
    * `data/migrations.ts` already repairs on the same reading. One expression, two opposite defects.
    */
   const customPace = parseAmountField(customPer);
-  const customN = customPace != null ? Math.max(1, Math.ceil(amount / customPace)) : null;
+  /**
+   * ⛔ [.5.5 · `B1-1`] A typed pace above what the plan can fund is stored as typed (the engine clamps it), but the
+   * DATE is computed from what will actually be funded — or the sheet promises a ready-by the engine does not keep,
+   * which is the finding one field over. The caption below says why the date is later than the typed pace implies.
+   */
+  const customFunded = customPace != null ? (capacity > 0 ? Math.min(customPace, capacity) : customPace) : null;
+  const customCapped = customPace != null && capacity > 0 && customPace > capacity;
+  const customN = customFunded != null && customFunded > 0 ? Math.max(1, Math.ceil(amount / customFunded)) : null;
   const customReadyBy = customN != null ? addPaychecks(store.paycheck.currentDate, store.paycheck.payCycle, customN) : null;
 
   // Guard against a double-tap creating two goals (belt-and-suspenders; the card's saved-state also
@@ -163,7 +172,8 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
                   a 23-site sweep, a 13-lens audit and six refuters. */}
               <TextField testID="saveforit-custom-per" label="Per paycheck" value={customPer} onChangeText={setCustomPer} placeholder="e.g. 100" keyboardType="decimal-pad" />
               {customN != null && customReadyBy != null ? (
-                <Text style={[textStyles.caption, styles.optPace, { color: c.text.secondary }]}>
+                <Text testID="saveforit-custom-ready" style={[textStyles.caption, styles.optPace, { color: c.text.secondary }]}>
+                  {customCapped ? `Your plan can set aside about ${formatWhole(capacity)} a paycheck, so: ` : ''}
                   {customN} {customN === 1 ? 'paycheck' : 'paychecks'} · ready by {shortDate(customReadyBy)}
                 </Text>
               ) : null}

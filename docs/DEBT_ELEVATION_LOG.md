@@ -34120,3 +34120,44 @@ so the two new proofs and those nine were re-run **in the same pass**: **11 of 1
   spendable. ⚠️ **The red native flows go to `.5.7`, first, not ahead of `.5.5`**: nothing in `.5.5` or `.5.6` touches
   native code, so no change is left unverified meanwhile, and inserting a step would renumber every `→ .5.7` pointer the
   backlog already carries.
+
+### `.12.6.5.5.1` — `B1-1` SWITCH-IN: the pace is wrong on every store, and the finding's remedy is too · 2026-09-13
+
+✅ **Rules re-read** for this switch-in.
+
+⚡ **Measured, not carried** — `b1-probes/p1-saveforit.ts` re-run on current code prints the finding byte for byte:
+`selectDiscretionary` 850 · `selectSpendable` 675 · the card shows **675** · the sheet offers **`fast` 835/paycheck · 3
+paychecks · ready 2026-10-30**. The line moved (`guardianSelectors.ts:783`, was `:725`); the defect did not.
+
+⛔ **MECHANISM CORRECTION — the engine CLAMPS.** The finding says the stored pace makes the engine *"reserve $835 a
+paycheck, before debt, out of $675"*. `allocatePaycheck.ts` takes `cushion_buffer` (:631) and `expense_reserve` (:653)
+out of `remaining` BEFORE the priority-goal rung, which funds `min(remaining, needed, pace)` (:743-746). A stored $835
+funds whatever is left — never $835, never the reserve. **The defect is the PROMISE, and it is written to the store**:
+a `priorityPerPaycheck` and a ready-by the engine cannot keep, from a sheet whose docblock says *"No path promises a
+date the engine won't keep."*
+
+⛔ **AND THE FINDING'S REMEDY IS ALSO A BROKEN PROMISE.** It proposes pacing off `selectSpendable` — *"the honest answer
+is 625 over 4 paychecks"*. Spendable still contains the $200 cushion buffer the engine takes first. Measured
+(scratchpad `probe-engine-pace.ts`, the finding's store): the engine funds a new priority goal **475/paycheck** at a
+pace of 835, of 625, or unset — so **6 paychecks**, against 3 promised and 4 proposed.
+
+⚡ **Across the population** (`probe-engine-pace-population.ts`, 4 shapes × every dated offer, each stored and
+re-allocated): **`Save fast` breaks its promise on 4 of 4; `Balanced` on 2 of 4.**
+
+| shape | engine capacity for the goal | `fast` promised → funded | `balanced` promised → funded |
+|---|---|---|---|
+| A the finding's store | 475 | 835 · 3 → 475 · 6 **BROKEN** | 420 · 6 → 420 · 6 kept |
+| B live debts | 385 | 625 · 4 → 385 · 7 **BROKEN** | 315 · 8 → 315 · 8 kept |
+| C an existing priority goal | 275 | 835 · 3 → 275 · 10 **BROKEN** | 420 · 6 → 275 · 10 **BROKEN** |
+| D variable income | 356.25 | 835 · 3 → 356 · 8 **BROKEN** | 420 · 6 → 356 · 8 **BROKEN** |
+
+`Balanced` survived A and B only because half of the wrong figure happened to fit under capacity.
+
+⭐ **The step, re-scoped.** One producer — **what the engine funds to the prospective goal with no pace cap**, read
+from the allocation of the store WITH that goal — and both dated options derive from it, `fast` = capacity and
+`balanced` = a smaller share. ⚠️ **Rounded DOWN**: shape D's capacity is $356.25 and the sheet's round-up-to-$5 would
+promise $360. ⚠️ The ready-by date is computed from the same funded figure, or the pace is honest and the date is not.
+
+📋 **Census, by query** — `selectDiscretionary(` has 8 production callers; only `:783` is save-for-it. The Guardian band
+sites (`guardianSelectors.ts:302/:351/:372/:893`, `planSelectors.ts:520`) sit on discretionary deliberately (T4.1b's
+docblock). `expenseReserveSelectors.ts:128` is `B1-2` — **class 6**, not this step.

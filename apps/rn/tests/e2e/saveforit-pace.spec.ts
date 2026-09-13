@@ -96,3 +96,30 @@ test('B1 — a GROUPED amount is accepted and reaches the store as a finite pace
   expect(goal.priorityPerPaycheck).toBe(1200);
   expect(Number.isFinite(goal.priorityPerPaycheck)).toBe(true);
 });
+
+/**
+ * ⛔ **[.5.5 · pass-7 `B1-1`] — A TYPED PACE THE PLAN CANNOT FUND IS DATED FROM WHAT IT WILL FUND, AND SAYS SO.**
+ *
+ * The engine funds a priority goal only what is left after the cushion buffer and the expense reserve, so a pace
+ * typed above that is clamped once stored. The sheet used to date the typed number anyway — a ready-by the engine
+ * does not keep. The unit suite pins the arithmetic; this pins what the user reads. ⚠️ The honest state is asserted
+ * BY NAME, and the control's absence check waits for its own ready-by line first — a caption that is missing because
+ * nothing rendered would otherwise read as a pass.
+ */
+test('B1-1 — a pace above what the plan can fund is dated from what it will fund, and says so', async ({ page }) => {
+  const field = await openCustomPace(page);
+
+  await field.fill('999,999');
+  const ready = page.getByTestId('saveforit-custom-ready');
+  await expect(ready).toContainText(/Your plan can set aside about \$[\d,]+ a paycheck, so:/, { timeout: 15_000 });
+  // ⛔ THE DATE, not only the caption. A $999,999 pace dated as typed covers the $5,000 in ONE paycheck; the plan
+  // funds less than a $4,000 paycheck, so the honest count is 2 or more. ⚠️ Measured: the first cut asserted only the
+  // caption, and a plant that dated the typed pace passed it — the caption is computed separately from the date.
+  await expect(ready).toContainText(/([2-9]|\d{2,}) paychecks · ready by/);
+  await expect(ready).not.toContainText(/(^|\D)1 paycheck ·/);
+
+  // ⭐ CONTROL — a pace the plan CAN fund gets its date and no caption.
+  await field.fill('1,200');
+  await expect(ready).toContainText(/paychecks? · ready by/, { timeout: 15_000 });
+  await expect(ready).not.toContainText('Your plan can set aside');
+});
