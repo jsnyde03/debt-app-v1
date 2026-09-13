@@ -343,7 +343,20 @@ sites, not the 6 surfaces the class enumerated.** Derived by query over `withPro
 `snapshot.ts` ×3. ⚠️ **Four were never named by the class**, and `use-notification-sync` is a claim that
 **leaves the app**. ✅ The step's premise still holds — `snapshot.ts:216` refuses the claim by design with
 both `mayClaim`s and says why. ⚠️ Counting is not the population: the predicate asks *may this surface
-STATE a figure derived from the projection*, so a consumer that states none is out. Detail → log.
+STATE a figure derived from the projection*, so a consumer that states none is out.
+
+⛔ **AND THE PREDICATE CANNOT LIVE AT THE SEAM.** `withProjectedBalances` is `if (!isPremium) return store`
+plus a `debts` remap — it **keeps no marker**, so its result is structurally identical to a real store.
+That is *why* `selectPlanState` could not tell them apart in `.5.1`. The owner must be a function callers
+invoke **where `isPremium` is still in scope**, asserted by iterating the 12 sites.
+
+⚡ **Two surfaces re-verified against current code, and both corrections matter.** `C3-9` is **OPEN** and
+its mechanism is now pinned: `progress.tsx` consults `'debt-balances'` **three times and `'row-figures'`
+never** (`:111` `:138` `:288`), while `snapshot.ts:216` reads **both** — and an unread **APR routes to
+`row-figures` and only there**, so `gagBalanceDerived` cannot see it however thorough it is. ⚠️ **`C1-5` is
+NOT a missing guard**: `index.tsx:346` does hand `PlanHero` `unreadPlanInputs`; it is spent on the status
+colour (`:144`) and the reassurance line (`:157`) while the figures compute at `:99-117` and print at
+`:164-166`/`:214` regardless. **The guard gates the wrong half.** Detail → log.
 
 | ▶ **.5.3** | **BUILD THE ONE PREDICATE** — *may this surface state a figure derived from the projection?* ⭐ **The correct answer already exists**: the widget refuses this claim by design and says so in a comment | one owner, and an assertion that **ITERATES the surfaces** rather than walking a hand-written list |
 | **.5.4** | **THE SURFACES, BY THAT PREDICATE** — `C3-13` *(guard at the CALL SITE — the projection is the argument)* · `C3-8` *(the HERO, not the rows)* · `C3-9` · `C3-11` · `C3-5` *(the unfixed `liveActivitySync` twin: stamp-before-verify)* · `C3-1` · `C1-5` · **`C3-2`+`D2-12` as ONE step** *(the overloaded `''`)*. ⚠️ Six were walked in one list last round and **`C4-4` was the measured hole a finding came through** | every surface routed through the predicate, proven by planting at each |
