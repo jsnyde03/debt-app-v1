@@ -2190,7 +2190,7 @@
       "unfix": [
         {
           "at": "apps/rn/src/store/logPaymentCopy.ts",
-          "find": "  if (rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'balance')) return undefined;\n",
+          "find": "  if (logPaymentBalanceUnread(store, debt)) return undefined;\n",
           "replace": ""
         }
       ],
