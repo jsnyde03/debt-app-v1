@@ -33906,3 +33906,33 @@ matches the red LINE.
 ⚠️ **What this does NOT prove:** the Swift half is asserted by SOURCE (L9 shows the gate sees it) and compiled by
 nothing on this machine — `native-e2e` with a rebuild is step ④. That ActivityKit's refusal actually reaches
 `false` on hardware is the P6.14 row filed at switch-in.
+
+### `.12.6.5.4f.4` — proven, gated, `.5.4f` CLOSED · 2026-09-13
+
+✅ **Registered and proven by `prove:guards`, each `reason=MATCHED`, control exit 0:**
+`S1P7-C3-5-LIVEACTIVITY-UPDATE-LANDED` · `S1P7-C3-5-LIVEACTIVITY-START-LANDED` · `S1P7-C3-6-LIVEACTIVITY-END-LANDED` —
+each un-fixes one stamp in `liveActivitySync` and names the red line it must produce. `MIN_ENTRIES` 302 → 305.
+
+⚠️ **Two of my own misses, both caught by instruments:**
+- **`lint:s1-coverage` refused the new test file as UNCLASSIFIED** — recorded `"never"`, the true answer (no pass has
+  swept it); `S1-SURFACE-INVENTORY.md` regenerated with it.
+- **`lint:finding-guards` refused a floor that trailed the count** (305 entries, floor 302). ⚡ It took
+  `test:gate-plants` (3 controls) and `test:wrap-escapes` (`FAULT-BASELINE-ALREADY-RED`) down with it — **three red
+  gates, one cause**, which the gates say themselves: their controls run against the real registry.
+- ⚠️ `prove:guards` stamps `sha` with HEAD, and HEAD was a placeholder registry commit I then folded into the close.
+  The three proofs record **`1cb8c0b7`** instead — the fix commit, where the one anchor file is byte-identical
+  (`git diff 1cb8c0b7 -- liveActivitySync.ts` empty). A sha that exists on no clone would have made every later
+  staleness read of these proofs unanswerable.
+
+✅ **Gates, each from its own summary line:** typecheck 0 · `test:app` ALL PASSED *(`liveActivitySync — 27
+assertions`)* · `test:regression` ALL PASSED · `lint:rn` **52/52** on the re-run *(the first close run was 49/52 — the one cause above)*.
+
+#### After-scan
+
+- ✅ **Filed at switch-in, still true:** the P6.14 device row; the foreground re-check → 2.1.
+- ⚡ **Where a remedy's reach stops, twice.** A JS contract change cannot report a failure the native layer never
+  hands back; a CI job that caches a binary is only as honest as its key. **Both were invisible from the finding,
+  which was right about the defect and one language short about the fix.**
+- ⚠️ **`C3-5` is `C3-12`'s twin — a fix scoped by FILE, not SHAPE** → `.5.7` census *(filed)*.
+- ✅ **Replenished** — `.5.4g` is `C3-1`: Siri's log-a-payment list says `$0` over an unread balance, while the
+  in-app sheet for that same flow was fixed in pass 5. Decomposed in the plan.

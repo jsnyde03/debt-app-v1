@@ -4176,5 +4176,59 @@
       "measured": "2026-09-06",
       "sha": "c984300c"
     }
+  },
+  "S1P7-C3-5-LIVEACTIVITY-UPDATE-LANDED": {
+    "what": ".5.4f [pass-7 C3-5, blocker] - liveActivitySync stamped lastKey on the ATTEMPT: one dropped update left its key stamped, so the next unchanged read was gated out and the Lock Screen said 'Looks clear this paycheck' over the store's '$2,500 short of your obligations' until something else moved. The twin widgetSync was fixed for exactly this in pass 6 (C3-12) and this manager was not. ⛔ The finding's remedy - widen the JS bridge to boolean - could not see the failure: the Swift functions spawned a detached Task and returned before ActivityKit ran. The close is native: AsyncFunction answering Bool, the bridge Promise<boolean>, the manager stamping only on true. ⚠️ An update that finds nothing live resets the belief, so the next change starts one - the same as every launch already does.",
+    "file": "apps/rn/src/liveActivity/liveActivitySync.test.ts",
+    "token": "the next commit catches the Lock Screen up instead of being gated out by a key the dropped update stamped",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/liveActivity/liveActivitySync.ts",
+          "find": "          if (await bridge.update(action.content)) {",
+          "replace": "          if ((await bridge.update(action.content)) || true) {"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C3-5 — the next commit catches the Lock Screen up instead of being gated out by a key the dropped update stamped",
+      "measured": "2026-09-13",
+      "sha": "1cb8c0b7"
+    }
+  },
+  "S1P7-C3-5-LIVEACTIVITY-START-LANDED": {
+    "what": ".5.4f [pass-7 C3-5, blocker, case B] - a refused ActivityKit start stamped running = true, so the manager spent the rest of the session sending update to an activity that was never created and never attempted start again; the countdown never appeared. Now running is stamped only when the start landed, so the next change retries it as a start.",
+    "file": "apps/rn/src/liveActivity/liveActivitySync.test.ts",
+    "token": "a refused start is RETRIED as a start, never followed by updates to an activity that does not exist",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/liveActivity/liveActivitySync.ts",
+          "find": "          if (await bridge.start(action.content)) {",
+          "replace": "          if ((await bridge.start(action.content)) || true) {"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C3-5 — a refused start is RETRIED as a start, never followed by updates to an activity that does not exist",
+      "measured": "2026-09-13",
+      "sha": "1cb8c0b7"
+    }
+  },
+  "S1P7-C3-6-LIVEACTIVITY-END-LANDED": {
+    "what": ".5.4f [pass-7 C3-6, major, folded] - the assertion that pass-3 D3-2's fix 'reaches the screen' stopped at decideLiveActivityAction; running = false was stamped whether or not the end landed, so a swallowed endActivity left D3-2's false payload on the Lock Screen with the manager believing there was nothing left to end. Asserted now through a bridge that refuses the end; the overstated comment says what it asserts.",
+    "file": "apps/rn/src/liveActivity/liveActivitySync.test.ts",
+    "token": "a refused end keeps the activity believed live, so the next commit ends it again",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/liveActivity/liveActivitySync.ts",
+          "find": "          if (await bridge.end()) {",
+          "replace": "          if ((await bridge.end()) || true) {"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C3-6 — a refused end keeps the activity believed live, so the next commit ends it again",
+      "measured": "2026-09-13",
+      "sha": "1cb8c0b7"
+    }
   }
 }

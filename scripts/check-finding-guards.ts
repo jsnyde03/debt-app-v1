@@ -167,8 +167,9 @@ const ids = Object.keys(registry);
  * the sentence — the same *edit the value, leave the sentence* shape as `U14` and `U16`, in the file
  * that carries those findings' neighbours. `check-cap-literals` reads cap LITERALS, not the prose
  * beside them, so nothing mechanical compared the two. One line per ROUND now, not per commit.
+ * **302 → 305 at `.5.4f`** — `C3-5`'s update and start stamps, `C3-6`'s end stamp.
  */
-const MIN_ENTRIES = 302;
+const MIN_ENTRIES = 305;
 const MAX_UNGUARDED = 1;
 
 /**

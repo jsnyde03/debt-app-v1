@@ -1478,3 +1478,11 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   "November" inside the 104 pt slot where CI's does not. → **`.5.7`** *(measure the month-name advance in both fonts;
   then pin the date and ship one font to the harness, or state the spec as CI-only — a gate two hosts disagree on is
   green for a reason nobody chose)*.
+
+### ⤵ surfaced by `.5.4f`'s after-scan, 2026-09-13
+
+- ⚠️ **`C3-5` was pass-6 `C3-12`'s twin — a fix scoped by FILE, not by SHAPE — and nothing looks for a third.** The
+  shape: a best-effort native writer that swallows its failure, called by a manager that keeps a change-gate and
+  stamps it on the attempt. `widgetSync` and `liveActivitySync` were two instances found one pass apart. → **`.5.7`**
+  *(census by query: every `.native` bridge with a swallowing `catch`, and whether its caller stamps state on the
+  call rather than on its answer)*.
