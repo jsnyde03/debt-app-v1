@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-13",
-      "sha": "2575f8b6"
+      "sha": "64806e34"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
