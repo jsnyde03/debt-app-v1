@@ -33676,3 +33676,88 @@ gap is stated to 🎯 rather than absorbed. ⚠️ The first run's 16 were the f
 so neither rendered figure could move.
 ⚠️ **The proof boundary is the shape set.** Every new shape this switch-in added found movers the previous set
 could not show; the unit assertion carries all 22, and a surface with a mover none of them exercises is unmeasured.
+
+### `.12.6.5.4d.3`–`.4` — the claims, the per-asker assertion, and nine askers rewired · 2026-09-13
+
+✅ **`.3`** — `'paycheck-plan'` added and `'required-plan'` narrowed in `CLAIM_FIELDS`, exactly as validated.
+`trustSelectors.test.ts` widens `.5.4a`'s per-surface assertion to 22 shapes *(autopay twins · `capping` · `short` ·
+`at-floor`)*, every debt corrupted in turn, and six asker surfaces on their RENDERED fields. The consumption controls
+became a UNION *(a short paycheck funds no goal — that is its point)*. `ACCEPTED_OVER` names the three measured
+over-suppressions by exact key, each asserted to STILL be one, and a listed key that no surface produces reds. ⚡ The
+three `.5.4a`/`.5.4b` surfaces took the new shapes with **no new hole**. Suite **24–25s** *(was 4s)*.
+
+⛔ **The narrowing sprang the trap the switch-in named, and `C1-1`'s own guard caught it before any surface moved.**
+`cushionLine` still asked `'required-plan'` about the plan's cushion field; the narrowed route no longer named it, so
+*"…and the REPAIR RECORD is what says so"* redded — a lost line reading as readable. `cushionLine` and `C1-1`'s three
+pinned calls moved to `'paycheck-plan'`.
+
+| plant | red |
+|---|---|
+| Q1 — `'paycheck-plan'` without goals | `HOLE — paycheck-plan · the Guardian brief · goal.targetAmount LOST` ✅ |
+| Q2 — `'required-plan'` without groceries | `HOLE — required-plan · Required actions · livingExpense.amount LOST` ✅ |
+| Q3 — `'paycheck-plan'` with APR added | `OVER-SUPPRESSION — paycheck-plan · the Guardian brief · debt[0].apr LOST` ✅ |
+| Q4 — an accepted over-suppression un-listed | `OVER-SUPPRESSION — solved-projection · Today's plan hero · plan.leanAmount LOST` ✅ |
+| Q5 — a false acceptance listed | *"…is listed as an ACCEPTED over-suppression and is no longer one"* ✅ |
+| Q6 — `cushionLine` back on `'required-plan'` | *"the owner reports the loss… — expected true, got false"* ✅ **judged by hand**: the script's matcher looked for `cushionLine`, which that message does not contain — the red is the predicted line |
+
+✅ **`.4`** — every asker on the claim measured exact for what it renders: **`'paycheck-plan'`** — the Guardian card,
+paywall lead, affordability, windfall routing, Live Activity, widget line and `cushionLine`; **`'solved-projection'`** —
+Today's plan hero; **`'required-plan'`** — Required actions only. `lint:trust-claims` floors re-declared from its own
+count: `required-plan` 7→1 · `solved-projection` 3→4 · `paycheck-plan` 7.
+
+⛔ **`C1-5` folded in, as the plan recorded it would be.** Over an unread input the hero withheld its VERDICT and still
+drew the Required / Spoken-for / Flexible split and the suggested move — every one carved from the allocation the unread
+figure corrupted. Both are withheld now; the paycheck total stays, because it is the user's own income and nothing
+repaired it.
+
+⚠️ **`requiredPlanTrust.test.ts` encoded the old assignment and follows the decision** — its Guardian and affordability
+regex gates and its paywall row ask `'paycheck-plan'`. ⛔ **And its paywall row built the summary off the PROJECTED store
+while `paywall.tsx` uses the RAW one**, so the row never exercised the caller it names; aligned *(its fixture has no anchor
+dates, so no expected figure moved)*.
+
+⛔ **Three registered proofs went VOID** — un-fixes anchored on rewritten lines — and were re-anchored through the
+serializer, each new anchor matching exactly once: `S1P4-C4-7-SURFACES` *(the Guardian mount)*, `S1P3-D3-2-SPOKEN` *(the
+Live Activity)*, `S1P3-G4-PLANROUTE` *(a lost balance poisons `'required-plan'` — which now guards Required actions; the
+Guardian card's balance protection is `'paycheck-plan'`'s, asserted per surface)*. ⚠️ Eight comments that named the old
+assignment corrected; historical notes that stay true as history left alone.
+
+typecheck 0 · `test:app` ALL PASSED · `lint:trust-claims` green, 7 claims · eslint clean on every changed file.
+
+⭐ **The rewire commit staled 24 proofs — every one re-run `MATCHED`**, the three re-anchored ones among them; stale back
+to the 5 carried from before (cap 8).
+
+### `.12.6.5.4d.5` — the copy the rewire made false, Today's two claims in e2e, planted · `.5.4d` CLOSED · 2026-09-13
+
+⛔ **THE REWIRE MADE FOUR REFUSALS FALSE, AND IT WAS MINE.** The plan hero, the Guardian card, affordability and windfall
+routing opened with *"An amount this paycheck has to cover could not be read"* — true while they refused on obligations
+alone. Refusing on `'paycheck-plan'` / `'solved-projection'`, a lost goal target, cushion line or APR fires the same
+sentence, and none is an amount the paycheck has to cover. ⚡ Suppressing one false statement with another is this
+repo's `assert-the-honest-state-by-name`; the change that caused it is where it was fixed. **One authority**,
+`UNREAD_PLAN_LEAD` in `dataRepairsCopy.ts`: *"An amount your plan is built from could not be read"*. Required actions
+keeps *"has to cover"* — still true there. ⚠️ No test asserted the old sentence, so nothing would have caught it.
+`lint:copy` green.
+
+✅ **Three e2e cases** in `trust-claims.spec.ts`, each asserting the corrected lead by name: the Guardian card over a lost
+goal target · the plan hero over a lost APR, date and split withheld (`C1-5`) · the hero's readable control. **32 passed,
+by name**, across `trust-claims`, `plan-hero-conserves`, `paywall` and `recovery`.
+
+| plant *(each ran exactly one test)* | red |
+|---|---|
+| R1 — the Guardian card back on `'required-plan'` | the unread state never rendered ✅ |
+| R2 — the plan hero back on `'required-plan'` | ⭐ **the defect in plain text**: *"$2,000 · Required $500 · Flexible $1,500 · On track · debt-free by November 2026"* over an APR the app could not read ✅ |
+| R3 — `C1-5` reverted | the split drew over the unread input — *expected 0, received 1* ✅ |
+| R4 — the old lead restored | *"An amount this paycheck has to cover could not be read… set the target on Trip again"* — about a goal ✅ |
+
+#### After-scan
+
+- ⛔ **A render proof that never existed.** `requiredPlanTrust.test.ts`'s affordability row named
+  `trust-claims.spec.ts · pass-3 [G-4]` — no such test; no e2e asserts `afford-unread-inputs`, and none asserts windfall
+  routing's `windfall-unread-inputs`. The pointer is corrected to say so; both renders → backlog **`.5.7`**. ✅ The
+  other two rows' pointers checked and real.
+- ✅ **Resolved by this item:** the backlog's *"`plan.typicalAmount` poisons `'required-plan'`"* — the narrowed route no
+  longer carries the plan entity wholesale.
+- ✅ **Fixed while here:** the paywall row built its summary off the PROJECTED store while `paywall.tsx` uses the RAW one.
+- ⚠️ **Recorded:** the trust suite grew **4s → 25s** with 22 shapes × both debts × nine surfaces; the paywall lead carries
+  7 named over-suppressions, stated to 🎯.
+- ✅ **Replenished** — `.5.4` stays the active build; next is **save-for-it**, which renders per-paycheck amounts and
+  ready-by dates off the projected plan and asks no trust question at all.

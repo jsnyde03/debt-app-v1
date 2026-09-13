@@ -1420,7 +1420,9 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   it; measured across six shapes it moves **no** projected figure, and its one reader is `incomeLearning`'s
   lean suggestion. So every `'required-plan'` surface refuses over a loss that changes nothing it states —
   `.5.4a`'s over-suppression, one claim over. → **`.5.7`** *(name the plan fields; re-run the variant sweep
-  against the required-plan figures)*.
+  against the required-plan figures)*. ✅ **RESOLVED by `.5.4d`, 2026-09-13** — `'required-plan'` was narrowed to
+  what the required rows read *(the plan entity only through the windfall and the bill reserve)*, validated on 22
+  plan shapes against those rows' rendered fields; a lost `typicalAmount` refuses no claim but `'row-figures'` now.
 - ⛔ **A lost pace is recorded under a SENTENCE, never under `priorityPerPaycheck`** (`migrations.ts:481`),
   while `REPAIRABLE_MONEY_FIELDS` declares the field name — so the completeness gate reads a name the record
   never carries when lost. Every goal route is `'any'` today and no consumer asks for the field by name
@@ -1444,3 +1446,13 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   still green. All 10 debt spreads in app source are raw-store write paths *(measured by query at `.5.4c.1`)*;
   nothing stops the eleventh. → **`.5.7`** *(instrument — a gate that refuses a spread of a debt taken from a
   `withProjectedBalances` result, or an assertion that every consumer of one reads liveness from the record)*.
+
+### ⤵ surfaced by `.5.4d`'s after-scan, 2026-09-13
+
+- ⛔ **Two `'paycheck-plan'` surfaces have NEVER had their refusal proven on screen.** `requiredPlanTrust.test.ts`'s
+  affordability row named `trust-claims.spec.ts · pass-3 [G-4]` as its render proof — **no such test exists**, and no
+  e2e anywhere asserts `afford-unread-inputs`. Windfall routing's `windfall-unread-inputs` has no e2e either. Both
+  refusals are proven in SOURCE only *(the row's regex gate, the unit assertion's per-surface verdicts)*. ⚠️ The dead
+  pointer is corrected to say so; the renders are not written — they need an amount driven into the affordability card
+  and the windfall sheet on Today. → **`.5.7`** *(an e2e per surface over a lost goal target — the loss the rewire newly
+  refuses on — each with a readable control, and each planted back onto `'required-plan'`)*.
