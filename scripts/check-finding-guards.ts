@@ -170,8 +170,9 @@ const ids = Object.keys(registry);
  * **302 → 305 at `.5.4f`** — `C3-5`'s update and start stamps, `C3-6`'s end stamp.
  * **305 → 306 at `.5.4g`** — `C3-1`, Siri's `$0` over an unread balance.
  * **306 → 308 at `.5.4h`** — `C3-2` + `D2-12`, the upsell a subscriber heard (the unread and no-plan branches).
+ * **308 → 309 at `.5.5`** — `B1-1`, the save-for-it pace and date the engine did not keep.
  */
-const MIN_ENTRIES = 308;
+const MIN_ENTRIES = 309;
 const MAX_UNGUARDED = 1;
 
 /**

@@ -4284,5 +4284,23 @@
       "measured": "2026-09-13",
       "sha": "e0479262"
     }
+  },
+  "S1P7-B1-1-SAVEFORIT-PACE-KEPT": {
+    "what": ".5.5 [pass-7 B1-1, blocker] - the save-for-it sheet paced 'Save fast' off selectDiscretionary (the partition total) and 'Balanced' off half of it, and wrote that pace to the goal with a ready-by date. The engine funds a priority goal only min(remaining, needed, pace) AFTER the cushion buffer, the expense reserve and any priority goal already there, so the promise broke on 4 of 4 measured shapes for 'Save fast' and 2 of 4 for 'Balanced'. ⛔ The finding's mechanism was half wrong (the engine clamps; it never reserves $835 out of $675) and its remedy was wrong too (pacing off selectSpendable still promises the $200 cushion buffer the engine takes first). The close: one producer, selectPriorityGoalCapacity - allocate the store WITH the prospective goal, pace uncapped, and read its share - with both dated options derived from it, rounded down, and the sheet's typed-pace date from the same figure.",
+    "file": "apps/rn/src/store/affordability.test.ts",
+    "token": "is ready in ${o.paychecks} paychecks at the rate the engine funds",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/guardianSelectors.ts",
+          "find": "  const capacity = selectPriorityGoalCapacity(store, amount);\n  const payCycle = store.paycheck.payCycle;",
+          "replace": "  const base0 = selectAllocation(store);\n  const capacity = base0 ? selectDiscretionary(base0) : 0;\n  const payCycle = store.paycheck.payCycle;"
+        }
+      ],
+      "run": "test:app",
+      "expect": "B1-1 — one debt, nothing held: \"Save fast\" promises",
+      "measured": "2026-09-13",
+      "sha": "2eb87b3f"
+    }
   }
 }
