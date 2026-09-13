@@ -32814,3 +32814,149 @@ consulted — which is why a lost cushion line is invisible at all 11 of `.5.2`'
   (moved, 26 → 27) · `MIN_ENTRIES` (not moved — no registry row) · `MIN_CAPS` (**not** moved: it pins how
   many cap *declarations* exist, not their values) · `lint:trust-claims` check 2 (no obligation — line 165
   already drops `rowFieldUnread`'s positional id before testing fields).
+
+#### ⭐ `.5.2`'s two premises MEASURED — `class5-probes/p1-floor-band-and-plan-trust.ts`
+
+Both findings assert these rather than measure them, and one of them is **false**.
+
+**Q1 — does a sentinel floor move the Guardian's BAND?** C1-1: *"the band is computed against `floor` too
+(`computeState(discretionary, floor, …)`), so a naive change moves the verdict; check the tight/clear
+boundary before adopting."* C1-6 repeats it. Swept discretionary `0..600` step 5 × 4 prior bands = **484**
+cases:
+
+| comparison | disagreements | |
+|---|---|---|
+| `computeState` floor **0 vs 200** | **0** | ⟵ the question |
+| `baseState` floor **0 vs 200** | **0** | |
+| `computeState` floor **0 vs 350** | **180** | ⟵ control, and it fires |
+
+⛔ **The warning does not hold.** `computeState.ts:32` and `:44` are `Number.isFinite(floor) && floor > 0 ?
+floor : 200` — the band substitutes the default **itself**, so handing it the sentinel `0` cannot move the
+verdict. ⚡ **The control is what makes that readable**: a real, different line moves the band 180 times, so
+the 0 is a fact about the code and not about a blind probe.
+
+⚠️ **Stated precisely, because the loose version is wrong:** the band is insulated against the **sentinel**,
+NOT against a different **real** floor. So `.5.2` may not change *which real floor is passed*; it may only
+change *how the unread case is displayed*. ⭐ **That makes the fix display-side, and far cheaper than either
+finding assumed** — the same value feeds a band (insulated) and a sentence (not), and only the sentence is
+wrong.
+
+**Q2 — does the field-level trust question fire on a `plan` entity?** It had never been asked anywhere in
+the tree, so the call was traced and not proven. Three stores, one variable:
+
+| store | `cushionFloor` | `rowFieldUnread(…,'plan','','cushionFloor')` | `mayClaim('required-plan')` | caption |
+|---|---|---|---|---|
+| readable | 350 | `false` ✅ | `true` | — |
+| **UNREADABLE `"abc"`** | **0** | **`true`** ✅ | `false` | *"Your cushion line could not be read"* |
+| **a LEGITIMATE `$0` line** | **0** | **`false`** ✅ | `true` | — |
+
+⭐ **Rows 2 and 3 are the load-bearing pair and the reason no value test can work**: both carry
+`cushionFloor = 0`, and only the lost one is flagged. The repair record separates them where the value
+cannot. ⚡ The copy path needs nothing new — `FIELD_LABEL.cushionFloor` already yields the sentence, and
+`UNREAD_FIGURE` (`'—'`) is the established "no figure" token.
+
+⚠️ **And `mayClaim` is ALREADY false on the lost store** — so every surface that consults it is protected,
+and `.5.2`'s 11 sites are precisely the ones that never ask.
+
+⚠️ **Probe invocation, recorded because it was written down nowhere:**
+`npx tsx --tsconfig apps/rn/tsconfig.json <probe>`. Plain `npx tsx` fails on `@/` — the ROOT tsconfig maps
+`@/*` to `./*`, and only `apps/rn/tsconfig.json` maps it to `./src/*`.
+
+#### ⚠️ Two corrections to what I had already written into this plan, both from census rather than reading
+
+⛔ **I recorded that `CushionFloorSheet` "opens showing $0". It does not, and the reasoning was wrong.** I
+assumed it receives `store.cushionFloor`; the census of `brief.floor` shows its single mount is
+`PaydayGuardianCard.tsx:604`, seeded `floor={brief.floor}` — the value *after* `|| 200`. My second guess was
+that it therefore opens at a fabricated **$200** and that one **Save** would write that fabrication to the
+real store through `onSetFloor` → `index.tsx:415` → `setCushionFloor(v)`. **That is also wrong**: the unread
+branch `return`s at `:222`–`:244`, and `:604` is below it. ⚡ **Closed by two censuses, not by reading one
+host**: `<PaydayGuardianCard` has exactly **one** production mount (`index.tsx:359`) and it passes
+`unreadPlanInputs` — the only other match is `requiredPlanTrust.test.ts:137`, the gate asserting that
+wiring. ⚠️ The prop **defaults to `false`** (`:60`), so a future host that omits it re-opens this path; the
+gate is what stops that, not the code.
+
+⭐ **`brief.floor` has 8 consumers and `C1-1` names 4 — but the render surface is SMALLER, not larger.**
+`:163` bar domain · `:314` a11y label · `:364` `floorFrac` · `:396` the visible chip are **all below the
+early return**, so none renders while inputs are unread — and a lost floor always poisons `required-plan`
+(measured: `mayClaim` false). ⛔ **So `C1-1`'s live surface is one site: the sentence at `:221`.** The
+site-count went up and the fix got smaller; those are different questions and the finding conflates them.
+
+#### ⛔ `.5.2` inherits `C1-2`, arrived at independently from the opposite direction
+
+`answerableByEdit(r)` is `r.entity !== 'migration' && !!r.id && !isWholeRowLoss(r)`. A plan repair carries
+**`id: ''`** — the plan is not a row — so `!!r.id` is false and `clearResuppliedRepairs:469` keeps it until
+`acknowledged`. **Signal 1 (the value moved) and signal 2 (the row is gone) can never fire for it**, so
+re-entering the cushion line does not clear the unread state; only the ack does. And because the repair is
+not answerable-by-edit, the repairs card renders *"there is nothing to reopen for it — check this against
+your old app"* — about a number `CushionFloorSheet` exists to set.
+
+⚡ **This is `C1-2` verbatim**, already a blocker in class 6 (`.12.6.6`): *"a store-level money loss fails
+`answerableByEdit`, so the app says 'nothing to reopen' about a number its own sheet sets."* Not a new
+finding — but the **coupling** is new and was recorded nowhere: `.5.2` withholds the figure, and until
+`C1-2` lands there is **no exit by edit** from the state it withholds in. ⚠️ It generalises past
+`cushionFloor` to all five plan money fields, every one of which has a real control.
+
+### `bnpl.spec.ts:87` — CI RED on `55fcc88f`, and it was NOT that commit · 2026-09-12
+
+⛔ **Attribution first, because this repo has paid for guessing it.** `55fcc88f` changed **5 files — 3 docs
+and 2 gate scripts — and no app code or specs**, so it cannot have altered BNPL rendering. The prior run
+(`70f10d41`) was green. The failed CI step was **`Run the RN e2e suite`**, not a compile or a gate:
+`1 failed · 1 flaky · 337 passed`.
+
+#### The mechanism — a time bomb the DE-FUSING commit planted
+
+`bnpl.spec.ts:87` asserted `toBeVisible()` on an unscoped
+`getByText(/\$[1-9][\d,]*(\.\d{2})? · \d+ payments?/)`. The calendar renders **one subtotal `<Text>` per
+month group** (`BnplCalendarSection.tsx:124-126`), and `groupByMonth` keys on `YYYY-MM`. The fixture anchors
+every date to the **run date** via `day()`, and Affirm's two remaining installments are **biweekly** — so
+they straddle a month boundary for most of any month.
+
+| run date | installments | groups | result |
+|---|---|---|---|
+| ~2026-09-06 | Sep 10 · Sep 15 · Sep 29 | **1** | green — one match |
+| 2026-09-13 | Sep 17 · Sep 22 · **Oct 6** | **2** | red — `$97.56 · 2 payments` + `$78.86 · 1 payment` |
+
+⚡ **Reproduced locally at `REAL_EXIT=1`** before anything was changed — the same violation, the same two
+elements. Confirmed in both worlds, so it is a real time-dependent defect and not a CI artifact.
+
+⛔ **TWO GROUPS IS CORRECT APP BEHAVIOUR. The assertion was the defect** — the fourth measured instance of
+an unscoped `getByText` that only violates strict mode once the data is **healthy or plural**, which is why
+planting is blind to it and only a GREEN run in the right state finds it.
+
+⚠️ **And the comment above it was a carried claim with a date.** `77251053` (**2026-08-03**) anchored the
+dates to kill an *expiry* bomb and wrote *"the assertions are about installment COUNTS and copy, which
+don't depend on the calendar at all"* — **true when written**. `19d33732` (**2026-08-27**) then added the
+per-month subtotal assertion and never revisited the sentence. It detonated **16 days later**. ⛔ Anchoring
+removes the EXPIRY, not the time dependence: the dates stop going stale, but how they **group** still moves.
+The sentence was deleted rather than qualified.
+
+#### The fix ITERATES the class, and the plant is what proves it
+
+Every rendered subtotal must carry a non-zero amount, whatever the run date makes the group count —
+strictly stronger than the single match it replaces, and run-date independent.
+
+⭐ **The locator is permissive about the leading digit and the assertion is not, deliberately.** `[1-9]` in
+the *locator* would make a `$0.00` subtotal simply **not found**, and with a healthy sibling present the
+count would still be non-zero — so the zero would pass unnoticed. That is precisely the hole `D3-8` added
+`[1-9]` to close. **Permissive find, strict assert** keeps it closed.
+
+| plant — ONE `$0.00` group among healthy ones | required | measured |
+|---|---|---|
+| the iterating assertion | red, for the planted reason | ✅ red on `toHaveText`, received `"$0 · 2 payments"` |
+| the naive `.first()` repair | **green** | ✅ **exit 0** — it hides the zero |
+
+⛔ **AND THE FIRST PLANT WAS UNFAITHFUL, WHICH IS THE LESSON WORTH KEEPING.** Round 1 zeroed **every**
+group, so `.first()`'s `[1-9]` locator matched nothing and it red on *"element(s) not found"* — it never
+reached the world under test, and read as *"the naive fix is fine after all."* ⚡ **A plant that reads
+MISSED is usually not a miss**: diagnose whether the PLANT was wrong before touching the check. Third
+instance in this workstream, first one I walked into myself. The faithful plant zeroes exactly one group,
+leaving a healthy sibling for `.first()` to find — and only then does the comparison mean anything.
+
+⚠️ Both plants restored byte-identical from copies taken **after** the fix.
+
+#### The class, filed rather than swept
+
+**59 unscoped `getByText(/…/).toBeVisible()` calls in the e2e suite**, plus **6** using `.first()`, and
+**nothing in `scripts/` gates the class** — the only script naming a locator is `check-copy-owners.ts`,
+about copy ownership. 59 is a POPULATION, not a defect count. ⛔ **Do not close it by adding `.first()`**:
+that removes the error and keeps the hole, which is what this very spec already recorded once. → `.12.6.9`.

@@ -21,8 +21,14 @@ import { scenario, seedStore, day } from './helpers/seed';
  * off between one run and the next.
  *
  * Anchoring keeps what the fixture actually needs — the BNPL due dates all land on/after `currentDate`,
- * so the calendar's forward schedule is deterministic — while nothing here can expire. The assertions
- * are about installment COUNTS and copy, which don't depend on the calendar at all.
+ * so the calendar's forward schedule is deterministic — while nothing here can expire.
+ *
+ * ⛔ **THIS BLOCK USED TO END "the assertions are about installment COUNTS and copy, which don't depend
+ * on the calendar at all". That was TRUE when written (2026-08-03) and false from 2026-08-27**, when
+ * `19d33732` added the per-month subtotal assertion below and did not revisit this sentence. It went red
+ * 16 days later. ⚠️ Anchoring removes the EXPIRY, not the time dependence: the dates no longer go stale,
+ * but how they GROUP still moves with the run date. Deleted rather than qualified — a false comment is
+ * corrected by removing it.
  */
 const BNPL_DEBTS = [
   { id: 'd0', name: 'Capital One', balance: 1420, minimumPayment: 75, apr: 24.99, dueDate: day(7), type: 'debt', recurrence: 'monthly' },
@@ -84,6 +90,32 @@ test.describe('BNPL — first-class row display', () => {
     // return neither `""` nor `"$NaN"` (`packages/core/utils/formatCurrency.ts:42`) — while the one that
     // IS reachable, a subtotal of `$0.00`, matches `\$\d[\d,.]*` and would have passed. Hence `[1-9]`:
     // the amount must be present AND non-zero. `payments?` because the line is singular at one payment.
-    await expect(page.getByText(/\$[1-9][\d,]*(\.\d{2})? · \d+ payments?/)).toBeVisible();
+    // ⛔ **AND IT ASSERTED ONE MATCH OVER A LIST WHOSE LENGTH IS THE RUN DATE'S.** [S1.13.7.12.6.5.2]
+    // `toBeVisible()` on an unscoped locator is a strict-mode violation the moment a SECOND month group
+    // renders — and the group count is a function of today. The fixture anchors to the run date (`day()`),
+    // Affirm's two remaining installments are biweekly, and `groupByMonth` keys on `YYYY-MM`, so they
+    // straddle a month boundary for most of any month. ⚡ Measured: green 2026-09-06 (Sep 10 · Sep 15 ·
+    // Sep 29 — one group), red 2026-09-13 (`$97.56 · 2 payments` + `$78.86 · 1 payment`). Reproduced
+    // locally and in CI. **Two groups is CORRECT app behaviour; the assertion was the defect** — the
+    // fourth measured instance here of an unscoped `getByText` that only violates strict mode once the
+    // data is healthy.
+    //
+    // ⭐ So it ITERATES the class rather than picking a member: EVERY subtotal the calendar renders must
+    // carry a non-zero amount, whatever the run date makes the group count. Strictly stronger than the
+    // single match it replaces, and run-date independent.
+    //
+    // ⚠️ **The locator is permissive about the leading digit and the assertion is not, deliberately.**
+    // `[1-9]` in the locator would make a `$0.00` subtotal simply NOT FOUND — and with another group
+    // present the count would still be non-zero, so the zero would pass unnoticed. That is exactly the
+    // hole `D3-8` added `[1-9]` to close. Permissive find, strict assert keeps it closed.
+    //
+    // The `^…$` anchors are safe: the subtotal is its own `<Text>` (`BnplCalendarSection.tsx:124-126`),
+    // while the per-row line reads "payment i of N" and the amount cell carries no ` · `.
+    const subtotals = page.getByText(/^\$[\d,]+(\.\d{2})? · \d+ payments?$/);
+    const groupCount = await subtotals.count();
+    expect(groupCount).toBeGreaterThan(0);
+    for (let i = 0; i < groupCount; i++) {
+      await expect(subtotals.nth(i)).toHaveText(/^\$[1-9][\d,]*(\.\d{2})? · \d+ payments?$/);
+    }
   });
 });

@@ -275,6 +275,13 @@ three times running (`R3-4` → `R4-1` → `R5-1`). ⭐ **That line's root cause
 guard's population is now **derived from `Record<Recurrence, number>`**, so a new member is a typecheck
 error until someone states what it frees. **Adding one row is what failed, twice.**
 
+⛔ **CI WENT RED ON `55fcc88f` AND IT WAS NOT THAT COMMIT** *(docs + 2 gate scripts; no app code, no
+specs)*. `bnpl.spec.ts:87` asserted `toBeVisible()` on an unscoped locator over a list whose length is the
+**run date's** — the fixture anchors to `day()` and `groupByMonth` keys on `YYYY-MM`, so two month groups
+render for most of any month. **Two groups is correct; the assertion was the defect.** Fixed to iterate
+every subtotal; planted both directions *(the iteration reds on a single `$0.00` group; `.first()` goes
+green over it)*. ⚡ **59 unscoped locators suite-wide and no gate for the class** → `.12.6.9`. Detail → log.
+
 ✅ **`R5-2` FIXED 2026-09-12** *(`.5.2`'s precursor — the gate that certifies closures was permissive, and
 class 5 is about to write proofs through it)*. Word-boundary matcher; `test:gate-plants` **26 → 27** with
 `[R5-2-boundary]`, which reds on the un-fix while `[R3-3-borrow]` stays green. ⛔ **Its REGISTRY ROW is
@@ -284,11 +291,46 @@ cover a proof whose `run` is a harness. Detail → log. ⚠️ **`R5-3` remains 
 ⛔ **SWITCH-IN CORRECTION — THE POPULATION WAS UNDERCOUNTED TWICE, AND THE REMEDY IS UNBUILDABLE AS
 WRITTEN.** The finding said **1** site; `.5.1` corrected it to **8 / 2 spellings**; derived by query it is
 **11 fallback sites across 4 spellings** — the two `?? 200` / `|| 200` spellings plus `floor > 0 ? floor :
-200` (`computeState.ts:32,44`) and `isFinite(floor) ? floor : 200` (`CushionFloorSheet.tsx:42`, the *repair
-affordance*, which opens showing **$0**). ⛔ **No spelling can discriminate**: `setCushionFloor` clamps via
+200` (`computeState.ts:32,44`) and `isFinite(floor) ? floor : 200` (`CushionFloorSheet.tsx:42`). ⛔ **No spelling can discriminate**: `setCushionFloor` clamps via
 `Math.max(0, …)`, so a legitimate `$0` line is user-reachable and byte-identical to `readMoney`'s lost `0`.
 **The discriminator is the repair record, not the value.** ⚠️ `calibrationScore.ts:96` is a READ of stored
-history and is not swept; `projectForecast.ts` is P6.11's dead tree. Detail → log.
+history and is not swept; `projectForecast.ts` is P6.11's dead tree.
+
+⭐ **MEASURED 2026-09-12 — THE FIX IS DISPLAY-SIDE ONLY, AND BOTH FINDINGS' LEAD RISK IS FALSE.** *"A naive
+change moves the band"*: swept 484 cases, floor `0` vs `200` → **0** flips, control `0` vs `350` → **180**.
+`computeState` substitutes 200 for any floor ≤ 0 itself. ⚠️ **Insulated against the SENTINEL, not against a
+different REAL floor** — so the fix may not change which real floor is passed, only how the unread case is
+shown. ⚡ And the discriminator fires correctly on all three stores, incl. the pair that share
+`cushionFloor = 0`.
+
+⚡ **AND THE RENDER SURFACE IS SMALLER THAN THE SITE COUNT.** `brief.floor` has **8** consumers, not the
+finding's 4 — but the unread branch **returns at `:222`**, so the bar domain, the a11y label, `floorFrac`
+and the visible `· Your line` chip never render while inputs are unread, and a lost floor always poisons
+`required-plan` *(measured)*. ⛔ **C1-1's live surface is the SENTENCE at `:221`** — C1-6's ungated `?? 200`
+producers are the other half. ⚠️ **`CushionFloorSheet` is NOT a defect**: one production mount
+(`index.tsx:359`, census by query), it passes `unreadPlanInputs`, and `:604` sits below the early return —
+so it cannot render with a fabricated floor, and Save cannot write one.
+
+⛔ **`.5.2` INHERITS `C1-2`, AND THE COUPLING IS NOT RECORDED ANYWHERE ELSE.** A plan repair is
+`{ entity: 'plan', id: '', … }`, and `answerableByEdit` requires `!!r.id` — so **re-entering the cushion
+line never clears the repair**; only the acknowledgement does, and the card says *"nothing to reopen —
+check this against your old app"* about a number its own sheet sets. **Withholding the figure in `.5.2`
+therefore has no exit by edit until `C1-2` lands.**
+
+✅ **[DECISION] 🎯 2026-09-12 — `C1-2` IS PULLED FORWARD INTO `.5.2`**, out of `.12.6.6`. Shipping a
+withheld figure the user cannot edit their way out of is the `C1` failure this module exists to prevent.
+⛔ **It is NOT a predicate flip.** Making plan repairs answerable sends `clearResuppliedRepairs` into
+`findRow` → `listFor(store, 'plan')`, and the plan owns no list — `undefined` reads as *"the row is gone"*
+and the repair clears on the next store write, **un-repairing every plan-money loss**. The fix is a
+value-lookup path for plan fields; the predicate alone fails OPEN.
+
+⚡ **`C1-3` FOLDS IN TOO, per `.12.6.10`'s own rule** *("swept inline when a class has the file open")* —
+and making plan repairs answerable is what makes it load-bearing rather than cosmetic. `namedFigures`
+renders `` `${FIELD_LABEL[r.field]} on ${r.name}` `` while `migrations.ts:299` sets
+`name: PLAN_MONEY_LABELS[field]` — **the same string** — so the new instruction would read *"set your
+cushion line on your cushion line again"*. ⚠️ **And `C1-2` is wider than its one line**: today a lost
+`cushionFloor` lands in the `unrecoverable` block, so the HEADING is wrong as well *("Some of your old data
+did not come across"* about this app's own store field*)*, not just the instruction. Detail → log.
 
 | # | step | exit line |
 |---|---|---|

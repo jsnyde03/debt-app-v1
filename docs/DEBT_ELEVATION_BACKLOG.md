@@ -1275,3 +1275,22 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   fields** — `leanAmount` · `typicalAmount` · `windfall` · `expenseReserveBalance` — **have the same hole**;
   `B3-1` routed them and no site asks about any of them either. → **pass 8** *(`cushionFloor` closes in
   `.5.2`)*.
+
+### ⤵ surfaced by the CI red on `55fcc88f`, 2026-09-12 — routed per bullet
+
+- ⛔ **59 UNSCOPED `getByText(/…/).toBeVisible()` CALLS IN THE E2E SUITE, AND NOTHING GATES THE CLASS.**
+  Measured by query: **59** unscoped, plus **6** more using `.first()` to dodge the same problem. The only
+  script in `scripts/` that mentions a locator at all is `check-copy-owners.ts`, which is about copy
+  ownership. ⚡ **This class has now detonated four times, measured**, and its signature is what makes it
+  expensive: the assertion is green while the data is *thin*, and becomes a strict-mode violation the
+  moment the data is **healthy or plural** — so a planted run is green about it, and only a GREEN run in
+  the right state finds it. ⚠️ 59 is a POPULATION, not a defect count; most matched text is genuinely
+  unique. **The question is not "fix 59 sites" — it is what would make the class checkable**, e.g. a gate
+  refusing a bare `toBeVisible()` on a regex locator unless it is scoped, counted or iterated. ⛔ Do not
+  close this by adding `.first()` anywhere: `.first()` removes the *error* and keeps the *hole*, which is
+  what `D3-8` already recorded about this very spec. → **`.12.6.9`**.
+- ⚠️ **`strategy-compare.spec.ts:85` is flaky in CI** — `getByTestId('strategy-compare')` not found within
+  10 s after the toggle click (helper line 50), green on retry, counted by Playwright as `1 flaky`.
+  Pre-existing and unrelated to the commit that surfaced it. **Recorded rather than chased**, because this
+  repo's own rule is that a broad red can carry real defects beside the noise — but a single retry-green
+  timeout on a render wait is the noise half. → **tooling/hygiene**, unless it recurs.
