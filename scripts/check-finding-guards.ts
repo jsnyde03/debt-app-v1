@@ -173,8 +173,9 @@ const ids = Object.keys(registry);
  * **308 → 309 at `.5.5`** — `B1-1`, the save-for-it pace and date the engine did not keep.
  * **309 → 310 at `.5.6`** — `C3-14`, the goals hero that counted two unread targets as one.
  * **310 → 311 at `.5.7`** — Siri's Swift fallback for an empty premium read, in the producer's own words.
+ * **311 → 312 at `.5.7 ②`** — the projected-staleness refusal.
  */
-const MIN_ENTRIES = 311;
+const MIN_ENTRIES = 312;
 const MAX_UNGUARDED = 1;
 
 /**

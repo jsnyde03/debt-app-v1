@@ -4338,5 +4338,23 @@
       "measured": "2026-09-13",
       "sha": "e36878f2"
     }
+  },
+  "S1P7-57-2A-PROJECTED-STALENESS": {
+    "what": ".5.7 step 2a [backlog from .5.4g] - lint:finding-guards measured staleness against COMMITS only (git log sha..HEAD), so a close could run it green with a gate-file edit still uncommitted, commit, and have the next run refuse: .5.4f did exactly that (52/52, then 3 red gates from one floor edit that staled five proofs). Every run now also projects the proofs whose target has an uncommitted change, and --projected refuses when stale + projected exceeds the ceiling - run before a close's first commit. The planted scenario's first cut was vacuous: its target was a gitignored scratch file git status never lists; it now appends to the tracked plant fixture.",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "gate: 'lint:finding-guards [projected]',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-finding-guards.ts",
+          "find": "if (PROJECTED && stale.length + projected.length > MAX_STALE_PROOFS) {",
+          "replace": "if (false && PROJECTED && stale.length + projected.length > MAX_STALE_PROOFS) {"
+        }
+      ],
+      "run": "test:gate-plants",
+      "expect": "lint:finding-guards [projected]",
+      "measured": "2026-09-13",
+      "sha": "e37daf6a"
+    }
   }
 }
