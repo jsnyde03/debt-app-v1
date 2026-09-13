@@ -10,9 +10,10 @@ import type { LiveActivityBridge } from './liveActivityBridge.types';
  */
 interface NativeLiveActivity {
   areActivitiesEnabled(): boolean;
-  startActivity(content: PaydayActivityContent): void;
-  updateActivity(content: PaydayActivityContent): void;
-  endActivity(): void;
+  // ⛔ [.5.4f · `C3-5`] — `AsyncFunction`s in Swift: each resolves with whether ActivityKit took the call.
+  startActivity(content: PaydayActivityContent): Promise<boolean>;
+  updateActivity(content: PaydayActivityContent): Promise<boolean>;
+  endActivity(): Promise<boolean>;
 }
 
 // Lazily resolved on FIRST use, never at import. Metro web picks the no-op base `liveActivityBridge.ts`,
@@ -33,25 +34,28 @@ export const liveActivityBridge: LiveActivityBridge = {
       return false;
     }
   },
-  start: (content) => {
+  // ⛔ [.5.4f · pass-7 `C3-5`] — still never throws into the app, but a swallowed failure now answers `false`
+  // instead of reading as success. Swallowing an error and REPORTING SUCCESS are two different things, and
+  // only the second was the defect (`widgetStorage.native.ts` says the same of the widget's twin).
+  start: async (content) => {
     try {
-      native().startActivity(content);
+      return await native().startActivity(content);
     } catch {
-      /* best-effort */
+      return false;
     }
   },
-  update: (content) => {
+  update: async (content) => {
     try {
-      native().updateActivity(content);
+      return await native().updateActivity(content);
     } catch {
-      /* best-effort */
+      return false;
     }
   },
-  end: () => {
+  end: async () => {
     try {
-      native().endActivity();
+      return await native().endActivity();
     } catch {
-      /* best-effort */
+      return false;
     }
   },
 };

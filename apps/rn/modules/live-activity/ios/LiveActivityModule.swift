@@ -23,38 +23,50 @@ public class LiveActivityModule: Module {
       return false
     }
 
+    // ⛔ [.5.4f · pass-7 `C3-5`] — START / UPDATE / END ANSWER WHETHER THEY LANDED. They were synchronous
+    // `Function`s that spawned a detached `Task` and returned before ActivityKit ran, so a refused request
+    // could not reach JS by construction: the JS bridge's `try/catch` only ever saw a missing module, and
+    // `liveActivitySync` stamped its change-gate on the attempt. `AsyncFunction` with an `async` closure
+    // resolves the JS promise with the closure's `Bool`. ⚠️ Still never throws to JS — `false` is the answer.
+
     // Start the (single) payday countdown — ends any stale one first so only one is ever live.
-    Function("startActivity") { (content: PaydayContentRecord) in
-      guard #available(iOS 16.2, *) else { return }
-      Task {
-        await Self.endAll()
-        do {
-          _ = try Activity.request(
-            attributes: PaydayActivityAttributes(paydayDateISO: content.paydayDateISO),
-            content: ActivityContent(state: content.toState(), staleDate: nil),
-            pushType: nil
-          )
-        } catch {
-          // Best-effort: a failed request (e.g. the user disabled Live Activities) must not throw to JS.
-        }
+    AsyncFunction("startActivity") { (content: PaydayContentRecord) async -> Bool in
+      guard #available(iOS 16.2, *) else { return false }
+      await Self.endAll()
+      do {
+        _ = try Activity.request(
+          attributes: PaydayActivityAttributes(paydayDateISO: content.paydayDateISO),
+          content: ActivityContent(state: content.toState(), staleDate: nil),
+          pushType: nil
+        )
+        return true
+      } catch {
+        // e.g. the user disabled Live Activities, or the per-app activity limit. JS retries on the next change.
+        return false
       }
     }
 
     // Push a new read to the live activity (day count / Guardian state / copy).
-    Function("updateActivity") { (content: PaydayContentRecord) in
-      guard #available(iOS 16.2, *) else { return }
+    AsyncFunction("updateActivity") { (content: PaydayContentRecord) async -> Bool in
+      guard #available(iOS 16.2, *) else { return false }
       let state = content.toState()
-      Task {
-        for activity in Activity<PaydayActivityAttributes>.activities {
-          await activity.update(ActivityContent(state: state, staleDate: nil))
-        }
+      // `update` cannot fail in ActivityKit's API; what CAN is that nothing is live to take it — the user
+      // dismissed it or the system ended it. That is the one `false` this can honestly return.
+      let live = Activity<PaydayActivityAttributes>.activities.filter {
+        $0.activityState == .active || $0.activityState == .stale
       }
+      for activity in live {
+        await activity.update(ActivityContent(state: state, staleDate: nil))
+      }
+      return !live.isEmpty
     }
 
     // End the countdown (payday landed, the user toggled it off, or it left the window).
-    Function("endActivity") {
-      guard #available(iOS 16.2, *) else { return }
-      Task { await Self.endAll() }
+    AsyncFunction("endActivity") { () async -> Bool in
+      // Below 16.2 nothing can be live, so "ended" is the true answer — `false` would retry forever.
+      guard #available(iOS 16.2, *) else { return true }
+      await Self.endAll()
+      return true
     }
 
     // ── The AppIntent → store queue (3.5.3.5) — the app drains what PaydayLandedIntent wrote ──

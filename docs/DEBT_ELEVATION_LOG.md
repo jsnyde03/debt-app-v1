@@ -33864,3 +33864,45 @@ every launch** (`running` starts `false`). Mid-session now agrees with launch. R
 
 **Not measurable here → device row:** how often ActivityKit refuses a request, and that a swiped-away activity is
 absent from `Activity.activities` by the next update.
+
+### `.12.6.5.4f.2`–`.3` — the native answer, the manager that stamps only what landed, planted ten ways · 2026-09-13
+
+✅ **Built.** `LiveActivityModule.swift`: `startActivity`/`updateActivity`/`endActivity` are `AsyncFunction`s answering
+`Bool` — `start` true iff `Activity.request` did not throw; `update` true iff an `.active`/`.stale` activity took it;
+`end` true after `endAll` *(and true below 16.2, where nothing can be live)*. `LiveActivityBridge` resolves
+`Promise<boolean>` and never rejects; the `.native` catches answer `false`; the web stub answers `true`.
+`liveActivitySync` stamps `running`/`lastKey` only on `true`, resets its belief when an update finds nothing live,
+asks `areActivitiesEnabled()` per reconcile, and runs **one reconcile at a time** — the bridge is async now, and a
+commit landing mid-`start` would otherwise read `running === false` and start a second activity. `debounceMs` is
+injectable, as `widgetSync`'s is. `.app` cache key: `apps/rn/modules/**` added.
+
+✅ **`liveActivitySync.test.ts` — 27 assertions**, registered in `runAppTests` through `.default()` *(every case is
+async; a bare import would run nothing)*. The stub bridge keeps a **Lock Screen** and refuses on demand, so every
+verdict compares what the Lock Screen shows with what the store says — never the manager's belief with itself.
+⚡ **Case A reproduces the finding's own figures unprompted**: the store at *"$2,500 short of your obligations"*, the
+Lock Screen at *"Looks clear this paycheck"*. `C3-6`'s comment in `paydayActivityContent.test.ts` now says it asserts
+the decision, and points here for the landing.
+
+⭐ **Planted — 10 of 10 red for their own reason; control green; every target restored byte-identical by sha256**
+*(backups taken after the fix)*:
+
+| plant | red on |
+|---|---|
+| **U0** the committed manager, debounce 0 | `C3-5` — the next commit catches the Lock Screen up *(got "Looks clear")* |
+| **L1** update stamps on the attempt | same line |
+| **L2** start stamps on the attempt | a refused start is RETRIED as a start *(got `start`)* |
+| **L3** end clears on the attempt | `C3-6` — a refused end keeps the activity believed live *(got 1)* |
+| **L4** `enabled` read once at launch | enabling mid-session starts the countdown *(got nothing)* |
+| **L5** no serialization | a commit during an in-flight start… *(got 2 starts)* |
+| **L6** over-fix: a landed update never stamps | ⭐ control — the gate holds *(got 4 calls, expected 2)* |
+| **L7** web stub answers `false` | web — start answers true |
+| **L8** native `update` catch answers `true` | native JS — update returns what the module answered |
+| **L9** Swift `start` back to a sync `Function` | Swift — startActivity is an async function that answers Bool |
+
+⚠️ **U0 needed its debounce set to 0** — the committed manager hard-codes 1000 ms, so run as-is it reds on *timing*
+(the settle is 20 ms) rather than on the stamp. Measured-by-reason, not by exit code, which is why the driver
+matches the red LINE.
+
+⚠️ **What this does NOT prove:** the Swift half is asserted by SOURCE (L9 shows the gate sees it) and compiled by
+nothing on this machine — `native-e2e` with a rebuild is step ④. That ActivityKit's refusal actually reaches
+`false` on hardware is the P6.14 row filed at switch-in.

@@ -193,6 +193,10 @@ async function main() {
   // no runner) at one-function granularity. Measured: `test:app` printed ALL PASSED with it unwired.
   await (await import('../widget/widgetSync.test')).default();
 
+  // .5.4f [pass-7 C3-5 · C3-6] — the Live Activity lifecycle manager, driven through a bridge that can refuse.
+  // ⛔ `.default()` for the same reason as the line above: every case in it is async.
+  await (await import('../liveActivity/liveActivitySync.test')).default();
+
   // 3.5.0.1 — the tutorial/demo SANDBOX store: frozen-clock determinism + the three isolation
   // guarantees (no durable write · no real-store disturbance · shipped logic runs verbatim). ASYNC →
   // default-exports its runner (it awaits the persistence bootstrap + the autosave debounce).

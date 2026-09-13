@@ -150,8 +150,10 @@ assert(buildPaydayActivityContent(store({ premium: true, daysToPayday: 10 })) !=
   const unread = withMinimum('n/a');
   assert(unread.pendingDataRepairs.some((r) => r.field === 'minimumPayment'), '⭐ the fixture really did lose the minimum');
   eq(buildPaydayActivityContent(unread), null, '⛔ D3-2 — the Lock Screen shows nothing rather than naming money free over an obligation nobody read');
-  // ⛔ …and the lifecycle already handles that `null`: an in-flight activity must END rather than freeze
-  // on the last false payload. This is the assertion that makes the fix reach the screen.
+  // ⛔ …and the lifecycle's DECISION handles that `null`: an in-flight activity must END rather than freeze
+  // on the last false payload. ⚠️ [.5.4f · pass-7 `C3-6`] This asserts the decision, not the screen — it used
+  // to claim "the assertion that makes the fix reach the screen". The end LANDING is asserted in
+  // `liveActivitySync.test.ts`, through a bridge that can refuse it.
   eq(decideLiveActivityAction(unread, true, 'k1').kind, 'end', '⛔ D3-2 — …and a running activity is ENDED, not left showing the last figure');
 
   // ⭐ CONTROL — the same debt with a readable minimum still produces a payload, or the fix bought

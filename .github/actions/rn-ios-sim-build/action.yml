@@ -176,6 +176,10 @@ runs:
         # omission. It was here because the build flags were in it; they are in THIS FILE now. Hashing
         # the workflow meant every Maestro flow-list edit — the most common edit in 4.1 — recompiled the
         # binary. ⚠️ If a build input ever moves back into a workflow, it must come back into this list.
+        #
+        # ⛔ [.5.4f] `apps/rn/modules/**` WAS MISSING, and it is NATIVE. The local Expo modules (Live Activity and
+        # its payday-landed intent, scan-vision, finale haptics, key commands) are Swift compiled into the binary; the re-bundle
+        # step swaps only JS, so a hit after a Swift change installed the OLD module and went green on it.
         echo "key=app-${{ runner.os }}-${{ steps.xcode.outputs.tag }}-${{ inputs.cache-namespace }}-x3-${{ hashFiles(
           'apps/rn/package-lock.json',
           'apps/rn/package.json',
@@ -186,6 +190,7 @@ runs:
           'apps/rn/plugins/**',
           'apps/rn/assets/**',
           'apps/rn/targets/**',
+          'apps/rn/modules/**',
           'package-lock.json',
           '.github/actions/rn-ios-sim-build/action.yml'
         ) }}" >> "$GITHUB_OUTPUT"

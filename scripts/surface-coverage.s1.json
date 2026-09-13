@@ -2761,5 +2761,8 @@
   ],
   "apps/rn/src/store/inWindowReaders.test.ts": [
     "never"
+  ],
+  "apps/rn/src/liveActivity/liveActivitySync.test.ts": [
+    "never"
   ]
 }

@@ -9,7 +9,12 @@ import type { PaydayActivityContent } from './paydayActivityContent';
 export interface LiveActivityBridge {
   /** OS supports Live Activities AND the user hasn't disabled them in Settings. Web/Android → false. */
   areActivitiesEnabled(): boolean;
-  start(content: PaydayActivityContent): void;
-  update(content: PaydayActivityContent): void;
-  end(): void;
+  /**
+   * ⛔ [.5.4f · pass-7 `C3-5`] — each resolves to whether the call LANDED, and `liveActivitySync` stamps its
+   * belief about the Lock Screen only on `true`. They returned `void`, so there was nothing to consult.
+   * ⚠️ They never reject: a native failure resolves `false`.
+   */
+  start(content: PaydayActivityContent): Promise<boolean>;
+  update(content: PaydayActivityContent): Promise<boolean>;
+  end(): Promise<boolean>;
 }
