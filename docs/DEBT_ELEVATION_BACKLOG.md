@@ -1504,5 +1504,12 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   sheet-opened check can no longer distinguish the menu from the sheet; `08-coach-marks` expects the row-actions mark to
   survive a Debts → Expenses → Debts switch and it does not *(flow or app — unmeasured)*. ⚠️ **While these two are red,
   the only native verifier cannot report a third** — the next Swift change reads "2 failed" and learns nothing.
-  → **promote as its own step after `.5.4h`** *(category 2: it makes every later native change unverifiable)* — fix 03
+  → **`.5.7`, FIRST** *(re-routed at `.5.4h`'s close: `.5.5` and `.5.6` touch no native code, so no change goes unverified meanwhile, and a new step would renumber every `→ .5.7` pointer here)* — fix 03
   by label + a sheet testID, measure 08's mark lifetime against the source, one dispatch for both.
+
+### ⤵ surfaced by `.5.4h`'s after-scan, 2026-09-13
+
+- 📋 **`SiriQueryIntents.swift` still reads `''` as not-premium.** `.5.4h` made that true by construction at the producer, but an
+  OLD snapshot written before the fix — or any future producer that returns `''` again — reaches a subscriber as the upsell.
+  → **`.5.7`** *(defence in depth: decode `isPremium` in `DebtSnapshotRead`, as `LogPaymentIntent.swift:23` already does; ride the
+  same native dispatch as the red-flow repair)*.
