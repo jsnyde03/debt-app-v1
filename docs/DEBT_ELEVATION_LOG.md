@@ -33467,3 +33467,34 @@ that branch must never render empty — is kept verbatim; my first draft had rep
 deliberately with the caller named.
 ⚠️ **eslint's first exit 1 was my invocation, not the code** — the spec is on the ignore list, and passing an
 ignored file explicitly is a warning against `--max-warnings 0`. The screen alone lints clean.
+
+### `.12.6.5.4b.4`–`.5` — the forecast e2e, planted three ways · `.5.4b` CLOSED · 2026-09-13
+
+✅ **`.4`** — `cushion-forecast.spec.ts` gains two cases on a `day()`-relative fixture: *an unread minimum withholds
+the runway and keeps the scorecard* (asserting the card names **"minimum payment on Visa"**, the runway's
+`CUSHION BY PAYCHECK` eyebrow gone, `GUARDIAN ACCURACY` still there) and *a lost typical paycheck keeps the runway
+drawn*. **5 passed, by name**, the three existing cases among them; `REAL_EXIT=0` from the command itself.
+
+⭐ **`.5` — the two new cases each passed in about a second, which says nothing about whether they can fail.**
+Three plants on the committed screen, each running exactly one test:
+
+| plant | red |
+|---|---|
+| N1 — no guard *(`mayStateForecast = true`)* | the unread case: the card never appears ✅ |
+| N2 — the wide claim *(`'row-figures'`)* | the typical-paycheck case: the runway withheld over a figure nothing reads ✅ |
+| N3 — the claim Today asks *(`'required-plan'`)* | the same case, for the same reason — it over-suppresses on `typicalAmount` ✅ |
+
+⚠️ **N3 proves the over-suppression direction only.** `'required-plan'`'s HOLES against the forecast (autopay
+amount · every goal loss) are proven by the unit assertion's per-surface verdicts, not by an e2e — no spec fixture
+here carries a goal or an autopay amount.
+
+**Eleven plants across `.5.4b`**: six unit re-runs, `C2`, `G′`, and N1–N3. All `MATCHED`.
+
+#### After-scan
+
+- ✅ **Routed, not folded:** Today's Guardian card — `'required-plan'` has 6 holes against the card's own brief
+  (`.5.4b.1`). It shares `index.tsx` and the question *"may this state a solved projection?"* with `C3-13`, so
+  `.5.4` takes them **as one step, with separate proofs**.
+- ✅ **Recorded, and it limits every future sub-family surface:** a surface drawing part of a family can only
+  catch OVER-SUPPRESSION in the per-surface assertion — its holes always red on the family first.
+- ✅ **No queue gap** — `.5.4` stays the active build; its next step is `C3-13` + the Guardian card.
