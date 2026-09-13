@@ -1513,3 +1513,12 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   OLD snapshot written before the fix — or any future producer that returns `''` again — reaches a subscriber as the upsell.
   → **`.5.7`** *(defence in depth: decode `isPremium` in `DebtSnapshotRead`, as `LogPaymentIntent.swift:23` already does; ride the
   same native dispatch as the red-flow repair)*.
+
+### ⤵ surfaced by `.5.5`'s after-scan, 2026-09-13
+
+- ⚠️ **A promise of a FUTURE amount computed off a selector's headroom, rather than off what the allocation funds, is
+  a class — `B1-1` was one member.** The save-for-it pace promised `selectDiscretionary`; the finding's remedy promised
+  `selectSpendable`; the engine funds neither. `B1-2` (the reserve offer, `expenseReserveSelectors.ts:128`, class 6) is
+  a second on the list already. → **`.5.7`** *(census by query: every surface that states a per-paycheck amount or a
+  ready-by for money not yet set aside, and whether its figure is read from an allocation or derived beside one — the
+  round trip `store it → re-allocate → compare` is the assertion that decides each)*.

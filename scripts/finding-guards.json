@@ -685,7 +685,7 @@
       "run": "test:app",
       "expect": "does not depend on there being an offer",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "ecc1e661"
     }
   },
   "S1P4-C4-1-COUNT": {
@@ -1398,7 +1398,7 @@
       "run": "test:app",
       "expect": "an unread balance grades NOTHING rather than the wrong regime",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "ecc1e661"
     }
   },
   "S1P3-G2-RESERVETARGET": {
@@ -1416,7 +1416,7 @@
       "run": "test:app",
       "expect": "an unread balance takes the existing",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "ecc1e661"
     }
   },
   "S1P3-G3-GUARDIANREGIME": {
@@ -1434,7 +1434,7 @@
       "run": "test:app",
       "expect": "does NOT graduate the headline",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "ecc1e661"
     }
   },
   "S1P3-G4-PLANROUTE": {
@@ -1475,7 +1475,7 @@
       "run": "test:app",
       "expect": "the caption survives the offer being null",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "ecc1e661"
     }
   },
   "S1P3-G6-SCRIPTSTYPES": {
@@ -2089,7 +2089,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-13",
-      "sha": "e0479262"
+      "sha": "ecc1e661"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2408,7 +2408,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-13",
-      "sha": "e0479262"
+      "sha": "ecc1e661"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -3476,7 +3476,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-13",
-      "sha": "e0479262"
+      "sha": "ecc1e661"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-13",
-      "sha": "e0479262"
+      "sha": "ecc1e661"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -4016,7 +4016,7 @@
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
       "measured": "2026-09-13",
-      "sha": "5692ca41",
+      "sha": "ecc1e661",
       "proofNote": "⚠️ The cmd runs from the REPO ROOT with the APP tsconfig. The first version used the root tsconfig and the CONTROL redded — the alias @/ does not resolve there, so the run died before any assertion and the verdict read WRONG-reason over a command that was red with or without the plant."
     }
   },
@@ -4045,7 +4045,7 @@
         "apps/rn/src/store/inWindowReaders.test.ts"
       ],
       "measured": "2026-09-13",
-      "sha": "5692ca41",
+      "sha": "ecc1e661",
       "proofNote": "TWO-PART UNFIX, and the reason is the finding's own shape. Deriving the count from the capped reserve left bnplInstallmentsInWindow unused, which eslint refuses — so the plant restores the import as well as the line. Without that the plant would fail to COMPILE and the run would red for a syntax error rather than for the defect: a plant must make an assertion fail, never throw past it."
     }
   },
@@ -4064,7 +4064,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [R3-3-borrow]",
       "measured": "2026-09-13",
-      "sha": "e0479262",
+      "sha": "ecc1e661",
       "proofNote": "ANCHOR RE-DERIVED in round 4: R4-3's fix rewrote this very line, voiding both the token and the un-fix - the same shape as R3-2 voiding R2-1-CAP one round earlier. Re-RUN, not merely re-anchored: a recorded measurement must describe the plant the entry now performs."
     }
   },
@@ -4118,7 +4118,7 @@
       ],
       "proofNote": "TWO-PART UN-FIX because the defect had two halves and each is caught by a different row: reverting the count to Math.round reds the $110 row (3 charges land, round says 2), and reverting the sentence to per-charge reds the $75 money row. Either alone leaves the other half green. TOKEN CORRECTED: it originally ended at the literal `$` that immediately precedes ${reserved}, and the shared scanner blanks interpolation spans, so lint:finding-guards could not find it - registered broken and caught by the gate, not by reading. A token must stop before any ${.",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "ecc1e661"
     }
   },
   "S1P7-R3-4-FREEDPERMONTH": {
@@ -4300,7 +4300,7 @@
       "run": "test:app",
       "expect": "B1-1 — one debt, nothing held: \"Save fast\" promises",
       "measured": "2026-09-13",
-      "sha": "2eb87b3f"
+      "sha": "ecc1e661"
     }
   }
 }

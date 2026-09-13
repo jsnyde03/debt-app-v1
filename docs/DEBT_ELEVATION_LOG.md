@@ -34161,3 +34161,66 @@ promise $360. ⚠️ The ready-by date is computed from the same funded figure, 
 📋 **Census, by query** — `selectDiscretionary(` has 8 production callers; only `:783` is save-for-it. The Guardian band
 sites (`guardianSelectors.ts:302/:351/:372/:893`, `planSelectors.ts:520`) sit on discretionary deliberately (T4.1b's
 docblock). `expenseReserveSelectors.ts:128` is `B1-2` — **class 6**, not this step.
+
+### `.12.6.5.5.2`–`.5` — one producer for the pace, planted, `.5.5` CLOSED · 2026-09-13
+
+✅ **Built.** `selectPriorityGoalCapacity(store, amount)` in `guardianSelectors.ts` — allocate the store WITH the
+prospective goal, pace uncapped, and read its `optional_goal` share. `selectSaveForItOptions` derives both dated
+options from it: `Save fast` = the capacity (or the whole amount when one paycheck covers it), `Balanced` = half,
+both **rounded DOWN** to $5 by `fundablePace`, each ready-by from its own pace. `SaveForItSheet`'s *Set your own*
+dates a typed pace from `min(typed, capacity)` and, when the typed pace is higher, says *"Your plan can set aside
+about $X a paycheck, so:"* before the date. The typed pace is still stored as typed — it is the user's cap, and the
+engine clamps it.
+
+✅ **Step ③, measured by query: nothing false outlives the fix.** A goal already stored at $835 is clamped by the
+engine, and no surface computes a paycheck count or ready-by from a stored pace — `GoalSheet` edits it as a cap, and
+the only date ever shown for it was this sheet's, at the moment of choosing. **No repair and no report owed.**
+
+✅ **Tests.** `affordability.test.ts` — **every dated option on 5 shapes** *(one debt · a held reserve · a priority
+goal already on the rung · variable income · a capacity off the $5 grid)* is **stored as the sheet stores it and
+re-allocated**: the pace is funded, the date is kept, the promise is within capacity. One figure BY NAME *(a $400
+reserve held → "Save fast" $400 over 7)*. The sheet's typed-pace date pinned by source. `saveforit-pace.spec.ts` —
+the caption and date RENDER for a pace above capacity, with a control whose absence check waits for its own ready-by.
+60 unit assertions · typecheck 0 · eslint · `lint:copy` · `lint:fixture-dates` *(120 of cap 120 — no new aged
+literal)*.
+
+⚠️ **My first off-grid shape was vacuous, and its own fixture check caught it.** An uneven LEAN paycheck ($1,403) does
+not move capacity at all — $1,400 and $1,403 both give $1,275 — so a round-up plant would have passed. Measured four
+candidates; a $101.25 minimum gives $1,698.75.
+
+⭐ **Planted — 4 of 4 red for their own reason; control green; restored byte-identical by sha256:**
+
+| plant | red on |
+|---|---|
+| **U0** the committed formula — pace off `selectDiscretionary`, rounded up | a held expense reserve: "Save fast" promises **830** within the **400** the engine can fund |
+| **U1** the finding's own remedy — pace off `selectSpendable` | one debt, nothing held: "Save fast" promises **1900** within the **1700** |
+| **R1** rounding UP to $5 | a minimum payment off the $5 grid: "Save fast" promises **1700** within **1698.75** |
+| **R2** the sheet dates a typed pace as typed | the sheet dates a typed pace from what the plan can fund |
+
+✅ **Web e2e, locally, by file** — `saveforit-pace` · `affordability` · `goal-pace-edit`: **12 of 12 passed**.
+
+⛔ **And my first render assertion could not fail — a plant proved it.** It asserted the caption and *some* "N paychecks ·
+ready by" line. With the sheet planted back to dating the typed pace, it **passed** (3 of 3, run confirmed to have
+executed): the caption's condition is computed separately from the date, so the caption still showed over a false
+date. Strengthened to assert the COUNT — a $999,999 pace on a $5,000 purchase must not read "1 paycheck" — and
+re-planted: clean **passes**, planted **fails for its own reason** — *Received: "Your plan can set aside about $3,350 a
+paycheck, so: **1 paycheck** · ready by Oct 13"* — restored byte-identical. ⚡ `absence-assertions-pass-before-render`
+has a sibling: **an assertion on the explanation is not an assertion on the thing explained.**
+
+✅ **Registered and proven:** `S1P7-B1-1-SAVEFORIT-PACE-KEPT` — the committed defect as its un-fix. `MIN_ENTRIES` 308 →
+309. ⚡ **Staleness projected BEFORE the commit, not found after it:** the fix commit moves `guardianSelectors.ts` under 8
+proofs and the floor edit `check-finding-guards.ts` under 5 — so all 13 were re-run with the new one in one pass, by a
+chain that stops on any red step before git: **14 of 14 `reason=MATCHED`, control exit 0** — the stale count holds at the pre-existing **5** (180 executed).
+
+✅ **Gates, each from its own summary line:** typecheck 0 · `lint:rn` **all 52 gates pass** · `test:app` ALL PASSED · `test:regression` ALL PASSED — green on the first close-out run.
+
+#### After-scan
+
+- ⚡ **The third item in a row where the finding's mechanism or remedy was wrong and measurement said so** — `C3-5`'s
+  remedy could not see the failure, `C3-2`'s consumer census missed a file, and here the remedy was itself a broken
+  promise. `measure-agent-mechanisms` is now the norm, not the caution: **the finding supplies the defect; the fix is
+  derived from the engine.**
+- 📋 **The class is wider than the sheet.** Any surface that promises a *future* figure off a selector's headroom rather
+  than off what the allocation funds has this shape. `B1-2` *(the reserve offer, `expenseReserveSelectors.ts:128`,
+  class 6)* is one; a census of "promises a future amount" belongs to `.5.7` → backlog.
+- ✅ **Replenished** — **`.5.6` `C3-14`**: *"saved — one target could not be read"* hard-codes **one** regardless of count.
