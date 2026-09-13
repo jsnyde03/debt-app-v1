@@ -4320,5 +4320,23 @@
       "measured": "2026-09-13",
       "sha": "627b8ba5"
     }
+  },
+  "S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK": {
+    "what": ".5.7 [pass-7 C3-2, defence in depth] - PaycheckCheckIntent answered EVERY empty guardianSpoken with the Premium upsell, and its DebtSnapshotRead did not decode isPremium at all. .5.4h made the JS producer speak every premium reason, so the branch was true by construction - but only for snapshots written after that fix, and only while no producer regresses. The Swift intent now decodes isPremium and answers an empty read for a premium snapshot itself, in SPOKEN_READ_FAILED's exact words. A sentence spelled once in TypeScript and once in Swift drifts silently, so widgetSync.test reads the .swift file and checks the words; planted two ways (one word drifted; the branch removed), both red.",
+    "file": "apps/rn/src/widget/widgetSync.test.ts",
+    "token": "an empty read for a PREMIUM snapshot is answered in SPOKEN_READ_FAILED",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/plugins/app-intents-swift/SiriQueryIntents.swift",
+          "find": "                return .result(dialog: \"I couldn’t read this paycheck just now. Open Debt Planner to see it.\")",
+          "replace": "                return .result(dialog: \"I couldn’t read your paycheck just now. Open Debt Planner to see it.\")"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C3-2 — an empty read for a PREMIUM snapshot is answered in SPOKEN_READ_FAILED",
+      "measured": "2026-09-13",
+      "sha": "58a85966"
+    }
   }
 }

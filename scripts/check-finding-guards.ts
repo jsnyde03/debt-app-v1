@@ -172,8 +172,9 @@ const ids = Object.keys(registry);
  * **306 → 308 at `.5.4h`** — `C3-2` + `D2-12`, the upsell a subscriber heard (the unread and no-plan branches).
  * **308 → 309 at `.5.5`** — `B1-1`, the save-for-it pace and date the engine did not keep.
  * **309 → 310 at `.5.6`** — `C3-14`, the goals hero that counted two unread targets as one.
+ * **310 → 311 at `.5.7`** — Siri's Swift fallback for an empty premium read, in the producer's own words.
  */
-const MIN_ENTRIES = 310;
+const MIN_ENTRIES = 311;
 const MAX_UNGUARDED = 1;
 
 /**
