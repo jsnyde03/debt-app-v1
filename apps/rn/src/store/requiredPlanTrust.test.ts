@@ -158,6 +158,15 @@ const REQUIRED_PLAN_SURFACES: Surface[] = [
     // written. Stated as missing rather than left pointing at nothing; filed to `.5.7` with windfall routing's twin.
     e2e: 'NONE YET — no e2e asserts afford-unread-inputs; filed to .5.7 (.5.4d after-scan)',
   },
+  {
+    label: 'Affordability · the save-for-it sheet',
+    kind: 'component',
+    // ⛔ [`.5.4e`] The sheet asks no claim of its own — its options are this paycheck's spare. It rides the card's
+    // `'paycheck-plan'` refusal, so the MOUNT carries the conjunct: a door added later cannot open it over a loss.
+    file: 'components/plan/AffordabilityCard.tsx',
+    gate: /\{isPremium && result && n != null && !unreadPlanInputs \? \(\s*<SaveForItSheet/,
+    e2e: 'NONE — its one door renders only in the short-verdict branch, after the refusal; the mount gate is the guard',
+  },
 ];
 
 function run() {

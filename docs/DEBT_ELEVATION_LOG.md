@@ -33761,3 +33761,23 @@ by name**, across `trust-claims`, `plan-hero-conserves`, `paywall` and `recovery
   7 named over-suppressions, stated to 🎯.
 - ✅ **Replenished** — `.5.4` stays the active build; next is **save-for-it**, which renders per-paycheck amounts and
   ready-by dates off the projected plan and asks no trust question at all.
+
+⭐ **`.5.4d` shipped**: `811fdc35..138115ad` — the closing commits staled 3 proofs, all re-run `MATCHED`; `lint:rn` 52/52,
+`test:app` and `test:regression` green, every exit read from the command itself.
+
+### `.12.6.5.4e.1` — SAVE-FOR-IT SWITCH-IN: the premise was true of the source and not of the app · 2026-09-13
+
+✅ **Rules re-read** for this switch-in.
+
+⚠️ **The pre-authored premise holds as written and does not describe a live defect.** `SaveForItSheet.tsx` makes 0 trust
+calls, and its options — per-paycheck amount, paycheck count, ready-by date — come from one number:
+`selectDiscretionary(selectAllocation(store))`, this paycheck's spare, solved. ⛔ **But its only mount is
+`AffordabilityCard.tsx:311`, and its only door is `openSaveSheet`** (`:55`), called by one button (`:256`) inside the
+`verdict === 'short'` branch — which renders AFTER the card's `unreadPlanInputs` refusal (`:230`). So whenever the card
+refuses on `'paycheck-plan'`, the sheet cannot open. ⚡ Every field that moves its figures sits inside that route *(the
+spare and an autopay amount, per `.5.4d.1`'s per-surface probe)*.
+
+⚠️ **The one real weakness is structural, not behavioural.** The mount at `:310` was `isPremium && result && n != null` —
+ungated. A second door added later, or state that turns unread while the sheet is open, would reach the options over a
+loss with every test green. ⭐ **The step shrinks to match**: gate the mount on `!unreadPlanInputs`, pin the conjunct in
+`requiredPlanTrust.test.ts`, plant it out. No new claim, and no e2e *(the render is unreachable by the only door there is)*.

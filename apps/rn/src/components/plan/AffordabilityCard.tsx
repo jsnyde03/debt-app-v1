@@ -307,7 +307,11 @@ export function AffordabilityCard() {
       )}
       </View>
     </Card>
-    {isPremium && result && n != null ? (
+    {/* ⛔ [`.5.4e`] GATED AT THE MOUNT, not only at its door. The sheet's options are this paycheck's spare, solved —
+        and it asks no trust question of its own. Today its one door (`openSaveSheet`) renders only in the short-
+        verdict branch, after the refusal above, so it cannot open over an unread input. A second door, or state
+        that turns unread while it is open, would bypass that silently; this conjunct is what refuses either. */}
+    {isPremium && result && n != null && !unreadPlanInputs ? (
       <SaveForItSheet visible={saveSheet} amount={n} name={name} onClose={() => setSaveSheet(false)} onSaved={setSaved} />
     ) : null}
     </>
