@@ -34249,3 +34249,43 @@ sub at all (`goal-row-saved.spec.ts` asserts row names), so the render proof is 
 
 ⚠️ **Staleness projected before the commit:** the one proof anchored in `money.tsx` (`S1P6-C2-3-CONVERTFIELDS-E2E`) is
 already in the pre-existing stale 5; the floor edit stales the 5 in `check-finding-guards.ts` — re-run with the new proof.
+
+### `.12.6.5.6.2`–`.4` — counted, not `some`; planted; `.5.6` CLOSED · 2026-09-13
+
+✅ **Built.** `dataRepairsCopy.ts` gains `unreadTargetsSub(count)` — *"saved — one target could not be read"* at 1,
+*"saved — N targets could not be read"* otherwise, the one-vs-N shape `repairBlocks` already uses. `money.tsx`'s goals
+hero counts `unreadTargetCount` from the list the caption stands for and passes it; `targetUnread` stays as a flag for
+the hero's yes/no suppressions (the caption, the bar). No wording changed at one target.
+
+✅ **Tests.** `dataRepairsCopy.test.ts` — the words at **1, 2 and 5** by name *(73 in the file)*.
+`goal-row-saved.spec.ts` — a NEW render proof: two goals with lost targets read **"saved — 2 targets could not be
+read"**, positive first, the undercount absent after; and the existing one-unread test now asserts **"one target"** as
+the control. No e2e had asserted the hero sub before. typecheck (rn + tests) 0 · eslint · `lint:copy` ✅.
+
+✅ **Web e2e, locally, by file** — `goal-row-saved.spec.ts`: **4 of 4 passed**, the new two-target case among them.
+
+⭐ **Planted:** **3 of 3 red for their own reason; both controls green; restored byte-identical by sha256.**
+
+| plant | suite | red on |
+|---|---|---|
+| **P1** un-fix: the hero states the literal "one" again | e2e | `getByText('saved — 2 targets could not be read')` — expected visible |
+| **P2** the helper ignores the count | unit | C3-14 — two unread targets are "2 targets", never "one" |
+| **P3** the hero passes a boolean-shaped count (`targetUnread ? 1 : 0`) | e2e | the same locator — a count of 1 reads "one" |
+
+⚡ **P3 is the one that matters most**: it keeps the helper and the plural words and only feeds them the old boolean,
+which is exactly how a future edit would reintroduce the defect — and only the render proof sees it.
+
+✅ **Registered and proven:** `S1P7-C3-14-GOALS-HERO-COUNT` *(the helper back to the literal "one")*. `MIN_ENTRIES` 309 → 310.
+⚡ **Staleness projected before the commit:** the floor edit stales the 5 proofs in `check-finding-guards.ts` — re-run
+with the new one, by a chain that stops before git on any red step: **6 of 6 `reason=MATCHED`, control exit 0** — the stale count holds at the pre-existing **5** (181 EXECUTED).
+
+✅ **Gates, each from its own summary line:** typecheck 0 · `lint:rn` **all 52 gates pass** · `test:app` ALL PASSED · `test:regression` ALL PASSED — green on the first close-out run.
+
+#### After-scan
+
+- ✅ **Nothing new surfaced in the item.** The census at switch-in found no sibling that states a count, and the five
+  *"set them again"* sites state none.
+- ⚡ **Class 5's own members are done** — `.5.1`–`.5.6`. What remains is the ledger this class accumulated.
+- ✅ **Replenished** — **`.5.7` BOUNDARY + LEDGER DRAIN** is active: **13 open backlog rows** routed to it across the class
+  *(15 routed, 2 already resolved — enumerated by script, not by reading)*, decomposed in the plan into seven numbered
+  steps, the red native flows first.
