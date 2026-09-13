@@ -1,12 +1,12 @@
 import { REPAIRABLE_MONEY_FIELDS, runMigrations } from '@/data/migrations';
-import { selectAllocation } from '@/store/selectors';
+import { DEFAULT_CUSHION_FLOOR, cushionLine, selectAllocation } from '@/store/selectors';
 import { selectPlanState } from '@/store/planSelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
 import { detectPayoff } from '@/store/payoffCelebration';
 
 
 import { createDebtStore } from '@/store/store';
-import { claimFields, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, rowFieldUnread } from '@/store/trustSelectors';
+import { answerableByEdit, claimFields, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, rowFieldUnread } from '@/store/trustSelectors';
 import type { DebtStore } from '@/data/models';
 
 /** ⛔ S1.13.7.4 [pass-6 B1-1] — the unread set detectPayoff now REQUIRES. Derived from the store
@@ -559,4 +559,103 @@ export default function run(): void {
     bridge.getState().acknowledgeDataRepairs();
     eq(bridge.getState().store.pendingDataRepairs.length, 0, '…and it settles on the ack, so it cannot accumulate forever');
   }
+
+  /**
+   * ⛔ **THE PLAN'S OWN MONEY — the suite's FIRST `plan`-entity fixtures.**
+   * [S1.13.7.12.6.5.2 · pass-7 `C1-1` `C1-2`]
+   *
+   * ⚡ **Measured before these were written**: across all 8 files that construct repairs the entities used
+   * were **debt 24 · goal 6 · migration 4 · requiredExpense 2 · livingExpense 1 · plan 0** — while
+   * `migrations.ts:299` emits plan repairs in production and `CLAIM_FIELDS['required-plan'].plan` routes
+   * them wholesale. **The entire plan-money trust path was exercised by nothing**, which is how `C1-2`
+   * stayed open through seven passes: no test could have failed.
+   */
+  {
+    const withFloor = (cushionFloor: unknown): DebtStore =>
+      runMigrations({
+        version: 8,
+        paycheck: { amount: '2000', currentDate: DAY, nextPaycheckDate: DAY },
+        debts: [{ id: 'd0', name: 'Chase', balance: 5000, minimumPayment: 150, apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly' }],
+        cushionFloor,
+        prefs: { onboardingComplete: true },
+      });
+
+    const lost = withFloor('abc');
+    const real = withFloor(350);
+    const zero = withFloor(0);
+
+    /**
+     * ⛔ **A LOST `$0` AND A LEGITIMATE `$0` ARE BYTE-IDENTICAL, and only the repair record separates
+     * them.** `setCushionFloor` clamps with `Math.max(0, …)` so a user can genuinely hold a `$0` line,
+     * and `readMoney` repairs an unreadable one to `0`. ⚡ **This pair is why no fallback spelling could
+     * have fixed `C1-1`**: `??` fires on neither (both are numbers) and `||` converts both to the
+     * default. The findings' remedy — *"make `??` catch the repaired 0"* — was unbuildable.
+     */
+    eq(lost.cushionFloor, 0, 'an unreadable line is repaired to 0…');
+    eq(rowFieldUnread(lost, 'required-plan', 'plan', '', 'cushionFloor'), true, '…and the REPAIR RECORD is what says so');
+    eq(zero.cushionFloor, 0, '⛔ a LEGITIMATE $0 line holds the same value as the lost one…');
+    eq(rowFieldUnread(zero, 'required-plan', 'plan', '', 'cushionFloor'), false, '⛔ …and is NOT unread — the pair the whole fix rests on');
+    eq(rowFieldUnread(real, 'required-plan', 'plan', '', 'cushionFloor'), false, '⭐ control — a readable line is not unread');
+
+    // The owner reports both halves, and substitutes the default ONLY when the line was lost.
+    eq(cushionLine(lost).unread, true, 'the owner reports the loss…');
+    eq(cushionLine(lost).value, DEFAULT_CUSHION_FLOOR, '…and computes on the default, never the sentinel 0');
+    eq(cushionLine(zero).value, 0, '⛔ …while a real $0 line stays $0 — substituting there would INVENT a line');
+    eq(cushionLine(real).value, 350, '⭐ control — a readable line is itself');
+
+    eq(
+      answerableByEdit({ entity: 'plan', id: '', name: 'your cushion line', field: 'cushionFloor', kind: 'lost' }),
+      true,
+      '⛔ C1-2 — the plan is answerable: it has a sheet, even though it is not a ROW',
+    );
+    eq(
+      answerableByEdit({ entity: 'debt', id: '', name: '', field: '(a row could not be read)', kind: 'lost' }),
+      false,
+      '⛔ …and a whole-ROW loss still is NOT — it shares `id: \'\'`, so `isWholeRowLoss` stays load-bearing',
+    );
+  }
+
+  {
+    /**
+     * ⛔ **THE EXIT, AND THE FAIL-OPEN GUARD BESIDE IT.** [`C1-2`]
+     *
+     * `clearResuppliedRepairs` settles on signal 1 (*the number moved*) or signal 2 (*the row is gone*).
+     * ⚠️ **The plan owns no list**, so `findRow` returns `undefined` and signal 2 would read "the row is
+     * gone" — **dropping every plan-money repair on the next store write.** ⛔ That is a fail-OPEN the
+     * `C1-2` fix INTRODUCES unless the plan is branched before `findRow`, and the second case is what
+     * refuses it: delete the `r.entity === 'plan'` branch and it goes red.
+     */
+    const seed = withPlanRepair();
+    eq(seed.pendingDataRepairs.filter((r) => r.field === 'cushionFloor').length, 1, 'the fixture really does carry a plan repair');
+
+    // ⭐ The answer: the user sets their line again, through the REAL wired action, so the patch goes
+    // through the `set` wrapper where `clearResuppliedRepairs` lives.
+    const answered = storeWith(seed);
+    answered.getState().setCushionFloor(350);
+    eq(
+      answered.getState().store.pendingDataRepairs.filter((r) => r.field === 'cushionFloor').length,
+      0,
+      '⛔ C1-2 — re-entering the line ANSWERS the repair; before this it stood until the ack',
+    );
+
+    // ⛔ THE GUARD. Same action, same store, a value that MOVES NOTHING (already 0, snapped to 0).
+    const untouched = storeWith(seed);
+    untouched.getState().setCushionFloor(0);
+    eq(
+      untouched.getState().store.pendingDataRepairs.filter((r) => r.field === 'cushionFloor').length,
+      1,
+      '⛔ …and a write that moves NOTHING may not settle it — `findRow` would have dropped it as "the row is gone"',
+    );
+  }
+}
+
+/** A migrated store whose cushion line could not be read — the plan-entity repair, through the real door. */
+function withPlanRepair(): DebtStore {
+  return runMigrations({
+    version: 8,
+    paycheck: { amount: '2000', currentDate: DAY, nextPaycheckDate: DAY },
+    debts: [{ id: 'd0', name: 'Chase', balance: 5000, minimumPayment: 150, apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly' }],
+    cushionFloor: 'abc',
+    prefs: { onboardingComplete: true },
+  });
 }

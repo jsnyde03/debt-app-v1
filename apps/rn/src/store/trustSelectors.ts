@@ -467,6 +467,21 @@ export function clearResuppliedRepairs(before: DebtStore, after: DebtStore): Deb
       return true;
     }
     if (!answerableByEdit(r)) return !r.acknowledged;
+    /**
+     * ⛔ **THE PLAN MUST NEVER REACH `findRow`** — it owns no list, so `findRow` returns `undefined`,
+     * signal 2 reads *"the row is gone"*, and the repair is dropped on the next store write. That is the
+     * fail-OPEN this branch exists to prevent, and it is the one the naive `C1-2` fix introduces.
+     *
+     * ⚠️ Signal 2 is not merely unavailable here, it is **meaningless**: there is no row that can go. So
+     * the only answer a plan repair has is signal 1 — the user supplied the number again — read by PATH.
+     */
+    if (r.entity === 'plan') {
+      const was = planFieldValue(before, r.field);
+      const now = planFieldValue(after, r.field);
+      // An unmapped field is not an answer: keep the repair rather than silently settling it.
+      if (was === undefined || now === undefined) return true;
+      return was === now; // moved → cleared; unchanged → still pending
+    }
     const wasRow = findRow(before, r);
     const nowRow = findRow(after, r);
     if (!nowRow) return false; // signal 2 — the row is gone
@@ -508,7 +523,49 @@ export function clearResuppliedRepairs(before: DebtStore, after: DebtStore): Deb
  * already disagreed while the comment said one was *"re-derived rather than re-invented"*.
  */
 export function answerableByEdit(r: DataRepair): boolean {
-  return r.entity !== 'migration' && !!r.id && !isWholeRowLoss(r);
+  /**
+   * ⛔ **`plan` IS ANSWERABLE AND WAS READ AS UNANSWERABLE, WHICH IS `C1-2`.**
+   * [S1.13.7.12.6.5.2, pulled forward from `.12.6.6`]
+   *
+   * The plan is not a row, so `migrations.ts:299` records its money as `{ entity: 'plan', id: '' }` —
+   * and `!!r.id` therefore read *"nothing can be opened for this"* about five fields that every one have
+   * a real control (`CushionFloorSheet`, the paycheck steps, the windfall sheet, the bills reserve). The
+   * user was sent to **check this against their old app** for a number this app has a slider for, and
+   * `clearResuppliedRepairs` kept the repair until the ack because signals 1 and 2 could never fire.
+   *
+   * ⚠️ **`isWholeRowLoss` STAYS LOAD-BEARING and that is the trap this predicate had to avoid.** A
+   * whole-ROW and whole-LIST loss also carry `id: ''` (`dataRepairsCopy.test.ts:159-160, 170`), so a
+   * loosening keyed on the id alone would free them too and tell a user to "set it again" about a row
+   * that is gone. The separating fact is the FIELD: those carry a parenthesised sentence, a plan repair
+   * names a real field.
+   */
+  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.id || r.entity === 'plan');
+}
+
+/**
+ * ⛔ **THE PLAN'S MONEY LIVES AT PATHS, NOT IN A LIST — and `findRow` cannot see it.**
+ *
+ * `listFor` returns `[]` for `plan`, so `findRow` returns `undefined`, so `clearResuppliedRepairs`'
+ * signal 2 would read *"the row is gone"* and **drop every plan-money repair on the next store write**.
+ * ⚡ That is a FAIL-OPEN the fix itself would have introduced — the safe-looking direction, and the exact
+ * shape this module keeps catching. The paths mirror `migrations.ts`'s own producers, including the one
+ * that is RENAMED: `expenseReserve.balance` is reported as `expenseReserveBalance`.
+ */
+function planFieldValue(store: DebtStore, field: string): unknown {
+  switch (field) {
+    case 'cushionFloor':
+      return store.cushionFloor;
+    case 'windfall':
+      return store.windfall;
+    case 'leanAmount':
+      return store.paycheck.leanAmount;
+    case 'typicalAmount':
+      return store.paycheck.typicalAmount;
+    case 'expenseReserveBalance':
+      return store.expenseReserve?.balance;
+    default:
+      return undefined;
+  }
 }
 
 /** The row a repair names, in whichever list its entity lives in. A `migration` record has none. */

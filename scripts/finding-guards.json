@@ -2059,8 +2059,8 @@
       "unfix": [
         {
           "at": "apps/rn/src/store/trustSelectors.ts",
-          "find": "  return r.entity !== 'migration' && !!r.id && !isWholeRowLoss(r);",
-          "replace": "  return r.entity !== 'migration' && !!r.name && !isWholeRowLoss(r);"
+          "find": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.id || r.entity === 'plan');",
+          "replace": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.name || r.entity === 'plan');"
         }
       ],
       "run": "test:app",

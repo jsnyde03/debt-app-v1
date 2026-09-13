@@ -552,7 +552,22 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
    * file was already asking on behalf of two *other* cards. A per-file count says a file asks; it cannot
    * say every claim in that file is gated.
    */
-  'required-plan': 6,
+  /**
+   * ⛔ **7 at `S1.13.7.12.6.5.2` [pass-7 `C1-1` · `C1-6`]: `store/selectors.ts` joined them, and it is the
+   * FIRST `plan`-entity trust call in the tree.**
+   *
+   * `cushionLine` asks `rowFieldUnread(store, 'required-plan', 'plan', '', 'cushionFloor')` — a question
+   * nothing had ever asked. ⚡ Measured across the whole suite before writing it: repair fixtures existed
+   * for **debt 24 · goal 6 · migration 4 · requiredExpense 2 · livingExpense 1 · plan 0**, while
+   * `migrations.ts:299` emits plan repairs in production and this claim's table routes them wholesale.
+   * **Recorded, routed, and consulted by nobody** — which is how a lost cushion line stayed invisible at
+   * eleven sites and why `C1-2` survived seven passes: no test could have failed.
+   *
+   * ⚠️ **A per-file count still cannot see what this fix was actually about.** `selectors.ts` was already
+   * *reachable* from guarded callers; what was missing was the QUESTION, not the file. The same limit
+   * `C1-3` recorded above — a file can be counted here and still leave a claim ungated.
+   */
+  'required-plan': 7,
   /**
    * ⛔ **6 at S1.12.5.6 [pass-5 `C5-3`]: `logPaymentCopy.ts` joined them, and the direction is the point.**
    * `'row-figures'` was created as *"a single row restating its own money"* and wired into the LIST row,

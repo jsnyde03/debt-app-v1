@@ -105,6 +105,9 @@ export function describeRepair(repair: DataRepair): string {
   // "an amount" over the wrong field would be neither. The `field` is also already a sentence for the
   // synthetic losses ("(a row could not be read)") and for the pace, so an unmapped value is correct there.
   const field = FIELD_LABEL[repair.field] ?? repair.field;
+  // ⛔ [pass-7 `C1-3`] The plan's `name` IS this label (`migrations.ts:299`), so the row form would read
+  // "your cushion line — your cushion line". There is no row to name: the label is the whole line.
+  if (repair.entity === 'plan') return field.charAt(0).toUpperCase() + field.slice(1);
   if (!repair.name) return `Your ${noun} list — ${field}`;
   return `${repair.name} — ${field}`;
 }
@@ -261,6 +264,16 @@ function namedFigures(repairs: readonly DataRepair[]): string {
   if (repairs.length > 2) return `the ${repairs.length} amounts that could not be read`;
   const parts = repairs.map((r) => {
     const field = FIELD_LABEL[r.field] ?? r.field;
+    /**
+     * ⛔ **THE PLAN IS NOT A ROW, AND ITS `name` IS THE FIELD LABEL.** [pass-7 `C1-3`]
+     *
+     * `migrations.ts:299` writes `name: PLAN_MONEY_LABELS[field]` — the SAME string `FIELD_LABEL` yields
+     * here — so `${field} on ${r.name}` reads *"your cushion line on your cushion line"*. ⚠️ It was
+     * cosmetic while plan repairs were unanswerable and never reached this sentence; `C1-2` making them
+     * answerable is what put it in front of the user, so it is swept with the class that exposed it
+     * (`.12.6.10`'s own rule: inline when a class has the file open).
+     */
+    if (r.entity === 'plan') return field;
     // ⛔ `B5-7`: a repair's `name` can be `''` while the row still exists and is still editable — the
     // condition is `answerableByEdit`, never `!!r.name`. Falls back to the entity noun so the sentence
     // still points somewhere real.

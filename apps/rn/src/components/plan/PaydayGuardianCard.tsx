@@ -216,9 +216,28 @@ export function PaydayGuardianCard({
      * so the sentence pointed at a control that was no longer on the screen. `unreadInputsFix` names the
      * figure instead, so the instruction does not depend on a sibling being mounted.
      */
+    /**
+     * ⛔ **THE FIGURE IS WITHHELD WHEN THE LINE ITSELF IS THE THING THAT COULD NOT BE READ.**
+     * [S1.13.7.12.6.5.2 · pass-7 `C1-1`]
+     *
+     * The docblock above says what is KEPT is what the app really did read, and named `brief.floor` as
+     * safe because *"the user's own line is a number they set, not one the reader lost"*. ⚡ **In this
+     * case it is precisely the number the reader lost**: `readMoney` repaired it to `0` and
+     * `buildGuardianBrief`'s `|| 200` printed a confident **$200** — inside the sentence explaining that
+     * an amount could not be read. Measured: the user had set `$350`.
+     *
+     * ⚠️ **Gated on `floorUnread`, NOT on `unreadPlanInputs`** — and the difference is the whole point.
+     * This branch fires whenever ANY `required-plan` field is lost, so a lost BILL amount must still
+     * print the user's real line. Only the repair record for `cushionFloor` says the figure is a
+     * substitute, which is why it had to be carried here rather than inferred from the value: a repaired
+     * line and a legitimately-set `$0` are byte-identical.
+     *
+     * ⭐ The FIGURE goes, the SENTENCE stays — "hold your line against it" is still true and still names
+     * the thing. A card that withheld everything would be indistinguishable from a broken one.
+     */
     const unreadBody =
       `An amount this paycheck has to cover could not be read, so I can’t say what’s spare or hold your ` +
-      `${formatWhole(brief.floor)} line against it — ${unreadFix}.`;
+      `${brief.floorUnread ? '' : `${formatWhole(brief.floor)} `}line against it — ${unreadFix}.`;
     return (
       <Card testID="payday-guardian-card">
         <View {...groupLabel(isExample ? 'Example' : undefined, 'Payday Guardian', UNREAD_TITLE, unreadBody)}>

@@ -1294,3 +1294,27 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   Pre-existing and unrelated to the commit that surfaced it. **Recorded rather than chased**, because this
   repo's own rule is that a broad red can carry real defects beside the noise — but a single retry-green
   timeout on a render wait is the noise half. → **tooling/hygiene**, unless it recurs.
+
+### ⤵ surfaced preparing `C1-2`'s pull-forward into `.5.2`, 2026-09-12 — routed per bullet
+
+- ⛔ **THE `plan` ENTITY HAS ZERO REPAIR-FIXTURE COVERAGE, AND IT IS THE ENTITY `C1-2` CHANGES.** Measured
+  by **inverting** the enumeration rather than asking whether `plan` is absent — every `entity:` value the
+  suite constructs, across all 8 files that build repairs: **`debt` 24 · `goal` 6 · `migration` 4 ·
+  `requiredExpense` 2 · `livingExpense` 1 · `plan` 0.** A second probe from a different angle agrees: no
+  test sets `cushionFloor` / `leanAmount` / `typicalAmount` / `windfall` / `expenseReserveBalance` to a lost
+  value. ⚠️ The only `plan` hit is `trustSelectors.test.ts:259`, a **claims-routing table row** asserting the
+  table routes the field — not a repair fixture. ⚡ Meanwhile production emits these repairs
+  (`migrations.ts:299`) and `CLAIM_FIELDS['required-plan'].plan` routes them **wholesale**. ⛔ **So the
+  whole plan-money trust path is exercised by nothing**, which is why `C1-2` could sit open: there is no
+  test that could have failed. `.5.2` writes the suite's first plan-entity fixtures. → **`.5.2`** *(the
+  `cushionFloor` half)*, **pass 8** *(the other four fields)*.
+- ⚠️ **`dataRepairsCopy.test.ts:167`'s comment states the wrong discriminator** — *"The discriminator is the
+  NAME, not the entity"*. `B5-7` moved `answerableByEdit` from `!!r.name` to `!!r.id`, and that fixture sets
+  **both** to `''`, so the test passes either way and never noticed the comment go stale. ⚡ **Ninth
+  expired-comment claim in this workstream, and the first one found in a TEST** — a fixture that satisfies
+  two different predicates cannot tell you which one it is pinning. → **`.12.6.9`**.
+- ⚠️ **The `C1-2` predicate has a trap worth writing down before it is built.** A plan repair carries
+  `id: ''` — and so do the whole-row and whole-list losses that MUST stay unanswerable
+  (`dataRepairsCopy.test.ts:159-160, 170`). ⛔ So any loosening keyed on `id` alone frees both. The
+  separating fact is that whole-row losses carry a **parenthesised field** while a plan repair names a real
+  one, so **`isWholeRowLoss` stays load-bearing** in the new predicate. → **`.5.2`**.

@@ -14,7 +14,7 @@ import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './gu
 import { sumPaidToDebt } from './historySelectors';
 import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectExtraToDebt, selectHeldReserve, selectLiquidCushion, selectDeployedBeforeDebt, selectDeployedBeforeDebtGoalId } from './planSelectors';
 import { rankDebts, selectCashTimeline } from './payoffSelectors';
-import { selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
+import { cushionLine, selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
 import { appliedTopUp, nettedTopUp, topUpEntries } from './topUpSelectors';
 import { debtLiveness, liveDebts, rowFieldUnread } from './trustSelectors';
 import type { AllocationCategory } from '@core/engine/allocatePaycheck';
@@ -298,7 +298,7 @@ export function selectSavingsPoolUnread(store: DebtStore): boolean {
   if (!allocation) return false;
   const { residual, surplus } = nettedTopUp(store, allocation.shortfall);
   if (residual > 0) return false;
-  const floor = store.cushionFloor ?? 200;
+  const floor = cushionLine(store).value;
   const gap = Math.round((floor - (selectDiscretionary(allocation) + surplus)) * 100) / 100;
   if (gap <= 0) return false;
   return savingsPoolIncomplete(store, ['savings', 'emergency']);
@@ -348,7 +348,7 @@ export function selectAppliedTopUp(
   // shortfall stood: the card said "to hold your line" while the band said `at-risk`, three lines apart.
   // ⚠️ It now answers *"is the line held"* rather than *"did MY move hold it"*, deliberately — a card that
   // contradicts the band beside it is the class A1 was raised for, and agreement is the fix.
-  const holdsLine = !!allocation && selectDiscretionary(allocation) + nettedTopUp(store, allocation?.shortfall).surplus >= (store.cushionFloor ?? 200);
+  const holdsLine = !!allocation && selectDiscretionary(allocation) + nettedTopUp(store, allocation?.shortfall).surplus >= cushionLine(store).value;
   return { amount: rec.amount, goalId: rec.goalId, goalName: goal.name, holdsLine };
 }
 
@@ -368,7 +368,7 @@ export function selectTightTopUp(store: DebtStore): TightTopUp | null {
   // the obligations are met.
   const { residual, surplus } = nettedTopUp(store, allocation?.shortfall);
   if (!allocation || residual > 0) return null;
-  const floor = store.cushionFloor ?? 200;
+  const floor = cushionLine(store).value;
   const cushion = selectDiscretionary(allocation) + surplus;
   const gap = Math.round((floor - cushion) * 100) / 100;
   if (gap <= 0) return null; // at or above the line already
@@ -568,7 +568,7 @@ export function selectAffordability(store: DebtStore, amount: number): Affordabi
   // there is none is the false statement. ⚠️ The control is still unmoved by construction: with no top-up
   // on record the surplus is 0 and `selectSpendable` is 0 on any shortfall, exactly as before.
   const discretionaryNow = Math.max(0, selectSpendable(base) + nettedTopUp(store, base.shortfall).surplus);
-  const floor = store.cushionFloor ?? 200;
+  const floor = cushionLine(store).value;
   const { verdict, cushionAfter, shortBy } = computeAffordability(discretionaryNow, amount, floor);
 
   // Re-solve WITH the purchase as a one-off this cycle → how much less reaches debt (the honest cost).
@@ -873,12 +873,18 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   const topUp = appliedTopUp(store);
   // ⛔ S1.9.3 [A1] — netted ONCE, here, and the three reads below take the result.
   const { residual, surplus } = nettedTopUp(store, allocation?.shortfall);
+  // Asked ONCE: the value and whether it may be stated are one fact, and two calls could disagree.
+  const line = cushionLine(store);
 
   return buildGuardianBrief({
     isPremium: store.subscriptionPlan === 'premium',
     debtFree,
     // The user's cushion line — premium is held to it; for free it's the healthy line they're not on.
-    floor: store.cushionFloor ?? 200,
+    // ⛔ **`.unread` RIDES WITH THE FIGURE.** [`C1-1`] `??` passed a repaired `0` straight through and
+    // `buildGuardianBrief`'s `|| 200` then printed it as a confident "$200 · Your line". The card needs
+    // to know the number is a substitute, and only the repair record can tell it.
+    floor: line.value,
+    floorUnread: line.unread,
     // Headroom after every obligation drives the band (a choice to deploy isn't a risk). The plan
     // reserves the floor for premium (effectivePaycheckBuffer), so `kept` = the protected cushion.
     // ⛔ S1.9.3 [A1] — THE SURPLUS. A dollar of top-up is spent on the shortfall or it is cushion, never

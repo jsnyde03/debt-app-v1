@@ -36,6 +36,14 @@ export interface GuardianBrief {
   heldReserve: number;
   /** The user's cushion line. */
   floor: number;
+  /**
+   * ⛔ **`floor` IS A SUBSTITUTE — DO NOT PRINT IT AS "YOUR LINE".** [S1.13.7.12.6.5.2 · `C1-1`]
+   *
+   * The stored line could not be read and was repaired to `0`, so the plan runs on the default. The card
+   * withholds the FIGURE and keeps the sentence: the one number its docblock called safe to keep —
+   * *"a number they set, not one the reader lost"* — is in this case precisely the one the reader lost.
+   */
+  floorUnread?: boolean;
   /** Whether the cushion reached the floor. */
   reachedFloor: boolean;
   /** §2.0.d — the inputs are too old for a confident read; the card renders this as a neutral
@@ -73,6 +81,12 @@ export interface GuardianInput {
   /** The savings destination name at debt-free (emergency fund / goal), for the deploy copy. */
   deployTargetName?: string;
   floor: number;
+  /**
+   * ⛔ **The caller could not READ the line and is passing a substitute.** [`C1-1`] The brief carries this
+   * through so the card can withhold the figure — core must never infer it from the VALUE, because a
+   * repaired line and a legitimately-set `$0` are byte-identical (`cushionLine`).
+   */
+  floorUnread?: boolean;
   /** Cash after every obligation (bills + minimums + living) — the headroom that drives the band. */
   discretionary: number;
   /** The liquid cushion the plan KEEPS (all protected buckets) — what the floor protects. */
@@ -175,7 +189,23 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
   const debtFree = input.debtFree === true;
   const deployNoun = debtFree ? "savings" : "payoff"; // "Extra {payoff} resumes / is paused"
   // Sanitize every number up front — a bad upstream value must degrade to a safe read, never `$NaN`.
-  const floor = safeAmount(input.floor) || 200;
+  // ⛔ **WAS `safeAmount(input.floor) || 200`, AND THAT `||` WAS `C1-1`.** [S1.13.7.12.6.5.2]
+  // `readMoney` repairs an unreadable line to `0`, and `||` turned that SENTINEL into a confident `$200`
+  // printed as *"Your line"* — inside the very sentence explaining an amount could not be read. ⚡ The
+  // caller now resolves the default (`cushionLine`) and says so via `floorUnread`, so the only `0` that
+  // can still arrive is a line the user genuinely set, and printing `$0` for that is TRUE.
+  // ⛔ **AND REMOVING THE `||` OUTRIGHT BROKE THE NaN DEFENCE — a standing test caught it, not me.**
+  // `testBuildGuardianBrief.ts:127` pins *"a NaN floor falls back to the $200 default"*, and it went
+  // `expected 200, got 0`. ⚡ The reason is that **`safeAmount` maps NaN to `0`**, so it was never the
+  // NaN guard — the `||` was, by converting that `0` onward. My comment here said the opposite and was
+  // the thing that misled me; it is replaced rather than annotated.
+  //
+  // ⭐ **So the `||` was conflating TWO jobs, and the fix is to separate them rather than delete both:**
+  // a value that is not a usable line at all (NaN, Infinity, or negative — `setCushionFloor` clamps to
+  // ≥ 0, so a negative can only be garbage) degrades to the default; a finite `0` is KEPT, because that
+  // is either a line the user genuinely set or a repaired one, and `floorUnread` is what tells them
+  // apart. The old spelling could not make that distinction, which is exactly what `C1-1` was.
+  const floor = Number.isFinite(input.floor) && input.floor >= 0 ? input.floor : 200;
   const discretionary = safeAmount(input.discretionary);
   const kept = safeAmount(input.kept);
   // The held reserve is a portion of the kept cushion — never more than it (a bad upstream value can't
@@ -225,7 +255,10 @@ export function buildGuardianBrief(input: GuardianInput): GuardianBrief {
         `Heads up: ${lookahead.label} looks ${lookahead.status === "pressure" ? "tight" : "a little tight"} — ${amt(lookahead.cushion)} of room. Worth planning for now.`
       : undefined;
 
-  const viz = { cushion: kept, deployedToDebt, heldReserve, floor, reachedFloor, debtFree };
+  // ⛔ `floorUnread` rides with `floor` in the ONE place the brief's numbers are assembled, so it is
+  // exactly as reachable as the figure it qualifies. Adding it per-return is the list-shaped fix that
+  // leaves a path behind. [`C1-1`]
+  const viz = { cushion: kept, deployedToDebt, heldReserve, floor, reachedFloor, debtFree, floorUnread: input.floorUnread === true };
 
   // §2.3.1 paused-deploy (2.4.7.7) — a scheduled paycheck was reported missed. This supersedes every
   // other read (a missed check with the plan still assuming income is the structural phantom-income

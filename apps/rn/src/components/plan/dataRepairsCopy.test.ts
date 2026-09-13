@@ -183,6 +183,48 @@ export default function run() {
   }
 
   /**
+   * ⛔ **THE PLAN'S OWN MONEY — `C1-2` and `C1-3`, and the suite's FIRST `plan`-entity fixtures.**
+   * [S1.13.7.12.6.5.2]
+   *
+   * ⚡ Measured before these were written: across all 8 files that construct repairs, the entities used
+   * were **debt 24 · goal 6 · migration 4 · requiredExpense 2 · livingExpense 1 · plan 0** — while
+   * `migrations.ts:299` emits plan repairs in production and `CLAIM_FIELDS['required-plan'].plan` routes
+   * them wholesale. **The whole plan-money trust path was exercised by nothing**, which is how `C1-2`
+   * stayed open: no test could have failed.
+   */
+  {
+    const floorLost: DataRepair = { entity: 'plan', id: '', name: 'your cushion line', field: 'cushionFloor', kind: 'lost' };
+
+    /**
+     * ⛔ `C1-2` — it used to read `unrecoverable`, so the card said *"There is nothing to reopen for it —
+     * check this against your old app"* about a number `CushionFloorSheet` exists to set. The plan is not
+     * a ROW (`id: ''`), and `answerableByEdit` asked `!!r.id`.
+     */
+    const blocks = repairBlocks([floorLost]);
+    eq(blocks[0].kind, 'lost', '⛔ C1-2 — a lost cushion line IS answerable: the app has a sheet for it');
+    assert(blocks[0].detail.includes('set it again'), '…so the card promises the thing the user can actually do');
+    assert(
+      !blocks[0].detail.includes('check this against your old app'),
+      '⛔ …and no longer sends them to their old app for a number this app owns',
+    );
+
+    /**
+     * ⛔ `C1-3` — `migrations.ts:299` sets `name` to the SAME string `FIELD_LABEL` yields, so the row
+     * form rendered *"your cushion line — your cushion line"*. Asserted as the absence of the
+     * duplication rather than as an exact sentence, so a reworded label cannot reintroduce it.
+     */
+    eq(describeRepair(floorLost), 'Your cushion line', '⛔ C1-3 — the plan names no row, so the label is the whole line');
+    const label = FIELD_LABEL.cushionFloor;
+    assert(
+      describeRepair(floorLost).toLowerCase().indexOf(label) === describeRepair(floorLost).toLowerCase().lastIndexOf(label),
+      '⛔ C1-3 — …and the label appears ONCE, whatever it is reworded to',
+    );
+
+    // ⭐ The control: a real row still reads as name-and-field, so the plan branch did not flatten everyone.
+    eq(describeRepair(repair()), 'Roof — the target', '⭐ control — a row-bearing repair is unchanged');
+  }
+
+  /**
    * ⛔ **S1.9.7 [pass-2 C-m1] — EVERY REPAIRABLE FIELD IS NAMED FOR THE USER, or this reds.**
    *
    * The card printed raw schema keys — *"Chase — minimumPayment"*, *"House Fund — targetAmount"* — for five

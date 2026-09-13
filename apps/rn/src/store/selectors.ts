@@ -7,6 +7,7 @@ import type { DebtStore } from '@/data/models';
 
 import { buildForecastCycles } from './forecastCycles';
 import { deriveConfidenceContext } from './guardianPredictionCore';
+import { rowFieldUnread } from './trustSelectors';
 
 /** The shared payday-allocation engine's output (kept in `@core`, identical to the Capacitor app). */
 export type Allocation = ReturnType<typeof allocatePaycheck>;
@@ -15,13 +16,70 @@ export type Allocation = ReturnType<typeof allocatePaycheck>;
 export const BASE_PAYCHECK_BUFFER = 50;
 
 /**
+ * ⛔ **THE DEFAULT CUSHION LINE, NAMED ONCE. [S1.13.7.12.6.5.2 · `C1-1` · `C1-6`]**
+ *
+ * It did not exist. `200` was written as a bare literal at **11 fallback sites across 4 spellings** —
+ * `?? 200` ×7, `|| 200` ×1, `floor > 0 ? floor : 200` ×2, `isFinite(floor) ? floor : 200` ×1 — and the
+ * spellings **disagreed about the same store**: measured on one unreadable floor, the Guardian said
+ * `$200`, the Cash Runway said `$0` and Affordability said `$0`. That is `C1-6`'s "one store, three
+ * answers", and the root is that no owner existed to disagree with.
+ *
+ * ⚠️ **`computeState`'s `: 200` is deliberately NOT this constant.** It guards the BAND against a
+ * non-positive floor; this names the user's default LINE. Two meanings that happen to share a number, and
+ * collapsing them would change which real floor reaches the band — measured at 484 cases to be the one
+ * thing that does move the verdict.
+ */
+export const DEFAULT_CUSHION_FLOOR = 200;
+
+/** The user's cushion line, and whether the app is entitled to STATE it as theirs. */
+export interface CushionLine {
+  /** The figure to compute with — their line, or the default when it could not be read. */
+  value: number;
+  /**
+   * ⛔ The stored line was lost and repaired to `0`, so `value` is a SUBSTITUTE and no surface may print
+   * it as "your line". Withhold the figure; keep the sentence.
+   */
+  unread: boolean;
+}
+
+/**
+ * ⭐ **ONE OWNER OF "WHAT IS YOUR LINE, AND DID WE READ IT".** [`C1-1` · `C1-6`]
+ *
+ * ⛔ **NO FALLBACK SPELLING CAN ANSWER THIS, WHICH IS WHY THE FINDINGS' REMEDY WAS UNBUILDABLE.**
+ * `setCushionFloor` clamps with `Math.max(0, …)`, so a user can genuinely hold a `$0` line — and
+ * `readMoney` repairs an unreadable one to `$0` as well. The two are **byte-identical in value**. `??`
+ * never fires on either (both are numbers) and `||` converts both to `200`. ⚡ Only the repair RECORD
+ * separates them, measured on three stores: readable `350` → `false`; lost `"abc"` → `0`, `true`;
+ * a legitimate `0` → `0`, **`false`**. That last pair is the whole design.
+ *
+ * ⚠️ **`value` is the DEFAULT when unread, not `0`, and that is a deliberate money decision.** The `??`
+ * producers pass `0` today, which is exactly what makes the Cushion Forecast unable to ever show a
+ * crunch (`C1-6`: "at `$0` no cycle can ever read as a crunch") and leaves the plan protecting nothing.
+ * `0` is not the neutral choice here; it is the harmful one.
+ */
+export function cushionLine(store: DebtStore): CushionLine {
+  // ⛔ The first `plan`-entity trust call in the tree. `migrations.ts` records these as
+  // `{ entity: 'plan', id: '', field }` and `CLAIM_FIELDS['required-plan'].plan` routes `'any'`, so the
+  // machinery was recorded and routed and never once consulted — which is why a lost line was invisible.
+  const unread = rowFieldUnread(store, 'required-plan', 'plan', '', 'cushionFloor');
+  const stored = store.cushionFloor;
+  return {
+    value: unread || !Number.isFinite(stored) ? DEFAULT_CUSHION_FLOOR : stored,
+    unread,
+  };
+}
+
+/**
  * The cushion the plan protects before deploying extra payoff (2.4 auto-protect). Premium reserves the
  * user's cushion floor so tight cycles keep cash instead of over-paying debt (the Guardian's action);
  * free keeps the base buffer. Derived from `store.subscriptionPlan`, so it applies to display AND
  * payday capture without threading a flag through every caller.
+ *
+ * ⚠️ Reads the owner rather than `?? 200`: `??` passes a repaired `0` straight through, so a lost line
+ * made premium reserve **nothing** while the Guardian card printed `$200` for the same store.
  */
 export function effectivePaycheckBuffer(store: DebtStore): number {
-  return store.subscriptionPlan === 'premium' ? (store.cushionFloor ?? 200) : BASE_PAYCHECK_BUFFER;
+  return store.subscriptionPlan === 'premium' ? cushionLine(store).value : BASE_PAYCHECK_BUFFER;
 }
 
 /** How far the §2.5 water-fill looks ahead for a crunch to pre-fund (biweekly ⇒ ~4 months; catches a

@@ -32960,3 +32960,84 @@ leaving a healthy sibling for `.first()` to find — and only then does the comp
 **nothing in `scripts/` gates the class** — the only script naming a locator is `check-copy-owners.ts`,
 about copy ownership. 59 is a POPULATION, not a defect count. ⛔ **Do not close it by adding `.first()`**:
 that removes the error and keeps the hole, which is what this very spec already recorded once. → `.12.6.9`.
+
+### `.12.6.5.2` BUILT — one owner for "your line", and `C1-2` + `C1-3` folded in · 2026-09-12
+
+**`C1-1` · `C1-6` · `C1-2` *(pulled forward from `.12.6.6` by 🎯)* · `C1-3` *(swept inline per `.12.6.10`'s
+own rule)*.**
+
+#### What the population actually was
+
+The finding named **1** site. `.5.1` corrected it to **8 / 2 spellings**. Derived by query it is **11
+fallback sites across 4 spellings** — `?? 200` ×7, `|| 200` ×1, `floor > 0 ? floor : 200` ×2
+(`computeState`), `isFinite(floor) ? floor : 200` ×1 (`CushionFloorSheet`). ⛔ **And `DEFAULT_CUSHION_FLOOR`
+did not exist** — `200` was a bare literal at every one of them, which is why the spellings could disagree
+about the same store: measured on one unreadable floor, the Guardian said **$200**, the Cash Runway **$0**,
+Affordability **$0**.
+
+#### ⛔ The findings' own remedy was unbuildable, and the probe is why
+
+*"Make `??` catch the repaired `0`"* cannot work. `setCushionFloor` clamps with `Math.max(0, …)`, so a user
+can genuinely hold a **$0** line, and `readMoney` repairs an unreadable one to **$0**. The two are
+**byte-identical in value** — `??` fires on neither and `||` converts both. ⚡ Only the repair RECORD
+separates them, measured on three stores: readable `350` → not unread · lost `"abc"` → `0`, **unread** ·
+legitimate `0` → `0`, **not unread**. That pair is the whole design.
+
+#### ⭐ The band risk both findings lead with is FALSE, and that shrank the fix
+
+C1-1: *"the band is computed against `floor` too, so a naive change moves the verdict."* Swept 484 cases
+(discretionary 0–600 × 4 prior bands): floor `0` vs `200` → **0** disagreements; control floor `0` vs `350`
+→ **180**. `computeState.ts:32,44` substitutes the default **itself**. ⚠️ **Insulated against the SENTINEL,
+not against a different REAL floor** — so `computeState`'s `: 200` was deliberately NOT collapsed into the
+new constant. Two meanings sharing a number.
+
+⚡ **And the render surface is smaller than the site count.** `brief.floor` has **8** consumers, not the
+finding's 4 — but the unread branch returns at `:222`, so the bar domain, a11y label, `floorFrac` and the
+visible chip never render while inputs are unread. **C1-1's live surface is one sentence, `:221`.**
+⚠️ `CushionFloorSheet` is not a defect: one production mount, below that return, so it cannot render a
+fabricated floor and Save cannot write one — closed by census, after I had twice guessed it wrong.
+
+#### `C1-2`, and the fail-open the fix itself introduces
+
+`answerableByEdit` asked `!!r.id`; a plan repair is `{ entity: 'plan', id: '' }`, so five fields with real
+controls read as *"nothing to reopen — check this against your old app"*. ⛔ **But the predicate alone
+fails OPEN**: `listFor('plan')` is `[]`, so `findRow` returns `undefined` and signal 2 reads *"the row is
+gone"*, dropping every plan-money repair on the next store write. The fix is a value-lookup by PATH, with
+`isWholeRowLoss` kept load-bearing because whole-row losses share `id: ''`.
+
+**Planted, and this is the quotable evidence:**
+
+```
+❌ Error: ⛔ …and a write that moves NOTHING may not settle it — `findRow` would have dropped it as
+   "the row is gone" — expected 1, got 0
+    at Object.run (trustSelectors.test.ts:644:5)  ·  at main (runAppTests.ts:309:56)
+```
+
+⭐ **Two plants, because one would have been ambiguous.** `trustSelectors.test.ts`'s `eq` prints nothing on
+success, so grepping a green run for my labels can never prove the block executed — and a green plant B
+would then mean *either* "the branch does nothing" *or* "the test never ran". So plant A flipped an
+expected value to prove the block runs, and only then did plant B mean one thing. ⚠️ The stack above
+re-confirms A independently: line **644**, inside `run()`, reached from `runAppTests.ts:309`.
+
+#### ⚠️ Two defects of my own, both caught by instruments rather than by re-reading my diff
+
+1. ⛔ **I voided a neighbour's guard.** `S1P5-B5-7-ANSWERABLEID`'s anchor was the exact
+   `answerableByEdit` line C1-2 rewrote — `0×` matches, **void, not stale**. Re-anchored with the un-fix
+   kept faithful to `B5-7` (it still flips the question to the NAME, preserving the plan clause).
+2. ⛔ **Deleting `|| 200` broke a NaN defence**, and my own comment asserting *"`safeAmount` is the `$NaN`
+   guard"* is what misled me — `safeAmount` maps NaN to **0**; the `||` was doing that job. `test:regression`
+   caught it: *expected 200, got 0*. The `||` was conflating a NaN degrade with the sentinel fabrication;
+   the fix separates them — non-finite **or negative** → default, finite `0` → kept.
+
+⚡ **And 4 of 52 gates failed while only 2 were problems.** `test:gate-plants` (7 scenarios) and
+`test:wrap-escapes` were pure cascades — every scenario read `control=exit 1 · reason=MATCHED`, and
+wrap-escapes said `FAULT-BASELINE-ALREADY-RED` outright. Fixing four things would have been fixing two
+symptoms.
+
+#### Coverage that did not exist
+
+Across all 8 files that construct repairs the entities were **debt 24 · goal 6 · migration 4 ·
+requiredExpense 2 · livingExpense 1 · plan 0** — measured by **inverting** the enumeration rather than
+asking whether `plan` was absent. `.5.2` writes the suite's first plan-entity fixtures.
+`CLAIM_CONSUMER_FLOOR['required-plan']` **6 → 7**: `selectors.ts` is the first plan-entity trust caller
+in the tree.
