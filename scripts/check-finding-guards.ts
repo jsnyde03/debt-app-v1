@@ -814,6 +814,41 @@ for (const id of proven) {
   }
 }
 
+/**
+ * ⛔ **[.5.7 ② · backlog from `.5.4g`] — STALENESS IS COMMIT-BLIND, SO A CLOSE COULD PASS THIS GATE AND FAIL IT ONE COMMIT LATER.**
+ *
+ * The scan above asks `git log <sha>..HEAD -- <target>`: only COMMITTED history. ⚡ Measured twice in one session:
+ * `.5.4f`'s close ran this gate green with its floor edit still uncommitted, committed, and the next run refused — the
+ * edit had staled five proofs anchored in this very file, invisible until it was a commit. The un-committed half of
+ * the tree was the half that decided the verdict.
+ *
+ * ⭐ So every run also PROJECTS: a proof not already stale whose target has an uncommitted change (staged, unstaged or
+ * untracked) is stale the moment that change is committed. The count prints on every run; `--projected` makes
+ * `stale + projected > cap` a problem — run it BEFORE the first commit of a close, when the answer can still change
+ * what gets committed. ⚠️ Opt-in on purpose: an ordinary pre-commit `lint:rn` over a half-built tree would otherwise
+ * red on work that is about to be re-proved, which is the `S5-DEADLOCK` shape one step removed.
+ */
+const PROJECTED = process.argv.includes('--projected');
+const dirtyPaths = new Set<string>();
+try {
+  const porcelain = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: REPO_ROOT, encoding: 'utf8' });
+  for (const line of porcelain.split('\n')) {
+    if (line.length < 4) continue;
+    const path = line.slice(3).trim();
+    for (const part of path.split(' -> ')) dirtyPaths.add(part.replace(/^"|"$/g, ''));
+  }
+} catch (err) {
+  problems.push(`the projected-staleness scan could not read the working tree: ${err instanceof Error ? err.message : String(err)}`);
+}
+const staleIds = new Set(stale.map((s) => s.split(' — ')[0]));
+const projected: string[] = [];
+for (const id of proven) {
+  if (staleIds.has(id)) continue;
+  const p = registry[id].proof!;
+  const moved = [...new Set((p.unfix ?? []).map((u) => u.at))].find((t) => dirtyPaths.has(t));
+  if (moved) projected.push(`${id} — ${moved} has an uncommitted change`);
+}
+
 note(
   `   proof: ${proven.length} EXECUTED · ${stale.length} of them STALE (cap ${MAX_STALE_PROOFS}) · ` +
     `${authored.length} authored but never run (cap ${MAX_AUTHORED}) · ` +
@@ -824,6 +859,17 @@ note(
 // ⚠️ Named, not just counted. A count nobody can act on is a count nobody drains — the same reason the
 // unguarded list prints on the green path.
 for (const s of stale) note(`     stale: ${s}`);
+if (projected.length) {
+  note(`          ⚠️ ${projected.length} more would go STALE if the working tree were committed — ${stale.length + projected.length} against the cap of ${MAX_STALE_PROOFS}.`);
+  for (const s of projected) note(`     projected: ${s}`);
+}
+if (PROJECTED && stale.length + projected.length > MAX_STALE_PROOFS) {
+  problems.push(
+    `--projected: ${stale.length} stale now and ${projected.length} more as if committed — ${stale.length + projected.length} against the ceiling of ${MAX_STALE_PROOFS}.\n` +
+      '        Committing this tree walks past the ceiling. Commit, then re-run those proofs in the same close:\n' +
+      '        `npm run prove:guards -- --id=<comma-separated> --record` — before the push, not after it.',
+  );
+}
 /**
  * ⛔ **`S5-DEADLOCK` — THIS CEILING COULD SEAL ITSELF SHUT, AND IT DID, TWICE IN ONE ROUND.**
  * [class-1 round 5/6; filed to class 2 `.12.6.2`]
