@@ -70,6 +70,18 @@ export const FIELD_LABEL: Record<string, string> = {
 export const UNREAD_FIGURE = '—';
 
 /**
+ * ⛔ **[`.5.4d`] THE LEAD A PLAN SURFACE SAYS WHEN IT REFUSES — one authority, because the sentence changed meaning.**
+ *
+ * Four surfaces opened their refusal with *"An amount this paycheck has to cover could not be read"*. That was true
+ * while they refused only on obligations. Since `.5.4d` the Guardian card, affordability and windfall routing refuse
+ * on `'paycheck-plan'` and the plan hero on `'solved-projection'` — so a lost GOAL target, cushion line or APR fires
+ * the same refusal, and none of those is an amount the paycheck has to cover. ⚠️ Correcting one false statement by
+ * making another is this repo's `assert-the-honest-state-by-name` class; the fix was the change that introduced it.
+ * `RequiredActionsCard` keeps *"has to cover"*: it still refuses on obligations alone, where that is true.
+ */
+export const UNREAD_PLAN_LEAD = 'An amount your plan is built from could not be read';
+
+/**
  * ⛔ **THE HONEST STATE, SAID — not merely the false one withheld.** [S1.10.6.2 · pass-3 C-1]
  *
  * ⚡ Suppressing a figure without naming why is how [B1]'s first fix dropped a user into *"Your payoff

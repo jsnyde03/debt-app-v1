@@ -12,7 +12,7 @@ import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectAffordability, type Affordability } from '@/store/guardianSelectors';
-import { unreadInputsFix } from '@/components/plan/dataRepairsCopy';
+import { UNREAD_PLAN_LEAD, unreadInputsFix } from '@/components/plan/dataRepairsCopy';
 import { mayClaim, repairsPoisoning } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -235,7 +235,9 @@ export function AffordabilityCard() {
         <Text testID="afford-unread-inputs" style={[textStyles.subhead, styles.hint, { color: c.accent.warning }]}>
           {/* ⛔ S1.13.7.8 [pass-6 `C1-1`] — "above" named `DataRepairsCard`, which one "Got it" tap
               removes for good while this suppression stays. The figure is named now. */}
-          An amount this paycheck has to cover could not be read, so I’d be answering off a plan that’s
+          {/* ⛔ [`.5.4d`] Not "has to cover": this card refuses on `'paycheck-plan'`, so a goal target or the cushion
+              line fires it too, and neither is an amount the paycheck has to cover. */}
+          {UNREAD_PLAN_LEAD}, so I’d be answering off a plan that’s
           missing something — {unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and I can tell you')}.
         </Text>
       ) : !isPremium ? (

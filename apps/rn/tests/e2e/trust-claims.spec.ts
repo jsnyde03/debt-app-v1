@@ -368,6 +368,84 @@ test('C4-7 control · the same card with the minimum readable still states the w
   await expect(page.getByTestId('guardian-unread-inputs')).toHaveCount(0);
 });
 
+// ── .5.4d · the claims the Guardian card and the plan hero ask since the rewire ─────────────────────
+
+/**
+ * ⛔ **S1.13.7.12.6.5.4d [DECISION 🎯 2026-09-13] — THE GUARDIAN CARD OVER A GOAL TARGET THE APP COULD NOT READ.**
+ *
+ * The card asked `'required-plan'`, which never routed a goal. A priority goal funds BEFORE the snowball, so a target
+ * repaired to `$0` reads as already funded, the goal leaves the allocation, and the spare it held reappears as money
+ * to put toward debt. Measured on 22 plan shapes: the brief moves on every goal field. It asks `'paycheck-plan'` now.
+ *
+ * ⚠️ Planting the card back onto `'required-plan'` must turn this red — that plant, not this pass, is the proof.
+ */
+test('.5.4d · the Payday Guardian card states nothing over a goal target the app could not read', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        { id: 'd0', name: 'Visa', balance: 5000, originalBalance: 8000, minimumPayment: 1500, apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+      // `targetAmount: ''` is the one unreadable field, and it is a GOAL field — nothing an obligation reads.
+      goals: [{ id: 'g0', name: 'Trip', targetAmount: '', currentAmount: 100, priorityPerPaycheck: 150, priority: true, type: 'savings' }],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.getByTestId('payday-guardian-card')).toBeVisible({ timeout: 15_000 });
+  // The honest state BY NAME first — scoped to the card, never page-wide.
+  await expect(page.getByTestId('guardian-unread-inputs')).toBeVisible();
+  await expect(
+    page.getByTestId('guardian-unread-inputs'),
+    'a goal target is not an amount this paycheck has to cover — the lead must say what is actually true',
+  ).toContainText('An amount your plan is built from could not be read');
+  await expect(page.getByText('Looks clear this paycheck')).toHaveCount(0);
+  await expect(page.getByText('To debt')).toHaveCount(0);
+});
+
+/**
+ * ⛔ **S1.13.7.12.6.5.4d [pass-7 `C1-5`] — THE PLAN HERO OVER AN APR THE APP COULD NOT READ.**
+ *
+ * The hero prints a debt-free DATE, which moves on a lost APR, and it asked `'required-plan'`, which never routed one.
+ * It asks `'solved-projection'` now. ⛔ And `C1-5`: over an unread input it withheld its verdict while still drawing
+ * the Required / Spoken-for / Flexible split — every segment carved from the allocation the unread figure corrupted.
+ *
+ * ⭐ Both directions: the control below is the same store with the rate readable, which still states the date and split.
+ */
+test('.5.4d · the plan hero withholds its date and its split over an APR the app could not read', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      debts: [
+        { id: 'd0', name: 'Visa', balance: 5000, originalBalance: 8000, minimumPayment: 150, apr: '', dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/');
+  const hero = page.getByTestId('plan-hero');
+  await expect(hero).toBeVisible({ timeout: 15_000 });
+  await expect(hero, 'the honest state, by name').toContainText('An amount your plan is built from could not be read');
+  await expect(hero, 'a debt-free date solved from a rate the app could not read').not.toContainText('debt-free by');
+  await expect(hero.getByText('Flexible'), 'the split is carved from the corrupted allocation (C1-5)').toHaveCount(0);
+});
+
+test('.5.4d control · the plan hero with the rate readable still states its date and its split', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      debts: [
+        { id: 'd0', name: 'Visa', balance: 5000, originalBalance: 8000, minimumPayment: 150, apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/');
+  const hero = page.getByTestId('plan-hero');
+  await expect(hero).toBeVisible({ timeout: 15_000 });
+  await expect(hero).toContainText('debt-free by');
+  await expect(hero.getByText('Flexible')).toBeVisible();
+  await expect(hero).not.toContainText('could not be read');
+});
+
 // ── C4-2 · the trophy shelf, and the heading Money put over the same row ─────────────────────────
 
 /**

@@ -12,7 +12,7 @@ import { parseAmountField } from '@core/utils/amountField';
 import { useActiveStore } from '@/store/StoreContext';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectWindfallSplit, type WindfallBucketKey } from '@/store/guardianSelectors';
-import { unreadInputsFix } from '@/components/plan/dataRepairsCopy';
+import { UNREAD_PLAN_LEAD, unreadInputsFix } from '@/components/plan/dataRepairsCopy';
 import { mayClaim, repairsPoisoning } from '@/store/trustSelectors';
 import { FORM_ERRORS } from '@/store/obligationForm';
 import { useAppStore } from '@/store/useAppStore';
@@ -148,7 +148,8 @@ export function WindfallSheet({ current, onClose }: { current: number; onClose: 
                 *"set it again"* with no figure named. It never said "above", so it was never pointing at a
                 card that had gone — it simply did not say WHICH amount. Same producer as its three
                 siblings, so the four cannot drift apart. */}
-            An amount this paycheck has to cover could not be read, so I can’t say where this would land —
+            {/* ⛔ [`.5.4d`] Not "has to cover" — a lost goal target or cushion line fires this refusal too. */}
+            {UNREAD_PLAN_LEAD}, so I can’t say where this would land —
             {' '}{unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and I’ll route it')}.
           </Text>
         </View>

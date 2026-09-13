@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { UNREAD_PLAN_LEAD } from '@/components/plan/dataRepairsCopy';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { CountUp } from '@/motion';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -159,7 +160,8 @@ export function PlanHero({
         ? 'Short this paycheck'
         : 'On track';
   const reassurance = unreadPlanInputs
-    ? 'Something this paycheck has to cover could not be read, so I can’t tell you where the plan lands yet.'
+    ? // ⛔ [`.5.4d`] Not "has to cover": the hero refuses on `'solved-projection'`, so a lost APR fires this too.
+      `${UNREAD_PLAN_LEAD}, so I can’t tell you where the plan lands yet.`
     : summary.debtFreeDate
       ? `${statusLabel} · debt-free by ${summary.debtFreeDate}`
       : statusLabel;

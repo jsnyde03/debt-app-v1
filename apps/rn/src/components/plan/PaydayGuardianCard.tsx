@@ -21,6 +21,7 @@ import { spacing } from '@/theme/spacing';
 import { eyebrow, textStyles } from '@/theme/typography';
 import { a11yHidden, decorative, groupLabel } from '@/utils/a11y';
 import { formatWhole } from '@/utils/format';
+import { UNREAD_PLAN_LEAD } from '@/components/plan/dataRepairsCopy';
 
 const BAR_H = 14;
 /** The safety-net swatch matches the bar's tinted reserve zone (cushion color at this opacity).
@@ -238,7 +239,8 @@ export function PaydayGuardianCard({
      * the thing. A card that withheld everything would be indistinguishable from a broken one.
      */
     const unreadBody =
-      `An amount this paycheck has to cover could not be read, so I can’t say what’s spare or hold your ` +
+      // ⛔ [`.5.4d`] Not "has to cover": this card refuses on `'paycheck-plan'`, so a goal target fires it too.
+      `${UNREAD_PLAN_LEAD}, so I can’t say what’s spare or hold your ` +
       `${brief.floorUnread ? '' : `${formatWhole(brief.floor)} `}line against it — ${unreadFix}.`;
     return (
       <Card testID="payday-guardian-card">
