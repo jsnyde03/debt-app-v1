@@ -32,10 +32,24 @@ import { rowFieldUnread } from '@/store/trustSelectors';
  * same function.
  */
 
+/**
+ * ⛔ **[.5.4g · pass-7 `C3-1`] — THE LOG-A-PAYMENT FLOW HAS TWO DOORS, AND ONLY THIS ONE REFUSED.**
+ *
+ * Siri's *"log a payment in Debt Planner"* offers the same debts through `snapshot.ts`'s `debtsJson`, and it
+ * still listed the unread one as **`Chase · $0`** — a paid-off-looking row, beside four fields of the same
+ * payload that refused. `C5-3` fixed this sheet in pass 5 and the voice door was never routed through it.
+ * ⚡ **So the question and its words live here once**, and both doors ask them; each keeps its own figure
+ * format (the sheet `formatCurrency`, Siri `formatWhole`).
+ */
+export function logPaymentBalanceUnread(store: DebtStore, debt: Debt): boolean {
+  return rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'balance');
+}
+export const BALANCE_NOT_READ = 'balance not read';
+
 /** The sheet's header line: the debt and what is owed, or an honest refusal to state it. */
 export function logPaymentSubtitle(store: DebtStore, debt: Debt): string {
-  return rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'balance')
-    ? `${debt.name} · balance not read`
+  return logPaymentBalanceUnread(store, debt)
+    ? `${debt.name} · ${BALANCE_NOT_READ}`
     : `${debt.name} · ${formatCurrency(debt.balance)} owed`;
 }
 
@@ -48,6 +62,6 @@ export function logPaymentSubtitle(store: DebtStore, debt: Debt): string {
  * four figures: they degrade together, or the fix is cosmetic.
  */
 export function logPaymentOverNote(store: DebtStore, debt: Debt, parsed: number | null): string | undefined {
-  if (rowFieldUnread(store, 'row-figures', 'debt', debt.id, 'balance')) return undefined;
+  if (logPaymentBalanceUnread(store, debt)) return undefined;
   return parsed != null && parsed > debt.balance ? 'More than the balance — this will clear it to $0.' : undefined;
 }

@@ -3,6 +3,7 @@ import { percentCompleteLabel } from '@core/utils/percentComplete';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaydayGuardian } from '@/store/guardianSelectors';
 import { selectPayoffView } from '@/store/payoffSelectors';
+import { BALANCE_NOT_READ, logPaymentBalanceUnread } from '@/store/logPaymentCopy';
 import { mayClaim, partitionDebts } from '@/store/trustSelectors';
 import { formatWhole } from '@/utils/format';
 
@@ -259,12 +260,17 @@ export function buildWidgetSnapshot(store: DebtStore, updatedAt: number): Widget
      * ⚠️ **Live PLUS unread, not all debts.** Sourcing from `debts` would resurrect genuinely paid-off
      * debts into the disambiguation list, which is a second false statement rather than a fix. The
      * partition is the owner of that three-way distinction and is not re-derived here.
+     *
+     * ⛔ **[.5.4g · pass-7 `C3-1`] — …and `C3-4` listed it as `$0`.** Its stored balance is the repaired `0`,
+     * so Siri's row read **`Chase · $0`** beside four fields of this payload that refused the same figure.
+     * `LogPaymentIntent.swift` shows `balance` verbatim as the row's subtitle, so the refusal is the string —
+     * asked and worded by `logPaymentCopy`, the owner the in-app Log payment sheet already used.
      */
     debtsJson: JSON.stringify(
       [...live, ...partitionDebts(store).unreadBalance].map((d) => ({
         id: d.id,
         name: d.name,
-        balance: formatWhole(d.balance),
+        balance: logPaymentBalanceUnread(store, d) ? BALANCE_NOT_READ : formatWhole(d.balance),
       })),
     ),
   };

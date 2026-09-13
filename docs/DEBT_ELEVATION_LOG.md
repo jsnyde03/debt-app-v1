@@ -33936,3 +33936,28 @@ assertions`)* · `test:regression` ALL PASSED · `lint:rn` **52/52** on the re-r
 - ⚠️ **`C3-5` is `C3-12`'s twin — a fix scoped by FILE, not SHAPE** → `.5.7` census *(filed)*.
 - ✅ **Replenished** — `.5.4g` is `C3-1`: Siri's log-a-payment list says `$0` over an unread balance, while the
   in-app sheet for that same flow was fixed in pass 5. Decomposed in the plan.
+
+### `.12.6.5.4g.1` — `C3-1` SWITCH-IN: Siri's `$0` is the twin of a sheet fixed in pass 5 · 2026-09-13
+
+✅ **Rules re-read** for this switch-in.
+
+⚡ **Measured, not carried** — the finding's `probe1-debtsjson.ts` re-run on current code *(after `.5.4f`)* prints
+the finding's figures byte for byte: `mayClaim('debt-balances')` and `'row-figures'` both `false`, `remaining` `"—"`,
+`debtFreeDate` `"Balances unread"`, `pctLabel` `"—"` — and **`debtsJson` `[{"Visa","$4,000"},{"Chase","$0"}]`**.
+Four fields of one payload refuse and the fifth states `$0`, on one store at one instant.
+
+✅ **Premises hold.** `snapshot.ts:263-268` maps `[...live, ...partitionDebts(store).unreadBalance]` to
+`balance: formatWhole(d.balance)`, and an unread balance's stored value is the repaired `0`. The one consumer,
+`plugins/app-intents-swift/LogPaymentIntent.swift:45`, renders the string verbatim as the disambiguation row's
+`subtitle` and parses nothing — **so no Swift change**. The only test touching `debtsJson`
+(`widgetSync.test.ts:88-90`) is a readable premium store: no unread case.
+
+⭐ **The class, named: this is `C5-3`'s twin, one surface over.** `store/logPaymentCopy.ts:36` —
+`logPaymentSubtitle` — refuses the same figure in the in-app **Log payment** sheet (*"Chase · balance not read"*),
+fixed in pass 5 for *"Log payment said $0 owed"*. Siri's log-a-payment list is the same flow's other door, and it
+was never routed through it. ⛔ **Two spellings of one refusal is how this recurred**, so the step is one owner for
+the balance phrase in `logPaymentCopy.ts`, called by both — each surface keeps its own figure format (the sheet
+`formatCurrency`, Siri `formatWhole`); the predicate and the refusal words are shared.
+
+⚠️ **The claim is `'row-figures'`**, the per-row owner the sheet and Money's row both ask — not `'debt-balances'`,
+which `partitionDebts` asks for the three-way split. Checked by query, not assumed.

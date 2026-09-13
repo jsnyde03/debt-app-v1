@@ -4,6 +4,7 @@ import { formatWhole } from '@/utils/format';
 import { createDefaultStore } from '@/data/defaults';
 import { runMigrations } from '@/data/migrations';
 import type { Debt, DebtStore } from '@/data/models';
+import { logPaymentSubtitle } from '@/store/logPaymentCopy';
 import { createDebtStore } from '@/store/store';
 
 import { buildWidgetSnapshot, type WidgetSnapshot } from './snapshot';
@@ -180,6 +181,29 @@ function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
     true,
   );
   assert(buildWidgetSnapshot(read, 600).guardianSpoken.length > 0, '⭐ control — a plan the app read is still spoken');
+}
+
+/**
+ * ⛔ **[.5.4g · pass-7 `C3-1`] — SIRI'S LOG-A-PAYMENT LIST SAID `Chase · $0` FOR THE DEBT EVERY OTHER FIELD REFUSED.**
+ *
+ * `LogPaymentIntent.swift` shows each row's `balance` verbatim as its subtitle. The in-app Log payment sheet
+ * refused this figure in pass 5 (`C5-3`); this is the same flow's voice door, asked through the same owner.
+ * ⚠️ Built through the real `runMigrations`, so the repair record is the one the import path writes.
+ */
+{
+  const unread = migratedWidgetStore(
+    [debt({ id: 'a', name: 'Chase', balance: 'n/a' as never, originalBalance: 12000, minimumPayment: 100 }), debt({ id: 'b', name: 'Visa', balance: 4000, originalBalance: 4000, minimumPayment: 80 })],
+    true,
+  );
+  assert(unread.pendingDataRepairs.some((r) => r.id === 'a' && r.field === 'balance'), '⭐ the fixture really did lose Chase’s balance');
+  const rows = JSON.parse(buildWidgetSnapshot(unread, 700).debtsJson) as { id: string; name: string; balance: string }[];
+  const chase = rows.find((r) => r.id === 'a');
+  const visa = rows.find((r) => r.id === 'b');
+  // ⛔ THE HONEST STATE BY NAME — a row that merely dropped "$0" (an empty subtitle) would pass a "not $0" check.
+  eq(chase?.balance, 'balance not read', '⛔ C3-1 — Siri lists the unread debt as "balance not read", never "$0"');
+  eq(chase?.balance, logPaymentSubtitle(unread, unread.debts.find((d) => d.id === 'a')!).split(' · ')[1], '⛔ C3-1 — …in the Log payment sheet’s own words, from the one owner both doors ask');
+  // ⭐ CONTROL — a debt the app read still states its figure, or the fix bought a blank list.
+  eq(visa?.balance, '$4,000', '⭐ control — a readable debt in the same list still states its balance');
 }
 
 
