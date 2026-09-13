@@ -1327,3 +1327,40 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   RECORDS it** — running them to satisfy a counter risks corrupting the ledger they exist to keep. ⚡ The
   ceiling is explicitly *"a PINNED ceiling, not a downward-only ratchet"* that catches **drift**, so 4 of 8
   is its designed tolerance. → **pass 8** *(drain the Playwright pair when an e2e run is happening anyway)*.
+- ⛔ **`C1-2` MADE FIVE PLAN FIELDS ANSWERABLE AND ONLY ONE IS EXERCISED.** `answerableByEdit` now admits
+  every `plan` repair and `planFieldValue` routes all five paths — but the fixtures, the exit assertion
+  *(re-entering the value clears the repair)* and the **fail-open guard** *(a write that moves nothing must
+  NOT settle it)* all use `cushionFloor`. ⚠️ **`leanAmount` · `typicalAmount` · `windfall` ·
+  `expenseReserveBalance` are live behaviour with zero coverage.** ⛔ **`expenseReserveBalance` is the
+  member most likely to be wrong**: it is the one whose repair field is *renamed* from its store path
+  (`expenseReserve.balance`, via `readStoreMoney`'s third argument), so a path typo there is invisible to
+  the compiler and would silently fail OPEN — `planFieldValue` returns `undefined`, which keeps the repair,
+  or worse resolves the wrong field and clears it. ⚡ **Iterate the five, do not add four more cases**: the
+  population is `REPAIRABLE_MONEY_FIELDS.plan.optional`, so an assertion that walks it makes a sixth field
+  a test failure rather than a silent gap. → **pass 8** *(or `.5.7`'s boundary if the file is already
+  open)*.
+
+### ⤵ surfaced by `.5.3`'s switch-in census, 2026-09-12 — routed per bullet
+
+- ⛔ **`SaveForItSheet` STATES A PROJECTION-DERIVED FIGURE AND ASKS NO TRUST QUESTION — and the class never
+  named it.** `:61` builds `withProjectedBalances(store, isPremium)`, `:62` feeds it to
+  `selectSaveForItOptions`, and `:135` prints `formatWhole(o.perPaycheck)/paycheck`. **Zero `mayClaim` /
+  `rowFieldUnread` calls in the file.** ⚡ **Verified by MECHANISM, not by count**: of its two formatter
+  calls, `:119`'s is the user's own typed amount and is honest — a count would have filed two sites where
+  there is one. ⭐ **Same producer as `B1-1`**, already scheduled at `.5.5` *(`selectSaveForItOptions` pacing
+  off the partition total)*, so the guard belongs with that work rather than as its own sweep. → **`.5.5`**.
+- ⚠️ **The projection seam is 12 call sites and the class enumerated 6.** Derived by query over
+  `withProjectedBalances(`. The four never named: `SaveForItSheet` *(above)* · `WindfallSheet` and
+  `AffordabilityCard` *(both already guarded — no action)* · `use-notification-sync.ts:50` *(below)*.
+  ⛔ **`.5.3` must derive its population by query, never from the class table** — which is what its own exit
+  line already demands: *"ITERATES the surfaces rather than walking a hand-written list."* → **`.5.3`**.
+- ⚠️ **`use-notification-sync` is OUT of `.5.3`, and the narrower question is what remains.** It fires a
+  premium risk push off `withProjectedBalances` with **no trust guard** — but it states no FIGURE:
+  `selectRiskNotification` returns `{ fire, level, reason }`, and `scheduleRiskNotification(fireAt)` takes
+  only a Date and schedules the **static** `RISK_NOTIFICATION.title` / `.body`. So it fails `.5.3`'s own
+  predicate *(may this surface state a FIGURE derived from the projection)*. ⚡ **`A3-11` is why it is not
+  simply clean**: *the money is authoritative over the band*, so a band claim pushed to the lock screen off
+  data the app could not read is still a claim — it is just not a figure claim. ⛔ **A per-file formatter
+  count could not settle this** *(0 formatters ≠ states nothing)*; reading the two downstream modules did,
+  which is the host/child limitation filed against `lint:trust-claims` behaving exactly as recorded.
+  → **pass 8** *(rate the band-claim; no figure work owed)*.

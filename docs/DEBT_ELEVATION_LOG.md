@@ -33072,3 +33072,34 @@ drain with `grep -F -f <ids>` matched `S1-CLASS4-A3-1` inside `S1-CLASS4-A3-14` 
 tally with ids that were not stale. Re-derived with an exact field match. ⚡ **The substring-collision class
 does not live in `check-finding-guards.ts`; it lives in every tool that matches an id by containment** —
 which is the more general statement `R5-2` was pointing at.
+
+#### `.12.6.5.2`'s AFTER-SCAN
+
+⭐ **`C1-3`'s population is 2, and for once an enumeration came back COMPLETE.** I fixed `describeRepair`
+and `namedFigures` by *reading*, which in this repo is the shape that has been short nearly every time it
+was measured — so it was censused before recording the finding closed. Every renderer of a repair's name
+lives in `dataRepairsCopy.ts`; `unreadRowCaption` maps `FIELD_LABEL` over **field names only** and never
+touches `r.name`, so it cannot duplicate by construction; the remaining `on ${…}` hits are reserve-release
+copy, a debt-minimum label and a migration invariant, none of which carry a `DataRepair`; and
+`PLAN_MONEY_LABELS[` has exactly one consumer — the producer. ⚡ **A confirmed-complete enumeration is
+itself a result here**, and it is the first in this workstream.
+
+⚠️ **SCOPE GREW, and saying so is the point of this scan.** `.5.2` was scoped as *the sentinel-erasing
+fallback sub-sweep* — `C1-1` + `C1-6`. It shipped that plus **`C1-2`** (pulled forward from `.12.6.6` on a
+🎯 decision), **`C1-3`**, the suite's **first `plan`-entity fixtures**, a **30-proof ledger drain**, and a
+`CLAIM_CONSUMER_FLOOR` raise. Every addition was justified where it arose — `C1-2` because withholding a
+figure with no exit by edit is the `C1` failure the module exists to prevent, `C1-3` because `C1-2` made it
+load-bearing, the drain because the commit itself caused it — but the honest summary is that **a sub-step
+absorbed a class-6 blocker and a class-10 minor.** Worth watching rather than repeating by default.
+
+⛔ **THE RESIDUAL: `C1-2` made FIVE fields answerable and only ONE is exercised.** `answerableByEdit` now
+admits every `plan` repair, and `planFieldValue` routes all five paths — but the fixtures, the exit
+assertion and the fail-open guard all use `cushionFloor`. `leanAmount`, `typicalAmount`, `windfall` and
+`expenseReserveBalance` are **live behaviour with zero coverage**, including the renamed one
+(`expenseReserve.balance` → reported as `expenseReserveBalance`), which is the member most likely to be
+wrong. Filed.
+
+⚡ **What only building could have taught, and a before-scan structurally could not:** that deleting `|| 200`
+removes a NaN defence as well as the fabrication; that one correct commit stales 34 proofs; that
+`prove:guards` refuses a dirty target, so the record→commit→prove order is forced; and that `R3-3-BORROW`
+drains in one pass rather than two. **Four premises, none visible from reading.**
