@@ -18,6 +18,11 @@ private struct DebtSnapshotRead: Codable {
     /// matches "Debt-free" by literal and its own comment records that a TS-scoped sweep cannot see
     /// a .swift file, so a second literal would be a second thing for that sweep to miss.
     var balancesUnread: Bool = false
+    /// [.5.7 · pass-7 C3-2, defence in depth] Premium, decoded so an EMPTY `guardianSpoken` — from a snapshot written
+    /// before `.5.4h`, or a producer that regresses — can never upsell a subscriber. The JS producer already speaks every
+    /// premium reason; this makes the branch below true on its own terms. Defaults to `false`: an old snapshot without
+    /// the key keeps today's answer for a free user.
+    var isPremium: Bool = false
 
     static func load() -> DebtSnapshotRead {
         guard
@@ -88,6 +93,11 @@ struct PaycheckCheckIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let snap = DebtSnapshotRead.load()
         if snap.guardianSpoken.isEmpty {
+            // ⛔ [.5.7] Premium first: `''` meant four things before `.5.4h`, and three were subscribers. These words MUST equal
+            // `SPOKEN_READ_FAILED` in `src/widget/snapshot.ts` — `widgetSync.test.ts` reads this file and checks.
+            if snap.isPremium {
+                return .result(dialog: "I couldn’t read this paycheck just now. Open Debt Planner to see it.")
+            }
             return .result(dialog: "Seeing your paycheck read is a Premium feature — open Debt Planner to unlock the Payday Guardian.")
         }
         return .result(dialog: IntentDialog(stringLiteral: snap.guardianSpoken))

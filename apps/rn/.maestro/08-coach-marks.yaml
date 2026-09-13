@@ -137,11 +137,20 @@ appId: com.jasonsnyder.debtplanner
 # nothing full-screen behind it, and the docblock is explicit that a user who ignores the hint and taps
 # the thing is a SUCCESS. So the screen underneath must still work with the mark up — proven by driving
 # a control while it is showing, not by looking at it.
-- tapOn: "Expenses"
+#
+# ⛔ [.5.7] The control used to be the Debts → Expenses segment switch, which UNMOUNTS the Debts view — and
+# `use-coach-mark.ts` dismisses a mark whose host unmounts (`595cca61`, 2026-08-25, six days after the last native run
+# that could have seen it). So it proved "the screen works under the mark" by removing the mark, and went red on the
+# next run. The control now stays on the Debts view: the strategy toggle sits under the same mark, and its caption
+# changes when it takes the tap. ⚠️ Avalanche re-orders the list, so the mark's target row may change; the hook stays
+# mounted, so the mark must stay — asserted, not assumed.
+- tapOn: "Avalanche"
 - assertVisible:
-    text: ".*Rent.*"
+    text: ".*Highest APR first.*"
 - takeScreenshot: maestro-debug/s13-5-screen-live-under-mark
-- tapOn: "Debts"
+- assertVisible:
+    text: ".*Press and hold a debt.*"
+- tapOn: "Snowball"
 
 # Dismiss it so it cannot be confused with the mark under test below — `coachMarks.show` refuses to queue
 # a second mark behind a live one (coachMarks.ts:103), so leaving this up would make §13.1 fail for a

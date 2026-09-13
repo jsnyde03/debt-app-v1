@@ -13,7 +13,7 @@
 # exists, its verdict allows automation); it cannot check that the assertion below really tests it.
 # PARTIAL: §4.1 — the native UIMenu opens with Edit + Delete; "red/destructive", the system blur and the haptic
 #                 are feel/judgement and stay device-owed
-# PARTIAL: §B2.3 — "Log payment" is present in the menu and opens the amount sheet; its POSITION ("first,
+# PARTIAL: §B2.3 — "Log a payment" is present in the menu and opens the amount sheet; its POSITION ("first,
 #                 above Edit/Delete") is not assertable in Maestro and stays device-owed
 # ──────────────────────────────────────────────────────────────────────────────────────────────────
 appId: com.jasonsnyder.debtplanner
@@ -47,15 +47,22 @@ appId: com.jasonsnyder.debtplanner
 # and there is no honest way to express "above" here. Presence is asserted; the ordering half stays
 # device-owed, which is why §B2.3's verdict is [M◐] rather than [M]. Do not strengthen this comment
 # into a claim the assertion does not make.
-- assertVisible: "Log payment"
-
-# …and it actually opens the amount sheet. Presence in a menu is not proof the action is wired —
-# `LogPaymentSheet.tsx:34` titles the sheet "Log a payment", distinct from the menu's "Log payment".
-- tapOn: "Log payment"
+# ⛔ [.5.7] "Log a payment" since `3b9522b1` (P6.4.4, 2026-08-20) — `LOG_PAYMENT_ENTRY`. This asserted the old literal and
+# went red on the first native run after it, 25 days later.
 - assertVisible: "Log a payment"
+
+# …and it actually opens the amount sheet. Presence in a menu is not proof the action is wired.
+# ⛔ [.5.7] The menu entry and the sheet's TITLE are now the same words (`LogPaymentSheet.tsx:64` titles it
+# `LOG_PAYMENT_ENTRY` too), so asserting the title after the tap would pass with the menu still open — the comment
+# here used to call them "distinct", which stopped being true on 2026-08-20. The sheet is proven by an element only an
+# OPEN sheet renders: `FormSheet`'s submit button.
+- tapOn: "Log a payment"
+- assertVisible:
+    id: "form-sheet-submit"
 
 # Leave no sheet open: flow 04 opens the debt EDIT sheet next and a stacked presentation is exactly the
 # nesting bug that flow's whole history is about.
 - tapOn:
     id: "sheet-close"
-- assertNotVisible: "Log a payment"
+- assertNotVisible:
+    id: "form-sheet-submit"

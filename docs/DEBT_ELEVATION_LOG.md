@@ -34289,3 +34289,31 @@ with the new one, by a chain that stops before git on any red step: **6 of 6 `re
 - ✅ **Replenished** — **`.5.7` BOUNDARY + LEDGER DRAIN** is active: **13 open backlog rows** routed to it across the class
   *(15 routed, 2 already resolved — enumerated by script, not by reading)*, decomposed in the plan into seven numbered
   steps, the red native flows first.
+
+### `.12.6.5.7.1` — BOUNDARY SWITCH-IN, step ①: neither red native flow is an app defect · 2026-09-13
+
+✅ **Rules re-read** for this switch-in. **`.5.7` carries 13 open backlog rows** (15 routed, 2 already resolved — enumerated
+by script at `.5.6`'s close), decomposed in the plan into seven steps; the red native flows are first because while they
+are red the only native verifier cannot report a third.
+
+⛔ **Flow 03 (`03-row-context-menu`) — a stale label, and a sheet check that can no longer tell sheet from menu.** Red on
+*"Log payment" is visible*; the uploaded screenshot shows the menu correct — **"Log a payment" · Payoff schedule · Edit ·
+Delete**. `3b9522b1` (P6.4.4, **2026-08-20**, one day after the last green native run) replaced the literal with
+`LOG_PAYMENT_ENTRY`. Worse than the label: the flow proved the TAP opened the sheet by asserting the sheet's title
+*"Log a payment"*, and `LogPaymentSheet.tsx:64` titles it `LOG_PAYMENT_ENTRY` too — so that step would pass with the menu
+still open, and the comment calling the two *"distinct"* became false that day. `LogPaymentSheet` carries no testID;
+`FormSheet` renders `form-sheet-submit` only while a sheet is up. ⚠️ **The same drift is in a DOC**:
+`DEBT_3.5_DEVICE_QA_CHECKLIST.md` §B2.3 tells a human tester to look for *"Log payment"*.
+
+⛔ **Flow 08 (`08-coach-marks`) — the flow expects a mark to survive its host unmounting, and the app deliberately does
+not.** Red on *"Got it" not found* after §13.5's Debts → Expenses → Debts. `useCoachMark('debt-row-actions', …)` lives in
+the Debts view (`money.tsx:310`); the segment switch unmounts it; `use-coach-mark.ts:83-90` dismisses on unmount, with a
+docblock arguing a stand-down loses nothing. Dated by `git log -S`: **`595cca61`, 2026-08-25** — six days after the last
+green native run (`1d0a0bed`, 08-19); flow 08 last edited 08-14. **The flow is stale, not the app.** §13.5's claim — a mark
+is a hint, the screen underneath still works — is re-proven with a control that keeps the host mounted: the strategy
+toggle on the same view. ⚠️ **Unmeasured until the dispatch**: Avalanche re-orders the list, so the mark's target row
+changes; the hook stays mounted, so the mark should stay.
+
+⭐ **Folded into the same dispatch** *(backlog row from `.5.4h`)*: `SiriQueryIntents.swift` decodes `isPremium`, so an empty
+`guardianSpoken` from an OLD snapshot cannot upsell a subscriber — spoken in `SPOKEN_READ_FAILED`'s exact words, pinned by
+a source check that reads the Swift file. **One `native-e2e` rebuild for all three.**

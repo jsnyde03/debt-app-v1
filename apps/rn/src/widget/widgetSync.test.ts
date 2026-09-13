@@ -12,7 +12,7 @@ import type { Debt, DebtStore } from '@/data/models';
 import { logPaymentSubtitle } from '@/store/logPaymentCopy';
 import { createDebtStore } from '@/store/store';
 
-import { buildWidgetSnapshot, SPOKEN_NO_PLAN, SPOKEN_UNREAD_PLAN, type WidgetSnapshot } from './snapshot';
+import { buildWidgetSnapshot, SPOKEN_NO_PLAN, SPOKEN_READ_FAILED, SPOKEN_UNREAD_PLAN, type WidgetSnapshot } from './snapshot';
 import { startWidgetSync } from './widgetSync';
 
 /**
@@ -225,6 +225,12 @@ function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
   // a `catch` that returned `''` is exactly the D2-12 shape, one branch over.
   const SRC = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'snapshot.ts'), 'utf8');
   assert(/\} catch \{\s*(?:\/\/[^\n]*\n\s*)*return SPOKEN_READ_FAILED;/.test(SRC), '⛔ D2-12 — a thrown Guardian read is spoken for premium, never collapsed to the empty upsell');
+
+  // ⛔ [.5.7 · C3-2 defence in depth] The Swift intent answers an EMPTY read for a premium snapshot itself — in these
+  // exact words. A sentence spelled once in TS and once in Swift drifts silently, so the Swift source is read and checked.
+  const SWIFT = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'plugins', 'app-intents-swift', 'SiriQueryIntents.swift'), 'utf8');
+  assert(/var isPremium: Bool = false/.test(SWIFT), '⛔ C3-2 — the Siri intent decodes isPremium from the snapshot');
+  assert(SWIFT.includes(`if snap.isPremium {\n                return .result(dialog: "${SPOKEN_READ_FAILED}")`) || SWIFT.includes(`if snap.isPremium {\r\n                return .result(dialog: "${SPOKEN_READ_FAILED}")`), '⛔ C3-2 — an empty read for a PREMIUM snapshot is answered in SPOKEN_READ_FAILED\'s exact words, never the upsell');
 }
 
 /**
