@@ -1,4 +1,5 @@
 import { REPAIRABLE_MONEY_FIELDS, runMigrations } from '@/data/migrations';
+import { mayStateProjectedFigure } from '@/store/balanceSelectors';
 import { DEFAULT_CUSHION_FLOOR, cushionLine, selectAllocation } from '@/store/selectors';
 import { selectPlanState } from '@/store/planSelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
@@ -645,6 +646,38 @@ export default function run(): void {
       untouched.getState().store.pendingDataRepairs.filter((r) => r.field === 'cushionFloor').length,
       1,
       '⛔ …and a write that moves NOTHING may not settle it — `findRow` would have dropped it as "the row is gone"',
+    );
+  }
+
+  /**
+   * ⛔ **`.5.3` — THE ONE PREDICATE, AND THE CLAIM PAIR IS THE WHOLE POINT.** [class 5]
+   *
+   * The class is *"one question, five different answers"*, and the measurable axis `.5.1` found is **which
+   * SUBSET of two claims a surface consults**. `projectCurrentBalance` reads `apr` and `minimumPayment`,
+   * which route to `'row-figures'` **and only there** — so asking `'debt-balances'` alone is guarded
+   * against a lost balance and blind to a lost APR. ⚡ That is `C3-9`: Progress promised a debt-free date
+   * five months early with `gagBalanceDerived` working perfectly, on the wrong claim.
+   *
+   * ⚠️ Asserted as the two DIRECTIONS, not as one true case — a predicate that only ever returns `false`
+   * would pass a one-sided test and suppress every good state, which `snapshot.ts` names as a second false
+   * statement rather than a fix.
+   */
+  {
+    eq(mayStateProjectedFigure(withApr(22)), true, '⭐ control — everything readable, so the projection may be stated');
+    eq(
+      mayStateProjectedFigure(withApr('n/a')),
+      false,
+      '⛔ C3-9 — an unread APR routes to `row-figures` ONLY, and the projection reads APR: it may not be stated',
+    );
+    eq(
+      mayClaim(withApr('n/a'), 'debt-balances'),
+      true,
+      '⛔ …and `debt-balances` alone says YES on that very store — which is why one claim was not enough',
+    );
+    eq(
+      mayStateProjectedFigure(migrated(['abc'])),
+      false,
+      '⛔ …and an unread BALANCE refuses it too, so neither claim is redundant',
     );
   }
 }

@@ -9,6 +9,8 @@ import {
 
 import type { Debt, DebtStore } from '@/data/models';
 
+import { mayClaim } from './trustSelectors';
+
 /**
  * Route the payday ENGINE off projected-current balances (2.4 foundation). Premium screens run
  * allocation / debt-free date / trajectory / cushion / drift over the store this returns, so the plan
@@ -20,6 +22,29 @@ import type { Debt, DebtStore } from '@/data/models';
 export function withProjectedBalances(store: DebtStore, isPremium: boolean): DebtStore {
   if (!isPremium) return store;
   return { ...store, debts: projectDebtsToDate(store.debts, store.paycheck.currentDate, payCyclesPerMonth(store.paycheck.payCycle)) };
+}
+
+/**
+ * ⛔ **MAY THIS SURFACE STATE A FIGURE DERIVED FROM THE PROJECTION?** [S1.13.7.12.6.5.3 · class 5]
+ *
+ * One question, and the class measured **five different answers to it** across six surfaces. ⭐ **The
+ * correct one was already written** — `widget/snapshot.ts:216` asks BOTH claims and its docblock says why:
+ * `projectCurrentBalance` reads **`apr` and `minimumPayment`**, and those route to **`'row-figures'` and
+ * only there**. A surface that asks `'debt-balances'` alone is guarded against a lost BALANCE and blind to
+ * a lost APR — which is `C3-9` exactly: Progress promised *"debt-free October 2026"* over a true
+ * **January 2027**, with `gagBalanceDerived` doing its job perfectly on the wrong claim.
+ *
+ * ⛔ **IT CANNOT LIVE AT THE SEAM, AND THAT IS MEASURED.** `withProjectedBalances` above returns a store
+ * **structurally identical to a real one** — it keeps no marker — which is precisely why `selectPlanState`
+ * could not tell projected from real (`.5.1`). So this is a question callers ask **where `isPremium` is
+ * still in scope**, not a property the store carries.
+ *
+ * ⚠️ **Both claims, never a widened route** — the warning `snapshot.ts` records about its own fix: a
+ * suppression that never lets the good state through is a second false statement, not a fix.
+ * `'debt-balances'` must keep meaning *"the balances are readable"* for surfaces showing a RAW balance.
+ */
+export function mayStateProjectedFigure(store: DebtStore): boolean {
+  return mayClaim(store, 'debt-balances') && mayClaim(store, 'row-figures');
 }
 
 /**

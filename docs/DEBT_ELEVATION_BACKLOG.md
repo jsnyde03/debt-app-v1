@@ -1364,3 +1364,15 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   count could not settle this** *(0 formatters ≠ states nothing)*; reading the two downstream modules did,
   which is the host/child limitation filed against `lint:trust-claims` behaving exactly as recorded.
   → **pass 8** *(rate the band-claim; no figure work owed)*.
+- ⛔ **22 SITES COMPARE `balance` AGAINST 0, AND A REPAIRED BALANCE *IS* 0 — none has been measured against
+  one.** `lint:trust-claims`' green path carries the ledger: **22 liveness re-derivations across 15 files,
+  cap 22, zero headroom**, qualified *"none measured against a repaired balance yet"*. ⚡ `readMoney` writes
+  `0` for a balance it could not read, so every `balance <= 0` / `> 0` site in that list silently classes an
+  **unreadable** debt as **paid off**. ⛔ **That is `C4-2` verbatim** — the trophy shelf filing a debt owed
+  IN FULL as *"$12,000 paid off"* — and `C4-2` was closed at ONE site while the class sits in fifteen.
+  ⚠️ **It is a LEDGER, not a list of defects**: a row means *"this site re-derives liveness and nobody has
+  measured it against a repaired balance"*, and some will be legitimate. The work is measuring them, not
+  rewriting them. ⚠️ **`balanceSelectors.ts` joined at exactly the cap** *(pre-existing comparison, surfaced
+  by `.5.3` putting the file in the population)*, so **the next file to acquire one reds the gate** — the
+  same zero-headroom shape as `authored` 9/9. ⛔ Drain by measuring, never by raising the cap.
+  → **pass 8** *(or `.12.6.9` if an instrument round opens first)*.

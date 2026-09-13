@@ -538,7 +538,16 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
   // could red: a reader checking whether Money is guarded for the portfolio claim would have concluded
   // from this line that it is, and stopped looking. **A comment is a carried premise and decays like a
   // carried number** — this one decayed inside the gate written to stop claims drifting from their callers.
-  'debt-balances': 3, // widget/snapshot.ts (the balance gate) + progress.tsx + celebrationSelectors.ts
+  /**
+   * ⛔ **4 at `S1.13.7.12.6.5.3` [pass-7 class 5]: `store/balanceSelectors.ts` joined them, and it asks
+   * BOTH claims in one place on purpose.**
+   *
+   * `mayStateProjectedFigure` is the class's one predicate — *may this surface state a figure derived from
+   * the projection?* — and its body is `mayClaim('debt-balances') && mayClaim('row-figures')`, the answer
+   * `widget/snapshot.ts:216` already carried. ⚡ **So this raise and the `'row-figures'` raise below are
+   * the SAME caller**: a predicate that asked only one of the two would be the defect it exists to close.
+   */
+  'debt-balances': 4, // widget/snapshot.ts (the balance gate) + progress.tsx + celebrationSelectors.ts + balanceSelectors.ts
   'goal-amounts': 1,
   /**
    * ⛔ **6 at `S1.13.7.4` [pass-6 `C1-10`]: `WindfallSheet.tsx` joined them, and this one SPENDS.**
@@ -599,7 +608,20 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
    * changing what the guard asks about, so an unreadable APR gave **$6,500** against a true **$8,931**
    * with `mayClaim('debt-balances')` returning `true`.
    */
-  'row-figures': 8,
+  /**
+   * ⛔ **9 at `S1.13.7.12.6.5.3` [pass-7 class 5]: `store/balanceSelectors.ts` joined them — the other half
+   * of the same caller, and the docblock above is why.**
+   *
+   * `C3-5` is recorded there as *the guard computed OVER `'debt-balances'` while the number was computed
+   * FROM the projected store*, since `projectCurrentBalance` reads `apr` and `minimumPayment`, which route
+   * here and only here. ⚡ **That is not one surface's bug — it is the class**: measured again this round
+   * on `C3-9`, where `progress.tsx` consults `'debt-balances'` three times and `'row-figures'` never, and
+   * promises a debt-free date five months early off an APR it could not read, with `gagBalanceDerived`
+   * working perfectly on the wrong claim. ⭐ The widget was fixed by adding the second claim at ONE site;
+   * `mayStateProjectedFigure` makes it a named question, so the next surface cannot ask half of it.
+   * **Planted**: drop the `'row-figures'` half and the predicate returns `true` on an unread APR.
+   */
+  'row-figures': 9,
 };
 for (const claim of claims) {
   const actual = consumers.get(claim)!.length;

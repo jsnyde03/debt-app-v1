@@ -33103,3 +33103,45 @@ wrong. Filed.
 removes a NaN defence as well as the fabrication; that one correct commit stales 34 proofs; that
 `prove:guards` refuses a dirty target, so the record→commit→prove order is forced; and that `R3-3-BORROW`
 drains in one pass rather than two. **Four premises, none visible from reading.**
+
+### `.12.6.5.3` — the one predicate, built and planted · 2026-09-12
+
+`mayStateProjectedFigure(store)` lives in `balanceSelectors.ts`, beside the projection it qualifies, and
+its body is the answer `widget/snapshot.ts:216` already carried: **both** claims.
+
+⛔ **IT COULD NOT LIVE AT THE SEAM, and that is measured rather than preferred.** `withProjectedBalances`
+is `if (!isPremium) return store` plus a `debts` remap — it **keeps no marker**, so its result is
+structurally identical to a real store. That is exactly why `selectPlanState` could not tell them apart in
+`.5.1`. So the owner is a question callers ask **where `isPremium` is still in scope**, never a property
+the store carries.
+
+⚡ **`C3-9`'s MECHANISM IS NOW MEASURED, and I nearly recorded it closed.** `gagBalanceDerived` is thorough
+— it nulls `debtFreeDate`, empties the schedules, drops `hasBand` — and `progress.tsx:111` applies it
+whenever `mayClaim('debt-balances')` is false. But `C3-9` turns on an unread **APR**, and APR routes to
+`'row-figures'` **and only there**. Progress consults `'debt-balances'` three times (`:111` `:138` `:288`)
+and `'row-figures'` **never**. ⭐ **The plant settled it**: dropping `&& mayClaim(store, 'row-figures')`
+makes the predicate return **true** on a store whose APR could not be read — *expected false, got true*.
+The second claim is load-bearing, not decorative.
+
+⭐ **Two plants again, because one is ambiguous.** This file's `eq` prints nothing on success, so a green
+run cannot show that a new block executed — the same blindness `.5.2` hit. Plant A flipped an expected
+value to prove the block runs (*expected false, got true* on the control label); only then could plant B
+mean one thing. ⚠️ I fixed my own reporter in the process: the previous run's excerpt printed an unrelated
+*passing* line, because `a or b or c and d` binds as `a or b or (c and d)`.
+
+⚠️ **SCOPE SPLIT, DELIBERATELY, AND RECORDED AS SUCH.** The step's exit line asks for the owner **and** an
+assertion iterating the surfaces. Only the owner is built. The iterating assertion needs the surfaces to be
+wired — written now it reds immediately, and **a knowingly-red assertion is a broken build, not a guard**.
+It moves to `.5.4`, whose exit already requires proving each surface by planting. ⚡ Recorded explicitly
+because `.5.2`'s after-scan flagged the opposite failure (a sub-step absorbing adjacent work); a step that
+*sheds* half its exit line deserves the same visibility as one that grows.
+
+⚠️ **`C1-5` was reclassified while verifying, and the difference changes the fix.** It is **not** a missing
+guard: `index.tsx:346` does hand `PlanHero` `unreadPlanInputs`. The guard is spent on the status colour
+(`:144`) and the reassurance sentence (`:157`) while the figures compute at `:99-117` and print at
+`:164-166`/`:214` regardless. *Withholds the verdict, keeps the figures* — so `.5.4`'s work there is at the
+figures, not at the wiring.
+
+⚠️ **Two Edits this session failed on anchors written from memory rather than from the file** — this entry's
+first attempt anchored on a sentence I had written into the **backlog**, not the log. Both times the fix was
+to read the tail first. Cheap, loud, and worth not repeating a third time.
