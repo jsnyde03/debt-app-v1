@@ -34224,3 +34224,28 @@ chain that stops on any red step before git: **14 of 14 `reason=MATCHED`, contro
   than off what the allocation funds has this shape. `B1-2` *(the reserve offer, `expenseReserveSelectors.ts:128`,
   class 6)* is one; a census of "promises a future amount" belongs to `.5.7` → backlog.
 - ✅ **Replenished** — **`.5.6` `C3-14`**: *"saved — one target could not be read"* hard-codes **one** regardless of count.
+
+### `.12.6.5.6.1` — `C3-14` SWITCH-IN: the only caption that states a number from a boolean · 2026-09-13
+
+✅ **Rules re-read** for this switch-in.
+
+⚡ **Measured, not carried** — `c3-probes/probe13-goals-hero-copy.ts` re-run on current code: repairs
+`["g1:targetAmount","g2:targetAmount"]`, **2** goals with an unread target (House Fund, Car Fund), and the hero sub reads
+**"saved — one target could not be read"**. Byte for byte the finding.
+
+✅ **Premises hold.** `money.tsx:1271` — `const targetUnread = goals.some(… 'targetAmount')`, a BOOLEAN; `:1282` —
+`'saved — one target could not be read'`, the "one" a literal. The finding's `:1234`/`:1241` moved ~37 lines.
+
+📋 **Census by query — C3-14 has no sibling that states a count.** A literal "one <noun> could not …" in app copy:
+**1 site**, this one. `.some(… rowFieldUnread …)` booleans feeding copy: bills (`money.tsx:855`), goal targets (`:1271`),
+goal saved (`:1272`) — only `:1271`'s sentence names a number. ⚠️ *"set them again and your total comes back"* is on
+**5 hero sites** (`money.tsx:463/:480/:964/:1280`, `living-expenses.tsx:79`) and says "them" over any count, one
+included — **not a false count**: no number is stated, and "them" over an unspecified set reads as English. Left, and the
+step does not widen to it.
+
+⭐ **Shape:** count from the list the caption stands for; the words from `dataRepairsCopy`, in the one-vs-N form
+`repairBlocks` already uses for its heading (`dataRepairsCopy.ts:186`) — not a third pluraliser. No e2e asserted the hero
+sub at all (`goal-row-saved.spec.ts` asserts row names), so the render proof is new.
+
+⚠️ **Staleness projected before the commit:** the one proof anchored in `money.tsx` (`S1P6-C2-3-CONVERTFIELDS-E2E`) is
+already in the pre-existing stale 5; the floor edit stales the 5 in `check-finding-guards.ts` — re-run with the new proof.

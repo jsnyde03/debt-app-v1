@@ -2,7 +2,7 @@ import type { DataRepair } from '@/data/models';
 
 import { REPAIRABLE_MONEY_FIELDS } from '@/data/migrations';
 
-import { FIELD_LABEL, describeRepair, repairBlocks, repairsA11yLabel } from './dataRepairsCopy';
+import { FIELD_LABEL, describeRepair, repairBlocks, repairsA11yLabel, unreadTargetsSub } from './dataRepairsCopy';
 
 /**
  * P6.8.9.7.11.12 (audit A-J2-2) — the repairs card's words.
@@ -249,6 +249,11 @@ export default function run() {
   }
 
   eq(repairBlocks([]).length, 0, 'no repairs produces no blocks');
+
+  // ── [.5.6 · pass-7 C3-14] the goals hero counts its unread targets — it said "one" over two ──
+  eq(unreadTargetsSub(1), 'saved — one target could not be read', '⛔ C3-14 — one unread target is "one target"');
+  eq(unreadTargetsSub(2), 'saved — 2 targets could not be read', '⛔ C3-14 — two unread targets are "2 targets", never "one"');
+  eq(unreadTargetsSub(5), 'saved — 5 targets could not be read', '⛔ C3-14 — …and the count is the count, not a plural word');
 
   console.log(`✅ All data-repairs copy tests passed (${passed}).`);
 }

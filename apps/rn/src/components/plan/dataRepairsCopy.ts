@@ -82,6 +82,18 @@ export const UNREAD_FIGURE = '—';
 export const UNREAD_PLAN_LEAD = 'An amount your plan is built from could not be read';
 
 /**
+ * ⛔ **[.5.6 · pass-7 `C3-14`] — THE GOALS HERO COUNTED ITS LOSS AS "ONE" WHATEVER THE COUNT.**
+ *
+ * `money.tsx` fed this sentence a BOOLEAN (`goals.some(… targetAmount …)`), so two unreadable targets read *"saved —
+ * one target could not be read"* on the line whose whole job is to send the user to fix them — and they found two.
+ * Measured (`probe13`): two targets lost, the hero said one. The count comes from the caller's list; the words from
+ * here, in the one-vs-N shape `repairBlocks` already uses for its heading.
+ */
+export function unreadTargetsSub(count: number): string {
+  return count === 1 ? 'saved — one target could not be read' : `saved — ${count} targets could not be read`;
+}
+
+/**
  * ⛔ **THE HONEST STATE, SAID — not merely the false one withheld.** [S1.10.6.2 · pass-3 C-1]
  *
  * ⚡ Suppressing a figure without naming why is how [B1]'s first fix dropped a user into *"Your payoff

@@ -87,4 +87,29 @@ test('a goal whose target could not be read says what IS saved — not that $0 i
 
   // The neighbouring readable goal is untouched, so "the screen broke" cannot satisfy the above.
   await expect(page.getByRole('button', { name: /^Vacation,/ })).toHaveAccessibleName(/\$1,500 left/);
+
+  // ⭐ [.5.6 · C3-14] CONTROL — one unread target is still "one target" in the hero.
+  await expect(page.getByText('saved — one target could not be read')).toBeVisible();
+});
+
+/**
+ * ⛔ **[.5.6 · pass-7 `C3-14`] — TWO TARGETS LOST, AND THE HERO SAID "ONE".** The hero's sentence was fed a boolean,
+ * so its count was a literal. Positive first: the count BY NAME, then the undercount absent — an absence alone is true
+ * of a hero that never rendered.
+ */
+test('two goals whose targets could not be read are counted as two in the hero', async ({ page }) => {
+  await seedStore(page, scenario({
+    goals: [
+      { id: 'g-a', name: 'House Fund', targetAmount: 0, currentAmount: 500, type: 'savings' },
+      { id: 'g-b', name: 'Car Fund', targetAmount: 0, currentAmount: 300, type: 'savings' },
+      { id: 'g-ok', name: 'Vacation', targetAmount: 2000, currentAmount: 500, type: 'savings' },
+    ],
+    pendingDataRepairs: [
+      { entity: 'goal', id: 'g-a', name: 'House Fund', field: 'targetAmount', kind: 'lost' },
+      { entity: 'goal', id: 'g-b', name: 'Car Fund', field: 'targetAmount', kind: 'lost' },
+    ],
+  }));
+  await openGoals(page);
+  await expect(page.getByText('saved — 2 targets could not be read')).toBeVisible();
+  await expect(page.getByText('saved — one target could not be read')).toHaveCount(0);
 });

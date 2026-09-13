@@ -30,7 +30,7 @@ import { BnplCalendarSection } from '@/components/money/BnplCalendarSection';
 import { isScanAvailable, scanStatement } from '@/lib/scan';
 import type { AllocationSegment } from '@/components/money/AllocationBarChart';
 import { BillBreakdownSheet, type BillBreakdownData } from '@/components/money/BillBreakdownSheet';
-import { UNREAD_FIGURE, unreadRowCaption } from '@/components/plan/dataRepairsCopy';
+import { UNREAD_FIGURE, unreadRowCaption, unreadTargetsSub } from '@/components/plan/dataRepairsCopy';
 import { MoreButton } from '@/components/more-button';
 import { Screen } from '@/components/screen';
 import { AddRow } from '@/components/ui/AddRow';
@@ -1268,7 +1268,10 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
    * the hero's own VALUE stops being statable, not just its caption. That is a stricter suppression than
    * the target case, and it is the honest one: a total missing an unknown addend is not a total.
    */
-  const targetUnread = goals.some((g) => rowFieldUnread(store, 'goal-amounts', 'goal', g.id, 'targetAmount'));
+  // ⛔ [.5.6 · pass-7 C3-14] COUNTED, not `some`: the hero's sentence states how many targets could not be read, and a
+  // boolean made that "one" whatever the count. The flag stays for the suppressions below, which are yes/no.
+  const unreadTargetCount = goals.filter((g) => rowFieldUnread(store, 'goal-amounts', 'goal', g.id, 'targetAmount')).length;
+  const targetUnread = unreadTargetCount > 0;
   const savedUnread = goals.some((g) => rowFieldUnread(store, 'goal-amounts', 'goal', g.id, 'currentAmount'));
 
   return (
@@ -1279,7 +1282,7 @@ function GoalsSection({ autoOpen, onAutoOpened, onAdd }: SectionProps) {
           savedUnread
             ? 'set them again and your total comes back'
             : targetUnread
-              ? 'saved — one target could not be read'
+              ? unreadTargetsSub(unreadTargetCount)
               : `saved of ${formatWhole(totalTarget)} target`
         }
         caption={targetUnread || savedUnread ? undefined : `${percentCompleteLabel(overall)}% funded`}
