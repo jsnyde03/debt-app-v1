@@ -33498,3 +33498,51 @@ here carries a goal or an autopay amount.
 - ✅ **Recorded, and it limits every future sub-family surface:** a surface drawing part of a family can only
   catch OVER-SUPPRESSION in the per-surface assertion — its holes always red on the family first.
 - ✅ **No queue gap** — `.5.4` stays the active build; its next step is `C3-13` + the Guardian card.
+
+### `.12.6.5.4c.1` — `C3-13` SWITCH-IN: one cause behind three claims, and a decision · 2026-09-13
+
+⛔ **CORRECTION TO THE AFTER-SCAN ABOVE, made at this switch-in.** I grouped `C3-13` with Today's Guardian card as
+*"one step, separate proofs"* because they share `index.tsx`. **They share a file, not a mechanism.** `C3-13` has
+`pendingDataRepairs = []` — it is a projection asserting a completion, class 4's rule; the card's six holes are
+claim ROUTING. Two adjacent steps: `C3-13` first.
+
+✅ **Reproduced exactly** — `c3-probes`' shape re-run on current code, one variable (the tier):
+
+| store | confirmed | projected | `selectPlanState(engine)` | `selectPlanState(store)` | provisional payoffs | Guardian `debtFree` (engine / store) |
+|---|---|---|---|---|---|---|
+| free · $100 left · $120 min · verified 2 months ago | 100 | 100 | normal | normal | — | false / false |
+| **premium · same store** | 100 | **0** | ⛔ **debt-free** | normal | **Chase** | ⛔ **true** / false |
+| premium · CONTROL confirmed $0 | 0 | 0 | debt-free | debt-free | — | true / true |
+| premium · CONTROL $4,000 | 4000 | 3892.72 | normal | normal | — | false / false |
+
+⚡ **The finding's first hazard is FALSE on current code.** It warned that `selectPlanState(store, allocation)`
+*"changes more than the one branch"* — but the function reads the store only for liveness and `debts.length`;
+`'no-paycheck'` comes from the allocation alone, and a projection never removes a debt. Its other two hazards
+stand: the confirmed-$0 celebration must survive (the control row shows it does on the anchors), and the
+invitation must not stop.
+
+⛔ **THE FINDING NAMED ONE READER; THE POPULATION IS THREE.** Derived by query — every liveness owner call
+(`debtLiveness` · `liveDebts` · `partitionDebts` · `clearedDebts`) crossed with every `withProjectedBalances`
+consumer:
+
+| reader handed a projection | what liveness decides | reached from |
+|---|---|---|
+| `selectPlanState` | the *"You're debt-free"* banner + *"Ready to build wealth?"* | Today `:143` |
+| `selectPaydayGuardian` `:819` `:836` | *"To savings"* vs *"To debt"* on the card, the deploy figure's source, the focus debt | Today `:149` · widget `:84` · Live Activity `:83` · and, band only, `selectRiskNotification` / `selectRiskAcknowledgment` |
+| `selectReserveRelease` `:175` `:178` | *"your savings"* vs *"your Chase"* as the freed reserve's target | Today `:161` |
+
+⭐ **[DECISION] 🎯 2026-09-13 — FIX AT THE PROJECTION, not at each caller.** Asked with both shapes and a
+recommendation. `withProjectedBalances` records each projected debt's confirmed balance, and the liveness owners
+read it. ⚠️ **This reverses `.5.1` correction #5** (*"the guard belongs at the call site"*). That correction was
+right about the fact — a projected store carries no marker — and the decision is to give it one, because
+per-caller threading is the member-at-a-time shape that failed three rounds running in class 4, and the next
+caller handed a projection would repeat the bug. ⚠️ Raw stores carry no record, so the change reaches projected
+stores **by construction** — exactly the defect population.
+
+⚠️ **The marker's one failure mode, measured before relying on it: a COPY of a projected debt drops the record**
+and silently falls back to the projected balance. Every spread of a debt object in app source, by query — **10,
+and all are write paths on the raw store** (`store.ts` actions ×5, `migrations.ts`, `ImportDebtsSheet`,
+`originalBalance.ts`, `sandboxScenarios.ts`, and the rollover at `payday.ts:139`, which advances `balanceAsOfDate`
+after reconciliation). None copies a projected debt and then asks liveness. ⚠️ **The record must also CHAIN
+through**: `withProjectedBalances` re-applied to a projected store would otherwise record the first projection's
+$0 as confirmed — so the assertion projects twice.

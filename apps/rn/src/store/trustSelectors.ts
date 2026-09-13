@@ -1,5 +1,7 @@
 import type { DataRepair, Debt, DebtStore } from '@/data/models';
 
+import { confirmedBalance } from './balanceSelectors';
+
 /**
  * ⛔ **THE ONE OWNER OF *"MAY THE APP MAKE A CLAIM ABOUT THIS MONEY?"***
  * [P6.8.9.7.11.18 · S1.5 · pass-1 blocker B1]
@@ -108,7 +110,9 @@ export function debtLiveness(store: DebtStore): DebtLiveness {
  * paid-off one does. Rank, sum and name from this; branch copy from `debtLiveness`.
  */
 export function liveDebts(store: DebtStore): Debt[] {
-  return store.debts.filter((d) => d.balance > 0);
+  // ⛔ [pass-7 `C3-13`] The CONFIRMED balance — on a projected store `balance` is an estimate, and an estimate
+  // reaching $0 is an invitation to confirm a payoff, not a payoff. Identical to `balance` on a raw store.
+  return store.debts.filter((d) => confirmedBalance(d) > 0);
 }
 
 /**
@@ -153,7 +157,8 @@ export function partitionDebts(store: DebtStore): DebtPartition {
   const cleared: Debt[] = [];
   const unreadBalance: Debt[] = [];
   for (const d of store.debts) {
-    if (d.balance > 0) live.push(d);
+    // ⛔ [pass-7 `C3-13`] Confirmed, as `liveDebts` above — a projected $0 is not a cleared debt.
+    if (confirmedBalance(d) > 0) live.push(d);
     else if (rowFieldUnread(store, 'debt-balances', 'debt', d.id, 'balance')) unreadBalance.push(d);
     else cleared.push(d);
   }

@@ -19,7 +19,33 @@ import type { Debt, DebtStore } from '@/data/models';
  */
 export function withProjectedBalances(store: DebtStore, isPremium: boolean): DebtStore {
   if (!isPremium) return store;
-  return { ...store, debts: projectDebtsToDate(store.debts, store.paycheck.currentDate, payCyclesPerMonth(store.paycheck.payCycle)) };
+  const debts = projectDebtsToDate(store.debts, store.paycheck.currentDate, payCyclesPerMonth(store.paycheck.payCycle));
+  // ⚠️ `confirmedBalance(original)`, not `original.balance`: projecting a projection must record the
+  // CONFIRMED figure again, never the first projection's estimate. `projectDebtsToDate` maps one-to-one.
+  debts.forEach((d, i) => CONFIRMED.set(d, confirmedBalance(store.debts[i])));
+  return { ...store, debts };
+}
+
+/**
+ * ⛔ **THE BALANCE THE USER HAS CONFIRMED, READABLE FROM A PROJECTED DEBT.** [pass-7 `C3-13` · DECISION 🎯
+ * 2026-09-13]
+ *
+ * A projection rewrites `balance` to an estimate, and every liveness question asked of a projected store was
+ * therefore asked of the estimate: a premium user with $100 left on a $120 minimum projects to $0, and Today
+ * said *"You're debt-free · Every balance is cleared"* above the card asking them to confirm that payoff. The
+ * Guardian's *"To savings"* and the reserve release's *"your savings"* made the same claim.
+ *
+ * ⚡ **So the projection records what it replaced**, and the liveness owners in `trustSelectors.ts` read it.
+ * A raw debt has no record and answers with its own `balance`, so nothing changes off a projection — by
+ * construction, not by care. ⚠️ A WeakMap rather than a field: a projected store is compute-only and must
+ * never carry a value a write could persist.
+ * ⚠️ **A COPY drops the record** and falls back to the estimate. Every spread of a debt in app source is a
+ * write on the raw store (measured at `.5.4c.1`); a new one that copies a PROJECTED debt reopens `C3-13`.
+ */
+const CONFIRMED = new WeakMap<Debt, number>();
+
+export function confirmedBalance(debt: Debt): number {
+  return CONFIRMED.get(debt) ?? debt.balance;
 }
 
 /**

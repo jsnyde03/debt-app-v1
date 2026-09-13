@@ -1,7 +1,8 @@
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import { REPAIRABLE_MONEY_FIELDS, runMigrations } from '@/data/migrations';
 import { selectWhatIf } from '@/store/analysisSelectors';
-import { selectDebtBalanceView, withProjectedBalances } from '@/store/balanceSelectors';
+import { selectDebtBalanceView, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
+import { selectPaydayGuardian, selectReserveRelease } from '@/store/guardianSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { DEFAULT_CUSHION_FLOOR, cushionLine, effectivePaycheckBuffer, selectAllocation, selectWaterFillPlan } from '@/store/selectors';
 import { selectPlanState } from '@/store/planSelectors';
@@ -798,6 +799,67 @@ export default function run(): void {
     eq(mayClaim(withApr('n/a'), 'debt-balances'), true, '`debt-balances` still says YES on an unread APR — the confirmed figures survive');
     eq(mayClaim(withApr('n/a'), 'projected-balance'), false, '⛔ C3-8 — …and the projected total may not be stated');
     eq(mayClaim(withApr('n/a'), 'solved-projection'), false, '⛔ C3-9 — …nor the debt-free date');
+  }
+
+  /**
+   * ⛔ **`.5.4c` — A PROJECTED $0 IS NOT A PAYOFF.** [pass-7 `C3-13` · DECISION 🎯 2026-09-13]
+   *
+   * A premium user with $100 left on a $120 minimum, verified two months ago, projects to $0 — and Today said
+   * *"You're debt-free · Every balance is cleared"* four inches above the card asking them to confirm that very
+   * payoff. ⚡ **Three readers, one cause**: plan state, the Guardian's *"To savings"* and the reserve release's
+   * *"your savings"* all asked liveness of the PROJECTED store, where `balance` is the estimate.
+   *
+   * ⭐ **Fixed at the projection, so it is asserted over every reader at once**: handed a projected store, each
+   * reader must answer exactly as it does on the confirmed store. ⚠️ Equality alone cannot tell a correct fix from
+   * one that stopped projecting, so the controls below pin what must NOT change: the projection still reaches $0,
+   * the invitation still names the debt, and a genuinely confirmed $0 still celebrates.
+   */
+  {
+    const TWO_MONTHS_AGO = '2026-06-26';
+    const lastCard = (balance: number, verified: string, plan: 'free' | 'premium'): DebtStore => ({
+      ...runMigrations({
+        version: 8,
+        paycheck: { amount: '2200', currentDate: DAY, nextPaycheckDate: '2026-09-09' },
+        debts: [{ id: 'd0', name: 'Chase', balance, originalBalance: 5000, minimumPayment: 120, apr: 20, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: verified, lastVerifiedDate: verified }],
+        requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 900, dueDate: DAY, recurrence: 'monthly', category: 'housing' }],
+        cushionFloor: 200,
+        prefs: { onboardingComplete: true },
+      }),
+      subscriptionPlan: plan,
+      // A freed reserve is pending, so `selectReserveRelease` has a target to name.
+      pendingReserveRelease: { tapped: false, covered: 100 },
+    });
+
+    const READERS: { name: string; read: (s: DebtStore) => string }[] = [
+      { name: 'plan state', read: (s) => String(selectPlanState(s, selectAllocation(s))) },
+      { name: "the Guardian brief's debt-free framing", read: (s) => String(selectPaydayGuardian(s)?.debtFree) },
+      { name: "the reserve release's target", read: (s) => String(selectReserveRelease(s)?.targetName) },
+    ];
+    const CASES: { name: string; store: DebtStore }[] = [
+      { name: 'premium · $100 left · projects to $0', store: lastCard(100, TWO_MONTHS_AGO, 'premium') },
+      { name: 'premium · confirmed $0', store: lastCard(0, DAY, 'premium') },
+      { name: 'premium · $4,000 · projects above $0', store: lastCard(4000, TWO_MONTHS_AGO, 'premium') },
+      { name: 'free · $100 left', store: lastCard(100, TWO_MONTHS_AGO, 'free') },
+    ];
+
+    for (const { name, store } of CASES) {
+      const isPremium = store.subscriptionPlan === 'premium';
+      const projected = withProjectedBalances(store, isPremium);
+      // ⚠️ Twice: a record that did not chain through would store the FIRST projection's $0 as "confirmed".
+      const reprojected = withProjectedBalances(projected, isPremium);
+      for (const reader of READERS) {
+        eq(reader.read(projected), reader.read(store), `⛔ C3-13 · ${name} · ${reader.name} — a projection answers liveness from the confirmed balance`);
+        eq(reader.read(reprojected), reader.read(store), `⛔ C3-13 · ${name} · ${reader.name} — …and so does a projection of a projection`);
+      }
+    }
+
+    // ⭐ What must NOT change — each one is a way to make the equality above pass by breaking something else.
+    const owed = lastCard(100, TWO_MONTHS_AGO, 'premium');
+    eq(withProjectedBalances(owed, true).debts[0].balance, 0, 'control — the projection itself still reaches $0 (the fix may not stop projecting)');
+    eq(selectPlanState(withProjectedBalances(owed, true), selectAllocation(withProjectedBalances(owed, true))), 'normal', '⛔ C3-13 — $100 still owed is not "debt-free"');
+    eq(selectProvisionalPayoffs(owed, true).map((d) => d.name).join(), 'Chase', '⭐ control — the invitation to CONFIRM the payoff still names the debt');
+    const confirmed = lastCard(0, DAY, 'premium');
+    eq(selectPlanState(withProjectedBalances(confirmed, true), selectAllocation(withProjectedBalances(confirmed, true))), 'debt-free', '⭐ control — a genuinely confirmed $0 still celebrates');
   }
 }
 
