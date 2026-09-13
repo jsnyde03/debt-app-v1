@@ -33601,3 +33601,78 @@ have swallowed a missing file. Re-run with per-file counts and an existence chec
   which is what licensed the one `fixture-date-ok:`.
 - ✅ **Replenished** — `.5.4` stays the active build; next is **Today's Guardian card** *(`'required-plan'`'s six
   holes, `.5.4b.1`)*, its over-suppression rows re-verified on a fixture whose corrupted debt has no autopay amount.
+
+### `.12.6.5.4d` switch-in — Today's Guardian card is a CLASS: `'required-plan'` is the wrong question for most of its askers · 2026-09-13
+
+✅ **Rules re-read** for this switch-in *(`C3-13` had relied on `C3-11`'s re-read — a miss, corrected here)*.
+
+⚡ **The fixture caveat was real, and settling it took three rounds.** v2 added shapes whose corrupted debt has no
+autopay amount — a lost minimum now moves the card on those shapes and nowhere else, so v1's autopay amount WAS
+shadowing it. v3 corrupted each debt in turn, because the debt that clears in-horizon was the one v2 never touched.
+v4 added a `capping` shape and the whole-row and whole-list losses. **A lost APR moves the Guardian brief on none
+of 18 shapes × 2 debts**, and `leanAmount` has **0** reads in `guardianSelectors.ts` and `selectors.ts` *(5, all
+the variable-income band, in `planSelectors.ts`)* — so both are STRUCTURAL over-suppressions, not the fixture.
+
+⛔ **THE POPULATION IS NINE ASKERS, NOT ONE CARD.** Every production `'required-plan'` consumer, by query: Today's
+plan hero · the Guardian card · Required actions · the paywall lead · the affordability card · the windfall sheet
+· the Live Activity · the widget's spoken line · `cushionLine`. ⛔ **And one projected surface asks nothing at all:
+`SaveForItSheet.tsx` makes 0 trust calls** while rendering per-paycheck amounts, paycheck counts and ready-by
+dates off the projected plan.
+
+⚠️ **The first per-surface pass counted an artifact twice more** — a required row's `view` carries the whole `Debt`,
+so its `apr` and `originalBalance` "holes" were serialization. Re-measured on each surface's RENDERED fields only:
+
+| surface *(rendered fields)* | `'required-plan'` holes | `'solved-projection'` | exact set |
+|---|---|---|---|
+| Today's plan hero *(7 summary fields incl. `debtFreeDate`)* | ⛔ **9** — APR ×2 · autopay ×2 · every goal loss | 0 holes · over: lean | solved − lean |
+| Required actions *(item + view fields)* | 2 — autopay ×2 · over 6 | 0 holes · over 12 | the obligations |
+| Guardian brief *(card · Live Activity · widget)* | ⛔ **7** — autopay ×2 · every goal loss | 0 holes · over: APR ×2 · lean | solved − APR − lean |
+| Affordability | ⛔ **7** | 0 holes · over: APR ×2 · lean | solved − APR − lean |
+| Windfall split | ⛔ **7** | 0 holes · over: APR ×2 · lean · windfall | solved − APR − lean |
+| Save-for-it *(asks NOTHING)* | 1 | 0 holes · over 10 | own measurement owed |
+
+⛔ **Four surfaces state a wrong figure today over a lost autopay amount or goal field**, and the hero prints a
+debt-free date over a lost APR — `C3-9`'s defect on Today, overlapping `.5.4`'s `C1-5` *(the hero's guard gates its
+colour and reassurance line, not its figures)*. ⚠️ Scope and shape put to 🎯 with a recommendation.
+
+⭐ **[DECISION] 🎯 2026-09-13 — EXACT CLAIMS PER SURFACE**, the recommended shape, over *"one wide claim"* (zero holes,
+but a lost APR or lean paycheck would blank three surfaces that read neither) and *"the Guardian card only"*
+(smallest, but four measured holes stay live). The shape:
+
+| claim | route | askers |
+|---|---|---|
+| `'paycheck-plan'` **(new)** | debt balance · minimum · autopay amount · bills · groceries · every goal field · cushion line · windfall · bill reserve | Guardian card · Live Activity · widget line · affordability · windfall routing |
+| `'required-plan'` **(narrowed)** | debt balance · minimum · autopay amount · bills — exactly the obligations | Required actions |
+| `'solved-projection'` *(unchanged)* | — | + Today's plan hero, its figures gated *(folds `C1-5`)* |
+
+⛔ **A TRAP THE DECISION'S SHAPE WOULD HAVE SPRUNG, found reading the askers rather than the table.**
+`cushionLine` asks `rowFieldUnread(store, 'required-plan', 'plan', '', 'cushionFloor')` — `.5.2`'s `C1-1` fix.
+Narrowing `'required-plan'` off the plan entity makes `routedSubset` return nothing for that call, so a lost
+cushion line would read as READABLE and the Guardian's confident *"$200 · Your line"* would return. `cushionLine`
+moves to `'paycheck-plan'` with the others, and its existing `C1-1` guard must stay green through the change.
+⚠️ The paywall lead's figures are not yet measured; the candidate routes are validated against every asker before
+anything is written into the table.
+
+### `.12.6.5.4d.2` — the candidate routes, validated against every asker before writing them · 2026-09-13
+
+⭐ **0 holes across every asker, on 22 shapes** — each asker on its rendered fields, against the claim the decision
+assigns it; `cushionLine` sees a lost cushion line on **22 of 22** (`C1-1` stays closed).
+
+| claim | final route | askers | named over-suppressions |
+|---|---|---|---|
+| `'paycheck-plan'` *(new)* | debt balance · minimum · autopay amount · bills · groceries · goal `'any'` · cushion line · windfall · bill reserve | Guardian card · Live Activity · widget line · affordability · windfall routing · paywall lead · `cushionLine` | windfall routing: the stored windfall · paywall lead: both minimums + the five goal variants |
+| `'required-plan'` *(narrowed)* | debt balance · minimum · autopay amount · bills · groceries · windfall · bill reserve | Required actions | none — exact |
+| `'solved-projection'` *(unchanged)* | — | + Today's plan hero | the lean paycheck |
+
+⛔ **MY FIRST NARROWED ROUTE WAS WRONG TWICE, AND ONLY NEW SHAPES SAID SO.** Obligations alone *(debts + bills)* had
+**2 holes** — the windfall and the bill reserve change the rows' `reserveCovered`. Adding those, a **short** shape and
+an **at-floor** shape found **3 more** — on a short paycheck the groceries amount changes the rows too. ⚡ The two
+claims now differ only by goals and the cushion line.
+
+⚠️ **The paywall lead has 7 over-suppressions, which the decision's preview did not name.** It renders `shortfall`,
+`cushion` and the free buffer; both minimums and the goal fields move none of them on any of 22 shapes. The only
+exact alternative is a fifth claim for one pitch sentence, so it rides `'paycheck-plan'` with zero holes, and the
+gap is stated to 🎯 rather than absorbed. ⚠️ The first run's 16 were the fixture — no shape was short or at the floor,
+so neither rendered figure could move.
+⚠️ **The proof boundary is the shape set.** Every new shape this switch-in added found movers the previous set
+could not show; the unit assertion carries all 22, and a surface with a mover none of them exercises is unmeasured.
