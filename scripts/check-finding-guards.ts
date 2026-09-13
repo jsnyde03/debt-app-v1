@@ -171,8 +171,9 @@ const ids = Object.keys(registry);
  * **305 → 306 at `.5.4g`** — `C3-1`, Siri's `$0` over an unread balance.
  * **306 → 308 at `.5.4h`** — `C3-2` + `D2-12`, the upsell a subscriber heard (the unread and no-plan branches).
  * **308 → 309 at `.5.5`** — `B1-1`, the save-for-it pace and date the engine did not keep.
+ * **309 → 310 at `.5.6`** — `C3-14`, the goals hero that counted two unread targets as one.
  */
-const MIN_ENTRIES = 309;
+const MIN_ENTRIES = 310;
 const MAX_UNGUARDED = 1;
 
 /**

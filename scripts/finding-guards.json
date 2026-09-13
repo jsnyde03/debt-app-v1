@@ -4302,5 +4302,23 @@
       "measured": "2026-09-13",
       "sha": "ecc1e661"
     }
+  },
+  "S1P7-C3-14-GOALS-HERO-COUNT": {
+    "what": ".5.6 [pass-7 C3-14, minor] - Money's goals hero fed its sentence a BOOLEAN (goals.some(... targetAmount ...)), so two goals with unreadable targets read 'saved - one target could not be read' on the line whose job is to send the user to fix them; they found two. Measured by probe13. The count now comes from the list the caption stands for, and the words from dataRepairsCopy's unreadTargetsSub, in the one-vs-N shape repairBlocks already uses. Census by query: this was the only caption in the app stating a number from a boolean; the five 'set them again' hero sites state no count and were left.",
+    "file": "apps/rn/src/components/plan/dataRepairsCopy.test.ts",
+    "token": "C3-14 — two unread targets are \"2 targets\", never \"one\"",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/dataRepairsCopy.ts",
+          "find": "  return count === 1 ? 'saved — one target could not be read' : `saved — ${count} targets could not be read`;",
+          "replace": "  return 'saved — one target could not be read';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C3-14 — two unread targets are \"2 targets\", never \"one\"",
+      "measured": "2026-09-13",
+      "sha": "b8db7651"
+    }
   }
 }
