@@ -674,18 +674,18 @@ export default function run(): void {
     const NEXT = '2026-09-09';
     const ANCHOR = '2026-03-01';
     const LIST: Record<string, string> = { debt: 'debts', requiredExpense: 'requiredExpenses', livingExpense: 'livingExpenses', goal: 'goals' };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- a raw file off disk, mutated by field name
     type Raw = Record<string, any>;
+    // ⚠️ Every date is the fixture's own clock — `currentDate: DAY` — so nothing here ages against the run date.
     const rawShape = (sh: Shape): Raw => {
       const b = sh.big ? 3 : 1;
       return {
         version: 8,
         paycheck: { amount: String(sh.income), currentDate: DAY, nextPaycheckDate: NEXT, incomeVaries: sh.variable, leanAmount: Math.round(sh.income * 0.75), typicalAmount: sh.income },
         debts: [
-          { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: 6000 * b, minimumPayment: 150 * b, scheduledPaymentAmount: 200 * b, apr: 22, dueDate: '2026-09-02', type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
-          { id: 'd1', name: 'Visa', balance: 3000 * b, originalBalance: 3500 * b, minimumPayment: 90 * b, apr: 18, dueDate: '2026-09-04', type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+          { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: 6000 * b, minimumPayment: 150 * b, scheduledPaymentAmount: 200 * b, apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+          { id: 'd1', name: 'Visa', balance: 3000 * b, originalBalance: 3500 * b, minimumPayment: 90 * b, apr: 18, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
         ],
-        requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 600, dueDate: '2026-09-01', recurrence: 'monthly', category: 'housing' }],
+        requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 600, dueDate: DAY, recurrence: 'monthly', category: 'housing' }],
         livingExpenses: [{ id: 'l0', name: 'Groceries', amount: 150, enabled: true }],
         goals: [{ id: 'g0', name: 'Trip', targetAmount: 1000, currentAmount: 200, ...(sh.pace ? { priorityPerPaycheck: 40 } : {}), priority: true, type: 'savings' }],
         cushionFloor: 250,

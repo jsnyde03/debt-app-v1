@@ -33355,3 +33355,37 @@ Every restore `cmp`-verified against a copy taken before the first plant.
 pipes by `cmd.exe` — first through `npx`, then through **Volta's `node` shim**, which re-parses the same way.
 `REAL_EXIT=255` both times; the notification's *"exit code 0"* was the trailing `echo`'s. ⚡ Through the image's
 real `node.exe`: **4 passed, collected by name** — `C3-8`, `C3-9`, and both `.5.4a` cases.
+
+### `.12.6.5.4a.5` — the surfaces planted back onto the wide claim · `.5.4a` CLOSED · 2026-09-13
+
+⭐ **Both e2e cases red on the original over-suppression, in the real app.** Money's hero back on
+`'row-figures'`: `Expected "$12,000" · Received "Some figures unread"`. Progress's date back on it:
+`Expected /^[A-Z][a-z]+ \d{4}$/ · Received "—"`. Each ran exactly its one test *(`1 failed`)*, restored, and
+`cmp`-verified. ⚡ **So both green passes were evidence**: the goal repair and the `typicalAmount` repair really
+are recorded through `seedStore`, which neither green run could show about itself.
+
+**Eight plants in all** — six unit *(F · A · B · C-as-over-fix · D · E)* and two e2e *(M1 · P1)* — every one
+`reason=MATCHED`.
+
+#### After-scan
+
+- ✅ **Filed, not folded:** the widget now refuses less *(a lost `typicalAmount` no longer blanks it)*, and
+  nothing pins that direction — `widgetSync.test.ts` asserts refusals only. → backlog **`.5.7`**.
+- ✅ **Already routed, one member larger:** `'projected-balance' ⊂ 'solved-projection'`, so `projected &&
+  solved` is vacuous the way `X && 'row-figures'` was — added to the lattice item in `.5.7`.
+- ✅ **Resolved by construction:** the census could not see a surface asking the predicate; both questions are
+  literal claim names now.
+- ⚡ **`C3-11` is unblocked** — the cushion forecast is a plan solved forward and adopts `'solved-projection'`.
+  `.5.4` resumes there. No queue gap: `.5.4` stayed the active build throughout.
+- ⚠️ **Two verifier lessons, both "green that asserted nothing"**: a test module run directly only defines its
+  `run()` *(recorded above)*, and a background notification's exit code is the trailing `echo`'s. The second
+  is in the shell memory; the first is this workstream's `a green suite often means untested`, again.
+
+⛔ **AND THE CLOSING `lint:rn` WAS RED — 3 of 52 — WITH THE NOTIFICATION SAYING EXIT 0.** All three were mine,
+from the new test block: an **unused `eslint-disable`** (the rule never fired on that line), and three
+**calendar `dueDate` literals** that `lint:fixture-dates` counts as aged — **123 against a cap of 120**, the
+dates being 9–12 days before the run. `test:wrap-escapes` was a passenger (`FAULT-BASELINE-ALREADY-RED` on the
+fixture-dates gate). ⚠️ **The dates were fixed by the file's own convention, not by the gate's exemption**:
+every fixture date is now `DAY`, the store's own `currentDate`, so nothing in the block ages against the run
+date. ⚠️ Renaming the literals into a constant would have passed the gate and hidden the same fuse. Changing a
+fixture changes what it can move, so the suite and all six unit plants were re-run on the new dates.

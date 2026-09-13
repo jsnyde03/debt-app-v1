@@ -1409,7 +1409,10 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   future surface adopting **only** the predicate reads as unguarded, and one DROPPING it lowers no floor —
   the exact loss-detection the gate exists for. ⚠️ **Distinct from the split-across-two-files gap above**
   *(`PRINTS_MONEY` and `READS_ENTITIES` must co-occur)*: this one is about the ASK, that one about the
-  POPULATION. → **`.5.7`**.
+  POPULATION. → **`.5.7`**. ✅ **RESOLVED by `.5.4a.2`, 2026-09-13** — the predicate is gone; both
+  projection questions are claims asked by literal name, and the census reads `projected-balance→2 ·
+  solved-projection→2`. ⚠️ The lattice bullet above still stands, one member larger:
+  `'projected-balance' ⊂ 'solved-projection'`, so `projected && solved` would be vacuous the same way.
 
 ### ⤵ surfaced by `.5.4a`'s switch-in, 2026-09-13
 
@@ -1424,3 +1427,11 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   *(measured)*, so nothing is open; ⚠️ **the first NAMED goal route or `rowFieldUnread(…, 'priorityPerPaycheck')`
   is silently blind to it.** → **`.5.7`** *(instrument — assert each LOST variant's recorded field is one the
   table can name)*.
+
+### ⤵ surfaced by `.5.4a`'s after-scan, 2026-09-13
+
+- ⚠️ **The widget now refuses LESS, and nothing pins that direction.** It moved from `'debt-balances' &&
+  'row-figures'` to `'debt-balances' && 'solved-projection'`, so a lost `typicalAmount` no longer blanks the Home
+  Screen. `widgetSync.test.ts` asserts only refusals — a revert to the wide claim would stay green there. Money
+  and Progress each got an e2e in the good direction; the widget got none. → **`.5.7`** *(a widget case that
+  asserts the snapshot STATES its figures over a repair no projection reads)*.
