@@ -33188,3 +33188,54 @@ could not answer about itself.**
 `progress-hero-total.spec.ts`, which has never existed — found by the 2026-08-25 re-verification, rated
 minor, still present a month later. ⛔ The **guard was real**; only the pointer was wrong, which is the
 more dangerous half: a maintainer who cannot find the named spec concludes the call is unpinned.
+
+### `.12.6.5.4` — `C3-8`: Money's hero, the same defect one screen over · 2026-09-13
+
+⚡ **Planted, and the received value is the evidence:** removing the guard renders
+`Expected: "Some figures unread" · Received: "$11,800"` on a store whose balances read perfectly and
+whose **APR** did not.
+
+⭐ **THE DIRECTION IS THE UNDERSTATEMENT, AND THE FINDING DESCRIBES THE OTHER ONE.** `$11,800` is *below*
+the `$12,000` anchor, because the repaired APR is **0** — so the projection pays the debt down with **no
+interest accruing**. `C3-8` reports an overstatement *($8,750 over a true $11,513)*; this fixture produces
+the opposite sign from the identical mechanism. ⚠️ For a debt product the understatement is the worse half:
+it tells the user they owe **less** than they do. **The sign is a property of the fixture, not of the
+defect** — so a finding's example figure should never be read as the bound.
+
+#### The narrowing that made one guard right is what opened this
+
+`money.tsx:421` gates the hero on `hasUnreadDebtBalances`, and `:418-420` records that owner being made
+**field-specific** so an absent `apr` would stop suppressing *"Every balance cleared"* — correct, since an
+APR says nothing about whether the balances were read. ⛔ But `totalBal` (`:386`) is summed from
+`selectDebtBalanceView(…).currentBalance`, which on premium is `projectCurrentBalance` — and that reads
+**`apr`** (`projectCurrentBalance.ts:71`, verified at source, not quoted), which routes to `'row-figures'`
+and only there. **A correct narrowing for one consumer left the other unguarded.**
+
+⭐ **SECOND INDEPENDENT INSTANCE OF ONE SHAPE, ONE SCREEN APART.** `C3-9` and `C3-8` are both *a guard
+correct about the claim it asks and blind to the claim the number is computed from*, and in both the gap
+was opened by a previous fix's deliberate narrowing. ⚡ **That is the argument for `.5.4`'s inherited
+iterating assertion** — two instances found by hand say the next one will also be found by hand, or not at
+all.
+
+#### Decisions taken, with reasons
+
+⚠️ **It REFUSES rather than falling back to the confirmed anchor total.** Falling back is defensible in
+isolation — the balances *are* readable — but Money would then state a different figure from Progress and
+the widget on the same store, which is the *"one store, N answers"* divergence this class exists to kill.
+The widget refuses; Progress refuses; Money refuses.
+
+⚠️ **New copy, not the existing sentence.** *"Some balances unread"* is false when the balances read fine,
+so the branch says *"Some figures unread"* — the same correction `UNREAD_REMAINING_LINE` makes on Progress.
+
+⚠️ **Gated on `isPremium` too**, because a free total is the raw anchor sum with no APR in it and refusing
+it would be over-suppression. ⛔ **Plant B proves that conjunct is UNTESTED** — dropping it leaves the
+suite green. Filed.
+
+#### On the plant itself
+
+⛔ **The masking risk that bit `C3-9` was checked before planting, not after.** There, a one-line revert
+went green because `:111`'s gag hid the defect. Here the branches above are `allCleared` (needs
+`active.length === 0`) and `unreadDebts` (false — the fixture's only repair is `debt/apr`, and
+`hasUnreadDebtBalances` is field-specific), so nothing can mask it and a single-branch revert is faithful.
+⚡ And the guard had no test at all: every Money fixture poisons `balance`, exactly as on Progress, so the
+existing hero guard fired for the right reason by accident.

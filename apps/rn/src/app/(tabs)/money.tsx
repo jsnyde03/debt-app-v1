@@ -44,7 +44,7 @@ import type { Debt, Goal, RequiredExpense } from '@/data/models';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useLayout } from '@/hooks/use-layout';
 import { useActiveStore } from '@/store/StoreContext';
-import { selectDebtBalanceView, buildEstimateCaption, withProjectedBalances } from '@/store/balanceSelectors';
+import { selectDebtBalanceView, buildEstimateCaption, mayStateProjectedFigure, withProjectedBalances } from '@/store/balanceSelectors';
 import { anyRowFieldUnread, hasUnreadDebtBalances, partitionDebts, rowFieldUnread, unreadFieldsFor } from '@/store/trustSelectors';
 import { BILL_CATEGORY_LABEL, BILL_CATEGORY_ORDER, RECURRENCE_LABEL, resolveBillCategory } from '@/store/obligationForm';
 import { looksLikeDebt } from '@/store/looksLikeDebt';
@@ -420,6 +420,21 @@ function DebtsSection({
   // suppressing this celebration, though it says nothing about whether the balances were read.
   const unreadDebts = hasUnreadDebtBalances(store);
   const allCleared = active.length === 0 && paidOff.length > 0 && !unreadDebts;
+  /**
+   * ⛔ **[pass-7 `C3-8`] `hasUnreadDebtBalances` IS THE RIGHT GUARD FOR THE CELEBRATION AND THE WRONG ONE
+   * FOR THE TOTAL**, and the narrowing that made it right above is what opened this.
+   *
+   * `:418-420` records the owner being made FIELD-SPECIFIC so an absent `apr` would stop suppressing
+   * *"Every balance cleared"* — correct, since an APR says nothing about whether the balances were read.
+   * ⚡ But `totalBal` is summed from `selectDebtBalanceView(…).currentBalance`, which on premium is
+   * `projectCurrentBalance` — and that reads **`apr`** (`projectCurrentBalance.ts:71`), which routes to
+   * `'row-figures'` and only there. So a readable portfolio with an unreadable RATE printed a confident
+   * projected total. `B1`'s rule widened once and missed a new direction, again.
+   *
+   * ⚠️ **Gated on `isPremium` too**: a free total is the raw anchor sum with no APR in it, and refusing
+   * that would be the over-suppression `snapshot.ts` calls a second false statement.
+   */
+  const mayStateProjected = mayStateProjectedFigure(store);
 
   const list = (
     <View style={styles.flex}>
@@ -441,6 +456,23 @@ function DebtsSection({
         <MoneyHero
           valueTestID="money-hero-debts-value"
           value="Some balances unread"
+          sub="set them again and your total comes back"
+        />
+      ) : isPremium && !mayStateProjected ? (
+        /**
+         * ⛔ **[pass-7 `C3-8`] The balances read fine; the PROJECTION cannot be trusted.**
+         *
+         * ⚠️ Deliberately NOT the *"Some balances unread"* sentence above — that would be false here, and
+         * suppressing one false statement with a different one is `assert-the-honest-state-by-name`. Same
+         * correction made on Progress, where `UNREAD_JOURNEY_LINE` could not serve this case either.
+         *
+         * ⭐ **And it refuses rather than falling back to the confirmed anchor total**, which was the
+         * tempting alternative: the widget refuses, Progress refuses, so Money refuses. A per-screen
+         * fallback would reintroduce the *"one store, N answers"* divergence this class exists to kill.
+         */
+        <MoneyHero
+          valueTestID="money-hero-debts-value"
+          value="Some figures unread"
           sub="set them again and your total comes back"
         />
       ) : (

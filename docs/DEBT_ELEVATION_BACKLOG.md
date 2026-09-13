@@ -1376,3 +1376,13 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   by `.5.3` putting the file in the population)*, so **the next file to acquire one reds the gate** — the
   same zero-headroom shape as `authored` 9/9. ⛔ Drain by measuring, never by raising the cap.
   → **pass 8** *(or `.12.6.9` if an instrument round opens first)*.
+- ⚠️ **`C3-8`'s `isPremium &&` CONJUNCT IS UNTESTED — measured by planting, not noticed by reading.**
+  `money.tsx`'s new hero guard is `isPremium && !mayStateProjected`; the `isPremium` half exists so a FREE
+  user — whose total is the raw anchor sum with no APR in it — is not refused a figure that was never at
+  risk. ⛔ **Dropping that conjunct leaves the whole suite GREEN**, because every fixture on this screen is
+  premium *(`scenario()` defaults to `subscriptionPlan: 'premium'`, `seed.ts:71`)*. ⚡ **A condition nothing
+  exercises is one a later edit deletes silently**, and the failure it would cause is over-suppression —
+  the direction `snapshot.ts` calls *"a second false statement, not a fix"*, and the one this class keeps
+  having to correct for. ⚠️ The same gap almost certainly applies to `C3-9`'s Progress guard, which has no
+  free-tier fixture either. **Fix by fixture, not by deleting the conjunct.** → **`.5.7`** *(boundary — add
+  a free-tier case to both screens)*.

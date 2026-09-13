@@ -695,3 +695,47 @@ test('C2’s debts-hero control · a portfolio the app fully read still states i
   await expect(page.getByText('Visa')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId('money-hero-debts-value')).toHaveText('$12,000');
 });
+
+/**
+ * ⛔ **S1.13.7.12.6.5.4 [pass-7 `C3-8`] — AN UNREAD **APR**, WITH EVERY BALANCE READABLE.**
+ *
+ * ⚡ The two tests above poison `balance`, so `hasUnreadDebtBalances` is true and the hero's existing
+ * guard fires for the right reason. **Nothing covered the case where the balances read perfectly and the
+ * RATE does not** — and `totalBal` is summed from `selectDebtBalanceView(…).currentBalance`, which on
+ * premium is `projectCurrentBalance`. That reads **`apr`** (`projectCurrentBalance.ts:71`), and `apr`
+ * routes to `'row-figures'` **and only there**.
+ *
+ * ⛔ **The narrowing that made the celebration guard correct is what opened this.** `money.tsx:418-420`
+ * records `hasUnreadDebtBalances` being made field-specific so an absent `apr` would stop suppressing
+ * *"Every balance cleared"* — right for that claim, and precisely why the TOTAL went unguarded.
+ *
+ * ⚠️ **The fixture cannot go vacuous in either direction**: if the guard failed to fire, or if `apr: ''`
+ * recorded no repair at all, the hero would render a dollar figure and the first assertion fails loudly.
+ */
+test('C3-8 · an unread APR withholds the projected total, with every balance readable', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      requiredExpenses: [],
+      debts: [
+        // ⚠️ `balance` and `originalBalance` READ FINE — that is the point. `apr: ''` is the one
+        // unreadable field. The stale anchor dates give the projection something to actually move, so
+        // the suppressed figure is a real estimate rather than a copy of the anchor.
+        { id: 'd0', name: 'Chase card', balance: 8000, originalBalance: 8000, minimumPayment: 100, apr: '', dueDate: day(4), type: 'debt', recurrence: 'monthly', balanceAsOfDate: day(-90), lastVerifiedDate: day(-90) },
+        { id: 'd1', name: 'Visa', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/money');
+  await expect(page.getByText('Visa')).toBeVisible({ timeout: 15_000 });
+
+  await expect(
+    page.getByTestId('money-hero-debts-value'),
+    'a total projected from a rate the app could not read is the same claim as one summed from an unread balance',
+  ).toHaveText('Some figures unread');
+
+  // ⚠️ NOT the balances sentence — the balances read perfectly, and naming them would be a second false
+  // statement. The same correction `UNREAD_REMAINING_LINE` makes on Progress.
+  await expect(page.getByText('Some balances unread')).toHaveCount(0);
+  await expect(page.getByText('Every balance cleared')).toHaveCount(0);
+});
