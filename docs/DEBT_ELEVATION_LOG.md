@@ -33041,3 +33041,34 @@ requiredExpense 2 · livingExpense 1 · plan 0** — measured by **inverting** t
 asking whether `plan` was absent. `.5.2` writes the suite's first plan-entity fixtures.
 `CLAIM_CONSUMER_FLOOR['required-plan']` **6 → 7**: `selectors.ts` is the first plan-entity trust caller
 in the tree.
+
+#### ⛔ One correct commit staled 34 proofs — the ledger's ordinary trigger, hit at scale
+
+`.5.2` touched `check-trust-claims.ts`, `guardianSelectors.ts`, `trustSelectors.ts`, `selectors.ts` and
+`buildGuardianBrief.ts`, and **every proof anchored in them went stale at once: 2 → 34 against a ceiling of
+8.** ⚡ `S5-DEADLOCK`'s docblock predicts exactly this — *"every commit that touches a gate file re-stales
+the proofs anchored in it, so an ordinary fixing round walks into it by construction"*.
+
+⚠️ **Void and stale are different buckets and I conflated them.** I was watching for *void* (anchor text
+gone — one entry, `S1P5-B5-7-ANSWERABLEID`, the line `C1-2` rewrote) and did not anticipate *stale*
+(anchor fine, `measured`/`sha` predating the file moving). Void needs re-derivation; stale needs only
+re-running. **The rule I had written into this very log an hour earlier** — *a guard is only as current as
+the last commit that touched its file* — is the one I walked into.
+
+⭐ **Drained by re-running 30, not by raising the ceiling.** `MAX_STALE_PROOFS` is *"a PINNED ceiling, not
+a downward-only ratchet"* whose stated job is catching **drift**, and `prove:guards --id=…` is the
+sanctioned drain — with the escape living in the harness, which proceeds while the gate is red **only**
+when every control problem is one of the two ceilings. Result: **30 recorded, stale 34 → 4, gate green**,
+`authored` untouched at 9.
+
+⚡ **A prediction of mine was wrong, in the good direction.** I expected `S1P7-R3-3-BORROW` to fault on
+control-red, since its `run` is `test:gate-plants` — a harness that uses the ledger as a *baseline* rather
+than running it directly, which the class-5 handoff records as the exemption's uncovered half. It recorded
+on the first pass. **The two-pass drain was not needed here**, because the control's only problem was the
+stale ceiling itself.
+
+⛔ **AND I REPRODUCED `R5-2`'S OWN DEFECT IN MY ANALYSIS, MINUTES AFTER FIXING IT IN THE GATE.** Costing the
+drain with `grep -F -f <ids>` matched `S1-CLASS4-A3-1` inside `S1-CLASS4-A3-14` and `-A3-12`, inflating the
+tally with ids that were not stale. Re-derived with an exact field match. ⚡ **The substring-collision class
+does not live in `check-finding-guards.ts`; it lives in every tool that matches an id by containment** —
+which is the more general statement `R5-2` was pointing at.

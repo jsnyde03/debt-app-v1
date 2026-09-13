@@ -1318,3 +1318,12 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   (`dataRepairsCopy.test.ts:159-160, 170`). ⛔ So any loosening keyed on `id` alone frees both. The
   separating fact is that whole-row losses carry a **parenthesised field** while a plan repair names a real
   one, so **`isWholeRowLoss` stays load-bearing** in the new predicate. → **`.5.2`**.
+- ⚠️ **FOUR PROOFS ARE LEFT STALE ON PURPOSE, and this is the record so it is a decision rather than a
+  gap.** `.5.2`'s commit touched four instrumented files and staled **34** proofs at once; 30 were drained
+  by re-running, leaving **4 against a ceiling of 8**. ⛔ **Two must not be drained**: `S1-ROUTE-STALE-READ`
+  and `S1-ROUTE-EXIT-REACHABLE` are unfalsifiable on a swept tree and belong to **pass 8**'s switch-in.
+  ⚠️ **Two were skipped on risk**: `S1P3-C1-ROWFIGURES` and `S1P6-A1-7-TODAYBARRIER` are Playwright-backed,
+  and this machine has a **measured 1-in-3 dead-webServer fault that produces a false `reason=WRONG` and
+  RECORDS it** — running them to satisfy a counter risks corrupting the ledger they exist to keep. ⚡ The
+  ceiling is explicitly *"a PINNED ceiling, not a downward-only ratchet"* that catches **drift**, so 4 of 8
+  is its designed tolerance. → **pass 8** *(drain the Playwright pair when an e2e run is happening anyway)*.
