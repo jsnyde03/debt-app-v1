@@ -543,7 +543,7 @@
       "run": "lint:trust-claims",
       "expect": "apps/rn/src/store/guardianSelectors.ts is ledgered and re-derives nothing any more",
       "measured": "2026-09-13",
-      "sha": "36e6e7c5"
+      "sha": "2575f8b6"
     }
   },
   "S1P4-C4-4-POPULATION": {
@@ -561,7 +561,7 @@
       "run": "lint:trust-claims",
       "expect": "[population] the ledger considered",
       "measured": "2026-09-13",
-      "sha": "36e6e7c5"
+      "sha": "2575f8b6"
     }
   },
   "S1P4-C4-6-RACE": {
@@ -739,7 +739,7 @@
       "run": "test:app",
       "expect": "the trophy shelf",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "2575f8b6"
     }
   },
   "S1P4-C4-7-SURFACES": {
@@ -1185,8 +1185,8 @@
       ],
       "run": "test:app",
       "expect": "D3-1 — the Home Screen does not say \"Debt-free\" over balances the app refused to claim",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-13",
+      "sha": "2575f8b6"
     }
   },
   "S1P3-D3-2-SPOKEN": {
@@ -1222,7 +1222,7 @@
       "run": "lint:cap-literals",
       "expect": "not a literal",
       "measured": "2026-09-13",
-      "sha": "36e6e7c5"
+      "sha": "2575f8b6"
     }
   },
   "S1P3-B3-UNKNOWN": {
@@ -1452,7 +1452,7 @@
       "run": "test:app",
       "expect": "an unread BALANCE poisons the plan claim",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "2575f8b6"
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
@@ -1498,7 +1498,7 @@
       "run": "lint:cap-literals",
       "expect": "not a literal",
       "measured": "2026-09-13",
-      "sha": "36e6e7c5"
+      "sha": "2575f8b6"
     }
   },
   "S1P3-G6-SCRIPTSREACH": {
@@ -1652,8 +1652,8 @@
       ],
       "run": "test:app",
       "expect": "remaining = current total balance, as a STRING the test does not compute",
-      "measured": "2026-09-01",
-      "sha": "e2dcc6b2"
+      "measured": "2026-09-13",
+      "sha": "2575f8b6"
     }
   },
   "S1P3-D3-8": {
@@ -1825,7 +1825,7 @@
       "run": "test:app",
       "expect": "owner · a whole ROW unreadable",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "2575f8b6"
     }
   },
   "S1P4-C4-9-MIXED": {
@@ -1868,7 +1868,7 @@
       "run": "test:app",
       "expect": "the record SURVIVES the acknowledgement",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "2575f8b6"
     }
   },
   "S1P5-A5-2-NONFINITE": {
@@ -2030,7 +2030,7 @@
       "run": "lint:trust-claims",
       "expect": "money formatter(s) derived from",
       "measured": "2026-09-13",
-      "sha": "36e6e7c5"
+      "sha": "2575f8b6"
     }
   },
   "S1P5-D5-12-RUNNERSET": {
@@ -2066,7 +2066,7 @@
       "run": "test:app",
       "expect": "is not an ANSWER to an unreadable balance",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "2575f8b6"
     }
   },
   "S1P5-D5-9-CAPWRAP": {
@@ -2178,8 +2178,8 @@
       ],
       "run": "test:app",
       "expect": "the widget states the app's figure",
-      "measured": "2026-09-01",
-      "sha": "baed0f3d"
+      "measured": "2026-09-13",
+      "sha": "2575f8b6"
     }
   },
   "S1P5-C5-3-SHEETBALANCE": {
@@ -3314,7 +3314,7 @@
       "run": "test:app",
       "expect": "the owner docblock states what",
       "measured": "2026-09-13",
-      "sha": "5692ca41"
+      "sha": "2575f8b6"
     }
   },
   "S1P6-B2-1-D9-FENCES-PAYWALL": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-13",
-      "sha": "36e6e7c5"
+      "sha": "2575f8b6"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {

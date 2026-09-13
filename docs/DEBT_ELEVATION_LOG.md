@@ -33294,3 +33294,64 @@ verdict identical on every shape.
 ⚠️ **Baseline before building, read from each gate's own line:** typecheck 0 · `lint:rn` exit 0 ·
 `test:gate-plants` 27/27 fail closed · `test:app` + `test:regression` green · `lint:finding-guards` 301/302,
 **5 stale** (cap 8) — up from the handoff's 2, the three new ones being files `C3-8`/`C3-9` moved.
+
+### `.12.6.5.4a.2`–`.3` — two projection claims, the iterating assertion, and the surfaces rewired · 2026-09-13
+
+`mayStateProjectedFigure` is gone. `CLAIM_FIELDS` carries **`'projected-balance'`** (`debt: balance · apr ·
+minimumPayment`) and **`'solved-projection'`** (that + `scheduledPaymentAmount` · `requiredExpense.amount` ·
+`livingExpense.amount` · `goal: 'any'` · `plan: cushionFloor · leanAmount · windfall · expenseReserveBalance`).
+
+| surface | asks | why that one |
+|---|---|---|
+| Money's hero total | `'projected-balance'` | a sum of balances carried forward — reads no bill, goal or plan field |
+| Progress view gag · what-if · date | `'solved-projection'` | solved from the projected balances AND the plan that pays them |
+| Progress journey *"$X to go"* arm | `'projected-balance'` | `totalCurrent` is a projected sum, not a solve |
+| Progress `pct` · *"paid"* arm | `'debt-balances'` *(unchanged)* | backward-looking, `2.4`'s rule |
+| widget | `'debt-balances' && 'solved-projection'` | all four figures still degrade together — its recorded rule |
+
+⚡ **The completeness ledger re-decided itself through its own gate.** Naming `debt apr`,
+`scheduledPaymentAmount` and four plan fields made `CATCH_ALL_IS_THE_DECISION`'s *"both named and
+catch-all-only"* check demand their records go — and ⛔ **`plan typicalAmount`'s record carried a reason that
+was false** (*"money the plan is solved FROM"* — nothing that solves the plan reads it). Rewritten, not kept.
+
+#### The iterating assertion, and my own verifier failing three ways
+
+`trustSelectors.test.ts` walks `REPAIRABLE_MONEY_FIELDS` × {lost · recovered · whole-row · whole-list} × six plan
+shapes and asserts, per claim, **refuses ⇔ its figure moves on some shape** — plus that each route's verdict is
+identical on every shape, and that each shape's allocation consumes rent, groceries and the goal.
+
+⛔ **I reported the new block green in 4 s, and nothing had been asserted.** The file is
+`export default function run()`, called by `runAppTests`; executing it directly only defines the tests. ⚡ Caught
+because three plants applied and all three exited **0** — including the zero-length pay window, which must red
+a control. Rebuilt as a runner that awaits `default()`, and **plant F** *(flip the band assertion)* now proves
+the block executes before any other plant means anything.
+⚠️ **Second:** two multi-line plant anchors matched 0× — the files are **CRLF**. ⚠️ **Third:** the plant
+reporter crashed printing `⛔` through cp1252 stdout, after the restore had already run in `finally`.
+
+| plant | red for |
+|---|---|
+| F — the band assertion flipped | the block runs ✅ |
+| A — solved route without rent/groceries | `HOLE — solved-projection · requiredExpense.amount LOST` ✅ |
+| B — projected route without `apr` | `HOLE — projected-balance · debt.apr LOST` ✅ |
+| C — named goal list | ⚠️ first redded on the completeness ledger *(an earlier assertion)*; re-planted as the faithful over-fix — list **and** records removed — `HOLE — solved-projection · goal.priorityPerPaycheck LOST` ✅ |
+| D — `'row-figures'`-wide projected route | `OVER-SUPPRESSION — projected-balance · debt.originalBalance LOST` ✅ |
+| E — zero-length pay window | `tight-fixed — the plan CONSUMES a expense` ✅ |
+
+Every restore `cmp`-verified against a copy taken before the first plant.
+
+#### What the rewiring voided
+
+- ⛔ **Five comments said APR routes "to `'row-figures'` and only there"** — `snapshot.ts`, `progress.tsx`, the
+  gate's `C3-5` floor note and both e2e specs — plus `trustSelectors.ts`' own *"the only place"*. All false the
+  moment `'projected-balance'` named `apr`; each reworded to what stays true.
+- ⛔ **`S1P3-D3-1-WIDGET`'s proof went VOID** — its un-fix anchored on the exact line rewritten. Re-anchored
+  through the serializer and **re-proven** `reason=MATCHED`. ⚠️ `prove:guards` first refused on an uncommitted
+  target — plant safety, not a verdict.
+- ⚠️ **The commit staled 14 more proofs** *(5 → 19, cap 8)*; **all 14 re-run `reason=MATCHED`**.
+- `lint:trust-claims` floors re-declared from the gate's own count: `debt-balances` 4→3 · `row-figures` 9→7 ·
+  `projected-balance` 2 · `solved-projection` 2.
+
+⛔ **The e2e run failed to start TWICE while the harness said exit 0.** `-g "C3-8|C3-9|5\.4a"` was split on its
+pipes by `cmd.exe` — first through `npx`, then through **Volta's `node` shim**, which re-parses the same way.
+`REAL_EXIT=255` both times; the notification's *"exit code 0"* was the trailing `echo`'s. ⚡ Through the image's
+real `node.exe`: **4 passed, collected by name** — `C3-8`, `C3-9`, and both `.5.4a` cases.
