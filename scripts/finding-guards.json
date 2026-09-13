@@ -4248,5 +4248,41 @@
       "measured": "2026-09-13",
       "sha": "566bd7d5"
     }
+  },
+  "S1P7-C3-2-SIRI-PREMIUM-UPSELL": {
+    "what": ".5.4h [pass-7 C3-2 major + D2-12 blocker] - buildGuardianSpoken returned '' for four reasons - not premium, an input the plan is built from that could not be read, no plan yet, and a thrown read - and PaycheckCheckIntent answers every '' with 'Seeing your paycheck read is a Premium feature - open Debt Planner to unlock the Payday Guardian.' So a SUBSCRIBER whose minimum could not be read was told to buy what they own, and not told what they could fix. Measured by probe2: that premium store wrote the byte-identical field a free store writes. ⛔ Fixed at the producer, not in Swift: '' now means only not-premium and each premium reason is spoken, so the Swift branch is true by construction and the fix reaches the shipped binary.",
+    "file": "apps/rn/src/widget/widgetSync.test.ts",
+    "token": "Siri says what could not be read rather than naming money free over an obligation nobody read",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/widget/snapshot.ts",
+          "find": "    if (!mayClaim(store, 'paycheck-plan')) return SPOKEN_UNREAD_PLAN;",
+          "replace": "    if (!mayClaim(store, 'paycheck-plan')) return '';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "D3-2 — Siri says what could not be read rather than naming money free over an obligation nobody read",
+      "measured": "2026-09-13",
+      "sha": "a692ff7a"
+    }
+  },
+  "S1P7-D2-12-SIRI-NO-PLAN-UPSELL": {
+    "what": ".5.4h [pass-7 D2-12, the no-plan branch] - a premium user with no paycheck set up yet had no Guardian brief, and the '' that followed reached Siri as the Premium upsell. Now spoken: 'Set up your paycheck in Debt Planner and I'll tell you how it looks.'",
+    "file": "apps/rn/src/widget/widgetSync.test.ts",
+    "token": "a PREMIUM user with no plan yet is told to set one up, not to buy what they own",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/widget/snapshot.ts",
+          "find": "    if (!brief) return SPOKEN_NO_PLAN;",
+          "replace": "    if (!brief) return '';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "C3-2 — a PREMIUM user with no plan yet is told to set one up, not to buy what they own",
+      "measured": "2026-09-13",
+      "sha": "a692ff7a"
+    }
   }
 }
