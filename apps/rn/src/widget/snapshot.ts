@@ -1,3 +1,4 @@
+import { UNREAD_PLAN_LEAD } from '@/components/plan/dataRepairsCopy';
 import type { DebtStore } from '@/data/models';
 import { percentCompleteLabel } from '@core/utils/percentComplete';
 import { withProjectedBalances } from '@/store/balanceSelectors';
@@ -62,11 +63,29 @@ export interface WidgetSnapshot {
   debtsJson: string;
 }
 
-/** The premium Guardian read as a spoken sentence (Siri), or "" for free. Guarded — `buildWidgetSnapshot`
- *  must never throw (the widget depends on it), so a selector hiccup collapses to "". */
+/**
+ * ⛔ **[.5.4h · pass-7 `C3-2` + `D2-12`] — `''` MEANS EXACTLY ONE THING: NOT PREMIUM.**
+ *
+ * `PaycheckCheckIntent` (`SiriQueryIntents.swift:90`) has one test — `guardianSpoken.isEmpty` — and answers it with
+ * *"Seeing your paycheck read is a Premium feature — open Debt Planner to unlock the Payday Guardian."* This used to
+ * return `''` for FOUR reasons, three of them premium users: an input the plan is built from that could not be read,
+ * no plan yet, and a read that threw. ⚡ Measured (`probe2`): a premium store with its minimum unread wrote the
+ * byte-identical field a free store writes, so a subscriber was told to buy what they own — and not told the one thing
+ * they could act on.
+ *
+ * ⚠️ **Fixed at the owner, not in Swift.** Each premium reason is SPOKEN here, so the Swift's one branch is true by
+ * construction and the fix reaches the binary already shipped. The unread sentence leads with the words Today's card
+ * uses (`UNREAD_PLAN_LEAD`); the two free intents in that Swift file already refuse in this shape.
+ */
+export const SPOKEN_UNREAD_PLAN = `${UNREAD_PLAN_LEAD}, so I can’t tell you how this paycheck looks yet. Open Debt Planner to see what needs your attention.`;
+export const SPOKEN_NO_PLAN = 'Set up your paycheck in Debt Planner and I’ll tell you how it looks.';
+export const SPOKEN_READ_FAILED = 'I couldn’t read this paycheck just now. Open Debt Planner to see it.';
+
+/** The premium Guardian read as a spoken sentence (Siri), or "" for free — and ONLY for free (see above). Guarded —
+ *  `buildWidgetSnapshot` must never throw (the widget depends on it). */
 function buildGuardianSpoken(store: DebtStore): string {
+  if (store.subscriptionPlan !== 'premium') return '';
   try {
-    if (store.subscriptionPlan !== 'premium') return '';
     /**
      * ⛔ **SIRI SAID *"$1,080 free to put toward debt"* OVER AN OBLIGATION THE APP COULD NOT READ.**
      * [S1.10.6.3 · pass-3 blocker D3-2]
@@ -78,14 +97,15 @@ function buildGuardianSpoken(store: DebtStore): string {
      *
      * ⚠️ The brief is honest about the arrays it was handed; the arrays are wrong. The claim that names this is
      * the one the in-app Guardian card asks — `'paycheck-plan'` since `.5.4d`, which routes the minimum along
-     * with every other field the brief is solved from. ⛔ **The `''` return already existed and Siri already routes it to the value-led
-     * upsell** (`SiriQueryIntents.swift:75-78`); what was missing was the call.
+     * with every other field the brief is solved from. ⛔ [`.5.4h`] This used to say the `''` return *"already
+     * existed and Siri already routes it to the value-led upsell … what was missing was the call"* — offered as the
+     * reason `''` was a correct refusal. It was the defect: the upsell told a subscriber to buy the Guardian.
      */
     // ⛔ [`.5.4d`] `'paycheck-plan'` — the spoken line is the Guardian brief, and the brief moves on goals and an
     // autopay amount the narrowed `'required-plan'` does not route.
-    if (!mayClaim(store, 'paycheck-plan')) return '';
+    if (!mayClaim(store, 'paycheck-plan')) return SPOKEN_UNREAD_PLAN;
     const brief = selectPaydayGuardian(withProjectedBalances(store, true));
-    if (!brief) return '';
+    if (!brief) return SPOKEN_NO_PLAN;
     if (brief.shortfall && brief.shortfall > 0) {
       return `This paycheck is very tight — you’re about ${formatWhole(brief.shortfall)} short of your obligations.`;
     }
@@ -102,7 +122,8 @@ function buildGuardianSpoken(store: DebtStore): string {
     }
     return 'This paycheck looks clear — your cushion holds.';
   } catch {
-    return '';
+    // Still never throws — but a premium user is not told to buy the Guardian because a selector did.
+    return SPOKEN_READ_FAILED;
   }
 }
 

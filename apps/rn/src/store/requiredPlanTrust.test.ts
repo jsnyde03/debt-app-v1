@@ -11,7 +11,7 @@ import { paywallLead } from '@/store/paywallLead';
 import { selectPlanSummary, selectRequiredRows } from '@/store/planSelectors';
 import { effectivePaycheckBuffer, selectAllocation } from '@/store/selectors';
 import { mayClaim } from '@/store/trustSelectors';
-import { buildWidgetSnapshot } from '@/widget/snapshot';
+import { buildWidgetSnapshot, SPOKEN_UNREAD_PLAN } from '@/widget/snapshot';
 
 /**
  * ⛔ **S1.11.4.2 [pass-4 blocker `C4-7`] — THE `'required-plan'` CLAIM, ASSERTED OVER ITS SURFACES AS A
@@ -113,8 +113,12 @@ const REQUIRED_PLAN_SURFACES: Surface[] = [
   {
     label: 'Home Screen widget · Siri',
     kind: 'pure',
-    // `guardianSpoken` is `''` when it refuses; normalised to `null` so every pure row means one thing.
-    states: (s) => buildWidgetSnapshot(s, 600).guardianSpoken || null,
+    // ⚠️ [.5.4h · C3-2] The refusal is SPOKEN now — `''` reached Siri as the Premium upsell — so the refusal sentence
+    // (and a free store's `''`) normalise to `null`: every pure row means "states no figure over the loss".
+    states: (s) => {
+      const spoken = buildWidgetSnapshot(s, 600).guardianSpoken;
+      return spoken === '' || spoken === SPOKEN_UNREAD_PLAN ? null : spoken;
+    },
   },
   {
     label: 'Paywall · the lead',

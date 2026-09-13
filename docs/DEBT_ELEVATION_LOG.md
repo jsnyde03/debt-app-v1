@@ -34045,3 +34045,30 @@ reading the reason caught that the reason was never read.**
   two doors.
 - ✅ **Replenished** — `.5.4h` is **`C3-2` + `D2-12`**: `buildGuardianSpoken` returns `''` for four different
   conditions and Siri routes empty to the Premium upsell. Decomposed in the plan.
+
+### `.12.6.5.4h.1` — `C3-2` + `D2-12` SWITCH-IN: `''` meant four things, and Siri heard one · 2026-09-13
+
+✅ **Rules re-read** for this switch-in.
+
+⚡ **Measured, not carried** — the finding's `probe2-guardianspoken.ts` re-run on current code: a PREMIUM store with all
+inputs readable speaks *"This paycheck looks clear — your cushion holds, with $1,700 free to put toward debt."*; the
+same PREMIUM store with its minimum unread writes **`guardianSpoken = ""`** — the byte-identical field a FREE store
+writes — and `PaycheckCheckIntent` answers it with the upsell. ⚠️ The probe still labels its claim
+`mayClaim(required)`; the producer has asked `'paycheck-plan'` since `.5.4d` (a lost minimum routes to both).
+
+✅ **Premises hold, and the count is D2-12's, not C3-2's.** `buildGuardianSpoken` returns `''` for **four** conditions:
+not premium · `!mayClaim('paycheck-plan')` · no brief · the `catch`. `SiriQueryIntents.swift:90` has ONE test,
+`guardianSpoken.isEmpty` → *"Seeing your paycheck read is a Premium feature…"*; its `DebtSnapshotRead` does not declare
+`isPremium`. The two free intents in the same file already refuse in words (*"Some of your balances couldn’t be read…
+Open Debt Planner and set them again."*). **"No brief"** is `selectAllocation` null — a premium user with no paycheck
+amount yet — so that user hears the upsell too.
+
+⛔ **Two wrong statements in the tree, one each side of the seam.** `snapshot.ts`'s D3-2 docblock says the `''` return
+*"already existed and Siri already routes it to the value-led upsell … what was missing was the call"* — offered as the
+reason the refusal was correct, and it is the defect. `widgetSync.test.ts`'s D3-2 label says *"Siri says nothing"* —
+the value it asserts is right, and Siri says the upsell.
+
+⭐ **The fix goes to the owner, not to Swift.** `''` will mean exactly one thing — not premium — and each premium reason
+is spoken by the producer. The Swift branch becomes true by construction and the fix reaches the binary already
+shipped, where a Swift change would need a native build and still meet old snapshots without the key. A Swift
+`isPremium` read stays defence in depth → backlog.

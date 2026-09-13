@@ -1,4 +1,9 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
+import { selectAllocation } from '@/store/selectors';
 import { selectDebtBalanceView } from '@/store/balanceSelectors';
 import { formatWhole } from '@/utils/format';
 import { createDefaultStore } from '@/data/defaults';
@@ -7,7 +12,7 @@ import type { Debt, DebtStore } from '@/data/models';
 import { logPaymentSubtitle } from '@/store/logPaymentCopy';
 import { createDebtStore } from '@/store/store';
 
-import { buildWidgetSnapshot, type WidgetSnapshot } from './snapshot';
+import { buildWidgetSnapshot, SPOKEN_NO_PLAN, SPOKEN_UNREAD_PLAN, type WidgetSnapshot } from './snapshot';
 import { startWidgetSync } from './widgetSync';
 
 /**
@@ -173,7 +178,12 @@ function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
     true,
   );
   assert(unread.pendingDataRepairs.some((r) => r.field === 'minimumPayment'), '⭐ the fixture really did lose the minimum');
-  eq(buildWidgetSnapshot(unread, 600).guardianSpoken, '', '⛔ D3-2 — Siri says nothing rather than naming money free over an obligation nobody read');
+  // ⚠️ [.5.4h · C3-2] This asserted `''` and was labelled "Siri says nothing" — Siri turns `''` into the Premium
+  // upsell, so a subscriber heard "a Premium feature". The claim D3-2 protects is that no FIGURE is named over the
+  // obligation nobody read; the refusal is now spoken, and asserted by name.
+  const unreadSpoken = buildWidgetSnapshot(unread, 600).guardianSpoken;
+  eq(unreadSpoken, SPOKEN_UNREAD_PLAN, '⛔ D3-2 — Siri says what could not be read rather than naming money free over an obligation nobody read');
+  assert(!/\$\d/.test(unreadSpoken), '⛔ D3-2 — …and the refusal names no figure at all');
 
   // ⭐ CONTROL — the same debt with a real minimum still speaks, or the fix bought silence.
   const read = migratedWidgetStore(
@@ -181,6 +191,40 @@ function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
     true,
   );
   assert(buildWidgetSnapshot(read, 600).guardianSpoken.length > 0, '⭐ control — a plan the app read is still spoken');
+}
+
+/**
+ * ⛔ **[.5.4h · pass-7 `C3-2` + `D2-12`] — A PREMIUM USER WAS TOLD THE GUARDIAN IS "A PREMIUM FEATURE".**
+ *
+ * `PaycheckCheckIntent` answers an EMPTY `guardianSpoken` with the upsell, unconditionally, so the property that
+ * matters is **`''` only for free, and a sentence for every premium reason** — asserted by name, per reason.
+ */
+{
+  // Free — the ONE case the upsell is true of — is already pinned above (3.5.5: "free tier → guardianSpoken empty").
+  // ⚠️ Not repeated here: planted (a free store given a sentence), that earlier line reds first, so a second copy
+  // would be an assertion no defect can ever reach.
+
+  // Premium, no plan yet — no paycheck amount, so there is no brief to read.
+  const noPlan = createDefaultStore();
+  noPlan.subscriptionPlan = 'premium';
+  assert(selectAllocation(noPlan) === null && noPlan.pendingDataRepairs.length === 0, '⭐ the fixture really has no plan, and lost nothing');
+  eq(buildWidgetSnapshot(noPlan, 800).guardianSpoken, SPOKEN_NO_PLAN, '⛔ C3-2 — a PREMIUM user with no plan yet is told to set one up, not to buy what they own');
+
+  // Premium, readable — still speaks the Guardian read, or the fix bought one canned sentence for everyone.
+  const read = migratedWidgetStore([debt({ id: 'a', name: 'Visa', balance: 6000, originalBalance: 8000, minimumPayment: 100 })], true);
+  const readSpoken = buildWidgetSnapshot(read, 800).guardianSpoken;
+  assert(/^This paycheck /.test(readSpoken), `⭐ control — a premium plan the app read still speaks the Guardian read (got ${JSON.stringify(readSpoken)})`);
+
+  // Premium, an input unread — D3-2's store, asserted above by name; here only the invariant the Swift branch relies on.
+  const unread = migratedWidgetStore([debt({ id: 'a', name: 'Visa', balance: 6000, originalBalance: 8000, minimumPayment: 'n/a' as never })], true);
+  for (const [label, s] of [['an unread input', unread], ['no plan yet', noPlan], ['a readable plan', read]] as const) {
+    assert(buildWidgetSnapshot(s, 800).guardianSpoken !== '', `⛔ D2-12 — no PREMIUM store writes the empty read Siri turns into the upsell (${label})`);
+  }
+
+  // The thrown-read branch cannot be reached from a fixture without stubbing a selector, so its SOURCE is pinned:
+  // a `catch` that returned `''` is exactly the D2-12 shape, one branch over.
+  const SRC = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'snapshot.ts'), 'utf8');
+  assert(/\} catch \{\s*(?:\/\/[^\n]*\n\s*)*return SPOKEN_READ_FAILED;/.test(SRC), '⛔ D2-12 — a thrown Guardian read is spoken for premium, never collapsed to the empty upsell');
 }
 
 /**
