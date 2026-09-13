@@ -1456,3 +1456,25 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   pointer is corrected to say so; the renders are not written — they need an amount driven into the affordability card
   and the windfall sheet on Today. → **`.5.7`** *(an e2e per surface over a lost goal target — the loss the rewire newly
   refuses on — each with a readable control, and each planted back onto `'required-plan'`)*.
+
+### ⤵ surfaced by `.5.4f`'s switch-in, 2026-09-13
+
+- 📋 **The Live Activity's native answers are compiled, never run.** `.5.4f` makes `startActivity`/`updateActivity`/
+  `endActivity` resolve `Bool`; nothing off-device can show that ActivityKit's refusal reaches that `false`, how often
+  it happens, or that a swiped-away countdown is absent from `Activity.activities` by the next update *(which is what
+  resets the manager so the next change starts one)*. → **P6.14** *(device row: turn Live Activities off in Settings
+  with the countdown live, edit a bill, turn them on, edit again — the countdown returns carrying the edited read)*.
+- 📋 **Enabling Live Activities in Settings is noticed on the next store change, not on return to the app.** `.5.4f`
+  asks `areActivitiesEnabled()` per reconcile, and a reconcile only runs on a commit. → **2.1** *(an `AppState`
+  foreground reconcile — the one caller that would need `react-native` in the manager, so it belongs at `_layout`)*.
+- ⚠️ **The plan's backlog index quotes counts nothing recomputes.** *"125 items"* appears twice in
+  `DEBT_ELEVATION_PLAN.md` and was true on 2026-08-26 (`cb33e174`: 125 top-level bullets); the register now holds
+  **227**. The per-destination table beside it is the same kind of figure. → **`.5.7`** *(drop the quoted counts, or
+  derive them in a gate — a number a document quotes is the one the plan's own P6.14 note says never to read)*.
+- ⛔ **`hero-date-fit.spec.ts`'s 320 pt verdict depends on the machine and the month.** 2026-09-13: red locally on Windows
+  (*"November 2026", 108px in a 72px box*), green in CI on the same code the same day. Its date is `day(0)`-relative and
+  its fit on web is RNW's `break-word` alone *(the shrink props are dropped — the spec's own docstring)*, so the
+  assertion measures the host's font as much as the app. **HYPOTHESIS until measured**: Windows' face breaks
+  "November" inside the 104 pt slot where CI's does not. → **`.5.7`** *(measure the month-name advance in both fonts;
+  then pin the date and ship one font to the harness, or state the spec as CI-only — a gate two hosts disagree on is
+  green for a reason nobody chose)*.

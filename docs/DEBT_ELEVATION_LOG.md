@@ -33799,3 +33799,68 @@ the fix · control green.
   a FILE is a hypothesis about a SURFACE until the path to it is walked.
 - ✅ **Replenished** — `.5.4` stays the active build; next is **`C3-5`**, the `liveActivitySync` twin that stamps
   `lastKey` before verifying the write, where `widgetSync` already reads `if (write(snapshot)) lastKey = key;`.
+
+### ⛔ CI RED on `138115ad` (`.5.4d`) — one e2e locator, self-inflicted · 2026-09-13
+
+`web-e2e` run `34772513018`: **349 passed, 1 failed** — `data-recovery.spec.ts:382`, *"a legacy stood-down goal is
+NAMED on Today"*. `getByText(/Roof/)` resolved to **2 elements**: the repairs card, and Today's Guardian card's
+refusal — *"set the per-paycheck amount on Roof again and this comes back"*. ⚡ **`.5.4d` made the second one
+true** — the card now refuses on `'paycheck-plan'`, which routes goal fields — so both mentions are correct and the
+locator was page-wide. Fixed by scoping both assertions to `data-repairs-ack`.
+
+⚠️ **How it got past me: `.5.4d`'s close ran its e2e BY NAME (`-g`), never the full suite**, and the change was a
+rewire of nine surfaces' refusal copy — exactly the edit whose collateral lands in specs about something else.
+⭐ **Counted by origin: self-inflicted +1.** ⚡ The lesson is scoped, not general: *a change to copy that renders on
+Today runs the whole RN e2e locally before push*, because a page-wide text locator anywhere can see it.
+
+✅ **Ran it, and it did not come back clean.** Full RN e2e locally on the scoped spec: **349 passed, 1 failed** —
+`hero-date-fit.spec.ts` V2-1 at **320 pt**, *"November 2026" is clipped vertically (content 108px in a 72px box)*.
+⚠️ **Not this change, and not flaky:** it reproduces run alone, on code the change does not touch, and CI passed the
+same test on `138115ad`. **HYPOTHESIS, unmeasured:** the spec's own docstring says RNW drops `adjustsFontSizeToFit`, so
+on web the fit is delivered by `break-word` alone — the verdict rides the HOST's font metrics, and the date rides the
+calendar (`day(0)`). A 104 pt slot that holds "November" in CI's font and not in Windows' breaks it onto a third line.
+→ backlog. The push goes on CI's verdict for that one spec, stated rather than silent.
+
+### `.12.6.5.4f.1` — `C3-5` SWITCH-IN: the premise holds, and the remedy it names cannot see the failure · 2026-09-13
+
+✅ **Rules re-read** for this switch-in.
+
+✅ **The premise holds as written.** `liveActivitySync.ts:47-59` stamps `running`/`lastKey` after `bridge.start`/
+`update` and clears them after `bridge.end` unconditionally; `LiveActivityBridge` returns `void`; the `.native`
+bridge swallows. The twin `widgetSync.ts:61` is `if (write(snapshot)) lastKey = key;`.
+
+⛔ **But the remedy — widen the JS bridge to `boolean`, `false` from the `.native` catch — is a fix that passes its
+probe and changes nothing on a device.** `LiveActivityModule.swift` declares `startActivity`/`updateActivity`/
+`endActivity` as synchronous `Function`s whose bodies spawn a detached `Task` and return. `Activity.request`'s
+throw is caught *inside* the Task (*"must not throw to JS"*), and `activity.update` is awaited inside it. **By the
+time ActivityKit answers, JS has already been told the call returned.** The JS `catch` can only ever see a missing
+module or a record that will not convert. The finding's probe stubs a bridge that refuses — a layer that does not
+exist. ⚠️ `measure-agent-mechanisms` again: the mechanism was a hypothesis, the recommendation's SHAPE is sound, and
+its reach was one language short.
+
+⚡ **So the fix is native.** `expo-modules-core` 56 has `AsyncFunction` over an `async` Swift closure
+(`ConcurrentFunctionFactories.swift`), which resolves the JS promise with the closure's return — `Bool`.
+- `start` → `true` only if `Activity.request` did not throw.
+- `update` → ActivityKit's `update` cannot fail; what can is that **nothing is live to take it** (dismissed, or
+  ended by the system). `true` iff an `.active`/`.stale` activity received it.
+- `end` → `true` after `endAll`; below iOS 16.2 `true`, because nothing can be live and `false` would retry forever.
+
+⛔ **And nothing would have compiled it.** `rn-ios-sim-build`'s `.app` cache key hashes `package.json`, the lockfile,
+`plugins/**`, `assets/**`, `targets/**` — **not `apps/rn/modules/**`**. A cache hit re-bundles the JS and keeps the
+binary, so `native-e2e` would install the OLD Swift and go green. Latent so far: `modules/` last changed
+2026-09-02, the last `native-e2e` run was 2026-08-19. **Folded here** — it decides whether this item's native half
+was ever built.
+
+**Folded, same file:**
+- **`C3-6`** *(class 8)* — the assertion that `D3-2`'s fix *"reaches the screen"* stops at the decision. The manager
+  test this item needs asserts the refused `end` directly, so `C3-6`'s substantive half closes here; its comment is
+  corrected to point at it.
+- **`areActivitiesEnabled()` read once** — it gated the subscription itself, so enabling mid-session did nothing
+  until relaunch. Asked per reconcile now.
+
+⚠️ **One behaviour chosen, stated:** an update that finds nothing live resets the belief, so the next change STARTS
+one. A user who swiped the countdown away sees it return on the next change — **which is what already happens at
+every launch** (`running` starts `false`). Mid-session now agrees with launch. Reversible in one line.
+
+**Not measurable here → device row:** how often ActivityKit refuses a request, and that a swiped-away activity is
+absent from `Activity.activities` by the next update.

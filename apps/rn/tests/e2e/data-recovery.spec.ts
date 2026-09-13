@@ -377,12 +377,16 @@ test('a legacy stood-down goal is NAMED on Today, with the consequence', async (
   );
   await page.goto('/');
 
-  await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
-  // The NAME, or the person cannot tell which goal changed.
-  await expect(page.getByText(/Roof/)).toBeVisible();
+  const card = page.getByTestId('data-repairs-ack');
+  await expect(card).toBeVisible({ timeout: 15_000 });
+  // The NAME, or the person cannot tell which goal changed — asserted INSIDE the repairs card. ⚠️ [.5.4d]
+  // Today's Guardian card now refuses over this same loss and its fix sentence names the goal too
+  // ("set the per-paycheck amount on Roof again…"), so a page-wide /Roof/ matched two elements and CI
+  // went red on 138115ad. Both mentions are correct; the claim here is the card's.
+  await expect(card.getByText(/Roof/)).toBeVisible();
   // ⛔ And the CONSEQUENCE. "could not be read" alone describes a field; what the user needs to know is
   // that their plan stopped funding this ahead of their debt — the half a field name cannot carry.
-  await expect(page.getByText(/no longer funded ahead of your debt/)).toBeVisible();
+  await expect(card.getByText(/no longer funded ahead of your debt/)).toBeVisible();
 });
 
 /**
