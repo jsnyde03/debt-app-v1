@@ -358,8 +358,37 @@ NOT a missing guard**: `index.tsx:346` does hand `PlanHero` `unreadPlanInputs`; 
 colour (`:144`) and the reassurance line (`:157`) while the figures compute at `:99-117` and print at
 `:164-166`/`:214` regardless. **The guard gates the wrong half.** Detail → log.
 
+⛔ **`.5.4` SWITCH-IN CORRECTION — its seven members are THREE fix shapes, and the step's title names only
+one.** ① **Predicate routing** *(`C3-9` `C3-8` `C3-11` `C3-13` `C1-5`)*. ② **A success-check bug**
+*(`C3-5`)* — `liveActivitySync` stamps `lastKey` at `:50`/`:54` with no success test, while its twin
+`widgetSync:61` is `if (write(snapshot)) lastKey = key;`. **Nothing to do with the predicate.**
+③ **A sentinel overload** *(`C3-1` `C3-2` `D2-12`)* — `buildGuardianSpoken` returns `''` from **four**
+conditions *(`:68` `:83` `:85` `:102`; the class recorded two)* and `SiriQueryIntents.swift:90` routes empty
+to the Premium upsell. ⚡ **`cushionLine`'s defect one module over**, so it wants a discriminated return,
+not a guard. ⚠️ **Three sub-steps, not one sweep.**
+
+⛔ **AND `C3-9` IS NARROWER THAN "SWAP THE THREE CALLS".** `progress.tsx:111` and `:138` gag
+projection-derived views at the SOURCE *(`C5-1`'s reasoning, and `B1-3` is the case that walked past a
+prop-level gate)* — those take the predicate. ⚠️ **`:288` does NOT**: it feeds `pct`, `journeyLine` and
+`heroDate`, and the first two are **backward-looking progress off raw balances**. Swapping it wholesale
+would blank a genuinely-earned percentage because the **APR** was unreadable — over-suppression, *"a second
+false statement, not a fix"*, which this file has already committed once *(its own docblock at `:282-286`
+warns of exactly that)*. **Only `heroDate` moves; `pct` and `journeyLine` keep `debt-balances`** — `2.4`'s
+standing rule that backward-looking figures stay on raw balances. Detail → log.
+
+⛔ **AND `journeyLine` IS BOTH, BY BRANCH — so it takes NEITHER claim wholesale.** `journeySelectors.ts:76`
+is `totalPaid > 0 ? "${totalPaid} of ${totalOriginal} paid" : "${totalCurrent} to go"`. The first arm is
+raw *(`:59-62`, from `debts`)*; the second is `totalCurrent`, summed at `:61` from **`projected`**. Its own
+docblock says so — *"the branch is chosen backward and answered forward… One figure cannot serve both."*
+⚠️ **I had grouped it with `pct`, and the CALL SITE could never have shown that**:
+`selectJourneyTotals(store.debts, engineStore.debts)` is handed both worlds deliberately. ⚡ So an early
+user sees the projection-derived *"to go"* arm off a possibly-unreadable APR, while a user with confirmed
+payments must keep the *"paid"* arm through one. ⛔ **The producer owes the claim question, not the
+consumer** — `.5.2`'s `F-B4` lesson verbatim: *a function that BRANCHES owes the CLAIM, not the array.*
+**`C3-9` is four decisions, not one swap.** Detail → log.
+
 | ✅ **.5.3** | **OWNER BUILT 2026-09-12** — `mayStateProjectedFigure(store)` in `balanceSelectors.ts`, beside the projection it qualifies: **both** claims, because `projectCurrentBalance` reads `apr`/`minimumPayment` which route to `row-figures` **only**. Planted both ways — the block runs, and dropping the `row-figures` half makes it say YES on an unread APR, so **`C3-9`'s mechanism is now MEASURED**. ⚠️ **The iterating assertion is deliberately SPLIT to `.5.4`**: written now it reds until the surfaces are wired, and a knowingly-red assertion is a broken build, not a guard. Detail → log | owner ✅ · iterating assertion → `.5.4` |
-| ▶ **.5.4** | **THE SURFACES, BY THAT PREDICATE** — `C3-13` *(guard at the CALL SITE — the projection is the argument)* · `C3-8` *(the HERO, not the rows)* · `C3-9` · `C3-11` · `C3-5` *(the unfixed `liveActivitySync` twin: stamp-before-verify)* · `C3-1` · `C1-5` · **`C3-2`+`D2-12` as ONE step** *(the overloaded `''`)*. ⚠️ Six were walked in one list last round and **`C4-4` was the measured hole a finding came through** | every surface routed through the predicate, proven by planting at each |
+| ▶ **.5.4** | ✅ **`C3-9` DONE 2026-09-13** *(planted: the un-fix renders **"November 2026"** where the fix renders `—`, balances readable, APR not)*. The fix is a **split**, not suppression — `pct` stays on `'debt-balances'`, `heroDate` + the view gag + what-if take the predicate, and `journeyLine` takes **neither**: its arms sit on opposite sides, so `selectJourneyTotals` now returns `lineIsProjected` from the same expression that picks the arm. ⚠️ First fixture on this screen to poison an **APR** — every other poisons `balance`, so the gag fired correctly by accident and nothing covered `C3-9`. ▶ **Next: `C3-8`** (money hero). — **THE SURFACES, BY THAT PREDICATE** — `C3-13` *(guard at the CALL SITE — the projection is the argument)* · `C3-8` *(the HERO, not the rows)* · `C3-9` · `C3-11` · `C3-5` *(the unfixed `liveActivitySync` twin: stamp-before-verify)* · `C3-1` · `C1-5` · **`C3-2`+`D2-12` as ONE step** *(the overloaded `''`)*. ⚠️ Six were walked in one list last round and **`C4-4` was the measured hole a finding came through** | every surface routed through the predicate, proven by planting at each |
 | **.5.5** | **`B1-1`** — the save plan paced off the **partition total** while the card printed **spendable**: an **$835/paycheck promise out of $675**, *and that number is written to the store as the goal's pace* | the pace and the printed figure share one producer; the stored goal cannot outlive a wrong one |
 | **.5.6** | **`C3-14`** *(minor, swept inline — the file is already open)* | "one target could not be read" counts the targets |
 | **.5.7** | **BOUNDARY + LEDGER DRAIN** | 52/52 read from its own summary line · both suites · typecheck 0 · stale drained · pushed |

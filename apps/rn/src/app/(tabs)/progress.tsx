@@ -19,7 +19,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLayout } from '@/hooks/use-layout';
 import { CountUp } from '@/motion';
 import { selectWhatIf, selectWhatIfBaseline } from '@/store/analysisSelectors';
-import { withProjectedBalances } from '@/store/balanceSelectors';
+import { mayStateProjectedFigure, withProjectedBalances } from '@/store/balanceSelectors';
 import { selectPaidOffDebts } from '@/store/celebrationSelectors';
 import { selectJourneyTotals } from '@/store/journeySelectors';
 import { gagBalanceDerived, selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
@@ -40,6 +40,17 @@ import { decorative, groupLabel } from '@/utils/a11y';
  * withheld gets replaced by a false one.
  */
 const UNREAD_JOURNEY_LINE = 'Some balances couldn’t be read';
+
+/**
+ * ⛔ **NOT `UNREAD_JOURNEY_LINE`, AND THE DIFFERENCE IS THE POINT.** [S1.13.7.12.6.5.4 · pass-7 `C3-9`]
+ *
+ * *"Some balances couldn’t be read"* is TRUE when `'debt-balances'` is poisoned and **FALSE** when the
+ * balances are fine and the **APR** is not — which is `C3-9`'s own case, since `projectCurrentBalance`
+ * reads `apr`/`minimumPayment` and those route to `'row-figures'` alone. ⚡ Reaching for the balances
+ * sentence there would suppress one false statement by making a different one, which is
+ * `assert-the-honest-state-by-name` verbatim.
+ */
+const UNREAD_REMAINING_LINE = 'Some figures couldn’t be read';
 
 const RING_SIZE = 112;
 
@@ -108,7 +119,10 @@ export default function ProgressScreen() {
    */
   const rawView = useMemo(() => selectPayoffView(engineStore), [engineStore]);
   const view = useMemo(
-    () => (mayClaim(store, 'debt-balances') ? rawView : gagBalanceDerived(rawView)),
+    // ⛔ [pass-7 `C3-9`] `mayStateProjectedFigure`, not `mayClaim('debt-balances')`. This view is built
+    // from `engineStore` — the PROJECTION — and `projectCurrentBalance` reads `apr`/`minimumPayment`,
+    // which route to `'row-figures'` and only there. The gag was thorough and asked the wrong claim.
+    () => (mayStateProjectedFigure(store) ? rawView : gagBalanceDerived(rawView)),
     [store, rawView],
   );
 
@@ -135,7 +149,8 @@ export default function ProgressScreen() {
    * ⚠️ Gagged at the source for `C5-1`'s reason, not at the prop.
    */
   const rawWhatIf = useMemo(() => selectWhatIf(engineStore, Number(extra) || 0, whatIfBaseline), [engineStore, extra, whatIfBaseline]);
-  const whatIf = useMemo(() => (mayClaim(store, 'debt-balances') ? rawWhatIf : null), [store, rawWhatIf]);
+  // ⛔ [pass-7 `C3-9`] Same claim correction as the view above: `selectWhatIf` runs on `engineStore`.
+  const whatIf = useMemo(() => (mayStateProjectedFigure(store) ? rawWhatIf : null), [store, rawWhatIf]);
   // Same rule as above: the cash-cushion forecast is expensive and doesn't depend on `extra`, so it must
   // be memoized off the stable engineStore rather than rebuilt inline on every keystroke.
   const cashCycles = useMemo(() => selectCashTimeline(engineStore), [engineStore]);
@@ -286,10 +301,27 @@ export default function ProgressScreen() {
    * store-wide gag would take out a genuinely-earned trophy, which this file has already done once.
    */
   const mayStateBalances = mayClaim(store, 'debt-balances');
+  // ⛔ [pass-7 `C3-9`] The four figures below are NOT one question, and gating them together was the bug.
+  const mayStateProjected = mayStateProjectedFigure(store);
   const journey = selectJourneyTotals(store.debts, engineStore.debts);
+  // ⚠️ `pct` STAYS on `'debt-balances'`. It is measured against CONFIRMED payments (2.4's rule, and this
+  // file's own docblock), so moving it to the projection would blank a genuinely-earned percentage because
+  // an APR could not be read — over-suppression, which this screen has already committed once.
   const pct = mayStateBalances ? journey.pct : 0;
-  const journeyLine = mayStateBalances ? journey.line : UNREAD_JOURNEY_LINE;
-  const heroDate = mayStateBalances ? (view.debtFreeDate ?? '—') : '—';
+  /**
+   * ⛔ **`line`'s TWO ARMS SIT ON OPPOSITE SIDES OF THE SPLIT**, so it takes neither claim wholesale:
+   * *"$X of $Y paid"* is raw, *"$X to go"* is projected. The producer says which (`lineIsProjected`).
+   * ⚠️ And the withheld sentence is chosen by WHICH claim failed, not by the branch — naming balances when
+   * only the APR was unreadable would be a second false statement.
+   */
+  const lineReadable = journey.lineIsProjected ? mayStateProjected : mayStateBalances;
+  const journeyLine = lineReadable
+    ? journey.line
+    : mayStateBalances
+      ? UNREAD_REMAINING_LINE
+      : UNREAD_JOURNEY_LINE;
+  // The debt-free date is projection-derived outright — `C3-9`'s headline figure.
+  const heroDate = mayStateProjected ? (view.debtFreeDate ?? '—') : '—';
   const surf = c.surface;
 
   // Milestone states for the on-ring nodes: passed (green) · next (gold glow, the pull-forward) ·

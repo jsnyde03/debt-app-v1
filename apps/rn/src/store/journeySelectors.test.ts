@@ -9,7 +9,13 @@ import { selectJourneyTotals } from '@/store/journeySelectors';
  * the member, not the class.*
  *
  * ⚠️ A test on this file alone would be `.11.11`'s defect exactly — *a tested helper is not a used helper*.
- * The CALL is pinned by `progress-hero-total.spec.ts`, against the rendered hero.
+ * The CALL is pinned by `progress-hero-journey.spec.ts`, against the rendered hero.
+ *
+ * ⚠️ **This line named `progress-hero-total.spec.ts`, which has never existed** — found by the
+ * 2026-08-25 re-verification (`A-money-goals-plan.md:170`), rated minor, and still here a month later.
+ * Corrected while the file was open for `C3-9` (`.12.6.10`'s inline rule). ⛔ The GUARD was real; only
+ * the pointer was wrong — which is the more dangerous half of an expired comment, because a maintainer
+ * who fails to find the named spec concludes the call is unpinned when it is not.
  */
 let passed = 0;
 function assert(cond: boolean, label: string) {
@@ -29,6 +35,18 @@ const debt = (balance: number, originalBalance?: number) => ({ balance, original
   eq(t.totalPaid, 0, 'nothing paid');
   eq(t.pct, 0, 'nothing paid → 0%');
   eq(t.line, '$5,000 to go', 'a fresh portfolio leads forward with what is owed');
+
+  /**
+   * ⛔ **THE FLAG IS ASSERTED AGAINST THE ARM THE STRING TOOK, NEVER ALONE.** [pass-7 `C3-9`]
+   *
+   * `line`'s two arms sit on opposite sides of 2.4's split — *"$X of $Y paid"* is backward-looking off
+   * confirmed balances, *"$X to go"* is `totalCurrent`, which is **projected**. A consumer gating both
+   * with one claim is guarded on one arm and blind on the other, which is `C3-9`. ⚡ Asserting the
+   * PAIRING is what makes a future edit that moves one without the other red; asserting the flag alone
+   * would pass over exactly that.
+   */
+  eq(t.lineIsProjected, true, '⛔ C3-9 — the "to go" arm is projection-derived…');
+  assert(t.line.endsWith('to go'), '…and the flag names the arm the string actually took');
 }
 
 // ⛔ THE DEFECT. Balance revised UPWARD before anything was paid: `totalPaid` clamps to 0, the "to go"
@@ -54,6 +72,9 @@ const debt = (balance: number, originalBalance?: number) => ({ balance, original
   eq(t.totalPaid, 1000, 'paid down');
   eq(t.pct, 20, '20% of the original cleared');
   eq(t.line, '$1,000 of $5,000 paid', 'progress is measured against the original — that is what "paid" means');
+  // ⛔ [pass-7 `C3-9`] The other side of the pairing: this arm is RAW, so it must survive an unread APR.
+  eq(t.lineIsProjected, false, '…and the "paid" arm is backward-looking, not projected');
+  assert(t.line.includes(' of '), '…with the flag naming the arm the string actually took');
 }
 
 // Cleared debts stay in `store.debts` with `balance: 0` (`models.ts`), carrying their original.

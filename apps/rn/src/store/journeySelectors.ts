@@ -45,6 +45,18 @@ export interface JourneyTotals {
   pct: number;
   /** The subhead under the ring. */
   line: string;
+  /**
+   * ⛔ **WHICH SIDE OF THE SPLIT `line` LANDED ON.** [S1.13.7.12.6.5.4 · pass-7 `C3-9`]
+   *
+   * The table above splits the two figures by direction — *"% paid"* backward off confirmed balances,
+   * *"$X to go"* forward off the projection — and `line` is **one or the other depending on a branch**.
+   * ⚡ So a caller gating it with a single claim is guarded for one arm and blind on the other: that is
+   * `C3-9`, where Progress asked `'debt-balances'` for a sentence that can be projection-derived.
+   *
+   * ⭐ **The producer owes this, not the consumer** — it chose the branch. `F-B4`'s rule: *a function that
+   * BRANCHES owes the CLAIM question, not the array.*
+   */
+  lineIsProjected: boolean;
 }
 
 /**
@@ -73,6 +85,9 @@ export function selectJourneyTotals(
    *
    * HON-1: whole dollars on the headline journey figure — matches every other Phase-3 surface.
    */
-  const line = totalPaid > 0 ? `${formatWhole(totalPaid)} of ${formatWhole(totalOriginal)} paid` : `${formatWhole(totalCurrent)} to go`;
-  return { totalOriginal, totalConfirmed, totalCurrent, totalPaid, pct, line };
+  // ⛔ [pass-7 `C3-9`] ONE expression owns both the branch and the flag, so they cannot disagree. Deriving
+  // `lineIsProjected` separately would be two producers of one fact — the shape this module keeps closing.
+  const lineIsProjected = totalPaid <= 0;
+  const line = lineIsProjected ? `${formatWhole(totalCurrent)} to go` : `${formatWhole(totalPaid)} of ${formatWhole(totalOriginal)} paid`;
+  return { totalOriginal, totalConfirmed, totalCurrent, totalPaid, pct, line, lineIsProjected };
 }

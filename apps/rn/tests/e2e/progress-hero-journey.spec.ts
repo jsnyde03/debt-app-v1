@@ -221,3 +221,54 @@ test('C4-9 · one unread balance beside a live one suppresses every figure deriv
   await expect(page.getByText('Go to Today')).toHaveCount(0);
 });
 
+/**
+ * ⛔ **S1.13.7.12.6.5.4 [pass-7 `C3-9`] — AN UNREAD APR, WITH EVERY BALANCE READABLE.**
+ *
+ * ⚡ **Every other fixture on this screen poisons `balance`**, so `mayClaim('debt-balances')` is false and
+ * the gag fires for the right reason by accident. `C3-9` is the case nothing covered: the balances read
+ * perfectly and the **APR** does not — and `projectCurrentBalance` reads `apr`/`minimumPayment`, which
+ * route to `'row-figures'` **and only there**. So `gagBalanceDerived` worked perfectly on the wrong claim,
+ * and Progress promised a debt-free date off a rate it had just failed to read.
+ *
+ * ⭐ **This asserts the SPLIT, not suppression, and that is the whole point.** 2.4's standing rule keeps
+ * backward-looking figures on confirmed balances and forward-looking ones on the projection, so the honest
+ * outcome here is MIXED: the debt-free date goes, and *"$2,000 of $6,000 paid"* — measured against
+ * confirmed payments — STAYS. ⚠️ A fix that blanked the whole screen would pass a suppression-only test
+ * and fail this one; that is the over-suppression `snapshot.ts` names as *"a second false statement, not a
+ * fix"*, and this file has shipped it once already.
+ */
+test('C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      genuineCycleCount: 6,
+      debts: [
+        // ⚠️ `balance` and `originalBalance` are both READABLE — the point of the fixture. `apr: ''` is the
+        // single unreadable field, and it routes to `'row-figures'` alone. `readMoney('')` repairs to 0
+        // and records the loss, through the same door a restored backup comes in by.
+        { id: 'd1', name: 'Chase card', balance: 4000, originalBalance: 6000, minimumPayment: 120, apr: '', dueDate: day(3), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/progress');
+
+  // The positive assertion first — a page that never rendered satisfies every `toHaveCount(0)` below.
+  await expect(page.getByTestId('progress-hero-journey')).toBeVisible({ timeout: 15_000 });
+
+  await expect(
+    page.getByTestId('progress-hero-date'),
+    'a debt-free date computed from an APR the app could not read is the same claim as one computed from an unread balance',
+  ).toHaveText('—');
+
+  // ⭐ The half a suppression-only fix gets wrong: what the app DID read must survive.
+  await expect(
+    page.getByTestId('progress-hero-journey'),
+    'progress measured against CONFIRMED payments survives an unread APR — blanking it is over-suppression',
+  ).toContainText('of $6,000 paid');
+
+  await expect(
+    page.getByText('Some balances couldn’t be read'),
+    'naming balances when the balances read perfectly would be a second false statement',
+  ).toHaveCount(0);
+});
+

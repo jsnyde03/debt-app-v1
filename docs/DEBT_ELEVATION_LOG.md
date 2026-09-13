@@ -33145,3 +33145,46 @@ figures, not at the wiring.
 ⚠️ **Two Edits this session failed on anchors written from memory rather than from the file** — this entry's
 first attempt anchored on a sentence I had written into the **backlog**, not the log. Both times the fix was
 to read the tail first. Cheap, loud, and worth not repeating a third time.
+
+### `.12.6.5.4` — `C3-9`: Progress asked one claim for a figure computed from two · 2026-09-13
+
+⚡ **Measured, not argued.** Planting the original defect *(all three sites back on `'debt-balances'`)*
+rendered **`"November 2026"`** where the fix renders `—`, on a store whose balances read perfectly and
+whose **APR** did not. `projectCurrentBalance` reads `apr`/`minimumPayment`, which route to `'row-figures'`
+**and only there** — so `gagBalanceDerived` was thorough, correct, and asking the wrong question.
+
+⛔ **A one-line plant would have been GREEN over the defect.** Reverting only `mayStateProjected` leaves
+`:111` still gagging the view, so `debtFreeDate` is `null` and the date falls to `—` anyway. The original
+defect had **all three** sites on the wrong claim; anything less plants something adjacent to it.
+
+⭐ **The fix is a SPLIT, and the test asserts the split rather than suppression.** `2.4`'s standing rule
+keeps backward-looking figures on confirmed balances and forward-looking ones on the projection:
+- `:111` view gag and `:138` what-if → **predicate** *(both built from `engineStore`)*
+- `heroDate` → **predicate**
+- `pct` → **unchanged**, `'debt-balances'`; moving it would blank a genuinely-earned percentage over an
+  unread APR, which is the over-suppression this screen has shipped once already
+- `journeyLine` → **neither, wholesale** — its two arms sit on opposite sides of the split
+
+⛔ **`journeySelectors.line` is branch-dependent, and the CALL SITE could never have shown it.**
+`selectJourneyTotals(store.debts, engineStore.debts)` is handed both worlds deliberately: the *"$X of $Y
+paid"* arm is raw, the *"$X to go"* arm is `totalCurrent`, summed from `projected`. Its own docblock says
+so. ⭐ **The producer owes the claim question** — `F-B4` verbatim — so it now returns `lineIsProjected`,
+computed by the **same expression** that picks the arm, so flag and string cannot disagree. The test
+asserts the **pairing**, never the flag alone.
+
+⚠️ **And the withheld sentence is chosen by WHICH claim failed.** `UNREAD_JOURNEY_LINE` — *"Some balances
+couldn't be read"* — is **false** when the balances read fine and only the APR did not, so
+`UNREAD_REMAINING_LINE` was added for that case. Suppressing one false statement with a different one is
+`assert-the-honest-state-by-name`.
+
+⚠️ **The guard did not exist, and every fixture on this screen poisons `balance`** — so the gag fired for
+the right reason by accident and nothing covered the APR case. The new e2e is the first, and it collected
+**by name** *(`ok 7 … C3-9 …`)* rather than being inferred from a green exit. ⚡ Its 1.1s green pass looked
+suspiciously fast; the planted run took **6.0s** because a failing `toHaveText` burns its timeout while a
+passing one returns immediately. **The plant answered a question about the green run that the green run
+could not answer about itself.**
+
+⚠️ **Swept inline** *(`.12.6.10`'s rule, file already open)*: `journeySelectors.test.ts:12` cited
+`progress-hero-total.spec.ts`, which has never existed — found by the 2026-08-25 re-verification, rated
+minor, still present a month later. ⛔ The **guard was real**; only the pointer was wrong, which is the
+more dangerous half: a maintainer who cannot find the named spec concludes the call is unpinned.
