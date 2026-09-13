@@ -1435,3 +1435,12 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   Screen. `widgetSync.test.ts` asserts only refusals — a revert to the wide claim would stay green there. Money
   and Progress each got an e2e in the good direction; the widget got none. → **`.5.7`** *(a widget case that
   asserts the snapshot STATES its figures over a repair no projection reads)*.
+
+### ⤵ surfaced by `.5.4c`'s after-scan, 2026-09-13
+
+- ⛔ **The confirmed-balance record has one failure mode and no gate.** `withProjectedBalances` records each
+  projected debt's confirmed balance in a `WeakMap`; a COPY of a projected debt (`{ ...d }`) drops the record, and
+  `confirmedBalance` then silently answers with the ESTIMATE — reopening `C3-13` with every test that exists today
+  still green. All 10 debt spreads in app source are raw-store write paths *(measured by query at `.5.4c.1`)*;
+  nothing stops the eleventh. → **`.5.7`** *(instrument — a gate that refuses a spread of a debt taken from a
+  `withProjectedBalances` result, or an assertion that every consumer of one reads liveness from the record)*.

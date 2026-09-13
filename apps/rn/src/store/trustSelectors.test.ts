@@ -819,7 +819,8 @@ export default function run(): void {
     const lastCard = (balance: number, verified: string, plan: 'free' | 'premium'): DebtStore => ({
       ...runMigrations({
         version: 8,
-        paycheck: { amount: '2200', currentDate: DAY, nextPaycheckDate: '2026-09-09' },
+        paycheck: { amount: '2200', currentDate: DAY, nextPaycheckDate: '2026-09-09' }, // fixture-date-ok: the store's clock is DAY; this suite passes with the run date pinned to 2020 and to 2031
+
         debts: [{ id: 'd0', name: 'Chase', balance, originalBalance: 5000, minimumPayment: 120, apr: 20, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: verified, lastVerifiedDate: verified }],
         requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 900, dueDate: DAY, recurrence: 'monthly', category: 'housing' }],
         cushionFloor: 200,

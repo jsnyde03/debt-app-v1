@@ -238,3 +238,39 @@ test('the celebration survives a reload, and is cleared once acknowledged', asyn
   await expect(page.getByTestId('payday-guardian-card')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('button', { name: 'Keep going' })).toHaveCount(0);
 });
+
+/**
+ * ⛔ **S1.13.7.12.6.5.4c [pass-7 `C3-13`] — A PROJECTED $0 IS AN INVITATION, NOT A PAYOFF.**
+ *
+ * `provisional()` above is exactly the finding's store: a premium debt whose ESTIMATE has reached $0 while the
+ * user has confirmed nothing. Today asked its plan state of the projected store, so it said *"You're debt-free ·
+ * Every balance is cleared"* directly above the card asking the user to confirm that very payoff. Liveness now
+ * reads the confirmed balance, so the invitation stays and the declaration goes.
+ *
+ * ⭐ **Asserted in both directions.** The second test is the celebration a confirmed $0 has genuinely earned — the
+ * over-fix that stopped declaring debt-free altogether would pass the first and fail it.
+ */
+test('C3-13 · a projected $0 invites the confirm and does not declare the user debt-free', async ({ page }) => {
+  await seedStore(page, base('light', [provisional('card', 'Chase Freedom')]));
+  await page.goto('/');
+
+  // The positive assertion first — a page that never rendered satisfies every `toHaveCount(0)` below.
+  await expect(page.getByRole('button', { name: /Confirm.*paid off/i })).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByText('You’re debt-free'),
+    'a balance the app only ESTIMATES at $0 is the payoff it is asking the user to confirm, not one to declare',
+  ).toHaveCount(0);
+});
+
+test('C3-13 · a confirmed $0 still gets the debt-free banner', async ({ page }) => {
+  await seedStore(page, base('light', [
+    { id: 'a', name: 'Chase Freedom', balance: 0, originalBalance: 4200, minimumPayment: 120, apr: 0, dueDate: day(10), type: 'debt', recurrence: 'monthly', lastVerifiedDate: day(-3), balanceAsOfDate: day(-3) },
+  ]));
+  await page.goto('/');
+
+  await expect(
+    page.getByText('You’re debt-free'),
+    'a balance the user CONFIRMED at $0 has earned the banner — withholding it is over-suppression',
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('button', { name: /Confirm.*paid off/i })).toHaveCount(0);
+});

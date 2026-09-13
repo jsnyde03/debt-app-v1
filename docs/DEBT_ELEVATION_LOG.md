@@ -33546,3 +33546,58 @@ and all are write paths on the raw store** (`store.ts` actions ×5, `migrations.
 after reconciliation). None copies a projected debt and then asks liveness. ⚠️ **The record must also CHAIN
 through**: `withProjectedBalances` re-applied to a projected store would otherwise record the first projection's
 $0 as confirmed — so the assertion projects twice.
+
+### `.12.6.5.4c.2`–`.4` — the record, the assertion, and Today in both directions · 2026-09-13
+
+✅ **`.2`** — `withProjectedBalances` records each projected debt's confirmed balance in a module-private
+`WeakMap`, chaining through a record already present; `confirmedBalance(d)` is exported beside it, and
+`liveDebts` + `partitionDebts` read it. typecheck 0 · `lint:import-graph` green on the new value import ·
+`lint:trust-claims` green, liveness ledger unchanged at 22 · `test:app` ALL PASSED.
+
+✅ **`.3`** — every liveness reader *(plan state · the Guardian's `debtFree` · the reserve release's target)*,
+on a projected AND a twice-projected store, answers exactly as on the confirmed store, across four stores; plus
+controls that the projection still reaches $0, the invitation still names the debt, and a confirmed $0 still
+celebrates. Four plants, all `MATCHED`:
+
+| plant | red |
+|---|---|
+| K1 — the block runs | its own planted message |
+| K2 — liveness reads `d.balance` again | *"premium · $100 left · projects to $0 · plan state — expected `normal`, got `debt-free`"* |
+| K3 — stop projecting *(the lazy over-fix)* | ⭐ **caught by `.5.4a`'s EXISTING per-surface guard** before the new block ran — the strongest answer |
+| K4 — a record that does not chain through | the twice-projected assertion |
+
+✅ **`.4`** — `celebration.spec.ts`, beside the invitation it concerns: *a projected $0 invites the confirm and
+does not declare the user debt-free* · *a confirmed $0 still gets the debt-free banner*. **13 passed, by name** —
+the eight existing premium beat/finale/milestone/archive cases in both themes and the three free-user cases
+among them, so the confirm flow the change sits under is intact.
+
+⛔ **AND `lint:fixture-dates` REDDED ON MY OWN LITERAL — 121 against a cap of 120.** `nextPaycheckDate:
+'2026-09-09'` in the new unit block, committed without that gate run. ⚠️ **This also corrects my own record
+above**: I wrote at `.5.4a` that renaming a literal into a constant *"would have passed the gate and hidden the
+same fuse"*. **That is only true where a fuse exists.** The gate recognises a clock pin only as a literal
+`currentDate`; these fixtures pin it with the variable `DAY`, so their literals age against nothing.
+⭐ **Measured rather than argued**: the whole trust suite completes green with the process clock pinned to
+**2020-01-01** and to **2031-06-01** (a preload overriding `Date`, its own line confirming the pin), and the
+seven modules on the path hold **0** wall-clock reads by per-file count. So the line takes the gate's own
+per-line `fixture-date-ok:` with that measurement as its reason — the idiom 22 sites already use.
+⚠️ **And a query nearly lied again**: `grep … | cut; echo $?` reported `cut`'s status, and `2>/dev/null` would
+have swallowed a missing file. Re-run with per-file counts and an existence check.
+
+⭐ **The two e2e cases planted on the committed owner, each running exactly one test:**
+
+| plant | red |
+|---|---|
+| E1 — liveness reads the estimate *(both owners back on `d.balance`)* | the invitation case: the banner rendered over a projected $0 — *expected 0, received 1* ✅ |
+| E2 — the over-fix *(`confirmedBalance(d) >= 0` — a confirmed $0 counted as live)* | the celebration control: the banner never rendered ✅ |
+
+**Six plants across `.5.4c`** — K1–K4 unit, E1–E2 e2e — all `MATCHED`, every restore byte-verified.
+
+#### After-scan
+
+- ⛔ **Filed, not folded — the marker's one failure mode has no gate.** A COPY of a projected debt drops the
+  record and silently falls back to the estimate. All 10 spreads today are raw-store write paths *(measured at
+  `.5.4c.1`)*, but nothing stops the eleventh. → backlog **`.5.7`**.
+- ✅ **Measured and recorded, not left as a premise:** the trust suite is clock-independent *(2020 and 2031)*,
+  which is what licensed the one `fixture-date-ok:`.
+- ✅ **Replenished** — `.5.4` stays the active build; next is **Today's Guardian card** *(`'required-plan'`'s six
+  holes, `.5.4b.1`)*, its over-suppression rows re-verified on a fixture whose corrupted debt has no autopay amount.
