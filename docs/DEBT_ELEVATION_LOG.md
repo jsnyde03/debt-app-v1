@@ -33961,3 +33961,87 @@ the balance phrase in `logPaymentCopy.ts`, called by both — each surface keeps
 
 ⚠️ **The claim is `'row-figures'`**, the per-row owner the sheet and Money's row both ask — not `'debt-balances'`,
 which `partitionDebts` asks for the three-way split. Checked by query, not assumed.
+
+### `.12.6.5.4f` addendum — the Swift COMPILED in CI, read from the job log · 2026-09-13
+
+✅ **`native-e2e` run `34777087172`, dispatched with `rebuild: true` on `e01e2b4c`.** Job *"Build (or restore) the
+.app"* — read from its own log, not its green tick: `cache-hit : false` · `SwiftCompile normal arm64 Compiling
+LiveActivityModule.swift, PaydayActivityAttributes.swift, PaydayLandedIntent.swift` *(target `LiveActivity`, project
+`Pods`)* · **`** BUILD SUCCEEDED **`** · no `warning:` or `error:` line naming `LiveActivityModule`. ⚡ So the three
+`AsyncFunction { … async -> Bool in }` closures type-check against expo-modules-core 56's concurrent factory under the
+pod's Swift 5 language mode — the one part of `.5.4f` nothing on this machine could build.
+
+⛔ **But the iPhone tier went RED — 2 of 9 flows — and neither is `.5.4f`.** Read from the uploaded Maestro report, not
+the summary line:
+- **`03-row-context-menu`** — *Assertion is false: "Log payment" is visible.* The screenshot shows the menu open and
+  correct: **"Log a payment" · Payoff schedule · Edit · Delete**. `3b9522b1` (P6.4.4, **2026-08-20** — one day after the
+  last green native run, `1d0a0bed` on 2026-08-19) replaced the literal `'Log payment'` with `LOG_PAYMENT_ENTRY`, which
+  reads *"Log a payment"*. The flow was never re-read. **Stale flow, not a defect.** ⚠️ Its next step expects the SHEET's
+  title *"Log a payment"* to prove the tap opened it — the menu label now says the same words, so that assertion can
+  no longer tell the two apart.
+- **`08-coach-marks`** — *Element not found: "Got it"* at step 20. The row-actions mark DOES draw *("Press and hold a
+  debt… Got it")*; the flow then visits **Expenses** — where the mark is not drawn — and returns to **Debts**, and the
+  mark is gone. The flow expects it to survive the segment switch. **Unmeasured whether the flow or the app is wrong**
+  — a mark that vanishes when you glance at a sibling tab is either a lifetime change since 08-19 or the intended
+  "hint, not a modal". → backlog.
+- ⚡ **Nothing ran natively for 25 days**, so both reds landed silently; `native-e2e` is manual-dispatch only.
+
+⚠️ **Still not measured, and cannot be here:** that ActivityKit's refusal reaches `false` on hardware — the P6.14
+row filed at `.5.4f.1`.
+
+### `.12.6.5.4g.2`–`.4` — one owner for both doors, planted, `.5.4g` CLOSED · 2026-09-13
+
+✅ **Built.** `store/logPaymentCopy.ts` now owns the question and its words — `logPaymentBalanceUnread(store, debt)`
+(`'row-figures'`, `balance`) and `BALANCE_NOT_READ` — and both log-a-payment doors ask them: the in-app sheet's
+subtitle and over-payment note, and `snapshot.ts`'s `debtsJson`, which gives an unread row `"balance not read"` as
+its Siri subtitle and keeps `formatWhole` for a readable one. ⚡ `rowFieldUnread` also answers for a whole-row loss,
+so that case is covered by the same question. No Swift change: `LogPaymentIntent.swift` renders the string as is.
+
+✅ **`widgetSync.test.ts` +3 assertions** *(widget file 45 in all)*, built through the real `runMigrations`: the
+unread debt's row is **`"balance not read"` BY NAME** *(a blank subtitle would pass a "not `$0`" check)*; it equals
+the Log payment sheet's own words, taken from `logPaymentSubtitle`; and a readable debt in the same list still says
+**`$4,000`**. typecheck 0 · eslint clean · `lint:import-graph` ✅ · `lint:trust-claims` ✅ *(`row-figures→7`
+unchanged)*.
+
+⭐ **Planted — 3 of 3 red for their own reason; control green; restored byte-identical by sha256:**
+
+| plant | red on |
+|---|---|
+| **P1** un-fix: `debtsJson` states the stored figure | `C3-1` — Siri lists the unread debt as "balance not read" *(got **`$0`**)* |
+| **P2** over-fix: every row refuses | ⭐ control — a readable debt still states its balance *(got "balance not read")* |
+| **P3** a second spelling, owned by the snapshot | `C3-1` — …in the Log payment sheet's own words *(got "balance not read" against "balance unread")* |
+
+⚠️ **My driver's first run reported all three `RED-WRONG-REASON`, and the plants were right.** Its matcher took the
+first `FAIL [` in the output — the stack trace's echo of the thrower's SOURCE line, `FAIL [${label}]`. Diagnosed
+before touching anything else; the matcher now skips the template. **The exit codes were already correct — only
+reading the reason caught that the reason was never read.**
+
+✅ **Registered and proven:** `S1P7-C3-1-SIRI-DEBTSJSON-UNREAD` *(`reason=MATCHED`, control exit 0, on the fix commit
+`566bd7d5`)*. `MIN_ENTRIES` 305 → 306.
+
+⛔ **And the close-out `lint:rn` went red 49/52 on two things I did — one cause each, both caught by the registry:**
+- **`S1P5-C5-3-SHEETBALANCE` was VOID, not stale.** Its un-fix deletes the sheet's over-payment refusal by matching
+  the line `if (rowFieldUnread(store, 'row-figures', …)) return undefined;` — **the exact line C3-1 rewrote** to ask the
+  shared owner. Same un-fix, same expected red, re-anchored to the line the file now has; committed, then re-run.
+- **13 proofs STALE against a cap of 8** — eight of them mine: `.5.4f`'s close commit moved `check-finding-guards.ts`
+  (the floor edit) under five proofs anchored there, and C3-1 moved `snapshot.ts` under three. ⚠️ `.5.4f`'s own
+  `lint:rn` read 52/52 because the floor edit was still UNCOMMITTED when it ran — staleness is measured against
+  commits, so the gate that passed was measuring the tree before the change it would stale.
+- **Drained:** `S1P5-C5-3-SHEETBALANCE` re-anchored and committed (`9a540259`), then it and the eight I staled re-run together — **9 of 9 `reason=MATCHED`, control exit 0** — and the stale count is back to the pre-existing **5** (177 executed).
+- ⚡ **The lesson, and it is checkable:** *before committing a source edit, query the registry for every proof whose
+  `unfix.at` is a file the edit touches, and whether its `find` still matches once.* That is exactly the VOID check
+  `lint:finding-guards` already runs — **run it on the diff before the commit, not on the commit after.**
+
+✅ **Gates, each from its own summary line:** typecheck 0 · `test:app` ALL PASSED · `test:regression` ALL PASSED · `lint:rn` **52/52** after the drain *(49/52 before it — the two causes above)*.
+
+#### After-scan
+
+- ⚠️ **Siri's subtitle is not device-verified.** `"balance not read"` in a disambiguation row reads correctly in the
+  payload; whether Siri truncates or restyles a subtitle that is not a figure is not observable off-device. → the
+  P6.14 ledger, beside the Siri rows already there.
+- ⚡ **The same lesson a third time this step: a fix scoped by FILE.** `C5-3` fixed the sheet, `C3-4` put the unread
+  debt back into Siri's list, and neither asked what the other door said. **`.5.7`'s census (filed at `.5.4f`) now
+  has two shapes to look for** — a swallowing native writer, and a refusal spelled in one place for a flow with
+  two doors.
+- ✅ **Replenished** — `.5.4h` is **`C3-2` + `D2-12`**: `buildGuardianSpoken` returns `''` for four different
+  conditions and Siri routes empty to the Premium upsell. Decomposed in the plan.

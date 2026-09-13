@@ -1486,3 +1486,23 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   stamps it on the attempt. `widgetSync` and `liveActivitySync` were two instances found one pass apart. → **`.5.7`**
   *(census by query: every `.native` bridge with a swallowing `catch`, and whether its caller stamps state on the
   call rather than on its answer)*.
+
+### ⤵ surfaced by `.5.4g`'s after-scan, 2026-09-13
+
+- ⛔ **A source edit can void or stale a registry proof, and nothing says so until the commit after.** `.5.4g` rewrote
+  the one line `S1P5-C5-3-SHEETBALANCE` un-fixes (VOID), and `.5.4f`'s floor edit staled five proofs anchored in
+  `check-finding-guards.ts` — while `.5.4f`'s own `lint:rn` read 52/52, because staleness is measured against COMMITS
+  and the edit was not one yet. **Two closes in a row pushed a tree the next `lint:rn` refused.** → **`.5.7`**
+  *(instrument — a pre-commit mode of `check-finding-guards` over the STAGED diff: every proof whose `unfix.at` is a
+  staged file, its `find` re-matched once against the staged content, and the stale count projected as if committed;
+  or run `lint:finding-guards` after the commit and before the push as a fixed close step — and say which, measured)*.
+- 📋 **Siri's log-a-payment subtitle `"balance not read"` is payload-verified only.** Whether a Siri disambiguation row
+  truncates or restyles a subtitle that is not a figure is not observable off-device. → **P6.14** *(device row: import a
+  backup with one unreadable balance, say "log a payment in Debt Planner", read the list)*.
+- ⛔ **`native-e2e` is RED on 2 of 9 iPhone flows, and has been since some commit after 2026-08-19 — nobody ran it for 25
+  days.** `03-row-context-menu` asserts the pre-P6.4.4 label *"Log payment"* (now *"Log a payment"*, `3b9522b1`), and its
+  sheet-opened check can no longer distinguish the menu from the sheet; `08-coach-marks` expects the row-actions mark to
+  survive a Debts → Expenses → Debts switch and it does not *(flow or app — unmeasured)*. ⚠️ **While these two are red,
+  the only native verifier cannot report a third** — the next Swift change reads "2 failed" and learns nothing.
+  → **promote as its own step after `.5.4h`** *(category 2: it makes every later native change unverifiable)* — fix 03
+  by label + a sheet testID, measure 08's mark lifetime against the source, one dispatch for both.
