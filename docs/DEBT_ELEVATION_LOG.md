@@ -35511,3 +35511,46 @@ in CI too.
 
 ⛔ **`--fast` names what it skipped** in its summary, so a fast green can never be read as a full one. `lint:rn`
 with no flag stays the full chain, which is what `lint:ci-chain` and `web-e2e.yml` depend on.
+
+### `.12.6.5.7.4a.2` — a queued intent applies once, through every store replacement · 2026-09-14
+
+**Built.** `store/appliedIntents.ts` owns the record (`appliedIntentIds?: string[]` on `DebtStore`, newest last, capped
+at 50). `logManualPayment` and `applyPaydayLandedIntent` take the intent's id, skip one already applied, and record it in
+the SAME `set` as the effect. `applyPendingAction` passes `action.id`. The store's set wrapper carries the outgoing
+store's ids through any patch that moves `store`, beside `intentRollback`'s rule, so Undo, `importStore` and `reset()`
+cannot erase it. In-app payments carry no id and are never skipped.
+
+Two design points the before-scan forced:
+- **Record on APPLY only.** Recording a refusal would be its own store write, and the wrapper reads any write that is not
+  the intent's own as clearing the pending Undo.
+- **Read defensively.** A corrupt record that is a bare string would answer `includes` by SUBSTRING and silently skip a
+  real payment; anything but an array reads as empty.
+
+**Asserted through the REAL store** (`pendingActions.test.ts`): a bridge whose `clear` throws and is swallowed, iterating
+the doors *(a second drain · Undo · restoring a backup taken before the drain · Delete all data)* × both kinds, each kind
+preceded by a control proving its entry moves the figures. Reset × payment is left out on purpose: a fresh store has no
+`d0`, so that row could not fail. Plus: two payments with two ids both apply · three corrupt record shapes do not skip a
+payment · the cap keeps the newest · the record survives `runMigrations`. 45 assertions; `storeActions` 171 unchanged.
+
+⭐ **Seven plants under `npm run test:app`, each red for its own reason, every file restored byte-identical (sha256):**
+| plant | reds on |
+|---|---|
+| P1 no skip in the payment action | payment after a second drain |
+| P2 no skip in the payday action | payday after a second drain |
+| P3 no carry in the wrapper | payment after Undo |
+| P4b carry on Undo only *(the rejected option)* | payment after restoring a backup — the Undo row stays green |
+| P5 trusting read | the `"siri-1"` string record |
+| P6 any recorded id skips every intent | two payments with two ids |
+| P7 uncapped | the record is capped |
+
+⛔ **The first P4 MISSED, and the plant was at fault, not the test.** It keyed the carry on `'intentRollback' in patch`,
+but the rule directly above ADDS `intentRollback: null` to every store-moving patch — restore and reset included — so the
+plant changed nothing. Diagnosed before touching the assertion, then re-planted as the faithful version of the option
+🎯 ruled out.
+
+**Gates.** `typecheck` 0 · `test:app` 0 · `test:regression` 0 · `lint:finding-guards --projected` 0, projecting ONE proof
+stale on commit (`S1P6-A3-3-UPDATE-BY-ID`, `store.ts` moved) → 4 against the cap of 8, drained at ⑦. ⛔ **`lint:rn` red,
+2 of 52, one cause:** `appliedIntents.ts` joined the S1 surface with no coverage row, so `lint:s1-coverage` reported it
+UNCLASSIFIED and `test:gate-plants`' two S1 scenarios failed on their controls. Row added as `["never"]`, appended the way
+the last fix-created files were; per [D81], only the gates that read it were re-run: `lint:s1-coverage` 0 *(499 classified)* · `lint:surface-complete` 0 ·
+`test:gate-plants` 0 *(30 of 30 fail closed, both S1 scenarios' controls green)*. The other 50 had passed on the same tree.

@@ -5,6 +5,11 @@ import {
   parsePendingActions,
   type PendingActionApi,
 } from './pendingActions';
+import { createDefaultStore } from '@/data/defaults';
+import { runMigrations } from '@/data/migrations';
+import type { DebtStore } from '@/data/models';
+import { APPLIED_INTENT_CAP, appliedIntentIdsOf, withAppliedIntent } from '@/store/appliedIntents';
+import { createDebtStore } from '@/store/store';
 
 /**
  * 3.5.3.5 — the AppIntent → store bridge core: defensive parse · apply-dispatches-store-actions · drain.
@@ -115,6 +120,111 @@ eq(parsePendingActions([{ kind: 'log-payment', id: 'p1', debtId: 'd0', amount: '
   })();
   eq(calls.length, 2, 'apply: mixed queue applies both');
   eq(calls[1], 'logManualPayment:car:90', 'apply: order preserved');
+}
+
+// ── ⛔ [.5.7.4a-1] AN ENTRY THAT OUTLIVES ITS DRAIN — through the REAL store ─────────────────────────────────
+//
+// Every block above runs against `stubApi`, which counts calls. A stub cannot see a guard that lives on the mutation,
+// and no fixture's `clear` ever failed, so a Siri payment applied twice on a swallowed clear with every test green.
+// These drive `createDebtStore` through the real drain, over a bridge whose `clear` throws and is swallowed exactly as
+// `pendingActionBridge.native.ts` does. ⚠️ The doors are the class the store's set wrapper covers — every write that
+// replaces the store — and each row is preceded by a control proving its entry really moves the figures.
+{
+  type RealStore = ReturnType<typeof createDebtStore>;
+  const realStore = (): RealStore => {
+    const s = createDebtStore();
+    const base = createDefaultStore();
+    s.setState({
+      store: {
+        ...base,
+        prefs: { ...base.prefs, onboardingComplete: true },
+        // Payday is today, so a roll is due and the payday rows are not refused for arriving early.
+        paycheck: { ...base.paycheck, nextPaycheckDate: base.paycheck.currentDate },
+        debts: [
+          { id: 'd0', name: 'Visa', balance: 5000, minimumPayment: 100, apr: 20, dueDate: base.paycheck.currentDate, type: 'debt', recurrence: 'monthly' },
+        ] as DebtStore['debts'],
+      },
+    });
+    return s;
+  };
+  const stuckQueue = (entries: unknown[]): PendingActionBridge => {
+    const payload = JSON.stringify(entries);
+    return {
+      read: () => payload,
+      clear: () => {
+        try {
+          throw new Error('App Group unavailable');
+        } catch {
+          /* swallowed, exactly as the native bridge does */
+        }
+      },
+    };
+  };
+  const balanceOf = (s: RealStore) => s.getState().store.debts.find((d) => d.id === 'd0')?.balance ?? null;
+  const figures = (s: RealStore) => {
+    const st = s.getState().store;
+    return JSON.stringify({ balance: balanceOf(s), payday: st.paycheck.nextPaycheckDate, cycles: st.cycleHistory.length });
+  };
+
+  const KINDS = [
+    { kind: 'log-payment', entry: { kind: 'log-payment', id: 'siri-1', debtId: 'd0', amount: 250 } },
+    { kind: 'payday-landed', entry: { kind: 'payday-landed', id: 'tap-1' } },
+  ];
+  const DOORS: { name: string; between: (s: RealStore, before: DebtStore) => void; kinds?: string[] }[] = [
+    { name: 'a second drain (return to foreground)', between: () => {} },
+    { name: 'Undo', between: (s) => s.getState().undoIntentAction() },
+    { name: 'restoring a backup taken before the drain', between: (s, before) => s.getState().importStore(before) },
+    // ⚠️ Payday only: a fresh store has no `d0`, so a replayed payment is a no-op with or without the record — a row
+    // that could not fail.
+    { name: 'Delete all data (reset)', between: (s) => s.getState().reset(), kinds: ['payday-landed'] },
+  ];
+
+  for (const { kind, entry } of KINDS) {
+    const control = realStore();
+    const untouched = figures(control);
+    drainPendingActions(stuckQueue([entry]), control.getState());
+    assert(figures(control) !== untouched, `4a-1 control — a queued ${kind} applies on its first drain`);
+
+    for (const door of DOORS) {
+      if (door.kinds && !door.kinds.includes(kind)) continue;
+      const s = realStore();
+      const before = s.getState().store;
+      const bridge = stuckQueue([entry]);
+      drainPendingActions(bridge, s.getState());
+      door.between(s, before);
+      const settled = figures(s);
+      drainPendingActions(bridge, s.getState());
+      eq(figures(s), settled, `⛔ 4a-1 — a ${kind} that outlives its drain is not applied again after ${door.name}`);
+    }
+  }
+
+  // ⭐ The over-fix this must not become: two Siri payments with two ids ARE two payments (pass-6 C3-6's asymmetry).
+  {
+    const s = realStore();
+    drainPendingActions(stuckQueue([{ kind: 'log-payment', id: 'siri-1', debtId: 'd0', amount: 250 }]), s.getState());
+    drainPendingActions(stuckQueue([{ kind: 'log-payment', id: 'siri-2', debtId: 'd0', amount: 250 }]), s.getState());
+    eq(balanceOf(s), 4500, '⭐ 4a-1 control — two queued payments with two ids both apply');
+  }
+
+  // An unreadable record never swallows a real payment. ⛔ A bare string answers `includes` by substring.
+  for (const corrupt of ['siri-1', { 'siri-1': true }, [7, null]]) {
+    const s = realStore();
+    s.setState({ store: { ...s.getState().store, appliedIntentIds: corrupt as unknown as string[] } });
+    drainPendingActions(stuckQueue([{ kind: 'log-payment', id: 'siri-1', debtId: 'd0', amount: 250 }]), s.getState());
+    eq(balanceOf(s), 4750, `⛔ 4a-1 — an unreadable record (${JSON.stringify(corrupt)}) does not skip the payment`);
+  }
+
+  // The record is capped (newest kept) and survives a relaunch through `runMigrations`.
+  {
+    let st = createDefaultStore();
+    for (let i = 0; i < APPLIED_INTENT_CAP + 10; i++) st = withAppliedIntent(st, `id-${i}`);
+    const ids = appliedIntentIdsOf(st);
+    eq(ids.length, APPLIED_INTENT_CAP, '4a-1 — the record is capped');
+    eq(ids[ids.length - 1], `id-${APPLIED_INTENT_CAP + 9}`, '4a-1 — …keeping the newest');
+    assert(!ids.includes('id-0'), '4a-1 — …and dropping the oldest');
+    const relaunched = runMigrations(JSON.parse(JSON.stringify(st)));
+    eq(appliedIntentIdsOf(relaunched).join(','), ids.join(','), '⛔ 4a-1 — the record survives a relaunch');
+  }
 }
 
 console.log(`\n  pendingActions (AppIntent bridge): ${passed} assertions passed\n`);

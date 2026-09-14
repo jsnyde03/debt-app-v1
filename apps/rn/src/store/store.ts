@@ -10,6 +10,7 @@ import type { RequiredReconciliation } from '@core/debt/bulkMarkRequired';
 import type { GuardianBand } from '@core/storage/debtPlannerStorage';
 
 import { createDefaultStore, todayLocalISO } from '@/data/defaults';
+import { carryAppliedIntents, hasAppliedIntent, withAppliedIntent } from '@/store/appliedIntents';
 import { runMigrations } from '@/data/migrations';
 import {
   CURRENT_STORE_VERSION,
@@ -195,11 +196,11 @@ export interface DebtAppState {
   rolloverPayCycle(): void;
   /** 3.5.3.5 — apply a "Payday landed" AppIntent: snapshot the pre-roll store for Undo, then roll the
    *  cycle exactly as `rolloverPayCycle`. */
-  applyPaydayLandedIntent(): void;
+  applyPaydayLandedIntent(intent?: { id: string }): void;
   /** 3.5.5 — log a manual payment against a debt (reduce its balance by `amount`, re-anchor its verified
    *  date to today), with Undo. The ONE mutation shared by the in-app "Log payment" action AND the voice
    *  log-a-payment intent — reuses the `verifyDebtBalance` anchoring. No-op on a bad id / non-positive amount. */
-  logManualPayment(debtId: string, amount: number): void;
+  logManualPayment(debtId: string, amount: number, intentId?: string): void;
   /** 3.5.3.5 / 3.5.5 — undo the last AppIntent-driven mutation (roll / logged payment); no-op if none. */
   undoIntentAction(): void;
   /** Keep the mutation and clear the Undo affordance. */
@@ -379,6 +380,18 @@ export function createDebtStore(opts?: {
         // subscription draws exactly the same line.
         if (patch && patch.store && patch.store !== state.store && state.intentRollback && !('intentRollback' in patch)) {
           patch = { ...patch, intentRollback: null };
+        }
+        //
+        // ⛔ [.5.7.4a-1] — WHICH QUEUED INTENTS HAVE APPLIED SURVIVES EVERY STORE REPLACEMENT.
+        //
+        // The drain records a Siri payment's or a Lock Screen roll's id in the same write as its effect, so an entry a
+        // swallowed App Group clear leaves behind is not applied again. ⛔ Undo restores a snapshot taken BEFORE that
+        // write, and `importStore` and `reset()` replace the store outright: each erased the record, and the next drain
+        // re-applied the payment the user had just undone (measured). Same class shape as the rule above — any patch
+        // that moves `store` keeps the ids the outgoing store had. Rules in `carryAppliedIntents`.
+        if (patch && patch.store && patch.store !== state.store) {
+          const carried = carryAppliedIntents(state.store, patch.store);
+          if (carried !== patch.store) patch = { ...patch, store: carried };
         }
         //
         // ⛔ S1.9.2 [C1] — A REPAIR THE USER HAS ANSWERED STOPS BEING PENDING.
@@ -739,7 +752,7 @@ export function createDebtStore(opts?: {
       // any material change since the last anchor (no-op when nothing material changed).
       set((s) => ({ store: recordDriftBaseline(applyRollover(s.store), 'user', clock) }));
     },
-    applyPaydayLandedIntent() {
+    applyPaydayLandedIntent(intent) {
       // 3.5.3.5 — same roll as rolloverPayCycle, but stash the pre-roll store first so the Today card can
       // offer a one-tap Undo (an accidental Live-Activity tap is fully reversible).
       /**
@@ -761,18 +774,26 @@ export function createDebtStore(opts?: {
        * payday date advances past it (`payday.ts:65`).
        */
       set((s) => {
+        // ⛔ [.5.7.4a-1] An entry a swallowed clear left in the queue has already rolled this plan once.
+        if (intent && hasAppliedIntent(s.store, intent.id)) return {};
         const landing = s.store.paycheck.nextPaycheckDate;
         if (s.store.lastHandledPaydayDate === landing) return {};
         return {
           intentRollback: { store: s.store, kind: 'payday-landed' },
-          store: { ...recordDriftBaseline(applyRollover(s.store), 'user', clock), lastHandledPaydayDate: landing },
+          store: withAppliedIntent(
+            { ...recordDriftBaseline(applyRollover(s.store), 'user', clock), lastHandledPaydayDate: landing },
+            intent?.id,
+          ),
         };
       });
     },
-    logManualPayment(debtId, amount) {
+    logManualPayment(debtId, amount, intentId) {
       // 3.5.5 — reduce the debt's balance by `amount` + re-anchor its verified date to today (the same
       // deliberate-balance-move transform as verifyDebtBalance), snapshotting first for Undo.
       set((s) => {
+        // ⛔ [.5.7.4a-1] A queued Siri payment is applied once, however many drains read it. An in-app payment has
+        // no intent id and is never skipped.
+        if (intentId && hasAppliedIntent(s.store, intentId)) return {};
         const debt = s.store.debts.find((d) => d.id === debtId);
         if (!debt || !(amount > 0)) return {};
         const date = s.store.paycheck.currentDate;
@@ -782,14 +803,17 @@ export function createDebtStore(opts?: {
           // P6.8.7e.1 [B2] — the final payment clearing a debt is the most literal payoff there is.
           // ⚠️ `intentRollback` snapshots the store BEFORE this, so an Undo takes the celebration back
           // with it — correct, since undoing the payment un-does the payoff it was celebrating.
-          store: withPayoffCelebration(
-            s.store,
-            stampInputsFresh({
-              ...s.store,
-              debts: s.store.debts.map((d) =>
-                d.id === debtId ? { ...d, balance, lastVerifiedDate: date, balanceAsOfDate: date } : d,
-              ),
-            }),
+          store: withAppliedIntent(
+            withPayoffCelebration(
+              s.store,
+              stampInputsFresh({
+                ...s.store,
+                debts: s.store.debts.map((d) =>
+                  d.id === debtId ? { ...d, balance, lastVerifiedDate: date, balanceAsOfDate: date } : d,
+                ),
+              }),
+            ),
+            intentId,
           ),
         };
       });

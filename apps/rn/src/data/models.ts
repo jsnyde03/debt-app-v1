@@ -413,6 +413,12 @@ export interface DebtStore {
   lastHandledPaydayDate: string | null;
   /** True once we've asked for an App Store review — so we never re-prompt (beyond the OS throttle). */
   reviewPrompted?: boolean;
+  /**
+   * ⛔ [.5.7.4a-1] Ids of queued AppIntent actions (Siri payments, Lock Screen rolls) this store has applied, newest
+   * last, capped. Read and written only through `store/appliedIntents.ts`. Optional: an older store has applied nothing
+   * it could replay.
+   */
+  appliedIntentIds?: string[];
   /** One-time extra income added to THIS cycle only (bonus/refund/side gig); clears on rollover. */
   windfall?: number;
 

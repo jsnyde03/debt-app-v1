@@ -11,6 +11,10 @@ import { applyPendingActions, parsePendingActions, type PendingAction, type Pend
  * never crash the app. The applied actions flow through the normal store subscription, so the widget +
  * Live Activity refresh for free. Returns the applied actions (for tests / a future Undo). No-op on web
  * (the bridge reads null → nothing to do). `bridge`/`api` are injectable for tests.
+ *
+ * ⛔ [.5.7.4a-1] The clear is best-effort and swallows its failure, so an entry can outlive this drain. Exactly-once
+ * therefore lives in the STORE, not here: each action carries its id and the store records it in the same write as the
+ * effect (`store/appliedIntents.ts`). Clearing before applying would lose a payment on a crash in between.
  */
 export function drainPendingActions(
   bridge: PendingActionBridge = pendingActionBridge,

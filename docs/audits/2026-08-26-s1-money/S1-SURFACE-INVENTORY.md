@@ -8,7 +8,7 @@
 > **report.** An earlier cut inferred coverage by parsing the reports and was scrapped after being
 > measured wrong — see the docstring in `scripts/surface-coverage.ts`.
 
-**498 files on the S1 surface · 495 swept · 3 unswept.**
+**499 files on the S1 surface · 495 swept · 4 unswept.**
 
 `p1`–`p4` an S0 pass · `g4` the guard inventory · `r10` / `r17` an earlier round · `partial` opened but part-read · `never` / `unknown` / `partial` all UNSWEPT.
 
@@ -234,6 +234,7 @@
 | `apps/rn/src/store/affordability.test.ts` | never · partial · s1p6 · s1p7 |
 | `apps/rn/src/store/analysisSelectors.ts` | s1p2 · s1p6 · s1p7 |
 | `apps/rn/src/store/appStore.ts` | s1p2 · s1p6 · s1p7 |
+| `apps/rn/src/store/appliedIntents.ts` | ⛔ **never** |
 | `apps/rn/src/store/balanceSelectors.ts` | s1p2 · s1p6 · s1p7 |
 | `apps/rn/src/store/bnplCadence.test.ts` | never · partial · s1p6 · s1p7 |
 | `apps/rn/src/store/boundedRun.ts` | s1p2 · s1p6 · s1p7 |
@@ -516,8 +517,9 @@
 ## ⛔ Unswept — a finding here is FIRST-LOOK under [D69]
 
 - `apps/rn/src/liveActivity/liveActivitySync.test.ts`
+- `apps/rn/src/store/appliedIntents.ts`
 - `apps/rn/src/store/inWindowMinimum.test.ts`
 - `apps/rn/src/store/inWindowReaders.test.ts`
 
-<!-- claims-sha256: 65eabbc8f3d54f9d -->
+<!-- claims-sha256: 2652400585dcf541 -->
 

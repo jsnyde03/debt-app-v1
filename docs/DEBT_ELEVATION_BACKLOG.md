@@ -1558,7 +1558,9 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   `→ undo 09-28 → drain 10-12`. `intentRollback.store` predates the mutation, so an id record kept in the store is erased
   by the Undo. Every control honest. ✅ **[DECISION] 🎯 2026-09-14: ids committed in the same `set` as the mutation and
   carried through EVERY store replacement in the set wrapper** *(Undo · `importStore` · `reset` · any later door)*, capped.
-  → **`.5.7` ④a.2**. ⛔ It cannot close `C3-6`: two taps are two UUIDs.
+  → **`.5.7` ④a.2**. ⛔ It cannot close `C3-6`: two taps are two UUIDs. ✅ **BUILT 2026-09-14 at ④a.2** — a replayed
+  intent applies once through a second drain, Undo, restore and reset, both kinds, asserted through the real store;
+  7 plants MATCHED. ⚠️ Proof registration rides ④a.4.
 - ⛔ **pass-6 `C3-6` REOPENED (blocker) — its `S1.13.7.6` closure never worked.** Two `payday-landed` taps with distinct ids
   roll two cycles and write two history entries, at payday −3 / 0 / +14 days, through the drain AND the action directly,
   with a clear that WORKS. The guard compares `lastHandledPaydayDate` to the CURRENT `nextPaycheckDate`, and the first

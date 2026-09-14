@@ -20,9 +20,9 @@ const KINDS: ReadonlySet<string> = new Set<PendingKind>(['payday-landed', 'log-p
 /** The narrow store surface a pending action drives — keeps this decoupled + testable with a stub. */
 export interface PendingActionApi {
   /** Roll the cycle with a snapshot for Undo (3.5.3.5) — the AppIntent-driven counterpart to a manual roll. */
-  applyPaydayLandedIntent(): void;
+  applyPaydayLandedIntent(intent?: { id: string }): void;
   /** Log a payment against a debt with Undo (3.5.5) — the voice log-a-payment intent's target. */
-  logManualPayment(debtId: string, amount: number): void;
+  logManualPayment(debtId: string, amount: number, intentId?: string): void;
 }
 
 /**
@@ -67,11 +67,13 @@ export function parsePendingActions(raw: unknown): PendingAction[] {
 /** Apply one action by dispatching its store action. Returns whether it was handled. */
 export function applyPendingAction(action: PendingAction, api: PendingActionApi): boolean {
   switch (action.kind) {
+    // ⛔ [.5.7.4a-1] The id travels with the action: the store skips one it has already applied, which is what makes a
+    // queue entry that outlives its drain harmless. Dedupe by id in `parsePendingActions` covers ONE payload only.
     case 'payday-landed':
-      api.applyPaydayLandedIntent();
+      api.applyPaydayLandedIntent({ id: action.id });
       return true;
     case 'log-payment':
-      api.logManualPayment(action.debtId, action.amount);
+      api.logManualPayment(action.debtId, action.amount, action.id);
       return true;
     default:
       return false;

@@ -2764,5 +2764,8 @@
   ],
   "apps/rn/src/liveActivity/liveActivitySync.test.ts": [
     "never"
+  ],
+  "apps/rn/src/store/appliedIntents.ts": [
+    "never"
   ]
 }
