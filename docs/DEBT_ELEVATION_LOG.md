@@ -35648,3 +35648,41 @@ self-tests were **886s of it (82%)**: `test:gate-plants` 627s · `test:wrap-esca
 to ⑦)*, and the tap itself — AppIntents passing a parameter from a Live Activity button — is a device row for `P6.14`.
 And the button stays almost unreachable in production until the countdown row lands, because the activity counts from
 `currentDate`.
+
+### `.12.6.5.7.4a.4` — proof registration moves into ⑦ as one batch · 2026-09-14
+
+**Switch-in, measured by a script over `finding-guards.json`** *(a `node -e` probe printed nothing at all, the known
+failure; rerun from a file)*:
+- **A `MIN_ENTRIES` raise stales 6 proofs**, every one planting into `check-finding-guards.ts`: `S1P5-D5-9-CAPWRAP`
+  (`lint:cap-literals`) · `S1P6-D2-1-PROOFSTALE` · `S1P7-U7-VERDICT-MARK` · `S1P7-U11-WELDED-TOKEN` (all
+  `lint:finding-guards`) · `S1P7-R3-3-BORROW` · `S1P7-57-2A-PROJECTED-STALENESS` (both `test:gate-plants`). Stale would go
+  4 → 10 against a cap of 8.
+- **Nine new entries take `authored` 9 → 18** against a cap of 9, so `lint:finding-guards` reds until they are proven —
+  and the readers cannot prove while it is red.
+- The only order that drains: register all → prove the new non-readers → re-prove `S1P6-A3-3-UPDATE-BY-ID` and
+  `CAPWRAP` (stale back to 8) → prove the five readers → commit the records.
+- **Estimated cost, from today's per-gate timings** (each proof runs its command planted and as control): the two
+  `test:gate-plants` readers ~21 min each · three Playwright proofs ~7 min each · the rest ~25 min. **About 90 minutes**,
+  and every later raise re-stales the same six.
+
+✅ **[DECISION] 🎯 2026-09-14 — one batch at ⑦**, on my recommendation: `.5.7`'s remaining steps may add proofs (④b's
+census, ⑤'s spec), and registering now would pay the reader drain twice. What waits is only the standing plant
+re-proof; the assertions themselves already run in CI on every push.
+
+**The batch, as measured so far** — each entry's un-fix is a plant already scored MATCHED:
+| id (proposed) | run | un-fix |
+|---|---|---|
+| ③ free `C3-8` twin | `cmd` Playwright, `data-recovery.spec.ts`, `-g` its title | `money.tsx:465` drop `isPremium && ` |
+| ③ widget stated direction | `test:app` | `snapshot.ts:245` `solved-projection` → `row-figures` |
+| ③ affordability refusal | `cmd` Playwright, `affordability.spec.ts` | `AffordabilityCard.tsx:157` `paycheck-plan` → `required-plan` |
+| ③ windfall refusal | `cmd` Playwright, `windfall.spec.ts` | `WindfallSheet.tsx:85` `paycheck-plan` → `required-plan` |
+| a.2 replay skip | `test:app` | drop the payment action's applied-id skip (P1) |
+| a.2 carry through replacements | `test:app` | carry on Undo only (P4b, two edits) |
+| a.3 dated rule | `test:app` | the real-date rule alone (Q2) |
+| a.3 old check dropped | `test:app` | `lastHandledPaydayDate` refusal kept too (Q4) |
+| a.3 Lock Screen button | `test:app` | `PaydayLandedIntent()` undated (Q6) |
+
+⚠️ **Playwright proofs carry a `cmd`, not a new npm script** — 38 entries already do. The convention is
+`["npx","playwright","test","--config","apps/rn/playwright.config.ts","<spec>","-g","<title>"]`. `-g` on one title runs
+one test, so the config's default parallel workers never arise. `lint:runner-completeness` only inspects `lint:*`
+scripts, so neither shape would trip it.
