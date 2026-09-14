@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useIsFocused } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { MoreButton } from '@/components/more-button';
 import { TrajectoryChart } from '@/components/payoff/TrajectoryChart';
@@ -76,6 +76,39 @@ const heroDateFit = {
   adjustsFontSizeToFit: true,
   minimumFontScale: 0.7,
 } as const;
+
+/**
+ * ⛔ **[.5.7 ⑤] — ON WEB THE HERO DATE FITS BY SIZE, NOT BY THE HOST'S FONT.**
+ *
+ * `adjustsFontSizeToFit` is dropped by react-native-web, so the web fit was word-breaking alone, and that made the
+ * verdict depend on which face `'System'` resolved to. Measured in Chromium at 26 px / 800 in the 104 px slot: under
+ * Segoe UI (Windows) "September 2026" and "November 2026" break onto a THIRD line and are clipped; under Arial
+ * December does too; under Roboto nothing clips, but "September" (124 px) is wider than the slot and breaks mid-word.
+ *
+ * ⚡ So on web the size comes from the slot: small enough that the widest month name measured — "September" at
+ * 151 px per 26 px, in Arial — fits one line. About 17 px at 104 px, the full 26 px at 186 px; the same ~0.7 scale iOS
+ * already allows through `minimumFontScale`. The slot width comes from `onLayout` on the Text itself, whose width is
+ * its parent's, so resizing the font cannot move it. Native is untouched: iOS keeps its own shrink.
+ */
+const WIDEST_MONTH_PX_PER_26PX = 151;
+const HERO_DATE_SIZE = 26;
+
+function HeroDate({ children, color, testID }: { children: ReactNode; color: string; testID?: string }) {
+  const [slot, setSlot] = useState<number | null>(null);
+  const webSize =
+    Platform.OS === 'web' && slot != null && slot > 0
+      ? Math.min(HERO_DATE_SIZE, Math.floor((HERO_DATE_SIZE * slot) / WIDEST_MONTH_PX_PER_26PX))
+      : null;
+  return (
+    <Text
+      testID={testID}
+      {...heroDateFit}
+      onLayout={Platform.OS === 'web' ? (e) => setSlot(e.nativeEvent.layout.width) : undefined}
+      style={[styles.heroDate, { color }, webSize != null ? { fontSize: webSize } : null]}>
+      {children}
+    </Text>
+  );
+}
 const MILE_TS = [25, 50, 75, 100] as const;
 
 /** The green→gold ring palette — constants (the navy panel is theme-invariant, so its colors are too). */
@@ -226,7 +259,7 @@ export default function ProgressScreen() {
             end={{ x: 1, y: 1 }}
             style={[styles.hero, elevation.hero[scheme]]}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: c.surface.heroSub }]}>DEBT-FREE</Text>
-            <Text {...heroDateFit} style={[styles.heroDate, { color: c.surface.heroText }]}>Every balance paid off</Text>
+            <HeroDate color={c.surface.heroText}>Every balance paid off</HeroDate>
             <Text style={[textStyles.subhead, { color: c.surface.heroSub }]}>Your trophy shelf is below.</Text>
           </LinearGradient>
           <PaidOffArchive debts={paidOff} />
@@ -396,7 +429,7 @@ export default function ProgressScreen() {
           </View>
           <View style={styles.ringMeta}>
             <Text style={[textStyles.footnote, styles.eyebrow, { color: surf.heroSub }]}>DEBT-FREE</Text>
-            <Text testID="progress-hero-date" {...heroDateFit} style={[styles.heroDate, { color: surf.heroText }]}>{heroDate}</Text>
+            <HeroDate testID="progress-hero-date" color={surf.heroText}>{heroDate}</HeroDate>
             {/* ⚠️ [P6.8.9.7.11.12.10] The branch, both figures and the wording live together in
                 `selectJourneyTotals` — this line exists to be READ, and a testID so a spec can name it
                 rather than matching a dollar amount that appears elsewhere on the screen. */}

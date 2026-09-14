@@ -35760,3 +35760,64 @@ un-fixes plant into files ④b edited: `S1P6-C1-15-NAMES-THE-MOVED-CASH` (`CashR
   ninth, which reds the gate locally and in CI.
 - **⑦'s drain grows.** Before the readers can prove, these four join `S1P6-A3-3-UPDATE-BY-ID` and `S1P5-D5-9-CAPWRAP`
   among the non-readers re-proven first. Not drained now: [D77] batches re-proving at the boundary, and ⑦ is it.
+
+### `.12.6.5.7.5` — `hero-date-fit`: a host-dependent spec was hiding a real clip, now fixed on web · 2026-09-14
+
+**Switch-in, measured before anything was changed.** The spec was still red here on 2026-09-14 (*"November 2026",
+108 px in a 72 px box* at 320 pt), and CI green on the same code. Its date is `day(0)`-relative, and on web the fit is
+word-breaking alone because react-native-web drops `adjustsFontSizeToFit`. The row's hypothesis was that CI's font is
+narrower. ⚠️ **One correction of mine along the way:** a content grep reported the spec missing, because the file never
+writes its own name; `git ls-files` found it where it always was.
+
+**What `'System'` resolves to.** RNW's `SYSTEM_FONT_STACK` is `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+Helvetica, Arial, sans-serif`. The app ships no web font (`typography.ts`: `'System'` everywhere). CI is `ubuntu-latest`.
+
+**Lines each *Month 2026* takes in the 104 px slot**, at the hero's exact style (26 px, 800, −0.5 letter-spacing), in
+Chromium, with each face confirmed rather than assumed:
+| face | clips onto a 3rd line | "September" |
+|---|---|---|
+| Segoe UI (this host) | September, November | 134.3 px |
+| Arial (Linux's usual stand-in) | September, November, December | 150.1 px |
+| Roboto 800 (loaded as a web font, `document.fonts.check` true) | none — but "September" breaks mid-word | 124.3 px |
+
+⛔ **The hypothesis's direction was wrong:** Arial is WIDER, so CI passing is best explained by its runner resolving
+**Roboto**, not a narrower Arial — still unconfirmed, and the spec now logs a fingerprint to settle it. ⛔ **And the
+spec was hiding a real defect behind a host question:** a Windows visitor to the web embed gets Segoe UI and a clipped
+date, and in Roboto the geometry check passed over a mid-word break it could not see.
+
+✅ **[DECISION] 🎯 2026-09-14 — fix on web regardless of font** *(over bundling one web font, a brand call that leaves
+the mid-word break; and over pinning the date as CI-only, which keeps an unexplained green)*.
+
+**Built.**
+- **5.1** `HeroDate` in `progress.tsx`, used by both hero variants. On web it reads its slot from `onLayout` and sets
+  `fontSize = min(26, floor(26 × slot / 151))` — 151 px being the widest month measured at 26 px ("September" in Arial).
+  About 17 px at 104 px, 26 px at 186 px; the ~0.7 scale iOS already allows. The Text's width is its parent's, so
+  resizing cannot loop. iOS keeps its own shrink props.
+- **5.2** `hero-date-fit.spec.ts` reads the size and slot the app actually applied, measures all twelve month names at
+  that size in that face, and requires each to fit one line — so it no longer discriminates only when the run date
+  lands on a wide month. It logs *"September"* in em as a face fingerprint: 4.78 Roboto · 5.17 Segoe UI · 5.77 Arial.
+
+**The spec against the fix, here (Segoe UI): 2 of 2 pass** (1.8 min). The logged line reports what the app applied:
+402 pt → slot 186 px, 26 px, "September" 134.3 px = **5.17 em** (Segoe UI exactly) · 320 pt → slot 104 px, **17 px**,
+"September" 86.3 px, which now fits one line where it clipped before. ⚠️ **Read the face from the 402 pt line.** At 17 px
+the ratio reads 5.08 em, because the letter-spacing is a fixed −0.5 px rather than proportional, so it takes relatively
+more off a smaller size. `typecheck:rn` 0 · eslint 0. ⚠️ Two of my first verification runs never ran at all: a relative
+`--prefix apps/rn` and a relative Playwright config both resolved against a drifted working directory
+(`apps\rn\apps\rn\…`). Both were rerun with absolute paths; neither exit code was read as a verdict.
+
+⭐ **Two plants, each run under the 320 pt test alone (`--workers=1`), `progress.tsx` restored byte-identical after each:**
+| plant | reds with |
+|---|---|
+| P5a the web fit removed (26 px kept) | the EXISTING check: *"November 2026" is clipped vertically (108px in a 72px box)* |
+| P5b a size where today's month fits and September does not (~20.56 px) | ONLY the new check: *"September" is 105.3px at the hero's 20.5627px, wider than its 104px slot* — one test failed, the geometry checks over today's "November" stayed green |
+
+⚡ **P5b is the one that matters.** It proves the all-months assertion catches a month the hero is not showing, on a run
+date whose own month passes — exactly the blind spot the old spec had. It is run-date dependent by construction, and says
+so: it needs today's hero to show a month narrower than "September".
+
+**Gates at the close, full per [D81]:** `lint:rn -- --fast` 47 of 47 per fix, then `lint:rn` **52 of 52** (981s) ·
+`typecheck` 0 · `test:app` 0 · `test:regression` 0 · `lint:finding-guards --projected` 0 — stale holds at **8 of 8** with
+nothing newly projected. The two proofs that plant into `progress.tsx` (`S1P3-D3-5`, `S1P4-C4-9-MIXED`) are authored and
+never run, so they carry no recorded sha to go stale against.
+
+⚠️ **Carried to ⑦:** CI's actual face, from the spec's 402 pt fingerprint line on the next push.

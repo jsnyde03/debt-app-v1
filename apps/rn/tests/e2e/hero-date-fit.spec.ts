@@ -84,5 +84,45 @@ for (const width of [402, 320]) {
       fit.scrollW,
       `"${text}" overflows horizontally at ${width}pt (content ${fit.scrollW}px in a ${fit.clientW}px box)`,
     ).toBeLessThanOrEqual(fit.clientW);
+
+    /**
+     * ⛔ [.5.7 ⑤] EVERY MONTH, not only the one this run's date lands on. The hero renders one date, chosen by the
+     * calendar, so the checks above discriminate only when the run date happens to produce a wide month name. This
+     * measures all twelve names at the size and face the app ACTUALLY applied to this hero, in this slot, and requires
+     * each to fit one line: a name wider than the slot breaks mid-word (Roboto) or clips onto a third line (Segoe UI).
+     * ⚠️ The logged line fingerprints the host's face: "September" is 4.78 em in Roboto, 5.17 in Segoe UI, 5.77 in Arial.
+     */
+    const months = await hero.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const probe = document.createElement('span');
+      Object.assign(probe.style, {
+        fontFamily: cs.fontFamily,
+        fontSize: cs.fontSize,
+        fontWeight: cs.fontWeight,
+        letterSpacing: cs.letterSpacing,
+        whiteSpace: 'nowrap',
+        position: 'absolute',
+        visibility: 'hidden',
+      });
+      document.body.appendChild(probe);
+      const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const widths = names.map((name) => {
+        probe.textContent = name;
+        return { name, px: probe.getBoundingClientRect().width };
+      });
+      probe.remove();
+      return { slot: el.clientWidth, fontSize: parseFloat(cs.fontSize), widths };
+    });
+    const september = months.widths.find((m) => m.name === 'September')!.px;
+    console.log(
+      `hero-date-fit ${width}pt: slot ${months.slot}px, font-size ${months.fontSize}px, "September" ${september.toFixed(1)}px = ` +
+        `${(september / months.fontSize).toFixed(2)} em (4.78 Roboto, 5.17 Segoe UI, 5.77 Arial)`,
+    );
+    for (const m of months.widths) {
+      expect(
+        m.px,
+        `"${m.name}" is ${m.px.toFixed(1)}px at the hero's ${months.fontSize}px, wider than its ${months.slot}px slot at ${width}pt, so it breaks mid-word or clips`,
+      ).toBeLessThanOrEqual(months.slot);
+    }
   });
 }

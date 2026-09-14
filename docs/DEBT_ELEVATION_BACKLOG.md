@@ -1483,7 +1483,22 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   assertion measures the host's font as much as the app. **HYPOTHESIS until measured**: Windows' face breaks
   "November" inside the 104 pt slot where CI's does not. → **`.5.7`** *(measure the month-name advance in both fonts;
   then pin the date and ship one font to the harness, or state the spec as CI-only — a gate two hosts disagree on is
-  green for a reason nobody chose)*.
+  green for a reason nobody chose)*. ⚙️ **MEASURED at `.5.7` ⑤, 2026-09-14 — the hypothesis's DIRECTION was wrong.**
+  Still red here on 2026-09-14 (*"November 2026", 108px in 72px*). RNW maps `'System'` to
+  `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`. Lines each *Month 2026* takes in
+  the 104 px slot at the hero's style (26 px, 800, −0.5 letter-spacing), measured in Chromium: **Segoe UI** — September
+  (134.3 px) and November (130.8 px) break onto a **third** line · **Arial**, the likely Linux stand-in — September,
+  November and December do, since it is WIDER · **Roboto 800**, loaded and confirmed — no month does. So CI's green is
+  best explained by its runner having **Roboto**, not by a narrower Arial — ⚠️ unconfirmed; the month name's width
+  fingerprints the face (124 Roboto · 134 Segoe UI · 150 Arial). ⛔ **Two findings the measurement added:** the clipping
+  is USER-VISIBLE on web, where a Windows visitor to the embed gets Segoe UI; and in Roboto "September" (124 px) is wider
+  than the slot, so it fits two lines only by breaking MID-WORD — which the spec's geometry check cannot see.
+  → **`.5.7` ⑤** *(🎯 2026-09-14: fix on web regardless of font — a narrow slot sizes the date so the month name
+  fits whole; the spec asserts every month at the app's computed style, not only the one the run date lands on)*.
+  ✅ **CLOSED 2026-09-14** — `HeroDate` in `progress.tsx` sizes to its slot on web (17 px at 104 px, 26 px at 186 px);
+  the spec passes here in Segoe UI and asserts all twelve month names; 2 plants MATCHED, one of them proving the new check
+  catches a month the run date is not showing. ⚠️ **Still open:** CI's actual face, read from the spec's fingerprint
+  line (the 402 pt line, at 26 px) on the next push.
 
 ### ⤵ surfaced by `.5.4f`'s after-scan, 2026-09-13
 
