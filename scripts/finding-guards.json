@@ -2089,7 +2089,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-14",
-      "sha": "78bcb481"
+      "sha": "497065f2"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -2408,7 +2408,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-14",
-      "sha": "abc4477b"
+      "sha": "497065f2"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2691,8 +2691,8 @@
         "C2-3"
       ],
       "expect": "waiting for getByRole('switch', { name: 'Autopay' })",
-      "measured": "2026-09-01",
-      "sha": "538de617"
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P6-C1-6-AMOUNTCOLLAPSE": {
@@ -3277,8 +3277,8 @@
       ],
       "run": "test:app",
       "expect": "rendered only when there is some",
-      "measured": "2026-09-02",
-      "sha": "10b93614"
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P6-A3-3-UPDATE-BY-ID": {
@@ -3295,8 +3295,8 @@
       ],
       "run": "test:app",
       "expect": "an unmatched updateExpense writes nothing",
-      "measured": "2026-09-06",
-      "sha": "6bda8efa"
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P6-B1-4-LEDGER-NOT-BAN": {
@@ -3476,7 +3476,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-14",
-      "sha": "abc4477b"
+      "sha": "497065f2"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-14",
-      "sha": "abc4477b"
+      "sha": "497065f2"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -3745,8 +3745,8 @@
         }
       ],
       "run": "test:app",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1-CLASS4-A3-1": {
@@ -3767,8 +3767,8 @@
         }
       ],
       "run": "test:app",
-      "measured": "2026-09-13",
-      "sha": "a6017abc",
+      "measured": "2026-09-14",
+      "sha": "497065f2",
       "proofNote": "⛔ SHARES A2-1's RED, and that is a fact about the FINDINGS, not a gap in the ledger. CLASSIFICATION.md records A2-1 and A3-1 as 'the same defect' reached by two lanes that never spoke, and A3-2 is the same seam seen from the guard's entry point — one defect, one plant, and a suite stops at its first red. ⚠️ WHAT R2-6 WAS ACTUALLY RIGHT ABOUT IS FIXED AND MEASURED: this entry's own assertion is no longer vacuous. With the plant live, measured directly: A3-1's $300 row gives required $800 / shortfall $500 (it FAILS), and A3-2's row gives production $800 against direct-call $200 (it FAILS). Both would red on their own token if reached; A2-1's assertion simply precedes them in the same file.",
       "expect": "not a multiple of it (got"
     }
@@ -3791,8 +3791,8 @@
         }
       ],
       "run": "test:app",
-      "measured": "2026-09-13",
-      "sha": "a6017abc",
+      "measured": "2026-09-14",
+      "sha": "497065f2",
       "expect": "not a multiple of it (got",
       "proofNote": "⛔ SHARES A2-1's RED, and that is a fact about the FINDINGS, not a gap in the ledger. CLASSIFICATION.md records A2-1 and A3-1 as 'the same defect' reached by two lanes that never spoke, and A3-2 is the same seam seen from the guard's entry point — one defect, one plant, and a suite stops at its first red. ⚠️ WHAT R2-6 WAS ACTUALLY RIGHT ABOUT IS FIXED AND MEASURED: this entry's own assertion is no longer vacuous. With the plant live, measured directly: A3-1's $300 row gives required $800 / shortfall $500 (it FAILS), and A3-2's row gives production $800 against direct-call $200 (it FAILS). Both would red on their own token if reached; A2-1's assertion simply precedes them in the same file."
     }
@@ -4064,7 +4064,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [R3-3-borrow]",
       "measured": "2026-09-14",
-      "sha": "abc4477b",
+      "sha": "497065f2",
       "proofNote": "ANCHOR RE-DERIVED in round 4: R4-3's fix rewrote this very line, voiding both the token and the un-fix - the same shape as R3-2 voiding R2-1-CAP one round earlier. Re-RUN, not merely re-anchored: a recorded measurement must describe the plant the entry now performs."
     }
   },
@@ -4354,7 +4354,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [projected]",
       "measured": "2026-09-14",
-      "sha": "abc4477b"
+      "sha": "497065f2"
     }
   },
   "S1P7-57-2B-CLAIM-LATTICE": {
@@ -4452,7 +4452,9 @@
         "-g",
         "C3-8 · a FREE user"
       ],
-      "expect": "C3-8 · a FREE user"
+      "expect": "C3-8 · a FREE user",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-3-WIDGET-DIRECTION": {
@@ -4468,7 +4470,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "a repair no projection reads does not blank the widget"
+      "expect": "a repair no projection reads does not blank the widget",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-3-AFFORDABILITY-REFUSAL": {
@@ -4493,7 +4497,9 @@
         "-g",
         "the card refuses its verdict"
       ],
-      "expect": "the card refuses its verdict over a goal target it could not read"
+      "expect": "the card refuses its verdict over a goal target it could not read",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-3-WINDFALL-REFUSAL": {
@@ -4518,7 +4524,9 @@
         "-g",
         "the sheet refuses to route"
       ],
-      "expect": "the sheet refuses to route over a goal target it could not read"
+      "expect": "the sheet refuses to route over a goal target it could not read",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-4A2-REPLAY-ONCE": {
@@ -4534,7 +4542,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "a log-payment that outlives its drain is not applied again after a second drain"
+      "expect": "a log-payment that outlives its drain is not applied again after a second drain",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-4A2-CARRY-REPLACEMENTS": {
@@ -4555,7 +4565,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "a log-payment that outlives its drain is not applied again after restoring a backup"
+      "expect": "a log-payment that outlives its drain is not applied again after restoring a backup",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P6-C3-6-DATED-TAP": {
@@ -4571,7 +4583,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "drained after the next payday arrived, still roll once"
+      "expect": "drained after the next payday arrived, still roll once",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P6-C3-6-HANDLED-NO-REFUSAL": {
@@ -4587,7 +4601,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "after an in-app capture or skip, a Lock Screen tap rolls"
+      "expect": "after an in-app capture or skip, a Lock Screen tap rolls",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P6-C3-6-BUTTON-NAMES-PAYDAY": {
@@ -4603,7 +4619,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "the Lock Screen button passes the payday its activity was started for"
+      "expect": "the Lock Screen button passes the payday its activity was started for",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-B1-2-OFFER-ASKS-ENGINE": {
@@ -4619,7 +4637,9 @@
         }
       ],
       "run": "test:app",
-      "expect": "pay 550 with 50 already held: accepting the offer holds exactly the total it promised"
+      "expect": "pay 550 with 50 already held: accepting the offer holds exactly the total it promised",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-4B-RUNWAY-HELD": {
@@ -4649,7 +4669,9 @@
         "-g",
         "the runway says it is setting aside"
       ],
-      "expect": "I’m setting aside $1,100 from this paycheck"
+      "expect": "I’m setting aside $1,100 from this paycheck",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-4B-CONFIRM-FUNDED": {
@@ -4674,7 +4696,9 @@
         "-g",
         "a capped custom pace is confirmed"
       ],
-      "expect": "Now saving $999,999/paycheck"
+      "expect": "Now saving $999,999/paycheck",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-5-HERO-FIT-WEB": {
@@ -4700,7 +4724,9 @@
         "fits its box at 320pt"
       ],
       "expect": "is clipped vertically at 320pt",
-      "proofNote": "HOST-DEPENDENT: reds under a face as wide as Segoe UI or Arial. Under Roboto nothing clips at 26px, so on a Roboto host this plant can go green; the all-months entry is the one that reds on either."
+      "proofNote": "HOST-DEPENDENT: reds under a face as wide as Segoe UI or Arial. Under Roboto nothing clips at 26px, so on a Roboto host this plant can go green; the all-months entry is the one that reds on either.",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   },
   "S1P7-57-5-HERO-ALL-MONTHS": {
@@ -4726,7 +4752,9 @@
         "fits its box at 320pt"
       ],
       "expect": "\"September\" is",
-      "proofNote": "RUN-DATE AND HOST DEPENDENT by construction: ~20.56px fits 'November' but not 'September' in Segoe UI. It proves the all-months check catches a month the hero is not showing; re-measure it when the hero's month or the host's face changes."
+      "proofNote": "RUN-DATE AND HOST DEPENDENT by construction: ~20.56px fits 'November' but not 'September' in Segoe UI. It proves the all-months check catches a month the hero is not showing; re-measure it when the hero's month or the host's face changes.",
+      "measured": "2026-09-14",
+      "sha": "497065f2"
     }
   }
 }
