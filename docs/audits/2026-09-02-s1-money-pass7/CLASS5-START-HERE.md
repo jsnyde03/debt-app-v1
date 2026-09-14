@@ -1,86 +1,79 @@
-# ▶ START HERE, COLD — class 5, `.12.6.5`
+# ▶ START HERE, COLD — class 5, `.12.6.5.8`: the `[D79]` re-audit
 
-**Rewritten 2026-09-14 at the close of the session that shut `.5.7` steps ①–③.** The active build is
-**`.12.6.5.7`**, the row marked ▶ in [`DEBT_ELEVATION_PLAN.md`](../../DEBT_ELEVATION_PLAN.md). Its Done line and its
-Remaining list are the sequence. Detail lives in `DEBT_ELEVATION_LOG.md`, searchable by `.12.6.5.7`.
+**Rewritten 2026-09-14 at the close of `.5.7`.** The active build is **`.12.6.5.8`**, the row marked ▶ in
+[`DEBT_ELEVATION_PLAN.md`](../../DEBT_ELEVATION_PLAN.md). Its numbered sub-steps (8.1–8.5) are the sequence. Detail for
+everything class 5 built lives in `DEBT_ELEVATION_LOG.md`, searchable by `.12.6.5`.
+
+⛔ **🎯 2026-09-14: this re-audit is dispatched from a FRESH SESSION, and the audit itself is run by FRESH AGENTS.** The
+session that built class 5 wrote this handoff and stopped. Do not reuse its conclusions as the brief's verdicts: hand the
+auditors the fix range, the findings and the attack points, never an answer.
 
 ## ⛔ Verify the state. Do not take a row of it on trust.
 
-⚠️ **No SHAs are quoted here on purpose.** A handoff that records its own revision goes stale the moment it is
-written. **Run the commands.**
-
 ```
 cd /c/Users/Jason/debt-app-v1
-git status --porcelain --untracked-files=all     # expect empty
-git log --oneline -3 ; git rev-list --count origin/v1.7-dev..HEAD   # expect 0
-gh run list --branch v1.7-dev --limit 3 --json headSha,workflowName,status,conclusion
-npm run lint:rn ; npm run typecheck ; npm run test:app ; npm run test:regression
-npm run lint:finding-guards
+git status --porcelain --untracked-files=all          # expect empty
+git log --oneline -3 ; git rev-list --count origin/v1.7-dev..HEAD     # expect 0
+gh run list --branch v1.7-dev --workflow web-e2e.yml --limit 2 --json headSha,status,conclusion
+npm --prefix /c/Users/Jason/debt-app-v1 run lint:rn -- --fast
+npm --prefix /c/Users/Jason/debt-app-v1 run lint:finding-guards
 ```
 
-Expected: `lint:rn` all gates · typecheck **0** · both suites green · finding-guards **3 stale (cap 8)**. The three
-stale proofs are `S1-ROUTE-STALE-READ` and `S1-ROUTE-EXIT-REACHABLE`, which are unfalsifiable on a swept tree and
-belong to **pass 8**, not you, plus `S1P6-C2-3-CONVERTFIELDS-E2E`. `authored` is **9 of cap 9**, so headroom is zero.
-⛔ **CI: read the CONCLUSION, not a watcher's exit code.** `gh run watch --exit-status` returned 0 on a run that had
-been CANCELLED by a later push, and it was reported green.
+⚠️ **No SHA of this handoff's own commit is quoted, on purpose** — a document cannot name the commit it ships in, and a
+pasted hash goes stale the moment it is written. `86a1901c` is `.5.7`'s last CODE commit; the docs commit carrying this
+file sits on top of it. Ask `git log`.
 
-## What is done, and what is next
+Expected: tree clean and pushed · CI `conclusion: success` on HEAD · fast gates all green · finding-guards green with
+**stale 2 (cap 8)** — `S1-ROUTE-STALE-READ` and `S1-ROUTE-EXIT-REACHABLE`, both held for pass 8 — and **authored 9 (cap 9)**.
+⛔ **Read CI's `conclusion` field**, never a watcher's exit code.
 
-✅ **`.5.1`–`.5.6` CLOSED.** ✅ **`.5.7` ①** native flows 03/08 + Siri `isPremium`, native-e2e iPhone tier green ·
-✅ **②** four instruments (`finding-guards --projected`, the debt-spread ledger, the claim lattice + vacuous-conjunct
-scan, lost fields under their names), proven and pushed.
+## What `.5.7` closed, in one screen
 
-✅ **`.5.7` ③ — the render proofs, written, green, and planted.** A free-tier `C3-8` twin (`data-recovery.spec`), the
-widget's stated direction (`widgetSync.test`), and the affordability + windfall refusals over a lost goal target,
-each with a readable control. Four plants, each red for its own reason, all restored byte-identical. ⚠️ **Not yet
-registered in `finding-guards.json`.** Registering them is `③`'s last act. `authored` is at its cap, so read
-`.12.6.9`'s note on headroom first, and prove in two passes (non-readers, then the ledger readers).
+- **④a** a queued Siri payment or payday tap that outlives its drain applies once — through a second drain, Undo, restore
+  and reset (`store/appliedIntents.ts`, carried by the store's set wrapper).
+- **④a** ⛔ **pass-6 `C3-6` was reopened** — its closed guard could never fire — and closed: a Lock Screen tap names the
+  payday it was drawn for; `lastHandledPaydayDate` no longer refuses the roll *(🎯)*.
+- **④b** three surfaces promising money the engine would not hold now ask the engine: the reserve offer (**pass-7 `B1-2`,
+  a blocker, pulled forward from class 6**), the Cash Runway hold line, the save-for-it confirmation.
+- **⑤** `hero-date-fit`'s host-dependent red was a real clip on web; the date now sizes to its slot regardless of font.
+- **⑦** one registration batch of 14 proofs and one drain: **26 of 26 MATCHED**.
 
-▶ **`.5.7` ④ is the active step, and it opens on a MEASURED DEFECT.** The census of swallowing native bridges found
-**`.5.7.4a-1`: a Siri-logged payment is applied TWICE when the App Group clear fails** (`drainPendingActions` applies,
-then its swallowed `clear()` leaves the queue in place for the next drain). Backlog row `⤵ surfaced by .5.7.4a's census`
-holds the measurement, the scope correction (the payday half is very likely guarded by pass-6 `C3-6`, unmeasured),
-and the recommended JS-only remedy: persist applied intent ids in the same store write as the mutation. **Measure
-through the REAL store first.** The census measurement used a stub api that counted calls, and that is how the
-payday half was overstated before it was corrected.
+## What the `.5.8` brief must carry
 
-Then ④(b) the future-amount census · ⑤ `hero-date-fit` in both fonts · ⑥ drop the plan's quoted backlog counts ·
-⑦ boundary gates → **`.5.8`**, the `[D79]` re-audit by a fresh agent.
+- **The fix range:** from `72bd6619` (`.5.7` step 3, the last commit before this session's fixes) to HEAD. Derive the
+  changed files by `git diff --stat 72bd6619..HEAD`, never from this list.
+- **The questions `[D79]` fixes:** is each class-5 finding actually closed · what did the fixes break · **interaction** with
+  already-closed classes (shared file, import or producer) · guards whose pinned files moved · closure by PLANTING, not by
+  `lint:finding-guards` (a deletion detector, not a proof).
+- **The exit:** zero new defects ATTRIBUTABLE to class 5's fixes. Reservoir defects are filed to their own class.
+- **Dispatch shape:** fresh lane agents, **no sub-agents**, each writing findings to disk as it goes.
 
-## ⚠️ What this session cost, so the next one does not pay it again
+## ⚠️ Open items carried out of `.5.7`
 
-- ⛔ **A plant driver must run the SAME command the proof will.** A route un-fix went red for its own reason when the
-  driver ran one test file, then went red FIRST on an earlier file's control under `prove:guards`' full `test:app`
-  (`reason=WRONG`). Score by the line the run actually dies on. A run with no captured red is UNREAD, not a verdict.
-  The same session lost two measurement rounds to a `cmd /c` launcher that never ran anything, and then to a scorer
-  that matched one helper's `FAIL [..]` format while the target file throws bare messages.
-- ⛔ **The finding-guards stale cap deadlocks a close.** A floor raise in `check-finding-guards.ts` stales every proof
-  that targets it. Readers cannot prove while stale is above 8, so re-prove old non-readers first to buy headroom.
-  Proofs set aside as "baseline" are not inert; they are that headroom.
-- ⛔ **A stub that counts calls is not the store.** A guard can live on the mutation, and a stub skips it.
+- **CI's actual font for `hero-date-fit`:** read the spec's `hero-date-fit 402pt:` line in the CI log — "September" is 4.78 em
+  in Roboto, 5.17 in Segoe UI, 5.77 in Arial. Read it from the CI run on HEAD
+  (`gh run view <id> --log | grep "hero-date-fit 402pt"`). If it reads Roboto, the backlog row's explanation of CI's old
+  green is confirmed; if not, that explanation is wrong and the row says so.
+- **The Payday Countdown Live Activity almost never starts** — it counts from `currentDate`, which nothing moves with the
+  calendar. Measured, filed to the backlog, not fixed.
+- **Save-for-it's "ready by" date** needs a multi-cycle instrument → P6.10.
+- **`native-e2e` has not compiled `.5.7`'s Swift** (`PaydayLandedIntent` in both copies, `PaydayLiveActivity`). Manual
+  dispatch only; batch it with the next native change.
 
-## ⚠️ Read before you fix anything — what five rounds of class 4 cost
+## ⚠️ Traps this session paid for
 
-- ⛔ **A finding can be RIGHT while its fix is WRONG. Measured five rounds running.** Round 3's proposed
-  `Math.floor` was **strictly worse than the bug** — it went silent over a real reserve.
-- ⛔ **MEASURE A RULE'S FIRE-COUNT BEFORE WRITING IT DOWN.** Proposals over the guard registry have fired
-  on **90, 84 and 30** legitimate entries. The one that shipped fires on **0**.
-- ⛔ **ITERATE THE CLASS, NEVER THE MEMBER.** Derive the population by query; adding a row is what failed, twice.
-- ⛔ **A COMMENT IS A CLAIM WITH NO EXPIRY.** Correcting a false comment means DELETING it.
-- ⛔ **YOUR FIX WILL VOID A NEIGHBOUR'S GUARD.** Re-derive the anchor and **re-RUN** the proof, never merely
-  re-anchor. `lint:finding-guards --projected` says so BEFORE the commit.
-
-## ⚠️ Operating traps this repo will spring on you
-
-- **`cd /c/Users/Jason/debt-app-v1 &&` in EVERY shell call, backgrounded ones included.**
-- **On Windows, `cmd` splits a `|` inside a quoted arg**, even through Volta's `node` shim. For Playwright with
-  a `-g` alternation, use `~/AppData/Local/Volta/tools/image/node/<ver>/node.exe node_modules/@playwright/test/cli.js`.
-  The RN e2e suite is not parallel-safe: `--workers=1` for plants.
-- **Any chain whose tail writes to git gets `step || { echo STOP; exit 1; }` on EVERY step.** Echoing an exit code
-  stops nothing.
-- **Force UTF-8 on both ends of any subprocess capture**, and **put every restore in a `finally`**, verified by sha.
-- **`node -e` and heredocs mangle scripts.** Write probes to a file with the Write tool.
-- **Edit `finding-guards.json` only through the byte-identical serializer** (`indent=2, ensure_ascii=False`).
-- ⛔ **NEVER `git add -A`.** Stage explicit paths. Untracked `apps/rn/src/testing/__run_*_once.ts` runners are never
-  committed.
-- **Don't edit files while `lint:rn`, `test:gate-plants`, `prove:guards` or a plant run is going.** They read them.
+- **The Edit and Write tools decode a backslash-u escape** in their input into the character it names. It wrote a raw ESC
+  into a committed log once. Describe such text in words; anchor edits on backslash-free lines.
+- **The shell's working directory drifts between calls.** A relative `--prefix apps/rn` and a relative Playwright config both
+  resolved to `apps\rn\apps\rn\…` and never ran. Use absolute paths; an exit code from a run that never started is not a verdict.
+- **`grep -l` matches CONTENTS, not names** — it reported a spec missing that `git ls-files` found. **`node -e` probes can print
+  nothing at all** — write probes to a file.
+- **[D81]:** per fix, `npm run lint:rn -- --fast` (static gates, self-tests skipped and named); full `lint:rn` at a sub-step's
+  close or after a gate script, `scripts/lib/` or the harness changed.
+- **The proof caps force an ORDER.** A `MIN_ENTRIES` raise stales the six proofs that plant into `check-finding-guards.ts`;
+  new entries push `authored` over its cap; readers cannot prove while the ledger is red. Prove new entries and stale
+  non-readers first, gate-check, then readers. `prove:guards` requires only each proof's own targets clean
+  (`prove-guards.ts:351`), so records accumulating in the registry do not block the next id.
+- **A usage count from grep includes comments.** eslint caught an import left unused that grep had counted as used.
+- ⛔ **Pass-6 and pass-7 finding ids COLLIDE.** `S1P7-C3-6-LIVEACTIVITY-END-LANDED` is not pass-6 `C3-6`.
+- **NEVER `git add -A`.** Stage explicit paths.

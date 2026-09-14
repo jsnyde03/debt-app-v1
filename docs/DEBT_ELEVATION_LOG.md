@@ -35821,3 +35821,60 @@ nothing newly projected. The two proofs that plant into `progress.tsx` (`S1P3-D3
 never run, so they carry no recorded sha to go stale against.
 
 ⚠️ **Carried to ⑦:** CI's actual face, from the spec's 402 pt fingerprint line on the next push.
+
+### `.12.6.5.7.7` — one registration batch and one reader drain · 2026-09-14
+
+**Switch-in: the population read from the registry and git, never from the plan.** A probe over `finding-guards.json`
+computed staleness itself — each executed proof's recorded sha against the last commit to its un-fix target — and matched
+the carried figures exactly:
+- **Stale: 8.** `S1-ROUTE-STALE-READ` and `S1-ROUTE-EXIT-REACHABLE` cannot be drained on a swept tree *(their own run
+  notes: re-measure at pass 8)*. The other six can: `S1P6-C2-3-CONVERTFIELDS-E2E` (Playwright) and five on `test:app` —
+  `S1P6-C1-15-NAMES-THE-MOVED-CASH`, `S1P6-A3-3-UPDATE-BY-ID`, `S1-CLASS4-A2-1`, `S1-CLASS4-A3-1`, `S1-CLASS4-A3-2`.
+- **Readers a `MIN_ENTRIES` raise stales: 6** — `S1P5-D5-9-CAPWRAP` (`lint:cap-literals`), three whose run is
+  `lint:finding-guards` (`D2-1-PROOFSTALE`, `U7-VERDICT-MARK`, `U11-WELDED-TOKEN`), two on `test:gate-plants`
+  (`R3-3-BORROW`, `57-2A-PROJECTED-STALENESS`).
+- **Authored: 9**, all Playwright, at the cap.
+
+**The batch: 14 entries** — ③ 4 · a.2 2 · a.3 3 · ④b 3 · ⑤ 2 — each un-fix a plant already scored MATCHED, each `expect`
+taken from that plant's own failure line (`prove:guards` counts an `expect` only in a line the planted run produced and the
+control did not). Every single-line anchor re-verified to occur exactly once in the current tree and every token on a
+non-comment line — one token corrected before registering: ⑤'s clip message is written with an escaped apostrophe, so the
+plain text was absent. a.3's entries carry an explicit `S1P6-` prefix: `S1P7-C3-6-LIVEACTIVITY-END-LANDED` is pass 7's
+different finding.
+
+**Why one continuous drain works.** `prove-guards.ts:351` requires only a proof's own un-fix targets to be clean; the rest
+of the tree is a recorded baseline (`:411`), and other files a run modifies are reported, not refused (`:532`). Records
+accumulating in the registry therefore do not block the next id. ⚠️ **One ordering rule follows:** the `MIN_ENTRIES`
+raise edits `check-finding-guards.ts`, which the readers plant into, so it is committed in 7.1 before any reader runs.
+
+**The order the caps force:** 7.2 the 14 new entries, while `authored` sits at 23 — none reads the ledger · 7.3 the six
+drainable stale proofs and `CAPWRAP` (stale 14 → 7, authored 23 → 9) · a gate check: `lint:finding-guards` must exit 0
+with stale ≤ 8 and authored ≤ 9 · 7.4 the five readers (stale → 2). One id per `prove:guards` run, so every verdict is
+attributable; the driver stops at the first harness fault or non-matched verdict.
+
+✅ **The drain: 26 of 26 MATCHED, 0 failed, in about 77 minutes** *(estimated ~2 h)*, one id per `prove:guards` run, every
+verdict `plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED`:
+| pass | result | time |
+|---|---|---|
+| 7.2 the 14 new entries | 14 / 14 — unit proofs ~0.7 min each, Playwright 2.4–6.7 min | 31.4 min |
+| 7.3 the six drainable stale proofs + `CAPWRAP` | 7 / 7 — `C2-3` re-proven for the first time since 2026-09-01 | 6.8 min |
+| gate check | `lint:finding-guards` exit 0 · 201 executed · **stale 7** (cap 8) · **authored 9** (cap 9) | — |
+| 7.4 the five readers | 5 / 5 — three on `lint:finding-guards` at 1.2 min, `R3-3-BORROW` and `57-2A-PROJECTED-STALENESS` on `test:gate-plants` at 17.4 min each | 38.4 min |
+
+Every figure the switch-in probe forecast held: stale 14 → 7 at the gate check, authored 23 → 9. ⚠️ `S1P7-57-5-HERO-ALL-MONTHS`
+matched on today's run date, whose hero shows November — its note records that it must be re-measured when the hero's
+month or the host's face changes.
+
+**Boundary gates, full, on the committed records (`86a1901c`):** `lint:rn` **52 of 52** (982s) · `typecheck` 0 · `test:app`
+0 · `test:regression` 0 · `lint:finding-guards --projected` 0 — **329 of 330 findings guarded · 201 proofs executed · stale 2**
+(`S1-ROUTE-STALE-READ`, `S1-ROUTE-EXIT-REACHABLE`, held for pass 8) **· authored 9**. The registry diff was verified as
+records only before committing: `measured` and `sha` on the 26 proofs, plus 14 `expect`/`proofNote` lines gaining the
+trailing comma those fields need, identical once it is stripped.
+
+✅ **`.5.7` CLOSED.** Every row routed here is closed, filed onward with a reason, or measured as not a defect. ⚠️ Carried to
+`.5.8`'s handoff: CI's font for `hero-date-fit`, read from its fingerprint line · `native-e2e` has not compiled this range's
+three Swift files · the Payday Countdown's `currentDate` count (backlog) · the ready-by date (P6.10).
+
+✅ **[DECISION] 🎯 2026-09-14 — `.5.8` is dispatched from a FRESH SESSION**, on my recommendation. This session built
+every class-5 fix, so it would be framing the audit of its own premises; passes 5–7 were each dispatched from a fresh
+session off a START HERE handoff. This session closes `.5.7`, rewrites `CLASS5-START-HERE.md` for `.5.8`, and stops.
