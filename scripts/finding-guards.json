@@ -2371,8 +2371,8 @@
       ],
       "run": "lint:runner-completeness",
       "expect": "in NO chain",
-      "measured": "2026-09-04",
-      "sha": "312041c9"
+      "measured": "2026-09-14",
+      "sha": "d559e4dd"
     }
   },
   "S1P6-D3-4-HALFCONFLICT": {
