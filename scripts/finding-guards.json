@@ -542,8 +542,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "apps/rn/src/store/guardianSelectors.ts is ledgered and re-derives nothing any more",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-14",
+      "sha": "78bcb481"
     }
   },
   "S1P4-C4-4-POPULATION": {
@@ -560,8 +560,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "[population] the ledger considered",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-14",
+      "sha": "78bcb481"
     }
   },
   "S1P4-C4-6-RACE": {
@@ -1221,8 +1221,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "not a literal",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-14",
+      "sha": "78bcb481"
     }
   },
   "S1P3-B3-UNKNOWN": {
@@ -1497,8 +1497,8 @@
       ],
       "run": "lint:cap-literals",
       "expect": "not a literal",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-14",
+      "sha": "78bcb481"
     }
   },
   "S1P3-G6-SCRIPTSREACH": {
@@ -2012,7 +2012,7 @@
       "run": "typecheck:scripts",
       "expect": "test-gate-plants.ts",
       "measured": "2026-09-14",
-      "sha": "79ac9f00"
+      "sha": "78bcb481"
     }
   },
   "S1P5-D5-13-DERIVEDPOP": {
@@ -2029,8 +2029,8 @@
       ],
       "run": "lint:trust-claims",
       "expect": "money formatter(s) derived from",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-14",
+      "sha": "78bcb481"
     }
   },
   "S1P5-D5-12-RUNNERSET": {
@@ -2089,7 +2089,7 @@
       "run": "lint:cap-literals",
       "expect": "PINNED rather than floored",
       "measured": "2026-09-14",
-      "sha": "79ac9f00"
+      "sha": "78bcb481"
     }
   },
   "S1P5-C5-1-VIEWGAG": {
@@ -4358,21 +4358,22 @@
     }
   },
   "S1P7-57-2B-CLAIM-LATTICE": {
-    "what": ".5.7 step 2b [backlog from .5.4's C3-11 before-scan] - .5.3's mayClaim('debt-balances') && mayClaim('row-figures') was a no-op for 102 of 102 repair variants, because row-figures routes every field of every entity: the outcomes were right and the reason was false, which no outcome test can see. trustSelectors.test.ts now pins the containment lattice computed from claimFields() x REPAIRABLE_MONEY_FIELDS - 12 ordered pairs measured at .5.7 - so a route that widens or narrows reds with the pairs that moved. Planted: required-plan widened to apr + originalBalance, red on the lattice line.",
+    "what": ".5.7 step 2b [backlog from .5.4's C3-11 before-scan] - .5.3's mayClaim('debt-balances') && mayClaim('row-figures') was a no-op for 102 of 102 repair variants, because row-figures routes every field of every entity: the outcomes were right and the reason was false, which no outcome test can see. trustSelectors.test.ts now pins the containment lattice computed from claimFields() x REPAIRABLE_MONEY_FIELDS - 12 ordered pairs measured at .5.7 - so a route that widens or narrows reds with the pairs that moved. Planted: projected-balance += originalBalance, red on the lattice line under the full test:app.",
     "file": "apps/rn/src/store/trustSelectors.test.ts",
     "token": "the claim containment lattice is the one measured at .5.7",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/store/trustSelectors.ts",
-          "find": "    debt: ['minimumPayment', 'balance', 'scheduledPaymentAmount'],\n    requiredExpense: ['amount'],\n    livingExpense: ['amount'],\n    plan: ['windfall', 'expenseReserveBalance'],",
-          "replace": "    debt: ['minimumPayment', 'balance', 'scheduledPaymentAmount', 'apr', 'originalBalance'],\n    requiredExpense: ['amount'],\n    livingExpense: ['amount'],\n    plan: ['windfall', 'expenseReserveBalance'],"
+          "find": "  'projected-balance': { debt: ['balance', 'apr', 'minimumPayment'] },",
+          "replace": "  'projected-balance': { debt: ['balance', 'apr', 'minimumPayment', 'originalBalance'] },"
         }
       ],
       "run": "test:app",
       "expect": "the claim containment lattice is the one measured at .5.7",
       "measured": "2026-09-13",
-      "sha": "48aa6697"
+      "sha": "48aa6697",
+      "proofNote": "The first un-fix (required-plan += apr) redded FIRST on requiredPlanTrust's \"G-4 control\" under the full test:app - an earlier test pinning that exact route - so it was not attributable to this guard. This un-fix was measured against the full suite to be seen by the lattice assertion first."
     }
   },
   "S1P7-57-2C-LOST-FIELD-NAMED": {
@@ -4389,8 +4390,8 @@
       ],
       "run": "test:app",
       "expect": "is no longer recorded under a sentence",
-      "measured": "2026-09-13",
-      "sha": "48aa6697"
+      "measured": "2026-09-14",
+      "sha": "78bcb481"
     }
   },
   "S1P7-57-2D-DEBT-SPREAD-LEDGER": {
