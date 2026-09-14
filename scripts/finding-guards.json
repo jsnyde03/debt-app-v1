@@ -1044,8 +1044,8 @@
         "C-1"
       ],
       "expect": "a debt row does not restate an APR",
-      "measured": "2026-09-02",
-      "sha": "d3518ac5"
+      "measured": "2026-09-14",
+      "sha": "abc4477b"
     }
   },
   "S1P3-C1-GATE": {
@@ -2408,7 +2408,7 @@
       "run": "lint:finding-guards",
       "expect": "STALE",
       "measured": "2026-09-14",
-      "sha": "79ac9f00"
+      "sha": "abc4477b"
     }
   },
   "S1-FIXTURE-DATE-FUSE": {
@@ -2984,8 +2984,8 @@
         "celebration.spec.ts"
       ],
       "expect": "payday-guardian-card",
-      "measured": "2026-09-02",
-      "sha": "8a4c4458"
+      "measured": "2026-09-14",
+      "sha": "abc4477b"
     }
   },
   "S1P6-A1-8-BANDWORDS": {
@@ -3476,7 +3476,7 @@
       "run": "lint:finding-guards",
       "expect": "the verdict mark is WRONG",
       "measured": "2026-09-14",
-      "sha": "79ac9f00"
+      "sha": "abc4477b"
     }
   },
   "S1P7-U2-STRING-EXTENTS": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-14",
-      "sha": "79ac9f00"
+      "sha": "abc4477b"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -4064,7 +4064,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [R3-3-borrow]",
       "measured": "2026-09-14",
-      "sha": "79ac9f00",
+      "sha": "abc4477b",
       "proofNote": "ANCHOR RE-DERIVED in round 4: R4-3's fix rewrote this very line, voiding both the token and the un-fix - the same shape as R3-2 voiding R2-1-CAP one round earlier. Re-RUN, not merely re-anchored: a recorded measurement must describe the plant the entry now performs."
     }
   },
@@ -4354,7 +4354,7 @@
       "run": "test:gate-plants",
       "expect": "lint:finding-guards [projected]",
       "measured": "2026-09-14",
-      "sha": "79ac9f00"
+      "sha": "abc4477b"
     }
   },
   "S1P7-57-2B-CLAIM-LATTICE": {
@@ -4371,8 +4371,8 @@
       ],
       "run": "test:app",
       "expect": "the claim containment lattice is the one measured at .5.7",
-      "measured": "2026-09-13",
-      "sha": "48aa6697",
+      "measured": "2026-09-14",
+      "sha": "abc4477b",
       "proofNote": "The first un-fix (required-plan += apr) redded FIRST on requiredPlanTrust's \"G-4 control\" under the full test:app - an earlier test pinning that exact route - so it was not attributable to this guard. This un-fix was measured against the full suite to be seen by the lattice assertion first."
     }
   },
@@ -4408,8 +4408,8 @@
       ],
       "run": "test:gate-plants",
       "expect": "lint:trust-claims [debt-spread]",
-      "measured": "2026-09-13",
-      "sha": "48aa6697"
+      "measured": "2026-09-14",
+      "sha": "abc4477b"
     }
   },
   "S1P7-57-2B-VACUOUS-CONJUNCT": {
@@ -4426,8 +4426,8 @@
       ],
       "run": "test:gate-plants",
       "expect": "lint:trust-claims [vacuous-conjunct]",
-      "measured": "2026-09-13",
-      "sha": "48aa6697"
+      "measured": "2026-09-14",
+      "sha": "abc4477b"
     }
   }
 }
