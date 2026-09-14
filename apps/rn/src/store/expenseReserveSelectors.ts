@@ -3,7 +3,6 @@ import { payCyclesPerMonth } from '@core/payCycle/payCyclesPerMonth';
 import type { DebtStore } from '@/data/models';
 import { monthlyEquivalent } from '@/utils/format';
 
-import { selectDiscretionary, sumCategory } from './planSelectors';
 import { effectivePaycheckBuffer, selectAllocation, selectExpenseReserveContribution, selectExpenseReservePot } from './selectors';
 
 /**
@@ -120,13 +119,26 @@ export function selectExpenseReserveOffer(store: DebtStore): ExpenseReserveOffer
   if (recommended <= 0) return null;
 
   const alreadyReserved = round(selectExpenseReserveContribution(store));
-  // What the engine would actually let us hold: discretionary less the cushion floor it has already taken,
-  // plus whatever is currently held (so an existing contribution does not read as unavailable to itself).
-  // ⚠️ Measured against the engine's clamp rather than derived from the floor — the waterfall composes
-  // through `effectivePaycheckBuffer` and is not predictable by reading.
-  const spare = round(
-    Math.max(0, selectDiscretionary(allocation) - sumCategory(allocation, 'cushion_buffer')) + alreadyReserved,
-  );
+  /**
+   * ⛔ **[.5.7.4b.1 · pass-7 `B1-2`] — WHAT THE ENGINE WOULD HOLD, ASKED OF THE ENGINE.**
+   *
+   * This was `selectDiscretionary − cushion_buffer + alreadyReserved`, under a comment calling it measured against
+   * the engine's clamp. It was not. `selectDiscretionary` is the partition total and a hold does not shrink it, so
+   * adding what is already held counted that money twice. Measured on a $550 paycheck: $50 held → the sheet promised
+   * a total of $200 and the engine held $150; $100 held → promised $230.77, held $150.
+   *
+   * ⚡ So the room comes from the engine itself: allocate this same store with a contribution larger than any
+   * paycheck, keyed to this cycle, and take what `allocatePaycheck` actually holds. One producer — a new deduction
+   * ahead of the hold moves this figure with it.
+   */
+  const probe: DebtStore = {
+    ...store,
+    expenseReserve: {
+      ...(store.expenseReserve ?? { balance: 0 }),
+      contribution: { forCycle: store.paycheck.nextPaycheckDate, amount: Number.MAX_SAFE_INTEGER },
+    },
+  };
+  const spare = round(selectAllocation(probe)?.expenseReserveHeld ?? 0);
   if (spare <= 0) return null;
 
   const target = round(Math.min(recommended, spare));

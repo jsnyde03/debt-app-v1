@@ -96,15 +96,21 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
     // Priority (sinking-fund) options carry a per-paycheck pace cap so the shown schedule is real.
     let priority = false;
     let pace: number | undefined;
+    // ⛔ [.5.7.4b.3] What the confirmation may STATE as saved each paycheck. A typed pace above what the plan can fund
+    // is still stored as typed (the engine clamps it), but "Now saving $X/paycheck" printed that typed figure as an
+    // outcome while the engine funded less. The sheet's own caption already said the funded amount; this is that figure.
+    let stated: number | undefined;
     if (selected === 'custom') {
       // ⛔ `parseAmountField`, not `Number` — see `customPace` above. `null` is the only refusal channel.
       if (customPace == null) return; // need a pace before committing (flag NOT yet set → they can retry)
       priority = true;
       pace = customPace;
+      stated = customFunded ?? customPace;
     } else {
       const opt = options.find((o) => o.key === selected) ?? options[options.length - 1];
       priority = opt.prioritize;
       pace = opt.prioritize ? opt.perPaycheck ?? undefined : undefined;
+      stated = pace;
     }
     submitted.current = true; // commit — guard against a second goal from a double-tap
     const id = nextGoalId(store.paycheck.currentDate);
@@ -117,7 +123,7 @@ export function SaveForItSheet({ visible, amount, name, onClose, onSaved }: { vi
       priority,
       priorityPerPaycheck: pace,
     });
-    onSaved?.({ id, name: name.trim() || 'Savings goal', perPaycheck: pace ?? null, prioritize: priority });
+    onSaved?.({ id, name: name.trim() || 'Savings goal', perPaycheck: stated ?? null, prioritize: priority });
     onClose();
   }
 

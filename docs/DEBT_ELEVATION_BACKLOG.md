@@ -1534,7 +1534,10 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   `selectSpendable`; the engine funds neither. `B1-2` (the reserve offer, `expenseReserveSelectors.ts:128`, class 6) is
   a second on the list already. → **`.5.7`** *(census by query: every surface that states a per-paycheck amount or a
   ready-by for money not yet set aside, and whether its figure is read from an allocation or derived beside one — the
-  round trip `store it → re-allocate → compare` is the assertion that decides each)*.
+  round trip `store it → re-allocate → compare` is the assertion that decides each)*. ⚙️ **CENSUS RUN at `.5.7` ④b,
+  2026-09-14** — 42 files by query; two headroom-derived promises measured overstated (`B1-2` and the Cash Runway line), a
+  third related one found (the custom-pace confirmation), the ready-by date filed as unmeasurable by this instrument.
+  Rows below, under `.5.7.4b`.
 
 ### ⤵ surfaced by `.5.7.4a`'s census, 2026-09-13
 
@@ -1586,3 +1589,36 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
 - 📋 **The review prompt stamps `reviewPrompted` before its swallowed attempt** (`index.tsx:783`). iOS returns no
   signal that a prompt showed, so the attempt is the only stampable event. But when `isAvailableAsync()` is false, the
   flag still sets and the user is never asked. Minor. → **P6.4** *(stamp only when `isAvailableAsync()` answered true)*.
+
+### ⤵ surfaced by `.5.7.4b`'s census, 2026-09-14
+
+*Population: 42 production files matched by query, classified by a read-only agent, and every "derived beside" row then
+measured through the real selectors and engine — promise vs what the engine holds for the same store. Controls honest.*
+
+- ⛔ **`B1-2` MEASURED — the reserve offer double-counts what is already held.** `selectExpenseReserveOffer` computes
+  `spare = selectDiscretionary(allocation) − cushion_buffer + alreadyReserved`, but `selectDiscretionary` is the
+  partition total and a hold does not shrink it. Thin paycheck ($550, rent $350 in-cycle): held $0 → promised $150,
+  engine holds $150 *(control)* · held $50 → promised **$200**, holds $150 · held $100 → **$230.77**, holds $150 · held
+  $150 → **$230.77**, holds $150. Healthy paycheck ($1,200): honest at every held amount. The gap is exactly the held
+  amount until the recommendation caps it. `expenseReserveSelectors.ts:125`'s *"Measured against the engine's clamp"* is
+  false; `expenseReserve.test.ts:85-89` proves the one member that works *(nothing held)*. → **`.5.7` ④b.1** *(🎯 2026-09-14: fixed in-step, pulled
+  forward from class 6 — the offer asks the engine's clamp rather than re-deriving the room)*. ✅ **CLOSED 2026-09-14** —
+  round trip over thin and healthy paychecks × $0–$400 held; plant MATCHED (*"expected 200, got 150"*). Proof joins ⑦.
+- ⛔ **NEW — the Cash Runway says *"I'm setting aside $X from this paycheck"* over the water-fill's REQUEST.**
+  `CashRunwayChart.tsx:121` `holdNow = plan.prefundedReserve` (`selectWaterFillPlan`), while `allocatePaycheck` funds
+  `min(prefundedReserve, remaining)` only after the cushion and the expense reserve. Premium, crunch ahead: nothing
+  reserved → says $350, holds $350 *(control)* · $600 reserved → says **$350**, holds $50 · paycheck $900 → says **$550**,
+  holds $350 · $900 + $250 reserved → says **$550**, holds $100. Over by up to **$450**, with nothing reserved on a thin
+  paycheck too. The comment *"only when it's real"* at `:118-120` is false. → **`.5.7` ④b.2** *(🎯 2026-09-14: fixed in-step —
+  the line reads the allocation's `prefunded_reserve` row)*. ✅ **CLOSED 2026-09-14** — `selectPrefundedHeld`; e2e says
+  $900 not $1,100, $500 with a reserve held, no line when there is room; plant MATCHED. Proof joins ⑦.
+- ⛔ **NEW — "Now saving $X/paycheck" states the TYPED pace, not the funded one.** On save-for-it's custom path,
+  `SaveForItSheet.submit` passes `pace = customPace` to `onSaved` even when `customCapped`, and `AffordabilityCard.tsx:203`
+  prints it as an outcome. The engine funds `capacity`. The sheet's own caption already computes `customFunded`; the
+  confirmation does not use it. Confirmed by the data flow, not yet by a render. → **`.5.7` ④b.3** *(🎯 2026-09-14: fixed
+  in-step — the confirmation states the funded pace)*. ✅ **CLOSED 2026-09-14** — e2e reads the funded figure from the
+  sheet's own caption and requires the card to say it; plant MATCHED (*"$999,999"* against a funded $3,350). Proof joins ⑦.
+- ❓ **Save-for-it's "ready by <date>" is paced off ONE cycle's capacity** (`selectPriorityGoalCapacity`) and projected
+  with fixed paycheck steps. Whether later cycles' bills, reserve draws, holdback decay or variable income move it is
+  unmeasured, and a single-cycle round trip cannot measure it. → **P6.10** *(needs a multi-cycle instrument: fund the
+  goal cycle by cycle through rollovers and compare the date reached)*.

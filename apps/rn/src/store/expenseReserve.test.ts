@@ -88,6 +88,31 @@ eq(selectRecurringSmoothed(store()).monthlyTotal, 500, 'smoothing sums every rec
   const overStore = store({ paycheck: { ...store().paycheck, amount: '550' }, expenseReserve: held(R(thin.offer + 1)) });
   assert(selectAllocation(overStore)!.expenseReserveHeld < R(thin.offer + 1), '…while one dollar more would be a broken promise');
 
+  // ⛔ [.5.7.4b.1 · pass-7 B1-2] THE ROUND TRIP, iterated over what is ALREADY held. The two assertions above hold
+  // nothing, which is the one member of the class that worked: the offer added the held amount onto a room a hold
+  // never shrinks, so a $550 paycheck with $50 held promised a total of $200 while the engine held $150. Accept the
+  // offer, re-allocate, compare. ⚠️ Only rows the sheet RENDERS are asserted — an offer of $0 shows no button, so a
+  // held amount above the room is not a promise anyone reads.
+  let reached = 0;
+  let thinWithHold = 0;
+  for (const pay of ['550', '1200']) {
+    for (const already of [0, 50, 100, 150, 400]) {
+      const s = store({ paycheck: { ...store().paycheck, amount: pay }, ...(already > 0 ? { expenseReserve: held(already) } : {}) });
+      const offer = selectExpenseReserveOffer(s);
+      if (!offer || offer.offer <= 0) continue;
+      const promised = R(offer.alreadyReserved + offer.offer);
+      const accepted = store({ paycheck: { ...store().paycheck, amount: pay }, expenseReserve: held(promised) });
+      eq(
+        selectAllocation(accepted)!.expenseReserveHeld,
+        promised,
+        `⛔ B1-2 — pay ${pay} with ${already} already held: accepting the offer holds exactly the total it promised`,
+      );
+      reached++;
+      if (pay === '550' && already > 0) thinWithHold++;
+    }
+  }
+  assert(reached >= 5 && thinWithHold >= 2, `B1-2 control — the round trip reached a thin paycheck WITH a hold (${thinWithHold}) among ${reached} offers`);
+
   assert(selectExpenseReserveOffer(store({ requiredExpenses: [] })) === null, 'no recurring load → no offer');
   assert(selectExpenseReserveOffer(store({ paycheck: { ...store().paycheck, amount: '100' } })) === null,
     'a SHORTFALL → no offer: never coach a reserve while this cycle is unfunded');

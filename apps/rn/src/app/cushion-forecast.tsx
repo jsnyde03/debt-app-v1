@@ -13,7 +13,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { withProjectedBalances } from '@/store/balanceSelectors';
 import { selectCalibrationScore } from '@/store/guardianSelectors';
 import { selectCashTimeline } from '@/store/payoffSelectors';
-import { effectivePaycheckBuffer, selectWaterFillPlan } from '@/store/selectors';
+import { effectivePaycheckBuffer, selectPrefundedHeld } from '@/store/selectors';
 import { mayClaim, repairsPoisoning } from '@/store/trustSelectors';
 import { useAppStore } from '@/store/useAppStore';
 import { spacing } from '@/theme/spacing';
@@ -37,7 +37,8 @@ export default function CushionForecastScreen() {
   const isPremium = store.subscriptionPlan === 'premium';
   const engineStore = withProjectedBalances(store, isPremium);
   const cycles = selectCashTimeline(engineStore, RUNWAY_CYCLES);
-  const plan = selectWaterFillPlan(engineStore);
+  // ⛔ [.5.7.4b.2] What this paycheck HOLDS for a crunch ahead — the allocation row, not the water-fill's request.
+  const holdNow = selectPrefundedHeld(engineStore);
   const floor = effectivePaycheckBuffer(engineStore);
   /**
    * ⛔ **[pass-7 `C3-11` · `.5.4b`] THE RUNWAY IS A PLAN SOLVED FORWARD, AND THIS SCREEN ASKED NOTHING.**
@@ -64,7 +65,7 @@ export default function CushionForecastScreen() {
       {isPremium ? (
         <>
           {mayStateForecast ? (
-            <CashRunwayChart cycles={cycles} plan={plan} floor={floor} />
+            <CashRunwayChart cycles={cycles} holdNow={holdNow} floor={floor} />
           ) : (
             <ForecastUnread fix={unreadInputsFix(repairsPoisoning(store, 'solved-projection'), 'and your forecast comes back')} />
           )}

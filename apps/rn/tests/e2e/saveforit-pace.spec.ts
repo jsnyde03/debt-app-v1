@@ -123,3 +123,32 @@ test('B1-1 — a pace above what the plan can fund is dated from what it will fu
   await expect(ready).toContainText(/paychecks? · ready by/, { timeout: 15_000 });
   await expect(ready).not.toContainText('Your plan can set aside');
 });
+
+/**
+ * ⛔ **[.5.7.4b.3] — THE CONFIRMATION STATES WHAT THE PLAN FUNDS, NOT THE PACE TYPED ABOVE IT.**
+ *
+ * The sheet above already dates and captions a capped pace honestly. The card it hands off to did not: *"Now saving
+ * $999,999/paycheck"* was printed as an outcome while the engine funded far less. The expected figure is read from
+ * the caption this same screen prints, so the assertion cannot drift from the number the user was just told.
+ */
+test('.5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed', async ({ page }) => {
+  const field = await openCustomPace(page);
+  await field.fill('999,999');
+  const ready = page.getByTestId('saveforit-custom-ready');
+  await expect(ready).toContainText(/Your plan can set aside about \$[\d,]+ a paycheck/, { timeout: 15_000 });
+  const funded = ((await ready.textContent()) ?? '').match(/about (\$[\d,]+) a paycheck/)?.[1];
+  expect(funded, 'the caption states the funded pace').toBeTruthy();
+
+  await page.getByRole('button', { name: 'Start saving' }).click();
+  const confirmation = page.getByText(/Now saving \$[\d,]+\/paycheck toward/);
+  await expect(confirmation).toBeVisible({ timeout: 15_000 });
+  await expect(confirmation).toContainText(`Now saving ${funded}/paycheck`);
+  await expect(confirmation).not.toContainText('999,999');
+});
+
+test('.5.7 control — a custom pace the plan can fund is confirmed as typed', async ({ page }) => {
+  const field = await openCustomPace(page);
+  await field.fill('1,200');
+  await page.getByRole('button', { name: 'Start saving' }).click();
+  await expect(page.getByText(/Now saving \$1,200\/paycheck toward/)).toBeVisible({ timeout: 15_000 });
+});

@@ -2,7 +2,6 @@ import { EMERGENCY_FUND_NOUN, GUARDIAN_STATE_LABEL } from '@core/copy/vocabulary
 import { useRef, useState } from 'react';
 import { type GestureResponderEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { WaterFillResult } from '@core/cashflow/waterFill';
 
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
@@ -50,7 +49,7 @@ const STATE_LABEL: Record<GuardianState, string> = GUARDIAN_STATE_LABEL;
  * line (a crunch the free clamped-at-$0 bars can't show) is visible. Tap any cycle for its plan. Numbers
  * are per-cycle (Income − Essentials = the value) — never the cumulative no-deploy balance that inflates.
  */
-export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle[]; plan: WaterFillResult | null; floor: number }) {
+export function CashRunwayChart({ cycles, holdNow, floor }: { cycles: TimelineCycle[]; holdNow: number; floor: number }) {
   const c = useAppColors();
   const dark = useColorScheme() === 'dark';
   const [w, setW] = useState(0);
@@ -115,10 +114,10 @@ export function CashRunwayChart({ cycles, plan, floor }: { cycles: TimelineCycle
   const under = room < floor - 1 ? floor - room : 0;
   const stateColor = cy.guardianState === 'at-risk' ? c.accent.danger : cy.guardianState === 'tight' ? c.accent.warning : c.text.secondary;
 
-  // The one honest, actionable hold: cycle-0's pre-funded reserve (what to keep from THIS paycheck for a
-  // looming crunch). Per-cycle reserves aren't a user-facing figure (the water-fill's `reserveByCycle` is
-  // a cumulative deploy-cap), so this is the only "set aside" number shown — and only when it's real.
-  const holdNow = Math.max(0, plan?.prefundedReserve ?? 0);
+  // The one actionable hold: what THIS paycheck keeps for a looming crunch. ⛔ [.5.7.4b.2] `holdNow` is the
+  // allocation's `prefunded_reserve` row (`selectPrefundedHeld`), passed in — never the water-fill's request, which the
+  // engine funds only after the cushion and the expense reserve. The sentence below states money as set aside, so it
+  // reads what was set aside. Per-cycle reserves stay off screen: `reserveByCycle` is a cumulative deploy-cap.
 
   // 3.4.2.3 — drag-select: sweeping a finger across the chart moves the selection continuously (the
   // detail receipt below is the readout, so no floating overlay is needed). The per-cycle Pressables

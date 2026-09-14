@@ -48,6 +48,53 @@ for (const theme of ['light', 'dark'] as const) {
 }
 
 /**
+ * ⛔ **[.5.7.4b.2] — "I'M SETTING ASIDE $X FROM THIS PAYCHECK" STATES WHAT THE PLAN HOLDS.**
+ *
+ * The line printed the water-fill's REQUEST, and `allocatePaycheck` funds that only after the cushion and the expense
+ * reserve. Figures measured through the app's own hydration on this seed (`scenario` → `runMigrations` → selectors):
+ * the forecast asks for $1,100; the plan holds $900 after the $200 cushion, and $500 with $400 already reserved.
+ * Every date is `day()`-relative, so the crunch sits in the next cycle whatever the run date.
+ */
+const CRUNCH = (over: Record<string, unknown> = {}) =>
+  scenario({
+    debts: [],
+    paycheck: { amount: '2000', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) },
+    requiredExpenses: [
+      { id: 'rent', name: 'rent', amount: 900, dueDate: day(10), recurrence: 'monthly', category: 'housing' },
+      { id: 'big', name: 'big', amount: 1800, dueDate: day(45), recurrence: 'monthly', category: 'housing' },
+    ],
+    ...over,
+  });
+
+/** Land on the runway and wait for the chart itself, so an absence below can never pass on an empty page. */
+async function openRunway(page: import('@playwright/test').Page) {
+  await page.goto('/cushion-forecast');
+  await expect(page.getByText('CUSHION BY PAYCHECK', { exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.waitForTimeout(2000); // CanvasKit lazy-load, as above
+  return page.getByText(/from this paycheck for a tight cycle ahead/);
+}
+
+test('.5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for', async ({ page }) => {
+  await seedStore(page, CRUNCH());
+  const line = await openRunway(page);
+  await expect(line).toContainText('$900');
+  await expect(line).not.toContainText('$1,100');
+});
+
+test('.5.7 — with a reserve already held, the runway names only what is left for the crunch', async ({ page }) => {
+  await seedStore(page, CRUNCH({ expenseReserve: { balance: 0, contribution: { forCycle: day(31), amount: 400 } } }));
+  const line = await openRunway(page);
+  await expect(line).toContainText('$500');
+  await expect(line).not.toContainText('$1,100');
+});
+
+test('.5.7 control — a paycheck with room for the crunch shows no hold line', async ({ page }) => {
+  await seedStore(page, CRUNCH({ paycheck: { amount: '3000', payCycle: 'monthly', currentDate: day(0), nextPaycheckDate: day(31) } }));
+  const line = await openRunway(page);
+  await expect(line).toHaveCount(0);
+});
+
+/**
  * [T5.3 · L1-13] The Guardian scorecard's DAY-ONE state — the branch every new user is in, and it had
  * ZERO e2e coverage. That gap was surfaced by T4.3 (which renamed "floor" to "line" here, unverified) and
  * filed to T9; T5.3 then renamed the claim itself, so deferring again would ship a SECOND unverified

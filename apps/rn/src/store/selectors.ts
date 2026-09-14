@@ -2,6 +2,7 @@ import { allocatePaycheck } from '@core/engine/allocatePaycheck';
 import { resolveTrialAmounts } from '@core/obligations/effectiveObligationAmount';
 import { waterFill, type WaterFillResult } from '@core/cashflow/waterFill';
 import { COLDSTART_HOLDBACK_FRACTION, DISCOVERY_HOLDBACK_ATTESTED_FRACTION, DISCOVERY_HOLDBACK_FRACTION, VARIABLE_BILL_BUFFER_FRACTION } from '@core/guardian/holdbackComposition';
+import { roundMoney } from '@core/utils/money';
 
 import type { DebtStore } from '@/data/models';
 
@@ -224,6 +225,22 @@ export function selectWaterFillPlan(store: DebtStore): WaterFillResult | null {
  */
 export function selectPrefundedReserve(store: DebtStore): number {
   return selectWaterFillPlan(store)?.prefundedReserve ?? 0;
+}
+
+/**
+ * ⛔ **[.5.7.4b.2] — WHAT THE PLAN ACTUALLY HOLDS for a looming crunch this paycheck: the allocation's
+ * `prefunded_reserve` row, never the water-fill's request above.**
+ *
+ * The Cash Runway said *"I'm setting aside $X from this paycheck"* over `selectPrefundedReserve`, but
+ * `allocatePaycheck` funds `min(request, remaining)` only after the cushion and the expense reserve. Measured,
+ * premium with a crunch ahead: a $900 paycheck said $550 and held $350; with $250 reserved it said $550 and
+ * held $100. Any sentence that states money as held reads it here.
+ */
+export function selectPrefundedHeld(store: DebtStore): number {
+  const allocation = selectAllocation(store);
+  if (!allocation) return 0;
+  const held = allocation.allocations.filter((a) => a.category === 'prefunded_reserve').reduce((sum, a) => sum + a.amount, 0);
+  return roundMoney(held);
 }
 
 /**

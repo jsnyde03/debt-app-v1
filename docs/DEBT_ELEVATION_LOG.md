@@ -35686,3 +35686,77 @@ re-proof; the assertions themselves already run in CI on every push.
 `["npx","playwright","test","--config","apps/rn/playwright.config.ts","<spec>","-g","<title>"]`. `-g` on one title runs
 one test, so the config's default parallel workers never arise. `lint:runner-completeness` only inspects `lint:*`
 scripts, so neither shape would trip it.
+
+### `.12.6.5.7.4b` — census of promised future amounts: three overstated, fixed in-step · 2026-09-14
+
+**The census.** Population by query, never a list: 42 production files match the per-paycheck and ready-by phrasings
+(`per paycheck`, `ready by`, `on track to`, `you'll have` and their spellings), tests excluded. A read-only agent traced
+every figure to its producer and classified each as funded by the allocation, derived beside it, or not a promise. Its
+mechanisms were then treated as hypotheses and every "derived beside" row was MEASURED through the real selectors and
+engine: what the surface states, against what the engine holds for the same store. Controls honest in every table.
+
+| surface | control | overstated when | worst gap |
+|---|---|---|---|
+| expense-reserve offer (`B1-2`) | nothing held; a healthy paycheck | a thin paycheck with a reserve already held | $80.77 |
+| Cash Runway *"I'm setting aside $X"* (new) | a healthy paycheck, nothing reserved | a reserve eating the room, or just a thin paycheck | $450 |
+| save-for-it *"Now saving $X/paycheck"* (new) | a pace the plan can fund | a custom pace above what the plan funds | the whole excess |
+
+⛔ **`B1-2`'s mechanism, measured:** `selectDiscretionary` is the partition total and a hold does not shrink it, so
+`spare = discretionary − cushion + alreadyReserved` counted held money twice — $50 held promised $200 and held $150.
+`expenseReserveSelectors.ts`' *"Measured against the engine's clamp"* was false, and `expenseReserve.test.ts:85-89`
+proved the one member that works (nothing held). ⛔ **The runway's:** the line read the water-fill's request, which
+`allocatePaycheck` funds only after the cushion and the expense reserve — so even with nothing reserved, a thin paycheck
+overstated by the cushion. Its comment *"only when it's real"* was false too.
+
+⚠️ **`B1-2` is a pass-7 BLOCKER** (`CLASSIFICATION.md:264`, class 6), and its classification line already names this
+mechanism — *"counts the existing contribution twice"*. The census agent reached the same reading independently, and the
+round trip measured it. Class 6's plan row now records it as closed early.
+
+✅ **[DECISION] 🎯 2026-09-14 — all three fixed inside ④b**, `B1-2` pulled forward from class 6: one round-trip shape
+covers them, each is one producer change, and the census had the files open. The ready-by date is filed to P6.10 — a
+single-cycle round trip cannot measure it.
+
+**Built — each surface now reads the engine rather than re-deriving it:**
+- **b.1** `selectExpenseReserveOffer` allocates a copy of the store with a contribution larger than any paycheck, keyed to
+  `nextPaycheckDate`, and takes what `allocatePaycheck` holds as the room. One producer: a new deduction ahead of the
+  hold moves the offer with it. `sumCategory` left the imports.
+- **b.2** `selectPrefundedHeld(store)` beside `selectPrefundedReserve` returns the allocation's `prefunded_reserve` row.
+  `cushion-forecast.tsx` passes it to `CashRunwayChart` as `holdNow`, which replaces the `plan` prop (its only use).
+- **b.3** `SaveForItSheet.submit` still stores the typed pace (the engine clamps it) but hands `onSaved` the funded
+  figure (`customFunded`), which the confirmation prints.
+
+**Asserted:**
+- **b.1** `expenseReserve.test.ts` — thin and healthy paychecks × $0–$400 already held: accept the offer, re-allocate, the
+  engine holds exactly the total promised. Rows with a $0 offer are skipped because the sheet renders no button for them;
+  a control requires the thin-paycheck-with-a-hold rows to be reached (2 of 7). 54 assertions.
+- **b.2** `cushion-forecast.spec.ts` — seed found by a probe hydrated through `runMigrations`: the line says $900, not
+  the forecast's $1,100; with $400 reserved, $500; a $3,000 paycheck shows no line, asserted only after the runway renders.
+- **b.3** `saveforit-pace.spec.ts` — a $999,999 pace is confirmed at the funded figure read from the caption the same
+  screen prints; control: a fundable $1,200 is confirmed as typed.
+
+**e2e, `--workers=1`:** `cushion-forecast.spec.ts` + `saveforit-pace.spec.ts` — **13 of 13 pass** (2.1 min), the five new
+tests among them. `typecheck:rn` 0; `expenseReserve.test` 54.
+
+⭐ **Three plants, each run under the command its proof will use at ⑦, each red on its own test with the MEASURED figure,
+every file restored byte-identical (sha256):**
+| plant | command | reds with |
+|---|---|---|
+| b.1 `+ alreadyReserved` put back on the engine's figure | `test:app` | *"pay 550 with 50 already held … (expected 200, got 150)"* |
+| b.2 the screen reads `selectPrefundedReserve` again | Playwright, `-g` the $900 test, `--workers=1` | received *"I'm setting aside $1,100 from this paycheck"* |
+| b.3 the confirmation states `customPace` | Playwright, `-g` the capped test, `--workers=1` | received *"Now saving $999,999/paycheck"* against a funded $3,350 |
+
+⚠️ **The per-fix fast run caught two defects of mine before the plants ran.** eslint: `selectDiscretionary` was left
+imported and unused — my own usage check had counted two COMMENT mentions as uses. `lint:rounding` (95 against a cap of
+94): the new selector rounded inline instead of importing `roundMoney`. Both fixed; eslint, `lint:rounding` and
+`typecheck:rn` re-run green.
+
+**Gates at the close, full per [D81]:** `lint:rn` **52 of 52** (948s) · `typecheck` 0 · `test:app` 0 · `test:regression` 0 ·
+`lint:finding-guards --projected` 0.
+
+⚠️ **This commit takes stale proofs to exactly 8 of 8 — passing, with zero headroom.** Four more go stale because their
+un-fixes plant into files ④b edited: `S1P6-C1-15-NAMES-THE-MOVED-CASH` (`CashRunwayChart.tsx`) · `S1-CLASS4-A2-1` ·
+`S1-CLASS4-A3-1` · `S1-CLASS4-A3-2` (all `selectors.ts`). Two consequences, both carried forward:
+- **⑤ runs `lint:finding-guards --projected` before its commit.** Any file it touches that a proof plants into makes a
+  ninth, which reds the gate locally and in CI.
+- **⑦'s drain grows.** Before the readers can prove, these four join `S1P6-A3-3-UPDATE-BY-ID` and `S1P5-D5-9-CAPWRAP`
+  among the non-readers re-proven first. Not drained now: [D77] batches re-proving at the boundary, and ⑦ is it.
