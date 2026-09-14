@@ -1552,6 +1552,32 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   have the drain skip an id already applied, which gives exactly-once regardless of the clear. Rejected: a Bool-answering
   `clear` in the style of `.5.4f` still re-applies, since the apply precedes the failure; clear-then-apply loses a payment
   on a crash in between. Assert through the REAL store, both actions, before and after)*.
+  ⛔ **RE-MEASURED 2026-09-14 THROUGH THE REAL STORE — the scope correction above was itself wrong, and the remedy had a
+  hole.** Payment `5000 → 4500` *(control 4750)* · ⛔ **payday rolls TWICE** `09-28 → 10-12 → 10-26`, history `0 → 2`
+  *(not a no-op — see `C3-6` below)* · ⛔ **Undo is a third door**: payment `4750 → undo 5000 → drain 4750`, payday
+  `→ undo 09-28 → drain 10-12`. `intentRollback.store` predates the mutation, so an id record kept in the store is erased
+  by the Undo. Every control honest. ✅ **[DECISION] 🎯 2026-09-14: ids committed in the same `set` as the mutation and
+  carried through EVERY store replacement in the set wrapper** *(Undo · `importStore` · `reset` · any later door)*, capped.
+  → **`.5.7` ④a.2**. ⛔ It cannot close `C3-6`: two taps are two UUIDs.
+- ⛔ **pass-6 `C3-6` REOPENED (blocker) — its `S1.13.7.6` closure never worked.** Two `payday-landed` taps with distinct ids
+  roll two cycles and write two history entries, at payday −3 / 0 / +14 days, through the drain AND the action directly,
+  with a clear that WORKS. The guard compares `lastHandledPaydayDate` to the CURRENT `nextPaycheckDate`, and the first
+  roll moves that date past the stamp, so a second tap never matches. No real-store test, no registry entry *(the only
+  `C3-6` guard is pass 7's — the id collision)*. ✅ **[DECISION] 🎯 2026-09-14: the tap names its payday.** The button
+  queues the activity's `paydayDateISO`; the roll applies only when it equals `nextPaycheckDate`; an undated entry
+  *(Shortcuts, or a queue written by an older build)* falls back to *the store clock has reached `nextPaycheckDate`*.
+  Rejected: the button's own day count, which inherits the frozen countdown below. → **`.5.7` ④a.3** *(Swift in both
+  copies, compiled only by `native-e2e`)*. ⚠️ Latent in production until the countdown row lands — the button is
+  almost unreachable.
+- ⛔ **THE PAYDAY COUNTDOWN LIVE ACTIVITY ALMOST NEVER STARTS.** `shouldRunPaydayActivity`
+  (`days ≤ PAYDAY_ACTIVITY_WINDOW_DAYS = 3`), its label and the *"Payday landed"* button (`days == 0`) all read
+  `wholeDaysBetween(currentDate, nextPaycheckDate)`, and by census nothing moves `currentDate` with the calendar *(its
+  writers: defaults · onboarding · paycheck edit · rollover, which sets it to the landed payday)*. ⚡ **Measured** on a
+  store shaped as onboarding writes it: weekly **7** · biweekly **14** · monthly **17** days, on every day of the cycle;
+  after one roll 7 · 14 · semimonthly 16 · monthly 31. It starts only when onboarding or a paycheck edit lands within 3
+  days of payday, and never again after that payday. ⚠️ Every test pins a synthetic `currentDate` 2 days out
+  (`paydayActivityContent.test.ts:40`) — the one member of the class that works. Premium, Lock Screen, ships in 2.0.
+  → **routed at `.5.7` ④'s after-scan** *(🎯 2026-09-14: measure now, fix as its own row; remedy unverified)*.
 - 📋 **The review prompt stamps `reviewPrompted` before its swallowed attempt** (`index.tsx:783`). iOS returns no
   signal that a prompt showed, so the attempt is the only stampable event. But when `isAvailableAsync()` is false, the
   flag still sets and the user is never asked. Minor. → **P6.4** *(stamp only when `isAvailableAsync()` answered true)*.

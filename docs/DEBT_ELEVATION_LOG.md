@@ -34517,3 +34517,48 @@ Recommended remedy (JS-only): persist the applied intent ids in the store, commi
 and have the drain skip any id it has already applied. Delivery is then exactly-once whether or not the clear lands.
 Rejected alternative: a Bool-answering `clear` in the style of `.5.4f` would still re-apply, because the actions are
 applied before the clear can fail. Clearing first and applying second would lose a payment on a crash in between.
+
+### `.12.6.5.7.4a` — switch-in re-measure: the correction was wrong, the remedy had a hole, a blocker reopens · 2026-09-14
+
+Verify-first all green from their own exit codes: `lint:rn` · `typecheck` · `test:app` · `test:regression` ·
+`lint:finding-guards` (3 stale, cap 8 · authored 9 of 9). CI `web-e2e` success on `72bd6619`.
+
+**Probes through the REAL store** (`createDebtStore` + the real `drainPendingActions`; a bridge whose `clear` throws and
+is swallowed exactly as `pendingActionBridge.native.ts` does). Scratch runners, not committed; the numbers are the record.
+
+| case | control (clear works) | plant (clear fails) | honest |
+|---|---|---|---|
+| A payment, 2 drains | 5000 → 4750 | **4500** | 4750 |
+| B payday, 2 drains | 09-28 → 10-12 · history 1 | **→ 10-26 · history 2** | one roll |
+| C payment → Undo → drain | 5000 | **4750** | 5000 |
+| D payday → Undo → drain | 09-28 | **10-12** | 09-28 |
+
+⛔ **B refutes the same-sitting correction** that called the payday half *"very likely a no-op"*. ⛔ **C and D are a hole in
+the recommended remedy**: `undoIntentAction` restores `intentRollback.store`, which predates the mutation, so an applied-id
+record kept in the store is erased by the Undo and the lingering entry re-applies the thing the user just undid.
+`importStore` and `reset` replace the store the same way.
+
+⛔ **Probe E — pass-6 `C3-6` (blocker, closed at `S1.13.7.6`) does not hold.** Two `payday-landed` entries with distinct ids,
+ONE drain, clear WORKS: two rolls, history 2, at payday +14 / 0 / −3 days; the action called twice directly, the same.
+`applyPaydayLandedIntent` refuses when `lastHandledPaydayDate === nextPaycheckDate`, and stamps the PRE-roll date — which
+`applyRollover` has just moved `nextPaycheckDate` past. The guard can match only a payday the capture sheet stamped without
+rolling. Nothing tests it through a store; `finding-guards.json` has no pass-6 `C3-6` entry. ⚡ **A guard that compares a
+stamp to a field its own mutation advances cannot fire on a repeat of that mutation** — found by planting the scenario, never
+visible by reading the guard, which reads correctly.
+
+**Probe F — what a roll does to the button's dates.** All 12 cases (4 cadences × offsets 0 / −3 / +5): `currentDate` ← the
+landed payday, `nextPaycheckDate` + one cycle, so `wholeDaysBetween` after is 1–20, never 0. ⚠️ **Probe G — and before any
+roll it is never small either.** Nothing moves `currentDate` with the calendar (census of writers: defaults · onboarding ·
+paycheck edit · rollover). Onboarding-shaped store: weekly 7 · biweekly 14 · semimonthly 1 · monthly 17; after a roll 7 · 14 ·
+16 · 31. `PAYDAY_ACTIVITY_WINDOW_DAYS = 3`, so the countdown starts only off an edit within 3 days of payday, and the
+*"Payday landed"* button (`days == 0`) is almost unreachable. Tests pin `currentDate` 2 days before payday.
+
+**Decisions, 🎯 2026-09-14** *(each recommended; all three accepted)*:
+1. **`C3-6`: the tap names its payday.** The intent queues the activity's `paydayDateISO` (attributes, fixed for the
+   activity's life, and the activity ends at rollover); the roll applies only when it equals `nextPaycheckDate`. Undated
+   entries (Shortcuts; an older build's queue) fall back to *the store clock has reached `nextPaycheckDate`*. Rejected: the
+   real-date rule alone *(a double tap drained after the next payday rolls it — the following day on semimonthly)*; the
+   button's day count *(inherits the frozen countdown)*.
+2. **The applied-id record carries through every store replacement**, in the set wrapper beside `intentRollback`'s rule —
+   a class, not a list of doors. Ids are random UUIDs; nothing personal survives *"Delete all data"*. Capped.
+3. **The countdown is measured now and filed as its own row**, not folded into ④.
