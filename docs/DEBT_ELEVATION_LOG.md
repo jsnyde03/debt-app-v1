@@ -35584,6 +35584,9 @@ self-tests cost roughly 13 — derived by subtraction, not timed per gate; the n
 ⚠️ The wrapper that launched this run died on a bash bad substitution in its own timing echo, so npm's exit code was
 not captured. The pass is read from the runner's summary line, which it prints only on its `exit(0)` path.
 
-⚠️ **A tooling trap cost two failed edits.** The loop's original lines carry literal `` and `\n` inside template
-literals, and the Edit tool decodes backslash sequences in its input, so no escape level matched. Split into three
-edits anchored on backslash-free lines; the escaped full-mode summary lines were left untouched rather than rewritten.
+⚠️ **A tooling trap cost two failed edits.** The loop's original lines carry a terminal-colour escape (backslash, `u001b`)
+inside template literals. The Edit and Write tools decode a backslash-u escape in their input into the character it
+names, and a doubled backslash stays doubled, so no spelling matched. Split into three edits anchored on backslash-free
+lines; the escaped full-mode summary lines were left untouched rather than rewritten. ⛔ **The same trap then landed in
+this entry**: its first version quoted the escape and wrote a raw ESC byte into the log, caught by `lint:control-chars`
+on the next fast run. A backslash-n passed through literally, which is what narrowed the rule to backslash-u.
