@@ -11,6 +11,7 @@ import { runMigrations } from '@/data/migrations';
 import type { Debt, DebtStore } from '@/data/models';
 import { logPaymentSubtitle } from '@/store/logPaymentCopy';
 import { createDebtStore } from '@/store/store';
+import { mayClaim } from '@/store/trustSelectors';
 
 import { buildWidgetSnapshot, SPOKEN_NO_PLAN, SPOKEN_READ_FAILED, SPOKEN_UNREAD_PLAN, type WidgetSnapshot } from './snapshot';
 import { startWidgetSync } from './widgetSync';
@@ -120,12 +121,13 @@ console.log('\n▶ widget snapshot + sync (3.5.1)');
  * ⚠️ Built through the real `runMigrations` rather than by setting `pendingDataRepairs` by hand, so the
  * repair records are the ones the import path actually writes.
  */
-function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
+// ⚠️ [.5.7 ③] `paycheckOver` widens the paycheck without a second pair of date literals — the clock stays pinned here.
+function migratedWidgetStore(debts: unknown[], premium = false, paycheckOver: Record<string, unknown> = {}): DebtStore {
   return runMigrations({
     version: 8,
     subscriptionPlan: premium ? 'premium' : 'free',
     genuineCycleCount: 6,
-    paycheck: { amount: '2000', currentDate: '2026-03-02', nextPaycheckDate: '2026-03-16' },
+    paycheck: { amount: '2000', currentDate: '2026-03-02', nextPaycheckDate: '2026-03-16', ...paycheckOver },
     debts,
     prefs: { onboardingComplete: true },
   });
@@ -169,6 +171,26 @@ function migratedWidgetStore(debts: unknown[], premium = false): DebtStore {
   const snap = buildWidgetSnapshot(read, 500);
   eq(snap.debtFreeDate, 'Debt-free', '⭐ control — a portfolio the app fully read still says Debt-free');
   eq(snap.pctLabel, '100%', '⭐ control — …with its real percentage');
+}
+
+/**
+ * ⛔ **[.5.7 ③ · backlog from `.5.4a`] — THE WIDGET REFUSES LESS NOW, AND THIS PINS THAT DIRECTION.** `.5.4a` moved the
+ * guard from `'debt-balances' && 'row-figures'` to `'debt-balances' && 'solved-projection'`, so a repair no projection
+ * reads no longer blanks the Home Screen. Every other block here asserts a REFUSAL — a revert to the wide claim stayed
+ * green. A lost `typicalAmount` poisons `'row-figures'` (plan `'any'`) and neither claim the widget asks.
+ */
+{
+  const lost = migratedWidgetStore(
+    [{ id: 'a', name: 'Visa', balance: 4000, originalBalance: 5000, minimumPayment: 80, apr: 19, dueDate: '2026-03-12', type: 'debt', recurrence: 'monthly' }],
+    true,
+    { incomeVaries: true, leanAmount: 1500, typicalAmount: 'not a number' },
+  );
+  assert(lost.pendingDataRepairs.some((r) => r.entity === 'plan' && r.field === 'typicalAmount' && r.kind === 'lost'), '⭐ .5.7 — the fixture really did lose the typical paycheck');
+  assert(!mayClaim(lost, 'row-figures') && mayClaim(lost, 'solved-projection') && mayClaim(lost, 'debt-balances'), '⭐ .5.7 — …which poisons row-figures and neither claim the widget asks');
+  const snap = buildWidgetSnapshot(lost, 900);
+  eq(snap.balancesUnread, false, '⛔ .5.4a — a repair no projection reads does not blank the widget');
+  eq(snap.remaining, '$4,000', '⛔ .5.4a — …the remaining total is STATED, by its figure');
+  assert(snap.debtFreeDate !== 'Balances unread', '⛔ .5.4a — …and the date is not withheld');
 }
 
 // D3-2 — Siri's spoken read, on the pass-2 C4 class: a minimum the app could not read.

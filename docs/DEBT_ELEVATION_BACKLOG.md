@@ -1491,7 +1491,8 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   shape: a best-effort native writer that swallows its failure, called by a manager that keeps a change-gate and
   stamps it on the attempt. `widgetSync` and `liveActivitySync` were two instances found one pass apart. → **`.5.7`**
   *(census by query: every `.native` bridge with a swallowing `catch`, and whether its caller stamps state on the
-  call rather than on its answer)*.
+  call rather than on its answer)*. ⚙️ **CENSUS RUN at `.5.7.4a`, 2026-09-13** — widened by shape to every native-touching
+  module; **one live member measured** → filed below as `.5.7.4a-1`, fix pending; the review prompt filed as minor.
 
 ### ⤵ surfaced by `.5.4g`'s after-scan, 2026-09-13
 
@@ -1534,3 +1535,23 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   a second on the list already. → **`.5.7`** *(census by query: every surface that states a per-paycheck amount or a
   ready-by for money not yet set aside, and whether its figure is read from an allocation or derived beside one — the
   round trip `store it → re-allocate → compare` is the assertion that decides each)*.
+
+### ⤵ surfaced by `.5.7.4a`'s census, 2026-09-13
+
+- ⛔ **`.5.7.4a-1` — A SIRI-LOGGED PAYMENT IS APPLIED TWICE WHEN THE APP GROUP CLEAR FAILS.** `drainPendingActions` reads,
+  applies, then calls `bridge.clear()`. `pendingActionBridge.native.ts` swallows a throwing `clearPendingActions()`, so
+  the queue survives, and the next drain (return-to-foreground) applies it again. `parsePendingActions`' "deduped by
+  `id`" covers one payload only, and nothing records applied ids. ⚡ **Measured** by running the real drain twice over a
+  bridge that swallows exactly as the native one does: control `payments [250]`, plant **`payments [250,250]`**. No
+  fixture's `clear` fails, so every test is green. ⚠️ **Scope, corrected the same sitting:** the measurement's api was a
+  STUB counting calls. The payday half (`applyPaydayLandedIntent`) carries pass-6 `C3-6`'s guard on the mutation, so a
+  re-applied roll is very likely a no-op in the real store. That half is unmeasured, and **the payment half is the live
+  defect**, because `logManualPayment` is deliberately unguarded (two Siri payments ARE two). `more.tsx:179`'s reset has
+  the same root: a failed clear leaves the queue in place for the fresh store. → **`.5.7` ④, fix in-step
+  (recommended)** *(JS-only remedy: persist applied intent ids, committed in the SAME store write as the mutation, and
+  have the drain skip an id already applied, which gives exactly-once regardless of the clear. Rejected: a Bool-answering
+  `clear` in the style of `.5.4f` still re-applies, since the apply precedes the failure; clear-then-apply loses a payment
+  on a crash in between. Assert through the REAL store, both actions, before and after)*.
+- 📋 **The review prompt stamps `reviewPrompted` before its swallowed attempt** (`index.tsx:783`). iOS returns no
+  signal that a prompt showed, so the attempt is the only stampable event. But when `isAvailableAsync()` is false, the
+  flag still sets and the user is never asked. Minor. → **P6.4** *(stamp only when `isAvailableAsync()` answered true)*.

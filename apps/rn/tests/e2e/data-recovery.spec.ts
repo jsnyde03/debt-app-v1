@@ -745,6 +745,37 @@ test('C3-8 · an unread APR withholds the projected total, with every balance re
 });
 
 /**
+ * ⛔ **[.5.7 ③ · backlog from `.5.3`] — `C3-8`'s `isPremium &&` HALF, WHICH NO FIXTURE EXERCISED.** The hero refuses a
+ * projected total over an unread APR only on PREMIUM: a free total is the raw anchor sum (`selectDebtBalanceView` returns
+ * `anchorBalance` when `!isPremium`) and reads no rate, so refusing it would withhold a figure that was never at risk —
+ * over-suppression, a second false statement rather than a fix. Every fixture on this screen was premium (`scenario()`
+ * defaults to it), so dropping the conjunct left the suite green — measured by planting at `.5.3`.
+ *
+ * ⚠️ The same store as the test above, tier alone changed — so the only thing that can separate the two verdicts is the
+ * conjunct under test.
+ */
+test('C3-8 · a FREE user with the same unread APR still sees the total — no projection, nothing at risk', async ({ page }) => {
+  await seedStore(
+    page,
+    scenario({
+      subscriptionPlan: 'free',
+      requiredExpenses: [],
+      debts: [
+        { id: 'd0', name: 'Chase card', balance: 8000, originalBalance: 8000, minimumPayment: 100, apr: '', dueDate: day(4), type: 'debt', recurrence: 'monthly', balanceAsOfDate: day(-90), lastVerifiedDate: day(-90) },
+        { id: 'd1', name: 'Visa', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      ],
+    }),
+  );
+  await page.goto('/money');
+  await expect(page.getByText('Visa')).toBeVisible({ timeout: 15_000 });
+
+  await expect(
+    page.getByTestId('money-hero-debts-value'),
+    'a free total is the raw anchor sum — it reads no rate, so an unread APR puts nothing in it at risk',
+  ).toHaveText('$12,000');
+});
+
+/**
  * ⛔ **S1.13.7.12.6.5.4a [pass-7 class 5] — A LOST GOAL TARGET MAY NOT BLANK THE DEBT TOTAL.**
  *
  * `C3-8`'s first fix asked `'debt-balances' && 'row-figures'`, and `'row-figures'` routes every field of every

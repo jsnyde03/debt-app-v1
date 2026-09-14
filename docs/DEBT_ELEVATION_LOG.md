@@ -34446,3 +34446,74 @@ swept tree, re-measure at pass 8 switch-in*), nothing recorded, left for pass 8;
 `celebration.spec.ts` for the last slot, **MATCHED** → 8. Pass 2 then proved all **7 readers MATCHED**; stale
 **10 → 3** (the two pass-8 route proofs + `S1P6-C2-3-CONVERTFIELDS-E2E`). `lint:rn` · `test:app` · `test:regression` green
 from their own exit codes; pushed `2f54404b` (`abc4477b` re-point · `2f54404b` records).
+
+### `.12.6.5.7.3` — the render proofs that were never written · 2026-09-13
+
+**Switch-in: every drafted premise checked against the code first.**
+- `C3-8` (`money.tsx:465`): still `isPremium && !mayStateProjected`. `totalBal` sums `selectDebtBalanceView(…).currentBalance`,
+  and that value is `anchorBalance` when `!isPremium` (`balanceSelectors.ts:78`). A free user's `$12,000` is therefore
+  8000 + 4000 with no rate in it, and the twin is the premium test's store with only the tier changed.
+- Widget (`snapshot.ts:245`): `debt-balances && solved-projection` as drafted. `typicalAmount` is catch-all-only for
+  CLAIMS (`CATCH_ALL_IS_THE_DECISION`), yet `.5.7.2c` measured it recorded under its own name when lost. The fixture
+  assertion depends on that record, and the helper got a `paycheckOver` parameter instead of a second pair of date literals.
+- Affordability and windfall: both surfaces ask `'paycheck-plan'` (`AffordabilityCard.tsx:157`, `WindfallSheet.tsx:85`).
+  The windfall refusal is premium-only and needs a valid amount, and there is no windfall row in `requiredPlanTrust`'s
+  surface table. ⚠️ **Draft corrected twice before a line was written:**
+  - The drafts seeded `pendingDataRepairs` by hand. The seed hydrates through `runMigrations`, so the proofs seed
+    `targetAmount: ''` raw, the way `data-recovery.spec`'s `.5.4a` test does, and the record is the one the import path writes.
+  - The affordability control asserted *"you'd still hold"*. With a goal taking pace, that verdict is not guaranteed,
+    so the control accepts any stated verdict and asserts the refusal's absence after it.
+- The windfall case adds a SECOND goal carrying the unreadable target, so the emergency fund the split routes into is
+  identical between refusal and control.
+
+✅ **Built.** `data-recovery.spec` gains the free twin, `widgetSync.test` the stated direction (asserted by figure:
+`remaining` is `$4,000`, not merely "not a dash"), and `affordability.spec` and `windfall.spec` each gain a refusal plus
+a readable control. `requiredPlanTrust`'s affordability row now names the spec instead of *"NONE YET"*. `test:app`
+green; the five e2es green by name (1.6 min).
+
+⭐ **Planted, each under the command a proof would run, `--workers=1`, and scored by the line the run dies on:**
+- **P1** `money.tsx`: drop `isPremium &&` → red on the free twin only. MATCHED.
+- **P2** `snapshot.ts:245` back to `row-figures` → `test:app` dies on *".5.4a — a repair no projection reads does not
+  blank the widget"*. MATCHED.
+- **P3** `AffordabilityCard.tsx` back to `'required-plan'` → red on the refusal test only; the control stays green. MATCHED.
+- **P4** `WindfallSheet.tsx` back to `'required-plan'` → red on the refusal test only; the control stays green. MATCHED.
+
+All four restored byte-identical (sha256). ⚠️ **Not registered in `finding-guards.json` this session.** `authored` is
+9 of cap 9, and the session closed here. Registering is `③`'s last act, carried in the START HERE.
+
+### `.12.6.5.7.4a` — census: swallowing native bridges → one live member, measured · 2026-09-14
+
+Query: every app-source module that touches native (`requireNativeModule` / `NativeModules` / `expo-*` imports), plus
+every `.native.ts`. The row said "`.native` bridges", but its own lesson was scope by SHAPE, not by file, so the query is
+wider. There are three `.native.ts` files in app source; the catch blocks in the native-backed libraries were read by hand.
+
+| site | swallows | caller acts on the attempt? | verdict |
+|---|---|---|---|
+| `widgetStorage.native.ts` write | returns `false` | no; answered since pass 6 `C3-12` | closed |
+| `liveActivityBridge.native.ts` ×4 | returns `false` | no; answered since `.5.4f` | closed |
+| `pendingActionBridge.native.ts` `read` | returns `null` | no; null means nothing is applied or cleared, and the next drain retries | sound |
+| `pendingActionBridge.native.ts` `clear` | void, swallowed | **YES**: `drainPendingActions` applies and then clears; dedupe is per payload only; nothing records applied ids | MEASURE |
+| `more.tsx:179` reset → `clear()` | same bridge | **YES**: the reset proceeds over a queue that was not cleared | same root |
+| `lib/review.ts` | void, swallowed | stamps `markReviewPrompted()` before the attempt (`index.tsx:783`) | see note |
+| `backupFile.ts` / `csvImportFile.ts` | returns `{ ok: false }` | answered | sound |
+| `haptics.ts` / `debtFreeSound.ts` | fall back / swallow | no state is stamped | sound |
+
+Review note: iOS returns no signal for whether the prompt was shown, so the attempt is the only thing that can be
+stamped. When `isAvailableAsync()` is false, the flag is still set and the user is never asked. Minor → backlog.
+
+MEASUREMENT (the real `drainPendingActions`, run from a bridge that swallows a throwing clear the way the native one
+does, drained twice to simulate launch followed by a return to the foreground):
+- CONTROL: drain 1 applied 2, drain 2 applied 0, payments `[250]`, paydays rolled 1.
+- PLANT: drain 1 applied 2, drain 2 applied 2, **payments `[250,250]`, paydays rolled 2**.
+
+⚠️ **CORRECTION, same sitting: the api was a STUB that counts calls, not effects.** The real `applyPaydayLandedIntent`
+carries pass-6 `C3-6`'s guard ON THE MUTATION (`store.ts:745-760`, the landed payday against `lastHandledPaydayDate`),
+so a re-applied roll is very likely a no-op in the real store. That remains unmeasured. `logManualPayment` has no such
+guard, by design (`C3-6`: two Siri payments of $200 genuinely ARE two), so **the payment half is the live defect**.
+⛔ A Siri-logged payment is applied TWICE whenever the App Group clear fails. Every
+test stays green, because no fixture's `clear` fails. `parsePendingActions`' "deduped by id" is per payload only.
+
+Recommended remedy (JS-only): persist the applied intent ids in the store, committed in the same write as the mutation,
+and have the drain skip any id it has already applied. Delivery is then exactly-once whether or not the clear lands.
+Rejected alternative: a Bool-answering `clear` in the style of `.5.4f` would still re-apply, because the actions are
+applied before the clear can fail. Clearing first and applying second would lose a payment on a crash in between.

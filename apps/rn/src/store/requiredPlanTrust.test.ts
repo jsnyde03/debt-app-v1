@@ -157,10 +157,9 @@ const REQUIRED_PLAN_SURFACES: Surface[] = [
     file: 'components/plan/AffordabilityCard.tsx',
     // ⚠️ [`.5.4d`] `'paycheck-plan'` — the verdict is this paycheck solved with the purchase in it.
     gate: /const unreadPlanInputs = !mayClaim\(store, 'paycheck-plan'\);/,
-    // ⛔ [`.5.4d` after-scan] This pointer named `trust-claims.spec.ts · pass-3 [G-4]`, and NO such test exists — no
-    // e2e anywhere asserts `afford-unread-inputs`. The row proved the wiring and named a render proof that was never
-    // written. Stated as missing rather than left pointing at nothing; filed to `.5.7` with windfall routing's twin.
-    e2e: 'NONE YET — no e2e asserts afford-unread-inputs; filed to .5.7 (.5.4d after-scan)',
+    // ⛔ [`.5.4d` after-scan] This pointer named `trust-claims.spec.ts · pass-3 [G-4]`, and NO such test existed. Written
+    // at `.5.7 ③` over a lost goal target — the loss the rewire newly refuses on — with a readable control beside it.
+    e2e: 'tests/e2e/affordability.spec.ts · ".5.7 — the card refuses its verdict over a goal target it could not read"',
   },
   {
     label: 'Affordability · the save-for-it sheet',

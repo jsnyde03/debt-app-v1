@@ -50,3 +50,32 @@ for (const theme of ['light', 'dark'] as const) {
     await page.screenshot({ path: `test-results/windfall-${theme}.png` });
   });
 }
+
+/**
+ * ⛔ **[.5.7 ③ · backlog from `.5.4d`] — WINDFALL ROUTING'S REFUSAL, ON SCREEN.** The sheet asks `'paycheck-plan'`
+ * (`WindfallSheet.tsx`), which routes goals, and `windfall-unread-inputs` had no e2e anywhere. A SECOND goal carries the
+ * unreadable target so the emergency fund the split routes into is untouched — the only difference between this test
+ * and its control is one goal's target. ⚠️ Seeded raw, so hydration's migration writes the repair record.
+ */
+function lostTargetScenario(targetAmount: number | string) {
+  const base = windfallScenario();
+  return { ...base, goals: [...(base.goals as unknown[]), { id: 'g1', name: 'Trip', targetAmount, currentAmount: 100, type: 'savings' }] };
+}
+
+test('.5.7 — the sheet refuses to route over a goal target it could not read', async ({ page }) => {
+  await seedStore(page, lostTargetScenario(''));
+  await page.goto('/');
+  await page.getByText('Add extra income').click();
+  await page.getByPlaceholder('e.g. 500').fill('1000');
+  await expect(page.getByTestId('windfall-unread-inputs')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/HERE’S HOW THE APP WILL ROUTE/)).toHaveCount(0);
+});
+
+test('.5.7 control — the same sheet with a readable target routes', async ({ page }) => {
+  await seedStore(page, lostTargetScenario(600));
+  await page.goto('/');
+  await page.getByText('Add extra income').click();
+  await page.getByPlaceholder('e.g. 500').fill('1000');
+  await expect(page.getByText(/HERE’S HOW THE APP WILL ROUTE/)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('windfall-unread-inputs')).toHaveCount(0);
+});

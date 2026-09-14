@@ -77,3 +77,37 @@ test('the affordability verdict sits inside a live region', async ({ page }) => 
   await page.getByPlaceholder('e.g. 400').fill('500');
   await expect(page.locator('[aria-live="polite"]').filter({ hasText: /you’d still hold/ })).toHaveCount(1);
 });
+
+/**
+ * ⛔ **[.5.7 ③ · backlog from `.5.4d`] — THE CARD'S REFUSAL, ON SCREEN.** `.5.4d` moved the card from `'required-plan'`
+ * to `'paycheck-plan'`, which routes goals; `'required-plan'` does not. The refusal was proven in SOURCE only —
+ * `requiredPlanTrust.test.ts` named a render spec that never existed. A lost goal target is exactly the loss the rewire
+ * newly refuses on. ⚠️ Seeded as a raw unreadable value, so the repair record is the one hydration's migration writes.
+ * Positive state first; each absence is asserted only AFTER the other state has rendered.
+ */
+const WITH_GOAL = (targetAmount: number | string) =>
+  scenario({
+    // ⚠️ `day(9)`, not a calendar literal — `lint:fixture-dates` caps already-past dates on aging fields.
+    debts: [{ id: 'd0', name: 'Card', balance: 8000, minimumPayment: 100, apr: 22, dueDate: day(9), type: 'debt', recurrence: 'monthly' }],
+    goals: [{ id: 'g0', name: 'Roof', targetAmount, currentAmount: 200, type: 'savings' }],
+    paycheck: { amount: '2000', currentDate: day(0), nextPaycheckDate: day(31) },
+    prefs: { onboardingComplete: true },
+  });
+
+test('.5.7 — the card refuses its verdict over a goal target it could not read', async ({ page }) => {
+  await seedStore(page, WITH_GOAL(''));
+  await page.goto('/');
+  await expect(page.getByText('CAN I AFFORD IT?')).toBeVisible({ timeout: 15_000 });
+  await page.getByPlaceholder('e.g. 400').fill('500');
+  await expect(page.getByTestId('afford-unread-inputs')).toBeVisible();
+  await expect(page.getByText(/you’d (still hold|dip to|come up)/)).toHaveCount(0);
+});
+
+test('.5.7 control — the same card with a readable goal target states its verdict', async ({ page }) => {
+  await seedStore(page, WITH_GOAL(1000));
+  await page.goto('/');
+  await expect(page.getByText('CAN I AFFORD IT?')).toBeVisible({ timeout: 15_000 });
+  await page.getByPlaceholder('e.g. 400').fill('500');
+  await expect(page.getByText(/you’d (still hold|dip to|come up)/)).toBeVisible();
+  await expect(page.getByTestId('afford-unread-inputs')).toHaveCount(0);
+});
