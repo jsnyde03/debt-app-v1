@@ -35895,3 +35895,44 @@ remains unmeasured for this face. **The fix holds on it:** at 17 px "September" 
 ⚠️ **The lesson is the one this project keeps paying for.** "Most likely Roboto" was the best-supported reading after
 three measured faces — and the fourth measurement, the only one taken on the host in question, overturned it. A
 mechanism reasoned from stand-ins is a hypothesis until it is measured where it is claimed.
+
+### `.12.6.5.8.1` — the re-audit brief, and the handoff's range was one sub-step wide · 2026-09-14
+
+**Run from a fresh session**, per 🎯's `.5.7` call. State verified before anything: clean, pushed, `lint:rn --fast`
+47/47, `lint:finding-guards` stale 2 / authored 9 as handed over, CI `success` on `8db424b1` *(read from the
+`conclusion` field)*.
+
+⛔ **The handoff's fix range was wrong.** `CLASS5-START-HERE.md` gave `72bd6619..HEAD` — *"the last commit before this
+session's fixes"* — which is `.5.7` alone: **14 of 76 commits, 25 of 70 code files, +1,029 of +4,016 lines.** No fresh
+auditor has read `.5.2`–`.5.6`. The range is **`c7df99c2..`**, class 4's own precedent (its brief pinned the commit that
+promoted the class). ⚡ Caught by walking `git log` back to the class boundary, not by reading the handoff — the
+*session scope* had been written in where the *class scope* belonged. Corrected in the handoff in the same edit.
+
+⚡ **Class 4's tail is unaudited too, and is in scope.** Round 5 audited `bc2151ff..8ccae93f`; `2df9ece8` (`R5-1`'s fix)
+was committed while it ran, and its report says round 6 must audit it. 🎯 stopped the loop, so nobody has. `R5-2`'s fix
+(`55fcc88f`) landed inside class 5. Both go to lanes.
+
+**The lanes are generated, not typed** — a script assigns every code file changed in `8ccae93f..` by rule and asserts
+each lands once: **72 files · L1 claims+selectors 18 · L2 outside the app 24 · L3 screens+e2e 22 · L4 instruments 8**,
+0 unmatched, 0 deleted, written to `CLASS5-REAUDIT-LANES.tsv`. **24 registry proofs are Playwright-backed.**
+
+⛔ **Two collisions the handoff did not name, both measured before dispatch:**
+1. **Parallel plants in one tree** — pass 7's lanes saw each other's live plants. → each lane plants in its own detached
+   worktree (pass 5's recipe).
+2. **`:4319` is hard-coded** (`apps/rn/playwright.config.ts:15`) with `reuseExistingServer` locally, so two lanes'
+   servers would hand one another a planted bundle. `prove:guards` already refuses **every** proof machine-wide while the
+   port listens — safe, but it reads as a fault in the other three lanes. → **L3 alone runs Playwright**; the brief
+   tells L1/L2/L4 the fault is L3 working, and never to kill it.
+
+✅ **[DECISION] 🎯 2026-09-14 — four parallel lanes in worktrees, L3 alone on `:4319`**, the recommended shape, over the
+same lanes run one after another *(same spend, ~4× wall clock)* and one agent in the main tree *(class 4's shape, but
+class 4's rounds read ~6 files and this is 72)*. Worst case quoted **~2–4M tokens, estimated from line counts, not
+measured.**
+
+⚡ **Attribution is made a measurement.** `[D79]`'s exit counts defects *attributable* to the class's fixes; the brief
+requires every finding to state whether it **reproduces at `c7df99c2`**, in a second worktree — so the
+attributable/reservoir split is re-runnable rather than an auditor's reading.
+
+⚠️ **Membership was not given as a number.** The class table has 13 rows; the plan's rows add ids pulled forward
+(`C1-2`, `B1-2`), swept inline (`C1-3`), a reopened **pass-6** `C3-6`, and `.5.7` closures with no pass-7 id. The brief
+names the four sources and asks for the derived set and every disagreement.

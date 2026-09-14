@@ -1641,3 +1641,13 @@ measured through the real selectors and engine — promise vs what the engine ho
   with fixed paycheck steps. Whether later cycles' bills, reserve draws, holdback decay or variable income move it is
   unmeasured, and a single-cycle round trip cannot measure it. → **P6.10** *(needs a multi-cycle instrument: fund the
   goal cycle by cycle through rollovers and compare the date reached)*.
+
+### ⤵ surfaced by `.5.8.1`'s before-scan, 2026-09-14
+
+- ⚠️ **No two Playwright runs can share this machine, so parallel audit lanes cannot all plant e2e.**
+  `apps/rn/playwright.config.ts:15` hard-codes `PORT = 4319` (and `playwright.shots.config.ts` repeats it) with
+  `reuseExistingServer: !CI`, so a second run silently reuses the first's server and bundle. `prove:guards` fails safe —
+  it refuses every proof while anything listens on the port, machine-wide, including a listener from another repo — but
+  that turns every other lane's proofs into faults. `.5.8` works around it by giving e2e to one lane. → **Tooling /
+  hygiene** *(an env-overridable port, read by both configs and by `prove-guards.ts`' listener check, would let lanes run
+  e2e in their own worktrees; worth it only if a later dispatch needs more than one e2e lane)*.

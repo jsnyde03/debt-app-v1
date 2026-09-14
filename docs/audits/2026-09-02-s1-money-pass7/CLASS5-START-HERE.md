@@ -40,8 +40,10 @@ Expected: tree clean and pushed · CI `conclusion: success` on HEAD · fast gate
 
 ## What the `.5.8` brief must carry
 
-- **The fix range:** from `72bd6619` (`.5.7` step 3, the last commit before this session's fixes) to HEAD. Derive the
-  changed files by `git diff --stat 72bd6619..HEAD`, never from this list.
+- **The fix range:** from **`c7df99c2`** (class 4 closed, class 5 promoted) to the pin. ⛔ **Corrected 2026-09-14 at
+  `.5.8.1`** — this line first said `72bd6619`, which is `.5.7` alone: 14 of the class's 76 commits and 25 of its 70 code
+  files. Derive the changed files by `git diff --stat c7df99c2..<pin>`, never from this list. → **the brief is
+  [`CLASS5-REAUDIT-BRIEF.md`](CLASS5-REAUDIT-BRIEF.md)**.
 - **The questions `[D79]` fixes:** is each class-5 finding actually closed · what did the fixes break · **interaction** with
   already-closed classes (shared file, import or producer) · guards whose pinned files moved · closure by PLANTING, not by
   `lint:finding-guards` (a deletion detector, not a proof).
