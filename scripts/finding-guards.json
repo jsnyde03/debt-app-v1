@@ -4429,5 +4429,304 @@
       "measured": "2026-09-14",
       "sha": "abc4477b"
     }
+  },
+  "S1P7-57-3-FREE-C3-8-TWIN": {
+    "what": ".5.7 step 3 [pass-7 C3-8] - the free-tier twin of the data-recovery refusal: a FREE user with the same unread APR still sees the Money total, because the free total is the anchor sum and states no projection. The isPremium && half of money.tsx's guard was asserted by nothing; dropping it withheld a figure nothing was at risk of misstating.",
+    "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
+    "token": "C3-8 · a FREE user with the same unread APR still sees the total",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/(tabs)/money.tsx",
+          "find": "      ) : isPremium && !mayStateProjected ? (",
+          "replace": "      ) : !mayStateProjected ? ("
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "data-recovery.spec.ts",
+        "-g",
+        "C3-8 · a FREE user"
+      ],
+      "expect": "C3-8 · a FREE user"
+    }
+  },
+  "S1P7-57-3-WIDGET-DIRECTION": {
+    "what": ".5.7 step 3 [.5.4a stated direction] - a lost typicalAmount poisons row-figures and neither claim the widget asks, so the widget must STATE the remaining total, asserted by its figure. Pointing snapshot.ts back at row-figures blanks the widget over a repair no projection reads.",
+    "file": "apps/rn/src/widget/widgetSync.test.ts",
+    "token": "a repair no projection reads does not blank the widget",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/widget/snapshot.ts",
+          "find": "  const mayStateBalances = mayClaim(store, 'debt-balances') && mayClaim(store, 'solved-projection');",
+          "replace": "  const mayStateBalances = mayClaim(store, 'debt-balances') && mayClaim(store, 'row-figures');"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a repair no projection reads does not blank the widget"
+    }
+  },
+  "S1P7-57-3-AFFORDABILITY-REFUSAL": {
+    "what": ".5.7 step 3 [.5.4d render proof never written] - the affordability card refuses its verdict over a goal target it could not read, because the verdict is this paycheck solved with the purchase and a goal moves it. Asked on 'required-plan' the card states a verdict over the lost target.",
+    "file": "apps/rn/tests/e2e/affordability.spec.ts",
+    "token": "the card refuses its verdict over a goal target it could not read",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/AffordabilityCard.tsx",
+          "find": "  const unreadPlanInputs = !mayClaim(store, 'paycheck-plan');",
+          "replace": "  const unreadPlanInputs = !mayClaim(store, 'required-plan');"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "affordability.spec.ts",
+        "-g",
+        "the card refuses its verdict"
+      ],
+      "expect": "the card refuses its verdict over a goal target it could not read"
+    }
+  },
+  "S1P7-57-3-WINDFALL-REFUSAL": {
+    "what": ".5.7 step 3 [.5.4d render proof never written] - the windfall sheet refuses to route over a goal target it could not read; the split moves on every goal field. Asked on 'required-plan' the sheet routes over the lost target.",
+    "file": "apps/rn/tests/e2e/windfall.spec.ts",
+    "token": "the sheet refuses to route over a goal target it could not read",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/WindfallSheet.tsx",
+          "find": "  const unreadPlanInputs = !mayClaim(store, 'paycheck-plan');",
+          "replace": "  const unreadPlanInputs = !mayClaim(store, 'required-plan');"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "windfall.spec.ts",
+        "-g",
+        "the sheet refuses to route"
+      ],
+      "expect": "the sheet refuses to route over a goal target it could not read"
+    }
+  },
+  "S1P7-57-4A2-REPLAY-ONCE": {
+    "what": ".5.7 step 4a.2 [.5.7.4a-1] - a Siri payment that outlived its drain (a swallowed App Group clear) was applied again on the next drain: $5,000 -> $4,500 for one $250 payment, measured through the real store. logManualPayment now skips an intent id it has already applied, recorded in the same set as the effect.",
+    "file": "apps/rn/src/appIntents/pendingActions.test.ts",
+    "token": "that outlives its drain is not applied again after",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/store.ts",
+          "find": "        if (intentId && hasAppliedIntent(s.store, intentId)) return {};\n",
+          "replace": ""
+        }
+      ],
+      "run": "test:app",
+      "expect": "a log-payment that outlives its drain is not applied again after a second drain"
+    }
+  },
+  "S1P7-57-4A2-CARRY-REPLACEMENTS": {
+    "what": ".5.7 step 4a.2 [Jason 2026-09-14] - the applied-intent record is carried through EVERY store replacement by the set wrapper, not only Undo: importStore and reset replace the store too, and a lingering entry re-applied onto the restored store. Planted as the rejected option, carry on Undo only: the Undo row stays green and the restore row reds.",
+    "file": "apps/rn/src/appIntents/pendingActions.test.ts",
+    "token": "restoring a backup taken before the drain",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/store.ts",
+          "find": "          const carried = carryAppliedIntents(state.store, patch.store);",
+          "replace": "          const carried = patch.store;"
+        },
+        {
+          "at": "apps/rn/src/store/store.ts",
+          "find": "      set((s) => (s.intentRollback ? { store: s.intentRollback.store, intentRollback: null } : {}));",
+          "replace": "      set((s) => (s.intentRollback ? { store: carryAppliedIntents(s.store, s.intentRollback.store), intentRollback: null } : {}));"
+        }
+      ],
+      "run": "test:app",
+      "expect": "a log-payment that outlives its drain is not applied again after restoring a backup"
+    }
+  },
+  "S1P6-C3-6-DATED-TAP": {
+    "what": ".5.7 step 4a.3 [pass-6 C3-6, blocker, reopened] - two Lock Screen 'Payday landed' taps rolled the plan two cycles; the pass-6 guard (lastHandledPaydayDate === nextPaycheckDate) never fired because the first roll moves the payday past the stamp. A dated tap now rolls only while its payday is the plan's next. Planted as the rejected real-date rule: the ordinary double tap stays green, and two taps drained after the next payday arrived roll twice.",
+    "file": "apps/rn/src/appIntents/pendingActions.test.ts",
+    "token": "drained after the next payday arrived, still roll once",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/store.ts",
+          "find": "        if (named !== undefined ? named !== landing : clock() < landing) return {};",
+          "replace": "        if (clock() < landing) return {};"
+        }
+      ],
+      "run": "test:app",
+      "expect": "drained after the next payday arrived, still roll once"
+    }
+  },
+  "S1P6-C3-6-HANDLED-NO-REFUSAL": {
+    "what": ".5.7 step 4a.3 [Jason 2026-09-14] - lastHandledPaydayDate no longer refuses a Lock Screen roll: in-app capture and 'Skip this payday' stamp it WITHOUT rolling, so the old refusal silently blocked the roll Today's 'Start next pay cycle' offers.",
+    "file": "apps/rn/src/appIntents/pendingActions.test.ts",
+    "token": "after an in-app capture or skip, a Lock Screen tap rolls the cycle Today offers",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/store.ts",
+          "find": "        if (named !== undefined ? named !== landing : clock() < landing) return {};",
+          "replace": "        if (named !== undefined ? named !== landing : clock() < landing) return {};\n        if (s.store.lastHandledPaydayDate === landing) return {};"
+        }
+      ],
+      "run": "test:app",
+      "expect": "after an in-app capture or skip, a Lock Screen tap rolls"
+    }
+  },
+  "S1P6-C3-6-BUTTON-NAMES-PAYDAY": {
+    "what": ".5.7 step 4a.3 [pass-6 C3-6] - the Lock Screen button must pass the payday its activity was started for, or every tap arrives undated and the dated rule never applies. Source scan only: nothing here compiles Swift except native-e2e, and the tap itself is a P6.14 device row.",
+    "file": "apps/rn/src/appIntents/siriClaims.test.ts",
+    "token": "the Lock Screen button passes the payday its activity was started for",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/targets/widget/PaydayLiveActivity.swift",
+          "find": "                Button(intent: PaydayLandedIntent(paydayDateISO: paydayDateISO)) {",
+          "replace": "                Button(intent: PaydayLandedIntent()) {"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the Lock Screen button passes the payday its activity was started for"
+    }
+  },
+  "S1P7-B1-2-OFFER-ASKS-ENGINE": {
+    "what": ".5.7 step 4b.1 [pass-7 B1-2, blocker, pulled forward from class 6] - the expense-reserve offer added what was already held onto a room a hold never shrinks: a $550 paycheck with $50 held promised a total of $200 while the engine held $150. The offer now asks allocatePaycheck what it would hold. Asserted as a round trip over thin and healthy paychecks x $0-$400 held.",
+    "file": "apps/rn/src/store/expenseReserve.test.ts",
+    "token": "accepting the offer holds exactly the total it promised",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/expenseReserveSelectors.ts",
+          "find": "  const spare = round(selectAllocation(probe)?.expenseReserveHeld ?? 0);",
+          "replace": "  const spare = round((selectAllocation(probe)?.expenseReserveHeld ?? 0) + alreadyReserved);"
+        }
+      ],
+      "run": "test:app",
+      "expect": "pay 550 with 50 already held: accepting the offer holds exactly the total it promised"
+    }
+  },
+  "S1P7-57-4B-RUNWAY-HELD": {
+    "what": ".5.7 step 4b.2 - the Cash Runway said 'I'm setting aside $X from this paycheck' over the water-fill's REQUEST, which allocatePaycheck funds only after the cushion and the expense reserve: a $2,000 paycheck said $1,100 and held $900. selectPrefundedHeld reads the allocation's prefunded_reserve row and the screen passes it to the chart.",
+    "file": "apps/rn/tests/e2e/cushion-forecast.spec.ts",
+    "token": "the runway says it is setting aside what the plan holds",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/cushion-forecast.tsx",
+          "find": "import { effectivePaycheckBuffer, selectPrefundedHeld } from '@/store/selectors';",
+          "replace": "import { effectivePaycheckBuffer, selectPrefundedReserve } from '@/store/selectors';"
+        },
+        {
+          "at": "apps/rn/src/app/cushion-forecast.tsx",
+          "find": "  const holdNow = selectPrefundedHeld(engineStore);",
+          "replace": "  const holdNow = selectPrefundedReserve(engineStore);"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "cushion-forecast.spec.ts",
+        "-g",
+        "the runway says it is setting aside"
+      ],
+      "expect": "I’m setting aside $1,100 from this paycheck"
+    }
+  },
+  "S1P7-57-4B-CONFIRM-FUNDED": {
+    "what": ".5.7 step 4b.3 - save-for-it's confirmation printed 'Now saving $X/paycheck' at a typed pace above what the plan funds. The typed pace is still stored (the engine clamps it) but the confirmation states the funded pace, read in the spec from the caption the same screen prints.",
+    "file": "apps/rn/tests/e2e/saveforit-pace.spec.ts",
+    "token": "a capped custom pace is confirmed at what the plan will fund",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/components/plan/SaveForItSheet.tsx",
+          "find": "      stated = customFunded ?? customPace;",
+          "replace": "      stated = customPace;"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "saveforit-pace.spec.ts",
+        "-g",
+        "a capped custom pace is confirmed"
+      ],
+      "expect": "Now saving $999,999/paycheck"
+    }
+  },
+  "S1P7-57-5-HERO-FIT-WEB": {
+    "what": ".5.7 step 5 [Jason 2026-09-14] - on web the Progress hero date sized nothing (RNW drops adjustsFontSizeToFit), so Segoe UI broke 'September 2026' and 'November 2026' onto a third line and clipped them at 320pt. HeroDate now sizes to its slot so the widest month name measured fits one line (about 17px at 104px).",
+    "file": "apps/rn/tests/e2e/hero-date-fit.spec.ts",
+    "token": "is clipped vertically at",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/(tabs)/progress.tsx",
+          "find": "      ? Math.min(HERO_DATE_SIZE, Math.floor((HERO_DATE_SIZE * slot) / WIDEST_MONTH_PX_PER_26PX))",
+          "replace": "      ? HERO_DATE_SIZE"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "hero-date-fit.spec.ts",
+        "-g",
+        "fits its box at 320pt"
+      ],
+      "expect": "is clipped vertically at 320pt",
+      "proofNote": "HOST-DEPENDENT: reds under a face as wide as Segoe UI or Arial. Under Roboto nothing clips at 26px, so on a Roboto host this plant can go green; the all-months entry is the one that reds on either."
+    }
+  },
+  "S1P7-57-5-HERO-ALL-MONTHS": {
+    "what": ".5.7 step 5 - hero-date-fit discriminated only when the run date landed on a wide month name. It now measures all twelve month names at the size and face the app applied and requires each to fit one line of the slot, so a month the hero is not showing still reds. Planted at a size where today's month fits and 'September' does not.",
+    "file": "apps/rn/tests/e2e/hero-date-fit.spec.ts",
+    "token": "so it breaks mid-word or clips",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/app/(tabs)/progress.tsx",
+          "find": "      ? Math.min(HERO_DATE_SIZE, Math.floor((HERO_DATE_SIZE * slot) / WIDEST_MONTH_PX_PER_26PX))",
+          "replace": "      ? Math.min(HERO_DATE_SIZE, (HERO_DATE_SIZE * slot) / 131.5)"
+        }
+      ],
+      "cmd": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "apps/rn/playwright.config.ts",
+        "hero-date-fit.spec.ts",
+        "-g",
+        "fits its box at 320pt"
+      ],
+      "expect": "\"September\" is",
+      "proofNote": "RUN-DATE AND HOST DEPENDENT by construction: ~20.56px fits 'November' but not 'September' in Segoe UI. It proves the all-months check catches a month the hero is not showing; re-measure it when the hero's month or the host's face changes."
+    }
   }
 }

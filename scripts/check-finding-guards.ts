@@ -175,8 +175,9 @@ const ids = Object.keys(registry);
  * **310 → 311 at `.5.7`** — Siri's Swift fallback for an empty premium read, in the producer's own words.
  * **311 → 312 at `.5.7 ②`** — the projected-staleness refusal.
  * **312 → 316 at `.5.7 ②`** — the claim lattice, the vacuous-conjunct scan, lost-field names, the debt-spread ledger.
+ * **316 → 330 at `.5.7 ⑦`** — one batch: ③'s four render proofs, a.2's replay and carry, pass-6 `C3-6`'s three, `B1-2` and ④b's two, ⑤'s two.
  */
-const MIN_ENTRIES = 316;
+const MIN_ENTRIES = 330;
 const MAX_UNGUARDED = 1;
 
 /**
