@@ -664,6 +664,39 @@ const SCENARIOS: Scenario[] = [
    * prints the same green line as a clean tree. The scan floor covers the blind case; this covers the
    * other direction, that it still REFUSES the thing it names.
    */
+  /**
+   * ⛔ **[.5.7 ② · backlog from `.5.4c`] — `[debt-spread]`: A NEW COPY OF A DEBT, OFF THE LEDGER.** A spread of a projected
+   * debt drops its confirmed-balance record and reopens pass-7 `C3-13` with every test green.
+   * ⚠️ **EDITS a tracked source file**, and both simpler mechanisms were measured wrong first: an untracked `at` is
+   * invisible to `git ls-files`, and `stageIndex` DELETES the working copy after `git add` (`:828-831`) — while this gate
+   * reads file CONTENT from disk, so the staged spread was a path with no body and the scenario redded for the WRONG
+   * reason. `drift.ts` is tracked, on no ledger, and holds no spread; the append is restored and the restore asserted.
+   */
+  {
+    gate: 'lint:trust-claims [debt-spread]',
+    script: 'check-trust-claims.ts',
+    at: 'docs/audits/__gate_plant_unused_debt_spread__.md',
+    body: "This scenario plants by EDITING; the created file is inert and exists only because `at` is required.\n",
+    edit: [{ at: 'apps/rn/src/store/drift.ts', append: "\nexport const plantedDebtCopy = (d: { id: string; balance: number }) => ({ ...d, balance: 0 });\n" }],
+    expect: 'copies a debt with a spread',
+    why: 'a copy of a projected debt reads liveness off the estimate once the WeakMap record is gone — C3-13 again',
+  },
+  /**
+   * ⛔ **[.5.7 ② · backlog from `.5.4`'s `C3-11` before-scan] — `[vacuous-conjunct]`: TWO CLAIMS WHERE ONE CONTAINS THE
+   * OTHER.** `'required-plan' ⊑ 'row-figures'`, so the first half can never change the answer — `.5.3`'s shape, whose outcomes
+   * were all correct while its reason was false. ⚠️ The regex requires `mayClaim` by name and the same receiver twice,
+   * so the plant calls it unaliased on `s`. It EDITS `drift.ts` for `[debt-spread]`'s reason: this gate reads file
+   * content from disk and enumerates `git ls-files`, so an untracked or staged plant is invisible to it.
+   */
+  {
+    gate: 'lint:trust-claims [vacuous-conjunct]',
+    script: 'check-trust-claims.ts',
+    at: 'docs/audits/__gate_plant_unused_vacuous__.md',
+    body: "This scenario plants by EDITING; the created file is inert and exists only because `at` is required.\n",
+    edit: [{ at: 'apps/rn/src/store/drift.ts', append: "\nimport { mayClaim } from './trustSelectors';\nexport const plantedVacuous = (s: Parameters<typeof mayClaim>[0]) =>\n  mayClaim(s, 'required-plan') && mayClaim(s, 'row-figures');\n" }],
+    expect: 'vacuous-conjunct',
+    why: 'a conjunction whose first claim is contained in the second reads as thorough and is a no-op — .5.3 shipped one',
+  },
   {
     gate: 'lint:store-id-writes',
     script: 'check-store-id-writes.ts',
@@ -683,7 +716,7 @@ const SCENARIOS: Scenario[] = [
 /** ⛔ Downward-only. Lowering it to make a run pass is the defect this file exists to catch — the same
  *  ratchet `MIN_CHECKS` uses in `preflight-native-lane.ts`, and the opposite of a cap. */
 // ⚠️ 26 → 27 at S1.13.7.12.6.5.2: `lint:finding-guards [R5-2-boundary]`, the waiver's word-boundary rule.
-const MIN_SCENARIOS = 28; // .5.7 ②: + `[projected]`
+const MIN_SCENARIOS = 30; // .5.7 ②: + `[projected]` + `[debt-spread]` + `[vacuous-conjunct]`
 
 const abs = (rel: string) => join(REPO_ROOT, rel);
 

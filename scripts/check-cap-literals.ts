@@ -144,7 +144,7 @@ for (const rel of files) {
 // not stop being seen, it stopped existing, which is the one honest reason to lower this number.
 // ⚠️ 28 → 29 at round 7 [`W2`]: `MIN_PARSER_CALLS` in `check-amount-collapse.ts` — the population pin
 // that answers the NEXT callee spelling, rather than enumerating a fourth one.
-const MIN_CAPS = 29;
+const MIN_CAPS = 30; // .5.7 ②: + MAX_DEBT_SPREAD_SITES
 
 if (caps !== MIN_CAPS) {
   problems.push(

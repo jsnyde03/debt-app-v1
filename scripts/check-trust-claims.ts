@@ -517,6 +517,102 @@ if (livenessTotal > MAX_LIVENESS_SITES) {
 }
 
 /**
+ * ⛔ **[.5.7 ② · backlog from `.5.4c`] — A COPY OF A PROJECTED DEBT DROPS ITS CONFIRMED BALANCE, AND NOTHING SAID SO.**
+ *
+ * `withProjectedBalances` records each projected debt's confirmed balance in a `WeakMap` keyed by the OBJECT, and
+ * `confirmedBalance` answers with `balance` — the ESTIMATE — for any object it holds no record for. So `{ ...d }` over a
+ * projected debt quietly reopens pass-7 `C3-13` (a projected $0 claimed as a completed payoff) with every test green.
+ * ⚡ Measured at `.5.7`: **10 spreads, every one over RAW debts** (a creation, a write path, a rollover or a migration) —
+ * so this is a ledger of known-safe sites with EXACT counts, the `LIVENESS_OPEN` shape, not a list of defects. An eleventh
+ * reds until someone writes down which it is. ⚠️ **My first count was 7, and this gate's first run said otherwise**: the
+ * query that produced it required the spread's closing brace on the same line, and four sites wrap — the
+ * `audit-site-lists-undercount` shape, caught by the instrument built from the list rather than by the list.
+ *
+ * ⚠️ **A spelling enumeration, stated rather than hidden:** it sees `{ ...d` and `{ ...debt` — the two names every current
+ * site uses. A spread over `row` or `x` is invisible to it; the ledger narrows the hole, it does not close it.
+ */
+const DEBT_SPREAD_G = /\{\s*\.\.\.(?:d|debt)\b/g;
+const debtSpreadCounts = new Map<string, number>();
+for (const rel of files) {
+  if (isTest(rel) || !rel.startsWith('apps/rn/src/')) continue;
+  const n = [...(read.get(rel) ?? '').matchAll(DEBT_SPREAD_G)].length;
+  if (n > 0) debtSpreadCounts.set(rel, n);
+}
+/** file → how many debt spreads it holds, and why none takes a projected debt. ⛔ Counts are EXACT. */
+const DEBT_SPREAD_OPEN: Record<string, { sites: number; why: string }> = {
+  'apps/rn/src/components/entities/ImportDebtsSheet.tsx': { sites: 1, why: '`addDebt` from an import PREVIEW — never a projected debt' },
+  'apps/rn/src/data/legacyBridge/originalBalance.ts': { sites: 1, why: 'the v1.6 bridge over stored rows — never a projected debt' },
+  'apps/rn/src/data/migrations.ts': { sites: 1, why: '`runMigrations` over raw stored rows — never a projected debt' },
+  'apps/rn/src/store/payday.ts': { sites: 1, why: 'the payday rollover over `debtsAfter`, the raw store debts after this cycle — never a projected debt' },
+  'apps/rn/src/store/sandboxScenarios.ts': { sites: 1, why: 'the tutorial sandbox built from the RAW real store — never a projected debt' },
+  'apps/rn/src/store/store.ts': { sites: 5, why: '`prepareNewDebt` over a debt being CREATED, and four write paths (confirm a balance · verify balances · mark the minimum paid · log a payment) over `s.store.debts` — raw by construction' },
+};
+/** ⛔ Downward-only, and a LITERAL (check 3's caps were once derived from their own lists and vacuous). Measured 10 at `.5.7`. */
+const MAX_DEBT_SPREAD_SITES = 10;
+for (const [rel, n] of debtSpreadCounts) {
+  const row = DEBT_SPREAD_OPEN[rel];
+  if (!row) {
+    failures.push(
+      `[debt-spread] ${rel} copies a debt with a spread (${n} site(s)) and is not on the ledger. A copy of a debt taken ` +
+        `from \`withProjectedBalances\` drops its confirmed balance — read liveness through \`confirmedBalance\` on the ` +
+        `ORIGINAL object, or add the row saying why this debt is never a projected one.`,
+    );
+  } else if (row.sites !== n) {
+    failures.push(`[debt-spread] ${rel} is ledgered at ${row.sites} spread(s) and holds ${n}. ⛔ Exact in BOTH directions.`);
+  }
+}
+for (const rel of Object.keys(DEBT_SPREAD_OPEN)) {
+  if (!debtSpreadCounts.has(rel)) failures.push(`[debt-spread] ${rel} is ledgered and spreads no debt any more. ⛔ Remove the row and lower MAX_DEBT_SPREAD_SITES.`);
+}
+const debtSpreadTotal = Object.values(DEBT_SPREAD_OPEN).reduce((s, r) => s + r.sites, 0);
+if (debtSpreadTotal > MAX_DEBT_SPREAD_SITES) {
+  failures.push(`[debt-spread] MAX_DEBT_SPREAD_SITES is ${MAX_DEBT_SPREAD_SITES} and the ledger holds ${debtSpreadTotal}. This cap only goes DOWN.`);
+}
+
+/**
+ * ⛔ **[.5.7 ② · backlog from `.5.4`'s `C3-11` before-scan] — A CONJUNCTION OF TWO CLAIMS WHERE ONE CONTAINS THE OTHER IS
+ * A NO-OP THAT READS AS THOROUGH.**
+ *
+ * ⚡ `.5.3`'s predicate was `mayClaim('debt-balances') && mayClaim('row-figures')`, and `'row-figures'` routes every field
+ * of every entity — so the first half could never change the answer (**0 of 102** repair variants did). The outcomes were
+ * all correct; the REASON was false, which no outcome test can see. `trustSelectors.test.ts` pins the containment lattice
+ * itself; this refuses the production shape: any `mayClaim(s, 'A') && mayClaim(s, 'B')` where A's fields are a subset of
+ * B's, or B's of A's. ⚡ Measured at `.5.7`: one conjunction in production (`widget/snapshot.ts`), `'debt-balances' &&
+ * 'solved-projection'`, and it is NOT contained — debt-balances routes `originalBalance`, which solved-projection does not.
+ */
+const claimCover = (claim: string): Set<string> => {
+  const out = new Set<string>();
+  for (const [entity, fields] of Object.entries(routes[claim as keyof typeof routes] ?? {})) {
+    const lists = (REPAIRABLE_MONEY_FIELDS as Record<string, { required: readonly string[]; optional: readonly string[] }>)[entity];
+    const all = fields === 'any' ? [...(lists?.required ?? []), ...(lists?.optional ?? []), '(any)'] : [...fields];
+    for (const f of all) out.add(`${entity}.${f}`);
+  }
+  return out;
+};
+const covers = (outer: string, inner: string): boolean => {
+  const o = claimCover(outer);
+  return [...claimCover(inner)].every((k) => o.has(k) || (k.endsWith('.(any)') ? false : o.has(`${k.split('.')[0]}.(any)`)));
+};
+const CONJUNCT = /\bmayClaim\s*\(\s*([A-Za-z_$][\w$.]*)\s*,\s*'([a-z-]+)'\s*\)\s*&&\s*mayClaim\s*\(\s*\1\s*,\s*'([a-z-]+)'\s*\)/g;
+let conjunctions = 0;
+for (const rel of files) {
+  if (isTest(rel) || !rel.startsWith('apps/rn/src/')) continue;
+  const body = read.get(rel) ?? '';
+  const map = lineMap(body);
+  for (const m of body.matchAll(CONJUNCT)) {
+    conjunctions++;
+    const [a, b] = [m[2], m[3]];
+    if (covers(b, a) || covers(a, b)) {
+      const [inner, outer] = covers(b, a) ? [a, b] : [b, a];
+      failures.push(
+        `[vacuous-conjunct] ${rel}:${map.lineAt(m.index)} — mayClaim('${a}') && mayClaim('${b}'): every field '${inner}' routes, ` +
+          `'${outer}' routes too, so '${inner}' can never change the answer. Ask the one claim that decides it.`,
+      );
+    }
+  }
+}
+
+/**
  * ⛔ **S1.11.2 [pass-4 D4-8] — THE CONSUMER COUNT WAS PRINTED AND NEVER FLOORED.**
  *
  * Commenting out one of `widget/snapshot.ts`'s two `mayClaim` calls moved this line from

@@ -302,6 +302,100 @@ export default function run(): void {
   }
 
   /**
+   * ⛔ **[.5.7 ② · backlog from `.5.4`'s `C3-11` before-scan] — THE CONTAINMENT LATTICE, PINNED.**
+   *
+   * `.5.3`'s `mayClaim('debt-balances') && mayClaim('row-figures')` was a no-op for 102 of 102 repair variants, because
+   * `'row-figures'` routes every field of every entity. The outcomes were right and the reason was false, so no outcome
+   * test could see it. ⚡ **Measured at `.5.7`: 12 ordered pairs where one claim's routes contain another's** — not only
+   * "anything with row-figures". Pinned both ways: narrowing or widening any route reds with the pairs that moved, and
+   * `lint:trust-claims` refuses a production conjunction over any pair below.
+   */
+  {
+    const EXPECTED_CONTAINMENTS = [
+      'debt-balances ⊑ row-figures',
+      'goal-amounts ⊑ paycheck-plan',
+      'goal-amounts ⊑ row-figures',
+      'goal-amounts ⊑ solved-projection',
+      'paycheck-plan ⊑ row-figures',
+      'paycheck-plan ⊑ solved-projection',
+      'projected-balance ⊑ row-figures',
+      'projected-balance ⊑ solved-projection',
+      'required-plan ⊑ paycheck-plan',
+      'required-plan ⊑ row-figures',
+      'required-plan ⊑ solved-projection',
+      'solved-projection ⊑ row-figures',
+    ];
+    const cover = (claim: string): Set<string> => {
+      const out = new Set<string>();
+      for (const [entity, fields] of Object.entries(claimFields()[claim as keyof ReturnType<typeof claimFields>])) {
+        const lists = (REPAIRABLE_MONEY_FIELDS as Record<string, { required: readonly string[]; optional: readonly string[] }>)[entity];
+        const all = fields === 'any' ? [...(lists?.required ?? []), ...(lists?.optional ?? []), '(any)'] : [...fields];
+        for (const f of all) out.add(`${entity}.${f}`);
+      }
+      return out;
+    };
+    const claims = Object.keys(claimFields());
+    const measured: string[] = [];
+    for (const a of claims) {
+      for (const b of claims) {
+        if (a === b) continue;
+        const outer = cover(b);
+        if ([...cover(a)].every((k) => outer.has(k) || (!k.endsWith('.(any)') && outer.has(`${k.split('.')[0]}.(any)`)))) measured.push(`${a} ⊑ ${b}`);
+      }
+    }
+    measured.sort();
+    eq(measured.join(' | '), EXPECTED_CONTAINMENTS.join(' | '), '⛔ the claim containment lattice is the one measured at .5.7 — a route that moved changes which conjunctions are vacuous');
+    eq(measured.includes('debt-balances ⊑ solved-projection'), false, '⭐ the widget\'s debt-balances && solved-projection is a REAL conjunction — neither contains the other');
+  }
+
+  /**
+   * ⛔ **[.5.7 ② · backlog from `.5.4a`] — EVERY LOST MONEY FIELD IS RECORDED UNDER A NAME `rowFieldUnread` CAN ASK FOR.**
+   *
+   * A lost pace is recorded under a SENTENCE, never under `priorityPerPaycheck`, so a named route or
+   * `rowFieldUnread(…, 'priorityPerPaycheck')` is silently blind to it — which is why the goal routes are `'any'`.
+   * ⚡ Measured at `.5.7` across all 15 repairable money fields: **14 recorded under their own name, 1 under a sentence.**
+   * The one is named below with its reason; the NEXT field recorded under anything but its name reds here until it is.
+   */
+  {
+    const SENTENCE_IS_THE_RECORD = new Map<string, string>([
+      ['goal priorityPerPaycheck', 'the repairs card renders `field` as the sentence, and the stand-down consequence ("no longer funded ahead of your debt") is part of it; every goal route is `any` for this reason'],
+    ]);
+    const rows: Record<string, Record<string, unknown>> = {
+      debt: { id: 'x', name: 'Row', balance: 100, minimumPayment: 25, apr: 20, originalBalance: 200, scheduledPaymentAmount: 50, dueDate: DAY, type: 'debt', recurrence: 'monthly' },
+      goal: { id: 'x', name: 'Row', targetAmount: 1000, currentAmount: 100, type: 'savings', priority: true, priorityPerPaycheck: 50 },
+      requiredExpense: { id: 'x', name: 'Row', amount: 100, dueDate: DAY, recurrence: 'monthly' },
+      livingExpense: { id: 'x', name: 'Row', amount: 100 },
+    };
+    const listKey: Record<string, string> = { debt: 'debts', goal: 'goals', requiredExpense: 'requiredExpenses', livingExpense: 'livingExpenses' };
+    const planPlacement: Record<string, (v: unknown) => Record<string, unknown>> = {
+      cushionFloor: (v) => ({ cushionFloor: v }),
+      leanAmount: (v) => ({ paycheck: { amount: '2000', incomeVaries: true, leanAmount: v, typicalAmount: 2000 } }),
+      typicalAmount: (v) => ({ paycheck: { amount: '2000', incomeVaries: true, leanAmount: 1500, typicalAmount: v } }),
+      windfall: (v) => ({ windfall: v }),
+      expenseReserveBalance: (v) => ({ expenseReserve: { balance: v } }),
+    };
+    let checked = 0;
+    for (const [entity, lists] of Object.entries(REPAIRABLE_MONEY_FIELDS)) {
+      for (const field of [...lists.required, ...lists.optional]) {
+        const raw: Record<string, unknown> =
+          entity === 'plan'
+            ? (planPlacement[field] ?? fail(`⛔ .5.7 — plan field \`${field}\` has no placement here; add where a v8 store holds it`))('not a number')
+            : { [listKey[entity]]: [{ ...rows[entity], [field]: 'not a number' }] };
+        const store = runMigrations({ version: 8, ...raw });
+        const lost = store.pendingDataRepairs.filter((r) => r.entity === entity && r.kind === 'lost');
+        const key = `${entity} ${field}`;
+        checked++;
+        if (SENTENCE_IS_THE_RECORD.has(key)) {
+          if (!(lost.length > 0 && !lost.some((r) => r.field === field))) fail(`⭐ ${key} is no longer recorded under a sentence — the exception is dead; remove it from SENTENCE_IS_THE_RECORD`);
+          continue;
+        }
+        if (!lost.some((r) => r.field === field)) fail(`⛔ .5.7 — a LOST ${key} is recorded under ${JSON.stringify(lost.map((r) => r.field))}, not under its own name, so rowFieldUnread cannot ask for it. Record it under the field, or add it to SENTENCE_IS_THE_RECORD with the reason.`);
+      }
+    }
+    eq(checked, 15, '⭐ every repairable money field was lost and read back — or the loop proves nothing');
+  }
+
+  /**
    * ⛔ **C4 — the SENTENCE was right about arrays that were wrong.** A `minimumPayment` the app could not
    * read repairs to `$0`, and `allocatePaycheck` emits neither an allocation row nor an unfunded item for
    * an obligation of `$0` — so the debt leaves the plan, `countOutstandingRequired` honestly returns 0,
