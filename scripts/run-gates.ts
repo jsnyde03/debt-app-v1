@@ -165,12 +165,49 @@ const GATES: { name: string; cmd: string; args: string[] }[] = [
   ].map((name) => ({ name, cmd: 'npm', args: ['run', name] })),
 ];
 
-const failed: string[] = [];
+/**
+ * ⚡ [D81] — `npm run lint:rn -- --fast` is the PER-FIX run; plain `lint:rn` stays the full chain, which is what CI,
+ * `validate:release:rn` and `lint:ci-chain` depend on, and its output is unchanged.
+ *
+ * `--fast` skips the gates' SELF-TESTS — the links that plant defects into the gate scripts and re-run them. A change
+ * to app code cannot move their answer; a change to a gate script, `scripts/lib/` or the proof/plant harness is exactly
+ * what they exist to catch, and that is when the full run is owed.
+ *
+ * ⛔ **The skipped set is DERIVED, never listed.** Every gate not named `lint:*` (eslint aside) is a self-test. Listing
+ * their names here would put a second copy of a registry guard's token in this file (test:wrap-escapes is one), and
+ * that guard would stay green over the gate being deleted from `GATES` — a mention is not an execution.
+ *
+ * ⚠️ `--list` prints what would run and what would be skipped, and exits. It reads the same `selected` the run loop
+ * does, so it is how the selection is checked without running every gate.
+ */
+const FAST = process.argv.includes('--fast');
+const isSelfTest = (gate: { name: string }) => !gate.name.startsWith('lint:') && !gate.name.startsWith('eslint');
+const selected = FAST ? GATES.filter((gate) => !isSelfTest(gate)) : GATES;
+const skipped = GATES.filter((gate) => !selected.includes(gate)).map((gate) => gate.name);
 
-for (const gate of GATES) {
+// ⛔ [D81] FULL MODE RUNS EVERY GATE. A runner that quietly skips still prints green — in CI too, where nobody reads
+// the list — so a full run that selected fewer than `GATES` is refused here, before anything runs.
+if (!FAST && selected.length !== GATES.length) {
+  console.error(`❌ lint:rn: full mode selected ${selected.length} of ${GATES.length} gates, so the runner is skipping: ${skipped.join(' · ')}`);
+  process.exit(1);
+}
+
+if (process.argv.includes('--list')) {
+  console.log(`${FAST ? 'lint:rn --fast' : 'lint:rn'}: ${selected.length} of ${GATES.length} gates would run.`);
+  for (const gate of selected) console.log(`  run   ${gate.name}`);
+  for (const name of skipped) console.log(`  skip  ${name}`);
+  process.exit(0);
+}
+
+const failed: string[] = [];
+const seconds: { name: string; s: number }[] = [];
+
+for (const gate of selected) {
   console.log(`\n\u001b[1m── ${gate.name} ${'─'.repeat(Math.max(0, 70 - gate.name.length))}\u001b[0m`);
   // `shell: true` on Windows — `npm` is `npm.cmd`, and spawnSync without a shell cannot resolve it.
+  const started = Date.now();
   const res = spawnSync(gate.cmd, gate.args, { stdio: 'inherit', shell: true });
+  seconds.push({ name: gate.name, s: (Date.now() - started) / 1000 });
   // ⚠️ A signal death has a null status and is NOT a pass. `status !== 0` would read `null !== 0` as true,
   // which happens to be right — but it is right by accident, so it is written out.
   const ok = res.status === 0;
@@ -178,6 +215,24 @@ for (const gate of GATES) {
 }
 
 console.log(`\n\u001b[1m${'═'.repeat(72)}\u001b[0m`);
+const total = seconds.reduce((sum, t) => sum + t.s, 0);
+console.log(`⏱  ${total.toFixed(0)}s across ${seconds.length} gates, slowest first:`);
+for (const t of [...seconds].sort((a, b) => b.s - a.s)) console.log(`   ${t.s.toFixed(1).padStart(6)}s  ${t.name}`);
+
+// ⛔ [D81] A fast green must never read as a full one: its own wording, and the skipped self-tests named every time.
+if (FAST) {
+  console.log(`⚠️  NOT a full run: ${skipped.length} self-test(s) skipped: ${skipped.join(' · ')}.`);
+  console.log('   Run the full lint:rn at the sub-step close, or after a change to a gate script, scripts/lib/ or the harness.');
+  if (failed.length === 0) {
+    console.log(`✅ lint:rn --fast — all ${selected.length} static gates pass (${skipped.length} self-tests NOT run).`);
+    process.exit(0);
+  }
+  console.error(`❌ lint:rn --fast — ${failed.length} of ${selected.length} gates FAILED:`);
+  for (const name of failed) console.error(`  ❌ ${name}`);
+  console.error(`  ⛔ ${selected.length - failed.length} passing does not mean the tree is clean, and the self-tests did not run.`);
+  process.exit(1);
+}
+
 if (failed.length === 0) {
   console.log(`\u001b[32m✅ lint:rn — all ${GATES.length} gates pass.\u001b[0m`);
   process.exit(0);

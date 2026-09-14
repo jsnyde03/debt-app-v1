@@ -35554,3 +35554,36 @@ stale on commit (`S1P6-A3-3-UPDATE-BY-ID`, `store.ts` moved) → 4 against the c
 UNCLASSIFIED and `test:gate-plants`' two S1 scenarios failed on their controls. Row added as `["never"]`, appended the way
 the last fix-created files were; per [D81], only the gates that read it were re-run: `lint:s1-coverage` 0 *(499 classified)* · `lint:surface-complete` 0 ·
 `test:gate-plants` 0 *(30 of 30 fail closed, both S1 scenarios' controls green)*. The other 50 had passed on the same tree.
+
+### [D81] built — `npm run lint:rn -- --fast`, and a full run that refuses to skip · 2026-09-14
+
+**Built in `scripts/run-gates.ts`, the `GATES` array untouched** *(byte-identical to HEAD, sha256)*, so
+`lint:runner-completeness`' bounds and every guard token pinned to that file stand.
+- `--fast` skips every gate not named `lint:*` (eslint aside). The set is DERIVED, never listed: listing would put a
+  second copy of a guard token (test:wrap-escapes is one) into the file, and that guard would stay green over the gate
+  being removed from `GATES`. Selected **47 of 52**, skipping exactly `prove:guards:selftest` · `test:gate-plants` ·
+  `test:wrap-escapes` · `test:plant-safety` · `test:joined-code`.
+- A fast run prints its own summary — *"NOT a full run"*, the skipped self-tests by name, and a green that says
+  *"(5 self-tests NOT run)"*. Plain `lint:rn` prints exactly what it always did.
+- Every gate is timed; the summary lists the slowest first.
+- `--list` prints the selection and exits, off the same `selected` the run loop reads.
+
+⛔ **Full mode refuses to skip.** A runner that quietly skips still prints green, in CI too, so `run-gates.ts` now exits
+1 if a full run selected fewer than `GATES`. **Planted**: the skip filter forced into full mode → exit 1, *"full mode
+selected 47 of 52 gates, so the runner is skipping"*; control → exit 0, *"52 of 52 gates would run"*; restored
+byte-identical (sha256). `typecheck:scripts` 0.
+
+⚠️ **Cost of the edit, as projected before building:** it stales exactly ONE proof — `S1P6-D1-8-GATECHAIN`, the only
+proof whose un-fix targets `run-gates.ts` *(staleness keys on a proof's `unfix.at`, not on the file a token lives in)* —
+re-proven after this commit. Per [D81] as narrowed, the runner is not a file the self-tests exercise, so no full run was
+spent on it.
+
+**First fast run: all 47 static gates pass in 204s.** The two slowest are eslint (55.4s) and `lint:finding-guards`
+(34.2s); every other gate takes 1.5–7.3s. The full `lint:rn` at `.5.7.4a.2`'s close took about 17 minutes, so the five
+self-tests cost roughly 13 — derived by subtraction, not timed per gate; the next full run prints the real figures.
+⚠️ The wrapper that launched this run died on a bash bad substitution in its own timing echo, so npm's exit code was
+not captured. The pass is read from the runner's summary line, which it prints only on its `exit(0)` path.
+
+⚠️ **A tooling trap cost two failed edits.** The loop's original lines carry literal `` and `\n` inside template
+literals, and the Edit tool decodes backslash sequences in its input, so no escape level matched. Split into three
+edits anchored on backslash-free lines; the escaped full-mode summary lines were left untouched rather than rewritten.
