@@ -412,7 +412,12 @@ test('.5.4d · the Payday Guardian card states nothing over a goal target the ap
  *
  * ⭐ Both directions: the control below is the same store with the rate readable, which still states the date and split.
  */
-test('.5.4d · the plan hero withholds its date and its split over an APR the app could not read', async ({ page }) => {
+/**
+ * ⛔ **[class 5 R2 `L3-4`] …and ONLY the date.** On snowball a lost APR moves no segment of the split and no part of the
+ * verdict — measured on 22 plan shapes — so those ask `'paycheck-plan'` and stay. The date is withheld, and said so by name.
+ * ⚠️ The split assertion comes FIRST: it is the finding's subject, and a throw-based runner proves nothing behind a red.
+ */
+test('.5.4d · the plan hero withholds its DATE over an APR the app could not read, and keeps its split', async ({ page }) => {
   await seedStore(
     page,
     scenario({
@@ -424,9 +429,10 @@ test('.5.4d · the plan hero withholds its date and its split over an APR the ap
   await page.goto('/');
   const hero = page.getByTestId('plan-hero');
   await expect(hero).toBeVisible({ timeout: 15_000 });
-  await expect(hero, 'the honest state, by name').toContainText('An amount your plan is built from could not be read');
+  await expect(hero.getByText('Flexible'), '⛔ L3-4 — the split reads no APR, so a lost one may not blank it').toBeVisible();
+  await expect(hero, 'the honest state, by name').toContainText(/can.t give a debt-free date yet — set the interest rate on Visa again/);
   await expect(hero, 'a debt-free date solved from a rate the app could not read').not.toContainText('debt-free by');
-  await expect(hero.getByText('Flexible'), 'the split is carved from the corrupted allocation (C1-5)').toHaveCount(0);
+  await expect(hero, 'the whole-plan refusal belongs to inputs the split reads').not.toContainText('An amount your plan is built from could not be read');
 });
 
 test('.5.4d control · the plan hero with the rate readable still states its date and its split', async ({ page }) => {
@@ -444,6 +450,72 @@ test('.5.4d control · the plan hero with the rate readable still states its dat
   await expect(hero).toContainText('debt-free by');
   await expect(hero.getByText('Flexible')).toBeVisible();
   await expect(hero).not.toContainText('could not be read');
+});
+
+/**
+ * ⛔ **[class 5 R2 `L3-1a` blocker · `L3-1b` · `FX-2`] — THE SUGGESTED MOVE OVER A MINIMUM THE APP COULD NOT READ.**
+ *
+ * `C1-5` withheld the hero's split and its voice-over line and left the suggestion DRAWN: *"Suggested · $1,300"*, inflated by
+ * exactly the lost $300 minimum, above the sentence refusing to say where the plan lands. `RecommendedActionsCard` drew the
+ * same list with a "Mark Paid" control and asked no claim at all. ⭐ The control is the readable twin, at `$1,000`.
+ */
+const CAR_MINIMUM = (minimumPayment: number | string) =>
+  scenario({
+    debts: [
+      { id: 'd0', name: 'Visa', balance: 5000, originalBalance: 8000, minimumPayment: 150, apr: 20, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      { id: 'd1', name: 'Car', balance: 9000, originalBalance: 12000, minimumPayment, apr: 6, dueDate: day(12), type: 'debt', recurrence: 'monthly' },
+    ],
+  });
+
+test('class 5 R2 · the suggested move is withheld over a minimum the app could not read — the hero and the Recommended card', async ({ page }) => {
+  await seedStore(page, CAR_MINIMUM(''));
+  await page.goto('/');
+  const hero = page.getByTestId('plan-hero');
+  await expect(hero, 'the honest state, by name').toContainText('An amount your plan is built from could not be read', { timeout: 15_000 });
+  await expect(page.getByTestId('recommended-unread-inputs'), '⛔ FX-2 — the card says why, naming the figure').toContainText('set the minimum payment on Car again');
+  await expect(hero.getByText(/^Suggested ·/), '⛔ L3-1a — drawn over its own refusal, inflated by the lost minimum').toHaveCount(0);
+  await expect(page.getByText('Suggested this paycheck'), '⛔ FX-2 — no suggested row survives on Today').toHaveCount(0);
+});
+
+test('class 5 R2 control · with the minimum readable both draw the suggested move', async ({ page }) => {
+  await seedStore(page, CAR_MINIMUM(300));
+  await page.goto('/');
+  const hero = page.getByTestId('plan-hero');
+  await expect(hero.getByText(/^Suggested · \$1,000 · /)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Suggested this paycheck').first()).toBeVisible();
+  await expect(page.getByTestId('recommended-unread-inputs')).toHaveCount(0);
+});
+
+/**
+ * ⛔ **[class 5 R2 `FX-1` · DECISION 🎯 2026-09-14] — ON AVALANCHE A LOST RATE RENAMES THE DEBT.** Avalanche ranks by APR, and
+ * a repaired `0` sends a 22% Chase below an 18% Visa: the Guardian brief said *"apply the spare … toward Visa"* while
+ * `'paycheck-plan'` said yes. `.5.4d`'s sweep never set a strategy, so it only ever measured snowball.
+ */
+const AVALANCHE = (chaseApr: number | string) =>
+  scenario({
+    payoffStrategy: 'avalanche',
+    debts: [
+      { id: 'd0', name: 'Chase', balance: 5000, originalBalance: 6000, minimumPayment: 150, apr: chaseApr, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+      { id: 'd1', name: 'Visa', balance: 3000, originalBalance: 3500, minimumPayment: 90, apr: 18, dueDate: day(8), type: 'debt', recurrence: 'monthly' },
+    ],
+  });
+
+test('class 5 R2 · FX-1 · on avalanche nothing names a debt ranked by a rate the app could not read', async ({ page }) => {
+  await seedStore(page, AVALANCHE(''));
+  await page.goto('/');
+  await expect(page.getByTestId('guardian-unread-inputs'), 'the honest state, by name').toContainText('set the interest rate on Chase again', { timeout: 15_000 });
+  await expect(page.getByTestId('recommended-unread-inputs')).toContainText('set the interest rate on Chase again');
+  await expect(page.getByTestId('plan-hero').getByText('Flexible'), '⛔ L3-4 — the split reads no rate on either strategy, and stays').toBeVisible();
+  await expect(page.getByText(/toward Visa/), '⛔ FX-1 — a lost 22% ranked Chase below an 18% Visa').toHaveCount(0);
+  await expect(page.getByText(/Extra payment to Visa/)).toHaveCount(0);
+});
+
+test('class 5 R2 control · FX-1 · on avalanche with every rate readable the target is named', async ({ page }) => {
+  await seedStore(page, AVALANCHE(22));
+  await page.goto('/');
+  await expect(page.getByText(/toward Chase/).first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('guardian-unread-inputs')).toHaveCount(0);
+  await expect(page.getByTestId('recommended-unread-inputs')).toHaveCount(0);
 });
 
 // ── C4-2 · the trophy shelf, and the heading Money put over the same row ─────────────────────────

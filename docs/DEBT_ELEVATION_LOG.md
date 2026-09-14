@@ -35985,3 +35985,104 @@ one `git status` spawn died with `0xC0000142` under four-lane load and was re-ru
    - ⛔ **`run-the-control-on-the-verifier`, on the one step in the session where the verifier gated a destructive action.**
      I read L3's incident, wrote the lesson into the reply, and did not plant a known junction through the new check before
      trusting it.
+
+### `.12.6.5.8.4.1` switch-in — `L3-4`'s remedy reopens a hole its probe could not see: avalanche · 2026-09-14
+
+**Fresh session, the fixer.** Verified before acting: tree clean and pushed at `006adbc2` · `lint:rn --fast` 47/47 ·
+finding-guards stale 2 (cap 8), authored 9 (cap 9) · CI on `ea3f5e0e` `success`, on `006adbc2` in progress (docs only) ·
+main worktree only. `L3-1a`'s mechanism holds at the pin: `PlanHero.tsx:171` computes `showSuggest`, `:219` drew without it.
+
+⛔ **`FX-1` — found by the fixer, not the round.** L3's probe seeded ONE debt, so the suggested target could not move.
+`selectActiveRecommendedActions` sorts avalanche by `apr`, and the Guardian brief names the first snowball item
+(`guardianSelectors.ts:885`). Measured with two debts, Chase 22% / Visa 18%
+([`probe-841-avalanche.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-841-avalanche.ts), output beside it):
+**snowball** — a lost APR on either debt moves nothing; **avalanche** — a lost Chase APR moves the hero's suggestion AND the
+Guardian brief from *"apply the spare $1,210 toward Chase"* to *"… toward Visa"*, the $1,210 unchanged, `'paycheck-plan'`
+**yes**. ⚡ `.5.4d`'s sweep never sets `payoffStrategy`, so its 22 shapes all ran the default snowball — the population was
+one strategy wide. **`L3-4`'s remedy as written** (the suggestion on `'paycheck-plan'`) **would have shipped the hole on the hero too.**
+
+✅ **[DECISION] 🎯 2026-09-14 — `FX-1` closes by routing `debt.apr` into `'paycheck-plan'` ONLY under avalanche**, the
+recommended option: one owner, exact on both strategies, and `.5.4d`'s ruling that a snowball Guardian card stays up over a
+lost APR survives. Rejected: withholding only the name *(a copy rule repeated per surface)* · routing APR always *(reverses
+`.5.4d`'s measured exactness for every snowball user)*.
+
+⛔ **`FX-2`:** `RecommendedActionsCard` (`index.tsx:557`) is handed the same `recommended` list and asked NO claim — the card
+the hero's suggestion is *"tied (blue) to"*, with a "Mark Paid" control. Withholding the hero's row alone was the member, not the class.
+
+⚡ **Measured across the sweep × both strategies** ([`probe-841-sweep-by-strategy.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-841-sweep-by-strategy.ts),
+output `…-before-route.txt`), the hero split into its two families and the card added, printing every non-exact key rather
+than the first: **current routes — snowball 10 non-exact, 0 holes · avalanche 17, of them 6 HOLES** *(hero suggestion,
+Guardian brief, Recommended card × each debt's APR)*. **Avalanche route — the 6 holes close and 6 over-suppressions open**:
+Affordability, Windfall routing and the paywall lead refuse over a lost APR on avalanche that moves none of them.
+⛔ **My question to 🎯 had said the route was "exact on both strategies". It is not, and that was asserted before it was
+measured** — re-asked with the six named. Also surfaced: splitting the hero adds an over-suppression on the DATE for a lost
+`expenseReserveBalance` (the whole-card figure had hidden it), and on avalanche only the cushion forecast over-suppresses on a
+lost `goal.currentAmount` — a fixture question, not yet a finding.
+
+✅ **[DECISION] 🎯 2026-09-14, re-asked with the six named — KEEP the avalanche route and pin the six over-suppressions by
+exact key**, the recommended option, as `.5.4d` pinned the paywall and windfall eight. A rare state (avalanche and an
+unreadable imported rate); each refusal names the rate to re-enter. Rejected: an eighth `'ranked-target'` claim, exact but a
+re-pinned lattice, re-pinned gates and a third trust flag on PlanHero. ⚠️ Accepted with it: on avalanche with a lost APR,
+PlanHero withholds its split as well as its suggestion.
+
+⛔ **CORRECTION, same day — both sentences above that name PlanHero were measured wrong within the hour.** My first build put
+the split, the verdict and the suggested move on `'paycheck-plan'` as one figure — the very serialisation round 1's trap names
+as `L3-4`'s cause. Measured PER FAMILY ([`probe-841-hero-families.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-841-hero-families.ts),
+output `…-after-route.txt`): **split exact on `'required-plan'`** (0 holes · 0 over; 8 over on `'paycheck-plan'`) · **verdict**
+closest on `'required-plan'` (0 · 7, every one of which the split moves on) · **suggested move exact on `'paycheck-plan'`**
+(0 · 0; 8 holes on `'required-plan'`) · **date on `'solved-projection'`** (0 · 2, both pinned). So PlanHero takes three flags
+under EITHER option, and on avalanche a lost APR does NOT blank its split. ⚡ **`L3-4`'s remedy was wrong twice**: *"split and
+suggestion on `'paycheck-plan'`"* over-suppresses the split, and would have shipped `FX-1`'s hole on the suggestion. 🎯 re-asked
+with the corrected cost. ✅ **[DECISION] 🎯 2026-09-14 — re-confirmed: KEEP the avalanche route and the six pinned keys.**
+
+⚠️ **A plant that never applied, and the plant was the thing wrong.** Unit batch 1 ([`plants-unit.json`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/plants-unit.json),
+runner [`plant.py`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/plant.py)): control green, **5 of 6 MATCHED** for their
+named reason, every file restored hash-identical. Plant 04 (`L3-4`'s remedy as written, the split on `'paycheck-plan'`)
+reported `NOT-APPLIED — old string occurs 0x`: its anchor spans two lines spelled with `\n`, and `trustSelectors.test.ts` is
+**CRLF on 1,119 of 1,119 lines** (`index.tsx` 1,146 of 1,146). Re-anchored with `\r\n` for the rerun and for e2e-03, which
+had the same two-line anchor because the one-line form is not unique (`RequiredActionsCard` asks `'required-plan'` too); every
+e2e anchor then counted exactly once before any export was spent. ⚡ The runner refusing a zero count is what made this a
+line in a log rather than a green plant scored as a proof.
+
+### ✅ `.12.6.5.8.4.1` CLOSED — PlanHero, the Recommended card, the avalanche route · 2026-09-14
+
+**Built:** `L3-1a` (blocker) the hero's suggestion renders on `showSuggest`, the flag its voice-over already read · `L3-1b` the
+same line · `L3-4` the hero asks one claim PER FIGURE FAMILY — split + verdict `'required-plan'`, suggested move
+`'paycheck-plan'`, date `'solved-projection'` with a named-fix sentence *(“On track · I can’t give a debt-free date yet — set …”)*
+· `FX-1` `RANKED_BY` in `trustSelectors.ts`: `'paycheck-plan'` routes `debt.apr` on avalanche, through `routeFor`, which
+`poisons` and both row helpers now share; `claimFields()` stays the strategy-free table the gates read, pinned equal to
+snowball's route · `FX-2` `RecommendedActionsCard` asks `'paycheck-plan'`, a REQUIRED prop, withholds its suggested rows with
+the lead and a named fix, keeps completed rows.
+
+**Instruments:** the `.5.4a/.5.4d` sweep gains the strategy dimension *(derived from `RANKED_BY`'s exhaustive `Record`)* with a
+pooling rule — strategies pool where a verdict agrees, split with `· on <strategy>` where it differs — the hero as three
+surfaces and the Recommended card as a fourth; the containment lattice is pinned per strategy *(avalanche adds exactly
+`projected-balance ⊑ paycheck-plan`)*; six `· on avalanche` keys and the hero date's `expenseReserveBalance` key join
+`ACCEPTED_OVER`. e2e: the `.5.4d` hero test now asserts the split KEPT over a lost APR; four new tests + controls for
+`L3-1a`/`FX-2` (lost $300 minimum on Car, control `Suggested · $1,000`) and `FX-1` (avalanche, lost 22% on Chase, control names Chase).
+
+**Proven:** typecheck rn + tests clean · `lint:rn` **52/52** full · `test:app` ALL PASSED · `trust-claims.spec.ts` **27/27** +
+`plan-hero-conserves` 3/3 + `earlyjourney` 5/5 unplanted · **unit plants 6/6 MATCHED** *(route revert → lattice red · `poisons`
+ignoring strategy → HOLE · APR routed always → lattice red · `L3-4`'s remedy as written → OVER on the split · suggestion on
+`'required-plan'` → HOLE · one-strategy population → guard red)* · **e2e plants 5/5 MATCHED**, each red at its own assertion
+*(`:476` L3-1a · `:477` FX-2 · `:432` L3-4 · `:506` FX-1 route · `:510` FX-1 hero wiring)*, every restore hash- or cmp-identical.
+Records under [`class5-round2-fixes/`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/). ⚠️ No registry rows yet — every
+proof here registers at **8.4.7**, in the one batch.
+
+⚡ **After-scan.** Filed to the backlog: `lint:trust-claims`' `[route]` and `[vacuous-conjunct]` checks read only the
+strategy-free table, so avalanche's `projected-balance ⊑ paycheck-plan` is invisible to them → **class 9**. Carried in-class:
+the sweep has no TIER dimension either (8.4.2's probe below) · three `cushionLine(store).value` readers ignore `unread` —
+`selectSavingsPoolUnread`, `selectTightTopUp`, `selectAffordability` → **8.4.3's switch-in** beside `L1-3`. Measured and not
+filed: the widget refuses `remaining` for a free user over a lost APR by its documented *"all four degrade together"* rule.
+
+### `.12.6.5.8.4.2` switch-in — `L3-2` is a TIER question, and so is Money's copy of the answer · 2026-09-14
+
+[`probe-842-progress-by-tier.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-842-progress-by-tier.ts) (output
+`…-at-8.4.1.txt`): the sweep's shapes plus an UNPAID copy of each, both strategies pooled, tiers never pooled, every figure against
+every claim. **Cash-flow bars** (`L3-5a`): `'solved-projection'` — premium 0 holes · 0 over, free 0 · 1. **Their line caption**
+(`L3-5b`): no claim is exact on premium (≥1 hole or ≥16 over) — it needs `cushionLine().unread`, as the remedy said; on free it
+moves on nothing (0 holes under every claim). **Journey line, projected arm** (`L3-2`) and **Money's total** measure identically:
+premium exact on `'projected-balance'` (0 · 0), free exact on `'debt-balances'` (0 holes · 2 over) where `'projected-balance'`
+over-suppresses 2 more — the lost APRs. ⚡ **So on a free store "the projected balance" IS the confirmed balance**, and the audit's
+remedy (`!isPremium ||` at Progress) would be a second copy of the conjunct `money.tsx:465` already carries. The one-owner
+alternative is a tier-aware route, as `FX-1` made the strategy one — **🎯's call, asked at decomposition.**

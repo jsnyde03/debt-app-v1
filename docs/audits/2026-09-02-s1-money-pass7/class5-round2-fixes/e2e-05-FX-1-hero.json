@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/app/(tabs)/index.tsx", "              unreadSuggestion={!mayClaim(store, 'paycheck-plan')}", "              unreadSuggestion={false}"]
+  ],
+  "runs": [
+    {"name": "E5 FX-1 hero wiring revert - the suggestion asks no claim of its own", "spec": "trust-claims.spec.ts", "grep": "on avalanche nothing names a debt"}
+  ]
+}

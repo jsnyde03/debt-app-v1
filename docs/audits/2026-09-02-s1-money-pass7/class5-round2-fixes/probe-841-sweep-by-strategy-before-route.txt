@@ -1,0 +1,62 @@
+
+== snowball · CURRENT routes · 528 keys · 10 non-exact ==
+  OVER  paycheck-plan · Windfall routing · plan.windfall LOST
+  OVER  paycheck-plan · the paywall lead · debt[0].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · debt[1].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-LIST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-ROW
+  OVER  paycheck-plan · the paywall lead · goal.currentAmount LOST
+  OVER  paycheck-plan · the paywall lead · goal.priorityPerPaycheck LOST
+  OVER  paycheck-plan · the paywall lead · goal.targetAmount LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.expenseReserveBalance LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.leanAmount LOST
+
+== snowball · PROPOSED (apr on avalanche) · 528 keys · 10 non-exact ==
+  OVER  paycheck-plan · Windfall routing · plan.windfall LOST
+  OVER  paycheck-plan · the paywall lead · debt[0].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · debt[1].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-LIST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-ROW
+  OVER  paycheck-plan · the paywall lead · goal.currentAmount LOST
+  OVER  paycheck-plan · the paywall lead · goal.priorityPerPaycheck LOST
+  OVER  paycheck-plan · the paywall lead · goal.targetAmount LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.expenseReserveBalance LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.leanAmount LOST
+
+== avalanche · CURRENT routes · 528 keys · 17 non-exact ==
+  HOLE  paycheck-plan · Today's plan hero · split, verdict, suggested move · debt[0].apr LOST
+  HOLE  paycheck-plan · Today's plan hero · split, verdict, suggested move · debt[1].apr LOST
+  HOLE  paycheck-plan · the Guardian brief · debt[0].apr LOST
+  HOLE  paycheck-plan · the Guardian brief · debt[1].apr LOST
+  HOLE  paycheck-plan · the Recommended card · debt[0].apr LOST
+  HOLE  paycheck-plan · the Recommended card · debt[1].apr LOST
+  OVER  paycheck-plan · Windfall routing · plan.windfall LOST
+  OVER  paycheck-plan · the paywall lead · debt[0].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · debt[1].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-LIST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-ROW
+  OVER  paycheck-plan · the paywall lead · goal.currentAmount LOST
+  OVER  paycheck-plan · the paywall lead · goal.priorityPerPaycheck LOST
+  OVER  paycheck-plan · the paywall lead · goal.targetAmount LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.expenseReserveBalance LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.leanAmount LOST
+  OVER  solved-projection · the cushion forecast · goal.currentAmount LOST
+
+== avalanche · PROPOSED (apr on avalanche) · 528 keys · 17 non-exact ==
+  OVER  paycheck-plan · Affordability · debt[0].apr LOST
+  OVER  paycheck-plan · Affordability · debt[1].apr LOST
+  OVER  paycheck-plan · Windfall routing · debt[0].apr LOST
+  OVER  paycheck-plan · Windfall routing · debt[1].apr LOST
+  OVER  paycheck-plan · Windfall routing · plan.windfall LOST
+  OVER  paycheck-plan · the paywall lead · debt[0].apr LOST
+  OVER  paycheck-plan · the paywall lead · debt[0].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · debt[1].apr LOST
+  OVER  paycheck-plan · the paywall lead · debt[1].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-LIST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-ROW
+  OVER  paycheck-plan · the paywall lead · goal.currentAmount LOST
+  OVER  paycheck-plan · the paywall lead · goal.priorityPerPaycheck LOST
+  OVER  paycheck-plan · the paywall lead · goal.targetAmount LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.expenseReserveBalance LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.leanAmount LOST
+  OVER  solved-projection · the cushion forecast · goal.currentAmount LOST

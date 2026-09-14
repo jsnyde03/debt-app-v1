@@ -1,0 +1,12 @@
+== app plants (1) ==
+  plant apps/rn/src/store/trustSelectors.ts: anchor count=1 :: "  avalanche: { debt: ['apr'] },"
+  applied apps/rn/src/store/trustSelectors.ts: changed=True
+== export:web --clear ==
+  export exit=0 in 70s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=8476 listening=True ==
+
+-- RUN E4 FX-1 route revert - avalanche ranks by nothing :: trust-claims.spec.ts -g 'on avalanche nothing names a debt'
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:503:5 › class 5 R2 · FX-1 · on avalanche nothing names a debt ranked by a rate the app could not read (16.1s) | Error: the honest state, by name | [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/store/trustSelectors.ts: cmp identical=True

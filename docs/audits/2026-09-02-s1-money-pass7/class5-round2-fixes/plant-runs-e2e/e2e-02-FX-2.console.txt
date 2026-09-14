@@ -1,0 +1,12 @@
+== app plants (1) ==
+  plant apps/rn/src/components/plan/RecommendedActionsCard.tsx: anchor count=1 :: '  const shown = unreadPlanInputs ? [] : active;'
+  applied apps/rn/src/components/plan/RecommendedActionsCard.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 70s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=26916 listening=True ==
+
+-- RUN E2 FX-2 revert - the Recommended card draws its rows over the refusal :: trust-claims.spec.ts -g 'the suggested move is withheld over a minimum'
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:470:5 › class 5 R2 · the suggested move is withheld over a minimum the app could not read — the hero and the Recommended card (6.9s) | Error: ⛔ FX-2 — no suggested row survives on Today | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/components/plan/RecommendedActionsCard.tsx: cmp identical=True

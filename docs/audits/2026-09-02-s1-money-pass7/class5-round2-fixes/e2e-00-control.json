@@ -1,0 +1,7 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [],
+  "runs": [
+    {"name": "CONTROL - the whole of trust-claims.spec.ts, unplanted", "spec": "trust-claims.spec.ts", "grep": "."}
+  ]
+}

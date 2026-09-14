@@ -345,7 +345,13 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               // the one card here not asking.
               // ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] `'solved-projection'`: the hero prints a debt-free DATE, which
               // moves on a lost APR — measured on 22 plan shapes, where `'required-plan'` had 9 holes here.
-              unreadPlanInputs={!mayClaim(store, 'solved-projection')}
+              // ⛔ [class 5 R2 `L3-4`] …and ONLY the date. One claim for several figure families blanked the split over a loss
+              // that never moves it, so each family asks the claim measured exact for it (`probe-841-hero-families`):
+              // the split and verdict `'required-plan'`, the suggested move `'paycheck-plan'`, the date `'solved-projection'`.
+              unreadPlanInputs={!mayClaim(store, 'required-plan')}
+              unreadSuggestion={!mayClaim(store, 'paycheck-plan')}
+              unreadDebtFreeDate={!mayClaim(store, 'solved-projection')}
+              unreadDateFix={unreadInputsFix(repairsPoisoning(store, 'solved-projection'), 'and it comes back')}
             />
           </TutorialFence>
         </Motion>
@@ -559,6 +565,10 @@ function TodayContent({ scrollRef, onScroll }: { scrollRef?: React.Ref<ScrollVie
               active={recommended}
               completed={store.completedRecommendedActions}
               onToggle={(a, done) => store_.getState().toggleRecommendedDone(a, done)}
+              // ⛔ [class 5 R2 `FX-2`] The SAME list the hero's suggested move draws, and it asked nothing: over a lost $300
+              // minimum the hero withheld "Suggested · $1,300" and this card still offered to mark it paid.
+              unreadPlanInputs={!mayClaim(store, 'paycheck-plan')}
+              unreadFix={unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), 'and this comes back')}
             />
           </TutorialFence>
         </Motion>

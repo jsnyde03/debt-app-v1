@@ -1,0 +1,720 @@
+
+################ TIER: free ################
+
+== [free] Progress cash bars on 'debt-balances': 20 holes · 2 over-suppressions ==
+  HOLE Progress cash bars · debt-balances · debt[0].apr LOST
+  HOLE Progress cash bars · debt-balances · debt[0].minimumPayment LOST
+  HOLE Progress cash bars · debt-balances · debt[0].scheduledPaymentAmount LOST
+  HOLE Progress cash bars · debt-balances · debt[1].apr LOST
+  HOLE Progress cash bars · debt-balances · debt[1].minimumPayment LOST
+  HOLE Progress cash bars · debt-balances · debt[1].scheduledPaymentAmount LOST
+  HOLE Progress cash bars · debt-balances · goal WHOLE-LIST
+  HOLE Progress cash bars · debt-balances · goal WHOLE-ROW
+  HOLE Progress cash bars · debt-balances · goal.currentAmount LOST
+  HOLE Progress cash bars · debt-balances · goal.priorityPerPaycheck LOST
+  HOLE Progress cash bars · debt-balances · goal.targetAmount LOST
+  HOLE Progress cash bars · debt-balances · livingExpense WHOLE-LIST
+  HOLE Progress cash bars · debt-balances · livingExpense WHOLE-ROW
+  HOLE Progress cash bars · debt-balances · livingExpense.amount LOST
+  HOLE Progress cash bars · debt-balances · plan.expenseReserveBalance LOST
+  HOLE Progress cash bars · debt-balances · plan.leanAmount LOST
+  HOLE Progress cash bars · debt-balances · plan.windfall LOST
+  HOLE Progress cash bars · debt-balances · requiredExpense WHOLE-LIST
+  HOLE Progress cash bars · debt-balances · requiredExpense WHOLE-ROW
+  HOLE Progress cash bars · debt-balances · requiredExpense.amount LOST
+  OVER Progress cash bars · debt-balances · debt[0].originalBalance LOST
+  OVER Progress cash bars · debt-balances · debt[1].originalBalance LOST
+
+== [free] Progress cash bars on 'projected-balance': 16 holes · 0 over-suppressions ==
+  HOLE Progress cash bars · projected-balance · debt[0].scheduledPaymentAmount LOST
+  HOLE Progress cash bars · projected-balance · debt[1].scheduledPaymentAmount LOST
+  HOLE Progress cash bars · projected-balance · goal WHOLE-LIST
+  HOLE Progress cash bars · projected-balance · goal WHOLE-ROW
+  HOLE Progress cash bars · projected-balance · goal.currentAmount LOST
+  HOLE Progress cash bars · projected-balance · goal.priorityPerPaycheck LOST
+  HOLE Progress cash bars · projected-balance · goal.targetAmount LOST
+  HOLE Progress cash bars · projected-balance · livingExpense WHOLE-LIST
+  HOLE Progress cash bars · projected-balance · livingExpense WHOLE-ROW
+  HOLE Progress cash bars · projected-balance · livingExpense.amount LOST
+  HOLE Progress cash bars · projected-balance · plan.expenseReserveBalance LOST
+  HOLE Progress cash bars · projected-balance · plan.leanAmount LOST
+  HOLE Progress cash bars · projected-balance · plan.windfall LOST
+  HOLE Progress cash bars · projected-balance · requiredExpense WHOLE-LIST
+  HOLE Progress cash bars · projected-balance · requiredExpense WHOLE-ROW
+  HOLE Progress cash bars · projected-balance · requiredExpense.amount LOST
+
+== [free] Progress cash bars on 'solved-projection': 0 holes · 1 over-suppressions ==
+  OVER Progress cash bars · solved-projection · plan.cushionFloor LOST
+
+== [free] Progress cash bars on 'paycheck-plan': 3 holes · 1 over-suppressions ==
+  HOLE Progress cash bars · paycheck-plan · debt[0].apr LOST · on snowball
+  HOLE Progress cash bars · paycheck-plan · debt[1].apr LOST · on snowball
+  HOLE Progress cash bars · paycheck-plan · plan.leanAmount LOST
+  OVER Progress cash bars · paycheck-plan · plan.cushionFloor LOST
+
+== [free] Progress cash bars on 'required-plan': 8 holes · 0 over-suppressions ==
+  HOLE Progress cash bars · required-plan · debt[0].apr LOST
+  HOLE Progress cash bars · required-plan · debt[1].apr LOST
+  HOLE Progress cash bars · required-plan · goal WHOLE-LIST
+  HOLE Progress cash bars · required-plan · goal WHOLE-ROW
+  HOLE Progress cash bars · required-plan · goal.currentAmount LOST
+  HOLE Progress cash bars · required-plan · goal.priorityPerPaycheck LOST
+  HOLE Progress cash bars · required-plan · goal.targetAmount LOST
+  HOLE Progress cash bars · required-plan · plan.leanAmount LOST
+
+== [free] Progress cash line caption on 'debt-balances': 0 holes · 6 over-suppressions ==
+  OVER Progress cash line caption · debt-balances · debt WHOLE-LIST
+  OVER Progress cash line caption · debt-balances · debt WHOLE-ROW
+  OVER Progress cash line caption · debt-balances · debt[0].balance LOST
+  OVER Progress cash line caption · debt-balances · debt[0].originalBalance LOST
+  OVER Progress cash line caption · debt-balances · debt[1].balance LOST
+  OVER Progress cash line caption · debt-balances · debt[1].originalBalance LOST
+
+== [free] Progress cash line caption on 'projected-balance': 0 holes · 8 over-suppressions ==
+  OVER Progress cash line caption · projected-balance · debt WHOLE-LIST
+  OVER Progress cash line caption · projected-balance · debt WHOLE-ROW
+  OVER Progress cash line caption · projected-balance · debt[0].apr LOST
+  OVER Progress cash line caption · projected-balance · debt[0].balance LOST
+  OVER Progress cash line caption · projected-balance · debt[0].minimumPayment LOST
+  OVER Progress cash line caption · projected-balance · debt[1].apr LOST
+  OVER Progress cash line caption · projected-balance · debt[1].balance LOST
+  OVER Progress cash line caption · projected-balance · debt[1].minimumPayment LOST
+
+== [free] Progress cash line caption on 'solved-projection': 0 holes · 25 over-suppressions ==
+  OVER Progress cash line caption · solved-projection · debt WHOLE-LIST
+  OVER Progress cash line caption · solved-projection · debt WHOLE-ROW
+  OVER Progress cash line caption · solved-projection · debt[0].apr LOST
+  OVER Progress cash line caption · solved-projection · debt[0].balance LOST
+  OVER Progress cash line caption · solved-projection · debt[0].minimumPayment LOST
+  OVER Progress cash line caption · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · solved-projection · debt[1].apr LOST
+  OVER Progress cash line caption · solved-projection · debt[1].balance LOST
+  OVER Progress cash line caption · solved-projection · debt[1].minimumPayment LOST
+  OVER Progress cash line caption · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · solved-projection · goal WHOLE-LIST
+  OVER Progress cash line caption · solved-projection · goal WHOLE-ROW
+  OVER Progress cash line caption · solved-projection · goal.currentAmount LOST
+  OVER Progress cash line caption · solved-projection · goal.priorityPerPaycheck LOST
+  OVER Progress cash line caption · solved-projection · goal.targetAmount LOST
+  OVER Progress cash line caption · solved-projection · livingExpense WHOLE-LIST
+  OVER Progress cash line caption · solved-projection · livingExpense WHOLE-ROW
+  OVER Progress cash line caption · solved-projection · livingExpense.amount LOST
+  OVER Progress cash line caption · solved-projection · plan.cushionFloor LOST
+  OVER Progress cash line caption · solved-projection · plan.expenseReserveBalance LOST
+  OVER Progress cash line caption · solved-projection · plan.leanAmount LOST
+  OVER Progress cash line caption · solved-projection · plan.windfall LOST
+  OVER Progress cash line caption · solved-projection · requiredExpense WHOLE-LIST
+  OVER Progress cash line caption · solved-projection · requiredExpense WHOLE-ROW
+  OVER Progress cash line caption · solved-projection · requiredExpense.amount LOST
+
+== [free] Progress cash line caption on 'paycheck-plan': 0 holes · 24 over-suppressions ==
+  OVER Progress cash line caption · paycheck-plan · debt WHOLE-LIST
+  OVER Progress cash line caption · paycheck-plan · debt WHOLE-ROW
+  OVER Progress cash line caption · paycheck-plan · debt[0].apr LOST · on avalanche
+  OVER Progress cash line caption · paycheck-plan · debt[0].balance LOST
+  OVER Progress cash line caption · paycheck-plan · debt[0].minimumPayment LOST
+  OVER Progress cash line caption · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · paycheck-plan · debt[1].apr LOST · on avalanche
+  OVER Progress cash line caption · paycheck-plan · debt[1].balance LOST
+  OVER Progress cash line caption · paycheck-plan · debt[1].minimumPayment LOST
+  OVER Progress cash line caption · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · paycheck-plan · goal WHOLE-LIST
+  OVER Progress cash line caption · paycheck-plan · goal WHOLE-ROW
+  OVER Progress cash line caption · paycheck-plan · goal.currentAmount LOST
+  OVER Progress cash line caption · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER Progress cash line caption · paycheck-plan · goal.targetAmount LOST
+  OVER Progress cash line caption · paycheck-plan · livingExpense WHOLE-LIST
+  OVER Progress cash line caption · paycheck-plan · livingExpense WHOLE-ROW
+  OVER Progress cash line caption · paycheck-plan · livingExpense.amount LOST
+  OVER Progress cash line caption · paycheck-plan · plan.cushionFloor LOST
+  OVER Progress cash line caption · paycheck-plan · plan.expenseReserveBalance LOST
+  OVER Progress cash line caption · paycheck-plan · plan.windfall LOST
+  OVER Progress cash line caption · paycheck-plan · requiredExpense WHOLE-LIST
+  OVER Progress cash line caption · paycheck-plan · requiredExpense WHOLE-ROW
+  OVER Progress cash line caption · paycheck-plan · requiredExpense.amount LOST
+
+== [free] Progress cash line caption on 'required-plan': 0 holes · 16 over-suppressions ==
+  OVER Progress cash line caption · required-plan · debt WHOLE-LIST
+  OVER Progress cash line caption · required-plan · debt WHOLE-ROW
+  OVER Progress cash line caption · required-plan · debt[0].balance LOST
+  OVER Progress cash line caption · required-plan · debt[0].minimumPayment LOST
+  OVER Progress cash line caption · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · required-plan · debt[1].balance LOST
+  OVER Progress cash line caption · required-plan · debt[1].minimumPayment LOST
+  OVER Progress cash line caption · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · required-plan · livingExpense WHOLE-LIST
+  OVER Progress cash line caption · required-plan · livingExpense WHOLE-ROW
+  OVER Progress cash line caption · required-plan · livingExpense.amount LOST
+  OVER Progress cash line caption · required-plan · plan.expenseReserveBalance LOST
+  OVER Progress cash line caption · required-plan · plan.windfall LOST
+  OVER Progress cash line caption · required-plan · requiredExpense WHOLE-LIST
+  OVER Progress cash line caption · required-plan · requiredExpense WHOLE-ROW
+  OVER Progress cash line caption · required-plan · requiredExpense.amount LOST
+
+== [free] Progress journey line · projected arm on 'debt-balances': 0 holes · 2 over-suppressions ==
+  OVER Progress journey line · projected arm · debt-balances · debt[0].originalBalance LOST
+  OVER Progress journey line · projected arm · debt-balances · debt[1].originalBalance LOST
+
+== [free] Progress journey line · projected arm on 'projected-balance': 0 holes · 4 over-suppressions ==
+  OVER Progress journey line · projected arm · projected-balance · debt[0].apr LOST
+  OVER Progress journey line · projected arm · projected-balance · debt[0].minimumPayment LOST
+  OVER Progress journey line · projected arm · projected-balance · debt[1].apr LOST
+  OVER Progress journey line · projected arm · projected-balance · debt[1].minimumPayment LOST
+
+== [free] Progress journey line · projected arm on 'solved-projection': 0 holes · 21 over-suppressions ==
+  OVER Progress journey line · projected arm · solved-projection · debt[0].apr LOST
+  OVER Progress journey line · projected arm · solved-projection · debt[0].minimumPayment LOST
+  OVER Progress journey line · projected arm · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · debt[1].apr LOST
+  OVER Progress journey line · projected arm · solved-projection · debt[1].minimumPayment LOST
+  OVER Progress journey line · projected arm · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · goal WHOLE-LIST
+  OVER Progress journey line · projected arm · solved-projection · goal WHOLE-ROW
+  OVER Progress journey line · projected arm · solved-projection · goal.currentAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · goal.priorityPerPaycheck LOST
+  OVER Progress journey line · projected arm · solved-projection · goal.targetAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · livingExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · solved-projection · livingExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · solved-projection · livingExpense.amount LOST
+  OVER Progress journey line · projected arm · solved-projection · plan.cushionFloor LOST
+  OVER Progress journey line · projected arm · solved-projection · plan.expenseReserveBalance LOST
+  OVER Progress journey line · projected arm · solved-projection · plan.leanAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · plan.windfall LOST
+  OVER Progress journey line · projected arm · solved-projection · requiredExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · solved-projection · requiredExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · solved-projection · requiredExpense.amount LOST
+
+== [free] Progress journey line · projected arm on 'paycheck-plan': 0 holes · 20 over-suppressions ==
+  OVER Progress journey line · projected arm · paycheck-plan · debt[0].apr LOST · on avalanche
+  OVER Progress journey line · projected arm · paycheck-plan · debt[0].minimumPayment LOST
+  OVER Progress journey line · projected arm · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · debt[1].apr LOST · on avalanche
+  OVER Progress journey line · projected arm · paycheck-plan · debt[1].minimumPayment LOST
+  OVER Progress journey line · projected arm · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · goal WHOLE-LIST
+  OVER Progress journey line · projected arm · paycheck-plan · goal WHOLE-ROW
+  OVER Progress journey line · projected arm · paycheck-plan · goal.currentAmount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER Progress journey line · projected arm · paycheck-plan · goal.targetAmount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · livingExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · paycheck-plan · livingExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · paycheck-plan · livingExpense.amount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · plan.cushionFloor LOST
+  OVER Progress journey line · projected arm · paycheck-plan · plan.expenseReserveBalance LOST
+  OVER Progress journey line · projected arm · paycheck-plan · plan.windfall LOST
+  OVER Progress journey line · projected arm · paycheck-plan · requiredExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · paycheck-plan · requiredExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · paycheck-plan · requiredExpense.amount LOST
+
+== [free] Progress journey line · projected arm on 'required-plan': 0 holes · 12 over-suppressions ==
+  OVER Progress journey line · projected arm · required-plan · debt[0].minimumPayment LOST
+  OVER Progress journey line · projected arm · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · required-plan · debt[1].minimumPayment LOST
+  OVER Progress journey line · projected arm · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · required-plan · livingExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · required-plan · livingExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · required-plan · livingExpense.amount LOST
+  OVER Progress journey line · projected arm · required-plan · plan.expenseReserveBalance LOST
+  OVER Progress journey line · projected arm · required-plan · plan.windfall LOST
+  OVER Progress journey line · projected arm · required-plan · requiredExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · required-plan · requiredExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · required-plan · requiredExpense.amount LOST
+
+== [free] Progress journey line · confirmed arm on 'debt-balances': 0 holes · 0 over-suppressions ==
+
+== [free] Progress journey line · confirmed arm on 'projected-balance': 2 holes · 4 over-suppressions ==
+  HOLE Progress journey line · confirmed arm · projected-balance · debt[0].originalBalance LOST
+  HOLE Progress journey line · confirmed arm · projected-balance · debt[1].originalBalance LOST
+  OVER Progress journey line · confirmed arm · projected-balance · debt[0].apr LOST
+  OVER Progress journey line · confirmed arm · projected-balance · debt[0].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · projected-balance · debt[1].apr LOST
+  OVER Progress journey line · confirmed arm · projected-balance · debt[1].minimumPayment LOST
+
+== [free] Progress journey line · confirmed arm on 'solved-projection': 2 holes · 21 over-suppressions ==
+  HOLE Progress journey line · confirmed arm · solved-projection · debt[0].originalBalance LOST
+  HOLE Progress journey line · confirmed arm · solved-projection · debt[1].originalBalance LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[0].apr LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[0].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[1].apr LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[1].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · goal WHOLE-LIST
+  OVER Progress journey line · confirmed arm · solved-projection · goal WHOLE-ROW
+  OVER Progress journey line · confirmed arm · solved-projection · goal.currentAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · goal.priorityPerPaycheck LOST
+  OVER Progress journey line · confirmed arm · solved-projection · goal.targetAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · livingExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · solved-projection · livingExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · solved-projection · livingExpense.amount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · plan.cushionFloor LOST
+  OVER Progress journey line · confirmed arm · solved-projection · plan.expenseReserveBalance LOST
+  OVER Progress journey line · confirmed arm · solved-projection · plan.leanAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · plan.windfall LOST
+  OVER Progress journey line · confirmed arm · solved-projection · requiredExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · solved-projection · requiredExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · solved-projection · requiredExpense.amount LOST
+
+== [free] Progress journey line · confirmed arm on 'paycheck-plan': 2 holes · 20 over-suppressions ==
+  HOLE Progress journey line · confirmed arm · paycheck-plan · debt[0].originalBalance LOST
+  HOLE Progress journey line · confirmed arm · paycheck-plan · debt[1].originalBalance LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[0].apr LOST · on avalanche
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[0].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[1].apr LOST · on avalanche
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[1].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal WHOLE-LIST
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal WHOLE-ROW
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal.currentAmount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal.targetAmount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · livingExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · paycheck-plan · livingExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · paycheck-plan · livingExpense.amount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · plan.cushionFloor LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · plan.expenseReserveBalance LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · plan.windfall LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · requiredExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · paycheck-plan · requiredExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · paycheck-plan · requiredExpense.amount LOST
+
+== [free] Progress journey line · confirmed arm on 'required-plan': 2 holes · 12 over-suppressions ==
+  HOLE Progress journey line · confirmed arm · required-plan · debt[0].originalBalance LOST
+  HOLE Progress journey line · confirmed arm · required-plan · debt[1].originalBalance LOST
+  OVER Progress journey line · confirmed arm · required-plan · debt[0].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · required-plan · debt[1].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · required-plan · livingExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · required-plan · livingExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · required-plan · livingExpense.amount LOST
+  OVER Progress journey line · confirmed arm · required-plan · plan.expenseReserveBalance LOST
+  OVER Progress journey line · confirmed arm · required-plan · plan.windfall LOST
+  OVER Progress journey line · confirmed arm · required-plan · requiredExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · required-plan · requiredExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · required-plan · requiredExpense.amount LOST
+
+== [free] Money's total on 'debt-balances': 0 holes · 2 over-suppressions ==
+  OVER Money's total · debt-balances · debt[0].originalBalance LOST
+  OVER Money's total · debt-balances · debt[1].originalBalance LOST
+
+== [free] Money's total on 'projected-balance': 0 holes · 4 over-suppressions ==
+  OVER Money's total · projected-balance · debt[0].apr LOST
+  OVER Money's total · projected-balance · debt[0].minimumPayment LOST
+  OVER Money's total · projected-balance · debt[1].apr LOST
+  OVER Money's total · projected-balance · debt[1].minimumPayment LOST
+
+== [free] Money's total on 'solved-projection': 0 holes · 21 over-suppressions ==
+  OVER Money's total · solved-projection · debt[0].apr LOST
+  OVER Money's total · solved-projection · debt[0].minimumPayment LOST
+  OVER Money's total · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER Money's total · solved-projection · debt[1].apr LOST
+  OVER Money's total · solved-projection · debt[1].minimumPayment LOST
+  OVER Money's total · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER Money's total · solved-projection · goal WHOLE-LIST
+  OVER Money's total · solved-projection · goal WHOLE-ROW
+  OVER Money's total · solved-projection · goal.currentAmount LOST
+  OVER Money's total · solved-projection · goal.priorityPerPaycheck LOST
+  OVER Money's total · solved-projection · goal.targetAmount LOST
+  OVER Money's total · solved-projection · livingExpense WHOLE-LIST
+  OVER Money's total · solved-projection · livingExpense WHOLE-ROW
+  OVER Money's total · solved-projection · livingExpense.amount LOST
+  OVER Money's total · solved-projection · plan.cushionFloor LOST
+  OVER Money's total · solved-projection · plan.expenseReserveBalance LOST
+  OVER Money's total · solved-projection · plan.leanAmount LOST
+  OVER Money's total · solved-projection · plan.windfall LOST
+  OVER Money's total · solved-projection · requiredExpense WHOLE-LIST
+  OVER Money's total · solved-projection · requiredExpense WHOLE-ROW
+  OVER Money's total · solved-projection · requiredExpense.amount LOST
+
+== [free] Money's total on 'paycheck-plan': 0 holes · 20 over-suppressions ==
+  OVER Money's total · paycheck-plan · debt[0].apr LOST · on avalanche
+  OVER Money's total · paycheck-plan · debt[0].minimumPayment LOST
+  OVER Money's total · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Money's total · paycheck-plan · debt[1].apr LOST · on avalanche
+  OVER Money's total · paycheck-plan · debt[1].minimumPayment LOST
+  OVER Money's total · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Money's total · paycheck-plan · goal WHOLE-LIST
+  OVER Money's total · paycheck-plan · goal WHOLE-ROW
+  OVER Money's total · paycheck-plan · goal.currentAmount LOST
+  OVER Money's total · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER Money's total · paycheck-plan · goal.targetAmount LOST
+  OVER Money's total · paycheck-plan · livingExpense WHOLE-LIST
+  OVER Money's total · paycheck-plan · livingExpense WHOLE-ROW
+  OVER Money's total · paycheck-plan · livingExpense.amount LOST
+  OVER Money's total · paycheck-plan · plan.cushionFloor LOST
+  OVER Money's total · paycheck-plan · plan.expenseReserveBalance LOST
+  OVER Money's total · paycheck-plan · plan.windfall LOST
+  OVER Money's total · paycheck-plan · requiredExpense WHOLE-LIST
+  OVER Money's total · paycheck-plan · requiredExpense WHOLE-ROW
+  OVER Money's total · paycheck-plan · requiredExpense.amount LOST
+
+== [free] Money's total on 'required-plan': 0 holes · 12 over-suppressions ==
+  OVER Money's total · required-plan · debt[0].minimumPayment LOST
+  OVER Money's total · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Money's total · required-plan · debt[1].minimumPayment LOST
+  OVER Money's total · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Money's total · required-plan · livingExpense WHOLE-LIST
+  OVER Money's total · required-plan · livingExpense WHOLE-ROW
+  OVER Money's total · required-plan · livingExpense.amount LOST
+  OVER Money's total · required-plan · plan.expenseReserveBalance LOST
+  OVER Money's total · required-plan · plan.windfall LOST
+  OVER Money's total · required-plan · requiredExpense WHOLE-LIST
+  OVER Money's total · required-plan · requiredExpense WHOLE-ROW
+  OVER Money's total · required-plan · requiredExpense.amount LOST
+
+################ TIER: premium ################
+
+== [premium] Progress cash bars on 'debt-balances': 21 holes · 2 over-suppressions ==
+  HOLE Progress cash bars · debt-balances · debt[0].apr LOST
+  HOLE Progress cash bars · debt-balances · debt[0].minimumPayment LOST
+  HOLE Progress cash bars · debt-balances · debt[0].scheduledPaymentAmount LOST
+  HOLE Progress cash bars · debt-balances · debt[1].apr LOST
+  HOLE Progress cash bars · debt-balances · debt[1].minimumPayment LOST
+  HOLE Progress cash bars · debt-balances · debt[1].scheduledPaymentAmount LOST
+  HOLE Progress cash bars · debt-balances · goal WHOLE-LIST
+  HOLE Progress cash bars · debt-balances · goal WHOLE-ROW
+  HOLE Progress cash bars · debt-balances · goal.currentAmount LOST
+  HOLE Progress cash bars · debt-balances · goal.priorityPerPaycheck LOST
+  HOLE Progress cash bars · debt-balances · goal.targetAmount LOST
+  HOLE Progress cash bars · debt-balances · livingExpense WHOLE-LIST
+  HOLE Progress cash bars · debt-balances · livingExpense WHOLE-ROW
+  HOLE Progress cash bars · debt-balances · livingExpense.amount LOST
+  HOLE Progress cash bars · debt-balances · plan.cushionFloor LOST
+  HOLE Progress cash bars · debt-balances · plan.expenseReserveBalance LOST
+  HOLE Progress cash bars · debt-balances · plan.leanAmount LOST
+  HOLE Progress cash bars · debt-balances · plan.windfall LOST
+  HOLE Progress cash bars · debt-balances · requiredExpense WHOLE-LIST
+  HOLE Progress cash bars · debt-balances · requiredExpense WHOLE-ROW
+  HOLE Progress cash bars · debt-balances · requiredExpense.amount LOST
+  OVER Progress cash bars · debt-balances · debt[0].originalBalance LOST
+  OVER Progress cash bars · debt-balances · debt[1].originalBalance LOST
+
+== [premium] Progress cash bars on 'projected-balance': 17 holes · 0 over-suppressions ==
+  HOLE Progress cash bars · projected-balance · debt[0].scheduledPaymentAmount LOST
+  HOLE Progress cash bars · projected-balance · debt[1].scheduledPaymentAmount LOST
+  HOLE Progress cash bars · projected-balance · goal WHOLE-LIST
+  HOLE Progress cash bars · projected-balance · goal WHOLE-ROW
+  HOLE Progress cash bars · projected-balance · goal.currentAmount LOST
+  HOLE Progress cash bars · projected-balance · goal.priorityPerPaycheck LOST
+  HOLE Progress cash bars · projected-balance · goal.targetAmount LOST
+  HOLE Progress cash bars · projected-balance · livingExpense WHOLE-LIST
+  HOLE Progress cash bars · projected-balance · livingExpense WHOLE-ROW
+  HOLE Progress cash bars · projected-balance · livingExpense.amount LOST
+  HOLE Progress cash bars · projected-balance · plan.cushionFloor LOST
+  HOLE Progress cash bars · projected-balance · plan.expenseReserveBalance LOST
+  HOLE Progress cash bars · projected-balance · plan.leanAmount LOST
+  HOLE Progress cash bars · projected-balance · plan.windfall LOST
+  HOLE Progress cash bars · projected-balance · requiredExpense WHOLE-LIST
+  HOLE Progress cash bars · projected-balance · requiredExpense WHOLE-ROW
+  HOLE Progress cash bars · projected-balance · requiredExpense.amount LOST
+
+== [premium] Progress cash bars on 'solved-projection': 0 holes · 0 over-suppressions ==
+
+== [premium] Progress cash bars on 'paycheck-plan': 3 holes · 0 over-suppressions ==
+  HOLE Progress cash bars · paycheck-plan · debt[0].apr LOST · on snowball
+  HOLE Progress cash bars · paycheck-plan · debt[1].apr LOST · on snowball
+  HOLE Progress cash bars · paycheck-plan · plan.leanAmount LOST
+
+== [premium] Progress cash bars on 'required-plan': 9 holes · 0 over-suppressions ==
+  HOLE Progress cash bars · required-plan · debt[0].apr LOST
+  HOLE Progress cash bars · required-plan · debt[1].apr LOST
+  HOLE Progress cash bars · required-plan · goal WHOLE-LIST
+  HOLE Progress cash bars · required-plan · goal WHOLE-ROW
+  HOLE Progress cash bars · required-plan · goal.currentAmount LOST
+  HOLE Progress cash bars · required-plan · goal.priorityPerPaycheck LOST
+  HOLE Progress cash bars · required-plan · goal.targetAmount LOST
+  HOLE Progress cash bars · required-plan · plan.cushionFloor LOST
+  HOLE Progress cash bars · required-plan · plan.leanAmount LOST
+
+== [premium] Progress cash line caption on 'debt-balances': 1 holes · 6 over-suppressions ==
+  HOLE Progress cash line caption · debt-balances · plan.cushionFloor LOST
+  OVER Progress cash line caption · debt-balances · debt WHOLE-LIST
+  OVER Progress cash line caption · debt-balances · debt WHOLE-ROW
+  OVER Progress cash line caption · debt-balances · debt[0].balance LOST
+  OVER Progress cash line caption · debt-balances · debt[0].originalBalance LOST
+  OVER Progress cash line caption · debt-balances · debt[1].balance LOST
+  OVER Progress cash line caption · debt-balances · debt[1].originalBalance LOST
+
+== [premium] Progress cash line caption on 'projected-balance': 1 holes · 8 over-suppressions ==
+  HOLE Progress cash line caption · projected-balance · plan.cushionFloor LOST
+  OVER Progress cash line caption · projected-balance · debt WHOLE-LIST
+  OVER Progress cash line caption · projected-balance · debt WHOLE-ROW
+  OVER Progress cash line caption · projected-balance · debt[0].apr LOST
+  OVER Progress cash line caption · projected-balance · debt[0].balance LOST
+  OVER Progress cash line caption · projected-balance · debt[0].minimumPayment LOST
+  OVER Progress cash line caption · projected-balance · debt[1].apr LOST
+  OVER Progress cash line caption · projected-balance · debt[1].balance LOST
+  OVER Progress cash line caption · projected-balance · debt[1].minimumPayment LOST
+
+== [premium] Progress cash line caption on 'solved-projection': 0 holes · 24 over-suppressions ==
+  OVER Progress cash line caption · solved-projection · debt WHOLE-LIST
+  OVER Progress cash line caption · solved-projection · debt WHOLE-ROW
+  OVER Progress cash line caption · solved-projection · debt[0].apr LOST
+  OVER Progress cash line caption · solved-projection · debt[0].balance LOST
+  OVER Progress cash line caption · solved-projection · debt[0].minimumPayment LOST
+  OVER Progress cash line caption · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · solved-projection · debt[1].apr LOST
+  OVER Progress cash line caption · solved-projection · debt[1].balance LOST
+  OVER Progress cash line caption · solved-projection · debt[1].minimumPayment LOST
+  OVER Progress cash line caption · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · solved-projection · goal WHOLE-LIST
+  OVER Progress cash line caption · solved-projection · goal WHOLE-ROW
+  OVER Progress cash line caption · solved-projection · goal.currentAmount LOST
+  OVER Progress cash line caption · solved-projection · goal.priorityPerPaycheck LOST
+  OVER Progress cash line caption · solved-projection · goal.targetAmount LOST
+  OVER Progress cash line caption · solved-projection · livingExpense WHOLE-LIST
+  OVER Progress cash line caption · solved-projection · livingExpense WHOLE-ROW
+  OVER Progress cash line caption · solved-projection · livingExpense.amount LOST
+  OVER Progress cash line caption · solved-projection · plan.expenseReserveBalance LOST
+  OVER Progress cash line caption · solved-projection · plan.leanAmount LOST
+  OVER Progress cash line caption · solved-projection · plan.windfall LOST
+  OVER Progress cash line caption · solved-projection · requiredExpense WHOLE-LIST
+  OVER Progress cash line caption · solved-projection · requiredExpense WHOLE-ROW
+  OVER Progress cash line caption · solved-projection · requiredExpense.amount LOST
+
+== [premium] Progress cash line caption on 'paycheck-plan': 0 holes · 23 over-suppressions ==
+  OVER Progress cash line caption · paycheck-plan · debt WHOLE-LIST
+  OVER Progress cash line caption · paycheck-plan · debt WHOLE-ROW
+  OVER Progress cash line caption · paycheck-plan · debt[0].apr LOST · on avalanche
+  OVER Progress cash line caption · paycheck-plan · debt[0].balance LOST
+  OVER Progress cash line caption · paycheck-plan · debt[0].minimumPayment LOST
+  OVER Progress cash line caption · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · paycheck-plan · debt[1].apr LOST · on avalanche
+  OVER Progress cash line caption · paycheck-plan · debt[1].balance LOST
+  OVER Progress cash line caption · paycheck-plan · debt[1].minimumPayment LOST
+  OVER Progress cash line caption · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · paycheck-plan · goal WHOLE-LIST
+  OVER Progress cash line caption · paycheck-plan · goal WHOLE-ROW
+  OVER Progress cash line caption · paycheck-plan · goal.currentAmount LOST
+  OVER Progress cash line caption · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER Progress cash line caption · paycheck-plan · goal.targetAmount LOST
+  OVER Progress cash line caption · paycheck-plan · livingExpense WHOLE-LIST
+  OVER Progress cash line caption · paycheck-plan · livingExpense WHOLE-ROW
+  OVER Progress cash line caption · paycheck-plan · livingExpense.amount LOST
+  OVER Progress cash line caption · paycheck-plan · plan.expenseReserveBalance LOST
+  OVER Progress cash line caption · paycheck-plan · plan.windfall LOST
+  OVER Progress cash line caption · paycheck-plan · requiredExpense WHOLE-LIST
+  OVER Progress cash line caption · paycheck-plan · requiredExpense WHOLE-ROW
+  OVER Progress cash line caption · paycheck-plan · requiredExpense.amount LOST
+
+== [premium] Progress cash line caption on 'required-plan': 1 holes · 16 over-suppressions ==
+  HOLE Progress cash line caption · required-plan · plan.cushionFloor LOST
+  OVER Progress cash line caption · required-plan · debt WHOLE-LIST
+  OVER Progress cash line caption · required-plan · debt WHOLE-ROW
+  OVER Progress cash line caption · required-plan · debt[0].balance LOST
+  OVER Progress cash line caption · required-plan · debt[0].minimumPayment LOST
+  OVER Progress cash line caption · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · required-plan · debt[1].balance LOST
+  OVER Progress cash line caption · required-plan · debt[1].minimumPayment LOST
+  OVER Progress cash line caption · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress cash line caption · required-plan · livingExpense WHOLE-LIST
+  OVER Progress cash line caption · required-plan · livingExpense WHOLE-ROW
+  OVER Progress cash line caption · required-plan · livingExpense.amount LOST
+  OVER Progress cash line caption · required-plan · plan.expenseReserveBalance LOST
+  OVER Progress cash line caption · required-plan · plan.windfall LOST
+  OVER Progress cash line caption · required-plan · requiredExpense WHOLE-LIST
+  OVER Progress cash line caption · required-plan · requiredExpense WHOLE-ROW
+  OVER Progress cash line caption · required-plan · requiredExpense.amount LOST
+
+== [premium] Progress journey line · projected arm on 'debt-balances': 4 holes · 2 over-suppressions ==
+  HOLE Progress journey line · projected arm · debt-balances · debt[0].apr LOST
+  HOLE Progress journey line · projected arm · debt-balances · debt[0].minimumPayment LOST
+  HOLE Progress journey line · projected arm · debt-balances · debt[1].apr LOST
+  HOLE Progress journey line · projected arm · debt-balances · debt[1].minimumPayment LOST
+  OVER Progress journey line · projected arm · debt-balances · debt[0].originalBalance LOST
+  OVER Progress journey line · projected arm · debt-balances · debt[1].originalBalance LOST
+
+== [premium] Progress journey line · projected arm on 'projected-balance': 0 holes · 0 over-suppressions ==
+
+== [premium] Progress journey line · projected arm on 'solved-projection': 0 holes · 17 over-suppressions ==
+  OVER Progress journey line · projected arm · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · goal WHOLE-LIST
+  OVER Progress journey line · projected arm · solved-projection · goal WHOLE-ROW
+  OVER Progress journey line · projected arm · solved-projection · goal.currentAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · goal.priorityPerPaycheck LOST
+  OVER Progress journey line · projected arm · solved-projection · goal.targetAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · livingExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · solved-projection · livingExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · solved-projection · livingExpense.amount LOST
+  OVER Progress journey line · projected arm · solved-projection · plan.cushionFloor LOST
+  OVER Progress journey line · projected arm · solved-projection · plan.expenseReserveBalance LOST
+  OVER Progress journey line · projected arm · solved-projection · plan.leanAmount LOST
+  OVER Progress journey line · projected arm · solved-projection · plan.windfall LOST
+  OVER Progress journey line · projected arm · solved-projection · requiredExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · solved-projection · requiredExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · solved-projection · requiredExpense.amount LOST
+
+== [premium] Progress journey line · projected arm on 'paycheck-plan': 2 holes · 16 over-suppressions ==
+  HOLE Progress journey line · projected arm · paycheck-plan · debt[0].apr LOST · on snowball
+  HOLE Progress journey line · projected arm · paycheck-plan · debt[1].apr LOST · on snowball
+  OVER Progress journey line · projected arm · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · goal WHOLE-LIST
+  OVER Progress journey line · projected arm · paycheck-plan · goal WHOLE-ROW
+  OVER Progress journey line · projected arm · paycheck-plan · goal.currentAmount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER Progress journey line · projected arm · paycheck-plan · goal.targetAmount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · livingExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · paycheck-plan · livingExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · paycheck-plan · livingExpense.amount LOST
+  OVER Progress journey line · projected arm · paycheck-plan · plan.cushionFloor LOST
+  OVER Progress journey line · projected arm · paycheck-plan · plan.expenseReserveBalance LOST
+  OVER Progress journey line · projected arm · paycheck-plan · plan.windfall LOST
+  OVER Progress journey line · projected arm · paycheck-plan · requiredExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · paycheck-plan · requiredExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · paycheck-plan · requiredExpense.amount LOST
+
+== [premium] Progress journey line · projected arm on 'required-plan': 2 holes · 10 over-suppressions ==
+  HOLE Progress journey line · projected arm · required-plan · debt[0].apr LOST
+  HOLE Progress journey line · projected arm · required-plan · debt[1].apr LOST
+  OVER Progress journey line · projected arm · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · projected arm · required-plan · livingExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · required-plan · livingExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · required-plan · livingExpense.amount LOST
+  OVER Progress journey line · projected arm · required-plan · plan.expenseReserveBalance LOST
+  OVER Progress journey line · projected arm · required-plan · plan.windfall LOST
+  OVER Progress journey line · projected arm · required-plan · requiredExpense WHOLE-LIST
+  OVER Progress journey line · projected arm · required-plan · requiredExpense WHOLE-ROW
+  OVER Progress journey line · projected arm · required-plan · requiredExpense.amount LOST
+
+== [premium] Progress journey line · confirmed arm on 'debt-balances': 0 holes · 0 over-suppressions ==
+
+== [premium] Progress journey line · confirmed arm on 'projected-balance': 2 holes · 4 over-suppressions ==
+  HOLE Progress journey line · confirmed arm · projected-balance · debt[0].originalBalance LOST
+  HOLE Progress journey line · confirmed arm · projected-balance · debt[1].originalBalance LOST
+  OVER Progress journey line · confirmed arm · projected-balance · debt[0].apr LOST
+  OVER Progress journey line · confirmed arm · projected-balance · debt[0].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · projected-balance · debt[1].apr LOST
+  OVER Progress journey line · confirmed arm · projected-balance · debt[1].minimumPayment LOST
+
+== [premium] Progress journey line · confirmed arm on 'solved-projection': 2 holes · 21 over-suppressions ==
+  HOLE Progress journey line · confirmed arm · solved-projection · debt[0].originalBalance LOST
+  HOLE Progress journey line · confirmed arm · solved-projection · debt[1].originalBalance LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[0].apr LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[0].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[1].apr LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[1].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · goal WHOLE-LIST
+  OVER Progress journey line · confirmed arm · solved-projection · goal WHOLE-ROW
+  OVER Progress journey line · confirmed arm · solved-projection · goal.currentAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · goal.priorityPerPaycheck LOST
+  OVER Progress journey line · confirmed arm · solved-projection · goal.targetAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · livingExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · solved-projection · livingExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · solved-projection · livingExpense.amount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · plan.cushionFloor LOST
+  OVER Progress journey line · confirmed arm · solved-projection · plan.expenseReserveBalance LOST
+  OVER Progress journey line · confirmed arm · solved-projection · plan.leanAmount LOST
+  OVER Progress journey line · confirmed arm · solved-projection · plan.windfall LOST
+  OVER Progress journey line · confirmed arm · solved-projection · requiredExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · solved-projection · requiredExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · solved-projection · requiredExpense.amount LOST
+
+== [premium] Progress journey line · confirmed arm on 'paycheck-plan': 2 holes · 20 over-suppressions ==
+  HOLE Progress journey line · confirmed arm · paycheck-plan · debt[0].originalBalance LOST
+  HOLE Progress journey line · confirmed arm · paycheck-plan · debt[1].originalBalance LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[0].apr LOST · on avalanche
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[0].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[1].apr LOST · on avalanche
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[1].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal WHOLE-LIST
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal WHOLE-ROW
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal.currentAmount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · goal.targetAmount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · livingExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · paycheck-plan · livingExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · paycheck-plan · livingExpense.amount LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · plan.cushionFloor LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · plan.expenseReserveBalance LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · plan.windfall LOST
+  OVER Progress journey line · confirmed arm · paycheck-plan · requiredExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · paycheck-plan · requiredExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · paycheck-plan · requiredExpense.amount LOST
+
+== [premium] Progress journey line · confirmed arm on 'required-plan': 2 holes · 12 over-suppressions ==
+  HOLE Progress journey line · confirmed arm · required-plan · debt[0].originalBalance LOST
+  HOLE Progress journey line · confirmed arm · required-plan · debt[1].originalBalance LOST
+  OVER Progress journey line · confirmed arm · required-plan · debt[0].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · required-plan · debt[1].minimumPayment LOST
+  OVER Progress journey line · confirmed arm · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Progress journey line · confirmed arm · required-plan · livingExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · required-plan · livingExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · required-plan · livingExpense.amount LOST
+  OVER Progress journey line · confirmed arm · required-plan · plan.expenseReserveBalance LOST
+  OVER Progress journey line · confirmed arm · required-plan · plan.windfall LOST
+  OVER Progress journey line · confirmed arm · required-plan · requiredExpense WHOLE-LIST
+  OVER Progress journey line · confirmed arm · required-plan · requiredExpense WHOLE-ROW
+  OVER Progress journey line · confirmed arm · required-plan · requiredExpense.amount LOST
+
+== [premium] Money's total on 'debt-balances': 4 holes · 2 over-suppressions ==
+  HOLE Money's total · debt-balances · debt[0].apr LOST
+  HOLE Money's total · debt-balances · debt[0].minimumPayment LOST
+  HOLE Money's total · debt-balances · debt[1].apr LOST
+  HOLE Money's total · debt-balances · debt[1].minimumPayment LOST
+  OVER Money's total · debt-balances · debt[0].originalBalance LOST
+  OVER Money's total · debt-balances · debt[1].originalBalance LOST
+
+== [premium] Money's total on 'projected-balance': 0 holes · 0 over-suppressions ==
+
+== [premium] Money's total on 'solved-projection': 0 holes · 17 over-suppressions ==
+  OVER Money's total · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER Money's total · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER Money's total · solved-projection · goal WHOLE-LIST
+  OVER Money's total · solved-projection · goal WHOLE-ROW
+  OVER Money's total · solved-projection · goal.currentAmount LOST
+  OVER Money's total · solved-projection · goal.priorityPerPaycheck LOST
+  OVER Money's total · solved-projection · goal.targetAmount LOST
+  OVER Money's total · solved-projection · livingExpense WHOLE-LIST
+  OVER Money's total · solved-projection · livingExpense WHOLE-ROW
+  OVER Money's total · solved-projection · livingExpense.amount LOST
+  OVER Money's total · solved-projection · plan.cushionFloor LOST
+  OVER Money's total · solved-projection · plan.expenseReserveBalance LOST
+  OVER Money's total · solved-projection · plan.leanAmount LOST
+  OVER Money's total · solved-projection · plan.windfall LOST
+  OVER Money's total · solved-projection · requiredExpense WHOLE-LIST
+  OVER Money's total · solved-projection · requiredExpense WHOLE-ROW
+  OVER Money's total · solved-projection · requiredExpense.amount LOST
+
+== [premium] Money's total on 'paycheck-plan': 2 holes · 16 over-suppressions ==
+  HOLE Money's total · paycheck-plan · debt[0].apr LOST · on snowball
+  HOLE Money's total · paycheck-plan · debt[1].apr LOST · on snowball
+  OVER Money's total · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Money's total · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Money's total · paycheck-plan · goal WHOLE-LIST
+  OVER Money's total · paycheck-plan · goal WHOLE-ROW
+  OVER Money's total · paycheck-plan · goal.currentAmount LOST
+  OVER Money's total · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER Money's total · paycheck-plan · goal.targetAmount LOST
+  OVER Money's total · paycheck-plan · livingExpense WHOLE-LIST
+  OVER Money's total · paycheck-plan · livingExpense WHOLE-ROW
+  OVER Money's total · paycheck-plan · livingExpense.amount LOST
+  OVER Money's total · paycheck-plan · plan.cushionFloor LOST
+  OVER Money's total · paycheck-plan · plan.expenseReserveBalance LOST
+  OVER Money's total · paycheck-plan · plan.windfall LOST
+  OVER Money's total · paycheck-plan · requiredExpense WHOLE-LIST
+  OVER Money's total · paycheck-plan · requiredExpense WHOLE-ROW
+  OVER Money's total · paycheck-plan · requiredExpense.amount LOST
+
+== [premium] Money's total on 'required-plan': 2 holes · 10 over-suppressions ==
+  HOLE Money's total · required-plan · debt[0].apr LOST
+  HOLE Money's total · required-plan · debt[1].apr LOST
+  OVER Money's total · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER Money's total · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER Money's total · required-plan · livingExpense WHOLE-LIST
+  OVER Money's total · required-plan · livingExpense WHOLE-ROW
+  OVER Money's total · required-plan · livingExpense.amount LOST
+  OVER Money's total · required-plan · plan.expenseReserveBalance LOST
+  OVER Money's total · required-plan · plan.windfall LOST
+  OVER Money's total · required-plan · requiredExpense WHOLE-LIST
+  OVER Money's total · required-plan · requiredExpense WHOLE-ROW
+  OVER Money's total · required-plan · requiredExpense.amount LOST

@@ -1,4 +1,4 @@
-import type { DataRepair, Debt, DebtStore } from '@/data/models';
+import type { DataRepair, Debt, DebtStore, PayoffStrategy } from '@/data/models';
 
 import { confirmedBalance } from './balanceSelectors';
 
@@ -295,6 +295,58 @@ export function claimFields(): Record<MoneyClaim, ClaimRoute> {
 }
 
 /**
+ * ⛔ **[class 5 R2 `FX-1` · DECISION 🎯 2026-09-14] WHAT A PAYOFF STRATEGY RANKS DEBTS BY — joined to `'paycheck-plan'`.**
+ *
+ * `'paycheck-plan'`'s surfaces NAME the debt the spare goes to — the Guardian brief, the Lock Screen line, the hero's suggested
+ * move, the Recommended card — and that debt is the one the strategy ranks first. Snowball ranks by balance, which the claim
+ * already routes. ⚡ **Avalanche ranks by APR**, which it did not: a lost 22% repaired to `0` ranked Chase below an 18% Visa,
+ * and the brief said *"apply the spare $1,210 toward Visa"* while the claim said yes. `.5.4d`'s 22 shapes never set a
+ * strategy, so that proof was one strategy wide.
+ *
+ * ⚠️ **Six over-suppressions came with it, and they are the decision, not an oversight**: Affordability, windfall routing and
+ * the paywall lead name no debt and refuse over a lost APR on avalanche all the same — pinned by exact key in
+ * `trustSelectors.test.ts`. The exact alternative was an eighth claim.
+ *
+ * ⛔ A `Record` over the strategy union, so a third strategy does not compile until someone says what it ranks by.
+ */
+const RANKED_BY: Record<PayoffStrategy, ClaimRoute> = {
+  snowball: {},
+  avalanche: { debt: ['apr'] },
+};
+
+/** The route one claim takes for one entity on a store with this strategy: `CLAIM_FIELDS`, plus `RANKED_BY` for `'paycheck-plan'`. */
+function routeFor(claim: MoneyClaim, strategy: PayoffStrategy, entity: DataRepair['entity']): 'any' | readonly string[] | undefined {
+  const base = CLAIM_FIELDS[claim][entity];
+  const ranked = claim === 'paycheck-plan' ? RANKED_BY[strategy][entity] : undefined;
+  if (!ranked || base === 'any') return base;
+  if (ranked === 'any' || !base) return ranked;
+  return [...base, ...ranked];
+}
+
+/**
+ * Every claim's route under one strategy, for the lattice and the sweep in `trustSelectors.test.ts`. ⚠️ `claimFields()` stays
+ * the strategy-free table `lint:trust-claims` reads, and the test pins it equal to snowball's route.
+ */
+export function claimFieldsFor(strategy: PayoffStrategy): Record<MoneyClaim, ClaimRoute> {
+  const out = {} as Record<MoneyClaim, ClaimRoute>;
+  for (const claim of Object.keys(CLAIM_FIELDS) as MoneyClaim[]) {
+    const route: ClaimRoute = {};
+    const entities = new Set([...Object.keys(CLAIM_FIELDS[claim]), ...(claim === 'paycheck-plan' ? Object.keys(RANKED_BY[strategy]) : [])]);
+    for (const entity of entities as Set<DataRepair['entity']>) {
+      const fields = routeFor(claim, strategy, entity);
+      if (fields) route[entity] = fields;
+    }
+    out[claim] = route;
+  }
+  return out;
+}
+
+/** The strategies `RANKED_BY` is exhaustive over — the sweep's population, derived rather than typed. */
+export function payoffStrategies(): PayoffStrategy[] {
+  return Object.keys(RANKED_BY) as PayoffStrategy[];
+}
+
+/**
  * ⚠️ A repair whose field is parenthesised — `(a row could not be read)`, `(whole list unreadable)` — names
  * no field because there was nothing left to name. Those are the LOUDEST losses, so they poison every
  * claim about their entity rather than matching none of them.
@@ -302,9 +354,9 @@ export function claimFields(): Record<MoneyClaim, ClaimRoute> {
  * ⚠️ `recovered` is excluded here for the same reason `hasUnreadDebtBalances` excludes it, and the reason
  * is load-bearing in both directions — see that docblock.
  */
-function poisons(r: DataRepair, claim: MoneyClaim): boolean {
+function poisons(r: DataRepair, claim: MoneyClaim, strategy: PayoffStrategy): boolean {
   if (r.kind === 'recovered') return false;
-  const fields = CLAIM_FIELDS[claim][r.entity];
+  const fields = routeFor(claim, strategy, r.entity);
   if (!fields) return false;
   if (isWholeRowLoss(r)) return true;
   return fields === 'any' || fields.includes(r.field);
@@ -358,7 +410,7 @@ export function mayClaim(store: DebtStore, claim: MoneyClaim): boolean {
  * *"every balance is cleared"* over debts still owed.
  */
 export function repairsPoisoning(store: DebtStore, claim: MoneyClaim): DataRepair[] {
-  return store.pendingDataRepairs.filter((r) => poisons(r, claim));
+  return store.pendingDataRepairs.filter((r) => poisons(r, claim, store.payoffStrategy));
 }
 
 /**
@@ -397,7 +449,7 @@ export function rowFieldUnread(
   id: string,
   ...fields: string[]
 ): boolean {
-  const asked = routedSubset(claim, entity, fields);
+  const asked = routedSubset(claim, store.payoffStrategy, entity, fields);
   return unreadFieldsFor(store, entity, id).some((f) => asked.includes(f) || isWholeRowLossField(f));
 }
 
@@ -418,15 +470,16 @@ export function anyRowFieldUnread(
   entity: DataRepair['entity'],
   ...fields: string[]
 ): boolean {
-  const asked = routedSubset(claim, entity, fields);
+  const asked = routedSubset(claim, store.payoffStrategy, entity, fields);
   return store.pendingDataRepairs.some(
     (r) => r.entity === entity && r.kind !== 'recovered' && (isWholeRowLoss(r) || asked.includes(r.field)),
   );
 }
 
 /** What this claim actually routes for this entity, intersected with what the call site asked for. */
-function routedSubset(claim: MoneyClaim, entity: DataRepair['entity'], fields: string[]): string[] {
-  const routed = CLAIM_FIELDS[claim][entity];
+function routedSubset(claim: MoneyClaim, strategy: PayoffStrategy, entity: DataRepair['entity'], fields: string[]): string[] {
+  // ⛔ [class 5 R2 `FX-1`] Through `routeFor`, so a row asks the same route `mayClaim` does — never the table alone.
+  const routed = routeFor(claim, strategy, entity);
   if (!routed) return [];
   return routed === 'any' ? fields : fields.filter((f) => routed.includes(f));
 }

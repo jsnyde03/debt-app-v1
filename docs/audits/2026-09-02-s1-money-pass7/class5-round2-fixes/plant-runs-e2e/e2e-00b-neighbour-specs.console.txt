@@ -1,0 +1,12 @@
+== app plants (0) ==
+== export:web --clear ==
+  export exit=0 in 83s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=21652 listening=True ==
+
+-- RUN CONTROL - plan-hero-conserves.spec.ts, unplanted :: plan-hero-conserves.spec.ts -g '.'
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\plan-hero-conserves.spec.ts:85:5 › A1-3 · the split conserves when the money carries CENTS — four roundings, one headline (1.8s) | ok 2 [desktop-chrome] › apps\rn\tests\e2e\plan-hero-conserves.spec.ts:100:5 › the paycheck split conserves in a SHORTFALL — the state the hero matters most in (1.5s) | ok 3 [desktop-chrome] › apps\rn\tests\e2e\plan-hero-conserves.spec.ts:136:5 › …and still conserves on a healthy cycle — the branch the fix must not move (1.1s) | 3 passed (7.0s)
+
+-- RUN CONTROL - earlyjourney.spec.ts, unplanted :: earlyjourney.spec.ts -g '.'
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\earlyjourney.spec.ts:13:7 › §3.3.6.3 Welcome leads with the Guardian job (light) (1.3s) | ok 2 [desktop-chrome] › apps\rn\tests\e2e\earlyjourney.spec.ts:59:7 › early Progress hero leads forward (light) (1.4s) | ok 3 [desktop-chrome] › apps\rn\tests\e2e\earlyjourney.spec.ts:13:7 › §3.3.6.3 Welcome leads with the Guardian job (dark) (1.3s) | ok 4 [desktop-chrome] › apps\rn\tests\e2e\earlyjourney.spec.ts:59:7 › early Progress hero leads forward (dark) (1.3s) | ok 5 [desktop-chrome] › apps\rn\tests\e2e\earlyjourney.spec.ts:87:5 › a user with a paycheck and a bill but NO debts still gets their plan (1.2s) | 5 passed (8.4s)
+
+== server stopped; :4319 listening=False ==

@@ -1,0 +1,18 @@
+{
+  "control": {
+    "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+    "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "L3-4 audit remedy as written - the split on paycheck-plan (CRLF anchor, rerun of 04)",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.test.ts",
+      "old": "        claim: 'required-plan',\r\n        name: \"Today's plan hero · the split and the verdict\",",
+      "new": "        claim: 'paycheck-plan',\r\n        name: \"Today's plan hero · the split and the verdict\",",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": [".5.4a OVER-SUPPRESSION — paycheck-plan · Today's plan hero · the split and the verdict · "]
+    }
+  ]
+}

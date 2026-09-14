@@ -1,0 +1,49 @@
+== app plants (1) ==
+  plant apps/rn/src/components/plan/RecommendedActionsCard.tsx: anchor count=1 :: '  const shown = unreadPlanInputs ? [] : active;'
+  applied apps/rn/src/components/plan/RecommendedActionsCard.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 70s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=26916 listening=True ==
+
+-- RUN E2 FX-2 revert - the Recommended card draws its rows over the refusal :: trust-claims.spec.ts -g 'the suggested move is withheld over a minimum'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:470:5 › class 5 R2 · the suggested move is withheld over a minimum the app could not read — the hero and the Recommended card (6.9s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:470:5 › class 5 R2 · the suggested move is withheld over a minimum the app could not read — the hero and the Recommended card 
+
+    Error: ⛔ FX-2 — no suggested row survives on Today
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText('Suggested this paycheck')
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - ⛔ FX-2 — no suggested row survives on Today with timeout 5000ms[22m
+    [2m  - waiting for getByText('Suggested this paycheck')[22m
+    [2m    14 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      475 |   await expect(page.getByTestId('recommended-unread-inputs'), '⛔ FX-2 — the card says why, naming the figure').toContainText('set the minimum payment on Car again');
+      476 |   await expect(hero.getByText(/^Suggested ·/), '⛔ L3-1a — drawn over its own refusal, inflated by the lost minimum').toHaveCount(0);
+    > 477 |   await expect(page.getByText('Suggested this paycheck'), '⛔ FX-2 — no suggested row survives on Today').toHaveCount(0);
+          |                                                                                                          ^
+      478 | });
+      479 |
+      480 | test('class 5 R2 control · with the minimum readable both draw the suggested move', async ({ page }) => {
+        at C:\Users\Jason\debt-app-v1\apps\rn\tests\e2e\trust-claims.spec.ts:477:106
+
+    Error Context: apps\rn\test-results\trust-claims-class-5-R2-·--58d5a-ro-and-the-Recommended-card-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:470:5 › class 5 R2 · the suggested move is withheld over a minimum the app could not read — the hero and the Recommended card 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:470:5 › class 5 R2 · the suggested move is withheld over a minimum the app could not read — the hero and the Recommended card (6.9s) | Error: ⛔ FX-2 — no suggested row survives on Today | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/components/plan/RecommendedActionsCard.tsx: cmp identical=True

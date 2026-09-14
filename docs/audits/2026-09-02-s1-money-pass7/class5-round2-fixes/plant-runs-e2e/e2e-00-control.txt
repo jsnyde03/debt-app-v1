@@ -1,0 +1,41 @@
+== app plants (0) ==
+== export:web --clear ==
+  export exit=0 in 88s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=12668 listening=True ==
+
+-- RUN CONTROL - the whole of trust-claims.spec.ts, unplanted :: trust-claims.spec.ts -g '.'
+
+Running 27 tests using 1 worker
+
+  ok  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:28:5 › C-1 · a debt row does not restate an APR and a minimum the app never read (1.7s)
+  ok  2 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:62:5 › C-1 control · a debt whose figures ALL read still states every one of them (1.1s)
+  ok  3 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:80:5 › C-2 · Everyday Spending does not headline a reserve missing an unknown addend (961ms)
+  ok  4 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:104:5 › C-2 control · an Everyday Spending list the app fully read still headlines its total (974ms)
+  ok  5 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:120:5 › C-2 · the Expenses hero does not RECOMMEND a figure missing a bill it could not read (1.2s)
+  ok  6 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:144:5 › C-2 control · a bills list the app fully read still states its recommendation (1.3s)
+  ok  7 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:163:5 › C-3 · History does not credit the user with a DELETED debt as money they paid (882ms)
+  ok  8 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:189:5 › C-3 control · History still anchors on money that WAS paid (895ms)
+  ok  9 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:213:5 › C4-8 · the History headline says "1 cycle", not "1 cycles" (867ms)
+  ok 10 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:229:5 › C-4 · the trophy shelf does not file a cleared debt as "$0 paid off" (994ms)
+  ok 11 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:250:5 › C-4 control · a shelf whose starting balances all read still states each one (971ms)
+  ok 12 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:268:5 › C-6 · the BNPL calendar says what it could not read instead of listing a short schedule (1.0s)
+  ok 13 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:289:5 › C-6 control · a BNPL plan the app read still lists every installment (1.1s)
+  ok 14 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:318:5 › C4-7 · the Payday Guardian card states nothing over a minimum the app could not read (1.2s)
+  ok 15 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:352:5 › C4-7 control · the same card with the minimum readable still states the whole read (1.2s)
+  ok 16 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read (1.1s)
+  ok 17 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:420:5 › .5.4d · the plan hero withholds its DATE over an APR the app could not read, and keeps its split (1.2s)
+  ok 18 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:438:5 › .5.4d control · the plan hero with the rate readable still states its date and its split (1.3s)
+  ok 19 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:470:5 › class 5 R2 · the suggested move is withheld over a minimum the app could not read — the hero and the Recommended card (1.2s)
+  ok 20 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:480:5 › class 5 R2 control · with the minimum readable both draw the suggested move (1.2s)
+  ok 21 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:503:5 › class 5 R2 · FX-1 · on avalanche nothing names a debt ranked by a rate the app could not read (1.1s)
+  ok 22 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:513:5 › class 5 R2 control · FX-1 · on avalanche with every rate readable the target is named (1.2s)
+  ok 23 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:531:5 › C4-2 · the trophy shelf does not file a debt the app could not read as paid off (1.1s)
+  ok 24 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:550:5 › C4-2 · Money keeps the row and drops the PAID OFF heading over it (1.1s)
+  ok 25 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:572:5 › C4-2 control · a genuinely cleared debt is still on the shelf, at its real figure (1.1s)
+  ok 26 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:609:5 › C4-1 · the BNPL row does not state a count derived from a starting balance nobody read (1.1s)
+  ok 27 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:627:5 › C4-1 control · the same plan with a readable starting balance states 2 of 4 (1.0s)
+
+  27 passed (33.9s)
+   exit=0 :: ok  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:28:5 › C-1 · a debt row does not restate an APR and a minimum the app never read (1.7s) | ok  2 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:62:5 › C-1 control · a debt whose figures ALL read still states every one of them (1.1s) | ok  3 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:80:5 › C-2 · Everyday Spending does not headline a reserve missing an unknown addend (961ms) | ok  4 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:104:5 › C-2 control · an Everyday Spending list the app fully read still headlines its total (974ms) | ok  5 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:120:5 › C-2 · the Expenses hero does not RECOMMEND a figure missing a bill it could not read (1.2s) | ok  6 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:144:5 › C-2 control · a bills list 
+
+== server stopped; :4319 listening=False ==

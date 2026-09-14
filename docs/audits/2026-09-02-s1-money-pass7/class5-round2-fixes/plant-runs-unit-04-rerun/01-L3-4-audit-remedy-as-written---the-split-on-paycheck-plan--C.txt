@@ -1,0 +1,12 @@
+plant=L3-4 audit remedy as written - the split on paycheck-plan (CRLF anchor, rerun of 04)
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.test.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ .5.4a OVER-SUPPRESSION — paycheck-plan · Today's plan hero · the split and the verdict · debt[0].apr LOST · on avalanche: the claim refuses and no shape's figure moves
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:38:9)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:1035:32)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

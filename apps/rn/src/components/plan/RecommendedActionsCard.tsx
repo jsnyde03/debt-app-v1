@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { formatCurrency } from '@core/utils/formatCurrency';
 
+import { UNREAD_PLAN_LEAD } from '@/components/plan/dataRepairsCopy';
 import { Card } from '@/components/ui/Card';
 import { CheckCircle } from '@/components/ui/CheckCircle';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -29,13 +30,26 @@ export function RecommendedActionsCard({
   active,
   completed,
   onToggle,
+  unreadPlanInputs,
+  unreadFix,
 }: {
   active: ActiveRecommendedAction[];
   completed: CompletedRecommendedAction[];
   onToggle: (action: CompletedRecommendedAction, done: boolean) => void;
+  /**
+   * ⛔ **[class 5 R2 `FX-2`] `'paycheck-plan'` — the card had no trust gate at all.** Every suggested move is spent out
+   * of the allocation, and on avalanche its TARGET is ranked by APR: a lost minimum inflated the amount, a lost rate
+   * renamed the debt, and a tap on "Mark Paid" recorded either. ⚠️ Required, not defaulted — a caller that forgets
+   * the gate must not compile. Completed rows are kept: they are what the user already did, not a claim.
+   */
+  unreadPlanInputs: boolean;
+  /** `unreadInputsFix(repairsPoisoning(store, 'paycheck-plan'), …)`, naming what to set. */
+  unreadFix: string;
 }) {
   const c = useAppColors();
-  if (active.length === 0 && completed.length === 0) return null;
+  const shown = unreadPlanInputs ? [] : active;
+  const withheld = unreadPlanInputs && active.length > 0;
+  if (shown.length === 0 && completed.length === 0 && !withheld) return null;
 
   return (
     <Card tone="accent" padded={false}>
@@ -48,7 +62,13 @@ export function RecommendedActionsCard({
         <Text style={[textStyles.caption, { color: c.text.tertiary }]}>Best next move for this paycheck.</Text>
       </View>
 
-      {active.map((a, i) => (
+      {withheld ? (
+        <Text testID="recommended-unread-inputs" style={[textStyles.subhead, styles.unread, { color: c.accent.warning }]}>
+          {`${UNREAD_PLAN_LEAD}, so I can’t suggest a move yet — ${unreadFix}.`}
+        </Text>
+      ) : null}
+
+      {shown.map((a, i) => (
         <Row
           key={a.key}
           label={a.label}
@@ -56,7 +76,7 @@ export function RecommendedActionsCard({
           amount={a.actualAmount}
           focus={i === 0}
           control={<CheckCircle checked={false} tone="accent" onPress={() => onToggle(toCompleted(a), true)} label={verb(a.category)} />}
-          divider={i < active.length - 1 || completed.length > 0}
+          divider={i < shown.length - 1 || completed.length > 0}
         />
       ))}
 
@@ -121,6 +141,7 @@ function Row({
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: layout.cardPaddingH, paddingTop: layout.cardPaddingV, paddingBottom: spacing.md, gap: 2 },
+  unread: { paddingHorizontal: layout.cardPaddingH, paddingBottom: layout.cardPaddingV },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   tagDot: { width: 8, height: 8, borderRadius: 4 },
   row: {

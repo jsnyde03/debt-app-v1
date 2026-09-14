@@ -35,7 +35,7 @@ unchanged since `ea3f5e0e`, the round-1 pin.
 
 | step | ids | report | the shape |
 |---|---|---|---|
-| **8.4.1** | `L3-1a` **blocker** · `L3-1b` · `L3-4` | L3 | PlanHero draws the suggestion over its refusal; the split and the date ask one claim for two routes |
+| ✅ **8.4.1** | `L3-1a` **blocker** · `L3-1b` · `L3-4` + `FX-1` `FX-2` | L3 | **CLOSED 2026-09-14** — three claims per hero family, APR routed on avalanche; `L3-4`'s remedy was wrong twice. Record: log + [`class5-round2-fixes/`](class5-round2-fixes/) |
 | **8.4.2** | `L3-5a` · `L3-5b` · `L3-2` · `L3-6` | L3 | Progress: cash-flow bars ask no claim and print an unread line; free-tier over-refusal; `C3-9`'s gag unasserted |
 | **8.4.3** | `L1-1` · `L1-3` · `L1-4` · `L1-5` | L1 | a plan repair at `$0` cannot be answered; band vs sentence on a `$0` line; two unguarded closure halves |
 | **8.4.4** | `L1-R1` · `L1-2` | L1 | confirmed liveness vs the estimate's ranking — Money loses a debt; the reserve release names a skipped one |
@@ -51,7 +51,10 @@ unchanged since `ea3f5e0e`, the round-1 pin.
 - ⛔ **Every remedy in the lane reports is UNVERIFIED — measure it before building.** Pass 4 counted five remedies that
   would have introduced the defect they described. Named hazards already: `L1-1`'s explicit answer must **not** fire from
   `runMigrations`, hydrate or `importStore`, and the ack must still not clear it · `L2-2`'s second remedy alone does not fix
-  the growth shape · `L3-4` is two claims, not a wider one.
+  the growth shape · `L3-4` is two claims, not a wider one. ⚡ **Measured at 8.4.1: `L3-4`'s remedy was wrong twice** — the
+  split is exact on `'required-plan'`, not `'paycheck-plan'`, and the suggestion on it would have shipped `FX-1`. Probe first.
+- ⛔ **These files are CRLF.** A multi-line plant anchor spelled with `\n` matches nothing — spell `\r\n`, and count every
+  anchor before spending an export. `class5-round2-fixes/plant.py` refuses a zero count; keep it that way.
 - ⛔ **A closure is closed only when a plant of EXACTLY ITS REVERT reds.** `L3-6` survived because the date is gated twice:
   the spec's one assertion was satisfied by the gate that was not the fix's subject. Plant the fix line, not a neighbour.
 - ⛔ **Iterate the surfaces, never add one.** `L3-5a`/`L3-5b` exist because Progress's cash-flow bars are not in

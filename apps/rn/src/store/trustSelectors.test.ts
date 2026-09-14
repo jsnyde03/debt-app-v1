@@ -5,14 +5,14 @@ import { selectDebtBalanceView, selectProvisionalPayoffs, withProjectedBalances 
 import { selectAffordability, selectPaydayGuardian, selectReserveRelease, selectWindfallSplit } from '@/store/guardianSelectors';
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { DEFAULT_CUSHION_FLOOR, cushionLine, effectivePaycheckBuffer, selectAllocation, selectWaterFillPlan } from '@/store/selectors';
-import { selectPlanState, selectPlanSummary, selectRequiredRows } from '@/store/planSelectors';
+import { selectPlanState, selectPlanSummary, selectRecommendedActions, selectRequiredRows } from '@/store/planSelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
 import { detectPayoff } from '@/store/payoffCelebration';
 
 
 import { createDebtStore } from '@/store/store';
-import { answerableByEdit, claimFields, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, rowFieldUnread } from '@/store/trustSelectors';
-import type { DebtStore } from '@/data/models';
+import { answerableByEdit, claimFields, claimFieldsFor, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, payoffStrategies, rowFieldUnread } from '@/store/trustSelectors';
+import type { DebtStore, PayoffStrategy } from '@/data/models';
 
 /** ⛔ S1.13.7.4 [pass-6 B1-1] — the unread set detectPayoff now REQUIRES. Derived from the store
  *  under test rather than typed, so a fixture that adds an unread balance is covered automatically. */
@@ -325,27 +325,45 @@ export default function run(): void {
       'required-plan ⊑ solved-projection',
       'solved-projection ⊑ row-figures',
     ];
-    const cover = (claim: string): Set<string> => {
-      const out = new Set<string>();
-      for (const [entity, fields] of Object.entries(claimFields()[claim as keyof ReturnType<typeof claimFields>])) {
-        const lists = (REPAIRABLE_MONEY_FIELDS as Record<string, { required: readonly string[]; optional: readonly string[] }>)[entity];
-        const all = fields === 'any' ? [...(lists?.required ?? []), ...(lists?.optional ?? []), '(any)'] : [...fields];
-        for (const f of all) out.add(`${entity}.${f}`);
+    const latticeOf = (routes: ReturnType<typeof claimFields>): string[] => {
+      const cover = (claim: string): Set<string> => {
+        const out = new Set<string>();
+        for (const [entity, fields] of Object.entries(routes[claim as keyof typeof routes])) {
+          const lists = (REPAIRABLE_MONEY_FIELDS as Record<string, { required: readonly string[]; optional: readonly string[] }>)[entity];
+          const all = fields === 'any' ? [...(lists?.required ?? []), ...(lists?.optional ?? []), '(any)'] : [...fields];
+          for (const f of all) out.add(`${entity}.${f}`);
+        }
+        return out;
+      };
+      const claims = Object.keys(routes);
+      const measured: string[] = [];
+      for (const a of claims) {
+        for (const b of claims) {
+          if (a === b) continue;
+          const outer = cover(b);
+          if ([...cover(a)].every((k) => outer.has(k) || (!k.endsWith('.(any)') && outer.has(`${k.split('.')[0]}.(any)`)))) measured.push(`${a} ⊑ ${b}`);
+        }
       }
-      return out;
+      return measured.sort();
     };
-    const claims = Object.keys(claimFields());
-    const measured: string[] = [];
-    for (const a of claims) {
-      for (const b of claims) {
-        if (a === b) continue;
-        const outer = cover(b);
-        if ([...cover(a)].every((k) => outer.has(k) || (!k.endsWith('.(any)') && outer.has(`${k.split('.')[0]}.(any)`)))) measured.push(`${a} ⊑ ${b}`);
-      }
-    }
-    measured.sort();
+    const measured = latticeOf(claimFields());
     eq(measured.join(' | '), EXPECTED_CONTAINMENTS.join(' | '), '⛔ the claim containment lattice is the one measured at .5.7 — a route that moved changes which conjunctions are vacuous');
     eq(measured.includes('debt-balances ⊑ solved-projection'), false, '⭐ the widget\'s debt-balances && solved-projection is a REAL conjunction — neither contains the other');
+
+    /**
+     * ⛔ **[class 5 R2 `FX-1`] …and per STRATEGY**, because `'paycheck-plan'` routes the APR on avalanche. The strategy-free
+     * table is what `lint:trust-claims` reads, so it is pinned to snowball's route exactly, and avalanche adds exactly one
+     * containment — a production `projected-balance && paycheck-plan` would be vacuous there and real on snowball.
+     */
+    eq(JSON.stringify(claimFieldsFor('snowball')), JSON.stringify(claimFields()), '⛔ FX-1 — the table the gates read IS snowball\'s route; one that differs is a second table');
+    const EXTRA_CONTAINMENTS: Record<PayoffStrategy, string[]> = { snowball: [], avalanche: ['projected-balance ⊑ paycheck-plan'] };
+    for (const strategy of payoffStrategies()) {
+      eq(
+        latticeOf(claimFieldsFor(strategy)).join(' | '),
+        [...EXPECTED_CONTAINMENTS, ...EXTRA_CONTAINMENTS[strategy]].sort().join(' | '),
+        `⛔ FX-1 — the containment lattice on ${strategy}`,
+      );
+    }
   }
 
   /**
@@ -783,10 +801,11 @@ export default function run(): void {
     const LIST: Record<string, string> = { debt: 'debts', requiredExpense: 'requiredExpenses', livingExpense: 'livingExpenses', goal: 'goals' };
     type Raw = Record<string, any>;
     // ⚠️ Every date is the fixture's own clock — `currentDate: DAY` — so nothing here ages against the run date.
-    const rawShape = (sh: Shape): Raw => {
+    const rawShape = (sh: Shape, strategy: PayoffStrategy): Raw => {
       const b = sh.big ? 3 : 1;
       return {
         version: 8,
+        payoffStrategy: strategy,
         paycheck: { amount: String(sh.income), currentDate: DAY, nextPaycheckDate: NEXT, incomeVaries: sh.variable, leanAmount: Math.round(sh.income * 0.75), typicalAmount: sh.income },
         debts: [
           { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: 6000 * b, minimumPayment: 150 * b, ...(sh.autopay ? { scheduledPaymentAmount: 200 * b } : {}), apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
@@ -813,6 +832,11 @@ export default function run(): void {
     const summaryOf = (e: DebtStore) => {
       const a = selectAllocation(e);
       return a ? selectPlanSummary(e, a, selectRequiredRows(e, a)) : null;
+    };
+    /** What the hero's suggested move and the Recommended card print: each row's target, label and amount. */
+    const suggestedOf = (e: DebtStore) => {
+      const a = selectAllocation(e);
+      return a ? selectRecommendedActions(e, a).map((x) => [x.key, x.category, x.targetId, x.label, x.actualAmount]) : null;
     };
 
     /**
@@ -853,14 +877,35 @@ export default function run(): void {
        * ⛔ [`.5.4d` · DECISION 🎯 2026-09-13] The askers of the old `'required-plan'`, each on the claim measured exact
        * for its RENDERED fields — never the whole selector result, which carries debt objects a surface does not print.
        */
+      /**
+       * ⛔ [class 5 R2 `L3-4`] The hero is THREE figure families on three claims. Serialised as one array, a lost APR moved the
+       * date and so "moved" the split with it — the split's over-suppression was unobservable by construction. The suggested
+       * move was in no figure at all, which is where `L3-1a` and `FX-1` both hid.
+       */
       {
         claim: 'solved-projection',
-        name: "Today's plan hero",
+        name: "Today's plan hero · the date",
         figure: (s) => {
           const m = summaryOf(withProjectedBalances(s, true));
-          return m ? JSON.stringify([m.billsReserve, m.debtFreeDate, m.everydayHeld, m.remainingAfterRequired, m.requiredTotal, m.shortfall, m.status]) : 'null';
+          return m ? JSON.stringify([m.debtFreeDate]) : 'null';
         },
       },
+      /**
+       * ⚡ Measured per family (`probe-841-hero-families`): the split is exact on `'required-plan'` (0 holes · 0 over) and
+       * over-suppresses 8 on `'paycheck-plan'`. The verdict rides with it — alone, `'required-plan'` is its closest claim
+       * (0 holes · 7 over), and the split beside it moves on every one of those seven.
+       */
+      {
+        claim: 'required-plan',
+        name: "Today's plan hero · the split and the verdict",
+        figure: (s) => {
+          const m = summaryOf(withProjectedBalances(s, true));
+          return m ? JSON.stringify([m.billsReserve, m.everydayHeld, m.remainingAfterRequired, m.requiredTotal, m.shortfall, m.status]) : 'null';
+        },
+      },
+      { claim: 'paycheck-plan', name: "Today's plan hero · the suggested move", figure: (s) => JSON.stringify(suggestedOf(withProjectedBalances(s, true))) },
+      // ⛔ [class 5 R2 `FX-2`] The card that draws the same list with a "Mark Paid" control, and asked no claim.
+      { claim: 'paycheck-plan', name: 'the Recommended card', figure: (s) => JSON.stringify(suggestedOf(withProjectedBalances(s, true))) },
       {
         claim: 'required-plan',
         name: 'Required actions',
@@ -891,11 +936,17 @@ export default function run(): void {
      * fifth claim for one pitch sentence.
      */
     const ACCEPTED_OVER = new Set<string>([
-      "solved-projection · Today's plan hero · plan.leanAmount LOST",
+      "solved-projection · Today's plan hero · the date · plan.leanAmount LOST",
+      // ⚠️ [class 5 R2 `L3-4`] Surfaced by splitting the hero, and never on screen: `'required-plan'` routes the same field, so a
+      // lost reserve balance withholds the split too and the hero shows the whole-plan refusal, not the date's.
+      "solved-projection · Today's plan hero · the date · plan.expenseReserveBalance LOST",
       'paycheck-plan · Windfall routing · plan.windfall LOST',
       ...['debt[0].minimumPayment', 'debt[1].minimumPayment', 'goal.targetAmount', 'goal.currentAmount', 'goal.priorityPerPaycheck', 'goal WHOLE-ROW', 'goal WHOLE-LIST'].map(
         (v) => `paycheck-plan · the paywall lead · ${v}${v.includes('WHOLE') ? '' : ' LOST'}`,
       ),
+      // ⛔ [class 5 R2 `FX-1` · DECISION 🎯 2026-09-14] Avalanche ranks by APR, so `'paycheck-plan'` routes it there — and these
+      // three name no debt. The exact alternative was an eighth claim.
+      ...['Affordability', 'Windfall routing', 'the paywall lead'].flatMap((surface) => [0, 1].map((row) => `paycheck-plan · ${surface} · debt[${row}].apr LOST · on avalanche`)),
     ]);
 
     type Variant = { name: string; lost: boolean; mutate: (r: Raw) => void };
@@ -920,28 +971,38 @@ export default function run(): void {
     // ⚠️ A UNION, not per shape: a short paycheck funds no goal, and that is the shape's point. What the proof needs
     // is that SOME shape consumes each input, so its loss can be seen moving something.
     const consumed = new Set<string>();
-    const verdict = new Map<string, { refused: Set<boolean>; moved: boolean }>();
-    for (const sh of SHAPES) {
-      const base = premium(rawShape(sh));
-      eq(base.pendingDataRepairs.length, 0, `${sh.name} — the base fixture reads clean`);
-      const alloc = selectAllocation(base);
-      for (const a of alloc?.allocations ?? []) consumed.add(a.category);
-      if ((alloc?.livingExpenseReserve ?? 0) > 0) consumed.add('living-expense');
-      if (selectPayoffView(withProjectedBalances(base, true)).lean.length > 0) sawBand = true;
-      const baseFigures = SURFACES.map((surface) => surface.figure(base));
+    // ⛔ [class 5 R2 `FX-1`] EVERY STRATEGY — a route can depend on it now, and `.5.4d`'s shapes all ran the default snowball, so
+    // an avalanche-only hole could not be seen. Derived from the route table's exhaustive `Record`, never typed here.
+    const STRATEGIES = payoffStrategies();
+    eq(STRATEGIES.includes('avalanche') && STRATEGIES.includes('snowball'), true, 'the sweep covers every payoff strategy the route table knows');
+    type At = { refused: Set<boolean>; moved: boolean };
+    const verdict = new Map<string, Map<PayoffStrategy, At>>();
+    for (const strategy of STRATEGIES) {
+      for (const sh of SHAPES) {
+        const base = premium(rawShape(sh, strategy));
+        eq(base.payoffStrategy, strategy, `${sh.name} — the fixture carries ${strategy} through migration`);
+        eq(base.pendingDataRepairs.length, 0, `${sh.name} — the base fixture reads clean`);
+        const alloc = selectAllocation(base);
+        for (const a of alloc?.allocations ?? []) consumed.add(a.category);
+        if ((alloc?.livingExpenseReserve ?? 0) > 0) consumed.add('living-expense');
+        if (selectPayoffView(withProjectedBalances(base, true)).lean.length > 0) sawBand = true;
+        const baseFigures = SURFACES.map((surface) => surface.figure(base));
 
-      for (const v of variants) {
-        const r = rawShape(sh);
-        v.mutate(r);
-        const s = premium(r);
-        eq(s.pendingDataRepairs.some((x) => x.kind === 'lost'), v.lost, `${sh.name} · ${v.name} — the variant records ${v.lost ? 'a LOST' : 'no lost'} repair`);
-        SURFACES.forEach((surface, i) => {
-          const key = `${surface.claim} · ${surface.name} · ${v.name}`;
-          const at = verdict.get(key) ?? { refused: new Set<boolean>(), moved: false };
-          at.refused.add(!mayClaim(s, surface.claim));
-          if (surface.figure(s) !== baseFigures[i]) at.moved = true;
-          verdict.set(key, at);
-        });
+        for (const v of variants) {
+          const r = rawShape(sh, strategy);
+          v.mutate(r);
+          const s = premium(r);
+          eq(s.pendingDataRepairs.some((x) => x.kind === 'lost'), v.lost, `${sh.name} · ${v.name} — the variant records ${v.lost ? 'a LOST' : 'no lost'} repair`);
+          SURFACES.forEach((surface, i) => {
+            const key = `${surface.claim} · ${surface.name} · ${v.name}`;
+            const byStrategy = verdict.get(key) ?? new Map<PayoffStrategy, At>();
+            const at = byStrategy.get(strategy) ?? { refused: new Set<boolean>(), moved: false };
+            at.refused.add(!mayClaim(s, surface.claim));
+            if (surface.figure(s) !== baseFigures[i]) at.moved = true;
+            byStrategy.set(strategy, at);
+            verdict.set(key, byStrategy);
+          });
+        }
       }
     }
     for (const c of ['expense', 'minimum_debt', 'optional_goal', 'living-expense']) {
@@ -949,17 +1010,33 @@ export default function run(): void {
     }
     eq(sawBand, true, 'at least one shape draws the variable-income band, so a lost lean paycheck can move it');
 
-    for (const [key, { refused, moved }] of verdict) {
-      eq(refused.size, 1, `⛔ ${key} — a route's verdict is a property of the REPAIR, never of the fixture`);
-      const refuses = [...refused][0];
-      if (ACCEPTED_OVER.has(key)) {
-        eq(refuses && !moved, true, `⛔ .5.4d — ${key} is listed as an ACCEPTED over-suppression and is no longer one`);
-        continue;
+    /**
+     * ⚠️ **How strategies pool.** Where a repair's verdict is the SAME on every strategy the route does not depend on it, and the
+     * strategies are more fixtures — "moves" is the union, as it is across shapes. ⚡ Measured: a lost goal saved amount moves the
+     * cushion forecast on snowball's `filling` shape and on no avalanche shape, though the goal's allocation jumps $70 → $1,000
+     * on both. Where the verdict DIFFERS by strategy, each strategy is its own question, and its key says so: `… · on avalanche`.
+     */
+    const judged = new Set<string>();
+    for (const [key, byStrategy] of verdict) {
+      for (const [strategy, { refused }] of byStrategy) {
+        eq(refused.size, 1, `⛔ ${key} · on ${strategy} — a route's verdict is a property of the REPAIR and the strategy, never of the fixture`);
       }
-      if (refuses && !moved) fail(`⛔ .5.4a OVER-SUPPRESSION — ${key}: the claim refuses and no shape's figure moves`);
-      if (!refuses && moved) fail(`⛔ .5.4a HOLE — ${key}: the figure moves and the claim still says yes`);
+      const answers = new Set([...byStrategy.values()].map((at) => [...at.refused][0]));
+      const questions: [string, boolean, boolean][] =
+        answers.size === 1
+          ? [[key, [...answers][0], [...byStrategy.values()].some((at) => at.moved)]]
+          : [...byStrategy].map(([strategy, at]) => [`${key} · on ${strategy}`, [...at.refused][0], at.moved]);
+      for (const [k, refuses, moved] of questions) {
+        judged.add(k);
+        if (ACCEPTED_OVER.has(k)) {
+          eq(refuses && !moved, true, `⛔ .5.4d — ${k} is listed as an ACCEPTED over-suppression and is no longer one`);
+          continue;
+        }
+        if (refuses && !moved) fail(`⛔ .5.4a OVER-SUPPRESSION — ${k}: the claim refuses and no shape's figure moves`);
+        if (!refuses && moved) fail(`⛔ .5.4a HOLE — ${k}: the figure moves and the claim still says yes`);
+      }
     }
-    for (const key of ACCEPTED_OVER) eq(verdict.has(key), true, `⛔ .5.4d — ACCEPTED_OVER names ${key}, which no surface × variant produces`);
+    for (const key of ACCEPTED_OVER) eq(judged.has(key), true, `⛔ .5.4d — ACCEPTED_OVER names ${key}, which no surface × variant produces`);
 
     // ⚠️ The split `C3-9` rests on: a lost APR moves every projection and says nothing about the balances.
     eq(mayClaim(withApr('n/a'), 'debt-balances'), true, '`debt-balances` still says YES on an unread APR — the confirmed figures survive');

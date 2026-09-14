@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/components/plan/PlanHero.tsx", "        {showSuggest ? (", "        {suggestLabel && suggestTotal > 0 ? ("]
+  ],
+  "runs": [
+    {"name": "E1 L3-1a revert - the suggestion drawn without showSuggest", "spec": "trust-claims.spec.ts", "grep": "the suggested move is withheld over a minimum"}
+  ]
+}

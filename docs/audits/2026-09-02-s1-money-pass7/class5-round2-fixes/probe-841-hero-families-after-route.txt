@@ -1,0 +1,102 @@
+
+== split on 'required-plan': 0 holes · 0 over-suppressions ==
+
+== split on 'paycheck-plan': 0 holes · 8 over-suppressions ==
+  OVER split · paycheck-plan · debt[0].apr LOST · on avalanche
+  OVER split · paycheck-plan · debt[1].apr LOST · on avalanche
+  OVER split · paycheck-plan · goal WHOLE-LIST
+  OVER split · paycheck-plan · goal WHOLE-ROW
+  OVER split · paycheck-plan · goal.currentAmount LOST
+  OVER split · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER split · paycheck-plan · goal.targetAmount LOST
+  OVER split · paycheck-plan · plan.cushionFloor LOST
+
+== split on 'solved-projection': 0 holes · 9 over-suppressions ==
+  OVER split · solved-projection · debt[0].apr LOST
+  OVER split · solved-projection · debt[1].apr LOST
+  OVER split · solved-projection · goal WHOLE-LIST
+  OVER split · solved-projection · goal WHOLE-ROW
+  OVER split · solved-projection · goal.currentAmount LOST
+  OVER split · solved-projection · goal.priorityPerPaycheck LOST
+  OVER split · solved-projection · goal.targetAmount LOST
+  OVER split · solved-projection · plan.cushionFloor LOST
+  OVER split · solved-projection · plan.leanAmount LOST
+
+== verdict on 'required-plan': 0 holes · 7 over-suppressions ==
+  OVER verdict · required-plan · debt[0].minimumPayment LOST
+  OVER verdict · required-plan · debt[0].scheduledPaymentAmount LOST
+  OVER verdict · required-plan · debt[1].minimumPayment LOST
+  OVER verdict · required-plan · debt[1].scheduledPaymentAmount LOST
+  OVER verdict · required-plan · livingExpense WHOLE-LIST
+  OVER verdict · required-plan · livingExpense WHOLE-ROW
+  OVER verdict · required-plan · livingExpense.amount LOST
+
+== verdict on 'paycheck-plan': 0 holes · 15 over-suppressions ==
+  OVER verdict · paycheck-plan · debt[0].apr LOST · on avalanche
+  OVER verdict · paycheck-plan · debt[0].minimumPayment LOST
+  OVER verdict · paycheck-plan · debt[0].scheduledPaymentAmount LOST
+  OVER verdict · paycheck-plan · debt[1].apr LOST · on avalanche
+  OVER verdict · paycheck-plan · debt[1].minimumPayment LOST
+  OVER verdict · paycheck-plan · debt[1].scheduledPaymentAmount LOST
+  OVER verdict · paycheck-plan · goal WHOLE-LIST
+  OVER verdict · paycheck-plan · goal WHOLE-ROW
+  OVER verdict · paycheck-plan · goal.currentAmount LOST
+  OVER verdict · paycheck-plan · goal.priorityPerPaycheck LOST
+  OVER verdict · paycheck-plan · goal.targetAmount LOST
+  OVER verdict · paycheck-plan · livingExpense WHOLE-LIST
+  OVER verdict · paycheck-plan · livingExpense WHOLE-ROW
+  OVER verdict · paycheck-plan · livingExpense.amount LOST
+  OVER verdict · paycheck-plan · plan.cushionFloor LOST
+
+== verdict on 'solved-projection': 0 holes · 16 over-suppressions ==
+  OVER verdict · solved-projection · debt[0].apr LOST
+  OVER verdict · solved-projection · debt[0].minimumPayment LOST
+  OVER verdict · solved-projection · debt[0].scheduledPaymentAmount LOST
+  OVER verdict · solved-projection · debt[1].apr LOST
+  OVER verdict · solved-projection · debt[1].minimumPayment LOST
+  OVER verdict · solved-projection · debt[1].scheduledPaymentAmount LOST
+  OVER verdict · solved-projection · goal WHOLE-LIST
+  OVER verdict · solved-projection · goal WHOLE-ROW
+  OVER verdict · solved-projection · goal.currentAmount LOST
+  OVER verdict · solved-projection · goal.priorityPerPaycheck LOST
+  OVER verdict · solved-projection · goal.targetAmount LOST
+  OVER verdict · solved-projection · livingExpense WHOLE-LIST
+  OVER verdict · solved-projection · livingExpense WHOLE-ROW
+  OVER verdict · solved-projection · livingExpense.amount LOST
+  OVER verdict · solved-projection · plan.cushionFloor LOST
+  OVER verdict · solved-projection · plan.leanAmount LOST
+
+== suggestion on 'required-plan': 8 holes · 0 over-suppressions ==
+  HOLE suggestion · required-plan · debt[0].apr LOST
+  HOLE suggestion · required-plan · debt[1].apr LOST
+  HOLE suggestion · required-plan · goal WHOLE-LIST
+  HOLE suggestion · required-plan · goal WHOLE-ROW
+  HOLE suggestion · required-plan · goal.currentAmount LOST
+  HOLE suggestion · required-plan · goal.priorityPerPaycheck LOST
+  HOLE suggestion · required-plan · goal.targetAmount LOST
+  HOLE suggestion · required-plan · plan.cushionFloor LOST
+
+== suggestion on 'paycheck-plan': 0 holes · 0 over-suppressions ==
+
+== suggestion on 'solved-projection': 0 holes · 1 over-suppressions ==
+  OVER suggestion · solved-projection · plan.leanAmount LOST
+
+== date on 'required-plan': 8 holes · 1 over-suppressions ==
+  HOLE date · required-plan · debt[0].apr LOST
+  HOLE date · required-plan · debt[1].apr LOST
+  HOLE date · required-plan · goal WHOLE-LIST
+  HOLE date · required-plan · goal WHOLE-ROW
+  HOLE date · required-plan · goal.currentAmount LOST
+  HOLE date · required-plan · goal.priorityPerPaycheck LOST
+  HOLE date · required-plan · goal.targetAmount LOST
+  HOLE date · required-plan · plan.cushionFloor LOST
+  OVER date · required-plan · plan.expenseReserveBalance LOST
+
+== date on 'paycheck-plan': 2 holes · 1 over-suppressions ==
+  HOLE date · paycheck-plan · debt[0].apr LOST · on snowball
+  HOLE date · paycheck-plan · debt[1].apr LOST · on snowball
+  OVER date · paycheck-plan · plan.expenseReserveBalance LOST
+
+== date on 'solved-projection': 0 holes · 2 over-suppressions ==
+  OVER date · solved-projection · plan.expenseReserveBalance LOST
+  OVER date · solved-projection · plan.leanAmount LOST

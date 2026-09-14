@@ -1,0 +1,8 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [],
+  "runs": [
+    {"name": "CONTROL - plan-hero-conserves.spec.ts, unplanted", "spec": "plan-hero-conserves.spec.ts", "grep": "."},
+    {"name": "CONTROL - earlyjourney.spec.ts, unplanted", "spec": "earlyjourney.spec.ts", "grep": "."}
+  ]
+}

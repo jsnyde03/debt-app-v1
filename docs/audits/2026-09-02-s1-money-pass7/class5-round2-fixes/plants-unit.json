@@ -1,0 +1,63 @@
+{
+  "control": {
+    "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+    "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "FX-1 route - avalanche ranks by nothing",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "  avalanche: { debt: ['apr'] },",
+      "new": "  avalanche: {},",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["FX-1 — the containment lattice on avalanche"]
+    },
+    {
+      "name": "FX-1 wiring - poisons ignores the strategy",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "  const fields = routeFor(claim, strategy, r.entity);",
+      "new": "  const fields = CLAIM_FIELDS[claim][r.entity];",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": [".5.4a HOLE — paycheck-plan · ", ".apr LOST: the figure moves and the claim still says yes"]
+    },
+    {
+      "name": "FX-1 naive over-fix - APR routed on every strategy",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "    debt: ['balance', 'minimumPayment', 'scheduledPaymentAmount'],",
+      "new": "    debt: ['balance', 'minimumPayment', 'scheduledPaymentAmount', 'apr'],",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["the claim containment lattice is the one measured at .5.7"]
+    },
+    {
+      "name": "L3-4 audit remedy as written - the split on paycheck-plan",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.test.ts",
+      "old": "        claim: 'required-plan',\n        name: \"Today's plan hero · the split and the verdict\",",
+      "new": "        claim: 'paycheck-plan',\n        name: \"Today's plan hero · the split and the verdict\",",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": [".5.4a OVER-SUPPRESSION — paycheck-plan · Today's plan hero · the split and the verdict · "]
+    },
+    {
+      "name": "L3-1a naive - the suggested move rides the split's claim",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.test.ts",
+      "old": "{ claim: 'paycheck-plan', name: \"Today's plan hero · the suggested move\",",
+      "new": "{ claim: 'required-plan', name: \"Today's plan hero · the suggested move\",",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": [".5.4a HOLE — required-plan · Today's plan hero · the suggested move · "]
+    },
+    {
+      "name": "FX-1 population - the sweep runs one strategy",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.test.ts",
+      "old": "    const STRATEGIES = payoffStrategies();",
+      "new": "    const STRATEGIES = payoffStrategies().filter((s) => s === 'snowball');",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["the sweep covers every payoff strategy the route table knows"]
+    }
+  ]
+}

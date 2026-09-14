@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/store/trustSelectors.ts", "  avalanche: { debt: ['apr'] },", "  avalanche: {},"]
+  ],
+  "runs": [
+    {"name": "E4 FX-1 route revert - avalanche ranks by nothing", "spec": "trust-claims.spec.ts", "grep": "on avalanche nothing names a debt"}
+  ]
+}

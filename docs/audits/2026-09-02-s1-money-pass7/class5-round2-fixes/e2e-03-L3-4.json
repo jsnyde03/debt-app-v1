@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/app/(tabs)/index.tsx", "              unreadPlanInputs={!mayClaim(store, 'required-plan')}\r\n              unreadSuggestion=", "              unreadPlanInputs={!mayClaim(store, 'solved-projection')}\r\n              unreadSuggestion="]
+  ],
+  "runs": [
+    {"name": "E3 L3-4 revert - the split asks the date's claim again (CRLF anchor: index.tsx is CRLF, 1146 of 1146 lines)", "spec": "trust-claims.spec.ts", "grep": "the plan hero withholds its DATE"}
+  ]
+}

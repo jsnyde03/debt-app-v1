@@ -1,0 +1,47 @@
+== app plants (1) ==
+  plant apps/rn/src/app/(tabs)/index.tsx: anchor count=1 :: "              unreadPlanInputs={!mayClaim(store, 'required-plan')}\r\n              unreadSu"
+  applied apps/rn/src/app/(tabs)/index.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 72s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=18604 listening=True ==
+
+-- RUN E3 L3-4 revert - the split asks the date's claim again (CRLF anchor: index.tsx is CRLF, 1146 of 1146 lines) :: trust-claims.spec.ts -g 'the plan hero withholds its DATE'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:420:5 › .5.4d · the plan hero withholds its DATE over an APR the app could not read, and keeps its split (6.7s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:420:5 › .5.4d · the plan hero withholds its DATE over an APR the app could not read, and keeps its split 
+
+    Error: ⛔ L3-4 — the split reads no APR, so a lost one may not blank it
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('plan-hero').getByText('Flexible')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - ⛔ L3-4 — the split reads no APR, so a lost one may not blank it with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('plan-hero').getByText('Flexible')[22m
+
+
+      430 |   const hero = page.getByTestId('plan-hero');
+      431 |   await expect(hero).toBeVisible({ timeout: 15_000 });
+    > 432 |   await expect(hero.getByText('Flexible'), '⛔ L3-4 — the split reads no APR, so a lost one may not blank it').toBeVisible();
+          |                                                                                                               ^
+      433 |   await expect(hero, 'the honest state, by name').toContainText(/can.t give a debt-free date yet — set the interest rate on Visa again/);
+      434 |   await expect(hero, 'a debt-free date solved from a rate the app could not read').not.toContainText('debt-free by');
+      435 |   await expect(hero, 'the whole-plan refusal belongs to inputs the split reads').not.toContainText('An amount your plan is built from could not be read');
+        at C:\Users\Jason\debt-app-v1\apps\rn\tests\e2e\trust-claims.spec.ts:432:111
+
+    Error Context: apps\rn\test-results\trust-claims--5-4d-·-the-p-1e40c-ot-read-and-keeps-its-split-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:420:5 › .5.4d · the plan hero withholds its DATE over an APR the app could not read, and keeps its split 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:420:5 › .5.4d · the plan hero withholds its DATE over an APR the app could not read, and keeps its split (6.7s) | Error: ⛔ L3-4 — the split reads no APR, so a lost one may not blank it | [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/app/(tabs)/index.tsx: cmp identical=True

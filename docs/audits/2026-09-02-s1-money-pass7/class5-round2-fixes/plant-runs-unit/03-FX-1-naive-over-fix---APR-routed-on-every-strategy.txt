@@ -1,0 +1,13 @@
+plant=FX-1 naive over-fix - APR routed on every strategy
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ the claim containment lattice is the one measured at .5.7 — a route that moved changes which conjunctions are vacuous — expected "debt-balances ⊑ row-figures | goal-amounts ⊑ paycheck-plan | goal-amounts ⊑ row-figures | goal-amounts ⊑ solved-projection | paycheck-plan ⊑ row-figures | paycheck-plan ⊑ solved-projection | projected-balance ⊑ row-figures | projected-balance ⊑ solved-projection | required-plan ⊑ paycheck-plan | required-plan ⊑ row-figures | required-plan ⊑ solved-projection | solved-projection ⊑ row-figures", got "debt-balances ⊑ row-figures | goal-amounts ⊑ paycheck-plan | goal-amounts ⊑ row-figures | goal-amounts ⊑ solved-projection | paycheck-plan ⊑ row-figures | paycheck-plan ⊑ solved-projection | projected-balance ⊑ paycheck-plan | projected-balance ⊑ row-figures | projected-balance ⊑ solved-projection | required-plan ⊑ paycheck-plan | required-plan ⊑ row-figures | required-plan ⊑ solved-projection | solved-projection ⊑ row-figures"
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:38:9)
+    at eq (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:41:28)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:350:5)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

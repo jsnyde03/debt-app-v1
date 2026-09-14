@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/components/plan/RecommendedActionsCard.tsx", "  const shown = unreadPlanInputs ? [] : active;", "  const shown = active;"]
+  ],
+  "runs": [
+    {"name": "E2 FX-2 revert - the Recommended card draws its rows over the refusal", "spec": "trust-claims.spec.ts", "grep": "the suggested move is withheld over a minimum"}
+  ]
+}

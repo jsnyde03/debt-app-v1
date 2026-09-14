@@ -49,6 +49,9 @@ export function PlanHero({
   onEditPaycheck,
   onOpenSpokenFor,
   unreadPlanInputs = false,
+  unreadSuggestion = false,
+  unreadDebtFreeDate = false,
+  unreadDateFix = '',
 }: {
   summary: PlanSummary;
   recommended: ActiveRecommendedAction[];
@@ -71,8 +74,22 @@ export function PlanHero({
    * **optimistic**, which is the direction that costs the user money.
    *
    * ⛔ **`G-4`'s rule: this is not a caption.** The verdict and the date are WITHHELD, not annotated.
+   *
+   * ⛔ **[class 5 R2 `L3-4`] `'required-plan'` — the split and the verdict, and nothing else.** `.5.4d` gave the whole card
+   * `'solved-projection'`, so a lost APR, which moves neither, blanked both. ⚡ Measured per FAMILY, because one claim for
+   * two families is the defect: the split is exact on `'required-plan'` (0 holes · 0 over-suppressions) and on
+   * `'paycheck-plan'` over-suppresses 8 — a lost goal or cushion line moves only the suggested move.
    */
   unreadPlanInputs?: boolean;
+  /**
+   * ⛔ [class 5 R2 `L3-1a` · `FX-1`] `'paycheck-plan'` — the suggested move: spent out of the allocation, and on avalanche its
+   * target is ranked by APR. Exact there (0 · 0); on `'required-plan'` it has 8 holes.
+   */
+  unreadSuggestion?: boolean;
+  /** ⛔ [class 5 R2 `L3-4`] `'solved-projection'` — the debt-free date alone, the one figure solved forward. */
+  unreadDebtFreeDate?: boolean;
+  /** The instruction naming what to set — `unreadInputsFix(repairsPoisoning(store, 'solved-projection'), …)`. */
+  unreadDateFix?: string;
 }) {
   const c = useAppColors();
   const scheme = useColorScheme();
@@ -160,15 +177,18 @@ export function PlanHero({
         ? 'Short this paycheck'
         : 'On track';
   const reassurance = unreadPlanInputs
-    ? // ⛔ [`.5.4d`] Not "has to cover": the hero refuses on `'solved-projection'`, so a lost APR fires this too.
+    ? // ⛔ [`.5.4d`] Not "has to cover": the split refuses on `'required-plan'`, which routes a windfall and the bills reserve too.
       `${UNREAD_PLAN_LEAD}, so I can’t tell you where the plan lands yet.`
-    : summary.debtFreeDate
+    : unreadDebtFreeDate
+      ? // ⛔ [class 5 R2 `L3-4`] The verdict stays — its inputs were read. Only the date is withheld, and said so by name.
+        `${statusLabel} · I can’t give a debt-free date yet${unreadDateFix ? ` — ${unreadDateFix}` : ''}.`
+      : summary.debtFreeDate
       ? `${statusLabel} · debt-free by ${summary.debtFreeDate}`
       : statusLabel;
 
   // ⛔ [pass-7 `C1-5` · `.5.4d`] The suggested move is spent out of the same corrupted allocation — withheld with
   // the split, and so is its voice-over line; an empty split is not announced as a bare ".".
-  const showSuggest = !unreadPlanInputs && !!suggestLabel && suggestTotal > 0;
+  const showSuggest = !unreadPlanInputs && !unreadSuggestion && !!suggestLabel && suggestTotal > 0;
   const a11y = [
     `This paycheck ${formatWhole(paycheck)}.`,
     segments.length > 0 ? segments.map((seg) => `${seg.label} ${formatWhole(seg.value)}`).join(', ') + '.' : '',
@@ -215,8 +235,10 @@ export function PlanHero({
           ))}
         </Animated.View>
 
-        {/* the suggested move — clearly optional, tied (blue) to the Recommended card below */}
-        {suggestLabel && suggestTotal > 0 ? (
+        {/* the suggested move — clearly optional, tied (blue) to the Recommended card below.
+            ⛔ [class 5 R1 `L3-1a`, blocker] `showSuggest`, the same flag the voice-over reads. `.5.4d` wired it to the
+            a11y line only, so over a lost $300 minimum this row drew "Suggested · $1,300" beneath the refusal. */}
+        {showSuggest ? (
           <View style={styles.suggestRow}>
             <View style={[styles.dot, { borderWidth: 1.5, borderColor: onNavy.suggest, backgroundColor: 'transparent' }]} />
             <Text style={[textStyles.caption, styles.suggestText, { color: s.heroSub }]} numberOfLines={1}>

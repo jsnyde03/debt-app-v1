@@ -1,0 +1,47 @@
+== app plants (1) ==
+  plant apps/rn/src/app/(tabs)/index.tsx: anchor count=1 :: "              unreadSuggestion={!mayClaim(store, 'paycheck-plan')}"
+  applied apps/rn/src/app/(tabs)/index.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 69s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=22760 listening=True ==
+
+-- RUN E5 FX-1 hero wiring revert - the suggestion asks no claim of its own :: trust-claims.spec.ts -g 'on avalanche nothing names a debt'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:503:5 › class 5 R2 · FX-1 · on avalanche nothing names a debt ranked by a rate the app could not read (6.7s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:503:5 › class 5 R2 · FX-1 · on avalanche nothing names a debt ranked by a rate the app could not read 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText(/Extra payment to Visa/)
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/Extra payment to Visa/)[22m
+    [2m    14 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      508 |   await expect(page.getByTestId('plan-hero').getByText('Flexible'), '⛔ L3-4 — the split reads no rate on either strategy, and stays').toBeVisible();
+      509 |   await expect(page.getByText(/toward Visa/), '⛔ FX-1 — a lost 22% ranked Chase below an 18% Visa').toHaveCount(0);
+    > 510 |   await expect(page.getByText(/Extra payment to Visa/)).toHaveCount(0);
+          |                                                         ^
+      511 | });
+      512 |
+      513 | test('class 5 R2 control · FX-1 · on avalanche with every rate readable the target is named', async ({ page }) => {
+        at C:\Users\Jason\debt-app-v1\apps\rn\tests\e2e\trust-claims.spec.ts:510:57
+
+    Error Context: apps\rn\test-results\trust-claims-class-5-R2-·--f3cdc-rate-the-app-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:503:5 › class 5 R2 · FX-1 · on avalanche nothing names a debt ranked by a rate the app could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:503:5 › class 5 R2 · FX-1 · on avalanche nothing names a debt ranked by a rate the app could not read (6.7s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/app/(tabs)/index.tsx: cmp identical=True

@@ -1,0 +1,12 @@
+== app plants (1) ==
+  plant apps/rn/src/app/(tabs)/index.tsx: anchor count=1 :: "              unreadPlanInputs={!mayClaim(store, 'required-plan')}\r\n              unreadSu"
+  applied apps/rn/src/app/(tabs)/index.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 72s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=18604 listening=True ==
+
+-- RUN E3 L3-4 revert - the split asks the date's claim again (CRLF anchor: index.tsx is CRLF, 1146 of 1146 lines) :: trust-claims.spec.ts -g 'the plan hero withholds its DATE'
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:420:5 › .5.4d · the plan hero withholds its DATE over an APR the app could not read, and keeps its split (6.7s) | Error: ⛔ L3-4 — the split reads no APR, so a lost one may not blank it | [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/app/(tabs)/index.tsx: cmp identical=True
