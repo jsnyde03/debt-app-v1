@@ -34366,3 +34366,83 @@ commit; the script used the list and ignored what the number meant for the order
 
 ✅ **Registered:** `S1P7-57-2A-PROJECTED-STALENESS` (un-fix: the refusal disabled; `test:gate-plants` must print
 `lint:finding-guards [projected]`). `MIN_ENTRIES` 311 → 312.
+
+### `.12.6.5.7.1` CLOSED — native-e2e `34795774694` (`5d3aac97`, no rebuild): the iPhone tier green · 2026-09-13
+
+✅ **Step ① is closed on a run, not on a reading.** The dispatch that carried flow 03's field-label assertion ran against
+the `.app` restored from `34789448550`'s cache: **build (restore) success · iPhone tier success** — flows 01–10, the
+XCUITest probe and the capability lane. The iPad tier read `skipped`, which is the input (`device=iphone`), not a
+failure: [D30]'s iPad lane is a measurement lane and runs only on `ipad`/`both`.
+
+⚠️ **What this run does and does not prove.** It proves flow 03 and flow 08 assert the app as it is, and that
+`SiriQueryIntents.swift`'s `isPremium` branch compiled (`34789448550` built it). It does NOT exercise the Siri branch —
+no flow speaks to App Intents — so that half stays pinned by `widgetSync.test.ts`'s Swift source assertion, and on
+hardware by P6.14.
+
+### `.12.6.5.7.2b`–`.2d` — the claim lattice, lost-field names, and two trust-claims ledgers · 2026-09-13
+
+✅ **(b) The containment lattice, pinned** *(backlog from `.5.4`'s `C3-11` before-scan)*. `.5.3`'s `mayClaim('debt-balances')
+&& mayClaim('row-figures')` could never let its first half change the answer. ⚡ **Measured before writing anything**
+(a probe over `claimFields()` × `REPAIRABLE_MONEY_FIELDS`, `'any'` = every field plus a wildcard marker): **12 ordered
+pairs** where one claim's routes contain another's — `row-figures` contains all six others, `solved-projection` four,
+`paycheck-plan` two. Not only "anything with row-figures", as the backlog row framed it. `trustSelectors.test.ts` pins
+the 12; `check-trust-claims.ts` refuses a production `mayClaim(s,'A') && mayClaim(s,'B')` over any contained pair.
+⚡ Production holds ONE conjunction (`widget/snapshot.ts:245`, `debt-balances && solved-projection`) and it is **not**
+contained — `debt-balances` routes `originalBalance`, which `solved-projection` does not. The scan guards the next one.
+
+✅ **(c) Every lost money field is recorded under a name `rowFieldUnread` can ask for** *(backlog from `.5.4a`)*. ⚡
+**Measured across all 15 repairable fields** through the real `runMigrations`: **14 recorded under their own name, 1 —
+the pace — under a sentence.** The test loses each field and requires the record under its name; the pace is the one
+named exception, and the test reds if that exception goes dead.
+
+✅ **(d) The debt-spread ledger** *(backlog from `.5.4c`)*. A copy of a projected debt drops its `WeakMap` record and
+`confirmedBalance` then answers with the estimate — `C3-13` again, every test green. `check-trust-claims.ts` ledgers every
+`{ ...d` / `{ ...debt` in app source with EXACT per-file counts and a literal cap. ⛔ **My hand count was 7 and the gate's
+first run said 10**: the query required the spread's closing brace on the same line, and four sites wrap
+(`store.ts` 5, `payday.ts` 1). All 10 read, all over raw debts — a creation, write paths, a rollover, a migration.
+`audit-site-lists-undercount`, caught by the instrument built from the list. `MIN_CAPS` 29 → 30 for the new cap —
+`lint:cap-literals` redded its own control until it was raised, which is that gate working.
+
+⭐ **Planted — and four plants were wrong before they were right, each diagnosed before touching a check:**
+- **`[debt-spread]` first cut STAGED its file** (`stageIndex`), and the harness **deletes the working copy** after `git add`
+  (`test-gate-plants.ts:828-831`) — while this gate reads CONTENT from disk. A path with no body: `reason=WRONG`. Reworked
+  to an `edit` append on `drift.ts` (tracked, on no ledger, no spread) → MATCHED.
+- **The same scenario's body strings were broken by a heredoc** — `\\n` became real newlines inside TS single quotes
+  (`typecheck:scripts`: *Unterminated string literal*). Rewritten with the Edit tool; the rework script was a FILE.
+- **C1 (a second sentence-recorded field) had no anchor**: it looked for `field: 'cushionFloor'`, and plan repairs set
+  `field: repairField` from a variable (`migrations.ts:299`). Re-anchored there → MATCHED.
+- **C2 (the pace exception going dead) stayed GREEN**: it planted the `if (!rep)` branch, and an unparseable pace always
+  already carries a repair record (`:453`), so the fixture takes `if (rep)` (`:486-489`). Re-planted there → MATCHED.
+- **`[vacuous-conjunct]` would have been vacuous**: the plant aliased `mayClaim`, and the scan matches `\bmayClaim\s*\(`.
+  Caught by reading the regex BEFORE the first run; the plant calls it by name → MATCHED.
+
+- **And the lattice's REGISTRY proof redded for the wrong reason after its driver plant had passed.** The driver ran
+  `trustSelectors.test.ts` alone; `prove:guards` runs the FULL `test:app`, and the un-fix (`required-plan` += `apr`) redded
+  FIRST on `requiredPlanTrust`'s *"G-4 control — an unread APR touches no obligation"* — an earlier test pinning that exact
+  route. `reason=WRONG`; the close stopped at pass 1, before git. ⭐ **A plant driver must run the SAME command the proof
+  will** — a narrower one answers a different question. ⛔ **The first re-measurement then scored itself on nothing**: it
+  launched the suite through `cmd /c npm`, which exited 1 WITHOUT RUNNING it, and all three candidates read `OTHER-FIRST`
+  with an empty first red — a bash baseline of the same tree passed minutes later. The script now calls a run with no
+  captured red `UNREAD`, never a verdict. ⚠️ **And the second round misread its own logs**: it matched `FAIL [label]`, one
+  helper's format, while `trustSelectors.test.ts` throws the bare message — so reds ON the lattice line scored `UNREAD`.
+  Re-scored from the saved logs by the single `App-layer regression run failed:` line: **3 of 4 candidates die on the
+  lattice first** (`projected-balance` += `originalBalance`, `required-plan` += `leanAmount`, `paycheck-plan` drops
+  `scheduledPaymentAmount`); `paycheck-plan` += `typicalAmount` dies first on `C4-10`'s catch-all record. Chosen: the
+  widening that ADDS a pair (`debt-balances ⊑ projected-balance`) — the vacuous-conjunction shape the guard exists for.
+
+B1 (a route widened) · C1 · C2: red for their own reason, control green, restored byte-identical. `test:gate-plants`
+**30 of 30** (`MIN_SCENARIOS` 27 → 30 across step ②). ⚠️ The trust test is SILENT on success — its exit code could not
+show the new blocks ran; only the plants could.
+
+✅ **Registered:** `S1P7-57-2B-CLAIM-LATTICE` · `S1P7-57-2B-VACUOUS-CONJUNCT` · `S1P7-57-2C-LOST-FIELD-NAMED` ·
+`S1P7-57-2D-DEBT-SPREAD-LEDGER`. `MIN_ENTRIES` 312 → 316. ⭐ **The close proved in two passes** — non-readers first, the
+ledger readers once the count was back under the ceiling — the order step 2a had to discover. ⛔ **And it deadlocked a
+second time anyway**: the floor raise (`78bcb481`) moved `check-finding-guards.ts`, staling the FIVE readers that target
+it, on top of five older stale proofs pass 1 had excluded as "baseline". 10 > 8, stopped before git. ⚡ **A "baseline"
+set is not inert** — it is the headroom the readers need. The older non-readers were re-proven solo first:
+`S1P3-C1-ROWFIGURES` **MATCHED** (the one that once read `WRONG` batched); `S1-ROUTE-STALE-READ` and
+`S1-ROUTE-EXIT-REACHABLE` stayed **green under their plants** — exactly as their own `runNote`s record (*unfalsifiable on a
+swept tree, re-measure at pass 8 switch-in*), nothing recorded, left for pass 8; `S1P6-A1-7-TODAYBARRIER` re-proven on
+`celebration.spec.ts` for the last slot, **MATCHED** → 8. Pass 2 then proved all **7 readers MATCHED**; stale
+**10 → 3** (the two pass-8 route proofs + `S1P6-C2-3-CONVERTFIELDS-E2E`). `lint:rn` · `test:app` · `test:regression` green
+from their own exit codes; pushed `2f54404b` (`abc4477b` re-point · `2f54404b` records).

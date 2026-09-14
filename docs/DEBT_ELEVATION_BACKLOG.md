@@ -1398,7 +1398,9 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   and is a no-op. ⚠️ **A test cannot catch this by asserting outcomes**: the outcomes are all correct; it is
   the *reason* that is false. `lint:trust-claims` should assert the subsumption RELATION between routes, so
   that narrowing `'row-figures'` reds every predicate that was silently relying on it. → **`.5.7`**
-  *(instrument — assert the route lattice, not just the table's completeness)*.
+  *(instrument — assert the route lattice, not just the table's completeness)*. ✅ **RESOLVED by `.5.7.2b`, 2026-09-13** —
+  measured **12** contained pairs, not only `row-figures`; `trustSelectors.test.ts` pins them and `lint:trust-claims`
+  refuses a production conjunction over any, both planted (`S1P7-57-2B-CLAIM-LATTICE`, `-VACUOUS-CONJUNCT`).
 - ⛔ **`lint:trust-claims` CANNOT SEE A SURFACE THAT ASKS THE CLASS'S OWN PREDICATE.** Two mechanisms, both
   measured: `ASKS_GUARD` (`check-trust-claims.ts:308`) lists six helper names and **not**
   `mayStateProjectedFigure`; and check 1's consumer census matches the **literal string** `'row-figures'`
@@ -1428,7 +1430,9 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   never carries when lost. Every goal route is `'any'` today and no consumer asks for the field by name
   *(measured)*, so nothing is open; ⚠️ **the first NAMED goal route or `rowFieldUnread(…, 'priorityPerPaycheck')`
   is silently blind to it.** → **`.5.7`** *(instrument — assert each LOST variant's recorded field is one the
-  table can name)*.
+  table can name)*. ✅ **RESOLVED by `.5.7.2c`, 2026-09-13** — all 15 repairable fields lost through `runMigrations`: 14
+  recorded under their name, the pace the one named exception, and the test reds if it goes dead
+  (`S1P7-57-2C-LOST-FIELD-NAMED`).
 
 ### ⤵ surfaced by `.5.4a`'s after-scan, 2026-09-13
 
@@ -1446,6 +1450,8 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   still green. All 10 debt spreads in app source are raw-store write paths *(measured by query at `.5.4c.1`)*;
   nothing stops the eleventh. → **`.5.7`** *(instrument — a gate that refuses a spread of a debt taken from a
   `withProjectedBalances` result, or an assertion that every consumer of one reads liveness from the record)*.
+  ✅ **RESOLVED by `.5.7.2d`, 2026-09-13** — `lint:trust-claims` ledgers every `{ ...d`/`{ ...debt` with exact per-file
+  counts (10, all read, all raw) under a literal cap; planted (`S1P7-57-2D-DEBT-SPREAD-LEDGER`).
 
 ### ⤵ surfaced by `.5.4d`'s after-scan, 2026-09-13
 
@@ -1496,6 +1502,8 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   *(instrument — a pre-commit mode of `check-finding-guards` over the STAGED diff: every proof whose `unfix.at` is a
   staged file, its `find` re-matched once against the staged content, and the stale count projected as if committed;
   or run `lint:finding-guards` after the commit and before the push as a fixed close step — and say which, measured)*.
+  ✅ **RESOLVED by `.5.7.2a`, 2026-09-13** (`d0476008`) — `check-finding-guards --projected` counts uncommitted targets
+  as stale and refuses before the commit; planted (`S1P7-57-2A-PROJECTED-STALENESS`).
 - 📋 **Siri's log-a-payment subtitle `"balance not read"` is payload-verified only.** Whether a Siri disambiguation row
   truncates or restyles a subtitle that is not a figure is not observable off-device. → **P6.14** *(device row: import a
   backup with one unreadable balance, say "log a payment in Debt Planner", read the list)*.
@@ -1505,14 +1513,18 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   survive a Debts → Expenses → Debts switch and it does not *(flow or app — unmeasured)*. ⚠️ **While these two are red,
   the only native verifier cannot report a third** — the next Swift change reads "2 failed" and learns nothing.
   → **`.5.7`, FIRST** *(re-routed at `.5.4h`'s close: `.5.5` and `.5.6` touch no native code, so no change goes unverified meanwhile, and a new step would renumber every `→ .5.7` pointer here)* — fix 03
-  by label + a sheet testID, measure 08's mark lifetime against the source, one dispatch for both.
+  by label + a sheet testID, measure 08's mark lifetime against the source, one dispatch for both. ✅ **RESOLVED by
+  `.5.7.1`, 2026-09-13** — 03 proves the sheet by its field label, 08's mark lifetime measured against source; native-e2e
+  `34795774694` iPhone tier green.
 
 ### ⤵ surfaced by `.5.4h`'s after-scan, 2026-09-13
 
 - 📋 **`SiriQueryIntents.swift` still reads `''` as not-premium.** `.5.4h` made that true by construction at the producer, but an
   OLD snapshot written before the fix — or any future producer that returns `''` again — reaches a subscriber as the upsell.
   → **`.5.7`** *(defence in depth: decode `isPremium` in `DebtSnapshotRead`, as `LogPaymentIntent.swift:23` already does; ride the
-  same native dispatch as the red-flow repair)*.
+  same native dispatch as the red-flow repair)*. ✅ **RESOLVED by `.5.7.1`, 2026-09-13** — `SiriQueryIntents` decodes
+  `isPremium`; an empty line to a subscriber speaks the read-failed words. Compiled by native-e2e `34789448550`, pinned in
+  `widgetSync.test.ts`; the spoken path on hardware → P6.14.
 
 ### ⤵ surfaced by `.5.5`'s after-scan, 2026-09-13
 
