@@ -4356,5 +4356,77 @@
       "measured": "2026-09-14",
       "sha": "79ac9f00"
     }
+  },
+  "S1P7-57-2B-CLAIM-LATTICE": {
+    "what": ".5.7 step 2b [backlog from .5.4's C3-11 before-scan] - .5.3's mayClaim('debt-balances') && mayClaim('row-figures') was a no-op for 102 of 102 repair variants, because row-figures routes every field of every entity: the outcomes were right and the reason was false, which no outcome test can see. trustSelectors.test.ts now pins the containment lattice computed from claimFields() x REPAIRABLE_MONEY_FIELDS - 12 ordered pairs measured at .5.7 - so a route that widens or narrows reds with the pairs that moved. Planted: required-plan widened to apr + originalBalance, red on the lattice line.",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "the claim containment lattice is the one measured at .5.7",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/store/trustSelectors.ts",
+          "find": "    debt: ['minimumPayment', 'balance', 'scheduledPaymentAmount'],\n    requiredExpense: ['amount'],\n    livingExpense: ['amount'],\n    plan: ['windfall', 'expenseReserveBalance'],",
+          "replace": "    debt: ['minimumPayment', 'balance', 'scheduledPaymentAmount', 'apr', 'originalBalance'],\n    requiredExpense: ['amount'],\n    livingExpense: ['amount'],\n    plan: ['windfall', 'expenseReserveBalance'],"
+        }
+      ],
+      "run": "test:app",
+      "expect": "the claim containment lattice is the one measured at .5.7",
+      "measured": "2026-09-13",
+      "sha": "48aa6697"
+    }
+  },
+  "S1P7-57-2C-LOST-FIELD-NAMED": {
+    "what": ".5.7 step 2c [backlog from .5.4a] - a lost pace is recorded under a SENTENCE, never under priorityPerPaycheck, so a named goal route or rowFieldUnread(..., 'priorityPerPaycheck') is silently blind to it. Measured across all 15 repairable money fields: 14 recorded under their own name, 1 (the pace) under a sentence. trustSelectors.test.ts loses every field through the real runMigrations and requires the record under its name, with the pace as the one named exception - and reds when the exception goes dead. Planted: cushionFloor recorded under a sentence (red); the pace recorded under its name (red, once the plant hit the rep branch the fixture takes).",
+    "file": "apps/rn/src/store/trustSelectors.test.ts",
+    "token": "is no longer recorded under a sentence",
+    "proof": {
+      "unfix": [
+        {
+          "at": "apps/rn/src/data/migrations.ts",
+          "find": "      rep.field = governed\n        ? 'the per-paycheck amount could not be read, so it is no longer funded ahead of your debt'\n        : 'the per-paycheck amount could not be read';",
+          "replace": "      rep.field = 'priorityPerPaycheck';"
+        }
+      ],
+      "run": "test:app",
+      "expect": "is no longer recorded under a sentence",
+      "measured": "2026-09-13",
+      "sha": "48aa6697"
+    }
+  },
+  "S1P7-57-2D-DEBT-SPREAD-LEDGER": {
+    "what": ".5.7 step 2d [backlog from .5.4c] - withProjectedBalances records each projected debt's confirmed balance in a WeakMap keyed by the object, so a copy ({ ...d }) of a projected debt drops the record and confirmedBalance answers with the ESTIMATE, reopening pass-7 C3-13 with every test green. check-trust-claims.ts ledgers every debt spread in app source with EXACT per-file counts and a literal cap: 10 sites measured, all over raw debts. The hand count was 7 - the query required the closing brace on one line - and the gate's first run corrected it. Planted by appending a spread to drift.ts: red on the unledgered branch.",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "gate: 'lint:trust-claims [debt-spread]',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-trust-claims.ts",
+          "find": "  if (!row) {\n    failures.push(\n      `[debt-spread] ${rel} copies a debt with a spread",
+          "replace": "  if (false && !row) {\n    failures.push(\n      `[debt-spread] ${rel} copies a debt with a spread"
+        }
+      ],
+      "run": "test:gate-plants",
+      "expect": "lint:trust-claims [debt-spread]",
+      "measured": "2026-09-13",
+      "sha": "48aa6697"
+    }
+  },
+  "S1P7-57-2B-VACUOUS-CONJUNCT": {
+    "what": ".5.7 step 2b [backlog from .5.4's C3-11 before-scan] - the production half of the lattice: check-trust-claims.ts refuses any mayClaim(s, 'A') && mayClaim(s, 'B') where one claim's routed fields contain the other's, since the contained claim can never change the answer. Measured: one conjunction in production (widget/snapshot.ts, debt-balances && solved-projection) and it is NOT contained. Planted by appending required-plan && row-figures to drift.ts: red on vacuous-conjunct.",
+    "file": "scripts/test-gate-plants.ts",
+    "token": "gate: 'lint:trust-claims [vacuous-conjunct]',",
+    "proof": {
+      "unfix": [
+        {
+          "at": "scripts/check-trust-claims.ts",
+          "find": "    if (covers(b, a) || covers(a, b)) {",
+          "replace": "    if (false && (covers(b, a) || covers(a, b))) {"
+        }
+      ],
+      "run": "test:gate-plants",
+      "expect": "lint:trust-claims [vacuous-conjunct]",
+      "measured": "2026-09-13",
+      "sha": "48aa6697"
+    }
   }
 }

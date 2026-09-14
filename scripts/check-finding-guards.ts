@@ -174,8 +174,9 @@ const ids = Object.keys(registry);
  * **309 → 310 at `.5.6`** — `C3-14`, the goals hero that counted two unread targets as one.
  * **310 → 311 at `.5.7`** — Siri's Swift fallback for an empty premium read, in the producer's own words.
  * **311 → 312 at `.5.7 ②`** — the projected-staleness refusal.
+ * **312 → 316 at `.5.7 ②`** — the claim lattice, the vacuous-conjunct scan, lost-field names, the debt-spread ledger.
  */
-const MIN_ENTRIES = 312;
+const MIN_ENTRIES = 316;
 const MAX_UNGUARDED = 1;
 
 /**
