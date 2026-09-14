@@ -34562,3 +34562,952 @@ paycheck edit · rollover). Onboarding-shaped store: weekly 7 · biweekly 14 · 
 2. **The applied-id record carries through every store replacement**, in the set wrapper beside `intentRollback`'s rule —
    a class, not a list of doors. Ids are random UUIDs; nothing personal survives *"Delete all data"*. Capped.
 3. **The countdown is measured now and filed as its own row**, not folded into ④.
+
+### Plan cleanup · 2026-09-14 — moved VERBATIM from `DEBT_ELEVATION_PLAN.md`
+
+🎯 2026-09-14: *"Let's clean up debt elevation plan."* It had regrown 641 → 1,194 lines. Scope agreed: the Decisions
+ledger to one-line rulings, the Phase 6 rows left whole, and `.5.7` step ⑥ *(the quoted backlog counts)* folded
+in. The full pre-cleanup file is [`archive/DEBT_ELEVATION_PLAN_2026-09-14-precleanup.md`](archive/DEBT_ELEVATION_PLAN_2026-09-14-precleanup.md).
+Below is every block that was cut or rewritten, in its original order, with its old line numbers. A line starting
+**⤷ old plan heading** was a heading in the plan and is not a log entry.
+
+**⤷ old plan lines 31–83**
+
+> **⤷ old plan heading:** ▶ START HERE, COLD
+> **`docs/audits/2026-09-02-s1-money-pass7/CLASSIFICATION.md`** — the driver. **137 findings · 34 blocker ·
+> 55 major · 48 minor**, in **12 classes, ordered so the instruments that will PROVE this round's fixes are
+> repaired before anything is proven with them.** ⛔ **Read its two warning blocks first**: pass-6 ids
+> COLLIDE with pass-7 ids, and class membership is a hypothesis to re-derive against the code.
+> ⚠️ **Verify before acting** — `npm run lint:rn` (**49** gates), and read each command's OWN summary line.
+
+**Surface S1 · money · goals · plan cards.** ✅ **`S1.13.7.12` — the INSTRUMENTING half and PASS 7 ITSELF
+CLOSED 2026-09-02** (`.12.1`–`.12.5`). ⛔ **Do not type the CI result here**: read it from
+`gh run list --branch v1.7-dev`, per [D49]'s rule for the gate record.
+
+⛔ **S1 STILL DOES NOT CONVERGE.** [D65] exits on 0/0 **twice consecutively**; pass 6 was 123 and **pass 7
+is 137**. ⛔ **Pass 8 is owed, and a clean pass 8 would still owe a pass 9.** Everything below the ACTIVE
+block is **reference, not queue**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⚡ **The forecast written here before the dispatch was correct, and it is now the governing fact of this
+round.** *"Pass 7 will find the FIXES' own defects."* Measured: **C1's blockers are 5 of 5 `fix-churn`**,
+C3's `fix-churn` is 15% of its files and **60% of its findings**, and ⛔ **the `[D78]` retry built that
+morning survives its own un-fix** (`D2-1`). **Sixth consecutive round in which the previous round's repairs
+were the highest-yield place to look.**
+
+⭐ **Two lanes that never spoke found the same money root** — `A2-1` and `A3-1`: the in-window minimum is
+scaled **twice**, so a weekly debt makes `shortfall` print **$750 on a paycheck that covers everything**, on
+the Guardian card, the Live Activity, the widget and the paywall lead. ⛔ **It was created by pass 6's own
+`A3-4` fix and reproduces `A3-4`'s defect mirrored.**
+
+⛔ **`D1-12` lands on the record that authorised the dispatch.** The pass route and the pass exit have **two
+different populations** — 76 money-bearing files routed to lanes and in no claims file — so
+`audit:read-coverage` can print *"all money-bearing files read"* without them. ⚠️ The pre-dispatch
+verification quoted `audit:route-check`'s **25**; `D1-12` measures the file at **9**, the true figure at
+**86**, **intersection 0**. **Class 3 measures this before pass 7's own coverage claim is trusted.**
+
+⚡ **What the 2026-09-02 session measured, and it is why the brief reads as it does.** Of the pre-authored
+claims it checked, **most were right that something was there and wrong about WHAT** — the *"197 files"*
+was wrong in its number **and** its shape (209 = 86 routed + 123 already skipped by name); *"no instrument
+can even ASK"* was **false**; the persist failure's stated mechanism was false **and its direction
+inverted**; and *"batched returns WRONG, solo MATCHED"* was **inverted**, with batching not the variable at
+all. ⛔ **Reliable about WHERE, unreliable about WHAT — a fifth consecutive round of the same result.**
+
+⚡ **What `S1.13.7.11` measured, and it sets pass 7's shape.** **A guard is only as current as the last
+commit that touched its file** — building `C1-4` on `D3-5` voided both of `D3-5`'s guards *one commit*
+after they were proven, and three further rounds of staleness followed. ⛔ **And every defect in my own
+work was found by an INSTRUMENT, never by reading**: the new gate failed open on its own first plant,
+`lint:copy` caught the sentence being duplicated *while fixing a duplication finding*, `lint:fixture-dates`
+caught a fuse the day it was written, and `lint:finding-guards` refused three tokens by name.
+
+⛔ **PASS 4's RESULT IS NOT A DEFECT — IT IS THAT THE LEDGER CANNOT BE CASHED.** `lint:finding-guards` exited 0 over **every** un-fix auditor D performed. It is a **deletion detector** — it proves a token string still exists — and it has been read for three passes as a **closure proof**. **Eight registered guards were proven to survive their own un-fix** by four auditors independently, and **35 more entries in lanes A/B/C have never been tested by anyone.** ⚠️ **Until a guard is proven to red, `CLOSED` and `OPEN` are indistinguishable in the record** — which invalidates counts rather than adding to them.
+
+⚡ **13 of the 34 findings are ONE class:** the fix reached the instance that was reported and left a sibling of the same class asserting on the same store. ⛔ **`C4-10` and `D4-6` are the two instruments built to prevent exactly that, and neither can fail** — `D4-6` is inside `test:gate-plants` itself, which prints `reason=WRONG` beside a green tick and then announces `✅ all 21 gates fail closed`, exit 0.
+
+⚠️ **Carried from pass 3 and still governing:** of the 12 `GAP-*` rows, **9 were wrong about their own scope or remedy**; of the 14 minors, **6 had a remedy that was wrong, incomplete or unnecessary** — while the premises were almost always right. ⛔ **The ledger is reliable about WHERE and unreliable about WHAT TO DO.** Three remedies would have introduced the defect they described.
+
+⛔ **THERE IS NO CURRENT GATE RECORD, AND MID-AUDIT THAT IS THE EXPECTED STATE** ([D74]). ⚠️ **Do not type the fingerprint or the file count here** — this block has carried a decayed one twice, which is why [D49] says quote `npm run lint:gate-freshness` and read `gate-status.json`. ⛔ **The harness reports exit 0 over a RED gate** — read the gate's own summary line, never the pipeline's status.
+
+**⤷ old plan lines 85–229**
+
+**⤷ old plan heading:** 📜 LESSONS FROM PASSES 4–5 — kept because they still govern. ⛔ NOT A QUEUE.
+
+⛔ **THIS SECTION IS ARCHAEOLOGY.** It was headed *"what the next session picks up"* and pointed at
+**`S1.11.4`** — a pass-4-era step, closed 2026-08-29 — for four rounds after that stopped being true.
+**The live pointer is the `▶ RIGHT NOW` block at the top of this file, and nothing else.** *(Corrected
+2026-09-02 while writing the pass-7 handoff: a stale "next" line beside a current one is worse than no
+line, because a cold session cannot tell which is live.)*
+
+⛔ **A finding's MECHANISM is a hypothesis; its site list is a floor.** Measured repeatedly here — in one cluster **4 of 4** stated mechanisms were wrong while all four observations stood, and **three of the proposed fixes would not have closed the defect.** Verify what a finding says to DO against the current code before writing anything.
+
+⚠️ **The audit's own dispatch is half-blind and pass 5 depends on fixing it.** `audit-route.ts` routes files *changed* since the pin, so a two-producer disagreement is **half-routed by construction** — the fix touches one producer, the route sees one producer, and the disagreement is only visible from the side that moved. Three independent proofs: `buildPayoffTrajectory.ts` routed to nobody · a fifth bucket, **`unrouted`**, holding `(tabs)/progress.tsx` and `(tabs)/index.tsx` where **3 of C's 4 blockers live** · and the route emits `first-look` for S1 and **never S0** — **49 never-swept S0 files** against a surface declared CONVERGED.
+
+⚠️ **The dispatch crashed once and the recovery is protocol now** ([`RESUME-PROTOCOL.md`](audits/2026-08-28-s1-money-pass4/RESUME-PROTOCOL.md)): heap capped at **1536 MB**, ⛔ **an OOM is a FINDING and never a retry** *(the retry with `--max-old-space-size=6144` on a 6 GB box was the kill)*, no whole-monorepo typecheck, kill servers you start, **verify every restore**. ⚡ **Incremental writing is what saved the round** — 11 findings were already on disk when three auditors died.
+
+⛔ **Eleven defects went into the instruments across the two fixing sessions, and pass 4 found more.** **Every one was found by PLANTING, none by reading.** Report pass 5 split by origin, or a flat total hides both halves moving.
+
+**⤷ old plan heading:** 📜 S1's CLOSED SUB-STEPS — the record, not a queue
+
+⛔ **This is not the active decomposition and it stopped being one on 2026-08-29.** Every row below is
+closed. The live sequence is `S1.13.7.12`, decomposed further down and the only such section on this page.
+
+| # | sub-step | exit line |
+|---|---|---|
+| ✅ | **S1.1 – S1.8** — the surface opened, both passes run and pass 1 fixed | CLOSED 2026-08-26 · pass 1: **5 blockers · 10 majors**, every one fixed and guarded · **S1.6** the gate recorded at fingerprint `69c372a0` · **S1.7** [D73] put the TEST TREE on a surface · **S1.8** pass 2, four fresh auditors at `4b58d75` → **3 blockers · 6 majors · 12 minors** ([`SUMMARY.md`](audits/2026-08-26-s1-money-pass2/SUMMARY.md)). ⭐ **A issued 23 verdicts and 22 came back CLOSED.** Detail → log |
+| ✅ | **S1.9 — pass 2 FIXED** | CLOSED 2026-08-26 · 3 blockers · 6 majors · 12 minors, **57 plants · 22 guards**. ⚡ **Three times the fix WAS the defect class**; the roots were wrong twice more *(1 dir → 18, then 184 invisible files)*; `lint:rn` 27 → **28 gates**. Detail → log |
+| ✅ | **S1.10 — pass 3 FIXED, the route became a generator, pass 4 RUN** | CLOSED 2026-08-28 · 11 blockers · 9 majors · 14 minors all fixed, plus `G-1`…`G-6` and the `GAP-*` backlog *(`MAX_UNGUARDED` 16 → 1)*; NET green at `cec7edc3`; **[D75]** made the route a committed generator. ⚡ **9 of 12 `GAP-*` rows and 6 of 14 minor remedies did not survive contact.** Detail → log |
+| ✅ | **S1.11 — pass 4 FIXED, CLOSED 2026-08-29** | **All 34 findings closed**, each with a re-runnable proof. Registry **163 → 186**, proofs **43 → 66**; ⛔ **119 still rest on a token alone**. Net green + **CI green**. Detail → log |
+
+**Exit (S1):** the money surface at 0 blocker / 0 major, S0's fixes and guards re-confirmed, and the four
+new instruments swept. ✅ **The instrument half is DONE** — pass 1 swept `check-finding-guards.ts`,
+`test-gate-plants.ts`, `surface-coverage.ts` and `begin-gate-run.ts`, and S1.5.4 fixed the six majors it
+found in them. ⚡ Every one was the S0 shape: *an instrument reporting green while doing less than it
+claimed.*
+
+
+**⤷ old plan heading:** S1.11's sub-steps — pass 4 RECORDED then FIXED BY CLASS *(all CLOSED 2026-08-29)*
+
+✅ **Collapsed 2026-08-30** — `S1.11.1`–`S1.11.8`: pass 4 recorded and classified · seven instruments repaired ·
+the guard ledger turned to evidence · classes 1/2/3/5 fixed · the route re-built with `neighbour` as a fifth
+origin · [D76] · the net green and pushed. ⛔ **Pass 5 measured that `S1.11.3`'s ledger records nothing and
+cannot pass** — see `D5-1`/`D5-4`, repaired in `S1.12.5.1`. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+**⤷ old plan heading:** S1.12's sub-steps — PASS 5, the next first-candidate
+
+⛔ **[D65] EXITS ON 0/0 TWICE CONSECUTIVELY.** Pass 5 is **8 blockers / 15 majors that COUNT**, so it is not a
+first clean pass: **pass 6 is owed, and a clean pass 6 would still owe a pass 7.**
+
+⚡ **The round's central result:** `prove:guards` — the instrument `S1.11.3` built so the ledger would carry
+evidence rather than tokens — **has never executed.** 66 of 66 proofs read `(never run)`, `--record` is invoked by
+nothing, `--all` is in no chain, and of the 51 lane D ran **3 red for the wrong reason**, so `--all` **cannot pass
+at this commit.** ⛔ **Until that is repaired, every closure written below lands in a ledger that does not execute
+it** — which is why the classes are ordered the way they are.
+
+| # | sub-step | exit line |
+|---|---|---|
+| ✅ **S1.12.1** | **[DECISION] ANSWERED 🎯 2026-08-29 — the FULL four-lane pass.** Narrowing would leave the 256 never-routed files unread while still owing two clean passes, so the spend moves rather than shrinks | a yes/no with the scope named, recorded here |
+| ✅ **S1.12.2** | **ROUTE GENERATED** at `--since=e65f9c7` → `docs/audits/2026-08-29-s1-money-pass5/`. **393 routed · 0 unrouted · 0 owed.** A 108 · B 113 · C 122 · D 50. `RESUME-PROTOCOL.md` written beside the manifests | 0 unrouted, 0 owed, and the origin split printed |
+| ✅ **S1.12.3** | **BRIEF WRITTEN** — `BRIEF.md`, carrying the five reading rules **and what pass 4 measured about its own findings**: a remedy is a hypothesis, a premise is not · judge the CONDITION · which member of its class did this test pick · a check that cannot fail · ⛔ **a plant cannot see the green state** | the brief names what pass 4 measured about ITS OWN findings |
+| ✅ **S1.12.4** | **PASS 5 RUN, RECORDED & CLASSIFIED 2026-08-30.** Four fresh lane agents at `65566a09` → **9 blockers · 15 majors · 15 minors = 39** ([`SYNTHESIS.md`](audits/2026-08-29-s1-money-pass5/SYNTHESIS.md)). `s1p5` registered; claims written to **both** files; coverage **S1 68→63 · S0 57→41** unswept, three gates green. ⛔ **Only 126 of 393 routed files are evidenced-swept (32%)** — pass 4 was 60% of a route half the size. ⚡ **`neighbour` is the largest bucket and carries 4 of 9 blockers**; `first-look` produced **zero**, and the reservoir was not read. [`CLASSIFICATION.md`](audits/2026-08-29-s1-money-pass5/CLASSIFICATION.md) | CLOSED |
+| ▶ **S1.12.5** | **FIX BY CLASS** — 39 findings in **8 classes**, ordered so the proof machinery is repaired before anything is proven with it. Decomposed below | 0 blockers / 0 majors, every closure proven to red |
+
+✅ **S1.12.5's sixteen sub-steps — CLASSES I–VIII, the two [DECISION]s and the net — ALL CLOSED 2026-08-30/31, collapsed here 2026-09-01.** 39 findings in 8 classes, each closure carrying a re-runnable proof; `S1.12.7`/`.8` answered by 🎯 and built in `.9`/`.10`; `S1.12.11` found six tracked files carrying merge-conflict markers for 177 commits. Full detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⛔ **Collapsed because it was the THIRD section on this page claiming to be *"the ACTIVE decomposition (the ONLY one on this doc)"*** — every row in it closed, and a reader could not tell which sequence was live. That is the rot the rule exists to stop, found while closing `S1.13.7.9`.
+
+**▶ ACTIVE — S1.13 · PASS 6.** [D65] owes a clean pass, and pass 5 was 8 blockers / 15 majors. Scoped by
+🎯 S1.12.6: *"Coverage is what I want. Not unneeded files."*
+
+| # | sub-step | exit line |
+|---|---|---|
+| ✅ **S1.13.1 + .2** | **CLOSED 2026-08-31 — `npm run audit:read-coverage`, the pass-coverage EXIT.** ⛔ **NOT a prune** — the switch-in scan killed it against the code *(whole-directory roots, `excluded` fails safe, five prior widenings each undoing a hand-narrowed set)*; files are **classified**, nothing leaves the surface. ⚡ **The first measurement: pass 5 read 86 of 446 money-bearing files — 19%** *(pass 4: 103)*. The *"393 routed / 126 read"* prose counted non-money files and other passes' claims. ⛔ Writing its guard found a **fail-open in the instrument itself** — a blind predicate reports every pass fully covered; floored at 424, guarded both ways. Detail → log | CLOSED |
+| ✅ **S1.13.3** | **CLOSED 2026-08-31 — the route was retiring files on "swept ONCE, EVER".** ⛔ `audit-route` exited on `!unswept && !changed`, and `unswept` means *never read by any pass* — so a file pass 2 read once was accounted for forever. **131 of the 360 money files pass 5 never read reached NO LANE**, including `FirstDebtOrBillStep.tsx`, which mints a debt id from `Date.now()` — a defect found this session, in a file the router had already retired. New **`stale-read`** origin, opt-in *(control: 476/0 without the flag, **607/280** with)*, sharing **one** money predicate with the coverage exit. The seed asserts its own completeness every run — I had checked it by hand once. Record → `docs/audits/2026-08-31-s1-money-pass6/DISPATCH.md` | CLOSED |
+| ✅ **S1.13.4** | **[DECISION] ANSWERED 🎯 2026-08-31 — GO, at 12 lanes + a coverage-driven SECOND WAVE, with lanes emitting read-lists.** ⚡ Sized on measurement, not preference: pass 5 gave 4 lanes ~16k lines each and they read **about a third**, which is why coverage was 86/446. 12 lanes ≈ 8k lines each. ⭐ The wave is what guarantees the exit and is the cheap half — the coverage command names the remainder exactly. Worst case **~3–5M tokens**. 🎯 **Jason asked for a FRESH SESSION to run it** | ANSWERED |
+| ✅ **S1.13.5** | **CLOSED 2026-08-31 — PASS 6 RUN, 446/446.** Switch-in scan found the pass's own exit **unreachable** while `--check` printed `0 owed`; `--exit-pass`, `audit:record-reads` and `audit:sublanes` closed it, 12 lanes ran in two waves of six, and the coverage exit is **GREEN in one wave**. **123 findings.** Records → [`PREFLIGHT.md`](audits/2026-08-31-s1-money-pass6/PREFLIGHT.md) · [`CLASSIFICATION.md`](audits/2026-08-31-s1-money-pass6/CLASSIFICATION.md). Detail → log | CLOSED |
+| ⛔ **S1.13.6** | **RETIRED 2026-08-31 — there is no remainder.** Wave 2 existed to dispatch the still-unread files; wave 1 read **446 of 446**, so the step has no population | RETIRED |
+| ▶ **S1.13.7** | **TRIAGE TO 0/0 — BY CLASS** *(🎯 2026-08-31)*, then the second consecutive clean pass [D65] requires. Decomposed below | 0 blockers / 0 majors, every closure proven to red |
+
+**⤷ old plan heading:** S1.13.7's classes — the ACTIVE item's sub-steps *(its live one is decomposed below)*
+
+▶ **WHERE THIS SESSION LEFT OFF (2026-09-02).** **Ten classes closed, 84 of 123 findings.** CI **GREEN on
+`e5687865`**: typecheck ×4 · `lint:rn` **45/45** · three unit suites · **e2e 339/339** · **embed 10/10**.
+Tree clean, nothing unpushed.
+
+⛔ **`S1.13.7.11` IS NOT A CLASS OF MINORS. RE-ENUMERATED MECHANICALLY 2026-09-02 — IT IS 40 FINDINGS ·
+4 BLOCKERS · 9 MAJORS · 27 MINORS, AND NOTHING WAS UNRATED** — then `D3-5`'s conditional rating was
+measured and it moved, so the class is **5 blockers · 8 majors**. ⚡ **All three of the first enumeration's
+numbers were wrong** *(35 · 3 · 5, with "7 unrated")*, and `CLASSIFICATION.md`'s own header says **43**.
+Membership derived **two independent ways that agree** — set-difference over the lane files, and
+first-cell/inline-list extraction from every class section. ⛔ **Nothing was unrated: all 40 state a
+severity, in THREE formats** — `## id — \`major\` ·` · `- **Severity:** **blocker**` · `**Severity: major.**`
+— and the first pass's pattern read only the first. **13 GATE [D65], not 8.**
+
+| | |
+|---|---|
+| **blocker ×4** *(+`D3-5`, measured)* | `C1-4` payday sheet says **“All confirmed paid”** about a bill just marked *didn't* · `C1-15` the Cash Runway receipt **understates “Expenses & essentials” by exactly the top-up entered** · `B3-2` an unreadable export timestamp renders **“Saved recently.”** on the screen before an irreversible restore · `C3-7` Siri says **“Logged $200.00 toward Chase”** in the past tense for a payment only QUEUED — and says it when the queue write did not happen |
+| **major ×9** | `A3-3` `B1-4` `B2-1` `B2-2` `B3-5` `C2-1` `C3-12` · ⛔ `D1-1` *(already closed)* · ⛔ `D3-5` *(measured → blocker)* |
+| **minor ×27** | the remainder — swept inline, never batched |
+
+✅ **Both corrections the re-enumeration forced are now MEASURED, and both moved.** **`D3-5` IS a
+blocker** — its own line said *`major`, and `blocker` if the reachability hypothesis is confirmed*, its
+author declined to claim it on their own authority, and the fixture they named as *"the whole finding"*
+confirms it: **`-$250 paid · $600 carries`** on the real producers, reached by marking a bill paid then
+moving the pay date earlier in `PaycheckSheet`. So the class is **5 blockers · 8 majors**. ⛔ **`D1-1` is
+CLOSED, not work** — it is `D3-4` found by a second lane, fixed in `S1.13.7.2`, and proven by *executing*
+`S1P6-D3-4-HALFCONFLICT` rather than reading its token.
+
+⚠️ **The undercount class, two levels up now:** `.10.1` caught that a class's COUNT was wrong · `.11` caught
+that its SEVERITIES were · and **re-rating caught that "unrated" was itself an artifact of the reading.**
+⛔ **Never schedule a class off its label, and never off one pass's extraction either.**
+
+▶ **The sequence:** ✅ rating DONE *(mechanical)* → fix the 13 gating findings as their own class → the 27
+minors are **swept inline when a later class already has the file open, never batched** *(🎯 2026-09-02)*.
+Why: this round measured that **more than half of pre-authored remedies do not survive contact** and four
+findings' defects were already closed — the cost of a minor is re-verifying a weeks-old premise, not the
+fix, and a batch pays that 27 times with no class context to amortise it.
+
+✅ **`S1.13.7.11` — all 13 gating findings CLOSED 2026-09-02, collapsed here.** 5 blockers *(`D3-5` `C1-4`
+`B3-2` `C1-15` `C3-7`)* · 8 majors *(`D1-1` `A3-3` `B1-4` `B2-1` `B2-2` `C2-1` `C3-12` `B3-5`)*. **2 gates
+added** · **14 guards registered and executed** · every fix plant-verified with the restore checked
+byte-identical. ⚠️ **`D1-1` closed as NOT WORK** *(`D3-4` by a second lane)* and **`C3-7` is a SOURCE SCAN**
+— nothing here builds the Swift target, so the spoken half is a **device row for `P6.14`**. The 27 minors
+are untouched by design. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+**⤷ old plan heading:** 📋 THE 12 CLASSES OF `S1.13.7.12.6` — the fixing ORDER, one terse row each
+
+⚠️ **This is the parent item's class list, not a decomposition.** Exactly one class is decomposed at a time, below.
+
+✅ **`.12.1`–`.12.5` — ALL CLOSED 2026-09-02, collapsed here.** S2/S3/S4 built as **derived** surfaces
+(`lint:rn` 46 → 49) · the *"197"* measured as **209** and *"no instrument can even ASK"* refuted · **[D77]**
+and **[D78]** answered 🎯 · both `prove:guards` repairs landed and guarded as `--selftest` cases (3 → 5),
+⛔ **both stated mechanisms refuted** · pass 7 **routed** *(639 · 0 unrouted · 0 owed)* · and **`.12.5` —
+PASS 7 RUN 2026-09-02**: 12 fresh lanes in two waves of six, **639/639 routed files read**, the coverage exit
+**GREEN in one wave** at **457/457** with **`0 unswept`** — a first. **137 findings · 34 blocker · 55 major ·
+48 minor**, enumerated two independent ways that **agree**. Tree left clean; every plant restored.
+Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⚠️ **The forecast written here BEFORE the dispatch was correct.** It said pass 7 would find the fixes' own
+defects. It did — and **`D2-1` is the `[D78]` retry built that same morning, surviving its own un-fix.**
+⛔ **0/0 twice is realistically passes 8–9**, which is what the plan is budgeted against.
+
+⛔ **THE ORDER IS THE POINT: the instruments are repaired BEFORE anything is proven with them.** Classes 1–3
+are gates that miss a line-wrapped spelling of their own defect, a proof harness that reports `EXECUTED` over
+them, and a route whose population differs from the exit's. Fixing money first means proving the money fixes
+with instruments already measured blind. This is `S1.12.5`'s ordering rule, and it was paid for.
+⚠️ **Class membership is a HYPOTHESIS — re-derive it against the code at switch-in**, and expect it to move.
+
+**⤷ old plan lines 240–263**
+
+⚠️ **Run the full gate + test suites at every class boundary**, not only at the end: a class-scoped audit is
+structurally blind to blast radius. `C1-18` was a **minor** whose remedy put Skia in Today's import graph and
+took down all 51 CI e2e tests. `lint:rn` is minutes; this is the cheap insurance.
+
+⚠️ **Class 1 cannot lean on the gates it is repairing.** Its audit plants **both spellings** — wrapped and
+unwrapped — directly, which is self-contained and does not depend on the instrument under repair.
+
+⛔ **[D80] — MINORS ARE BACKLOGGED BY DEFAULT**, kept only where they break or hinder the user *(a11y
+hindrance counts)*. **~31 of 48 filed.** Classes 10 and 11 below are what survives that cut.
+
+| # | class | n | exit line |
+|---|---|---|---|
+| ✅ **.12.6.1** | **A MATCHER LOCKED TO A LINE — CLOSED 2026-09-04 after four rounds.** All 16 `U*`, all 12 `V*`, and **12 of 15 `W*`** fixed and proven by planting; 3 routed to `.12.6.9`. ⚡ **The user-facing half was delivered in rounds 4–5**; rounds 6–7 had drifted to instruments-about-instruments, where the recursion has no floor — re-opens went 1 → 9 while new findings stayed flat. 🎯 **2026-09-04: fix only what reaches OUTSIDE the instrument stack, then open class 4.** Detail → log. *(Original scope, for the record:)* Rounds 5–6: **all 16 `U*` + all 12 `V*` closed**, 14 guards, `test:plant-safety` + `test:joined-code` added *(`lint:rn` 50 → 52)*. ✅ **Boundary CLEAN**: 52/52 · `test:app` · `test:regression` · typecheck 0 · ledger **151 proofs / 2 stale**. ⚠️ **re-audit 5 found 66 of 67 closed and 12 new — incl. a BLOCKER where `U15`'s own fix destroyed 83 bytes of uncommitted work.** ⚡ **The method correction: a round's guards come from its DIFF, not its finding list.** ▶ **re-audit 6 owed.** Detail → log | 11 | the escape closed **in the shared helper**, one assertion iterating every gate that imports it |
+| **.12.6.2** | **THE PROOF HARNESS AND THE LEDGER** — `D2-1` the `[D78]` retry survives its un-fix · `D2-4` a VOID proof still counted as evidence · `D2-8` `S1P1-M9-ROUTING` survives its un-fix while 11 files route to a surface that does not exist. ✅ **`S5-DEADLOCK` CLOSED 2026-09-04 in round 6** *(it blocked class 1 twice a round, and the workaround WAS the defect — both ceilings had it)*: was past the stale ceiling `lint:finding-guards` is red, `prove:guards` requires a GREEN control, so **every proof whose run reads the ledger becomes unprovable and the ceiling can never be drained** — 8 of 9 drains failed in one pass. ⚠️ **A bigger number is not the fix.** Detail → log | 10 | no entry counts as evidence unless its proof re-runs and MATCHES at the current sha — **and a drain must be possible from any state** |
+| **.12.6.3** | **THE AUDIT'S OWN POPULATIONS** — `D1-12` route ≠ exit: **76 money-bearing routed files in no claims file** · `D2-7` **128 real import edges silently do not exist** · `D1-19` nothing lints `packages/core`, `scripts/` or `apps/rn/tests` | 7 | one population, derived once, shared by route and exit — **fixed before pass 8 is routed** |
+| ✅ **.12.6.4** | **THE DOUBLE-SCALED IN-WINDOW MINIMUM — CLOSED 2026-09-06 after five `[D79]` rounds.** The round's money root, found by **two lanes independently**; created by pass 6's own `A3-4` fix and mirroring its defect. ⚠️ **Five instruments in this class are blind for ONE reason: `minimumPayment: 0` fixtures.** Decomposed below | 11 | one owner of the in-window minimum; an assertion iterating cadence × debt-type, on non-zero fixtures |
+| ▶ **.12.6.5** | **MAY A SURFACE STATE A PROJECTED FIGURE? — ACTIVE 2026-09-06.** Decomposed below. — one question, **five different answers**, 11 blockers. ⭐ **The correct answer already exists**: the widget refuses this claim by design and says so in a comment; pass 6's `C3-5` widened the widget's guard and nothing else | 13 | one predicate, called by every surface, asserted by **iterating the surfaces** |
+| **.12.6.6** | **MONEY WRITTEN OR DESTROYED** — `B2-1` batch keeps the `Math.max(0, NaN)` shape repaired twelve lines above · `B2-3` the finale never fires on the app's own primary payoff path, **unrecoverably** · `B3-2` one `stat` failure ends automatic backup forever | 12 | every money write through one normaliser; the class asserted over the **actions**, not the callers |
+| **.12.6.7** | **THE SUB-CYCLE CADENCE CLASS** — `A3-6` an un-ticked sub-cycle bill is carried forward un-advanced, so its reserve grows **without bound**: $250 → $450 → $650 | 5 | the reserve bounded, and the ledger rows adding up to the totals printed beside them |
+| **.12.6.8** | **THE FIX REACHED THE MEMBER, NOT THE CLASS** — pass 4's *13 of 34* class, recurring a **fourth** round. ⛔ `C3-7`: **turning iCloud backup ON takes no backup and says nothing** | 12 | one assertion per class that ITERATES it |
+| **.12.6.9** | **A CHECK THAT CANNOT FAIL** ⚠️ **+3 routed from class 1** (`W8` a double-arm leaves the plant on disk · `W10` `prove:guards` records by default, so verifying a proof rewrites the ledger · `W13` a new pin is invisible to `check-cap-literals` and can be re-derived) **+2 routed from class 4** *(`S1-ROUTE-STALE-READ` and `S1-ROUTE-EXIT-REACHABLE` — both plants apply and `audit:route-check` stays GREEN, because the route reports **0 stale-read** files, so the seeding they remove is a no-op. ⛔ **Not broken — unfalsifiable on a swept tree**, the same shape as this class’s own name. Re-measure at **pass 8 switch-in**, when the route opens with unswept files; do not "fix" them against a swept one)* **+ the narrowed `prove:guards` deadlock** *(its drainable-control check reads `lint:finding-guards`' own problems, so it un-blocks a proof running THAT gate but not one running a harness that uses it as a baseline — a two-pass drain today)*. — fixed **LAST** among the instruments, deliberately: these re-verify everything else, so repairing them first re-verifies against the same blind spots (`S1.13.7.10`'s rule) | 21 | every assertion reachable and falsifiable, proven by planting |
+| **.12.6.10** | **THE MINORS THAT REACH THE USER** — **[D80]**, all that survives classes 10+11's 37. `A2-3` a multiplied amount shown bare · `A2-5` drift saying *"N days behind"* forever whatever the user pays · `A3-11` a CSV rejection naming 5 of the 7 cadences it accepts · `A3-15` two producers of how much history a user sees · `C1-3` *"your cushion line — your cushion line"* · `C1-7` *"on every paycheck since the first one"* when it wasn't · `C2-2` *"then hits Visa"* when the money clears Visa · `C2-4`/`C2-6` money fields that never clear their own error, one path not enforcing minimum ≤ balance · `C2-8` *"Enter a name."* reddening the AMOUNT box · `C3-14` *"one target"* when two · `C3-15` the only proof a Siri payment landed, outranked into invisibility — **plus the a11y pair `C2-5` `C2-11`** | 16 | swept inline when a class has the file open |
+| **.12.6.11** | **SEVERITY RE-CHECK, THEN FILE OR FIX** — the three money-shaped "minors", one question each *(does it misstate or destroy money?)*: `B2-6` an older build silently rewriting a newer blob's version marker · `B3-10` `""` reading as empty on web and corrupt on native · `B2-4` two more live `Math.max(0, NaN)` members. ⛔ **Re-checked BEFORE filing** — last round a `major` moved to `blocker` the moment its fixture was run | 3 | rated on measurement, then filed or fixed |
+| **.12.6.12** | **THE LEGACY ROOT** — ⛔ **routes to `P6.11`, NOT to this triage.** `D3-1`: both written move-set enumerations are SHORT — measured **7 files · 12 edges · 351 lines**, not *"7 · 8"* or *"5 modules · 293 lines"*; both were built by one-hop greps | 4 | filed to `P6.11`'s scope, not fixed here |
+
+**⤷ old plan lines 267–491**
+
+✅ **`.12.6.4` — CLASS 4 CLOSED 2026-09-06, after FIVE `[D79]` rounds.** All 11 class findings plus 8 + 6 +
+4 + 3 + 3 re-audit findings closed, each with a proof that reds on its own defect. Registry **296 → 302**,
+proofs **166 → 175**. Detail → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⛔ **[DECISION] 🎯 2026-09-06 — THE RE-AUDIT LOOP STOPS HERE**, the same call made for class 1. The
+measured basis: findings reaching **outside** the instrument stack went **2 → 1 → 1**, and rounds 4 and 5
+found *only* defects the previous round's fixes had created — **both on the same line**, which was wrong
+three times running (`R3-4` → `R4-1` → `R5-1`). ⭐ **That line's root cause is fixed, not patched**: the
+guard's population is now **derived from `Record<Recurrence, number>`**, so a new member is a typecheck
+error until someone states what it frees. **Adding one row is what failed, twice.**
+
+⛔ **CI WENT RED ON `55fcc88f` AND IT WAS NOT THAT COMMIT** *(docs + 2 gate scripts; no app code, no
+specs)*. `bnpl.spec.ts:87` asserted `toBeVisible()` on an unscoped locator over a list whose length is the
+**run date's** — the fixture anchors to `day()` and `groupByMonth` keys on `YYYY-MM`, so two month groups
+render for most of any month. **Two groups is correct; the assertion was the defect.** Fixed to iterate
+every subtotal; planted both directions *(the iteration reds on a single `$0.00` group; `.first()` goes
+green over it)*. ⚡ **59 unscoped locators suite-wide and no gate for the class** → `.12.6.9`. Detail → log.
+
+✅ **`R5-2` FIXED 2026-09-12** *(`.5.2`'s precursor — the gate that certifies closures was permissive, and
+class 5 is about to write proofs through it)*. Word-boundary matcher; `test:gate-plants` **26 → 27** with
+`[R5-2-boundary]`, which reds on the un-fix while `[R3-3-borrow]` stays green. ⛔ **Its REGISTRY ROW is
+still owed and rides `.12.6.9`** *(🎯)* — `authored` is 9/9 and `prove:guards`' drain exemption does not
+cover a proof whose `run` is a harness. Detail → log. ⚠️ **`R5-3` remains filed to `.12.6.9`, not fixed.**
+
+⛔ **SWITCH-IN CORRECTION — THE POPULATION WAS UNDERCOUNTED TWICE, AND THE REMEDY IS UNBUILDABLE AS
+WRITTEN.** The finding said **1** site; `.5.1` corrected it to **8 / 2 spellings**; derived by query it is
+**11 fallback sites across 4 spellings** — the two `?? 200` / `|| 200` spellings plus `floor > 0 ? floor :
+200` (`computeState.ts:32,44`) and `isFinite(floor) ? floor : 200` (`CushionFloorSheet.tsx:42`). ⛔ **No spelling can discriminate**: `setCushionFloor` clamps via
+`Math.max(0, …)`, so a legitimate `$0` line is user-reachable and byte-identical to `readMoney`'s lost `0`.
+**The discriminator is the repair record, not the value.** ⚠️ `calibrationScore.ts:96` is a READ of stored
+history and is not swept; `projectForecast.ts` is P6.11's dead tree.
+
+⭐ **MEASURED 2026-09-12 — THE FIX IS DISPLAY-SIDE ONLY, AND BOTH FINDINGS' LEAD RISK IS FALSE.** *"A naive
+change moves the band"*: swept 484 cases, floor `0` vs `200` → **0** flips, control `0` vs `350` → **180**.
+`computeState` substitutes 200 for any floor ≤ 0 itself. ⚠️ **Insulated against the SENTINEL, not against a
+different REAL floor** — so the fix may not change which real floor is passed, only how the unread case is
+shown. ⚡ And the discriminator fires correctly on all three stores, incl. the pair that share
+`cushionFloor = 0`.
+
+⚡ **AND THE RENDER SURFACE IS SMALLER THAN THE SITE COUNT.** `brief.floor` has **8** consumers, not the
+finding's 4 — but the unread branch **returns at `:222`**, so the bar domain, the a11y label, `floorFrac`
+and the visible `· Your line` chip never render while inputs are unread, and a lost floor always poisons
+`required-plan` *(measured)*. ⛔ **C1-1's live surface is the SENTENCE at `:221`** — C1-6's ungated `?? 200`
+producers are the other half. ⚠️ **`CushionFloorSheet` is NOT a defect**: one production mount
+(`index.tsx:359`, census by query), it passes `unreadPlanInputs`, and `:604` sits below the early return —
+so it cannot render with a fabricated floor, and Save cannot write one.
+
+⛔ **`.5.2` INHERITS `C1-2`, AND THE COUPLING IS NOT RECORDED ANYWHERE ELSE.** A plan repair is
+`{ entity: 'plan', id: '', … }`, and `answerableByEdit` requires `!!r.id` — so **re-entering the cushion
+line never clears the repair**; only the acknowledgement does, and the card says *"nothing to reopen —
+check this against your old app"* about a number its own sheet sets. **Withholding the figure in `.5.2`
+therefore has no exit by edit until `C1-2` lands.**
+
+✅ **[DECISION] 🎯 2026-09-12 — `C1-2` IS PULLED FORWARD INTO `.5.2`**, out of `.12.6.6`. Shipping a
+withheld figure the user cannot edit their way out of is the `C1` failure this module exists to prevent.
+⛔ **It is NOT a predicate flip.** Making plan repairs answerable sends `clearResuppliedRepairs` into
+`findRow` → `listFor(store, 'plan')`, and the plan owns no list — `undefined` reads as *"the row is gone"*
+and the repair clears on the next store write, **un-repairing every plan-money loss**. The fix is a
+value-lookup path for plan fields; the predicate alone fails OPEN.
+
+⚡ **`C1-3` FOLDS IN TOO, per `.12.6.10`'s own rule** *("swept inline when a class has the file open")* —
+and making plan repairs answerable is what makes it load-bearing rather than cosmetic. `namedFigures`
+renders `` `${FIELD_LABEL[r.field]} on ${r.name}` `` while `migrations.ts:299` sets
+`name: PLAN_MONEY_LABELS[field]` — **the same string** — so the new instruction would read *"set your
+cushion line on your cushion line again"*. ⚠️ **And `C1-2` is wider than its one line**: today a lost
+`cushionFloor` lands in the `unrecoverable` block, so the HEADING is wrong as well *("Some of your old data
+did not come across"* about this app's own store field*)*, not just the instruction. Detail → log.
+
+| # | step | exit line |
+|---|---|---|
+| ✅ **.5.1** | **DONE 2026-09-06 — 13 of 13 re-derived. All observations stand; FIVE corrections, two of which change the build.** ⛔ **`money.tsx` consults `mayClaim` NOWHERE** — it uses per-row `rowFieldUnread`, so the row guards are fine and the **hero** has no whole-claim guard; *"add the missing claim"* would edit the wrong layer. ⛔ **`C3-2` + `D2-12` are ONE root** — `''` overloaded in `buildGuardianSpoken` for *not-premium* and *cannot-claim*, merged below. ⛔ **`C1-1` is 8 sites / 2 spellings** erasing different sentinels. ⛔ **`C3-13`'s guard cannot live in `selectPlanState`** — the projection is the argument. Detail → log | ✅ |
+| ✅ **.5.2** | **DONE 2026-09-12** — `C1-1` · `C1-6` · `C1-2` *(pulled forward)* · `C1-3`. One owner (`cushionLine` → `{ value, unread }`) + `DEFAULT_CUSHION_FLOOR`, which did not exist; `C1-2`'s plan-field lookup closes a fail-open the predicate alone introduces; suite's **first `plan`-entity fixtures** *(it had debt 24 · goal 6 · plan **0**)*. ⭐ **The band risk both findings lead with is FALSE** — 0 flips in 484, control 180. ⚠️ Two defects of mine caught by instruments: a voided neighbour guard and a broken NaN defence. Detail → log | ✅ |
+⛔ **`.5.3` SWITCH-IN CORRECTION, measured 2026-09-12 before building — the projection seam is 12 call
+sites, not the 6 surfaces the class enumerated.** Derived by query over `withProjectedBalances(`:
+`index.tsx` · `money.tsx` · `progress.tsx` · `cushion-forecast.tsx` · `AffordabilityCard` ·
+**`SaveForItSheet`** · **`WindfallSheet`** · **`use-notification-sync.ts`** · `paydayActivityContent.ts` ·
+`snapshot.ts` ×3. ⚠️ **Four were never named by the class**, and `use-notification-sync` is a claim that
+**leaves the app**. ✅ The step's premise still holds — `snapshot.ts:216` refuses the claim by design with
+both `mayClaim`s and says why. ⚠️ Counting is not the population: the predicate asks *may this surface
+STATE a figure derived from the projection*, so a consumer that states none is out.
+
+⛔ **AND THE PREDICATE CANNOT LIVE AT THE SEAM.** `withProjectedBalances` is `if (!isPremium) return store`
+plus a `debts` remap — it **keeps no marker**, so its result is structurally identical to a real store.
+That is *why* `selectPlanState` could not tell them apart in `.5.1`. The owner must be a function callers
+invoke **where `isPremium` is still in scope**, asserted by iterating the 12 sites.
+
+⚡ **Two surfaces re-verified against current code, and both corrections matter.** `C3-9` is **OPEN** and
+its mechanism is now pinned: `progress.tsx` consults `'debt-balances'` **three times and `'row-figures'`
+never** (`:111` `:138` `:288`), while `snapshot.ts:216` reads **both** — and an unread **APR routes to
+`row-figures` and only there**, so `gagBalanceDerived` cannot see it however thorough it is. ⚠️ **`C1-5` is
+NOT a missing guard**: `index.tsx:346` does hand `PlanHero` `unreadPlanInputs`; it is spent on the status
+colour (`:144`) and the reassurance line (`:157`) while the figures compute at `:99-117` and print at
+`:164-166`/`:214` regardless. **The guard gates the wrong half.** Detail → log.
+
+⛔ **`.5.4` SWITCH-IN CORRECTION — its seven members are THREE fix shapes, and the step's title names only
+one.** ① **Predicate routing** *(`C3-9` `C3-8` `C3-11` `C3-13` `C1-5`)*. ② **A success-check bug**
+*(`C3-5`)* — `liveActivitySync` stamps `lastKey` at `:50`/`:54` with no success test, while its twin
+`widgetSync:61` is `if (write(snapshot)) lastKey = key;`. **Nothing to do with the predicate.**
+③ **A sentinel overload** *(`C3-1` `C3-2` `D2-12`)* — `buildGuardianSpoken` returns `''` from **four**
+conditions *(`:68` `:83` `:85` `:102`; the class recorded two)* and `SiriQueryIntents.swift:90` routes empty
+to the Premium upsell. ⚡ **`cushionLine`'s defect one module over**, so it wants a discriminated return,
+not a guard. ⚠️ **Three sub-steps, not one sweep.**
+
+⛔ **AND `C3-9` IS NARROWER THAN "SWAP THE THREE CALLS".** `progress.tsx:111` and `:138` gag
+projection-derived views at the SOURCE *(`C5-1`'s reasoning, and `B1-3` is the case that walked past a
+prop-level gate)* — those take the predicate. ⚠️ **`:288` does NOT**: it feeds `pct`, `journeyLine` and
+`heroDate`, and the first two are **backward-looking progress off raw balances**. Swapping it wholesale
+would blank a genuinely-earned percentage because the **APR** was unreadable — over-suppression, *"a second
+false statement, not a fix"*, which this file has already committed once *(its own docblock at `:282-286`
+warns of exactly that)*. **Only `heroDate` moves; `pct` and `journeyLine` keep `debt-balances`** — `2.4`'s
+standing rule that backward-looking figures stay on raw balances. Detail → log.
+
+⛔ **AND `journeyLine` IS BOTH, BY BRANCH — so it takes NEITHER claim wholesale.** `journeySelectors.ts:76`
+is `totalPaid > 0 ? "${totalPaid} of ${totalOriginal} paid" : "${totalCurrent} to go"`. The first arm is
+raw *(`:59-62`, from `debts`)*; the second is `totalCurrent`, summed at `:61` from **`projected`**. Its own
+docblock says so — *"the branch is chosen backward and answered forward… One figure cannot serve both."*
+⚠️ **I had grouped it with `pct`, and the CALL SITE could never have shown that**:
+`selectJourneyTotals(store.debts, engineStore.debts)` is handed both worlds deliberately. ⚡ So an early
+user sees the projection-derived *"to go"* arm off a possibly-unreadable APR, while a user with confirmed
+payments must keep the *"paid"* arm through one. ⛔ **The producer owes the claim question, not the
+consumer** — `.5.2`'s `F-B4` lesson verbatim: *a function that BRANCHES owes the CLAIM, not the array.*
+**`C3-9` is four decisions, not one swap.** Detail → log.
+
+| ✅ **.5.3** | **OWNER BUILT 2026-09-12** — `mayStateProjectedFigure(store)` in `balanceSelectors.ts`, beside the projection it qualifies: **both** claims, because `projectCurrentBalance` reads `apr`/`minimumPayment` which route to `row-figures` **only**. Planted both ways — the block runs, and dropping the `row-figures` half makes it say YES on an unread APR, so **`C3-9`'s mechanism is now MEASURED**. ⚠️ **The iterating assertion is deliberately SPLIT to `.5.4`**: written now it reds until the surfaces are wired, and a knowingly-red assertion is a broken build, not a guard. Detail → log | owner ✅ · iterating assertion → `.5.4` |
+| ✅ **.5.4** | **CLOSED 2026-09-13 — every surface routed through the claim it states, planted at each.** `C3-9` · `C3-8` · `C3-11` → `.5.4b` · `C3-13` → `.5.4c` · the Guardian card → `.5.4d` *(folds `C1-5`)* · save-for-it → `.5.4e` · `C3-5` → `.5.4f` · `C3-1` → `.5.4g` · `C3-2`+`D2-12` → `.5.4h`. Detail → log | ✅ |
+| ✅ **.5.4a** | **CLOSED 2026-09-13 — the predicate over-suppressed; split into two CLAIMS.** `'projected-balance'` *(what the projection reads)* and `'solved-projection'` *(what the plan is solved from)* replace `'debt-balances' && 'row-figures'`, whose first half never decided *(0 of 102)* and which blanked the debt total over a lost goal target. Asserted per repair variant × six shapes; **8 plants** red for their own reason, both e2e over-suppression cases among them. ⚠️ Two of my own reports were false before a plant caught them — the test file only defines `run()`, and `cmd` split the `-g` pipes. Detail → log | ✅ |
+| ✅ **.5.4b** | **CLOSED 2026-09-13 — `C3-11`: the cushion forecast asked no trust question.** The runway now withholds on `'solved-projection'` *(measured exact against the forecast's own figures, once the shapes can clear a debt and fill a goal in-horizon)* behind *"Your forecast is on hold"*; the scorecard, stored history, stays. Asserted per surface over eight shapes; e2e 5/5 by name; **11 plants** each red for their own reason. ⚠️ Surfaced: Today's Guardian card's `'required-plan'` has 6 holes → its own `.5.4` member. Detail → log | ✅ |
+| ✅ **.5.4c** | **CLOSED 2026-09-13 — `C3-13`: a projected $0 was claimed as a completed payoff.** Three readers, one cause — plan state, the Guardian's *"To savings"*, the reserve release's *"your savings"*. ⭐ **[DECISION] 🎯 2026-09-13: fixed at the PROJECTION** *(reverses `.5.1` correction #5)* — a `WeakMap` record of the confirmed balance the liveness owners read. Every reader asserted on projected and twice-projected stores; **6 plants** red for their own reason, the lazy over-fix caught by an existing guard; celebration e2e 13/13 by name. Detail → log | ✅ |
+| ✅ **.5.4d** | **CLOSED 2026-09-13 — `'required-plan'` was the wrong question for most of its askers.** ⭐ **[DECISION] 🎯 2026-09-13: exact claims per surface** — a new `'paycheck-plan'` *(Guardian card · Live Activity · widget line · affordability · windfall · paywall lead · `cushionLine`)*, `'required-plan'` narrowed to Required actions, the plan hero on `'solved-projection'` with its split gated *(folds `C1-5`)*. 0 holes on 22 shapes; plants Q1–Q6 unit and R1–R4 e2e red for their own reason. ⛔ The rewire made four refusals say *"has to cover"* over goal and APR losses — one corrected lead now. ⚠️ Two render proofs never existed *(affordability, windfall)* → `.5.7`. ⛔ **CI red on `138115ad`** — one page-wide e2e locator now also matched the card's correct refusal; scoped *(self-inflicted: the close ran e2e by name only)*. Detail → log | ✅ |
+| ✅ **.5.4e** | **CLOSED 2026-09-13 — save-for-it: "asks no trust question" was true of the source and not a live defect.** Its one door renders only after the affordability card's `'paycheck-plan'` refusal. ⚠️ The mount itself was ungated, so it now carries `!unreadPlanInputs`, pinned by a `requiredPlanTrust` row and planted out *(reds on the mount row; restored byte-identical)*. No new claim. Detail → log | ✅ |
+| ✅ **.5.4f** | **CLOSED 2026-09-13 — `C3-5`: the Live Activity stamped its belief about the Lock Screen on the ATTEMPT** *(folds `C3-6` + the read-once `areActivitiesEnabled`)*. ⛔ **The finding's remedy was a false fix** — Swift returned before ActivityKit ran — so the fix is native: `AsyncFunction` → `Bool`, bridge `Promise<boolean>`, the manager stamps only what landed. 27 assertions; **10 plants** red for their own reason, 3 registered and proven; the `.app` cache key now hashes `apps/rn/modules/**`. ⚠️ The Swift is compiled only by `native-e2e`; ActivityKit's refusal on hardware → P6.14. Detail → log | ✅ |
+| ✅ **.5.4g** | **CLOSED 2026-09-13 — `C3-1`: Siri's log-a-payment list said `Chase · $0` for the debt every other field refused.** ⚡ The in-app sheet for the same flow was fixed in pass 5 (`C5-3`) and the voice door never asked it — so the question and its words now live once in `logPaymentCopy`, called by both. No Swift change. +3 assertions; **3 plants** red for their own reason *(the un-fix reproduces `$0`)*, 1 registered and proven. Detail → log | ✅ |
+| ✅ **.5.4h** | **CLOSED 2026-09-13 — `C3-2` + `D2-12`: Siri told a subscriber the Guardian is *"a Premium feature"*.** `buildGuardianSpoken` returned `''` for four reasons and Siri reads `''` as not-premium; now `''` means only that, and each premium reason is spoken — no Swift change. A third consumer the switch-in missed went red and was fixed. **5 plants** caught *(one by the pre-existing free-tier line)*, 2 registered and proven. Detail → log | ✅ |
+| ✅ **.5.5** | **CLOSED 2026-09-13 — `B1-1`: save-for-it promised a pace and a ready-by the engine did not fund.** Wider than filed *(4 of 4 shapes for `Save fast`, 2 of 4 for `Balanced`)*, the mechanism half wrong *(the engine clamps)* and the remedy wrong too *(spendable still carries the buffer)* — so one producer, the engine's capacity for the prospective goal, rounded down, and the typed pace dated from it. **4 plants** red for their own reason, 1 registered and proven. Detail → log | ✅ |
+| ✅ **.5.6** | **CLOSED 2026-09-13 — `C3-14`: the goals hero said *"one target could not be read"* over two.** The sentence was fed a boolean; it is counted now, in `dataRepairsCopy`'s one-vs-N shape. Census: the only caption stating a number from a boolean. Unit + render proof, planted. Detail → log | ✅ |
+| ▶ **.5.7** | **BOUNDARY + LEDGER DRAIN** — 13 open backlog rows routed here *(15, 2 resolved; enumerated by script)*. ✅ **Done:** ① native flows 03/08 + Siri `isPremium` — `native-e2e` iPhone tier green · ② instruments — `finding-guards --projected`, the debt-spread ledger, the claim lattice + vacuous-conjunct scan, lost fields under their names; 4 proofs registered and proven · ③ render proofs — the free `C3-8` twin, the widget's stated direction, affordability + windfall refusals; 4 plants, proofs not yet registered. **Remaining:** ④ **censuses by query** — (a) run; re-measured through the real store it opened **two defects** *(🎯 2026-09-14, backlog)*: **a.2** applied-intent ids in the mutation's own write, carried through every store replacement — a replayed intent *(failed clear · Undo · restore · reset)* applies once · **a.3** ⛔ **pass-6 `C3-6` reopened** — the tap names its payday *(Swift, `native-e2e`)* · **a.4** register ③'s four proofs + a.2/a.3's; ⚠️ the countdown almost never starts → own backlog row; (b) promises of a future amount off a selector's headroom · ⑤ **host-dependent spec** — `hero-date-fit` 320 pt measured in both fonts · ⑥ **docs** — drop the plan's quoted backlog counts · ⑦ boundary gates: `lint:rn` from its own line, both suites, typecheck, stale drained, pushed | every routed row closed, filed onward with a reason, or measured as not a defect |
+| **.5.8** | **`[D79]` RE-AUDIT** — fresh agent, cumulative | 0 new defects attributable to class 5's fixes |
+
+⛔ **Then `.12.7` — PASS 8**, the next first-candidate. [D65] is unchanged: **0/0 twice consecutively.**
+
+⭐ **`S1.13.7.9` — all 51 CI e2e failures had ONE cause**, found by `git bisect` over the 36 commits CI had
+never seen: `C1-18`, a **minor** about a literal declared twice, whose remedy made a Skia-importing module
+the owner — so `PaydayGuardianCard` taking one number from it put **CanvasKit in Today's import graph** and
+Today rendered an empty body. `lint:import-graph` now refuses a plain VALUE imported from a module that
+loads a renderer.
+
+⛔ **`S1.13.7.10` FOUND A LIVE MONEY DEFECT WHILE FIXING A TEST.** `A3-4`'s missing debt arity measured
+**RESERVE $50 against PAYDOWN $200** on one weekly debt: `A3-1` argued its widening was safe because *"the
+allocator's RESERVE and the PAYDOWN both read `effectiveMinimumInWindow`"* — **the allocator did not read
+it.** The Guardian called a paycheck clear having held $50 while the rollover took $200. Both sides share
+the producer now.
+
+⛔ **THREE SUITES [D74] NAMES WERE FOUND ALREADY RED**, each having stood for sub-steps: `typecheck:core`
+since `.3`, `data-recovery`'s C3 test since `.4`, and the whole e2e suite. ⭐ **[DECISION 🎯 2026-09-01] —
+the item close now ENDS WITH A PUSH.** The gap was never a missing check: CI runs every suite on every
+push, and **36 commits had never reached it.**
+
+⚠️ **Two 🔴 items are open and both want a human**: **`A2-7`** — what should the per-debt schedule DRAW for
+a **non-focus** debt (measured: projection $889.87 vs a drawn $8,678.34 over 137 months, because the
+schedule never models the freed minimum rolling over); and the **a11y warning `A1-8`'s repair now fires** —
+Today and Progress report **zero Guardian-band words** in the accessible tree. Both in the backlog.
+
+⚠️ **Read before resuming:** [`CLASSIFICATION.md`](audits/2026-08-31-s1-money-pass6/CLASSIFICATION.md) is
+the driver — every remaining finding, grouped and ordered. Four 🎯 decisions were taken this session and
+are recorded in the log: **`A2-2`** the BNPL balance is canonical · **`A3-2`** per-occurrence paid state ·
+**`A3-11`** the money is authoritative over the band · **`A2-4`** deferred to the backlog with its reason.
+
+⛔ **Two operating rules this session paid for.** **Never `git add -A` while `test:gate-plants` is running**
+— it writes fixtures into the tree and removes them, so a commit at that instant captures whichever plant
+is live *(caught twice)*. And **a guard anchor moves whenever you fix the line it pins** — five did; each
+must be re-pointed and **re-proven**, which is `D2-1`'s rule working on the session that built it.
+
+⛔ **ONE ASSERTION PER CLASS THAT ITERATES THE CLASS**, never one that names a member — fixing ids one at a
+time produced pass 4's round, then pass 5's. ⚠️ Each class is: **verify the finding's MECHANISM against
+current code** → reproduce with a control → fix → re-run the control → **plant the original defect and
+confirm the guard reds FOR THE PLANTED REASON** → plant the laziest plausible repair → register the guard.
+⛔ **A remedy is a HYPOTHESIS**: every remedy in the twelve lane files is marked *unverified* by its author,
+and three lanes named the obvious fix as wrong.
+
+| # | class | n | exit line |
+|---|---|---|---|
+| ✅ **S1.13.7.1** | **CLOSED 2026-08-31 — THE DATE FUSE.** New gate **`lint:fixture-dates`** → **44**, guard `S1-FIXTURE-DATE-FUSE` proven. ⚡ Both finding premises were wrong: the sweep HAD reached `dueDate` *(87 converted, 85 left)*, and the fuse was **22 sites, not 8** — most in the UNIT tree A1 never held. ⚠️ **18 of 40 were false positives** *(clock-pinned files; "fixing" them would have broken deterministic tests)* and **11 were passengers PROVEN by planting `2020-01-01`**. ⛔ **The suite scored 338/338 with the default OVERDUE and 338/338 with it ON-TRACK** — zero specs tell the branches apart. Detail → log | 2 | CLOSED |
+| ✅ **S1.13.7.2** | **CLOSED 2026-08-31 — THE PROOF MACHINERY** — `D2-1` `D2-2` `D2-5` `D2-6` `D2-7` `D2-11` `D2-13` `D1-2` `D1-8` `D2-8`/`C3-11` `D3-4`. ⭐ **32 stale proofs re-run — 30 held, 2 did NOT**, one of them a real defect in this session's own assertion. Staleness is now detected, named and ceilinged. New gate `lint:fixture-dates` → **44**; 6 new guards proven. Detail → log | 12 | CLOSED |
+| ✅ **S1.13.7.3** | **CLOSED 2026-08-31 — NaN BLINDNESS.** The RULE now lives once (`assertNumeric.ts`), called by all 5 tolerance helpers + both `endingBalance` guards. ⚡ `A3-9`: the income FLOOR anchored to the observed **MAXIMUM** — `[1000,1000,50000]` gave a lean of **$42,500**, now **$850**. ⛔ **A test asserted that defect as correct and named it** *("max(2100)")* — replaced, not deleted. 2 guards proven. Detail → log | 5 | CLOSED |
+| ✅ **S1.13.7.4** | **CLOSED 2026-08-31 — THE TRUST GATE'S POPULATION.** All 9. ⚡ `C1-3`: the **loudest card on Today** had no gate and needed **no new caller** — `index.tsx` already asked for two other cards, so a per-file count cannot see it. `C3-5`: the guard was computed OVER different fields than the number was computed FROM. `B1-1`: the render gate is a **delay, not a filter** — a test asserted that as correct. Siri now branches on a FLAG, not a sentinel string. Detail → log | 9 *(6 blockers)* | CLOSED |
+| ✅ **S1.13.7.5** | **CLOSED 2026-08-31 — TWO PRODUCERS OF ONE NUMBER.** 7 of 8. ⚡ `C3-2`: neither obvious move was right — the rule is that **a projection may not assert a completion the confirmed data has not reached**. `C3-3`: `Math.round` turned a residue into a *completeness claim* (`percentCompleteLabel`). `A2-1`: the simulation was right and the **sentence outran it**. ⚠️ **`A2-4` DEFERRED** — its author flagged the obvious remedy as wrong and it is a minor; filed to the backlog. Detail → log | 8 | CLOSED (7 of 8) |
+| ✅ **S1.13.7.6** | **CLOSED 2026-08-31 — MONEY WRITTEN OR DESTROYED.** All 8. ⭐ **[DECISION A2-2] 🎯: the BALANCE is canonical** — deriving it from the installment count rounds real money *(a rename deleted $40)*. `C3-8`: a demo purchase was **charged by Apple and dropped**. `B3-1`: the store's own money was repaired nowhere — and the declaration is what **opens** the migration audit's invariant ③ on it. `A3-5`: `rollPaydayToFuture`'s only caller was the tree `P6.11` deletes. Detail → log | 8 *(6 blockers)* | CLOSED |
+| ✅ **S1.13.7.7** | **CLOSED 2026-08-31 — CADENCE AS A USER VARIABLE.** All 6. ⭐ Two [DECISION]s 🎯: **`A3-2` per-occurrence paid state** *(a tick is a record of a real event)* and **`A3-11` the MONEY is authoritative** *(hysteresis is a presentation smoothing; it may not make the app state a falsehood)*. ⚡ `A3-1`: the gate read `type === 'bnpl'` — **a cadence is a fact about the SCHEDULE, not the label**. Detail → log | 6 *(3 blockers)* | CLOSED |
+| ✅ **S1.13.7.8** | **CLOSED 2026-09-01 — THE FIX REACHED THE MEMBER.** All 6. ⚡ Every one was a previous round's correct fix stopping one line, one field, one hop or one consumer short — `[B4]` changed `recurrence` and left the four seeds beneath it; `B5-11` fixed `backupToCloudGuarded` and left `getCloudBackupStatus` twenty lines away. ⛔ `B3-3`'s class assertion found a site the report never named: the Restore button was `disabled={status !== 'ready'}`, so fixing what was named would have left the door **visible and dead**. ⭐ **And the FIXING found four more of the same shape, three of them already red** — `typecheck:core` since `.3`, the C3 e2e since `.4`, the guard gate's stale ceiling *(dead code; drained 31 → 0)* and `unreadBalanceIds` with zero unit coverage. New gate `lint:amount-collapse` → **45**. Detail → log | 6 *(3 blockers)* | CLOSED |
+| ✅ **S1.13.7.9** | **CLOSED 2026-09-01 — THE SUITE IS GREEN IN CI.** All 51 CI failures / 37 local had **one cause**, found by `git bisect`: `2c77aceb`, where `C1-18`'s remedy put a Skia-importing module in Today's graph. ⚡ **Two hypotheses were refuted along the way** — the shared-fixture due dates *(moved one cluster and not another)* and then "multi-cause" itself *(the root fix made that cluster pass with the fixture untouched)*. New guard in `lint:import-graph`, proven. Detail → log | 51 | CLOSED |
+| ✅ **S1.13.7.10** | **CLOSED 2026-09-02 — TESTS THAT CANNOT FAIL, 18 of 19** *(19, not 18 — see `.10.1`)* — `A1-1` `A1-2` `A1-3` `A1-6`–`A1-11` `A2-7` `A3-4` `A3-14`–`A3-17` `B2-4` `D1-4` `D1-5` `D1-6`. ⛔ **LAST among the triage classes, and fixed KNOWING what the classes above got wrong** — these are what re-verify everything, so repairing them first re-verifies against the same blind spots. Decomposed below | 18 | every assertion reachable and falsifiable |
+| ✅ **S1.13.7.11** | **CLOSED 2026-09-02 — all 13 gating findings.** Re-enumerated first: **40 · 5 blockers · 8 majors · 27 minors**, nothing unrated *(the first pass said 35/3/5/7-unrated — all four wrong)*. 2 gates added · 14 guards executed. Collapsed above; detail → log | 40 | CLOSED |
+| ▶ **S1.13.7.12** | **INSTRUMENT THE REST OF THE TREE, THEN PASS 7** *(🎯 2026-08-31)* — ✅ **the instrumenting half is DONE**: the 197 re-measured to **209** *(86 routed + 123 already skipped by name)*, **S2/S3/S4 now exist as DERIVED surfaces** carrying all 86, and both `prove:guards` repairs landed with [D78]. ▶ **Remaining: `.12.5` RUN pass 7 (routed + briefed, fresh session) · `.12.6` triage to 0/0.** Decomposed above | 86 | every routed file on a claims file ✅ |
+| **S1.13.7.13** | **RE-RUN PASS 7** — [D65] needs a second consecutive clean pass. Route from `s1p7`, same 12-lane shape. ⚠️ Forecast: pass 7 will find the FIXES' own defects — every prior round did — so 0/0 twice is realistically passes 8–9 | — | 0/0 twice |
+
+✅ **`S1.13.7.10`'s seven sub-steps — CLOSED 2026-09-02, collapsed here.** 18 of 19 *(the class is 19, not
+18)*; `A2-7` left open as a [DECISION]. ⭐ **Its rule outlives it: a test's fix is proven by making it RED,
+not by making it green** — every finding in it was an assertion that already passed. Detail →
+[`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⚠️ **CLASS X is NOT in this list — it is a PLAN correction that blocks `P6.11`, not a triage class.**
+*(pass-5 ids)* `D3-1` `A3-8` `D3-2` `A2-9` `D2-9` `D2-14`: **the legacy root is LIVE** — `packages/core`
+imports out of it, `typecheck:core` and `test:regression` both compile *and execute* them, and both are steps
+of `validate:release:rn` **and** `web-e2e.yml`. P6.11's written scope does not name it. Filed to `P6.11`.
+⛔ **The "7 files across 8 edges" written here was CORRECTED 2026-09-02 by pass 7's `D3-1`: it is 7 files ·
+**12 edges** · 351 lines.** This list and the backlog's *"5 modules · 293 lines"* were both built by ONE-HOP
+greps and both miss `lib/analytics/track.ts` at hop 2. Measured two ways that agree (`tsc --listFiles` + a
+closure runner). **Re-derive it mechanically at `P6.11` switch-in; trust neither written list.**
+
+**Exit (S1.12):** pass 5 recorded and fixed. ⛔ **Convergence still requires a clean pass 6** — a 0/0 pass 5
+does not close S1 on its own.
+
+**Exit (S1.11):** 0 blockers / 0 majors on pass 4's findings, every guard in the registry **proven to red on
+its own defect**, and the route regenerated so pass 5 reads the surface pass 4 could not see. ⛔ **Pass 4
+did not converge** — [D65] exits on 0/0 **twice consecutively**, so pass 5 is the next first-candidate and a
+clean pass 5 still owes a pass 6.
+
+---
+
+⚡ **What pass 3 says, in two lines.** ⛔ **Three of four auditors independently found a GATE that reports
+green while doing less than it claims** *(`B1` `A3` `C-1` `D3-3` `D3-4`)* — third consecutive pass, and one
+of them was created by pass 2's own fix. ⛔ **And `B1`'s rule — never state a number the app could not read
+— has been widened twice and missed a third direction each time**; this round it is **every claim site
+outside the app**: the Home Screen, the Lock Screen, Siri and the Live Activity.
+
+
+**⤷ old plan lines 565–571**
+
+**⤷ old plan heading:** ✅ Closed on the way here — detail → log
+
+| | |
+|---|---|
+| **.11.1 – .11.17** | CLOSED 2026-08-24/25 — both blockers, all 14 majors, the `.11.9` tail, [D60]'s five, [D62]/[D63]'s high-water mark, and the fourth audit round *(5 auditors: 2 blockers · 17 majors)* |
+| **S0.1 – S0.13** | CLOSED 2026-08-25/26 — 6 instrument findings, pass 1's 7, pass 2's 3, **pass 3 the first clean pass** *(0 / 0 / 6 minors)*, pass 4's 5 majors + the 37-finding guard inventory, then the close-out: 3 new gates + `gate:begin`, **25 gates on `lint:rn`**. ⚡ **10 of the first 16 were introduced by the fixing.** [`S0-REVERIFY-3.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-3.md) · [`S0-REVERIFY-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-REVERIFY-4.md) · [`S0-GUARDS-4.md`](audits/2026-08-25-p6.8.9.7.11.17-reverification/S0-GUARDS-4.md) |
+| 🎯 **S0 CONVERGED 2026-08-25** | ⛔ **[D70] rewrote the exit: instruments-sound, not a pass count — there is no pass 5.** Pass 4 returned **20 findings and 0 that counted**, and *a pass that cannot fail is not a measurement*. ⛔ **S0 was verified by S1's pass 1, not by an S0 pass** — and it passed: `REVERIFY4-1…-5` all `CLOSED`. Full reasoning → log, *"[D70]"* |
+
+**⤷ old plan lines 581–581**
+
+| **Gate** | `validate:release:rn` — e2e + embed + `test:stamp` + lane checks, `lint:glossary` · `lint:money` · `lint:apostrophes` · `lint:closure` · `lint:secrets` · `lint:sandbox` · `lint:contrast` · `lint:type-scale` · **`lint:icon-glyphs`** · **`lint:month-arithmetic`** · **`lint:press-opacity`**; tsc + lint clean (`apps/rn` at `--max-warnings=0`), zero `error-context.md`. ~15 min locally. ⛔ **[D49] — the gate RECORDS ITSELF. Never type a result into this file; quote `gate-status.json`.** `npm run lint:gate-freshness` says in under a second whether that pass still describes the tree. ⛔ **NEVER TYPE A RESULT HERE — run `npm run lint:gate-freshness` and read `gate-status.json`.** It answers in under a second whether the recorded pass still describes the tree, and every hand-typed figure this row has ever carried decayed *(it once said "2026-08-24 · 663 files" while the record said `01fc7ec` · **668**)*. ⚠️ A record can be written on a **dirty** tree: the fingerprint identifies what was tested, the SHA does not. ⛔ **The harness reports exit 0 on a RED gate — nine instances**; read the gate's own summary line |
+
+**⤷ old plan lines 644–651**
+
+**Open decisions — none.**
+
+⛔ **This heading carried SIX rows all marked ✅ ANSWERED** *(cleaned 2026-08-26)*. A section called
+*"Waiting on Jason → Open decisions"* listing nothing open reads as six answers owed. ⚡ **The rot is
+one-directional and it is why this needs checking rather than reading: answering a decision updates the
+Decisions section and leaves the row that was waiting on it.** ⚠️ **[D61] and [D62] were not in the
+Decisions section at all** — their answers existed *only* here, under a heading that said they were
+outstanding. Both are now recorded below where answers live.
+
+**⤷ old plan lines 678–682**
+
+✅ **Everything else in this section has been answered** — [D40]–[D48] · [D3] · [D53] *(no free trial in 2.0,
+which also closes **L5-19**'s trial call)* · [D58]; the Apple portal for iCloud, the Sentry DSN and the
+[D48] batched build are all done, and **[D59]** settled C7's shape. Reasoning → log. ⚠️ **This list decays one way** — closing a decision
+updates the decisions ledger and nobody deletes the row that was waiting on it. Three rows claimed to be
+waiting after 🎯 had answered; re-check before presenting anything here as open.
+
+**⤷ old plan lines 700–704**
+
+⚡ **None of these was reachable by 4.1.** The lane checks that built behaviour keeps working; these are
+*design* gaps. **No coverage split models "the app does the wrong thing correctly"** — using it is the only
+instrument that finds them. ⛔ **R3 makes the point twice over:** two `demo-containment` tests aim straight
+at that path and **both pass while the exit is unusable** — they prove an exit is *present and reachable*,
+never what it **says** to the person reading it.
+
+**⤷ old plan lines 730–735**
+
+✅ **Closed and verified, not assumed** — the coach-mark defect, the transient Guardian card and §12.6.1
+closed with the audit gate 2026-08-19 · the `tutorial-invite` intermittent FIXED 2026-08-18 *(the cause was
+the test: `click({force:true})` delivers to coordinates and hit `tutorial-scrim-blocker`)* · **both Pages
+threads closed by P6.7** — read in `embed-pages.yml` 2026-08-24: there was never a deploy allow-list to flip
+*(the exposure was `workflow_dispatch`'s ref dropdown, now guarded in the `guard` job)*, and [D44]'s
+green-`web-e2e`-for-this-SHA assertion is built.
+
+**⤷ old plan lines 753–755**
+
+⚡ **Phase 3.7's number, worth keeping:** a pre-authored ledger item is wrong about as often as it is right —
+Wave A, of 14 items, **5 did not exist and 4 more were materially misdescribed** (one *inverted*); Wave B, of
+4, **1 refuted, 1 half-shipped, 1 wrong in 3 of its 4 premises, 1 clean.** The before-scan pays for itself.
+
+**⤷ old plan lines 799–826**
+
+⚡ **This is now a real index, and it was not before.** The header used to say *"THIS SECTION IS NOT AN
+INDEX — IT IS THE ONLY COPY OF THE ROWS BELOW"* and name its own remedy; the remedy is done. The
+highest-value row is unchanged and still decides a premium feature: **P6.8.7e.5 [C4]** — does the Live
+Activity ever appear for a premium user with Payday Countdown ON who does not re-save the paycheck
+sheet.
+
+
+**⤷ old plan heading:** Deferred backlog *(index)*
+
+⛔ **The register itself is [`DEBT_ELEVATION_BACKLOG.md`](DEBT_ELEVATION_BACKLOG.md)** — 125 items,
+grouped by where they land. It moved out of this page on 2026-08-26: a register is what you consult when
+choosing the next build, and this page is the driver.
+
+| lands in | items |
+|---|---|
+| P6.8.9 — the verification pass | 27 |
+| P6.10 — feature lock + the money lens | 15 |
+| P6.9 — the privacy / egress audit | 2 |
+| P6.11 — delete with the tree | 6 |
+| 2.1 | 18 |
+| INTERNATIONAL — a workstream, not a line item | 0 |
+| Tooling / hygiene | 10 |
+| Genuinely a later version / tier | 5 |
+| ✅ Closed since filing — recorded so they are not re-filed | 0 |
+| ⚠️ **not yet routed** — from the S1 scans | 42 |
+
+⚠️ **Not-yet-routed is a state, not a shelf.** Each destination's switch-in owes a pass over that
+group; an item that is never routed is an item that never resurfaces.
+
+**⤷ old plan lines 828–1183**
+
+**⤷ old plan heading:** Decisions
+
+⛔ **A ✅ here means the CALL is settled; it does **not** mean the work shipped.** [D44] sat in a queue row as
+built for a day and a half while the step did not exist — same glyph, different meaning. Full reasoning for
+every entry → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+⚠️ **That pointer was FALSE for three entries and nobody had checked it.** [D29], [D56] and [D64]
+appeared **nowhere** in the log, so this page was their only copy — found by grepping the log for every
+id rather than trusting the sentence above. The whole ledger is now mirrored there verbatim.
+
+**Phase 6 — launch**
+
+- **[D79]** ✅ 2026-09-02 *(🎯: "Agreed. Good discussion. It was needed")* — **CONVERGENCE GOES PER CLASS,
+  WITH CUMULATIVE AUDITS. [D65]'s SHAPE IS SUPERSEDED.** ⛔ **The old exit — 0/0 over two consecutive whole
+  passes — was self-defeating by construction**: every fix writes a guard, every guard is a new file, and
+  every new file is owed a read by the next pass. Pass 6 shipped 14 guards + 2 gates ≈ 16 new files, and
+  pass 7 was then owed all of them. 🎯: *"the surface area grows at every pass. Until we get a stable number
+  there we will never be able to close out S1."*
+  ⚡ **Measured, and it says the surface DEFINITION is not the problem:** the S1 inventory went
+  72 → 137 → 188 → **470 on 2026-08-26** *(the last structural correction, [D73]'s test tree)* and has moved
+  **+25 in the week since, in +1/+2 steps only** — **10 of the 23 files pass 6 had not read did not exist at
+  its pin.** They are the triage's own guards. **The growth is arithmetic, not drift.**
+  ✅ **The loop, per class:** fix → **a FRESH agent re-audits** *(never the fixer — it re-reads its own
+  premises)* → repeat **until zero new defects attributable to this class's own fixes** → next class.
+  ✅ **Each class's audit is CUMULATIVE** (🎯) — it also covers every class already closed, on three
+  questions: **interaction** *(does this fix touch, import or share a producer with an earlier closure?)* ·
+  **targeted guard re-execution** *(only guards whose pinned files moved since they were proven — the
+  project's own rule, `a guard is only as current as the last commit that touched its file`, made
+  mechanical)* · **this class's own closure** *(planted, red for the named reason — `lint:finding-guards` is
+  a deletion detector, not a proof)*. ⚠️ **[D77] is NOT overturned**: batch the re-proof **inside** a class,
+  re-execute at the **boundary**. Full `--all` belongs to the final pass.
+  ✅ **A final full pass over the pinned surface is still owed** — a class-scoped audit is structurally blind
+  to blast radius *(`C1-18`: a **minor** about a duplicated literal whose remedy put Skia in Today's import
+  graph and took down all 51 CI e2e tests)*. It should be far smaller, because `fix-churn` will already be
+  clean when it runs.
+  ⛔ **A class's exit is "zero new defects FROM THIS CLASS'S FIXES", not "zero findings"** — a cumulative
+  audit keeps surfacing reservoir defects in files it passes through; those are filed to their own class or
+  the backlog, or class 1 never closes. Reasoning → log.
+
+- **[D80]** ✅ 2026-09-02 *(🎯: "we should not fix all minor findings … Fixing everything is not
+  sustainable")* — **A MINOR IS BACKLOGGED BY DEFAULT. It is fixed only if it BREAKS OR HINDERS THE USER.**
+  ⛔ Not a judgement call per item at fix time — the **default is defer**, and the burden is on keeping it.
+  Applied to pass 7: **~31 of 48 minors filed, ~17 kept**, which collapses classes 10 and 11 almost entirely.
+  ⚠️ **Two carve-outs, both argued and accepted:** **a11y hindrance IS hindrance** *(a screen-reader user who
+  cannot hear which recurrence is set is hindered; and the round's a11y-adjacent **blocker** `A1-5` hid in
+  exactly that seam — the guard went on the ring and not on the sentence the ring speaks)*; and **a minor
+  that is money-shaped gets a severity re-check BEFORE filing, not after** — one question, *does it misstate
+  or destroy money?* *(`B2-6` `B3-10` `B2-4`; last round a `major` moved to `blocker` the moment someone ran
+  its fixture)*. ⛔ **Filed minors are recorded as "won't fix unless a class opens the file"**, not as
+  "later" — with 125 items already deferred, a queue nobody will schedule is a won't-fix list wearing a
+  later label.
+
+- **[D78]** ✅ 2026-09-02 — **[D74]'s NEVER-RETRY RULE IS NARROWED, NOT BROKEN: retry ONLY where the
+  measurement provably did not happen.** ⛔ [D74] refuses a retry because an **OOM is a true signal about
+  the workload**, and re-running discards it. ⚡ **A web server killed before any assertion ran is the
+  provable opposite** — there is no result to discard, only a setup that never occurred. The predicate is
+  exactly that: a non-zero exit **and** Playwright's own `config.webServer` marker. Every other failure,
+  red included, is still a finding and is never retried. ⚠️ **Cap 6, from arithmetic that is written into
+  the code:** at the measured p ≈ ⅓ with 2 invocations per proof and 17 playwright proofs,
+  `1 − (1 − 2p^k)^17` gives **~100% at k=1, ~78% at k=3, ~6% at k=6** — while expected attempts per run is
+  `1/(1−p)` ≈ **1.5**, so the tail is what costs and a low cap buys nothing. ⛔ **Every retry is printed** —
+  a retry that smooths the rate out of view turns a measured fault into folklore. Reasoning → log.
+
+- **[D77]** ✅ 2026-09-02 *(🎯: "Agree")* — **RE-PROVING GUARDS STAYS BATCHED; DETECTING STALENESS GOES
+  PER-FIX.** ⛔ **No** to `prove:guards` as a step of every fix: a file touched five times in a class needs
+  **one** re-proof, not five, so per-fix is strictly MORE plants — and each executes `test:app`. ⚡ And the
+  hole never got out: all four of `S1.13.7.11`'s staleness batches were caught by `lint:finding-guards`,
+  which rides `lint:rn` and CI. The cost was rework, not risk. ✅ **Yes** to running `lint:finding-guards`
+  after each fix — **24s measured**, and its staleness half is static *(a recorded sha against the file's
+  last-touching commit; no plants)*. Same split `lint:gate-freshness` already uses. ⛔ **Precondition:
+  the two `prove:guards` repairs land BEFORE pass 7** — it printed ✅ and then failed to persist, and a
+  batched run returned `reason=WRONG` for a guard that passes solo. Leaning harder on an instrument that
+  can report success it did not achieve is the one direction that must not be taken. Reasoning → log.
+
+- **[D76]** ✅ 2026-08-28 *(🎯: "I approve your rec for S0")* — **S0'S CONVERGENCE STANDS; THE UNSWEPT
+  REMAINDER IS A ROUTING BUG, NOT A REOPENING.** Pass 4's `D4-7` reported that `audit-route.ts` emits
+  `first-look` for S1 and **never S0**, so S0's unswept files can never be routed to an auditor.
+  ⚠️ **The finding's number was short — it said 49 and `lint:s0-coverage` measures 62** *(109 classified ·
+  62 unswept)*, the eighth instance of the undercount class. ⛔ **Two premises were checked and only one
+  survived:** the gate printing 62 holes on the **green** path is **deliberate and documented** — it proves
+  every surface file is *classified*, not swept, and the unswept list is the backlog [D69] exempts findings
+  against; **that is not a defect and was nearly filed as one.** What is real is that nothing can route
+  those files. ⭐ **[D70] closed S0 on *instruments-sound*, not on a pass count**, and `surface-coverage.ts`
+  already records that [D73] admitted files to S0 *after* it converged, calling it *"the honest consequence
+  rather than an argument against it."* **Reopening S0 would substantially duplicate `S1.11.2` and `.3`,
+  which re-prove that whole instrument layer.** ▶ The routing half is fixed in **`S1.11.6`**; if `.2`/`.3`
+  find instrument defects among those 62, that is the signal to reopen S0 properly.
+
+- **[D74]** ✅ 2026-08-26 *(🎯: "Do we need to always run a full release scan during audits? Or when
+  they're all fixed we kick off the audit and run the release gate at convergence?")* — **THE RECORD IS
+  WRITTEN AT CONVERGENCE, NOT PER ROUND.** `validate:release:rn` + `gate:record` run at [D65] convergence
+  and before a release build; **not** at the end of every fix cluster.
+
+  ⛔ **The gate bundles two different jobs and only one of them belongs on a per-fix cadence.** The
+  *regression net* answers *"did my fix break something else"* — that stays at full frequency, because
+  `converge-per-surface-not-per-round` measured that batching fixes cost seven self-inflicted defects, and
+  S1.9 added three more. The *record* answers *"is this tree releasable"*, and **writing that mid-audit
+  asserts something the audit itself denies.** A surface with open findings is not releasable, so the
+  record gets more honest by being rarer.
+
+  ⚡ **Measured, which is why this is a decision and not a preference:** the full e2e ran three times
+  during S1.9 and caught **one** thing — a spec directly about the code just changed. And a **one-line fix
+  to a GATE SCRIPT** invalidated the fingerprint and demanded a 25-minute re-run of 310 e2e specs that
+  cannot import it.
+
+  **The cadence:** per fix → `typecheck` · `lint:rn` · the unit suites · the e2e specs whose surface
+  changed. Per round, once its findings are all fixed → full e2e + embed, **no record**. At convergence →
+  the whole chain, recorded, pushed.
+
+  ⛔ **A `--partial` record state was designed for this and DELETED rather than shipped** — it was an
+  instrument built around a cadence we were abandoning, and a change to the record itself is the highest-risk
+  instrument change there is.
+
+  ⚠️ **Mid-audit there is therefore NO current record.** The hand-off must say *"no current record; last
+  full pass was `<fingerprint>`; the tree has moved N commits since"* — never quote a stale one as if fresh.
+  `npm run lint:gate-freshness` prints exactly that and sits outside every chain, so nothing goes red.
+
+⛔ **[D61]–[D63] and [D65]–[D66] were MISSING from this section entirely** *(found in the 2026-08-26
+cleanup)*. [D61] and [D62] lived only under *"⏸ Waiting on Jason → Open decisions"*, marked ✅ — i.e. the
+answer was filed in the list of things still owed. **Answering a decision updates one place and leaves the
+other**, in both directions. Reasoning for each → [`DEBT_ELEVATION_LOG.md`](DEBT_ELEVATION_LOG.md).
+
+- **[D73]** ✅ 2026-08-26 *(🎯: "We should have e2e coverage on audits. I agree with your reasoning")* —
+  **THE TEST TREE IS ON AN AUDIT SURFACE.** No e2e spec was on any surface: `grep -c "tests/e2e"` returned
+  **0** against both claims files, so the guards for most registered findings sat in files no auditor was
+  ever pointed at, while the standing rule requires every surface audit to re-verify the previous surfaces'
+  guards. ⛔ **`lint:finding-guards` cannot substitute** — it proves a token sits on a non-comment line,
+  never that the assertion behind it can fail; a **vacuous assertion measured in S1.5.5's own range** would
+  have counted as guarded indefinitely. ⚠️ **This raises the unswept counts and that is the honest number**,
+  exactly as M9's root-widening did *(72 → 137)*. Full reasoning → log, *"[D73]"*.
+- **[D72]** ✅ 2026-08-26 — **`lint:secrets` GETS A CONTENT-HASHED EXEMPTION LEDGER**, not a redacted
+  report and not a `docs/` carve-out. An exemption is keyed on a **hash of the flagged value**, so editing
+  or rotating the credential invalidates it; the count is downward-only and stale entries are reported.
+  ⛔ **Why not redact the report:** the gate's claim — *"4 credentials are in a PUBLIC repository"* — is
+  **false**, so editing the evidence to make it green is GAP-17's anti-pattern. ⛔ **Why not exempt
+  `docs/`:** that is where pasted terminal output actually lives, i.e. the gate's most likely real hit.
+  → **S1.1**.
+- **[D71]** ✅ 2026-08-26 — **`GoalSheet` DOES NOT OFFER A SECOND EMERGENCY FUND.** When a primary EF
+  exists and is not this goal, the Type control renders read-only as *"Savings"* with a one-line why;
+  ⛔ **stored `type` is never rewritten** *(normalising it would leave a store with NO emergency fund the
+  moment the primary is deleted, where today goal #2 inherits the role)*. Completes [D66] — the third of
+  the three screens. Reuses `paceGoverns`'s rule six lines above: **hidden entirely rather than disabled,
+  because a disabled control still says "this is a thing you could set."** → **S1.1**.
+- **[D67]** ✅ 2026-08-26 — **A CLOSED FINDING NEEDS A STANDING GUARD, OR IT IS NOT CLOSED** (🎯: *"I
+  agree"*). ⛔ **The gap it fixes:** each convergence pass verified only the **immediately prior** pass's
+  findings, so pass 3 never re-checked pass 1's seven — while S0.10 edited **nine gates**, exactly the
+  change that could regress one. ⚠️ Re-reading every prior finding each pass grows quadratically and rests
+  on an agent not tiring. ⭐ **So the durable protection is a permanent guard, not a re-read.** Some
+  findings already have one *(invariant ⑨ fires in the suite · `HOSTILE_FLOOR` gates · `selfCheck` reds on
+  a disarm · the caps ratchet)*; others have **nothing** *("`stripMarkdownCode` covers four spellings",
+  "each of the nine gates uses the right variant")* — verified by a plant that ran once and was deleted.
+  ⛔ **Every closed finding now needs (a) a test or gate that fails if it regresses, or (b) a written
+  reason it cannot have one.** Job 1 then shrinks to *"do the guards still exist and still fail"* —
+  mechanical and constant-cost. **A finding with neither is NOT converged.** Applies to S0–S4 and the
+  cross-surface pass. *(Same rule as `tested-helper-is-not-a-used-helper` and "a green plant is a result,
+  not a formality.")*
+- **[D66]** ✅ 2026-08-25 — **a second emergency fund is called "Savings"** on all three screens, the word
+  the Money row already uses and the only one of the three that stays true when a user has two. → **S1**.
+- **[D65]** ✅ 2026-08-25 — **a balance corrected DOWNWARD asks at the moment of the edit** *("did you pay
+  this down, or was the old figure wrong?")*. The app cannot tell a typo from a payment and only the user
+  knows; any silent rule is wrong half the time, on the field the Progress ring is computed from. → **S2**.
+- **[D63]** ✅ 2026-08-25 — **NO BNPL carve-out for the high-water mark.** ⛔ I recommended one, 🎯 agreed,
+  and the test's own precondition then **refuted the mechanism**: `bnplPaymentsTotal` is
+  `max(remaining, basis / scheduled)`, so a stamp can only RAISE the total, and an installment plan's
+  `balance` **is** `scheduled × remaining` — the total rises only when the plan itself gets longer.
+  ⚡ A stamp is neutral-to-better, never worse. *(A stated mechanism is a hypothesis even when it is hours
+  old and yours.)*
+- **[D62]** ✅ 2026-08-25 — **`originalBalance` becomes a HIGH-WATER MARK** (🎯: *"agree with your rec"*).
+  ⚡ **The deciding case is the CORRECTION, not the setback** — enter `$500` by mistake, fix it to `$5,000`,
+  and the ring read 0% for the next $4,500 of real repayment, permanently. ⛔ **The name will lie** — it
+  means *the most you ever owed*; kept for 2.0 because renaming a persisted field is a migration for no
+  user-visible gain. Built at `.11.15`. ⚠️ **The DOWNWARD direction was never reasoned** and became a
+  blocker at `.11.17` → [D65].
+- **[D61]** ✅ 2026-08-25 — **a SECOND `emergency` goal is FUNDED, through the savings rungs.** It matched
+  no rung at all, so it drew `$0` every paycheck under a live progress bar. ⚡ **v1.6 carries the identical
+  defect**, so migrating users can already be in this state — which is why refusing to create one in
+  `GoalSheet` lost: it prevents new cases and strands every existing one. Built at `.11.12.3`; one owner
+  (`@core/engine/emergencyFund`), three disagreeing consumers fixed.
+- **[D64]** ✅ 2026-08-25 — **THE MARKETING PAGE THAT HOLDS THE EMBED IS PART OF 2.0's ASC PREP**
+  (🎯). ⚡ **It closes a live loop:** the embed has been deployed and running since 3.5 with **no referrer
+  anywhere** — `site/` holds two files and no `iframe`, so a hosted demo nobody links to has been carrying a
+  build flag, a second export, three gate specs, a deploy workflow and a `guard` job. → **P6.21**.
+  - ⛔ **CROSS-REPO, AND THIS REPO CANNOT DO IT.** The pages App Review loads live in
+    **`jsnyde03/debt-planner-site`**; this repo's `site/` is **v1.5, stale, and deployed by nothing**
+    (`embed-pages.yml` publishes the embed only). ⚠️ That mismatch already cost **three findings filed
+    against `site/*.html` line numbers no reviewer ever sees**, two of which changed verdict once the live
+    page was fetched. **Read the live page, not `site/`** — [`DEBT_SITE_COPY_2.0.md`](DEBT_SITE_COPY_2.0.md).
+  - 🔴 **It promotes the URL question from backlog to LIVE.** An `iframe src` makes
+    `jsnyde03.github.io/debt-app-v1/` user-visible, so *"the embed's public URL names the repo"* becomes a
+    brand call **with a DNS dependency**, needed before submission rather than *"whenever the page exists"*.
+  - ⚠️ **Two separate Pages origins** — the page on `debt-planner-site`, the embed on `debt-app-v1`. Whether
+    that stays a cross-origin iframe or the embed moves is an unanswered structural question.
+  - ⭐ **What survives even if the embed were dropped**, so it is not re-litigated: `zero-egress.spec.ts` is
+    the machine proof behind [D41] and **P6.9 leans on it**, and the `scripted` demo is also **P6.20's
+    App-Preview vehicle** ([D23]).
+- **[D60]** ✅ 2026-08-25 — **THE OPEN DECISIONS, CLOSED AS A BATCH** (🎯: *"Let's fold it all in"*, on my
+  recommendations). Seven calls, and the two largest are both **do not build**:
+  - 🔴 **L1-20 eyebrows — DEFER the sweep, take the token.** ⛔ Its mechanism is **false on iOS**: RN
+    uppercases the `NSString`, so VoiceOver reads "PAYDAY GUARDIAN" either way. **23 edits + 32 test pins
+    for a change no user can perceive.** The single `eyebrow` token is the valuable slice and rides a later
+    visual pass.
+  - 🔴 **L4-13b `PressableScale` — NOWHERE, plus the token cleanup.** ⛔ The finding says two press
+    vocabularies; **there are three and the majority is the third** — of 69 tap targets **1 springs, 11 dim,
+    57 have none**. "App-wide" is a new design on ~45 targets inside a freeze, untested. **Build instead:**
+    the 7 live inline opacities, and the two Money cards that disagree with each other.
+  - ✅ **P1-4 and P1-5 — BUILD BOTH.** P1-4 is a 23-name run-on on the one screen that speaks to someone
+    **short this paycheck**, and the idiom already exists at `invariants.ts:100`. P1-5's **button hierarchy
+    is the sharper half**: `Done` is the filled primary while `Copy to clipboard` — the only action that
+    backs anything up — is secondary, so a user can press the most prominent button and back up nothing.
+  - ✅ **P1-1 — shoot the payoff finale and the band-milestone beat before P6.10.** Instrument work, and
+    P1-1's own bar is that a surface missing from the matrix is one four lenses are blind to at once.
+  - ✅ **D-2 the coach mark over the trajectory footer — ACCEPT.** Measured, not theorised. It does not
+    cover its subject, and `.11.5` left those controls operable; first-visit-only behind a dismissible hint.
+    **The price of not covering the subject.**
+  - ✅ **The goal pace becomes editable in `GoalSheet`.** Today `priorityPerPaycheck` is written **only at
+    creation**, so a user who chose "$200 a paycheck" can never revise or remove it — which is why
+    `.11.3`'s repair notice had to name a workaround instead of an action. One optional field closes the
+    product gap and the copy together.
+  - 🔴 **CSV `MM/DD/YYYY` — DEFER.** `.11.4` made the in-app caption honest, which is the floor. How much
+    of a real bank export the importer promises to read is a product call, not a 2.0 blocker.
+  - ⏭ **P1-10's Windfall tier gate → 2.1.** The copy half shipped and `selectors.ts:54` is pinned, so
+    nothing is wrong today; a future tier change is what would turn that line into a false statement about
+    the user's money with every test green. Monetisation inside a converging freeze.
+  - ⚠️ **The v1.6 silent loop stays with P6.14 to ANSWER, not to guess.** ⛔ `.11.10` sharpened it: if a
+    WebKit container can produce a **total** decode failure, `isConfirmedFreshInstall` consults neither
+    `droppedRows` nor `opened[].rows` — so the container is called terminal, the retry is consumed, and the
+    **entire v1.6 portfolio is stranded while the app says "fresh install."** The one thing most worth
+    measuring on device before ship.
+- **[D59]** ✅ 2026-08-24 — **C7 COMPARES THE CLEAR ORDER, NOT THE CURVE** (🎯, on my recommendation).
+  ⛔ **Measured before recommending, and it undercut the finding's own implied fix:** the two
+  total-balance curves separate by **≤2.8% of chart height and usually <0.1%**, and the debt-free date is
+  **identical in 5 of 6** portfolios — avalanche's best win was **2 months out of 53**. ⚡ **What differs
+  is which debt clears when, and it is large:** first cleared debt at **month 1 under snowball vs month 20
+  under avalanche** on the same portfolio, and a reshuffled order on another. So the side-by-side is built
+  from the **waypoints**, not a second line — which also keeps a 6th element off a card **P1-3 already
+  reports as unreadable**. ⚠️ **Total interest was NOT measured** and is avalanche's whole case; if the
+  comparison ever states a dollar advantage, that figure has to be measured first.
+  → [`evidence/2026-08-24-c7-strategy-divergence/`](evidence/2026-08-24-c7-strategy-divergence/).
+- **[D58]** ✅ 2026-08-24 — **P1-3 is in 2.0**, built at **g.4 BEFORE C7** (C7 draws into the same
+  x-domain). ⚠️ P1-1 · P1-2 · P1-4 · P1-5 are **not** decided by it → P6.8.9.
+- **[D57]** ✅ 2026-08-22 — **one surface for "could not read it"**: migration losses report through c.2's
+  `pendingDataRepairs` card, and **c.3/c.4 swap** because W1-6 *produces* the outcome M3-20 reports.
+- **[D56]** ✅ 2026-08-22 — the two silent data events each get a surface and **one of them blocks**: a
+  corrupt-store reset renders a **blocking screen before onboarding**; a repaired amount is held in a
+  persisted `pendingDataRepairs` until acknowledged. ⛔ Not a preference — `repairsAreNotRepeated` guarantees
+  the per-read list is empty next pass, so a live-only card would be the same silence the finding is about.
+- **[D55]** ✅ 2026-08-22 — **a money field READS separators, it does not refuse them.** `"1,200"` and
+  `"$1,200"` parse as 1200; anything not resolving to a finite positive number is refused. An OPTIONAL field
+  treats **blank and unreadable as different answers**. ⚠️ Safe only because US · CA · AU · NZ are all
+  period-decimal — a comma-decimal storefront **cannot be added without revisiting `store/amountField.ts`**.
+- **[D54]** ✅ 2026-08-21 — **R5 (the expense reserve in the plan) is a 2.0 feature.** Reverses 3.8's *"the
+  offer is NEVER required"* premise. ⛔ A new capability, so it **must clear P6.10**.
+- **[D53]** ✅ 2026-08-21 — **2.0 ships with NO free trial** (🎯: *"I already have a demo and
+  try-before-you-buy in the app"*). ⭐ **It retired MY argument, not his:** eligibility is consumed only by
+  TAKING the offer, so every decliner stays eligible indefinitely and 2.1 reaches exactly the cohort that
+  bounced. What is gained is a **clean conversion signal** from day one. ⚠️ If ever taken: **30 days floor,
+  annual only** — premium's value fires on PAYDAY, and Apple grants the offer once per Apple Account per
+  subscription **group**.
+- **[D52]** ✅ 2026-08-20 — **both lines move: feature lock → after P6.10, code freeze → after P6.18.**
+  ⛔ Lock moved because of a **contradiction**: with lock at P6.4 every structural gap P6.8 is chartered to
+  find auto-defaulted to 2.1, so the audit could not act on its own charter. ⛔ [D39]'s two-line structure
+  **survives** — P6.11 alone deletes an app surface after lock.
+- **[D51]** ✅ 2026-08-20 — **the splash ships a LIGHT and a DARK variant, both showing the MARK.** ⚡ Possible
+  because the icon has real SVG source, so the square-on-light problem was an **artwork** limitation, not a
+  design conclusion. ⛔ Supersedes the dark-only half of [D43]; **needs the NEXT build.**
+- **[D50]** ✅ 2026-08-20 — P6.6 + P6.5 run **before** P6.4, then the batched build; P6.4 runs while it is in
+  flight. Neither is a feature, so landing them before lock costs nothing.
+- **[D49]** ✅ 2026-08-20, **BUILT** 2026-08-21 — **a green gate is RECORDED BY THE GATE, never typed into a
+  document.** ⛔ A doc rule cannot fix this — a doc rule is what failed. ⚠️ Two corrections the building
+  forced: freshness turns on a **content fingerprint**, not a git diff; and `lint:gate-freshness` is **not**
+  in `lint:rn` — a freshness check inside the thing that establishes freshness is a **deadlock**.
+- **[D48]** ✅ — **ONE batched device build** carries P6.3 + P6.5 + P6.6. ⚠️ A signing failure then has three
+  suspects — mitigated by introspecting the entitlements before the build is spent.
+- **[D47]** ✅ — **iCloud backup is OPT-IN, default OFF, offered once in-line.** [D41]'s claim says
+  *"**Optional**"*, and P6.9 has to prove it. A fresh install still detects an existing blob and offers to
+  restore.
+- **[D46]** ✅ — **the QA door is resolved by ORDERING:** P6.13 → P6.14 → P6.17. The probe rows get **no**
+  non-QA path. ⚠️ Residual named: the shipping binary is not the device-passed binary.
+- **[D45]** ✅ — **the monorepo stays**; `apps/rn` is not promoted to root. → P6.11.2 closed.
+- **[D44]** ✅ decided · ✅ **BUILT** 2026-08-21 — a Pages deploy asserts its SHA has a green `web-e2e` run.
+- **[D43]** ✅ — the splash is the app icon on its own dark background, no wordmark. *(Dark half superseded by
+  [D51].)*
+- **[D42]** ✅ — **P6.4 commits to a BAR, not a COUNT.** All 62 judged; what gets fixed is every defect and
+  every finding on a shipping surface.
+- **[D41]** ✅ — the privacy claim is ***"Your data never goes to our servers. Optional iCloud backup keeps it
+  in your own Apple account."*** ⛔ **Never** *"end-to-end encrypted"* (false under [D40]) and never *"100%
+  private"* again.
+- **[D40]** ✅ — cloud backup uses the app's **private iCloud container, no passphrase**. A passphrase adds a
+  *permanent* unrecoverable-backup failure mode against a threat this product is not sold against.
+- **[D39]** ✅ 2026-08-19 — **FEATURE LOCK ≠ FREEZE.** The STRUCTURE stands; both positions superseded by
+  [D52]. ⚡ What it buys: the sweep's structural-gap charter gets a **default answer**.
+- **[D38]** ✅ 2026-08-19 — **ships as `2.0.0`, not `1.7.x`.** ⚡ The argument is about the FUTURE: the version
+  number is the baseline every later release is measured against, and a wrong baseline is permanent. The
+  internal name stays *"the v1.7 Elevation."*
+- **[D37]** ✅ 2026-08-18 — **every high+ finding is remediated this round**: all 55 of 117 blocker+major
+  closed or explicitly refuted, each traceable to its id, enforced by `lint:closure`. ⛔ Nothing is parked.
+- **[D36]** ✅ 2026-08-17 — the reserve ships to **BOTH TIERS**; the Guardian segment is **"Spoken for"**.
+- **[D35]** ✅ 2026-08-17 — **3.5's device pass FOLDS INTO Phase 6's.** One sitting, no row run twice.
+
+**Scope + revenue**
+
+- **Re-scope to "The Elevation"** ✅ 2026-07-20 — design-first, best-in-class. **v1.7 ships as ONE release.**
+- **No paywall on the basic core job** — free finishes the job; premium is the flywheel.
+- **Revenue spine** ✅ 2026-07-25 — Monthly $4.99 · Annual $29.99 · Lifetime $79.99. **NO free trial.** Reuses
+  the existing RevenueCat project — v1.6 subs must restore.
+- **Phase-3 scope** ✅ 2026-07-27 — pull EVERYTHING into v1.7 unless it genuinely can't ship. Analytics OUT of
+  the core (privacy moat); the 3.5 demo re-opened it → a privacy-first funnel seam.
+- **Executive "fix everything, no backlog"** ✅ 2026-07-29/30 · **Legacy gate RETIRED** ✅ 2026-07-24 ·
+  **3.8 is in v1.7** ✅ 2026-08-17.
+
+**The demo + the embed**
+
+- **[D21]** ✅ the demo SHIPS to users again, reversing [D19]. Demo = before you commit; walkthrough = after
+  onboarding, on your own money. It no longer rides `QA_TOOLS`.
+- **[D23]** ✅ the demo is **TWO runs** — `explore` ships; `scripted` is the App-Preview + embed vehicle.
+- **[D20]** ✅ capture pipeline — Maestro drives · `simctl` records · ffmpeg conforms.
+- **[D32]** ✅ 3.5.7 hosts on **GitHub Pages** and its privacy claim is a **GATE** — static-only *by
+  construction*. No analytics in the embed build (a **build flag**, not a toggle) · `sessionStorage` only ·
+  **zero network requests after asset load**, held by a spec that fails `validate:release:rn`. ⚠️ Every host
+  logs IPs, so *"financial data never leaves your device"* stays literally true while *"100% private"* would
+  overclaim.
+- **[D34]** ✅ 2026-08-17 — the embed CTA names the **destination**: *"Get it on the App Store."* App id
+  `6773201250`.
+
+**Product + engine**
+
+- **[D22]** ✅ the debt/expense split is CORRECT and stays (terminating vs perpetual); the defect is **naming
+  + entry**. [D22a] one chooser replaces the per-section Adds · [D22b] the detector runs retroactively ·
+  [D22c] it surfaces, never silently re-files · [D22d] "bills" vernacular → the wording gate.
+- **[D2]** ✅ `minimumPaidThisCycle` is the owner ("minimum covered"); `isPaidThisCycle` means paid in full.
+  ⚠️ Corrected by B.0: the fallback-less reader is `planSelectors.ts:156`.
+- **[D24]** ✅ the tight top-up prefers a **discretionary goal; the EF is the fallback**, and the copy names it
+  when it IS the EF. The dishonesty was drawing on it *silently and first*.
+- **[D25]** ✅ an applied purchase **keeps** its deferrable behaviour but gets an **explicit category**.
+- **[D3]** ✅ the calm-micro-viz hero language extends to Debts · **[D26]** ✅ the greeting's mechanism ships,
+  its **strings** belong to the wording gate · **[D27]** ✅ port the free on-plan streak only, **no flame** ·
+  **[D28]** ✅ B4's swipe ships as a pure accelerator · **[D29]** ✅ B1 CLOSED as refuted.
+- **[D4]** ✅ rename before the next device build — every App Shortcut phrase contains `\(.applicationName)`.
+- **[D1]** ✅ stays DEFERRED **on a NEW reason** — the original cost argument **expired**. It stays deferred
+  because **there is no control-SHAPED job**: this app's actions are multi-step or rare and dated, and a
+  glance is a widget's job, which already ships.
+
+**The lane**
+
+- **[D30]** ✅ the iPad lane is **three tiers in one directory**, not a second flow set. Forced by
+  `use-layout.ts`: on a wide iPad the debt sheet is **inline, not modal**, so flow 02 would pass while testing
+  nothing.
+- **[D31]** ✅ the audits change **METHOD, not just model** — scripted lenses where the question is
+  deterministic · a **generated artifact** as the agent's input, never the raw codebase · cheap tier extracts,
+  expensive tier judges a short list. ⚡ **Every finding that becomes a TEST is paid for once** — audit spend
+  as capital, not rent.
+- **[D33]** ✅ §11.16 PASSES on both edges; beat 5's landscape crop is **deliberate**.
+- **4.1.9** ✅ 2026-08-17 — **XCUITest, and NO Appium.** Appium buys 3 checks for a second driver, language and
+  server process.
+
+**Open:** none.
+
+### [D81] — per-fix gating splits: static gates per fix, gate self-tests at the sub-step close · 2026-09-14
+
+🎯: *"Running the full lint:rn after each fix seems like overkill to me."* Accepted on my recommendation, which was
+to split rather than drop.
+
+**What `lint:rn` is.** One command, `scripts/run-gates.ts`, running its gates in sequence. They are two kinds:
+- **Static gates over the app and the docs** — eslint, `lint:fixture-dates`, `lint:import-graph`, `lint:closure`,
+  `lint:trust-claims` and the rest. Cheap, and they catch real regressions per fix: `.5.7.3`'s first close attempt
+  was stopped by `lint:fixture-dates` at 121 against a cap of 120.
+- **Five SELF-TESTS of the gate scripts** — `prove:guards:selftest`, `test:gate-plants`, `test:wrap-escapes`,
+  `test:plant-safety`, `test:joined-code`. They plant defects into gates and re-run them. A change to app code
+  cannot change their answer; a change to a gate script, `scripts/lib/` or the proof/plant harness is exactly what
+  they exist to catch. ⚠️ **The runner is not one of those**: `test:gate-plants` invokes named gates, never
+  `lint:rn`, so a change to `run-gates.ts` cannot move a self-test either.
+
+**Measured cost.** A full `lint:rn` at `.5.7.4a.2`'s close ran from before 07:46 to 08:03, and 11 minutes in it
+was still inside `test:gate-plants`. Per-gate figures come from the next full run, once `run-gates.ts` times each gate. ⚠️ `run-gates.ts`' own comment said `test:gate-plants` *"costs ~50s"*; that was
+written when it planted into five gates, and it now plants into 30. A carried number, stale.
+
+**The ruling.**
+| when | what runs |
+|---|---|
+| per fix | `typecheck` · the affected unit suites · `lint:finding-guards --projected` ([D77]) · `npm run lint:rn -- --fast` |
+| each sub-step's close, before its commit | full `lint:rn` |
+| a change to a gate script, `scripts/lib/` or the proof/plant harness | full `lint:rn` |
+| every push | CI, unchanged: the full chain |
+
+⚠️ **The trigger was narrowed before it was recorded** *(🎯 agreed)*. The first draft said *"whenever `scripts/`
+changed"*, and applying it literally would have spent a full run on `--fast`'s own runner edit. What that edit
+actually owes: one `--fast` run, a re-proof of `S1P6-D1-8-GATECHAIN` (the one proof that plants into
+`run-gates.ts`), and a plant confirming full mode still runs every gate — a runner that quietly skips prints green
+in CI too.
+
+⛔ **`--fast` names what it skipped** in its summary, so a fast green can never be read as a full one. `lint:rn`
+with no flag stays the full chain, which is what `lint:ci-chain` and `web-e2e.yml` depend on.
