@@ -50,10 +50,9 @@ Expected: tree clean and pushed · CI `conclusion: success` on HEAD · fast gate
 
 ## ⚠️ Open items carried out of `.5.7`
 
-- **CI's actual font for `hero-date-fit`:** read the spec's `hero-date-fit 402pt:` line in the CI log — "September" is 4.78 em
-  in Roboto, 5.17 in Segoe UI, 5.77 in Arial. Read it from the CI run on HEAD
-  (`gh run view <id> --log | grep "hero-date-fit 402pt"`). If it reads Roboto, the backlog row's explanation of CI's old
-  green is confirmed; if not, that explanation is wrong and the row says so.
+- ✅ **CI's font for `hero-date-fit` — MEASURED, and it is NOT Roboto.** Run `34867948477` on `c9065152`: "September" =
+  **5.00 em** at 402 pt (Roboto 4.78 · Segoe UI 5.17 · Arial 5.77). The Roboto explanation of CI's old green is refuted and
+  the backlog row says so; the face is unidentified. The fix held on it — the run concluded `success`. Not a `.5.8` item.
 - **The Payday Countdown Live Activity almost never starts** — it counts from `currentDate`, which nothing moves with the
   calendar. Measured, filed to the backlog, not fixed.
 - **Save-for-it's "ready by" date** needs a multi-cycle instrument → P6.10.

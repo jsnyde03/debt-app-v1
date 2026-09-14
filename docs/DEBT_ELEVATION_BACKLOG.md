@@ -1497,8 +1497,12 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   fits whole; the spec asserts every month at the app's computed style, not only the one the run date lands on)*.
   ✅ **CLOSED 2026-09-14** — `HeroDate` in `progress.tsx` sizes to its slot on web (17 px at 104 px, 26 px at 186 px);
   the spec passes here in Segoe UI and asserts all twelve month names; 2 plants MATCHED, one of them proving the new check
-  catches a month the run date is not showing. ⚠️ **Still open:** CI's actual face, read from the spec's fingerprint
-  line (the 402 pt line, at 26 px) on the next push.
+  catches a month the run date is not showing. ⛔ **CI's face MEASURED 2026-09-14 — and it is NOT Roboto.** Run `34867948477`
+  on `c9065152` logged *"September" 129.9px = **5.00 em*** at 402 pt — between Roboto (4.78) and Segoe UI (5.17), and none
+  of the three faces measured. So the Roboto explanation of CI's old green is **refuted**; the face stays unidentified.
+  What survives: 129.9 px is still wider than the 104 px slot, so CI most plausibly passed before the fix the same way
+  Roboto would — a mid-word break that still fits two lines — **unmeasured for this face**. The fix holds there: 320 pt
+  rendered at 17 px with "September" at 83.4 px, and the run concluded `success`.
 
 ### ⤵ surfaced by `.5.4f`'s after-scan, 2026-09-13
 

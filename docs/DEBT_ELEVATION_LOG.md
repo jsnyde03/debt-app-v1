@@ -35878,3 +35878,20 @@ three Swift files · the Payday Countdown's `currentDate` count (backlog) · the
 ✅ **[DECISION] 🎯 2026-09-14 — `.5.8` is dispatched from a FRESH SESSION**, on my recommendation. This session built
 every class-5 fix, so it would be framing the audit of its own premises; passes 5–7 were each dispatched from a fresh
 session off a START HERE handoff. This session closes `.5.7`, rewrites `CLASS5-START-HERE.md` for `.5.8`, and stops.
+
+### `.12.6.5.7.5` addendum — CI's face for `hero-date-fit`, measured: not Roboto · 2026-09-14
+
+The fingerprint `.5.7` ⑤ added to the spec, read from CI run `34867948477` on `c9065152` (conclusion `success`):
+- **402 pt:** slot 186 px, 26 px, "September" **129.9 px = 5.00 em**.
+- **320 pt:** slot 104 px, 17 px, "September" 83.4 px = 4.90 em *(the fixed letter-spacing takes relatively more off a
+  smaller size, which is why the 402 pt line is the one to read)*.
+
+Against the faces measured locally at 26 px / 800 — Roboto 4.78 · Segoe UI 5.17 · Arial 5.77 — **CI's 5.00 matches none.**
+⛔ **The Roboto explanation of CI's old green is refuted**, and the backlog row that called it the likely cause now says
+so. The face stays unidentified. ⚡ **The mechanism survives the refutation:** 129.9 px is still wider than the 104 px
+slot, so before the fix CI most plausibly passed the way Roboto would — a mid-word break that still fit two lines — which
+remains unmeasured for this face. **The fix holds on it:** at 17 px "September" fits the slot, and every month name with it.
+
+⚠️ **The lesson is the one this project keeps paying for.** "Most likely Roboto" was the best-supported reading after
+three measured faces — and the fourth measurement, the only one taken on the host in question, overturned it. A
+mechanism reasoned from stand-ins is a hypothesis until it is measured where it is claimed.
