@@ -68,7 +68,8 @@ export function LiveActivityQA() {
           label="Simulate 'Payday landed'"
           variant="text"
           onPress={() => {
-            appStore.getState().applyPaydayLandedIntent();
+            // [.5.7.4a.3] Names the plan's own next payday, as a fresh Lock Screen tap would, so the QA roll still lands.
+            appStore.getState().applyPaydayLandedIntent({ paydayDateISO: appStore.getState().store.paycheck.nextPaycheckDate });
             notify('Payday landed', 'Rolled the cycle — check the Today tab for the Undo card.');
           }}
         />

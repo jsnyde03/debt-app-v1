@@ -14,6 +14,18 @@ struct PaydayLandedIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Payday landed"
     static var description = IntentDescription("Roll your plan forward now that payday has arrived.")
 
+    /// ⛔ [.5.7.4a.3 · pass-6 C3-6] The payday the Lock Screen showed when this was tapped. The app rolls only while it
+    /// is still the plan's next payday, so a second tap on a Lock Screen that has not refreshed lands nothing. Nil when
+    /// run from Shortcuts, where the app falls back to asking whether payday has arrived.
+    @Parameter(title: "Payday")
+    var paydayDateISO: String?
+
+    init() {}
+
+    init(paydayDateISO: String) {
+        self.paydayDateISO = paydayDateISO
+    }
+
     func perform() async throws -> some IntentResult {
         let suite = "group.com.jasonsnyder.debtplanner"
         let key = "pendingActions"
@@ -30,7 +42,9 @@ struct PaydayLandedIntent: LiveActivityIntent {
             let raw = defaults.object(forKey: key)
             if raw == nil || raw as? [[String: Any]] != nil {
                 var actions = raw as? [[String: Any]] ?? []
-                actions.append(["kind": "payday-landed", "id": UUID().uuidString])
+                var action: [String: Any] = ["kind": "payday-landed", "id": UUID().uuidString]
+                if let date = paydayDateISO, !date.isEmpty { action["paydayDateISO"] = date }
+                actions.append(action)
                 defaults.set(actions, forKey: key)
             }
         }

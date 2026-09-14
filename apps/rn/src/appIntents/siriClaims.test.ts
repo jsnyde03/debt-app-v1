@@ -88,4 +88,23 @@ const b = read('../../targets/widget/PaydayLandedIntent.swift');
 const body = (s: string) => s.slice(s.indexOf('struct PaydayLandedIntent'));
 assert(body(a) === body(b), 'the two PaydayLandedIntent copies are still byte-identical from the struct down');
 
+// ── ⛔ [.5.7.4a.3 · pass-6 C3-6] the tap names its payday ────────────────────────
+// A second Lock Screen tap rolled the plan a second cycle. The app now rolls only while the tap's payday is still the
+// plan's next, so the date has to reach the queue from BOTH intent copies and the button has to pass it. Source only,
+// like everything in this file: `native-e2e` is the compile check, and the tap itself is a device row.
+for (const [rel, src] of [
+  ['../../modules/live-activity/ios/PaydayLandedIntent.swift', a],
+  ['../../targets/widget/PaydayLandedIntent.swift', b],
+] as const) {
+  assert(src.includes('var paydayDateISO: String?'), `${rel}: the intent carries the payday it was tapped for`);
+  assert(src.includes('action["paydayDateISO"] = date'), `${rel}: …and queues it with the action`);
+}
+const liveActivity = read('../../targets/widget/PaydayLiveActivity.swift');
+assert(
+  liveActivity.includes('Button(intent: PaydayLandedIntent(paydayDateISO: paydayDateISO))') &&
+    liveActivity.includes('paydayDateISO: context.attributes.paydayDateISO'),
+  '⛔ C3-6 — the Lock Screen button passes the payday its activity was started for',
+);
+assert(!liveActivity.includes('PaydayLandedIntent()'), '⛔ C3-6 — no undated Lock Screen button is left');
+
 console.log(`\n✅ C3-7 — ${passed} assertion(s) passed (source only; the spoken half is a device row)\n`);

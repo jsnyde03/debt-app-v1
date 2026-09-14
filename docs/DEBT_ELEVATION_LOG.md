@@ -35590,3 +35590,61 @@ names, and a doubled backslash stays doubled, so no spelling matched. Split into
 lines; the escaped full-mode summary lines were left untouched rather than rewritten. ⛔ **The same trap then landed in
 this entry**: its first version quoted the escape and wrote a raw ESC byte into the log, caught by `lint:control-chars`
 on the next fast run. A backslash-n passed through literally, which is what narrowed the rule to backslash-u.
+
+### `.12.6.5.7.4a.3` — pass-6 `C3-6` reopened and closed: the tap names its payday · 2026-09-14
+
+**Switch-in, measured against the code a.2 left.** `lint:finding-guards` green at 4 stale of 8. The two Swift intent
+copies ARE byte-identical from `struct` down, and `siriClaims.test.ts:89` already asserts it (my switch-in note said
+otherwise; only the header comments differ). No App Shortcut registers `PaydayLandedIntent`, so an optional parameter
+moves no Siri phrase. ⛔ **One premise the build turned up:** in-app capture and *"Skip this payday"* both call
+`setLastHandledPayday(nextPaycheckDate)` WITHOUT rolling, and Today then offers *"Start next pay cycle"*. The old guard
+`lastHandledPaydayDate === landing` therefore silently refused a Lock Screen tap in exactly that state — the one roll the
+nudge asks for. ✅ **[DECISION] 🎯 2026-09-14: drop it** — the dated rule now stops double taps.
+
+**Built.**
+- **Swift, both intent copies identically:** an optional `@Parameter paydayDateISO`, queued with the action when present.
+  The Lock Screen button passes `context.attributes.paydayDateISO` — the payday the activity was started for, fixed for
+  its life, and the activity ends at rollover.
+- **Parser:** a payday entry keeps `paydayDateISO` when it is a `YYYY-MM-DD` string. Present but unreadable drops the whole
+  entry, so an unreadable date cannot fall back to the undated rule.
+- **`applyPaydayLandedIntent`:** skip an applied id (a.2) · a DATED intent rolls only while its date equals
+  `nextPaycheckDate` · an UNDATED intent (Shortcuts, an older build's queue) rolls only once the store clock has reached
+  payday · `lastHandledPaydayDate` is still stamped, no longer a refusal. The false `C3-6` comment is deleted and rewritten.
+- **QA simulate button** names the plan's own next payday, so it still rolls on demand.
+
+**Asserted through the real store**, every date derived from the store and its injected clock *(no calendar literal)*:
+one tap rolls once *(control)* · two taps in one drain roll once · a stale tap in a later drain rolls nothing · ⚡ **two
+taps drained only after the next payday arrived roll once** — the fixture that separates this rule from the rejected
+real-date rule · a tap naming another payday rolls nothing · undated before payday rolls nothing, on payday rolls once ·
+a tap after capture/skip rolls *(🎯)* · parser: dated kept, undated kept, four unreadable dates dropped.
+`siriClaims.test.ts` pins the Swift half as source: both copies declare and queue the date, the button passes the
+activity's date, no undated button remains. `pendingActions` 60 · `siriClaims` 21 · `storeActions` 171 ·
+`storeContext` 9 · `typecheck:rn` 0.
+
+⭐ **Eight plants under `npm run test:app`, each red for its own reason, every file restored byte-identical (sha256):**
+| plant | reds on |
+|---|---|
+| Q1 the old `lastHandledPaydayDate` guard back | two Lock Screen taps for one payday, in one drain |
+| Q2 the real-date rule 🎯 rejected | taps drained after the next payday arrived — the ordinary double tap stays green under it, which is why that fixture exists |
+| Q3 undated intents always roll | an undated intent before payday |
+| Q4 the old guard kept beside the new rule | a tap after an in-app capture or skip |
+| Q5 the parser trusting a malformed date | an unreadable payday date |
+| Q6 the Lock Screen button undated | the button passes the payday its activity was started for |
+| Q7 both intent copies stop queueing the date | the module copy queues it with the action |
+| Q8 refuse every payday intent *(the laziest over-fix)* | a.2's first-drain control |
+
+Every anchor and every expected red line was dry-checked to occur exactly once before the run.
+
+**Gates at the close, full per [D81]:** `lint:rn` **52 of 52** · `typecheck` 0 · `test:app` 0 · `test:regression` 0 ·
+`lint:finding-guards --projected` 0 *(4 stale of 8, nothing newly projected — `store.ts` was already stale from a.2)*.
+Per fix, `lint:rn -- --fast` had run first and caught one defect of mine outside a.3: a raw ESC byte in the committed
+`--fast` log entry, fixed in its own commit.
+
+⚡ **[D81]'s cost, now measured per gate rather than by subtraction.** The full run took **1,084s**, and the five
+self-tests were **886s of it (82%)**: `test:gate-plants` 627s · `test:wrap-escapes` 239s · `prove:guards:selftest` 15s ·
+`test:plant-safety` 4s · `test:joined-code` 1s. The static 47 took about 200s.
+
+⚠️ **What no instrument here reaches.** Nothing in this repo compiles Swift except `native-e2e` *(manual dispatch, batched
+to ⑦)*, and the tap itself — AppIntents passing a parameter from a Live Activity button — is a device row for `P6.14`.
+And the button stays almost unreachable in production until the countdown row lands, because the activity counts from
+`currentDate`.

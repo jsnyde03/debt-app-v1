@@ -9,7 +9,7 @@ import WidgetKit
 struct PaydayLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PaydayActivityAttributes.self) { context in
-            PaydayLockScreenView(state: context.state)
+            PaydayLockScreenView(state: context.state, paydayDateISO: context.attributes.paydayDateISO)
                 .widgetURL(URL(string: "debtplannerrn://"))
         } dynamicIsland: { context in
             DynamicIsland {
@@ -47,6 +47,9 @@ struct PaydayLiveActivity: Widget {
 /// The Lock Screen / banner presentation.
 private struct PaydayLockScreenView: View {
     let state: PaydayActivityAttributes.ContentState
+    /// The payday this activity was started for. The "Payday landed" button queues it, so the app can tell a tap
+    /// for this payday from a stale second tap after the plan has already rolled (pass-6 C3-6).
+    let paydayDateISO: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -72,7 +75,7 @@ private struct PaydayLockScreenView: View {
             // On payday itself (iOS 17+ interactive Live Activities), a one-tap "Payday landed" that
             // queues the cycle roll for the app to apply on next foreground (3.5.3.5).
             if #available(iOS 17.0, *), state.daysUntilPayday == 0 {
-                Button(intent: PaydayLandedIntent()) {
+                Button(intent: PaydayLandedIntent(paydayDateISO: paydayDateISO)) {
                     Text("Payday landed")
                         .font(.subheadline).fontWeight(.semibold)
                         .frame(maxWidth: .infinity)

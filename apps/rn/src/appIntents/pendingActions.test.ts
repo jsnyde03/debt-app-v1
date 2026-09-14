@@ -227,4 +227,95 @@ eq(parsePendingActions([{ kind: 'log-payment', id: 'p1', debtId: 'd0', amount: '
   }
 }
 
+// ── ⛔ [.5.7.4a.3 · pass-6 C3-6] ONE ROLL PER PAYDAY THE TAP NAMED — through the REAL store ────────────────────────────
+//
+// Two Lock Screen taps rolled the plan two cycles, and the guard written for it (`lastHandledPaydayDate`) never fired on a
+// second tap. Every date below is derived from the store and its injected clock — no calendar literal, so nothing here
+// burns as the real date moves.
+{
+  type RealStore = ReturnType<typeof createDebtStore>;
+  const base = createDefaultStore();
+  const today = base.paycheck.currentDate;
+  const future = base.paycheck.nextPaycheckDate;
+  const storeOn = (payday: string, clock: string): RealStore => {
+    const s = createDebtStore({ now: () => clock });
+    s.setState({
+      store: { ...base, prefs: { ...base.prefs, onboardingComplete: true }, paycheck: { ...base.paycheck, nextPaycheckDate: payday } },
+    });
+    return s;
+  };
+  const drain = (s: RealStore, entries: unknown[]) => {
+    let queue: string | null = JSON.stringify(entries);
+    drainPendingActions({ read: () => queue, clear: () => { queue = null; } }, s.getState());
+  };
+  const tap = (id: string, paydayDateISO?: string) =>
+    paydayDateISO === undefined ? { kind: 'payday-landed', id } : { kind: 'payday-landed', id, paydayDateISO };
+  const cycles = (s: RealStore) => s.getState().store.cycleHistory.length;
+
+  assert(future > today, 'C3-6 control — the default next payday is after today, so "before payday" is a real state here');
+
+  {
+    const s = storeOn(today, today);
+    drain(s, [tap('t1', today)]);
+    eq(cycles(s), 1, 'C3-6 control — one Lock Screen tap on payday rolls the plan once');
+  }
+  {
+    const s = storeOn(today, today);
+    drain(s, [tap('t1', today), tap('t2', today)]);
+    eq(cycles(s), 1, '⛔ C3-6 — two Lock Screen taps for one payday, in one drain, roll the plan ONCE');
+  }
+  {
+    const s = storeOn(today, today);
+    drain(s, [tap('t1', today)]);
+    drain(s, [tap('t2', today)]);
+    eq(cycles(s), 1, '⛔ C3-6 — a second tap in a later drain names a payday the plan has already left');
+  }
+  {
+    // ⚡ The fixture that separates the dated rule from a real-date rule: both taps are drained only once the NEXT payday
+    // has arrived, so after the first roll the clock has reached the new payday too. A clock-only rule rolls twice.
+    const probe = storeOn(today, today);
+    drain(probe, [tap('p', today)]);
+    const following = probe.getState().store.paycheck.nextPaycheckDate;
+    const s = storeOn(today, following);
+    drain(s, [tap('t1', today), tap('t2', today)]);
+    eq(cycles(s), 1, '⛔ C3-6 — two taps for one payday, drained after the next payday arrived, still roll once');
+  }
+  {
+    const s = storeOn(future, today);
+    drain(s, [tap('t1', today)]);
+    eq(cycles(s), 0, '⛔ C3-6 — a tap naming a payday other than the next one on the plan rolls nothing');
+  }
+  {
+    const s = storeOn(future, today);
+    drain(s, [tap('u1')]);
+    eq(cycles(s), 0, '⛔ C3-6 — an undated intent before payday rolls nothing');
+  }
+  {
+    const s = storeOn(today, today);
+    drain(s, [tap('u1'), tap('u2')]);
+    eq(cycles(s), 1, 'C3-6 — undated intents on payday roll the plan once');
+  }
+  {
+    // 🎯 2026-09-14 — capture and "Skip this payday" stamp the payday without rolling; Today then offers the roll.
+    const s = storeOn(today, today);
+    s.getState().setLastHandledPayday(today);
+    drain(s, [tap('t1', today)]);
+    eq(cycles(s), 1, '⛔ C3-6 — after an in-app capture or skip, a Lock Screen tap rolls the cycle Today offers');
+  }
+
+  {
+    const [dated] = parsePendingActions([{ kind: 'payday-landed', id: 'd1', paydayDateISO: today }]);
+    assert(dated?.kind === 'payday-landed' && dated.paydayDateISO === today, 'C3-6 — parse: a dated payday-landed keeps its date');
+    const [undated] = parsePendingActions([{ kind: 'payday-landed', id: 'd2' }]);
+    assert(undated?.kind === 'payday-landed' && undated.paydayDateISO === undefined, 'C3-6 — parse: an undated payday-landed stays undated');
+  }
+  for (const bad of [today.split('-').join('/'), 12, null, '']) {
+    eq(
+      parsePendingActions([{ kind: 'payday-landed', id: 'd3', paydayDateISO: bad }]).length,
+      0,
+      `⛔ C3-6 — parse: an unreadable payday date (${JSON.stringify(bad)}) drops the entry rather than rolling undated`,
+    );
+  }
+}
+
 console.log(`\n  pendingActions (AppIntent bridge): ${passed} assertions passed\n`);

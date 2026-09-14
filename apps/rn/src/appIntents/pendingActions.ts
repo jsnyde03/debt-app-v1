@@ -11,7 +11,7 @@
 
 /** A mutation queued by an iOS AppIntent for the app to apply. `id` dedupes a double-write. */
 export type PendingAction =
-  | { kind: 'payday-landed'; id: string }
+  | { kind: 'payday-landed'; id: string; paydayDateISO?: string }
   | { kind: 'log-payment'; id: string; debtId: string; amount: number };
 
 type PendingKind = PendingAction['kind'];
@@ -19,8 +19,11 @@ const KINDS: ReadonlySet<string> = new Set<PendingKind>(['payday-landed', 'log-p
 
 /** The narrow store surface a pending action drives — keeps this decoupled + testable with a stub. */
 export interface PendingActionApi {
-  /** Roll the cycle with a snapshot for Undo (3.5.3.5) — the AppIntent-driven counterpart to a manual roll. */
-  applyPaydayLandedIntent(intent?: { id: string }): void;
+  /**
+   * Roll the cycle with a snapshot for Undo (3.5.3.5) — the AppIntent-driven counterpart to a manual roll.
+   * `paydayDateISO` is the payday the Lock Screen showed when tapped; absent for Shortcuts and older queues.
+   */
+  applyPaydayLandedIntent(intent?: { id?: string; paydayDateISO?: string }): void;
   /** Log a payment against a debt with Undo (3.5.5) — the voice log-a-payment intent's target. */
   logManualPayment(debtId: string, amount: number, intentId?: string): void;
 }
@@ -57,8 +60,15 @@ export function parsePendingActions(raw: unknown): PendingAction[] {
       seen.add(id);
       out.push({ kind: 'log-payment', id, debtId, amount });
     } else {
+      // ⛔ [.5.7.4a.3 · pass-6 C3-6] The payday the Lock Screen showed. Absent → an undated entry (Shortcuts, or a queue
+      // an older build wrote). Present but not a YYYY-MM-DD string → the whole entry is dropped: a date that cannot be
+      // read must not fall back to the undated rule and roll a payday the tap never named.
+      const { paydayDateISO } = rec;
+      if (paydayDateISO !== undefined && !(typeof paydayDateISO === 'string' && /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(paydayDateISO))) {
+        continue;
+      }
       seen.add(id);
-      out.push({ kind: 'payday-landed', id });
+      out.push(paydayDateISO === undefined ? { kind: 'payday-landed', id } : { kind: 'payday-landed', id, paydayDateISO });
     }
   }
   return out;
@@ -70,7 +80,7 @@ export function applyPendingAction(action: PendingAction, api: PendingActionApi)
     // ⛔ [.5.7.4a-1] The id travels with the action: the store skips one it has already applied, which is what makes a
     // queue entry that outlives its drain harmless. Dedupe by id in `parsePendingActions` covers ONE payload only.
     case 'payday-landed':
-      api.applyPaydayLandedIntent({ id: action.id });
+      api.applyPaydayLandedIntent({ id: action.id, paydayDateISO: action.paydayDateISO });
       return true;
     case 'log-payment':
       api.logManualPayment(action.debtId, action.amount, action.id);

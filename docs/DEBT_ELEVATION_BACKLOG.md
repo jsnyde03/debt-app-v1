@@ -1570,7 +1570,10 @@ move-set, because they belong to that phase's scope rather than to S1 triage.
   *(Shortcuts, or a queue written by an older build)* falls back to *the store clock has reached `nextPaycheckDate`*.
   Rejected: the button's own day count, which inherits the frozen countdown below. → **`.5.7` ④a.3** *(Swift in both
   copies, compiled only by `native-e2e`)*. ⚠️ Latent in production until the countdown row lands — the button is
-  almost unreachable.
+  almost unreachable. ✅ **CLOSED 2026-09-14 at ④a.3** — a dated tap rolls only while its payday is the plan's next, an
+  undated intent only once payday has arrived. 🎯 also dropped the `lastHandledPaydayDate` refusal: capture and skip stamp
+  it without rolling, so it blocked the roll Today's nudge offers. 8 plants MATCHED. ⚠️ Owed: the Swift compiles only at
+  `native-e2e`, and the tap itself is a `P6.14` device row.
 - ⛔ **THE PAYDAY COUNTDOWN LIVE ACTIVITY ALMOST NEVER STARTS.** `shouldRunPaydayActivity`
   (`days ≤ PAYDAY_ACTIVITY_WINDOW_DAYS = 3`), its label and the *"Payday landed"* button (`days == 0`) all read
   `wholeDaysBetween(currentDate, nextPaycheckDate)`, and by census nothing moves `currentDate` with the calendar *(its

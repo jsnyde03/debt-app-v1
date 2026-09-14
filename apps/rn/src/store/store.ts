@@ -196,7 +196,7 @@ export interface DebtAppState {
   rolloverPayCycle(): void;
   /** 3.5.3.5 — apply a "Payday landed" AppIntent: snapshot the pre-roll store for Undo, then roll the
    *  cycle exactly as `rolloverPayCycle`. */
-  applyPaydayLandedIntent(intent?: { id: string }): void;
+  applyPaydayLandedIntent(intent?: { id?: string; paydayDateISO?: string }): void;
   /** 3.5.5 — log a manual payment against a debt (reduce its balance by `amount`, re-anchor its verified
    *  date to today), with Undo. The ONE mutation shared by the in-app "Log payment" action AND the voice
    *  log-a-payment intent — reuses the `verifyDebtBalance` anchoring. No-op on a bad id / non-positive amount. */
@@ -756,28 +756,28 @@ export function createDebtStore(opts?: {
       // 3.5.3.5 — same roll as rolloverPayCycle, but stash the pre-roll store first so the Today card can
       // offer a one-tap Undo (an accidental Live-Activity tap is fully reversible).
       /**
-       * ⛔ **S1.13.7.6 [pass-6 `C3-6`] — TWO TAPS OF THE LOCK SCREEN'S "PAYDAY LANDED" ROLLED THE PLAN
-       * FORWARD TWO WHOLE CYCLES ON ONE PAYDAY**, wrote two `cycleHistory` entries for one paycheck, and
-       * the Undo took back only one.
+       * ⛔ **[.5.7.4a.3 · pass-6 `C3-6`] — ONE ROLL PER PAYDAY THE USER NAMED.**
        *
-       * ⚡ The queue's dedupe cannot catch it: both Swift producers mint `UUID().uuidString` **per
-       * invocation**, so no two actions ever share an id, and `pendingActions.test.ts` covers the dedupe
-       * with two entries that DO share one.
+       * Two taps of the Lock Screen's "Payday landed" rolled the plan two whole cycles: the Lock Screen does not
+       * refresh until the app is foregrounded, so the button is still there for a second tap. Each Swift tap mints its
+       * own UUID, so no id rule can collapse them — two Siri payments of $200 genuinely ARE two. And the guard this
+       * replaces, `lastHandledPaydayDate === nextPaycheckDate`, could never fire on a second tap: the first roll moves
+       * `nextPaycheckDate` past the stamp. Measured through the real store: two rolls at payday −3, 0 and +14 days.
        *
-       * ⛔ **Not fixed by "fixing the id".** A stable id per payday would collapse these two taps, but the
-       * same UUID-per-invocation shape is what `log-payment` needs — two deliberate Siri payments of $200
-       * to one debt genuinely ARE two payments — so an id rule applied to the class would silently swallow
-       * a real second payment. **The asymmetry puts the guard on the mutation, not on the queue.**
+       * ⚡ So the tap carries the payday it was drawn for and rolls only while that is still the plan's next payday; a
+       * stale second tap names a payday the plan has already left. An UNDATED intent (Shortcuts, or a queue an older
+       * build wrote) rolls only once the store clock has reached the payday.
        *
-       * ⚠️ The payday being landed is the PRE-roll `nextPaycheckDate`; `applyRollover` advances it. Same
-       * rule the in-app path already enforces via `lastHandledPaydayDate`, and it self-clears because the
-       * payday date advances past it (`payday.ts:65`).
+       * ⚠️ `lastHandledPaydayDate` no longer refuses the roll (🎯 2026-09-14). An in-app capture or "Skip this payday"
+       * stamps it WITHOUT rolling, and Today then offers "Start next pay cycle" — exactly the roll a Lock Screen tap asks
+       * for. It is still written here, so the capture sheet stays quiet after the roll.
        */
       set((s) => {
         // ⛔ [.5.7.4a-1] An entry a swallowed clear left in the queue has already rolled this plan once.
-        if (intent && hasAppliedIntent(s.store, intent.id)) return {};
+        if (intent?.id && hasAppliedIntent(s.store, intent.id)) return {};
         const landing = s.store.paycheck.nextPaycheckDate;
-        if (s.store.lastHandledPaydayDate === landing) return {};
+        const named = intent?.paydayDateISO;
+        if (named !== undefined ? named !== landing : clock() < landing) return {};
         return {
           intentRollback: { store: s.store, kind: 'payday-landed' },
           store: withAppliedIntent(
