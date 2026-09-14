@@ -1,0 +1,41 @@
+== d81-delete-refusal: restore byte-verified; git status: clean
+   exit=0  npm run -s lint:runner-completeness
+   exit=0  npm run -s lint:ci-chain
+   exit=0  npm run -s lint:finding-guards
+== d81-fast-unconditional: restore byte-verified; git status: clean
+   exit=0  npx tsx scripts/run-gates.ts --list
+   exit=0  npm run -s lint:runner-completeness
+   exit=0  npm run -s lint:ci-chain
+   exit=0  npm run -s lint:finding-guards
+== d81-control-selection-skips: restore byte-verified; git status: clean
+   exit=1  npx tsx scripts/run-gates.ts --list
+== b11-see-delete-date-assert: restore byte-verified; git status: clean
+   exit=1  npm run -s lint:finding-guards
+== b11-delete-pace-asserts: restore byte-verified; git status: clean
+   exit=0  npm run -s lint:finding-guards
+   exit=0  npm run -s test:app
+== b11-delete-pace-asserts-plus-unfix: restore byte-verified; git status: clean
+   exit=1  npm run -s test:app
+== r51-shape-bnpl-only: restore byte-verified; git status: clean
+   exit=1  npm run -s test:app
+== r41-delete-freed-assert: restore byte-verified; git status: clean
+   exit=1  npm run -s lint:finding-guards
+== rc-see-liveactivity-unwired: restore byte-verified; git status: clean
+   exit=1  npm run -s lint:runner-completeness
+== cap-see-debt-spread-derived: restore byte-verified; git status: clean
+   exit=1  npm run -s lint:cap-literals
+== spread-cap-slack: restore byte-verified; git status: clean
+   exit=0  npm run -s lint:trust-claims
+== spread-exact-control: restore byte-verified; git status: clean
+   exit=1  npm run -s lint:trust-claims
+== spread-exact-unfixed: restore byte-verified; git status: clean
+   exit=0  npm run -s lint:trust-claims
+== vac-reversed-control: restore byte-verified; git status: clean
+   exit=1  npm run -s lint:trust-claims
+== vac-reversed-halfunfix: restore byte-verified; git status: clean
+   exit=1  npm run -s lint:trust-claims
+== gp-A-registry-unfixes: restore byte-verified; git status: clean
+   exit=1  npm run -s test:gate-plants
+== gp-B-r52-projected-parse-and-survivors: restore byte-verified; git status: clean
+   exit=1  npm run -s test:gate-plants
+PLANTS-DONE exit=0

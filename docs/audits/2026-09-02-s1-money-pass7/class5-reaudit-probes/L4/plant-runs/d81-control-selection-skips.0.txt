@@ -1,0 +1,4 @@
+$ npx tsx scripts/run-gates.ts --list
+exit=1 secs=4
+
+❌ lint:rn: full mode selected 47 of 52 gates, so the runner is skipping: prove:guards:selftest · test:gate-plants · test:wrap-escapes · test:plant-safety · test:joined-code

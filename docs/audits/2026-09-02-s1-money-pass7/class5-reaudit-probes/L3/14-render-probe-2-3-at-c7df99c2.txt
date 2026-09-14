@@ -1,0 +1,42 @@
+base worktree c7df99c2 2026-09-14T14:51:48-04:00
+[2m[WebServer] [22m[33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+
+Running 8 tests using 1 worker
+
+L3PROBE P4 M premium · Visa minimum unread caption :: "your $400 line · room after each paycheck"
+L3PROBE P4 M premium · Visa minimum unread section :: ""
+L3PROBE P4 M premium · Visa minimum unread progress date :: "June 2028"
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe2.spec.ts:33:7 › L3 P4 progress cash-flow · M premium · Visa minimum unread (6.8s)
+L3PROBE P4 M premium · readable twin caption :: "your $400 line · room after each paycheck"
+L3PROBE P4 M premium · readable twin section :: ""
+L3PROBE P4 M premium · readable twin progress date :: "June 2028"
+  ok 2 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe2.spec.ts:33:7 › L3 P4 progress cash-flow · M premium · readable twin (6.2s)
+L3PROBE P4 M free · Visa minimum unread caption :: "your $50 line · room after each paycheck"
+L3PROBE P4 M free · Visa minimum unread section :: ""
+L3PROBE P4 M free · Visa minimum unread progress date :: "December 2027"
+  ok 3 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe2.spec.ts:33:7 › L3 P4 progress cash-flow · M free · Visa minimum unread (6.2s)
+L3PROBE P4 M free · readable twin caption :: "your $50 line · room after each paycheck"
+L3PROBE P4 M free · readable twin section :: ""
+L3PROBE P4 M free · readable twin progress date :: "December 2027"
+  ok 4 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe2.spec.ts:33:7 › L3 P4 progress cash-flow · M free · readable twin (16.2s)
+L3PROBE P4 L premium · cushion line unread (set was $350) caption :: "your $0 line · room after each paycheck"
+L3PROBE P4 L premium · cushion line unread (set was $350) section :: ""
+L3PROBE P4 L premium · cushion line unread (set was $350) progress date :: "November 2027"
+  ok 5 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe2.spec.ts:33:7 › L3 P4 progress cash-flow · L premium · cushion line unread (set was $350) (6.2s)
+L3PROBE P4 L premium · readable twin ($350) caption :: "your $350 line · room after each paycheck"
+L3PROBE P4 L premium · readable twin ($350) section :: ""
+L3PROBE P4 L premium · readable twin ($350) progress date :: "May 2028"
+  ok 6 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe2.spec.ts:33:7 › L3 P4 progress cash-flow · L premium · readable twin ($350) (6.2s)
+L3PROBE P5 apr= hero-date :: "November 2026"
+L3PROBE P5 apr= projected phrases :: ["DEBT-FREE November 2026 $2,000 of $6,000 paid Nex"]
+L3PROBE P5 apr= screen text :: "  Today   Progress   Money Progress  33% paid DEBT-FREE November 2026 $2,000 of $6,000 paid Next milestone: 50% CASH FLOW · NEXT 5 PAY CYCLES Cushion Timeline $1,530 $2,000 $1,530 $2,000 $1,650 Sep 14 Sep 28 Oct 12 Oct 26 Nov 9 your $200 line · room after each paycheck Comfortable across the next few paychecks. PAYOFF TRAJECTORY Balance over time $0 $2k $4k Nov Jan Nov 2026 Now Minimum payments Jul 2029 Your plan Nov 2026 · 2 years saved What if you paid extra?  Snowball or avalanche? "
+  ok 7 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe3.spec.ts:20:7 › L3 P5 progress screen · apr=unread (3.6s)
+L3PROBE P5 apr=19 hero-date :: "November 2026"
+L3PROBE P5 apr=19 projected phrases :: ["DEBT-FREE November 2026 $2,000 of $6,000 paid Nex"]
+L3PROBE P5 apr=19 screen text :: "  Today   Progress   Money Progress  33% paid DEBT-FREE November 2026 $2,000 of $6,000 paid Next milestone: 50% CASH FLOW · NEXT 5 PAY CYCLES Cushion Timeline $1,530 $2,000 $1,530 $2,000 $1,650 Sep 14 Sep 28 Oct 12 Oct 26 Nov 9 your $200 line · room after each paycheck Comfortable across the next few paychecks. PAYOFF TRAJECTORY Balance over time $0 $2k $4k Nov Jan Nov 2026 Now Minimum payments Sep 2030 Your plan Nov 2026 · ~$1,651, 3 years saved What if you paid extra?  Snowball or avalanche? "
+  ok 8 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe3.spec.ts:20:7 › L3 P5 progress screen · apr=19 (3.6s)
+
+  8 passed (2.6m)
+exit=0
+port 4319 free after run
+base status-lines=0

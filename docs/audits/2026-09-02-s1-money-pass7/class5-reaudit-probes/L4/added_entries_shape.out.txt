@@ -1,0 +1,39 @@
+ids 330 added 28
+S1P7-C3-5-LIVEACTIVITY-UPDATE-LANDED: OK | token='the next commit catches the Lock Screen up instead of being gated out by a key the dropped' | expect='C3-5 — the next commit catches the Lock Screen up instead of being gated out by a key the '
+S1P7-C3-5-LIVEACTIVITY-START-LANDED: OK | token='a refused start is RETRIED as a start, never followed by updates to an activity that does ' | expect='C3-5 — a refused start is RETRIED as a start, never followed by updates to an activity tha'
+S1P7-C3-6-LIVEACTIVITY-END-LANDED: OK | token='a refused end keeps the activity believed live, so the next commit ends it again' | expect='C3-6 — a refused end keeps the activity believed live, so the next commit ends it again'
+S1P7-C3-1-SIRI-DEBTSJSON-UNREAD: OK | token='Siri lists the unread debt as "balance not read", never "$0"' | expect='C3-1 — Siri lists the unread debt as "balance not read", never "$0"'
+S1P7-C3-2-SIRI-PREMIUM-UPSELL: OK | token='Siri says what could not be read rather than naming money free over an obligation nobody r' | expect='D3-2 — Siri says what could not be read rather than naming money free over an obligation n'
+S1P7-D2-12-SIRI-NO-PLAN-UPSELL: OK | token='a PREMIUM user with no plan yet is told to set one up, not to buy what they own' | expect='C3-2 — a PREMIUM user with no plan yet is told to set one up, not to buy what they own'
+S1P7-B1-1-SAVEFORIT-PACE-KEPT: ['token contains ${', 'expect not present verbatim in guard file'] | token='is ready in ${o.paychecks} paychecks at the rate the engine funds' | expect='B1-1 — one debt, nothing held: "Save fast" promises'
+S1P7-C3-14-GOALS-HERO-COUNT: OK | token='C3-14 — two unread targets are "2 targets", never "one"' | expect='C3-14 — two unread targets are "2 targets", never "one"'
+S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK: OK | token='an empty read for a PREMIUM snapshot is answered in SPOKEN_READ_FAILED' | expect='C3-2 — an empty read for a PREMIUM snapshot is answered in SPOKEN_READ_FAILED'
+S1P7-57-2A-PROJECTED-STALENESS: OK | token="gate: 'lint:finding-guards [projected]'," | expect='lint:finding-guards [projected]'
+S1P7-57-2B-CLAIM-LATTICE: OK | token='the claim containment lattice is the one measured at .5.7' | expect='the claim containment lattice is the one measured at .5.7'
+S1P7-57-2C-LOST-FIELD-NAMED: OK | token='is no longer recorded under a sentence' | expect='is no longer recorded under a sentence'
+S1P7-57-2D-DEBT-SPREAD-LEDGER: OK | token="gate: 'lint:trust-claims [debt-spread]'," | expect='lint:trust-claims [debt-spread]'
+S1P7-57-2B-VACUOUS-CONJUNCT: OK | token="gate: 'lint:trust-claims [vacuous-conjunct]'," | expect='lint:trust-claims [vacuous-conjunct]'
+S1P7-57-3-FREE-C3-8-TWIN: OK | token='C3-8 · a FREE user with the same unread APR still sees the total' | expect='C3-8 · a FREE user'
+S1P7-57-3-WIDGET-DIRECTION: OK | token='a repair no projection reads does not blank the widget' | expect='a repair no projection reads does not blank the widget'
+S1P7-57-3-AFFORDABILITY-REFUSAL: OK | token='the card refuses its verdict over a goal target it could not read' | expect='the card refuses its verdict over a goal target it could not read'
+S1P7-57-3-WINDFALL-REFUSAL: OK | token='the sheet refuses to route over a goal target it could not read' | expect='the sheet refuses to route over a goal target it could not read'
+S1P7-57-4A2-REPLAY-ONCE: ['expect not present verbatim in guard file'] | token='that outlives its drain is not applied again after' | expect='a log-payment that outlives its drain is not applied again after a second drain'
+S1P7-57-4A2-CARRY-REPLACEMENTS: ['expect not present verbatim in guard file'] | token='restoring a backup taken before the drain' | expect='a log-payment that outlives its drain is not applied again after restoring a backup'
+S1P6-C3-6-DATED-TAP: OK | token='drained after the next payday arrived, still roll once' | expect='drained after the next payday arrived, still roll once'
+S1P6-C3-6-HANDLED-NO-REFUSAL: OK | token='after an in-app capture or skip, a Lock Screen tap rolls the cycle Today offers' | expect='after an in-app capture or skip, a Lock Screen tap rolls'
+S1P6-C3-6-BUTTON-NAMES-PAYDAY: OK | token='the Lock Screen button passes the payday its activity was started for' | expect='the Lock Screen button passes the payday its activity was started for'
+S1P7-B1-2-OFFER-ASKS-ENGINE: ['expect not present verbatim in guard file'] | token='accepting the offer holds exactly the total it promised' | expect='pay 550 with 50 already held: accepting the offer holds exactly the total it promised'
+S1P7-57-4B-RUNWAY-HELD: ['expect not present verbatim in guard file'] | token='the runway says it is setting aside what the plan holds' | expect='I’m setting aside $1,100 from this paycheck'
+S1P7-57-4B-CONFIRM-FUNDED: ['expect not present verbatim in guard file'] | token='a capped custom pace is confirmed at what the plan will fund' | expect='Now saving $999,999/paycheck'
+S1P7-57-5-HERO-FIT-WEB: ['expect not present verbatim in guard file'] | token='is clipped vertically at' | expect='is clipped vertically at 320pt'
+S1P7-57-5-HERO-ALL-MONTHS: OK | token='so it breaks mid-word or clips' | expect='"September" is'
+
+== R5-2 matcher over the pin registry
+ids outside alphabet: [] | empty short forms: []
+  branch: S1-CLASS4-A3-1 lenders=['S1-CLASS4-A2-1'] substrWaive=True boundaryWaive=True
+  branch: S1-CLASS4-A3-2 lenders=['S1-CLASS4-A2-1'] substrWaive=True boundaryWaive=True
+  branch: S1-CLASS4-A2-3 lenders=['S1-CLASS4-A2-8'] substrWaive=True boundaryWaive=True
+  branch: S1-CLASS4-A2-4 lenders=['S1-CLASS4-A3-14'] substrWaive=True boundaryWaive=True
+entered branch 4 newly refused by boundary []
+short forms shared by >1 full id (a note naming one waives the other): 0
+short ids that are a prefix of another short id: 20 of 330

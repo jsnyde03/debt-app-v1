@@ -1,0 +1,568 @@
+== app plants (9) ==
+  plant apps/rn/src/components/plan/AffordabilityCard.tsx: anchor count=1 :: "  const unreadPlanInputs = !mayClaim(store, 'paycheck-plan');"
+  plant apps/rn/src/components/plan/WindfallSheet.tsx: anchor count=1 :: "  const unreadPlanInputs = !mayClaim(store, 'paycheck-plan');"
+  plant apps/rn/src/app/cushion-forecast.tsx: anchor count=1 :: "import { effectivePaycheckBuffer, selectPrefundedHeld } from '@/store/selectors';"
+  plant apps/rn/src/app/cushion-forecast.tsx: anchor count=1 :: '  const holdNow = selectPrefundedHeld(engineStore);'
+  plant apps/rn/src/components/plan/SaveForItSheet.tsx: anchor count=1 :: '      stated = customFunded ?? customPace;'
+  plant apps/rn/src/app/(tabs)/money.tsx: anchor count=1 :: '      ) : isPremium && !mayStateProjected ? ('
+  plant apps/rn/src/app/(tabs)/money.tsx: anchor count=1 :: '? unreadTargetsSub(unreadTargetCount)'
+  plant apps/rn/src/app/(tabs)/progress.tsx: anchor count=1 :: "  const heroDate = mayStateSolved ? (view.debtFreeDate ?? '—') : '—';"
+  plant apps/rn/src/store/balanceSelectors.ts: anchor count=1 :: '  return CONFIRMED.get(debt) ?? debt.balance;'
+  applied apps/rn/src/components/plan/AffordabilityCard.tsx: changed=True
+  applied apps/rn/src/components/plan/WindfallSheet.tsx: changed=True
+  applied apps/rn/src/app/cushion-forecast.tsx: changed=True
+  applied apps/rn/src/components/plan/SaveForItSheet.tsx: changed=True
+  applied apps/rn/src/app/(tabs)/money.tsx: changed=True
+  applied apps/rn/src/app/(tabs)/progress.tsx: changed=True
+  applied apps/rn/src/store/balanceSelectors.ts: changed=True
+== export:web --clear ==
+  export exit=0 in 94s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=24772 listening=True ==
+
+-- RUN A1 affordability refusal · as written :: affordability.spec.ts -g 'the card refuses its verdict'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\affordability.spec.ts:97:5 › .5.7 — the card refuses its verdict over a goal target it could not read (8.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\affordability.spec.ts:97:5 › .5.7 — the card refuses its verdict over a goal target it could not read 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('afford-unread-inputs')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('afford-unread-inputs')[22m
+
+
+      100 |   await expect(page.getByText('CAN I AFFORD IT?')).toBeVisible({ timeout: 15_000 });
+      101 |   await page.getByPlaceholder('e.g. 400').fill('500');
+    > 102 |   await expect(page.getByTestId('afford-unread-inputs')).toBeVisible();
+          |                                                          ^
+      103 |   await expect(page.getByText(/you’d (still hold|dip to|come up)/)).toHaveCount(0);
+      104 | });
+      105 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\affordability.spec.ts:102:58
+
+    Error Context: apps\rn\test-results\affordability--5-7-—-the-c-0af34-al-target-it-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\affordability.spec.ts:97:5 › .5.7 — the card refuses its verdict over a goal target it could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\affordability.spec.ts:97:5 › .5.7 — the card refuses its verdict over a goal target it could not read (8.1s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+-- RUN A2 affordability refusal · RELAXED (unread-inputs visible removed) :: affordability.spec.ts -g 'the card refuses its verdict'
+  plant apps/rn/tests/e2e/affordability.spec.ts: anchor count=1 :: "  await expect(page.getByTestId('afford-unread-inputs')).toBeVisible();\r\n"
+  applied apps/rn/tests/e2e/affordability.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\affordability.spec.ts:97:5 › .5.7 — the card refuses its verdict over a goal target it could not read (6.4s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\affordability.spec.ts:97:5 › .5.7 — the card refuses its verdict over a goal target it could not read 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText(/you’d (still hold|dip to|come up)/)
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/you’d (still hold|dip to|come up)/)[22m
+    [2m    14 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      100 |   await expect(page.getByText('CAN I AFFORD IT?')).toBeVisible({ timeout: 15_000 });
+      101 |   await page.getByPlaceholder('e.g. 400').fill('500');
+    > 102 |   await expect(page.getByText(/you’d (still hold|dip to|come up)/)).toHaveCount(0);
+          |                                                                     ^
+      103 | });
+      104 |
+      105 | test('.5.7 control — the same card with a readable goal target states its verdict', async ({ page }) => {
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\affordability.spec.ts:102:69
+
+    Error Context: apps\rn\test-results\affordability--5-7-—-the-c-0af34-al-target-it-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\affordability.spec.ts:97:5 › .5.7 — the card refuses its verdict over a goal target it could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\affordability.spec.ts:97:5 › .5.7 — the card refuses its verdict over a goal target it could not read (6.4s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+  RESTORE apps/rn/tests/e2e/affordability.spec.ts: cmp identical=True
+
+-- RUN A3 windfall refusal · as written :: windfall.spec.ts -g 'the sheet refuses to route'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\windfall.spec.ts:65:5 › .5.7 — the sheet refuses to route over a goal target it could not read (16.8s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\windfall.spec.ts:65:5 › .5.7 — the sheet refuses to route over a goal target it could not read 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('windfall-unread-inputs')
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 15000ms[22m
+    [2m  - waiting for getByTestId('windfall-unread-inputs')[22m
+
+
+      68 |   await page.getByText('Add extra income').click();
+      69 |   await page.getByPlaceholder('e.g. 500').fill('1000');
+    > 70 |   await expect(page.getByTestId('windfall-unread-inputs')).toBeVisible({ timeout: 15_000 });
+         |                                                            ^
+      71 |   await expect(page.getByText(/HERE’S HOW THE APP WILL ROUTE/)).toHaveCount(0);
+      72 | });
+      73 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\windfall.spec.ts:70:60
+
+    Error Context: apps\rn\test-results\windfall--5-7-—-the-sheet--18f90-al-target-it-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\windfall.spec.ts:65:5 › .5.7 — the sheet refuses to route over a goal target it could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\windfall.spec.ts:65:5 › .5.7 — the sheet refuses to route over a goal target it could not read (16.8s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+-- RUN A4 windfall refusal · RELAXED (unread-inputs visible removed) :: windfall.spec.ts -g 'the sheet refuses to route'
+  plant apps/rn/tests/e2e/windfall.spec.ts: anchor count=1 :: "  await expect(page.getByTestId('windfall-unread-inputs')).toBeVisible({ timeout: 15_000 }"
+  applied apps/rn/tests/e2e/windfall.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\windfall.spec.ts:65:5 › .5.7 — the sheet refuses to route over a goal target it could not read (6.9s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\windfall.spec.ts:65:5 › .5.7 — the sheet refuses to route over a goal target it could not read 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText(/HERE’S HOW THE APP WILL ROUTE/)
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/HERE’S HOW THE APP WILL ROUTE/)[22m
+    [2m    14 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      68 |   await page.getByText('Add extra income').click();
+      69 |   await page.getByPlaceholder('e.g. 500').fill('1000');
+    > 70 |   await expect(page.getByText(/HERE’S HOW THE APP WILL ROUTE/)).toHaveCount(0);
+         |                                                                 ^
+      71 | });
+      72 |
+      73 | test('.5.7 control — the same sheet with a readable target routes', async ({ page }) => {
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\windfall.spec.ts:70:65
+
+    Error Context: apps\rn\test-results\windfall--5-7-—-the-sheet--18f90-al-target-it-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\windfall.spec.ts:65:5 › .5.7 — the sheet refuses to route over a goal target it could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\windfall.spec.ts:65:5 › .5.7 — the sheet refuses to route over a goal target it could not read (6.9s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+  RESTORE apps/rn/tests/e2e/windfall.spec.ts: cmp identical=True
+
+-- RUN A5 runway held · as written :: cushion-forecast.spec.ts -g 'the runway says it is setting aside'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:77:5 › .5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for (8.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:77:5 › .5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByText(/from this paycheck for a tight cycle ahead/)
+    Expected substring: [32m"$900"[39m
+    Received string:    [31m"I’m setting aside $1,100 from this paycheck for a tight cycle ahead."[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/from this paycheck for a tight cycle ahead/)[22m
+    [2m    14 × locator resolved to <div dir="auto" class="css-146c3p1 r-13awgt0">…</div>[22m
+    [2m       - unexpected value "I’m setting aside $1,100 from this paycheck for a tight cycle ahead."[22m
+
+
+      78 |   await seedStore(page, CRUNCH());
+      79 |   const line = await openRunway(page);
+    > 80 |   await expect(line).toContainText('$900');
+         |                      ^
+      81 |   await expect(line).not.toContainText('$1,100');
+      82 | });
+      83 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\cushion-forecast.spec.ts:80:22
+
+    Error Context: apps\rn\test-results\cushion-forecast--5-7-—-th-3ed60-what-the-forecast-asked-for-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:77:5 › .5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:77:5 › .5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for (8.1s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN A6 runway held · RELAXED ($900 removed) :: cushion-forecast.spec.ts -g 'the runway says it is setting aside'
+  plant apps/rn/tests/e2e/cushion-forecast.spec.ts: anchor count=1 :: "  await expect(line).toContainText('$900');\r\n"
+  applied apps/rn/tests/e2e/cushion-forecast.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:77:5 › .5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for (8.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:77:5 › .5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).not.[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByText(/from this paycheck for a tight cycle ahead/)
+    Expected substring: not [32m"$1,100"[39m
+    Received string: [31m"I’m setting aside [7m$1,100[27m from this paycheck for a tight cycle ahead."[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "not toContainText" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/from this paycheck for a tight cycle ahead/)[22m
+    [2m    14 × locator resolved to <div dir="auto" class="css-146c3p1 r-13awgt0">…</div>[22m
+    [2m       - unexpected value "I’m setting aside $1,100 from this paycheck for a tight cycle ahead."[22m
+
+
+      78 |   await seedStore(page, CRUNCH());
+      79 |   const line = await openRunway(page);
+    > 80 |   await expect(line).not.toContainText('$1,100');
+         |                          ^
+      81 | });
+      82 |
+      83 | test('.5.7 — with a reserve already held, the runway names only what is left for the crunch', async ({ page }) => {
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\cushion-forecast.spec.ts:80:26
+
+    Error Context: apps\rn\test-results\cushion-forecast--5-7-—-th-3ed60-what-the-forecast-asked-for-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:77:5 › .5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:77:5 › .5.7 — the runway says it is setting aside what the plan holds, not what the forecast asked for (8.1s) | Error: [2mexpect([22m[31mlocator[39m[2m).not.[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+  RESTORE apps/rn/tests/e2e/cushion-forecast.spec.ts: cmp identical=True
+
+-- RUN A7 runway with reserve held · as written :: cushion-forecast.spec.ts -g 'with a reserve already held'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:84:5 › .5.7 — with a reserve already held, the runway names only what is left for the crunch (8.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:84:5 › .5.7 — with a reserve already held, the runway names only what is left for the crunch 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByText(/from this paycheck for a tight cycle ahead/)
+    Expected substring: [32m"$500"[39m
+    Received string:    [31m"I’m setting aside $1,100 from this paycheck for a tight cycle ahead."[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/from this paycheck for a tight cycle ahead/)[22m
+    [2m    14 × locator resolved to <div dir="auto" class="css-146c3p1 r-13awgt0">…</div>[22m
+    [2m       - unexpected value "I’m setting aside $1,100 from this paycheck for a tight cycle ahead."[22m
+
+
+      85 |   await seedStore(page, CRUNCH({ expenseReserve: { balance: 0, contribution: { forCycle: day(31), amount: 400 } } }));
+      86 |   const line = await openRunway(page);
+    > 87 |   await expect(line).toContainText('$500');
+         |                      ^
+      88 |   await expect(line).not.toContainText('$1,100');
+      89 | });
+      90 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\cushion-forecast.spec.ts:87:22
+
+    Error Context: apps\rn\test-results\cushion-forecast--5-7-—-wi-572bf-what-is-left-for-the-crunch-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:84:5 › .5.7 — with a reserve already held, the runway names only what is left for the crunch 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:84:5 › .5.7 — with a reserve already held, the runway names only what is left for the crunch (8.1s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN A8 confirmation funded · as written :: saveforit-pace.spec.ts -g 'a capped custom pace is confirmed'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:134:5 › .5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed (7.9s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:134:5 › .5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByText(/Now saving \$[\d,]+\/paycheck toward/)
+    Expected substring: [32m"Now saving $[7m3,350/paycheck[27m"[39m
+    Received string:    [31m"Now saving $[7m999,999/paycheck toward Savings goal — funds before debt. Track it in Goals.[27m"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/Now saving \$[\d,]+\/paycheck toward/)[22m
+    [2m    14 × locator resolved to <div dir="auto" class="css-146c3p1 r-13awgt0 r-1kfrs79">Now saving $999,999/paycheck toward Savings goal …</div>[22m
+    [2m       - unexpected value "Now saving $999,999/paycheck toward Savings goal — funds before debt. Track it in Goals."[22m
+
+
+      143 |   const confirmation = page.getByText(/Now saving \$[\d,]+\/paycheck toward/);
+      144 |   await expect(confirmation).toBeVisible({ timeout: 15_000 });
+    > 145 |   await expect(confirmation).toContainText(`Now saving ${funded}/paycheck`);
+          |                              ^
+      146 |   await expect(confirmation).not.toContainText('999,999');
+      147 | });
+      148 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\saveforit-pace.spec.ts:145:30
+
+    Error Context: apps\rn\test-results\saveforit-pace--5-7-—-a-ca-aa2f3--fund-not-at-what-was-typed-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:134:5 › .5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:134:5 › .5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed (7.9s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN A9 confirmation funded · RELAXED (funded figure removed) :: saveforit-pace.spec.ts -g 'a capped custom pace is confirmed'
+  plant apps/rn/tests/e2e/saveforit-pace.spec.ts: anchor count=1 :: '  await expect(confirmation).toContainText(`Now saving ${funded}/paycheck`);\r\n'
+  applied apps/rn/tests/e2e/saveforit-pace.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:134:5 › .5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed (7.5s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:134:5 › .5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).not.[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByText(/Now saving \$[\d,]+\/paycheck toward/)
+    Expected substring: not [32m"999,999"[39m
+    Received string: [31m"Now saving $[7m999,999[27m/paycheck toward Savings goal — funds before debt. Track it in Goals."[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "not toContainText" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/Now saving \$[\d,]+\/paycheck toward/)[22m
+    [2m    14 × locator resolved to <div dir="auto" class="css-146c3p1 r-13awgt0 r-1kfrs79">Now saving $999,999/paycheck toward Savings goal …</div>[22m
+    [2m       - unexpected value "Now saving $999,999/paycheck toward Savings goal — funds before debt. Track it in Goals."[22m
+
+
+      143 |   const confirmation = page.getByText(/Now saving \$[\d,]+\/paycheck toward/);
+      144 |   await expect(confirmation).toBeVisible({ timeout: 15_000 });
+    > 145 |   await expect(confirmation).not.toContainText('999,999');
+          |                                  ^
+      146 | });
+      147 |
+      148 | test('.5.7 control — a custom pace the plan can fund is confirmed as typed', async ({ page }) => {
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\saveforit-pace.spec.ts:145:34
+
+    Error Context: apps\rn\test-results\saveforit-pace--5-7-—-a-ca-aa2f3--fund-not-at-what-was-typed-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:134:5 › .5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:134:5 › .5.7 — a capped custom pace is confirmed at what the plan will fund, not at what was typed (7.5s) | Error: [2mexpect([22m[31mlocator[39m[2m).not.[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+  RESTORE apps/rn/tests/e2e/saveforit-pace.spec.ts: cmp identical=True
+
+-- RUN A10 C3-8 premium APR · as written :: data-recovery.spec.ts -g 'C3-8 · an unread APR withholds'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:719:5 › C3-8 · an unread APR withholds the projected total, with every balance readable (6.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:719:5 › C3-8 · an unread APR withholds the projected total, with every balance readable 
+
+    Error: a total projected from a rate the app could not read is the same claim as one summed from an unread balance
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('money-hero-debts-value')
+    Expected: [32m"Some figures unread"[39m
+    Received: [31m"$11,800"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - a total projected from a rate the app could not read is the same claim as one summed from an unread balance with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('money-hero-debts-value')[22m
+    [2m    14 × locator resolved to <div dir="auto" data-testid="money-hero-debts-value" class="css-146c3p1 r-dnmrzs r-1udh08x r-1udbk01 r-3s2u2q r-1iln25a r-uho16t r-1ghxqbu r-1vr29t4 r-icto9i">$11,800</div>[22m
+    [2m       - unexpected value "$11,800"[22m
+
+
+      737 |     page.getByTestId('money-hero-debts-value'),
+      738 |     'a total projected from a rate the app could not read is the same claim as one summed from an unread balance',
+    > 739 |   ).toHaveText('Some figures unread');
+          |     ^
+      740 |
+      741 |   // ⚠️ NOT the balances sentence — the balances read perfectly, and naming them would be a second false
+      742 |   // statement. The same correction `UNREAD_REMAINING_LINE` makes on Progress.
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\data-recovery.spec.ts:739:5
+
+    Error Context: apps\rn\test-results\data-recovery-C3-8-·-an-un-c9a02-with-every-balance-readable-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:719:5 › C3-8 · an unread APR withholds the projected total, with every balance readable 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:719:5 › C3-8 · an unread APR withholds the projected total, with every balance readable (6.1s) | Error: a total projected from a rate the app could not read is the same claim as one summed from an unread balance | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN A11 C3-8 premium APR · RELAXED ('Some figures unread' removed) :: data-recovery.spec.ts -g 'C3-8 · an unread APR withholds'
+  plant apps/rn/tests/e2e/data-recovery.spec.ts: anchor count=1 :: "  await expect(\r\n    page.getByTestId('money-hero-debts-value'),\r\n    'a total projected f"
+  applied apps/rn/tests/e2e/data-recovery.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:719:5 › C3-8 · an unread APR withholds the projected total, with every balance readable (1.1s)
+
+  1 passed (3.4s)
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:719:5 › C3-8 · an unread APR withholds the projected total, with every balance readable (1.1s) | 1 passed (3.4s)
+  RESTORE apps/rn/tests/e2e/data-recovery.spec.ts: cmp identical=True
+
+-- RUN A12 C3-9 progress APR · as written :: progress-hero-journey.spec.ts -g 'C3-9 · an unread APR'
+
+Running 1 test using 1 worker
+
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.2s)
+
+  1 passed (3.0s)
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.2s) | 1 passed (3.0s)
+
+-- RUN A13 C3-9 progress APR · RELAXED (date '—' removed) :: progress-hero-journey.spec.ts -g 'C3-9 · an unread APR'
+  plant apps/rn/tests/e2e/progress-hero-journey.spec.ts: anchor count=1 :: "    'a debt-free date computed from an APR the app could not read is the same claim as one"
+  applied apps/rn/tests/e2e/progress-hero-journey.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.2s)
+
+  1 passed (3.4s)
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.2s) | 1 passed (3.4s)
+  RESTORE apps/rn/tests/e2e/progress-hero-journey.spec.ts: cmp identical=True
+
+-- RUN A14 C3-13 projected $0 · as written :: celebration.spec.ts -g 'C3-13 · a projected'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:253:5 › C3-13 · a projected $0 invites the confirm and does not declare the user debt-free (6.2s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:253:5 › C3-13 · a projected $0 invites the confirm and does not declare the user debt-free 
+
+    Error: a balance the app only ESTIMATES at $0 is the payoff it is asking the user to confirm, not one to declare
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText('You’re debt-free')
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - a balance the app only ESTIMATES at $0 is the payoff it is asking the user to confirm, not one to declare with timeout 5000ms[22m
+    [2m  - waiting for getByText('You’re debt-free')[22m
+    [2m    13 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      260 |     page.getByText('You’re debt-free'),
+      261 |     'a balance the app only ESTIMATES at $0 is the payoff it is asking the user to confirm, not one to declare',
+    > 262 |   ).toHaveCount(0);
+          |     ^
+      263 | });
+      264 |
+      265 | test('C3-13 · a confirmed $0 still gets the debt-free banner', async ({ page }) => {
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\celebration.spec.ts:262:5
+
+    Error Context: apps\rn\test-results\celebration-C3-13-·-a-proj-ad45e--declare-the-user-debt-free-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:253:5 › C3-13 · a projected $0 invites the confirm and does not declare the user debt-free 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:253:5 › C3-13 · a projected $0 invites the confirm and does not declare the user debt-free (6.2s) | Error: a balance the app only ESTIMATES at $0 is the payoff it is asking the user to confirm, not one to declare | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN A15 C3-14 two targets · as written :: goal-row-saved.spec.ts -g 'counted as two'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\goal-row-saved.spec.ts:100:5 › two goals whose targets could not be read are counted as two in the hero (6.3s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\goal-row-saved.spec.ts:100:5 › two goals whose targets could not be read are counted as two in the hero 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('saved — 2 targets could not be read')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('saved — 2 targets could not be read')[22m
+
+
+      111 |   }));
+      112 |   await openGoals(page);
+    > 113 |   await expect(page.getByText('saved — 2 targets could not be read')).toBeVisible();
+          |                                                                       ^
+      114 |   await expect(page.getByText('saved — one target could not be read')).toHaveCount(0);
+      115 | });
+      116 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\goal-row-saved.spec.ts:113:71
+
+    Error Context: apps\rn\test-results\goal-row-saved-two-goals-w-d1a57--counted-as-two-in-the-hero-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\goal-row-saved.spec.ts:100:5 › two goals whose targets could not be read are counted as two in the hero 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\goal-row-saved.spec.ts:100:5 › two goals whose targets could not be read are counted as two in the hero (6.3s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+-- RUN A16 C3-14 two targets · RELAXED ('2 targets' removed) :: goal-row-saved.spec.ts -g 'counted as two'
+  plant apps/rn/tests/e2e/goal-row-saved.spec.ts: anchor count=1 :: "  await expect(page.getByText('saved — 2 targets could not be read')).toBeVisible();\r\n"
+  applied apps/rn/tests/e2e/goal-row-saved.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\goal-row-saved.spec.ts:100:5 › two goals whose targets could not be read are counted as two in the hero (6.4s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\goal-row-saved.spec.ts:100:5 › two goals whose targets could not be read are counted as two in the hero 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText('saved — one target could not be read')
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 5000ms[22m
+    [2m  - waiting for getByText('saved — one target could not be read')[22m
+    [2m    14 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      111 |   }));
+      112 |   await openGoals(page);
+    > 113 |   await expect(page.getByText('saved — one target could not be read')).toHaveCount(0);
+          |                                                                        ^
+      114 | });
+      115 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\goal-row-saved.spec.ts:113:72
+
+    Error Context: apps\rn\test-results\goal-row-saved-two-goals-w-d1a57--counted-as-two-in-the-hero-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\goal-row-saved.spec.ts:100:5 › two goals whose targets could not be read are counted as two in the hero 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\goal-row-saved.spec.ts:100:5 › two goals whose targets could not be read are counted as two in the hero (6.4s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+  RESTORE apps/rn/tests/e2e/goal-row-saved.spec.ts: cmp identical=True
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/components/plan/AffordabilityCard.tsx: cmp identical=True
+  RESTORE apps/rn/src/components/plan/WindfallSheet.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/cushion-forecast.tsx: cmp identical=True
+  RESTORE apps/rn/src/components/plan/SaveForItSheet.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/(tabs)/money.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/(tabs)/progress.tsx: cmp identical=True
+  RESTORE apps/rn/src/store/balanceSelectors.ts: cmp identical=True

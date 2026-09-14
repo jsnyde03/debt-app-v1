@@ -1,0 +1,1 @@
+  return { totalOriginal, totalConfirmed, totalCurrent, totalPaid, pct, line, lineIsProjected: false };

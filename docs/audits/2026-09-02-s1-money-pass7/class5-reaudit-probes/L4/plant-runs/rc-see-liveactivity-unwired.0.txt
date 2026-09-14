@@ -1,0 +1,14 @@
+$ npm run -s lint:runner-completeness
+exit=1 secs=2
+
+
+❌ runner completeness: 1 problem(s).
+
+  • [test:app] 1 tracked test file(s) are in the tree and in NO runner:
+          apps/rn/src/liveActivity/liveActivitySync.test.ts
+        ⛔ test:app would print ALL PASSED over them. Add each to apps/rn/src/testing/runAppTests.ts.
+
+  ⛔ A test file nobody wired in passes review, ships, and asserts nothing — and 30 of the
+  registered guard proofs run `test:app`, so such a guard would read as DEAD rather than as
+  UNEXECUTED. [pass-5 D5-12]
+

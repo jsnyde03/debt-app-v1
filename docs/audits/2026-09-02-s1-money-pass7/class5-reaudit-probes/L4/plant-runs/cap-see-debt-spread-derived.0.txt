@@ -1,0 +1,12 @@
+$ npm run -s lint:cap-literals
+exit=1 secs=2
+
+
+❌ cap literals: 1 derived ratchet(s).
+
+  • scripts/check-trust-claims.ts — MAX_DEBT_SPREAD_SITES is "Object.keys(DEBT_SPREAD_OPEN).length + 4", not a literal.
+        A cap computed from the population it caps agrees with whatever it is handed: the
+        comparison becomes `n > n` and the ratchet stops existing. Write the number.
+
+  [D4-4]: a cap derived from the list it caps can never be exceeded.
+

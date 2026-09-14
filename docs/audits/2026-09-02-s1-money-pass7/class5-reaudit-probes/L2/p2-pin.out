@@ -1,0 +1,7 @@
+{"probe":"P2","queued":50,"payments":50,"expected":4950,"afterFirst":4950,"afterSecond":4950,"afterThird":4950}
+{"probe":"P2","queued":51,"payments":51,"expected":4949,"afterFirst":4949,"afterSecond":4898,"afterThird":4847}
+{"probe":"P2","queued":60,"payments":60,"expected":4940,"afterFirst":4940,"afterSecond":4880,"afterThird":4820}
+{"probe":"P2b","paymentsMade":55,"dollarsTaken":265}
+{"probe":"P3","backupOnlyIds":0,"keptLatest":true,"balanceAfterRestore":4999,"balanceAfterNextDrain":4999}
+{"probe":"P3","backupOnlyIds":1,"keptLatest":true,"balanceAfterRestore":4999,"balanceAfterNextDrain":4999}
+{"probe":"P3","backupOnlyIds":50,"keptLatest":false,"balanceAfterRestore":4999,"balanceAfterNextDrain":4998}

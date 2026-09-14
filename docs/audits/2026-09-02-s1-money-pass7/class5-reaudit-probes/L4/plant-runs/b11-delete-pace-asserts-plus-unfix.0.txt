@@ -1,0 +1,1164 @@
+$ npm run -s test:app
+exit=1 secs=6
+
+
+▶ Running APP-LAYER regression tests (RS.1)...
+
+Running 2.4.D.3 substrate-producer tests...
+  ✓ stampInputsFresh sets inputsAsOf to currentDate
+  ✓ incrementGenuineCycle bumps the count
+  ✓ recordMissedArrival appends the cycle date
+  ✓ recordMissedArrival is idempotent per cycle
+  ✓ fixed income → actual defaults to planned (paycheck.amount)
+  ✓ variable income with NO reported actual → skipped (no fabricated actual)
+  ✓ variable income with a reported actual → recorded (1650 vs planned 2000)
+  ✓ windfall is EXCLUDED from the recorded actual
+  ✓ planned comes from the stamped prediction when present
+  ✓ re-capture for the same cycle REPLACES (no duplicate)
+  ✓ missed=true routes to the arrival axis, NOT a $0 income-actual
+  ✓ recordSurpriseOutflow appends a positive outflow
+  ✓ recordSurpriseOutflow ignores a non-positive amount
+  ✓ stampOnboardedAt sets onboardedAt to currentDate when null
+  ✓ stampOnboardedAt does NOT overwrite an existing stamp
+✅ All 2.4.D.3 substrate-producer tests passed.
+Running valley-into-forecast (2.4.7.2) tests...
+  ✓ fixed income → the entered amount
+  ✓ variable + lean set → the LEAN (the valley reaches the forecast)
+  ✓ variable + no lean yet → falls back to the entered amount (never projects $0)
+  ✓ fixed income ignores a stray leanAmount
+  ✓ non-numeric amount → 0 (guarded)
+✅ valley-into-forecast (2.4.7.2) tests passed.
+Running 2.4.D.4 prediction-orchestration tests...
+  ✓ fresh stamp when none exists
+  ✓ null read → no-op (no stamp)
+  ✓ same cycle, no material change → idempotent (unchanged reference)
+  ✓ same cycle, material change (state flip) → re-stamp + restampedMidCycle
+  ✓ same cycle, ≥$1 cushion move → re-stamp (disturbed)
+  ✓ a DIFFERENT cycle → fresh stamp, NOT marked disturbed
+  ✓ fixed income, ≥3 genuine cycles → no holdbacks, not provisional
+  ✓ new user (<3 genuine cycles) → discovery active + provisional
+  ✓ fixed income NEVER triggers cold-start (masked)
+  ✓ variable income, <4 lean-confirming actuals → cold-start active
+  ✓ variable income, ≥4 lean-confirming actuals → cold-start released
+  ✓ no in-flight prediction → snapshot untouched (un-graded)
+  ✓ prediction for a DIFFERENT cycle → snapshot untouched
+  ✓ matching cycle → folds prediction + outcome, cushion held == predicted when actual==planned
+  ✓ actual income below planned → held cushion drops by the shortfall (300 − 300 = 0)
+  ✓ a surprise outflow reduces the held cushion (300 − 120 = 180)
+  ✓ a missed arrival → actualIncome 0 (cushion floored at 0, not negative)
+  ✓ a re-stamped prediction → snapshot.disturbed = true
+  ✓ classifyFreshness: <30 days → fresh
+  ✓ classifyFreshness: 30–44 days → aging
+  ✓ classifyFreshness: ≥45 days → stale
+  ✓ classifyFreshness: negative day count floored to fresh
+  ✓ daysBetweenISO computes whole-day span
+  ✓ recent inputsAsOf → fresh even if a debt would be stale by lastVerifiedDate
+  ✓ genuineCycleCount increments on a debt-free store (substrate de-gated)
+  ✓ income-actuals record on a debt-free store (substrate de-gated)
+✅ All 2.4.D.4 + D.7 prediction/seam tests passed.
+Running Guardian selector (RS.2) tests...
+  ✓ no paycheck → null (expected null, got null)
+  ✓ default (empty) store → null (expected null, got null)
+  ✓ high headroom → clear
+  ✓ clear premium deploys the spare to debt
+  ✓ headroom under the floor (but ≥ half) → tight
+  ✓ tight deploys nothing (expected 0, got 0)
+  ✓ headroom below half the floor → at-risk
+  ✓ bills exceed the paycheck → at-risk
+  ✓ …and the shortfall title
+  ✓ …deploy paused in a shortfall (expected 0, got 0)
+  ✓ debt-free → Guardian PERSISTS (not null)
+  ✓ …flagged debtFree (expected true, got true)
+  ✓ …spare deploys to savings
+  ✓ free: same headroom → clear
+  ✓ free gets no safeMove (the card shows the invitation) (expected undefined, got undefined)
+  ✓ bad paycheck "abc" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "NaN" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "-500" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "0" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "  " → null (no crash) (expected null, got null)
+  ✓ bad paycheck "Infinity" → null (no crash) (expected null, got null)
+  ✓ huge paycheck → clear, finite viz (no Infinity)
+  ✓ tight + savings → a top-up offer
+  ✓ …topUp = the gap to the floor (200 − 150) (expected 50, got 50)
+  ✓ …names the savings source (expected "Emergency Fund", got "Emergency Fund")
+  ✓ tight + NO savings → null (honest calm state) (expected null, got null)
+  ✓ CLEAR → null (nothing to hold) (expected null, got null)
+  ✓ free tier → null (premium-only) (expected null, got null)
+  ✓ savings < gap → topUp capped at the balance
+  ✓ A3.3 — a discretionary goal wins over the EF even when the EF is first (expected "Savings 1", got "Savings 1")
+  ✓ …and it is not flagged as the emergency fund (expected false, got false)
+  ✓ L3-3 — prefers a pot that can COVER the gap over the one created first (expected "Savings 1", got "Savings 1")
+  ✓ …draws the gap, not the whole balance of the tiny pot (expected 50, got 50)
+  ✓ …so the line actually holds (was: false, with  untouched) (expected true, got true)
+  ✓ L3-3 — and it is the RULE, not the position: the big pot wins from index 0 too (expected "Savings 0", got "Savings 0")
+  ✓ …line holds either way round (expected true, got true)
+  ✓ L3-3 — none sufficient → the LARGEST available, not the first (expected 30, got 30)
+  ✓ …and it still says the line will not hold (expected false, got false)
+  ✓ D24 holds — an insufficient SAVINGS pot still beats a sufficient EF (expected false, got false)
+  ✓ …the line does not hold, and the safety net is left alone (expected false, got false)
+  ✓ A3.3 — EF-only → still offered, and flagged as the emergency fund (expected true, got true)
+  ✓ the larger of two emergency pots is the source (expected "Car repair fund", got "Car repair fund")
+  ✓ ⛔ …and it is NOT called the emergency fund — Money calls it Savings (expected false, got false)
+  ✓ premium at-risk → risk push fires (expected true, got true)
+  ✓ free → no risk push (premium-only) (expected false, got false)
+  ✓ clear → no risk push (risk-only) (expected false, got false)
+  ✓ 2 recent pushes → frequency-capped (expected false, got false)
+  ✓ no history → not proven (day-one state) (expected false, got false)
+  ✓ no history → matchRate null (no hollow number) (expected null, got null)
+  ✓ no gradeable cycles → n 0 (expected 0, got 0)
+  ✓ converted trial (past kick-in) → surfaces (expected "Netflix", got "Netflix")
+  ✓ → carries the full price (expected 15.99, got 15.99)
+  ✓ → monthly cadence label (expected "/mo", got "/mo")
+  ✓ not-yet-converted (future kick-in) → null (expected null, got null)
+  ✓ not flagged a trial → null (expected null, got null)
+  ✓ no full price → null (no phantom prompt) (expected null, got null)
+  ✓ non-finite full price → null (expected null, got null)
+  ✓ no trials → null (expected null, got null)
+  ✓ free tier also gets the prompt (accuracy for all) (expected "Netflix", got "Netflix")
+  ✓ A3.2 — the starter EF absorbs the whole spare, so nothing reaches debt (expected 0, got 0)
+  ✓ …and the real cushion is the $200 floor, not the $1,000 headroom (expected 200, got 200)
+  ✓ …so the brief must NOT claim it keeps all of it as cushion
+  ✓ …it names the $800 and where it went
+  ✓ …and why debt got nothing
+  ✓ …and the safe move points at the rung that actually receives it
+  ✓ A3.2 — a PRIORITY savings goal absorbs the spare the same way (expected 0, got 0)
+  ✓ …and gets the same honest treatment, not just the EF
+  ✓ …naming the goal that actually received it
+  ✓ discretionary exactly at the floor → clear (not tight) (expected "clear", got "clear")
+  ✓ …with no pre-debt rung and no spare to debt (expected 0, got 0)
+  ✓ …still says so, because this time it is true
+  ✓ M3 fixture really is short (the assertion below is vacuous otherwise)
+  ✓ M3 — a shortfall is at-risk even with a top-up on record (expected "at-risk", got "at-risk")
+  ✓ M3 precondition — the shortfall sentence exists to be rendered
+  ✓ M3 control — still at-risk without the record (expected "at-risk", got "at-risk")
+  ✓ M3 counter-fixture really is covered (expected 0, got 0)
+  ✓ M3 — a COVERED cycle with a top-up is untouched (expected "clear", got "clear")
+  ✓ M3 tight-fixture is covered, just under the line (expected 0, got 0)
+  ✓ M3 — `tight` survives; the fix touches only the shortfall case (expected "tight", got "tight")
+  ✓ M3b — a purchase during a shortfall is SHORT, top-up on record or not (expected "short", got "short")
+  ✓ …and short by the whole amount, matching the no-top-up control (expected 150, got 150)
+  ✓ M3b control — the no-record store already behaved (expected "short", got "short")
+  ✓ M3b — a covered cycle is unmoved (expected "comfortable", got "comfortable")
+  ✓ …and still counts the moved cash, per 3.7.A3.6
+  ✓ ⛔ A1 — no purchase this small is "short" with $199 unspent (shortBy 0)
+  ✓ ⛔ A1 — …so the card must not say "not this paycheck"
+  ✓ ⛔ A1 — the spare is the SURPLUS, stated: $199 (got 199)
+  ✓ ⛔ A1 — `holdsLine` and the band are ONE expression, so they agree (expected false, got false)
+  ✓ …and $199 against a $200 floor is tight — neither at-risk nor clear (expected "tight", got "tight")
+  ✓ ⛔ A1 — a top-up that covers the shortfall AND clears the floor is clear (expected "clear", got "clear")
+  ✓ …and the card says so, agreeing with the band (expected true, got true)
+  ✓ …and a $20 purchase against $550 spare is comfortable (expected "comfortable", got "comfortable")
+  ✓ …the surplus, netted once: 600 − 50 (got 550)
+  ✓ ⭐ A1 control — a shortfall the move does NOT cover is still at-risk (M3 intact) (expected "at-risk", got "at-risk")
+  ✓ ⭐ A1 control — …and the purchase is still short (AS-3 intact) (expected "short", got "short")
+  ✓ …by the whole amount, exactly as before (expected 150, got 150)
+  ✓ …with no spare, because the surplus is 0 — not because of a blanket rule (expected 0, got 0)
+  ✓ …and the move did not hold the line (expected false, got false)
+  ✓ ⛔ A1 — the shortfall named is what is STILL short (got: You’re about $200 short of the expenses due before your next paycheck — this one needs a plan.)
+  ✓ …never the gap before the money the user already moved
+  ✓ ⭐ A1 control — unmoved with no top-up (expected "at-risk", got "at-risk")
+  ✓ ⭐ A1 control — unmoved (expected "short", got "short")
+  ✓ ⭐ A1 control — unmoved (expected 150, got 150)
+  ✓ the band calls this cycle tight… (expected "tight", got "tight")
+  ✓ ⛔ A1 — …so the tight-case offer exists for it
+  ✓ ⭐ A1 control — a real shortfall still refuses the offer (expected null, got null)
+  ✓ ⭐ D2-1 control — the three producers agree BEFORE the move ({"card":"tight","summary":"tight","forecast":"tight"})
+  ✓ …and the cycle really is under the line, or the assertion below is vacuous (expected "tight", got "tight")
+  ✓ the card offers its one-tap move on this fixture
+  ✓ …of exactly the gap — floor − cushion (expected 50, got 50)
+  ✓ ⛔ D2-1 — the three producers agree AFTER the card's own offer ({"card":"stable","summary":"stable","forecast":"stable"})
+  ✓ …and the move genuinely cleared the line, which is why the card said so (expected "stable", got "stable")
+  ✓ the fixture projects past cycle 0, or the assertion below is vacuous
+  ✓ ⛔ D2-1 — the top-up reaches cycle 0 and NO projected cycle; the waterfall refills the goal (expected "[\"stable\",\"tight\",\"stable\",\"tight\"]", got "[\"stable\",\"tight\",\"stable\",\"tight\"]")
+✅ Guardian selector (RS.2) tests passed (114 asserts).
+  ✓ wholeDaysBetween: 3-day gap (expected 3, got 3)
+  ✓ wholeDaysBetween: same day = 0 (expected 0, got 0)
+  ✓ wholeDaysBetween: past date = negative (expected -3, got -3)
+  ✓ wholeDaysBetween: unparseable → 0 (never NaN) (expected 0, got 0)
+  ✓ wholeDaysBetween: spans DST, still whole days (expected 2, got 2)
+  ✓ free tier → no content (expected null, got null)
+  ✓ free tier → never runs (expected false, got false)
+  ✓ premium → content built
+  ✓ daysUntilPayday reflects the gap (expected 2, got 2)
+  ✓ countdownLabel: "in 2 days" (expected "in 2 days", got "in 2 days")
+  ✓ paydayDateISO = the payday (expected "2026-03-04", got "2026-03-04")
+  ✓ cycleProgress within (0,1]
+  ✓ guardianState mirrors the Guardian brief (expected "clear", got "clear")
+  ✓ title mirrors the Guardian brief (expected "Looks clear this paycheck", got "Looks clear this paycheck")
+  ✓ line is non-empty
+  ✓ label: Today (expected "Today", got "Today")
+  ✓ label: Tomorrow (expected "Tomorrow", got "Tomorrow")
+  ✓ shortfall → "short of your obligations" line
+  ✓ premium + 2 days + toggle on → runs (expected true, got true)
+  ✓ premium + 3 days (window edge) → runs (expected true, got true)
+  ✓ premium + 4 days (outside window) → no (expected false, got false)
+  ✓ toggle off → no (expected false, got false)
+  ✓ build() ignores the window gate
+  ✓ not running + should-run → start (expected "start", got "start")
+  ✓ start action carries a content key
+  ✓ running + unchanged read → none (expected "none", got "none")
+  ✓ running + changed read → update (expected "update", got "update")
+  ✓ running + outside window → end (expected "end", got "end")
+  ✓ running + free → end (expected "end", got "end")
+  ✓ not running + free → none (expected "none", got "none")
+  ✓ ⭐ the fixture really did lose the minimum
+  ✓ ⛔ D3-2 — the Lock Screen shows nothing rather than naming money free over an obligation nobody read (expected null, got null)
+  ✓ ⛔ D3-2 — …and a running activity is ENDED, not left showing the last figure (expected "end", got "end")
+  ✓ control — a readable minimum records no repair (expected 0, got 0)
+  ✓ ⭐ control — a plan the app read still drives the countdown
+  ✓ ⭐ control — a readable plan does NOT end the running activity
+
+  paydayActivityContent: 36 assertions passed
+
+  ✓ parse: null → [] (expected 0, got 0)
+  ✓ parse: bad JSON string → [] (expected 0, got 0)
+  ✓ parse: non-array JSON → [] (expected 0, got 0)
+  ✓ parse: unknown kind → dropped (expected 0, got 0)
+  ✓ parse: missing id → dropped (expected 0, got 0)
+  ✓ parse: mixed junk → keeps the valid one (expected 1, got 1)
+  ✓ parse: dedupe by id (expected 1, got 1)
+  ✓ parse: JSON-string array → 1 (expected 1, got 1)
+  ✓ parse: kind preserved (expected "payday-landed", got "payday-landed")
+  ✓ apply: payday-landed dispatches applyPaydayLandedIntent once (expected 1, got 1)
+  ✓ apply: correct action (the Undo-aware roll) (expected "applyPaydayLandedIntent", got "applyPaydayLandedIntent")
+  ✓ apply: returns the applied action (expected 1, got 1)
+  ✓ drain: applied 1 (expected 1, got 1)
+  ✓ drain: dispatched the store action (expected 1, got 1)
+  ✓ drain: cleared the queue after applying
+  ✓ drain: empty → nothing applied (expected 0, got 0)
+  ✓ drain: empty → no dispatch (expected 0, got 0)
+  ✓ drain: empty → no clear
+  ✓ drain: a throwing bridge is caught → [] (expected 0, got 0)
+  ✓ parse: valid log-payment kept (expected 1, got 1)
+  ✓ parse: log-payment missing amount → dropped (expected 0, got 0)
+  ✓ parse: log-payment missing debtId → dropped (expected 0, got 0)
+  ✓ parse: log-payment non-positive amount → dropped (expected 0, got 0)
+  ✓ parse: log-payment non-number amount → dropped (expected 0, got 0)
+  ✓ parse: log-payment fields preserved
+  ✓ apply: log-payment dispatches logManualPayment(debtId, amount) (expected "logManualPayment:visa:150", got "logManualPayment:visa:150")
+  ✓ apply: mixed queue applies both (expected 2, got 2)
+  ✓ apply: order preserved (expected "logManualPayment:car:90", got "logManualPayment:car:90")
+  ✓ 4a-1 control — a queued log-payment applies on its first drain
+  ✓ ⛔ 4a-1 — a log-payment that outlives its drain is not applied again after a second drain (return to foreground) (expected "{\"balance\":4750,\"payday\":\"2026-09-14\",\"cycles\":0}", got "{\"balance\":4750,\"payday\":\"2026-09-14\",\"cycles\":0}")
+  ✓ ⛔ 4a-1 — a log-payment that outlives its drain is not applied again after Undo (expected "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}", got "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}")
+  ✓ ⛔ 4a-1 — a log-payment that outlives its drain is not applied again after restoring a backup taken before the drain (expected "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}", got "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}")
+  ✓ 4a-1 control — a queued payday-landed applies on its first drain
+  ✓ ⛔ 4a-1 — a payday-landed that outlives its drain is not applied again after a second drain (return to foreground) (expected "{\"balance\":5038.46,\"payday\":\"2026-09-28\",\"cycles\":1}", got "{\"balance\":5038.46,\"payday\":\"2026-09-28\",\"cycles\":1}")
+  ✓ ⛔ 4a-1 — a payday-landed that outlives its drain is not applied again after Undo (expected "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}", got "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}")
+  ✓ ⛔ 4a-1 — a payday-landed that outlives its drain is not applied again after restoring a backup taken before the drain (expected "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}", got "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}")
+  ✓ ⛔ 4a-1 — a payday-landed that outlives its drain is not applied again after Delete all data (reset) (expected "{\"balance\":null,\"payday\":\"2026-09-28\",\"cycles\":0}", got "{\"balance\":null,\"payday\":\"2026-09-28\",\"cycles\":0}")
+  ✓ ⭐ 4a-1 control — two queued payments with two ids both apply (expected 4500, got 4500)
+  ✓ ⛔ 4a-1 — an unreadable record ("siri-1") does not skip the payment (expected 4750, got 4750)
+  ✓ ⛔ 4a-1 — an unreadable record ({"siri-1":true}) does not skip the payment (expected 4750, got 4750)
+  ✓ ⛔ 4a-1 — an unreadable record ([7,null]) does not skip the payment (expected 4750, got 4750)
+  ✓ 4a-1 — the record is capped (expected 50, got 50)
+  ✓ 4a-1 — …keeping the newest (expected "id-59", got "id-59")
+  ✓ 4a-1 — …and dropping the oldest
+  ✓ ⛔ 4a-1 — the record survives a relaunch (expected "id-10,id-11,id-12,id-13,id-14,id-15,id-16,id-17,id-18,id-19,id-20,id-21,id-22,id-23,id-24,id-25,id-26,id-27,id-28,id-29,id-30,id-31,id-32,id-33,id-34,id-35,id-36,id-37,id-38,id-39,id-40,id-41,id-42,id-43,id-44,id-45,id-46,id-47,id-48,id-49,id-50,id-51,id-52,id-53,id-54,id-55,id-56,id-57,id-58,id-59", got "id-10,id-11,id-12,id-13,id-14,id-15,id-16,id-17,id-18,id-19,id-20,id-21,id-22,id-23,id-24,id-25,id-26,id-27,id-28,id-29,id-30,id-31,id-32,id-33,id-34,id-35,id-36,id-37,id-38,id-39,id-40,id-41,id-42,id-43,id-44,id-45,id-46,id-47,id-48,id-49,id-50,id-51,id-52,id-53,id-54,id-55,id-56,id-57,id-58,id-59")
+  ✓ C3-6 control — the default next payday is after today, so "before payday" is a real state here
+  ✓ C3-6 control — one Lock Screen tap on payday rolls the plan once (expected 1, got 1)
+  ✓ ⛔ C3-6 — two Lock Screen taps for one payday, in one drain, roll the plan ONCE (expected 1, got 1)
+  ✓ ⛔ C3-6 — a second tap in a later drain names a payday the plan has already left (expected 1, got 1)
+  ✓ ⛔ C3-6 — two taps for one payday, drained after the next payday arrived, still roll once (expected 1, got 1)
+  ✓ ⛔ C3-6 — a tap naming a payday other than the next one on the plan rolls nothing (expected 0, got 0)
+  ✓ ⛔ C3-6 — an undated intent before payday rolls nothing (expected 0, got 0)
+  ✓ C3-6 — undated intents on payday roll the plan once (expected 1, got 1)
+  ✓ ⛔ C3-6 — after an in-app capture or skip, a Lock Screen tap rolls the cycle Today offers (expected 1, got 1)
+  ✓ C3-6 — parse: a dated payday-landed keeps its date
+  ✓ C3-6 — parse: an undated payday-landed stays undated
+  ✓ ⛔ C3-6 — parse: an unreadable payday date ("2026/09/14") drops the entry rather than rolling undated (expected 0, got 0)
+  ✓ ⛔ C3-6 — parse: an unreadable payday date (12) drops the entry rather than rolling undated (expected 0, got 0)
+  ✓ ⛔ C3-6 — parse: an unreadable payday date (null) drops the entry rather than rolling undated (expected 0, got 0)
+  ✓ ⛔ C3-6 — parse: an unreadable payday date ("") drops the entry rather than rolling undated (expected 0, got 0)
+
+  pendingActions (AppIntent bridge): 60 assertions passed
+
+
+▶ C3-7 — Siri claims only what has happened, and never wipes the queue
+  ✓ the intent source was actually read
+  ✓ ⛔ the past-tense claim is gone — nothing is logged when this is spoken
+  ✓ …replaced by what is true at that instant, and what the user must still do
+  ✓ a suite that will not open RETURNS, rather than falling through to the success sentence
+  ✓ …and BOTH failure paths say so — the suite and the unreadable queue
+  ✓ ../../plugins/app-intents-swift/LogPaymentIntent.swift writes the queue (or this list is stale)
+  ✓ ../../plugins/app-intents-swift/LogPaymentIntent.swift: ⛔ the read that cannot tell "absent" from "unreadable" is gone
+  ✓ ../../plugins/app-intents-swift/LogPaymentIntent.swift: …it reads the raw value first, so those two are told apart
+  ✓ ../../modules/live-activity/ios/PaydayLandedIntent.swift writes the queue (or this list is stale)
+  ✓ ../../modules/live-activity/ios/PaydayLandedIntent.swift: ⛔ the read that cannot tell "absent" from "unreadable" is gone
+  ✓ ../../modules/live-activity/ios/PaydayLandedIntent.swift: …it reads the raw value first, so those two are told apart
+  ✓ ../../targets/widget/PaydayLandedIntent.swift writes the queue (or this list is stale)
+  ✓ ../../targets/widget/PaydayLandedIntent.swift: ⛔ the read that cannot tell "absent" from "unreadable" is gone
+  ✓ ../../targets/widget/PaydayLandedIntent.swift: …it reads the raw value first, so those two are told apart
+  ✓ the two PaydayLandedIntent copies are still byte-identical from the struct down
+  ✓ ../../modules/live-activity/ios/PaydayLandedIntent.swift: the intent carries the payday it was tapped for
+  ✓ ../../modules/live-activity/ios/PaydayLandedIntent.swift: …and queues it with the action
+  ✓ ../../targets/widget/PaydayLandedIntent.swift: the intent carries the payday it was tapped for
+  ✓ ../../targets/widget/PaydayLandedIntent.swift: …and queues it with the action
+  ✓ ⛔ C3-6 — the Lock Screen button passes the payday its activity was started for
+  ✓ ⛔ C3-6 — no undated Lock Screen button is left
+
+✅ C3-7 — 21 assertion(s) passed (source only; the spoken half is a device row)
+
+
+  keyCommandBus: 5 assertions passed
+
+
+  debtFreeBand: 7 assertions passed
+
+Running store-action (RS.3) tests...
+  ✓ removeDebt removes exactly the debt named (expected 1, got 1)
+  ✓ … and leaves the other one alone (expected "debt-2026-09-01-1", got "debt-2026-09-01-1")
+  ✓ a STILL-REFERENCED deleted id is not re-issued (minted debt-2026-09-01-3)
+  ✓ … with nothing referencing it, the id IS free again — the set is the document, not a counter (expected "debt-2026-09-01-2", got "debt-2026-09-01-2")
+  ✓ removeExpense removes the bill (expected 0, got 0)
+  ✓ removeLivingExpense removes the everyday line (expected 0, got 0)
+  ✓ removeGoal removes the goal (expected 0, got 0)
+  ✓ removing an id that does not exist changes nothing (expected "[{\"id\":\"debt-2026-09-01-1\",\"name\":\"Visa\",\"balance\":1000,\"minimumPayment\":50,\"apr\":20,\"dueDate\":\"2026-09-04\",\"type\":\"debt\",\"recurrence\":\"monthly\"}]", got "[{\"id\":\"debt-2026-09-01-1\",\"name\":\"Visa\",\"balance\":1000,\"minimumPayment\":50,\"apr\":20,\"dueDate\":\"2026-09-04\",\"type\":\"debt\",\"recurrence\":\"monthly\"}]")
+  ✓ capture (fixed, no actuals) → 1 income-actual logged (expected 1, got 1)
+  ✓ …actual defaults to the planned amount (expected 2000, got 2000)
+  ✓ …keyed to this cycle (expected "2026-09-28", got "2026-09-28")
+  ✓ capture with a reported actual → records it (expected 1800, got 1800)
+  ✓ capture missed → NO income-actual (not a low-earning cycle) (expected 0, got 0)
+  ✓ …recorded on the arrival axis instead
+  ✓ capture with a surprise outflow → logged (expected 1, got 1)
+  ✓ non-positive outflow → ignored (no crash) (expected 0, got 0)
+  ✓ re-capture same cycle → replaces, still 1 entry (expected 1, got 1)
+  ✓ …with the corrected value (expected 1500, got 1500)
+  ✓ variable income, no actual → skipped (expected 0, got 0)
+  ✓ rollover advances currentDate to the old payday (expected "2026-09-28", got "2026-09-28")
+  ✓ …and advances nextPaycheckDate
+  ✓ …increments the genuine-cycle counter (expected 1, got 1)
+  ✓ …clears the one-time windfall (expected 0, got 0)
+  ✓ …resets completed actions for the new cycle (expected 0, got 0)
+  ✓ …appends a closing-cycle snapshot (expected 1, got 1)
+  ✓ double rollover → counter advances again (no crash) (expected 2, got 2)
+  ✓ …second snapshot appended (expected 2, got 2)
+  ✓ declareMissedPaycheck → marks THIS cycle
+  ✓ …idempotent (declaring twice keeps one) (expected 1, got 1)
+  ✓ undoMissedPaycheck → clears it (expected 0, got 0)
+  ✓ applyLeanSuggestion → sets the lean floor (expected 1600, got 1600)
+  ✓ …and clears any prior dismissal (expected undefined, got undefined)
+  ✓ dismissLeanSuggestion → records the dismissed value (expected 1550, got 1550)
+  ✓ applyTightTopUp → draws the amount from the goal (expected 300, got 300)
+  ✓ …records the cycle top-up (expected 200, got 200)
+  ✓ …keyed to this cycle (expected "2026-09-28", got "2026-09-28")
+  ✓ repeat top-up same cycle → accumulates (expected 300, got 300)
+  ✓ over-draw → goal clamped at 0 (never negative) (expected 0, got 0)
+  ✓ ⛔ B3 — the record holds what actually LEFT the goal, not what was asked for (expected 500, got 500)
+  ✓ A3.5 — an applied top-up is exposed as a reversible record
+  ✓ …naming the goal it drew from (expected "g0", got "g0")
+  ✓ …and the amount (expected 200, got 200)
+  ✓ …undo restores the goal to where it started (expected 500, got 500)
+  ✓ …and there is nothing left to undo (expected null, got null)
+  ✓ B3 — the cycle total is still the sum of both draws (expected 120, got 120)
+  ✓ ⛔ B3 — the Guardian card offers its own draw, not the cycle total (expected 70, got 70)
+  ✓ ⛔ B3 — …from its own goal, not whichever source wrote last (expected "S1", got "S1")
+  ✓ ⛔ B3 — S1 gets its $70 back (it used to land in S2, permanently) (expected 100, got 100)
+  ✓ …and S2 keeps only its own $50 drawn (expected 10, got 10)
+  ✓ …the record retains the affordability draw alone (expected 50, got 50)
+  ✓ B3 — both draws leave the one goal (expected 380, got 380)
+  ✓ B3 — the Guardian undo returns exactly its own $70 (expected 450, got 450)
+  ✓ ⛔ B3 — the second undo returns its own $50 and no more (expected 500, got 500)
+  ✓ ⛔ B3 — a repeated undo is a NO-OP; it used to drive the record to −50 where Math.max(0,…) hid it (expected 500, got 500)
+  ✓ …and the record cannot go negative (expected 0, got 0)
+  ✓ ⛔ B3 — Σ cycleTopUp === what actually LEFT the goals (expected 130, got 130)
+  ✓ …which is $70 + the $60 S2 could actually supply, not the $9,999 asked for (expected 130, got 130)
+  ✓ ⛔ B3 — an unknown goalId records NOTHING (it used to credit the cushion anyway) (expected 0, got 0)
+  ✓ ⭐ B3 legacy — an entry-less record still reads as the Guardian’s own draw (expected 70, got 70)
+  ✓ ⭐ B3 legacy — …and is still undoable, back to the goal it names (expected 170, got 170)
+  ✓ D2-2 — both covers left the goal (expected 920, got 920)
+  ✓ ⛔ D2-2 — the Undo returns the LAMP’s $30; it used to hand back the cycle’s $80 (expected 950, got 950)
+  ✓ …and the couch’s cover still stands — that is what silently vanished (expected 50, got 50)
+  ✓ control — the Guardian card offers the accumulated $80 (expected 80, got 80)
+  ✓ ⭐ control — …and its Undo still returns exactly that, all of it (expected 1000, got 1000)
+  ✓ ⛔ D2-2 — a stale draw returns only what the entry HOLDS, never the number asked for (expected 1000, got 1000)
+  ✓ …and the repeat is still a no-op — [B3]’s guarantee survives the partial path (expected 1000, got 1000)
+  ✓ ⛔ D2-2 — S1’s own draw comes home to S1, not to the entry written last (expected 100, got 100)
+  ✓ …and S2’s draw is untouched (matching on source alone would have paid S2 $50 of it) (expected 10, got 10)
+  ✓ …leaving exactly S2’s $50 on the record (expected 50, got 50)
+  ✓ applyRiskNotified → stamps the notify-state (expected "at-risk", got "at-risk")
+  ✓ …appends the push-log timestamp (expected 1, got 1)
+  ✓ push-log bounded to 24 (never grows unbounded) (expected 24, got 24)
+  ✓ acknowledgeRiskCleared → clears the notify-state (expected null, got null)
+  ✓ floor 213 → snapped to the nearest 25 (expected 225, got 225)
+  ✓ floor above the cap → clamped to 1000 (expected 1000, got 1000)
+  ✓ negative floor → clamped to 0 (expected 0, got 0)
+  ✓ NaN floor → guarded to the 200 default (expected 200, got 200)
+  ✓ Infinity floor → guarded to 200 (expected 200, got 200)
+  ✓ negative windfall → clamped to 0 (expected 0, got 0)
+  ✓ positive windfall → kept (expected 250, got 250)
+  ✓ verifyDebtBalance → negative clamped to 0 (expected 0, got 0)
+  ✓ …stamps the confirmation date (expected "2026-08-01", got "2026-08-01")
+  ✓ …and the projection anchor date (expected "2026-08-01", got "2026-08-01")
+  ✓ …fractional cents rounded to 2dp (expected 1234.57, got 1234.57)
+  ✓ verifyDebtBalances → per-entry clamp (expected 0, got 0)
+  ✓ …unknown id ignored (no phantom debt) (expected 1, got 1)
+  ✓ updateDebt — a balance corrected UPWARD raises the high-water mark (expected 5000, got 5000)
+  ✓ …so "paid" can never be negative
+  ✓ verifyDebtBalances — the batch raises it too (expected 5000, got 5000)
+  ✓ verifyDebtBalance (singular) — the seam the plan row omitted (expected 5000, got 5000)
+  ✓ …and paying down leaves the mark alone (expected 12000, got 12000)
+  ✓ reserve held→free at rollover → a release is pending
+  ✓ …no surprise outflow → not tapped (expected false, got false)
+  ✓ selectReserveRelease surfaces it (premium)
+  ✓ free tier → no release ack (expected null, got null)
+  ✓ acknowledgeReserveRelease → clears it (expected null, got null)
+  ✓ a surprise during the hold → tapped (expected true, got true)
+  ✓ …covered = the surprise sum (expected 120, got 120)
+  ✓ established (no reserve) → no false release (expected null, got null)
+  ✓ ⛔ S1.12.10 — a surprise BEFORE the hold began is not credited to it (expected 0, got 0)
+  ✓ …and nothing covered means the ack does not claim it was tapped (expected false, got false)
+  ✓ ⭐ S1.12.10 — a surprise DURING the hold is still credited in full (expected 120, got 120)
+  ✓ discovery hold → a safety net is held
+  ✓ attesting bills → a SMALLER (not zero) safety net
+  ✓ discovery hold (premium) → the attestation affordance shows (expected true, got true)
+  ✓ free → no attestation affordance (expected false, got false)
+  ✓ …reflects the attested state (expected true, got true)
+  ✓ no above-floor headroom → attesting changes the hold by nothing (expected 0, got 0)
+  ✓ A3.1 — …so the affordance is WITHHELD, not offered (expected false, got false)
+  ✓ surprise after attesting → un-attests (restores the full hold) (expected false, got false)
+  ✓ …and flags the walk-back notice (expected true, got true)
+  ✓ selectReserveWalkback surfaces it (premium) (expected true, got true)
+  ✓ surprise WITHOUT a prior attestation → no walk-back (expected null, got null)
+  ✓ setBillsAttested → sets it (expected true, got true)
+  ✓ acknowledgeReserveWalkback → clears it (expected null, got null)
+  ✓ markDebtMinimumPaid(true) → the minimum reads covered (expected true, got true)
+  ✓ …and clears the reported autopay failure (expected false, got false)
+  ✓ markExpensePaid(true) → the bill reads paid (expected true, got true)
+  ✓ …and clears the reported autopay failure (expected false, got false)
+  ✓ un-marking → no longer covered (expected false, got false)
+  ✓ …and the cleared failure stays cleared (expected false, got false)
+  ✓ an UNPAID failed autopay carries its flag forward — never falsely presumed paid (expected true, got true)
+  ✓ …and stays owed across the boundary (expected false, got false)
+  ✓ …but a confirmed one advances CLEAN, so autopay is presumed again next cycle (expected false, got false)
+  ✓ reset → clears entities (expected 0, got 0)
+  ✓ …and returns to onboarding (expected false, got false)
+  ✓ …staying hydrated (expected true, got true)
+  ✓ runMigrations(null) → throws (caller quarantines)
+  ✓ runMigrations(array) → throws
+  ✓ runMigrations(string) → throws
+  ✓ partial blob → stamped to the current version (expected 7, got 7)
+  ✓ …genuineCycleCount backfilled to 0 (expected 0, got 0)
+  ✓ …missedArrivals backfilled to []
+  ✓ …inputsAsOf backfilled to a date
+  ✓ …debt projection dates backfilled
+  ✓ …preserves the persisted paycheck amount (expected "1500", got "1500")
+  ✓ runMigrations is idempotent (version stable) (expected 7, got 7)
+  ✓ …fields stable on re-migrate (expected 0, got 0)
+  ✓ importStore → routes through migration (expected 7, got 7)
+  ✓ …substrate fields safe, never undefined (expected 0, got 0)
+  ✓ logManualPayment: balance reduced by the amount (expected 3800, got 3800)
+  ✓ …re-anchors the verified date to today (expected "2026-09-14", got "2026-09-14")
+  ✓ …sets the log-payment Undo snapshot
+  ✓ undoIntentAction: restores the pre-payment balance (expected 5000, got 5000)
+  ✓ …clears the rollback (expected null, got null)
+  ✓ logManualPayment: overpay clamps to 0 (never negative) (expected 0, got 0)
+  ✓ logManualPayment: bad id / non-positive amount → no-op
+  ✓ B2 — clearing the first of two stamps the per-debt beat (expected "beat", got "beat")
+  ✓ ⛔ B2 — clearing the LAST debt while a beat is pending UPGRADES to the finale (it was silently dropped) (expected "finale", got "finale")
+  ✓ B2 control — the first of three stamps a beat (expected "beat", got "beat")
+  ✓ ⛔ B2 — a SECOND beat does not displace the first: the earned moment is preserved, object-identical
+  ✓ control — clearing the only debt stamps the finale (expected "finale", got "finale")
+  ✓ control — clearing one of two live debts is a BEAT, not a second finale (expected "beat", got "beat")
+  ✓ ⛔ C-3 — a BEAT never displaces an unconsumed finale: it is once-ever, and this is the only arm that guards it
+  ✓ addDebt derives an installment-native BNPL balance (50 × 4) (expected 200, got 200)
+  ✓ ⛔ B4 — convertExpenseToDebt derives it IDENTICALLY; it used to store $0 (expected 200, got 200)
+  ✓ B4 — …and the same minimum (expected 50, got 50)
+  ✓ B4 — …and the same originalBalance carve-out (expected undefined, got undefined)
+  ✓ B4 — the converted expense is removed (expected 0, got 0)
+  ✓ B4 control — addDebt leaves the bill in place (expected "e1", got "e1")
+  ✓ B2 control — the payment lands (expected 4800, got 4800)
+  ✓ ⭐ B2 control — an IMMEDIATE Undo still reverses the payment (expected 5000, got 5000)
+  ✓ B2 — the snapshot is armed by the payment
+  ✓ ⛔ B2 — an unrelated edit INVALIDATES the whole-store snapshot (expected null, got null)
+  ✓ ⛔ B2 — the later edit survives; Undo cannot reach back past it (expected 1, got 1)
+  ✓ …and the payment is NOT silently reversed either — there is nothing to undo (expected 4800, got 4800)
+  ✓ ⛔ B2 — importStore (restore a backup) invalidates it too (expected null, got null)
+  ✓ ⛔ B2 — the freshly-restored portfolio is not replaced by the pre-restore one (expected "dX", got "dX")
+  ✓ ⛔ B2 — reset() invalidates it too (expected null, got null)
+  ✓ ⭐ B2 control — arming does not self-invalidate (the writer patches both keys at once)
+✅ Store-action (RS.3) tests passed (171 asserts).
+Running persistence-lifecycle (RS.5) tests...
+  ✓ first launch → hydrated (expected true, got true)
+  ✓ …seeds the blob exactly once (expected 1, got 1)
+  ✓ …seeded blob at the current version (expected 7, got 7)
+  ✓ clean hydrate → data loaded (expected 1, got 1)
+  ✓ …current-version blob is NOT rewritten (no needless churn) (expected 0, got 0)
+  ✓ upgrade hydrate → migrated to current (expected 7, got 7)
+  ✓ …the migration is persisted (expected 1, got 1)
+  ✓ corrupt blob → quarantined exactly once (expected 1, got 1)
+  ✓ …with the right reason (expected "migration-failed", got "migration-failed")
+  ✓ …store reset to fresh defaults (expected false, got false)
+  ✓ …fresh defaults overwrite the corrupt bytes (expected 1, got 1)
+  ✓ …and we stay hydrated (never brick the app) (expected true, got true)
+  ✓ …⛔ and the reset is DECLARED, so the app can say so (expected "data-reset", got "data-reset")
+  ✓ ⛔ a successful import clears the data-reset it disproves (expected null, got null)
+  ✓ an unreadable adapter declares read-failed (expected "read-failed", got "read-failed")
+  ✓ …and an import does NOT clear it — nothing is being saved (expected "read-failed", got "read-failed")
+  ✓ hydrate repairs a stranded stamp — the ring stops reading 0% (expected 5000, got 5000)
+  ✓ …and a healthy paid-down debt is untouched (expected 12000, got 12000)
+  ✓ malformed nested blob is REPAIRED, not quarantined (expected 0, got 0)
+  ✓ …the unreadable list is empty (expected 0, got 0)
+  ✓ …⭐ but the income SURVIVES (it used to be discarded) (expected "2100", got "2100")
+  ✓ …and so do the goals (expected 1, got 1)
+  ✓ …⛔ and the loss is REPORTED, never silent (expected 1, got 1)
+  ✓ …naming what could not be read (expected "debt", got "debt")
+  ✓ …and we stay hydrated (expected true, got true)
+  ✓ …⛔ and it is held for the USER, not just recorded (expected 1, got 1)
+  ✓ ⛔ a null DEBT row is dropped, and its sibling survives (expected 1, got 1)
+  ✓ ⛔ a null GOAL row is dropped, and its sibling survives (expected 1, got 1)
+  ✓ ⛔ a null BILL row is dropped — it used to survive into the store (expected 1, got 1)
+  ✓ ⛔ a non-object EXPENSE row is dropped — same, and neither was in the finding (expected 1, got 1)
+  ✓ …the surviving debt is the real one, not a hole (expected "Card", got "Card")
+  ✓ …and the surviving goal is the real one (expected "Kept", got "Kept")
+  ✓ …⭐ and the income survives, which the whole-blob quarantine destroyed (expected "2100", got "2100")
+  ✓ ⛔ every dropped row is REPORTED, by entity (expected "debt,goal,livingExpense,requiredExpense", got "debt,goal,livingExpense,requiredExpense")
+  ✓ …as a LOSS, never as a recovery — nothing about the row was read (expected true, got true)
+  ✓ …and held for the user, not just recorded for this read (expected 4, got 4)
+  ✓ ⛔ a null row no longer quarantines the WHOLE portfolio (expected 0, got 0)
+  ✓ …and there is no data-reset to declare, because none happened (expected null, got null)
+  ✓ …the good goal is still here (expected 1, got 1)
+  ✓ …and so is the income (expected "2100", got "2100")
+  ✓ …and we stay hydrated (expected true, got true)
+  ✓ the unreadable balance is repaired and reported (expected 1, got 1)
+  ✓ …and queued for the user (expected 1, got 1)
+  ✓ …naming the debt they have to fix (expected "Chase card", got "Chase card")
+  ✓ ⛔ the per-read list is empty on the clean pass (expected 0, got 0)
+  ✓ …⭐ but the user has still not been told, so it STANDS (expected 1, got 1)
+  ✓ …with the name intact (expected "Chase card", got "Chase card")
+  ✓ acknowledging KEEPS the record (expected 1, got 1)
+  ✓ …and marks it acknowledged (expected true, got true)
+  ✓ …and the ack survives a re-hydrate, so the card does not nag (expected true, got true)
+  ✓ array blob → quarantined (expected 1, got 1)
+  ✓ save → writes through the adapter (expected 2, got 2)
+  ✓ …and clears the saving flag when done (expected false, got false)
+  ✓ read throws → writes NOTHING (a failed read must never overwrite the real data) (expected 0, got 0)
+  ✓ …and hydration RESOLVES (never a permanent blank screen) (expected true, got true)
+  ✓ …and records why, so the layout can offer a retry (expected "read-failed", got "read-failed")
+  ✓ bootstrap over a failed read → error state (expected "read-failed", got "read-failed")
+  ✓ …and an edit afterwards still writes nothing (no autosave subscription installed) (expected 0, got 0)
+  ✓ ⛔ an inconclusive bridge writes NOTHING — the retry survives to the next launch (expected 0, got 0)
+  ✓ …and the app still opens (hydration resolves on defaults) (expected true, got true)
+  ✓ …without claiming a storage fault, because there was not one (expected null, got null)
+  ✓ ⭐ …and storage is STILL empty, which is the whole retry mechanism (expected null, got null)
+  ✓ ⛔ a lossy migration REPORTS to the user, not only to Sentry
+  ✓ …naming the unrecognised item (got: ["1 item(s) from your old version were not recognised","1 value(s) from your old version could not be read"])
+  ✓ and a DELIBERATE drop is never reported as a loss
+  ✓ …while the migration itself still landed (expected "2400", got "2400")
+  ✓ ⭐ a confirmed fresh install DOES seed (the fix must not strand every new user)
+  ✓ a pref change writes WITHOUT waiting out the debounce
+  ✓ a non-pref edit does NOT write immediately (the debounce still coalesces) (expected 0, got 0)
+  ✓ …and lands once the debounce elapses
+  ✓ write throws → recorded (was: silent, lost at next launch) (expected "save-failed", got "save-failed")
+  ✓ …and the saving flag still clears (the finally still runs) (expected false, got false)
+  ✓ …a later successful write clears it (transient faults stop nagging) (expected null, got null)
+  ✓ future version → stamped to current (expected 7, got 7)
+  ✓ partial prefs → the set field is preserved (expected "dark", got "dark")
+  ✓ …and the unset prefs fall back to defaults (expected false, got false)
+  ✓ unknown field → passed through (forward-compat) (expected 42, got 42)
+  ✓ goal repair → the fixture allocates at all (guards a vacuous pass)
+  ✓ goal repair → a goal whose pace could not be read is NOT funded ahead of debt (got $0)
+  ✓ goal repair → a READABLE pace is untouched: still funded, still capped at its pace (expected 200, got 200)
+  ✓ goal repair → a comma-grouped pace is RECOVERED, not lost (expected 1200, got 1200)
+  ✓ ⛔ …and the goal keeps its priority: the value was read, so nothing was lost (expected true, got true)
+  ✓ …while the unreadable targetAmount beside it is still reported
+  ✓ ⛔ the comma-grouped pace is recorded as RECOVERED, not lost (expected "recovered", got "recovered")
+  ✓ …while the unreadable target beside it is recorded as a loss (expected "lost", got "lost")
+  ✓ a pace of "0" stands the goal down (expected false, got false)
+  ✓ ⛔ …and the record says LOST, though the string itself parsed (expected "lost", got "lost")
+  ✓ ⛔ a stored pace of 0 stands the goal down, with no repair record to go on (expected false, got false)
+  ✓ …and the meaningless cap is cleared (expected undefined, got undefined)
+  ✓ ⛔ …and the stand-down is REPORTED — a silent change to the plan is what this module forbids (expected 1, got 1)
+  ✓ …as a loss, so the card offers the action rather than "your plan is using it" (expected "lost", got "lost")
+  ✓ …naming the goal, because the card has to say WHICH one (expected "Roof", got "Roof")
+  ✓ …and stating the consequence, which is the half a field name cannot carry
+  ✓ goal repair → the goal survives (expected 1, got 1)
+  ✓ goal repair → a grouped targetAmount is read, not dropped (expected 4000, got 4000)
+  ✓ goal repair → an unreadable currentAmount becomes 0 (expected 0, got 0)
+  ✓ goal repair → surfaces as a `goal` DataRepair rather than being applied silently
+✅ Persistence-lifecycle (RS.5) tests passed (97 asserts).
+Running Recovery Plan (2.6.4) tests...
+  ✓ no shortfall → null (expected null, got null)
+  ✓ shortfall → a plan
+  ✓ gap = the allocation shortfall (896 − 850) (expected 46, got 46)
+  ✓ cover-now = essentials (rent) + the debt minimum (expected "card,rent", got "card,rent")
+  ✓ debt minimum is essential (cover-now), amount = the minimum (expected 50, got 50)
+  ✓ safe-to-defer = deferrable, ranked largest-first (music 30, netflix 16) (expected "music,netflix", got "music,netflix")
+  ✓ both needed to cross the $46 gap (expected "music,netflix", got "music,netflix")
+  ✓ deferrable 46 ≥ gap 46 → closeable (expected true, got true)
+  ✓ closeable → no residual (expected 0, got 0)
+  ✓ a deferability override moves an essential-category bill to safe-to-defer
+  ✓ …and the overridden rent leaves cover-now
+  ✓ an `other` bill defaults to essential (cover-now), never safe-to-defer
+  ✓ …and is not offered for deferral
+  ✓ an autopay subscription is excluded from safe-to-defer (the charge fires regardless)
+  ✓ …and lands in cover-now instead
+  ✓ deferExpense → due date moves to next payday (expected "2026-09-28", got "2026-09-28")
+  ✓ after deferring music ($30) → gap shrinks 46 → 16 (expected 16, got 16)
+  ✓ after deferring netflix too → gap closed, recovery clears (expected null, got null)
+  ✓ setDeferability sets the override (expected "essential", got "essential")
+  ✓ …without re-stamping read-freshness (stale stays stale) (expected "2020-01-01", got "2020-01-01")
+  ✓ A3.7 — an applied purchase is offered as safe-to-defer
+  ✓ …and is not filed as cover-now beside the rent
+  ✓ …while an UNcategorized one-off is still essential (the unknown-default guard stands)
+✅ Recovery Plan (2.6.4 + MF.1) tests passed (23 asserts).
+Running required-row re-add (3.7.B.1) tests...
+  ✓ unpaid minimum → one required row
+  ✓ unpaid minimum → the row does not read as paid
+  ✓ `minimumPaidThisCycle` → the paid row is re-added, not dropped
+  ✓ `minimumPaidThisCycle` → the row reads as paid (struck through)
+  ✓ legacy `isPaidThisCycle` → the paid row is re-added, not dropped
+  ✓ legacy `isPaidThisCycle` → the row reads as paid (struck through)
+  ✓ both flags → one row, not two (the re-add respects `shownDebts`)
+  ✓ no history → no streak
+  ✓ three on-plan cycles → 3
+  ✓ a broken cycle ends the run (counts back from the latest)
+  ✓ the MOST RECENT cycle off-plan → 0, whatever came before
+  ✓ a single cycle is below the floor (2) → no claim
+  ✓ at the floor → the caption
+  ✓ …and counts up
+  ✓ an off-plan cycle → nothing to say
+  ✓ legacy snapshots with no `allRequiredMet` count as on-plan
+✅ required-row re-add + on-plan streak (3.7.B.1/B.3) tests passed (16 asserts).
+Running Today greeting (3.7.B.2) tests...
+  ✓ 04:59 is still evening (the small hours) (expected "evening", got "evening")
+  ✓ 05:00 opens morning (expected "morning", got "morning")
+  ✓ 11:59 is still morning (expected "morning", got "morning")
+  ✓ noon opens afternoon (expected "afternoon", got "afternoon")
+  ✓ 16:59 is still afternoon (expected "afternoon", got "afternoon")
+  ✓ 17:00 opens evening (expected "evening", got "evening")
+  ✓ late night is evening (expected "evening", got "evening")
+  ✓ midnight is evening, not morning (expected "evening", got "evening")
+  ✓ hour 24 wraps to 0 (expected "evening", got "evening")
+  ✓ a negative hour wraps, not crashes (expected "evening", got "evening")
+  ✓ NaN falls back rather than producing "undefined" (expected "afternoon", got "afternoon")
+  ✓ unset → undefined (expected undefined, got undefined)
+  ✓ empty → undefined (expected undefined, got undefined)
+  ✓ whitespace-only → undefined (cleared === never set) (expected undefined, got undefined)
+  ✓ trimmed (expected "Jason", got "Jason")
+  ✓ interior whitespace collapses (expected "Jason R", got "Jason R")
+  ✓ a long name is capped so the title cannot wrap (expected 24, got 24)
+  ✓ no name → the bare time-of-day greeting (expected "Good morning", got "Good morning")
+  ✓ a name personalises it (expected "Good morning, Jason", got "Good morning, Jason")
+  ✓ …in every band (expected "Good afternoon, Jason", got "Good afternoon, Jason")
+  ✓ …in every band (expected "Good evening, Jason", got "Good evening, Jason")
+  ✓ a whitespace name is no name — never "Good morning, " (expected "Good morning", got "Good morning")
+✅ Today greeting (3.7.B.2) tests passed (22 asserts).
+✅ journeySelectors: 30 assertions
+Running strategy comparison (C7) tests...
+  ✓ identical date and order → nothing to choose between (expected false, got false)
+  ✓ and it says so plainly (expected "On your debts, these two produce exactly the same plan.", got "On your debts, these two produce exactly the same plan.")
+  ✓ same date but a different first win still differs (expected true, got true)
+  ✓ the finish is a tie (expected 0, got 0)
+  ✓ snowball wins the first debt 19 months sooner (expected 19, got 19)
+  ✓ the takeaway leads with the tie and then names the real difference (expected "Same debt-free date, snowball clears your first debt 19 months sooner.", got "Same debt-free date, snowball clears your first debt 19 months sooner.")
+  ✓ a reshuffled order differs (expected true, got true)
+  ✓ snowball clears the smallest first (expected "A", got "A")
+  ✓ avalanche clears the most expensive first (expected "D", got "D")
+  ✓ and snowball is one month sooner to a first win (expected 1, got 1)
+  ✓ avalanche finishes 2 months sooner (expected 2, got 2)
+  ✓ and the takeaway leads with it
+  ✓ the takeaway states no dollar or interest claim
+  ✓ and the comparison carries no interest field to render
+  ✓ no curve → no debt-free month (expected null, got null)
+  ✓ no clears → no first-win comparison (expected null, got null)
+  ✓ nothing to compare is not a difference (expected false, got false)
+  ✓ one side never clearing yields no finish delta (expected null, got null)
+  ✓ and no first-win delta (expected null, got null)
+  ✓ ⛔ the takeaway is a sentence, not the bare "." this used to return
+  ✓ and it names the difference that matters: only one of the two reaches zero at all
+  ✓ and it is a whole sentence
+  ✓ the two orders differ even though neither plan reaches zero
+  ✓ and there is no finish delta to state (expected null, got null)
+  ✓ ⛔ the backstop speaks rather than returning "." (expected "These two clear your debts in a different order.", got "These two clear your debts in a different order.")
+  ✓ a month-0 clear is not counted as the first win (expected 4, got 4)
+  ✓ the plans DO differ — the last debt lands two months apart
+  ✓ and the first win is the same month, which is what used to trigger the arm (expected 0, got 0)
+  ✓ ⛔ …while the ORDER is identical — Visa then Car loan under both (expected "Visa|Car loan", got "Visa|Car loan")
+  ✓ ⛔ so the takeaway must NOT claim the order changes — "Avalanche finishes 2 months sooner."
+  ✓ …and it states the difference that IS there (expected "Avalanche finishes 2 months sooner.", got "Avalanche finishes 2 months sooner.")
+  ✓ same first-win month (expected 0, got 0)
+  ✓ a REAL order change is still named — the arm is gated, not removed
+
+✅ strategy comparison: 33 assertions passed
+
+Running payoff trajectory domain (P1-3) tests...
+  ✓ an 8-month plan against a 109-month ghost gets a 10-month axis, not 109 (expected 10, got 10)
+  ✓ the user’s own curve now occupies most of the width
+  ✓ a 2-month payoff is floored, not clamped to 2 (expected 6, got 6)
+  ✓ the domain reaches the LEAN date, not just the active one (got 40)
+  ✓ and it is the lean end plus the margin, not the ghost’s extent (expected 40, got 40)
+  ✓ a plan that never pays off keeps the full extent (expected 600, got 600)
+  ✓ with nothing longer to show, the axis stops at the data (expected 20, got 20)
+  ✓ an empty chart yields a finite domain (got 1)
+  ✓ truncation returns something
+  ✓ the kept tail crosses the edge (last month 11)
+  ✓ and it crosses by exactly one point, not more (expected 11, got 11)
+  ✓ a curve inside the domain is untouched (expected 9, got 9)
+  ✓ at 1× the estimate is the unscaled width (expected 72, got 72)
+  ✓ it grows with font scale
+  ✓ and stops at the label ceiling (expected 86.39999999999999, got 86.39999999999999)
+  ✓ a system scale BELOW 1 shrinks it — the bound tracks the text rather than assuming a floor of 1
+  ✓ a missing date reserves an 8-character label's worth — the same as "Oct 2026" (expected 72, got 72)
+  ✓ a longer label estimates wider — the month NAME is what moves this, not the year
+  ✓ 30 months is 2.5 years and must not be sold as 3 (expected "2 years", got "2 years")
+  ✓ 42 months is 3.5 years and must not be sold as 4 (expected "3 years", got "3 years")
+  ✓ and 29 months still reads 2, not 3 (expected "2 years", got "2 years")
+  ✓ and 41 months still reads 3, not 4 (expected "3 years", got "3 years")
+  ✓ the boundary into years (expected "2 years", got "2 years")
+  ✓ under 24 stays in months (expected "23 months", got "23 months")
+  ✓ one month is singular (expected "1 month", got "1 month")
+  ✓ formatMonths(24) states 2y, never more than the true 2.00y
+  ✓ formatMonths(25) states 2y, never more than the true 2.08y
+  ✓ formatMonths(26) states 2y, never more than the true 2.17y
+  ✓ formatMonths(27) states 2y, never more than the true 2.25y
+  ✓ formatMonths(28) states 2y, never more than the true 2.33y
+  ✓ formatMonths(29) states 2y, never more than the true 2.42y
+  ✓ formatMonths(30) states 2y, never more than the true 2.50y
+  ✓ formatMonths(31) states 2y, never more than the true 2.58y
+  ✓ formatMonths(32) states 2y, never more than the true 2.67y
+  ✓ formatMonths(33) states 2y, never more than the true 2.75y
+  ✓ formatMonths(34) states 2y, never more than the true 2.83y
+  ✓ formatMonths(35) states 2y, never more than the true 2.92y
+  ✓ formatMonths(36) states 3y, never more than the true 3.00y
+  ✓ formatMonths(37) states 3y, never more than the true 3.08y
+  ✓ formatMonths(38) states 3y, never more than the true 3.17y
+  ✓ formatMonths(39) states 3y, never more than the true 3.25y
+  ✓ formatMonths(40) states 3y, never more than the true 3.33y
+  ✓ formatMonths(41) states 3y, never more than the true 3.42y
+  ✓ formatMonths(42) states 3y, never more than the true 3.50y
+  ✓ formatMonths(43) states 3y, never more than the true 3.58y
+  ✓ formatMonths(44) states 3y, never more than the true 3.67y
+  ✓ formatMonths(45) states 3y, never more than the true 3.75y
+  ✓ formatMonths(46) states 3y, never more than the true 3.83y
+  ✓ formatMonths(47) states 3y, never more than the true 3.92y
+  ✓ formatMonths(48) states 4y, never more than the true 4.00y
+  ✓ formatMonths(49) states 4y, never more than the true 4.08y
+  ✓ formatMonths(50) states 4y, never more than the true 4.17y
+  ✓ formatMonths(51) states 4y, never more than the true 4.25y
+  ✓ formatMonths(52) states 4y, never more than the true 4.33y
+  ✓ formatMonths(53) states 4y, never more than the true 4.42y
+  ✓ formatMonths(54) states 4y, never more than the true 4.50y
+  ✓ formatMonths(55) states 4y, never more than the true 4.58y
+  ✓ formatMonths(56) states 4y, never more than the true 4.67y
+  ✓ formatMonths(57) states 4y, never more than the true 4.75y
+  ✓ formatMonths(58) states 4y, never more than the true 4.83y
+  ✓ formatMonths(59) states 4y, never more than the true 4.92y
+  ✓ formatMonths(60) states 5y, never more than the true 5.00y
+  ✓ formatMonths(61) states 5y, never more than the true 5.08y
+  ✓ formatMonths(62) states 5y, never more than the true 5.17y
+  ✓ formatMonths(63) states 5y, never more than the true 5.25y
+  ✓ formatMonths(64) states 5y, never more than the true 5.33y
+  ✓ formatMonths(65) states 5y, never more than the true 5.42y
+  ✓ formatMonths(66) states 5y, never more than the true 5.50y
+  ✓ formatMonths(67) states 5y, never more than the true 5.58y
+  ✓ formatMonths(68) states 5y, never more than the true 5.67y
+  ✓ formatMonths(69) states 5y, never more than the true 5.75y
+  ✓ formatMonths(70) states 5y, never more than the true 5.83y
+  ✓ formatMonths(71) states 5y, never more than the true 5.92y
+  ✓ formatMonths(72) states 6y, never more than the true 6.00y
+  ✓ formatMonths(73) states 6y, never more than the true 6.08y
+  ✓ formatMonths(74) states 6y, never more than the true 6.17y
+  ✓ formatMonths(75) states 6y, never more than the true 6.25y
+  ✓ formatMonths(76) states 6y, never more than the true 6.33y
+  ✓ formatMonths(77) states 6y, never more than the true 6.42y
+  ✓ formatMonths(78) states 6y, never more than the true 6.50y
+  ✓ formatMonths(79) states 6y, never more than the true 6.58y
+  ✓ formatMonths(80) states 6y, never more than the true 6.67y
+  ✓ formatMonths(81) states 6y, never more than the true 6.75y
+  ✓ formatMonths(82) states 6y, never more than the true 6.83y
+  ✓ formatMonths(83) states 6y, never more than the true 6.92y
+  ✓ formatMonths(84) states 7y, never more than the true 7.00y
+  ✓ formatMonths(85) states 7y, never more than the true 7.08y
+  ✓ formatMonths(86) states 7y, never more than the true 7.17y
+  ✓ formatMonths(87) states 7y, never more than the true 7.25y
+  ✓ formatMonths(88) states 7y, never more than the true 7.33y
+  ✓ formatMonths(89) states 7y, never more than the true 7.42y
+  ✓ formatMonths(90) states 7y, never more than the true 7.50y
+  ✓ formatMonths(91) states 7y, never more than the true 7.58y
+  ✓ formatMonths(92) states 7y, never more than the true 7.67y
+  ✓ formatMonths(93) states 7y, never more than the true 7.75y
+  ✓ formatMonths(94) states 7y, never more than the true 7.83y
+  ✓ formatMonths(95) states 7y, never more than the true 7.92y
+  ✓ formatMonths(96) states 8y, never more than the true 8.00y
+  ✓ formatMonths(97) states 8y, never more than the true 8.08y
+  ✓ formatMonths(98) states 8y, never more than the true 8.17y
+  ✓ formatMonths(99) states 8y, never more than the true 8.25y
+  ✓ formatMonths(100) states 8y, never more than the true 8.33y
+  ✓ formatMonths(101) states 8y, never more than the true 8.42y
+  ✓ formatMonths(102) states 8y, never more than the true 8.50y
+  ✓ formatMonths(103) states 8y, never more than the true 8.58y
+  ✓ formatMonths(104) states 8y, never more than the true 8.67y
+  ✓ formatMonths(105) states 8y, never more than the true 8.75y
+  ✓ formatMonths(106) states 8y, never more than the true 8.83y
+  ✓ formatMonths(107) states 8y, never more than the true 8.92y
+  ✓ formatMonths(108) states 9y, never more than the true 9.00y
+  ✓ formatMonths(109) states 9y, never more than the true 9.08y
+  ✓ formatMonths(110) states 9y, never more than the true 9.17y
+  ✓ formatMonths(111) states 9y, never more than the true 9.25y
+  ✓ formatMonths(112) states 9y, never more than the true 9.33y
+  ✓ formatMonths(113) states 9y, never more than the true 9.42y
+  ✓ formatMonths(114) states 9y, never more than the true 9.50y
+  ✓ formatMonths(115) states 9y, never more than the true 9.58y
+  ✓ formatMonths(116) states 9y, never more than the true 9.67y
+  ✓ formatMonths(117) states 9y, never more than the true 9.75y
+  ✓ formatMonths(118) states 9y, never more than the true 9.83y
+  ✓ formatMonths(119) states 9y, never more than the true 9.92y
+  ✓ formatMonths(120) states 10y, never more than the true 10.00y
+  ✓ formatMonths(121) states 10y, never more than the true 10.08y
+  ✓ formatMonths(122) states 10y, never more than the true 10.17y
+  ✓ formatMonths(123) states 10y, never more than the true 10.25y
+  ✓ formatMonths(124) states 10y, never more than the true 10.33y
+  ✓ formatMonths(125) states 10y, never more than the true 10.42y
+  ✓ formatMonths(126) states 10y, never more than the true 10.50y
+  ✓ formatMonths(127) states 10y, never more than the true 10.58y
+  ✓ formatMonths(128) states 10y, never more than the true 10.67y
+  ✓ formatMonths(129) states 10y, never more than the true 10.75y
+  ✓ formatMonths(130) states 10y, never more than the true 10.83y
+  ✓ formatMonths(131) states 10y, never more than the true 10.92y
+  ✓ formatMonths(132) states 11y, never more than the true 11.00y
+  ✓ formatMonths(133) states 11y, never more than the true 11.08y
+  ✓ formatMonths(134) states 11y, never more than the true 11.17y
+  ✓ formatMonths(135) states 11y, never more than the true 11.25y
+  ✓ formatMonths(136) states 11y, never more than the true 11.33y
+  ✓ formatMonths(137) states 11y, never more than the true 11.42y
+  ✓ formatMonths(138) states 11y, never more than the true 11.50y
+  ✓ formatMonths(139) states 11y, never more than the true 11.58y
+  ✓ formatMonths(140) states 11y, never more than the true 11.67y
+  ✓ formatMonths(141) states 11y, never more than the true 11.75y
+  ✓ formatMonths(142) states 11y, never more than the true 11.83y
+  ✓ formatMonths(143) states 11y, never more than the true 11.92y
+  ✓ formatMonths(144) states 12y, never more than the true 12.00y
+  ✓ formatMonths(145) states 12y, never more than the true 12.08y
+  ✓ formatMonths(146) states 12y, never more than the true 12.17y
+  ✓ formatMonths(147) states 12y, never more than the true 12.25y
+  ✓ formatMonths(148) states 12y, never more than the true 12.33y
+  ✓ formatMonths(149) states 12y, never more than the true 12.42y
+  ✓ formatMonths(150) states 12y, never more than the true 12.50y
+  ✓ formatMonths(151) states 12y, never more than the true 12.58y
+  ✓ formatMonths(152) states 12y, never more than the true 12.67y
+  ✓ formatMonths(153) states 12y, never more than the true 12.75y
+  ✓ formatMonths(154) states 12y, never more than the true 12.83y
+  ✓ formatMonths(155) states 12y, never more than the true 12.92y
+  ✓ formatMonths(156) states 13y, never more than the true 13.00y
+  ✓ formatMonths(157) states 13y, never more than the true 13.08y
+  ✓ formatMonths(158) states 13y, never more than the true 13.17y
+  ✓ formatMonths(159) states 13y, never more than the true 13.25y
+  ✓ formatMonths(160) states 13y, never more than the true 13.33y
+  ✓ formatMonths(161) states 13y, never more than the true 13.42y
+  ✓ formatMonths(162) states 13y, never more than the true 13.50y
+  ✓ formatMonths(163) states 13y, never more than the true 13.58y
+  ✓ formatMonths(164) states 13y, never more than the true 13.67y
+  ✓ formatMonths(165) states 13y, never more than the true 13.75y
+  ✓ formatMonths(166) states 13y, never more than the true 13.83y
+  ✓ formatMonths(167) states 13y, never more than the true 13.92y
+  ✓ formatMonths(168) states 14y, never more than the true 14.00y
+  ✓ formatMonths(169) states 14y, never more than the true 14.08y
+  ✓ formatMonths(170) states 14y, never more than the true 14.17y
+  ✓ formatMonths(171) states 14y, never more than the true 14.25y
+  ✓ formatMonths(172) states 14y, never more than the true 14.33y
+  ✓ formatMonths(173) states 14y, never more than the true 14.42y
+  ✓ formatMonths(174) states 14y, never more than the true 14.50y
+  ✓ formatMonths(175) states 14y, never more than the true 14.58y
+  ✓ formatMonths(176) states 14y, never more than the true 14.67y
+  ✓ formatMonths(177) states 14y, never more than the true 14.75y
+  ✓ formatMonths(178) states 14y, never more than the true 14.83y
+  ✓ formatMonths(179) states 14y, never more than the true 14.92y
+  ✓ formatMonths(180) states 15y, never more than the true 15.00y
+  ✓ formatMonths(181) states 15y, never more than the true 15.08y
+  ✓ formatMonths(182) states 15y, never more than the true 15.17y
+  ✓ formatMonths(183) states 15y, never more than the true 15.25y
+  ✓ formatMonths(184) states 15y, never more than the true 15.33y
+  ✓ formatMonths(185) states 15y, never more than the true 15.42y
+  ✓ formatMonths(186) states 15y, never more than the true 15.50y
+  ✓ formatMonths(187) states 15y, never more than the true 15.58y
+  ✓ formatMonths(188) states 15y, never more than the true 15.67y
+  ✓ formatMonths(189) states 15y, never more than the true 15.75y
+  ✓ formatMonths(190) states 15y, never more than the true 15.83y
+  ✓ formatMonths(191) states 15y, never more than the true 15.92y
+  ✓ formatMonths(192) states 16y, never more than the true 16.00y
+  ✓ formatMonths(193) states 16y, never more than the true 16.08y
+  ✓ formatMonths(194) states 16y, never more than the true 16.17y
+  ✓ formatMonths(195) states 16y, never more than the true 16.25y
+  ✓ formatMonths(196) states 16y, never more than the true 16.33y
+  ✓ formatMonths(197) states 16y, never more than the true 16.42y
+  ✓ formatMonths(198) states 16y, never more than the true 16.50y
+  ✓ formatMonths(199) states 16y, never more than the true 16.58y
+  ✓ formatMonths(200) states 16y, never more than the true 16.67y
+
+✅ payoff trajectory domain: 202 assertions passed
+
+
+▶ what-if: where the extra goes
+  ✓ nothing allocated says nothing
+  ✓ a $0 row is not where the money went
+  ✓ clearing the first debt with a second behind it names both
+  ✓ ⛔ m6 — the extra clears the ONLY debt: this is a payoff, not a dent
+  ✓ a partial payment is still described as a partial payment
+✅ what-if where-text: 5 assertions passed.
+
+Running payoff month-label tests...
+  ✓ a 31st start: month 1 is February
+  ✓ a 31st start: month 2 is March
+  ✓ a 31st start: month 3 is April
+  ✓ a 31st start walks twelve consecutive months with no repeat and no gap
+  ✓ a 29th start: month 1 is February
+  ✓ a 30th start: month 1 is February
+  ✓ a leap February is still February
+  ✓ a mid-month start is unchanged
+  ✓ month 0 is the start month itself
+  ✓ twelve months from a January lands in January
+  ✓ and in the following year
+  ✓ the step crosses a year boundary
+✅ All payoff month-label tests passed (12).
+Running data-repairs copy tests...
+  ✓ one recovered repair produces one block
+  ✓ …and it is the recovered block, not the loss block
+  ✓ …with the recovery heading
+  ✓ ⛔ …and it says the plan IS using the amount, because it is
+  ✓ …naming the item, which is the only actionable part
+  ✓ a lost repair produces the loss block
+  ✓ …with the loss heading
+  ✓ …and the loss consequence is unchanged
+  ✓ an absent `kind` is treated as a loss
+  ✓ a mixed list produces both blocks
+  ✓ ⛔ losses come first — they are the ones with an action attached
+  ✓ …and the recoveries follow
+  ✓ the loss block holds only the loss
+  ✓ the recovery block holds only the recovery
+  ✓ the loss block counts only losses
+  ✓ ⛔ …and the recovery block is singular
+  ✓ the plural loss consequence
+  ✓ ⛔ VoiceOver hears the recovery heading too — it used to hear the loss sentence over both
+  ✓ …and the loss heading
+  ✓ a migration entry IS its own sentence
+  ✓ a nameless repair names the list it came from
+  ✓ a named repair reads as name and field
+  ✓ a v1.6 bridge count is not something you can go and set
+  ✓ ⛔ …so the card must not tell them to
+  ✓ …and it names what they CAN do
+  ✓ both nameless losses land in one block
+  ✓ ⛔ a row or a list that would not read has nothing to reopen
+  ✓ …and the plural says so
+  ✓ a named loss and a nameless one are different claims and get different blocks
+  ✓ the named one keeps the actionable sentence
+  ✓ …and holds only itself
+  ✓ …while the nameless one is separated out
+  ✓ ⛔ a stood-down pace IS actionable now — the promise became true rather than being dropped
+  ✓ ⛔ C1-2 — a lost cushion line IS answerable: the app has a sheet for it
+  ✓ …so the card promises the thing the user can actually do
+  ✓ ⛔ …and no longer sends them to their old app for a number this app owns
+  ✓ ⛔ C1-3 — the plan names no row, so the label is the whole line
+  ✓ ⛔ C1-3 — …and the label appears ONCE, whatever it is reworded to
+  ✓ ⭐ control — a row-bearing repair is unchanged
+  ✓ the fixture knows how many repairable money fields there are (raise it WITH the field)
+  ✓ ⛔ C-m1 — "balance" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "minimumPayment" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "apr" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "originalBalance" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "scheduledPaymentAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "amount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "amount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "targetAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "currentAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "priorityPerPaycheck" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "cushionFloor" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "leanAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "typicalAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "windfall" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "expenseReserveBalance" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — FIELD_LABEL names "cushionFloor", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "leanAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "typicalAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "windfall", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "expenseReserveBalance", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "balance", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "minimumPayment", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "apr", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "originalBalance", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "scheduledPaymentAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "amount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "targetAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "currentAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "priorityPerPaycheck", which migrations.ts can no longer repair
+  ✓ no repairs produces no blocks
+  ✓ ⛔ C3-14 — one unread target is "one target"
+  ✓ ⛔ C3-14 — two unread targets are "2 targets", never "one"
+  ✓ ⛔ C3-14 — …and the count is the count, not a plural word
+✅ All data-repairs copy tests passed (73).
+  ✓ format/summariseNames — 14 assertions
+Running debt id minting (C8) tests...
+  ✓ the first debt of a cycle is -1 (expected "debt-2026-09-01-1", got "debt-2026-09-01-1")
+  ✓ the next debt takes the next number (expected "debt-2026-09-01-2", got "debt-2026-09-01-2")
+  ✓ a foreign id does not consume a debt number, and the result is unused (expected "debt-2026-09-01-3", got "debt-2026-09-01-3")
+  ✓ a start that is already taken is walked past
+  ✓ ⛔ B5-9 — a reserved id in a gap is never re-issued (expected "debt-2026-09-01-4", got "debt-2026-09-01-4")
+  ✓ ⛔ B5-9 — an id surviving only in completedRecommendedActions is reserved
+  ✓ ⛔ B5-9 — …and one surviving only as a milestone key
+  ✓ ⛔ B5-9 — …and one surviving only in a pending payoff beat
+  ✓ ⛔ B5-9 — so the new debt takes the first number nothing references (expected "debt-2026-09-01-5", got "debt-2026-09-01-5")
+  ✓ ⭐ B5-9 control — with nothing dangling, the next id is tight (expected "debt-2026-09-01-3", got "debt-2026-09-01-3")
+  ✓ ⭐ B5-9 control — an empty store reserves nothing (expected 0, got 0)
+  ✓ a batch of 3 mints 3 ids (expected 3, got 3)
+  ✓ the ids within a batch are distinct (expected 3, got 3)
+  ✓ a batch starts where a single mint would (expected "debt-2026-09-01-1", got "debt-2026-09-01-1")
+  ✓ a batch collides with neither the portfolio nor itself (expected 5, got 5)
+  ✓ minting without an accumulator DOES collide — which is why mintDebtIds exists (expected 1, got 1)
+  ✓ mintDebtIds does not (expected 4, got 4)
+  ✓ a batch of nothing mints nothing (expected 0, got 0)
+
+✅ debt id minting: 18 assertions passed
+
+Running steady-state projection (MF.4) tests...
+  ✓ both allocations resolve
+  ✓ steady-state deploys MORE than the cold-start-dampened cycle (1700 > 1020)
+  ✓ steady-state recovers the bulk of the temporary discovery hold
+  ✓ a debt-free date is projected off the steady-state deploy
+  ✓ both projection surfaces produce a date
+  ✓ What-If baseline date matches the Payoff date at cold-start (November 2026 === November 2026)
+  ✓ established user: steady == dampened (no temporary reserve to strip)
+✅ Steady-state projection (MF.4) tests passed (7 asserts).
+Running BNPL cadence integration (2.7.4) tests...
+  ✓ monthly allocation resolves
+  ✓ monthly-paid + biweekly BNPL reserves the FULL in-window outflow ($300, not $100) — got 300
+  ✓ biweekly allocation resolves
+  ✓ biweekly-paid + biweekly BNPL is unchanged (one charge per cycle, $100) — got 100
+  ✓ both timelines build
+  ✓ the monthly earner's cycle-0 net is tighter (more BNPL outflow): 1700 < 1900
+  ✓ cycle-0 endingBalance reflects EXACTLY the extra 2 in-window BNPL installments ($200 gap) — got 200
+  ✓ monthly earner gets a named BNPL heads-up — got "Heads up — 3 Klarna payments totalling about $300 land before your next paycheck."
+  ✓ aligned biweekly-paid case has no between-paycheck heads-up
+✅ BNPL cadence integration (2.7.4) tests passed (9 asserts).
+
+💵 the in-window minimum: one owner, across cadence × debt-type
+
+  ✓ installment-native BNPL · weekly — the allocation resolves
+  ✓ installment-native BNPL · weekly — reserves 4 × $50 = $200, not a multiple of it (got $200)
+  ✓ installment-native BNPL · weekly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ installment-native BNPL · biweekly — the allocation resolves
+  ✓ installment-native BNPL · biweekly — reserves 2 × $50 = $100, not a multiple of it (got $100)
+  ✓ installment-native BNPL · biweekly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ installment-native BNPL · monthly — the allocation resolves
+  ✓ installment-native BNPL · monthly — reserves 1 × $50 = $50, not a multiple of it (got $50)
+  ✓ installment-native BNPL · monthly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ fallback BNPL · weekly — the allocation resolves
+  ✓ fallback BNPL · weekly — reserves 4 × $50 = $200, not a multiple of it (got $200)
+  ✓ fallback BNPL · weekly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ fallback BNPL · biweekly — the allocation resolves
+  ✓ fallback BNPL · biweekly — reserves 2 × $50 = $100, not a multiple of it (got $100)
+  ✓ fallback BNPL · biweekly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ fallback BNPL · monthly — the allocation resolves
+  ✓ fallback BNPL · monthly — reserves 1 × $50 = $50, not a multiple of it (got $50)
+  ✓ fallback BNPL · monthly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ plain debt · weekly — the allocation resolves
+  ✓ plain debt · weekly — reserves 4 × $50 = $200, not a multiple of it (got $200)
+  ✓ plain debt · weekly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ plain debt · biweekly — the allocation resolves
+  ✓ plain debt · biweekly — reserves 2 × $50 = $100, not a multiple of it (got $100)
+  ✓ plain debt · biweekly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ plain debt · monthly — the allocation resolves
+  ✓ plain debt · monthly — reserves 1 × $50 = $50, not a multiple of it (got $50)
+  ✓ plain debt · monthly — no phantom shortfall on a paycheck that covers it (got $0)
+  ✓ ⛔ A3-1 · installment-native BNPL — a tight paycheck reserves the same in-window $200 (got $200)
+  ✓ ⛔ A3-1 · installment-native BNPL — and declares NO shortfall on a $300 paycheck that covers it (got $0)
+  ✓ ⛔ A3-1 · fallback BNPL — a tight paycheck reserves the same in-window $200 (got $200)
+  ✓ ⛔ A3-1 · fallback BNPL — and declares NO shortfall on a $300 paycheck that covers it (got $0)
+  ✓ ⛔ A3-1 · plain debt — a tight paycheck reserves the same in-window $200 (got $200)
+  ✓ ⛔ A3-1 · plain debt — and declares NO shortfall on a $300 paycheck that covers it (got $0)
+  ✓ ⛔ A3-2 · installment-native BNPL — the production path and a direct allocator call on the SAME debts agree ($200 vs $200)
+  ✓ ⛔ A3-2 · fallback BNPL — the production path and a direct allocator call on the SAME debts agree ($200 vs $200)
+  ✓ ⛔ A3-2 · plain debt — the production path and a direct allocator call on the SAME debts agree ($200 vs $200)
+  ✓ ⛔ control — a monthly debt is reserved ONCE ($50), never scaled
+  ✓ installment-native BNPL — the projection builds at least two cycles
+  ✓ installment-native BNPL · projected cycle 0 — essentials are the in-window $100, not a multiple (got $100)
+  ✓ installment-native BNPL · projected cycle 1 — essentials are the in-window $100, not a multiple (got $100)
+  ✓ fallback BNPL — the projection builds at least two cycles
+  ✓ fallback BNPL · projected cycle 0 — essentials are the in-window $100, not a multiple (got $100)
+  ✓ fallback BNPL · projected cycle 1 — essentials are the in-window $100, not a multiple (got $100)
+  ✓ plain debt — the projection builds at least two cycles
+  ✓ plain debt · projected cycle 0 — essentials are the in-window $100, not a multiple (got $100)
+  ✓ plain debt · projected cycle 1 — essentials are the in-window $100, not a multiple (got $100)
+  ✓ ⭐ control · projected cycle 0 — a BIWEEKLY debt charges ONCE ($50) where the weekly one charges twice (got $50)
+  ✓ ⭐ control · projected cycle 1 — a BIWEEKLY debt charges ONCE ($50) where the weekly one charges twice (got $50)
+
+✅ in-window minimum: 48 assertions across 3 debt shapes × 3 cadences
+
+
+💵 the in-window minimum: every reader agrees with the one producer
+
+  ✓ ⛔ R3-1 anchor — the producer owes $200: 4 × $50 in this window (got $200)
+  ✓ ⛔ R3-1 anchor — an installment-native MONTHLY plan owes its own $80, not the stored minimum (got $80)
+  ✓ ⛔ F3 · ticked=false — the debt has exactly one required row
+  ✓ ⛔ F3 · ticked=false — the row is the in-window $200, not one installment (got $200)
+  ✓ ⛔ F3 · ticked=true — the debt has exactly one required row
+  ✓ ⛔ F3 · ticked=true — the row is the in-window $200, not one installment (got $200)
+  ✓ ⛔ F6 · plain weekly (n=4) — the recovery plan carries the debt
+  ✓ ⛔ F6 · plain weekly (n=4) — recovery covers the in-window $200, the same figure the owner states (got $200)
+  ✓ ⛔ F6 · installment-native MONTHLY, sched 80 ≠ min 50 — the recovery plan carries the debt
+  ✓ ⛔ F6 · installment-native MONTHLY, sched 80 ≠ min 50 — recovery covers the in-window $80, the same figure the owner states (got $80)
+  ✓ ⛔ F7 · installment-native BNPL — the heads-up names 4 payments (got Heads up — 4 Klarna payments totalling about $200 land before your next paycheck.)
+  ✓ ⛔ F7 · installment-native BNPL — and the reserve the line explains is the producer's 4 charges (got 4)
+  ✓ ⛔ F7 · fallback BNPL — the heads-up names 4 payments (got Heads up — 4 Afterpay payments totalling about $200 land before your next paycheck.)
+  ✓ ⛔ F7 · fallback BNPL — and the reserve the line explains is the producer's 4 charges (got 4)
+  ✓ ⛔ F7 · plain debt — the heads-up names 4 payments (got Heads up — 4 Weekly loan payments totalling about $200 land before your next paycheck.)
+  ✓ ⛔ F7 · plain debt — and the reserve the line explains is the producer's 4 charges (got 4)
+  ✓ ⛔ R2-1 · $1 balance — a debt that cannot fund two charges says NOTHING (got null)
+  ✓ ⛔ R2-1 · $20 balance — a debt that cannot fund two charges says NOTHING (got null)
+  ✓ ⛔ R2-1 · $49 balance — a debt that cannot fund two charges says NOTHING (got null)
+  ✓ ⛔ R2-1 control — a balance funding exactly two charges still announces them (got Heads up — 2 Car Loan payments totalling about $100 land before your next paycheck.)
+  ✓ ⛔ R3-2 · $75 balance — the line speaks about a reserve this size
+  ✓ ⛔ R3-2 · $75 balance — 2 charges land and the line names 2 (got Heads up — 2 Car Loan payments totalling about $75 land before your next paycheck.)
+  ✓ ⛔ R3-2 · $75 balance — the line states the $75 the app actually holds back (got Heads up — 2 Car Loan payments totalling about $75 land before your next paycheck.)
+  ✓ ⛔ R3-2 · $110 balance — the line speaks about a reserve this size
+  ✓ ⛔ R3-2 · $110 balance — 3 charges land and the line names 3 (got Heads up — 3 Car Loan payments totalling about $110 land before your next paycheck.)
+  ✓ ⛔ R3-2 · $110 balance — the line states the $110 the app actually holds back (got Heads up — 3 Car Loan payments totalling about $110 land before your next paycheck.)
+  ✓ ⛔ R3-2 · $199 balance — the line speaks about a reserve this size
+  ✓ ⛔ R3-2 · $199 balance — 4 charges land and the line names 4 (got Heads up — 4 Car Loan payments totalling about $199 land before your next paycheck.)
+  ✓ ⛔ R3-2 · $199 balance — the line states the $199 the app actually holds back (got Heads up — 4 Car Loan payments totalling about $199 land before your next paycheck.)
+
+✅ in-window readers: 29 assertions across the plan row, the recovery plan and the Guardian line
+
+Running affordability selectors (2.9) tests...
+  ✓ the fixture actually holds a reserve (got 175) — else this proves nothing
+  ✓ the card's "spare" equals the hero's "Flexible" (hero 1375, card 1375)
+  ✓ the two selectors differ by exactly the held reserve
+  ✓ $500 → comfortable (cushion $1400 ≥ floor)
+  ✓ $1800 → tight (cushion $100 < floor $200)
+  ✓ $2500 → short (exceeds $1900)
+  ✓ …short by $600
+  ✓ a purchase reduces what reaches debt this paycheck (extraToDebtDelta > 0)
+  ✓ $1800 is tight (cover case)
+  ✓ cover offers the $100 gap from the savings goal
+  ✓ no cover option when there is no savings goal
+  ✓ never raids the emergency fund for a discretionary buy
+  ✓ a comfortable purchase has no cover option
+  ✓ …and a fully-funded cover reports holdsLine
+  ✓ pre-top-up: the cushion is $150 (under the $200 floor)
+  ✓ …and a $100 purchase needs the full $150 gap covered
+  ✓ A3.6 — the $50 already moved from savings counts toward the cushion ($150 + $50)
+  ✓ …so the same $100 purchase dips to $100, not the stale $50
+  ✓ …and the cover asks the REMAINING $100, never re-offering the $50 already moved
+  ✓ a thin savings pot caps the cover at its balance
+  ✓ …and reports holdsLine=false — $20 against a $150 gap does not hold the line
+  ✓ an applied top-up that reaches the floor reports holdsLine
+  ✓ …a capped one does not, even once the goal is drained to $0
+  ✓ a prioritized "fast" option with a real per-paycheck pace + ready date
+  ✓ a debt-first option (no priority, no firm date)
+  ✓ at least fast + debt-first are offered
+  ✓ ⭐ the off-grid shape really has a capacity off the $5 grid (or the rounding is unexercised)
+  ✓ ⛔ B1-1 — one debt, nothing held: "Save fast" is ready in 2 paychecks at the rate the engine funds — the date is kept
+  ✓ ⛔ B1-1 — one debt, nothing held: "Balanced" is ready in 3 paychecks at the rate the engine funds — the date is kept
+❌ FAIL [⛔ B1-1 — a held expense reserve: "Save fast" is ready in 3 paychecks at the rate the engine funds — the date is kept]
+
+❌ App-layer regression run failed: Error: FAIL [⛔ B1-1 — a held expense reserve: "Save fast" is ready in 3 paychecks at the rate the engine funds — the date is kept]
+    at assert (C:\Users\Jason\audit-c5r1-L4\apps\rn\src\store\affordability.test.ts:19:20)
+    at run (C:\Users\Jason\audit-c5r1-L4\apps\rn\src\store\affordability.test.ts:171:7)
+    at <anonymous> (C:\Users\Jason\audit-c5r1-L4\apps\rn\src\store\affordability.test.ts:189:3)
+    at Object.<anonymous> (C:\Users\Jason\audit-c5r1-L4\apps\rn\src\store\affordability.test.ts:194:1)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object.transformer (C:\Users\Jason\debt-app-v1\node_modules\tsx\dist\register-BOkp8V6j.cjs:9:3176)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:335:3)

@@ -1,0 +1,14 @@
+exit=1
+⛔ finding-guards: 9 of 9 findings carry a standing guard; 0 unguarded (cap 1, downward-only).
+   proof: 9 EXECUTED · 0 of them STALE (cap 8) · 0 authored but never run (cap 9) · 0 guard-only (cap 0) · 0 never tested (cap 119)
+          ⛔ "authored" is a plan to measure, not a measurement — `npm run prove:guards -- --id=<ID>` records it.
+          ⛔ "STALE" means the target moved since the proof was measured — re-run it; 2 of 32 did not hold.
+
+❌ finding-guards: 3 problem(s).
+
+  • the registry holds 9 findings; 330 are expected. Entries were REMOVED — a finding dropping out is how a closure stops being tracked. Do not lower the floor.
+  • 0 findings are unguarded and the cap is still 1. Lower it to 0 — the cap is the high-water mark, and leaving it above the count is room for a guard to disappear unnoticed.
+  • 0 findings are unproven — nobody has ever made their guard red and the cap is still 119. Lower it to 0 in the same edit — a cap above its own count is slack the next un-evidenced entry hides in.
+
+  [D67]: a closed finding needs a standing guard, or it is not closed.
+

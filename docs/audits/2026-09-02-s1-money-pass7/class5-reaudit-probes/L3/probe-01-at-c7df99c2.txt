@@ -1,0 +1,18 @@
+
+== A · PlanHero inputs, lost APR vs readable APR (premium) ==
+{"apr":"'' (unread)","repairs":["debt.apr"],"solved-projection":"n/a","paycheck-plan":"n/a","split":{"requiredTotal":500,"shortfall":0,"everydayHeld":0,"billsReserve":0,"remainingAfterRequired":1500,"status":"on-track","debtFreeDate":"November 2026"},"suggestLine":"Suggested · $1300 · Extra payment to Visa"}
+{"apr":20,"repairs":[],"solved-projection":"n/a","paycheck-plan":"n/a","split":{"requiredTotal":500,"shortfall":0,"everydayHeld":0,"billsReserve":0,"remainingAfterRequired":1500,"status":"on-track","debtFreeDate":"November 2026"},"suggestLine":"Suggested · $1300 · Extra payment to Visa"}
+
+== B · Progress journey line over a lost APR (balance == originalBalance → the "to go" arm) ==
+{"tier":"free","apr":"'' (unread)","totalConfirmed":12000,"totalCurrent":12000,"line":"$12,000 to go","projected-balance":"n/a","debt-balances":true,"progressShowsAtPin":"$12,000 to go"}
+{"tier":"free","apr":19,"totalConfirmed":12000,"totalCurrent":12000,"line":"$12,000 to go","projected-balance":"n/a","debt-balances":true,"progressShowsAtPin":"$12,000 to go"}
+{"tier":"premium","apr":"'' (unread)","totalConfirmed":12000,"totalCurrent":11800,"line":"$11,800 to go","projected-balance":"n/a","debt-balances":true,"progressShowsAtPin":"$11,800 to go"}
+{"tier":"premium","apr":19,"totalConfirmed":12000,"totalCurrent":12175.779999999999,"line":"$12,176 to go","projected-balance":"n/a","debt-balances":true,"progressShowsAtPin":"$12,176 to go"}
+
+== C · save-for-it capacity (premium) ==
+{"shape":"bills eat the paycheck to the line","amount":500,"verdict":"short","capacity":"n/a","options":["fast:170","balanced:85","debtFirst:null"],"typed300":{"dated_from":300,"caption":false,"confirmation":"Now saving $300/paycheck"}}
+{"shape":"bills eat the paycheck to the line","amount":5000,"verdict":"short","capacity":"n/a","options":["fast:200","balanced:100","debtFirst:null"],"typed300":{"dated_from":300,"caption":false,"confirmation":"Now saving $300/paycheck"}}
+{"shape":"already short","amount":500,"verdict":"short","capacity":"n/a","options":["debtFirst:null"],"typed300":{"dated_from":300,"caption":false,"confirmation":"Now saving $300/paycheck"}}
+{"shape":"already short","amount":5000,"verdict":"short","capacity":"n/a","options":["debtFirst:null"],"typed300":{"dated_from":300,"caption":false,"confirmation":"Now saving $300/paycheck"}}
+{"shape":"roomy (control)","amount":500,"verdict":"comfortable","capacity":"n/a","options":["fast:500","balanced:250","debtFirst:null"],"typed300":{"dated_from":300,"caption":false,"confirmation":"Now saving $300/paycheck"}}
+{"shape":"roomy (control)","amount":5000,"verdict":"short","capacity":"n/a","options":["fast:2500","balanced:1250","debtFirst:null"],"typed300":{"dated_from":300,"caption":false,"confirmation":"Now saving $300/paycheck"}}

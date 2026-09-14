@@ -1,0 +1,24 @@
+C:\Users\Jason\audit-c5r1-L4\scripts\lib\plantSafety.ts:317
+      throw err;
+      ^
+
+Error: Command failed: git status --porcelain -- scripts/check-trust-claims.ts
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:916:11)
+    at execFileSync (node:child_process:952:15)
+    at gitStatus (C:\Users\Jason\audit-c5r1-L4\scripts\prove-guards.ts:178:3)
+    at proveOne (C:\Users\Jason\audit-c5r1-L4\scripts\prove-guards.ts:482:19)
+    at probe (C:\Users\Jason\audit-c5r1-L4\scripts\prove-guards.ts:776:13)
+    at Object.<anonymous> (C:\Users\Jason\audit-c5r1-L4\scripts\prove-guards.ts:900:114)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object.transformer (C:\Users\Jason\debt-app-v1\node_modules\tsx\dist\register-BOkp8V6j.cjs:9:3176) {
+  status: 3221225794,
+  signal: null,
+  output: [ null, '', '' ],
+  pid: 18276,
+  stdout: '',
+  stderr: ''
+}
+
+Node.js v22.23.1

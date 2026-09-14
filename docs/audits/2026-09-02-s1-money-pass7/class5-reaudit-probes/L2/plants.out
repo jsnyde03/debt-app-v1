@@ -1,0 +1,85 @@
+=== PL1c  (src/liveActivity/liveActivitySync.ts)
+--- clean-before: exit=0
+--- PLANTED: exit=1
+    Error: FAIL […the update was attempted and dropped, so the Lock Screen is behind the store (expected "clear · Looks clear this paycheck · Nudge your line down anytime to free up more for your goals.", got "at-risk · This paycheck won’t cover everything · $2,500 short of your obligations")]
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=1 clean_after_exit=0
+=== PL1  (src/liveActivity/liveActivitySync.ts)
+--- clean-before: exit=0
+--- PLANTED: exit=0
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=0 clean_after_exit=0
+=== PL15  (src/liveActivity/liveActivitySync.ts)
+--- clean-before: exit=0
+--- PLANTED: exit=0
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=0 clean_after_exit=0
+=== PL2c  (modules/live-activity/ios/LiveActivityModule.swift)
+--- clean-before: exit=0
+--- PLANTED: exit=1
+    Error: FAIL [⛔ Swift — updateActivity is an async function that answers Bool (a sync Function returns before ActivityKit runs)]
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=1 clean_after_exit=0
+=== PL2  (modules/live-activity/ios/LiveActivityModule.swift)
+--- clean-before: exit=0
+--- PLANTED: exit=0
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=0 clean_after_exit=0
+=== PL16  (src/store/store.ts)
+--- clean-before: exit=0
+--- PLANTED: exit=1
+    if (!cond) throw new Error(`FAIL [${label}]`);
+    Error: FAIL [⛔ C3-6 — an undated intent before payday rolls nothing (expected 0, got 1)]
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=1 clean_after_exit=0
+=== PL16b  (src/store/store.ts)
+--- clean-before: exit=0
+--- PLANTED: exit=1
+    if (!cond) throw new Error(`FAIL [${label}]`);
+    Error: FAIL [⛔ C3-6 — two taps for one payday, drained after the next payday arrived, still roll once (expected 1, got 2)]
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=1 clean_after_exit=0
+=== PL17  (src/appIntents/pendingActions.ts)
+--- clean-before: exit=0
+--- PLANTED: exit=1
+    if (!cond) throw new Error(`FAIL [${label}]`);
+    Error: FAIL [⛔ C3-6 — parse: an unreadable payday date ("2026/09/14") drops the entry rather than rolling undated (expected 0, got 1)]
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=1 clean_after_exit=0
+=== PL18  (src/appIntents/pendingActions.ts)
+--- clean-before: exit=0
+--- PLANTED: exit=1
+    if (!cond) throw new Error(`FAIL [${label}]`);
+    Error: FAIL [⛔ 4a-1 — a log-payment that outlives its drain is not applied again after a second drain (return to foreground) (expected "{\"balance\":4750,\"payday\":\"2026-09-14\",\"cycles\":0}", got "{\"balance\":4500,\"payday\":\"2026-09-14\",\"cycles\":0}")]
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=1 clean_after_exit=0
+=== PL19  (src/appIntents/pendingActions.ts)
+--- clean-before: exit=0
+--- PLANTED: exit=1
+    if (!cond) throw new Error(`FAIL [${label}]`);
+    Error: FAIL [⛔ 4a-1 — a payday-landed that outlives its drain is not applied again after Undo (expected "{\"balance\":5000,\"payday\":\"2026-09-14\",\"cycles\":0}", got "{\"balance\":5038.46,\"payday\":\"2026-09-28\",\"cycles\":1}")]
+--- clean-after: exit=0
+restore verified by cmp: True
+VERDICT: planted_exit=1 clean_after_exit=0
+=== PL12  (src/widget/snapshot.ts)
+--- clean-before: exit=0
+    ✓ and the throw is recorded (read threw: Error: mmkv exploded)
+--- PLANTED: exit=1
+    ❌ App-layer regression run failed: Error: FAIL [⛔ D2-12 — a thrown Guardian read is spoken for premium, never collapsed to the empty upsell]
+--- clean-after: exit=0
+    ✓ and the throw is recorded (read threw: Error: mmkv exploded)
+restore verified by cmp: True
+VERDICT: planted_exit=1 clean_after_exit=0
+=== worktree status after plants
+ M scripts/finding-guards.json
+?? apps/rn/src/__run_L2_las.ts
+exit=0

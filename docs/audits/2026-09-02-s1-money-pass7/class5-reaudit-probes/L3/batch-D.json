@@ -1,0 +1,12 @@
+{
+  "worktree": "C:/Users/Jason/audit-c5r1-L3",
+  "app_plants": [
+    ["apps/rn/src/app/(tabs)/progress.tsx", "    () => (mayClaim(store, 'solved-projection') ? rawView : gagBalanceDerived(rawView)),", "    () => (mayClaim(store, 'debt-balances') ? rawView : gagBalanceDerived(rawView)),"],
+    ["apps/rn/src/app/cushion-forecast.tsx", "            <ForecastUnread fix={unreadInputsFix(repairsPoisoning(store, 'solved-projection'), 'and your forecast comes back')} />", "            <><CashRunwayChart cycles={cycles} holdNow={holdNow} floor={floor} /><ForecastUnread fix={unreadInputsFix(repairsPoisoning(store, 'solved-projection'), 'and your forecast comes back')} /></>"]
+  ],
+  "runs": [
+    {"name": "D1 C3-9 view gag ALONE reverted · C3-9 spec as written", "spec": "progress-hero-journey.spec.ts", "grep": "C3-9 · an unread APR"},
+    {"name": "D2 C3-9 view gag ALONE reverted · what Progress renders (probe3)", "spec": "zz-l3-probe3.spec.ts", "grep": "L3 P5"},
+    {"name": "D3 C3-11 refusal branch draws the runway TOO · C3-11 spec as written", "spec": "cushion-forecast.spec.ts", "grep": "C3-11 · an unread minimum withholds"}
+  ]
+}

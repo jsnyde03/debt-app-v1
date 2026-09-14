@@ -1,0 +1,20 @@
+debt-balances {"debt":["balance","originalBalance"]}
+goal-amounts {"goal":"any"}
+required-plan {"debt":["minimumPayment","balance","scheduledPaymentAmount"],"requiredExpense":["amount"],"livingExpense":["amount"],"plan":["windfall","expenseReserveBalance"]}
+row-figures {"debt":"any","requiredExpense":"any","livingExpense":"any","goal":"any","plan":"any"}
+projected-balance {"debt":["balance","apr","minimumPayment"]}
+solved-projection {"debt":["balance","apr","minimumPayment","scheduledPaymentAmount"],"requiredExpense":["amount"],"livingExpense":["amount"],"goal":"any","plan":["cushionFloor","leanAmount","windfall","expenseReserveBalance"]}
+paycheck-plan {"debt":["balance","minimumPayment","scheduledPaymentAmount"],"requiredExpense":["amount"],"livingExpense":["amount"],"goal":"any","plan":["cushionFloor","windfall","expenseReserveBalance"]}
+CONTAINED: debt-balances ⊑ row-figures
+CONTAINED: goal-amounts ⊑ row-figures
+CONTAINED: goal-amounts ⊑ solved-projection
+CONTAINED: goal-amounts ⊑ paycheck-plan
+CONTAINED: required-plan ⊑ row-figures
+CONTAINED: required-plan ⊑ solved-projection
+CONTAINED: required-plan ⊑ paycheck-plan
+CONTAINED: projected-balance ⊑ row-figures
+CONTAINED: projected-balance ⊑ solved-projection
+CONTAINED: solved-projection ⊑ row-figures
+CONTAINED: paycheck-plan ⊑ row-figures
+CONTAINED: paycheck-plan ⊑ solved-projection
+unknown-claim covers anything as inner: true

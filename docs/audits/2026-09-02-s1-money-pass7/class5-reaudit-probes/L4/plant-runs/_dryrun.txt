@@ -1,0 +1,19 @@
+OK   d81-delete-refusal
+OK   d81-fast-unconditional
+OK   d81-control-selection-skips
+OK   b11-see-delete-date-assert
+OK   b11-delete-pace-asserts
+OK   b11-delete-pace-asserts-plus-unfix
+OK   r51-shape-bnpl-only
+OK   r41-delete-freed-assert
+OK   rc-see-liveactivity-unwired
+OK   cap-see-debt-spread-derived
+OK   spread-cap-slack
+OK   spread-exact-control
+OK   spread-exact-unfixed
+OK   vac-reversed-control
+OK   vac-reversed-halfunfix
+OK   gp-A-registry-unfixes
+OK   gp-B-r52-projected-parse-and-survivors
+BAD 0
+DRY RUN CLEAN; launching

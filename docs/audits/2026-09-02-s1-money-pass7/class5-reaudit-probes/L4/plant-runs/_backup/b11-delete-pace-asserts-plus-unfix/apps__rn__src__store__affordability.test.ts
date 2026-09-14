@@ -1,0 +1,196 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { createDefaultStore } from '@/data/defaults';
+import type { DebtStore } from '@/data/models';
+import { selectAffordability, selectAppliedTopUp, selectPriorityGoalCapacity, selectSaveForItOptions } from '@/store/guardianSelectors';
+import { selectDiscretionary, selectPlanSummary, selectRequiredRows, selectSpendable } from '@/store/planSelectors';
+import { selectAllocation } from '@/store/selectors';
+
+/**
+ * §2.9 Can-I-Afford-This? — the app-layer selectors over the engine. The pure verdict + priority-goal
+ * math are unit-tested in core; this proves `selectAffordability` (verdict + honest debt impact off the
+ * real allocation) and `selectSaveForItOptions` (the paced sinking-fund options) on a seeded store.
+ */
+
+let passed = 0;
+function assert(cond: boolean, label: string) {
+  if (!cond) throw new Error(`FAIL [${label}]`);
+  passed++;
+  console.log(`  ✓ ${label}`);
+}
+
+// $2000 paycheck, one big debt (min $100) → discretionary = 2000 - 100 = $1900 above obligations; floor $200.
+function store(): DebtStore {
+  const s = createDefaultStore();
+  return {
+    ...s,
+    subscriptionPlan: 'premium',
+    genuineCycleCount: 6,
+    cushionFloor: 200,
+    paycheck: { ...s.paycheck, amount: '2000', payCycle: 'monthly', currentDate: '2026-08-01', nextPaycheckDate: '2026-09-01' },
+    debts: [{ id: 'card', name: 'Card', balance: 8000, minimumPayment: 100, apr: 22, dueDate: '2026-08-10', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-08-01' }],
+    requiredExpenses: [],
+    goals: [],
+    prefs: { ...s.prefs, onboardingComplete: true },
+  };
+}
+
+function run() {
+  console.log('Running affordability selectors (2.9) tests...');
+  const s = store();
+
+  // ── ⛔ T4.1b — the card's figure must equal the hero's "Flexible": they sit a tap apart on Today. ──
+  // Measured defect: with a 3.8 reserve held, this card read $850 while PlanHero showed "Flexible $675".
+  // `selectDiscretionary` is the PARTITION TOTAL and still contains the reserve; `selectSpendable` is the
+  // money that can actually be spent. Both figures were individually correct, which is exactly why six
+  // lint gates and 187 e2e could not see it. This asserts the RELATIONSHIP — the only thing ever wrong.
+  {
+    const withReserve = {
+      ...s,
+      requiredExpenses: [
+        { id: 'rent', name: 'rent', amount: 350, dueDate: '2026-08-06', recurrence: 'monthly', category: 'housing' },
+        { id: 'elec', name: 'elec', amount: 120, dueDate: '2026-09-20', recurrence: 'monthly', category: 'housing' },
+      ],
+      expenseReserve: { balance: 0, contribution: { forCycle: '2026-09-01', amount: 175 } },
+    } as unknown as DebtStore;
+
+    const alloc = selectAllocation(withReserve)!;
+    const summary = selectPlanSummary(withReserve, alloc, selectRequiredRows(withReserve, alloc));
+    // What PlanHero renders as "Flexible" (PlanHero.tsx: remainingAfterRequired − spokenFor).
+    // ⛔ [T6 after-scan] `everydayHeld`, mirroring the component since T6.3. This modelled the hero with
+    // `everydayReserve` (the REQUEST) after PlanHero moved to the HELD figure — a stale model that kept
+    // passing because this fixture's request fits the paycheck, so the two are equal here. A test whose
+    // comment says it mirrors a component has to actually mirror it, or it pins the wrong thing silently.
+    const heroFlexible = Math.max(0, summary.remainingAfterRequired - (summary.everydayHeld + summary.billsReserve));
+    const cardSpare = selectAffordability(withReserve, 25)!.discretionaryNow;
+
+    assert(summary.billsReserve > 0, `the fixture actually holds a reserve (got ${summary.billsReserve}) — else this proves nothing`);
+    assert(cardSpare === heroFlexible, `the card's "spare" equals the hero's "Flexible" (hero ${heroFlexible}, card ${cardSpare})`);
+    assert(selectDiscretionary(alloc) - selectSpendable(alloc) === summary.billsReserve, 'the two selectors differ by exactly the held reserve');
+  }
+
+  // Verdicts against $1900 discretionary, $200 floor.
+  assert(selectAffordability(s, 500)?.verdict === 'comfortable', '$500 → comfortable (cushion $1400 ≥ floor)');
+  assert(selectAffordability(s, 1800)?.verdict === 'tight', '$1800 → tight (cushion $100 < floor $200)');
+  const short = selectAffordability(s, 2500);
+  assert(short?.verdict === 'short', '$2500 → short (exceeds $1900)');
+  assert(short?.shortBy === 600, '…short by $600');
+
+  // The honest debt impact: a comfortable purchase displaces money that would have gone to the snowball.
+  assert((selectAffordability(s, 500)?.extraToDebtDelta ?? 0) > 0, 'a purchase reduces what reaches debt this paycheck (extraToDebtDelta > 0)');
+
+  // §2.9.5 cover-a-tight-dip: a tight purchase can be covered from a SAVINGS goal (never the EF).
+  const withSavings: DebtStore = { ...s, goals: [{ id: 'vac', name: 'Vacation', targetAmount: 1000, currentAmount: 500, type: 'savings' }] };
+  const tightCover = selectAffordability(withSavings, 1800); // cushionAfter 100 < floor 200 → tight, gap 100
+  assert(tightCover?.verdict === 'tight', '$1800 is tight (cover case)');
+  assert(tightCover?.coverFromSavings?.goalName === 'Vacation' && tightCover?.coverFromSavings?.amount === 100, 'cover offers the $100 gap from the savings goal');
+  assert(selectAffordability(s, 1800)?.coverFromSavings === null, 'no cover option when there is no savings goal');
+  const efOnly: DebtStore = { ...s, goals: [{ id: 'ef', name: 'Emergency Fund', targetAmount: 1000, currentAmount: 500, type: 'emergency' }] };
+  assert(selectAffordability(efOnly, 1800)?.coverFromSavings === null, 'never raids the emergency fund for a discretionary buy');
+  assert(selectAffordability(withSavings, 500)?.coverFromSavings === null, 'a comfortable purchase has no cover option');
+  assert(tightCover?.coverFromSavings?.holdsLine === true, '…and a fully-funded cover reports holdsLine');
+
+  // ── 3.7.A3.6 — the cushion this card reads must INCLUDE a top-up already taken this cycle ──
+  // The Guardian's brief adds `appliedTopUp`; this selector did not, so after the user tapped the
+  // Guardian's one-tap the two cards sat on one screen disagreeing about the same cushion — and this one
+  // offered to move the SAME money out of the SAME goal a second time.
+  // $1750 of rent drops the $1900 discretionary to $150, under the $200 floor — the exact state in which
+  // the Guardian ALSO offers its own top-up, which is what makes the double-count reachable.
+  const tightBase: DebtStore = {
+    ...s,
+    requiredExpenses: [{ id: 'rent', name: 'Rent', amount: 1750, dueDate: '2026-08-05', recurrence: 'monthly' }],
+    goals: [{ id: 'vac', name: 'Vacation', targetAmount: 1000, currentAmount: 450, type: 'savings' }],
+  };
+  const preTopUp = selectAffordability(tightBase, 100);
+  assert(preTopUp?.discretionaryNow === 150, 'pre-top-up: the cushion is $150 (under the $200 floor)');
+  assert(preTopUp?.coverFromSavings?.amount === 150, '…and a $100 purchase needs the full $150 gap covered');
+
+  // Now the user taps the GUARDIAN's one-tap first: $50 moves from Vacation into this cycle.
+  const toppedUp: DebtStore = { ...tightBase, cycleTopUp: { forCycle: '2026-09-01', amount: 50, goalId: 'vac' } };
+  const afterTopUp = selectAffordability(toppedUp, 100);
+  assert(afterTopUp?.discretionaryNow === 200, 'A3.6 — the $50 already moved from savings counts toward the cushion ($150 + $50)');
+  assert(afterTopUp?.cushionAfter === 100, '…so the same $100 purchase dips to $100, not the stale $50');
+  // The regression this pins: unfixed, the cover still asked for $150 on top of the $50 already moved —
+  // $200 drawn to close a $150 gap, $50 of it a second draw for money that was already in checking.
+  assert(afterTopUp?.coverFromSavings?.amount === 100, '…and the cover asks the REMAINING $100, never re-offering the $50 already moved');
+
+  // A cover capped by the goal's balance must not claim to hold the line (A3.1's defect class).
+  const thinPot: DebtStore = { ...tightBase, goals: [{ id: 'vac', name: 'Vacation', targetAmount: 1000, currentAmount: 20, type: 'savings' }] };
+  const capped = selectAffordability(thinPot, 100);
+  assert(capped?.coverFromSavings?.amount === 20, 'a thin savings pot caps the cover at its balance');
+  assert(capped?.coverFromSavings?.holdsLine === false, '…and reports holdsLine=false — $20 against a $150 gap does not hold the line');
+
+  // The applied-top-up confirmation carries the same outcome flag, so "to hold your line" can't persist
+  // as a lie after a capped move.
+  assert(selectAppliedTopUp(toppedUp)?.holdsLine === true, 'an applied top-up that reaches the floor reports holdsLine');
+  const cappedApplied: DebtStore = { ...thinPot, goals: [{ id: 'vac', name: 'Vacation', targetAmount: 1000, currentAmount: 0, type: 'savings' }], cycleTopUp: { forCycle: '2026-09-01', amount: 20, goalId: 'vac' } };
+  assert(selectAppliedTopUp(cappedApplied)?.holdsLine === false, '…a capped one does not, even once the goal is drained to $0');
+
+  // Save-for-it options for a short purchase: prioritized paces + a debt-first path.
+  const opts = selectSaveForItOptions(s, 2500);
+  assert(opts.some((o) => o.key === 'fast' && o.prioritize && (o.perPaycheck ?? 0) > 0 && o.paychecks != null), 'a prioritized "fast" option with a real per-paycheck pace + ready date');
+  assert(opts.some((o) => o.key === 'debtFirst' && !o.prioritize && o.readyBy == null), 'a debt-first option (no priority, no firm date)');
+  assert(opts.length >= 2, 'at least fast + debt-first are offered');
+
+  /**
+   * ⛔ **[.5.5 · pass-7 `B1-1`] — EVERY DATED OPTION IS A PROMISE THE ENGINE KEEPS ONCE IT IS STORED.**
+   *
+   * The sheet paced `Save fast` off `selectDiscretionary` (the partition total) and `Balanced` off half of it, while
+   * the priority-goal rung funds only what is left after the cushion buffer, the expense reserve and any priority goal
+   * already there. Measured before the fix: `fast` broke its promise on 4 of 4 shapes and `Balanced` on 2 of 4 —
+   * and the finding's own remedy (pace off `selectSpendable`) broke too. So the assertion is the round trip the user
+   * makes: take each option, STORE it as `SaveForItSheet` does, re-allocate, and check the engine funds that pace
+   * within that many paychecks.
+   */
+  const PURCHASE = 2500;
+  const { currentDate, nextPaycheckDate } = s.paycheck;
+  const SHAPES: [string, DebtStore][] = [
+    ['one debt, nothing held', s],
+    ['a held expense reserve', { ...s, requiredExpenses: [{ id: 'rent', name: 'Rent', amount: 900, dueDate: currentDate, recurrence: 'monthly' }], expenseReserve: { balance: 0, contribution: { forCycle: nextPaycheckDate, amount: 400 } } } as DebtStore],
+    ['a priority goal already on the rung', { ...s, goals: [{ id: 'trip', name: 'Trip', type: 'savings', targetAmount: 3000, currentAmount: 0, priority: true, priorityPerPaycheck: 600 }] } as DebtStore],
+    ['variable income', { ...s, paycheck: { ...s.paycheck, incomeVaries: true, leanAmount: 1400, typicalAmount: 2000 } } as DebtStore],
+    // ⚠️ A capacity OFF the $5 grid ($1,698.75), so a pace rounded UP to $5 promises more than the engine funds. Every
+    // other shape here lands on the grid. Measured, not guessed: an uneven LEAN paycheck does not move capacity at
+    // all ($1,400 and $1,403 both give $1,275) — the first attempt at this shape was vacuous and the check below said so.
+    ['a minimum payment off the $5 grid', { ...s, debts: [{ ...s.debts[0], minimumPayment: 101.25 }] } as DebtStore],
+  ];
+  assert(selectPriorityGoalCapacity(SHAPES[4][1], 2500) % 5 !== 0, '⭐ the off-grid shape really has a capacity off the $5 grid (or the rounding is unexercised)');
+  const fundedAt = (store_: DebtStore, pace: number) => {
+    const stored = { ...store_, goals: [...store_.goals, { id: 'buy', name: 'Buy', type: 'savings', targetAmount: PURCHASE, currentAmount: 0, priority: true, priorityPerPaycheck: pace }] } as DebtStore;
+    return (selectAllocation(stored)?.allocations ?? []).filter((a) => a.goalId === 'buy').reduce((n, a) => n + a.amount, 0);
+  };
+  let dated = 0;
+  for (const [label, shape] of SHAPES) {
+    const capacity = selectPriorityGoalCapacity(shape, PURCHASE);
+    for (const o of selectSaveForItOptions(shape, PURCHASE)) {
+      if (o.perPaycheck == null || o.paychecks == null) continue;
+      dated++;
+      const funded = fundedAt(shape, o.perPaycheck);
+      assert(o.perPaycheck <= capacity, `⛔ B1-1 — ${label}: "${o.title}" promises ${o.perPaycheck}/paycheck, within the ${capacity} the engine can fund`);
+      assert(funded >= o.perPaycheck, `⛔ B1-1 — ${label}: "${o.title}" stored at ${o.perPaycheck} is funded ${funded} — the pace is kept`);
+      assert(Math.ceil(PURCHASE / funded) <= o.paychecks, `⛔ B1-1 — ${label}: "${o.title}" is ready in ${o.paychecks} paychecks at the rate the engine funds — the date is kept`);
+    }
+  }
+  assert(dated >= SHAPES.length, `⭐ the shapes really produced dated options to check (${dated}) — or the loop proves nothing`);
+
+  // BY NAME — the figure, not only the relation: a held $400 reserve leaves the goal rung $400 a paycheck.
+  const heldFast = selectSaveForItOptions(SHAPES[1][1], PURCHASE).find((o) => o.key === 'fast');
+  assert(heldFast?.perPaycheck === 400 && heldFast?.paychecks === 7, `⛔ B1-1 — with a $400 reserve held, "Save fast" is $400 a paycheck over 7 (got ${heldFast?.perPaycheck} over ${heldFast?.paychecks})`);
+
+  // The sheet's "Set your own" date is a component, unreachable here — its source is pinned instead: the date must be
+  // computed from what the plan funds, never from the typed pace alone.
+  const sheetSrc = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'components', 'plan', 'SaveForItSheet.tsx'), 'utf8');
+  assert(/Math\.min\(customPace, capacity\)/.test(sheetSrc) && /Math\.ceil\(amount \/ customFunded\)/.test(sheetSrc), '⛔ B1-1 — the sheet dates a typed pace from what the plan can fund, not from the pace as typed');
+
+  console.log(`✅ Affordability selectors (2.9) tests passed (${passed} asserts).`);
+}
+
+try {
+  run();
+} catch (err) {
+  console.error(`❌ ${(err as Error).message}`);
+  process.exitCode = 1;
+  throw err;
+}

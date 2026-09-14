@@ -1,0 +1,56 @@
+$ npx tsx scripts/run-gates.ts --list
+exit=0 secs=3
+
+lint:rn --fast: 47 of 52 gates would run.
+  run   eslint (apps/rn)
+  run   lint:a11y-props
+  run   lint:comments
+  run   lint:rn-style
+  run   lint:local-dates
+  run   lint:month-arithmetic
+  run   lint:copy
+  run   lint:glossary
+  run   lint:money
+  run   lint:apostrophes
+  run   lint:closure
+  run   lint:destructive
+  run   lint:sandbox
+  run   lint:secrets
+  run   lint:selectors
+  run   lint:coverage
+  run   lint:s0-coverage
+  run   lint:s1-coverage
+  run   lint:s2-coverage
+  run   lint:s3-coverage
+  run   lint:s4-coverage
+  run   lint:surface-complete
+  run   lint:gate-sources
+  run   lint:scan-floors
+  run   lint:line-endings
+  run   lint:closure-stripper
+  run   lint:control-chars
+  run   lint:strip-code
+  run   lint:finding-guards
+  run   lint:cap-literals
+  run   lint:runner-completeness
+  run   lint:rounding
+  run   lint:store-id-writes
+  run   lint:conflict-markers
+  run   lint:fixture-dates
+  run   lint:amount-collapse
+  run   lint:a11y-collapse
+  run   lint:contrast
+  run   lint:type-scale
+  run   lint:press-opacity
+  run   lint:icon-glyphs
+  run   lint:copy-owners
+  run   lint:restore-doors
+  run   lint:import-graph
+  run   lint:trust-claims
+  run   lint:ci-chain
+  run   lint:lane
+  skip  prove:guards:selftest
+  skip  test:gate-plants
+  skip  test:wrap-escapes
+  skip  test:plant-safety
+  skip  test:joined-code

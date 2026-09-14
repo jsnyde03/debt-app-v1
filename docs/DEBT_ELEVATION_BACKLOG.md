@@ -386,6 +386,12 @@
   real picker. Fix is one line (route `reportWith` through `pickLegacyStore`); the risk is that it changes
   what the existing 32-case corpus measures, so it wants its own control. → **S3 / import surface**
 
+- **`MAX_SERVER_ATTEMPTS`' written derivation reasons over 17 Playwright proofs; there are 24.** *(2026-09-14 · class-5
+  re-audit round 1, `F1`, routed here by 🎯 under [D80])*. `prove-guards.ts:240-249` derives `k=6 → ~6%` for a full
+  `--all` from **17** Playwright-backed proofs; `.5.7` registered seven more, and at 24 it is **~6.4%**. The cap is fine; the
+  sentence written *"so the next person can re-derive it"* has a stale input. Fix: state the derivation as a function of n
+  and print n at run time, or re-derive at 24. → **Tooling**
+
 - ⭐ **`lint:plan-figures` — gate the CLASS "the plan states a number its own instrument contradicts."**
   *(2026-08-26 plan-cleanup after-scan)*. [D49] stopped the **gate** result being typed into the plan;
   nothing stops the **ledger** results being typed, and the residue table was found reading *"34 findings ·

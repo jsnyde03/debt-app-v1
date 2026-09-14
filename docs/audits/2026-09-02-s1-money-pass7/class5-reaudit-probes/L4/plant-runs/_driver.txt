@@ -1,0 +1,13 @@
+baseline lint:ci-chain exit=0
+baseline test:gate-plants exit=0 secs=538
+Traceback (most recent call last):
+  File "C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L4\plant.py", line 167, in <module>
+    do(n)
+    ~~^^^
+  File "C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L4\plant.py", line 146, in do
+    cur[f] = fn(cur[f])
+             ~~^^^^^^^^
+  File "C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L4\plant.py", line 33, in f
+    raise RuntimeError(f'regex matched {n}: {pattern!r}')
+RuntimeError: regex matched 0: '^if \\(!FAST && selected\\.length !== GATES\\.length\\) \\{\\n(?:.*\\n){2}\\}\\n'
+PLANTS-DONE

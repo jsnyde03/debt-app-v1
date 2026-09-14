@@ -1,0 +1,4 @@
+today = 2026-09-14
+{"label":"control-no-edit","calls":["start(2026-09-15)"],"attributesPayday":"2026-09-15","statePayday":"2026-09-15","daysUntilPayday":1,"buttonVisible":false,"planNextPayday":"(rolled)","tapDate":"2026-09-15","rolled":1}
+{"label":"control-tap-names-plan-payday","calls":["start(2026-09-15)","update(2026-09-14)"],"attributesPayday":"2026-09-15","statePayday":"2026-09-14","daysUntilPayday":0,"buttonVisible":true,"planNextPayday":"(rolled)","tapDate":"2026-09-14","rolled":1}
+{"label":"subject-tap-names-attribute","calls":["start(2026-09-15)","update(2026-09-14)"],"attributesPayday":"2026-09-15","statePayday":"2026-09-14","daysUntilPayday":0,"buttonVisible":true,"planNextPayday":"2026-09-14","tapDate":"2026-09-15","rolled":0}

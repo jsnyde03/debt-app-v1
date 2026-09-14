@@ -1,0 +1,11 @@
+$ npm run -s lint:trust-claims
+exit=1 secs=3
+
+
+❌ trust claims: 1 problem(s)
+
+  ✗ [debt-spread] apps/rn/src/store/sandboxScenarios.ts is ledgered at 1 spread(s) and holds 2. ⛔ Exact in BOTH directions.
+
+The rule: never state a number about money the app could not read.
+It has now been widened three times and missed a different direction each time.
+

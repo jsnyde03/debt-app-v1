@@ -1,0 +1,6 @@
+$ npm run -s lint:trust-claims
+exit=0 secs=3
+
+✅ trust claims: 7 claims all consumed in production (debt-balances→3 · goal-amounts→1 · required-plan→1 · row-figures→7 · projected-balance→2 · solved-projection→4 · paycheck-plan→7); every asked field routed.
+   ⭐ 0 claim sites open — all 6 money-printing files that read the user's entities call the guard (floor 6; per-claim callers floored).
+   ⚠️ 22 liveness re-derivation(s) (`balance` compared against 0, either direction) across 15 file(s), cap 22 — none measured against a repaired balance yet: apps/rn/src/store/analysisSelectors.ts, apps/rn/src/store/balanceSelectors.ts, apps/rn/src/store/demoRun.ts, apps/rn/src/store/drift.ts, apps/rn/src/store/payoffCelebration.ts, apps/rn/src/store/guardianSelectors.ts, apps/rn/src/store/payday.ts, apps/rn/src/store/recoverySelectors.ts, apps/rn/src/components/payoff/TrajectoryChart.tsx, apps/rn/src/components/payoff/compareStrategies.ts, apps/rn/src/components/payoff/trajectoryDomain.ts, apps/rn/src/store/payoffSelectors.ts, apps/rn/src/store/planSelectors.ts, apps/rn/src/store/sandboxScenarios.ts, apps/rn/src/widget/snapshot.ts

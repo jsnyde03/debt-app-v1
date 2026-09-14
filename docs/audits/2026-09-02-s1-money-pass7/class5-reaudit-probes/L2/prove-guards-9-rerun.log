@@ -1,0 +1,17 @@
+
+> debt-app-v1@1.6.0 prove:guards
+> tsx scripts/prove-guards.ts --id=S1P7-C3-2-SIRI-PREMIUM-UPSELL,S1P7-D2-12-SIRI-NO-PLAN-UPSELL,S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK,S1P7-57-3-WIDGET-DIRECTION,S1P7-57-4A2-REPLAY-ONCE,S1P7-57-4A2-CARRY-REPLACEMENTS,S1P6-C3-6-DATED-TAP,S1P6-C3-6-HANDLED-NO-REFUSAL,S1P6-C3-6-BUTTON-NAMES-PAYDAY
+
+  ✅ S1P7-C3-2-SIRI-PREMIUM-UPSELL plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-D2-12-SIRI-NO-PLAN-UPSELL plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+
+❌ prove:guards — HARNESS FAULT on S1P7-57-3-WIDGET-DIRECTION, so there is no verdict here:
+   something is already listening on :4319, so NO proof can run.
+   ⛔ `apps/rn/playwright.config.ts` sets `reuseExistingServer`, so any proof that reaches
+   playwright — by argv, by npm script, or through a script that chains to one — would be
+   handed the PRE-PLANT bundle and read as failed-open: a working guard reported dead.
+   ⚠️ This refuses every proof rather than the ones whose command spells "playwright",
+   because that spelling missed two live entries. Stop that server and re-run.
+
+exit=1

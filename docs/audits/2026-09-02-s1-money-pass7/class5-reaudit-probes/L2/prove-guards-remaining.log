@@ -1,0 +1,14 @@
+[S1P7-57-3-WIDGET-DIRECTION] rc=0   ✅ S1P7-57-3-WIDGET-DIRECTION plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+[S1P7-57-3-WIDGET-DIRECTION] rc=0 ✅ prove:guards — 1 guard(s) red on their own defect, and the control is green.
+[S1P7-57-4A2-REPLAY-ONCE] rc=0   ✅ S1P7-57-4A2-REPLAY-ONCE    plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+[S1P7-57-4A2-REPLAY-ONCE] rc=0 ✅ prove:guards — 1 guard(s) red on their own defect, and the control is green.
+[S1P7-57-4A2-CARRY-REPLACEMENTS] rc=0   ✅ S1P7-57-4A2-CARRY-REPLACEMENTS plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+[S1P7-57-4A2-CARRY-REPLACEMENTS] rc=0 ✅ prove:guards — 1 guard(s) red on their own defect, and the control is green.
+[S1P6-C3-6-DATED-TAP] rc=0   ✅ S1P6-C3-6-DATED-TAP        plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+[S1P6-C3-6-DATED-TAP] rc=0 ✅ prove:guards — 1 guard(s) red on their own defect, and the control is green.
+[S1P6-C3-6-HANDLED-NO-REFUSAL] rc=0   ✅ S1P6-C3-6-HANDLED-NO-REFUSAL plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+[S1P6-C3-6-HANDLED-NO-REFUSAL] rc=0 ✅ prove:guards — 1 guard(s) red on their own defect, and the control is green.
+[S1P6-C3-6-BUTTON-NAMES-PAYDAY] rc=0   ✅ S1P6-C3-6-BUTTON-NAMES-PAYDAY plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+[S1P6-C3-6-BUTTON-NAMES-PAYDAY] rc=0 ✅ prove:guards — 1 guard(s) red on their own defect, and the control is green.
+DONE
+ M scripts/finding-guards.json

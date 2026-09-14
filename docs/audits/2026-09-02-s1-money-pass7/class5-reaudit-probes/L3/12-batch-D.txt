@@ -1,0 +1,77 @@
+== app plants (2) ==
+  plant apps/rn/src/app/(tabs)/progress.tsx: anchor count=1 :: "    () => (mayClaim(store, 'solved-projection') ? rawView : gagBalanceDerived(rawView)),"
+  plant apps/rn/src/app/cushion-forecast.tsx: anchor count=1 :: "            <ForecastUnread fix={unreadInputsFix(repairsPoisoning(store, 'solved-projectio"
+  applied apps/rn/src/app/(tabs)/progress.tsx: changed=True
+  applied apps/rn/src/app/cushion-forecast.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 88s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=5300 listening=True ==
+
+-- RUN D1 C3-9 view gag ALONE reverted · C3-9 spec as written :: progress-hero-journey.spec.ts -g 'C3-9 · an unread APR'
+
+Running 1 test using 1 worker
+
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.9s)
+
+  1 passed (4.8s)
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.9s) | 1 passed (4.8s)
+
+-- RUN D2 C3-9 view gag ALONE reverted · what Progress renders (probe3) :: zz-l3-probe3.spec.ts -g 'L3 P5'
+
+Running 2 tests using 1 worker
+
+L3PROBE P5 apr= hero-date :: "—"
+L3PROBE P5 apr= projected phrases :: ["DEBT-FREE — $2,000 of $6,000 paid Next milestone:"]
+L3PROBE P5 apr= screen text :: "  Today   Progress   Money Progress  33% paid DEBT-FREE — $2,000 of $6,000 paid Next milestone: 50% CASH FLOW · NEXT 5 PAY CYCLES Cushion Timeline $1,530 $2,000 $1,530 $2,000 $1,650 Sep 14 Sep 28 Oct 12 Oct 26 Nov 9 your $200 line · room after each paycheck Comfortable across the next few paychecks. PAYOFF TRAJECTORY Balance over time $0 $2k $4k Nov Jan Nov 2026 Now Minimum payments Jul 2029 Your plan Nov 2026 · 2 years saved What if you paid extra?  Snowball or avalanche? "
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe3.spec.ts:20:7 › L3 P5 progress screen · apr=unread (3.7s)
+L3PROBE P5 apr=19 hero-date :: "November 2026"
+L3PROBE P5 apr=19 projected phrases :: ["DEBT-FREE November 2026 $2,000 of $6,000 paid Nex"]
+L3PROBE P5 apr=19 screen text :: "  Today   Progress   Money Progress  33% paid DEBT-FREE November 2026 $2,000 of $6,000 paid Next milestone: 50% CASH FLOW · NEXT 5 PAY CYCLES Cushion Timeline $1,530 $2,000 $1,530 $2,000 $1,650 Sep 14 Sep 28 Oct 12 Oct 26 Nov 9 your $200 line · room after each paycheck Comfortable across the next few paychecks. PAYOFF TRAJECTORY Balance over time $0 $2k $4k Nov Jan Nov 2026 Now Minimum payments Sep 2030 Your plan Nov 2026 · ~$1,651, 3 years saved What if you paid extra?  Snowball or avalanche? "
+  ok 2 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe3.spec.ts:20:7 › L3 P5 progress screen · apr=19 (3.7s)
+
+  2 passed (9.5s)
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe3.spec.ts:20:7 › L3 P5 progress screen · apr=unread (3.7s) | ok 2 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe3.spec.ts:20:7 › L3 P5 progress screen · apr=19 (3.7s) | 2 passed (9.5s)
+
+-- RUN D3 C3-11 refusal branch draws the runway TOO · C3-11 spec as written :: cushion-forecast.spec.ts -g 'C3-11 · an unread minimum withholds'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard (6.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard 
+
+    Error: a runway solved from a minimum the app could not read is the claim this screen exists to make
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText('CUSHION BY PAYCHECK', { exact: true })
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - a runway solved from a minimum the app could not read is the claim this screen exists to make with timeout 5000ms[22m
+    [2m  - waiting for getByText('CUSHION BY PAYCHECK', { exact: true })[22m
+    [2m    14 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      162 |     page.getByText('CUSHION BY PAYCHECK', { exact: true }),
+      163 |     'a runway solved from a minimum the app could not read is the claim this screen exists to make',
+    > 164 |   ).toHaveCount(0);
+          |     ^
+      165 |   await expect(page.getByText('GUARDIAN ACCURACY'), 'the scorecard is stored history, not a projection').toBeVisible();
+      166 | });
+      167 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\cushion-forecast.spec.ts:164:5
+
+    Error Context: apps\rn\test-results\cushion-forecast-C3-11-·-a-271a9-way-and-keeps-the-scorecard-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard (6.1s) | Error: a runway solved from a minimum the app could not read is the claim this screen exists to make | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/app/(tabs)/progress.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/cushion-forecast.tsx: cmp identical=True

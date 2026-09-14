@@ -1,0 +1,25 @@
+{
+  "worktree": "C:/Users/Jason/audit-c5r1-L3",
+  "app_plants": [
+    ["apps/rn/src/app/(tabs)/index.tsx", "unreadPlanInputs={!mayClaim(store, 'solved-projection')}", "unreadPlanInputs={!mayClaim(store, 'required-plan')}"],
+    ["apps/rn/src/app/(tabs)/index.tsx", "unreadPlanInputs={!mayClaim(store, 'paycheck-plan')}", "unreadPlanInputs={!mayClaim(store, 'required-plan')}"],
+    ["apps/rn/src/app/cushion-forecast.tsx", "  const mayStateForecast = mayClaim(store, 'solved-projection');", "  const mayStateForecast = true;"],
+    ["apps/rn/src/app/(tabs)/money.tsx", "  const mayStateProjected = mayClaim(store, 'projected-balance');", "  const mayStateProjected = mayClaim(store, 'row-figures');"],
+    ["apps/rn/src/app/(tabs)/progress.tsx", "  const mayStateSolved = mayClaim(store, 'solved-projection');", "  const mayStateSolved = mayClaim(store, 'row-figures');"]
+  ],
+  "runs": [
+    {"name": "B1 .5.4d Guardian over lost goal target · as written", "spec": "trust-claims.spec.ts", "grep": "the Payday Guardian card states nothing over a goal target"},
+    {"name": "B2 .5.4d Guardian · RELAXED (both unread-inputs assertions removed)", "spec": "trust-claims.spec.ts", "grep": "the Payday Guardian card states nothing over a goal target",
+     "spec_plants": [["apps/rn/tests/e2e/trust-claims.spec.ts", "  // The honest state BY NAME first — scoped to the card, never page-wide.\r\n  await expect(page.getByTestId('guardian-unread-inputs')).toBeVisible();\r\n  await expect(\r\n    page.getByTestId('guardian-unread-inputs'),\r\n    'a goal target is not an amount this paycheck has to cover — the lead must say what is actually true',\r\n  ).toContainText('An amount your plan is built from could not be read');\r\n", ""]]},
+    {"name": "B3 .5.4d plan hero over lost APR · as written", "spec": "trust-claims.spec.ts", "grep": "withholds its date and its split"},
+    {"name": "B4 .5.4d plan hero · RELAXED (lead removed)", "spec": "trust-claims.spec.ts", "grep": "withholds its date and its split",
+     "spec_plants": [["apps/rn/tests/e2e/trust-claims.spec.ts", "  await expect(hero, 'the honest state, by name').toContainText('An amount your plan is built from could not be read');\r\n", ""]]},
+    {"name": "B5 .5.4d plan hero · RELAXED (lead + date removed)", "spec": "trust-claims.spec.ts", "grep": "withholds its date and its split",
+     "spec_plants": [["apps/rn/tests/e2e/trust-claims.spec.ts", "  await expect(hero, 'the honest state, by name').toContainText('An amount your plan is built from could not be read');\r\n  await expect(hero, 'a debt-free date solved from a rate the app could not read').not.toContainText('debt-free by');\r\n", ""]]},
+    {"name": "B6 C3-11 forecast over unread minimum · as written", "spec": "cushion-forecast.spec.ts", "grep": "C3-11 · an unread minimum withholds"},
+    {"name": "B7 C3-11 forecast · RELAXED (both unread-card assertions removed)", "spec": "cushion-forecast.spec.ts", "grep": "C3-11 · an unread minimum withholds",
+     "spec_plants": [["apps/rn/tests/e2e/cushion-forecast.spec.ts", "  await expect(page.getByTestId('cushion-forecast-unread')).toBeVisible({ timeout: 15_000 });\r\n  await expect(\r\n    page.getByTestId('cushion-forecast-unread'),\r\n    'the instruction names the figure to set, not a position on another screen',\r\n  ).toContainText('minimum payment on Visa');\r\n", ""]]},
+    {"name": "B8 .5.4a Money keeps total over lost goal target · as written", "spec": "data-recovery.spec.ts", "grep": "a lost goal target keeps the debt total"},
+    {"name": "B9 .5.4a Progress keeps date over lost typical paycheck · as written", "spec": "progress-hero-journey.spec.ts", "grep": "a lost typical paycheck keeps the debt-free date"}
+  ]
+}

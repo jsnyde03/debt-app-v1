@@ -1,0 +1,35 @@
+S1P7-57-2B-VACUOUS-CONJUNCT exit=7 
+S1P7-57-2D-DEBT-SPREAD-LEDGER exit=0   ✅ S1P7-57-2D-DEBT-SPREAD-LEDGER plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-57-2A-PROJECTED-STALENESS exit=0   ✅ S1P7-57-2A-PROJECTED-STALENESS plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-R3-3-BORROW exit=0   ✅ S1P7-R3-3-BORROW           plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P4-C4-3-BOTHDIRECTIONS exit=0   ✅ S1P4-C4-3-BOTHDIRECTIONS   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P4-C4-4-POPULATION exit=0   ✅ S1P4-C4-4-POPULATION       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P3-D3-CAPS exit=0   ✅ S1P3-D3-CAPS               plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P3-G-LIVENESSLEDGER exit=0   ✅ S1P3-G-LIVENESSLEDGER      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P5-D5-7-EXPECTREQUIRED exit=0   ✅ S1P5-D5-7-EXPECTREQUIRED   plant-applied=YES · planted=exit 2 · control=exit 0 · reason=MATCHED 
+S1P5-D5-13-DERIVEDPOP exit=0   ✅ S1P5-D5-13-DERIVEDPOP      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P5-D5-9-CAPWRAP exit=0   ✅ S1P5-D5-9-CAPWRAP          plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P6-D1-8-GATECHAIN exit=0   ✅ S1P6-D1-8-GATECHAIN        plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P6-D2-1-PROOFSTALE exit=0   ✅ S1P6-D2-1-PROOFSTALE       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-U7-VERDICT-MARK exit=0   ✅ S1P7-U7-VERDICT-MARK       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-U11-WELDED-TOKEN exit=0   ✅ S1P7-U11-WELDED-TOKEN      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-C3-5-LIVEACTIVITY-UPDATE-LANDED exit=0   ✅ S1P7-C3-5-LIVEACTIVITY-UPDATE-LANDED plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-C3-5-LIVEACTIVITY-START-LANDED exit=0   ✅ S1P7-C3-5-LIVEACTIVITY-START-LANDED plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-C3-6-LIVEACTIVITY-END-LANDED exit=0   ✅ S1P7-C3-6-LIVEACTIVITY-END-LANDED plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-C3-1-SIRI-DEBTSJSON-UNREAD exit=0   ✅ S1P7-C3-1-SIRI-DEBTSJSON-UNREAD plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-C3-2-SIRI-PREMIUM-UPSELL exit=0   ✅ S1P7-C3-2-SIRI-PREMIUM-UPSELL plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-D2-12-SIRI-NO-PLAN-UPSELL exit=0   ✅ S1P7-D2-12-SIRI-NO-PLAN-UPSELL plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-B1-1-SAVEFORIT-PACE-KEPT exit=0   ✅ S1P7-B1-1-SAVEFORIT-PACE-KEPT plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-C3-14-GOALS-HERO-COUNT exit=0   ✅ S1P7-C3-14-GOALS-HERO-COUNT plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK exit=0   ✅ S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-57-2B-CLAIM-LATTICE exit=0   ✅ S1P7-57-2B-CLAIM-LATTICE   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-57-2C-LOST-FIELD-NAMED exit=0   ✅ S1P7-57-2C-LOST-FIELD-NAMED plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-57-3-WIDGET-DIRECTION exit=0   ✅ S1P7-57-3-WIDGET-DIRECTION plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-57-4A2-REPLAY-ONCE exit=0   ✅ S1P7-57-4A2-REPLAY-ONCE    plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-57-4A2-CARRY-REPLACEMENTS exit=0   ✅ S1P7-57-4A2-CARRY-REPLACEMENTS plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P6-C3-6-DATED-TAP exit=0   ✅ S1P6-C3-6-DATED-TAP        plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P6-C3-6-HANDLED-NO-REFUSAL exit=0   ✅ S1P6-C3-6-HANDLED-NO-REFUSAL plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P6-C3-6-BUTTON-NAMES-PAYDAY exit=0   ✅ S1P6-C3-6-BUTTON-NAMES-PAYDAY plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+S1P7-B1-2-OFFER-ASKS-ENGINE exit=0   ✅ S1P7-B1-2-OFFER-ASKS-ENGINE plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED 
+REGISTRY cmp IDENTICAL
+DONE

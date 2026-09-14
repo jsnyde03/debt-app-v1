@@ -1,0 +1,3 @@
+      if (!bridge.areActivitiesEnabled()) {
+        return;
+      }

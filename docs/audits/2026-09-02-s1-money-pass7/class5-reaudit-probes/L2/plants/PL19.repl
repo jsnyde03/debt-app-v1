@@ -1,0 +1,1 @@
+      api.applyPaydayLandedIntent({ paydayDateISO: action.paydayDateISO });

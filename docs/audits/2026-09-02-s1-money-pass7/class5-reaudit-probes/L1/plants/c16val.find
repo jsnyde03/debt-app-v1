@@ -1,0 +1,1 @@
+    value: unread || !Number.isFinite(stored) ? DEFAULT_CUSHION_FLOOR : stored,

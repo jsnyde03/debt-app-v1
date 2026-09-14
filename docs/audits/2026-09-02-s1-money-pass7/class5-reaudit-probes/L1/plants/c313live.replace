@@ -1,0 +1,1 @@
+  return store.debts.filter((d) => d.balance > 0);

@@ -1,0 +1,187 @@
+== app plants (5) ==
+  plant apps/rn/src/components/plan/PlanHero.tsx: anchor count=1 :: '  ].filter((seg) => !unreadPlanInputs && seg.value > 0);'
+  plant apps/rn/src/app/cushion-forecast.tsx: anchor count=1 :: "  const mayStateForecast = mayClaim(store, 'solved-projection');"
+  plant apps/rn/src/components/plan/SaveForItSheet.tsx: anchor count=1 :: 'customFunded != null && customFunded > 0 ? Math.max(1, Math.ceil(amount / customFunded)) :'
+  plant apps/rn/src/app/(tabs)/progress.tsx: anchor count=1 :: "    () => (mayClaim(store, 'solved-projection') ? rawView : gagBalanceDerived(rawView)),"
+  plant apps/rn/src/app/(tabs)/progress.tsx: anchor count=1 :: "  const heroDate = mayStateSolved ? (view.debtFreeDate ?? '—') : '—';"
+  applied apps/rn/src/components/plan/PlanHero.tsx: changed=True
+  applied apps/rn/src/app/cushion-forecast.tsx: changed=True
+  applied apps/rn/src/components/plan/SaveForItSheet.tsx: changed=True
+  applied apps/rn/src/app/(tabs)/progress.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 87s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=22380 listening=True ==
+
+-- RUN C1 C1-5 split filter reverted · .5.4d hero as written :: trust-claims.spec.ts -g 'withholds its date and its split'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read (6.7s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read 
+
+    Error: the split is carved from the corrupted allocation (C1-5)
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('plan-hero').getByText('Flexible')
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - the split is carved from the corrupted allocation (C1-5) with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('plan-hero').getByText('Flexible')[22m
+    [2m    13 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      427 |   await expect(hero, 'the honest state, by name').toContainText('An amount your plan is built from could not be read');
+      428 |   await expect(hero, 'a debt-free date solved from a rate the app could not read').not.toContainText('debt-free by');
+    > 429 |   await expect(hero.getByText('Flexible'), 'the split is carved from the corrupted allocation (C1-5)').toHaveCount(0);
+          |                                                                                                        ^
+      430 | });
+      431 |
+      432 | test('.5.4d control · the plan hero with the rate readable still states its date and its split', async ({ page }) => {
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\trust-claims.spec.ts:429:104
+
+    Error Context: apps\rn\test-results\trust-claims--5-4d-·-the-p-9ba0d--APR-the-app-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read (6.7s) | Error: the split is carved from the corrupted allocation (C1-5) | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN C2 .5.4a-style forecast over lost typical paycheck · as written :: cushion-forecast.spec.ts -g 'C3-11 · a lost typical paycheck keeps the runway drawn'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:168:5 › C3-11 · a lost typical paycheck keeps the runway drawn (15.7s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:168:5 › C3-11 · a lost typical paycheck keeps the runway drawn 
+
+    Error: a paycheck figure the plan never reads says nothing about the runway — withholding it is over-suppression
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('CUSHION BY PAYCHECK', { exact: true })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - a paycheck figure the plan never reads says nothing about the runway — withholding it is over-suppression with timeout 15000ms[22m
+    [2m  - waiting for getByText('CUSHION BY PAYCHECK', { exact: true })[22m
+
+
+      180 |     page.getByText('CUSHION BY PAYCHECK', { exact: true }),
+      181 |     'a paycheck figure the plan never reads says nothing about the runway — withholding it is over-suppression',
+    > 182 |   ).toBeVisible({ timeout: 15_000 });
+          |     ^
+      183 |   await expect(page.getByTestId('cushion-forecast-unread')).toHaveCount(0);
+      184 | });
+      185 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\cushion-forecast.spec.ts:182:5
+
+    Error Context: apps\rn\test-results\cushion-forecast-C3-11-·-a-aa957-heck-keeps-the-runway-drawn-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:168:5 › C3-11 · a lost typical paycheck keeps the runway drawn 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:168:5 › C3-11 · a lost typical paycheck keeps the runway drawn (15.7s) | Error: a paycheck figure the plan never reads says nothing about the runway — withholding it is over-suppression | [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+-- RUN C3 B1-1 date from the typed pace · as written :: saveforit-pace.spec.ts -g 'B1-1 — a pace above what the plan can fund'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:109:5 › B1-1 — a pace above what the plan can fund is dated from what it will fund, and says so (7.4s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:109:5 › B1-1 — a pace above what the plan can fund is dated from what it will fund, and says so 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByTestId('saveforit-custom-ready')
+    Expected pattern: [32m/([2-9]|\d{2,}) paychecks · ready by/[39m
+    Received string:  [31m"Your plan can set aside about $3,350 a paycheck, so: 1 paycheck · ready by Oct 14"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('saveforit-custom-ready')[22m
+    [2m    14 × locator resolved to <div dir="auto" class="css-146c3p1 r-1ghxqbu" data-testid="saveforit-custom-ready">…</div>[22m
+    [2m       - unexpected value "Your plan can set aside about $3,350 a paycheck, so: 1 paycheck · ready by Oct 14"[22m
+
+
+      116 |   // funds less than a $4,000 paycheck, so the honest count is 2 or more. ⚠️ Measured: the first cut asserted only the
+      117 |   // caption, and a plant that dated the typed pace passed it — the caption is computed separately from the date.
+    > 118 |   await expect(ready).toContainText(/([2-9]|\d{2,}) paychecks · ready by/);
+          |                       ^
+      119 |   await expect(ready).not.toContainText(/(^|\D)1 paycheck ·/);
+      120 |
+      121 |   // ⭐ CONTROL — a pace the plan CAN fund gets its date and no caption.
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\saveforit-pace.spec.ts:118:23
+
+    Error Context: apps\rn\test-results\saveforit-pace-B1-1-—-a-pa-7ed99-at-it-will-fund-and-says-so-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:109:5 › B1-1 — a pace above what the plan can fund is dated from what it will fund, and says so 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\saveforit-pace.spec.ts:109:5 › B1-1 — a pace above what the plan can fund is dated from what it will fund, and says so (7.4s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | 117 |   // caption, and a plant that dated the typed pace passed it — the caption is computed separately from the date. | 1 failed
+
+-- RUN C4 C3-9 BOTH layers reverted (view gag + heroDate) · as written :: progress-hero-journey.spec.ts -g 'C3-9 · an unread APR'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (6.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones 
+
+    Error: a debt-free date computed from an APR the app could not read is the same claim as one computed from an unread balance
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('progress-hero-date')
+    Expected: [32m"—"[39m
+    Received: [31m"November 2026"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - a debt-free date computed from an APR the app could not read is the same claim as one computed from an unread balance with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('progress-hero-date')[22m
+    [2m    12 × locator resolved to <div dir="auto" data-testid="progress-hero-date" class="css-146c3p1 r-8akbws r-krxsd3 r-dnmrzs r-1qsk4np r-1udbk01 r-1vr29t4 r-icto9i">November 2026</div>[22m
+    [2m       - unexpected value "November 2026"[22m
+
+
+      259 |     page.getByTestId('progress-hero-date'),
+      260 |     'a debt-free date computed from an APR the app could not read is the same claim as one computed from an unread balance',
+    > 261 |   ).toHaveText('—');
+          |     ^
+      262 |
+      263 |   // ⭐ The half a suppression-only fix gets wrong: what the app DID read must survive.
+      264 |   await expect(
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\progress-hero-journey.spec.ts:261:5
+
+    Error Context: apps\rn\test-results\progress-hero-journey-C3-9-0f11b-nd-KEEPS-the-confirmed-ones-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (6.1s) | Error: a debt-free date computed from an APR the app could not read is the same claim as one computed from an unread balance | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN C5 C3-9 BOTH layers · RELAXED (date '—' removed) :: progress-hero-journey.spec.ts -g 'C3-9 · an unread APR'
+  plant apps/rn/tests/e2e/progress-hero-journey.spec.ts: anchor count=1 :: "    'a debt-free date computed from an APR the app could not read is the same claim as one"
+  applied apps/rn/tests/e2e/progress-hero-journey.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.2s)
+
+  1 passed (3.3s)
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:240:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.2s) | 1 passed (3.3s)
+  RESTORE apps/rn/tests/e2e/progress-hero-journey.spec.ts: cmp identical=True
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/components/plan/PlanHero.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/cushion-forecast.tsx: cmp identical=True
+  RESTORE apps/rn/src/components/plan/SaveForItSheet.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/(tabs)/progress.tsx: cmp identical=True

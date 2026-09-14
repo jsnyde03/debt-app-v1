@@ -1,0 +1,965 @@
+import { bnplInstallmentAmount, effectiveMinimumInWindow, hasKnownBnplCadence } from '@core/debt/bnplInstallment';
+import { primaryEmergencyGoal } from '@core/engine/emergencyFund';
+import { computeAffordability, type AffordabilityVerdict } from '@core/guardian/affordability';
+import { buildGuardianBrief, type GuardianBrief, type GuardianState } from '@core/guardian/buildGuardianBrief';
+import { reachedFloor, scoreCalibration, type CalibrationScore } from '@core/guardian/calibrationScore';
+import { decideRiskNotification, type NotifyDecision } from '@core/guardian/notificationDecision';
+import { ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS, type EstimateStaleness } from '@core/debt/projectCurrentBalance';
+import type { Goal } from '@core/storage/debtPlannerStorage';
+import { parseLocalDate, toLocalISODate } from '@core/utils/localDate';
+
+import type { DebtStore } from '@/data/models';
+
+import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
+import { sumPaidToDebt } from './historySelectors';
+import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectExtraToDebt, selectHeldReserve, selectLiquidCushion, selectDeployedBeforeDebt, selectDeployedBeforeDebtGoalId } from './planSelectors';
+import { rankDebts, selectCashTimeline } from './payoffSelectors';
+import { cushionLine, selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
+import { appliedTopUp, nettedTopUp, topUpEntries } from './topUpSelectors';
+import { debtLiveness, liveDebts, rowFieldUnread } from './trustSelectors';
+import type { AllocationCategory } from '@core/engine/allocatePaycheck';
+import { cadenceSuffix } from '@core/types/recurrence';
+import { formatWhole } from '@/utils/format';
+
+export type { GuardianBrief, GuardianState };
+
+/**
+ * §2.0 read-freshness (2.4.D.7) — how stale THIS read's inputs are, off the store-level `inputsAsOf`
+ * stamp, NOT per-debt `lastVerifiedDate`. This is the seam that stops a rolled-over / auto-maintained
+ * debt (whose `lastVerifiedDate` deliberately ages) from tripping the Guardian's staleness hedge: as
+ * long as the user recently touched real inputs, the read stays fresh. Same day-thresholds as per-debt
+ * staleness. The §2.0 voice-hedge / hard cutoff (buildGuardianBrief) consumes this at 2.4.6.1.3.
+ */
+export function selectReadFreshness(store: DebtStore, asOfDate?: string): EstimateStaleness {
+  const today = asOfDate ?? store.paycheck.currentDate;
+  return classifyFreshness(daysBetweenISO(store.inputsAsOf, today), ESTIMATE_AGING_DAYS, ESTIMATE_STALE_DAYS);
+}
+
+export type { CalibrationScore };
+
+/**
+ * §2.9 calibration scorecard (2.4.9) — the Guardian's proven accuracy for the user's CURRENT regime
+ * (debt vs debt-free, never blended), off the CONFIRMED cycle history. Runs SILENTLY every cycle (the
+ * substrate stamps predictions + folds outcomes at rollover); `score.proven` (n ≥ N) gates whether the
+ * surface shows a number or the §2.0.d day-one-protection state — never an apology, never a hollow
+ * pre-proof figure. Fixed income counts only genuine risk-events (F-trust #5). Premium value; the
+ * surface (2.4.9.6) applies the tier gate.
+ */
+export function selectCalibrationScore(store: DebtStore): CalibrationScore {
+  const liveness = debtLiveness(store);
+  const opts = {
+    incomeVaries: store.paycheck.incomeVaries === true,
+    debtFree: liveness === 'debt-free',
+    missedCycleEndDates: store.missedArrivals,
+  };
+  /**
+   * ⛔ **S1.10.6.9 [`G-1`] — AN UNREADABLE BALANCE RE-GRADED THE HONESTY INSTRUMENT INTO A PERFECT RECORD.**
+   *
+   * ⚡ `scoreCalibration` grades ONE debt regime at a time and never blends them (2.4.8), and the regime
+   * came from `debts.filter((d) => d.balance > 0)` — the one field the import path repairs to `0`. Measured
+   * on one store with one lost balance: **`0 of 4 reads matched · Under-warned 4` became `4 of 4 ·
+   * Under-warned 0`**, and `WARN_MATCH_RATE` stopped firing, so the recalibration line the component calls
+   * *"the direction we never soften"* disappeared with it. The flip is one-directional — a lost balance
+   * repairs to `0` and never to a number — so it can only ever grade the user into the wrong regime and
+   * only ever flatter.
+   *
+   * ⚠️ **The empty score comes from the OWNER, not from a literal.** Handing `scoreCalibration` an empty
+   * history is the same code path the cold-start state already takes, so a new field on `CalibrationScore`
+   * cannot leave this branch describing a shape that no longer exists.
+   *
+   * ⛔ **Suppression is right here and it is NOT right everywhere** — this figure is a claim about the
+   * app's own accuracy, so having no number is honest and having the wrong one is not. Where the figure is
+   * the user's money the remedy is a caption, because refusing to show it tells them less than the app
+   * knows (`C-4`'s rule).
+   */
+  if (liveness === 'debt-free-unverified') return scoreCalibration([], opts);
+  return scoreCalibration(store.cycleHistory, opts);
+}
+
+export interface GuardianProofOfWork {
+  /** Consecutive most-recent CONFIRMED cycles the cushion held at/above the line — "held your line N running". */
+  heldStreak: number;
+  /** Cumulative paid toward debt across every recorded cycle (minimums + extras). */
+  totalToDebt: number;
+  /** Genuine cycles the Guardian has run (for framing). */
+  cyclesRun: number;
+  score: CalibrationScore;
+}
+
+/**
+ * §3.3.3 Guardian proof-of-work — the accumulating, un-chattable record of what the automation has DONE, so
+ * premium's ongoing work stays visible on the calm cycles where it otherwise disappears (the churn-hole fix).
+ * PREMIUM only (the automation is the paid job); a pure derivation from `cycleHistory` — no new persistence.
+ * Honest facts only: the held-your-line streak, cumulative-to-debt, and the proven scorecard.
+ */
+export function selectGuardianProofOfWork(store: DebtStore): GuardianProofOfWork | null {
+  if (store.subscriptionPlan !== 'premium') return null;
+  const history = store.cycleHistory;
+  if (history.length === 0) return null;
+
+  // Held-your-line streak: walk back from the most recent, counting cycles whose CONFIRMED cushion reached
+  // the floor that read assumed; stop at the first miss / non-gradeable cycle so "running" stays literal.
+  let heldStreak = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const s = history[i];
+    const floor = s.prediction?.floor;
+    const held = s.outcome?.actualCushionHeld;
+    if (!s.outcome?.outcomeConfirmed || floor == null || held == null) break;
+    if (!reachedFloor(held, floor)) break;
+    heldStreak++;
+  }
+
+  // ⛔ S1.10.6.2 [C-3] — one owner. This expression lived here and History carried a DIFFERENT one under
+  // the same word ("paid down"), which is how a deleted debt became money the user was told they paid.
+  const totalToDebt = sumPaidToDebt(history);
+  return { heldStreak, totalToDebt, cyclesRun: history.length, score: selectCalibrationScore(store) };
+}
+
+export type { NotifyDecision };
+
+/**
+ * §2.8 (2.4.10) — should a proactive RISK push fire for the current cycle? Premium-only ("watches every
+ * paycheck" is premium value). Pass the PROJECTED store (the premium read). Off the Guardian band + the
+ * notify substrate (`currentCycleNotifyState` + `pushLog`); `now` is injected (no clock in a selector).
+ */
+export function selectRiskNotification(store: DebtStore, now: string): NotifyDecision {
+  if (store.subscriptionPlan !== 'premium') return { fire: false, level: 'clear', reason: 'not-risk' };
+  const brief = selectPaydayGuardian(store);
+  return decideRiskNotification({
+    band: brief?.state ?? 'clear',
+    cycleEndDate: store.paycheck.nextPaycheckDate,
+    lastNotified: store.currentCycleNotifyState,
+    pushLog: store.pushLog,
+    now,
+  });
+}
+
+/**
+ * §2.8 reconcile-to-clear (2.4.10.2) — the user got a risk heads-up for THIS cycle, but the read now
+ * reconciles to clear. Acknowledge it in-app ("good news — looks clear after all") so a heads-up that
+ * didn't pan out never reads as cried-wolf. Pass the projected store; premium-only.
+ */
+export function selectRiskAcknowledgment(store: DebtStore): boolean {
+  if (store.subscriptionPlan !== 'premium') return false;
+  const notified = store.currentCycleNotifyState;
+  if (!notified || notified.forCycleEndDate !== store.paycheck.nextPaycheckDate) return false;
+  return selectPaydayGuardian(store)?.state === 'clear';
+}
+
+export interface ReserveRelease {
+  tapped: boolean;
+  covered: number;
+  /** Where the freed reserve now goes to work — the focus debt, or "your savings" once debt-free. */
+  targetName: string;
+}
+
+/**
+ * §2.0.c settling-in reserve release (2.4.11.4b) — the one-time insurance-framed acknowledgment shown
+ * when the settling-in reserve has just freed (the held → free transition is detected + stamped at
+ * rollover). Premium only; `null` until a release is pending, and after the user dismisses it.
+ */
+export function selectReserveRelease(store: DebtStore): ReserveRelease | null {
+  if (store.subscriptionPlan !== 'premium') return null;
+  const pending = store.pendingReserveRelease;
+  if (!pending) return null;
+  /**
+   * ⛔ **S1.10.6.9 [`G-2`] — IT SAID *"your savings"* OVER A LIVE $4,200 CARD.** The destination was picked
+   * off `debts.filter((d) => d.balance > 0)`, so a balance the import path could not read left the list and
+   * the freed reserve was declared to be going somewhere it is not.
+   *
+   * ⚠️ **Unverified takes the EXISTING fallback rather than a new string.** `'your debt'` is already what
+   * this line says when there is a live debt it cannot rank, and it is true in the unverified case for the
+   * same reason: there IS a debt row — its balance is what could not be read — so the reserve is still
+   * going to debt, and only the NAME is unknown. A fourth phrasing would be a new claim to get wrong.
+   */
+  const live = liveDebts(store);
+  const focus = live.length > 0 ? rankDebts(live, store.payoffStrategy)[0]?.name : undefined;
+  const targetName =
+    debtLiveness(store) === 'debt-free' ? 'your savings' : focus ? `your ${focus}` : 'your debt';
+  return { tapped: pending.tapped, covered: pending.covered, targetName };
+}
+
+/**
+ * §2.0.c "bills complete" attestation affordance (2.4.11.4c) — show it while a DISCOVERY safety net is
+ * being held (premium): the user can confirm their bills are all entered to hold a reduced reserve.
+ * `attested` reflects the current state so the card's copy reads confirm-vs-undo.
+ *
+ * ⚠️ **3.7.A3.1 — gated on whether attesting actually REDUCES the hold, not on the cycle count alone.**
+ * The offer says *"All your regular expenses entered? I'll hold a smaller safety net."* That is a promise
+ * about an outcome, and `discoveryHoldbackActive` cannot keep it: it is a pure cycle count
+ * (`guardianPredictionCore.ts:34`) that knows nothing about the money.
+ *
+ * The three uncertainty reserves compose by **`max`**, over above-floor headroom
+ * (`holdbackComposition.ts:54`), so attesting drops discovery 0.4 → 0.15 and changes the COMBINED hold by
+ * nothing whenever something else is already the max — a cold-start reserve, a variable-bill buffer, or a
+ * prefunded reserve that has eaten the headroom. With no headroom at all the hold is 0 either way.
+ *
+ * So the affordance could ask the user to vouch for their bills and hand back a reduction of exactly
+ * zero. It now asks the counterfactual instead, which is the same question the copy asks.
+ *
+ * ⚡ **Cost: ONE extra allocation, not two.** `selectAllocation` memoises per store object, and the
+ * current store's allocation is already computed for the card this sits on — only the counterfactual
+ * store is new. (If Today is ever measured as a hotspot, this is one of the selectors the deferred
+ * memoization item covers.)
+ */
+export function selectBillsAttestation(store: DebtStore): { show: boolean; attested: boolean } {
+  const attested = store.billsAttested === true;
+  if (store.subscriptionPlan !== 'premium') return { show: false, attested: false };
+  if (deriveConfidenceContext(store).discoveryHoldbackActive !== true) return { show: false, attested };
+  const held = (s: DebtStore): number => {
+    const allocation = selectAllocation(s);
+    return allocation ? selectHeldReserve(allocation) : 0;
+  };
+  // Compare the two worlds, not the current one: the affordance is honest iff attesting LOWERS the hold,
+  // which is the same claim whether they have attested yet or not.
+  const here = held(store);
+  const other = held({ ...store, billsAttested: !attested });
+  const attestedHold = attested ? here : other;
+  const unattestedHold = attested ? other : here;
+  return { show: unattestedHold > attestedHold, attested };
+}
+
+/** §2.0.c attestation walk-back notice (2.4.11.4c) — a surprise restored the safety net after the user
+ *  attested. Premium; false until pending / after dismiss. */
+export function selectReserveWalkback(store: DebtStore): boolean {
+  return store.subscriptionPlan === 'premium' && store.pendingReserveWalkback === true;
+}
+
+export interface TrialConversion {
+  id: string;
+  name: string;
+  fullAmount: number;
+  /** Short cadence suffix for "$X{/mo}". */
+  cadence: string;
+}
+
+// ⛔ [T8 · L2-1] `cadenceLabel` lived here AND as `CADENCE_SUFFIX` in `money.tsx`, and the two had
+// ALREADY DIVERGED on screen: '/2wks' vs '/2 wks', '/paycheck' vs '/check'. Both were internally correct
+// and nothing could see that they disagreed — which is why the L2 lens calls this class dangerous rather
+// than untidy. One owner now, beside the `Recurrence` type it keys on: `@core/types/recurrence`.
+
+/**
+ * §2.5 trial conversion (2.5.4) — the first trial obligation whose intro period has ENDED (its
+ * `fullChargeDate` has arrived), still flagged `isTrial`. Once a trial converts, the resolver bills the
+ * full price forever — correct if the user KEPT it, wrong (a phantom bill) if they CANCELLED. This drives
+ * the Today "keep it or cancel it?" card that resolves the ambiguity, so it's NOT premium-gated: a
+ * cancelled trial would otherwise pollute the free forecast too. Returns null when nothing has converted.
+ */
+export function selectTrialConversion(store: DebtStore): TrialConversion | null {
+  const today = store.paycheck.currentDate;
+  const conv = store.requiredExpenses.find(
+    (e) => e.isTrial && e.fullAmount != null && Number.isFinite(e.fullAmount) && !!e.fullChargeDate && e.fullChargeDate <= today,
+  );
+  if (!conv || conv.fullAmount == null) return null;
+  return { id: conv.id, name: conv.name, fullAmount: conv.fullAmount, cadence: cadenceSuffix(conv.recurrence) };
+}
+
+export interface TightTopUp {
+  gap: number;
+  available: number;
+  topUp: number;
+  goalId: string;
+  goalName: string;
+  /** 3.7.A3.3 [D24] — the source is the EMERGENCY fund (no discretionary pot was available). Drives the
+   *  copy: a control that says "from savings" while drawing on the safety net is the dishonest half. */
+  isEmergencyFund: boolean;
+  /** 3.7.A3.6 — the move actually REACHES the floor (`topUp === gap`). False when the goal's balance is
+   *  smaller than the gap and the draw is capped: the move still helps, but it does not hold the line,
+   *  and copy that says it does is the same promise-an-outcome-deliver-less defect as A3.1. */
+  holdsLine: boolean;
+  /** The user's cushion line, and where this move actually leaves them — so a capped move can state the
+   *  truth ("gets you to $X of your $Y line") instead of claiming the line is held. */
+  floor: number;
+  cushionAfter: number;
+}
+
+/**
+ * ⛔ **S1.11.4.4 [pass-4 `C4-5`] — THE CAPTION IS A FACT ABOUT THE STORE, AND IT WAS A FIELD OF THE OFFER.**
+ *
+ * ⚡ `G-5` put *"one of your savings amounts couldn't be read"* on `TightTopUp.unreadSavings` and on
+ * `coverFromSavings.unreadSavings`. Both objects are `null` when `pickTopUpGoal` finds nothing — and a pot
+ * whose balance the reader lost repairs to **$0**, so it is exactly what `pickTopUpGoal` skips. **With one
+ * savings pot, and it the unread one, the offer AND the caption vanish together.** Measured on a $650
+ * purchase against $750 discretionary and a $200 floor, varying only the number of pots: two pots →
+ * caption shown; one pot → *nothing at all*, no offer, no caption, no mention that a figure could not be
+ * read. ⛔ The pass-3 finding's own words were *"captioned, not suppressed"*; the single-pot member — the
+ * one the shipped fixture never ran — is suppressed and uncaptioned.
+ *
+ * ⛔ **So it is hoisted OUT of both offer shapes rather than repaired inside them.** A caption that rides
+ * on an offer can only speak when there is an offer, which is the one thing it must not depend on.
+ * Removing the fields is what makes the compiler find every reader — two producers of one fact, collapsed
+ * to one, which is what every fix in this round has done.
+ *
+ * ⚠️ **Gated on the GAP, not merely on the loss.** A cycle sitting comfortably above the line has no
+ * top-up question, and a warning about savings pots there is noise that teaches people to skip the row.
+ */
+export function selectSavingsPoolUnread(store: DebtStore): boolean {
+  const allocation = selectAllocation(store);
+  if (!allocation) return false;
+  const { residual, surplus } = nettedTopUp(store, allocation.shortfall);
+  if (residual > 0) return false;
+  const floor = cushionLine(store).value;
+  const gap = Math.round((floor - (selectDiscretionary(allocation) + surplus)) * 100) / 100;
+  if (gap <= 0) return false;
+  return savingsPoolIncomplete(store, ['savings', 'emergency']);
+}
+
+/**
+ * 3.7.A3.5 — the applied top-up, in a form that can be REVERSED.
+ *
+ * ⚠️ The Guardian's one-tap had no undo while the affordability card's did, and the reason was structural
+ * rather than an oversight in the UI: the affordability flow keeps the goal it drew from in component
+ * state, so it can hand it back; `cycleTopUp` recorded an amount and no source, so nothing reading only
+ * the store could reverse it. `goalId` (A3.5) is what makes this selector possible.
+ *
+ * Null unless there is a live, reversible top-up for THIS cycle — so a record from an older blob (no
+ * `goalId`) correctly offers nothing rather than a control that would fail.
+ */
+export function selectAppliedTopUp(
+  store: DebtStore,
+): { amount: number; goalId: string; goalName: string; holdsLine: boolean } | null {
+  // ⛔ S1.5.3 [B3] — THE GUARDIAN'S OWN ENTRY, not the cycle's accumulated total. This read
+  // `store.cycleTopUp` directly, so once the affordability card had also drawn, the Guardian's card
+  // offered to undo **both** draws and handed the whole sum back to whichever goal was written LAST.
+  // Measured: $70 out of S1 and $50 out of S2 became one $120 undo into S2, leaving S1 permanently short
+  // while the aggregate conserved — which is exactly why nothing noticed.
+  const rec = topUpEntries(store).find((e) => e.source === 'guardian');
+  if (!rec) return null;
+  const goal = store.goals.find((g) => g.id === rec.goalId);
+  if (!goal) return null;
+  // 3.7.A3.6 — did the move actually reach the line? A draw capped by the goal's balance does not, and
+  // the confirmation used to say "to hold your line" either way. Measured from the post-move cushion, so
+  // it stays true if anything else in the cycle changes underneath it.
+  const allocation = selectAllocation(store);
+  // ⛔ [T6.8 · 🎯 2026-08-19] `selectDiscretionary` — the PARTITION TOTAL — is CORRECT here, and this is a
+  // settled decision, not an oversight. `selectSpendable` (= discretionary − `expenseReserveHeld`) was
+  // measured as the alternative and **flips this flag in 347 of 1,820 allocations**, so the choice is
+  // load-bearing. It stays on the partition total because the app has already decided, in code, that money
+  // KEPT is cushion: `expense_reserve` is a member of `PROTECTED_CUSHION_CATEGORIES`,
+  // `@core/copy/vocabulary` states that as the disjointness rule, and `testGuardianPartition` reconciles
+  // PROTECTED + PUT_TO_WORK against it. Judging the line on spendable cash would tell a user whose $175 is
+  // sitting earmarked for their own bills that their line is not held — its own false claim — and would
+  // put this flag out of step with the cushion figure rendered beside it.
+  // ⚡ **T4.1b's "measure before changing: it moves Guardian states" was itself REFUTED for the BAND:**
+  // `computeState` compares against `effectivePaycheckBuffer`, which the engine reserves *before* clamping
+  // the expense reserve, so the band flipped **0 times in 1,820**. This site was the only real divergence.
+  // ⛔ S1.9.3 [A1] — THE SURPLUS, and `selectDiscretionary` unchanged beside it, so this flag and the band
+  // are computed from one expression. They disagreed wherever the top-up cleared the floor while a
+  // shortfall stood: the card said "to hold your line" while the band said `at-risk`, three lines apart.
+  // ⚠️ It now answers *"is the line held"* rather than *"did MY move hold it"*, deliberately — a card that
+  // contradicts the band beside it is the class A1 was raised for, and agreement is the fix.
+  const holdsLine = !!allocation && selectDiscretionary(allocation) + nettedTopUp(store, allocation?.shortfall).surplus >= cushionLine(store).value;
+  return { amount: rec.amount, goalId: rec.goalId, goalName: goal.name, holdsLine };
+}
+
+/**
+ * §2.10 tight-case one-tap (2.4.11.2) — when the cushion is under the floor but obligations are covered
+ * (tight), and the user has savings to tap, the smallest move that HOLDS the line: move `topUp` from
+ * `goalName` to checking. Premium only; `null` when not tight, already at/above the line (incl. after a
+ * top-up), or there's no savings balance to draw from (→ the honest "rebuilds next paycheck" state).
+ */
+export function selectTightTopUp(store: DebtStore): TightTopUp | null {
+  if (store.subscriptionPlan !== 'premium') return null;
+  const allocation = selectAllocation(store);
+  // ⛔ S1.9.3 [A1] — THE RESIDUAL, not the raw engine figure. This offer exists for the *tight* case, and
+  // "tight" is the band's word; reading a shortfall the money on record has already covered would refuse
+  // the offer in a cycle the band calls `clear` but that is still under the line. ⚠️ The direction is the
+  // permissive one, which is why it is stated: it can only make the offer available where the band agrees
+  // the obligations are met.
+  const { residual, surplus } = nettedTopUp(store, allocation?.shortfall);
+  if (!allocation || residual > 0) return null;
+  const floor = cushionLine(store).value;
+  const cushion = selectDiscretionary(allocation) + surplus;
+  const gap = Math.round((floor - cushion) * 100) / 100;
+  if (gap <= 0) return null; // at or above the line already
+  const preference = ['savings', 'emergency'] as const;
+  const goal = pickTopUpGoal(store.goals, gap, preference);
+  if (!goal) return null;
+  const topUp = Math.round(Math.min(gap, goal.currentAmount) * 100) / 100;
+  if (topUp <= 0) return null;
+  return {
+    gap, available: goal.currentAmount, topUp, goalId: goal.id, goalName: goal.name,
+    /**
+     * ⛔ **THE one OWNER, NOT THE TYPE.** [P6.8.9.7.11.18 · S1.1 · M9 / D66] `type === 'emergency'` is true
+     * of a SECOND emergency-typed goal, and the app models exactly one emergency fund
+     * (`@core/engine/emergencyFund`). So the Guardian offered to *"Move $70 from your emergency fund"*
+     * over a pot that Money labels **Savings** one tab away and that the engine funds as a sinking fund —
+     * three answers to *"what kind of goal is this?"* for one goal.
+     *
+     * ⚠️ **Copy only.** The sole consumer is `PaydayGuardianCard.tsx:365`'s button label; the SELECTION is
+     * `pickTopUpGoal` above and is untouched by this, so no money moves anywhere it did not before.
+     * ⚠️ Compared by reference, which is what `primaryEmergencyGoal` documents — `goal` came out of
+     * `store.goals` and `primaryEmergencyGoal` is handed the same array, so identity holds and a hostile
+     * store carrying two rows with one `id` cannot spoof it.
+     */
+    isEmergencyFund: goal === primaryEmergencyGoal(store.goals),
+    holdsLine: topUp >= gap,
+    floor,
+    cushionAfter: Math.round((cushion + topUp) * 100) / 100,
+  };
+}
+
+/** "Aug 5" — mirrors the cash-flow bars' label so the Guardian's lookahead reads consistently. */
+function shortDate(iso: string): string {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/**
+ * §2.7.4 — a between-paycheck BNPL heads-up: names why a cycle can read tighter than a single bill
+ * suggests. A live installment-native BNPL that charges 2+ times before the next paycheck (a biweekly
+ * plan for a monthly earner) lands multiple installments in one cycle — the Guardian's crunch read
+ * already reflects that (2.7.4), and this line explains the cause. Picks the highest-count lumpy BNPL.
+ * All tiers — honest information about the user's own plan, not premium acting. Null when none is lumpy.
+ */
+export function selectBnplBetweenPaycheck(store: DebtStore): string | null {
+  const start = store.paycheck.currentDate;
+  const end = store.paycheck.nextPaycheckDate;
+  if (!end) return null;
+  let best: { provider: string; reserved: number; count: number } | null = null;
+  /**
+   * ⛔ **THE RESERVE WAS WIDENED PAST THIS GATE TWICE AND THE LINE THAT EXPLAINS IT WAS NOT.**
+   * [class 4 re-audit `F7`]
+   *
+   * ⚡ Pass-6 `A3-1` widened the in-window reserve from installment-native BNPLs to **any** debt with a
+   * known cadence; class 4 then widened the row's caption the same way. This gate stayed on
+   * `isInstallmentNative`, so the two shapes that widening admitted — a **fallback BNPL** and a **plain
+   * weekly debt** — got the multiplied reserve with the Guardian **silent about why**. Measured, one $50
+   * weekly debt in a monthly window: all three shapes reserved $250 and captioned `5 × $50`; only the
+   * installment-native one got a heads-up.
+   *
+   * ⚠️ **The per-charge figure is the one producer, not `scheduledPaymentAmount`** — a fallback BNPL has
+   * no such field, which is the whole reason it was invisible here.
+   */
+  for (const d of store.debts) {
+    if (d.balance <= 0 || !hasKnownBnplCadence(d)) continue;
+    const each = bnplInstallmentAmount(d);
+    if (!(each > 0)) continue;
+    /**
+     * ⛔ **THE COUNT IS DERIVED FROM THE RESERVE, NOT FROM THE CADENCE — and widening the gate above is
+     * exactly what made that necessary.** [round-2 `R2-1`, blocker: a regression in this round's `F7`]
+     *
+     * ⚡ The old gate was `isInstallmentNative`, which requires `remainingPayments > 0` — and that field
+     * is also **the cap** `bnplInstallmentsInWindow` uses. The gate was silently doing two jobs, and
+     * widening it kept the first and dropped the second: the two shapes now admitted carry no
+     * `remainingPayments`, so the cap became `Infinity` and the count was pure cadence.
+     *
+     * ⚠️ **Measured on a debt with a $1 balance:** *"Heads up — 4 Car Loan payments (about $50 each) land
+     * before your next paycheck"* — **$200 announced against $1 the app itself reserves**, on Today.
+     *
+     * ⛔ **`effectiveMinimumInWindow` already caps at the balance**, and it is what the allocator reserves
+     * against, so the count and the money come from **one** figure rather than from a second cap that can
+     * drift.
+     *
+     * ⛔ **THE PARAGRAPH THAT STOOD HERE CLAIMED THE OPPOSITE OF WHAT THE CODE DID.** [round-3 `R3-2`] It
+     * said *"a nearly-paid debt now funds fewer than two charges and correctly says nothing at all"*; at a
+     * **$75** balance it said *"2 Car Loan payments (about $50 each)"*. **A comment is a claim with no
+     * expiry, and this is the fifth in this workstream.**
+     *
+     * ⛔ **`Math.round` was wrong in BOTH directions, and the audit only looked for one.** Measured
+     * against the charges that actually land — full ones until the balance runs out, then a short final
+     * one:
+     *
+     *     $75  → $50+$25       2 land · round 2 ✅ · floor 1 ⛔ (silent over a real $75 reserve)
+     *     $110 → $50+$50+$10   3 land · round 2 ⛔ understates · ceil 3 ✅
+     *     $199 → $50+$50+$50+$49  4 land · round 4 ✅ · floor 3 ⛔
+     *
+     * ⚡ **So the COUNT was never the defect — `ceil` is simply the number of charges that land, correct
+     * on every balance — and the audit's proposed `Math.floor` would have gone silent on a real reserve.**
+     * ⛔ **The defect was `about $X each`**, which multiplies out to more than the app holds back whenever
+     * the final charge is short. The sentence states the **total** now: true on both readings it makes,
+     * with no residue at any balance. 🎯 2026-09-05.
+     */
+    const reserved = Math.min(effectiveMinimumInWindow(d, start, end), d.balance);
+    const count = Math.ceil(reserved / each);
+    if (count < 2) continue;
+    /**
+     * ⚠️ **A plain debt has no provider, so the line names the DEBT.** Keeping the BNPL noun for a debt
+     * the user did not enter as a BNPL would be a second false statement in a line whose whole job is
+     * explaining an unexpected number honestly.
+     */
+    const label = d.bnplProvider || d.name;
+    if (!best || count > best.count) best = { provider: label, reserved, count };
+  }
+  if (!best) return null;
+  // ⛔ [T6.4] Was a ninth hand-rolled money formatter, inline. Found by grepping the formatter BODY rather
+  // than the name `money` — which is why neither L4-2 nor T1's surface inventory saw it: there is no
+  // function declaration here to count. `lint:money` (T6.9) matches the body for exactly this reason.
+  const total = formatWhole(best.reserved);
+  return `Heads up — ${best.count} ${best.provider} payments totalling about ${total} land before your next paycheck.`;
+}
+
+export interface Affordability {
+  amount: number;
+  verdict: AffordabilityVerdict;
+  /** The honest spare-cash number this paycheck, BEFORE the purchase — the free taste. */
+  discretionaryNow: number;
+  /** Cushion left after the purchase (premium). */
+  cushionAfter: number;
+  /** How much short, when the purchase exceeds the headroom (premium). */
+  shortBy: number;
+  floor: number;
+  /** When money refreshes — the safe-alternative anchor ("wait until {nextPayday}"). */
+  nextPayday: string;
+  /** §2.9.4 honest impact: how much LESS goes to debt this paycheck if the purchase is applied (>0 only
+   *  when it displaces a snowball payment). The trust-moat number — affording it has a real debt cost. */
+  extraToDebtDelta: number;
+  /** §2.9.5 cover-a-tight-dip: for a TIGHT purchase, the smallest move to hold the floor — draw the gap
+   *  from a discretionary savings goal (never the emergency fund, for a discretionary buy). Null unless
+   *  tight AND a savings goal has a balance.
+   *
+   *  ⚠️ 3.7.A3.6 — this gap is measured against the cushion INCLUDING any top-up already taken this
+   *  cycle, so it covers the whole remaining dip (today's + the purchase's) and can never re-offer money
+   *  that has already been moved. `holdsLine` is false when the goal's balance caps the draw short. */
+  coverFromSavings: {
+    goalId: string;
+    goalName: string;
+    amount: number;
+    holdsLine: boolean;
+  } | null;
+  /**
+   * ⛔ **S1.11.4.4 [pass-4 `C4-5`] — HOISTED OUT OF `coverFromSavings`.** A savings pot the reader lost
+   * repairs to `$0`, so `pickTopUpGoal` skips it; with one pot, and it the unread one, `coverFromSavings`
+   * is `null` and the caption that used to live inside it went dark with the offer. It is a fact about the
+   * store, so it lives beside the offer and not in it. See `selectSavingsPoolUnread`.
+   */
+  savingsPoolUnread: boolean;
+}
+
+/** The ephemeral one-off used to re-solve the plan WITH the purchase (never persisted — the preview). */
+const AFFORD_PREVIEW_ID = '__afford_preview__';
+
+/**
+ * §2.9 the inverse Guardian — can the user afford a one-off purchase of `amount` THIS paycheck? Reuses
+ * the Guardian's cushion model: `selectDiscretionary` is this cycle's cash above every obligation
+ * (premium holdbacks already reflected), run against the purchase + the floor by `computeAffordability`.
+ * Also re-solves the plan WITH the purchase injected (the true inverse-Guardian) for the honest debt
+ * impact, and computes the save-for-it plan when it's short. Null before a plan / for a non-positive amount.
+ */
+export function selectAffordability(store: DebtStore, amount: number): Affordability | null {
+  const base = selectAllocation(store);
+  if (!base || !Number.isFinite(amount) || amount <= 0) return null;
+  // 3.7.A3.6 — `+ appliedTopUp`, exactly as the Guardian brief does (`discretionary:` below at the
+  // buildGuardianBrief call). Without it the two cards sat on ONE screen disagreeing about the same
+  // cushion: the Guardian read "$200, at your line" while this card, still on the pre-top-up $50, told
+  // the user a $30 purchase would dip them to $20 and offered to move the SAME $150 out of the SAME goal
+  // a second time. Cash moved from savings is in checking — every read of the cushion has to see it.
+  // ⛔ T4.1b — `selectSpendable`, NOT `selectDiscretionary`. This card prints the figure to the user
+  // ("You have about $X spare this paycheck"), and `selectDiscretionary` is the partition TOTAL, which
+  // still contains 3.8's reserve for upcoming bills. It read $850 while `PlanHero` showed "Flexible $675"
+  // ON THE SAME SCREEN. The band selectors keep `selectDiscretionary` deliberately — see the note there.
+  //
+  // ⛔ **AND THE SHORTFALL IS NETTED FIRST — the same defect as M3, one door over.** [S1 · found by M3's
+  // after-scan · measured, not reasoned] `selectSpendable` is 0 on any shortfall, so `+ appliedTopUp` was
+  // the whole figure, and this card told a user who could not cover their bills that a purchase was fine:
+  //
+  //     $2,000 in · $2,400 of bills · $200 moved from a goal · a $150 purchase
+  //       with the record → shortfall 400 · verdict TIGHT       · cushionAfter 50 · shortBy 0
+  //       without it      → shortfall 400 · verdict SHORT       ·  cushionAfter 0 · shortBy 150
+  //
+  // ⛔ **S1.9.3 [A1] — AND THE BLANKET `0` ABOVE WAS ITSELF A FALSE FIGURE.** The paragraph that used to
+  // stand here argued for a blanket `0` over `spendable + topUp − shortfall`, on the grounds that netting
+  // would leave a small spare while the band was `at-risk` and re-create the two-cards-disagreeing class.
+  // ⚡ **The fear was sound and the premise was not:** measured, the disagreement existed anyway — between
+  // the band and `holdsLine`, with a dollar figure attached. A user $1 short after moving $200 was told a
+  // $20 purchase would leave them *"$20 short"* while $199 sat unspent.
+  //
+  // `nettedTopUp` now applies the money to the shortfall FIRST and the band takes the residual, so the
+  // range this comment feared is no longer `at-risk` — and the surplus is real spendable cash, so saying
+  // there is none is the false statement. ⚠️ The control is still unmoved by construction: with no top-up
+  // on record the surplus is 0 and `selectSpendable` is 0 on any shortfall, exactly as before.
+  const discretionaryNow = Math.max(0, selectSpendable(base) + nettedTopUp(store, base.shortfall).surplus);
+  const floor = cushionLine(store).value;
+  const { verdict, cushionAfter, shortBy } = computeAffordability(discretionaryNow, amount, floor);
+
+  // Re-solve WITH the purchase as a one-off this cycle → how much less reaches debt (the honest cost).
+  const oneOff = { id: AFFORD_PREVIEW_ID, name: 'Purchase', amount, dueDate: store.paycheck.currentDate, recurrence: 'one-time' as const };
+  const after = selectAllocation({ ...store, requiredExpenses: [...store.requiredExpenses, oneOff] });
+  const extraToDebtDelta = after ? Math.max(0, Math.round((selectExtraToDebt(base) - selectExtraToDebt(after)) * 100) / 100) : 0;
+
+  // §2.9.5 cover-a-tight-dip: only when tight, and only from a discretionary SAVINGS goal (never the
+  // emergency fund for a discretionary purchase). The gap = how far the purchase pushes you below the floor.
+  let coverFromSavings: Affordability['coverFromSavings'] = null;
+  /**
+   * ⛔ **S1.11.4.4 [pass-4 `C4-5`] — SET INSIDE THE BRANCH THAT KNOWS THE GAP, AND THE FIRST CUT GOT THIS
+   * WRONG.** I reached for `selectSavingsPoolUnread` here and the suite refused it: that function gates on
+   * the **Guardian's** gap — this cycle, before any purchase — and the affordability dip is caused BY the
+   * purchase, so on an otherwise-comfortable cycle it answered `false` for a buy that really is tight.
+   * ⚡ The shared producer is `savingsPoolIncomplete`, the fact *"a pot could not be read"*; **whether
+   * there is a top-up question at all is genuinely per-caller**, and forcing one function to answer both
+   * is what produced the wrong gate. Measured, not reasoned — the arity walk caught it.
+   */
+  let savingsPoolUnread = false;
+  if (verdict === 'tight') {
+    const gap = Math.round((floor - cushionAfter) * 100) / 100;
+    // Savings only — the emergency fund is never drawn for a discretionary purchase, so a loss there says
+    // nothing about this offer. Set BEFORE the `goal` check, which is the whole finding.
+    savingsPoolUnread = gap > 0 && savingsPoolIncomplete(store, ['savings']);
+    // Savings only — never the emergency fund for a discretionary purchase — but the SAME within-type
+    // rule as the Guardian's top-up, from the same owner.
+    const goal = pickTopUpGoal(store.goals, gap, ['savings']);
+    if (gap > 0 && goal) {
+      const amount = Math.min(gap, Math.round(goal.currentAmount * 100) / 100);
+      coverFromSavings = {
+        goalId: goal.id,
+        goalName: goal.name,
+        amount,
+        holdsLine: amount >= gap,
+      };
+    }
+  }
+
+  return { amount, verdict, discretionaryNow, cushionAfter, shortBy, floor, nextPayday: store.paycheck.nextPaycheckDate, extraToDebtDelta, coverFromSavings, savingsPoolUnread };
+}
+
+// ── Windfall Autopilot (Phase-3 premium beat) ────────────────────────────────
+export type WindfallBucketKey = 'bills' | 'debt' | 'emergency' | 'goals' | 'safetyNet' | 'cash';
+
+export interface WindfallSplitItem {
+  key: WindfallBucketKey;
+  amount: number;
+}
+
+export interface WindfallSplit {
+  /** The windfall amount being routed. */
+  amount: number;
+  /** Where each dollar lands, largest-first (bills, a caveat, always first). Nonzero buckets only. */
+  items: WindfallSplitItem[];
+}
+
+/** The user-facing buckets a windfall lands in, mapped to the engine's canonical allocation categories.
+ *  These groups partition ALL 13 categories, so the deltas sum exactly to the windfall (money conserved).
+ *  ⚠️ A new category MUST join a group here or the windfall silently stops conserving — 3.8's
+ *  `expense_reserve` joins **bills** (a windfall reaching the pot is going toward bills), deliberately NOT
+ *  `safetyNet`, which is the Guardian's own automatic protection rather than the user's set-aside. */
+const WINDFALL_GROUPS: { key: WindfallBucketKey; categories: AllocationCategory[] }[] = [
+  { key: 'bills', categories: ['expense', 'minimum_debt', 'autopay_expense', 'autopay_debt', 'expense_reserve'] },
+  { key: 'safetyNet', categories: ['cushion_buffer', 'prefunded_reserve', 'discovery_holdback'] },
+  { key: 'emergency', categories: ['starter_emergency', 'emergency'] },
+  { key: 'goals', categories: ['optional_goal'] },
+  { key: 'debt', categories: ['snowball'] },
+  { key: 'cash', categories: ['true_leftover'] },
+];
+
+function sumWindfallCategories(alloc: Allocation | null, categories: AllocationCategory[]): number {
+  if (!alloc) return 0;
+  const set = new Set<string>(categories);
+  return alloc.allocations.filter((a) => set.has(a.category)).reduce((sum, a) => sum + a.amount, 0);
+}
+
+/**
+ * Round bucket amounts to WHOLE dollars via largest-remainder, so the displayed rows sum EXACTLY to
+ * `target` (the whole-dollar headline) — no false precision from independent per-row rounding (C4).
+ */
+function roundBucketsToWhole(buckets: WindfallSplitItem[], target: number): WindfallSplitItem[] {
+  const parts = buckets.map((b) => ({ key: b.key, whole: Math.floor(b.amount), frac: b.amount - Math.floor(b.amount) }));
+  let remaining = target - parts.reduce((s, p) => s + p.whole, 0);
+  const byFrac = [...parts].sort((a, b) => b.frac - a.frac);
+  for (let i = 0; i < byFrac.length && remaining > 0; i++) {
+    byFrac[i].whole += 1;
+    remaining -= 1;
+  }
+  return parts.map((p) => ({ key: p.key, amount: p.whole }));
+}
+
+/**
+ * Windfall Autopilot — the itemized routing of a one-time windfall (bonus/refund/side gig), the premium
+ * "the app does it, you confirm" beat. Re-solves the plan WITH the windfall vs WITHOUT and diffs each
+ * bucket (the same re-solve method `selectAffordability` uses). Because paid-required + living reserve are
+ * windfall-independent, the deltas sum exactly to `amount` — an honest "here's where your extra lands".
+ * The caller passes an already-projected store (premium); free never renders this (the value-led gate).
+ * Null for a non-positive amount or pre-plan.
+ */
+export function selectWindfallSplit(store: DebtStore, amount: number): WindfallSplit | null {
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const withAlloc = selectAllocation({ ...store, windfall: amount });
+  const withoutAlloc = selectAllocation({ ...store, windfall: 0 });
+  if (!withAlloc) return null;
+  const raw: WindfallSplitItem[] = WINDFALL_GROUPS.map((g) => ({
+    key: g.key,
+    amount: Math.round((sumWindfallCategories(withAlloc, g.categories) - sumWindfallCategories(withoutAlloc, g.categories)) * 100) / 100,
+  }));
+  // C1 — when base income can't cover required bills + the living reserve, the engine nets those off
+  // BEFORE allocating, so windfall dollars that go to covering them appear in NEITHER diff run (worst
+  // case: a missed paycheck, income $0 → every windfall dollar is absorbed, zero bucket deltas). Attribute
+  // that absorbed remainder to `bills` so the split accounts for EVERY dollar (money conserved, always).
+  const allocated = raw.reduce((sum, it) => sum + it.amount, 0);
+  const absorbed = Math.round((amount - allocated) * 100) / 100;
+  if (absorbed > 0.005) {
+    const bills = raw.find((it) => it.key === 'bills');
+    if (bills) bills.amount = Math.round((bills.amount + absorbed) * 100) / 100;
+  }
+  // C4 — round to whole dollars so the rows sum to the whole-dollar headline exactly, then drop $0 rows.
+  const items = roundBucketsToWhole(raw, Math.round(amount)).filter((it) => it.amount >= 1);
+  // Expenses (a caveat — "covers your expenses & essentials first") lead; then the biggest destination, so debt payoff
+  // tends to headline a healthy plan.
+  items.sort((a, b) => (a.key === 'bills' ? -1 : b.key === 'bills' ? 1 : b.amount - a.amount));
+  return { amount, items };
+}
+
+/**
+ * Which pot funds a top-up — the ONE rule, read by the Guardian's tight top-up and by the affordability
+ * card's cover-a-dip.
+ *
+ * 3.7.A3.3 [D24] set the TYPE preference: savings before the emergency fund, because a bare `find` over
+ * (emergency | savings) drew from whichever the user happened to create first, so a covered-but-tight dip
+ * could raid the safety net while a discretionary pot sat untouched.
+ * ⚠️ The EF stays a FALLBACK rather than being excluded. Excluding it would make the one-tap vanish for
+ * anyone whose only savings IS the emergency fund — most people early on — and a tight-but-covered cycle
+ * is what a cushion is for. The dishonesty was never drawing on it; it was drawing on it silently and
+ * FIRST, which is why `isEmergencyFund` rides along for the copy. That preference is ABSOLUTE and is not
+ * reopened here: a savings pot too small to hold the line still outranks the emergency fund.
+ *
+ * ⛔ **What this adds (audit L3-3): within a type, the pick was still creation order.** With a $10
+ * "Vacation" created before an $800 "New car" and a $70 gap, it chose Vacation, capped the draw at $10,
+ * and told the user their line could not be held this paycheck — true of that pot, and needlessly false
+ * of their money. So: prefer a pot that can actually COVER the gap, largest first; only if none can,
+ * fall back to the largest available. The draw is capped at the gap either way, so this changes WHICH
+ * pot is used and whether the line holds — never how much is taken.
+ */
+/**
+ * ⛔ **S1.10.6.9 [`G-5`] — A BLANKED POT LEAVES THE RUNNING SILENTLY, AND THE CARD THEN STATES A DEFINITE
+ * NEGATIVE ABOUT THE USER'S OWN MONEY.**
+ *
+ * ⚡ `pickTopUpGoal` below filters on `currentAmount > 0`, and an unreadable amount repairs to `0` — so the
+ * pot simply is not there, with nothing anywhere saying so. Measured with a $800 Vacation beside a $25
+ * Coffee Fund and a $100 gap: *"You have $800 in Vacation — moving $100 over holds your line this
+ * paycheck"* became **"Coffee Fund has $25 — moving all of it over gets you to $125 of your $200 line. It
+ * won't close the gap, but it narrows it."** ⚠️ **A false NEGATIVE**, which is the direction this class had
+ * not produced before: the wrong pot, a wrong figure, and a line refused that would have held.
+ *
+ * ⛔ **CAPTION, DO NOT SUPPRESS** — `C-4`'s rule, and it applies here where it did not apply to `G-4`. The
+ * offer is still the best one the app can see and taking it still helps; what was missing is that the app
+ * knew its own list was short and said nothing.
+ *
+ * ⚠️ **The per-row loop is sufficient and the whole-list case is not a gap.** `unreadFieldsFor` attaches a
+ * whole-row *or* whole-list loss to every row of its entity, so any existing pot is covered; a whole-list
+ * loss with no goal rows at all leaves nothing to pick, no offer, and therefore no claim.
+ */
+function savingsPoolIncomplete(store: DebtStore, preference: readonly Goal['type'][]): boolean {
+  return store.goals.some(
+    (g) => preference.includes(g.type) && rowFieldUnread(store, 'row-figures', 'goal', g.id, 'currentAmount'),
+  );
+}
+
+function pickTopUpGoal(goals: Goal[], gap: number, preference: readonly Goal['type'][]): Goal | null {
+  for (const type of preference) {
+    const funded = goals.filter((g) => g.type === type && g.currentAmount > 0);
+    if (funded.length === 0) continue;
+    const sufficient = funded.filter((g) => g.currentAmount >= gap);
+    const pool = sufficient.length > 0 ? sufficient : funded;
+    return pool.reduce((best, g) => (g.currentAmount > best.currentAmount ? g : best));
+  }
+  return null;
+}
+
+/** Advance an ISO date by whole paychecks of the given cadence (for a save-for-it "ready by" date). */
+function addPaychecks(iso: string, payCycle: string, n: number): string {
+  const days = payCycle === 'weekly' ? 7 : payCycle === 'biweekly' ? 14 : payCycle === 'semimonthly' ? 15 : 30;
+  const d = parseLocalDate(iso);
+  d.setDate(d.getDate() + days * n);
+  return toLocalISODate(d);
+}
+
+export interface SaveOption {
+  key: 'fast' | 'balanced' | 'debtFirst';
+  title: string;
+  /** Funds BEFORE debt (a sinking fund) — the honest debt cost is shown at sign-off. Debt-first = false. */
+  prioritize: boolean;
+  perPaycheck: number | null;
+  paychecks: number | null;
+  readyBy: string | null;
+  /** The honest trade-off line for this option. */
+  detail: string;
+}
+
+/** The id a prospective save-for-it goal carries while the engine is asked what it would fund. Never stored. */
+const PROSPECTIVE_GOAL_ID = '__save-for-it-prospective__';
+
+/**
+ * ⛔ **[.5.5 · pass-7 `B1-1`] — WHAT THE ENGINE WOULD ACTUALLY FUND to a new priority goal of `amount`, each paycheck.**
+ *
+ * The one producer for every pace and ready-by the save-for-it sheet may promise. It allocates the store WITH the
+ * prospective goal, pace uncapped, and reads that goal's `optional_goal` share — because that rung funds
+ * `min(remaining, needed, pace)` AFTER the cushion buffer, the expense reserve and any priority goal already there
+ * (`allocatePaycheck.ts`). ⚡ Measured on the finding's store: `selectDiscretionary` 850, `selectSpendable` 675, and
+ * the engine funds **475**. Pacing off either selector promised a date the engine does not keep — 835 (the defect)
+ * and 625 (the finding's own remedy) both fund 475 once stored. An existing priority goal and variable income
+ * shrink the rung further, which is why the old `Balanced` broke too.
+ */
+export function selectPriorityGoalCapacity(store: DebtStore, amount: number): number {
+  if (!(amount > 0)) return 0;
+  const prospective: Goal = { id: PROSPECTIVE_GOAL_ID, name: '', type: 'savings', targetAmount: amount, currentAmount: 0, priority: true };
+  const allocation = selectAllocation({ ...store, goals: [...store.goals, prospective] });
+  if (!allocation) return 0;
+  return allocation.allocations.filter((a) => a.goalId === PROSPECTIVE_GOAL_ID).reduce((sum, a) => sum + a.amount, 0);
+}
+
+/** A pace the engine can fund: whole $5 steps, rounded DOWN — rounding up is a broken promise by rounding. */
+function fundablePace(perPaycheck: number): number {
+  return Math.floor(perPaycheck / 5) * 5;
+}
+
+/**
+ * §2.9.6 the save-for-it options for a SHORT purchase — the user picks a path (and signs off) rather than
+ * a single false-promise plan. Prioritized paces (fund before debt → a real "ready by" date, with the
+ * debt cost owned) + a debt-first path (normal post-debt goal, no debt-free-date hit, no firm date).
+ * Precise savings math; the debt-free-date cost stays qualitative (no false precision) at the sign-off.
+ *
+ * ⛔ [.5.5 · `B1-1`] Every dated option is paced off `selectPriorityGoalCapacity`, never off a selector's
+ * headroom — `Save fast` broke its promise on 4 of 4 measured shapes and `Balanced` on 2 while they were.
+ */
+export function selectSaveForItOptions(store: DebtStore, amount: number): SaveOption[] {
+  const capacity = selectPriorityGoalCapacity(store, amount);
+  const payCycle = store.paycheck.payCycle;
+  const today = store.paycheck.currentDate;
+  const opts: SaveOption[] = [];
+
+  // A goal smaller than one paycheck's capacity is funded whole; otherwise the fastest pace is the capacity itself.
+  const fastPer = capacity >= amount ? amount : fundablePace(capacity);
+  if (fastPer > 0 && amount > 0) {
+    // Save fast — everything the plan can set aside for it, so it's ready soonest.
+    const fastN = Math.max(1, Math.ceil(amount / fastPer));
+    opts.push({ key: 'fast', title: 'Save fast', prioritize: true, perPaycheck: fastPer, paychecks: fastN, readyBy: addPaychecks(today, payCycle, fastN), detail: 'Funds before debt — pauses most of your extra debt payoff while you save.' });
+
+    // Balanced — a lighter pace (~half), so debt payoff keeps moving.
+    const balPer = fundablePace(fastPer / 2);
+    const balN = balPer > 0 ? Math.max(1, Math.ceil(amount / balPer)) : 0;
+    if (balPer > 0 && balN > fastN) {
+      opts.push({ key: 'balanced', title: 'Balanced', prioritize: true, perPaycheck: balPer, paychecks: balN, readyBy: addPaychecks(today, payCycle, balN), detail: 'A lighter set-aside — eases off your debt payoff a little, takes longer.' });
+    }
+  }
+
+  // Debt-first — a normal savings goal, funded from whatever's spare after debt.
+  opts.push({ key: 'debtFirst', title: 'Keep debt first', prioritize: false, perPaycheck: null, paychecks: null, readyBy: null, detail: 'Save whatever’s spare after debt — no hit to your debt-free date, but no firm date.' });
+  return opts;
+}
+
+/**
+ * The Payday Cushion Guardian for THIS paycheck (2.4) — the premium headline "am I going to make it
+ * this paycheck?". Reads the SAME projected cushion the cash-flow bars show (`selectCashTimeline`
+ * cycle 0), so the Guardian never contradicts them. Pass the PROJECTED store (premium) so the read is
+ * off where the user actually is; on the raw store it answers off the last-verified anchor (free).
+ * `null` before there's a plan. It PERSISTS past debt-free (2.4.8 graduation): the framing shifts from
+ * cushion-vs-debt to cushion-vs-savings (the spare now tops up the emergency fund / goals / wealth), so
+ * the premium headline keeps running instead of going dark exactly when the user has earned it.
+ */
+export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
+  const allocation = selectAllocation(store);
+  if (!allocation) return null;
+  const live = liveDebts(store);
+  /**
+   * 2.4.8 — the Guardian no longer nulls at debt-free; it re-targets the spare to savings/wealth.
+   *
+   * ⛔ **S1.10.6.9 [`G-3`] — THIS IS PASS-1 BLOCKER `B1`, UNFIXED, IN THE SELECTOR BESIDE THE ONE THAT GOT
+   * THE REMEDY.** `selectPlanState` returns `'debt-free-unverified'` so a screen *cannot* forget to ask;
+   * this line re-derived the same conjunct and asked nothing, and `buildGuardianBrief` branches on the
+   * result eight times — *"Extra savings resumes"* for *"Extra payoff"*, the destination noun, the deploy
+   * target, and `deployTradeoff` silently off. One unreadable balance graduated the whole Today headline.
+   *
+   * ⚠️ **Unverified resolves to `false` — KEEP TALKING ABOUT DEBT — and the direction is the argument.**
+   * The unverified case is *"there is a debt row whose balance we could not read"*: a debt exists, so the
+   * debt framing is the true one and the celebration framing is the false one. The opposite reading —
+   * treat unknown as graduated — is the exact defect `B1` was raised for. ⛔ It costs a genuinely
+   * debt-free user the savings framing only until they answer the repair card, which is what the card is
+   * for; the reverse costs a user with debt a permanent, unearned graduation.
+   */
+  const debtFree = debtLiveness(store) === 'debt-free';
+
+  const cycles = selectCashTimeline(store, 3);
+  if (cycles.length === 0) return null;
+
+  // The nearest upcoming cycle that isn't clear — the proactive forewarning ("next month looks tight").
+  const upcoming = cycles.slice(1).find((c) => c.cushionStatus !== 'stable');
+
+  // Where the spare lands. WITH debt: the focus is the debt the ACTUAL allocation sends the extra to
+  // FIRST (2.4.6.1.4), not a fresh `rankDebts` (the engine ranks AFTER paid minimums / skips cleared
+  // debts, so a raw re-rank can name the wrong debt). DEBT-FREE: the first "put to work" bucket names
+  // the savings destination (EF → goals), so the copy reads "toward your Emergency Fund".
+  const snowballItems = allocation.allocations.filter((a) => a.category === 'snowball');
+  const savingsItems = allocation.allocations.filter(
+    (a) => a.category === 'starter_emergency' || a.category === 'emergency' || a.category === 'optional_goal',
+  );
+  const focusDebtName = debtFree
+    ? undefined
+    : (snowballItems[0] && store.debts.find((d) => d.id === (snowballItems[0].debtId ?? snowballItems[0].targetId))?.name) ||
+      rankDebts(live, store.payoffStrategy)[0]?.name;
+  const deployTargetName = debtFree
+    ? (savingsItems[0] && store.goals.find((g) => g.id === savingsItems[0].goalId)?.name) || undefined
+    : undefined;
+
+  // §2.1 advice boundary (2.4.11.4a): the spare-to-debt move is a genuine EF-vs-debt tradeoff (→ a
+  // two-sided-with-a-why voice) when a debt is live AND an emergency fund is underfunded AND the user
+  // hasn't opted out via "savings elsewhere". Otherwise it's mechanical (single decisive voice).
+  // ⚠️ THE emergency fund, then "is it underfunded" — not "any underfunded emergency-typed goal".
+  // [P6.8.9.7.11.12 · A-J2-4] A second `emergency`-typed goal is a sinking fund to the engine, so letting
+  // one satisfy this would raise an EF-vs-debt tradeoff voice over a goal that is not the EF.
+  const primaryEf = primaryEmergencyGoal(store.goals);
+  const efGoal =
+    primaryEf && primaryEf.currentAmount < (primaryEf.targetAmount ?? Number.POSITIVE_INFINITY) ? primaryEf : undefined;
+  const deployTradeoff = !debtFree && !store.prefs.hasSavingsElsewhere && !!efGoal;
+
+  // §2.10 tight-case top-up (2.4.11.2): cash the user moved from savings to hold the line THIS cycle
+  // lifts the effective cushion (it's really in checking now) — so the read reflects the held line.
+  const topUp = appliedTopUp(store);
+  // ⛔ S1.9.3 [A1] — netted ONCE, here, and the three reads below take the result.
+  const { residual, surplus } = nettedTopUp(store, allocation?.shortfall);
+  // Asked ONCE: the value and whether it may be stated are one fact, and two calls could disagree.
+  const line = cushionLine(store);
+
+  return buildGuardianBrief({
+    isPremium: store.subscriptionPlan === 'premium',
+    debtFree,
+    // The user's cushion line — premium is held to it; for free it's the healthy line they're not on.
+    // ⛔ **`.unread` RIDES WITH THE FIGURE.** [`C1-1`] `??` passed a repaired `0` straight through and
+    // `buildGuardianBrief`'s `|| 200` then printed it as a confident "$200 · Your line". The card needs
+    // to know the number is a substitute, and only the repair record can tell it.
+    floor: line.value,
+    floorUnread: line.unread,
+    // Headroom after every obligation drives the band (a choice to deploy isn't a risk). The plan
+    // reserves the floor for premium (effectivePaycheckBuffer), so `kept` = the protected cushion.
+    // ⛔ S1.9.3 [A1] — THE SURPLUS. A dollar of top-up is spent on the shortfall or it is cushion, never
+    // both; adding the whole move here while `shortfall` below carried the whole gap counted the same
+    // dollars twice, in opposite directions, on one card.
+    discretionary: selectDiscretionary(allocation) + surplus,
+    kept: selectLiquidCushion(allocation) + surplus,
+    toppedUp: topUp > 0,
+    // T5.2 (L3-1) — the brief must name the pot that was actually drained, not assume the EF.
+    topUpSourceName: selectAppliedTopUp(store)?.goalName,
+    heldReserve: selectHeldReserve(allocation),
+    // The "deployed" figure: extra-to-debt while owing, spare-to-savings once debt-free (2.4.8).
+    deployedToDebt: debtFree ? selectDeployedToSavings(allocation) : selectExtraToDebt(allocation),
+    // 3.7.A3.2 — the pre-debt rungs (starter EF, priority goals) fund BEFORE the snowball, so they can
+    // drive `deployedToDebt` to 0 while real money left the cushion. Only meaningful while owing: once
+    // debt-free the figure above already counts every savings rung, and passing it here would
+    // double-name the same dollars.
+    deployedBeforeDebt: debtFree ? 0 : selectDeployedBeforeDebt(allocation),
+    deployedBeforeDebtName: (() => {
+      const id = selectDeployedBeforeDebtGoalId(allocation);
+      return (id && store.goals.find((g) => g.id === id)?.name) || undefined;
+    })(),
+    // The extra fills targets in order, so it spans >1 when it exceeds the first target's need.
+    deploySpread: debtFree ? savingsItems.length > 1 : snowballItems.length > 1,
+    // ⛔ S1.9.3 [A1] — the RESIDUAL. M3's `shortfall > 0 → at-risk` branch is untouched and still the
+    // band's rule; what changed is that money the user actually moved is applied to the gap before the
+    // gap is reported. A top-up that genuinely covers a small shortfall now clears the band.
+    shortfall: residual,
+    focusDebtName,
+    deployTargetName,
+    deployTradeoff,
+    tradeoffTargetName: efGoal?.name,
+    lookahead: upcoming
+      ? // COH-1: surface the SAME floor-relative `net` the Progress cash-flow bars plot (and that drives
+        // this cycle's status word) — NOT `endingBalance` (clamped), which contradicted both.
+        { status: upcoming.cushionStatus, cushion: upcoming.net, label: shortDate(upcoming.cycleStart) }
+      : undefined,
+    priorBand: store.priorGuardianBand,
+    // §2.3.1 (2.4.7.7): a missed paycheck pauses deploy + reframes the read honestly (no phantom clear).
+    pausedDeploy: selectPaycheckMissed(store),
+    // §2.0.d voice gate (2.4.6.1.3): read-freshness (all tiers — a stale read is honestly deferred) +
+    // the live learning holdbacks (premium only — free doesn't act/learn, so no learning hedge).
+    confidence: {
+      freshness: selectReadFreshness(store),
+      ...(store.subscriptionPlan === 'premium' ? deriveConfidenceContext(store) : {}),
+    },
+  });
+}

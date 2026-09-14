@@ -1,0 +1,10 @@
+$ npm run -s lint:finding-guards
+exit=0 secs=37
+
+✅ finding-guards: 329 of 330 findings carry a standing guard; 1 unguarded (cap 1, downward-only).
+   proof: 201 EXECUTED · 2 of them STALE (cap 8) · 9 authored but never run (cap 9) · 0 guard-only (cap 0) · 119 never tested (cap 119)
+          ⛔ "authored" is a plan to measure, not a measurement — `npm run prove:guards -- --id=<ID>` records it.
+          ⛔ "STALE" means the target moved since the proof was measured — re-run it; 2 of 32 did not hold.
+     stale: S1-ROUTE-STALE-READ — scripts/audit-route.ts has moved since f7e39483 (measured 2026-08-31)
+     stale: S1-ROUTE-EXIT-REACHABLE — scripts/audit-route.ts has moved since f7e39483 (measured 2026-08-31)
+     unguarded: GAP-14 — S0.13 GAP-14 — the open question is now ANSWERED, and the answer is a deliberate non-fix (S1.10.6.5.8.3). Measured rather than assumed: (1) lint:gate-freshness legitimately reds MID-AUDIT by [D74]'s own design, so gating every push would red the lane for weeks - and web-e2e.yml's header documents that exact failure killing the previous lane ('a permanently-red gate is worse than no gate - it trains you to ignore the one signal that is supposed to mean something'); (2) gate:record is deliberately NOT in CI, so there is no post-record moment to hook; (3) a freshness check run straight after gate:record is tautological - the record was just written from that tree; (4) nothing in CI CONSUMES gate-status.json, so there is no reader to protect. ⛔ What the measurement DID surface is a real unguarded claim in the same workflow, now closed by lint:ci-chain (S1P3-CI-CHAIN). Re-open this only with a named CI consumer of the record

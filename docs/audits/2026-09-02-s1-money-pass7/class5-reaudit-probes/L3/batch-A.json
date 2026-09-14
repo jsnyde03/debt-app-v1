@@ -1,0 +1,39 @@
+{
+  "worktree": "C:/Users/Jason/audit-c5r1-L3",
+  "app_plants": [
+    ["apps/rn/src/components/plan/AffordabilityCard.tsx", "  const unreadPlanInputs = !mayClaim(store, 'paycheck-plan');", "  const unreadPlanInputs = !mayClaim(store, 'required-plan');"],
+    ["apps/rn/src/components/plan/WindfallSheet.tsx", "  const unreadPlanInputs = !mayClaim(store, 'paycheck-plan');", "  const unreadPlanInputs = !mayClaim(store, 'required-plan');"],
+    ["apps/rn/src/app/cushion-forecast.tsx", "import { effectivePaycheckBuffer, selectPrefundedHeld } from '@/store/selectors';", "import { effectivePaycheckBuffer, selectPrefundedReserve } from '@/store/selectors';"],
+    ["apps/rn/src/app/cushion-forecast.tsx", "  const holdNow = selectPrefundedHeld(engineStore);", "  const holdNow = selectPrefundedReserve(engineStore);"],
+    ["apps/rn/src/components/plan/SaveForItSheet.tsx", "      stated = customFunded ?? customPace;", "      stated = customPace;"],
+    ["apps/rn/src/app/(tabs)/money.tsx", "      ) : isPremium && !mayStateProjected ? (", "      ) : false ? ("],
+    ["apps/rn/src/app/(tabs)/money.tsx", "? unreadTargetsSub(unreadTargetCount)", "? unreadTargetsSub(1)"],
+    ["apps/rn/src/app/(tabs)/progress.tsx", "  const heroDate = mayStateSolved ? (view.debtFreeDate ?? '—') : '—';", "  const heroDate = mayStateBalances ? (view.debtFreeDate ?? '—') : '—';"],
+    ["apps/rn/src/store/balanceSelectors.ts", "  return CONFIRMED.get(debt) ?? debt.balance;", "  return debt.balance;"]
+  ],
+  "runs": [
+    {"name": "A1 affordability refusal · as written", "spec": "affordability.spec.ts", "grep": "the card refuses its verdict"},
+    {"name": "A2 affordability refusal · RELAXED (unread-inputs visible removed)", "spec": "affordability.spec.ts", "grep": "the card refuses its verdict",
+     "spec_plants": [["apps/rn/tests/e2e/affordability.spec.ts", "  await expect(page.getByTestId('afford-unread-inputs')).toBeVisible();\r\n", ""]]},
+    {"name": "A3 windfall refusal · as written", "spec": "windfall.spec.ts", "grep": "the sheet refuses to route"},
+    {"name": "A4 windfall refusal · RELAXED (unread-inputs visible removed)", "spec": "windfall.spec.ts", "grep": "the sheet refuses to route",
+     "spec_plants": [["apps/rn/tests/e2e/windfall.spec.ts", "  await expect(page.getByTestId('windfall-unread-inputs')).toBeVisible({ timeout: 15_000 });\r\n", ""]]},
+    {"name": "A5 runway held · as written", "spec": "cushion-forecast.spec.ts", "grep": "the runway says it is setting aside"},
+    {"name": "A6 runway held · RELAXED ($900 removed)", "spec": "cushion-forecast.spec.ts", "grep": "the runway says it is setting aside",
+     "spec_plants": [["apps/rn/tests/e2e/cushion-forecast.spec.ts", "  await expect(line).toContainText('$900');\r\n", ""]]},
+    {"name": "A7 runway with reserve held · as written", "spec": "cushion-forecast.spec.ts", "grep": "with a reserve already held"},
+    {"name": "A8 confirmation funded · as written", "spec": "saveforit-pace.spec.ts", "grep": "a capped custom pace is confirmed"},
+    {"name": "A9 confirmation funded · RELAXED (funded figure removed)", "spec": "saveforit-pace.spec.ts", "grep": "a capped custom pace is confirmed",
+     "spec_plants": [["apps/rn/tests/e2e/saveforit-pace.spec.ts", "  await expect(confirmation).toContainText(`Now saving ${funded}/paycheck`);\r\n", ""]]},
+    {"name": "A10 C3-8 premium APR · as written", "spec": "data-recovery.spec.ts", "grep": "C3-8 · an unread APR withholds"},
+    {"name": "A11 C3-8 premium APR · RELAXED ('Some figures unread' removed)", "spec": "data-recovery.spec.ts", "grep": "C3-8 · an unread APR withholds",
+     "spec_plants": [["apps/rn/tests/e2e/data-recovery.spec.ts", "  await expect(\r\n    page.getByTestId('money-hero-debts-value'),\r\n    'a total projected from a rate the app could not read is the same claim as one summed from an unread balance',\r\n  ).toHaveText('Some figures unread');\r\n", ""]]},
+    {"name": "A12 C3-9 progress APR · as written", "spec": "progress-hero-journey.spec.ts", "grep": "C3-9 · an unread APR"},
+    {"name": "A13 C3-9 progress APR · RELAXED (date '—' removed)", "spec": "progress-hero-journey.spec.ts", "grep": "C3-9 · an unread APR",
+     "spec_plants": [["apps/rn/tests/e2e/progress-hero-journey.spec.ts", "    'a debt-free date computed from an APR the app could not read is the same claim as one computed from an unread balance',\r\n  ).toHaveText('—');\r\n", "    'relaxed by L3',\r\n  ).toBeVisible();\r\n"]]},
+    {"name": "A14 C3-13 projected $0 · as written", "spec": "celebration.spec.ts", "grep": "C3-13 · a projected"},
+    {"name": "A15 C3-14 two targets · as written", "spec": "goal-row-saved.spec.ts", "grep": "counted as two"},
+    {"name": "A16 C3-14 two targets · RELAXED ('2 targets' removed)", "spec": "goal-row-saved.spec.ts", "grep": "counted as two",
+     "spec_plants": [["apps/rn/tests/e2e/goal-row-saved.spec.ts", "  await expect(page.getByText('saved — 2 targets could not be read')).toBeVisible();\r\n", ""]]}
+  ]
+}

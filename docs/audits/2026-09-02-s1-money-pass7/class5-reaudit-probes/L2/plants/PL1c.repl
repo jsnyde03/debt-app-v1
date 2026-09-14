@@ -1,0 +1,2 @@
+          if (await bridge.start(action.content)) {
+            running = false;

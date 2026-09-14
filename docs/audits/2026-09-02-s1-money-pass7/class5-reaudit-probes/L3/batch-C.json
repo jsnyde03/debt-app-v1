@@ -1,0 +1,18 @@
+{
+  "worktree": "C:/Users/Jason/audit-c5r1-L3",
+  "app_plants": [
+    ["apps/rn/src/components/plan/PlanHero.tsx", "  ].filter((seg) => !unreadPlanInputs && seg.value > 0);", "  ].filter((seg) => seg.value > 0);"],
+    ["apps/rn/src/app/cushion-forecast.tsx", "  const mayStateForecast = mayClaim(store, 'solved-projection');", "  const mayStateForecast = mayClaim(store, 'row-figures');"],
+    ["apps/rn/src/components/plan/SaveForItSheet.tsx", "customFunded != null && customFunded > 0 ? Math.max(1, Math.ceil(amount / customFunded)) : null;", "customPace != null && customPace > 0 ? Math.max(1, Math.ceil(amount / customPace)) : null;"],
+    ["apps/rn/src/app/(tabs)/progress.tsx", "    () => (mayClaim(store, 'solved-projection') ? rawView : gagBalanceDerived(rawView)),", "    () => (mayClaim(store, 'debt-balances') ? rawView : gagBalanceDerived(rawView)),"],
+    ["apps/rn/src/app/(tabs)/progress.tsx", "  const heroDate = mayStateSolved ? (view.debtFreeDate ?? '—') : '—';", "  const heroDate = mayStateBalances ? (view.debtFreeDate ?? '—') : '—';"]
+  ],
+  "runs": [
+    {"name": "C1 C1-5 split filter reverted · .5.4d hero as written", "spec": "trust-claims.spec.ts", "grep": "withholds its date and its split"},
+    {"name": "C2 .5.4a-style forecast over lost typical paycheck · as written", "spec": "cushion-forecast.spec.ts", "grep": "C3-11 · a lost typical paycheck keeps the runway drawn"},
+    {"name": "C3 B1-1 date from the typed pace · as written", "spec": "saveforit-pace.spec.ts", "grep": "B1-1 — a pace above what the plan can fund"},
+    {"name": "C4 C3-9 BOTH layers reverted (view gag + heroDate) · as written", "spec": "progress-hero-journey.spec.ts", "grep": "C3-9 · an unread APR"},
+    {"name": "C5 C3-9 BOTH layers · RELAXED (date '—' removed)", "spec": "progress-hero-journey.spec.ts", "grep": "C3-9 · an unread APR",
+     "spec_plants": [["apps/rn/tests/e2e/progress-hero-journey.spec.ts", "    'a debt-free date computed from an APR the app could not read is the same claim as one computed from an unread balance',\r\n  ).toHaveText('—');\r\n", "    'relaxed by L3',\r\n  ).toBeVisible();\r\n"]]}
+  ]
+}

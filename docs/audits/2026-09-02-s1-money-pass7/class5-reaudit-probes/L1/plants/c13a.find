@@ -1,0 +1,1 @@
+  if (repair.entity === 'plan') return field.charAt(0).toUpperCase() + field.slice(1);

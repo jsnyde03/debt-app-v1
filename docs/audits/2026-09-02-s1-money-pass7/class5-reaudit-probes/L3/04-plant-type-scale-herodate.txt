@@ -1,0 +1,9 @@
+PLANT apps/rn/src/app/(tabs)/progress.tsx: anchor count=1
+plant applied: True
+
+> debt-app-v1@1.6.0 lint:type-scale
+> tsx scripts/check-type-scale.ts
+
+check-type-scale: every large figure carries a font-scale cap (19 checked).
+planted-run exit=0
+RESTORE cmp identical=True

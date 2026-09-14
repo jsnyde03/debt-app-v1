@@ -1,0 +1,80 @@
+== 13:25:15 CONTROL FULL
+  ✓ no paycheck → null (expected null, got null)
+  ✓ default (empty) store → null (expected null, got null)
+  ✓ tight deploys nothing (expected 0, got 0)
+  ✓ …deploy paused in a shortfall (expected 0, got 0)
+  ✓ …flagged debtFree (expected true, got true)
+  ✓ free gets no safeMove (the card shows the invitation) (expected undefined, got undefined)
+  ✓ bad paycheck "abc" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "NaN" → null (no crash) (expected null, got null)
+EXIT 0
+RESTORED byte-identical: True
+== 13:26:58 PLANT c39b in apps/rn/src/store/journeySelectors.ts -> apps/rn/src/store/journeySelectors.test.ts
+RUN-TEST RED: FAIL [journeySelectors: ⛔ C3-9 — the "to go" arm is projection-derived… — got false, expected true]
+PLANT LANDED in apps/rn/src/store/journeySelectors.ts
+EXIT 1
+RESTORED byte-identical: True
+py exit=0
+== 13:27:03 PLANT c39b in apps/rn/src/store/journeySelectors.ts -> FULL
+  ✓ no paycheck → null (expected null, got null)
+  ✓ default (empty) store → null (expected null, got null)
+  ✓ tight deploys nothing (expected 0, got 0)
+  ✓ …deploy paused in a shortfall (expected 0, got 0)
+  ✓ …flagged debtFree (expected true, got true)
+  ✓ free gets no safeMove (the card shows the invitation) (expected undefined, got undefined)
+  ✓ bad paycheck "abc" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "NaN" → null (no crash) (expected null, got null)
+PLANT LANDED in apps/rn/src/store/journeySelectors.ts
+EXIT 1
+RESTORED byte-identical: True
+py exit=0
+== 13:27:11 PLANT c313part in apps/rn/src/store/trustSelectors.ts -> FULL
+  ✓ no paycheck → null (expected null, got null)
+  ✓ default (empty) store → null (expected null, got null)
+  ✓ tight deploys nothing (expected 0, got 0)
+  ✓ …deploy paused in a shortfall (expected 0, got 0)
+  ✓ …flagged debtFree (expected true, got true)
+  ✓ free gets no safeMove (the card shows the invitation) (expected undefined, got undefined)
+  ✓ bad paycheck "abc" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "NaN" → null (no crash) (expected null, got null)
+PLANT LANDED in apps/rn/src/store/trustSelectors.ts
+EXIT 0
+RESTORED byte-identical: True
+py exit=0
+== 13:28:44 PLANT c13b in apps/rn/src/components/plan/dataRepairsCopy.ts -> FULL
+  ✓ no paycheck → null (expected null, got null)
+  ✓ default (empty) store → null (expected null, got null)
+  ✓ tight deploys nothing (expected 0, got 0)
+  ✓ …deploy paused in a shortfall (expected 0, got 0)
+  ✓ …flagged debtFree (expected true, got true)
+  ✓ free gets no safeMove (the card shows the invitation) (expected undefined, got undefined)
+  ✓ bad paycheck "abc" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "NaN" → null (no crash) (expected null, got null)
+PLANT LANDED in apps/rn/src/components/plan/dataRepairsCopy.ts
+EXIT 0
+RESTORED byte-identical: True
+py exit=0
+== 13:30:18 PLANT c11brief in packages/core/guardian/buildGuardianBrief.ts -> FULL
+  ✓ no paycheck → null (expected null, got null)
+  ✓ default (empty) store → null (expected null, got null)
+  ✓ tight deploys nothing (expected 0, got 0)
+  ✓ …deploy paused in a shortfall (expected 0, got 0)
+  ✓ …flagged debtFree (expected true, got true)
+  ✓ free gets no safeMove (the card shows the invitation) (expected undefined, got undefined)
+  ✓ bad paycheck "abc" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "NaN" → null (no crash) (expected null, got null)
+PLANT LANDED in packages/core/guardian/buildGuardianBrief.ts
+EXIT 0
+RESTORED byte-identical: True
+py exit=0
+== 13:32:09 CONTROL REGRESSION
+
+EXIT 1
+RESTORED byte-identical: True
+== 13:32:12 PLANT c11brief in packages/core/guardian/buildGuardianBrief.ts -> REGRESSION
+
+PLANT LANDED in packages/core/guardian/buildGuardianBrief.ts
+EXIT 1
+RESTORED byte-identical: True
+py exit=0
+== 13:32:15 JOB DONE

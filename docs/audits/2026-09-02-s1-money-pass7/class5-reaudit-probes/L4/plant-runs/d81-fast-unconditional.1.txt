@@ -1,0 +1,4 @@
+$ npm run -s lint:runner-completeness
+exit=0 secs=2
+
+✅ runner completeness: every tracked test file is wired into its runner (test:app: 87 tracked · 87 wired · test:regression: 66 tracked · 66 wired · package.json (npm script map): 10 tracked · 10 wired).

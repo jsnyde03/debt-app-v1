@@ -1,0 +1,2 @@
+RUN-TRUST-TEST: default() returned
+exit=0

@@ -249,7 +249,7 @@ every surface, with an assertion that **iterates the surfaces** — six were wal
 `C4-4` was the measured hole a finding came through. ⛔ **The `|| 200` shape is its own sub-sweep: a
 fallback that erases a sentinel is indistinguishable from a real value at every call site.**
 
-## CLASS 6 — MONEY WRITTEN OR DESTROYED · 12 findings · 9 blocker · 1 major · 2 minor
+## CLASS 6 — MONEY WRITTEN OR DESTROYED · 13 findings · 9 blocker · 2 major · 2 minor *(`L2-4` routed in 2026-09-14)*
 
 | id | sev | one line |
 |---|---|---|
@@ -265,6 +265,7 @@ fallback that erases a sentinel is indistinguishable from a real value at every 
 | `C3-3` | blocker | a voice-logged payment that **cannot be applied is reported as applied**, the queue is cleared, and no surface ever tells the user |
 | `C1-2` | blocker | a store-level money loss fails `answerableByEdit`, so the app says *"nothing to reopen — check this against your old app"* about a number **its own sheet sets** |
 | `B2-4` | minor | the `Math.max(0, NaN)` class has two more members in the same file, held closed by a caller rather than by the action |
+| `L2-4` *(routed in from class 5's re-audit round 1, 2026-09-14)* | major | the return-to-foreground drain runs behind the read-failed screen against DEFAULT data and **clears a queued Siri payment** — after the retry the balance reads **5000 against a true 4750**. The launch drain is gated on `storageError`; its foreground twin (`_layout.tsx:184-189`) is not. Reproduces at `c7df99c2` |
 
 **Exit:** every money write goes through one normaliser; the `NaN` class asserted by iteration over the
 actions, not the callers; the finale reachable from **every** path that clears a balance.
@@ -299,7 +300,7 @@ previous round's **correct** fix stopping one line, one field, one hop or one co
 | `C3-4` | major | `scheduleRiskNotification` reports "a push went out" without asking whether it can deliver one — a revoked permission burns the 2-per-month budget silently |
 | `C2-7` | blocker | the last onboarding screen states a paycheck date to a user who **skipped** the paycheck step, from a biweekly default they never chose |
 
-## CLASS 9 — A CHECK THAT CANNOT FAIL · 21 findings · 1 blocker · 18 major · 2 minor
+## CLASS 9 — A CHECK THAT CANNOT FAIL · 25 findings · 1 blocker · 18 major · 6 minor *(`F3` `F5` `F5b` `L3-13c` routed in 2026-09-14)*
 
 ⛔ **Fixed LAST among the instrument classes**, deliberately: these are what re-verify everything else, so
 repairing them first re-verifies against the same blind spots. This is `S1.13.7.10`'s rule.
@@ -327,6 +328,10 @@ repairing them first re-verifies against the same blind spots. This is `S1.13.7.
 | `A3-9` | major | `testFullAppRegression`'s largest section — 22 of 70 assertions — covers a feature the shipping app **deliberately never calls** |
 | `A1-6` | minor | `route-smoke.spec.ts` claims "every route" and walks a hand-typed list of **10** against an app with **13** |
 | `A1-8` | minor | ten assertion-free screenshot rows sit inside the release gate, and the config written to keep them out states they are not there |
+| `F3` *(routed in from class 5's re-audit round 1, 2026-09-14 · 🎯 under [D80])* | minor | `[D81]`'s *"a full run refuses to skip"* is keyed on the same `FAST` that selects the skip (`run-gates.ts:183-193`): a `FAST` true without the flag runs 47 of 52 gates in CI and exits 0, and deleting the refusal leaves every gate green |
+| `F5` *(routed in, same)* | minor | `MAX_DEBT_SPREAD_SITES` compares `>`, not `!==`: one site removed with its row, cap left at 10 over a ledger of 9, and `lint:trust-claims` says nothing — slack the next projected-debt spread walks into |
+| `F5b` *(routed in, same · reproduces at `c7df99c2`)* | minor | `MAX_LIVENESS_SITES`, the older ledger with F5's one-sided compare |
+| `L3-13c` *(routed in, same)* | minor | `lint:trust-claims` counts files per claim, so a call site naming a **non-existent** claim (`'solved-projectionX'`) passes, and a site swapping claims inside a file that asks the right claim elsewhere is invisible — why `L3-6`'s revert reds no gate |
 
 ## CLASS 10 — CARRIED PREMISES AND STALE COMMENTS · 20 findings
 

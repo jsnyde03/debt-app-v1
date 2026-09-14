@@ -1,0 +1,30 @@
+== 13:35:36 CONTROL REGRESSION
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\Users\Jason\audit-c5r1-L1\apps\rn\packages\core\testing\runRegressionTests' imported from C:\Users\Jason\audit-c5r1-L1\apps\rn\
+EXIT 1
+RESTORED byte-identical: True
+== 13:35:58 PLANT c11brief -> REGRESSION
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\Users\Jason\audit-c5r1-L1\apps\rn\packages\core\testing\runRegressionTests' imported from C:\Users\Jason\audit-c5r1-L1\apps\rn\
+PLANT LANDED in packages/core/guardian/buildGuardianBrief.ts
+EXIT 1
+RESTORED byte-identical: True
+tree before prove:
+== 13:36:20 PROVE
+
+> debt-app-v1@1.6.0 prove:guards
+> tsx scripts/prove-guards.ts --no-record --id=S1P4-C4-5-ARITY,S1P4-C4-2-MEMBERSHIP,S1P3-C5-PAYWALL,S1P3-G1-CALIBRATION,S1P3-G2-RESERVETARGET,S1P3-G3-GUARDIANREGIME,S1P3-G4-PLANROUTE,S1P3-G5-SAVINGSPOOL,S1P4-F-B4-CLASS,S1P4-ACK-DOES-NOT-VERIFY,S1P5-B5-7-ANSWERABLEID,S1P5-C5-3-SHEETBALANCE,S1P6-B1-1-UNREADSTILLLIVE,S1P6-A3-14-HYSTERESIS,S1P6-B1-4-LEDGER-NOT-BAN,S1P7-U11-WELDED-TOKEN,S1-CLASS4-A2-1,S1-CLASS4-A3-1,S1-CLASS4-A3-2,S1-CLASS4-F7-HEADSUP,S1-CLASS4-R2-1-CAP,S1P7-R3-2-HEADSUPTOTAL,S1P7-R3-4-FREEDPERMONTH,S1P7-R4-1-ONETIMELUMP
+
+  ✅ S1P4-C4-5-ARITY            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P4-C4-2-MEMBERSHIP       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P3-C5-PAYWALL            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+
+❌ prove:guards — HARNESS FAULT on S1P3-G1-CALIBRATION, so there is no verdict here:
+   something is already listening on :4319, so NO proof can run.
+   ⛔ `apps/rn/playwright.config.ts` sets `reuseExistingServer`, so any proof that reaches
+   playwright — by argv, by npm script, or through a script that chains to one — would be
+   handed the PRE-PLANT bundle and read as failed-open: a working guard reported dead.
+   ⚠️ This refuses every proof rather than the ones whose command spells "playwright",
+   because that spelling missed two live entries. Stop that server and re-run.
+
+== 13:42:21 PROVE exit=0
+tree after:
+== 13:42:21 JOB3 DONE

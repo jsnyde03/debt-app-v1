@@ -1,0 +1,1 @@
+  debts.forEach((d, i) => CONFIRMED.set(d, confirmedBalance(store.debts[i])));

@@ -1,0 +1,369 @@
+== app plants (5) ==
+  plant apps/rn/src/app/(tabs)/index.tsx: anchor count=1 :: "unreadPlanInputs={!mayClaim(store, 'solved-projection')}"
+  plant apps/rn/src/app/(tabs)/index.tsx: anchor count=1 :: "unreadPlanInputs={!mayClaim(store, 'paycheck-plan')}"
+  plant apps/rn/src/app/cushion-forecast.tsx: anchor count=1 :: "  const mayStateForecast = mayClaim(store, 'solved-projection');"
+  plant apps/rn/src/app/(tabs)/money.tsx: anchor count=1 :: "  const mayStateProjected = mayClaim(store, 'projected-balance');"
+  plant apps/rn/src/app/(tabs)/progress.tsx: anchor count=1 :: "  const mayStateSolved = mayClaim(store, 'solved-projection');"
+  applied apps/rn/src/app/(tabs)/index.tsx: changed=True
+  applied apps/rn/src/app/cushion-forecast.tsx: changed=True
+  applied apps/rn/src/app/(tabs)/money.tsx: changed=True
+  applied apps/rn/src/app/(tabs)/progress.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 107s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=17948 listening=True ==
+
+-- RUN B1 .5.4d Guardian over lost goal target · as written :: trust-claims.spec.ts -g 'the Payday Guardian card states nothing over a goal target'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read (6.8s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('guardian-unread-inputs')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('guardian-unread-inputs')[22m
+
+
+      395 |   await expect(page.getByTestId('payday-guardian-card')).toBeVisible({ timeout: 15_000 });
+      396 |   // The honest state BY NAME first — scoped to the card, never page-wide.
+    > 397 |   await expect(page.getByTestId('guardian-unread-inputs')).toBeVisible();
+          |                                                            ^
+      398 |   await expect(
+      399 |     page.getByTestId('guardian-unread-inputs'),
+      400 |     'a goal target is not an amount this paycheck has to cover — the lead must say what is actually true',
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\trust-claims.spec.ts:397:60
+
+    Error Context: apps\rn\test-results\trust-claims--5-4d-·-the-P-202f5-rget-the-app-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read (6.8s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+-- RUN B2 .5.4d Guardian · RELAXED (both unread-inputs assertions removed) :: trust-claims.spec.ts -g 'the Payday Guardian card states nothing over a goal target'
+  plant apps/rn/tests/e2e/trust-claims.spec.ts: anchor count=1 :: '  // The honest state BY NAME first — scoped to the card, never page-wide.\r\n  await expect'
+  applied apps/rn/tests/e2e/trust-claims.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read (6.6s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText('Looks clear this paycheck')
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Looks clear this paycheck')[22m
+    [2m    13 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      394 |   await page.goto('/');
+      395 |   await expect(page.getByTestId('payday-guardian-card')).toBeVisible({ timeout: 15_000 });
+    > 396 |   await expect(page.getByText('Looks clear this paycheck')).toHaveCount(0);
+          |                                                             ^
+      397 |   await expect(page.getByText('To debt')).toHaveCount(0);
+      398 | });
+      399 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\trust-claims.spec.ts:396:61
+
+    Error Context: apps\rn\test-results\trust-claims--5-4d-·-the-P-202f5-rget-the-app-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:382:5 › .5.4d · the Payday Guardian card states nothing over a goal target the app could not read (6.6s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+  RESTORE apps/rn/tests/e2e/trust-claims.spec.ts: cmp identical=True
+
+-- RUN B3 .5.4d plan hero over lost APR · as written :: trust-claims.spec.ts -g 'withholds its date and its split'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read (6.3s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read 
+
+    Error: the honest state, by name
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByTestId('plan-hero')
+    Expected substring: [32m"An amount your plan is built from could not be read"[39m
+    Received string:    [31m"THIS PAYCHECK · Sep 28$2,000Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - the honest state, by name with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('plan-hero')[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$96Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$413Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$748Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$1,443Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$1,909Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    8 × locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m      - unexpected value "THIS PAYCHECK · Sep 28$2,000Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+
+
+      425 |   const hero = page.getByTestId('plan-hero');
+      426 |   await expect(hero).toBeVisible({ timeout: 15_000 });
+    > 427 |   await expect(hero, 'the honest state, by name').toContainText('An amount your plan is built from could not be read');
+          |                                                   ^
+      428 |   await expect(hero, 'a debt-free date solved from a rate the app could not read').not.toContainText('debt-free by');
+      429 |   await expect(hero.getByText('Flexible'), 'the split is carved from the corrupted allocation (C1-5)').toHaveCount(0);
+      430 | });
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\trust-claims.spec.ts:427:51
+
+    Error Context: apps\rn\test-results\trust-claims--5-4d-·-the-p-9ba0d--APR-the-app-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read (6.3s) | Error: the honest state, by name | [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN B4 .5.4d plan hero · RELAXED (lead removed) :: trust-claims.spec.ts -g 'withholds its date and its split'
+  plant apps/rn/tests/e2e/trust-claims.spec.ts: anchor count=1 :: "  await expect(hero, 'the honest state, by name').toContainText('An amount your plan is bu"
+  applied apps/rn/tests/e2e/trust-claims.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read (6.2s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read 
+
+    Error: a debt-free date solved from a rate the app could not read
+
+    [2mexpect([22m[31mlocator[39m[2m).not.[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByTestId('plan-hero')
+    Expected substring: not [32m"debt-free by"[39m
+    Received string: [31m"THIS PAYCHECK · Sep 28$2,000Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · [7mdebt-free by[27m November 2026Add extra income"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - a debt-free date solved from a rate the app could not read with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('plan-hero')[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$178Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$284Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$572Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$1,268Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    - locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m    - unexpected value "THIS PAYCHECK · Sep 28$1,783Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+    [2m    8 × locator resolved to <div data-testid="plan-hero" class="css-g5y9jx r-1fuqb1j r-1ssbvtb r-1udh08x r-1idfib4">…</div>[22m
+    [2m      - unexpected value "THIS PAYCHECK · Sep 28$2,000Suggested · $1,300 · Extra payment to VisaRequired$500Flexible$1,500On track · debt-free by November 2026Add extra income"[22m
+
+
+      425 |   const hero = page.getByTestId('plan-hero');
+      426 |   await expect(hero).toBeVisible({ timeout: 15_000 });
+    > 427 |   await expect(hero, 'a debt-free date solved from a rate the app could not read').not.toContainText('debt-free by');
+          |                                                                                        ^
+      428 |   await expect(hero.getByText('Flexible'), 'the split is carved from the corrupted allocation (C1-5)').toHaveCount(0);
+      429 | });
+      430 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\trust-claims.spec.ts:427:88
+
+    Error Context: apps\rn\test-results\trust-claims--5-4d-·-the-p-9ba0d--APR-the-app-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read (6.2s) | Error: a debt-free date solved from a rate the app could not read | [2mexpect([22m[31mlocator[39m[2m).not.[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+  RESTORE apps/rn/tests/e2e/trust-claims.spec.ts: cmp identical=True
+
+-- RUN B5 .5.4d plan hero · RELAXED (lead + date removed) :: trust-claims.spec.ts -g 'withholds its date and its split'
+  plant apps/rn/tests/e2e/trust-claims.spec.ts: anchor count=1 :: "  await expect(hero, 'the honest state, by name').toContainText('An amount your plan is bu"
+  applied apps/rn/tests/e2e/trust-claims.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read (6.4s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read 
+
+    Error: the split is carved from the corrupted allocation (C1-5)
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('plan-hero').getByText('Flexible')
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - the split is carved from the corrupted allocation (C1-5) with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('plan-hero').getByText('Flexible')[22m
+    [2m    14 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      425 |   const hero = page.getByTestId('plan-hero');
+      426 |   await expect(hero).toBeVisible({ timeout: 15_000 });
+    > 427 |   await expect(hero.getByText('Flexible'), 'the split is carved from the corrupted allocation (C1-5)').toHaveCount(0);
+          |                                                                                                        ^
+      428 | });
+      429 |
+      430 | test('.5.4d control · the plan hero with the rate readable still states its date and its split', async ({ page }) => {
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\trust-claims.spec.ts:427:104
+
+    Error Context: apps\rn\test-results\trust-claims--5-4d-·-the-p-9ba0d--APR-the-app-could-not-read-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\trust-claims.spec.ts:415:5 › .5.4d · the plan hero withholds its date and its split over an APR the app could not read (6.4s) | Error: the split is carved from the corrupted allocation (C1-5) | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+  RESTORE apps/rn/tests/e2e/trust-claims.spec.ts: cmp identical=True
+
+-- RUN B6 C3-11 forecast over unread minimum · as written :: cushion-forecast.spec.ts -g 'C3-11 · an unread minimum withholds'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard (15.7s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('cushion-forecast-unread')
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 15000ms[22m
+    [2m  - waiting for getByTestId('cushion-forecast-unread')[22m
+
+
+      154 |
+      155 |   // The positive assertion first — a page that never rendered satisfies every negative one below.
+    > 156 |   await expect(page.getByTestId('cushion-forecast-unread')).toBeVisible({ timeout: 15_000 });
+          |                                                             ^
+      157 |   await expect(
+      158 |     page.getByTestId('cushion-forecast-unread'),
+      159 |     'the instruction names the figure to set, not a position on another screen',
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\cushion-forecast.spec.ts:156:61
+
+    Error Context: apps\rn\test-results\cushion-forecast-C3-11-·-a-271a9-way-and-keeps-the-scorecard-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard (15.7s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+-- RUN B7 C3-11 forecast · RELAXED (both unread-card assertions removed) :: cushion-forecast.spec.ts -g 'C3-11 · an unread minimum withholds'
+  plant apps/rn/tests/e2e/cushion-forecast.spec.ts: anchor count=1 :: "  await expect(page.getByTestId('cushion-forecast-unread')).toBeVisible({ timeout: 15_000 "
+  applied apps/rn/tests/e2e/cushion-forecast.spec.ts: changed=True
+
+Running 1 test using 1 worker
+
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard (1.0s)
+
+  1 passed (3.1s)
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\cushion-forecast.spec.ts:144:5 › C3-11 · an unread minimum withholds the runway and keeps the scorecard (1.0s) | 1 passed (3.1s)
+  RESTORE apps/rn/tests/e2e/cushion-forecast.spec.ts: cmp identical=True
+
+-- RUN B8 .5.4a Money keeps total over lost goal target · as written :: data-recovery.spec.ts -g 'a lost goal target keeps the debt total'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:788:5 › .5.4a · a lost goal target keeps the debt total (6.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:788:5 › .5.4a · a lost goal target keeps the debt total 
+
+    Error: a goal the app could not read says nothing about what is owed — withholding the total is over-suppression
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('money-hero-debts-value')
+    Expected: [32m"$12,000"[39m
+    Received: [31m"Some figures unread"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - a goal the app could not read says nothing about what is owed — withholding the total is over-suppression with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('money-hero-debts-value')[22m
+    [2m    14 × locator resolved to <div dir="auto" data-testid="money-hero-debts-value" class="css-146c3p1 r-dnmrzs r-1udh08x r-1udbk01 r-3s2u2q r-1iln25a r-uho16t r-1ghxqbu r-1vr29t4 r-icto9i">Some figures unread</div>[22m
+    [2m       - unexpected value "Some figures unread"[22m
+
+
+      805 |     page.getByTestId('money-hero-debts-value'),
+      806 |     'a goal the app could not read says nothing about what is owed — withholding the total is over-suppression',
+    > 807 |   ).toHaveText('$12,000');
+          |     ^
+      808 | });
+      809 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\data-recovery.spec.ts:807:5
+
+    Error Context: apps\rn\test-results\data-recovery--5-4a-·-a-lo-20b12-target-keeps-the-debt-total-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:788:5 › .5.4a · a lost goal target keeps the debt total 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:788:5 › .5.4a · a lost goal target keeps the debt total (6.1s) | Error: a goal the app could not read says nothing about what is owed — withholding the total is over-suppression | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+-- RUN B9 .5.4a Progress keeps date over lost typical paycheck · as written :: progress-hero-journey.spec.ts -g 'a lost typical paycheck keeps the debt-free date'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:286:5 › .5.4a · a lost typical paycheck keeps the debt-free date (6.1s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:286:5 › .5.4a · a lost typical paycheck keeps the debt-free date 
+
+    Error: a paycheck figure the plan never reads says nothing about when the debt clears — withholding the date is over-suppression
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByTestId('progress-hero-date')
+    Expected pattern: [32m/^[A-Z][a-z]+ \d{4}$/[39m
+    Received string:  [31m"—"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - a paycheck figure the plan never reads says nothing about when the debt clears — withholding the date is over-suppression with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('progress-hero-date')[22m
+    [2m    13 × locator resolved to <div dir="auto" data-testid="progress-hero-date" class="css-146c3p1 r-8akbws r-krxsd3 r-dnmrzs r-1qsk4np r-1udbk01 r-1vr29t4 r-icto9i">—</div>[22m
+    [2m       - unexpected value "—"[22m
+
+
+      304 |     page.getByTestId('progress-hero-date'),
+      305 |     'a paycheck figure the plan never reads says nothing about when the debt clears — withholding the date is over-suppression',
+    > 306 |   ).toHaveText(/^[A-Z][a-z]+ \d{4}$/);
+          |     ^
+      307 | });
+      308 |
+      309 |
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\progress-hero-journey.spec.ts:306:5
+
+    Error Context: apps\rn\test-results\progress-hero-journey--5-4-78ae2-ck-keeps-the-debt-free-date-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:286:5 › .5.4a · a lost typical paycheck keeps the debt-free date 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:286:5 › .5.4a · a lost typical paycheck keeps the debt-free date (6.1s) | Error: a paycheck figure the plan never reads says nothing about when the debt clears — withholding the date is over-suppression | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/app/(tabs)/index.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/cushion-forecast.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/(tabs)/money.tsx: cmp identical=True
+  RESTORE apps/rn/src/app/(tabs)/progress.tsx: cmp identical=True

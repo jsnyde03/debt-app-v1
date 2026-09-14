@@ -1,0 +1,66 @@
+worktree ea3f5e0e 2026-09-14T13:14:52-04:00
+[2m[WebServer] [22m[33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+
+Running 8 tests using 1 worker
+
+L3PROBE P1 P1a lost APR (trust-claims .5.4d store) innerText :: "THIS PAYCHECK · SEP 28  $381 Suggested · $1,300 · Extra payment to Visa  An amount your plan is built from could not be read, so I can’t tell you where the plan lands yet.  Add extra income"
+L3PROBE P1 P1a lost APR (trust-claims .5.4d store) suggestVisible :: 1
+L3PROBE P1 P1a lost APR (trust-claims .5.4d store) a11y :: "This paycheck $2,000. An amount your plan is built from could not be read, so I can’t tell you where the plan lands yet."
+  ok 1 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:44:7 › L3 P1 plan hero · P1a lost APR (trust-claims .5.4d store) (2.6s)
+L3PROBE P1 P1b lost minimum on Car, Visa readable innerText :: "THIS PAYCHECK · SEP 28  $195 Suggested · $1,300 · Extra payment to Visa  An amount your plan is built from could not be read, so I can’t tell you where the plan lands yet.  Add extra income"
+L3PROBE P1 P1b lost minimum on Car, Visa readable suggestVisible :: 1
+L3PROBE P1 P1b lost minimum on Car, Visa readable a11y :: "This paycheck $2,000. An amount your plan is built from could not be read, so I can’t tell you where the plan lands yet."
+  ok 2 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:44:7 › L3 P1 plan hero · P1b lost minimum on Car, Visa readable (1.4s)
+L3PROBE P1 P1c control, both readable innerText :: "THIS PAYCHECK · SEP 28  $212 Suggested · $1,000 · Extra payment to Visa Required $800 Flexible $1,200  On track · debt-free by March 2027  Add extra income"
+L3PROBE P1 P1c control, both readable suggestVisible :: 1
+L3PROBE P1 P1c control, both readable a11y :: "This paycheck $2,000. Required $800, Flexible $1,200. Suggested: Extra payment to Visa, $1,000. On track · debt-free by March 2027"
+  ok 3 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:44:7 › L3 P1 plan hero · P1c control, both readable (1.4s)
+L3PROBE P2 free apr= progress-journey :: "Some figures couldn’t be read"
+L3PROBE P2 free apr= progress-date :: "—"
+L3PROBE P2 free apr= money-hero :: "$12,000"
+  ok 4 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:70:9 › L3 P2 progress + money · free · apr=unread (1.6s)
+L3PROBE P2 free apr=19 progress-journey :: "$12,000 to go"
+L3PROBE P2 free apr=19 progress-date :: "January 2027"
+L3PROBE P2 free apr=19 money-hero :: "$12,000"
+  ok 5 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:70:9 › L3 P2 progress + money · free · apr=19 (1.7s)
+L3PROBE P2 premium apr= progress-journey :: "Some figures couldn’t be read"
+L3PROBE P2 premium apr= progress-date :: "—"
+L3PROBE P2 premium apr= money-hero :: "Some figures unread"
+  ok 6 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:70:9 › L3 P2 progress + money · premium · apr=unread (1.6s)
+L3PROBE P2 premium apr=19 progress-journey :: "$12,176 to go"
+L3PROBE P2 premium apr=19 progress-date :: "January 2027"
+L3PROBE P2 premium apr=19 money-hero :: "$12,176"
+  ok 7 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:70:9 › L3 P2 progress + money · premium · apr=19 (1.8s)
+  x  8 [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:95:5 › L3 P3 save-for-it · a typed pace on a paycheck with no room (17.5s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:95:5 › L3 P3 save-for-it · a typed pace on a paycheck with no room 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Set your own', { exact: true })
+    Expected: visible
+    Timeout: 15000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 15000ms[22m
+    [2m  - waiting for getByText('Set your own', { exact: true })[22m
+
+
+       99 |   await page.getByRole('button', { name: 'Save for it →' }).click({ timeout: 15_000 });
+      100 |   const own = page.getByText('Set your own', { exact: true });
+    > 101 |   await expect(own).toBeVisible({ timeout: 15_000 });
+          |                     ^
+      102 |   log('P3 options on the sheet', (await page.getByRole('dialog').first().innerText().catch(() => '(no dialog role)')).replace(/\s+/g, ' ').slice(0, 600));
+      103 |   await own.click();
+      104 |   const field = page.getByTestId('saveforit-custom-per');
+        at C:\Users\Jason\audit-c5r1-L3\apps\rn\tests\e2e\zz-l3-probe.spec.ts:101:21
+
+    Error Context: apps\rn\test-results\zz-l3-probe-L3-P3-save-for-91b51--on-a-paycheck-with-no-room-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\zz-l3-probe.spec.ts:95:5 › L3 P3 save-for-it · a typed pace on a paycheck with no room 
+  7 passed (2.3m)
+exit=1
+port 4319 free after run

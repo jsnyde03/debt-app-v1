@@ -35936,3 +35936,52 @@ attributable/reservoir split is re-runnable rather than an auditor's reading.
 ⚠️ **Membership was not given as a number.** The class table has 13 rows; the plan's rows add ids pulled forward
 (`C1-2`, `B1-2`), swept inline (`C1-3`), a reopened **pass-6** `C3-6`, and `.5.7` closures with no pass-7 id. The brief
 names the four sources and asks for the derived set and every disagreement.
+
+### `.12.6.5.8.2`–`.3` — round 1 run and recorded: 24 findings, 17 attributable, class 5 does not exit · 2026-09-14
+
+**Four fresh lanes at `ea3f5e0e`, no sub-agents, each planting in its own worktree.** Measured spend, against a quote of
+~2–4M estimated: **L1 388k tokens / 1.8 h · L2 284k / 0.9 h · L3 426k / 2.0 h · L4 393k / 2.9 h — ~1.5M in all.** The
+record is [`CLASS5-REAUDIT-ROUND1.md`](audits/2026-09-02-s1-money-pass7/CLASS5-REAUDIT-ROUND1.md); every finding's text
+lives in the four lane reports beside it.
+
+⛔ **24 findings: 17 attributable** *(2 major · 15 minor)* **and 7 that reproduce at `c7df99c2`** *(1 blocker · 4 major · 2
+minor)*. The exit is zero attributable, so class 5 does not close. ⭐ **What held:** every guard whose pinned file moved —
+**L1 24/24 · L2 18/18 · L3 16/16 · L4 33/33 MATCHED** — plus 38 spec-level plant runs, 101 green specs, `R5-1` and `R5-2`
+closed, the save-for-it pace over 128 shapes and the reserve offer in 72 of 72.
+
+⚡ **The pattern: closures that work and that nothing can make red.** Eight class-5 closures carry no registry row (`F2`),
+and four were measured open by planting — `L3-6` *(reverting `C3-9`'s payoff-family gag reds the e2e, `lint:trust-claims`,
+the registry and `test:app` — none of them)*, `L1-4`, `L1-5`, `L2-3`. Every `.5.7` closure, registered in one batch, has a
+row. **Registration was the step that took the render proofs `.5.7` still owed and left the closures that already had tests.**
+
+⛔ **THE BRIEF'S ATTRIBUTION RULE WAS INCOMPLETE.** *"Reproduces at `c7df99c2`"* answers *did a fix CAUSE this*, not *did the
+fix FINISH*. Five of the seven are a class-5 closure stopping one surface short — **`L3-1a`, a blocker**: PlanHero draws
+*"Suggested · $1,300"* above its own refusal, inflated by the lost $300 minimum, because `C1-5` closed the split and not the
+suggestion. Filed onward by the rule, class 5 would have closed with it on screen.
+
+✅ **[DECISION] 🎯 2026-09-14 — the five unreached surfaces STAY IN CLASS 5** (`L3-1a` `L3-5a` `L3-5b` `L1-R1` `L2-2`), the
+recommended routing. Onward: **`L2-4` → class 6** *(the ungated foreground drain destroys a queued Siri payment)*, **`F5b` →
+class 9**. ✅ **[DECISION] 🎯 2026-09-14 — [D80] applies to three instrument minors:** **`F1` → backlog**, **`F3` `F5` → class
+9**, the recommended split — none reaches a user or leaves a closure unproven. L3's `lint:trust-claims` control *(a
+non-existent claim name passes)* goes to class 9 beside them as `L3-13c`. **Round 2 fixes 19**; the order is on the plan.
+
+**Concurrency held.** No lane edited the main checkout; lanes waited out `prove:guards`' refusal on L3's `:4319` as briefed;
+one `git status` spawn died with `0xC0000142` under four-lane load and was re-run.
+
+### ⛔ Two teardown incidents, and the second was mine
+
+1. **L3's base teardown ran `git worktree remove` before its junctions were detached** — one chained shell line; the first
+   `rmdir` failed on quoting, `&&` stopped, `;` did not. Git deleted the worktree's files and **did not descend the junctions**.
+2. ⛔ **The gate I wrote an hour later to prevent exactly that could not fail.** Each junction was checked with `Get-Item`
+   before `git worktree remove` was allowed; **all twelve read `absent`**, so all four removes ran. Measured afterwards: the
+   script built each path as `"$W\\$J"` inside a quoted heredoc, and bash produced `…audit-c5r1-L1$J` — a path that never
+   existed. A control typed by hand found the junction at once. **All 12 junctions were still live**, three pointing into the
+   main checkout's dependencies; git removed everything else and left four folders it could not empty.
+   - **Nothing was lost, and that was git's behaviour, not the gate.** The main checkout's counts were compared after every
+     step and never moved.
+   - **Cleanup ran with a control built the way the check was:** a walk that does not follow links had to see exactly 3
+     reparse points per folder before anything was touched; each junction was unlinked alone and confirmed gone; a second walk
+     had to see zero before the recursive delete. All four folders are gone and `git worktree list` shows the main checkout only.
+   - ⛔ **`run-the-control-on-the-verifier`, on the one step in the session where the verifier gated a destructive action.**
+     I read L3's incident, wrote the lesson into the reply, and did not plant a known junction through the new check before
+     trusting it.

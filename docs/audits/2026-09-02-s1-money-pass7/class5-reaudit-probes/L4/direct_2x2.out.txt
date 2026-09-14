@@ -1,0 +1,9 @@
+R5-2  code=pin      note names longer-sibling A3-14   exit=1 NEIGHBOUR-refusal=PRINTED
+R5-2  code=pin      note names the lender A3-1        exit=1 NEIGHBOUR-refusal=absent
+R5-2  code=reverted note names longer-sibling A3-14   exit=1 NEIGHBOUR-refusal=absent
+R5-2  code=reverted note names the lender A3-1        exit=1 NEIGHBOUR-refusal=absent
+PROJ  code=pin      target=clean exit=1 "as if committed"=absent projected-lines=0
+PROJ  code=pin      target=dirty exit=1 "as if committed"=PRINTED projected-lines=9
+PROJ  code=slice4   target=clean exit=1 "as if committed"=absent projected-lines=0
+PROJ  code=slice4   target=dirty exit=1 "as if committed"=absent projected-lines=0
+restore byte-verified: True | fixtures left: [] | git status: clean

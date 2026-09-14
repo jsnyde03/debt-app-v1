@@ -1,0 +1,4 @@
+$ npm run -s lint:ci-chain
+exit=0 secs=2
+
+✅ ci-chain: all 8 gating links of validate:release:rn run in .github/workflows/web-e2e.yml (gate:begin, gate:record deliberately omitted, by name).

@@ -1,0 +1,27 @@
+exit=1
+⛔ finding-guards: 9 of 9 findings carry a standing guard; 0 unguarded (cap 1, downward-only).
+   proof: 9 EXECUTED · 0 of them STALE (cap 8) · 0 authored but never run (cap 9) · 0 guard-only (cap 0) · 0 never tested (cap 119)
+          ⛔ "authored" is a plan to measure, not a measurement — `npm run prove:guards -- --id=<ID>` records it.
+          ⛔ "STALE" means the target moved since the proof was measured — re-run it; 2 of 32 did not hold.
+          ⚠️ 9 more would go STALE if the working tree were committed — 9 against the cap of 8.
+     projected: PLANT-L4-PROJECTED-1 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+     projected: PLANT-L4-PROJECTED-2 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+     projected: PLANT-L4-PROJECTED-3 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+     projected: PLANT-L4-PROJECTED-4 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+     projected: PLANT-L4-PROJECTED-5 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+     projected: PLANT-L4-PROJECTED-6 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+     projected: PLANT-L4-PROJECTED-7 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+     projected: PLANT-L4-PROJECTED-8 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+     projected: PLANT-L4-PROJECTED-9 — scripts/__fixtures__/authoring-plant-target.md has an uncommitted change
+
+❌ finding-guards: 4 problem(s).
+
+  • the registry holds 9 findings; 330 are expected. Entries were REMOVED — a finding dropping out is how a closure stops being tracked. Do not lower the floor.
+  • 0 findings are unguarded and the cap is still 1. Lower it to 0 — the cap is the high-water mark, and leaving it above the count is room for a guard to disappear unnoticed.
+  • 0 findings are unproven — nobody has ever made their guard red and the cap is still 119. Lower it to 0 in the same edit — a cap above its own count is slack the next un-evidenced entry hides in.
+  • --projected: 0 stale now and 9 more as if committed — 9 against the ceiling of 8.
+        Committing this tree walks past the ceiling. Commit, then re-run those proofs in the same close:
+        `npm run prove:guards -- --id=<comma-separated> --record` — before the push, not after it.
+
+  [D67]: a closed finding needs a standing guard, or it is not closed.
+

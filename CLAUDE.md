@@ -14,12 +14,12 @@ It carries **▶ BUILDING NOW** (exactly one decomposed item), the phase table, 
 backlog and the decision log. **Read it before touching anything.**
 
 ⛔ **EVERY `▶ ACTIVE:` LINE FURTHER DOWN THIS FILE IS A SESSION HANDOFF NOTE AND GOES STALE.** As of
-**2026-09-06** the active item is **`S1.13.7.12.6.5.2`** — **class 5 of PASS 7's triage**, and the cold
-switch-in is
+**2026-09-14** the active item is **`S1.13.7.12.6.5.8.4`** — **class 5's round-2 fixes**, after its first `[D79]`
+re-audit found **17 defects attributable to class 5's fixes** — and the cold switch-in is
 ▶ **[`docs/audits/2026-09-02-s1-money-pass7/CLASS5-START-HERE.md`](docs/audits/2026-09-02-s1-money-pass7/CLASS5-START-HERE.md)**.
-**Read it before touching anything**: it carries the verify-first commands, the five corrections `.5.1`
-measured against the code, the traps that cost class 4 five rounds, and one open item (`R5-2`) that is
-filed rather than fixed. The triage as a whole is 137 findings in 12 classes, driven by
+**Read it before touching anything**: it carries the verify-first commands, the 19 round-2 fixes in order
+with the lane report that holds each one's measurement, and the traps round 1 paid for — including a
+teardown gate that could not fail. The round-1 record is `CLASS5-REAUDIT-ROUND1.md` beside it. The triage as a whole is 137 findings in 12 classes, driven by
 [`CLASSIFICATION.md`](docs/audits/2026-09-02-s1-money-pass7/CLASSIFICATION.md).
 
 ✅ **CLASS 4 CLOSED 2026-09-06** after five `[D79]` re-audit rounds. ⛔ **The loop was STOPPED by 🎯 rather

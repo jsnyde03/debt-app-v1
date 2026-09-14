@@ -1,0 +1,4 @@
+  ✅ S1P4-C4-3-BOTHDIRECTIONS   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+
+✅ prove:guards — 1 guard(s) red on their own defect, and the control is green.
+

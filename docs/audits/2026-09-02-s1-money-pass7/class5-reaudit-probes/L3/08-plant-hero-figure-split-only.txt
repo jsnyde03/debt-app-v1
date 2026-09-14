@@ -1,0 +1,5 @@
+PLANT apps/rn/src/store/trustSelectors.test.ts: anchor count=1
+plant applied: True
+The filename, directory name, or volume label syntax is incorrect.
+planted-run exit=1
+RESTORE cmp identical=True

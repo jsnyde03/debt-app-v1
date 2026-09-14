@@ -1,0 +1,17 @@
+$ npm run -s lint:trust-claims
+exit=1 secs=3
+
+
+❌ trust claims: 3 problem(s)
+
+  ✗ [vacuous-conjunct] apps/rn/src/store/drift.ts:71 — mayClaim('row-figures') && mayClaim('required-plan'): every field 'required-plan' routes, 'row-figures' routes too, so 'required-plan' can never change the answer. Ask the one claim that decides it.
+  ✗ [floor] 'required-plan' is asked by 2 production file(s), and CLAIM_CONSUMER_FLOOR declares 1.
+        A new caller appeared; raise the floor deliberately.
+        Callers: apps/rn/src/app/(tabs)/index.tsx, apps/rn/src/store/drift.ts
+  ✗ [floor] 'row-figures' is asked by 8 production file(s), and CLAIM_CONSUMER_FLOOR declares 7.
+        A new caller appeared; raise the floor deliberately.
+        Callers: apps/rn/src/app/(tabs)/index.tsx, apps/rn/src/app/(tabs)/money.tsx, apps/rn/src/app/living-expenses.tsx, apps/rn/src/components/money/BnplCalendarSection.tsx, apps/rn/src/store/celebrationSelectors.ts, apps/rn/src/store/drift.ts, apps/rn/src/store/guardianSelectors.ts, apps/rn/src/store/logPaymentCopy.ts
+
+The rule: never state a number about money the app could not read.
+It has now been widened three times and missed a different direction each time.
+

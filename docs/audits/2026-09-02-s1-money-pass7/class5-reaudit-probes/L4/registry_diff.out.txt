@@ -1,0 +1,160 @@
+base 302 pin 330 added 28 removed 0 changed 46
+
+== ADDED
+S1P7-C3-5-LIVEACTIVITY-UPDATE-LANDED | file=apps/rn/src/liveActivity/liveActivitySync.test.ts | run=test:app cmd=None | expect='C3-5 — the next commit catches the Lock Screen up instead of being gated out by a key the dropped update stamped' | sha=1cb8c0b7 measured=2026-09-13 | at=['apps/rn/src/liveActivity/liveActivitySync.ts'] | atLanes=['L2']
+S1P7-C3-5-LIVEACTIVITY-START-LANDED | file=apps/rn/src/liveActivity/liveActivitySync.test.ts | run=test:app cmd=None | expect='C3-5 — a refused start is RETRIED as a start, never followed by updates to an activity that does not exist' | sha=1cb8c0b7 measured=2026-09-13 | at=['apps/rn/src/liveActivity/liveActivitySync.ts'] | atLanes=['L2']
+S1P7-C3-6-LIVEACTIVITY-END-LANDED | file=apps/rn/src/liveActivity/liveActivitySync.test.ts | run=test:app cmd=None | expect='C3-6 — a refused end keeps the activity believed live, so the next commit ends it again' | sha=1cb8c0b7 measured=2026-09-13 | at=['apps/rn/src/liveActivity/liveActivitySync.ts'] | atLanes=['L2']
+S1P7-C3-1-SIRI-DEBTSJSON-UNREAD | file=apps/rn/src/widget/widgetSync.test.ts | run=test:app cmd=None | expect='C3-1 — Siri lists the unread debt as "balance not read", never "$0"' | sha=e0479262 measured=2026-09-13 | at=['apps/rn/src/widget/snapshot.ts'] | atLanes=['L2']
+S1P7-C3-2-SIRI-PREMIUM-UPSELL | file=apps/rn/src/widget/widgetSync.test.ts | run=test:app cmd=None | expect='D3-2 — Siri says what could not be read rather than naming money free over an obligation nobody read' | sha=e0479262 measured=2026-09-13 | at=['apps/rn/src/widget/snapshot.ts'] | atLanes=['L2']
+S1P7-D2-12-SIRI-NO-PLAN-UPSELL | file=apps/rn/src/widget/widgetSync.test.ts | run=test:app cmd=None | expect='C3-2 — a PREMIUM user with no plan yet is told to set one up, not to buy what they own' | sha=e0479262 measured=2026-09-13 | at=['apps/rn/src/widget/snapshot.ts'] | atLanes=['L2']
+S1P7-B1-1-SAVEFORIT-PACE-KEPT | file=apps/rn/src/store/affordability.test.ts | run=test:app cmd=None | expect='B1-1 — one debt, nothing held: "Save fast" promises' | sha=ecc1e661 measured=2026-09-13 | at=['apps/rn/src/store/guardianSelectors.ts'] | atLanes=['L1']
+S1P7-C3-14-GOALS-HERO-COUNT | file=apps/rn/src/components/plan/dataRepairsCopy.test.ts | run=test:app cmd=None | expect='C3-14 — two unread targets are "2 targets", never "one"' | sha=627b8ba5 measured=2026-09-13 | at=['apps/rn/src/components/plan/dataRepairsCopy.ts'] | atLanes=['L1']
+S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK | file=apps/rn/src/widget/widgetSync.test.ts | run=test:app cmd=None | expect='C3-2 — an empty read for a PREMIUM snapshot is answered in SPOKEN_READ_FAILED' | sha=e36878f2 measured=2026-09-13 | at=['apps/rn/plugins/app-intents-swift/SiriQueryIntents.swift'] | atLanes=['L2']
+S1P7-57-2A-PROJECTED-STALENESS | file=scripts/test-gate-plants.ts | run=test:gate-plants cmd=None | expect='lint:finding-guards [projected]' | sha=497065f2 measured=2026-09-14 | at=['scripts/check-finding-guards.ts'] | atLanes=['L4']
+S1P7-57-2B-CLAIM-LATTICE | file=apps/rn/src/store/trustSelectors.test.ts | run=test:app cmd=None | expect='the claim containment lattice is the one measured at .5.7' | sha=abc4477b measured=2026-09-14 | at=['apps/rn/src/store/trustSelectors.ts'] | atLanes=['L1']
+S1P7-57-2C-LOST-FIELD-NAMED | file=apps/rn/src/store/trustSelectors.test.ts | run=test:app cmd=None | expect='is no longer recorded under a sentence' | sha=78bcb481 measured=2026-09-14 | at=['apps/rn/src/data/migrations.ts'] | atLanes=['-']
+S1P7-57-2D-DEBT-SPREAD-LEDGER | file=scripts/test-gate-plants.ts | run=test:gate-plants cmd=None | expect='lint:trust-claims [debt-spread]' | sha=abc4477b measured=2026-09-14 | at=['scripts/check-trust-claims.ts'] | atLanes=['L4']
+S1P7-57-2B-VACUOUS-CONJUNCT | file=scripts/test-gate-plants.ts | run=test:gate-plants cmd=None | expect='lint:trust-claims [vacuous-conjunct]' | sha=abc4477b measured=2026-09-14 | at=['scripts/check-trust-claims.ts'] | atLanes=['L4']
+S1P7-57-3-FREE-C3-8-TWIN | file=apps/rn/tests/e2e/data-recovery.spec.ts | run=None cmd=['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'data-recovery.spec.ts', '-g', 'C3-8 · a FREE user'] | expect='C3-8 · a FREE user' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/app/(tabs)/money.tsx'] | atLanes=['L3']
+S1P7-57-3-WIDGET-DIRECTION | file=apps/rn/src/widget/widgetSync.test.ts | run=test:app cmd=None | expect='a repair no projection reads does not blank the widget' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/widget/snapshot.ts'] | atLanes=['L2']
+S1P7-57-3-AFFORDABILITY-REFUSAL | file=apps/rn/tests/e2e/affordability.spec.ts | run=None cmd=['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'affordability.spec.ts', '-g', 'the card refuses its verdict'] | expect='the card refuses its verdict over a goal target it could not read' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/components/plan/AffordabilityCard.tsx'] | atLanes=['L3']
+S1P7-57-3-WINDFALL-REFUSAL | file=apps/rn/tests/e2e/windfall.spec.ts | run=None cmd=['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'windfall.spec.ts', '-g', 'the sheet refuses to route'] | expect='the sheet refuses to route over a goal target it could not read' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/components/plan/WindfallSheet.tsx'] | atLanes=['L3']
+S1P7-57-4A2-REPLAY-ONCE | file=apps/rn/src/appIntents/pendingActions.test.ts | run=test:app cmd=None | expect='a log-payment that outlives its drain is not applied again after a second drain' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/store/store.ts'] | atLanes=['L2']
+S1P7-57-4A2-CARRY-REPLACEMENTS | file=apps/rn/src/appIntents/pendingActions.test.ts | run=test:app cmd=None | expect='a log-payment that outlives its drain is not applied again after restoring a backup' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/store/store.ts'] | atLanes=['L2']
+S1P6-C3-6-DATED-TAP | file=apps/rn/src/appIntents/pendingActions.test.ts | run=test:app cmd=None | expect='drained after the next payday arrived, still roll once' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/store/store.ts'] | atLanes=['L2']
+S1P6-C3-6-HANDLED-NO-REFUSAL | file=apps/rn/src/appIntents/pendingActions.test.ts | run=test:app cmd=None | expect='after an in-app capture or skip, a Lock Screen tap rolls' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/store/store.ts'] | atLanes=['L2']
+S1P6-C3-6-BUTTON-NAMES-PAYDAY | file=apps/rn/src/appIntents/siriClaims.test.ts | run=test:app cmd=None | expect='the Lock Screen button passes the payday its activity was started for' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/targets/widget/PaydayLiveActivity.swift'] | atLanes=['L2']
+S1P7-B1-2-OFFER-ASKS-ENGINE | file=apps/rn/src/store/expenseReserve.test.ts | run=test:app cmd=None | expect='pay 550 with 50 already held: accepting the offer holds exactly the total it promised' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/store/expenseReserveSelectors.ts'] | atLanes=['L1']
+S1P7-57-4B-RUNWAY-HELD | file=apps/rn/tests/e2e/cushion-forecast.spec.ts | run=None cmd=['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'cushion-forecast.spec.ts', '-g', 'the runway says it is setting aside'] | expect='I’m setting aside $1,100 from this paycheck' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/app/cushion-forecast.tsx'] | atLanes=['L3']
+S1P7-57-4B-CONFIRM-FUNDED | file=apps/rn/tests/e2e/saveforit-pace.spec.ts | run=None cmd=['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'saveforit-pace.spec.ts', '-g', 'a capped custom pace is confirmed'] | expect='Now saving $999,999/paycheck' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/components/plan/SaveForItSheet.tsx'] | atLanes=['L3']
+S1P7-57-5-HERO-FIT-WEB | file=apps/rn/tests/e2e/hero-date-fit.spec.ts | run=None cmd=['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'hero-date-fit.spec.ts', '-g', 'fits its box at 320pt'] | expect='is clipped vertically at 320pt' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/app/(tabs)/progress.tsx'] | atLanes=['L3']
+S1P7-57-5-HERO-ALL-MONTHS | file=apps/rn/tests/e2e/hero-date-fit.spec.ts | run=None cmd=['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'hero-date-fit.spec.ts', '-g', 'fits its box at 320pt'] | expect='"September" is' | sha=497065f2 measured=2026-09-14 | at=['apps/rn/src/app/(tabs)/progress.tsx'] | atLanes=['L3']
+
+== REMOVED
+
+== CHANGED (fields)
+S1P4-C4-3-BOTHDIRECTIONS ['proof'] ['sha', 'measured']
+S1P4-C4-4-POPULATION ['proof'] ['sha', 'measured']
+S1P4-C4-5-ARITY ['proof'] ['sha', 'measured']
+S1P4-C4-2-MEMBERSHIP ['proof'] ['sha', 'measured']
+S1P4-C4-7-SURFACES ['proof'] ['sha', 'unfix', 'measured']
+S1P3-C1-ROWFIGURES ['proof'] ['sha', 'measured']
+S1P3-C5-PAYWALL ['proof'] ['sha', 'measured']
+S1P3-D3-1-WIDGET ['proof'] ['sha', 'unfix', 'measured']
+S1P3-D3-2-SPOKEN ['proof'] ['sha', 'unfix', 'measured']
+S1P3-D3-CAPS ['proof'] ['sha', 'measured']
+S1P3-G1-CALIBRATION ['proof'] ['sha', 'measured']
+S1P3-G2-RESERVETARGET ['proof'] ['sha', 'measured']
+S1P3-G3-GUARDIANREGIME ['proof'] ['sha', 'measured']
+S1P3-G4-PLANROUTE ['proof'] ['sha', 'unfix', 'measured']
+S1P3-G5-SAVINGSPOOL ['proof'] ['sha', 'measured']
+S1P3-G-LIVENESSLEDGER ['proof'] ['sha', 'measured']
+S1P3-D3-7 ['proof'] ['sha', 'measured']
+S1P4-F-B4-CLASS ['proof'] ['sha', 'measured']
+S1P4-ACK-DOES-NOT-VERIFY ['proof'] ['sha', 'measured']
+S1P5-D5-7-EXPECTREQUIRED ['proof'] ['sha', 'measured']
+S1P5-D5-13-DERIVEDPOP ['proof'] ['sha', 'measured']
+S1P5-B5-7-ANSWERABLEID ['proof'] ['sha', 'unfix', 'measured']
+S1P5-D5-9-CAPWRAP ['proof'] ['sha', 'measured']
+S1P5-C5-2-WIDGETPARITY ['proof'] ['sha', 'measured']
+S1P5-C5-3-SHEETBALANCE ['proof'] ['sha', 'unfix', 'measured']
+S1P6-D1-8-GATECHAIN ['proof'] ['sha', 'measured']
+S1P6-D2-1-PROOFSTALE ['proof'] ['sha', 'measured']
+S1P6-C2-3-CONVERTFIELDS-E2E ['proof'] ['sha', 'measured']
+S1P6-B1-1-UNREADSTILLLIVE ['proof'] ['sha']
+S1P6-C1-18-RENDERERVALUE ['proof'] ['sha', 'measured']
+S1P6-A1-7-TODAYBARRIER ['proof'] ['sha', 'measured']
+S1P6-A1-3-CENTSARITY ['proof'] ['sha', 'measured']
+S1P6-A3-14-HYSTERESIS ['proof'] ['sha', 'measured']
+S1P6-C1-15-NAMES-THE-MOVED-CASH ['proof'] ['sha', 'measured']
+S1P6-A3-3-UPDATE-BY-ID ['proof'] ['sha', 'measured']
+S1P6-B1-4-LEDGER-NOT-BAN ['proof'] ['sha', 'measured']
+S1P7-U7-VERDICT-MARK ['proof'] ['sha', 'measured']
+S1P7-U4-CONTRAST-COMMENTS ['proof'] ['sha', 'measured']
+S1P7-U11-WELDED-TOKEN ['proof'] ['sha', 'measured']
+S1-CLASS4-A2-1 ['proof'] ['sha', 'measured']
+S1-CLASS4-A3-1 ['proof'] ['sha', 'measured']
+S1-CLASS4-A3-2 ['proof'] ['sha', 'measured']
+S1-CLASS4-F7-HEADSUP ['proof'] ['sha', 'measured']
+S1-CLASS4-R2-1-CAP ['proof'] ['sha', 'measured']
+S1P7-R3-3-BORROW ['proof'] ['sha', 'measured']
+S1P7-R3-2-HEADSUPTOTAL ['proof'] ['sha', 'measured']
+
+== pin entries whose unfix.at is in the lane manifest (any lane)
+S1P4-C4-3-BOTHDIRECTIONS [('scripts/check-trust-claims.ts', 'L4')] run= lint:trust-claims cmd= None
+S1P4-C4-4-POPULATION [('scripts/check-trust-claims.ts', 'L4')] run= lint:trust-claims cmd= None
+S1P4-C4-5-ARITY [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= test:app cmd= None
+S1P4-C4-2-MEMBERSHIP [('apps/rn/src/store/trustSelectors.ts', 'L1')] run= test:app cmd= None
+S1P4-C4-7-SURFACES [('apps/rn/src/app/(tabs)/index.tsx', 'L3')] run= test:app cmd= None
+S1P3-C1-ROWFIGURES [('apps/rn/src/store/trustSelectors.ts', 'L1')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'trust-claims.spec.ts', '-g', 'C-1']
+S1P3-C5-PAYWALL [('apps/rn/src/store/paywallLead.ts', 'L1')] run= test:app cmd= None
+S1P3-D3-1-WIDGET [('apps/rn/src/widget/snapshot.ts', 'L2')] run= test:app cmd= None
+S1P3-D3-2-SPOKEN [('apps/rn/src/liveActivity/paydayActivityContent.ts', 'L2')] run= test:app cmd= None
+S1P3-D3-CAPS [('scripts/check-trust-claims.ts', 'L4')] run= lint:cap-literals cmd= None
+S1P3-G1-CALIBRATION [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= test:app cmd= None
+S1P3-G2-RESERVETARGET [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= test:app cmd= None
+S1P3-G3-GUARDIANREGIME [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= test:app cmd= None
+S1P3-G4-PLANROUTE [('apps/rn/src/store/trustSelectors.ts', 'L1')] run= test:app cmd= None
+S1P3-G5-SAVINGSPOOL [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= test:app cmd= None
+S1P3-G-LIVENESSLEDGER [('scripts/check-trust-claims.ts', 'L4')] run= lint:cap-literals cmd= None
+S1P3-D3-5 [('apps/rn/src/app/(tabs)/progress.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'on-plan-streak.spec.ts']
+S1P3-D3-7 [('apps/rn/src/widget/snapshot.ts', 'L2')] run= test:app cmd= None
+S1P4-F-B4-CLASS [('apps/rn/src/store/trustSelectors.ts', 'L1')] run= test:app cmd= None
+S1P4-C4-9-MIXED [('apps/rn/src/app/(tabs)/progress.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'progress-hero-journey.spec.ts', '-g', 'C4-9']
+S1P4-ACK-DOES-NOT-VERIFY [('apps/rn/src/store/trustSelectors.ts', 'L1')] run= test:app cmd= None
+S1P5-D5-7-EXPECTREQUIRED [('scripts/test-gate-plants.ts', 'L4')] run= typecheck:scripts cmd= None
+S1P5-D5-13-DERIVEDPOP [('scripts/check-trust-claims.ts', 'L4')] run= lint:trust-claims cmd= None
+S1P5-B5-7-ANSWERABLEID [('apps/rn/src/store/trustSelectors.ts', 'L1')] run= test:app cmd= None
+S1P5-D5-9-CAPWRAP [('scripts/check-cap-literals.ts', 'L4'), ('scripts/check-finding-guards.ts', 'L4')] run= lint:cap-literals cmd= None
+S1P5-C5-2-WIDGETPARITY [('apps/rn/src/widget/snapshot.ts', 'L2')] run= test:app cmd= None
+S1P5-C5-3-SHEETBALANCE [('apps/rn/src/store/logPaymentCopy.ts', 'L1')] run= test:app cmd= None
+S1P6-D1-8-GATECHAIN [('scripts/run-gates.ts', 'L4')] run= lint:runner-completeness cmd= None
+S1P6-D2-1-PROOFSTALE [('scripts/check-finding-guards.ts', 'L4')] run= lint:finding-guards cmd= None
+S1P6-C2-3-CONVERTFIELDS-E2E [('apps/rn/src/app/(tabs)/money.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'misfiled-expense.spec.ts', '-g', 'C2-3']
+S1P6-B1-1-UNREADSTILLLIVE [('apps/rn/src/store/payoffCelebration.ts', 'L1')] run= test:app cmd= None
+S1P6-C1-18-RENDERERVALUE [('apps/rn/src/components/plan/PaydayGuardianCard.tsx', 'L3')] run= lint:import-graph cmd= None
+S1P6-A1-7-TODAYBARRIER [('apps/rn/src/components/plan/PaydayGuardianCard.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'celebration.spec.ts']
+S1P6-A1-3-CENTSARITY [('apps/rn/src/components/plan/PlanHero.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'plan-hero-conserves.spec.ts']
+S1P6-A3-14-HYSTERESIS [('packages/core/guardian/buildGuardianBrief.ts', 'L1')] run= test:regression cmd= None
+S1P6-C1-15-NAMES-THE-MOVED-CASH [('apps/rn/src/components/plan/CashRunwayChart.tsx', 'L3')] run= test:app cmd= None
+S1P6-A3-3-UPDATE-BY-ID [('apps/rn/src/store/store.ts', 'L2')] run= test:app cmd= None
+S1P6-B1-4-LEDGER-NOT-BAN [('apps/rn/src/store/trustSelectors.ts', 'L1')] run= test:app cmd= None
+S1P7-U7-VERDICT-MARK [('scripts/check-finding-guards.ts', 'L4')] run= lint:finding-guards cmd= None
+S1P7-U4-CONTRAST-COMMENTS [('apps/rn/src/components/plan/PaydayGuardianCard.tsx', 'L3')] run= lint:contrast cmd= None
+S1P7-U11-WELDED-TOKEN [('apps/rn/src/store/trustSelectors.test.ts', 'L1'), ('scripts/check-finding-guards.ts', 'L4')] run= lint:finding-guards cmd= None
+S1-CLASS4-A2-1 [('apps/rn/src/store/selectors.ts', 'L1')] run= test:app cmd= None
+S1-CLASS4-A3-1 [('apps/rn/src/store/selectors.ts', 'L1')] run= test:app cmd= None
+S1-CLASS4-A3-2 [('apps/rn/src/store/selectors.ts', 'L1')] run= test:app cmd= None
+S1-CLASS4-F7-HEADSUP [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= None cmd= ['npx', 'tsx', '--tsconfig', 'apps/rn/tsconfig.json', 'apps/rn/src/store/inWindowReaders.test.ts']
+S1-CLASS4-R2-1-CAP [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= None cmd= ['npx', 'tsx', '--tsconfig', 'apps/rn/tsconfig.json', 'apps/rn/src/store/inWindowReaders.test.ts']
+S1P7-R3-3-BORROW [('scripts/check-finding-guards.ts', 'L4')] run= test:gate-plants cmd= None
+S1P7-R3-2-HEADSUPTOTAL [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= None cmd= ['npx', 'tsx', '--tsconfig', 'apps/rn/tsconfig.json', 'apps/rn/src/store/inWindowReaders.test.ts']
+S1P7-R3-4-FREEDPERMONTH [('apps/rn/src/store/payoffCelebration.ts', 'L1')] run= test:app cmd= None
+S1P7-R4-1-ONETIMELUMP [('apps/rn/src/store/payoffCelebration.ts', 'L1')] run= test:app cmd= None
+S1P7-C3-5-LIVEACTIVITY-UPDATE-LANDED [('apps/rn/src/liveActivity/liveActivitySync.ts', 'L2')] run= test:app cmd= None
+S1P7-C3-5-LIVEACTIVITY-START-LANDED [('apps/rn/src/liveActivity/liveActivitySync.ts', 'L2')] run= test:app cmd= None
+S1P7-C3-6-LIVEACTIVITY-END-LANDED [('apps/rn/src/liveActivity/liveActivitySync.ts', 'L2')] run= test:app cmd= None
+S1P7-C3-1-SIRI-DEBTSJSON-UNREAD [('apps/rn/src/widget/snapshot.ts', 'L2')] run= test:app cmd= None
+S1P7-C3-2-SIRI-PREMIUM-UPSELL [('apps/rn/src/widget/snapshot.ts', 'L2')] run= test:app cmd= None
+S1P7-D2-12-SIRI-NO-PLAN-UPSELL [('apps/rn/src/widget/snapshot.ts', 'L2')] run= test:app cmd= None
+S1P7-B1-1-SAVEFORIT-PACE-KEPT [('apps/rn/src/store/guardianSelectors.ts', 'L1')] run= test:app cmd= None
+S1P7-C3-14-GOALS-HERO-COUNT [('apps/rn/src/components/plan/dataRepairsCopy.ts', 'L1')] run= test:app cmd= None
+S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK [('apps/rn/plugins/app-intents-swift/SiriQueryIntents.swift', 'L2')] run= test:app cmd= None
+S1P7-57-2A-PROJECTED-STALENESS [('scripts/check-finding-guards.ts', 'L4')] run= test:gate-plants cmd= None
+S1P7-57-2B-CLAIM-LATTICE [('apps/rn/src/store/trustSelectors.ts', 'L1')] run= test:app cmd= None
+S1P7-57-2D-DEBT-SPREAD-LEDGER [('scripts/check-trust-claims.ts', 'L4')] run= test:gate-plants cmd= None
+S1P7-57-2B-VACUOUS-CONJUNCT [('scripts/check-trust-claims.ts', 'L4')] run= test:gate-plants cmd= None
+S1P7-57-3-FREE-C3-8-TWIN [('apps/rn/src/app/(tabs)/money.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'data-recovery.spec.ts', '-g', 'C3-8 · a FREE user']
+S1P7-57-3-WIDGET-DIRECTION [('apps/rn/src/widget/snapshot.ts', 'L2')] run= test:app cmd= None
+S1P7-57-3-AFFORDABILITY-REFUSAL [('apps/rn/src/components/plan/AffordabilityCard.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'affordability.spec.ts', '-g', 'the card refuses its verdict']
+S1P7-57-3-WINDFALL-REFUSAL [('apps/rn/src/components/plan/WindfallSheet.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'windfall.spec.ts', '-g', 'the sheet refuses to route']
+S1P7-57-4A2-REPLAY-ONCE [('apps/rn/src/store/store.ts', 'L2')] run= test:app cmd= None
+S1P7-57-4A2-CARRY-REPLACEMENTS [('apps/rn/src/store/store.ts', 'L2')] run= test:app cmd= None
+S1P6-C3-6-DATED-TAP [('apps/rn/src/store/store.ts', 'L2')] run= test:app cmd= None
+S1P6-C3-6-HANDLED-NO-REFUSAL [('apps/rn/src/store/store.ts', 'L2')] run= test:app cmd= None
+S1P6-C3-6-BUTTON-NAMES-PAYDAY [('apps/rn/targets/widget/PaydayLiveActivity.swift', 'L2')] run= test:app cmd= None
+S1P7-B1-2-OFFER-ASKS-ENGINE [('apps/rn/src/store/expenseReserveSelectors.ts', 'L1')] run= test:app cmd= None
+S1P7-57-4B-RUNWAY-HELD [('apps/rn/src/app/cushion-forecast.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'cushion-forecast.spec.ts', '-g', 'the runway says it is setting aside']
+S1P7-57-4B-CONFIRM-FUNDED [('apps/rn/src/components/plan/SaveForItSheet.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'saveforit-pace.spec.ts', '-g', 'a capped custom pace is confirmed']
+S1P7-57-5-HERO-FIT-WEB [('apps/rn/src/app/(tabs)/progress.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'hero-date-fit.spec.ts', '-g', 'fits its box at 320pt']
+S1P7-57-5-HERO-ALL-MONTHS [('apps/rn/src/app/(tabs)/progress.tsx', 'L3')] run= None cmd= ['npx', 'playwright', 'test', '--config', 'apps/rn/playwright.config.ts', 'hero-date-fit.spec.ts', '-g', 'fits its box at 320pt']

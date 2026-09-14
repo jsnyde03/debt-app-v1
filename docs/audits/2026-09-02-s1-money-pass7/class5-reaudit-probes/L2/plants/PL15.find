@@ -1,0 +1,5 @@
+      if (!bridge.areActivitiesEnabled()) {
+        running = false;
+        lastKey = null;
+        return;
+      }

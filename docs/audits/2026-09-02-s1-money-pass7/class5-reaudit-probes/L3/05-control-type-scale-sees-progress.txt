@@ -1,0 +1,17 @@
+anchor b'  maxFontSizeMultiplier: 1.3,' count=1
+anchor b'heroDate: { fontSize: 26,' count=1
+plant applied: True
+
+> debt-app-v1@1.6.0 lint:type-scale
+> tsx scripts/check-type-scale.ts
+
+
+check-type-scale: 1 large figure(s) with no font-scale cap
+
+  ✗ apps/rn/src/app/(tabs)/progress.tsx:103 renders `heroDate` (≥30pt) with no `maxFontSizeMultiplier` — at the largest accessibility size it reflows and pushes its neighbours off screen
+
+Add `maxFontSizeMultiplier` (1.3 is the house value for a figure, 1.4 for a label).
+
+
+planted-run exit=1
+RESTORE cmp identical=True

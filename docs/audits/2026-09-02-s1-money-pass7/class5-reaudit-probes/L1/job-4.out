@@ -1,0 +1,41 @@
+== 13:50:02 CONTROL REGRESSION
+  ✓ a grouped number is the amount, not a refusal (expected 1200, got 1200)
+  ✓ the currency symbol is stripped (expected 1200, got 1200)
+EXIT 0
+RESTORED byte-identical: True
+== 13:50:24 PLANT c11brief -> REGRESSION
+  ✓ grouping commas are stripped wherever they fall (expected 1234, got 1234)
+  ✓ a grouped number is the amount, not a refusal (expected 1200, got 1200)
+  ✓ the currency symbol is stripped (expected 1200, got 1200)
+PLANT LANDED in packages/core/guardian/buildGuardianBrief.ts
+EXIT 0
+RESTORED byte-identical: True
+== 13:52:23 S1P3-G1-CALIBRATION attempt 1 rc=0 ::   ✅ S1P3-G1-CALIBRATION        plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 13:54:12 S1P3-G2-RESERVETARGET attempt 1 rc=0 ::   ✅ S1P3-G2-RESERVETARGET      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 13:56:02 S1P3-G3-GUARDIANREGIME attempt 1 rc=0 ::   ✅ S1P3-G3-GUARDIANREGIME     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 13:57:47 S1P3-G4-PLANROUTE attempt 1 rc=0 ::   ✅ S1P3-G4-PLANROUTE          plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 13:59:25 S1P3-G5-SAVINGSPOOL attempt 1 rc=0 ::   ✅ S1P3-G5-SAVINGSPOOL        plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:02:33 S1P4-F-B4-CLASS waited 180s for :4319
+== 14:04:33 S1P4-F-B4-CLASS attempt 1 rc=0 ::   ✅ S1P4-F-B4-CLASS            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:06:06 S1P4-ACK-DOES-NOT-VERIFY waited 90s for :4319
+== 14:07:45 S1P4-ACK-DOES-NOT-VERIFY attempt 1 rc=0 ::   ✅ S1P4-ACK-DOES-NOT-VERIFY   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:14:23 S1P5-B5-7-ANSWERABLEID waited 390s for :4319
+== 14:16:10 S1P5-B5-7-ANSWERABLEID attempt 1 rc=0 ::   ✅ S1P5-B5-7-ANSWERABLEID     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:22:17 S1P5-C5-3-SHEETBALANCE waited 360s for :4319
+== 14:24:25 S1P5-C5-3-SHEETBALANCE attempt 1 rc=0 ::   ✅ S1P5-C5-3-SHEETBALANCE     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:24:56 S1P6-B1-1-UNREADSTILLLIVE waited 30s for :4319
+== 14:26:46 S1P6-B1-1-UNREADSTILLLIVE attempt 1 rc=0 ::   ✅ S1P6-B1-1-UNREADSTILLLIVE  plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:27:01 S1P6-A3-14-HYSTERESIS attempt 1 rc=0 ::   ✅ S1P6-A3-14-HYSTERESIS      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:29:02 S1P6-B1-4-LEDGER-NOT-BAN attempt 1 rc=0 ::   ✅ S1P6-B1-4-LEDGER-NOT-BAN   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:32:29 S1P7-U11-WELDED-TOKEN attempt 1 rc=0 ::   ✅ S1P7-U11-WELDED-TOKEN      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:33:58 S1-CLASS4-A2-1 attempt 1 rc=0 ::   ✅ S1-CLASS4-A2-1             plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:35:13 S1-CLASS4-A3-1 attempt 1 rc=0 ::   ✅ S1-CLASS4-A3-1             plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:36:56 S1-CLASS4-A3-2 attempt 1 rc=0 ::   ✅ S1-CLASS4-A3-2             plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:40:28 S1-CLASS4-F7-HEADSUP waited 210s for :4319
+== 14:40:38 S1-CLASS4-F7-HEADSUP attempt 1 rc=0 ::   ✅ S1-CLASS4-F7-HEADSUP       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:40:47 S1-CLASS4-R2-1-CAP attempt 1 rc=0 ::   ✅ S1-CLASS4-R2-1-CAP         plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:40:57 S1P7-R3-2-HEADSUPTOTAL attempt 1 rc=0 ::   ✅ S1P7-R3-2-HEADSUPTOTAL     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:42:26 S1P7-R3-4-FREEDPERMONTH attempt 1 rc=0 ::   ✅ S1P7-R3-4-FREEDPERMONTH    plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+== 14:43:51 S1P7-R4-1-ONETIMELUMP attempt 1 rc=0 ::   ✅ S1P7-R4-1-ONETIMELUMP      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+tree after:
+== 14:43:51 JOB4 DONE

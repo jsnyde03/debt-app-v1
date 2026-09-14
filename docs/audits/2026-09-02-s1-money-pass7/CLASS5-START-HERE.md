@@ -1,12 +1,12 @@
-# ▶ START HERE, COLD — class 5, `.12.6.5.8`: the `[D79]` re-audit
+# ▶ START HERE, COLD — class 5, `.12.6.5.8.4`: round 2's fixes
 
-**Rewritten 2026-09-14 at the close of `.5.7`.** The active build is **`.12.6.5.8`**, the row marked ▶ in
-[`DEBT_ELEVATION_PLAN.md`](../../DEBT_ELEVATION_PLAN.md). Its numbered sub-steps (8.1–8.5) are the sequence. Detail for
-everything class 5 built lives in `DEBT_ELEVATION_LOG.md`, searchable by `.12.6.5`.
+**Rewritten 2026-09-14 at the close of `.5.8.3`.** Class 5's first `[D79]` re-audit ran and was recorded: **24 findings, 17
+attributable to class 5's fixes, so the class does not exit.** The active build is **`.12.6.5.8.4`**, decomposed on
+[`DEBT_ELEVATION_PLAN.md`](../../DEBT_ELEVATION_PLAN.md) as **8.4.1–8.4.8**.
 
-⛔ **🎯 2026-09-14: this re-audit is dispatched from a FRESH SESSION, and the audit itself is run by FRESH AGENTS.** The
-session that built class 5 wrote this handoff and stopped. Do not reuse its conclusions as the brief's verdicts: hand the
-auditors the fix range, the findings and the attack points, never an answer.
+⛔ **🎯 2026-09-14: 8.4 is built in a FRESH session, and round 2 (`.5.8.5`) is briefed and dispatched from ANOTHER one.** The
+session that dispatched and recorded round 1 wrote this and stopped. Whoever builds 8.4 is the fixer, and must not write
+round 2's brief.
 
 ## ⛔ Verify the state. Do not take a row of it on trust.
 
@@ -17,64 +17,66 @@ git log --oneline -3 ; git rev-list --count origin/v1.7-dev..HEAD     # expect 0
 gh run list --branch v1.7-dev --workflow web-e2e.yml --limit 2 --json headSha,status,conclusion
 npm --prefix /c/Users/Jason/debt-app-v1 run lint:rn -- --fast
 npm --prefix /c/Users/Jason/debt-app-v1 run lint:finding-guards
+git worktree list                                      # expect the main checkout ONLY
 ```
 
-⚠️ **No SHA of this handoff's own commit is quoted, on purpose** — a document cannot name the commit it ships in, and a
-pasted hash goes stale the moment it is written. `86a1901c` is `.5.7`'s last CODE commit; the docs commit carrying this
-file sits on top of it. Ask `git log`.
+Expected: clean and pushed · CI `conclusion: success` on HEAD *(read the field)* · fast gates all green · finding-guards
+**stale 2 (cap 8)** and **authored 9 (cap 9)**. ⚠️ No SHA of this handoff's own commit is quoted, on purpose. Code is
+unchanged since `ea3f5e0e`, the round-1 pin.
 
-Expected: tree clean and pushed · CI `conclusion: success` on HEAD · fast gates all green · finding-guards green with
-**stale 2 (cap 8)** — `S1-ROUTE-STALE-READ` and `S1-ROUTE-EXIT-REACHABLE`, both held for pass 8 — and **authored 9 (cap 9)**.
-⛔ **Read CI's `conclusion` field**, never a watcher's exit code.
+## Read, in this order
 
-## What `.5.7` closed, in one screen
+1. **[`CLASS5-REAUDIT-ROUND1.md`](CLASS5-REAUDIT-ROUND1.md)** — all 24 findings, where each routes, 🎯's two decisions, the fix order.
+2. **The lane report for each finding you pick up** — [`L1`](CLASS5-REAUDIT-L1.md) · [`L2`](CLASS5-REAUDIT-L2.md) ·
+   [`L3`](CLASS5-REAUDIT-L3.md) · [`L4`](CLASS5-REAUDIT-L4.md). The consequence, `file:line`, the measurement, the
+   base comparison and a **re-runnable probe** (`class5-reaudit-probes/L<n>/`) live there, not in the record.
 
-- **④a** a queued Siri payment or payday tap that outlives its drain applies once — through a second drain, Undo, restore
-  and reset (`store/appliedIntents.ts`, carried by the store's set wrapper).
-- **④a** ⛔ **pass-6 `C3-6` was reopened** — its closed guard could never fire — and closed: a Lock Screen tap names the
-  payday it was drawn for; `lastHandledPaydayDate` no longer refuses the roll *(🎯)*.
-- **④b** three surfaces promising money the engine would not hold now ask the engine: the reserve offer (**pass-7 `B1-2`,
-  a blocker, pulled forward from class 6**), the Cash Runway hold line, the save-for-it confirmation.
-- **⑤** `hero-date-fit`'s host-dependent red was a real clip on web; the date now sizes to its slot regardless of font.
-- **⑦** one registration batch of 14 proofs and one drain: **26 of 26 MATCHED**.
+## The 19, in order — one file group at a time
 
-## What the `.5.8` brief must carry
+| step | ids | report | the shape |
+|---|---|---|---|
+| **8.4.1** | `L3-1a` **blocker** · `L3-1b` · `L3-4` | L3 | PlanHero draws the suggestion over its refusal; the split and the date ask one claim for two routes |
+| **8.4.2** | `L3-5a` · `L3-5b` · `L3-2` · `L3-6` | L3 | Progress: cash-flow bars ask no claim and print an unread line; free-tier over-refusal; `C3-9`'s gag unasserted |
+| **8.4.3** | `L1-1` · `L1-3` · `L1-4` · `L1-5` | L1 | a plan repair at `$0` cannot be answered; band vs sentence on a `$0` line; two unguarded closure halves |
+| **8.4.4** | `L1-R1` · `L1-2` | L1 | confirmed liveness vs the estimate's ranking — Money loses a debt; the reserve release names a skipped one |
+| **8.4.5** | `L2-1` · `L2-2` · `L2-3` | L2 | the dated tap after an in-window payday edit *(Swift)*; the 50-id cap; the dismissed-activity restart unpinned |
+| **8.4.6** | `F4` · `F6` | L4 | a proof whose red is not its token; two scans proven one direction each |
+| **8.4.7** | `F2` + every proof 8.4.1–.6 wrote | L4 | drain first, then register as ONE batch |
+| **8.4.8** | — | — | full `lint:rn` · typecheck · unit suites · **full e2e + embed** · push · CI `conclusion` |
 
-- **The fix range:** from **`c7df99c2`** (class 4 closed, class 5 promoted) to the pin. ⛔ **Corrected 2026-09-14 at
-  `.5.8.1`** — this line first said `72bd6619`, which is `.5.7` alone: 14 of the class's 76 commits and 25 of its 70 code
-  files. Derive the changed files by `git diff --stat c7df99c2..<pin>`, never from this list. → **the brief is
-  [`CLASS5-REAUDIT-BRIEF.md`](CLASS5-REAUDIT-BRIEF.md)**.
-- **The questions `[D79]` fixes:** is each class-5 finding actually closed · what did the fixes break · **interaction** with
-  already-closed classes (shared file, import or producer) · guards whose pinned files moved · closure by PLANTING, not by
-  `lint:finding-guards` (a deletion detector, not a proof).
-- **The exit:** zero new defects ATTRIBUTABLE to class 5's fixes. Reservoir defects are filed to their own class.
-- **Dispatch shape:** fresh lane agents, **no sub-agents**, each writing findings to disk as it goes.
+**Not yours — routed onward, do not fix here:** `L2-4` → class 6 · `F3` `F5` `F5b` `L3-13c` → class 9 · `F1` → backlog.
 
-## ⚠️ Open items carried out of `.5.7`
+## ⛔ Traps, most of them paid for in round 1
 
-- ✅ **CI's font for `hero-date-fit` — MEASURED, and it is NOT Roboto.** Run `34867948477` on `c9065152`: "September" =
-  **5.00 em** at 402 pt (Roboto 4.78 · Segoe UI 5.17 · Arial 5.77). The Roboto explanation of CI's old green is refuted and
-  the backlog row says so; the face is unidentified. The fix held on it — the run concluded `success`. Not a `.5.8` item.
-- **The Payday Countdown Live Activity almost never starts** — it counts from `currentDate`, which nothing moves with the
-  calendar. Measured, filed to the backlog, not fixed.
-- **Save-for-it's "ready by" date** needs a multi-cycle instrument → P6.10.
-- **`native-e2e` has not compiled `.5.7`'s Swift** (`PaydayLandedIntent` in both copies, `PaydayLiveActivity`). Manual
-  dispatch only; batch it with the next native change.
+- ⛔ **Every remedy in the lane reports is UNVERIFIED — measure it before building.** Pass 4 counted five remedies that
+  would have introduced the defect they described. Named hazards already: `L1-1`'s explicit answer must **not** fire from
+  `runMigrations`, hydrate or `importStore`, and the ack must still not clear it · `L2-2`'s second remedy alone does not fix
+  the growth shape · `L3-4` is two claims, not a wider one.
+- ⛔ **A closure is closed only when a plant of EXACTLY ITS REVERT reds.** `L3-6` survived because the date is gated twice:
+  the spec's one assertion was satisfied by the gate that was not the fix's subject. Plant the fix line, not a neighbour.
+- ⛔ **Iterate the surfaces, never add one.** `L3-5a`/`L3-5b` exist because Progress's cash-flow bars are not in
+  `trustSelectors.test.ts`' `SURFACES` — a typed list. `L3-4` exists because that test serialises two figure families as
+  one. Ask what would make the population derived.
+- ⛔ **The five kept "reproduces" findings are class 5's by 🎯's decision.** Their base comparison says the defect predates
+  the class; what is attributable is the closure that stopped short. Fix them as closures, with the class's own predicate.
+- ⚠️ **`authored` is 9 of cap 9.** Any new registry proof deadlocks until a drain. `.5.7 ⑦`'s order: prove new entries and
+  stale non-readers first, gate-check, then readers; a `MIN_ENTRIES` raise stales the six proofs that plant into
+  `check-finding-guards.ts`.
+- ⚠️ **`L2-1` touches Swift** (`PaydayLiveActivity.swift`, the activity's `ContentState`). Swift cannot compile here, and
+  `native-e2e` has not yet compiled `.5.7`'s Swift either: batch one manual `native-e2e` dispatch with 8.4.5.
+- ⚠️ **`:4319` is one port** for e2e and every `prove:guards` run — one at a time.
+- ⛔ **If you make a worktree, run the teardown check against a KNOWN junction first.** Round 1's driver gated
+  `git worktree remove` on a check that built `"$W\\$J"` inside a quoted heredoc: bash produced `…L1$J`, all twelve junctions
+  read `absent`, and four removes ran over live links into the main `node_modules`. Only git's refusal to descend them saved it.
+- **[D81]:** per fix `npm run lint:rn -- --fast`; full `lint:rn` at a sub-step's close or after a gate script changes.
+- **The Edit and Write tools decode a backslash-u escape.** **`cd` to an absolute path in every shell call.** **NEVER
+  `git add -A`.** ⛔ **Pass-6 and pass-7 ids COLLIDE** — a bare id means pass 7.
 
-## ⚠️ Traps this session paid for
+## What round 2's brief (`.5.8.5`) must carry — for the session that writes it
 
-- **The Edit and Write tools decode a backslash-u escape** in their input into the character it names. It wrote a raw ESC
-  into a committed log once. Describe such text in words; anchor edits on backslash-free lines.
-- **The shell's working directory drifts between calls.** A relative `--prefix apps/rn` and a relative Playwright config both
-  resolved to `apps\rn\apps\rn\…` and never ran. Use absolute paths; an exit code from a run that never started is not a verdict.
-- **`grep -l` matches CONTENTS, not names** — it reported a spec missing that `git ls-files` found. **`node -e` probes can print
-  nothing at all** — write probes to a file.
-- **[D81]:** per fix, `npm run lint:rn -- --fast` (static gates, self-tests skipped and named); full `lint:rn` at a sub-step's
-  close or after a gate script, `scripts/lib/` or the harness changed.
-- **The proof caps force an ORDER.** A `MIN_ENTRIES` raise stales the six proofs that plant into `check-finding-guards.ts`;
-  new entries push `authored` over its cap; readers cannot prove while the ledger is red. Prove new entries and stale
-  non-readers first, gate-check, then readers. `prove:guards` requires only each proof's own targets clean
-  (`prove-guards.ts:351`), so records accumulating in the registry do not block the next id.
-- **A usage count from grep includes comments.** eslint caught an import left unused that grep had counted as used.
-- ⛔ **Pass-6 and pass-7 finding ids COLLIDE.** `S1P7-C3-6-LIVEACTIVITY-END-LANDED` is not pass-6 `C3-6`.
-- **NEVER `git add -A`.** Stage explicit paths.
+- **Range:** from the commit that closes 8.4.8's boundary back to the round-1 pin `ea3f5e0e` — derived with `git diff --stat`.
+- **The attribution addition:** a finding that reproduces at the base must also answer *"is this a surface a class-5
+  closure claims?"* — round 1's rule alone would have filed `L3-1a`, a blocker, onward.
+- **Round 1's measured non-defects**, so they are not re-derived: listed per lane under *Measured non-defects*.
+- **The dispatch shape that worked:** 4 lanes by generated manifest, each in its own worktree, one lane on `:4319` —
+  ~1.5M tokens, ~3 h wall clock for the longest lane.
