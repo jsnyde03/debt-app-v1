@@ -34317,3 +34317,52 @@ changes; the hook stays mounted, so the mark should stay.
 ⭐ **Folded into the same dispatch** *(backlog row from `.5.4h`)*: `SiriQueryIntents.swift` decodes `isPremium`, so an empty
 `guardianSpoken` from an OLD snapshot cannot upsell a subscriber — spoken in `SPOKEN_READ_FAILED`'s exact words, pinned by
 a source check that reads the Swift file. **One `native-e2e` rebuild for all three.**
+
+### `.12.6.5.7.1` addendum — native-e2e `34789448550` (rebuild, `304bf1ac`): 9 of 10, and the one red was my assertion · 2026-09-13
+
+✅ **Build**: the Swift compiled with `SiriQueryIntents`' `isPremium` read. ✅ **`08-coach-marks` PASSES** *(1m 55s)* on the
+strategy-toggle control — the Avalanche reorder did not dismiss the mark, which was the unmeasured risk. ✅ Every other
+flow passes.
+
+⛔ **`03-row-context-menu` red at the step I added**: *id: form-sheet-submit is visible* — false. The screenshot at that step
+shows the sheet OPEN and right: *"Log a payment" · "Visa · $2,400 owed" · AMOUNT PAID · "Log payment"*. So the label fix and
+the tap worked. **The id is not on this sheet**: `LogPaymentSheet.tsx:79` renders its own `<Button label="Log payment" …
+disabled={!valid} />` with no testID, and `FormSheet` emits `form-sheet-submit` only for its own submit. ⚠️ **Two misses of
+mine in one step**: I chose the id from `FormSheet`'s source without checking this sheet uses it — and then wrote the
+failure up as an unmeasured iOS accessibility gap, with a backlog row, before one grep of the sheet showed otherwise.
+**Row withdrawn.** Both are flow 03's original defect over again: an assertion written from a belief about the screen.
+The flow now proves the sheet by its field label **"Amount paid"** — shown only when the sheet is open, and not menu text.
+
+### `.12.6.5.7.2a` — finding-guards projects staleness before the commit that causes it · 2026-09-13
+
+✅ **Built** *(backlog row from `.5.4g`)*. `check-finding-guards.ts` measured staleness as `git log <sha>..HEAD -- <target>` —
+COMMITTED history only — so a close could run it green with a gate-file edit uncommitted, commit, and have the next run
+refuse. `.5.4f` did exactly that: 52/52, then three red gates from one floor edit that staled five proofs. Every run now
+also PROJECTS: a proven entry not already stale whose target has an uncommitted change (`git status --porcelain
+--untracked-files=all`) is printed as *would go STALE if the working tree were committed*. `--projected` refuses when
+`stale + projected > cap`. ⚠️ Opt-in on purpose — an ordinary pre-commit `lint:rn` over a half-built tree would otherwise
+red on work about to be re-proved, `S5-DEADLOCK` one step removed.
+
+⚡ **Its first measurement was on its own tree, and it beat the hand projection:** *"6 more would go STALE if the working
+tree were committed — 11 against the cap of 8"* — the five proofs anchored in `check-finding-guards.ts` I had projected
+by hand, **plus `S1P5-D5-7-EXPECTREQUIRED`, anchored in `test-gate-plants.ts`, which I had not.** `--projected` on the real
+tree: exit 1, *"5 stale now and 6 more as if committed — 11 against the ceiling of 8"*.
+
+⛔ **The planted scenario's first cut redded for the WRONG reason** — `[projected]` targeted the harness's own scratch file,
+and `.gitignore:62` ignores `scripts/__gate_plant_*`, so `git status --porcelain` never lists it and the projection
+counted nothing. Diagnosed before touching the gate: a real edit is never an ignored file, so the GATE is right and the
+PLANT was wrong. It now appends to the tracked plant fixture through the harness's `edit` mechanism
+(`authoring-plant-target.md`, anchor matched exactly once) → **MATCHED**; `test:gate-plants` **28 of 28** fail closed
+(`MIN_SCENARIOS` 27 → 28); `typecheck:scripts` 0.
+
+⛔ **And the close walked into the deadlock this instrument exists to warn about.** The script used `--projected`'s LIST to
+choose which proofs to re-run, and proved them all in one pass. Just after the two commits the committed count was
+5 + 7 = **12 > 8**, so every proof whose `run` reads the stale ledger had a red control — the new
+`S1P7-57-2A-PROJECTED-STALENESS` (`test:gate-plants`) and `S1P7-R3-3-BORROW` both reported `control=exit 1`. **The chain
+stopped at `prove:guards`, before git** — the stop-on-failure rule from `.5.4h` doing its job. The six non-reader proofs
+recorded and drained the count to **7**; the two readers were then re-proven alone. ⭐ **Rule taken: prove in two passes —
+first the proofs whose run does not read the ledger, then the readers.** The instrument gave the number (11) before the
+commit; the script used the list and ignored what the number meant for the order. Both then **`reason=MATCHED`, control exit 0**; stale back to the pre-existing **5** (183 executed); `lint:rn` **all 52 gates pass**, `test:app` and `test:regression` pass. ⚠️ The resume stopped once more, at the records COMMIT: its message file was one the first script writes only after its own gates, which it never reached — a script resumed by hand does not inherit the files its unrun half would have made. Pushed `d0476008`.
+
+✅ **Registered:** `S1P7-57-2A-PROJECTED-STALENESS` (un-fix: the refusal disabled; `test:gate-plants` must print
+`lint:finding-guards [projected]`). `MIN_ENTRIES` 311 → 312.

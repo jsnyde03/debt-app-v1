@@ -54,15 +54,15 @@ appId: com.jasonsnyder.debtplanner
 # …and it actually opens the amount sheet. Presence in a menu is not proof the action is wired.
 # ⛔ [.5.7] The menu entry and the sheet's TITLE are now the same words (`LogPaymentSheet.tsx:64` titles it
 # `LOG_PAYMENT_ENTRY` too), so asserting the title after the tap would pass with the menu still open — the comment
-# here used to call them "distinct", which stopped being true on 2026-08-20. The sheet is proven by an element only an
-# OPEN sheet renders: `FormSheet`'s submit button.
+# here used to call them "distinct", which stopped being true on 2026-08-20. The sheet is proven by its field LABEL,
+# which only the open sheet renders and which is not menu text.
+# ⚠️ The first cut used `id: form-sheet-submit` and went red on native-e2e 34789448550 WITH THE SHEET OPEN: this sheet
+# renders its own "Log payment" button (`LogPaymentSheet.tsx:79`, no testID), not FormSheet's shared submit.
 - tapOn: "Log a payment"
-- assertVisible:
-    id: "form-sheet-submit"
+- assertVisible: "Amount paid"
 
 # Leave no sheet open: flow 04 opens the debt EDIT sheet next and a stacked presentation is exactly the
 # nesting bug that flow's whole history is about.
 - tapOn:
     id: "sheet-close"
-- assertNotVisible:
-    id: "form-sheet-submit"
+- assertNotVisible: "Amount paid"
