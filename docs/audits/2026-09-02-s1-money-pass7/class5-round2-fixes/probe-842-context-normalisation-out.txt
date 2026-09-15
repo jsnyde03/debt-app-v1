@@ -1,0 +1,5 @@
+{"seeded":{"payoffStrategy":"snowball","subscriptionPlan":"premium"},"stored":{"payoffStrategy":"snowball","subscriptionPlan":"premium"},"repairs":1,"mayClaim('paycheck-plan')":"true","rankDebtsFirst":"Visa","recommendedFirst":"Extra payment to Visa"}
+{"seeded":{"payoffStrategy":"foo","subscriptionPlan":"premium"},"stored":{"payoffStrategy":"foo","subscriptionPlan":"premium"},"repairs":1,"mayClaim('paycheck-plan')":"true","rankDebtsFirst":"Visa","recommendedFirst":"Extra payment to Visa"}
+{"seeded":{"payoffStrategy":"avalanche","subscriptionPlan":"gold"},"stored":{"payoffStrategy":"avalanche","subscriptionPlan":"gold"},"repairs":1,"mayClaim('paycheck-plan')":"false","rankDebtsFirst":"Visa","recommendedFirst":"Extra payment to Visa"}
+{"seeded":{},"stored":{"payoffStrategy":"snowball","subscriptionPlan":"premium"},"repairs":1,"mayClaim('paycheck-plan')":"true","rankDebtsFirst":"Visa","recommendedFirst":"Extra payment to Visa"}
+{"seeded":{"payoffStrategy":42,"subscriptionPlan":null},"stored":{"payoffStrategy":42,"subscriptionPlan":null},"repairs":1,"mayClaim('paycheck-plan')":"true","rankDebtsFirst":"Visa","recommendedFirst":"Extra payment to Visa"}

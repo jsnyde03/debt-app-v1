@@ -4431,15 +4431,15 @@
     }
   },
   "S1P7-57-3-FREE-C3-8-TWIN": {
-    "what": ".5.7 step 3 [pass-7 C3-8] - the free-tier twin of the data-recovery refusal: a FREE user with the same unread APR still sees the Money total, because the free total is the anchor sum and states no projection. The isPremium && half of money.tsx's guard was asserted by nothing; dropping it withheld a figure nothing was at risk of misstating.",
+    "what": ".5.7 step 3 [pass-7 C3-8] - the free-tier twin of the data-recovery refusal: a FREE user with the same unread APR still sees the Money total, because the free total is the anchor sum and states no projection. The isPremium && half of money.tsx's guard was asserted by nothing; dropping it withheld a figure nothing was at risk of misstating. [class 5 R2 L3-2, 2026-09-14] That conjunct is gone: the tier moved into 'projected-balance''s own route (PROJECTED_BY_TIER in trustSelectors.ts), which Money and Progress both ask, so the un-fix is re-derived there - a free store routing the premium set again.",
     "file": "apps/rn/tests/e2e/data-recovery.spec.ts",
     "token": "C3-8 · a FREE user with the same unread APR still sees the total",
     "proof": {
       "unfix": [
         {
-          "at": "apps/rn/src/app/(tabs)/money.tsx",
-          "find": "      ) : isPremium && !mayStateProjected ? (",
-          "replace": "      ) : !mayStateProjected ? ("
+          "at": "apps/rn/src/store/trustSelectors.ts",
+          "find": "  free: { debt: ['balance'] },",
+          "replace": "  free: CLAIM_FIELDS['projected-balance'],"
         }
       ],
       "cmd": [

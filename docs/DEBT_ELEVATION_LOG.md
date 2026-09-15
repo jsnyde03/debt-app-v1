@@ -36086,3 +36086,119 @@ premium exact on `'projected-balance'` (0 · 0), free exact on `'debt-balances'`
 over-suppresses 2 more — the lost APRs. ⚡ **So on a free store "the projected balance" IS the confirmed balance**, and the audit's
 remedy (`!isPremium ||` at Progress) would be a second copy of the conjunct `money.tsx:465` already carries. The one-owner
 alternative is a tier-aware route, as `FX-1` made the strategy one — **🎯's call, asked at decomposition.**
+
+✅ **[DECISION] 🎯 2026-09-14 — 8.4.2.1: THE TIER GOES IN THE CLAIM**, the recommended option. `'projected-balance'` routes `apr`
+and `minimumPayment` only on a premium store; Progress and Money ask it with no screen-side tier check, and `money.tsx`'s
+`isPremium && !mayStateProjected` conjunct is deleted rather than copied. Rejected: the audit's `!isPremium ||` at Progress — a
+second copy of Money's rule, invisible to the sweep.
+
+⚠️ *Correction, 8.4.1's commit:* I reported git's LF→CRLF warnings as mixed line endings my edits had left. Measured before
+re-checking the files out: every one was fully CRLF (e.g. 157/157, 636/636). The warnings were for the new LF evidence files;
+the checkout changed nothing.
+
+⛔ **SELF-INFLICTED, caught before push — `030a312b` (8.4.1) could throw inside `mayClaim`.** `RANKED_BY[store.payoffStrategy]`
+assumed the union. [`probe-842-context-normalisation.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-842-context-normalisation.ts):
+`runMigrations` keeps **`'foo'`, `42`, `'gold'` and `null`** exactly as seeded — nothing normalises either field — so a restored
+file with a non-union strategy and any repair reached `undefined[entity]` on every `'paycheck-plan'` ask. The tier route would
+have repeated it. **Fixed in 8.4.2 by `contextOf`**, which reads the same two comparisons the app does (`=== 'premium'`,
+`=== 'avalanche'`); the probe then runs `mayClaim` clean on every such value. ⚠️ A regression test is owed at 8.4.2's close.
+Filed to the backlog, not fixed: nothing normalises the two fields, and the two rankers treat a non-union strategy oppositely.
+
+⚡ **The tier × strategy sweep, before the suite gains it** ([`probe-842-sweep-by-tier.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-842-sweep-by-tier.ts)):
+every suite surface plus Progress's cash-flow bars and both journey arms, each on its tier's own engine store, unpaid shapes
+added. **0 holes on either tier.** Premium: the 16 over-suppressions already pinned, exactly. **Free: 27 — 11 more**, of which
+eight are a lost `cushionFloor` refusing free surfaces that use the fixed buffer, one is the hero date over a lost
+`scheduledPaymentAmount`, and two are the Guardian brief over a lost APR on avalanche. ⚠️ Routing `cushionFloor` off free
+claims would open holes: free Affordability and the Guardian brief DO read the line. 🎯 asked. ✅ **[DECISION] 🎯 2026-09-14 —
+pin the 11 by exact key, on free only**, the recommended option; the suite's tiers never pool, because pooling would hide
+exactly these. Rejected: per-surface tier routing — exact, but a redesign of the claim table.
+
+⛔ **8.4.2's `L3-6` plant stayed GREEN — and the test was the thing wrong.** Exactly round 1's `:158` revert (the view gag
+back on `'debt-balances'`): the plant APPLIED (anchor 1×, `changed=True`, exported with it) and `C3-9` passed in 1.5 s. Round
+1's render probe had waited 2.5 s *"for the CanvasKit lazy-load"* before reading the trajectory text; my new absences waited on
+the card TITLE, which renders before CanvasKit, so they passed on a legend that did not exist yet — `absence-assertions-pass-
+before-render`, written by the fixer of a finding whose whole subject was an assertion satisfied for the wrong reason. ⚡ The
+component already named the ready signal: `skiaReady` gates the footer's *"Now"* AND the legend (`TrajectoryChart.tsx:541,547`),
+and *"Now"* renders gagged and ungagged alike. The spec now waits on it — no timer, unlike `cushion-forecast.spec`'s 2 s sleep.
+
+### `.12.6.5.8.4.3` before-scan, read while 8.4.2's plants ran · 2026-09-14
+
+Each round-1 mechanism re-read against the code: **`L1-1` holds** — `clearResuppliedRepairs`' plan branch clears only on a
+MOVED value (`trustSelectors.ts:628`), and `setCushionFloor`/`setWindfall` are plain writes; ⚡ the remedy is buildable
+setter-side because `CushionFloorSheet`'s Save calls `onApply(value)` unconditionally and `WindfallSheet` calls `setWindfall(n)`.
+**`L1-3` holds** — `computeState.ts:32,44` maps a non-positive floor to `200` while `buildGuardianBrief.ts:208` keeps a set `0`
+for the sentence; `selectors.ts` records the band guard as deliberate (*"measured at 484 cases"*). **`L1-4` holds** — the plan
+fixture in `dataRepairsCopy.test.ts` asserts `repairBlocks` and `describeRepair` only. **`L1-5` holds** — `floorUnread`
+appears in 0 test files.
+
+✅ **[DECISION] 🎯 2026-09-14 — `L1-3`: THE BAND HONORS THE LINE THE USER SET**, the recommended option. A deliberate `$0` line
+reaches `computeState`; the verdict changes for `$0`-line users only, and band and sentence agree. Rejected: keeping the `$200`
+guard and dropping the line from the sentence. ✅ *The scorecard premise, answered by reading (arithmetic, not a run):*
+`guardianPrediction.ts:45` stamps `floor: brief.floor`, which since `C1-1` is already `0` for a set `$0` line, and grading is
+`reachedFloor(cushion, floor)` = `cushion >= floor − 1` (`calibrationScore.ts:54,96`) — so `$0`-line cycles ALREADY grade against
+`0`; only the band used `$200`. Honoring the set line aligns the band with the scorecard and moves no grade.
+
+⚠️ **Leads, unmeasured — measure at 8.4.3's switch-in:**
+- `answerableByEdit` answers `true` for every plan repair, and **no user action writes `expenseReserve.balance`** —
+  `setExpenseReserveContribution` sets the contribution and keeps the balance. **But rollover credits it**, and the plan branch
+  clears a repair whenever the value MOVES: a lost balance plus any contribution may clear its repair at the first rollover,
+  with the real balance never re-supplied — a fail-OPEN, the direction `L1-1` is the fail-closed twin of.
+- **Nothing in the UI writes `typicalAmount`** (writers: `PaycheckSheet`/`PaycheckStep` set `leanAmount` only; `applyLeanSuggestion`
+  is learning). A lost typical paycheck may be promised *"set it again"* with no control.
+
+⛔ **`FX-3` — THE FIRST LEAD, MEASURED: a rollover clears a LOST reserve-balance repair the user never answered.** Major,
+attributable to `.5.2` `C1-2` *(at `c7df99c2` a plan repair was not answerable by edit, so only the ack cleared it)*.
+[`probe-843-reserve-balance-failopen.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-843-reserve-balance-failopen.ts),
+through `runMigrations` → `createDebtStore` → the user's own `setExpenseReserveContribution(100)` → `rolloverPayCycle`:
+**subject** — balance `'abc'` repaired to `$0`, repair `lost`, `'required-plan'` refuses → after the rollover **balance `$100`,
+repair GONE, `'required-plan'` states.** Controls: a lost balance with nothing contributed keeps its repair (the value cannot
+move); a readable `$300` has none to clear and becomes `$400`. ⚡ **Mechanism:** `clearResuppliedRepairs`' plan branch reads *"the
+value moved"* as *"the user supplied it"* — true of a field only the user writes, false of one the APP rewrites. `L1-1` is the same
+rule failing CLOSED (an answer at an unchanged value); this is it failing OPEN (a change that is no answer). Routed into **8.4.3**
+beside `L1-1`: one rule, both directions, planted both ways.
+
+⛔ **`FX-4` — THE SECOND LEAD, MEASURED: two of the five plan fields promise an action that does not exist.**
+[`probe-843-plan-promises.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-843-plan-promises.ts): `answerableByEdit`
+is `true` for all five, so every card reads *"Your plan is running without it until you set it again"* and every refusal
+*"set … again and this comes back"*. A control exists for `cushionFloor`, `windfall` and `leanAmount`. **None for
+`expenseReserveBalance`** — *"set money set aside for bills again and this comes back"*, on a field `'required-plan'`,
+`'paycheck-plan'` and `'solved-projection'` all route, so the Guardian card and Required actions refuse with an instruction the user
+cannot follow, lifted only by `FX-3`'s wrong clear — **and none for `typicalAmount`**, which only a restored file writes and only
+`'row-figures'` routes. Attributable to `C1-2`'s *"five fields that every one have a real control"* (`trustSelectors.ts:676`),
+a premise measured false for two. ⚠️ Also: *"set money set aside for bills again"* — `FIELD_LABEL` was written for the card's
+noun position, not the refusal's verb position. → **8.4.3**, and **🎯's call at its decomposition**: give a lost reserve balance a
+control, or treat it as unrecoverable with an honest sentence.
+
+### `.12.6.5.8.4.4` before-scan, read while 8.4.2's lint ran · 2026-09-14
+
+**`L1-R1` holds** — Money ranks its active list off `selectPayoffView(withProjectedBalances(…))` (`money.tsx:234`), whose `liveDebts`
+is `balance > 0` on the PROJECTED store, and partitions paid-off/unread off the RAW store (`:266`); a debt whose estimate reached
+`$0` is in neither. **`L1-2` holds** — `selectReserveRelease(engineStore)` takes confirmed liveness, then `rankDebts` sorts the
+PROJECTED balance, so a projected-`$0` debt ranks first.
+
+⚠️ **Lead, unmeasured — measure at 8.4.4's switch-in:** the reserve-release card asks NO trust claim (`index.tsx:635`), and on
+avalanche `rankDebts` sorts by APR — `FX-1`'s shape (a lost rate renames the destination) on a surface `FX-1`'s route cannot
+reach, because the card never asks. `L1-2`'s remedy (name the allocation's first snowball row, as the Guardian brief does) would
+inherit the brief's claim only if the card asks it.
+
+### `.12.6.5.8.4.5` before-scan · 2026-09-14
+
+All three hold. **`L2-1`** — `decideLiveActivityAction` (`paydayActivityContent.ts:141`) answers `update` whenever an activity is
+running and the content key changed, never a restart, so the attribute `paydayDateISO` the Lock Screen button queues
+(`PaydayLiveActivity.swift:12→78`) stays the payday the activity started with; neither `ContentState` copy carries a date.
+**`L2-2`** — `withAppliedIntent` is `[...ids, id].slice(-50)` regardless of what is still queued, and `carryAppliedIntents`
+(`appliedIntents.ts:52`) builds `[...had, …]` with `had` the OUTGOING store's ids, so the slice drops those first — against its
+own docblock (*"keeping every id the outgoing store had recorded"*). **`L2-3`** — `liveActivitySync.test.ts`' stub refuses an
+`update` by counter while `lock.screen` stays set (`:71-94`), so no case can express a dismissal; both resets exist in the code
+(`liveActivitySync.ts:51-55`, `:67-70`) and nothing reds without them.
+
+### `.12.6.5.8.4.6` before-scan, `F4` · 2026-09-14 *(`F6` waits: its files are what `test:gate-plants` plants into)*
+
+**`F4` holds.** `S1P7-B1-1-SAVEFORIT-PACE-KEPT`'s `token` is the DATE assertion (`affordability.test.ts:173`, *"is ready in
+${o.paychecks} paychecks at the rate the engine funds"*) and its `expect` — `B1-1 — one debt, nothing held: "Save fast" promises`
+— is the interpolated message of the CAPACITY assertion at `:171`. Three assertions in one loop, the entry naming two different
+ones, so `:171` and the pace assertion `:172` delete with the token still found.
+
+Two expected reds from the build: the suite's `C3-8` pin *"a lost APR refuses the projected total"* sat on a store that is
+FREE by default — the `L3-2` over-suppression written into the suite; and `S1P7-57-3-FREE-C3-8-TWIN`'s un-fix anchored on the
+deleted conjunct, now VOID, with 13 proofs stale against a ceiling of 8.

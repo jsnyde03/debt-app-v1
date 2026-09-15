@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/store/trustSelectors.ts", "  free: { debt: ['balance'] },", "  free: CLAIM_FIELDS['projected-balance'],"]
+  ],
+  "runs": [
+    {"name": "E-L3-2 revert - a free store routes the premium set again", "spec": "progress-hero-journey.spec.ts", "grep": "a FREE total survives an unread APR"}
+  ]
+}

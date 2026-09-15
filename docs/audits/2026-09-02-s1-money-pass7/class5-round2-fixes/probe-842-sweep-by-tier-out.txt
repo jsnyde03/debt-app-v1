@@ -1,0 +1,47 @@
+
+== TIER free · 720 keys · 0 holes · 27 over · 0 split ==
+  OVER  paycheck-plan · Affordability · debt[0].apr LOST · on avalanche
+  OVER  paycheck-plan · Affordability · debt[1].apr LOST · on avalanche
+  OVER  paycheck-plan · Today's plan hero · the suggested move · plan.cushionFloor LOST
+  OVER  paycheck-plan · Windfall routing · debt[0].apr LOST · on avalanche
+  OVER  paycheck-plan · Windfall routing · debt[1].apr LOST · on avalanche
+  OVER  paycheck-plan · Windfall routing · plan.cushionFloor LOST
+  OVER  paycheck-plan · Windfall routing · plan.windfall LOST
+  OVER  paycheck-plan · the Guardian brief · debt[0].apr LOST · on avalanche
+  OVER  paycheck-plan · the Guardian brief · debt[1].apr LOST · on avalanche
+  OVER  paycheck-plan · the Recommended card · plan.cushionFloor LOST
+  OVER  paycheck-plan · the paywall lead · debt[0].apr LOST · on avalanche
+  OVER  paycheck-plan · the paywall lead · debt[0].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · debt[1].apr LOST · on avalanche
+  OVER  paycheck-plan · the paywall lead · debt[1].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-LIST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-ROW
+  OVER  paycheck-plan · the paywall lead · goal.currentAmount LOST
+  OVER  paycheck-plan · the paywall lead · goal.priorityPerPaycheck LOST
+  OVER  paycheck-plan · the paywall lead · goal.targetAmount LOST
+  OVER  paycheck-plan · the paywall lead · plan.cushionFloor LOST
+  OVER  solved-projection · Progress cash-flow bars · plan.cushionFloor LOST
+  OVER  solved-projection · Today's plan hero · the date · debt[1].scheduledPaymentAmount LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.cushionFloor LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.expenseReserveBalance LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.leanAmount LOST
+  OVER  solved-projection · the cushion forecast · plan.cushionFloor LOST
+  OVER  solved-projection · the payoff family · plan.cushionFloor LOST
+
+== TIER premium · 720 keys · 0 holes · 16 over · 0 split ==
+  OVER  paycheck-plan · Affordability · debt[0].apr LOST · on avalanche
+  OVER  paycheck-plan · Affordability · debt[1].apr LOST · on avalanche
+  OVER  paycheck-plan · Windfall routing · debt[0].apr LOST · on avalanche
+  OVER  paycheck-plan · Windfall routing · debt[1].apr LOST · on avalanche
+  OVER  paycheck-plan · Windfall routing · plan.windfall LOST
+  OVER  paycheck-plan · the paywall lead · debt[0].apr LOST · on avalanche
+  OVER  paycheck-plan · the paywall lead · debt[0].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · debt[1].apr LOST · on avalanche
+  OVER  paycheck-plan · the paywall lead · debt[1].minimumPayment LOST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-LIST
+  OVER  paycheck-plan · the paywall lead · goal WHOLE-ROW
+  OVER  paycheck-plan · the paywall lead · goal.currentAmount LOST
+  OVER  paycheck-plan · the paywall lead · goal.priorityPerPaycheck LOST
+  OVER  paycheck-plan · the paywall lead · goal.targetAmount LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.expenseReserveBalance LOST
+  OVER  solved-projection · Today's plan hero · the date · plan.leanAmount LOST

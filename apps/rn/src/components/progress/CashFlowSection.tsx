@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { UNREAD_PLAN_LEAD } from '@/components/plan/dataRepairsCopy';
 import { TimelineLedger } from '@/components/progress/TimelineLedger';
 import { Card } from '@/components/ui/Card';
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle';
@@ -56,9 +57,38 @@ function shortDate(iso: string): string {
  * itemized "where every dollar went" ledger — the reborn Capacitor Timeline). Same `selectCashTimeline`
  * data, user picks the view.
  */
-export function CashFlowSection({ cycles, floor }: { cycles: TimelineCycle[]; floor: number }) {
+export function CashFlowSection({
+  cycles,
+  floor,
+  unread,
+  unreadFix,
+}: {
+  cycles: TimelineCycle[];
+  floor: number;
+  /**
+   * ⛔ **[class 5 R2 `L3-5a` · `L3-5b`] `'solved-projection'` — this section asked NO trust question.** It draws the same
+   * `selectCashTimeline` family the Cushion Forecast refuses since `C3-11`, so a lost $160 minimum was plotted as room on
+   * every cycle, and a lost cushion line was captioned *"your $200 line"* where the user set $350. ⚡ Measured exact for the
+   * bars (premium 0 holes · 0 over); the route includes the cushion line, so the caption's false figure goes with them.
+   * ⚠️ Required, not defaulted — a caller that forgets the gate must not compile.
+   */
+  unread: boolean;
+  /** `unreadInputsFix(repairsPoisoning(store, 'solved-projection'), …)`, naming what to set. */
+  unreadFix: string;
+}) {
   const c = useAppColors();
   const [view, setView] = useState<'cushion' | 'timeline'>('cushion');
+  if (unread) {
+    // Before the empty check: cycles computed from a corrupted input can be empty for that reason alone.
+    return (
+      <Card testID="cash-flow-unread">
+        <Text style={[textStyles.footnote, styles.eyebrow, { color: c.text.tertiary }]}>CASH FLOW</Text>
+        <Text style={[textStyles.subhead, { color: c.accent.warning }]}>
+          {`${UNREAD_PLAN_LEAD}, so I can’t chart your next paychecks — ${unreadFix}.`}
+        </Text>
+      </Card>
+    );
+  }
   if (cycles.length === 0) return null;
 
   return (

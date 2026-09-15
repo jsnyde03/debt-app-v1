@@ -1,0 +1,49 @@
+== app plants (1) ==
+  plant apps/rn/src/app/(tabs)/progress.tsx: anchor count=1 :: "    () => (mayClaim(store, 'solved-projection') ? rawView : gagBalanceDerived(rawView)),"
+  applied apps/rn/src/app/(tabs)/progress.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 83s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=1952 listening=True ==
+
+-- RUN E-L3-6 revert - exactly round 1's :158 plant, the view gag back on 'debt-balances' :: progress-hero-journey.spec.ts -g 'C3-9 · an unread APR withholds the projected figures'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:295:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (7.8s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:295:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones 
+
+    Error: ⛔ L3-6 — a saving solved from a rate the app could not read
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText(/years? saved/)
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - ⛔ L3-6 — a saving solved from a rate the app could not read with timeout 5000ms[22m
+    [2m  - waiting for getByText(/years? saved/)[22m
+    [2m    12 × locator resolved to 1 element[22m
+    [2m       - unexpected value "1"[22m
+
+
+      329 |   // "Now" renders in both states — so once it is visible, the legend has had its one chance to appear.
+      330 |   await expect(page.getByText('Now', { exact: true }), 'the chart resolved — the same `skiaReady` render that draws the legend').toBeVisible({ timeout: 15_000 });
+    > 331 |   await expect(page.getByText(/years? saved/), '⛔ L3-6 — a saving solved from a rate the app could not read').toHaveCount(0);
+          |                                                                                                               ^
+      332 |   await expect(page.getByText(/Minimum payments/), '⛔ L3-6 — the minimums curve and its payoff date, the same solve').toHaveCount(0);
+      333 |
+      334 |   await expect(
+        at C:\Users\Jason\debt-app-v1\apps\rn\tests\e2e\progress-hero-journey.spec.ts:331:111
+
+    Error Context: apps\rn\test-results\progress-hero-journey-C3-9-0f11b-nd-KEEPS-the-confirmed-ones-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:295:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:295:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (7.8s) | Error: ⛔ L3-6 — a saving solved from a rate the app could not read | [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/app/(tabs)/progress.tsx: cmp identical=True

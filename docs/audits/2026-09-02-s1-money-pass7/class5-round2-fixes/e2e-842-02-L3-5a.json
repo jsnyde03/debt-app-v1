@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/app/(tabs)/progress.tsx", "        unread={!mayStateSolved}", "        unread={false}"]
+  ],
+  "runs": [
+    {"name": "E-L3-5a revert - the cash-flow section asks nothing again", "spec": "progress-hero-journey.spec.ts", "grep": "Progress charts no cash flow over a minimum"}
+  ]
+}

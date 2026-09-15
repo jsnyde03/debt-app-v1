@@ -1,0 +1,9 @@
+== app plants (0) ==
+== export:web --clear ==
+  export exit=0 in 82s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=24760 listening=True ==
+
+-- RUN CONTROL L3-6 - C3-9 unplanted, waiting on the skiaReady footer :: progress-hero-journey.spec.ts -g 'C3-9 · an unread APR withholds the projected figures'
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:295:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (3.0s) | 1 passed (5.6s)
+
+== server stopped; :4319 listening=False ==

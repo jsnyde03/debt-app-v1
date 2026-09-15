@@ -222,6 +222,61 @@ test('C4-9 · one unread balance beside a live one suppresses every figure deriv
 });
 
 /**
+ * ⛔ **[class 5 R2 `L3-2` · DECISION 🎯 2026-09-14] — A FREE TOTAL OVER AN UNREAD APR.** A free balance is never projected, so the
+ * figure is the anchor balance and no rate moves it. Progress refused it while Money stated it: one store, two answers. The
+ * tier now lives in `'projected-balance'`'s route. ⭐ Both tiers on one fixture: premium's projection DOES read the rate.
+ */
+const UNPAID_APR = (subscriptionPlan: 'free' | 'premium', apr: number | string) =>
+  scenario({
+    subscriptionPlan,
+    genuineCycleCount: 6,
+    requiredExpenses: [],
+    debts: [
+      { id: 'd0', name: 'Chase card', balance: 8000, originalBalance: 8000, minimumPayment: 100, apr, dueDate: day(4), type: 'debt', recurrence: 'monthly', balanceAsOfDate: day(-90), lastVerifiedDate: day(-90) },
+      { id: 'd1', name: 'Visa', balance: 4000, originalBalance: 4000, minimumPayment: 80, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' },
+    ],
+  });
+
+test('class 5 R2 · L3-2 · a FREE total survives an unread APR — on Progress and on Money alike', async ({ page }) => {
+  await seedStore(page, UNPAID_APR('free', ''));
+  await page.goto('/progress');
+  await expect(page.getByTestId('progress-hero-journey'), '⛔ L3-2 — no rate moves a free total').toHaveText('$12,000 to go', { timeout: 15_000 });
+  await page.goto('/money');
+  await expect(page.getByTestId('money-hero-debts-value'), 'the same figure, one tab over').toHaveText('$12,000', { timeout: 15_000 });
+});
+
+test('class 5 R2 control · L3-2 · a PREMIUM total over the same unread APR is refused on both', async ({ page }) => {
+  await seedStore(page, UNPAID_APR('premium', ''));
+  await page.goto('/progress');
+  await expect(page.getByTestId('progress-hero-journey')).toHaveText(/couldn.t be read/, { timeout: 15_000 });
+  await page.goto('/money');
+  await expect(page.getByTestId('money-hero-debts-value')).toHaveText('Some figures unread', { timeout: 15_000 });
+});
+
+/**
+ * ⛔ **[class 5 R2 `L3-5a` · `L3-5b`] — THE CASH-FLOW BARS OVER A MINIMUM THE APP COULD NOT READ.** They asked nothing, so a lost
+ * minimum was drawn as room on every cycle. They ask the Cushion Forecast's claim now. ⭐ Control: the readable twin charts.
+ */
+const VISA_MINIMUM = (minimumPayment: number | string) =>
+  scenario({
+    debts: [{ id: 'd0', name: 'Visa', balance: 4000, originalBalance: 5000, minimumPayment, apr: 19, dueDate: day(6), type: 'debt', recurrence: 'monthly' }],
+  });
+
+test('class 5 R2 · L3-5a · Progress charts no cash flow over a minimum the app could not read', async ({ page }) => {
+  await seedStore(page, VISA_MINIMUM(''));
+  await page.goto('/progress');
+  await expect(page.getByTestId('cash-flow-unread'), 'the honest state, by name').toContainText('set the minimum payment on Visa again', { timeout: 15_000 });
+  await expect(page.getByTestId('cash-flow-section'), '⛔ L3-5a — bars drawn with the lost minimum as room').toHaveCount(0);
+});
+
+test('class 5 R2 control · L3-5a · with the minimum readable the cash flow is charted', async ({ page }) => {
+  await seedStore(page, VISA_MINIMUM(160));
+  await page.goto('/progress');
+  await expect(page.getByTestId('cash-flow-section')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('cash-flow-unread')).toHaveCount(0);
+});
+
+/**
  * ⛔ **S1.13.7.12.6.5.4 [pass-7 `C3-9`] — AN UNREAD APR, WITH EVERY BALANCE READABLE.**
  *
  * ⚡ **Every other fixture on this screen poisons `balance`**, so `mayClaim('debt-balances')` is false and
@@ -265,6 +320,16 @@ test('C3-9 · an unread APR withholds the projected figures and KEEPS the confir
     page.getByTestId('progress-hero-journey'),
     'progress measured against CONFIRMED payments survives an unread APR — blanking it is over-suppression',
   ).toContainText('of $6,000 paid');
+
+  // ⛔ [class 5 R2 `L3-6`] The TRAJECTORY too, not only the hero date. The date is gated twice, so an assertion on it alone was
+  // satisfied by the gate that was NOT this fix's subject: reverting `progress.tsx`'s view claim redded nothing. The card's
+  // legend and saving are withheld by that claim and nothing else. Presence first — an absence proves nothing on a blank card.
+  // ⛔ NOT the card's title: it renders before CanvasKit does, and against the title these two absences passed with the fix
+  // reverted (the plant stayed GREEN). `skiaReady` gates the footer's "Now" AND the legend (`TrajectoryChart.tsx:541,547`), and
+  // "Now" renders in both states — so once it is visible, the legend has had its one chance to appear.
+  await expect(page.getByText('Now', { exact: true }), 'the chart resolved — the same `skiaReady` render that draws the legend').toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/years? saved/), '⛔ L3-6 — a saving solved from a rate the app could not read').toHaveCount(0);
+  await expect(page.getByText(/Minimum payments/), '⛔ L3-6 — the minimums curve and its payoff date, the same solve').toHaveCount(0);
 
   await expect(
     page.getByText('Some balances couldn’t be read'),

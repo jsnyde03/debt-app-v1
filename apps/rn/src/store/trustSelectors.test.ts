@@ -6,13 +6,14 @@ import { selectAffordability, selectPaydayGuardian, selectReserveRelease, select
 import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { DEFAULT_CUSHION_FLOOR, cushionLine, effectivePaycheckBuffer, selectAllocation, selectWaterFillPlan } from '@/store/selectors';
 import { selectPlanState, selectPlanSummary, selectRecommendedActions, selectRequiredRows } from '@/store/planSelectors';
+import { selectJourneyTotals } from '@/store/journeySelectors';
 import { selectCelebration } from '@/store/celebrationSelectors';
 import { detectPayoff } from '@/store/payoffCelebration';
 
 
 import { createDebtStore } from '@/store/store';
-import { answerableByEdit, claimFields, claimFieldsFor, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, payoffStrategies, rowFieldUnread } from '@/store/trustSelectors';
-import type { DebtStore, PayoffStrategy } from '@/data/models';
+import { answerableByEdit, claimFields, claimFieldsFor, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, payoffStrategies, rowFieldUnread, subscriptionTiers } from '@/store/trustSelectors';
+import type { DebtStore, PayoffStrategy, SubscriptionPlan } from '@/data/models';
 
 /** ⛔ S1.13.7.4 [pass-6 B1-1] — the unread set detectPayoff now REQUIRES. Derived from the store
  *  under test rather than typed, so a fixture that adds an unread balance is covered automatically. */
@@ -355,14 +356,25 @@ export default function run(): void {
      * table is what `lint:trust-claims` reads, so it is pinned to snowball's route exactly, and avalanche adds exactly one
      * containment — a production `projected-balance && paycheck-plan` would be vacuous there and real on snowball.
      */
-    eq(JSON.stringify(claimFieldsFor('snowball')), JSON.stringify(claimFields()), '⛔ FX-1 — the table the gates read IS snowball\'s route; one that differs is a second table');
-    const EXTRA_CONTAINMENTS: Record<PayoffStrategy, string[]> = { snowball: [], avalanche: ['projected-balance ⊑ paycheck-plan'] };
+    eq(
+      JSON.stringify(claimFieldsFor({ strategy: 'snowball', tier: 'premium' })),
+      JSON.stringify(claimFields()),
+      '⛔ FX-1 · L3-2 — the table the gates read IS the snowball · premium route; one that differs is a second table',
+    );
+    const EXTRA_BY_STRATEGY: Record<PayoffStrategy, string[]> = { snowball: [], avalanche: ['projected-balance ⊑ paycheck-plan'] };
+    // ⛔ [class 5 R2 `L3-2`] On free a projected balance IS the balance, so its route sits inside every claim that routes one.
+    const EXTRA_BY_TIER: Record<SubscriptionPlan, string[]> = {
+      premium: [],
+      free: ['projected-balance ⊑ debt-balances', 'projected-balance ⊑ paycheck-plan', 'projected-balance ⊑ required-plan'],
+    };
     for (const strategy of payoffStrategies()) {
-      eq(
-        latticeOf(claimFieldsFor(strategy)).join(' | '),
-        [...EXPECTED_CONTAINMENTS, ...EXTRA_CONTAINMENTS[strategy]].sort().join(' | '),
-        `⛔ FX-1 — the containment lattice on ${strategy}`,
-      );
+      for (const tier of subscriptionTiers()) {
+        eq(
+          latticeOf(claimFieldsFor({ strategy, tier })).join(' | '),
+          [...new Set([...EXPECTED_CONTAINMENTS, ...EXTRA_BY_STRATEGY[strategy], ...EXTRA_BY_TIER[tier]])].sort().join(' | '),
+          `⛔ FX-1 · L3-2 — the containment lattice on ${strategy} · ${tier}`,
+        );
+      }
     }
   }
 
@@ -776,7 +788,7 @@ export default function run(): void {
    * and why "moves" is the union across six shapes rather than one.
    */
   {
-    type Shape = { name: string; income: number; variable: boolean; big: boolean; pace: boolean; clearing?: boolean; filling?: boolean; capping?: boolean; autopay?: boolean };
+    type Shape = { name: string; income: number; variable: boolean; big: boolean; pace: boolean; clearing?: boolean; filling?: boolean; capping?: boolean; autopay?: boolean; unpaid?: boolean };
     const BASE_SHAPES: Shape[] = [
       { name: 'tight-fixed', income: 1400, variable: false, big: true, pace: true },
       { name: 'tight-var', income: 1400, variable: true, big: true, pace: true },
@@ -795,7 +807,12 @@ export default function run(): void {
       { name: 'at-floor', income: 1250, variable: false, big: true, pace: false },
     ];
     // ⚠️ Every shape twice — an autopay amount SHADOWS the minimum, so a lost minimum is invisible on the half that has one.
-    const SHAPES: Shape[] = [...BASE_SHAPES.map((s) => ({ ...s, autopay: true })), ...BASE_SHAPES.map((s) => ({ ...s, name: `${s.name}+noautopay`, autopay: false }))];
+    const SHAPES: Shape[] = [
+      ...BASE_SHAPES.map((s) => ({ ...s, autopay: true })),
+      ...BASE_SHAPES.map((s) => ({ ...s, name: `${s.name}+noautopay`, autopay: false })),
+      // ⛔ [class 5 R2 `L3-2`] Nothing paid yet (balance = original), the only shape that reaches the journey line's PROJECTED arm.
+      ...BASE_SHAPES.map((s) => ({ ...s, name: `${s.name}+unpaid`, autopay: false, unpaid: true })),
+    ];
     const NEXT = '2026-09-09';
     const ANCHOR = '2026-03-01';
     const LIST: Record<string, string> = { debt: 'debts', requiredExpense: 'requiredExpenses', livingExpense: 'livingExpenses', goal: 'goals' };
@@ -808,8 +825,8 @@ export default function run(): void {
         payoffStrategy: strategy,
         paycheck: { amount: String(sh.income), currentDate: DAY, nextPaycheckDate: NEXT, incomeVaries: sh.variable, leanAmount: Math.round(sh.income * 0.75), typicalAmount: sh.income },
         debts: [
-          { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: 6000 * b, minimumPayment: 150 * b, ...(sh.autopay ? { scheduledPaymentAmount: 200 * b } : {}), apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
-          { id: 'd1', name: 'Visa', balance: sh.clearing ? 420 : sh.capping ? 900 : 3000 * b, originalBalance: 3500 * b, minimumPayment: sh.capping ? 25 : 90 * b, ...(sh.autopay ? { scheduledPaymentAmount: 120 * b } : {}), apr: sh.capping ? 29 : 18, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+          { id: 'd0', name: 'Chase', balance: 5000 * b, originalBalance: sh.unpaid ? 5000 * b : 6000 * b, minimumPayment: 150 * b, ...(sh.autopay ? { scheduledPaymentAmount: 200 * b } : {}), apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
+          { id: 'd1', name: 'Visa', balance: sh.clearing ? 420 : sh.capping ? 900 : 3000 * b, originalBalance: sh.unpaid ? (sh.clearing ? 420 : sh.capping ? 900 : 3000 * b) : 3500 * b, minimumPayment: sh.capping ? 25 : 90 * b, ...(sh.autopay ? { scheduledPaymentAmount: 120 * b } : {}), apr: sh.capping ? 29 : 18, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: ANCHOR, lastVerifiedDate: ANCHOR },
         ],
         requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 600, dueDate: DAY, recurrence: 'monthly', category: 'housing' }],
         livingExpenses: [{ id: 'l0', name: 'Groceries', amount: 150, enabled: true }],
@@ -820,7 +837,12 @@ export default function run(): void {
         prefs: { onboardingComplete: true, hasSavingsElsewhere: true },
       };
     };
-    const premium = (raw: unknown): DebtStore => ({ ...runMigrations(raw), subscriptionPlan: 'premium' });
+    /** A store on one tier, through the same door. */
+    const onTier = (raw: unknown, tier: SubscriptionPlan): DebtStore => ({ ...runMigrations(raw), subscriptionPlan: tier });
+    /** ⛔ [class 5 R2 `L3-2`] The engine store each screen builds — `withProjectedBalances(store, isPremium)` — so free is measured as free. */
+    const eng = (s: DebtStore) => withProjectedBalances(s, s.subscriptionPlan === 'premium');
+    /** What a journey-line arm "draws" on a shape where the other arm renders — never compared as a figure. */
+    const ARM_ABSENT = 'n/a';
 
     /** Where each repairable field lives in a raw file, keyed by the names `REPAIRABLE_MONEY_FIELDS` declares. */
     const setField = (r: Raw, entity: string, row: number, field: string, to: (old: unknown) => unknown): void => {
@@ -844,20 +866,20 @@ export default function run(): void {
      * PER SURFACE, not per claim: `'solved-projection'` was first validated against its whole family, and a
      * surface drawing only part of that family can be over-suppressed by a repair that moves the rest.
      */
-    const SURFACES: { claim: 'projected-balance' | 'solved-projection' | 'paycheck-plan' | 'required-plan'; name: string; figure: (s: DebtStore) => string }[] = [
+    const SURFACES: { claim: 'debt-balances' | 'projected-balance' | 'solved-projection' | 'paycheck-plan' | 'required-plan'; name: string; figure: (s: DebtStore) => string }[] = [
       {
         claim: 'projected-balance',
         name: "Money's total",
         figure: (s) => {
           const cpm = payCyclesPerMonth(s.paycheck.payCycle);
-          return String(s.debts.filter((d) => d.balance > 0).reduce((t, d) => t + selectDebtBalanceView(d, s.paycheck.currentDate, true, cpm).currentBalance, 0));
+          return String(s.debts.filter((d) => d.balance > 0).reduce((t, d) => t + selectDebtBalanceView(d, s.paycheck.currentDate, s.subscriptionPlan === 'premium', cpm).currentBalance, 0));
         },
       },
       {
         claim: 'solved-projection',
         name: 'the payoff family',
         figure: (s) => {
-          const engine = withProjectedBalances(s, true);
+          const engine = eng(s);
           // ⚠️ `order` and `focus` carry whole debt objects, so a lost `originalBalance` changes their JSON without
           // changing the ranking — measured on both. Compared by id, which is what a surface prints.
           const { order, focus, ...view } = selectPayoffView(engine);
@@ -869,7 +891,7 @@ export default function run(): void {
         name: 'the cushion forecast',
         // Exactly what `cushion-forecast.tsx` draws. The scorecard beside it is stored history and asks nothing.
         figure: (s) => {
-          const engine = withProjectedBalances(s, true);
+          const engine = eng(s);
           return JSON.stringify([selectCashTimeline(engine, 6), selectWaterFillPlan(engine), effectivePaycheckBuffer(engine)]);
         },
       },
@@ -886,7 +908,7 @@ export default function run(): void {
         claim: 'solved-projection',
         name: "Today's plan hero · the date",
         figure: (s) => {
-          const m = summaryOf(withProjectedBalances(s, true));
+          const m = summaryOf(eng(s));
           return m ? JSON.stringify([m.debtFreeDate]) : 'null';
         },
       },
@@ -899,25 +921,25 @@ export default function run(): void {
         claim: 'required-plan',
         name: "Today's plan hero · the split and the verdict",
         figure: (s) => {
-          const m = summaryOf(withProjectedBalances(s, true));
+          const m = summaryOf(eng(s));
           return m ? JSON.stringify([m.billsReserve, m.everydayHeld, m.remainingAfterRequired, m.requiredTotal, m.shortfall, m.status]) : 'null';
         },
       },
-      { claim: 'paycheck-plan', name: "Today's plan hero · the suggested move", figure: (s) => JSON.stringify(suggestedOf(withProjectedBalances(s, true))) },
+      { claim: 'paycheck-plan', name: "Today's plan hero · the suggested move", figure: (s) => JSON.stringify(suggestedOf(eng(s))) },
       // ⛔ [class 5 R2 `FX-2`] The card that draws the same list with a "Mark Paid" control, and asked no claim.
-      { claim: 'paycheck-plan', name: 'the Recommended card', figure: (s) => JSON.stringify(suggestedOf(withProjectedBalances(s, true))) },
+      { claim: 'paycheck-plan', name: 'the Recommended card', figure: (s) => JSON.stringify(suggestedOf(eng(s))) },
       {
         claim: 'required-plan',
         name: 'Required actions',
         figure: (s) => {
-          const e = withProjectedBalances(s, true);
+          const e = eng(s);
           const a = selectAllocation(e);
           return a ? JSON.stringify(selectRequiredRows(e, a).map((r) => [r.item.amount, r.item.category, r.item.label, r.item.reserveCovered, r.item.targetId, r.isAutopay, r.dueDate, r.view.isPaid, r.view.overdue, r.view.presumedPaid, r.view.autopayFailed])) : 'null';
         },
       },
-      { claim: 'paycheck-plan', name: 'the Guardian brief', figure: (s) => JSON.stringify(selectPaydayGuardian(withProjectedBalances(s, true))) },
-      { claim: 'paycheck-plan', name: 'Affordability', figure: (s) => JSON.stringify(selectAffordability(withProjectedBalances(s, true), 500)) },
-      { claim: 'paycheck-plan', name: 'Windfall routing', figure: (s) => JSON.stringify(selectWindfallSplit(withProjectedBalances(s, true), 1000)) },
+      { claim: 'paycheck-plan', name: 'the Guardian brief', figure: (s) => JSON.stringify(selectPaydayGuardian(eng(s))) },
+      { claim: 'paycheck-plan', name: 'Affordability', figure: (s) => JSON.stringify(selectAffordability(eng(s), 500)) },
+      { claim: 'paycheck-plan', name: 'Windfall routing', figure: (s) => JSON.stringify(selectWindfallSplit(eng(s), 1000)) },
       {
         claim: 'paycheck-plan',
         name: 'the paywall lead',
@@ -925,6 +947,32 @@ export default function run(): void {
         figure: (s) => {
           const m = summaryOf(s);
           return m ? JSON.stringify([m.shortfall, m.cushion, effectivePaycheckBuffer(s)]) : 'null';
+        },
+      },
+      // ⛔ [class 5 R2 `L3-5a`] Progress's cash-flow bars — the forecast's selector family, which asked no claim at all.
+      {
+        claim: 'solved-projection',
+        name: 'Progress cash-flow bars',
+        figure: (s) => {
+          const e = eng(s);
+          return JSON.stringify([selectCashTimeline(e), effectivePaycheckBuffer(e)]);
+        },
+      },
+      // ⛔ [class 5 R2 `L3-2`] Progress's journey line, one surface per arm: which arm renders decides which claim it asks.
+      {
+        claim: 'projected-balance',
+        name: 'Progress journey line · projected arm',
+        figure: (s) => {
+          const j = selectJourneyTotals(s.debts, eng(s).debts);
+          return j.lineIsProjected ? j.line : ARM_ABSENT;
+        },
+      },
+      {
+        claim: 'debt-balances',
+        name: 'Progress journey line · confirmed arm',
+        figure: (s) => {
+          const j = selectJourneyTotals(s.debts, eng(s).debts);
+          return j.lineIsProjected ? ARM_ABSENT : j.line;
         },
       },
     ];
@@ -947,6 +995,17 @@ export default function run(): void {
       // ⛔ [class 5 R2 `FX-1` · DECISION 🎯 2026-09-14] Avalanche ranks by APR, so `'paycheck-plan'` routes it there — and these
       // three name no debt. The exact alternative was an eighth claim.
       ...['Affordability', 'Windfall routing', 'the paywall lead'].flatMap((surface) => [0, 1].map((row) => `paycheck-plan · ${surface} · debt[${row}].apr LOST · on avalanche`)),
+    ]);
+    /**
+     * ⛔ **[class 5 R2 `L3-2` · DECISION 🎯 2026-09-14] ACCEPTED ON FREE ONLY**, measured by `probe-842-sweep-by-tier`. Eight are a
+     * lost cushion line refusing free surfaces that read the fixed buffer instead; routing the line off free claims would open
+     * holes, because free Affordability and the Guardian brief DO read it. On premium every one of these is exact.
+     */
+    const ACCEPTED_OVER_ON_FREE = new Set<string>([
+      ...["Today's plan hero · the suggested move", 'Windfall routing', 'the Recommended card', 'the paywall lead'].map((surface) => `paycheck-plan · ${surface} · plan.cushionFloor LOST`),
+      ...['Progress cash-flow bars', "Today's plan hero · the date", 'the cushion forecast', 'the payoff family'].map((surface) => `solved-projection · ${surface} · plan.cushionFloor LOST`),
+      "solved-projection · Today's plan hero · the date · debt[1].scheduledPaymentAmount LOST",
+      ...[0, 1].map((row) => `paycheck-plan · the Guardian brief · debt[${row}].apr LOST · on avalanche`),
     ]);
 
     type Variant = { name: string; lost: boolean; mutate: (r: Raw) => void };
@@ -975,33 +1034,45 @@ export default function run(): void {
     // an avalanche-only hole could not be seen. Derived from the route table's exhaustive `Record`, never typed here.
     const STRATEGIES = payoffStrategies();
     eq(STRATEGIES.includes('avalanche') && STRATEGIES.includes('snowball'), true, 'the sweep covers every payoff strategy the route table knows');
+    // ⛔ [class 5 R2 `L3-2` · DECISION 🎯 2026-09-14] …and EVERY TIER, derived the same way. ⚠️ Tiers never pool: a free surface that
+    // does not move where the premium one does reads the fixed buffer — a real over-suppression, not a fixture that missed it.
+    const TIERS = subscriptionTiers();
+    eq(TIERS.includes('free') && TIERS.includes('premium'), true, 'the sweep covers every tier the route table knows');
     type At = { refused: Set<boolean>; moved: boolean };
-    const verdict = new Map<string, Map<PayoffStrategy, At>>();
-    for (const strategy of STRATEGIES) {
-      for (const sh of SHAPES) {
-        const base = premium(rawShape(sh, strategy));
-        eq(base.payoffStrategy, strategy, `${sh.name} — the fixture carries ${strategy} through migration`);
-        eq(base.pendingDataRepairs.length, 0, `${sh.name} — the base fixture reads clean`);
-        const alloc = selectAllocation(base);
-        for (const a of alloc?.allocations ?? []) consumed.add(a.category);
-        if ((alloc?.livingExpenseReserve ?? 0) > 0) consumed.add('living-expense');
-        if (selectPayoffView(withProjectedBalances(base, true)).lean.length > 0) sawBand = true;
-        const baseFigures = SURFACES.map((surface) => surface.figure(base));
+    const verdict = new Map<SubscriptionPlan, Map<string, Map<PayoffStrategy, At>>>();
+    for (const tier of TIERS) {
+      const byKey = new Map<string, Map<PayoffStrategy, At>>();
+      verdict.set(tier, byKey);
+      for (const strategy of STRATEGIES) {
+        for (const sh of SHAPES) {
+          const base = onTier(rawShape(sh, strategy), tier);
+          eq(base.payoffStrategy, strategy, `${sh.name} — the fixture carries ${strategy} through migration`);
+          eq(base.subscriptionPlan, tier, `${sh.name} — the fixture is on ${tier}`);
+          eq(base.pendingDataRepairs.length, 0, `${sh.name} — the base fixture reads clean`);
+          const alloc = selectAllocation(base);
+          for (const a of alloc?.allocations ?? []) consumed.add(a.category);
+          if ((alloc?.livingExpenseReserve ?? 0) > 0) consumed.add('living-expense');
+          if (selectPayoffView(withProjectedBalances(base, true)).lean.length > 0) sawBand = true;
+          const baseFigures = SURFACES.map((surface) => surface.figure(base));
 
-        for (const v of variants) {
-          const r = rawShape(sh, strategy);
-          v.mutate(r);
-          const s = premium(r);
-          eq(s.pendingDataRepairs.some((x) => x.kind === 'lost'), v.lost, `${sh.name} · ${v.name} — the variant records ${v.lost ? 'a LOST' : 'no lost'} repair`);
-          SURFACES.forEach((surface, i) => {
-            const key = `${surface.claim} · ${surface.name} · ${v.name}`;
-            const byStrategy = verdict.get(key) ?? new Map<PayoffStrategy, At>();
-            const at = byStrategy.get(strategy) ?? { refused: new Set<boolean>(), moved: false };
-            at.refused.add(!mayClaim(s, surface.claim));
-            if (surface.figure(s) !== baseFigures[i]) at.moved = true;
-            byStrategy.set(strategy, at);
-            verdict.set(key, byStrategy);
-          });
+          for (const v of variants) {
+            const r = rawShape(sh, strategy);
+            v.mutate(r);
+            const s = onTier(r, tier);
+            eq(s.pendingDataRepairs.some((x) => x.kind === 'lost'), v.lost, `${sh.name} · ${v.name} — the variant records ${v.lost ? 'a LOST' : 'no lost'} repair`);
+            SURFACES.forEach((surface, i) => {
+              const now = surface.figure(s);
+              // A journey-line arm that renders on neither store is not a measurement of that arm.
+              if (now === ARM_ABSENT && baseFigures[i] === ARM_ABSENT) return;
+              const key = `${surface.claim} · ${surface.name} · ${v.name}`;
+              const byStrategy = byKey.get(key) ?? new Map<PayoffStrategy, At>();
+              const at = byStrategy.get(strategy) ?? { refused: new Set<boolean>(), moved: false };
+              at.refused.add(!mayClaim(s, surface.claim));
+              if (now !== baseFigures[i]) at.moved = true;
+              byStrategy.set(strategy, at);
+              byKey.set(key, byStrategy);
+            });
+          }
         }
       }
     }
@@ -1017,31 +1088,58 @@ export default function run(): void {
      * on both. Where the verdict DIFFERS by strategy, each strategy is its own question, and its key says so: `… · on avalanche`.
      */
     const judged = new Set<string>();
-    for (const [key, byStrategy] of verdict) {
-      for (const [strategy, { refused }] of byStrategy) {
-        eq(refused.size, 1, `⛔ ${key} · on ${strategy} — a route's verdict is a property of the REPAIR and the strategy, never of the fixture`);
-      }
-      const answers = new Set([...byStrategy.values()].map((at) => [...at.refused][0]));
-      const questions: [string, boolean, boolean][] =
-        answers.size === 1
-          ? [[key, [...answers][0], [...byStrategy.values()].some((at) => at.moved)]]
-          : [...byStrategy].map(([strategy, at]) => [`${key} · on ${strategy}`, [...at.refused][0], at.moved]);
-      for (const [k, refuses, moved] of questions) {
-        judged.add(k);
-        if (ACCEPTED_OVER.has(k)) {
-          eq(refuses && !moved, true, `⛔ .5.4d — ${k} is listed as an ACCEPTED over-suppression and is no longer one`);
-          continue;
+    for (const [tier, byKey] of verdict) {
+      for (const [key, byStrategy] of byKey) {
+        for (const [strategy, { refused }] of byStrategy) {
+          eq(refused.size, 1, `⛔ ${key} · on ${strategy} · on ${tier} — a route's verdict is a property of the REPAIR, the strategy and the tier, never of the fixture`);
         }
-        if (refuses && !moved) fail(`⛔ .5.4a OVER-SUPPRESSION — ${k}: the claim refuses and no shape's figure moves`);
-        if (!refuses && moved) fail(`⛔ .5.4a HOLE — ${k}: the figure moves and the claim still says yes`);
+        const answers = new Set([...byStrategy.values()].map((at) => [...at.refused][0]));
+        const questions: [string, boolean, boolean][] =
+          answers.size === 1
+            ? [[key, [...answers][0], [...byStrategy.values()].some((at) => at.moved)]]
+            : [...byStrategy].map(([strategy, at]) => [`${key} · on ${strategy}`, [...at.refused][0], at.moved]);
+        for (const [k, refuses, moved] of questions) {
+          judged.add(`${k} · on ${tier}`);
+          if (ACCEPTED_OVER.has(k) || (tier === 'free' && ACCEPTED_OVER_ON_FREE.has(k))) {
+            eq(refuses && !moved, true, `⛔ .5.4d — ${k} · on ${tier} is listed as an ACCEPTED over-suppression and is no longer one`);
+            continue;
+          }
+          if (refuses && !moved) fail(`⛔ .5.4a OVER-SUPPRESSION — ${k} · on ${tier}: the claim refuses and no shape's figure moves`);
+          if (!refuses && moved) fail(`⛔ .5.4a HOLE — ${k} · on ${tier}: the figure moves and the claim still says yes`);
+        }
       }
     }
-    for (const key of ACCEPTED_OVER) eq(judged.has(key), true, `⛔ .5.4d — ACCEPTED_OVER names ${key}, which no surface × variant produces`);
+    for (const tier of TIERS) {
+      for (const key of ACCEPTED_OVER) eq(judged.has(`${key} · on ${tier}`), true, `⛔ .5.4d — ACCEPTED_OVER names ${key}, which no surface × variant produces on ${tier}`);
+    }
+    for (const key of ACCEPTED_OVER_ON_FREE) eq(judged.has(`${key} · on free`), true, `⛔ L3-2 — ACCEPTED_OVER_ON_FREE names ${key}, which no surface × variant produces on free`);
 
     // ⚠️ The split `C3-9` rests on: a lost APR moves every projection and says nothing about the balances.
     eq(mayClaim(withApr('n/a'), 'debt-balances'), true, '`debt-balances` still says YES on an unread APR — the confirmed figures survive');
-    eq(mayClaim(withApr('n/a'), 'projected-balance'), false, '⛔ C3-8 — …and the projected total may not be stated');
-    eq(mayClaim(withApr('n/a'), 'solved-projection'), false, '⛔ C3-9 — …nor the debt-free date');
+    // ⛔ [class 5 R2 `L3-2`] …on PREMIUM. `withApr` builds a FREE store, where the total is the anchor balance and no rate moves it:
+    // this line used to pin that over-suppression as `C3-8`'s closure.
+    const premiumApr: DebtStore = { ...withApr('n/a'), subscriptionPlan: 'premium' };
+    eq(mayClaim(premiumApr, 'projected-balance'), false, '⛔ C3-8 — …and on premium the projected total may not be stated');
+    eq(mayClaim(withApr('n/a'), 'projected-balance'), true, '⛔ L3-2 — …while a FREE total, which reads no rate, still may');
+    eq(mayClaim(withApr('n/a'), 'solved-projection'), false, '⛔ C3-9 — …nor the debt-free date on free');
+    eq(mayClaim(premiumApr, 'solved-projection'), false, '⛔ C3-9 — …nor the debt-free date on premium');
+
+    // ⛔ [class 5 R2 · SELF-INFLICTED in `030a312b`] A strategy or tier OUTSIDE its union survives `runMigrations`
+    // (`probe-842-context-normalisation`), and indexing the route tables with one threw inside `mayClaim`. It must read as the
+    // app reads it — `=== 'avalanche'`, `=== 'premium'` — so these are snowball · free, and never a throw.
+    const even: DebtStore = { ...withApr('n/a'), payoffStrategy: 'snowball', subscriptionPlan: 'free' };
+    for (const [payoffStrategy, subscriptionPlan] of [['foo', 'gold'], [42, null]] as const) {
+      const odd = { ...withApr('n/a'), payoffStrategy, subscriptionPlan } as unknown as DebtStore;
+      for (const claim of Object.keys(claimFields()) as (keyof ReturnType<typeof claimFields>)[]) {
+        let got: boolean | string;
+        try {
+          got = mayClaim(odd, claim);
+        } catch (e) {
+          got = `threw: ${(e as Error).message}`;
+        }
+        eq<boolean | string>(got, mayClaim(even, claim), `⛔ ${claim} on payoffStrategy=${String(payoffStrategy)} · subscriptionPlan=${String(subscriptionPlan)} — read as snowball · free, never thrown`);
+      }
+    }
   }
 
   /**

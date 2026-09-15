@@ -1,0 +1,13 @@
+plant=self-inflicted crash - the strategy read without normalising
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ paycheck-plan on payoffStrategy=foo · subscriptionPlan=gold — read as snowball · free, never thrown — expected true, got "threw: Cannot read properties of undefined (reading 'debt')"
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:39:9)
+    at eq (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:42:28)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:1140:9)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

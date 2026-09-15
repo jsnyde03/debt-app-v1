@@ -435,8 +435,9 @@ function DebtsSection({
    * balances carried forward — it reads no bill, goal or plan field — so refusing it over a lost goal target
    * blanked a figure nothing had moved. That was the first cut of this fix.
    *
-   * ⚠️ **Gated on `isPremium` too**: a free total is the raw anchor sum with no APR in it, and refusing
-   * that would be the over-suppression `snapshot.ts` calls a second false statement.
+   * ⛔ **[class 5 R2 `L3-2` · DECISION 🎯 2026-09-14] No `isPremium` here any more.** A free total is the raw anchor sum with
+   * no APR in it, and this line carried that fact as a conjunct Progress never copied — so Progress refused the same free
+   * `$12,000` Money stated. The tier now lives in `'projected-balance'`'s own route (`PROJECTED_BY_TIER`), which both ask.
    */
   const mayStateProjected = mayClaim(store, 'projected-balance');
 
@@ -462,7 +463,7 @@ function DebtsSection({
           value="Some balances unread"
           sub="set them again and your total comes back"
         />
-      ) : isPremium && !mayStateProjected ? (
+      ) : !mayStateProjected ? (
         /**
          * ⛔ **[pass-7 `C3-8`] The balances read fine; the PROJECTION cannot be trusted.**
          *

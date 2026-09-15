@@ -1,0 +1,12 @@
+plant=L3-5a surface - the cash-flow bars measured against a claim that does not route their inputs
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.test.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ .5.4a HOLE — projected-balance · Progress cash-flow bars · debt[0].minimumPayment LOST · on free: the figure moves and the claim still says yes
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:39:9)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:1108:34)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

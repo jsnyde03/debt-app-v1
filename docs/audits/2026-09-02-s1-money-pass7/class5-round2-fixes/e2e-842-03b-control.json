@@ -1,0 +1,7 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [],
+  "runs": [
+    {"name": "CONTROL L3-6 - C3-9 unplanted, waiting on the skiaReady footer", "spec": "progress-hero-journey.spec.ts", "grep": "C3-9 · an unread APR withholds the projected figures"}
+  ]
+}

@@ -1,0 +1,13 @@
+plant=L3-2 route - free routes the premium set (the registry's re-derived un-fix)
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ FX-1 · L3-2 — the containment lattice on snowball · free — expected "debt-balances ⊑ row-figures | goal-amounts ⊑ paycheck-plan | goal-amounts ⊑ row-figures | goal-amounts ⊑ solved-projection | paycheck-plan ⊑ row-figures | paycheck-plan ⊑ solved-projection | projected-balance ⊑ debt-balances | projected-balance ⊑ paycheck-plan | projected-balance ⊑ required-plan | projected-balance ⊑ row-figures | projected-balance ⊑ solved-projection | required-plan ⊑ paycheck-plan | required-plan ⊑ row-figures | required-plan ⊑ solved-projection | solved-projection ⊑ row-figures", got "debt-balances ⊑ row-figures | goal-amounts ⊑ paycheck-plan | goal-amounts ⊑ row-figures | goal-amounts ⊑ solved-projection | paycheck-plan ⊑ row-figures | paycheck-plan ⊑ solved-projection | projected-balance ⊑ row-figures | projected-balance ⊑ solved-projection | required-plan ⊑ paycheck-plan | required-plan ⊑ row-figures | required-plan ⊑ solved-projection | solved-projection ⊑ row-figures"
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:39:9)
+    at eq (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:42:28)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:372:9)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

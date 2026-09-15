@@ -922,6 +922,18 @@ lands. Source: [`audits/2026-08-28-s1-money-pass4/SYNTHESIS.md`](audits/2026-08-
   each engine does with `undefined`, which is more than a minor's budget in this round. ⚠️ Re-opening it
   should start by *measuring both engines on one store with the rate absent*, not by picking a default.
 
+- **Nothing normalises `payoffStrategy` or `subscriptionPlan` on the way in, and the two debt rankers disagree about a value
+  outside the union.** *(2026-09-14 · class-5 R2 8.4.2 before-scan)* `runMigrations` keeps `'foo'`, `42`, `'gold'`, `null`
+  as seeded ([`probe-842-context-normalisation`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-842-context-normalisation.ts)).
+  `rankDebts` reads non-`'snowball'` as avalanche; `selectActiveRecommendedActions` reads non-`'avalanche'` as snowball — so the
+  Guardian's focus and the suggested move can name different debts on such a store. ⚠️ The disagreement is read, not
+  measured: the probe's two-debt fixture ranks Visa first under both orders. The trust route already normalises (`contextOf`).
+  → **measure first**, then normalise at the one door, where `readMoney` normalises money.
+- **Free reads the cushion line in some places and the fixed buffer in others.** *(2026-09-14 · 8.4.2's tier sweep)*
+  `effectivePaycheckBuffer` gives free `BASE_PAYCHECK_BUFFER`, yet free Affordability and the Guardian brief move on a lost
+  `cushionFloor`, which the cash-flow bars, forecast, payoff family and hero do not. Two floors on one tier. → **measure which
+  floor each free surface states**, then decide whether that is a product rule or a defect.
+
 ### ⤵ surfaced by `S1.13.7.8`'s before/after scans, 2026-09-01 — routed per bullet
 
 - **A debt added by hand never gets an `originalDueDate`, so a bill due the 31st drifts to the 28th and

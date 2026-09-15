@@ -1,0 +1,12 @@
+== app plants (1) ==
+  plant apps/rn/src/app/(tabs)/progress.tsx: anchor count=1 :: '        unread={!mayStateSolved}'
+  applied apps/rn/src/app/(tabs)/progress.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 67s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=21084 listening=True ==
+
+-- RUN E-L3-5a revert - the cash-flow section asks nothing again :: progress-hero-journey.spec.ts -g 'Progress charts no cash flow over a minimum'
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:265:5 › class 5 R2 · L3-5a · Progress charts no cash flow over a minimum the app could not read (16.0s) | Error: the honest state, by name | [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/app/(tabs)/progress.tsx: cmp identical=True

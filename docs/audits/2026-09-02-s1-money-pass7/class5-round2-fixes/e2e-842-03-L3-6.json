@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/app/(tabs)/progress.tsx", "    () => (mayClaim(store, 'solved-projection') ? rawView : gagBalanceDerived(rawView)),", "    () => (mayClaim(store, 'debt-balances') ? rawView : gagBalanceDerived(rawView)),"]
+  ],
+  "runs": [
+    {"name": "E-L3-6 revert - exactly round 1's :158 plant, the view gag back on 'debt-balances'", "spec": "progress-hero-journey.spec.ts", "grep": "C3-9 · an unread APR withholds the projected figures"}
+  ]
+}

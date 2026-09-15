@@ -25,7 +25,8 @@ import { selectJourneyTotals } from '@/store/journeySelectors';
 import { gagBalanceDerived, selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { selectOnPlanStreakLabel } from '@/store/planSelectors';
 import { effectivePaycheckBuffer } from '@/store/selectors';
-import { hasUnreadDebtBalances, mayClaim } from '@/store/trustSelectors';
+import { hasUnreadDebtBalances, mayClaim, repairsPoisoning } from '@/store/trustSelectors';
+import { unreadInputsFix } from '@/components/plan/dataRepairsCopy';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
@@ -351,6 +352,7 @@ export default function ProgressScreen() {
    * ⚠️ And the withheld sentence is chosen by WHICH claim failed, not by the branch — naming balances when
    * only the APR was unreadable would be a second false statement.
    */
+  // ⛔ [class 5 R2 `L3-2`] No tier check here, deliberately: `'projected-balance'` routes by tier, because a free balance is never projected.
   const lineReadable = journey.lineIsProjected ? mayStateProjectedTotal : mayStateBalances;
   const journeyLine = lineReadable
     ? journey.line
@@ -451,7 +453,13 @@ export default function ProgressScreen() {
         </View>
       </LinearGradient>
 
-      <CashFlowSection cycles={cashCycles} floor={cushionFloor} />
+      <CashFlowSection
+        cycles={cashCycles}
+        floor={cushionFloor}
+        // ⛔ [class 5 R2 `L3-5a`] The Cushion Forecast's own claim, for the same selector family.
+        unread={!mayStateSolved}
+        unreadFix={unreadInputsFix(repairsPoisoning(store, 'solved-projection'), 'and your cash flow comes back')}
+      />
 
       {/* 3.5.5.4 — the scrub is the premium interaction on this screen and it is invisible until touched.
           ⛔ [V2-6 · P6.8.9.7.3] THE TARGET MOVED INSIDE `TrajectoryChart`, onto the scrub surface itself.

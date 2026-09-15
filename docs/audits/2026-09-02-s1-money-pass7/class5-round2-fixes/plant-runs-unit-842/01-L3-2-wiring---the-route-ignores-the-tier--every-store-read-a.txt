@@ -1,0 +1,12 @@
+plant=L3-2 wiring - the route ignores the tier (every store read as premium)
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ .5.4a OVER-SUPPRESSION — projected-balance · Money's total · debt[0].minimumPayment LOST · on free: the claim refuses and no shape's figure moves
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:39:9)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:1107:34)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

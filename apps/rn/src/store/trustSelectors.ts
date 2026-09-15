@@ -1,4 +1,4 @@
-import type { DataRepair, Debt, DebtStore, PayoffStrategy } from '@/data/models';
+import type { DataRepair, Debt, DebtStore, PayoffStrategy, SubscriptionPlan } from '@/data/models';
 
 import { confirmedBalance } from './balanceSelectors';
 
@@ -314,26 +314,61 @@ const RANKED_BY: Record<PayoffStrategy, ClaimRoute> = {
   avalanche: { debt: ['apr'] },
 };
 
-/** The route one claim takes for one entity on a store with this strategy: `CLAIM_FIELDS`, plus `RANKED_BY` for `'paycheck-plan'`. */
-function routeFor(claim: MoneyClaim, strategy: PayoffStrategy, entity: DataRepair['entity']): 'any' | readonly string[] | undefined {
-  const base = CLAIM_FIELDS[claim][entity];
-  const ranked = claim === 'paycheck-plan' ? RANKED_BY[strategy][entity] : undefined;
+/**
+ * ⛔ **[class 5 R2 `L3-2` · DECISION 🎯 2026-09-14] WHAT A PROJECTED BALANCE READS, BY TIER — `'projected-balance'`'s route.**
+ *
+ * `withProjectedBalances` returns a FREE store unchanged, so on free the "projected" total is the anchor balance and reads no
+ * APR and no minimum. The route did not know that, so Progress refused a free user's *"$12,000 to go"* over a lost APR that
+ * cannot move it — while Money stated `$12,000` through its own `isPremium &&` conjunct: one store, two answers, and the tier
+ * decided in two places. ⚡ Measured per tier (`probe-842-progress-by-tier`): premium exact on the full route (0 · 0), free on
+ * the balance alone. The tier lives HERE now, and `money.tsx`'s copy is gone.
+ *
+ * ⚠️ `premium` REFERENCES the table's entry rather than restating it — one copy, which `lint:trust-claims` still reads.
+ */
+const PROJECTED_BY_TIER: Record<SubscriptionPlan, ClaimRoute> = {
+  free: { debt: ['balance'] },
+  premium: CLAIM_FIELDS['projected-balance'],
+};
+
+/** The store facts a route depends on. Spelled exactly as the app derives them, so the route and the screens cannot disagree. */
+type RouteContext = { strategy: PayoffStrategy; tier: SubscriptionPlan };
+
+/**
+ * ⚠️ **Normalised, not trusted.** A value outside either union would index `RANKED_BY` / `PROJECTED_BY_TIER` to `undefined`. The
+ * app's own derivations are `subscriptionPlan === 'premium'` (every `withProjectedBalances` caller) and `payoffStrategy ===
+ * 'avalanche'` (`selectActiveRecommendedActions`' APR sort), so the route reads the same two comparisons.
+ */
+function contextOf(store: DebtStore): RouteContext {
+  return {
+    strategy: store.payoffStrategy === 'avalanche' ? 'avalanche' : 'snowball',
+    tier: store.subscriptionPlan === 'premium' ? 'premium' : 'free',
+  };
+}
+
+/** The route one claim takes for one entity in this context: the tiered or tabled base, plus `RANKED_BY` for `'paycheck-plan'`. */
+function routeFor(claim: MoneyClaim, ctx: RouteContext, entity: DataRepair['entity']): 'any' | readonly string[] | undefined {
+  const base = claim === 'projected-balance' ? PROJECTED_BY_TIER[ctx.tier][entity] : CLAIM_FIELDS[claim][entity];
+  const ranked = claim === 'paycheck-plan' ? RANKED_BY[ctx.strategy][entity] : undefined;
   if (!ranked || base === 'any') return base;
   if (ranked === 'any' || !base) return ranked;
   return [...base, ...ranked];
 }
 
 /**
- * Every claim's route under one strategy, for the lattice and the sweep in `trustSelectors.test.ts`. ⚠️ `claimFields()` stays
- * the strategy-free table `lint:trust-claims` reads, and the test pins it equal to snowball's route.
+ * Every claim's route in one context, for the lattice and the sweep in `trustSelectors.test.ts`. ⚠️ `claimFields()` stays the
+ * table `lint:trust-claims` reads, and the test pins it equal to the snowball · premium route.
  */
-export function claimFieldsFor(strategy: PayoffStrategy): Record<MoneyClaim, ClaimRoute> {
+export function claimFieldsFor(ctx: RouteContext): Record<MoneyClaim, ClaimRoute> {
   const out = {} as Record<MoneyClaim, ClaimRoute>;
   for (const claim of Object.keys(CLAIM_FIELDS) as MoneyClaim[]) {
     const route: ClaimRoute = {};
-    const entities = new Set([...Object.keys(CLAIM_FIELDS[claim]), ...(claim === 'paycheck-plan' ? Object.keys(RANKED_BY[strategy]) : [])]);
+    const entities = new Set([
+      ...Object.keys(CLAIM_FIELDS[claim]),
+      ...(claim === 'projected-balance' ? Object.keys(PROJECTED_BY_TIER[ctx.tier]) : []),
+      ...(claim === 'paycheck-plan' ? Object.keys(RANKED_BY[ctx.strategy]) : []),
+    ]);
     for (const entity of entities as Set<DataRepair['entity']>) {
-      const fields = routeFor(claim, strategy, entity);
+      const fields = routeFor(claim, ctx, entity);
       if (fields) route[entity] = fields;
     }
     out[claim] = route;
@@ -346,6 +381,11 @@ export function payoffStrategies(): PayoffStrategy[] {
   return Object.keys(RANKED_BY) as PayoffStrategy[];
 }
 
+/** The tiers `PROJECTED_BY_TIER` is exhaustive over — likewise. */
+export function subscriptionTiers(): SubscriptionPlan[] {
+  return Object.keys(PROJECTED_BY_TIER) as SubscriptionPlan[];
+}
+
 /**
  * ⚠️ A repair whose field is parenthesised — `(a row could not be read)`, `(whole list unreadable)` — names
  * no field because there was nothing left to name. Those are the LOUDEST losses, so they poison every
@@ -354,9 +394,9 @@ export function payoffStrategies(): PayoffStrategy[] {
  * ⚠️ `recovered` is excluded here for the same reason `hasUnreadDebtBalances` excludes it, and the reason
  * is load-bearing in both directions — see that docblock.
  */
-function poisons(r: DataRepair, claim: MoneyClaim, strategy: PayoffStrategy): boolean {
+function poisons(r: DataRepair, claim: MoneyClaim, ctx: RouteContext): boolean {
   if (r.kind === 'recovered') return false;
-  const fields = routeFor(claim, strategy, r.entity);
+  const fields = routeFor(claim, ctx, r.entity);
   if (!fields) return false;
   if (isWholeRowLoss(r)) return true;
   return fields === 'any' || fields.includes(r.field);
@@ -410,7 +450,8 @@ export function mayClaim(store: DebtStore, claim: MoneyClaim): boolean {
  * *"every balance is cleared"* over debts still owed.
  */
 export function repairsPoisoning(store: DebtStore, claim: MoneyClaim): DataRepair[] {
-  return store.pendingDataRepairs.filter((r) => poisons(r, claim, store.payoffStrategy));
+  const ctx = contextOf(store);
+  return store.pendingDataRepairs.filter((r) => poisons(r, claim, ctx));
 }
 
 /**
@@ -449,7 +490,7 @@ export function rowFieldUnread(
   id: string,
   ...fields: string[]
 ): boolean {
-  const asked = routedSubset(claim, store.payoffStrategy, entity, fields);
+  const asked = routedSubset(claim, contextOf(store), entity, fields);
   return unreadFieldsFor(store, entity, id).some((f) => asked.includes(f) || isWholeRowLossField(f));
 }
 
@@ -470,16 +511,16 @@ export function anyRowFieldUnread(
   entity: DataRepair['entity'],
   ...fields: string[]
 ): boolean {
-  const asked = routedSubset(claim, store.payoffStrategy, entity, fields);
+  const asked = routedSubset(claim, contextOf(store), entity, fields);
   return store.pendingDataRepairs.some(
     (r) => r.entity === entity && r.kind !== 'recovered' && (isWholeRowLoss(r) || asked.includes(r.field)),
   );
 }
 
 /** What this claim actually routes for this entity, intersected with what the call site asked for. */
-function routedSubset(claim: MoneyClaim, strategy: PayoffStrategy, entity: DataRepair['entity'], fields: string[]): string[] {
+function routedSubset(claim: MoneyClaim, ctx: RouteContext, entity: DataRepair['entity'], fields: string[]): string[] {
   // ⛔ [class 5 R2 `FX-1`] Through `routeFor`, so a row asks the same route `mayClaim` does — never the table alone.
-  const routed = routeFor(claim, strategy, entity);
+  const routed = routeFor(claim, ctx, entity);
   if (!routed) return [];
   return routed === 'any' ? fields : fields.filter((f) => routed.includes(f));
 }

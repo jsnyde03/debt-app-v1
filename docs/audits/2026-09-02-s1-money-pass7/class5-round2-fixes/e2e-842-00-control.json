@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [],
+  "runs": [
+    {"name": "CONTROL 8.4.2 - progress-hero-journey.spec.ts, unplanted", "spec": "progress-hero-journey.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.2 - data-recovery.spec.ts, unplanted (Money's conjunct removed)", "spec": "data-recovery.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.2 - trust-claims.spec.ts, unplanted (the route gained a tier)", "spec": "trust-claims.spec.ts", "grep": "."}
+  ]
+}

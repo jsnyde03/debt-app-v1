@@ -1,0 +1,12 @@
+== app plants (1) ==
+  plant apps/rn/src/app/(tabs)/progress.tsx: anchor count=1 :: "    () => (mayClaim(store, 'solved-projection') ? rawView : gagBalanceDerived(rawView)),"
+  applied apps/rn/src/app/(tabs)/progress.tsx: changed=True
+== export:web --clear ==
+  export exit=0 in 64s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=20980 listening=True ==
+
+-- RUN E-L3-6 revert - exactly round 1's :158 plant, the view gag back on 'debt-balances' :: progress-hero-journey.spec.ts -g 'C3-9 · an unread APR withholds the projected figures'
+   exit=0 :: ok 1 [desktop-chrome] › apps\rn\tests\e2e\progress-hero-journey.spec.ts:295:5 › C3-9 · an unread APR withholds the projected figures and KEEPS the confirmed ones (1.5s) | 1 passed (3.5s)
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/app/(tabs)/progress.tsx: cmp identical=True
