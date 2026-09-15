@@ -1,0 +1,26 @@
+
+> debt-app-v1@1.6.0 prove:guards
+> tsx scripts/prove-guards.ts --id=S1P4-C4-2-MEMBERSHIP,S1P4-C4-7-SURFACES,S1P3-C1-ROWFIGURES,S1P3-G4-PLANROUTE,S1P4-F-B4-CLASS,S1P4-ACK-DOES-NOT-VERIFY,S1P5-B5-7-ANSWERABLEID,S1P6-C2-3-CONVERTFIELDS-E2E,S1P6-A1-3-CENTSARITY,S1P6-B1-4-LEDGER-NOT-BAN,S1P7-U11-WELDED-TOKEN,S1P7-57-2B-CLAIM-LATTICE,S1P7-57-3-FREE-C3-8-TWIN,S1P7-57-5-HERO-FIT-WEB,S1P7-57-5-HERO-ALL-MONTHS
+
+  ✅ S1P4-C4-2-MEMBERSHIP       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P4-C4-7-SURFACES         plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P3-C1-ROWFIGURES         plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P3-G4-PLANROUTE          plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P4-F-B4-CLASS            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P4-ACK-DOES-NOT-VERIFY   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P5-B5-7-ANSWERABLEID     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P6-C2-3-CONVERTFIELDS-E2E plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P6-A1-3-CENTSARITY       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P6-B1-4-LEDGER-NOT-BAN   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-U11-WELDED-TOKEN      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-57-2B-CLAIM-LATTICE   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-57-3-FREE-C3-8-TWIN   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-57-5-HERO-FIT-WEB     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-57-5-HERO-ALL-MONTHS  plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+
+  📌 recorded 15 execution(s). 9 proof(s) remain never-executed —
+     set `MAX_AUTHORED = 9` in scripts/check-finding-guards.ts, in this same edit.
+     ⚠️ Until you do, lint:finding-guards reds, and so does every gate that runs it as a control.
+
+✅ prove:guards — 15 guard(s) red on their own defect, and the control is green.
+

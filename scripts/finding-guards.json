@@ -738,8 +738,8 @@
       ],
       "run": "test:app",
       "expect": "the trophy shelf",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P4-C4-7-SURFACES": {
@@ -756,8 +756,8 @@
       ],
       "run": "test:app",
       "expect": "the mount in app/(tabs)/index.tsx asks the claim owner",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P4-C4-10-NAMEDONLY": {
@@ -1044,8 +1044,8 @@
         "C-1"
       ],
       "expect": "a debt row does not restate an APR",
-      "measured": "2026-09-14",
-      "sha": "abc4477b"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P3-C1-GATE": {
@@ -1451,8 +1451,8 @@
       ],
       "run": "test:app",
       "expect": "an unread BALANCE poisons the plan claim",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
@@ -1824,8 +1824,8 @@
       ],
       "run": "test:app",
       "expect": "owner · a whole ROW unreadable",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P4-C4-9-MIXED": {
@@ -1867,8 +1867,8 @@
       ],
       "run": "test:app",
       "expect": "the record SURVIVES the acknowledgement",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P5-A5-2-NONFINITE": {
@@ -2065,8 +2065,8 @@
       ],
       "run": "test:app",
       "expect": "is not an ANSWER to an unreadable balance",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P5-D5-9-CAPWRAP": {
@@ -2691,8 +2691,8 @@
         "C2-3"
       ],
       "expect": "waiting for getByRole('switch', { name: 'Autopay' })",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P6-C1-6-AMOUNTCOLLAPSE": {
@@ -3079,8 +3079,8 @@
         "plan-hero-conserves.spec.ts"
       ],
       "expect": "must add up",
-      "measured": "2026-09-13",
-      "sha": "71ab1686"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P6-A3-15-PARTITIONSIDE": {
@@ -3313,8 +3313,8 @@
       ],
       "run": "test:app",
       "expect": "the owner docblock states what",
-      "measured": "2026-09-13",
-      "sha": "a6017abc"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P6-B2-1-D9-FENCES-PAYWALL": {
@@ -3634,8 +3634,8 @@
       ],
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -4371,8 +4371,8 @@
       ],
       "run": "test:app",
       "expect": "the claim containment lattice is the one measured at .5.7",
-      "measured": "2026-09-14",
-      "sha": "abc4477b",
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9",
       "proofNote": "The first un-fix (required-plan += apr) redded FIRST on requiredPlanTrust's \"G-4 control\" under the full test:app - an earlier test pinning that exact route - so it was not attributable to this guard. This un-fix was measured against the full suite to be seen by the lattice assertion first."
     }
   },
@@ -4453,8 +4453,8 @@
         "C3-8 · a FREE user"
       ],
       "expect": "C3-8 · a FREE user",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P7-57-3-WIDGET-DIRECTION": {
@@ -4725,8 +4725,8 @@
       ],
       "expect": "is clipped vertically at 320pt",
       "proofNote": "HOST-DEPENDENT: reds under a face as wide as Segoe UI or Arial. Under Roboto nothing clips at 26px, so on a Roboto host this plant can go green; the all-months entry is the one that reds on either.",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   },
   "S1P7-57-5-HERO-ALL-MONTHS": {
@@ -4753,8 +4753,8 @@
       ],
       "expect": "\"September\" is",
       "proofNote": "RUN-DATE AND HOST DEPENDENT by construction: ~20.56px fits 'November' but not 'September' in Segoe UI. It proves the all-months check catches a month the hero is not showing; re-measure it when the hero's month or the host's face changes.",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "6ae44bf9"
     }
   }
 }

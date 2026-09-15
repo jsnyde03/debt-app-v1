@@ -1,0 +1,21 @@
+
+> debt-app-v1@1.6.0 test:wrap-escapes
+> tsx scripts/test-wrap-escapes.ts
+
+  ✅ check-amount-collapse.ts #1  wrapped-plant=MATCHED · restored=YES
+  ✅ check-amount-collapse.ts #2  wrapped-plant=MATCHED · restored=YES
+  ✅ check-contrast.ts #1         wrapped-plant=MATCHED · restored=YES
+  ✅ check-contrast.ts #2         wrapped-plant=MATCHED · restored=YES
+  ✅ check-contrast.ts #3         wrapped-plant=MATCHED · restored=YES
+  ✅ check-finding-guards.ts      wrapped-plant=MATCHED · restored=YES
+  ✅ check-fixture-dates.ts       wrapped-plant=MATCHED · restored=YES
+  ✅ check-glossary.ts            wrapped-plant=MATCHED · restored=YES
+  ✅ check-local-dates.ts         wrapped-plant=MATCHED · restored=YES
+  ✅ check-month-arithmetic.ts    wrapped-plant=MATCHED · restored=YES
+  ✅ check-rounding.ts #1         wrapped-plant=MATCHED · restored=YES
+  ✅ check-rounding.ts #2         wrapped-plant=MATCHED · restored=YES
+  ✅ check-sandbox-writes.ts      wrapped-plant=MATCHED · restored=YES
+  ✅ check-store-id-writes.ts     wrapped-plant=MATCHED · restored=YES
+  ✅ check-trust-claims.ts        wrapped-plant=MATCHED · restored=YES
+
+✅ wrap-escapes: 11 wrap-sensitive gate(s) · 15 matcher recipes — 12 red on the WRAPPED spelling of their own defect, 3 GREEN on correct code a formatter produced · 9 also planted UNWRAPPED here, 6 by test:gate-plants · 13 per-line by design · ⛔ 0 MEASURED BLIND, awaiting fix · ⚠️ 12 per-line and NOT YET REVIEWED (downward-only).

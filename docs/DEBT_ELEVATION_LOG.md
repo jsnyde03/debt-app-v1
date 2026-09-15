@@ -36199,6 +36199,34 @@ ${o.paychecks} paychecks at the rate the engine funds"*) and its `expect` — `B
 — is the interpolated message of the CAPACITY assertion at `:171`. Three assertions in one loop, the entry naming two different
 ones, so `:171` and the pace assertion `:172` delete with the token still found.
 
+**`F6` holds** (read after the lint run that plants into these files finished): the exact-count branch
+(`check-trust-claims.ts:560`), the dropped-row branch (`:565`) and both conjunct orders (`covers(b, a) || covers(a, b)`, `:605`) all
+exist, and `test-gate-plants.ts` plants one direction per scan (`:668` `[debt-spread]`, `:685` `[vacuous-conjunct]`).
+
+### ✅ `.12.6.5.8.4.2` CLOSED — Progress asks its claims; the tier lives in the route · 2026-09-14
+
+**Built** (`6ae44bf9`): `L3-5a`/`L3-5b` `CashFlowSection` asks `'solved-projection'` through required props, with a named-fix honest
+state · `L3-2` `PROJECTED_BY_TIER` + `contextOf` in `trustSelectors.ts` (🎯), `money.tsx`'s `isPremium &&` deleted · `L3-6`
+`C3-9`'s e2e asserts the saving and minimums curve absent, waiting on `skiaReady`'s footer · the sweep is tier × strategy with
+Progress's three surfaces and `ACCEPTED_OVER_ON_FREE` (🎯) · the lattice pinned per strategy × tier · `C3-8` asserted both ways ·
+a regression test for `030a312b`'s crash · `S1P7-57-3-FREE-C3-8-TWIN`'s un-fix re-derived into the route.
+
+**Proven:** typecheck clean · `test:app` ALL PASSED · e2e controls `progress-hero-journey` 12/12 · `data-recovery` 24/24 ·
+`trust-claims` 27/27 · **unit plants 5/5** *(tier ignored → OVER on free · free routes premium → lattice · strategy
+un-normalised → `threw: Cannot read properties of undefined (reading 'debt')` · one tier → guard · cash bars on the wrong claim →
+HOLE)* · **e2e plants 3/3** *(`:243` L3-2 · `:268` L3-5a · `:331` L3-6, after the green-plant fix)* · full `lint:rn` 49/52 at
+the commit, the 3 red being the stale-proof ceiling (14 > 8) and its cascade — every `test:gate-plants` failure had
+`control=exit 1`, `test:wrap-escapes` read `FAULT-BASELINE-ALREADY-RED`.
+
+**The drain** (`drain-842/`): committing staled exactly the 3 the gate had warned of (17); **15 of 15 re-proved MATCHED** against
+`6ae44bf9` and recorded. After it: `lint:finding-guards` ✅ **stale 2 · authored 9** (the two pre-existing `S1-ROUTE-*`, filed to class
+9), `test:gate-plants` and `test:wrap-escapes` ✅. ⚡ **Order learned:** a proof records the committed HEAD, so a drain run before
+the code commit re-stales at that commit — commit, drain, then commit the ledger.
+
+⚡ **After-scan.** Self-inflicted this sub-step: an unused helper (eslint), and `L3-6`'s blind first test — both caught before
+push, the second only by planting. Carried forward, all logged above: `FX-3` and `FX-4` → 8.4.3 · the reserve-release card's
+claimless avalanche lead → 8.4.4 · normalisation and two-floor items → backlog.
+
 Two expected reds from the build: the suite's `C3-8` pin *"a lost APR refuses the projected total"* sat on a store that is
 FREE by default — the `L3-2` over-suppression written into the suite; and `S1P7-57-3-FREE-C3-8-TWIN`'s un-fix anchored on the
 deleted conjunct, now VOID, with 13 proofs stale against a ceiling of 8.

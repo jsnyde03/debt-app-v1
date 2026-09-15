@@ -1,0 +1,42 @@
+
+> debt-app-v1@1.6.0 test:gate-plants
+> tsx scripts/test-gate-plants.ts
+
+
+  gate plants — 30 scenarios, each proving its gate fails CLOSED
+
+  ✅ lint:month-arithmetic      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:local-dates           plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:glossary              plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:a11y-props            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:type-scale            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:destructive           plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setUTCMonth] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setFullYear] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [setUTCFullYear] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:month-arithmetic [constructorOverflow] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:copy [GAP-15-self-check] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+warning: in the working copy of 'apps/rn/src/store/__gate_plant_unwired__.test.ts', LF will be replaced by CRLF the next time Git touches it
+  ✅ lint:runner-completeness   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+warning: in the working copy of 'packages/core/__gate_plant_staged__.ts', LF will be replaced by CRLF the next time Git touches it
+  ✅ lint:secrets [D3-4-blob]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [D3-3] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [projected] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [M7]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [M6]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:cap-literals          plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [S1.11.3.2-void] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [R3-3-borrow] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [R5-2-boundary] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:finding-guards [M8]   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:s1-coverage [M9-vocab] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:s1-coverage [D69-inventory] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:secrets [M10-authoring] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:money [B1-multiline-intl] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:secrets [A3-modified-tracked] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:trust-claims [debt-spread] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:trust-claims [vacuous-conjunct] plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ lint:store-id-writes       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+
+✅ test:gate-plants — all 30 gates fail closed on a planted defect.
+
