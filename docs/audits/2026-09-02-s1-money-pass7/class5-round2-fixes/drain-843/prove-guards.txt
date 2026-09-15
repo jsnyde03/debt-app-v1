@@ -1,0 +1,32 @@
+
+> debt-app-v1@1.6.0 prove:guards
+> tsx scripts/prove-guards.ts --id=S1P4-C4-2-MEMBERSHIP,S1P3-C1-ROWFIGURES,S1P3-G4-PLANROUTE,S1P4-F-B4-CLASS,S1P4-ACK-DOES-NOT-VERIFY,S1P5-B5-7-ANSWERABLEID,S1P6-A3-3-UPDATE-BY-ID,S1P6-B1-4-LEDGER-NOT-BAN,S1P7-U11-WELDED-TOKEN,S1P7-C3-14-GOALS-HERO-COUNT,S1P7-57-2B-CLAIM-LATTICE,S1P7-57-3-FREE-C3-8-TWIN,S1P7-57-4A2-REPLAY-ONCE,S1P7-57-4A2-CARRY-REPLACEMENTS,S1P6-C3-6-DATED-TAP,S1P6-C3-6-HANDLED-NO-REFUSAL
+
+  ✅ S1P4-C4-2-MEMBERSHIP       plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P3-C1-ROWFIGURES         plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P3-G4-PLANROUTE          plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P4-F-B4-CLASS            plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P4-ACK-DOES-NOT-VERIFY   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ❌ S1P5-B5-7-ANSWERABLEID     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=WRONG
+       ⛔ [class 5 R2 FX-4, 2026-09-14: the un-fix is re-derived onto the line FX-4 rewrote - the same name-for-id revert, beside the new app-written plan claus
+       ⛔ it redded, but not for "is not an ANSWER to an unreadable balance" — the red is not attributable to this defect.
+         │ ❌ App-layer regression run failed: Error: FAIL [⛔ FX-4 — typicalAmount: nothing the user can open writes it] expected "untracked", got "lost"
+  ✅ S1P6-A3-3-UPDATE-BY-ID     plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P6-B1-4-LEDGER-NOT-BAN   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ⚠️  S1P7-U11-WELDED-TOKEN: the control is red ONLY on the ledger ceilings this drain is lowering — proceeding.
+        • 11 executed proof(s) were measured against a tree their target has since left, and the ceiling is 8.
+  ✅ S1P7-U11-WELDED-TOKEN      plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-C3-14-GOALS-HERO-COUNT plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-57-2B-CLAIM-LATTICE   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-57-3-FREE-C3-8-TWIN   plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-57-4A2-REPLAY-ONCE    plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P7-57-4A2-CARRY-REPLACEMENTS plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P6-C3-6-DATED-TAP        plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+  ✅ S1P6-C3-6-HANDLED-NO-REFUSAL plant-applied=YES · planted=exit 1 · control=exit 0 · reason=MATCHED
+
+  📌 recorded 15 execution(s). 9 proof(s) remain never-executed —
+     set `MAX_AUTHORED = 9` in scripts/check-finding-guards.ts, in this same edit.
+     ⚠️ Until you do, lint:finding-guards reds, and so does every gate that runs it as a control.
+
+❌ prove:guards — 1 of 16 guard(s) did not hold.
+

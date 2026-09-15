@@ -739,7 +739,7 @@
       "run": "test:app",
       "expect": "the trophy shelf",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P4-C4-7-SURFACES": {
@@ -1045,7 +1045,7 @@
       ],
       "expect": "a debt row does not restate an APR",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P3-C1-GATE": {
@@ -1452,7 +1452,7 @@
       "run": "test:app",
       "expect": "an unread BALANCE poisons the plan claim",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P3-G5-SAVINGSPOOL": {
@@ -1825,7 +1825,7 @@
       "run": "test:app",
       "expect": "owner · a whole ROW unreadable",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P4-C4-9-MIXED": {
@@ -1868,7 +1868,7 @@
       "run": "test:app",
       "expect": "the record SURVIVES the acknowledgement",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P5-A5-2-NONFINITE": {
@@ -2052,7 +2052,7 @@
     }
   },
   "S1P5-B5-7-ANSWERABLEID": {
-    "what": "[class 5 R2 FX-4, 2026-09-14: the un-fix is re-derived onto the line FX-4 rewrote - the same name-for-id revert, beside the new app-written plan clause] pass-5 B5-7 (blocker) - answerableByEdit asked whether the row's NAME STRING was empty, not whether the repair names a row. A debt whose name key is absent/empty/non-string produces a repair with name: '' while the row still exists and is still editable, so one 'Got it' tap DELETED its unreadable-balance record: hasUnreadDebtBalances false, mayClaim('debt-balances') true, partitionDebts moved it to CLEARED - the app calling a debt whose balance it could not read paid off, unlocking the debt-free framing and the once-ever finale. A-J2-1 verbatim on the blank-name member. Asked of the id now. B5-8 folded in: dataRepairsCopy carried a second copy omitting isWholeRowLoss while the docblock claimed one producer.",
+    "what": "[class 5 R2 FX-4, 2026-09-14: the un-fix is re-derived onto the line FX-4 rewrote - the same name-for-id revert, beside the new app-written plan clause. 2026-09-15: SCOPED TO ROWS after the drain scored WRONG - every plan repair carries a name, so a bare !!r.name short-circuited the app-written clause and reverted FX-4 as well; FX-4's copy row, loading earlier in test:app, redded first] pass-5 B5-7 (blocker) - answerableByEdit asked whether the row's NAME STRING was empty, not whether the repair names a row. A debt whose name key is absent/empty/non-string produces a repair with name: '' while the row still exists and is still editable, so one 'Got it' tap DELETED its unreadable-balance record: hasUnreadDebtBalances false, mayClaim('debt-balances') true, partitionDebts moved it to CLEARED - the app calling a debt whose balance it could not read paid off, unlocking the debt-free framing and the once-ever finale. A-J2-1 verbatim on the blank-name member. Asked of the id now. B5-8 folded in: dataRepairsCopy carried a second copy omitting isWholeRowLoss while the docblock claimed one producer.",
     "file": "apps/rn/src/store/trustSelectors.test.ts",
     "token": "\"Got it\" is not an ANSWER to an unreadable balance on an editable row",
     "proof": {
@@ -2060,13 +2060,13 @@
         {
           "at": "apps/rn/src/store/trustSelectors.ts",
           "find": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.id || (r.entity === 'plan' && !isAppWrittenPlanRepair(r)));",
-          "replace": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.name || (r.entity === 'plan' && !isAppWrittenPlanRepair(r)));"
+          "replace": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && ((r.entity !== 'plan' && !!r.name) || (r.entity === 'plan' && !isAppWrittenPlanRepair(r)));"
         }
       ],
       "run": "test:app",
       "expect": "is not an ANSWER to an unreadable balance",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P5-D5-9-CAPWRAP": {
@@ -3295,8 +3295,8 @@
       ],
       "run": "test:app",
       "expect": "an unmatched updateExpense writes nothing",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "ddd88086"
     }
   },
   "S1P6-B1-4-LEDGER-NOT-BAN": {
@@ -3314,7 +3314,7 @@
       "run": "test:app",
       "expect": "the owner docblock states what",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P6-B2-1-D9-FENCES-PAYWALL": {
@@ -3635,7 +3635,7 @@
       "run": "lint:finding-guards",
       "expect": "ONLY IN A COMMENT",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P7-U12-CENSUS-BOTH-HELPERS": {
@@ -4317,8 +4317,8 @@
       ],
       "run": "test:app",
       "expect": "C3-14 — two unread targets are \"2 targets\", never \"one\"",
-      "measured": "2026-09-13",
-      "sha": "627b8ba5"
+      "measured": "2026-09-15",
+      "sha": "ddd88086"
     }
   },
   "S1P7-C3-2-SIRI-SWIFT-PREMIUM-FALLBACK": {
@@ -4372,7 +4372,7 @@
       "run": "test:app",
       "expect": "the claim containment lattice is the one measured at .5.7",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9",
+      "sha": "ddd88086",
       "proofNote": "The first un-fix (required-plan += apr) redded FIRST on requiredPlanTrust's \"G-4 control\" under the full test:app - an earlier test pinning that exact route - so it was not attributable to this guard. This un-fix was measured against the full suite to be seen by the lattice assertion first."
     }
   },
@@ -4454,7 +4454,7 @@
       ],
       "expect": "C3-8 · a FREE user",
       "measured": "2026-09-15",
-      "sha": "6ae44bf9"
+      "sha": "ddd88086"
     }
   },
   "S1P7-57-3-WIDGET-DIRECTION": {
@@ -4543,8 +4543,8 @@
       ],
       "run": "test:app",
       "expect": "a log-payment that outlives its drain is not applied again after a second drain",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "ddd88086"
     }
   },
   "S1P7-57-4A2-CARRY-REPLACEMENTS": {
@@ -4566,8 +4566,8 @@
       ],
       "run": "test:app",
       "expect": "a log-payment that outlives its drain is not applied again after restoring a backup",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "ddd88086"
     }
   },
   "S1P6-C3-6-DATED-TAP": {
@@ -4584,8 +4584,8 @@
       ],
       "run": "test:app",
       "expect": "drained after the next payday arrived, still roll once",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "ddd88086"
     }
   },
   "S1P6-C3-6-HANDLED-NO-REFUSAL": {
@@ -4602,8 +4602,8 @@
       ],
       "run": "test:app",
       "expect": "after an in-app capture or skip, a Lock Screen tap rolls",
-      "measured": "2026-09-14",
-      "sha": "497065f2"
+      "measured": "2026-09-15",
+      "sha": "ddd88086"
     }
   },
   "S1P6-C3-6-BUTTON-NAMES-PAYDAY": {

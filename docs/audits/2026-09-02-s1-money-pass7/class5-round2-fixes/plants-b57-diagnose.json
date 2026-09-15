@@ -1,0 +1,20 @@
+{
+  "control": {
+    "cmd": "npm run test:app",
+    "cwd": "C:/Users/Jason/debt-app-v1",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "B5-7 registry un-fix, reproduced with full output",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.id || (r.entity === 'plan' && !isAppWrittenPlanRepair(r)));",
+      "new": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.name || (r.entity === 'plan' && !isAppWrittenPlanRepair(r)));",
+      "cmd": "npm run test:app",
+      "cwd": "C:/Users/Jason/debt-app-v1",
+      "expect": [
+        "is not an ANSWER to an unreadable balance"
+      ]
+    }
+  ]
+}

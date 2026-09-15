@@ -36333,6 +36333,39 @@ your cushion line on your cushion line again"`, count 2 — round 1's exact sent
 **8.4.3's four build sub-steps are proven:** 17 plants in all — `FX-3`/`FX-4` 5 + 1 e2e · `L1-1` 6 · `L1-3` 3 · `L1-4`/`L1-5` 3.
 Close (8.4.3.5) runs next: the 15-spec e2e control, the full `lint:rn`, commit, and the drain.
 
+#### 8.4.3.5 — the close · 2026-09-15
+
+**Gates at the code commit** (`ddd88086`): e2e control **161/161** across the 15 specs that reach these surfaces · full `lint:rn`
+**52/52** · `test:app` and `test:regression` to their own summaries · typecheck core, rn, tests clean.
+
+**The drain:** committing staled **16** proofs (the gate's list, not my estimate of 17 — `A3-14` targets `buildGuardianBrief.ts`,
+which the commit did not touch). **15 of 16 MATCHED.** ⛔ **`S1P5-B5-7-ANSWERABLEID` scored `WRONG`, and the fault was MY re-derived
+un-fix.** The drain logs one line per proof, so the plant was replayed through `plant.py` with full output: its first red was
+`FX-4 — typicalAmount … expected "untracked", got "lost"`, in the repairs copy suite, which `test:app` loads before the trust suite.
+⚡ **Mechanism, read off the line:** the 8.4.3.1 re-derivation was `!!r.name || (r.entity === 'plan' && !isAppWrittenPlanRepair(r))`,
+and every plan repair carries a NAME (its label) — so `!!r.name` short-circuited the app-written clause and the un-fix reverted
+`FX-4` as well as `B5-7`. At 8.4.2's drain the same revert matched only because `FX-4` did not exist yet: **an un-fix stops being a
+single-defect plant the moment another fix shares its line.** Re-derived scoped to rows —
+`(r.entity !== 'plan' && !!r.name) || (r.entity === 'plan' && !isAppWrittenPlanRepair(r))`. An earlier-suite hypothesis was
+checked first and did not hold: no suite loading before the trust suite has an id-bearing, blank-name repair fixture.
+
+**After the re-derivation:** `B5-7` re-proved **MATCHED** and recorded, so all **16** proofs the commit moved stand at `ddd88086`.
+`lint:finding-guards` ✅ **stale 2 · authored 9** · `test:gate-plants` **30/30** · `test:wrap-escapes` ✅.
+
+### ✅ `.12.6.5.8.4.3` CLOSED — plan repairs answer honestly; a set `$0` line is honored · 2026-09-15
+
+`FX-3` + `FX-4` (🎯) · `L1-1` · `L1-3` (🎯) · `L1-4` · `L1-5`, in four build sub-steps and a close. **18 plants MATCHED** (17 unit, 1
+e2e) · e2e control **161/161** across 15 specs · `lint:rn` **52/52** · `test:app` and `test:regression` green · a **16-proof drain**,
+15 first time and `B5-7` after its un-fix was scoped. Code `ddd88086`; ledger and close in the commit after.
+
+⚡ **After-scan, whole item.** **Self-inflicted, all caught before anything was scored or pushed:** an undefined `assert` · `B5-7`'s
+un-fix anchored on a line `FX-4` rewrote (void, then over-reaching) · a JSON backslash turned into a carriage return · a runner
+guessed wrong twice about how its suite runs. ⚡ Every one was stopped by an instrument that already existed — typecheck, the ledger
+gate, a red CONTROL, the drain's reason scoring — and none by re-reading my own diff. **Tests that encoded the defect as a rule,
+re-pointed rather than deleted:** `testComputeState`'s `0 → 200` row, the timeline trio's fixed thresholds, and `C1-2`'s guard whose
+no-op control became an answer. **Carried forward:** 8.4.4's reserve-release lead; the free-tier two-floors and strategy-normalisation
+items already in the backlog. Nothing new filed.
+
 Two expected reds from the build: the suite's `C3-8` pin *"a lost APR refuses the projected total"* sat on a store that is
 FREE by default — the `L3-2` over-suppression written into the suite; and `S1P7-57-3-FREE-C3-8-TWIN`'s un-fix anchored on the
 deleted conjunct, now VOID, with 13 proofs stale against a ceiling of 8.

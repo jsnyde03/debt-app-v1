@@ -37,7 +37,7 @@ unchanged since `ea3f5e0e`, the round-1 pin.
 |---|---|---|---|
 | ✅ **8.4.1** | `L3-1a` **blocker** · `L3-1b` · `L3-4` + `FX-1` `FX-2` | L3 | **CLOSED 2026-09-14** — three claims per hero family, APR routed on avalanche; `L3-4`'s remedy was wrong twice. Record: log + [`class5-round2-fixes/`](class5-round2-fixes/) |
 | ✅ **8.4.2** | `L3-5a` · `L3-5b` · `L3-2` · `L3-6` | L3 | **CLOSED 2026-09-14** — the tier in the route, cash flow gated; `L3-6`'s first test raced the chart and was fixed. Also fixed: `030a312b`'s crash on a non-union strategy. Record: log |
-| **8.4.3** | `L1-1` · `L1-3` · `L1-4` · `L1-5` + `FX-3` `FX-4` | L1 · log | a plan repair at `$0` cannot be answered, and ⛔ `FX-3` a rollover clears a lost reserve balance nobody answered (one rule, both directions); band vs sentence on a `$0` line — 🎯 the band honors the set line; two unguarded closure halves |
+| ✅ **8.4.3** | `L1-1` · `L1-3` · `L1-4` · `L1-5` + `FX-3` `FX-4` | L1 · log | **CLOSED 2026-09-15** — one predicate for app-written plan fields, explicit setter answers, `computeState` honors a set `$0`. ⛔ A re-derived un-fix that shares a line with another fix reverts both: `B5-7` scored WRONG until scoped. Record: log |
 | **8.4.4** | `L1-R1` · `L1-2` | L1 | confirmed liveness vs the estimate's ranking — Money loses a debt; the reserve release names a skipped one |
 | **8.4.5** | `L2-1` · `L2-2` · `L2-3` | L2 | the dated tap after an in-window payday edit *(Swift)*; the 50-id cap; the dismissed-activity restart unpinned |
 | **8.4.6** | `F4` · `F6` | L4 | a proof whose red is not its token; two scans proven one direction each |
