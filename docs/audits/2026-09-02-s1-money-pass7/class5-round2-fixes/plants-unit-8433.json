@@ -1,0 +1,36 @@
+{
+  "control": {
+    "cmd": "npx tsx --tsconfig ./tsconfig.json ../../packages/core/guardian/testBuildGuardianBrief.ts && npx tsx --tsconfig ./tsconfig.json ../../packages/core/guardian/testComputeState.ts && npx tsx --tsconfig ./tsconfig.json ../../packages/core/testing/testMultiCycleTimelineRegression.ts && npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-guardian-selectors-test.ts",
+    "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "L1-3 revert - the band maps a set $0 line to $200 again (seen by the brief)",
+      "file": "C:/Users/Jason/debt-app-v1/packages/core/guardian/computeState.ts",
+      "old": "\treturn Number.isFinite(floor) && floor >= 0 ? floor : 200;",
+      "new": "\treturn Number.isFinite(floor) && floor > 0 ? floor : 200;",
+      "cmd": "npx tsx packages/core/guardian/testBuildGuardianBrief.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1",
+      "expect": ["L1-3 — $100 of headroom over a $0 line is CLEAR"]
+    },
+    {
+      "name": "L1-3 revert - the band maps a set $0 line to $200 again (seen by the state machine)",
+      "file": "C:/Users/Jason/debt-app-v1/packages/core/guardian/computeState.ts",
+      "old": "\treturn Number.isFinite(floor) && floor >= 0 ? floor : 200;",
+      "new": "\treturn Number.isFinite(floor) && floor > 0 ? floor : 200;",
+      "cmd": "npx tsx packages/core/guardian/testComputeState.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1",
+      "expect": ["L1-3 — a set $0 floor is honored"]
+    },
+    {
+      "name": "F4 divergence - the card alone keeps the $200 guard for a $0 line",
+      "file": "C:/Users/Jason/debt-app-v1/packages/core/guardian/buildGuardianBrief.ts",
+      "old": "  const state: GuardianState = shortfall > 0 ? \"at-risk\" : computeState(discretionary, floor, input.priorBand);",
+      "new": "  const state: GuardianState = shortfall > 0 ? \"at-risk\" : computeState(discretionary, floor === 0 ? 200 : floor, input.priorBand);",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-guardian-selectors-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-3 — the three producers agree on a $0 line"]
+    }
+  ]
+}

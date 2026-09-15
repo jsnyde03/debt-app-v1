@@ -126,6 +126,19 @@ function runGuardianTests() {
   assertTrue(Number.isFinite(nan.cushion) && Number.isFinite(nan.deployedToDebt) && Number.isFinite(nan.floor), "viz numbers are always finite");
   assertEqual(nan.floor, 200, "a NaN floor falls back to the $200 default");
 
+  // ⛔ [class 5 R2 `L1-3` · DECISION 🎯 2026-09-14] A LINE THE USER SET TO $0 IS THEIR LINE — the band honors it, so the band and the
+  // sentence read one floor. Round 1 measured "A little tight … just above your $0 line": the words said $0, the band $200.
+  const zeroLine = buildGuardianBrief(input({ floor: 0, discretionary: 100, kept: 100, deployedToDebt: 0 }));
+  assertEqual(zeroLine.floor, 0, "a deliberately set $0 line is kept, not substituted");
+  assertEqual(zeroLine.state, "clear", "⛔ L1-3 — $100 of headroom over a $0 line is CLEAR, not tight against a hidden $200");
+  // ⭐ Control: the same money over a $200 line really is under it.
+  assertTrue(buildGuardianBrief(input({ floor: 200, discretionary: 100, kept: 100, deployedToDebt: 0 })).state !== "clear", "⭐ L1-3 control — $100 over a $200 line is not clear");
+
+  // ⛔ [class 5 R2 `L1-5`] The flag rides with the figure in the one place the brief's numbers are assembled — asserted by nothing
+  // until now (round 1: `floorUnread` in 0 test files). Both directions.
+  assertEqual(buildGuardianBrief(input({ floor: 200, floorUnread: true })).floorUnread, true, "⛔ L1-5 — a substitute line is flagged on the brief");
+  assertEqual(buildGuardianBrief(input({ floor: 0 })).floorUnread, false, "⛔ L1-5 — …and a real line, even $0, is not");
+
   // ── heldReserve viz (2.4.6.1.5): exposed for the "Set aside" bar zone, clamped ≤ cushion ──
   const withReserve = buildGuardianBrief(input({ kept: 220, heldReserve: 20, deployedToDebt: 6 }));
   assertEqual(withReserve.heldReserve, 20, "heldReserve is exposed on the viz for the bar's set-aside zone");

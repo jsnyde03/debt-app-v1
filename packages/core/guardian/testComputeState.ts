@@ -38,7 +38,13 @@ check("at-risk→clear when > floor+BAND", computeState(260, 200, "at-risk") ===
 
 // ── guards ──
 check("NaN discretionary → treated as 0 → at-risk", computeState(NaN, 200) === "at-risk");
-check("non-positive floor falls back to 200", computeState(300, 0) === "clear" && computeState(150, 0) === "tight");
+// ⛔ [class 5 R2 `L1-3` · DECISION 🎯 2026-09-14] A FINITE $0 floor is a line the user SET and is honored; only a value that is no
+// line at all — NaN, Infinity, a negative — falls back to the $200 default. This row used to pin `0 → 200`, which WAS the defect:
+// the card said "just above your $0 line" while this band judged the same money against a hidden $200.
+check("NaN floor falls back to 200", computeState(300, NaN) === "clear" && computeState(150, NaN) === "tight");
+check("negative floor falls back to 200", computeState(150, -25) === "tight");
+check("L1-3 — a set $0 floor is honored: any headroom is clear", computeState(100, 0) === "clear" && computeState(0, 0) === "clear" && baseState(1, 0) === "clear");
+check("L1-3 — a $0 floor still takes hysteresis from a prior at-risk band", computeState(30, 0, "at-risk") === "at-risk" && computeState(60, 0, "at-risk") === "clear");
 
 if (failures === 0) console.log("✅ Guardian computeState (unified state machine) tests passed.");
 else {

@@ -1,0 +1,13 @@
+plant=FX-4 naive over-fix - every plan field treated as app-written
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ C1-2 — the plan is answerable: it has a sheet, even though it is not a ROW — expected true, got false
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:39:9)
+    at eq (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:42:28)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:731:5)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

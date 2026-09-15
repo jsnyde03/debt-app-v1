@@ -1,0 +1,9 @@
+== app plants (0) ==
+== export:web --clear ==
+  export exit=0 in 84s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=23656 listening=True ==
+
+-- RUN CONTROL 8.4.3.1 - data-recovery.spec.ts, unplanted (the untracked block added) :: data-recovery.spec.ts -g '.'
+   exit=0 :: ok  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:90:5 › a corrupt store does NOT drop the user into silent onboarding (1.4s) | ok  2 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:105:5 › B4 · TRUNCATED bytes are quarantined too, not read as a first launch (879ms) | ok  3 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:122:5 › the reset screen blocks onboarding until the user answers it (1.0s) | ok  4 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:137:5 › an unreadable balance is NAMED on Today, not silently filed as paid off (1.3s) | ok  5 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:161:5 › the notice survives a reload — it is not a one-session message (2.7s) | ok  6 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:188:5 › Money does not celebrate a portfolio it failed to read (974ms) | ok  7 [desktop-chrome] › 
+
+== server stopped; :4319 listening=False ==

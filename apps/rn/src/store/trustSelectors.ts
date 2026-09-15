@@ -1,3 +1,4 @@
+import type { REPAIRABLE_MONEY_FIELDS } from '@/data/migrations';
 import type { DataRepair, Debt, DebtStore, PayoffStrategy, SubscriptionPlan } from '@/data/models';
 
 import { confirmedBalance } from './balanceSelectors';
@@ -667,6 +668,32 @@ export function clearResuppliedRepairs(before: DebtStore, after: DebtStore): Deb
  * `dataRepairsCopy.ts` carried its own copy that omitted `isWholeRowLoss` entirely (`B5-8`), so the two
  * already disagreed while the comment said one was *"re-derived rather than re-invented"*.
  */
+type PlanMoneyField = (typeof REPAIRABLE_MONEY_FIELDS)['plan']['optional'][number];
+
+/**
+ * ⛔ **[class 5 R2 `FX-4` · DECISION 🎯 2026-09-14] WHO WRITES EACH PLAN FIELD — and so whether "set it again" can be true.**
+ *
+ * `C1-2` answered every plan repair as answerable on the premise, stated below, that the plan's fields *"every one have a real
+ * control"*. ⚡ Measured false for two (`probe-843-plan-promises`): nothing the user can open writes the bills-reserve BALANCE
+ * (`setExpenseReserveContribution` keeps it; rollover rewrites it) or the TYPICAL paycheck (only a restored file). So the card
+ * promised an action that does not exist — and (`FX-3`, `probe-843-reserve-balance-failopen`) the rollover that rewrites the balance
+ * read as the user answering, clearing a loss nobody re-supplied.
+ *
+ * ⚠️ An exhaustive `Record` over the plan's repairable fields: a sixth does not compile until someone says who writes it.
+ */
+const PLAN_FIELD_WRITER: Record<PlanMoneyField, 'user' | 'app'> = {
+  cushionFloor: 'user', // CushionFloorSheet
+  windfall: 'user', // WindfallSheet
+  leanAmount: 'user', // PaycheckSheet · PaycheckStep, through `updatePaycheck`
+  typicalAmount: 'app', // no control: only a restored file writes it
+  expenseReserveBalance: 'app', // rollover rewrites it; the user sets a contribution, never the balance
+};
+
+/** A plan repair on a field only the app writes: nothing to reopen, so only the acknowledgement can answer it. */
+export function isAppWrittenPlanRepair(r: DataRepair): boolean {
+  return r.entity === 'plan' && PLAN_FIELD_WRITER[r.field as PlanMoneyField] === 'app';
+}
+
 export function answerableByEdit(r: DataRepair): boolean {
   /**
    * ⛔ **`plan` IS ANSWERABLE AND WAS READ AS UNANSWERABLE, WHICH IS `C1-2`.**
@@ -684,7 +711,9 @@ export function answerableByEdit(r: DataRepair): boolean {
    * that is gone. The separating fact is the FIELD: those carry a parenthesised sentence, a plan repair
    * names a real field.
    */
-  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.id || r.entity === 'plan');
+  // ⛔ [class 5 R2 `FX-4`] …except a plan field only the app writes: nothing opens it, and `clearResuppliedRepairs`' moved-value
+  // rule would read the app's own rollover as the user's answer (`FX-3`). This test precedes that rule, so it can never fire.
+  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.id || (r.entity === 'plan' && !isAppWrittenPlanRepair(r)));
 }
 
 /**
@@ -752,6 +781,27 @@ function listFor(store: DebtStore, entity: DataRepair['entity']): { id: string }
  * intent only the action holds. ⚠️ A third confirm path must call this; there is no way to make the
  * store infer it, and pretending otherwise is what the `lastVerifiedDate` attempt was.
  */
+/**
+ * ⛔ **[class 5 R2 `L1-1`] — A PLAN SETTER IS THE USER ANSWERING, EVEN AT THE VALUE THE REPAIR WROTE.**
+ *
+ * `answerBalanceRepairs`' reason, on the plan: `clearResuppliedRepairs` reads *"the value moved"*, and the honest answer to a lost
+ * windfall or cushion line is very often `$0` — the exact sentinel the repair wrote. Measured by round 1 (`L1-1`): a lost windfall,
+ * re-entered as `$0` exactly as the card asked, stayed repaired, and `'required-plan'` and `'paycheck-plan'` refused for the life of
+ * the install. ⚡ Only the SETTER knows the user supplied the number, so it says so, and the rule lives here.
+ *
+ * ⚠️ **The user's fields only.** A field only the app writes (`isAppWrittenPlanRepair`) is never answered by a setter — its one answer
+ * is the acknowledgement (`FX-4`). ⚠️ Called only from user actions — `setCushionFloor`, `setWindfall`, `updatePaycheck` — never
+ * from `runMigrations`, hydrate or `importStore`, which bring a repair in rather than answer one.
+ */
+export function answerPlanRepairs(store: DebtStore, fields: readonly string[]): DebtStore {
+  if (store.pendingDataRepairs.length === 0 || fields.length === 0) return store;
+  const answered = new Set(fields);
+  const kept = store.pendingDataRepairs.filter(
+    (r) => !(r.entity === 'plan' && answered.has(r.field) && !isAppWrittenPlanRepair(r)),
+  );
+  return kept.length === store.pendingDataRepairs.length ? store : { ...store, pendingDataRepairs: kept };
+}
+
 export function answerBalanceRepairs(store: DebtStore, confirmedIds: readonly string[]): DebtStore {
   if (store.pendingDataRepairs.length === 0) return store;
   const ids = new Set(confirmedIds);

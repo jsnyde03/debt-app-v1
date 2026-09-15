@@ -1,5 +1,5 @@
 import type { DataRepair } from '@/data/models';
-import { answerableByEdit } from '@/store/trustSelectors';
+import { answerableByEdit, isAppWrittenPlanRepair } from '@/store/trustSelectors';
 
 /**
  * The words the repairs card says, separated from the card so they can be pinned.
@@ -151,7 +151,11 @@ export interface RepairBlock {
    * ⚠️ Same move as `.11.12.1`'s recovered/lost split, and for the same reason — one word covering two
    * events made the app state something false about the user's money.
    */
-  kind: 'lost' | 'unrecoverable' | 'recovered';
+  /**
+   * ⛔ **[class 5 R2 `FX-4`] `untracked` — an amount only the APP writes.** Neither of the other loss sentences is true of it:
+   * there is nothing to set again (`lost`), and it is not old data that failed to come across (`unrecoverable`).
+   */
+  kind: 'lost' | 'unrecoverable' | 'untracked' | 'recovered';
   heading: string;
   detail: string;
   lines: string[];
@@ -187,7 +191,9 @@ export function repairBlocks(repairs: DataRepair[]): RepairBlock[] {
    */
   const actionable = answerableByEdit;
   const lost = repairs.filter((r) => kindOf(r) === 'lost' && actionable(r));
-  const unrecoverable = repairs.filter((r) => kindOf(r) === 'lost' && !actionable(r));
+  // ⛔ [class 5 R2 `FX-4`] Split out BEFORE `unrecoverable`, whose "old data … check your old app" is false of a plan field.
+  const untracked = repairs.filter((r) => kindOf(r) === 'lost' && isAppWrittenPlanRepair(r));
+  const unrecoverable = repairs.filter((r) => kindOf(r) === 'lost' && !actionable(r) && !isAppWrittenPlanRepair(r));
   const recovered = repairs.filter((r) => kindOf(r) === 'recovered');
   const blocks: RepairBlock[] = [];
 
@@ -220,6 +226,19 @@ export function repairBlocks(repairs: DataRepair[]): RepairBlock[] {
         ? 'There is nothing to reopen for it — check this against your old app and add anything missing.'
         : 'There is nothing to reopen for them — check these against your old app and add anything missing.',
       lines: unrecoverable.map(describeRepair),
+    });
+  }
+
+  if (untracked.length > 0) {
+    const one = untracked.length === 1;
+    blocks.push({
+      kind: 'untracked',
+      heading: one ? 'An amount the app tracks could not be read' : `${untracked.length} amounts the app tracks could not be read`,
+      // ⚠️ "Got it" is the card's own button, and after it the repair is settled — so "runs without it" is what then happens.
+      detail: one
+        ? 'There is nowhere to set it again. Tap “Got it” and your plan runs without it.'
+        : 'There is nowhere to set them again. Tap “Got it” and your plan runs without them.',
+      lines: untracked.map(describeRepair),
     });
   }
 
@@ -274,6 +293,11 @@ export function repairsA11yLabel(blocks: RepairBlock[]): string {
 export function unreadInputsFix(repairs: readonly DataRepair[], comeback: string): string {
   const answerable = repairs.filter(answerableByEdit);
   if (answerable.length === 0) {
+    // ⛔ [class 5 R2 `FX-4`] A plan field only the app writes lost no ROW, so the sentence below is false of it; its one answer
+    // is the card's "Got it". ⚠️ Named by its button, never by position — `C1-1` removed "above" for that reason.
+    if (repairs.length > 0 && repairs.every(isAppWrittenPlanRepair)) {
+      return 'it can’t be set again, so tap “Got it” on the note about it and your plan runs without it';
+    }
     // ⚠️ No figure to name and nothing to open. Say what is true rather than issuing an instruction the
     // user cannot follow.
     return 'the rows it came from could not be read at all, so there is nothing here to set again';

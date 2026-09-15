@@ -2052,15 +2052,15 @@
     }
   },
   "S1P5-B5-7-ANSWERABLEID": {
-    "what": "pass-5 B5-7 (blocker) - answerableByEdit asked whether the row's NAME STRING was empty, not whether the repair names a row. A debt whose name key is absent/empty/non-string produces a repair with name: '' while the row still exists and is still editable, so one 'Got it' tap DELETED its unreadable-balance record: hasUnreadDebtBalances false, mayClaim('debt-balances') true, partitionDebts moved it to CLEARED - the app calling a debt whose balance it could not read paid off, unlocking the debt-free framing and the once-ever finale. A-J2-1 verbatim on the blank-name member. Asked of the id now. B5-8 folded in: dataRepairsCopy carried a second copy omitting isWholeRowLoss while the docblock claimed one producer.",
+    "what": "[class 5 R2 FX-4, 2026-09-14: the un-fix is re-derived onto the line FX-4 rewrote - the same name-for-id revert, beside the new app-written plan clause] pass-5 B5-7 (blocker) - answerableByEdit asked whether the row's NAME STRING was empty, not whether the repair names a row. A debt whose name key is absent/empty/non-string produces a repair with name: '' while the row still exists and is still editable, so one 'Got it' tap DELETED its unreadable-balance record: hasUnreadDebtBalances false, mayClaim('debt-balances') true, partitionDebts moved it to CLEARED - the app calling a debt whose balance it could not read paid off, unlocking the debt-free framing and the once-ever finale. A-J2-1 verbatim on the blank-name member. Asked of the id now. B5-8 folded in: dataRepairsCopy carried a second copy omitting isWholeRowLoss while the docblock claimed one producer.",
     "file": "apps/rn/src/store/trustSelectors.test.ts",
     "token": "\"Got it\" is not an ANSWER to an unreadable balance on an editable row",
     "proof": {
       "unfix": [
         {
           "at": "apps/rn/src/store/trustSelectors.ts",
-          "find": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.id || r.entity === 'plan');",
-          "replace": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.name || r.entity === 'plan');"
+          "find": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.id || (r.entity === 'plan' && !isAppWrittenPlanRepair(r)));",
+          "replace": "  return r.entity !== 'migration' && !isWholeRowLoss(r) && (!!r.name || (r.entity === 'plan' && !isAppWrittenPlanRepair(r)));"
         }
       ],
       "run": "test:app",

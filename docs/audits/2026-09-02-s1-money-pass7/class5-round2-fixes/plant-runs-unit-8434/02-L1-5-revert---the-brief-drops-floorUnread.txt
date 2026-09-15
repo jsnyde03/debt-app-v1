@@ -1,0 +1,63 @@
+plant=L1-5 revert - the brief drops floorUnread
+file=C:/Users/Jason/debt-app-v1/packages/core/guardian/buildGuardianBrief.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Running Payday Cushion Guardian (2.4) tests...
+  ✓ premium: covered with headroom above the line → clear (not a false 'tight')
+  ✓ single-target extra names the debt directly ('toward Store Card')
+  ✓ a spread extra reads 'across your debts, starting with …', not 'to Store Card'
+  ✓ a spread extra safe move reads 'Apply the spare … across your debts'
+  ✓ tradeoff: leads with applying the spare to the debt + the why
+  ✓ tradeoff: two-sided (the EF alternative) + 'your call'
+  ✓ mechanical: single decisive 'Apply the spare …'
+  ✓ mechanical: no two-sided 'your call'
+  ✓ free: SAME headroom → clear (the split doesn't change the band)
+  ✓ free gets no safeMove (the card shows the invitation)
+  ✓ free copy never claims the app acted
+  ✓ premium viz cushion = kept ($200)
+  ✓ free viz cushion = kept ($50 — under the line, the value prop)
+  ✓ headroom under the line → tight
+  ✓ tight premium keeps everything, deploys nothing
+  ✓ tight reads CALM — 'covered' + 'rebuilds next paycheck' (2.4.11.2)
+  ✓ hysteresis holds the band at tight even though headroom is above the line
+  ✓ [A3-11] the money is authoritative: headroom ABOVE the floor reads 'just above', never 'a little under'
+  ✓ [A3-11] …and the brief does not claim a shortfall the figures beside it contradict
+  ✓ a shortfall → at-risk
+  ✓ M3 — a shortfall is at-risk even with headroom on the input
+  ✓ shortfall → paused extra payoff (never cuts an obligation)
+  ✓ the brief carries the shortfall amount
+  ✓ free shortfall → the honest title (not softened to 'a bit tight')
+  ✓ free shortfall → tells the amount short
+  ✓ free shortfall → no safeMove (the built plan is premium)
+  ✓ free shortfall carries the amount for the state-aware invite
+  ✓ reachedFloor true when kept cushion meets the line
+  ✓ reachedFloor false when the kept cushion is under the line
+  ✓ an upcoming non-clear cycle → a lookahead heads-up
+  ✓ a clear upcoming cycle → no lookahead noise
+  ✓ no NaN/Infinity in any copy
+  ✓ viz numbers are always finite
+  ✓ a NaN floor falls back to the $200 default
+  ✓ a deliberately set $0 line is kept, not substituted
+  ✓ ⛔ L1-3 — $100 of headroom over a $0 line is CLEAR, not tight against a hidden $200
+  ✓ ⭐ L1-3 control — $100 over a $200 line is not clear
+C:\Users\Jason\debt-app-v1\packages\core\guardian\testBuildGuardianBrief.ts:4
+  if (actual !== expected) throw new Error(`FAIL [${label}]: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+                                 ^
+
+Error: FAIL [⛔ L1-5 — a substitute line is flagged on the brief]: expected true, got false
+    at assertEqual (C:\Users\Jason\debt-app-v1\packages\core\guardian\testBuildGuardianBrief.ts:4:34)
+    at runGuardianTests (C:\Users\Jason\debt-app-v1\packages\core\guardian\testBuildGuardianBrief.ts:139:3)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\packages\core\guardian\testBuildGuardianBrief.ts:273:1)
+    at Object.<anonymous> (C:\Users\Jason\debt-app-v1\packages\core\guardian\testBuildGuardianBrief.ts:273:18)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object.transformer (C:\Users\Jason\debt-app-v1\node_modules\tsx\dist\register-BOkp8V6j.cjs:9:3176)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:335:3)
+
+Node.js v22.23.1

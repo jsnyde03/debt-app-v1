@@ -414,6 +414,25 @@ test('a loss with nothing to reopen is not told to "set it again"', async ({ pag
   await expect(page.getByText(/until you set it again/)).toHaveCount(0);
 });
 
+/**
+ * ⛔ **[class 5 R2 `FX-4` · DECISION 🎯 2026-09-14] — AN AMOUNT ONLY THE APP KEEPS IS NOT TOLD TO "SET IT AGAIN" EITHER.**
+ *
+ * Nothing the user can open writes the bills-reserve BALANCE (they set a contribution; the rollover rewrites the balance), and it
+ * is not old data that failed to come across — so neither the test above's sentence nor the actionable one is true of it. It gets
+ * its own block, and its one answer is the card's own button.
+ */
+test('an amount only the app keeps is not told to "set it again", nor called old data', async ({ page }) => {
+  await seedStore(page, scenario({ subscriptionPlan: 'premium', expenseReserve: { balance: 'abc' } }));
+  await page.goto('/');
+
+  await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('An amount the app tracks could not be read'), 'the honest state, by name').toBeVisible();
+  await expect(page.getByText(/nowhere to set it again/)).toBeVisible();
+  // ⛔ Absences only after the card is proven on screen.
+  await expect(page.getByText(/until you set it again/), '⛔ FX-4 — a promise of an action that does not exist').toHaveCount(0);
+  await expect(page.getByText('Some of your old data did not come across'), '⛔ FX-4 — nor a claim that is not true of it').toHaveCount(0);
+});
+
 // ── S1.9.2 · pass-2 C1–C4: the same rule, wired to a subset of FIELDS and a subset of CLAIM SITES ──
 //
 // ⛔ **The unit half is `src/store/trustSelectors.test.ts`, and it cannot see any of this.** Every fix

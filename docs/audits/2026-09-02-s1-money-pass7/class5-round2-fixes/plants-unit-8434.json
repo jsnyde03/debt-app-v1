@@ -1,0 +1,36 @@
+{
+  "control": {
+    "cmd": "npx tsx --tsconfig ./tsconfig.json ../../packages/core/guardian/testBuildGuardianBrief.ts && npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-guardian-selectors-test.ts && npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-copy-test.ts",
+    "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "L1-5 revert - the selector drops floorUnread",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/guardianSelectors.ts",
+      "old": "    floorUnread: line.unread,",
+      "new": "    floorUnread: false,",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-guardian-selectors-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-5 — a LOST line is flagged, so the card withholds its figure"]
+    },
+    {
+      "name": "L1-5 revert - the brief drops floorUnread",
+      "file": "C:/Users/Jason/debt-app-v1/packages/core/guardian/buildGuardianBrief.ts",
+      "old": "floorUnread: input.floorUnread === true",
+      "new": "floorUnread: false",
+      "cmd": "npx tsx packages/core/guardian/testBuildGuardianBrief.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1",
+      "expect": ["L1-5 — a substitute line is flagged on the brief"]
+    },
+    {
+      "name": "L1-4 revert - namedFigures loses its plan branch",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "old": "    if (r.entity === 'plan') return field;",
+      "new": "    if (false) return field;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-copy-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-4 — the refusal names \"your cushion line\" once"]
+    }
+  ]
+}

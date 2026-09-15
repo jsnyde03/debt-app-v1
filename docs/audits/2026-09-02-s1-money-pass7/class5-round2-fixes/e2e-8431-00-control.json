@@ -1,0 +1,7 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [],
+  "runs": [
+    {"name": "CONTROL 8.4.3.1 - data-recovery.spec.ts, unplanted (the untracked block added)", "spec": "data-recovery.spec.ts", "grep": "."}
+  ]
+}

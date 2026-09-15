@@ -26,10 +26,24 @@ function sanitize(discretionary: number): number {
 	return Number.isFinite(discretionary) ? Math.max(0, discretionary) : 0;
 }
 
+/**
+ * ⛔ **[class 5 R2 `L1-3` · DECISION 🎯 2026-09-14] THE LINE THE BAND READS — a finite `$0` is a line the user SET.**
+ *
+ * This was `floor > 0 ? floor : 200`, written twice, and it judged a deliberate `$0` line against a hidden `$200` — while the card's
+ * sentence, since `C1-1`, printed the `$0` the user chose: *"A little tight … just above your $0 line"*. ⚡ Every caller passes
+ * `effectivePaycheckBuffer` (free's fixed buffer, premium's line, or `$200` when the line was LOST — `cushionLine` substitutes), so a
+ * finite `0` arrives only from a premium user who set it; no caller means "unknown" by `0`. Honoring it here moves the card, the
+ * forecast and the plan summary together, which F4 requires. ⚠️ At `$0` the at-risk line is `$0` too: only a shortfall reads at-risk.
+ * NaN, Infinity and negatives are no line at all, and still take the `$200` default.
+ */
+function lineOf(floor: number): number {
+	return Number.isFinite(floor) && floor >= 0 ? floor : 200;
+}
+
 /** The band with no hysteresis — the pure floor-relative classification. */
 export function baseState(discretionary: number, floor: number): GuardianState {
 	const d = sanitize(discretionary);
-	const f = Number.isFinite(floor) && floor > 0 ? floor : 200;
+	const f = lineOf(floor);
 	if (d < f * AT_RISK_FRACTION) return "at-risk";
 	if (d < f) return "tight";
 	return "clear";
@@ -41,7 +55,7 @@ export function computeState(discretionary: number, floor: number, priorBand?: G
 	if (!priorBand || priorBand === base) return base;
 
 	const d = sanitize(discretionary);
-	const f = Number.isFinite(floor) && floor > 0 ? floor : 200;
+	const f = lineOf(floor);
 	const atRiskLine = f * AT_RISK_FRACTION;
 
 	if (priorBand === "at-risk") {

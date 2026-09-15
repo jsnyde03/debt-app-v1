@@ -12,7 +12,7 @@ import { detectPayoff } from '@/store/payoffCelebration';
 
 
 import { createDebtStore } from '@/store/store';
-import { answerableByEdit, claimFields, claimFieldsFor, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, payoffStrategies, rowFieldUnread, subscriptionTiers } from '@/store/trustSelectors';
+import { answerPlanRepairs, answerableByEdit, claimFields, claimFieldsFor, clearedDebts, hasUnreadDebtBalances, liveDebts, mayClaim, partitionDebts, payoffStrategies, rowFieldUnread, subscriptionTiers } from '@/store/trustSelectors';
 import type { DebtStore, PayoffStrategy, SubscriptionPlan } from '@/data/models';
 
 /** ⛔ S1.13.7.4 [pass-6 B1-1] — the unread set detectPayoff now REQUIRES. Derived from the store
@@ -742,6 +742,52 @@ export default function run(): void {
 
   {
     /**
+     * ⛔ **[class 5 R2 `FX-4` · `FX-3` · DECISION 🎯 2026-09-14] — A PLAN FIELD ONLY THE APP WRITES IS NOT ANSWERABLE BY EDIT.**
+     *
+     * Iterated over the plan's repairable fields in BOTH directions. ⚠️ The writer list is `probe-843-plan-promises`' measurement,
+     * stated here independently of `PLAN_FIELD_WRITER` — a test that read that table back could only agree with it.
+     */
+    const appWritten = new Set<string>(['expenseReserveBalance', 'typicalAmount']);
+    for (const field of REPAIRABLE_MONEY_FIELDS.plan.optional) {
+      eq(
+        answerableByEdit({ entity: 'plan', id: '', name: field, field, kind: 'lost' }),
+        !appWritten.has(field),
+        `⛔ FX-4 — plan.${field} is ${appWritten.has(field) ? 'NOT answerable: nothing the user can open writes it' : 'answerable: a sheet sets it'}`,
+      );
+    }
+
+    /**
+     * ⛔ **`FX-3` — THE ROLLOVER IS NOT THE USER'S ANSWER.** Measured (`probe-843-reserve-balance-failopen`): a lost reserve balance,
+     * one contribution, one rollover — and the repair was gone, the real balance never re-supplied. Through the real wired actions.
+     * ⚠️ The balance is asserted to MOVE first: a fixture where it stays put passes this row for the wrong reason.
+     */
+    const lostReserve = (): DebtStore => ({
+      ...runMigrations({
+        version: 8,
+        paycheck: { amount: '2000', currentDate: DAY, nextPaycheckDate: DAY },
+        debts: [{ id: 'd0', name: 'Chase', balance: 5000, minimumPayment: 150, apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly' }],
+        requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 600, dueDate: DAY, recurrence: 'monthly', category: 'housing' }],
+        expenseReserve: { balance: 'abc' },
+        prefs: { onboardingComplete: true },
+      }),
+      subscriptionPlan: 'premium',
+    });
+    const reserveRepairs = (s: DebtStore) => s.pendingDataRepairs.filter((r) => r.field === 'expenseReserveBalance').length;
+    const rolled = storeWith(lostReserve());
+    eq(reserveRepairs(rolled.getState().store), 1, 'the fixture really does carry a lost reserve balance');
+    rolled.getState().setExpenseReserveContribution(100);
+    const before = rolled.getState().store.expenseReserve?.balance;
+    rolled.getState().rolloverPayCycle();
+    eq(rolled.getState().store.expenseReserve?.balance !== before, true, `the rollover really MOVED the balance (from ${before}) — or this row proves nothing`);
+    eq(reserveRepairs(rolled.getState().store), 1, '⛔ FX-3 — a rollover that moves the balance does not answer a loss nobody re-supplied');
+    eq(mayClaim(rolled.getState().store, 'required-plan'), false, '⛔ FX-3 — …so the plan still refuses what it cannot read');
+    // ⭐ The one answer an app-kept amount has.
+    rolled.getState().acknowledgeDataRepairs();
+    eq(reserveRepairs(rolled.getState().store), 0, '⭐ FX-4 — "Got it" settles an amount only the app keeps');
+  }
+
+  {
+    /**
      * ⛔ **THE EXIT, AND THE FAIL-OPEN GUARD BESIDE IT.** [`C1-2`]
      *
      * `clearResuppliedRepairs` settles on signal 1 (*the number moved*) or signal 2 (*the row is gone*).
@@ -763,14 +809,72 @@ export default function run(): void {
       '⛔ C1-2 — re-entering the line ANSWERS the repair; before this it stood until the ack',
     );
 
-    // ⛔ THE GUARD. Same action, same store, a value that MOVES NOTHING (already 0, snapped to 0).
+    // ⛔ THE GUARD — a store write that does not touch the line. ⚠️ [class 5 R2 `L1-1`] Its control used to be `setCushionFloor(0)`,
+    // a convenient no-op; since `L1-1` that call is the user ANSWERING, so the guard's subject — any write dropping a plan repair
+    // through `findRow` — is now asked of a write that has nothing to do with the plan.
     const untouched = storeWith(seed);
-    untouched.getState().setCushionFloor(0);
+    untouched.getState().markReviewPrompted();
     eq(
       untouched.getState().store.pendingDataRepairs.filter((r) => r.field === 'cushionFloor').length,
       1,
-      '⛔ …and a write that moves NOTHING may not settle it — `findRow` would have dropped it as "the row is gone"',
+      '⛔ …and a write that does not touch the line may not settle it — `findRow` would have dropped it as "the row is gone"',
     );
+  }
+
+  {
+    /**
+     * ⛔ **[class 5 R2 `L1-1`] — THE USER'S ANSWER AT THE VALUE THE REPAIR WROTE.** Round 1 measured it: a plan repair whose honest
+     * value is `$0` could never be answered, because `clearResuppliedRepairs` reads *"the value moved"* and the repair wrote `$0`.
+     * Through the real wired actions, every user-written plan field, each re-entered at the sentinel.
+     */
+    const planLost = (over: Record<string, unknown>): DebtStore =>
+      runMigrations({
+        version: 8,
+        paycheck: { amount: '2000', currentDate: DAY, nextPaycheckDate: DAY, incomeVaries: true, leanAmount: 1500, typicalAmount: 2000 },
+        debts: [{ id: 'd0', name: 'Chase', balance: 5000, minimumPayment: 150, apr: 22, dueDate: DAY, type: 'debt', recurrence: 'monthly' }],
+        prefs: { onboardingComplete: true },
+        ...over,
+      });
+    const repairsOn = (s: DebtStore, field: string) => s.pendingDataRepairs.filter((r) => r.field === field).length;
+
+    const floor = storeWith(withPlanRepair());
+    eq(floor.getState().store.cushionFloor, 0, 'the lost line was repaired to the $0 sentinel');
+    floor.getState().setCushionFloor(0);
+    eq(repairsOn(floor.getState().store, 'cushionFloor'), 0, '⛔ L1-1 — setting the line to $0, the value the repair wrote, ANSWERS it');
+
+    const windfall = storeWith(planLost({ windfall: 'abc' }));
+    eq(repairsOn(windfall.getState().store, 'windfall'), 1, 'the fixture really does carry a lost windfall');
+    windfall.getState().setWindfall(0);
+    eq(repairsOn(windfall.getState().store, 'windfall'), 0, '⛔ L1-1 — "no windfall" is an answer, at the $0 the repair wrote');
+    eq(mayClaim(windfall.getState().store, 'paycheck-plan'), true, '⛔ L1-1 — …and the plan may speak again, rather than refusing for the life of the install');
+
+    const lean = storeWith(planLost({ paycheck: { amount: '2000', currentDate: DAY, nextPaycheckDate: DAY, incomeVaries: true, leanAmount: 'abc' } }));
+    eq(repairsOn(lean.getState().store, 'leanAmount'), 1, 'the fixture really does carry a lost lean paycheck');
+    lean.getState().updatePaycheck({ leanAmount: lean.getState().store.paycheck.leanAmount });
+    eq(repairsOn(lean.getState().store, 'leanAmount'), 0, '⛔ L1-1 — saving the paycheck sheet answers the lean paycheck, even unchanged');
+
+    // ⭐ The controls: what is NOT an answer.
+    const acked = storeWith(planLost({ windfall: 'abc' }));
+    acked.getState().acknowledgeDataRepairs();
+    eq(repairsOn(acked.getState().store, 'windfall'), 1, '⭐ A-J2-1 — "Got it" is not an answer to a figure the user CAN set');
+    const otherEdit = storeWith(planLost({ windfall: 'abc' }));
+    otherEdit.getState().updatePaycheck({ amount: '2100' });
+    eq(repairsOn(otherEdit.getState().store, 'windfall'), 1, '⭐ an edit that names a different field answers nothing else');
+    // ⛔ …and the named hazard: a restore BRINGS a repair in, it does not answer one. `importStore` never calls a setter.
+    const restored = storeWith(planLost({}));
+    restored.getState().importStore(planLost({ windfall: 'abc' }));
+    eq(repairsOn(restored.getState().store, 'windfall'), 1, '⛔ L1-1 — importing a file with a lost windfall keeps the repair; no setter ran');
+
+    // ⛔ The naive over-fixes, each given a row that can see it. ⚠️ Written BEFORE planting: with one lost field per fixture, a setter
+    // that answered EVERY plan repair would have passed every row above.
+    const both = storeWith(planLost({ windfall: 'abc', cushionFloor: 'abc' }));
+    eq(repairsOn(both.getState().store, 'cushionFloor') + repairsOn(both.getState().store, 'windfall'), 2, 'the fixture really does carry two lost plan fields');
+    both.getState().setWindfall(0);
+    eq(repairsOn(both.getState().store, 'cushionFloor'), 1, '⛔ L1-1 — answering the windfall answers nothing else on the plan');
+    // …and no setter can answer an amount only the app keeps, even named outright — its one answer is "Got it" (`FX-4`).
+    const keptByApp = planLost({ expenseReserve: { balance: 'abc' } });
+    eq(repairsOn(keptByApp, 'expenseReserveBalance'), 1, 'the fixture really does carry a lost reserve balance');
+    eq(repairsOn(answerPlanRepairs(keptByApp, ['expenseReserveBalance']), 'expenseReserveBalance'), 1, '⛔ FX-4 · L1-1 — naming an app-kept amount answers nothing');
   }
 
   /**

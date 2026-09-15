@@ -1,0 +1,11 @@
+plant=L1-3 revert - the band maps a set $0 line to $200 again (seen by the state machine)
+file=C:/Users/Jason/debt-app-v1/packages/core/guardian/computeState.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+  ✗ L1-3 — a set $0 floor is honored: any headroom is clear
+  ✗ L1-3 — a $0 floor still takes hysteresis from a prior at-risk band
+❌ 2 computeState test(s) failed.

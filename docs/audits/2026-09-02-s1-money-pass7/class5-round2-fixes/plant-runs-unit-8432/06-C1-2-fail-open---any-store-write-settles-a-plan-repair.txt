@@ -1,0 +1,13 @@
+plant=C1-2 fail-open - any store write settles a plan repair
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ …and a write that does not touch the line may not settle it — `findRow` would have dropped it as "the row is gone" — expected 1, got 0
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:39:9)
+    at eq (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:42:28)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:817:5)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

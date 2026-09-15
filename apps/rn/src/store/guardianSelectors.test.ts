@@ -498,6 +498,24 @@ function run() {
     assert(agree(b1), `⛔ D2-1 — the three producers agree AFTER the card's own offer (${JSON.stringify(b1)})`);
     eq(b1.card, 'stable', '…and the move genuinely cleared the line, which is why the card said so');
 
+    // ⛔ [class 5 R2 `L1-3` · DECISION 🎯 2026-09-14] A LINE SET TO $0 — honored by all three producers at once. Honoring it in the card
+    // alone would reopen F4's own contradiction (the card "clear" while its forecast reads "tight"), so the fix lives in `computeState`.
+    const zeroLine = store({ premium: true, amount: '2000', bills: [1850], floor: 0 });
+    const bz = bands(zeroLine);
+    eq(selectPaydayGuardian(zeroLine)!.floor, 0, 'the fixture really does carry a $0 line');
+    assert(agree(bz), `⛔ L1-3 — the three producers agree on a $0 line (${JSON.stringify(bz)})`);
+    eq(bz.card, 'stable', '⛔ L1-3 — …and headroom over a $0 line is clear, not tight against a hidden $200');
+
+    // ⛔ [class 5 R2 `L1-5`] `C1-1`'s user-visible half — `floorUnread` — was asserted in no test file (round 1 counted 0), so the card
+    // could go back to printing a confident "$200 line" inside the sentence saying the line could not be read. A LOST line and a line
+    // the user SET to $0 hold the same value; only the repair record separates them. Both directions, on the same money.
+    const lostLine: DebtStore = {
+      ...store({ premium: true, amount: '2000', bills: [1850], floor: 0 }),
+      pendingDataRepairs: [{ entity: 'plan', id: '', name: 'your cushion line', field: 'cushionFloor', kind: 'lost' }],
+    };
+    eq(selectPaydayGuardian(lostLine)!.floorUnread, true, '⛔ L1-5 — a LOST line is flagged, so the card withholds its figure');
+    eq(selectPaydayGuardian(zeroLine)!.floorUnread, false, '⛔ L1-5 — …and a line the user SET to $0 is not');
+
     /**
      * ⛔ **CYCLE 0 ONLY — and nothing asserted it until a plant of the OVER-FIX stayed green.**
      *

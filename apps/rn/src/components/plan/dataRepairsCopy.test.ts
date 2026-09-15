@@ -2,7 +2,7 @@ import type { DataRepair } from '@/data/models';
 
 import { REPAIRABLE_MONEY_FIELDS } from '@/data/migrations';
 
-import { FIELD_LABEL, describeRepair, repairBlocks, repairsA11yLabel, unreadTargetsSub } from './dataRepairsCopy';
+import { FIELD_LABEL, describeRepair, repairBlocks, repairsA11yLabel, unreadInputsFix, unreadTargetsSub } from './dataRepairsCopy';
 
 /**
  * P6.8.9.7.11.12 (audit A-J2-2) — the repairs card's words.
@@ -222,6 +222,53 @@ export default function run() {
 
     // ⭐ The control: a real row still reads as name-and-field, so the plan branch did not flatten everyone.
     eq(describeRepair(repair()), 'Roof — the target', '⭐ control — a row-bearing repair is unchanged');
+  }
+
+  /**
+   * ⛔ **[class 5 R2 `FX-4` · DECISION 🎯 2026-09-14] — A PLAN FIELD ONLY THE APP WRITES IS NOT TOLD TO "SET IT AGAIN".**
+   *
+   * Measured (`probe-843-plan-promises`): all five plan fields promised it, and nothing the user can open writes the reserve
+   * balance or the typical paycheck. ⭐ Iterated over the plan's repairable fields in BOTH directions: the three a sheet sets keep
+   * the actionable block and the actionable refusal. ⚠️ The writer list here is the probe's measurement, stated independently of
+   * `PLAN_FIELD_WRITER` — a test that read that table back could only agree with it.
+   */
+  {
+    const appWritten = new Set<string>(['expenseReserveBalance', 'typicalAmount']);
+    for (const field of REPAIRABLE_MONEY_FIELDS.plan.optional) {
+      const r: DataRepair = { entity: 'plan', id: '', name: FIELD_LABEL[field], field, kind: 'lost' };
+      const [block] = repairBlocks([r]);
+      const fix = unreadInputsFix([r], 'and this comes back');
+      if (appWritten.has(field)) {
+        eq(block.kind, 'untracked', `⛔ FX-4 — ${field}: nothing the user can open writes it`);
+        assert(!/set (it|each one) again/.test(block.detail.replace('nowhere to set it again', '')), `⛔ FX-4 — ${field}: the card promises no action that does not exist`);
+        assert(!block.heading.includes('old data') && !block.detail.includes('old app'), `⛔ FX-4 — ${field}: nor calls it old data that failed to come across`);
+        assert(block.detail.includes('Got it'), `⛔ FX-4 — ${field}: …and names the one answer it has, by its button`);
+        assert(!fix.startsWith('set ') && fix.includes('Got it') && !fix.includes('rows'), `⛔ FX-4 — ${field}: the refusal names no setting and no row — got "${fix}"`);
+      } else {
+        eq(block.kind, 'lost', `⭐ ${field}: a sheet sets it, so the actionable block stays`);
+        assert(fix.startsWith('set '), `⭐ ${field}: …and the refusal still names what to set — got "${fix}"`);
+      }
+    }
+    // ⛔ The existing unrecoverable wording is not borrowed: a nameless row keeps "old data", an app-kept amount gets its own block.
+    const mixed = repairBlocks([
+      { entity: 'debt', id: '', name: '', field: '(a row could not be read)', kind: 'lost' },
+      { entity: 'plan', id: '', name: 'money set aside for bills', field: 'expenseReserveBalance', kind: 'lost' },
+    ]);
+    eq(mixed.map((b) => b.kind).join(','), 'unrecoverable,untracked', '⛔ FX-4 — a row loss and an app-kept amount are different claims, and different blocks');
+  }
+
+  /**
+   * ⛔ **[class 5 R2 `L1-4`] — `C1-3`'s SECOND SITE, which nothing could make red.** `namedFigures` builds the refusal *"set ⟨figure⟩
+   * again"*, and `migrations.ts:299` writes a plan repair's `name` as the SAME string `FIELD_LABEL` yields — so without its plan
+   * branch the sentence reads *"set your cushion line on your cushion line again"*. Round 1 disabled that branch and `test:app`
+   * stayed green. ⚠️ `startsWith('set ')` above is true of the defect too, so this asserts the COUNT, over every field a user writes.
+   */
+  {
+    for (const field of ['cushionFloor', 'leanAmount', 'windfall']) {
+      const label = FIELD_LABEL[field];
+      const fix = unreadInputsFix([{ entity: 'plan', id: '', name: label, field, kind: 'lost' }], 'and this comes back');
+      eq(fix.split(label).length - 1, 1, `⛔ L1-4 — the refusal names "${label}" once, never "${label} on ${label}" — got "${fix}"`);
+    }
   }
 
   /**

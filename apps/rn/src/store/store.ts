@@ -31,7 +31,7 @@ import type { StorageAdapter } from '@/storage/adapter';
 import { reportError } from '@/utils/reportError';
 
 import { recordDriftBaseline } from './drift';
-import { answerBalanceRepairs, clearResuppliedRepairs, partitionDebts } from './trustSelectors';
+import { answerBalanceRepairs, answerPlanRepairs, clearResuppliedRepairs, partitionDebts } from './trustSelectors';
 import { buildCycleTopUp, topUpEntries } from './topUpSelectors';
 import { stampCyclePrediction } from './guardianPrediction';
 import { applyCapture, applyRollover, type PaydayActuals } from './payday';
@@ -500,7 +500,11 @@ export function createDebtStore(opts?: {
 
     updatePaycheck(updates) {
       // A genuine income edit → stamp read-freshness (2.4.D.3a).
-      set((s) => ({ store: stampInputsFresh(recordDriftBaseline({ ...s.store, paycheck: { ...s.store.paycheck, ...updates } }, 'user', clock)) }));
+      // ⛔ [class 5 R2 `L1-1`] Its callers are the paycheck sheet and onboarding step, so a `leanAmount` here is the user's answer.
+      const answers = 'leanAmount' in updates ? ['leanAmount'] : [];
+      set((s) => ({
+        store: answerPlanRepairs(stampInputsFresh(recordDriftBaseline({ ...s.store, paycheck: { ...s.store.paycheck, ...updates } }, 'user', clock)), answers),
+      }));
     },
     setPayoffStrategy(strategy) {
       set((s) => ({ store: recordDriftBaseline({ ...s.store, payoffStrategy: strategy }, 'user', clock) }));
@@ -832,7 +836,8 @@ export function createDebtStore(opts?: {
     },
     setWindfall(amount) {
       // A one-time this-cycle bump — does NOT re-baseline drift (it clears on rollover; the baseline holds).
-      set((s) => ({ store: { ...s.store, windfall: Math.max(0, amount) } }));
+      // ⛔ [class 5 R2 `L1-1`] …and the user supplying it answers a lost windfall, even at the $0 the repair wrote.
+      set((s) => ({ store: answerPlanRepairs({ ...s.store, windfall: Math.max(0, amount) }, ['windfall']) }));
     },
 
     updatePrefs(updates) {
@@ -850,7 +855,8 @@ export function createDebtStore(opts?: {
       // Clamp to a sane, snapped range — the "alert line" a user would actually set. Guard NaN → 200.
       const safe = Number.isFinite(floor) ? floor : 200;
       const snapped = Math.round(Math.max(0, Math.min(1000, safe)) / 25) * 25;
-      set((s) => ({ store: { ...s.store, cushionFloor: snapped } }));
+      // ⛔ [class 5 R2 `L1-1`] Setting the line answers a lost one — including a deliberate $0, the same value the repair wrote.
+      set((s) => ({ store: answerPlanRepairs({ ...s.store, cushionFloor: snapped }, ['cushionFloor']) }));
     },
     completeOnboarding() {
       // Plan-establish point — freeze the first drift baseline if the plan is ready, stamp the

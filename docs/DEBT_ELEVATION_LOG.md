@@ -36227,6 +36227,112 @@ the code commit re-stales at that commit — commit, drain, then commit the ledg
 push, the second only by planting. Carried forward, all logged above: `FX-3` and `FX-4` → 8.4.3 · the reserve-release card's
 claimless avalanche lead → 8.4.4 · normalisation and two-floor items → backlog.
 
+### `.12.6.5.8.4.3` switch-in — one predicate closes `FX-3` and `FX-4` · 2026-09-14
+
+✅ **[DECISION] 🎯 2026-09-14 — `FX-4`: A PLAN FIELD ONLY THE APP WRITES IS NOT ANSWERABLE BY EDIT**, the recommended option.
+`answerableByEdit` answers `false` for `expenseReserveBalance` and `typicalAmount`, the card says honestly there is nothing to
+reopen, and only the user's acknowledgement settles it. ⚡ **It closes `FX-3` by construction:** in `clearResuppliedRepairs` the
+`!answerableByEdit(r) → return !r.acknowledged` test (`trustSelectors.ts:614`) precedes the plan branch (`:623`), so a field the
+app rewrites never reaches *"the value moved"*. Rejected: a control for the reserve balance — new UI, and `FX-3` would still need
+a separate *"the user wrote this"* signal. ⚠️ To measure at build: after the ack the plan runs on a `$0` reserve, asserted to be
+the conservative direction rather than assumed; and the two unrecoverable sentences (*"check this against your old app"*, *"the rows
+it came from could not be read"*) are false for a plan field and need their own wording.
+
+**Switch-in reads:** `L1-1` reaches THREE setters — `updatePaycheck` writes `leanAmount` as a plain spread (`store.ts`), like
+`setCushionFloor` and `setWindfall`. `acknowledgeDataRepairs` marks and never empties (A-J2-1). Test homes: `guardianSelectors.test.ts`'
+`store({ floor, premium, … })` for `L1-5`, `testBuildGuardianBrief.ts`' `input({ floor, discretionary, … })` for `L1-3`.
+
+⛔ **An existing guard asserts the OPPOSITE of `L1-1`'s remedy — read before building, not discovered by a red.**
+`trustSelectors.test.ts:766-773` calls `setCushionFloor(0)` on a line repaired to `0` and asserts the repair STAYS — *"a write
+that moves NOTHING may not settle it"*. Its subject is `C1-2`'s fail-OPEN (`findRow` dropping plan repairs on any write);
+`setCushionFloor(0)` was only its convenient no-op write. Once `L1-1` makes that exact call an answer, it reds. ⚡ The test is the
+proxy: its control is re-pointed to a write that does not touch the line at all, keeping the fail-open guard, and the naive
+over-fix (every write settles every plan repair) is planted against it. Also read: the pinned e2e for the unrecoverable block
+seeds a `null` DEBT row (`data-recovery.spec.ts:404`), so its wording stays; app-written plan fields get their own block kind,
+which also keeps the card's `key={block.kind}` unique.
+
+#### ✅ 8.4.3.1 — `FX-4` + `FX-3`: one predicate · 2026-09-14
+
+**Built:** `PLAN_FIELD_WRITER`, an exhaustive `Record` over the `as const` plan fields, and `isAppWrittenPlanRepair` feeding
+`answerableByEdit` (`trustSelectors.ts`); an `'untracked'` repair block — *"An amount the app tracks could not be read · There is
+nowhere to set it again. Tap “Got it” and your plan runs without it."* — and a refusal sentence naming the button, never a
+position (`dataRepairsCopy.ts`). Rows: `answerableByEdit` iterated over the five plan fields both ways; `FX-3`'s rollover through
+the real wired store, asserting the balance MOVED before asserting the repair survived; the copy block and refusal iterated both
+ways with the writer list stated independently of the table; an e2e for the new block by name.
+
+**Proven:** typecheck clean · trust suite + `test:app` ALL PASSED · lint `--fast` 47/47 · `data-recovery.spec.ts` **25/25** ·
+**unit plants 5/5** *(writer flipped → iterated row · `FX-3` ordering reverted → `expected 1, got 0` · naive over-fix, every plan
+field app-written → `C1-2`'s "has a sheet" row · copy block reverted → `expected "untracked", got "unrecoverable"` · refusal reverted
+→ "names no setting and no row")* · **e2e plant 1/1** at `:429`. All restores hash-identical.
+
+⚠️ **Self-inflicted, both caught before any run counted:** an `assert` call in a file that defines only `fail`/`eq` (typecheck and
+both suites stopped there) · `S1P5-B5-7-ANSWERABLEID`'s un-fix was anchored on the exact return line `FX-4` rewrote, so the proof went
+VOID — re-derived onto the new line, the same name-for-id revert (drain owed at 8.4.3's close).
+
+#### ✅ 8.4.3.2 — `L1-1`: a plan setter is the user answering · 2026-09-14
+
+**Built:** `answerPlanRepairs(store, fields)` (`trustSelectors.ts`), `answerBalanceRepairs`' shape on the plan — user-written fields
+only, never an app-kept one — called from `setCushionFloor`, `setWindfall` and `updatePaycheck` (only when the update names
+`leanAmount`). Every caller of the three is a user path, measured by grep: the cushion sheet through `onSetFloor` on Today
+(`index.tsx:426`), `WindfallSheet`'s save and remove, `PaycheckSheet` and `PaycheckStep`. The `C1-2` fail-open guard's control
+was re-pointed from `setCushionFloor(0)` — since `L1-1`, an answer — to `markReviewPrompted()`, a write touching no plan field.
+
+**Rows** through the real wired store: each setter answers at the `$0` sentinel · "Got it" is not an answer to a figure the user
+CAN set (A-J2-1) · an edit naming another field answers nothing · `importStore` keeps a restored repair · ⚡ **two written BEFORE
+planting**, because the one-lost-field fixtures above could not see a setter that answered every plan repair, or one that answered an
+app-kept amount.
+
+**Proven:** typecheck clean · trust suite + `test:app` ALL PASSED · lint `--fast` 47/47 (no registry proof was anchored on the setter
+lines) · **unit plants 6/6** *(each setter reverted → its own row, `expected 0, got 1` · setter answers everything → "answers nothing else
+on the plan" · setter answers an app-kept amount → "naming an app-kept amount answers nothing" · the plan branch settling on every
+write → the re-pointed guard)*. Both over-fix plants redded only on the rows written for them.
+
+#### 8.4.3.3 — `L1-3`: the band honors a set `$0` line (building) · 2026-09-14
+
+⚡ **Where the fix lives was decided by `F4`, not by the finding.** `computeState` is *"the ONE Guardian state machine"* — the card,
+the forecast and `selectPlanSummary` all derive their band from it so they cannot disagree — so honoring `$0` in the brief alone
+would reopen `F4`'s own contradiction. The guard (`floor > 0 ? floor : 200`, twice) became one `lineOf`: a finite `0` is a line;
+NaN, Infinity and negatives take `$200`. **Premise checked before editing:** every caller passes `effectivePaycheckBuffer` — free's
+`$50`, premium's line, `$200` when the line was lost — so a finite `0` arrives only from a set `$0` line. `allocatePaycheck.ts:683`'s
+`floor: 0` is an argument to `combinedHoldback`, the holdback clamp, and never reaches the band.
+
+⛔ **Two tests encoded the defect as a rule, and were re-pointed, not deleted.** `testComputeState.ts:41` pinned *"non-positive floor
+falls back to 200"* — now NaN and a negative, plus rows honoring `$0` with its hysteresis. And `testMultiCycleTimelineRegression`'s
+trio (*"stable at or above 200 · tight 100–199 · pressure below 100"*) reached a `$200` band only through `paycheckBuffer: 0` → `200`;
+the line is now explicit (`paycheckBuffer: 200`). ⚠️ `paycheckBuffer: 0` sits in ~50 core fixtures; the regression runner is
+side-effect imports that die at the first throw, so every suite past it was run INDIVIDUALLY before trusting the count — all nine
+passed; the trio was the only band dependency. No e2e seeds a `$0` line. Rows added: the brief's `$0` line reads clear with a `$200`
+control; `F4`'s agreement row on a `$0` line — card, summary and forecast all `stable`. Full `test:regression` then passed to its
+own summary line (68 suites).
+
+⚠️ **Two faults in MY plant tooling, both stopped by a red CONTROL before any plant was scored.** ① The control was rewritten through
+Python inside a shell heredoc, and the backslash in `cd /d apps\rn` came out as JSON's `\r` — the runner tried to enter
+`apps<CR>n` (*"The system cannot find the path specified"*), after all three core suites had passed. The backslash-escape hazard in
+my own notes, recurring in a new tool; the control now runs from `apps/rn` with no `cd` and no backslash, written with the Write
+tool. ② The standalone `guardianSelectors` runner looked for an exported function, and the file exports none: it ends `try { run(); }
+catch … throw`, so it runs ITSELF on load, and `runAppTests.ts` loads it with a bare `await import(...)`. ⛔ **Wrong twice, for one
+reason** — the first version guessed a flat `default`, the "fix" guessed `default.default`; both shapes were borrowed from OTHER test
+files instead of read from this one, and both faulted AFTER the suite had already run and passed on import (117 asserts). The second
+attempt at least labelled itself a **RUNNER FAULT, not a test result**, which is what kept it from being scored as the `F4` plant's red.
+The runner now just imports it.
+
+**✅ 8.4.3.3 proven** (third batch run, control green — the three core suites and the `guardianSelectors` suite, unplanted): **unit
+plants 3/3** *(`computeState` reverted to `> 0` → the brief's `$0` row, and separately → `testComputeState`'s honored-`$0` row ·
+the card ALONE keeping a `$200` guard → `F4`'s agreement row, `{"card":"tight","summary":"stable","forecast":"stable"}`)*. The third
+is the measurement that puts the fix in `computeState`: a card-only fix produces exactly that disagreement, and the row sees it.
+
+#### ✅ 8.4.3.4 — `L1-4` + `L1-5`: two closures nothing could make red · 2026-09-14
+
+**Rows:** `L1-4` — the refusal names each user-written plan field's label exactly ONCE (`dataRepairsCopy.test.ts`), because
+`startsWith('set ')` is true of the defect too. `L1-5` — `selectPaydayGuardian` flags a LOST line and not a line SET to `$0`
+(`guardianSelectors.test.ts`), and the brief passes the flag through both ways (`testBuildGuardianBrief.ts`). **Proven:** typecheck core ·
+rn · tests clean · `test:app` and `test:regression` passed to their own summaries · lint `--fast` 47/47 · **unit plants 3/3** *(selector
+drops `floorUnread` → `expected true, got false` · the brief drops it → the core row · `namedFigures` loses its plan branch → `got "set
+your cushion line on your cushion line again"`, count 2 — round 1's exact sentence)*.
+
+**8.4.3's four build sub-steps are proven:** 17 plants in all — `FX-3`/`FX-4` 5 + 1 e2e · `L1-1` 6 · `L1-3` 3 · `L1-4`/`L1-5` 3.
+Close (8.4.3.5) runs next: the 15-spec e2e control, the full `lint:rn`, commit, and the drain.
+
 Two expected reds from the build: the suite's `C3-8` pin *"a lost APR refuses the projected total"* sat on a store that is
 FREE by default — the `L3-2` over-suppression written into the suite; and `S1P7-57-3-FREE-C3-8-TWIN`'s un-fix anchored on the
 deleted conjunct, now VOID, with 13 proofs stale against a ceiling of 8.

@@ -1,0 +1,95 @@
+exit=0
+RUN-TRUST-TEST: default() returned
+Running data-repairs copy tests...
+  ✓ one recovered repair produces one block
+  ✓ …and it is the recovered block, not the loss block
+  ✓ …with the recovery heading
+  ✓ ⛔ …and it says the plan IS using the amount, because it is
+  ✓ …naming the item, which is the only actionable part
+  ✓ a lost repair produces the loss block
+  ✓ …with the loss heading
+  ✓ …and the loss consequence is unchanged
+  ✓ an absent `kind` is treated as a loss
+  ✓ a mixed list produces both blocks
+  ✓ ⛔ losses come first — they are the ones with an action attached
+  ✓ …and the recoveries follow
+  ✓ the loss block holds only the loss
+  ✓ the recovery block holds only the recovery
+  ✓ the loss block counts only losses
+  ✓ ⛔ …and the recovery block is singular
+  ✓ the plural loss consequence
+  ✓ ⛔ VoiceOver hears the recovery heading too — it used to hear the loss sentence over both
+  ✓ …and the loss heading
+  ✓ a migration entry IS its own sentence
+  ✓ a nameless repair names the list it came from
+  ✓ a named repair reads as name and field
+  ✓ a v1.6 bridge count is not something you can go and set
+  ✓ ⛔ …so the card must not tell them to
+  ✓ …and it names what they CAN do
+  ✓ both nameless losses land in one block
+  ✓ ⛔ a row or a list that would not read has nothing to reopen
+  ✓ …and the plural says so
+  ✓ a named loss and a nameless one are different claims and get different blocks
+  ✓ the named one keeps the actionable sentence
+  ✓ …and holds only itself
+  ✓ …while the nameless one is separated out
+  ✓ ⛔ a stood-down pace IS actionable now — the promise became true rather than being dropped
+  ✓ ⛔ C1-2 — a lost cushion line IS answerable: the app has a sheet for it
+  ✓ …so the card promises the thing the user can actually do
+  ✓ ⛔ …and no longer sends them to their old app for a number this app owns
+  ✓ ⛔ C1-3 — the plan names no row, so the label is the whole line
+  ✓ ⛔ C1-3 — …and the label appears ONCE, whatever it is reworded to
+  ✓ ⭐ control — a row-bearing repair is unchanged
+  ✓ ⭐ cushionFloor: a sheet sets it, so the actionable block stays
+  ✓ ⭐ cushionFloor: …and the refusal still names what to set — got "set your cushion line again and this comes back"
+  ✓ ⭐ leanAmount: a sheet sets it, so the actionable block stays
+  ✓ ⭐ leanAmount: …and the refusal still names what to set — got "set your lean paycheck again and this comes back"
+  ✓ ⛔ FX-4 — typicalAmount: nothing the user can open writes it
+  ✓ ⛔ FX-4 — typicalAmount: the card promises no action that does not exist
+  ✓ ⛔ FX-4 — typicalAmount: nor calls it old data that failed to come across
+  ✓ ⛔ FX-4 — typicalAmount: …and names the one answer it has, by its button
+  ✓ ⛔ FX-4 — typicalAmount: the refusal names no setting and no row — got "it can’t be set again, so tap “Got it” on the note about it and your plan runs without it"
+  ✓ ⭐ windfall: a sheet sets it, so the actionable block stays
+  ✓ ⭐ windfall: …and the refusal still names what to set — got "set a windfall again and this comes back"
+  ✓ ⛔ FX-4 — expenseReserveBalance: nothing the user can open writes it
+  ✓ ⛔ FX-4 — expenseReserveBalance: the card promises no action that does not exist
+  ✓ ⛔ FX-4 — expenseReserveBalance: nor calls it old data that failed to come across
+  ✓ ⛔ FX-4 — expenseReserveBalance: …and names the one answer it has, by its button
+  ✓ ⛔ FX-4 — expenseReserveBalance: the refusal names no setting and no row — got "it can’t be set again, so tap “Got it” on the note about it and your plan runs without it"
+  ✓ ⛔ FX-4 — a row loss and an app-kept amount are different claims, and different blocks
+  ✓ the fixture knows how many repairable money fields there are (raise it WITH the field)
+  ✓ ⛔ C-m1 — "balance" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "minimumPayment" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "apr" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "originalBalance" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "scheduledPaymentAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "amount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "amount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "targetAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "currentAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "priorityPerPaycheck" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "cushionFloor" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "leanAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "typicalAmount" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "windfall" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — "expenseReserveBalance" can be repaired and has no user-facing name, so the card prints the schema key
+  ✓ ⛔ C-m1 — FIELD_LABEL names "cushionFloor", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "leanAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "typicalAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "windfall", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "expenseReserveBalance", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "balance", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "minimumPayment", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "apr", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "originalBalance", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "scheduledPaymentAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "amount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "targetAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "currentAmount", which migrations.ts can no longer repair
+  ✓ ⛔ C-m1 — FIELD_LABEL names "priorityPerPaycheck", which migrations.ts can no longer repair
+  ✓ no repairs produces no blocks
+  ✓ ⛔ C3-14 — one unread target is "one target"
+  ✓ ⛔ C3-14 — two unread targets are "2 targets", never "one"
+  ✓ ⛔ C3-14 — …and the count is the count, not a plural word
+✅ All data-repairs copy tests passed (90).
+RUN-COPY-TEST: returned

@@ -1,0 +1,54 @@
+{
+  "control": {
+    "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts && npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-copy-test.ts",
+    "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "FX-4 revert - the reserve balance written by the user again",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "  expenseReserveBalance: 'app', // rollover rewrites it; the user sets a contribution, never the balance",
+      "new": "  expenseReserveBalance: 'user', // rollover rewrites it; the user sets a contribution, never the balance",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["FX-4 — plan.expenseReserveBalance is NOT answerable"]
+    },
+    {
+      "name": "FX-3 revert - app-written fields reach the moved-value rule again",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "    if (!answerableByEdit(r)) return !r.acknowledged;",
+      "new": "    if (!answerableByEdit(r) && !isAppWrittenPlanRepair(r)) return !r.acknowledged;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["FX-3 — a rollover that moves the balance does not answer a loss nobody re-supplied"]
+    },
+    {
+      "name": "FX-4 naive over-fix - every plan field treated as app-written",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "  cushionFloor: 'user', // CushionFloorSheet",
+      "new": "  cushionFloor: 'app', // CushionFloorSheet",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["C1-2 — the plan is answerable: it has a sheet"]
+    },
+    {
+      "name": "FX-4 copy revert - app-kept amounts fall back into the old-data block",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "old": "  const untracked = repairs.filter((r) => kindOf(r) === 'lost' && isAppWrittenPlanRepair(r));\r\n  const unrecoverable = repairs.filter((r) => kindOf(r) === 'lost' && !actionable(r) && !isAppWrittenPlanRepair(r));",
+      "new": "  const untracked: DataRepair[] = [];\r\n  const unrecoverable = repairs.filter((r) => kindOf(r) === 'lost' && !actionable(r));",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-copy-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["nothing the user can open writes it"]
+    },
+    {
+      "name": "FX-4 refusal revert - an app-kept amount told about rows again",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/components/plan/dataRepairsCopy.ts",
+      "old": "    if (repairs.length > 0 && repairs.every(isAppWrittenPlanRepair)) {",
+      "new": "    if (false) {",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-round2-fixes/run-copy-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["the refusal names no setting and no row"]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "control": {
+    "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+    "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "L1-1 revert - setting the cushion line answers nothing",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/store.ts",
+      "old": "      set((s) => ({ store: answerPlanRepairs({ ...s.store, cushionFloor: snapped }, ['cushionFloor']) }));",
+      "new": "      set((s) => ({ store: { ...s.store, cushionFloor: snapped } }));",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-1 — setting the line to $0, the value the repair wrote, ANSWERS it"]
+    },
+    {
+      "name": "L1-1 revert - setting the windfall answers nothing",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/store.ts",
+      "old": "      set((s) => ({ store: answerPlanRepairs({ ...s.store, windfall: Math.max(0, amount) }, ['windfall']) }));",
+      "new": "      set((s) => ({ store: { ...s.store, windfall: Math.max(0, amount) } }));",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["is an answer, at the $0 the repair wrote"]
+    },
+    {
+      "name": "L1-1 revert - saving the paycheck answers nothing",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/store.ts",
+      "old": "      const answers = 'leanAmount' in updates ? ['leanAmount'] : [];",
+      "new": "      const answers: string[] = [];",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["saving the paycheck sheet answers the lean paycheck"]
+    },
+    {
+      "name": "L1-1 naive over-fix - a setter answers every plan repair",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "    (r) => !(r.entity === 'plan' && answered.has(r.field) && !isAppWrittenPlanRepair(r)),",
+      "new": "    (r) => !(r.entity === 'plan' && !isAppWrittenPlanRepair(r)),",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-1 — answering the windfall answers nothing else on the plan"]
+    },
+    {
+      "name": "L1-1 naive over-fix - a setter answers an app-kept amount",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "    (r) => !(r.entity === 'plan' && answered.has(r.field) && !isAppWrittenPlanRepair(r)),",
+      "new": "    (r) => !(r.entity === 'plan' && answered.has(r.field)),",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["FX-4 · L1-1 — naming an app-kept amount answers nothing"]
+    },
+    {
+      "name": "C1-2 fail-open - any store write settles a plan repair",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/trustSelectors.ts",
+      "old": "      return was === now; // moved → cleared; unchanged → still pending",
+      "new": "      return false; // moved → cleared; unchanged → still pending",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["a write that does not touch the line may not settle it"]
+    }
+  ]
+}

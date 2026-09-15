@@ -445,26 +445,28 @@ function testEndingBalanceMatchesLastItemRunningCash() {
 }
 
 function testCushionStatusStableAtOrAbove200() {
-    // Paycheck $2000, no bills → ending balance = $2000 → stable
-    const cycles = buildTimeline({ paycheckAmount: 2000, paycheckBuffer: 0 });
+    // Paycheck $2000, no bills, against a $200 line → stable.
+    // ⛔ [class 5 R2 `L1-3`] The line is now EXPLICIT. These three reached a $200 band only through `computeState`'s old
+    // `floor > 0 ? floor : 200`, which also judged a user's deliberate $0 line against $200. A $0 buffer is honored now.
+    const cycles = buildTimeline({ paycheckAmount: 2000, paycheckBuffer: 200 });
     assertEqual(cycles[0].cushionStatus, "stable", "No-bills cycle has stable cushion ($2000 remaining)");
 }
 
 function testCushionStatusTightBetween100And199() {
-    // Paycheck $350, bills $200 → ending $150 → tight
+    // Paycheck $350, bills $200 → $150 against a $200 line → tight
     const expenses: RequiredExpense[] = [
         { id: "e1", name: "Rent", amount: 200, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
     ];
-    const cycles = buildTimeline({ paycheckAmount: 350, expenses, paycheckBuffer: 0 });
+    const cycles = buildTimeline({ paycheckAmount: 350, expenses, paycheckBuffer: 200 });
     assertEqual(cycles[0].cushionStatus, "tight", "Ending balance $150 → tight");
 }
 
 function testCushionStatusPressureBelow100() {
-    // Paycheck $250, bill $200 → ending $50 → pressure
+    // Paycheck $250, bill $200 → $50 against a $200 line → pressure
     const expenses: RequiredExpense[] = [
         { id: "e1", name: "Rent", amount: 200, dueDate: "2026-06-05", recurrence: "monthly", isPaidThisCycle: false },
     ];
-    const cycles = buildTimeline({ paycheckAmount: 250, expenses, paycheckBuffer: 0 });
+    const cycles = buildTimeline({ paycheckAmount: 250, expenses, paycheckBuffer: 200 });
     assertEqual(cycles[0].cushionStatus, "pressure", "Ending balance $50 → pressure");
 }
 

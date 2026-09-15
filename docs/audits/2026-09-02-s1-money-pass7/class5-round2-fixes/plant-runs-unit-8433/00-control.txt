@@ -1,0 +1,223 @@
+exit=0
+Running Payday Cushion Guardian (2.4) tests...
+  ✓ premium: covered with headroom above the line → clear (not a false 'tight')
+  ✓ single-target extra names the debt directly ('toward Store Card')
+  ✓ a spread extra reads 'across your debts, starting with …', not 'to Store Card'
+  ✓ a spread extra safe move reads 'Apply the spare … across your debts'
+  ✓ tradeoff: leads with applying the spare to the debt + the why
+  ✓ tradeoff: two-sided (the EF alternative) + 'your call'
+  ✓ mechanical: single decisive 'Apply the spare …'
+  ✓ mechanical: no two-sided 'your call'
+  ✓ free: SAME headroom → clear (the split doesn't change the band)
+  ✓ free gets no safeMove (the card shows the invitation)
+  ✓ free copy never claims the app acted
+  ✓ premium viz cushion = kept ($200)
+  ✓ free viz cushion = kept ($50 — under the line, the value prop)
+  ✓ headroom under the line → tight
+  ✓ tight premium keeps everything, deploys nothing
+  ✓ tight reads CALM — 'covered' + 'rebuilds next paycheck' (2.4.11.2)
+  ✓ hysteresis holds the band at tight even though headroom is above the line
+  ✓ [A3-11] the money is authoritative: headroom ABOVE the floor reads 'just above', never 'a little under'
+  ✓ [A3-11] …and the brief does not claim a shortfall the figures beside it contradict
+  ✓ a shortfall → at-risk
+  ✓ M3 — a shortfall is at-risk even with headroom on the input
+  ✓ shortfall → paused extra payoff (never cuts an obligation)
+  ✓ the brief carries the shortfall amount
+  ✓ free shortfall → the honest title (not softened to 'a bit tight')
+  ✓ free shortfall → tells the amount short
+  ✓ free shortfall → no safeMove (the built plan is premium)
+  ✓ free shortfall carries the amount for the state-aware invite
+  ✓ reachedFloor true when kept cushion meets the line
+  ✓ reachedFloor false when the kept cushion is under the line
+  ✓ an upcoming non-clear cycle → a lookahead heads-up
+  ✓ a clear upcoming cycle → no lookahead noise
+  ✓ no NaN/Infinity in any copy
+  ✓ viz numbers are always finite
+  ✓ a NaN floor falls back to the $200 default
+  ✓ a deliberately set $0 line is kept, not substituted
+  ✓ ⛔ L1-3 — $100 of headroom over a $0 line is CLEAR, not tight against a hidden $200
+  ✓ ⭐ L1-3 control — $100 over a $200 line is not clear
+  ✓ heldReserve is exposed on the viz for the bar's set-aside zone
+  ✓ heldReserve clamps to the cushion (can't exceed what it lives inside)
+  ✓ no reserve → heldReserve 0 (zone hidden)
+  ✓ a $96 deploy reads EXACTLY '$96' in the detail, never hedged to $95
+  ✓ …and '$96' EXACT in the action, matching the plan
+  ✓ a $2 deploy never renders as '$0'
+  ✓ a $2 deploy reads exactly '$2' (exact, not fuzzed)
+  ✓ missed paycheck → pausedDeploy flag set
+  ✓ paused: honest 'a paycheck didn't land', not a verdict
+  ✓ paused: deploy to debt is 0 (never planned on phantom income)
+  ✓ paused: no phantom-income clear/deploy copy
+  ✓ paused: says it paused moving money to debt
+  ✓ paused: free gets no safeMove
+  ✓ fresh + nothing live → no hedge
+  ✓ aging → exactly one hedge
+  ✓ aging → the refresh hedge
+  ✓ aging freshness hedges the FREE read too
+  ✓ cold-start → the income hedge
+  ✓ discovery → the bills hedge
+  ✓ three live signals → still exactly ONE hedge
+  ✓ priority: freshness (aging) wins over the learning hedges
+  ✓ priority: lean-unverified wins over bills-completeness
+  ✓ free + learning holdbacks live → no hedge (free doesn't learn)
+  ✓ stale → staleAdvisory flag for the neutral card render
+  ✓ stale → the 'refresh your numbers' cutoff, not a verdict
+  ✓ the cutoff replaces the read — no residual hedge
+  ✓ stale supersedes even a shortfall read
+  ✓ stale cutoff: free gets no safeMove
+  ✓ stale cutoff: premium gets the update prompt
+  ✓ debt-free: the band still follows headroom (clear)
+  ✓ debt-free brief carries the debtFree flag (the card relabels the bar legend to 'To savings')
+  ✓ debt-free clear-deploy: the spare goes 'toward your Emergency Fund'
+  ✓ debt-free clear-deploy: never says 'debt'
+  ✓ debt-free safe move: savings-framed ('toward your Emergency Fund'), never 'payment'
+  ✓ debt-free with no named goal → 'toward your savings'
+  ✓ debt-free spread → 'across your savings, starting with …'
+  ✓ debt-free spread safe move → 'across your savings, starting with …'
+  ✓ debt-free tight → calm 'rebuilds next paycheck', never 'payoff'
+  ✓ topped-up → 'Your line's held', not a plain 'looks clear'
+  ✓ topped-up → names the pot actually drained
+  ✓ L3-1 stays fixed — the EF is not named when it was not the source
+  ✓ L3-2 stays fixed — no unconditional refill promise
+  ✓ L3-2 stays fixed — the refill is not tied to the cushion rebuilding
+  ✓ no source recorded → still never claims the EF
+  ✓ …acknowledges the savings move
+  ✓ debt-free clear-no-deploy → 'free up more for your goals'
+  ✓ debt-free shortfall → 'expenses' (no minimums exist debt-free)
+  ✓ debt-free shortfall → 'Extra savings is paused'
+  ✓ debt-free paused → 'moving money to savings', not 'to debt'
+  ✓ with-debt brief still names the debt + debtFree unset
+  ✓ hedged (no false-precise $) — clear
+  ✓ hedged (no false-precise $) — clear
+  ✓ hedged (no false-precise $) — tight
+  ✓ hedged (no false-precise $) — at-risk
+  ✓ hedged (no false-precise $) — clear
+  ✓ hedged (no false-precise $) — clear
+  ✓ hedged (no false-precise $) — clear
+  ✓ hedged (no false-precise $) — clear
+  ✓ hedged (no false-precise $) — clear
+  ✓ hedged (no false-precise $) — tight
+  ✓ hedged (no false-precise $) — at-risk
+✅ Payday Cushion Guardian (2.4) tests passed.
+✅ Guardian computeState (unified state machine) tests passed.
+✅ Multi-cycle timeline regression tests passed.
+Running Guardian selector (RS.2) tests...
+  ✓ no paycheck → null (expected null, got null)
+  ✓ default (empty) store → null (expected null, got null)
+  ✓ high headroom → clear
+  ✓ clear premium deploys the spare to debt
+  ✓ headroom under the floor (but ≥ half) → tight
+  ✓ tight deploys nothing (expected 0, got 0)
+  ✓ headroom below half the floor → at-risk
+  ✓ bills exceed the paycheck → at-risk
+  ✓ …and the shortfall title
+  ✓ …deploy paused in a shortfall (expected 0, got 0)
+  ✓ debt-free → Guardian PERSISTS (not null)
+  ✓ …flagged debtFree (expected true, got true)
+  ✓ …spare deploys to savings
+  ✓ free: same headroom → clear
+  ✓ free gets no safeMove (the card shows the invitation) (expected undefined, got undefined)
+  ✓ bad paycheck "abc" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "NaN" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "-500" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "0" → null (no crash) (expected null, got null)
+  ✓ bad paycheck "  " → null (no crash) (expected null, got null)
+  ✓ bad paycheck "Infinity" → null (no crash) (expected null, got null)
+  ✓ huge paycheck → clear, finite viz (no Infinity)
+  ✓ tight + savings → a top-up offer
+  ✓ …topUp = the gap to the floor (200 − 150) (expected 50, got 50)
+  ✓ …names the savings source (expected "Emergency Fund", got "Emergency Fund")
+  ✓ tight + NO savings → null (honest calm state) (expected null, got null)
+  ✓ CLEAR → null (nothing to hold) (expected null, got null)
+  ✓ free tier → null (premium-only) (expected null, got null)
+  ✓ savings < gap → topUp capped at the balance
+  ✓ A3.3 — a discretionary goal wins over the EF even when the EF is first (expected "Savings 1", got "Savings 1")
+  ✓ …and it is not flagged as the emergency fund (expected false, got false)
+  ✓ L3-3 — prefers a pot that can COVER the gap over the one created first (expected "Savings 1", got "Savings 1")
+  ✓ …draws the gap, not the whole balance of the tiny pot (expected 50, got 50)
+  ✓ …so the line actually holds (was: false, with  untouched) (expected true, got true)
+  ✓ L3-3 — and it is the RULE, not the position: the big pot wins from index 0 too (expected "Savings 0", got "Savings 0")
+  ✓ …line holds either way round (expected true, got true)
+  ✓ L3-3 — none sufficient → the LARGEST available, not the first (expected 30, got 30)
+  ✓ …and it still says the line will not hold (expected false, got false)
+  ✓ D24 holds — an insufficient SAVINGS pot still beats a sufficient EF (expected false, got false)
+  ✓ …the line does not hold, and the safety net is left alone (expected false, got false)
+  ✓ A3.3 — EF-only → still offered, and flagged as the emergency fund (expected true, got true)
+  ✓ the larger of two emergency pots is the source (expected "Car repair fund", got "Car repair fund")
+  ✓ ⛔ …and it is NOT called the emergency fund — Money calls it Savings (expected false, got false)
+  ✓ premium at-risk → risk push fires (expected true, got true)
+  ✓ free → no risk push (premium-only) (expected false, got false)
+  ✓ clear → no risk push (risk-only) (expected false, got false)
+  ✓ 2 recent pushes → frequency-capped (expected false, got false)
+  ✓ no history → not proven (day-one state) (expected false, got false)
+  ✓ no history → matchRate null (no hollow number) (expected null, got null)
+  ✓ no gradeable cycles → n 0 (expected 0, got 0)
+  ✓ converted trial (past kick-in) → surfaces (expected "Netflix", got "Netflix")
+  ✓ → carries the full price (expected 15.99, got 15.99)
+  ✓ → monthly cadence label (expected "/mo", got "/mo")
+  ✓ not-yet-converted (future kick-in) → null (expected null, got null)
+  ✓ not flagged a trial → null (expected null, got null)
+  ✓ no full price → null (no phantom prompt) (expected null, got null)
+  ✓ non-finite full price → null (expected null, got null)
+  ✓ no trials → null (expected null, got null)
+  ✓ free tier also gets the prompt (accuracy for all) (expected "Netflix", got "Netflix")
+  ✓ A3.2 — the starter EF absorbs the whole spare, so nothing reaches debt (expected 0, got 0)
+  ✓ …and the real cushion is the $200 floor, not the $1,000 headroom (expected 200, got 200)
+  ✓ …so the brief must NOT claim it keeps all of it as cushion
+  ✓ …it names the $800 and where it went
+  ✓ …and why debt got nothing
+  ✓ …and the safe move points at the rung that actually receives it
+  ✓ A3.2 — a PRIORITY savings goal absorbs the spare the same way (expected 0, got 0)
+  ✓ …and gets the same honest treatment, not just the EF
+  ✓ …naming the goal that actually received it
+  ✓ discretionary exactly at the floor → clear (not tight) (expected "clear", got "clear")
+  ✓ …with no pre-debt rung and no spare to debt (expected 0, got 0)
+  ✓ …still says so, because this time it is true
+  ✓ M3 fixture really is short (the assertion below is vacuous otherwise)
+  ✓ M3 — a shortfall is at-risk even with a top-up on record (expected "at-risk", got "at-risk")
+  ✓ M3 precondition — the shortfall sentence exists to be rendered
+  ✓ M3 control — still at-risk without the record (expected "at-risk", got "at-risk")
+  ✓ M3 counter-fixture really is covered (expected 0, got 0)
+  ✓ M3 — a COVERED cycle with a top-up is untouched (expected "clear", got "clear")
+  ✓ M3 tight-fixture is covered, just under the line (expected 0, got 0)
+  ✓ M3 — `tight` survives; the fix touches only the shortfall case (expected "tight", got "tight")
+  ✓ M3b — a purchase during a shortfall is SHORT, top-up on record or not (expected "short", got "short")
+  ✓ …and short by the whole amount, matching the no-top-up control (expected 150, got 150)
+  ✓ M3b control — the no-record store already behaved (expected "short", got "short")
+  ✓ M3b — a covered cycle is unmoved (expected "comfortable", got "comfortable")
+  ✓ …and still counts the moved cash, per 3.7.A3.6
+  ✓ ⛔ A1 — no purchase this small is "short" with $199 unspent (shortBy 0)
+  ✓ ⛔ A1 — …so the card must not say "not this paycheck"
+  ✓ ⛔ A1 — the spare is the SURPLUS, stated: $199 (got 199)
+  ✓ ⛔ A1 — `holdsLine` and the band are ONE expression, so they agree (expected false, got false)
+  ✓ …and $199 against a $200 floor is tight — neither at-risk nor clear (expected "tight", got "tight")
+  ✓ ⛔ A1 — a top-up that covers the shortfall AND clears the floor is clear (expected "clear", got "clear")
+  ✓ …and the card says so, agreeing with the band (expected true, got true)
+  ✓ …and a $20 purchase against $550 spare is comfortable (expected "comfortable", got "comfortable")
+  ✓ …the surplus, netted once: 600 − 50 (got 550)
+  ✓ ⭐ A1 control — a shortfall the move does NOT cover is still at-risk (M3 intact) (expected "at-risk", got "at-risk")
+  ✓ ⭐ A1 control — …and the purchase is still short (AS-3 intact) (expected "short", got "short")
+  ✓ …by the whole amount, exactly as before (expected 150, got 150)
+  ✓ …with no spare, because the surplus is 0 — not because of a blanket rule (expected 0, got 0)
+  ✓ …and the move did not hold the line (expected false, got false)
+  ✓ ⛔ A1 — the shortfall named is what is STILL short (got: You’re about $200 short of the expenses due before your next paycheck — this one needs a plan.)
+  ✓ …never the gap before the money the user already moved
+  ✓ ⭐ A1 control — unmoved with no top-up (expected "at-risk", got "at-risk")
+  ✓ ⭐ A1 control — unmoved (expected "short", got "short")
+  ✓ ⭐ A1 control — unmoved (expected 150, got 150)
+  ✓ the band calls this cycle tight… (expected "tight", got "tight")
+  ✓ ⛔ A1 — …so the tight-case offer exists for it
+  ✓ ⭐ A1 control — a real shortfall still refuses the offer (expected null, got null)
+  ✓ ⭐ D2-1 control — the three producers agree BEFORE the move ({"card":"tight","summary":"tight","forecast":"tight"})
+  ✓ …and the cycle really is under the line, or the assertion below is vacuous (expected "tight", got "tight")
+  ✓ the card offers its one-tap move on this fixture
+  ✓ …of exactly the gap — floor − cushion (expected 50, got 50)
+  ✓ ⛔ D2-1 — the three producers agree AFTER the card's own offer ({"card":"stable","summary":"stable","forecast":"stable"})
+  ✓ …and the move genuinely cleared the line, which is why the card said so (expected "stable", got "stable")
+  ✓ the fixture really does carry a $0 line (expected 0, got 0)
+  ✓ ⛔ L1-3 — the three producers agree on a $0 line ({"card":"stable","summary":"stable","forecast":"stable"})
+  ✓ ⛔ L1-3 — …and headroom over a $0 line is clear, not tight against a hidden $200 (expected "stable", got "stable")
+  ✓ the fixture projects past cycle 0, or the assertion below is vacuous
+  ✓ ⛔ D2-1 — the top-up reaches cycle 0 and NO projected cycle; the waterfall refills the goal (expected "[\"stable\",\"tight\",\"stable\",\"tight\"]", got "[\"stable\",\"tight\",\"stable\",\"tight\"]")
+✅ Guardian selector (RS.2) tests passed (117 asserts).
+RUN-GUARDIAN-SELECTORS-TEST: imported, and it ran itself without throwing

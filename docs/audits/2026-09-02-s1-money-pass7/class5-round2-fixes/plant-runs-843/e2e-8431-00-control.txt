@@ -1,0 +1,39 @@
+== app plants (0) ==
+== export:web --clear ==
+  export exit=0 in 84s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=23656 listening=True ==
+
+-- RUN CONTROL 8.4.3.1 - data-recovery.spec.ts, unplanted (the untracked block added) :: data-recovery.spec.ts -g '.'
+
+Running 25 tests using 1 worker
+
+  ok  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:90:5 › a corrupt store does NOT drop the user into silent onboarding (1.4s)
+  ok  2 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:105:5 › B4 · TRUNCATED bytes are quarantined too, not read as a first launch (879ms)
+  ok  3 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:122:5 › the reset screen blocks onboarding until the user answers it (1.0s)
+  ok  4 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:137:5 › an unreadable balance is NAMED on Today, not silently filed as paid off (1.3s)
+  ok  5 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:161:5 › the notice survives a reload — it is not a one-session message (2.7s)
+  ok  6 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:188:5 › Money does not celebrate a portfolio it failed to read (974ms)
+  ok  7 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:204:5 › …and a BLANK balance is unread money too, not a cleared debt (962ms)
+  ok  8 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:230:5 › the celebration guard SURVIVES the acknowledgement (2.5s)
+  ok  9 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:270:5 › an amount read in a different format is not reported as unreadable (1.3s)
+  ok 10 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:298:5 › restoring a backup file from the reset screen leaves that screen (1.9s)
+  ok 11 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:371:5 › a legacy stood-down goal is NAMED on Today, with the consequence (1.1s)
+  ok 12 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:404:5 › a loss with nothing to reopen is not told to "set it again" (1.1s)
+  ok 13 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:424:5 › an amount only the app keeps is not told to "set it again", nor called old data (1.1s)
+  ok 14 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:455:5 › C4 · a minimum the app could not read does NOT read as "caught up" (1.0s)
+  ok 15 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:476:5 › C4 control · a minimum the app CAN read still reads as caught up (1.1s)
+  ok 16 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:493:5 › C2 · a goal whose SAVED amount could not be read does not print a remainder (1.1s)
+  ok 17 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:530:5 › C2 control · a goal whose amounts BOTH read still shows its remainder and its total (1.1s)
+  ok 18 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:547:5 › C3 · the full-screen finale does not fire over a balance nobody read (4.8s)
+  ok 19 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:606:5 › C1 · retyping the amount the card asked for CLEARS the suppression, and it stays cleared (5.4s)
+  ok 20 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:650:5 › C1 control · the ACK still answers nothing — A-J2-1 holds (2.4s)
+  ok 21 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:675:5 › C2’s shape on the DEBTS list · the hero does not total a portfolio missing an addend (1.1s)
+  ok 22 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:706:5 › C2’s debts-hero control · a portfolio the app fully read still states its total (1.1s)
+  ok 23 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:738:5 › C3-8 · an unread APR withholds the projected total, with every balance readable (1.1s)
+  ok 24 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:776:5 › C3-8 · a FREE user with the same unread APR still sees the total — no projection, nothing at risk (1.0s)
+  ok 25 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:807:5 › .5.4a · a lost goal target keeps the debt total (995ms)
+
+  25 passed (44.7s)
+   exit=0 :: ok  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:90:5 › a corrupt store does NOT drop the user into silent onboarding (1.4s) | ok  2 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:105:5 › B4 · TRUNCATED bytes are quarantined too, not read as a first launch (879ms) | ok  3 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:122:5 › the reset screen blocks onboarding until the user answers it (1.0s) | ok  4 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:137:5 › an unreadable balance is NAMED on Today, not silently filed as paid off (1.3s) | ok  5 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:161:5 › the notice survives a reload — it is not a one-session message (2.7s) | ok  6 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:188:5 › Money does not celebrate a portfolio it failed to read (974ms) | ok  7 [desktop-chrome] › 
+
+== server stopped; :4319 listening=False ==

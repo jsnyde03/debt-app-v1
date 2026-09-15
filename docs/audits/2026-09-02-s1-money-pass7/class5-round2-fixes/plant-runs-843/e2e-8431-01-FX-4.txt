@@ -1,0 +1,47 @@
+== app plants (1) ==
+  plant apps/rn/src/components/plan/dataRepairsCopy.ts: anchor count=1 :: "  const untracked = repairs.filter((r) => kindOf(r) === 'lost' && isAppWrittenPlanRepair(r"
+  applied apps/rn/src/components/plan/dataRepairsCopy.ts: changed=True
+== export:web --clear ==
+  export exit=0 in 73s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=25128 listening=True ==
+
+-- RUN E-FX-4 revert - an app-kept amount shown as old data again (CRLF anchor: dataRepairsCopy.ts is CRLF 341/341) :: data-recovery.spec.ts -g 'an amount only the app keeps'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:424:5 › an amount only the app keeps is not told to "set it again", nor called old data (6.5s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:424:5 › an amount only the app keeps is not told to "set it again", nor called old data 
+
+    Error: the honest state, by name
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('An amount the app tracks could not be read')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - the honest state, by name with timeout 5000ms[22m
+    [2m  - waiting for getByText('An amount the app tracks could not be read')[22m
+
+
+      427 |
+      428 |   await expect(page.getByTestId('data-repairs-ack')).toBeVisible({ timeout: 15_000 });
+    > 429 |   await expect(page.getByText('An amount the app tracks could not be read'), 'the honest state, by name').toBeVisible();
+          |                                                                                                           ^
+      430 |   await expect(page.getByText(/nowhere to set it again/)).toBeVisible();
+      431 |   // ⛔ Absences only after the card is proven on screen.
+      432 |   await expect(page.getByText(/until you set it again/), '⛔ FX-4 — a promise of an action that does not exist').toHaveCount(0);
+        at C:\Users\Jason\debt-app-v1\apps\rn\tests\e2e\data-recovery.spec.ts:429:107
+
+    Error Context: apps\rn\test-results\data-recovery-an-amount-on-ba0bd-t-again-nor-called-old-data-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:424:5 › an amount only the app keeps is not told to "set it again", nor called old data 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\data-recovery.spec.ts:424:5 › an amount only the app keeps is not told to "set it again", nor called old data (6.5s) | Error: the honest state, by name | [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/components/plan/dataRepairsCopy.ts: cmp identical=True

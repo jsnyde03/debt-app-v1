@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/components/plan/dataRepairsCopy.ts", "  const untracked = repairs.filter((r) => kindOf(r) === 'lost' && isAppWrittenPlanRepair(r));\r\n  const unrecoverable = repairs.filter((r) => kindOf(r) === 'lost' && !actionable(r) && !isAppWrittenPlanRepair(r));", "  const untracked: DataRepair[] = [];\r\n  const unrecoverable = repairs.filter((r) => kindOf(r) === 'lost' && !actionable(r));"]
+  ],
+  "runs": [
+    {"name": "E-FX-4 revert - an app-kept amount shown as old data again (CRLF anchor: dataRepairsCopy.ts is CRLF 341/341)", "spec": "data-recovery.spec.ts", "grep": "an amount only the app keeps"}
+  ]
+}
