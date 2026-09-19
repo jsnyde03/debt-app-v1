@@ -26,6 +26,13 @@
 
 ---
 
+> ## ⏸ PAUSED 2026-09-18 — Ava takes this lane *(🎯)*
+> 🎯 *"Debt 1.7 just seems to be a never-ending fix game."* The live v1.6 and its paying subscribers are
+> untouched. Paused **mid-close at `.5.8.4.4`**; the resume point is unchanged: `CLASS5-START-HERE.md` →
+> *"Resume here"*. The 7 local commits were **pushed early** (`74939ee8`), so 8.4.8's push is already done.
+> ⛔ **Owed on resume, before anything else:** a **stop rule** (round cap plus severity floor) declared
+> before the next audit gate opens. Detail in the log.
+
 ## ▶ RIGHT NOW — **S1.13.7.12.6 · TRIAGE PASS 7 TO 0/0, BY CLASS.**
 
 > ### ▶ START HERE, COLD

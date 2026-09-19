@@ -36476,3 +36476,22 @@ the full gates, because the plants write into the source the gates read.
 Two expected reds from the build: the suite's `C3-8` pin *"a lost APR refuses the projected total"* sat on a store that is
 FREE by default — the `L3-2` over-suppression written into the suite; and `S1P7-57-3-FREE-C3-8-TWIN`'s un-fix anchored on the
 deleted conjunct, now VOID, with 13 proofs stale against a ceiling of 8.
+
+## ⏸ v1.7 PAUSED — Ava takes the lane — 2026-09-18
+
+🎯 Jason, in a portfolio session: *"Debt 1.7 just seems to be a never-ending fix game."* Ava (the
+companion) takes this build lane. Alibi Night and Gig v1.4 are unchanged.
+
+- **What is safe:** the live v1.6 and its paying subscribers. The migration only matters once v1.7
+  ships, so pausing does not touch them.
+- **Where it stopped:** mid-close at `.5.8.4.4`, exactly as the entry above records. The resume point
+  is unchanged: `CLASS5-START-HERE.md` → *"Resume here"* (run 3's two e2e plants, full `lint:rn`, the
+  29-proof drain, the ledger commit and the close).
+- **Pushed early:** the 7 local commits went to `origin/v1.7-dev` at `74939ee8` so nothing sits on one
+  machine. That is 8.4.8's push, done ahead of order. ⚠️ **The push triggered `web-e2e` over a
+  mid-close tree** with 29 proofs stale, so a red run from it is expected and is not a regression.
+- **The cost, stated so the pause is a decision and not a drift:** a paused migration does not shrink.
+  That was the 2026-08-13 argument for finishing Debt first.
+- ⛔ **Owed on resume, before the next audit gate opens:** a declared **stop rule**, a round cap plus a
+  severity floor. This is the fix the 2026-09-11 portfolio evaluation recommended and that Alibi Night
+  adopted as D18, and it was never adopted here. Without it, resuming resumes the loop.
