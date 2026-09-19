@@ -36366,6 +36366,113 @@ re-pointed rather than deleted:** `testComputeState`'s `0 → 200` row, the time
 no-op control became an answer. **Carried forward:** 8.4.4's reserve-release lead; the free-tier two-floors and strategy-normalisation
 items already in the backlog. Nothing new filed.
 
+### `.12.6.5.8.4.4` switch-in — the lead is a defect, and `L1-2`'s remedy would not reach it · 2026-09-15
+
+[`probe-844-release-and-sections.ts`](audits/2026-09-02-s1-money-pass7/class5-round2-fixes/probe-844-release-and-sections.ts) at `69d1df71`,
+on round 1's own L1 fixtures. ⛔ **`FX-5` (measured):** premium, avalanche, Chase 22% with its rate LOST, Visa 18%, a pending release —
+the reserve-release card names **"your Visa"** while the Guardian brief's card refuses (`'paycheck-plan'` false since `FX-1`); readable,
+it names Chase. **Reachable:** `activeAck` ranks `'data-repairs'` first (`index.tsx:248`), so the release card appears the moment the user
+taps "Got it" on the repairs note — an ack that does not clear an answerable repair, so every claim is still refusing. ⚡ **The
+allocation's first snowball row ALSO names Visa** over the lost rate, so `L1-2`'s remedy (name that row, as the Guardian does) fixes
+`L1-2` and not `FX-5`: the card must ask the claim too. **`L1-2` re-confirmed:** a projected-`$0` StoreCard is named on both strategies
+while the plan pays Visa. **`L1-R1` re-confirmed:** premium places StoreCard in none of Money's three sections; free places every debt.
+
+✅ **[DECISION] 🎯 2026-09-15 — `FX-5`: THE RELEASE NOTE SAYS "your debt" WHEN THE PLAN CANNOT VOUCH FOR ITS TARGET**, the recommended
+option. It names the plan's first snowball row (the Guardian brief's pattern, which also closes `L1-2`) while `'paycheck-plan'` holds, and
+takes `G-2`'s existing fallback when it refuses — the release is real, only the name is unknown, and no new copy is written. Rejected:
+withholding the note while the plan refuses, which loses good news and brings it back later with no context.
+
+✅ **[DECISION] 🎯 2026-09-15 — `L1-R1`: AN UNCONFIRMED DEBT WHOSE ESTIMATE READS `$0` IS LISTED LAST IN MONEY'S ACTIVE LIST, NEVER THE
+FOCUS**, the recommended option. Read first: `DebtRow` already renders a stale premium estimate as *"estimated · tap to verify"*
+(`money.tsx:607-629`), so the listed row IS the missing door to confirm the payoff, and no copy is new. Rejected: its own section
+(new heading copy and a fourth group to keep consistent), and round 1's literal remedy of normal payoff order — on snowball a `$0`
+estimate sorts first and becomes Money's "pay next" focus while the plan pays another debt, `L1-2`'s shape on a second screen.
+
+**8.4.4.3–.4 built — what the first run said, and the one owner it forced.**
+- ⛔ **The first build of `L1-2` redded `C3-13`.** On a store whose only debt is $100 owed on a projected $0, the plan funds no
+  snowball, and a fallback that drops every `$0` estimate said *"your debt"*. 🎯 2026-09-13's `C3-13` pins it to the confirmed
+  store's answer, *"your Chase"*. So the rule is an **order**, not a filter: debts still owing on the estimate first, then those
+  reading `$0`. That is also `L1-R1`'s decision, so both use one helper.
+- ⭐ **One owner.**
+  - `liveByEstimate` (`trustSelectors.ts`, the module the liveness gate exempts) splits `liveDebts` by the estimate.
+  - `payoffOrder` (`payoffSelectors.ts`) ranks the owing debts, then the `$0` ones; `focus` comes only from the owing group.
+  - It is used by `selectPayoffView` (`L1-R1`), `selectReserveRelease`'s fallback (`L1-2` and `C3-13`), and the Guardian brief's
+    fallback.
+  - The focus is identical to the old rank, since a projected balance above 0 implies a confirmed one. The projections still gate
+    on the owing set.
+- **Two gates moved on purpose, and one proof went void:**
+  - `payoffSelectors.ts`' ledgered liveness site is gone: row removed, `MAX_LIVENESS_SITES` 22 → 21.
+  - `'paycheck-plan'` gained its 8th caller (`FX-5`): floor 7 → 8.
+  - `S1P3-G-LIVENESSLEDGER`'s un-fix was anchored on the `= 22` line; re-pointed, and re-proved at the drain.
+  - `fixture-dates` read 122 of 120 because of my two `'2026-05-01'` literals. They are now a const, as `C3-13`'s `TWO_MONTHS_AGO`
+    is (the store's clock is `DAY`).
+- **Class sweep of `rankDebts`:**
+  - **The brief's fallback:** the same shape, and folded in. ⚠️ **But no user sees it**: `probe-844-fallback` run 2 shows the brief
+    names no debt when the plan funds no snowball ($200–$600). It is consistency, and no row claims it.
+  - **`analysisSelectors`:** ranks `balance > 0` of its own basis, so it cannot name a `$0` estimate. Not this class.
+  - **`payoffCelebration`:** compares before and after a crossing, a different question.
+  - Run 1 of the probe ($1100–$3000) never reached the fallback, because every row funded a snowball.
+- **What the listed row changes on Money:**
+  - The hero's *"remaining across N debts"* now counts the `$0`-estimate debt, which is confirmed owed (correct by `C3-13`).
+  - `buildBnplSchedule` skips `balance <= 0`, so a `$0`-estimate BNPL lists no installments.
+
+**8.4.4.5 plants** — `plants-unit-844.json`, 7 against the trust suite, one per claim. **6 MATCHED**, every restore verified by hash:
+`L1-R1`'s exact revert and its naive over-fix, `L1-2`'s two exact reverts (the fallback, and the target), `FX-5`'s exact revert, and
+this build's own first attempt (a fallback that drops every `$0` estimate), which reds `C3-13`.
+- ⛔ **Plant 03 (the focus drawn from every live debt) scored RED-OTHER, and the TEST was wrong, not the plant.** The "no plan
+  target" row spelled its expected side as `payoffOrder(short).focus`, the function under plant. The red came from the release
+  using `order` while the row read `focus`: two outputs of one source disagreeing, not the claim. Both sides now name the debt
+  from the fixture (snowball Visa, avalanche Chase, as `probe-844-fallback` measured), and the focus row is an `L1-R1` claim.
+  Plants 03, 04 and 07 touch that row and were re-run in `plants-unit-844-rerun.json`: **all 3 MATCHED**, restores verified. So
+  **7 of 7** red on their named reason.
+
+**8.4.4.5 e2e, run 1 — the control failed, so both plant verdicts are void.**
+- 18 of the 19 control specs passed. The new Money row failed on its own assumption: *"estimated · tap to verify"* never rendered
+  for this seed. The row was present, and the hero read *"remaining across 2 debts"*.
+- Both plants redded, but on the wrong lines. The exact revert failed on the hero count, before the row's presence was asserted;
+  the over-fix failed on the missing caption.
+- Rewritten to one claim per assertion, presence first: the row, *"Focus"* on Auto Loan (from the row's accessible name), the
+  order, then the hero count. The control and both plants re-run (`e2e-844-03`, `-01`, `-02`, run 2).
+- ⚠️ **Surfaced, not fixed here:** the snapshot shows the premium provisional payoff's row reading *"$0 · 0% APR, verified"* while
+  Today asks the user to confirm that payoff. A `$0` estimate labelled *verified* is its own honesty question.
+  - ✅ **WITHDRAWN: a seed artifact, not a defect.** It took two probe runs and two wrong readings to get here
+    (`probe-844-verified-caption`):
+    - **Run 1** refuted my first guess, that the row re-projects an already projected debt: the RAW debt reads *"verified"* too.
+      It then suggested a second reading, that only an estimate reaching `$0` is reported as not an estimate. That was wrong as well.
+    - **Run 2 separated the two variables.** A `$0` estimate WITH `lastVerifiedDate` reads *"estimated · verify soon"*; a debt above
+      `$0` WITHOUT it reads *"verified"*. The cause is the missing date: `computeEstimateConfidence` gives `daysSinceVerified` 0
+      when the date is absent, and `isEstimate` is `daysSinceVerified > 0`. `celebration.spec.ts`' `provisional` helper seeds no
+      `lastVerifiedDate`.
+    - ⚠️ Run 2 executed while e2e plant 01 was live in `payoffSelectors.ts`, which voids the *"handed"* column for the `$0` rows.
+      The raw captions never pass through that file, so the verdict stands.
+  - **No real debt lacks the date:** `addDebt` writes `lastVerifiedDate ?? now` (`store.ts:307`), every verify or payment write
+    stamps both dates, and `runMigrations` backfills from `currentDate` (`migrations.ts:341`).
+  - **So the `L1-R1` premise holds:** a dated, stale premium `$0` estimate is `canVerify`, and Money captions it *"estimated · tap to
+    verify"*. That tap is `verifyDebtBalance`, the same call Today's *"Confirm — it's paid off"* makes, inside
+    `withPayoffCelebration`, so it bypasses nothing.
+  - **The e2e row now seeds the date and asserts that caption**, so the decision's premise is pinned on the rendered screen (run 3).
+
+**8.4.4.5 e2e, run 2.** Control: `celebration.spec.ts` 14 of 14, including the rewritten row. The exact revert redded on its named
+claim, *"⛔ L1-R1 — the provisional payoff is listed on Money"* (no `Chase Freedom` row). The over-fix redded on its own named claim,
+*"⛔ L1-R1 — "pay next" is the debt still being paid"* (no `Auto Loan, Focus` row). Both MATCHED, restore verified. Run 3
+repeats the control and both plants once the seed carries its date.
+
+**Run 3.** The seed carries `lastVerifiedDate` (from the helper's own `balanceAsOfDate`, so there is no new literal), and the row now
+asserts *"estimated · tap to verify"*. Control: `celebration.spec.ts` 14 of 14, the `L1-R1` row included. Both plants re-run after
+the full gates, because the plants write into the source the gates read.
+
+**Buttoned up 2026-09-18, mid-close.**
+- ⚠️ **The 2026-09-15 gate chain did not fail a check; it was cut off.** Its three typechecks passed, then `test:app`'s output
+  stops mid-run with no summary line and no failure, and neither `test:regression` nor the full `lint:rn` ever started (exit 4
+  was the chain's, not a gate's). Re-run over the final tree on 2026-09-18: `test:app` ALL PASSED, `test:regression` passed,
+  `lint:rn --fast` 47/47.
+- **Code committed:** `da1280fb`, on named paths, together with every probe, plant batch and run output.
+- **That commit staled 29 proofs** (27 new, plus the 2 standing `S1-ROUTE-*`), so `lint:finding-guards` is red until the drain.
+  That is the planned gap between *commit code* and *drain*.
+- **Still owed, in order:** run 3's two e2e plants · full `lint:rn` · the 29-proof drain · the ledger commit and the close. All of
+  it is written in `CLASS5-START-HERE.md` under *"Resume here"*.
+- **Not pushed:** 7 local commits. The push belongs to 8.4.8.
+
 Two expected reds from the build: the suite's `C3-8` pin *"a lost APR refuses the projected total"* sat on a store that is
 FREE by default — the `L3-2` over-suppression written into the suite; and `S1P7-57-3-FREE-C3-8-TWIN`'s un-fix anchored on the
 deleted conjunct, now VOID, with 13 proofs stale against a ceiling of 8.

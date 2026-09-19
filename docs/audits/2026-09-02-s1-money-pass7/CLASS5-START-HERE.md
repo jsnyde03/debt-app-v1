@@ -13,16 +13,30 @@ round 2's brief.
 ```
 cd /c/Users/Jason/debt-app-v1
 git status --porcelain --untracked-files=all          # expect empty
-git log --oneline -3 ; git rev-list --count origin/v1.7-dev..HEAD     # expect 0
+git log --oneline -3 ; git rev-list --count origin/v1.7-dev..HEAD     # expect 7 — unpushed BY DESIGN until 8.4.8
 gh run list --branch v1.7-dev --workflow web-e2e.yml --limit 2 --json headSha,status,conclusion
 npm --prefix /c/Users/Jason/debt-app-v1 run lint:rn -- --fast
 npm --prefix /c/Users/Jason/debt-app-v1 run lint:finding-guards
 git worktree list                                      # expect the main checkout ONLY
 ```
 
-Expected: clean and pushed · CI `conclusion: success` on HEAD *(read the field)* · fast gates all green · finding-guards
-**stale 2 (cap 8)** and **authored 9 (cap 9)**. ⚠️ No SHA of this handoff's own commit is quoted, on purpose. Code is
-unchanged since `ea3f5e0e`, the round-1 pin.
+Expected *(buttoned up 2026-09-18, mid-8.4.4 close)*: clean tree · 7 local commits, **not pushed** (the push is 8.4.8's) · CI
+`conclusion: success` on `origin/v1.7-dev` only, which is `006adbc2` · `lint:rn --fast` **46 of 47: `lint:finding-guards` red,
+stale 29 (cap 8)**, authored 9 (cap 9). That red is the gap between *commit code* and *drain*: 27 proofs went stale with
+8.4.4's code commit `da1280fb`, and 2 (`S1-ROUTE-*`) were already standing. ⚠️ No SHA of this handoff's own commit is quoted.
+
+### ▶ Resume here — 8.4.4's close, in this order
+
+1. **Run 3's two e2e plants**, one at a time on `:4319`: `python ../class5-reaudit-probes/L3/plant_batch.py e2e-844-05-L1-R1-run3.json <out>`,
+   then `e2e-844-06-L1-R1-overfix-run3.json`, from `class5-round2-fixes/`. Expected: each reds on its named claim
+   (*"the provisional payoff is listed on Money"* · *"pay next" is the debt still being paid*); run 2 already did both.
+2. **Full `lint:rn`**: the chain that ran it on 2026-09-15 was cut off mid-`test:app` and never reached it.
+3. **Drain the 29 stale proofs:** `npm run prove:guards -- --id=<the list lint:finding-guards prints> --record`,
+   against committed HEAD. Order: `.5.7 ⑦`'s. Then gate-check `lint:finding-guards`.
+4. **Ledger commit + close:** collapse 8.4.4 to one ✅ line here and on the plan, and move ▶ to 8.4.5.
+
+Verified at `da1280fb`: typecheck core/rn/tests · `test:app` · `test:regression` · `lint:rn --fast` 47/47 *(before the commit
+staled the proofs)* · unit plants 7/7 MATCHED · e2e run 2 control + both plants MATCHED · run 3 control 14/14.
 
 ## Read, in this order
 
@@ -38,7 +52,7 @@ unchanged since `ea3f5e0e`, the round-1 pin.
 | ✅ **8.4.1** | `L3-1a` **blocker** · `L3-1b` · `L3-4` + `FX-1` `FX-2` | L3 | **CLOSED 2026-09-14** — three claims per hero family, APR routed on avalanche; `L3-4`'s remedy was wrong twice. Record: log + [`class5-round2-fixes/`](class5-round2-fixes/) |
 | ✅ **8.4.2** | `L3-5a` · `L3-5b` · `L3-2` · `L3-6` | L3 | **CLOSED 2026-09-14** — the tier in the route, cash flow gated; `L3-6`'s first test raced the chart and was fixed. Also fixed: `030a312b`'s crash on a non-union strategy. Record: log |
 | ✅ **8.4.3** | `L1-1` · `L1-3` · `L1-4` · `L1-5` + `FX-3` `FX-4` | L1 · log | **CLOSED 2026-09-15** — one predicate for app-written plan fields, explicit setter answers, `computeState` honors a set `$0`. ⛔ A re-derived un-fix that shares a line with another fix reverts both: `B5-7` scored WRONG until scoped. Record: log |
-| **8.4.4** | `L1-R1` · `L1-2` | L1 | confirmed liveness vs the estimate's ranking — Money loses a debt; the reserve release names a skipped one |
+| ▶ **8.4.4** *(code `da1280fb`; close owed, see Resume here)* | `L1-R1` · `L1-2` + `FX-5` | L1 · log | confirmed liveness vs the estimate's ranking — Money loses a debt; the reserve release names a skipped one |
 | **8.4.5** | `L2-1` · `L2-2` · `L2-3` | L2 | the dated tap after an in-window payday edit *(Swift)*; the 50-id cap; the dismissed-activity restart unpinned |
 | **8.4.6** | `F4` · `F6` | L4 | a proof whose red is not its token; two scans proven one direction each |
 | **8.4.7** | `F2` + every proof 8.4.1–.6 wrote | L4 | drain first, then register as ONE batch |
