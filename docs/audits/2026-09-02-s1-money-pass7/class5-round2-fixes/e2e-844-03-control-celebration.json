@@ -1,0 +1,7 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [],
+  "runs": [
+    {"name": "CONTROL 8.4.4 run 2 - celebration.spec.ts (the rewritten L1-R1 row; the other 18 control specs passed in run 1 and nothing they render changed since)", "spec": "celebration.spec.ts", "grep": "."}
+  ]
+}

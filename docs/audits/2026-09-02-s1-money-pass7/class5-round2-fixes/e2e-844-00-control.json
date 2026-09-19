@@ -1,0 +1,25 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [],
+  "runs": [
+    {"name": "CONTROL 8.4.4 - celebration.spec.ts (L1-R1 row)", "spec": "celebration.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - amount-guards.spec.ts (Money list)", "spec": "amount-guards.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - a11y-row-labels.spec.ts (Money rows)", "spec": "a11y-row-labels.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - coach-marks.spec.ts (view.order.length)", "spec": "coach-marks.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - bill-category-partition.spec.ts (Money)", "spec": "bill-category-partition.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - affordability.spec.ts", "spec": "affordability.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - cushion-forecast.spec.ts", "spec": "cushion-forecast.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - data-recovery.spec.ts", "spec": "data-recovery.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - guardian.spec.ts (brief fallback)", "spec": "guardian.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - guardian-shortfall-topup.spec.ts", "spec": "guardian-shortfall-topup.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - plan-hero-conserves.spec.ts", "spec": "plan-hero-conserves.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - progress-hero-journey.spec.ts (payoff view)", "spec": "progress-hero-journey.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - recovery.spec.ts", "spec": "recovery.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - windfall.spec.ts", "spec": "windfall.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - coach-mark-neighbour.spec.ts", "spec": "coach-mark-neighbour.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - earlyjourney.spec.ts", "spec": "earlyjourney.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - route-smoke.spec.ts", "spec": "route-smoke.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - spoken-state.spec.ts", "spec": "spoken-state.spec.ts", "grep": "."},
+    {"name": "CONTROL 8.4.4 - trust-claims.spec.ts", "spec": "trust-claims.spec.ts", "grep": "."}
+  ]
+}

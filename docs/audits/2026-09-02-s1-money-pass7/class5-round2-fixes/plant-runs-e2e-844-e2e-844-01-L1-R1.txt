@@ -1,0 +1,45 @@
+== app plants (1) ==
+  plant apps/rn/src/store/payoffSelectors.ts: anchor count=1 :: '  const { order, focus } = payoffOrder(store);'
+  applied apps/rn/src/store/payoffSelectors.ts: changed=True
+== export:web --clear ==
+  export exit=0 in 69s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=1808 listening=True ==
+
+-- RUN E-L1-R1 exact revert - the provisional payoff drops off Money (must RED on the row's presence) :: celebration.spec.ts -g 'a provisional payoff stays on Money'
+
+Running 1 test using 1 worker
+
+  x  1 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:187:5 › a provisional payoff stays on Money, listed after the debt still being paid (6.5s)
+
+
+  1) [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:187:5 › a provisional payoff stays on Money, listed after the debt still being paid 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('remaining across 2 debts')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('remaining across 2 debts')[22m
+
+
+      192 |   await page.goto('/money');
+      193 |   await expect(page.getByTestId('money-hero-debts-value')).toBeVisible({ timeout: 10_000 });
+    > 194 |   await expect(page.getByText('remaining across 2 debts')).toBeVisible();
+          |                                                            ^
+      195 |   const card = page.getByText('Chase Freedom', { exact: true }).first();
+      196 |   const loan = page.getByText('Auto Loan', { exact: true }).first();
+      197 |   await expect(card).toBeVisible();
+        at C:\Users\Jason\debt-app-v1\apps\rn\tests\e2e\celebration.spec.ts:194:60
+
+    Error Context: apps\rn\test-results\celebration-a-provisional--870b6-r-the-debt-still-being-paid-desktop-chrome\error-context.md
+
+  1 failed
+    [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:187:5 › a provisional payoff stays on Money, listed after the debt still being paid 
+   exit=1 :: x  1 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:187:5 › a provisional payoff stays on Money, listed after the debt still being paid (6.5s) | Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed | Error: element(s) not found | 1 failed
+
+== server stopped; :4319 listening=False ==
+  RESTORE apps/rn/src/store/payoffSelectors.ts: cmp identical=True

@@ -1,0 +1,13 @@
+plant=payoffOrder over-fix - the focus drawn from every live debt
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/payoffSelectors.ts
+applied=True
+exit=1
+verdict=RED-OTHER
+missing=['snowball fixture: the focus is a debt still owing']
+restored=True
+
+Error: ⛔ L1-2 · snowball — with no plan target, the release still never names the $0 estimate — expected "your StoreCard", got "your Visa"
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:39:9)
+    at eq (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:42:28)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:935:7)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

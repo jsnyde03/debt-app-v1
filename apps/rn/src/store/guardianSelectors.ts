@@ -13,10 +13,10 @@ import type { DebtStore } from '@/data/models';
 import { classifyFreshness, daysBetweenISO, deriveConfidenceContext } from './guardianPredictionCore';
 import { sumPaidToDebt } from './historySelectors';
 import { selectDeployedToSavings, selectDiscretionary, selectSpendable, selectExtraToDebt, selectHeldReserve, selectLiquidCushion, selectDeployedBeforeDebt, selectDeployedBeforeDebtGoalId } from './planSelectors';
-import { rankDebts, selectCashTimeline } from './payoffSelectors';
+import { payoffOrder, selectCashTimeline } from './payoffSelectors';
 import { cushionLine, selectAllocation, selectPaycheckMissed, type Allocation } from './selectors';
 import { appliedTopUp, nettedTopUp, topUpEntries } from './topUpSelectors';
-import { debtLiveness, liveDebts, rowFieldUnread } from './trustSelectors';
+import { debtLiveness, mayClaim, rowFieldUnread } from './trustSelectors';
 import type { AllocationCategory } from '@core/engine/allocatePaycheck';
 import { cadenceSuffix } from '@core/types/recurrence';
 import { formatWhole } from '@/utils/format';
@@ -172,8 +172,22 @@ export function selectReserveRelease(store: DebtStore): ReserveRelease | null {
    * same reason: there IS a debt row — its balance is what could not be read — so the reserve is still
    * going to debt, and only the NAME is unknown. A fourth phrasing would be a new claim to get wrong.
    */
-  const live = liveDebts(store);
-  const focus = live.length > 0 ? rankDebts(live, store.payoffStrategy)[0]?.name : undefined;
+  /**
+   * ⛔ **[class 5 R2 `L1-2` · `FX-5` · DECISION 🎯 2026-09-15] — THE PLAN'S TARGET, OR "your debt".**
+   *
+   * `L1-2`: this re-ranked `liveDebts` (CONFIRMED liveness, `C3-13`) by the PROJECTED balance, so a debt whose estimate had reached
+   * `$0` ranked first and was named while the plan paid Visa. The Guardian brief names the allocation's first snowball row instead
+   * (`:885`: *"a raw re-rank can name the wrong debt"*), and so does this now. ⚡ `FX-5` (`probe-844`): that row is ALSO renamed by a
+   * lost rate on avalanche, and this card asked no claim — so it asks `'paycheck-plan'`, which routes the rate there, and takes the
+   * existing unknown-name fallback when the plan refuses. The release is real; only the name is unknown.
+   */
+  const allocation = selectAllocation(store);
+  const snowball = allocation?.allocations.find((a) => a.category === 'snowball');
+  const planTarget = snowball ? store.debts.find((d) => d.id === (snowball.debtId ?? snowball.targetId))?.name : undefined;
+  // Fallback when the plan funds no snowball this cycle: `payoffOrder` ranks a `$0` estimate after every debt still owing, and
+  // names it only when it is all that is left — `C3-13`: $100 owed on a projected $0 is still "your Chase", never "your savings".
+  const ranked = payoffOrder(store).order[0]?.name;
+  const focus = mayClaim(store, 'paycheck-plan') ? (planTarget ?? ranked) : undefined;
   const targetName =
     debtLiveness(store) === 'debt-free' ? 'your savings' : focus ? `your ${focus}` : 'your debt';
   return { tapped: pending.tapped, covered: pending.covered, targetName };
@@ -846,7 +860,6 @@ export function selectSaveForItOptions(store: DebtStore, amount: number): SaveOp
 export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   const allocation = selectAllocation(store);
   if (!allocation) return null;
-  const live = liveDebts(store);
   /**
    * 2.4.8 — the Guardian no longer nulls at debt-free; it re-targets the spare to savings/wealth.
    *
@@ -882,7 +895,9 @@ export function selectPaydayGuardian(store: DebtStore): GuardianBrief | null {
   const focusDebtName = debtFree
     ? undefined
     : (snowballItems[0] && store.debts.find((d) => d.id === (snowballItems[0].debtId ?? snowballItems[0].targetId))?.name) ||
-      rankDebts(live, store.payoffStrategy)[0]?.name;
+      // ⛔ [class 5 R2 `L1-2`, the brief's twin] `payoffOrder`, not a rank of `live`: that re-ranked CONFIRMED liveness by the
+      // projected balance, so a `$0` estimate was named first on snowball — the reserve release's defect, one selector down.
+      payoffOrder(store).order[0]?.name;
   const deployTargetName = debtFree
     ? (savingsItems[0] && store.goals.find((g) => g.id === savingsItems[0].goalId)?.name) || undefined
     : undefined;

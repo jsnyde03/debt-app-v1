@@ -1,0 +1,28 @@
+== app plants (0) ==
+== export:web --clear ==
+  export exit=0 in 116s :: › Files (2): | index.html (1.4KB) | metadata.json (49B) |  | Exported: dist | [33m› [1m[@sentry/react-native/expo][22m Missing config for [1morganization, project[22m. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/[0m
+== server pid=19132 listening=True ==
+
+-- RUN CONTROL 8.4.4 run 3 - celebration.spec.ts (the L1-R1 row seeds lastVerifiedDate and asserts 'estimated · tap to verify') :: celebration.spec.ts -g '.'
+
+Running 14 tests using 1 worker
+
+  ok  1 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:40:7 › per-debt beat (light) (4.4s)
+  ok  2 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:52:7 › grand finale (light) (5.6s)
+  ok  3 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:66:7 › milestone-cross ack (light) (3.8s)
+  ok  4 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:88:7 › paid off archive + debt-free (light) (1.3s)
+  ok  5 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:40:7 › per-debt beat (dark) (2.8s)
+  ok  6 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:52:7 › grand finale (dark) (4.7s)
+  ok  7 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:66:7 › milestone-cross ack (dark) (3.6s)
+  ok  8 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:88:7 › paid off archive + debt-free (dark) (1.5s)
+  ok  9 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:187:5 › a provisional payoff stays on Money, listed after the debt still being paid (1.3s)
+  ok 10 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:210:5 › a FREE user who clears one debt gets the beat (5.6s)
+  ok 11 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:231:5 › a FREE user who clears their LAST debt gets the finale (4.9s)
+  ok 12 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:245:5 › the celebration survives a reload, and is cleared once acknowledged (6.2s)
+  ok 13 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:281:5 › C3-13 · a projected $0 invites the confirm and does not declare the user debt-free (1.2s)
+  ok 14 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:293:5 › C3-13 · a confirmed $0 still gets the debt-free banner (1.3s)
+
+  14 passed (52.3s)
+   exit=0 :: ok  1 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:40:7 › per-debt beat (light) (4.4s) | ok  2 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:52:7 › grand finale (light) (5.6s) | ok  3 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:66:7 › milestone-cross ack (light) (3.8s) | ok  4 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:88:7 › paid off archive + debt-free (light) (1.3s) | ok  5 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:40:7 › per-debt beat (dark) (2.8s) | ok  6 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:52:7 › grand finale (dark) (4.7s) | ok  7 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:66:7 › milestone-cross ack (dark) (3.6s) | ok  8 [desktop-chrome] › apps\rn\tests\e2e\celebration.spec.ts:88:7 › paid off archive + debt-free (dark) (1.5s) | ok  9 [desktop-chrome] › apps\rn\tests\e2e\celebration.s
+
+== server stopped; :4319 listening=False ==

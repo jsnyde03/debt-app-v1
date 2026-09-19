@@ -1,0 +1,36 @@
+{
+  "control": {
+    "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+    "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "RERUN 03 payoffOrder over-fix - the focus drawn from every live debt (row's expected side no longer reads payoffOrder)",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/payoffSelectors.ts",
+      "old": "focus: ranked[0] ?? null };",
+      "new": "focus: rankDebts([...owing, ...estimateCleared], store.payoffStrategy)[0] ?? null };",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-R1 · snowball — the focus is a debt still owing, never the $0 estimate"]
+    },
+    {
+      "name": "RERUN 04 L1-2 exact revert of the fallback - rank liveDebts by the projected balance",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/guardianSelectors.ts",
+      "old": "  const ranked = payoffOrder(store).order[0]?.name;",
+      "new": "  const ranked = [...payoffOrder(store).order].sort((a, b) => (store.payoffStrategy === 'snowball' ? a.balance - b.balance : b.apr - a.apr))[0]?.name;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-2 · snowball — with no plan target, the release still never names the $0 estimate", "expected \"your Visa\", got \"your StoreCard\""]
+    },
+    {
+      "name": "RERUN 07 C3-13 over-fix (this build's first attempt) - the fallback drops every $0 estimate",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/guardianSelectors.ts",
+      "old": "  const ranked = payoffOrder(store).order[0]?.name;",
+      "new": "  const ranked = payoffOrder(store).focus?.name;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["C3-13 · premium · $100 left · projects to $0 · the reserve release's target"]
+    }
+  ]
+}

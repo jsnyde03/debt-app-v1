@@ -1,0 +1,72 @@
+{
+  "control": {
+    "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+    "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+    "timeout": 1800
+  },
+  "plants": [
+    {
+      "name": "L1-R1 exact revert - Money's order ranks only what the estimate shows owing",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/payoffSelectors.ts",
+      "old": "  const { order, focus } = payoffOrder(store);",
+      "new": "  const order = rankDebts(liveDebts, store.payoffStrategy); const focus = order[0] ?? null;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-R1 ·", "premium — every debt is on exactly one of Money's sections"]
+    },
+    {
+      "name": "L1-R1 naive over-fix - the $0 estimate ranked normally, so it can lead",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/payoffSelectors.ts",
+      "old": "  const { order, focus } = payoffOrder(store);",
+      "new": "  const order = rankDebts([...liveDebts, ...liveByEstimate(store).estimateCleared], store.payoffStrategy); const focus = order[0] ?? null;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-R1 ·", "the $0 estimate is listed after every debt still owing"]
+    },
+    {
+      "name": "payoffOrder over-fix - the focus drawn from every live debt",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/payoffSelectors.ts",
+      "old": "focus: ranked[0] ?? null };",
+      "new": "focus: rankDebts([...owing, ...estimateCleared], store.payoffStrategy)[0] ?? null };",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["snowball fixture: the focus is a debt still owing"]
+    },
+    {
+      "name": "L1-2 exact revert of the fallback - rank liveDebts by the projected balance",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/guardianSelectors.ts",
+      "old": "  const ranked = payoffOrder(store).order[0]?.name;",
+      "new": "  const ranked = [...payoffOrder(store).order].sort((a, b) => (store.payoffStrategy === 'snowball' ? a.balance - b.balance : b.apr - a.apr))[0]?.name;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-2 · snowball — with no plan target, the release still never names the $0 estimate"]
+    },
+    {
+      "name": "L1-2 exact revert of the target - no plan row, the rank alone",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/guardianSelectors.ts",
+      "old": "  const focus = mayClaim(store, 'paycheck-plan') ? (planTarget ?? ranked) : undefined;",
+      "new": "  const focus = mayClaim(store, 'paycheck-plan') ? ([...payoffOrder(store).order].sort((a, b) => (store.payoffStrategy === 'snowball' ? a.balance - b.balance : b.apr - a.apr))[0]?.name) : undefined;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["L1-2 · snowball — a debt whose estimate reached $0 is not where the money goes"]
+    },
+    {
+      "name": "FX-5 exact revert - the release asks no claim",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/guardianSelectors.ts",
+      "old": "  const focus = mayClaim(store, 'paycheck-plan') ? (planTarget ?? ranked) : undefined;",
+      "new": "  const focus = planTarget ?? ranked;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["FX-5 · avalanche"]
+    },
+    {
+      "name": "C3-13 over-fix (this build's first attempt) - the fallback drops every $0 estimate",
+      "file": "C:/Users/Jason/debt-app-v1/apps/rn/src/store/guardianSelectors.ts",
+      "old": "  const ranked = payoffOrder(store).order[0]?.name;",
+      "new": "  const ranked = payoffOrder(store).focus?.name;",
+      "cmd": "npx tsx --tsconfig ./tsconfig.json ../../docs/audits/2026-09-02-s1-money-pass7/class5-reaudit-probes/L3/run-trust-test.ts",
+      "cwd": "C:/Users/Jason/debt-app-v1/apps/rn",
+      "expect": ["C3-13 · premium · $100 left · projects to $0 · the reserve release's target"]
+    }
+  ]
+}

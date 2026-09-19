@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/store/payoffSelectors.ts", "  const { order, focus } = payoffOrder(store);", "  const order = rankDebts([...liveDebts, ...liveByEstimate(store).estimateCleared], store.payoffStrategy); const focus = order[0] ?? null;"]
+  ],
+  "runs": [
+    {"name": "E-L1-R1 naive over-fix (run 3) - must RED on '\"pay next\" is the debt still being paid'", "spec": "celebration.spec.ts", "grep": "a provisional payoff stays on Money"}
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [],
+  "runs": [
+    {"name": "CONTROL 8.4.4 run 3 - celebration.spec.ts (the L1-R1 row seeds lastVerifiedDate and asserts 'estimated · tap to verify')", "spec": "celebration.spec.ts", "grep": "."}
+  ]
+}

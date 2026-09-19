@@ -471,12 +471,14 @@ const LIVENESS_OPEN: Record<string, { sites: number; why: string }> = {
   'apps/rn/src/components/payoff/TrajectoryChart.tsx': { sites: 4, why: 'PROJECTION POINTS (`p.balance <= 0` on a curve) — not repairable, out of scope, ledgered for visibility' },
   'apps/rn/src/components/payoff/compareStrategies.ts': { sites: 1, why: 'PROJECTION POINT — `points.find((p) => p.balance <= 0)`, the debt-free month off a computed curve' },
   'apps/rn/src/components/payoff/trajectoryDomain.ts': { sites: 1, why: 'PROJECTION POINT — the same find, one module over' },
-  'apps/rn/src/store/payoffSelectors.ts': { sites: 1, why: 'the ranking basis; never mentions the trust module' },
   'apps/rn/src/store/planSelectors.ts': { sites: 2, why: 'asks the module at `selectPlanState`; these two sites are separate and unmeasured' },
   'apps/rn/src/store/sandboxScenarios.ts': { sites: 1, why: 'the tutorial sandbox; a synthetic store carries no repairs — unmeasured' },
   'apps/rn/src/widget/snapshot.ts': { sites: 1, why: 'asks the module at the payload gate (`D3-1`); whether THIS site is covered is unmeasured' },
 };
 /** ⛔ Downward-only, and a LITERAL — check 3's caps were once derived from their own lists and vacuous.
+ *
+ *  ⭐ **22 → 21, class 5 R2 `L1-R1`.** `payoffSelectors.ts`' ranking basis — `balance > 0` on a projected store, which dropped a
+ *  debt whose estimate read `$0` from Money's every section — now asks `liveByEstimate`.
  *
  *  ⛔ **12 → 22, S1.11.5.3 [pass-4 `C4-3`], AND THIS IS THE ONE TIME IT GOES UP.** The cap's rule is
  *  downward-only and it is being raised, so the reason is written here rather than assumed: **the
@@ -490,7 +492,7 @@ const LIVENESS_OPEN: Record<string, { sites: number; why: string }> = {
  *  coverage was **unmeasured** — measured now, and it was wrong: the helper answered *"clearing Amex makes
  *  you debt-free"* over a $12,000 balance the reader had lost. It asks `mayClaim` instead. ⚠️ The gate
  *  found this itself, on the green path, by noticing the ledger had gone stale. */
-const MAX_LIVENESS_SITES = 22;
+const MAX_LIVENESS_SITES = 21;
 
 for (const [rel, n] of livenessCounts) {
   const row = LIVENESS_OPEN[rel];
@@ -721,7 +723,7 @@ const CLAIM_CONSUMER_FLOOR: Record<string, number> = {
    * ⛔ **Added at `.5.4d` [DECISION 🎯 2026-09-13].** This paycheck, solved — each asker measured exact for its own
    * rendered figures on 22 plan shapes, asserted per surface in `trustSelectors.test.ts`.
    */
-  'paycheck-plan': 7, // (tabs)/index.tsx (the Guardian card) + paywall.tsx + AffordabilityCard.tsx + WindfallSheet.tsx + paydayActivityContent.ts + widget/snapshot.ts (the spoken line) + selectors.ts (cushionLine)
+  'paycheck-plan': 8, // (tabs)/index.tsx (the Guardian card) + paywall.tsx + AffordabilityCard.tsx + WindfallSheet.tsx + paydayActivityContent.ts + widget/snapshot.ts (the spoken line) + selectors.ts (cushionLine) + guardianSelectors.ts (the reserve release's target, class 5 R2 `FX-5`)
 };
 for (const claim of claims) {
   const actual = consumers.get(claim)!.length;

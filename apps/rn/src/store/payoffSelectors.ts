@@ -9,6 +9,7 @@ import type { Debt, DebtStore, PayoffStrategy } from '@/data/models';
 import { selectDebtFreeBand, selectDebtFreeDate, selectExtraToDebt, type DebtFreeBand } from './planSelectors';
 import { buildForecastCycles } from './forecastCycles';
 import { effectivePaycheckBuffer, selectAllocation, selectSteadyStateAllocation } from './selectors';
+import { liveByEstimate } from './trustSelectors';
 
 export type { TrajectoryPoint, DebtClearPoint, InterestSaved, TimelineCycle, TimelineItem };
 
@@ -93,9 +94,25 @@ export function rankDebts(debts: Debt[], strategy: PayoffStrategy): Debt[] {
   return [...debts].sort((a, b) => (strategy === 'snowball' ? a.balance - b.balance : b.apr - a.apr));
 }
 
+/**
+ * ⛔ **[class 5 R2 `L1-R1` · DECISION 🎯 2026-09-15] — PAYOFF ORDER: THE DEBTS THE ESTIMATE STILL SHOWS OWING, THEN THE ONES IT
+ * READS AS `$0`. THE FOCUS IS ONLY EVER THE FIRST GROUP.**
+ *
+ * This ranked `balance > 0` of the projected store, so a premium debt whose estimate reached `$0` left Money's active list while
+ * `partitionDebts` (confirmed, `C3-13`) kept it out of "PAID OFF" as well — the user still owed it and it was on no section.
+ * Listed last, its row reads *"estimated · tap to verify"*, the door to confirming the payoff. ⚠️ Normal ranking would be the
+ * over-fix: on snowball a `$0` estimate sorts first and becomes "pay next" while the plan pays another debt (`L1-2`).
+ */
+export function payoffOrder(store: DebtStore): { order: Debt[]; focus: Debt | null } {
+  const { owing, estimateCleared } = liveByEstimate(store);
+  const ranked = rankDebts(owing, store.payoffStrategy);
+  return { order: [...ranked, ...rankDebts(estimateCleared, store.payoffStrategy)], focus: ranked[0] ?? null };
+}
+
 /** Everything the (free) Payoff tab renders, derived from the store + the shared `@core` engine. */
 export function selectPayoffView(store: DebtStore): PayoffView {
-  const liveDebts = store.debts.filter((d) => d.balance > 0);
+  // The projections below run on the debts the estimate still shows owing — unchanged by `L1-R1`, which only lists the rest.
+  const { owing: liveDebts } = liveByEstimate(store);
   const allocation = selectAllocation(store);
   // MF.4 (audit #5): project on the STEADY-STATE deploy (temporary cold-start holdbacks stripped) so the
   // payoff date / trajectory / interest-saved aren't extrapolated off a 3-cycle cold-start dampener.
@@ -129,7 +146,7 @@ export function selectPayoffView(store: DebtStore): PayoffView {
     lean = buildPayoffTrajectory({ debts: store.debts, monthlyExtraPayment: leanExtra, strategy: store.payoffStrategy, cyclesPerMonth });
   }
 
-  const order = rankDebts(liveDebts, store.payoffStrategy);
+  const { order, focus } = payoffOrder(store);
   return {
     hasDebts: liveDebts.length > 0,
     debtFreeDate: selectDebtFreeDate(store, allocation),
@@ -143,6 +160,6 @@ export function selectPayoffView(store: DebtStore): PayoffView {
     lean,
     band,
     order,
-    focus: order[0] ?? null,
+    focus,
   };
 }

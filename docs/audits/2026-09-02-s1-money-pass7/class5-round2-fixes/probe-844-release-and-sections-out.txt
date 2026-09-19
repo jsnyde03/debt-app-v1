@@ -1,0 +1,11 @@
+== A · reserve release on avalanche, a lost Chase rate vs readable ==
+{"chaseApr":22,"repairs":[],"releaseNames":"your Chase","guardianNames":"Chase","allocationFirstSnowball":"Chase","mayClaim('paycheck-plan')":true}
+{"chaseApr":"'' (lost)","repairs":["debt.apr"],"releaseNames":"your Visa","guardianNames":"Visa","allocationFirstSnowball":"Visa","mayClaim('paycheck-plan')":false}
+
+== B · a debt projected to $0, unconfirmed: what the release names vs the plan ==
+{"strategy":"snowball","projected":["StoreCard:0","Visa:3000"],"releaseNames":"your StoreCard","allocationFirstSnowball":"Visa"}
+{"strategy":"avalanche","projected":["StoreCard:0","Visa:3000"],"releaseNames":"your StoreCard","allocationFirstSnowball":"Visa"}
+
+== C · Money's three sections — is every debt in exactly one? ==
+{"plan":"premium","active":["Visa"],"unread":[],"paidOff":["OldLoan"],"missing":["StoreCard"],"doubled":[]}
+{"plan":"free","active":["StoreCard","Visa"],"unread":[],"paidOff":["OldLoan"],"missing":[],"doubled":[]}

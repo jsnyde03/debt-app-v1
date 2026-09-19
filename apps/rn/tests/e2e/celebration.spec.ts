@@ -179,6 +179,34 @@ async function clearDebtByPaying(page: import('@playwright/test').Page, name: st
     .toBe(0);
 }
 
+/**
+ * ⛔ [class 5 R2 `L1-R1` · DECISION 🎯 2026-09-15] — A PROVISIONAL PAYOFF IS STILL OWED, SO MONEY STILL LISTS IT: LAST, WITH ITS
+ * DOOR TO CONFIRM. Money's active list ranked the projected balance, and "PAID OFF" asks the confirmed one, so this debt was on
+ * neither while Today asked the user to confirm it. ⚠️ Every assertion is a presence, and the order is read off the rendered rows.
+ */
+test('a provisional payoff stays on Money, listed after the debt still being paid', async ({ page }) => {
+  const provisionalCard = provisional('card', 'Chase Freedom');
+  await seedStore(page, base('light', [
+    // ⚠️ A real debt always carries `lastVerifiedDate` (`addDebt`, every verify, and the migration write it); the shared helper does
+    // not, and without it the row reads "verified" instead of offering the confirm (`probe-844-verified-caption`). Reused, not retyped.
+    { ...provisionalCard, lastVerifiedDate: provisionalCard.balanceAsOfDate },
+    { id: 'car', name: 'Auto Loan', balance: 9800, originalBalance: 12000, minimumPayment: 310, apr: 6.4, dueDate: day(5), type: 'debt', recurrence: 'monthly', balanceAsOfDate: day(0), lastVerifiedDate: day(0) },
+  ]));
+  await page.goto('/money');
+  await expect(page.getByTestId('money-hero-debts-value')).toBeVisible({ timeout: 10_000 });
+  // One claim per assertion, presence first: a plant that reds on a later line never exercises an earlier one (8.4.4's first run
+  // redded the revert on the hero count, and the row itself went unasserted). The row's accessible name carries "Focus".
+  const card = page.getByRole('button', { name: /^Chase Freedom,/ });
+  const loan = page.getByRole('button', { name: /^Auto Loan,/ });
+  await expect(card, '⛔ L1-R1 — the provisional payoff is listed on Money').toBeVisible();
+  await expect(loan).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Auto Loan, Focus,/ }), '⛔ L1-R1 — "pay next" is the debt still being paid').toBeVisible();
+  const [cardBox, loanBox] = [await card.boundingBox(), await loan.boundingBox()];
+  expect(loanBox!.y, '⛔ L1-R1 — the $0 estimate is listed after the debt still being paid').toBeLessThan(cardBox!.y);
+  await expect(page.getByText('estimated · tap to verify'), '⭐ L1-R1 — the listed row is the door to confirming the payoff').toBeVisible();
+  await expect(page.getByText('remaining across 2 debts')).toBeVisible();
+});
+
 test('a FREE user who clears one debt gets the beat', async ({ page }) => {
   await seedOnce(page, FREE([
     { id: 'card', name: 'Chase Freedom', balance: 40, originalBalance: 4200, minimumPayment: 300, apr: 0, dueDate: '2026-08-12', type: 'debt', recurrence: 'monthly', balanceAsOfDate: '2026-05-01' },

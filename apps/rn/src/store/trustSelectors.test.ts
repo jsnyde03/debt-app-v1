@@ -3,7 +3,7 @@ import { REPAIRABLE_MONEY_FIELDS, runMigrations } from '@/data/migrations';
 import { selectWhatIf } from '@/store/analysisSelectors';
 import { selectDebtBalanceView, selectProvisionalPayoffs, withProjectedBalances } from '@/store/balanceSelectors';
 import { selectAffordability, selectPaydayGuardian, selectReserveRelease, selectWindfallSplit } from '@/store/guardianSelectors';
-import { selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
+import { payoffOrder, selectCashTimeline, selectPayoffView } from '@/store/payoffSelectors';
 import { DEFAULT_CUSHION_FLOOR, cushionLine, effectivePaycheckBuffer, selectAllocation, selectWaterFillPlan } from '@/store/selectors';
 import { selectPlanState, selectPlanSummary, selectRecommendedActions, selectRequiredRows } from '@/store/planSelectors';
 import { selectJourneyTotals } from '@/store/journeySelectors';
@@ -875,6 +875,86 @@ export default function run(): void {
     const keptByApp = planLost({ expenseReserve: { balance: 'abc' } });
     eq(repairsOn(keptByApp, 'expenseReserveBalance'), 1, 'the fixture really does carry a lost reserve balance');
     eq(repairsOn(answerPlanRepairs(keptByApp, ['expenseReserveBalance']), 'expenseReserveBalance'), 1, '⛔ FX-4 · L1-1 — naming an app-kept amount answers nothing');
+  }
+
+  {
+    /**
+     * ⛔ **[class 5 R2 `L1-2` · `FX-5` · DECISION 🎯 2026-09-15] — THE RESERVE-RELEASE CARD NAMES THE PLAN'S TARGET, OR "your debt".**
+     *
+     * `L1-2` (round 1): a debt whose estimate reached `$0` was named while the plan paid Visa. `FX-5` (`probe-844`): on avalanche a lost
+     * rate renamed the target Visa over Chase, with no claim asked — and the allocation's own first snowball row says Visa there too,
+     * so naming that row alone fixes `L1-2` and not `FX-5`. Iterated over every strategy; the fixture's claim is asserted, not assumed.
+     */
+    const VERIFIED_IN_MAY = '2026-05-01'; // the store's clock is DAY, so the StoreCard's estimate ages against nothing
+    const releaseStore = (strategy: PayoffStrategy, over: { chaseApr?: unknown; zeroEstimate?: boolean; amount?: string }): DebtStore => ({
+      ...runMigrations({
+        version: 8,
+        paycheck: { amount: over.amount ?? '3000', currentDate: DAY, nextPaycheckDate: DAY },
+        debts: [
+          { id: 'c', name: 'Chase', balance: 5000, originalBalance: 6000, minimumPayment: 150, apr: over.chaseApr ?? 22, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: DAY, lastVerifiedDate: DAY },
+          { id: 'v', name: 'Visa', balance: 3000, originalBalance: 3500, minimumPayment: 90, apr: 18, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: DAY, lastVerifiedDate: DAY },
+          ...(over.zeroEstimate
+            ? [{ id: 'x', name: 'StoreCard', balance: 100, originalBalance: 800, minimumPayment: 120, apr: 20, dueDate: DAY, type: 'debt', recurrence: 'monthly', balanceAsOfDate: VERIFIED_IN_MAY, lastVerifiedDate: VERIFIED_IN_MAY }]
+            : []),
+        ],
+        requiredExpenses: [{ id: 'e0', name: 'Rent', amount: 900, dueDate: DAY, recurrence: 'monthly', category: 'housing' }],
+        cushionFloor: 200,
+        prefs: { onboardingComplete: true },
+      }),
+      subscriptionPlan: 'premium',
+      payoffStrategy: strategy,
+      pendingReserveRelease: { tapped: false, covered: 150 },
+    });
+    const planTargetOf = (e: DebtStore) => {
+      const row = (selectAllocation(e)?.allocations ?? []).find((a) => a.category === 'snowball');
+      return row ? e.debts.find((d) => d.id === (row.debtId ?? row.targetId))?.name : undefined;
+    };
+
+    for (const strategy of payoffStrategies()) {
+      const ok = withProjectedBalances(releaseStore(strategy, {}), true);
+      eq(!!planTargetOf(ok), true, `the ${strategy} fixture really funds a snowball target, or the rows below prove nothing`);
+      eq(selectReserveRelease(ok)?.targetName, `your ${planTargetOf(ok)}`, `⭐ ${strategy} — the release names the plan's first target`);
+
+      const zero = withProjectedBalances(releaseStore(strategy, { zeroEstimate: true }), true);
+      eq(zero.debts.find((d) => d.id === 'x')?.balance, 0, `the ${strategy} fixture's StoreCard really projects to $0`);
+      eq(selectReserveRelease(zero)?.targetName, `your ${planTargetOf(zero)}`, `⛔ L1-2 · ${strategy} — a debt whose estimate reached $0 is not where the money goes`);
+
+      const lost = withProjectedBalances(releaseStore(strategy, { chaseApr: '' }), true);
+      const refuses = !mayClaim(lost, 'paycheck-plan');
+      eq(refuses, strategy === 'avalanche', `the fixture: on ${strategy} a lost rate ${strategy === 'avalanche' ? 'DOES' : 'does NOT'} poison the plan's claim`);
+      eq(
+        selectReserveRelease(lost)?.targetName,
+        refuses ? 'your debt' : `your ${planTargetOf(lost)}`,
+        `⛔ FX-5 · ${strategy} — over a rate the app could not read, the release names no debt the plan cannot vouch for`,
+      );
+
+      // ⛔ L1-2's FALLBACK — below the bills the plan funds no snowball row (`probe-844-fallback`: $200–$600), and the name comes
+      // from `payoffOrder`, which lists the $0 estimate last. The pre-fix rank of `liveDebts` named StoreCard here on snowball.
+      const short = withProjectedBalances(releaseStore(strategy, { zeroEstimate: true, amount: '400' }), true);
+      eq(planTargetOf(short), undefined, `the ${strategy} fixture really funds no snowball at $400, or the row below tests the plan's row instead`);
+      // ⚠️ Named from the fixture, never from `payoffOrder`: a row whose expected side reads the function under test redded for the
+      // wrong reason when that function was planted (8.4.4 plant 03). Snowball ranks Visa ($3,000) first, avalanche Chase (22%).
+      const firstOwing = strategy === 'avalanche' ? 'Chase' : 'Visa';
+      eq(selectReserveRelease(short)?.targetName, `your ${firstOwing}`, `⛔ L1-2 · ${strategy} — with no plan target, the release still never names the $0 estimate`);
+      eq(payoffOrder(short).focus?.name, firstOwing, `⛔ L1-R1 · ${strategy} — the focus is a debt still owing, never the $0 estimate`);
+
+      // ⛔ L1-R1 — Money's sections, built as `money.tsx` builds them: active is the view's order on the projection, unread and paid
+      // off are `partitionDebts` on the raw store. The $0 estimate dropped out of all three.
+      for (const tier of subscriptionTiers()) {
+        const raw: DebtStore = { ...releaseStore(strategy, { zeroEstimate: true }), subscriptionPlan: tier };
+        const projected = withProjectedBalances(raw, tier === 'premium');
+        const view = selectPayoffView(projected);
+        const { unreadBalance, cleared } = partitionDebts(raw);
+        eq(
+          [...view.order, ...unreadBalance, ...cleared].map((d) => d.id).sort().join(),
+          raw.debts.map((d) => d.id).sort().join(),
+          `⛔ L1-R1 · ${strategy} · ${tier} — every debt is on exactly one of Money's sections`,
+        );
+        if (tier !== 'premium') continue;
+        eq(view.order[view.order.length - 1]?.id, 'x', `⛔ L1-R1 · ${strategy} — the $0 estimate is listed after every debt still owing`);
+        eq(view.focus?.name, planTargetOf(projected), `⛔ L1-R1 · ${strategy} — Money's "pay next" is where the plan's money goes, never the $0 estimate`);
+      }
+    }
   }
 
   /**

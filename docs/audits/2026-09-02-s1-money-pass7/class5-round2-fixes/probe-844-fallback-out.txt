@@ -1,0 +1,30 @@
+premium snowball  $200  · x=0 · snowball=— · release=your Visa · brief names — · order=vcx focus=v · sections=cvx
+        brief: Looks clear this paycheck | About $200 after everything required — this paycheck keeps all of it as your cushion, right at your $200 line. I’m holding a small safety net while I get to know your expenses. | Nudge your li
+premium snowball  $400  · x=0 · snowball=— · release=your Visa · brief names — · order=vcx focus=v · sections=cvx
+        brief: Looks clear this paycheck | About $400 after everything required — this paycheck keeps all of it as your cushion, right at your $200 line. I’m holding a small safety net while I get to know your expenses. | Nudge your li
+premium snowball  $600  · x=0 · snowball=— · release=your Visa · brief names — · order=vcx focus=v · sections=cvx
+        brief: Looks clear this paycheck | About $600 after everything required — this paycheck keeps all of it as your cushion, right at your $200 line. I’m holding a small safety net while I get to know your expenses. | Nudge your li
+premium snowball  $800  · x=0 · snowball=Visa · release=your Visa · brief names Visa · order=vcx focus=v · sections=cvx
+premium snowball  $1100 · x=0 · snowball=Visa · release=your Visa · brief names Visa · order=vcx focus=v · sections=cvx
+premium snowball  $3000 · x=0 · snowball=Visa · release=your Visa · brief names Visa · order=vcx focus=v · sections=cvx
+premium avalanche $200  · x=0 · snowball=— · release=your Chase · brief names — · order=cvx focus=c · sections=cvx
+        brief: Looks clear this paycheck | About $200 after everything required — this paycheck keeps all of it as your cushion, right at your $200 line. I’m holding a small safety net while I get to know your expenses. | Nudge your li
+premium avalanche $400  · x=0 · snowball=— · release=your Chase · brief names — · order=cvx focus=c · sections=cvx
+        brief: Looks clear this paycheck | About $400 after everything required — this paycheck keeps all of it as your cushion, right at your $200 line. I’m holding a small safety net while I get to know your expenses. | Nudge your li
+premium avalanche $600  · x=0 · snowball=— · release=your Chase · brief names — · order=cvx focus=c · sections=cvx
+        brief: Looks clear this paycheck | About $600 after everything required — this paycheck keeps all of it as your cushion, right at your $200 line. I’m holding a small safety net while I get to know your expenses. | Nudge your li
+premium avalanche $800  · x=0 · snowball=Chase · release=your Chase · brief names Chase · order=cvx focus=c · sections=cvx
+premium avalanche $1100 · x=0 · snowball=Chase · release=your Chase · brief names Chase · order=cvx focus=c · sections=cvx
+premium avalanche $3000 · x=0 · snowball=Chase · release=your Chase · brief names Chase · order=cvx focus=c · sections=cvx
+free    snowball  $200  · x=100 · snowball=StoreCard · release=undefined · brief names — · order=xvc focus=x · sections=cvx
+free    snowball  $400  · x=100 · snowball=StoreCard · release=undefined · brief names — · order=xvc focus=x · sections=cvx
+free    snowball  $600  · x=100 · snowball=StoreCard · release=undefined · brief names — · order=xvc focus=x · sections=cvx
+free    snowball  $800  · x=100 · snowball=StoreCard · release=undefined · brief names — · order=xvc focus=x · sections=cvx
+free    snowball  $1100 · x=100 · snowball=StoreCard · release=undefined · brief names — · order=xvc focus=x · sections=cvx
+free    snowball  $3000 · x=100 · snowball=StoreCard · release=undefined · brief names — · order=xvc focus=x · sections=cvx
+free    avalanche $200  · x=100 · snowball=Chase · release=undefined · brief names — · order=cxv focus=c · sections=cvx
+free    avalanche $400  · x=100 · snowball=Chase · release=undefined · brief names — · order=cxv focus=c · sections=cvx
+free    avalanche $600  · x=100 · snowball=Chase · release=undefined · brief names — · order=cxv focus=c · sections=cvx
+free    avalanche $800  · x=100 · snowball=Chase · release=undefined · brief names — · order=cxv focus=c · sections=cvx
+free    avalanche $1100 · x=100 · snowball=Chase · release=undefined · brief names — · order=cxv focus=c · sections=cvx
+free    avalanche $3000 · x=100 · snowball=Chase · release=undefined · brief names — · order=cxv focus=c · sections=cvx

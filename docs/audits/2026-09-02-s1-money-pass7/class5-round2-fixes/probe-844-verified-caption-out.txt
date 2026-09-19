@@ -1,0 +1,5 @@
+Chase Freedom · raw: bal 0 isEstimate=false "verified" · NOT in view.order
+Visa          · raw: bal 2909.51 isEstimate=true "estimated · verify soon" · handed (what DebtRow gets): bal 2909.51 isEstimate=true staleness=stale "estimated · verify soon" · anchor raw 2026-06-26 → handed 2026-08-26
+Card+dated    · raw: bal 0 isEstimate=true "estimated · verify soon" · NOT in view.order
+Visa-undated  · raw: bal 2909.51 isEstimate=false "verified" · handed (what DebtRow gets): bal 2909.51 isEstimate=false staleness=fresh "verified" · anchor raw 2026-06-26 → handed 2026-08-26
+Auto Loan     · raw: bal 9800 isEstimate=false "verified" · handed (what DebtRow gets): bal 9800 isEstimate=false staleness=fresh "verified" · anchor raw 2026-08-26 → handed 2026-08-26

@@ -1491,7 +1491,7 @@
       "unfix": [
         {
           "at": "scripts/check-trust-claims.ts",
-          "find": "const MAX_LIVENESS_SITES = 22;",
+          "find": "const MAX_LIVENESS_SITES = 21;",
           "replace": "const MAX_LIVENESS_SITES = Object.values(LIVENESS_OPEN).reduce((n, r) => n + r.sites, 0);"
         }
       ],

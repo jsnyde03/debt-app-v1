@@ -1,0 +1,9 @@
+{
+  "worktree": "C:/Users/Jason/debt-app-v1",
+  "app_plants": [
+    ["apps/rn/src/store/payoffSelectors.ts", "  const { order, focus } = payoffOrder(store);", "  const order = rankDebts(liveDebts, store.payoffStrategy); const focus = order[0] ?? null;"]
+  ],
+  "runs": [
+    {"name": "E-L1-R1 exact revert (run 2) - must RED on 'the provisional payoff is listed on Money'", "spec": "celebration.spec.ts", "grep": "a provisional payoff stays on Money"}
+  ]
+}

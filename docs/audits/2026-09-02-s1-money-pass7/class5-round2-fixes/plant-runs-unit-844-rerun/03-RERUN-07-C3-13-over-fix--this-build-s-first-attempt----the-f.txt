@@ -1,0 +1,13 @@
+plant=RERUN 07 C3-13 over-fix (this build's first attempt) - the fallback drops every $0 estimate
+file=C:/Users/Jason/debt-app-v1/apps/rn/src/store/guardianSelectors.ts
+applied=True
+exit=1
+verdict=MATCHED
+missing=[]
+restored=True
+
+Error: ⛔ C3-13 · premium · $100 left · projects to $0 · the reserve release's target — a projection answers liveness from the confirmed balance — expected "your Chase", got "your debt"
+    at fail (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:39:9)
+    at eq (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:42:28)
+    at Object.run (C:\Users\Jason\debt-app-v1\apps\rn\src\store\trustSelectors.test.ts:1377:9)
+    at <anonymous> (C:\Users\Jason\debt-app-v1\docs\audits\2026-09-02-s1-money-pass7\class5-reaudit-probes\L3\run-trust-test.ts:11:13)

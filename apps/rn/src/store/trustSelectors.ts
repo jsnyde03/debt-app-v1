@@ -117,6 +117,19 @@ export function liveDebts(store: DebtStore): Debt[] {
 }
 
 /**
+ * `liveDebts`, split by what the ESTIMATE says: still owing, or already reading `$0`. [class 5 R2 `L1-R1` · `L1-2`]
+ *
+ * The second group is live — confirmed above `$0` — so it may never be dropped, and it may never be where the next dollar goes.
+ * Rank from `payoffOrder`, which puts it last; do not re-spell `balance > 0` over `liveDebts` at a call site. Empty on a raw store.
+ */
+export function liveByEstimate(store: DebtStore): { owing: Debt[]; estimateCleared: Debt[] } {
+  const owing: Debt[] = [];
+  const estimateCleared: Debt[] = [];
+  for (const d of liveDebts(store)) (d.balance > 0 ? owing : estimateCleared).push(d);
+  return { owing, estimateCleared };
+}
+
+/**
  * ⛔ **THE COMPLEMENT OWNER — *"which debts are CLEARED?"* — AND IT IS A PARTITION, NOT A SECOND FILTER.**
  * [S1.11.4.2 · pass-4 blocker `C4-2`]
  *
